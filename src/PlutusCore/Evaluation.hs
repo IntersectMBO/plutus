@@ -51,7 +51,7 @@ matchClauses (Clause p sc:cs) v =
 instance Eval (Env String Term) Term where
   eval (Var v) =
     return $ Var v
-  eval (In (Defined x)) =
+  eval (In (Decname x)) =
     do env <- environment
        case lookup x env of
          Nothing -> throwError $ "Unknown constant/defined term: " ++ x

@@ -25,12 +25,14 @@ import Data.List (intercalate)
 
 
 
--- | There are five kinds of terms, an annotated term @M : T@, a lambda term
--- @\\x -> M@, an application term @M N@, a constructor term @C M0 ... Mn@, and
--- a case term @case M0 || ... || Mn of p0* -> N0 | ... | pm* -> Nm end@.
+-- | There are ten kinds of terms, declared names @decname[n]@, let
+-- expressions @let(e1;x.e2)@, lambdas @lam(x.e)@, application @app(e1;e2)@,
+-- constructor terms @con[n](e*)@, case expressions @case(e;c*)@, success
+-- expressions @success(e)@, failure expressions @failure@, computation
+-- binds @bind(e1;x.e2)@, and finally, built-ins @builtin[n](e*)@.
 
 data TermF r
-  = Defined String
+  = Decname String
   | Let r r
   | Lam r
   | App r r
@@ -77,7 +79,7 @@ data Declaration = Declaration String Term
 
 
 defined :: String -> Term
-defined n = In (Defined n)
+defined n = In (Decname n)
 
 letH :: Term -> String -> Term -> Term
 letH m x n = In (Let (scope [] m) (scope [x] n))
@@ -130,7 +132,7 @@ instance Parens Term where
 
   parenRec (Var v) =
     name v
-  parenRec (In (Defined n)) = "defined[" ++ n ++ "]"
+  parenRec (In (Decname n)) = "defined[" ++ n ++ "]"
   parenRec (In (Let m n)) =
     "let("
     ++ parenthesize Nothing (instantiate0 m)
