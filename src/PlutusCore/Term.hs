@@ -37,7 +37,7 @@ data TermF r
   | Lam r
   | App r r
   | Con String [r]
-  | Case r [ClauseF r]
+  | Case [r] [ClauseF r]
   | Success r
   | Failure
   | Bind r r
@@ -51,7 +51,7 @@ type Term = ABT TermF
 -- | Clauses are a component of terms that have bunch of pattern scopes
 -- together with a clause body.
 
-data ClauseF r = Clause (Scope PatternF) r
+data ClauseF r = Clause [Scope PatternF] r
   deriving (Functor,Foldable)
 
 
@@ -67,19 +67,11 @@ data PatternF r = ConPat String [r]
 type Pattern = ABT PatternF
 
 
--- | Programs are collections of declarations.
-
-newtype Program = Program [Declaration]
-
-
--- | Declarations are just names with definitions.
-
-data Declaration = Declaration String Term
 
 
 
-defined :: String -> Term
-defined n = In (Decname n)
+decnameH :: String -> Term
+decnameH n = In (Decname n)
 
 letH :: Term -> String -> Term -> Term
 letH m x n = In (Let (scope [] m) (scope [x] n))
@@ -93,11 +85,11 @@ appH f x = In (App (scope [] f) (scope [] x))
 conH :: String -> [Term] -> Term
 conH c xs = In (Con c (map (scope []) xs))
 
-caseH :: Term -> [Clause] -> Term
-caseH a cs = In (Case (scope [] a) cs)
+caseH :: [Term] -> [Clause] -> Term
+caseH as cs = In (Case (map (scope []) as) cs)
 
-clauseH :: [String] -> Pattern -> Term -> Clause
-clauseH vs p b = Clause (scope vs p) (scope vs b)
+clauseH :: [String] -> [Pattern] -> Term -> Clause
+clauseH vs ps b = Clause (map (scope vs) ps) (scope vs b)
 
 conPatH :: String -> [Pattern] -> Pattern
 conPatH c xs = In (ConPat c (map (scope []) xs))
@@ -156,17 +148,17 @@ instance Parens Term where
            ";"
            (map (parenthesize Nothing . instantiate0) as)
       ++ ")"
-  parenRec (In (Case a cs)) =
+  parenRec (In (Case as cs)) =
     "case("
-      ++ parenthesize Nothing (body a)
+      ++ intercalate "," (map (parenthesize Nothing . body) as)
       ++ ";"
       ++ intercalate "," (map auxClause cs)
       ++ ")"
     where
       auxClause :: Clause -> String
-      auxClause (Clause p sc) =
+      auxClause (Clause ps sc) =
         "cl("
-        ++ parenthesize Nothing (body p)
+        ++ intercalate "," (map (parenthesize Nothing . body) ps)
         ++ ";"
         ++ parenthesize Nothing (body sc)
         ++ ")"

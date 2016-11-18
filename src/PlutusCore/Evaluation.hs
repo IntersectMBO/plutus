@@ -34,12 +34,15 @@ matchPattern (In (ConPat c ps)) (In (Con c' as))
     fmap concat (zipWithM matchPattern (map body ps) (map body as))
 matchPattern _ _ = Nothing
 
-matchClauses :: [Clause] -> Term -> Maybe Term
+matchPatterns :: [Pattern] -> [Term] -> Maybe [Term]
+matchPatterns ps zs = fmap concat (zipWithM matchPattern ps zs)
+
+matchClauses :: [Clause] -> [Term] -> Maybe Term
 matchClauses [] _ =
   Nothing
-matchClauses (Clause p sc:cs) v =
-  case matchPattern (body p) v of
-    Nothing -> matchClauses cs v
+matchClauses (Clause pscs sc:cs) vs =
+  case matchPatterns (map body pscs) vs of
+    Nothing -> matchClauses cs vs
     Just xs -> Just (instantiate sc xs)
 
 
@@ -70,10 +73,10 @@ instance Eval (Env String Term) Term where
   eval (In (Con c as)) =
     do eas <- mapM (eval . instantiate0) as
        return $ conH c eas
-  eval (In (Case m cs)) =
-    do em <- eval (instantiate0 m)
-       case matchClauses cs em of
-         Nothing -> throwError $ "Incomplete pattern match: " ++ pretty (In (Case m cs))
+  eval (In (Case ms cs)) =
+    do ems <- mapM (eval . instantiate0) ms
+       case matchClauses cs ems of
+         Nothing -> throwError $ "Incomplete pattern match: " ++ pretty (In (Case ms cs))
          Just b  -> eval b
   eval (In (Success m)) =
     do em <- eval (instantiate0 m)

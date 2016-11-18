@@ -18,11 +18,23 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     PlutusCore.Term,
-                       PlutusCore.Evaluation
+                       PlutusCore.Evaluation,
+                       PlutusCore.Program,
+                       Plutus.Type,
+                       Plutus.Term,
+                       Plutus.ConSig,
+                       Plutus.Program,
+                       Plutus.Parser,
+                       Elaboration.Elaborator,
+                       Elaboration.Unification,
+                       Elaboration.TypeChecking,
+                       Elaboration.Elaboration,
+                       Elaboration.REPL
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9,
                        bifunctors,
+                       lens,
                        mtl,
                        parsec,
                        transformers
