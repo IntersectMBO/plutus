@@ -30,4 +30,6 @@ now interact with a sparse little REPL:
 
 ## To Do / Notes
 
-
+- Indent/whitespace parsing
+- Primitive types and built-in functions
+  needs consensus from Serokell team
