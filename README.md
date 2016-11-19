@@ -32,13 +32,3 @@ now interact with a sparse little REPL:
 
 - Update the spec w/ the new subtyping rules
 - Update the spec to fix Yoichi's issues
-- Known bug to fix:
-  
-    $> Cons True (Cons Zero Nil)
-    con[Cons](con[True]();con[Cons](con[Zero]();con[Nil]()))
-    
-    $> Cons Zero Nil : List Bool
-    con[Cons](con[Zero]();con[Nil]())
-  
-  These should cause a type error b/c of the type mismatch. Neither seems to
-  be causing a problem in the REPL.

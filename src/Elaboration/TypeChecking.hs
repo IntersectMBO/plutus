@@ -460,8 +460,10 @@ checkify (In (Con c as)) b =
        $ throwError $ c ++ " expects " ++ show largs' ++ " "
                  ++ (if largs' == 1 then "arg" else "args")
                  ++ " but was given " ++ show las
-     as' <- checkifyMulti (map instantiate0 as) args'
      unify substitution context b ret'
+     subs <- getElab substitution
+     as' <- checkifyMulti (map instantiate0 as)
+                          (map (substMetas subs) args')
      return $ Core.conH c as'
 checkify (In (Success m)) (In (Comp a)) =
   do m' <- checkify (instantiate0 m) (instantiate0 a)
