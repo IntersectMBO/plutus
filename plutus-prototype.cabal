@@ -29,7 +29,8 @@ library
                        Elaboration.Unification,
                        Elaboration.TypeChecking,
                        Elaboration.Elaboration,
-                       Elaboration.REPL
+                       Elaboration.REPL,
+                       Elaboration.Integration
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9,
