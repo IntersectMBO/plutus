@@ -58,7 +58,7 @@ repl src0 = case loadProgram src0 of
     loadTerm sig defs ctx env src =
       do tm0 <- parseTerm src
          let tm = freeToDefined (In . Decname) tm0
-         case runElaborator (infer tm) sig defs ctx of
+         case runElaborator (synth tm) sig defs ctx of
            Left e -> Left e
            Right ((tm',_),_) -> runReaderT (eval tm') env
     

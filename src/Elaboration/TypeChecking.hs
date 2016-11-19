@@ -190,10 +190,10 @@ instantiateQuantifiers t = return t
 
 
 
--- | Type inference corresponds to the judgment @Γ ⊢ M ▹ M' ∈ A@. This throws
--- a Haskell error when trying to infer the type of a bound variable, because
--- all bound variables should be replaced by free variables during this part
--- of type checking.
+-- | Type synthesis corresponds to the judgment @Γ ⊢ M ▹ M' ∈ A@. This throws
+-- a Haskell error when trying to synthesize the type of a bound variable,
+-- because all bound variables should be replaced by free variables during
+-- this part of type checking.
 --
 -- The judgment @Γ ⊢ M ▹ M' ∈ A@ is defined inductively as follows:
 --
@@ -226,10 +226,10 @@ instantiateQuantifiers t = return t
 --    Σ ⊢ !n M0 ... Mk ▹ builtin[n](M'0,...,M'k) ∈ B
 -- @
 --
--- Functions are not officially inferrable but they're supported here to be as
--- user friendly as possible. Successful inferrence relies on the unification
--- mechanism to fully instantiate the variable's type. The pseudo-rule that
--- is used below is
+-- Functions are not officially synthesizable but they're supported here to be
+-- as user friendly as possible. Successful synthesis relies on the
+-- unification mechanism to fully instantiate the variable's type. The
+-- pseudo-rule that is used below is
 --
 -- @
 --       Γ, x : A ⊢ M ▹ M' ∈ B
@@ -247,34 +247,35 @@ instantiateQuantifiers t = return t
 --    Σ ⊢ B' ∋ n M0 ... Mn ▹ con[n](M'0,...,M'n)
 -- @
 
-inferify :: Term -> TypeChecker (Core.Term, Type)
-inferify (Var (Bound _ _)) =
-  error "A bound variable should never be the subject of type inference."
-inferify (Var (Free n)) =
+synthify :: Term -> TypeChecker (Core.Term, Type)
+synthify (Var (Bound _ _)) =
+  error "A bound variable should never be the subject of type synthesis."
+synthify (Var (Free n)) =
   do t <- typeInContext n
      return (Var (Free n), t)
-inferify (Var (Meta _)) =
-  error "Metavariables should not be the subject of type inference."
-inferify (In (Decname x)) =
+synthify (Var (Meta _)) =
+  error "Metavariables should not be the subject of type synthesis."
+synthify (In (Decname x)) =
   do t <- typeInDefinitions x
      return (Core.decnameH x, t)
-inferify (In (Ann m t)) =
+synthify (In (Ann m t)) =
   do isType t
      m' <- checkify (instantiate0 m) t
      subs <- getElab substitution
      return (m', substMetas subs t)
-inferify m@(In (Let _ _ _)) =
-  throwError $ "Cannot infer the type of the let expression: " ++ pretty m
-inferify (In (Lam sc)) =
+synthify m@(In (Let _ _ _)) =
+  throwError $ "Cannot synthesize the type of the let expression: "
+            ++ pretty m
+synthify (In (Lam sc)) =
   do [n@(FreeVar v)] <- freshRelTo (names sc) context
      meta <- nextElab nextMeta
      let arg = Var (Meta meta)
      (m,ret) <- extendElab context [(n, arg)]
-                $ inferify (instantiate sc [Var (Free n)])
+                $ synthify (instantiate sc [Var (Free n)])
      subs <- getElab substitution
      return (Core.lamH v m, funH (substMetas subs arg) ret)
-inferify (In (App f a)) =
-  do (f', t) <- inferify (instantiate0 f)
+synthify (In (App f a)) =
+  do (f', t) <- synthify (instantiate0 f)
      t' <- instantiateQuantifiers t
      case t' of
        In (Fun arg ret) -> do
@@ -284,7 +285,7 @@ inferify (In (App f a)) =
        _ -> throwError $ "Expected a function type when checking"
                       ++ " the expression: " ++ pretty (instantiate0 f)
                       ++ "\nbut instead found: " ++ pretty t'
-inferify (In (Con c as)) =
+synthify (In (Con c as)) =
   do ConSig argscs retsc <- typeInSignature c
      (args',ret') <- instantiateParams argscs retsc
      let las = length as
@@ -296,17 +297,20 @@ inferify (In (Con c as)) =
      as' <- checkifyMulti (map instantiate0 as) args'
      subs <- getElab substitution
      return (Core.conH c as', substMetas subs ret')
-inferify (In (Case ms cs)) =
-  do (ms', as) <- unzip <$> mapM (inferify.instantiate0) ms
-     (cs', b) <- inferifyClauses as cs
+synthify (In (Case ms cs)) =
+  do (ms', as) <- unzip <$> mapM (synthify.instantiate0) ms
+     (cs', b) <- synthifyClauses as cs
      return (Core.caseH ms' cs', b)
-inferify m@(In (Success _)) =
-  throwError $ "Cannot infer the type of the success expression: " ++ pretty m
-inferify m@(In Failure) =
-  throwError $ "Cannot infer the type of the failure expression: " ++ pretty m
-inferify m@(In (Bind _ _)) =
-  throwError $ "Cannot infer the type of the bind expression: " ++ pretty m
-inferify (In (Builtin n as)) =
+synthify m@(In (Success _)) =
+  throwError $ "Cannot synthesize the type of the success expression: "
+            ++ pretty m
+synthify m@(In Failure) =
+  throwError $ "Cannot synthesize the type of the failure expression: "
+            ++ pretty m
+synthify m@(In (Bind _ _)) =
+  throwError $ "Cannot synthesize the type of the bind expression: "
+            ++ pretty m
+synthify (In (Builtin n as)) =
   do ConSig argscs retsc <- builtinInSignature n
      (args',ret') <- instantiateParams argscs retsc
      let las = length as
@@ -323,7 +327,7 @@ inferify (In (Builtin n as)) =
 
 
 
--- | Type inference for clauses corresponds to the judgment
+-- | Type synthesis for clauses corresponds to the judgment
 -- @Σ;Δ;Γ ⊢ P* → M ▹ M' from A* to B@.
 --
 -- The judgment @Σ;Δ;Γ ⊢ P* → M ▹ M' from A* to B@ is defined as follows:
@@ -335,8 +339,8 @@ inferify (In (Builtin n as)) =
 --    Σ ; Δ ; Γ ⊢ P0 | ... | Pk → M ▹ M' from A0,...,Ak to B
 -- @
 
-inferifyClause :: [Type] -> Clause -> TypeChecker (Core.Clause, Type)
-inferifyClause patTys (Clause pscs sc) =
+synthifyClause :: [Type] -> Clause -> TypeChecker (Core.Clause, Type)
+synthifyClause patTys (Clause pscs sc) =
   do let lps = length pscs
      unless (length patTys == lps)
        $ throwError $ "Mismatching number of patterns. Expected "
@@ -351,7 +355,7 @@ inferifyClause patTys (Clause pscs sc) =
                return (n,Var (Meta m))
      (m',a) <- extendElab context ctx' $ do
                  zipWithM_ checkifyPattern ps patTys
-                 inferify (instantiate sc xs2)
+                 synthify (instantiate sc xs2)
      return ( Core.clauseH [ n | FreeVar n <- ns ]
                            (map convertPattern ps)
                            m'
@@ -367,12 +371,12 @@ inferifyClause patTys (Clause pscs sc) =
 
 
 
--- | The monadic generalization of 'inferClause', ensuring that there's at
+-- | The monadic generalization of 'synthClause', ensuring that there's at
 -- least one clause to check, and that all clauses have the same result type.
 
-inferifyClauses :: [Type] -> [Clause] -> TypeChecker ([Core.Clause], Type)
-inferifyClauses patTys cs =
-  do (cs',ts) <- unzip <$> mapM (inferifyClause patTys) cs
+synthifyClauses :: [Type] -> [Clause] -> TypeChecker ([Core.Clause], Type)
+synthifyClauses patTys cs =
+  do (cs',ts) <- unzip <$> mapM (synthifyClause patTys) cs
      case ts of
        [] -> throwError "Empty clauses."
        t:ts' -> do
@@ -477,7 +481,7 @@ checkify (In Failure) a =
   throwError $ "Cannot check term: " ++ pretty (In Failure) ++ "\n"
             ++ "Against non-computation type: " ++ pretty a
 checkify (In (Bind m sc)) (In (Comp b)) =
-  do (m',ca) <- inferify (instantiate0 m)
+  do (m',ca) <- synthify (instantiate0 m)
      case ca of
        In (Comp a) -> do
          [v@(FreeVar x)] <- freshRelTo (names sc) context
@@ -492,7 +496,7 @@ checkify (In (Bind m sc)) b =
   throwError $ "Cannot check term: " ++ pretty (In (Bind m sc)) ++ "\n"
             ++ "Against non-computation type: " ++ pretty b
 checkify m t =
-  do (m',t') <- inferify m
+  do (m',t') <- synthify m
      subtype t' t
      return m'
 
@@ -614,7 +618,7 @@ checkifyPattern (In (ConPat c ps)) t =
 -- Because of the ABT representation, however, the scope is pushed down inside
 -- the 'ConSig' constructor, onto its arguments.
 --
--- This inference rule is not part of the spec proper, but rather is a
+-- This synthesis rule is not part of the spec proper, but rather is a
 -- convenience method for the elaboration process because constructor
 -- signatures are already a bunch of information in the implementation.
 
@@ -654,11 +658,11 @@ check m t = do m' <- checkify m t
 
 
 
--- | Infering is just inferifying with a requirement that all metas have been
+-- | Synthesis is just synthifying with a requirement that all metas have been
 -- solved. The returned type is instantiated with the solutions.
 
-infer :: Term -> TypeChecker (Core.Term,Type)
-infer m = do (m',t) <- inferify m
+synth :: Term -> TypeChecker (Core.Term,Type)
+synth m = do (m',t) <- synthify m
              metasSolved
              subs <- getElab substitution
              return (m', substMetas subs t)
