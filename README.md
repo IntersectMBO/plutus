@@ -30,6 +30,9 @@ now interact with a sparse little REPL:
 
 ## To Do / Notes
 
+NOTE: This implementation lacks primitive types and a specific built-in
+functions, which will be added when consensus is reached on which are desired.
+
 - Indent/whitespace parsing
 - Primitive types and built-in functions
   needs consensus from Serokell team
