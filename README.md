@@ -30,4 +30,4 @@ now interact with a sparse little REPL:
 
 ## To Do / Notes
 
-- Update the spec to fix Yoichi's issues
+
