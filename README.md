@@ -30,5 +30,4 @@ now interact with a sparse little REPL:
 
 ## To Do / Notes
 
-- Update the spec w/ the new subtyping rules
 - Update the spec to fix Yoichi's issues

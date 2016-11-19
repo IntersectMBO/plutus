@@ -528,13 +528,13 @@ checkifyMulti _ _ =
 -- corresponds to the judgment @S ⊑ T@ which is defined inductively as:
 --
 -- @
---     S ⊑ T
+--     A ⊑ B
 --    --------
---    S ⊑ ∀α.T
+--    A ⊑ ∀α.B
 --
---    [A/α]S ⊑ T
+--    [T/α]A ⊑ B
 --    ----------
---     ∀α.S ⊑ T
+--     ∀α.A ⊑ B
 --
 --    A' ⊑ A   B ⊑ B'
 --    ---------------
