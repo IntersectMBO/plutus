@@ -178,8 +178,14 @@ elabTypeDecl (TypeDeclaration tycon params alts) =
 --               Σ ; Δ ⊢ x : A { M } ; P ⊣ Σ'' ; Δ''
 -- @
 
-elabProgram :: Program -> Elaborator ()
-elabProgram (Program stmts0) = go stmts0
+elabProgram :: Program -> Elaborator Core.Program
+elabProgram (Program stmts0) =
+  do go stmts0
+     defs <- getElab definitions
+     return $ Core.Program
+                [ Core.TermDeclaration n def
+                | (n,(def,_)) <- defs
+                ]
   where
     go :: [Statement] -> Elaborator ()
     go [] = return ()
