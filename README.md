@@ -36,4 +36,3 @@ functions, which will be added when consensus is reached on which are desired.
 - Indent/whitespace parsing
 - Primitive types and built-in functions
   needs consensus from Serokell team
-- Improve the binder system to remove explicit context manipulation
