@@ -405,11 +405,11 @@ synthifyClauses patTys cs =
 -- The judgment @Γ ⊢ A ∋ M ▹ M'@ is defined inductively as follows:
 --
 -- @
---    Γ, ⊢ A type
+--    Γ ⊢ A type
 --    Γ ⊢ A ∋ M ▹ M'
 --    Γ, x : A ⊢ B ∋ N ▹ N'
 --    ------------------------------------------- let
---    Γ ⊢ B ∋ let x : B { M } in N ▹ let(M';x.N')
+--    Γ ⊢ B ∋ let x : A { M } in N ▹ let(M';x.N')
 --
 --       Γ, x : A ⊢ B ∋ M ▹ M'
 --    --------------------------- lambda
