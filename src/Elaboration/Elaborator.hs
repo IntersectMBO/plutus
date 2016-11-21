@@ -78,7 +78,7 @@ type Context = [(FreeVar,Type)]
 
 -- | A type variable context contains the names of free type variables.
 
-type TyVarContext = [FreeVar]
+type TyVarContext = [(FreeVar,())]
 
 
 

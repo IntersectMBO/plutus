@@ -94,8 +94,9 @@ typeInContext x@(FreeVar n) =
 tyVarExists :: FreeVar -> TypeChecker ()
 tyVarExists x@(FreeVar n) =
   do tyVarCtx <- getElab tyVarContext
-     unless (x `elem` tyVarCtx)
-       $ throwError $ "Unbound type variable: " ++ n
+     case lookup x tyVarCtx of
+       Nothing -> throwError $ "Unbound type variable: " ++ n
+       Just _ -> return ()
 
 
 
@@ -145,10 +146,9 @@ isType (In (Fun a b)) =
   do isType (instantiate0 a)
      isType (instantiate0 b)
 isType (In (Forall sc)) =
-  do ns <- freshRelTo (names sc) context
-     let xs = map (Var . Free) ns
-     extendElab tyVarContext ns
-       $ isType (instantiate sc xs)
+  do ([x],_,a) <- open tyVarContext sc
+     extendElab tyVarContext [(x,())]
+       $ isType a
 isType (In (Comp a)) =
   isType (instantiate0 a)
 
@@ -267,13 +267,15 @@ synthify m@(In (Let _ _ _)) =
   throwError $ "Cannot synthesize the type of the let expression: "
             ++ pretty m
 synthify (In (Lam sc)) =
-  do [n@(FreeVar v)] <- freshRelTo (names sc) context
-     meta <- nextElab nextMeta
+  do meta <- nextElab nextMeta
      let arg = Var (Meta meta)
-     (m,ret) <- extendElab context [(n, arg)]
-                $ synthify (instantiate sc [Var (Free n)])
+     ([x],[n],m) <- open context sc
+     (m',ret) <- extendElab context [(x,arg)]
+                   $ synthify m
      subs <- getElab substitution
-     return (Core.lamH v m, funH (substMetas subs arg) ret)
+     return ( Core.lamH n m'
+            , substMetas subs (funH arg ret)
+            )
 synthify (In (App f a)) =
   do (f', t) <- synthify (instantiate0 f)
      t' <- instantiateQuantifiers t
@@ -346,20 +348,25 @@ synthifyClause patTys (Clause pscs sc) =
        $ throwError $ "Mismatching number of patterns. Expected "
                    ++ show (length patTys)
                    ++ " but found " ++ show lps
-     ns <- freshRelTo (names sc) context
-     let xs1 = map (Var . Free) ns
-         xs2 = map (Var . Free) ns
-         ps = map (\psc -> instantiate psc xs1) pscs
-     ctx' <- forM ns $ \n -> do
-               m <- nextElab nextMeta
-               return (n,Var (Meta m))
-     (m',a) <- extendElab context ctx' $ do
-                 zipWithM_ checkifyPattern ps patTys
-                 synthify (instantiate sc xs2)
-     return ( Core.clauseH [ n | FreeVar n <- ns ]
-                           (map convertPattern ps)
-                           m'
-            , a
+     metas <- replicateM (length (names sc))
+                         (nextElab nextMeta)
+     let args = [ Var (Meta meta) | meta <- metas ]
+     pscs' <- forM (zip pscs patTys) $ \(psc,patTy) -> do
+                subs <- getElab substitution
+                (xs,ns,p) <- open context psc
+                p' <- extendElab
+                        context
+                        (zip xs (map (substMetas subs) args))
+                        $ do checkifyPattern p (substMetas subs patTy)
+                             return (convertPattern p)
+                return $ scope ns p'
+     subs <- getElab substitution
+     (xs,ns,m) <- open context sc
+     (m',ret) <- extendElab context (zip xs (map (substMetas subs) args))
+                   $ synthify m
+     subs' <- getElab substitution
+     return ( Core.Clause pscs' (scope ns m')
+            , substMetas subs' ret
             )
   where
     convertPattern :: Pattern -> Core.Pattern
@@ -436,22 +443,20 @@ synthifyClauses patTys cs =
 
 checkify :: Term -> Type -> TypeChecker Core.Term
 checkify m (In (Forall sc)) =
-  do [n] <- freshRelTo (names sc) context
-     extendElab tyVarContext [n]
-       $ checkify m (instantiate sc [Var (Free n)])
+  do ([a],_,b) <- open tyVarContext sc
+     extendElab tyVarContext [(a,())]
+       $ checkify m b
 checkify (In (Let a m sc)) b =
-  do [n@(FreeVar x)] <- freshRelTo (names sc) context
-     m' <- checkify (instantiate0 m) a
-     n' <- extendElab context [(n, a)]
-           $ checkify (instantiate sc [Var (Free n)]) b
-     return $ Core.letH m' x n'
+  do m' <- checkify (instantiate0 m) a
+     ([x],[v],n) <- open context sc
+     n' <- extendElab context [(x,a)]
+             $ checkify n b
+     return $ Core.letH m' v n'
 checkify (In (Lam sc)) (In (Fun arg ret)) =
-  do [n@(FreeVar x)] <- freshRelTo (names sc) context
-     m' <- extendElab context [(n, instantiate0 arg)]
-           $ checkify
-               (instantiate sc [Var (Free n)])
-               (instantiate0 ret)
-     return $ Core.lamH x m'
+  do ([x],[v],m) <- open context sc
+     m' <- extendElab context [(x,instantiate0 arg)]
+             $ checkify m (instantiate0 ret)
+     return $ Core.lamH v m'
 checkify (In (Lam sc)) t =
   throwError $ "Cannot check term: " ++ pretty (In (Lam sc)) ++ "\n"
             ++ "Against non-function type: " ++ pretty t
@@ -484,12 +489,10 @@ checkify (In (Bind m sc)) (In (Comp b)) =
   do (m',ca) <- synthify (instantiate0 m)
      case ca of
        In (Comp a) -> do
-         [v@(FreeVar x)] <- freshRelTo (names sc) context
-         n' <- extendElab context [(v, instantiate0 a)]
-               $ checkify
-                   (instantiate sc [Var (Free v)])
-                   (instantiate0 b)
-         return $ Core.bindH m' x n'
+         do ([x],[v],n) <- open context sc
+            n' <- extendElab context [(x,instantiate0 a)]
+                    $ checkify n (In (Comp b))
+            return $ Core.bindH m' v n'
        _ -> throwError $ "Expected a computation type but found " ++ pretty ca
                       ++ "When checking term " ++ pretty (instantiate0 m)
 checkify (In (Bind m sc)) b =
@@ -545,18 +548,17 @@ checkifyMulti _ _ =
 -- @
 
 subtype :: Type -> Type -> TypeChecker ()
-subtype t (In (Forall sc')) =
-  do [n] <- freshRelTo (names sc') context
-     subtype t (instantiate sc' [Var (Free n)])
-subtype (In (Forall sc)) t' =
+subtype a (In (Forall sc')) =
+  do ([x],_,b) <- open tyVarContext sc'
+     subtype a b
+subtype (In (Forall sc)) b =
   do meta <- nextElab nextMeta
-     let x2 = Var (Meta meta)
-     subtype (instantiate sc [x2]) t'
+     subtype (instantiate sc [Var (Meta meta)]) b
 subtype (In (Fun arg ret)) (In (Fun arg' ret')) =
   do subtype (instantiate0 arg') (instantiate0 arg)
      subtype (instantiate0 ret) (instantiate0 ret')
-subtype t t' =
-  unify substitution context t t'
+subtype a b =
+  unify substitution context a b
 
 
 
@@ -624,11 +626,13 @@ checkifyPattern (In (ConPat c ps)) t =
 
 checkifyConSig :: ConSig -> TypeChecker ()
 checkifyConSig (ConSig argscs retsc) =
-  do ns <- freshRelTo (names retsc) context
-     let xs = map (Var . Free) ns
-     extendElab tyVarContext ns $ do
-       forM_ argscs $ \sc -> isType (instantiate sc xs)
-       isType (instantiate retsc xs)
+  do forM_ argscs $ \argsc -> do
+       (xs,_,a) <- open tyVarContext argsc
+       extendElab tyVarContext [ (x,()) | x <- xs ]
+         $ isType a
+     (xs,_,b) <- open tyVarContext retsc
+     extendElab tyVarContext [ (x,()) | x <- xs ]
+       $ isType b
 
 
 

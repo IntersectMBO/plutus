@@ -15,6 +15,7 @@
 
 module Utils.Elaborator where
 
+import Utils.ABT
 import Utils.Vars
 
 import Control.Lens
@@ -93,3 +94,20 @@ freshRelTo :: MonadState s m
 freshRelTo ns l = do ctx <- getElab l
                      let oldNs = [ n' | (FreeVar n',_) <- ctx ]
                      return $ map FreeVar (freshen oldNs ns)
+
+
+
+
+
+-- | We can open a scope with fresh names relative to any context-like list.
+
+open :: (MonadElab s m, Functor f, Foldable f)
+     => Lens' s [(FreeVar,a)]
+     -> Scope f
+     -> m ([FreeVar], [String], ABT f)
+open l sc =
+  do ns <- freshRelTo (names sc) l
+     let newVars = [ Var (Free n) | n <- ns ]
+         newNames = [ x | FreeVar x <- ns ]
+         m = instantiate sc newVars
+     return (ns, newNames, m)

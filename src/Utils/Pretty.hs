@@ -57,3 +57,10 @@ parenthesize l x =
 
 pretty :: Pretty a => a -> String
 pretty = parenthesize Nothing
+
+
+
+instance Parens () where
+  type Loc () = ()
+  parenLoc () = []
+  parenRec = show
