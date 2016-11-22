@@ -31,7 +31,14 @@ library
                        Elaboration.Elaboration,
                        Elaboration.REPL,
                        Elaboration.Integration
-  -- other-modules:       
+  other-modules:       Utils.ABT,
+                       Utils.Elaborator,
+                       Utils.Env,
+                       Utils.Eval,
+                       Utils.Pretty,
+                       Utils.SuffixParser,
+                       Utils.Unifier,
+                       Utils.Vars
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.10,
                        bifunctors,
