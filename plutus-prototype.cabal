@@ -33,7 +33,7 @@ library
                        Elaboration.Integration
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.8 && <4.9,
+  build-depends:       base >=4.8 && <4.10,
                        bifunctors,
                        lens,
                        mtl,
