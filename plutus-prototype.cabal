@@ -7,7 +7,7 @@ synopsis:            Prototype of the Plutus language
 -- description:         
 homepage:            iohk.io
 license:             AllRightsReserved
-license-file:        LICENSE
+license-file:        LICENSE.txt
 author:              Darryl McAdams
 maintainer:          darryl.mcadams@iohk.io
 -- copyright:           
