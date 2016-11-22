@@ -4,9 +4,9 @@
 name:                plutus-prototype
 version:             0.1.0.0
 synopsis:            Prototype of the Plutus language
--- description:         
+description:         Prototype of the Plutus language
 homepage:            iohk.io
-license:             AllRightsReserved
+license:             MIT
 license-file:        LICENSE.txt
 author:              Darryl McAdams
 maintainer:          darryl.mcadams@iohk.io
@@ -15,6 +15,10 @@ category:            Language
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
+
+source-repository head
+  type:                git
+  location:            git://github.com/input-output-hk/plutus-prototype.git
 
 library
   exposed-modules:     PlutusCore.Term,
