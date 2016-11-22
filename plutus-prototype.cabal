@@ -12,6 +12,7 @@ author:              Darryl McAdams
 maintainer:          darryl.mcadams@iohk.io
 -- copyright:           
 category:            Language
+tested-with:         GHC==7.10.3, GHC==8.0.1
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
