@@ -61,4 +61,7 @@ script:
  - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
    (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
 
-# EOF
+notifications:
+  email: false
+  slack:
+    secure: rR3rUg46Ryj7tTRykonjh/t70ZxX2e+K8uT3OH8ayNk8pArQzEnKu34Xdtt8l7R91QvvB3wwTqZKtNJAHu8tHRdi+cgjVaQACczuOkJzd/AmaDj9kEVOVDBirldwBSs/PYISzsm1L/VWRVO9P0bZpDwrQsZpV4jGKfg1UttqyV1R2CK2/y1wlD2n2LwDhtNih5mVZ/PfXT2FnUCklz7W+rFiPs8mohwN5U2tcgB/GdY77na0WmrL/MYpo3oVOiGvZiKTthYcOElJ/tR1RiKD2rPVwssNyY2LzJDFuxcaszg/s47DcUInIOGLHNlwCBVN26V1080Sz0Kz2mdGAd/NPMivkg++5VHkxjQYixmJkfhrIstnFHUMkxWj8HzpbUxE9+T592XF/mPJFAx53vNa0h6iIBi8pa+0XOdpJ7JtXCq3d251V6lY67SLF0kMH3hzYq7RXsUtx0PtN8Eu2FWcradKPBgMujsR4WjMpH90mjVPxA3TIPZaRfHXSqOUlLVkUuHXlOYysFqsZWfrsjUMewwEWgv9louEUDq74nuaCNaEh17z2b3+j5DhFcYjGkO29XnRvQi1pvF/2DgHDN6UBtKsz3VPQ2qozQPHxRA1uXFKQQaVIzsvbVpoE8i1y/Qo+NVWE+/LnQiN1uL3QLtrTVuaUAA6/RenScocx4bRt0w=
