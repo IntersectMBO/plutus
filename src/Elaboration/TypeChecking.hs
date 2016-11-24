@@ -332,13 +332,14 @@ synthify (In (Builtin n as)) =
 -- | Type synthesis for clauses corresponds to the judgment
 -- @Σ;Δ;Γ ⊢ P* → M ▹ M' from A* to B@.
 --
--- The judgment @Σ;Δ;Γ ⊢ P* → M ▹ M' from A* to B@ is defined as follows:
+-- The judgment @Σ;Δ;Γ ⊢ P* → M ▹ P'* → M' from A* to B@ is defined as follows:
 --
 -- @
---    Σ ⊢ Ai pattern Pi ⊣ Γ'i
+--    Σ ⊢ Ai pattern Pi ▹ P'i ⊣ Γ'i
 --    Σ ; Δ ; Γ, Γ'0, ..., Γ'k ⊢ B ∋ M ▹ M'
---    ------------------------------------------------------ clause
---    Σ ; Δ ; Γ ⊢ P0 | ... | Pk → M ▹ M' from A0,...,Ak to B
+--    ------------------------------------------ clause
+--    Σ ; Δ ; Γ ⊢ P0 | ... | Pk → M ▹
+--      P'0 | ... | P'k → M' from A0,...,Ak to B
 -- @
 
 synthifyClause :: [Type] -> Clause -> TypeChecker (Core.Clause, Type)
@@ -357,8 +358,7 @@ synthifyClause patTys (Clause pscs sc) =
                 p' <- extendElab
                         context
                         (zip xs (map (substMetas subs) args))
-                        $ do checkifyPattern p (substMetas subs patTy)
-                             return (convertPattern p)
+                        (checkifyPattern p (substMetas subs patTy))
                 return $ scope ns p'
      subs <- getElab substitution
      (xs,ns,m) <- open context sc
@@ -368,11 +368,6 @@ synthifyClause patTys (Clause pscs sc) =
      return ( Core.Clause pscs' (scope ns m')
             , substMetas subs' ret
             )
-  where
-    convertPattern :: Pattern -> Core.Pattern
-    convertPattern (Var x) = Var x
-    convertPattern (In (ConPat n ps)) =
-      Core.conPatH n (map (convertPattern.instantiate0) ps)
 
 
 
@@ -565,22 +560,27 @@ subtype a b =
 
 
 -- | Type checking for patterns corresponds to the judgment
--- @Σ ⊢ A pattern P ⊣ Γ'@, where @Γ'@ is an output context.
+-- @Σ ⊢ A pattern P ▹ P' ⊣ Γ'@, where @Γ'@ is an output context.
 --
--- The judgment @Σ ⊢ A pattern P ⊣ Γ'@ is defined inductively as follows:
+-- The judgment @Σ ⊢ A pattern P ▹ P' ⊣ Γ'@ is defined inductively as follows:
 --
 -- @
---    -----------------------
---    Σ ⊢ A pattern x ⊣ x : A
+--    ---------------------------
+--    Σ ⊢ A pattern x ▹ x ⊣ x : A
 --
 --    Σ ∋ n : [α*](A0,...,Ak)B
 --    [σ]B = B'
---    Σ ⊢ Ai pattern Pi ⊣ Γ'i
---    ----------------------------------------
---    Σ ⊢ B' pattern n P0 ... Pk ⊣ Γ'0,...,Γ'k
+--    Σ ⊢ Ai pattern Pi ▹ P'i ⊣ Γ'i
+--    -----------------------------------
+--    Σ ⊢ B' pattern n P0 ... Pk ▹
+--      con[n](P'0,...,P'k) ⊣ Γ'0,...,Γ'k
+--
+--    primitive V has type A
+--    -----------------------
+--    Σ ⊢ A pattern V ▹ V ⊣ ε
 -- @
 
-checkifyPattern :: Pattern -> Type -> TypeChecker ()
+checkifyPattern :: Pattern -> Type -> TypeChecker Core.Pattern
 checkifyPattern (Var (Bound _ _)) _ =
   error "A bound variable should not be the subject of pattern type checking."
 checkifyPattern (Var (Meta _)) _ =
@@ -588,6 +588,7 @@ checkifyPattern (Var (Meta _)) _ =
 checkifyPattern (Var (Free n)) t =
   do t' <- typeInContext n
      unify substitution context t t'
+     return $ Var (Free n)
 checkifyPattern (In (ConPat c ps)) t =
   do ConSig argscs retsc <- typeInSignature c
      (args',ret') <- instantiateParams argscs retsc
@@ -599,10 +600,11 @@ checkifyPattern (In (ConPat c ps)) t =
                  ++ " but was given " ++ show lps
      unify substitution context t ret'
      subs <- getElab substitution
-     zipWithM_
-       checkifyPattern
-       (map instantiate0 ps)
-       (map (substMetas subs) args')
+     ps' <- zipWithM
+              checkifyPattern
+              (map instantiate0 ps)
+              (map (substMetas subs) args')
+     return $ Core.conPatH c ps'
 
 
 
