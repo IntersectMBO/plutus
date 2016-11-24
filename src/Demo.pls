@@ -18,9 +18,14 @@ plus : Nat -> Nat -> Nat {
   plus (Suc x) y = Suc (plus x y)
 }
 
-mul : Nat -> Nat -> Nat {
-  mul Zero y = Zero ;
-  mul (Suc x) y = plus y (mul x y)
+times : Nat -> Nat -> Nat {
+  times Zero y = Zero ;
+  times (Suc x) y = plus y (times x y)
+}
+
+fac : Nat -> Nat {
+  fac Zero = Suc Zero ;
+  fac (Suc n) = times (Suc n) (fac n)
 }
 
 id : forall a. a -> a {
@@ -53,4 +58,11 @@ map : forall a b. (a -> b) -> List a -> List b {
 
 compose : forall a b c. (b -> c) -> (a -> b) -> a -> c {
   compose f g x = f (g x)
+}
+
+validator : (forall a. a -> a -> a) -> Comp Bool {
+  validator f = case f True False of { 
+    True  -> success True : Comp Bool;
+    False -> failure : Comp Bool
+  }
 }
