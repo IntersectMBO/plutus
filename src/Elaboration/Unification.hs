@@ -53,5 +53,7 @@ instance MonadUnify TypeF Elaborator where
     do ns <- freshRelTo (names sc1) context
        let xs = map (Var . Free) ns
        return [ Equation (instantiate sc1 xs) (instantiate sc2 xs) ]
+  equate (Comp a1) (Comp a2) =
+    return [ Equation (instantiate0 a1) (instantiate0 a2) ]
   equate l r =
     throwError $ "Cannot unify " ++ pretty (In l) ++ " with " ++ pretty (In r)
