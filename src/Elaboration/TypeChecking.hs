@@ -544,7 +544,7 @@ checkifyMulti _ _ =
 
 subtype :: Type -> Type -> TypeChecker ()
 subtype a (In (Forall sc')) =
-  do ([x],_,b) <- open tyVarContext sc'
+  do (_,_,b) <- open tyVarContext sc'
      subtype a b
 subtype (In (Forall sc)) b =
   do meta <- nextElab nextMeta
