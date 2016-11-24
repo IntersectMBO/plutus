@@ -7,6 +7,13 @@ of the Plutus Language", and it's main content is recapitulated throughout
 the source code in comments, in an attempt to provide a semi-literate
 documentation of the code.
 
+The implementation is split into the implementation of the Core language,
+which is primarily the domain of evaluation, and the use-facing Plutus proper,
+which is primarily the domain of useful syntax and types. The elaboration
+modules handle the translation of Plutus into the Core language, as well as
+providing, while the interface modules handle interaction with the world
+beyond Plutus (including a REPL and the integration tools for blockchain use).
+
 ## Running the demo file
 
 Load `Elaboration.REPL` into your GHCi session or whatever other tool you're
@@ -36,3 +43,9 @@ functions, which will be added when consensus is reached on which are desired.
 - Indent/whitespace parsing
 - Primitive types and built-in functions
   needs consensus from Serokell team
+- Probably: eliminate `let`s from the core language, replace it with lambda
+  lifting so that let definitions can be recursive, and the core language is
+  simpler. This will probably need a way to track the provenance of such
+  lifted functions, at least for error reporting during type checking?
+- Probably: elaborate all the type signatures for declared names first, so
+  that mutually recursive functions can be defined
