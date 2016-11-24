@@ -3,7 +3,7 @@
 
 
 
-module Elaboration.REPL where
+module Interface.REPL where
 
 import Control.Monad.Reader (runReaderT)
 

@@ -8,7 +8,7 @@
 
 -- | This module defines the integration tools for Plutus.
 
-module Elaboration.Integration where
+module Interface.Integration where
 
 import Utils.ABT
 import Utils.Env

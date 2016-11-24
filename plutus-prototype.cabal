@@ -34,8 +34,8 @@ library
                        Elaboration.Unification,
                        Elaboration.TypeChecking,
                        Elaboration.Elaboration,
-                       Elaboration.REPL,
-                       Elaboration.Integration
+                       Interface.REPL,
+                       Interface.Integration
   other-modules:       Utils.ABT,
                        Utils.Elaborator,
                        Utils.Env,
