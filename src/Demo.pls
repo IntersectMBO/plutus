@@ -62,7 +62,7 @@ compose : forall a b c. (b -> c) -> (a -> b) -> a -> c {
 
 validator : (forall a. a -> a -> a) -> Comp Bool {
   validator f = case f True False of { 
-    True  -> success True : Comp Bool;
-    False -> failure : Comp Bool
+    True  -> success True ;
+    False -> failure
   }
 }

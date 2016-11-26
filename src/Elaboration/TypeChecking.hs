@@ -226,25 +226,35 @@ instantiateQuantifiers t = return t
 --    Σ ⊢ !n M0 ... Mk ▹ builtin[n](M'0,...,M'k) ∈ B
 -- @
 --
--- Functions are not officially synthesizable but they're supported here to be
--- as user friendly as possible. Successful synthesis relies on the
--- unification mechanism to fully instantiate the variable's type. The
--- pseudo-rule that is used below is
+-- Not everything is officially synthesizable but is supported here to be as
+-- user friendly as possible. Successful synthesis relies on the unification
+-- mechanism to fully instantiate types. The pseudo-rules that ares used are
 --
 -- @
+--      Γ ⊢ M ▹ M' ∈ A   Γ, x : A ⊢ N ▹ N' ∈ B
+--    ------------------------------------------- let
+--    Γ ⊢ let x : A { M } in N ▹ let(M';x.N') ∈ B
+--
 --       Γ, x : A ⊢ M ▹ M' ∈ B
 --    ---------------------------- function
 --    Γ ⊢ λx → M ▹ λ(x.M') ∈ A → B
--- @
 --
--- The same is true of constructed data, which is given by the pseudo-rule
---
--- @
 --    Σ ∋ n : [α*](A0,...,An)B
 --    [σ]B = B'
 --    Σ ⊢ [σ]Ai ∋ Mi ▹ M'i
 --    ------------------------------------------ constructed data
 --    Σ ⊢ B' ∋ n M0 ... Mn ▹ con[n](M'0,...,M'n)
+--
+--              Γ ⊢ M ▹ M' ∈ A
+--    ------------------------------------ success
+--    Γ ⊢ success M ▹ success(M') ∈ Comp A
+--
+--    ------------------------------ failure
+--    Γ ⊢ failure ▹ failure ∈ Comp A
+--
+--    Γ ⊢ M ▹ M' ∈ Comp A   Γ, x : A ⊢ N ▹ N' ∈ Comp B
+--    ------------------------------------------------ bind
+--     Γ ⊢ do { x <- M ; N } ▹ bind(M';x.N') ∈ Comp B
 -- @
 
 synthify :: Term -> TypeChecker (Core.Term, Type)
@@ -263,9 +273,12 @@ synthify (In (Ann m t)) =
      m' <- checkify (instantiate0 m) t
      subs <- getElab substitution
      return (m', substMetas subs t)
-synthify m@(In (Let _ _ _)) =
-  throwError $ "Cannot synthesize the type of the let expression: "
-            ++ pretty m
+synthify (In (Let a m sc)) =
+  do m' <- checkify (instantiate0 m) a
+     ([x],[v],n) <- open context sc
+     (n',b) <- extendElab context [(x,a)]
+                 $ synthify n
+     return (Core.letH m' v n', b)
 synthify (In (Lam sc)) =
   do meta <- nextElab nextMeta
      let arg = Var (Meta meta)
@@ -303,15 +316,29 @@ synthify (In (Case ms cs)) =
   do (ms', as) <- unzip <$> mapM (synthify.instantiate0) ms
      (cs', b) <- synthifyClauses as cs
      return (Core.caseH ms' cs', b)
-synthify m@(In (Success _)) =
-  throwError $ "Cannot synthesize the type of the success expression: "
-            ++ pretty m
-synthify m@(In Failure) =
-  throwError $ "Cannot synthesize the type of the failure expression: "
-            ++ pretty m
-synthify m@(In (Bind _ _)) =
-  throwError $ "Cannot synthesize the type of the bind expression: "
-            ++ pretty m
+synthify (In (Success m)) =
+  do (m',a) <- synthify (instantiate0 m)
+     return (Core.successH m', compH a)
+synthify (In Failure) =
+  do meta <- nextElab nextMeta
+     return ( Core.failureH
+            , compH (Var (Meta meta))
+            )
+synthify (In (Bind m sc)) =
+  do (m',ca) <- synthify (instantiate0 m)
+     case ca of
+       In (Comp a) -> do
+         do ([x],[v],n) <- open context sc
+            (n',cb) <- extendElab context [(x,instantiate0 a)]
+                         $ synthify n
+            case cb of
+              In (Comp b) ->
+                return (Core.bindH m' v n', In (Comp b))
+              _ ->
+                throwError $ "Expected a computation type but found "
+                      ++ pretty cb ++ "\nWhen checking term " ++ pretty n
+       _ -> throwError $ "Expected a computation type but found " ++ pretty ca
+                      ++ "\nWhen checking term " ++ pretty (instantiate0 m)
 synthify (In (Builtin n as)) =
   do ConSig argscs retsc <- builtinInSignature n
      (args',ret') <- instantiateParams argscs retsc
