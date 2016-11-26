@@ -422,7 +422,7 @@ synthifyClauses patTys cs =
 
 
 
--- | Type checking corresponds to the judgment @Γ ⊢ A ∋ M ▹ M'e@.
+-- | Type checking corresponds to the judgment @Γ ⊢ A ∋ M ▹ M'@.
 --
 -- The judgment @Γ ⊢ A ∋ M ▹ M'@ is defined inductively as follows:
 --
@@ -516,7 +516,7 @@ checkify (In (Bind m sc)) (In (Comp b)) =
                     $ checkify n (In (Comp b))
             return $ Core.bindH m' v n'
        _ -> throwError $ "Expected a computation type but found " ++ pretty ca
-                      ++ "When checking term " ++ pretty (instantiate0 m)
+                      ++ "\nWhen checking term " ++ pretty (instantiate0 m)
 checkify (In (Bind m sc)) b =
   throwError $ "Cannot check term: " ++ pretty (In (Bind m sc)) ++ "\n"
             ++ "Against non-computation type: " ++ pretty b
