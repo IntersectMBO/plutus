@@ -16,9 +16,9 @@ beyond Plutus (including a REPL and the integration tools for blockchain use).
 
 ## Running the demo file
 
-Load `Elaboration.REPL` into your GHCi session or whatever other tool you're
-using, then call `replFile "src/Demo.pl"`. This will load the file. You can
-now interact with a sparse little REPL:
+Run `cabal repl`, then do `:m + Interpreter.REPL` to make the REPL available,
+then call `replFile "src/Demo.pl"`. This will load the file. You can now
+interact with a sparse little REPL:
 
     $> not True
     con[False]()
@@ -34,6 +34,8 @@ now interact with a sparse little REPL:
     
     $> map (\x -> x) (Cons True (Cons False Nil))
     con[Cons](con[True]();con[Cons](con[False]();con[Nil]()))
+
+To quite the REPL, just type `:quit`.
 
 ## To Do / Notes
 
