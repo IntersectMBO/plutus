@@ -43,6 +43,7 @@ functions, which will be added when consensus is reached on which are desired.
 - Indent/whitespace parsing
 - Primitive types and built-in functions
   needs consensus from Serokell team
+- instances: Binary, Eq, Show, NFData for Core.Term and Core.Program
 - Probably: eliminate `let`s from the core language, replace it with lambda
   lifting so that let definitions can be recursive, and the core language is
   simpler. This will probably need a way to track the provenance of such
