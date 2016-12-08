@@ -108,8 +108,7 @@ letH tmds n0 =
       case cs of
         [] -> error "Empty let declarations should not exist."
         [LetClause pscs sc] | all isVarPat (map body pscs) ->
-          let xs = names sc
-              b = body sc
+          let (xs,b) = descope sc
           in (n, a, helperFold lamH xs b)
         LetClause pscs0 _:_ ->
           let clauses = [ Clause pscs sc | LetClause pscs sc <- cs ]
