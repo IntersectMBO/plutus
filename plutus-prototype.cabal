@@ -39,6 +39,7 @@ library
                        Utils.Elaborator,
                        Utils.Env,
                        Utils.Eval,
+                       Utils.Names,
                        Utils.Pretty,
                        Utils.SuffixParser,
                        Utils.Unifier,
