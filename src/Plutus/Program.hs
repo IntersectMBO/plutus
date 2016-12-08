@@ -9,6 +9,7 @@
 module Plutus.Program where
 
 import Utils.ABT
+import Utils.Names
 import Utils.Pretty
 import Plutus.ConSig
 import Plutus.Term
@@ -64,14 +65,14 @@ instance Show Statement where
 -- The former is only used internally but is useful to have in mind.
 
 data TermDeclaration
-  = TermDeclaration String Type Term
-  | WhereDeclaration String Type [([Pattern],[String],Term)]
+  = TermDeclaration (Sourced String) Type Term
+  | WhereDeclaration (Sourced String) Type [([Pattern],[String],Term)]
 
 instance Show TermDeclaration where
   show (TermDeclaration n ty def) =
-    n ++ " : " ++ pretty ty ++ " { " ++ pretty def ++ " }"
+    showSourced n ++ " : " ++ pretty ty ++ " { " ++ pretty def ++ " }"
   show (WhereDeclaration n ty preclauses) =
-    n ++ " : " ++ pretty ty ++ " { "
+    showSourced n ++ " : " ++ pretty ty ++ " { "
       ++ intercalate " ; " (map showPreclause preclauses)
       ++ " }"
     where

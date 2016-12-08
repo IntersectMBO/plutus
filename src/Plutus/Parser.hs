@@ -22,6 +22,7 @@
 module Plutus.Parser where
 
 import Utils.ABT
+import Utils.Names
 import Utils.SuffixParser
 import Utils.Vars
 import Plutus.ConSig
@@ -424,7 +425,7 @@ whereTermDecl =
        return x
      t <- datatype
      preclauses <- braces (patternMatchClause x `sepBy1` reservedOp ";")
-     return $ WhereDeclaration x t preclauses
+     return $ WhereDeclaration (User x) t preclauses
 
 patternMatchClause :: String -> Parsec String u ([Pattern],[String],Term)
 patternMatchClause x =

@@ -74,6 +74,32 @@ extendElab l xs m = do oldXs <- getElab l
 
 
 
+-- | 'removeElab' is a mnemonic for removing values from a list given a lens
+-- into that list in the state and a predicate describing the items.
+
+removeElab :: MonadState s m => Lens' s [a] -> (a -> Bool) -> m ()
+removeElab l p = do oldXs <- getElab l
+                    putElab l (filter (not . p) oldXs)
+
+
+
+
+
+-- | Given a lens that focuses on a list, we can add new elements to the list
+-- for some computation, and then remove some elements that satisfy a
+-- predicate.
+
+extendElab' :: MonadState s m
+            => Lens' s [a] -> [a] -> (a -> Bool) -> m b -> m b
+extendElab' l xs p m = do addElab l xs
+                          v <- m
+                          removeElab l p
+                          return v
+
+
+
+
+
 -- | Given a lens that focuses on a numeric value, we can increment that value
 -- and get back the original. This is useful for name stores to generate
 -- globally unique names, for instance.

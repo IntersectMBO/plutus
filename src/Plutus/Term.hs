@@ -18,6 +18,7 @@ module Plutus.Term where
 import Plutus.Type
 
 import Utils.ABT
+import Utils.Names
 import Utils.Pretty
 import Utils.Vars
 
@@ -30,7 +31,7 @@ import Data.List (intercalate)
 -- | There are twelve kinds of terms
 
 data TermF r
-  = Decname String
+  = Decname (Sourced String)
   | Ann r Type
   | Let Type r r
   | Lam r
@@ -41,7 +42,7 @@ data TermF r
   | Failure
   | Bind r r
   | Builtin String [r]
-  deriving (Functor,Foldable)
+  deriving (Show,Functor,Foldable,Traversable)
 
 
 type Term = ABT TermF
@@ -52,7 +53,7 @@ type Term = ABT TermF
 data LetDeclF r
   = LetDeclTerm String Type r
   | LetDeclClauses String Type [LetClauseF r]
-  deriving (Functor,Foldable)
+  deriving (Show,Functor,Foldable,Traversable)
 
 type LetDecl = LetDeclF (Scope TermF)
 
@@ -61,7 +62,7 @@ type LetDecl = LetDeclF (Scope TermF)
 
 data LetClauseF r
   = LetClause [Scope PatternF] r
-  deriving (Functor,Foldable)
+  deriving (Show,Functor,Foldable,Traversable)
 
 type LetClause = LetClauseF (Scope TermF)
 
@@ -70,7 +71,7 @@ type LetClause = LetClauseF (Scope TermF)
 -- with a clause body.
 
 data ClauseF r = Clause [Scope PatternF] r
-  deriving (Functor,Foldable)
+  deriving (Show,Functor,Foldable,Traversable)
 
 
 type Clause = ClauseF (Scope TermF)
@@ -79,13 +80,13 @@ type Clause = ClauseF (Scope TermF)
 -- | Patterns are only constructor patterns, with some number of pattern args.
 
 data PatternF r = ConPat String [r]
-  deriving (Functor,Foldable,Traversable)
+  deriving (Show,Functor,Foldable,Traversable)
 
   
 type Pattern = ABT PatternF
 
 
-decnameH :: String -> Term
+decnameH :: Sourced String -> Term
 decnameH n = In (Decname n)
 
 annH :: Term -> Type -> Term
@@ -208,7 +209,7 @@ instance Parens Term where
 
   parenRec (Var v) =
     name v
-  parenRec (In (Decname n)) = n
+  parenRec (In (Decname n)) = showSourced n
   parenRec (In (Ann m t)) =
     parenthesize (Just AnnTerm) (instantiate0 m)
       ++ " : "

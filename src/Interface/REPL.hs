@@ -10,6 +10,7 @@ import Control.Monad.Reader (runReaderT)
 import Utils.ABT
 import Utils.Env
 import Utils.Eval
+import Utils.Names
 import Utils.Pretty
 import qualified PlutusCore.Term as Core
 import PlutusCore.Evaluation ()
@@ -17,7 +18,6 @@ import Plutus.Parser
 import Plutus.Term
 import Elaboration.Elaboration
 import Elaboration.Elaborator
-import Elaboration.TypeChecking
 
 import System.IO
 
@@ -47,23 +47,25 @@ repl src0 = case loadProgram src0 of
                             (readPrompt "$> ")
                             (evalAndPrint sig defs ctx env)
   where
-    loadProgram :: String -> Either String (Signature,Definitions,Context,Env String Core.Term)
+    loadProgram :: String -> Either String (Signature,Definitions,Context,Env (Sourced String) Core.Term)
     loadProgram src =
       do prog <- parseProgram src
-         (_,ElabState sig defs ctx _ _ _) <- runElaborator0 (elabProgram prog)
+         (_,ElabState sig defs ctx _ _ _ _ _) <- runElaborator0 (elabProgram prog)
          let env = definitionsToEnvironment defs
          return (sig,defs,ctx,env)
     
-    loadTerm :: Signature -> Definitions -> Context -> Env String Core.Term -> String -> Either String Core.Term
+    loadTerm :: Signature -> Definitions -> Context -> Env (Sourced String) Core.Term -> String -> Either String Core.Term
     loadTerm sig defs ctx env src =
       do tm0 <- parseTerm src
-         let tm = freeToDefined (In . Decname) tm0
+         let tm = freeToDefined (In . Decname . User) tm0
          case runElaborator (synth tm) sig defs ctx of
            Left e -> Left e
            Right ((tm',_),_) -> runReaderT (eval tm') env
     
-    evalAndPrint :: Signature -> Definitions -> Context -> Env String Core.Term -> String -> IO ()
+    evalAndPrint :: Signature -> Definitions -> Context -> Env (Sourced String) Core.Term -> String -> IO ()
     evalAndPrint _ _ _ _ "" = return ()
+    evalAndPrint _ defs _ _ ":defs" =
+      flushStr (unlines [ showSourced n | (n,_) <- defs ] ++ "\n")
     evalAndPrint sig defs ctx env src =
       case loadTerm sig defs ctx env src of
         Left e -> flushStr ("ERROR: " ++ e ++ "\n")

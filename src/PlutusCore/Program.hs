@@ -9,6 +9,7 @@
 module PlutusCore.Program where
 
 import Utils.Pretty
+import Utils.Names
 import PlutusCore.Term
 
 import Data.List (intercalate)
@@ -32,8 +33,8 @@ instance Show Program where
 -- | A term declaration consists of just a name and a term.
 
 data TermDeclaration
-  = TermDeclaration String Term
+  = TermDeclaration (Sourced String) Term
 
 instance Show TermDeclaration where
   show (TermDeclaration n def) =
-    "dec(" ++ n ++ ";" ++ pretty def ++ ")"
+    "dec(" ++ showSourced n ++ ";" ++ pretty def ++ ")"

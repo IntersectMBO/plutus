@@ -32,7 +32,6 @@ library
                        Plutus.Parser,
                        Elaboration.Elaborator,
                        Elaboration.Unification,
-                       Elaboration.TypeChecking,
                        Elaboration.Elaboration,
                        Interface.REPL,
                        Interface.Integration

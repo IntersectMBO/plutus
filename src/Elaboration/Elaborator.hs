@@ -13,6 +13,7 @@
 module Elaboration.Elaborator where
 
 import Utils.Env
+import Utils.Names
 import Utils.Unifier
 import Utils.Vars
 import Plutus.ConSig
@@ -58,9 +59,9 @@ L.makeLenses ''Signature
 -- | A definition consists of a declared name together with its definition
 -- and its type.
 
-type Definitions = [(String,(Core.Term,Type))]
+type Definitions = [(Sourced String,(Core.Term,Type))]
 
-definitionsToEnvironment :: Definitions -> Env String Core.Term
+definitionsToEnvironment :: Definitions -> Env (Sourced String) Core.Term
 definitionsToEnvironment defs =
   [ (x,m) | (x,(m,_)) <- defs ]
 
@@ -96,6 +97,8 @@ data ElabState
     , _tyVarContext :: TyVarContext
     , _substitution :: Substitution TypeF
     , _nextMeta :: MetaVar
+    , _nextGeneratedNameIndex :: Int
+    , _currentNameBeingDeclared :: String
     }
 L.makeLenses ''ElabState
 
@@ -112,7 +115,7 @@ runElaborator :: Elaborator a
               -> Context
               -> Either String (a,ElabState)
 runElaborator e sig defs ctx =
-  runStateT e (ElabState sig defs ctx [] [] (MetaVar 0))
+  runStateT e (ElabState sig defs ctx [] [] (MetaVar 0) 0 "")
 
 
 runElaborator0 :: Elaborator a -> Either String (a,ElabState)

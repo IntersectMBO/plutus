@@ -15,6 +15,7 @@ module PlutusCore.Evaluation where
 import Utils.ABT
 import Utils.Env
 import Utils.Eval
+import Utils.Names
 import Utils.Pretty (pretty)
 import PlutusCore.Term
 
@@ -51,13 +52,14 @@ matchClauses (Clause pscs sc:cs) vs =
 
 -- | Standard eager evaluation.
 
-instance Eval (Env String Term) Term where
+instance Eval (Env (Sourced String) Term) Term where
   eval (Var v) =
     return $ Var v
   eval (In (Decname x)) =
     do env <- environment
        case lookup x env of
-         Nothing -> throwError $ "Unknown constant/defined term: " ++ x
+         Nothing -> throwError $ "Unknown constant/defined term: "
+                              ++ showSourced x
          Just m  -> return m
   eval (In (Let m sc)) =
     do em <- eval (instantiate0 m)
@@ -95,5 +97,5 @@ instance Eval (Env String Term) Term where
 
 
 
-evaluate :: Env String Term -> Term -> Either String Term
+evaluate :: Env (Sourced String) Term -> Term -> Either String Term
 evaluate env m = runReaderT (eval m) env

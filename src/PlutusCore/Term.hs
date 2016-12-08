@@ -17,9 +17,11 @@
 module PlutusCore.Term where
 
 import Utils.ABT
+import Utils.Names
 import Utils.Pretty
 
 import Data.List (intercalate)
+
 
 
 
@@ -32,7 +34,7 @@ import Data.List (intercalate)
 -- binds @bind(e1;x.e2)@, and finally, built-ins @builtin[n](e*)@.
 
 data TermF r
-  = Decname String
+  = Decname (Sourced String)
   | Let r r
   | Lam r
   | App r r
@@ -70,7 +72,7 @@ type Pattern = ABT PatternF
 
 
 
-decnameH :: String -> Term
+decnameH :: Sourced String -> Term
 decnameH n = In (Decname n)
 
 letH :: Term -> String -> Term -> Term
@@ -124,12 +126,12 @@ instance Parens Term where
 
   parenRec (Var v) =
     name v
-  parenRec (In (Decname n)) = "defined[" ++ n ++ "]"
+  parenRec (In (Decname n)) = "defined[" ++ showSourced n ++ "]"
   parenRec (In (Let m n)) =
     "let("
     ++ parenthesize Nothing (instantiate0 m)
     ++ ";"
-    ++ parenthesize Nothing (instantiate0 n)
+    ++ head (names n) ++ "." ++ parenthesize Nothing (body n)
     ++ ")"
   parenRec (In (Lam sc)) =
     "\\(" ++ unwords (names sc)

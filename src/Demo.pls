@@ -66,3 +66,9 @@ validator : (forall a. a -> a -> a) -> Comp Bool {
     False -> failure
   }
 }
+
+localTest : Nat -> Nat {
+  localTest x =
+    let { locid : forall a. Unit -> a -> Nat { locid z y = x } }
+    in locid Unit Zero
+}

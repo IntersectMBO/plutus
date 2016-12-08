@@ -32,7 +32,7 @@ data TypeF r
   | Fun r r
   | Forall r
   | Comp r
-  deriving (Eq,Functor,Foldable)
+  deriving (Show,Eq,Functor,Foldable)
 
 
 type Type = ABT TypeF
