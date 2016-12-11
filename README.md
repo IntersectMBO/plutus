@@ -46,9 +46,5 @@ functions, which will be added when consensus is reached on which are desired.
 - Primitive types and built-in functions
   needs consensus from Serokell team
 - instances: Binary, Eq, Show, NFData for Core.Term and Core.Program
-- Probably: eliminate `let`s from the core language, replace it with lambda
-  lifting so that let definitions can be recursive, and the core language is
-  simpler. This will probably need a way to track the provenance of such
-  lifted functions, at least for error reporting during type checking?
 - Probably: elaborate all the type signatures for declared names first, so
   that mutually recursive functions can be defined
