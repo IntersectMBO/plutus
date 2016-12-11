@@ -189,18 +189,14 @@ instance Parens Term where
 
 -- | Pattern locations are even simpler, as there's only one: constructor arg.
 
-data PatternParenLoc = ConPatArg
-  deriving (Eq)
-
 instance Parens Pattern where
-  type Loc Pattern = PatternParenLoc
+  type Loc Pattern = ()
   
-  parenLoc (Var _)            = [ConPatArg]
-  parenLoc (In (ConPat _ [])) = [ConPatArg]
-  parenLoc (In (ConPat _ _))  = []
+  parenLoc _ = [()]
   
   parenRec (Var v) =
     name v
-  parenRec (In (ConPat c [])) = c
   parenRec (In (ConPat c ps)) =
-    c ++ " " ++ unwords (map (parenthesize (Just ConPatArg) . body) ps)
+    "conPat[" ++ c ++ "]("
+      ++ intercalate "," (map (parenthesize Nothing . body) ps)
+      ++ ")"
