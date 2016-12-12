@@ -43,8 +43,6 @@ NOTE: This implementation lacks primitive types and a specific built-in
 functions, which will be added when consensus is reached on which are desired.
 
 - Indent/whitespace parsing
-- Primitive types and built-in functions
-  needs consensus from Serokell team
 - instances: Binary, Eq, Show, NFData for Core.Term and Core.Program
 - Probably: elaborate all the type signatures for declared names first, so
   that mutually recursive functions can be defined
