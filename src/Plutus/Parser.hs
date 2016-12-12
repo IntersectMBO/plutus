@@ -21,7 +21,7 @@
 
 module Plutus.Parser where
 
-import Utils.ABT
+import Utils.ABT hiding (bind)
 import Utils.Names
 import Utils.SuffixParser
 import Utils.Vars
@@ -192,6 +192,7 @@ forallBody = datatype
 --    <term> ::= <letExp>
 --             | <lambda>
 --             | <caseExp>
+--             | <bind>
 --             | (<conData> | <success> | <failure> | <builtin>)
 --                 >>=? <annotationSuffix>
 --             | (<parenTerm> | <variable>)
@@ -215,6 +216,7 @@ forallBody = datatype
 --    <caseExp> ::= "case" (<caseArg> $1 "|") "of" "{" (<clause> $ ";") "}"
 --    <success> ::= "success" <conArg>
 --    <failure> ::= "failure"
+--    <bind> ::= "do" "{" (<doClause> $ ";") "}"
 --    <builtin> ::= "!" <varName> <appArg>*
 --
 --    ; syntactic roles
@@ -233,6 +235,7 @@ term =
       letExp
   <|> lambda
   <|> caseExp
+  <|> bind
   <|> (conData <|> success <|> failure <|> builtin)
         >>=? annotationSuffix
   <|> (parenTerm <|> variable)
@@ -364,6 +367,27 @@ success =
      a <- conArg
      return $ successH a
 
+bind :: Parsec String u Term
+bind =
+  do try $ reserved "do"
+     cls <- braces (doClause `sepBy` reservedOp ";")
+     go cls
+  where
+    go :: [Either (String,Term) Term] -> Parsec String u Term
+    go [] =
+      fail $ "This aux function should never be called with an empty list. "
+           ++ "Something very wrong has happened."
+    go [Left _] =
+      fail $ "Do blocks must not end with a binder."
+    go [Right m] =
+      return m
+    go (Left (x,m):cls) =
+      do n <- go cls
+         return $ bindH x m n
+    go (Right m:cls) =
+      do n <- go cls
+         return $ bindH "_" m n
+
 builtin :: Parsec String u Term
 builtin =
   do try $ reservedOp "!"
@@ -394,6 +418,25 @@ caseArg = term
 
 conPatternArg :: Parsec String u Pattern
 conPatternArg = parenPattern <|> noArgConPattern <|> varPattern
+
+doClause :: Parsec String u (Either (String,Term) Term)
+doClause = Left <$> binderDoClause
+       <|> Right <$> finalDoClause
+
+binderDoClause :: Parsec String u (String,Term)
+binderDoClause =
+  do x <- try $ do
+       x <- varName
+       reservedOp "<-"
+       return x
+     m <- binderDoClauseArg
+     return (x,m)
+
+binderDoClauseArg :: Parsec String u Term
+binderDoClauseArg = term
+
+finalDoClause :: Parsec String u Term
+finalDoClause = term
 
 
 
