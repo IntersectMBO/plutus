@@ -32,6 +32,9 @@ data TypeF r
   | Fun r r
   | Forall r
   | Comp r
+  | PlutusInt
+  | PlutusFloat
+  | PlutusByteString
   deriving (Show,Eq,Functor,Foldable)
 
 
@@ -52,6 +55,15 @@ forallH x b = In (Forall (scope [x] b))
 
 compH :: Type -> Type
 compH a = In (Comp (scope [] a))
+
+intH :: Type
+intH = In PlutusInt
+
+floatH :: Type
+floatH = In PlutusFloat
+
+byteStringH :: Type
+byteStringH = In PlutusByteString
 
 
 
@@ -82,6 +94,12 @@ instance Parens Type where
     [FunRight,ForallBody]
   parenLoc (In (Comp _)) =
     [FunRight,ForallBody]
+  parenLoc (In PlutusInt) =
+    [TyConArg,FunLeft,FunRight,ForallBody]
+  parenLoc (In PlutusFloat) =
+    [TyConArg,FunLeft,FunRight,ForallBody]
+  parenLoc (In PlutusByteString) =
+    [TyConArg,FunLeft,FunRight,ForallBody]
   
   parenRec (Var v) = name v
   parenRec (In (TyCon c [])) = c
@@ -98,3 +116,9 @@ instance Parens Type where
     ++ parenthesize (Just ForallBody) (body sc)
   parenRec (In (Comp a)) =
     "Comp " ++ parenthesize (Just TyConArg) (instantiate0 a)
+  parenRec (In PlutusInt) =
+    "Int"
+  parenRec (In PlutusFloat) =
+    "Float"
+  parenRec (In PlutusByteString) =
+    "ByteString"

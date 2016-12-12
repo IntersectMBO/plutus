@@ -47,7 +47,11 @@ library
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.10,
                        bifunctors,
+                       binary,
+                       bytestring,
+                       cryptonite,
                        lens,
+                       memory,
                        mtl,
                        parsec,
                        transformers

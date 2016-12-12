@@ -22,6 +22,7 @@ import Utils.Names
 import Utils.Pretty
 import Utils.Vars
 
+import qualified Data.ByteString.Lazy as BS
 import Data.List (intercalate)
 
 
@@ -41,11 +42,21 @@ data TermF r
   | Success r
   | Failure
   | Bind r r
+  | PrimData PrimData
   | Builtin String [r]
   deriving (Show,Functor,Foldable,Traversable)
 
 
 type Term = ABT TermF
+
+
+-- | There are three kinds of primitive data in Plutus Core: ints, floats,
+-- and byte strings.
+
+data PrimData = PrimInt Int
+              | PrimFloat Float
+              | PrimByteString BS.ByteString
+  deriving (Show,Eq)
 
 
 -- | A Term Declaration is just a name with a type and  some defining clauses.
@@ -80,6 +91,7 @@ type Clause = ClauseF (Scope TermF)
 -- | Patterns are only constructor patterns, with some number of pattern args.
 
 data PatternF r = ConPat String [r]
+                | PrimPat PrimData
   deriving (Show,Functor,Foldable,Traversable)
 
   
@@ -146,6 +158,15 @@ clauseH vs ps b = Clause (map (scope vs) ps) (scope vs b)
 conPatH :: String -> [Pattern] -> Pattern
 conPatH c xs = In (ConPat c (map (scope []) xs))
 
+primIntPatH :: Int -> Pattern
+primIntPatH x = In (PrimPat (PrimInt x))
+
+primFloatPatH :: Float -> Pattern
+primFloatPatH x = In (PrimPat (PrimFloat x))
+
+primByteStringPatH :: BS.ByteString -> Pattern
+primByteStringPatH x = In (PrimPat (PrimByteString x))
+
 successH :: Term -> Term
 successH m = In (Success (scope [] m))
 
@@ -154,6 +175,15 @@ failureH = In Failure
 
 bindH :: String -> Term -> Term -> Term
 bindH x m n = In (Bind (scope [] m) (scope [x] n))
+
+primIntH :: Int -> Term
+primIntH x = In (PrimData (PrimInt x))
+
+primFloatH :: Float -> Term
+primFloatH x = In (PrimData (PrimFloat x))
+
+primByteStringH :: BS.ByteString -> Term
+primByteStringH x = In (PrimData (PrimByteString x))
 
 builtinH :: String -> [Term] -> Term
 builtinH n ms = In (Builtin n (map (scope []) ms))
@@ -201,6 +231,12 @@ instance Parens Term where
     [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
   parenLoc (In (Bind _ _)) =
     [LetArg,LetBody,LamBody,CaseArg,ClauseBody,BindArg,BindBody]
+  parenLoc (In (PrimData (PrimInt _))) =
+    [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
+  parenLoc (In (PrimData (PrimFloat _))) =
+    [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
+  parenLoc (In (PrimData (PrimByteString _))) =
+    [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
   parenLoc (In (Builtin _ [])) =
     [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
   parenLoc (In (Builtin _ _)) =
@@ -275,6 +311,12 @@ instance Parens Term where
         let (rs,n) = gatherBinds (body sc)
         in ((head (names sc), instantiate0 m):rs, n)
       gatherBinds n = ([], n)
+  parenRec (In (PrimData (PrimInt x))) =
+    show x
+  parenRec (In (PrimData (PrimFloat x))) =
+    show x
+  parenRec (In (PrimData (PrimByteString x))) =
+    "#" ++ prettyByteString x
   parenRec (In (Builtin n ms)) =
     "!" ++ n ++ " "
       ++ intercalate
@@ -296,9 +338,16 @@ instance Parens Pattern where
   parenLoc (Var _)            = [ConPatArg]
   parenLoc (In (ConPat _ [])) = [ConPatArg]
   parenLoc (In (ConPat _ _))  = []
+  parenLoc (In (PrimPat _)) = [ConPatArg]
   
   parenRec (Var v) =
     name v
   parenRec (In (ConPat c [])) = c
   parenRec (In (ConPat c ps)) =
     c ++ " " ++ unwords (map (parenthesize (Just ConPatArg) . body) ps)
+  parenRec (In (PrimPat (PrimInt x))) =
+    show x
+  parenRec (In (PrimPat (PrimFloat x))) =
+    show x
+  parenRec (In (PrimPat (PrimByteString x))) =
+    "#" ++ prettyByteString x

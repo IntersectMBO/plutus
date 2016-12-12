@@ -20,6 +20,7 @@ import Utils.ABT
 import Utils.Names
 import Utils.Pretty
 
+import qualified Data.ByteString.Lazy as BS
 import Data.List (intercalate)
 
 
@@ -43,11 +44,21 @@ data TermF r
   | Success r
   | Failure
   | Bind r r
+  | PrimData PrimData
   | Builtin String [r]
   deriving (Functor,Foldable)
 
 
 type Term = ABT TermF
+
+
+-- | There are three kinds of primitive data in Plutus Core: ints, floats,
+-- and byte strings.
+
+data PrimData = PrimInt Int
+              | PrimFloat Float
+              | PrimByteString BS.ByteString
+  deriving (Eq)
 
 
 -- | Clauses are a component of terms that have bunch of pattern scopes
@@ -63,6 +74,7 @@ type Clause = ClauseF (Scope TermF)
 -- | Patterns are only constructor patterns, with some number of pattern args.
 
 data PatternF r = ConPat String [r]
+                | PrimPat PrimData
   deriving (Functor,Foldable,Traversable)
 
   
@@ -96,6 +108,15 @@ clauseH vs ps b = Clause (map (scope vs) ps) (scope vs b)
 conPatH :: String -> [Pattern] -> Pattern
 conPatH c xs = In (ConPat c (map (scope []) xs))
 
+primIntPatH :: Int -> Pattern
+primIntPatH x = In (PrimPat (PrimInt x))
+
+primFloatPatH :: Float -> Pattern
+primFloatPatH x = In (PrimPat (PrimFloat x))
+
+primByteStringPatH :: BS.ByteString -> Pattern
+primByteStringPatH x = In (PrimPat (PrimByteString x))
+
 successH :: Term -> Term
 successH m = In (Success (scope [] m))
 
@@ -104,6 +125,15 @@ failureH = In Failure
 
 bindH :: Term -> String -> Term -> Term
 bindH m x n = In (Bind (scope [] m) (scope [x] n))
+
+primIntH :: Int -> Term
+primIntH x = In (PrimData (PrimInt x))
+
+primFloatH :: Float -> Term
+primFloatH x = In (PrimData (PrimFloat x))
+
+primByteStringH :: BS.ByteString -> Term
+primByteStringH x = In (PrimData (PrimByteString x))
 
 builtinH :: String -> [Term] -> Term
 builtinH n ms = In (Builtin n (map (scope []) ms))
@@ -178,6 +208,12 @@ instance Parens Term where
     ++ "."
     ++ parenthesize Nothing (body sc)
     ++ ")"
+  parenRec (In (PrimData (PrimInt x))) =
+    "int[" ++ show x ++ "]"
+  parenRec (In (PrimData (PrimFloat x))) =
+    "float[" ++ show x ++ "]"
+  parenRec (In (PrimData (PrimByteString x))) =
+    "byteString[" ++ prettyByteString x ++ "]"
   parenRec (In (Builtin n ms)) =
     "buildin[" ++ n ++ "]("
       ++ intercalate "," (map (parenthesize Nothing . instantiate0) ms)
@@ -200,3 +236,9 @@ instance Parens Pattern where
     "conPat[" ++ c ++ "]("
       ++ intercalate "," (map (parenthesize Nothing . body) ps)
       ++ ")"
+  parenRec (In (PrimPat (PrimInt x))) =
+    "primPat[int[" ++ show x ++ "]]"
+  parenRec (In (PrimPat (PrimFloat x))) =
+    "primPat[float[" ++ show x ++ "]]"
+  parenRec (In (PrimPat (PrimByteString x))) =
+    "primPat[byteString[" ++ prettyByteString x ++ "]]"

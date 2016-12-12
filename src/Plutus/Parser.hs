@@ -31,7 +31,10 @@ import Plutus.Type
 import Plutus.Program
 
 import Control.Monad (guard)
+import qualified Data.ByteString.Lazy as BS
+import Data.Char (digitToInt,toUpper)
 import Data.List (foldl')
+import Data.Word
 import Text.Parsec
 import qualified Text.Parsec.Token as Token
 
@@ -51,13 +54,16 @@ languageDef = Token.LanguageDef
                 , Token.opLetter = oneOf ""
                 , Token.reservedNames =
                     ["data","let","in","case","of","success","failure","do"
-                    ,"forall","Comp"]
+                    ,"forall","Comp","Int","Float","ByteString"]
                 , Token.reservedOpNames = ["|","->","\\",":","=","<-",";",".","!"]
                 , Token.caseSensitive = True
                 }
 
 tokenParser :: Token.TokenParser st
 tokenParser = Token.makeTokenParser languageDef
+
+lexeme :: Parsec String u a -> Parsec String u a
+lexeme = Token.lexeme tokenParser
 
 identifier :: Parsec String u String
 identifier = Token.identifier tokenParser
@@ -100,6 +106,110 @@ decName =
 
 
 
+-- Parsers for literals
+
+intLiteral :: Parsec String u Int
+intLiteral = lexeme int <?> "int"
+
+floatLiteral :: Parsec String u Float
+floatLiteral = lexeme floating <?> "float"
+
+byteStringLiteral :: Parsec String u BS.ByteString
+byteStringLiteral =
+  (lexeme $ do
+     _ <- char '#'
+     bytes <- many byte
+     return (BS.pack bytes))
+  <?> "byteString"
+
+int :: Parsec String u Int
+int =
+  do f <- sign
+     n <- decimal
+     return (f n)
+
+sign :: Num a => Parsec String u (a -> a)
+sign =
+      (char '-' >> return negate)
+  <|> return id
+
+decimal :: Parsec String u Int
+decimal =
+  do digits <- many1 digit
+     let n = foldl (\x d -> 10*x + digitToInt d) 0 digits
+     seq n (return n)
+
+floating :: Parsec String u Float
+floating =
+  do n <- int
+     fractExponent n
+
+fractExponent :: Int -> Parsec String u Float
+fractExponent n =
+      (do fract <- fraction
+          expo  <- option "" exponent'
+          readFloat (show n ++ fract ++ expo))
+  <|> (do expo <- exponent'
+          readFloat (show n ++ expo))
+  
+  where
+    readFloat s =
+      case reads s of
+        [(x, "")] -> return x
+        _         -> parserZero
+
+fraction :: Parsec String u String
+fraction =
+  (do _ <- char '.'
+      digits <- many1 digit <?> "fraction"
+      return ('.' : digits))
+  <?> "fraction"
+
+exponent' :: Parsec String u String
+exponent' =
+  (do _ <- oneOf "eE"
+      sign' <- fmap (:[]) (oneOf "+-") <|> return ""
+      e <- decimal <?> "exponent"
+      return ('e' : sign' ++ show e))
+  <?> "exponent"
+
+byte :: Parsec String u Word8
+byte =
+  do x <- nybble
+     y <- nybble
+     return (16*x + y)
+
+nybble :: Parsec String u Word8
+nybble =
+  do n <- hexDigit
+     case toUpper n of
+       '0' -> return 0
+       '1' -> return 1
+       '2' -> return 2
+       '3' -> return 3
+       '4' -> return 4
+       '5' -> return 5
+       '6' -> return 6
+       '7' -> return 7
+       '8' -> return 8
+       '9' -> return 9
+       'A' -> return 10
+       'B' -> return 11
+       'C' -> return 12
+       'D' -> return 13
+       'E' -> return 14
+       'F' -> return 15
+       x -> error $ "The character " ++ [x] ++ " is not a hexDigit. Something"
+                 ++ " very wrong has happened."
+
+
+
+
+
+
+
+
+
 -- * Type parsers
 
 -- | The parser 'datatype' captures the grammar for data types as defined by
@@ -124,7 +234,8 @@ decName =
 datatype :: Parsec String u Type
 datatype =
       forallType
-  <|> (compType <|> typeCon <|> parenType <|> typeVar)
+  <|> (compType <|> intType <|> floatType <|> byteStringType
+          <|> typeCon <|> parenType <|> typeVar)
         >>=? functionSuffix
 
 parenType :: Parsec String u Type
@@ -140,6 +251,21 @@ compType = do
   try (reserved "Comp")
   a <- tyConArg
   return $ compH a
+
+intType :: Parsec String u Type
+intType = do
+  reserved "Int"
+  return intH
+
+floatType :: Parsec String u Type
+floatType = do
+  reserved "Float"
+  return floatH
+
+byteStringType :: Parsec String u Type
+byteStringType = do
+  reserved "ByteString"
+  return byteStringH
 
 typeCon :: Parsec String u Type
 typeCon = tyConH <$> decName <*> many tyConArg
@@ -195,7 +321,8 @@ forallBody = datatype
 --             | <bind>
 --             | (<conData> | <success> | <failure> | <builtin>)
 --                 >>=? <annotationSuffix>
---             | (<parenTerm> | <variable>)
+--             | (<parenTerm> | <variable> | <primInt>
+--                   | <primFloat> | <primByteString>)
 --                 >>=? <applicationSuffix> >>=? <annotationSuffix>
 --    <annotationSuffix> ::= ":" <datatype>
 --    <applicationSuffix> ::= <appArg>+
@@ -211,7 +338,12 @@ forallBody = datatype
 --    <noArgConPattern> ::= <decName>
 --    <conPattern> ::= <decName> <conPatternArg>*
 --    <parenPattern> ::= "(" <pattern> ")"
---    <pattern> ::= <parenPattern> | <conPattern> | <varPattern>
+--    <pattern> ::= <parenPattern>
+--                | <conPattern>
+--                | <varPattern>
+--                | <primIntPattern>
+--                | <primFloatPattern>
+--                | <primByteStringPattern>
 --    <clause> ::= (<pattern> $1 "|") "->" <term>
 --    <caseExp> ::= "case" (<caseArg> $1 "|") "of" "{" (<clause> $ ";") "}"
 --    <success> ::= "success" <conArg>
@@ -223,10 +355,25 @@ forallBody = datatype
 --    <letBody> ::= <term>
 --    <letDefClauseBody> ::= <term>
 --    <lamBody> ::= <term>
---    <appArg> ::= <parenTerm> | <noArgConData> | <variable>
---    <conArg> ::= <parenTerm> | <noArgConData> | <variable>
+--    <appArg> ::= <parenTerm>
+--               | <noArgConData>
+--               | <variable>
+--               | <primInt>
+--               | <primFloat>
+--               | <primByteString>
+--    <conArg> ::= <parenTerm>
+--               | <noArgConData>
+--               | <variable>
+--               | <primInt>
+--               | <primFloat>
+--               | <primByteString>
 --    <caseArg> ::= <term>
---    <conPatternArg> ::= <parenPattern> | <noArgConPattern> | <varPattern>
+--    <conPatternArg> ::= <parenPattern>
+--                      | <noArgConPattern>
+--                      | <varPattern>
+--                      | <primIntPattern>
+--                      | <primFloatPattern>
+--                      | <primByteStringPattern>
 -- @
 
 
@@ -236,7 +383,8 @@ term =
   <|> lambda
   <|> caseExp
   <|> bind
-  <|> (conData <|> success <|> failure <|> builtin)
+  <|> (conData <|> success <|> failure <|> builtin
+          <|> primFloat <|> primInt <|> primByteString)
         >>=? annotationSuffix
   <|> (parenTerm <|> variable)
         >>=? applicationSuffix >>=? annotationSuffix
@@ -328,6 +476,21 @@ conPattern =
      ps <- many conPatternArg
      return $ conPatH c ps
 
+primIntPattern :: Parsec String u Pattern
+primIntPattern =
+  do x <- try intLiteral
+     return $ primIntPatH x
+
+primFloatPattern :: Parsec String u Pattern
+primFloatPattern =
+  do x <- try floatLiteral
+     return $ primFloatPatH x
+
+primByteStringPattern :: Parsec String u Pattern
+primByteStringPattern =
+  do x <- try byteStringLiteral
+     return $ primByteStringPatH x
+
 parenPattern :: Parsec String u Pattern
 parenPattern = parens pattern
 
@@ -336,6 +499,9 @@ pattern =
       parenPattern
   <|> conPattern
   <|> varPattern
+  <|> primFloatPattern
+  <|> primIntPattern
+  <|> primByteStringPattern
 
 clause :: Parsec String u Clause
 clause =
@@ -388,37 +554,6 @@ bind =
       do n <- go cls
          return $ bindH "_" m n
 
-builtin :: Parsec String u Term
-builtin =
-  do try $ reservedOp "!"
-     n <- varName
-     as <- many appArg
-     return $ builtinH n as
-
-letClausePattern :: Parsec String u Pattern
-letClausePattern =
-      parenPattern
-  <|> noArgConPattern
-  <|> varPattern
-
-letBody :: Parsec String u Term
-letBody = term
-
-lamBody :: Parsec String u Term
-lamBody = term
-
-appArg :: Parsec String u Term
-appArg = parenTerm <|> noArgConData <|> variable
-
-conArg :: Parsec String u Term
-conArg = parenTerm <|> noArgConData <|> variable
-
-caseArg :: Parsec String u Term
-caseArg = term
-
-conPatternArg :: Parsec String u Pattern
-conPatternArg = parenPattern <|> noArgConPattern <|> varPattern
-
 doClause :: Parsec String u (Either (String,Term) Term)
 doClause = Left <$> binderDoClause
        <|> Right <$> finalDoClause
@@ -432,11 +567,78 @@ binderDoClause =
      m <- binderDoClauseArg
      return (x,m)
 
-binderDoClauseArg :: Parsec String u Term
-binderDoClauseArg = term
-
 finalDoClause :: Parsec String u Term
 finalDoClause = term
+
+primInt :: Parsec String u Term
+primInt =
+  do x <- try intLiteral
+     return $ primIntH x
+
+primFloat :: Parsec String u Term
+primFloat =
+  do x <- try floatLiteral
+     return $ primFloatH x
+
+primByteString :: Parsec String u Term
+primByteString =
+  do x <- try byteStringLiteral
+     return $ primByteStringH x
+
+builtin :: Parsec String u Term
+builtin =
+  do try $ reservedOp "!"
+     n <- varName
+     as <- many appArg
+     return $ builtinH n as
+
+letClausePattern :: Parsec String u Pattern
+letClausePattern =
+      parenPattern
+  <|> noArgConPattern
+  <|> varPattern
+  <|> primFloatPattern
+  <|> primIntPattern
+  <|> primByteStringPattern
+
+letBody :: Parsec String u Term
+letBody = term
+
+lamBody :: Parsec String u Term
+lamBody = term
+
+appArg :: Parsec String u Term
+appArg =
+      parenTerm
+  <|> noArgConData
+  <|> variable
+  <|> primFloat
+  <|> primInt
+  <|> primByteString
+
+conArg :: Parsec String u Term
+conArg =
+      parenTerm
+  <|> noArgConData
+  <|> variable
+  <|> primFloat
+  <|> primInt
+  <|> primByteString
+
+caseArg :: Parsec String u Term
+caseArg = term
+
+conPatternArg :: Parsec String u Pattern
+conPatternArg =
+      parenPattern
+  <|> noArgConPattern
+  <|> varPattern
+  <|> primFloatPattern
+  <|> primIntPattern
+  <|> primByteStringPattern
+
+binderDoClauseArg :: Parsec String u Term
+binderDoClauseArg = term
 
 
 
@@ -486,6 +688,9 @@ patternMatchPattern =
       parenPattern
   <|> noArgConPattern
   <|> varPattern
+  <|> primIntPattern
+  <|> primFloatPattern
+  <|> primByteStringPattern
 
 termDecl :: Parsec String u TermDeclaration
 termDecl = whereTermDecl

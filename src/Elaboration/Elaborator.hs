@@ -48,7 +48,6 @@ data Signature
   = Signature
     { _typeConstructors :: [(String,TyConSig)]
     , _dataConstructors :: [(String,ConSig)]
-    , _builtins :: [(String,ConSig)]
     }
 L.makeLenses ''Signature
 
@@ -119,7 +118,7 @@ runElaborator e sig defs ctx =
 
 
 runElaborator0 :: Elaborator a -> Either String (a,ElabState)
-runElaborator0 e = runElaborator e (Signature [] [] []) [] []
+runElaborator0 e = runElaborator e (Signature [] []) [] []
 
 
 when' :: Elaborator a -> Elaborator () -> Elaborator ()

@@ -265,10 +265,38 @@ typeInSignature n =
 
 builtinInSignature :: String -> TypeChecker ConSig
 builtinInSignature n =
-  do consigs <- getElab (signature.builtins)
-     case lookup n consigs of
+  do case lookup n builtinSigs of
        Nothing -> throwError $ "Unknown builtin: " ++ n
        Just t  -> return t
+  where
+    builtinSigs :: [(String,ConSig)]
+    builtinSigs =
+      [ ("addInt", conSigH [] [intH,intH] intH)
+      , ("subtractInt", conSigH [] [intH,intH] intH)
+      , ("multiplyInt", conSigH [] [intH,intH] intH)
+      , ("divideInt", conSigH [] [intH,intH] intH)
+      , ("remainderInt", conSigH [] [intH,intH] intH)
+      , ("lessThanInt", conSigH [] [intH,intH] (tyConH "Bool" []))
+      , ("equalsInt", conSigH [] [intH,intH] (tyConH "Bool" []))
+      , ("intToFloat", conSigH [] [intH] floatH)
+      , ("intToByteString", conSigH [] [intH] byteStringH)
+      , ("addFloat", conSigH [] [floatH,floatH] floatH)
+      , ("subtractFloat", conSigH [] [floatH,floatH] floatH)
+      , ("multiplyFloat", conSigH [] [floatH,floatH] floatH)
+      , ("divideFloat", conSigH [] [floatH,floatH] floatH)
+      , ("lessThanFloat", conSigH [] [floatH,floatH] (tyConH "Bool" []))
+      , ("equalsFloat", conSigH [] [floatH,floatH] (tyConH "Bool" []))
+      , ("ceiling", conSigH [] [floatH] intH)
+      , ("floor", conSigH [] [floatH] intH)
+      , ("round", conSigH [] [floatH] intH)
+      , ("concatenate", conSigH [] [byteStringH,byteStringH] byteStringH)
+      , ("drop", conSigH [] [intH,byteStringH] byteStringH)
+      , ("take", conSigH [] [intH,byteStringH] byteStringH)
+      , ("sha2_256", conSigH [] [byteStringH] byteStringH)
+      , ("sha3_256", conSigH [] [byteStringH] byteStringH)
+      , ("equalsByteString",
+          conSigH [] [byteStringH,byteStringH] (tyConH "Bool" []))
+      ]
 
 
 -- | We can get the type of a declared name by looking in the definitions.
@@ -357,6 +385,12 @@ isType (In (Forall sc)) =
        $ isType a
 isType (In (Comp a)) =
   isType (instantiate0 a)
+isType (In PlutusInt) =
+  return ()
+isType (In PlutusFloat) =
+  return ()
+isType (In PlutusByteString) =
+  return ()
 
 
 
@@ -632,6 +666,12 @@ synthify (In (Bind m sc)) =
                       ++ pretty cb ++ "\nWhen checking term " ++ pretty n
        _ -> throwError $ "Expected a computation type but found " ++ pretty ca
                       ++ "\nWhen checking term " ++ pretty (instantiate0 m)
+synthify (In (PrimData (PrimInt x))) =
+  return (Core.primIntH x, intH)
+synthify (In (PrimData (PrimFloat x))) =
+  return (Core.primFloatH x, floatH)
+synthify (In (PrimData (PrimByteString x))) =
+  return (Core.primByteStringH x, byteStringH)
 synthify (In (Builtin n as)) =
   do ConSig argscs retsc <- builtinInSignature n
      (args',ret') <- instantiateParams argscs retsc
@@ -811,6 +851,21 @@ checkify (In (Bind m sc)) (In (Comp b)) =
 checkify (In (Bind m sc)) b =
   throwError $ "Cannot check term: " ++ pretty (In (Bind m sc)) ++ "\n"
             ++ "Against non-computation type: " ++ pretty b
+checkify (In (PrimData (PrimInt x))) (In PlutusInt) =
+  return $ Core.primIntH x
+checkify m@(In (PrimData (PrimInt _))) a =
+  throwError $ "Cannot check int: " ++ pretty m ++ "\n"
+            ++ "Against non-integer type: " ++ pretty a
+checkify (In (PrimData (PrimFloat x))) (In PlutusFloat) =
+  return $ Core.primFloatH x
+checkify m@(In (PrimData (PrimFloat _))) a =
+  throwError $ "Cannot check float: " ++ pretty m ++ "\n"
+            ++ "Against non-float type: " ++ pretty a
+checkify (In (PrimData (PrimByteString x))) (In PlutusByteString) =
+  return $ Core.primByteStringH x
+checkify m@(In (PrimData (PrimByteString _))) a =
+  throwError $ "Cannot check byteString: " ++ pretty m ++ "\n"
+            ++ "Against non-byteString type: " ++ pretty a
 checkify m t =
   do (m',t') <- synthify m
      subtype t' t
@@ -923,6 +978,21 @@ checkifyPattern (In (ConPat c ps)) t =
               (map instantiate0 ps)
               (map (substMetas subs) args')
      return $ Core.conPatH c ps'
+checkifyPattern (In (PrimPat (PrimInt x))) (In PlutusInt) =
+  return $ Core.primIntPatH x
+checkifyPattern m@(In (PrimPat (PrimInt _))) a =
+  throwError $ "Cannot check int pattern: " ++ pretty m ++ "\n"
+            ++ "Against non-integer type: " ++ pretty a
+checkifyPattern (In (PrimPat (PrimFloat x))) (In PlutusFloat) =
+  return $ Core.primFloatPatH x
+checkifyPattern m@(In (PrimPat (PrimFloat _))) a =
+  throwError $ "Cannot check float pattern: " ++ pretty m ++ "\n"
+            ++ "Against non-float type: " ++ pretty a
+checkifyPattern (In (PrimPat (PrimByteString x))) (In PlutusByteString) =
+  return $ Core.primByteStringPatH x
+checkifyPattern m@(In (PrimPat (PrimByteString _))) a =
+  throwError $ "Cannot check byteString pattern: " ++ pretty m ++ "\n"
+            ++ "Against non-byteString type: " ++ pretty a
 
 
 

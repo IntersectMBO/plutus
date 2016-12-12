@@ -21,6 +21,11 @@ import PlutusCore.Term
 
 import Control.Monad.Except
 import Control.Monad.Reader (runReaderT)
+import Crypto.Hash
+import qualified Data.ByteString.Lazy as BS
+import qualified Data.Binary as B
+import Data.List (intercalate)
+import qualified Data.ByteArray as BA
 
 
 
@@ -33,6 +38,8 @@ matchPattern (Var _) v = Just [v]
 matchPattern (In (ConPat c ps)) (In (Con c' as))
   | c == c' && length ps == length as =
     fmap concat (zipWithM matchPattern (map body ps) (map body as))
+matchPattern (In (PrimPat x)) (In (PrimData y))
+  | x == y = Just []
 matchPattern _ _ = Nothing
 
 matchPatterns :: [Pattern] -> [Term] -> Maybe [Term]
@@ -91,8 +98,200 @@ instance Eval (Env (Sourced String) Term) Term where
          In Failure -> return $ failureH
          In (Success m') -> eval (instantiate sc [instantiate0 m'])
          _ -> throwError $ "Cannot bind a non-computation: " ++ pretty em
-  eval (In (Builtin n _)) =
-    throwError $ "No builtin named " ++ n
+  eval (In (PrimData x)) =
+    return $ In (PrimData x)
+  eval (In (Builtin n0 xs0)) =
+    do xs' <- mapM (eval . instantiate0) xs0
+       builtin n0 xs'
+    where
+      builtin :: String
+              -> [Term]
+              -> Evaluator (Env (Sourced String) Term) Term
+      builtin "addInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ In (PrimData (PrimInt (x + y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin addInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "subtractInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ In (PrimData (PrimInt (x - y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin subtractInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "multiplyInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ In (PrimData (PrimInt (x * y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin multiplyInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "divideInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ In (PrimData (PrimInt (div x y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin divideInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "remainderInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ In (PrimData (PrimInt (mod x y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin remainderInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "lessThanInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ if x < y then conH "True" [] else conH "False" []
+          _ ->
+            throwError $ "Incorrect arguments for builtin lessThanInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "equalsInt" xs =
+        case xs of
+          [In (PrimData (PrimInt x)), In (PrimData (PrimInt y))] ->
+            return $ if x == y then conH "True" [] else conH "False" []
+          _ ->
+            throwError $ "Incorrect arguments for builtin equalsInt: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "intToFloat" xs =
+        case xs of
+          [In (PrimData (PrimInt x))] ->
+            return $ In (PrimData (PrimFloat (fromInteger (toInteger x))))
+          _ ->
+            throwError $ "Incorrect arguments for builtin intToFloat: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "intToByteString" xs =
+        case xs of
+          [In (PrimData (PrimInt x))] ->
+            return $ In (PrimData (PrimByteString (B.encode x)))
+          _ ->
+            throwError
+              $ "Incorrect arguments for builtin intToBytestring: "
+             ++ intercalate "," (map pretty xs)
+      builtin "addFloat" xs =
+        case xs of
+          [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
+            return $ In (PrimData (PrimFloat (x + y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin addFloat: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "subtractFloat" xs =
+        case xs of
+          [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
+            return $ In (PrimData (PrimFloat (x - y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin subtractFloat: "
+                      ++ intercalate "," (map pretty xs)  
+      builtin "multiplyFloat" xs =
+        case xs of
+          [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
+            return $ In (PrimData (PrimFloat (x * y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin multiplyFloat: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "divideFloat" xs =
+        case xs of
+          [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
+            return $ In (PrimData (PrimFloat (x / y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin divideFloat: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "lessThanFloat" xs =
+        case xs of
+          [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
+            return $ if x < y then conH "True" [] else conH "False" []
+          _ ->
+            throwError $ "Incorrect arguments for builtin lessThanFloat: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "equalsFloat" xs =
+        case xs of
+          [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
+            return $ if x == y then conH "True" [] else conH "False" []
+          _ ->
+            throwError $ "Incorrect arguments for builtin equalsFloat: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "ceiling" xs =
+        case xs of
+          [In (PrimData (PrimFloat x))] ->
+            return $ In (PrimData (PrimInt (ceiling x)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin ceiling: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "floor" xs =
+        case xs of
+          [In (PrimData (PrimFloat x))] ->
+            return $ In (PrimData (PrimInt (floor x)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin floor: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "round" xs =
+        case xs of
+          [In (PrimData (PrimFloat x))] ->
+            return $ In (PrimData (PrimInt (round x)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin round: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "concatenate" xs =
+        case xs of
+          [ In (PrimData (PrimByteString x))
+            , In (PrimData (PrimByteString y))
+            ] ->
+            return $ In (PrimData (PrimByteString (BS.concat [x,y])))
+          _ ->
+            throwError $ "Incorrect arguments for builtin concatenate: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "drop" xs =
+        case xs of
+          [ In (PrimData (PrimInt x))
+            , In (PrimData (PrimByteString y))
+            ] ->
+            return $ In (PrimData (PrimByteString (BS.drop (fromIntegral x) y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin drop: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "take" xs =
+        case xs of
+          [ In (PrimData (PrimInt x))
+            , In (PrimData (PrimByteString y))
+            ] ->
+            return $ In (PrimData (PrimByteString (BS.take (fromIntegral x) y)))
+          _ ->
+            throwError $ "Incorrect arguments for builtin take: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "sha2_256" xs =
+        case xs of
+          [In (PrimData (PrimByteString x))] ->
+            return $ In (PrimData
+                          (PrimByteString
+                            (BS.pack
+                              (BA.unpack (hash (BS.toStrict x) :: Digest SHA256)))))
+          _ ->
+            throwError $ "Incorrect arguments for builtin sha2_256: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "sha3_256" xs =
+        case xs of
+          [In (PrimData (PrimByteString x))] ->
+            return $ In (PrimData
+                          (PrimByteString
+                            (BS.pack
+                              (BA.unpack (hash (BS.toStrict x) :: Digest SHA3_256)))))
+          _ ->
+            throwError $ "Incorrect arguments for builtin sha2_256: "
+                      ++ intercalate "," (map pretty xs)
+      builtin "equalsByteString" xs =
+        case xs of
+          [ In (PrimData (PrimByteString x))
+            , In (PrimData (PrimByteString y))
+            ] ->
+            return $ if x == y then conH "True" [] else conH "False" []
+          _ ->
+            throwError $ "Incorrect arguments for builtin equalsByteString: "
+                      ++ intercalate "," (map pretty xs)     
+      builtin n _ =
+        throwError $ "No builtin named " ++ n
 
 
 
