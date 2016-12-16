@@ -5,6 +5,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 
 
@@ -31,6 +32,7 @@ import Data.Bitraversable
 import qualified Data.Foldable as F
 import Data.Functor.Classes
 import Data.List (elemIndex)
+import GHC.Generics
 
 
 
@@ -71,6 +73,7 @@ import Data.List (elemIndex)
 data ABT f
   = Var Variable
   | In (f (Scope f))
+  deriving (Generic)
 
 deriving instance Show (f (Scope f)) => Show (ABT f)
 
@@ -91,7 +94,7 @@ data Variable
   = Free FreeVar
   | Bound String BoundVar
   | Meta MetaVar
-  deriving (Show)
+  deriving (Show,Generic)
 
 
 -- | The name of a variable.
@@ -128,6 +131,7 @@ data Scope f
       , freeNames :: [FreeVar]
       , body :: ABT f
       }
+  deriving (Generic)
 
 deriving instance Show (f (Scope f)) => Show (Scope f)
 

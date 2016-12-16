@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS -Wall #-}
 
 
@@ -11,6 +12,8 @@
 
 module Utils.Names where
 
+
+import GHC.Generics
 
 
 
@@ -26,7 +29,7 @@ data Name
   = BareLocal String
   | DottedLocal String String
   | Absolute String String
-  deriving (Show,Eq)
+  deriving (Show,Eq,Generic)
 
 
 showName :: Name -> String
@@ -42,7 +45,7 @@ showName (Absolute m n) = "!" ++ m ++ "." ++ n
 -- system.
 
 data Sourced a = User a | Generated a
-  deriving (Show,Eq)
+  deriving (Show,Eq,Generic)
 
 unsourced :: Sourced a -> a
 unsourced (User a) = a

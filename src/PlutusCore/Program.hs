@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS -Wall #-}
 
 
@@ -14,6 +15,7 @@ import PlutusCore.Term
 
 import Data.List (intercalate)
 
+import GHC.Generics
 
 
 
@@ -21,6 +23,7 @@ import Data.List (intercalate)
 -- | A program is just a series of 'Statement's.
 
 newtype Program = Program [TermDeclaration]
+  deriving (Generic)
 
 instance Show Program where
   show (Program stmts) =
@@ -34,6 +37,7 @@ instance Show Program where
 
 data TermDeclaration
   = TermDeclaration (Sourced String) Term
+  deriving (Generic)
 
 instance Show TermDeclaration where
   show (TermDeclaration n def) =

@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -23,6 +24,7 @@ import Utils.Pretty
 import qualified Data.ByteString.Lazy as BS
 import Data.List (intercalate)
 
+import GHC.Generics
 
 
 
@@ -46,7 +48,7 @@ data TermF r
   | Bind r r
   | PrimData PrimData
   | Builtin String [r]
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Generic)
 
 
 type Term = ABT TermF
@@ -58,14 +60,14 @@ type Term = ABT TermF
 data PrimData = PrimInt Int
               | PrimFloat Float
               | PrimByteString BS.ByteString
-  deriving (Eq)
+  deriving (Eq,Generic)
 
 
 -- | Clauses are a component of terms that have bunch of pattern scopes
 -- together with a clause body.
 
 data ClauseF r = Clause [Scope PatternF] r
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Generic)
 
 
 type Clause = ClauseF (Scope TermF)
@@ -75,7 +77,7 @@ type Clause = ClauseF (Scope TermF)
 
 data PatternF r = ConPat String [r]
                 | PrimPat PrimData
-  deriving (Functor,Foldable,Traversable)
+  deriving (Functor,Foldable,Traversable,Generic)
 
   
 type Pattern = ABT PatternF
