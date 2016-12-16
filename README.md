@@ -16,8 +16,8 @@ beyond Plutus (including a REPL and the integration tools for blockchain use).
 
 ## Running the demo file
 
-Run `cabal repl`, then do `:m + Interpreter.REPL` to make the REPL available,
-then call `replFile "src/Demo.pl"`. This will load the file. You can now
+Run `cabal repl`, then do `:m + Interface.REPL` to make the REPL available,
+then call `replFile "src/Demo.pls"`. This will load the file. You can now
 interact with a sparse little REPL:
 
     $> not True
