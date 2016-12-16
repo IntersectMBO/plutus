@@ -14,6 +14,7 @@ import Utils.ABT
 import Utils.Env
 import Utils.Names
 import Utils.Vars
+import qualified PlutusCore.Evaluation as Core
 import qualified PlutusCore.Term as Core
 import qualified PlutusCore.Program as Core
 import Plutus.Parser
@@ -105,3 +106,14 @@ buildValidationScript valprog redprog =
         "x"
         (Core.appH (Core.decnameH (User "validator"))
                    (Var (Free (FreeVar "x"))))
+
+checkValidationResult
+  :: (Core.Term, Env (Sourced String) Core.Term)
+  -> Either String Bool
+checkValidationResult (script, env) =
+  do res <- Core.evaluate env script
+     case res of
+       In (Core.Success _) -> Right True
+       In  Core.Failure    -> Right False
+       _                   -> Left $ "The validation result isn't of type "
+                                  ++ "Comp (i.e. neither success nor failure)"
