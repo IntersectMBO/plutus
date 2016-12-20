@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS -Wall #-}
 
 
@@ -15,6 +16,7 @@ import Utils.Pretty (pretty)
 import PlutusTypes.Type
 
 import Data.List (intercalate)
+import GHC.Generics
 
 
 
@@ -26,6 +28,7 @@ import Data.List (intercalate)
 -- types and a return type.
 
 data ConSig = ConSig [Scope TypeF] (Scope TypeF)
+  deriving (Generic)
 
 
 instance Show ConSig where

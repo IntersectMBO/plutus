@@ -1,6 +1,7 @@
 {-# OPTIONS -Wall #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -19,6 +20,7 @@ module PlutusTypes.Type where
 import Utils.ABT
 import Utils.Pretty
 
+import GHC.Generics
 
 
 
@@ -29,6 +31,7 @@ import Utils.Pretty
 -- the constructor has.
 
 newtype TyConSig = TyConSig Int
+  deriving (Generic)
 
 instance Show TyConSig where
   show (TyConSig n) = "*^" ++ show n
@@ -50,7 +53,7 @@ data TypeF r
   | PlutusInt
   | PlutusFloat
   | PlutusByteString
-  deriving (Show,Eq,Functor,Foldable)
+  deriving (Show,Eq,Functor,Foldable,Generic)
 
 
 type Type = ABT TypeF
@@ -88,7 +91,7 @@ byteStringH = In PlutusByteString
 -- two 'TypeParenLoc's for the parenthesizer to use.
 
 data TypeParenLoc = TyConArg | FunLeft | FunRight | ForallBody
-  deriving (Eq)
+  deriving (Eq,Generic)
 
 
 -- | Everything can be de-parenthesized everywhere, except for functions.
