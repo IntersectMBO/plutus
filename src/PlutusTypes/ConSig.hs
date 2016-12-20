@@ -8,11 +8,11 @@
 
 -- | This module implements constructor signatures, for data declarations.
 
-module Plutus.ConSig where
+module PlutusTypes.ConSig where
 
 import Utils.ABT
 import Utils.Pretty (pretty)
-import Plutus.Type
+import PlutusTypes.Type
 
 import Data.List (intercalate)
 

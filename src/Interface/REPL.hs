@@ -5,15 +5,11 @@
 
 module Interface.REPL where
 
-import Control.Monad.Reader (runReaderT)
-
 import Utils.ABT
-import Utils.Env
-import Utils.Eval
 import Utils.Names
 import Utils.Pretty
 import qualified PlutusCore.Term as Core
-import PlutusCore.Evaluation ()
+import PlutusCore.Evaluation
 import Plutus.Parser
 import Plutus.Term
 import Elaboration.Elaboration
@@ -41,33 +37,36 @@ until_ p prompt action = do
 repl :: String -> IO ()
 repl src0 = case loadProgram src0 of
              Left e -> flushStr ("ERROR: " ++ e ++ "\n")
-             Right (sig,defs,ctx,env)
+             Right (sig,defs,ctx)
                -> do hSetBuffering stdin LineBuffering
                      until_ (== ":quit")
                             (readPrompt "$> ")
-                            (evalAndPrint sig defs ctx env)
+                            (evalAndPrint sig defs ctx)
   where
-    loadProgram :: String -> Either String (Signature,Definitions,Context,Env (Sourced String) Core.Term)
+    loadProgram :: String -> Either String (Signature,Definitions,Context)
     loadProgram src =
       do prog <- parseProgram src
          (_,ElabState sig defs ctx _ _ _ _ _) <- runElaborator0 (elabProgram prog)
-         let env = definitionsToEnvironment defs
-         return (sig,defs,ctx,env)
+         return (sig,defs,ctx)
     
-    loadTerm :: Signature -> Definitions -> Context -> Env (Sourced String) Core.Term -> String -> Either String Core.Term
-    loadTerm sig defs ctx env src =
+    loadTerm :: Signature -> Definitions -> Context -> String -> Either String Core.Term
+    loadTerm sig defs ctx src =
       do tm0 <- parseTerm src
          let tm = freeToDefined (In . Decname . User) tm0
          case runElaborator (synth tm) sig defs ctx of
            Left e -> Left e
-           Right ((tm',_),_) -> runReaderT (eval tm') env
+           Right ((tm',_),elabstate) ->
+             evaluate (TransactionInfo undefined {- !!! -})
+                      (definitionsToEnvironment (_definitions elabstate))
+                      3750
+                      tm' --runReaderT (eval tm') env
     
-    evalAndPrint :: Signature -> Definitions -> Context -> Env (Sourced String) Core.Term -> String -> IO ()
-    evalAndPrint _ _ _ _ "" = return ()
-    evalAndPrint _ defs _ _ ":defs" =
+    evalAndPrint :: Signature -> Definitions -> Context -> String -> IO ()
+    evalAndPrint _ _ _ "" = return ()
+    evalAndPrint _ defs _ ":defs" =
       flushStr (unlines [ showSourced n | (n,_) <- defs ] ++ "\n")
-    evalAndPrint sig defs ctx env src =
-      case loadTerm sig defs ctx env src of
+    evalAndPrint sig defs ctx src =
+      case loadTerm sig defs ctx src of
         Left e -> flushStr ("ERROR: " ++ e ++ "\n")
         Right v -> flushStr (pretty v ++ "\n")
 

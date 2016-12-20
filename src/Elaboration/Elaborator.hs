@@ -16,23 +16,14 @@ import Utils.Env
 import Utils.Names
 import Utils.Unifier
 import Utils.Vars
-import Plutus.ConSig
-import Plutus.Type
+import PlutusTypes.ConSig
+import PlutusTypes.Type
 import qualified PlutusCore.Term as Core
 
 import qualified Control.Lens as L
 import Control.Monad.State
 
 
-
-
-
-
-
--- | A type constructor's signature consists of just the number of parameters
--- the constructor has.
-
-newtype TyConSig = TyConSig Int
 
 
 

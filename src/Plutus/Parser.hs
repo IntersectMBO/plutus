@@ -25,9 +25,9 @@ import Utils.ABT hiding (bind)
 import Utils.Names
 import Utils.SuffixParser
 import Utils.Vars
-import Plutus.ConSig
 import Plutus.Term
-import Plutus.Type
+import PlutusTypes.ConSig
+import PlutusTypes.Type
 import Plutus.Program
 
 import Control.Monad (guard)
@@ -233,8 +233,9 @@ nybble =
 
 datatype :: Parsec String u Type
 datatype =
-      forallType
-  <|> (compType <|> intType <|> floatType <|> byteStringType
+      -- forallType
+  -- <|> 
+      (compType <|> intType <|> floatType <|> byteStringType
           <|> typeCon <|> parenType <|> typeVar)
         >>=? functionSuffix
 
@@ -276,16 +277,16 @@ typeVar =
      guard (x /= "_")
      return $ Var (Free (FreeVar x))
 
-forallType :: Parsec String u Type
-forallType =
-  do reserved "forall"
-     xs <- many1 $ do
-             x <- varName
-             guard (x /= "_")
-             return x
-     reservedOp "."
-     b <- forallBody
-     return $ helperFold forallH xs b
+-- forallType :: Parsec String u Type
+-- forallType =
+--   do reserved "forall"
+--      xs <- many1 $ do
+--              x <- varName
+--              guard (x /= "_")
+--              return x
+--      reservedOp "."
+--      b <- forallBody
+--      return $ helperFold forallH xs b
 
 functionSuffix :: Type -> Parsec String u Type
 functionSuffix arg =

@@ -11,9 +11,9 @@ module Plutus.Program where
 import Utils.ABT
 import Utils.Names
 import Utils.Pretty
-import Plutus.ConSig
 import Plutus.Term
-import Plutus.Type
+import PlutusTypes.ConSig
+import PlutusTypes.Type
 
 import Data.List (intercalate)
 

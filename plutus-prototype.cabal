@@ -22,12 +22,12 @@ source-repository head
   location:            git://github.com/input-output-hk/plutus-prototype.git
 
 library
-  exposed-modules:     PlutusCore.Term,
+  exposed-modules:     PlutusTypes.ConSig,
+                       PlutusTypes.Type,
+                       PlutusCore.Term,
                        PlutusCore.Evaluation,
                        PlutusCore.Program,
-                       Plutus.Type,
                        Plutus.Term,
-                       Plutus.ConSig,
                        Plutus.Program,
                        Plutus.Parser,
                        Elaboration.Elaborator,

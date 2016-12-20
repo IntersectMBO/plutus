@@ -20,9 +20,9 @@ import Utils.Names
 import Utils.Pretty
 import Utils.Unifier
 import Utils.Vars
-import Plutus.ConSig
 import Plutus.Term
-import Plutus.Type
+import PlutusTypes.ConSig
+import PlutusTypes.Type
 import Plutus.Program
 import qualified PlutusCore.Term as Core
 import qualified PlutusCore.Program as Core
@@ -205,11 +205,16 @@ elabTypeDecl (TypeDeclaration tycon params alts) =
 elabProgram :: Program -> Elaborator Core.Program
 elabProgram (Program stmts0) =
   do go stmts0
+     Signature tyConSigs conSigs <- getElab signature
      defs <- getElab definitions
      return $ Core.Program
-                [ Core.TermDeclaration n def
-                | (n,(def,_)) <- defs
-                ]
+              { Core.typeConstructors = tyConSigs
+              , Core.constructors = conSigs
+              , Core.termDeclarations =
+                  [ Core.TermDeclaration n def ty
+                  | (n,(def,ty)) <- defs
+                  ]
+              }
   where
     go :: [Statement] -> Elaborator ()
     go [] = return ()
@@ -296,6 +301,9 @@ builtinInSignature n =
       , ("sha3_256", conSigH [] [byteStringH] byteStringH)
       , ("equalsByteString",
           conSigH [] [byteStringH,byteStringH] (tyConH "Bool" []))
+      , ("verifySignature",
+          conSigH [] [byteStringH,byteStringH,byteStringH] (tyConH "Bool" []))
+      , ("transactionInfo", conSigH [] [] (tyConH "Comp" [byteStringH]))
       ]
 
 
@@ -379,10 +387,10 @@ isType (In (TyCon c as)) =
 isType (In (Fun a b)) =
   do isType (instantiate0 a)
      isType (instantiate0 b)
-isType (In (Forall sc)) =
-  do ([x],_,a) <- open tyVarContext sc
-     extendElab tyVarContext [(x,())]
-       $ isType a
+-- isType (In (Forall sc)) =
+--   do ([x],_,a) <- open tyVarContext sc
+--      extendElab tyVarContext [(x,())]
+--        $ isType a
 isType (In (Comp a)) =
   isType (instantiate0 a)
 isType (In PlutusInt) =
@@ -420,10 +428,10 @@ instantiateParams argscs retsc =
 -- @A → ∀β. A → β@ would be unchanged.
 
 instantiateQuantifiers :: Type -> TypeChecker Type
-instantiateQuantifiers (In (Forall sc)) =
-  do meta <- nextElab nextMeta
-     let m = Var (Meta meta)
-     instantiateQuantifiers (instantiate sc [m])
+-- instantiateQuantifiers (In (Forall sc)) =
+--   do meta <- nextElab nextMeta
+--      let m = Var (Meta meta)
+--      instantiateQuantifiers (instantiate sc [m])
 instantiateQuantifiers t = return t
 
 
@@ -599,7 +607,7 @@ synthify (In (Ann m t)) =
   do isType t
      m' <- checkify (instantiate0 m) t
      subs <- getElab substitution
-     return (m', substMetas subs t)
+     return (Core.substTypeMetas subs m', substMetas subs t)
 synthify (In (Let a m sc)) =
   do m' <- letLift (head (names sc)) (instantiate0 m) a
      ([x],[v],n) <- open context sc
@@ -613,7 +621,7 @@ synthify (In (Lam sc)) =
      (m',ret) <- extendElab context [(x,arg)]
                    $ synthify m
      subs <- getElab substitution
-     return ( Core.lamH n m'
+     return ( Core.substTypeMetas subs (Core.lamH arg n m')
             , substMetas subs (funH arg ret)
             )
 synthify (In (App f a)) =
@@ -623,7 +631,9 @@ synthify (In (App f a)) =
        In (Fun arg ret) -> do
          a' <- checkify (instantiate0 a) (instantiate0 arg)
          subs <- getElab substitution
-         return (Core.appH f' a', substMetas subs (instantiate0 ret))
+         return ( Core.substTypeMetas subs (Core.appH f' a')
+                , substMetas subs (instantiate0 ret)
+                )
        _ -> throwError $ "Expected a function type when checking"
                       ++ " the expression: " ++ pretty (instantiate0 f)
                       ++ "\nbut instead found: " ++ pretty t'
@@ -638,7 +648,9 @@ synthify (In (Con c as)) =
                  ++ " but was given " ++ show las
      as' <- checkifyMulti (map instantiate0 as) args'
      subs <- getElab substitution
-     return (Core.conH c as', substMetas subs ret')
+     return ( Core.substTypeMetas subs (Core.conH c as')
+            , substMetas subs ret'
+            )
 synthify (In (Case ms cs)) =
   do (ms', as) <- unzip <$> mapM (synthify.instantiate0) ms
      (cs', b) <- synthifyClauses as cs
@@ -648,7 +660,7 @@ synthify (In (Success m)) =
      return (Core.successH m', compH a)
 synthify (In Failure) =
   do meta <- nextElab nextMeta
-     return ( Core.failureH
+     return ( Core.failureH (Var (Meta meta))
             , compH (Var (Meta meta))
             )
 synthify (In (Bind m sc)) =
@@ -683,7 +695,9 @@ synthify (In (Builtin n as)) =
                  ++ " but was given " ++ show las
      as' <- checkifyMulti (map instantiate0 as) args'
      subs <- getElab substitution
-     return (Core.builtinH n as', substMetas subs ret')
+     return ( Core.substTypeMetas subs (Core.builtinH n as')
+            , substMetas subs ret'
+            )
 
 
 
@@ -725,7 +739,7 @@ synthifyClause patTys (Clause pscs sc) =
      (m',ret) <- extendElab context (zip xs (map (substMetas subs) args))
                    $ synthify m
      subs' <- getElab substitution
-     return ( Core.Clause pscs' (scope ns m')
+     return ( Core.substTypeMetasClause subs' (Core.Clause pscs' (scope ns m'))
             , substMetas subs' ret
             )
 
@@ -747,7 +761,7 @@ synthifyClauses patTys cs =
                      ++ unlines (map pretty ts) ++ "\n"
                      ++ "Unification failed with error: " ++ e
          subs <- getElab substitution
-         return ( cs'
+         return ( map (Core.substTypeMetasClause subs) cs'
                 , substMetas subs t
                 )
 
@@ -795,10 +809,10 @@ synthifyClauses patTys cs =
 -- @
 
 checkify :: Term -> Type -> TypeChecker Core.Term
-checkify m (In (Forall sc)) =
-  do ([a],_,b) <- open tyVarContext sc
-     extendElab tyVarContext [(a,())]
-       $ checkify m b
+-- checkify m (In (Forall sc)) =
+--   do ([a],_,b) <- open tyVarContext sc
+--      extendElab tyVarContext [(a,())]
+--        $ checkify m b
 checkify (In (Let a m sc)) b =
   do m' <- letLift (head (names sc)) (instantiate0 m) a
      ([x],[v],n) <- open context sc
@@ -809,7 +823,8 @@ checkify (In (Lam sc)) (In (Fun arg ret)) =
   do ([x],[v],m) <- open context sc
      m' <- extendElab context [(x,instantiate0 arg)]
              $ checkify m (instantiate0 ret)
-     return $ Core.lamH v m'
+     subs <- getElab substitution
+     return $ Core.substTypeMetas subs (Core.lamH (instantiate0 arg) v m')
 checkify (In (Lam sc)) t =
   throwError $ "Cannot check term: " ++ pretty (In (Lam sc)) ++ "\n"
             ++ "Against non-function type: " ++ pretty t
@@ -833,8 +848,8 @@ checkify (In (Success m)) (In (Comp a)) =
 checkify (In (Success m)) a =
   throwError $ "Cannot check term: " ++ pretty (In (Success m)) ++ "\n"
             ++ "Against non-computation type: " ++ pretty a
-checkify (In Failure) (In (Comp _)) =
-  return Core.failureH
+checkify (In Failure) (In (Comp a)) =
+  return $ Core.failureH (In (Comp a))
 checkify (In Failure) a =
   throwError $ "Cannot check term: " ++ pretty (In Failure) ++ "\n"
             ++ "Against non-computation type: " ++ pretty a
@@ -916,15 +931,15 @@ checkifyMulti _ _ =
 -- @
 
 subtype :: Type -> Type -> TypeChecker ()
-subtype a (In (Forall sc')) =
-  do (_,_,b) <- open tyVarContext sc'
-     subtype a b
-subtype (In (Forall sc)) b =
-  do meta <- nextElab nextMeta
-     subtype (instantiate sc [Var (Meta meta)]) b
-subtype (In (Fun arg ret)) (In (Fun arg' ret')) =
-  do subtype (instantiate0 arg') (instantiate0 arg)
-     subtype (instantiate0 ret) (instantiate0 ret')
+-- subtype a (In (Forall sc')) =
+--   do (_,_,b) <- open tyVarContext sc'
+--      subtype a b
+-- subtype (In (Forall sc)) b =
+--   do meta <- nextElab nextMeta
+--      subtype (instantiate sc [Var (Meta meta)]) b
+-- subtype (In (Fun arg ret)) (In (Fun arg' ret')) =
+--   do subtype (instantiate0 arg') (instantiate0 arg)
+--      subtype (instantiate0 ret) (instantiate0 ret')
 subtype a b =
   unify substitution context a b
 
@@ -1046,7 +1061,8 @@ metasSolved = do s <- get
 check :: Term -> Type -> TypeChecker Core.Term
 check m t = do m' <- checkify m t
                metasSolved
-               return m'
+               subs <- getElab substitution
+               return $ Core.substTypeMetas subs m'
 
 
 
@@ -1059,4 +1075,6 @@ synth :: Term -> TypeChecker (Core.Term,Type)
 synth m = do (m',t) <- synthify m
              metasSolved
              subs <- getElab substitution
-             return (m', substMetas subs t)
+             return ( Core.substTypeMetas subs m'
+                    , substMetas subs t
+                    )

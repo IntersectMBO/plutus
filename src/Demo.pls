@@ -28,47 +28,12 @@ fac : Nat -> Nat {
   fac (Suc n) = times (Suc n) (fac n)
 }
 
-id : forall a. a -> a {
-  id x = x
-}
-
-const : forall a b. a -> b -> a {
- const x y = x
-}
-
 data Unit = { Unit }
-
-data Delay a = { Delay (Unit -> a) }
-
-force : forall a. Delay a -> a {
-  force (Delay f) = f Unit
-}
-
-if : forall a. Bool -> Delay a -> Delay a -> a {
-  if True t f = force t ;
-  if False t f = force f
-}
 
 data List a = { Nil | Cons a (List a) }
 
-map : forall a b. (a -> b) -> List a -> List b {
-  map f Nil = Nil ;
-  map f (Cons x xs) = Cons (f x) (map f xs)
-}
-
-compose : forall a b c. (b -> c) -> (a -> b) -> a -> c {
-  compose f g x = f (g x)
-}
-
-validator : (forall a. a -> a -> a) -> Comp Bool {
-  validator f = case f True False of { 
-    True  -> success True ;
-    False -> failure
-  }
-}
-
 localTest : Nat -> Nat {
   localTest x =
-    let { locid : forall a. Unit -> a -> Nat { locid z y = x } }
+    let { locid : Unit -> Nat -> Nat { locid z y = x } }
     in locid Unit Zero
 }

@@ -16,10 +16,10 @@
 module Elaboration.Unification where
 
 import Utils.ABT
-import Utils.Elaborator
+-- import Utils.Elaborator
 import Utils.Pretty
 import Utils.Unifier
-import Plutus.Type
+import PlutusTypes.Type
 import Elaboration.Elaborator
 
 import Control.Monad.Except
@@ -49,10 +49,10 @@ instance MonadUnify TypeF Elaborator where
     return [ Equation (instantiate0 a1) (instantiate0 a2)
            , Equation (instantiate0 b1) (instantiate0 b2)
            ]
-  equate (Forall sc1) (Forall sc2) =
-    do ns <- freshRelTo (names sc1) context
-       let xs = map (Var . Free) ns
-       return [ Equation (instantiate sc1 xs) (instantiate sc2 xs) ]
+  -- equate (Forall sc1) (Forall sc2) =
+  --   do ns <- freshRelTo (names sc1) context
+  --      let xs = map (Var . Free) ns
+  --      return [ Equation (instantiate sc1 xs) (instantiate sc2 xs) ]
   equate (Comp a1) (Comp a2) =
     return [ Equation (instantiate0 a1) (instantiate0 a2) ]
   equate PlutusInt PlutusInt =

@@ -16,11 +16,14 @@
 
 module PlutusCore.Term where
 
+import PlutusTypes.Type
 import Utils.ABT
 import Utils.Names
 import Utils.Pretty
+import Utils.Vars
 
 import qualified Data.ByteString.Lazy as BS
+import Data.Functor.Identity
 import Data.List (intercalate)
 
 
@@ -37,16 +40,16 @@ import Data.List (intercalate)
 data TermF r
   = Decname (Sourced String)
   | Let r r
-  | Lam r
+  | Lam Type r
   | App r r
   | Con String [r]
   | Case [r] [ClauseF r]
   | Success r
-  | Failure
+  | Failure Type
   | Bind r r
   | PrimData PrimData
   | Builtin String [r]
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Traversable)
 
 
 type Term = ABT TermF
@@ -65,7 +68,7 @@ data PrimData = PrimInt Int
 -- together with a clause body.
 
 data ClauseF r = Clause [Scope PatternF] r
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Traversable)
 
 
 type Clause = ClauseF (Scope TermF)
@@ -90,8 +93,8 @@ decnameH n = In (Decname n)
 letH :: Term -> String -> Term -> Term
 letH m x n = In (Let (scope [] m) (scope [x] n))
 
-lamH :: String -> Term -> Term
-lamH v b = In (Lam (scope [v] b))
+lamH :: Type -> String -> Term -> Term
+lamH t v b = In (Lam t (scope [v] b))
 
 appH :: Term -> Term -> Term
 appH f x = In (App (scope [] f) (scope [] x))
@@ -120,8 +123,8 @@ primByteStringPatH x = In (PrimPat (PrimByteString x))
 successH :: Term -> Term
 successH m = In (Success (scope [] m))
 
-failureH :: Term
-failureH = In Failure
+failureH :: Type -> Term
+failureH t = In (Failure t)
 
 bindH :: Term -> String -> Term -> Term
 bindH m x n = In (Bind (scope [] m) (scope [x] n))
@@ -137,6 +140,24 @@ primByteStringH x = In (PrimData (PrimByteString x))
 
 builtinH :: String -> [Term] -> Term
 builtinH n ms = In (Builtin n (map (scope []) ms))
+
+
+
+
+
+substTypeMetas :: [(MetaVar,Type)] -> Term -> Term
+substTypeMetas subs x0 = runIdentity (go x0)
+  where
+    go :: Term -> Identity Term
+    go (Var x) = return (Var x)
+    go (In (Lam t sc)) = (In . Lam (substMetas subs t)) <$> underF go sc
+    go (In (Failure t)) = return (In (Failure (substMetas subs t)))
+    go (In x) = In <$> traverse (underF go) x
+
+
+substTypeMetasClause :: [(MetaVar,Type)] -> Clause -> Clause
+substTypeMetasClause subs (Clause ps sc) =
+  Clause ps (under (substTypeMetas subs) sc)
 
 
 
@@ -163,8 +184,9 @@ instance Parens Term where
     ++ ";"
     ++ head (names n) ++ "." ++ parenthesize Nothing (body n)
     ++ ")"
-  parenRec (In (Lam sc)) =
-    "\\(" ++ unwords (names sc)
+  parenRec (In (Lam t sc)) =
+    "\\(" ++ pretty t ++ ";"
+      ++ unwords (names sc)
       ++ "."
       ++ parenthesize Nothing (body sc)
       ++ ")"
@@ -198,8 +220,8 @@ instance Parens Term where
     "success("
       ++ parenthesize Nothing (instantiate0 m)
       ++ ")"
-  parenRec (In Failure) =
-    "failure"
+  parenRec (In (Failure t)) =
+    "failure(" ++ pretty t ++ ")"
   parenRec (In (Bind m sc)) =
     "bind("
     ++ parenthesize Nothing (instantiate0 m)

@@ -14,10 +14,24 @@
 -- | The types of the simply typed lambda calculus w/ non-parametric user
 -- defined types (eg Bool, Nat).
 
-module Plutus.Type where
+module PlutusTypes.Type where
 
 import Utils.ABT
 import Utils.Pretty
+
+
+
+
+
+
+
+-- | A type constructor's signature consists of just the number of parameters
+-- the constructor has.
+
+newtype TyConSig = TyConSig Int
+
+instance Show TyConSig where
+  show (TyConSig n) = "*^" ++ show n
 
 
 
@@ -30,7 +44,8 @@ import Utils.Pretty
 data TypeF r
   = TyCon String [r]
   | Fun r r
-  | Forall r
+  -- | Forall r  -- no `forall` for now, until polymorphic resource awareness
+                 -- is better understood
   | Comp r
   | PlutusInt
   | PlutusFloat
@@ -50,8 +65,8 @@ tyConH c as = In (TyCon c (map (scope []) as))
 funH :: Type -> Type -> Type
 funH a b = In (Fun (scope [] a) (scope [] b))
 
-forallH :: String -> Type -> Type
-forallH x b = In (Forall (scope [x] b))
+--forallH :: String -> Type -> Type
+--forallH x b = In (Forall (scope [x] b))
 
 compH :: Type -> Type
 compH a = In (Comp (scope [] a))
@@ -90,8 +105,8 @@ instance Parens Type where
     [FunRight,ForallBody]
   parenLoc (In (Fun _ _)) =
     [FunRight,ForallBody]
-  parenLoc (In (Forall _)) =
-    [FunRight,ForallBody]
+  -- parenLoc (In (Forall _)) =
+  --  [FunRight,ForallBody]
   parenLoc (In (Comp _)) =
     [FunRight,ForallBody]
   parenLoc (In PlutusInt) =
@@ -111,9 +126,9 @@ instance Parens Type where
     parenthesize (Just FunLeft) (instantiate0 a)
       ++ " -> "
       ++ parenthesize (Just FunRight) (instantiate0 b)
-  parenRec (In (Forall sc)) =
-    "forall " ++ unwords (names sc) ++ ". "
-    ++ parenthesize (Just ForallBody) (body sc)
+  -- parenRec (In (Forall sc)) =
+  --  "forall " ++ unwords (names sc) ++ ". "
+  --  ++ parenthesize (Just ForallBody) (body sc)
   parenRec (In (Comp a)) =
     "Comp " ++ parenthesize (Just TyConArg) (instantiate0 a)
   parenRec (In PlutusInt) =

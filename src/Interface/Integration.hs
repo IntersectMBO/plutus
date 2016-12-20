@@ -27,22 +27,26 @@ import Elaboration.Elaborator
 -- | This function converts a program to a declaration environment.
 
 programToDeclEnv :: Core.Program -> Env (Sourced String) Core.Term
-programToDeclEnv (Core.Program decls) =
-  [ (n,m) | Core.TermDeclaration n m <- decls ]
-
--- | This function convers a declaration environment to a program.
-
-declEnvToProgram :: Env (Sourced String) Core.Term -> Core.Program
-declEnvToProgram env =
-  Core.Program (map (uncurry Core.TermDeclaration) env)
+programToDeclEnv (Core.Program _ _ decls) =
+  [ (n,m) | Core.TermDeclaration n m _ <- decls ]
 
 -- | This function parses and elaborates a program.
 
-loadProgram :: String -> Either String (Env (Sourced String) Core.Term)
+loadProgram :: String -> Either String Core.Program
 loadProgram src =
   do prog <- parseProgram src
-     (_,ElabState _ defs _ _ _ _ _ _) <- runElaborator0 (elabProgram prog)
-     return $ definitionsToEnvironment defs
+     (_, ElabState
+         { _signature = Signature tyConSigs conSigs
+         , _definitions = defs
+         }) <- runElaborator0 (elabProgram prog)
+     return $ Core.Program
+              { Core.typeConstructors = tyConSigs
+              , Core.constructors = conSigs
+              , Core.termDeclarations =
+                  [ Core.TermDeclaration m n ty
+                  | (m,(n,ty)) <- defs
+                  ]
+              } --definitionsToEnvironment defs
 
 
 -- | This function loads a validator program and ensures that it can be used
@@ -50,10 +54,12 @@ loadProgram src =
 
 loadValidator :: String -> Either String Core.Program
 loadValidator src =
-  do env <- loadProgram src
-     case lookup (User "validator") env of
+  do prog <- loadProgram src
+     case Core.lookupDeclaration
+            (User "validator")
+            (Core.termDeclarations prog) of
        Nothing -> Left "Validators must declare the term `validator`"
-       Just _ -> return $ declEnvToProgram env
+       Just _ -> return prog
 
 
 -- | This function loads a redeemer program and ensures that it can be used to
@@ -61,10 +67,12 @@ loadValidator src =
 
 loadRedeemer :: String -> Either String Core.Program
 loadRedeemer src =
-  do env <- loadProgram src
-     case lookup (User "redeemer") env of
+  do prog <- loadProgram src
+     case Core.lookupDeclaration
+            (User "redeemer")
+            (Core.termDeclarations prog) of
        Nothing -> Left "Redeemers must declare the term `redeemer`"
-       Just _ -> return $ declEnvToProgram env
+       Just _ -> return prog
 
 
 -- | This function takes validator and redeemer programs, ensures that they
