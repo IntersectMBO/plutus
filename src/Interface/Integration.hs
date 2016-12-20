@@ -119,9 +119,9 @@ checkValidationResult
   :: (Core.Term, Env (Sourced String) Core.Term)
   -> Either String Bool
 checkValidationResult (script, env) =
-  do res <- Core.evaluate env script
+  do res <- Core.evaluate undefined {- !!! -} env 3750 script
      case res of
        In (Core.Success _) -> Right True
-       In  Core.Failure    -> Right False
+       In (Core.Failure _) -> Right False
        _                   -> Left $ "The validation result isn't of type "
                                   ++ "Comp (i.e. neither success nor failure)"
