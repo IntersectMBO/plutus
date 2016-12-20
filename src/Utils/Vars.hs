@@ -1,5 +1,6 @@
 {-# OPTIONS -Wall #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 
 
@@ -13,6 +14,10 @@ module Utils.Vars where
 
 
 
+import GHC.Generics
+
+
+
 
 
 -- * Variable types
@@ -23,7 +28,7 @@ module Utils.Vars where
 -- accidentally using it for the wrong things.
 
 newtype FreeVar = FreeVar String
-  deriving (Eq,Show)
+  deriving (Eq,Show,Generic)
 
 
 
@@ -31,7 +36,7 @@ newtype FreeVar = FreeVar String
 -- accidentally using it for the wrong things.
 
 newtype BoundVar = BoundVar Int
-  deriving (Eq,Show)
+  deriving (Eq,Show,Generic)
 
 
 
@@ -39,7 +44,7 @@ newtype BoundVar = BoundVar Int
 -- accidentally using it for the wrong things.
 
 newtype MetaVar = MetaVar Int
-  deriving (Eq,Show,Num,Ord)
+  deriving (Eq,Show,Num,Ord,Generic)
 
 
 

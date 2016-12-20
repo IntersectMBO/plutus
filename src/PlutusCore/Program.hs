@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS -Wall #-}
 
 
@@ -16,6 +17,7 @@ import PlutusTypes.Type
 
 import Data.List (intercalate)
 
+import GHC.Generics
 
 
 
@@ -29,6 +31,7 @@ data Program =
   , constructors :: [(String,ConSig)]
   , termDeclarations :: [TermDeclaration]
   }
+  deriving (Generic)
 
 instance Show Program where
   show (Program tycons cons stmts) =
@@ -54,6 +57,7 @@ instance Show Program where
 
 data TermDeclaration
   = TermDeclaration (Sourced String) Term Type
+  deriving (Generic)
 
 instance Show TermDeclaration where
   show (TermDeclaration n def ty) =

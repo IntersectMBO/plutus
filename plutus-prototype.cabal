@@ -35,15 +35,15 @@ library
                        Elaboration.Elaboration,
                        Interface.REPL,
                        Interface.Integration
-  other-modules:       Utils.ABT,
-                       Utils.Elaborator,
+                       Utils.Names,
+                       Utils.Vars
+                       Utils.ABT
+  other-modules:       Utils.Elaborator,
                        Utils.Env,
                        Utils.Eval,
-                       Utils.Names,
                        Utils.Pretty,
                        Utils.SuffixParser,
-                       Utils.Unifier,
-                       Utils.Vars
+                       Utils.Unifier
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.10,
                        bifunctors,
