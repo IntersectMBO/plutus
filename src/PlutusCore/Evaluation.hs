@@ -20,6 +20,7 @@ import Utils.Names
 import Utils.Pretty (pretty)
 import PlutusCore.Term
 
+import qualified Crypto.Sign.Ed25519 as Ed25519
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -565,11 +566,17 @@ instance MEval
                       ++ intercalate "," (map pretty xs)     
       builtin "verifySignature" xs =
         case xs of
-          [ In (PrimData (PrimByteString x))
-            , In (PrimData (PrimByteString y))
-            , In (PrimData (PrimByteString z))
+          [ In (PrimData (PrimByteString key))
+            , In (PrimData (PrimByteString val))
+            , In (PrimData (PrimByteString sig))
             ] ->
-            undefined {- !!! -}
+            return $ let key' = Ed25519.PublicKey (BS.toStrict key)
+                         sig' = Ed25519.Signature (BS.toStrict sig)
+                         val' = BS.toStrict val
+                     in if BS.length key == 32 && BS.length sig == 64 &&
+                           Ed25519.dverify key' val' sig'
+                          then conH "True" []
+                          else conH "False" []
           _ ->
             throwError $ "Incorrect arguments for builtin verifySignature: "
                       ++ intercalate "," (map pretty xs)     

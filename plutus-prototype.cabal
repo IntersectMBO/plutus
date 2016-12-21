@@ -50,6 +50,7 @@ library
                        binary,
                        bytestring,
                        cryptonite,
+                       ed25519,
                        lens,
                        memory,
                        mtl,
