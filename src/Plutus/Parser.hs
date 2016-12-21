@@ -297,6 +297,9 @@ functionSuffix arg =
 tyConArg :: Parsec String u Type
 tyConArg =
       parenType
+  <|> intType
+  <|> floatType
+  <|> byteStringType
   <|> noArgTypeCon
   <|> typeVar
 
@@ -703,7 +706,13 @@ alternative =
      return (c,as)
 
 alternativeArg :: Parsec String u Type
-alternativeArg = parenType <|> typeCon <|> typeVar
+alternativeArg =
+     parenType
+ <|> intType
+ <|> floatType
+ <|> byteStringType
+ <|> typeCon
+ <|> typeVar
 
 typeDecl :: Parsec String u TypeDeclaration
 typeDecl =

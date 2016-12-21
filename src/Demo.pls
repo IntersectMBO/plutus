@@ -37,3 +37,7 @@ localTest : Nat -> Nat {
     let { locid : Unit -> Nat -> Nat { locid z y = x } }
     in locid Unit Zero
 }
+
+validator : Comp Int -> Comp Int {
+  validator x = x
+}
