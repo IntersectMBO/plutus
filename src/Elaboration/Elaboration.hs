@@ -186,7 +186,30 @@ elabTypeDecl (TypeDeclaration tycon params alts) =
 
 
 
--- Elaborating a whole program involves chaining together the elaborations of
+-- | Elaborating a statement is just a choice between each kind.
+
+elabStatement :: Statement -> Elaborator ()
+elabStatement (TyDecl td) = elabTypeDecl td
+elabStatement (TmDecl td) = elabTermDecl td
+
+
+
+
+
+-- | Extracting a program just involves pulling out the relevant parts of the
+-- elaboration environment
+
+extractProgram :: Elaborator Core.Program
+extractProgram =
+  do Signature tyConSigs conSigs <- getElab signature
+     defs <- getElab definitions
+     return $ Core.Program tyConSigs conSigs defs
+
+
+
+
+
+-- | Elaborating a whole program involves chaining together the elaborations of
 -- each kind of declaration. We can define it inductively as follows:
 --
 -- @
@@ -204,24 +227,8 @@ elabTypeDecl (TypeDeclaration tycon params alts) =
 
 elabProgram :: Program -> Elaborator Core.Program
 elabProgram (Program stmts0) =
-  do go stmts0
-     Signature tyConSigs conSigs <- getElab signature
-     defs <- getElab definitions
-     return $ Core.Program
-              { Core.typeConstructors = tyConSigs
-              , Core.constructors = conSigs
-              , Core.termDeclarations =
-                  [ Core.TermDeclaration n def ty
-                  | (n,(def,ty)) <- defs
-                  ]
-              }
-  where
-    go :: [Statement] -> Elaborator ()
-    go [] = return ()
-    go (TyDecl td:stmts) = do elabTypeDecl td
-                              go stmts
-    go (TmDecl td:stmts) = do elabTermDecl td
-                              go stmts
+  do mapM_ elabStatement stmts0
+     extractProgram
 
 
 

@@ -11,9 +11,11 @@
 module Interface.Integration where
 
 import Utils.ABT
+import Utils.Elaborator
 import Utils.Env
 import Utils.Names
 import Utils.Vars
+import qualified Plutus.Program as Plutus
 import qualified PlutusCore.Evaluation as Core
 import qualified PlutusCore.Term as Core
 import qualified PlutusCore.Program as Core
@@ -21,6 +23,7 @@ import Plutus.Parser
 import Elaboration.Elaboration
 import Elaboration.Elaborator
 
+import Control.Monad.Except
 import Data.List
 
 
@@ -30,52 +33,77 @@ import Data.List
 -- | This function converts a program to a declaration environment.
 
 programToDeclEnv :: Core.Program -> Env (Sourced String) Core.Term
-programToDeclEnv (Core.Program _ _ decls) =
-  [ (n,m) | Core.TermDeclaration n m _ <- decls ]
+programToDeclEnv (Core.Program _ _ defs) = definitionsToEnvironment defs
+
+
 
 -- | This function parses and elaborates a program.
 
-loadProgram :: String -> Either String Core.Program
+loadProgram :: String -> Elaborator Core.Program
 loadProgram src =
-  do prog <- parseProgram src
-     (_, ElabState
-         { _signature = Signature tyConSigs conSigs
-         , _definitions = defs
-         }) <- runElaborator0 (elabProgram prog)
-     return $ Core.Program
-              { Core.typeConstructors = tyConSigs
-              , Core.constructors = conSigs
-              , Core.termDeclarations =
-                  [ Core.TermDeclaration m n ty
-                  | (m,(n,ty)) <- defs
-                  ]
-              } --definitionsToEnvironment defs
+  case parseProgram src of
+    Left err -> throwError err
+    Right (Plutus.Program stmts) ->
+      do oldDefs <- getElab definitions
+         Signature oldTypeCons oldCons <- getElab signature
+         mapM_ elabStatement stmts
+         newDefs <- getElab definitions
+         Signature newTypeCons newCons <- getElab signature
+         let deltaTypeCons =
+               deleteFirstsBy
+                 (\x y -> fst x == fst y)
+                 newTypeCons
+                 oldTypeCons
+             deltaCons =
+               deleteFirstsBy
+                 (\x y -> fst x == fst y)
+                 newCons
+                 oldCons
+             deltaDefs =
+               deleteFirstsBy
+                 (\x y -> fst x == fst y)
+                 newDefs
+                 oldDefs
+         return $ Core.Program
+                    deltaTypeCons
+                    deltaCons
+                    deltaDefs
+
 
 
 -- | This function loads a validator program and ensures that it can be used
 -- to validate a transaction.
 
-loadValidator :: String -> Either String Core.Program
+loadValidator :: String -> Elaborator Core.Program
 loadValidator src =
   do prog <- loadProgram src
-     case Core.lookupDeclaration
-            (User "validator")
-            (Core.termDeclarations prog) of
-       Nothing -> Left "Validators must declare the term `validator`"
+     defs <- getElab definitions
+     case lookup (User "validator") defs of
+       Nothing -> throwError "Validators must declare the term `validator`"
        Just _ -> return prog
+
 
 
 -- | This function loads a redeemer program and ensures that it can be used to
 -- redeem a transaction.
 
-loadRedeemer :: String -> Either String Core.Program
+loadRedeemer :: String -> Elaborator Core.Program
 loadRedeemer src =
   do prog <- loadProgram src
-     case Core.lookupDeclaration
-            (User "redeemer")
-            (Core.termDeclarations prog) of
-       Nothing -> Left "Redeemers must declare the term `redeemer`"
+     defs <- getElab definitions
+     case lookup (User "redeemer") defs of
+       Nothing -> throwError "Redeemers must declare the term `redeemer`"
        Just _ -> return prog
+
+
+
+-- | We can run an elaborator in the context of some previous program, e.g.
+-- a standard library.
+
+runElabInContext :: Core.Program -> Elaborator a -> Either String a
+runElabInContext (Core.Program tyConSigs conSigs defs) m =
+  fmap fst (runElaborator m (Signature tyConSigs conSigs) defs [])
+
 
 
 -- | This function takes validator and redeemer programs, ensures that they
@@ -89,31 +117,49 @@ buildValidationScript
   -> Core.Program
   -> Core.Program
   -> Either String (Core.Term, Env (Sourced String) Core.Term)
-buildValidationScript stdlib valprog redprog =
-  let stdlibenv = programToDeclEnv stdlib
-      valenv = programToDeclEnv valprog
-      redenv = programToDeclEnv redprog
-      evalenv = stdlibenv ++ valenv ++ redenv
-      declaredNames = map fst evalenv
-      uniqNames = nub declaredNames
-  in if length declaredNames == length uniqNames
-     then
-       case ( lookup (User "validator") valenv
-            , lookup (User "redeemer") redenv
-            ) of
+buildValidationScript
+  (Core.Program stdlibTyCons stdlibCons stdlibDefs)
+  (Core.Program valTyCons valCons valDefs)
+  (Core.Program redTyCons redCons redDefs)
+  =
+  let evalTyCons = stdlibTyCons ++ valTyCons ++ redTyCons
+      evalCons = stdlibCons ++ valCons ++ redCons
+      evalDefs = stdlibDefs ++ valDefs ++ redDefs
+  in
+    case ( repeats (map fst evalTyCons)
+         , repeats (map fst evalCons)
+         , repeats (map fst evalDefs)
+         ) of
+      ([],[],[]) ->
+        case ( lookup (User "validator") evalDefs
+             , lookup (User "redeemer") evalDefs
+             ) of
          (Nothing,Nothing) ->
-           Left $ "The validator script is missing `validator` and the "
+           throwError
+             $ "The validator script is missing `validator` and the "
                ++ "redeemer script is missing `redeemer`"
          (Nothing,Just _) ->
-           Left "The validator script is missing `validator`"
+           throwError "The validator script is missing `validator`"
          (Just _,Nothing) ->
-           Left "The redeemer script is missing `redeemer`"
+           throwError "The redeemer script is missing `redeemer`"
          (Just _,Just _) ->
-           Right (validationScript, evalenv)
-     else
-       Left $ "The following names are declared more than once: "
-           ++ unwords (map showSourced (nub (declaredNames \\ uniqNames)))
+           return (validationScript, definitionsToEnvironment evalDefs)
+      ([],[],xs) ->
+        throwError
+          $ "There are overlapping declared names in these scripts: "
+            ++ unwords (map show xs)
+      ([],xs,_) ->
+        throwError
+          $ "There are overlapping constructors in these scripts: "
+            ++ unwords (map show xs)
+      (xs,_,_) ->
+        throwError
+          $ "There are overlapping type constructors in these scripts: "
+            ++ unwords (map show xs)
   where
+    repeats :: Eq a => [a] -> [a]
+    repeats xs = xs \\ xs
+    
     validationScript :: Core.Term
     validationScript =
       Core.bindH
@@ -121,6 +167,8 @@ buildValidationScript stdlib valprog redprog =
         "x"
         (Core.appH (Core.decnameH (User "validator"))
                    (Var (Free (FreeVar "x"))))
+
+
 
 checkValidationResult
   :: (Core.Term, Env (Sourced String) Core.Term)

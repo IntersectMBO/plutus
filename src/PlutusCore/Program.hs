@@ -29,7 +29,7 @@ data Program =
   Program
   { typeConstructors :: [(String,TyConSig)]
   , constructors :: [(String,ConSig)]
-  , termDeclarations :: [TermDeclaration]
+  , termDeclarations :: [(Sourced String, (Term, Type))]
   }
   deriving (Generic)
 
@@ -46,24 +46,11 @@ instance Show Program where
            | (n,conSig) <- cons
            ]
       ++ ";"
-      ++ intercalate "," (map show stmts)
+      ++ intercalate ","
+           [ "dec(" ++ showSourced n
+               ++ ";" ++ pretty def
+               ++ ";" ++ pretty ty
+               ++ ")"
+           | (n,(def,ty)) <- stmts
+           ]
       ++ ")"
-
-
-
-
-
--- | A term declaration is a name, a term to define the name as, and its type.
-
-data TermDeclaration
-  = TermDeclaration (Sourced String) Term Type
-  deriving (Generic)
-
-instance Show TermDeclaration where
-  show (TermDeclaration n def ty) =
-    "dec(" ++ showSourced n ++ ";" ++ pretty def ++ ";" ++ pretty ty ++ ")"
-
-
-lookupDeclaration :: Sourced String -> [TermDeclaration] -> Maybe (Term,Type)
-lookupDeclaration n0 decls =
-  lookup n0 [ (n,(m,ty)) | TermDeclaration n m ty <- decls ]
