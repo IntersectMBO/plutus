@@ -21,6 +21,8 @@ import Plutus.Parser
 import Elaboration.Elaboration
 import Elaboration.Elaborator
 
+import Data.List
+
 
 
 
@@ -85,27 +87,32 @@ loadRedeemer src =
 buildValidationScript
   :: Core.Program
   -> Core.Program
+  -> Core.Program
   -> Either String (Core.Term, Env (Sourced String) Core.Term)
-buildValidationScript valprog redprog =
-  let valenv = programToDeclEnv valprog
+buildValidationScript stdlib valprog redprog =
+  let stdlibenv = programToDeclEnv stdlib
+      valenv = programToDeclEnv valprog
       redenv = programToDeclEnv redprog
-  in case [ n | (n,_) <- valenv, any (\(n',_) -> n == n') redenv ] of
-    [] ->
-      case ( lookup (User "validator") valenv
-           , lookup (User "redeemer") redenv
-           ) of
-        (Nothing,Nothing) ->
-          Left $ "The validator script is missing `validator` and the "
-              ++ "redeemer script is missing `redeemer`"
-        (Nothing,Just _) ->
-          Left "The validator script is missing `validator`"
-        (Just _,Nothing) ->
-          Left "The redeemer script is missing `redeemer`"
-        (Just _,Just _) ->
-          Right (validationScript, valenv ++ redenv)
-    ns ->
-      Left $ "The following names are used in both validator and "
-          ++ "redeemer scripts: " ++ unwords (map showSourced ns)
+      evalenv = stdlibenv ++ valenv ++ redenv
+      declaredNames = map fst evalenv
+      uniqNames = nub declaredNames
+  in if length declaredNames == length uniqNames
+     then
+       case ( lookup (User "validator") valenv
+            , lookup (User "redeemer") redenv
+            ) of
+         (Nothing,Nothing) ->
+           Left $ "The validator script is missing `validator` and the "
+               ++ "redeemer script is missing `redeemer`"
+         (Nothing,Just _) ->
+           Left "The validator script is missing `validator`"
+         (Just _,Nothing) ->
+           Left "The redeemer script is missing `redeemer`"
+         (Just _,Just _) ->
+           Right (validationScript, evalenv)
+     else
+       Left $ "The following names are declared more than once: "
+           ++ unwords (map showSourced (nub (declaredNames \\ uniqNames)))
   where
     validationScript :: Core.Term
     validationScript =
