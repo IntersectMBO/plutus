@@ -138,8 +138,8 @@ buildValidationScript
          , repeats (map fst evalDefs)
          ) of
       ([],[],[]) ->
-        case ( lookup (User "validator") evalDefs
-             , lookup (User "redeemer") evalDefs
+        case ( lookup (User "validator") valDefs
+             , lookup (User "redeemer") redDefs
              ) of
          (Nothing,Nothing) ->
            throwError
