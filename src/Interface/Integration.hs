@@ -165,7 +165,7 @@ buildValidationScript
             ++ unwords (map show xs)
   where
     repeats :: Eq a => [a] -> [a]
-    repeats xs = xs \\ xs
+    repeats xs = xs \\ nub xs
     
     validationScript :: Core.Term
     validationScript =
