@@ -106,6 +106,13 @@ runElabInContext (Core.Program tyConSigs conSigs defs) m =
 
 
 
+-- | We can elab in an empty context as well.
+
+runElabNoContext :: Elaborator a -> Either String a
+runElabNoContext m = fmap fst (runElaborator0 m)
+
+
+
 -- | This function takes validator and redeemer programs, ensures that they
 -- are compatible by not having overlapping names, ensures that they can be
 -- used to validate a transaction, and then combines them and returns them
