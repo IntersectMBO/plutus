@@ -100,16 +100,15 @@ loadRedeemer src =
 -- | We can run an elaborator in the context of some previous program, e.g.
 -- a standard library.
 
-runElabInContext :: Core.Program -> Elaborator a -> Either String a
-runElabInContext (Core.Program tyConSigs conSigs defs) m =
-  fmap fst (runElaborator m (Signature tyConSigs conSigs) defs [])
-
-
-
--- | We can elab in an empty context as well.
-
-runElabNoContext :: Elaborator a -> Either String a
-runElabNoContext m = fmap fst (runElaborator0 m)
+runElabInContexts :: [Core.Program] -> Elaborator a -> Either String a
+runElabInContexts programs m =
+  let (tyConSigs, conSigs, defs) =
+        foldr
+          (\(Core.Program ptcs pcs pd) (tcs,cs,d) ->
+            (ptcs ++ tcs, pcs ++ cs, pd ++ d))
+          ([],[],[])
+          programs
+  in fmap fst (runElaborator m (Signature tyConSigs conSigs) defs [])
 
 
 
