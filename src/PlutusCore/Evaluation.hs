@@ -582,8 +582,11 @@ instance MEval
                       ++ intercalate "," (map pretty xs)     
       builtin "transactionInfo" xs =
         case xs of
-          [] ->
-            undefined {- !!! -}
+          [] -> do
+            TransactionInfo txInfo <- fst <$> ask
+            return $ In (PrimData
+                          (PrimByteString
+                            txInfo))
           _ ->
             throwError $ "Incorrect arguments for builtin transactionInfo: "
                       ++ intercalate "," (map pretty xs)     

@@ -25,6 +25,7 @@ import Elaboration.Elaborator
 
 import Control.Monad.Except
 import Data.List
+import qualified Data.ByteString.Lazy as BS
 
 
 
@@ -177,10 +178,11 @@ buildValidationScript
 
 
 checkValidationResult
-  :: (Core.Term, Env (Sourced String) Core.Term)
+  :: BS.ByteString
+  -> (Core.Term, Env (Sourced String) Core.Term)
   -> Either String Bool
-checkValidationResult (script, env) =
-  do res <- Core.evaluate undefined {- !!! -} env 3750 script
+checkValidationResult txInfo (script, env) =
+  do res <- Core.evaluate (Core.TransactionInfo txInfo) env 3750 script
      case res of
        In (Core.Success _) -> Right True
        In (Core.Failure _) -> Right False
