@@ -15,6 +15,7 @@ category:            Language
 tested-with:         GHC==7.10.3, GHC==8.0.1
 build-type:          Simple
 extra-source-files:  README.md
+data-files:          src/Prelude.pls
 cabal-version:       >=1.10
 
 source-repository head
@@ -34,9 +35,10 @@ library
                        Elaboration.Unification,
                        Elaboration.Elaboration,
                        Interface.REPL,
-                       Interface.Integration
+                       Interface.Integration,
+                       Interface.Prelude,
                        Utils.Names,
-                       Utils.Vars
+                       Utils.Vars,
                        Utils.ABT
   other-modules:       Utils.Elaborator,
                        Utils.Env,
