@@ -65,8 +65,8 @@ instance Show Statement where
 -- The former is only used internally but is useful to have in mind.
 
 data TermDeclaration
-  = TermDeclaration (Sourced String) Type Term
-  | WhereDeclaration (Sourced String) Type [([Pattern],[String],Term)]
+  = TermDeclaration (Sourced String) PolymorphicType Term
+  | WhereDeclaration (Sourced String) PolymorphicType [([Pattern],[String],Term)]
 
 instance Show TermDeclaration where
   show (TermDeclaration n ty def) =

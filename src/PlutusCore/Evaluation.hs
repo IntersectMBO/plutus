@@ -65,7 +65,7 @@ matchClauses (Clause pscs sc:cs) vs =
 instance Eval (Env (Sourced String) Term) Term where
   eval (Var v) =
     return $ Var v
-  eval (In (Decname x)) =
+  eval (In (Decname x _)) =
     do env <- environment
        case lookup x env of
          Nothing -> throwError $ "Unknown constant/defined term: "
@@ -332,7 +332,7 @@ instance MEval
       go :: Term -> PetrolEvaluator Term
       go (Var v) =
         return $ Var v
-      go (In (Decname x)) =
+      go (In (Decname x _)) =
         do env <- declEnvironment
            case lookup x env of
              Nothing -> throwError $ "Unknown constant/defined term: "
@@ -582,11 +582,8 @@ instance MEval
                       ++ intercalate "," (map pretty xs)     
       builtin "transactionInfo" xs =
         case xs of
-          [] -> do
-            TransactionInfo txInfo <- fst <$> ask
-            return $ In (PrimData
-                          (PrimByteString
-                            txInfo))
+          [] ->
+            undefined {- !!! -}
           _ ->
             throwError $ "Incorrect arguments for builtin transactionInfo: "
                       ++ intercalate "," (map pretty xs)     

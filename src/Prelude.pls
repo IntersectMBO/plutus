@@ -8,6 +8,14 @@ data Unit = { MkUnit }
 
 data Pair a b = { MkPair a b }
 
+fst : forall a b. Pair a b -> a {
+  fst (MkPair x _) = x
+}
+
+snd : forall a b. Pair a b -> b {
+  snd (MkPair _ y) = y
+}
+
 
 
 -- The Bool type
@@ -35,6 +43,32 @@ not : Bool -> Bool {
 
 data List a = { Nil | Cons a (List a) }
 
+length : forall a. List a -> Int {
+  length Nil = 0 ;
+  length (Cons _ xs) = !addInt 1 (length xs)
+}
+
+map : forall a b. (a -> b) -> List a -> List b {
+  map _ Nil = Nil ;
+  map f (Cons x xs) = Cons (f x) (map f xs)
+}
+
+filter : forall a. (a -> Bool) -> List a -> List a {
+  filter _ Nil = Nil ;
+  filter p (Cons x xs) =
+    case p x of {
+      False -> filter p xs ;
+      True -> Cons x (filter p xs)
+    }
+}
+
+zipWith : forall a b c. (a -> b -> c) -> List a -> List b -> List c {
+  zipWith _ Nil _ = Nil ;
+  zipWith _ _ Nil = Nil ;
+  zipWith f (Cons x xs) (Cons y ys) =
+    Cons (f x y) (zipWith f xs ys)
+}
+
 andList : List Bool -> Bool {
   andList Nil = True ;
   andList (Cons b bs) = and b (andList bs)
@@ -51,6 +85,12 @@ orList : List Bool -> Bool {
 
 data Maybe a = { Nothing | Just a }
 
+catMaybe : forall a. List (Maybe a) -> List a {
+  catMaybe Nil = Nil ;
+  catMaybe (Cons Nothing xs) = catMaybe xs ;
+  catMaybe (Cons (Just x) xs) = Cons x (catMaybe xs)
+}
+
 
 
 -- The Either type
@@ -61,57 +101,15 @@ data Either a b = { Left a | Right b }
 
 -- Multisig verification
 
+verify : ByteString -> ByteString -> Maybe ByteString -> Bool {
+  verify _ _ Nothing = False ;
+  verify dat k (Just s) = !verifySignature k dat s
+}
+
 verifyMultiSig : Int -> List ByteString -> ByteString -> List (Maybe ByteString) -> Comp Unit {
   verifyMultiSig n keys dat sigs =
-    
-    let {
-      
-      lengthBool : List Bool -> Int {
-        lengthBool Nil = 0 ;
-        lengthBool (Cons _ xs) = !addInt 1 (lengthBool xs)
-      } ;
-      
-      lengthKeys : List ByteString -> Int {
-        lengthKeys Nil = 0 ;
-        lengthKeys (Cons _ xs) = !addInt 1 (lengthKeys xs)
-      } ;
-      
-      lengthSignatures : List (Maybe ByteString) -> Int {
-        lengthSignatures Nil = 0 ;
-        lengthSignatures (Cons _ xs) = !addInt 1 (lengthSignatures xs)
-      } ;
-      
-      catMaybeByteString : List (Maybe ByteString) -> List ByteString {
-        catMaybeByteString Nil = Nil ;
-        catMaybeByteString (Cons Nothing xs) = catMaybeByteString xs ;
-        catMaybeByteString (Cons (Just x) xs) = Cons x (catMaybeByteString xs)
-      } ;
-      
-      verify : ByteString -> ByteString -> Maybe ByteString -> Bool {
-        verify _ _ Nothing = True ;
-        verify dat k (Just s) = !verifySignature k dat s
-      } ;
-      
-      zipWithVerify : ByteString -> List ByteString -> List (Maybe ByteString) -> List Bool {
-        zipWithVerify _ Nil _ = Nil ;
-        zipWithVerify _ _ Nil = Nil ;
-        zipWithVerify dat (Cons k ks) (Cons ms mss) =
-          Cons (verify dat k ms) (zipWithVerify dat ks mss)
-      } ;
-      
-      filterBool : (Bool -> Bool) -> List Bool -> List Bool {
-        filterBool _ Nil = Nil ;
-        filterBool p (Cons b bs) =
-          case p b of {
-            True -> Cons b (filterBool p bs) ;
-            False -> filterBool p bs
-          }
-      }
-      
-    } in
-    
-    case and (!equalsInt (lengthKeys keys) (lengthSignatures sigs))
-              (!lessThanInt n (lengthBool (filterBool (\x -> x) (zipWithVerify dat keys sigs)))) of {
+    case and (!equalsInt (length keys) (length sigs))
+              (!lessThanInt n (length (filter (\x -> x) (zipWith (verify dat) keys sigs)))) of {
       True -> success MkUnit ;
       False -> failure
     }

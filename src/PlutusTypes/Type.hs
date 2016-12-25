@@ -140,3 +140,21 @@ instance Parens Type where
     "Float"
   parenRec (In PlutusByteString) =
     "ByteString"
+
+
+
+
+
+data PolymorphicType = PolymorphicType (Scope TypeF)
+ deriving (Show)
+
+polymorphicTypeH :: [String] -> Type -> PolymorphicType
+polymorphicTypeH xs a = PolymorphicType (scope xs a)
+
+instance Parens PolymorphicType where
+  type Loc PolymorphicType = ()
+  
+  parenLoc _ = [()]
+  
+  parenRec (PolymorphicType sc) =
+    "forall " ++ unwords (names sc) ++ ". " ++ pretty (body sc)

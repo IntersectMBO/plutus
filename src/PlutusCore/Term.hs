@@ -40,7 +40,7 @@ import GHC.Generics
 -- binds @bind(e1;x.e2)@, and finally, built-ins @builtin[n](e*)@.
 
 data TermF r
-  = Decname (Sourced String)
+  = Decname (Sourced String) [Type]
   | Let r r
   | Lam Type r
   | App r r
@@ -89,8 +89,8 @@ type Pattern = ABT PatternF
 
 
 
-decnameH :: Sourced String -> Term
-decnameH n = In (Decname n)
+decnameH :: Sourced String -> [Type] -> Term
+decnameH n as = In (Decname n as)
 
 letH :: Term -> String -> Term -> Term
 letH m x n = In (Let (scope [] m) (scope [x] n))
@@ -179,7 +179,11 @@ instance Parens Term where
 
   parenRec (Var v) =
     name v
-  parenRec (In (Decname n)) = "defined[" ++ showSourced n ++ "]"
+  parenRec (In (Decname n as)) =
+    "defined[" ++ showSourced n
+      ++ ";"
+      ++ intercalate "," (map pretty as)
+      ++ "]"
   parenRec (In (Let m n)) =
     "let("
     ++ parenthesize Nothing (instantiate0 m)

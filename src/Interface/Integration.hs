@@ -170,9 +170,9 @@ buildValidationScript
     validationScript :: Core.Term
     validationScript =
       Core.bindH
-        (Core.decnameH (User "redeemer"))
+        (Core.decnameH (User "redeemer") [])
         "x"
-        (Core.appH (Core.decnameH (User "validator"))
+        (Core.appH (Core.decnameH (User "validator") [])
                    (Var (Free (FreeVar "x"))))
 
 

@@ -57,7 +57,8 @@ import Data.List
 -- | We can add a new defined value declaration given a name, core term,
 -- and type.
 
-addDeclaration :: Sourced String -> Core.Term -> Type -> Elaborator ()
+addDeclaration
+  :: Sourced String -> Core.Term -> PolymorphicType -> Elaborator ()
 addDeclaration n def ty = addElab definitions [(n,(def,ty))]
 
 
@@ -95,16 +96,19 @@ addConstructor n consig = addElab (signature.dataConstructors) [(n,consig)]
 -- @
 
 elabTermDecl :: TermDeclaration -> Elaborator ()
-elabTermDecl (TermDeclaration n ty m) =
+elabTermDecl (TermDeclaration n ty@(PolymorphicType sc) m) =
   do putElab currentNameBeingDeclared (unsourced n)
      when' (typeInDefinitions n)
          $ throwError ("Term already defined: " ++ showSourced n)
-     isType ty
+     isPolymorphicType ty
+     (xs,_,a) <- open tyVarContext sc
      let def = freeToDefined (In . Decname . User) m
      def' <- extendElab' definitions
                [(n,(error "This should never be used in elaboration.",ty))]
                (\(n',_) -> n' == n)
-             $ check def ty
+             $ extendElab tyVarContext
+                 (map (\x -> (x,())) xs)
+                 $ check def a
      addDeclaration n def' ty
 elabTermDecl (WhereDeclaration n ty preclauses) =
   case preclauses of
@@ -318,7 +322,7 @@ builtinInSignature n =
 -- | We can get the type of a declared name by looking in the definitions.
 -- This corresponds to the judgment @Δ ∋ n : A@
 
-typeInDefinitions :: Sourced String -> TypeChecker Type
+typeInDefinitions :: Sourced String -> TypeChecker PolymorphicType
 typeInDefinitions n =
   do defs <- getElab definitions
      case lookup n defs of
@@ -407,6 +411,15 @@ isType (In PlutusFloat) =
   return ()
 isType (In PlutusByteString) =
   return ()
+
+
+
+
+isPolymorphicType :: PolymorphicType -> TypeChecker ()
+isPolymorphicType (PolymorphicType sc) =
+  do (xs,_,a) <- open tyVarContext sc
+     extendElab tyVarContext (map (\x -> (x,())) xs)
+       $ isType a
 
 
 
@@ -502,11 +515,12 @@ letLift liftName m a =
                         , fv /= FreeVar liftName
                         , let Just t = lookup fv ctx
                         ]
-         helperType :: Type
-         helperType = helperFold
-                        (\(_,b) c -> funH b c)
-                        fvsWithTypes
-                        a
+         helperType :: PolymorphicType
+         helperType = polymorphicTypeH []
+                      $ helperFold
+                          (\(_,b) c -> funH b c)
+                          fvsWithTypes
+                          a
          newM :: Term
          newM = helperFold
                   (\(x,_) f -> appH f (Var (Free x)))
@@ -609,8 +623,11 @@ synthify (Var (Free n)) =
 synthify (Var (Meta _)) =
   error "Metavariables should not be the subject of type synthesis."
 synthify (In (Decname x)) =
-  do t <- typeInDefinitions x
-     return (Core.decnameH x, t)
+  do PolymorphicType sc <- typeInDefinitions x
+     metas <- replicateM (length (names sc))
+                         (nextElab nextMeta)
+     let as = [ Var (Meta meta) | meta <- metas ]
+     return (Core.decnameH x as, instantiate sc as)
 synthify (In (Ann m t)) =
   do isType t
      m' <- checkify (instantiate0 m) t
