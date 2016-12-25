@@ -32,6 +32,7 @@ import Elaboration.Unification ()
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Functor.Identity
+import Data.List
 
 
 
@@ -725,30 +726,36 @@ synthify (In (Builtin n as)) =
 
 synthifyClause :: [Type] -> Clause -> TypeChecker (Core.Clause, Type)
 synthifyClause patTys (Clause pscs sc) =
-  do let lps = length pscs
-     unless (length patTys == lps)
-       $ throwError $ "Mismatching number of patterns. Expected "
-                   ++ show (length patTys)
-                   ++ " but found " ++ show lps
-     metas <- replicateM (length (names sc))
-                         (nextElab nextMeta)
-     let args = [ Var (Meta meta) | meta <- metas ]
-     pscs' <- forM (zip pscs patTys) $ \(psc,patTy) -> do
-                subs <- getElab substitution
-                (xs,ns,p) <- open context psc
-                p' <- extendElab
-                        context
-                        (zip xs (map (substMetas subs) args))
-                        (checkifyPattern p (substMetas subs patTy))
-                return $ scope ns p'
-     subs <- getElab substitution
-     (xs,ns,m) <- open context sc
-     (m',ret) <- extendElab context (zip xs (map (substMetas subs) args))
-                   $ synthify m
-     subs' <- getElab substitution
-     return ( Core.substTypeMetasClause subs' (Core.Clause pscs' (scope ns m'))
-            , substMetas subs' ret
-            )
+  case names sc \\ nub (names sc) of
+    x:xs ->
+      throwError $ "Repeated names " ++ unwords (x:xs)
+                ++ "\nIn clause pattern "
+                ++ intercalate " | " (map (pretty . body) pscs)
+    [] ->
+      do let lps = length pscs
+         unless (length patTys == lps)
+           $ throwError $ "Mismatching number of patterns. Expected "
+                       ++ show (length patTys)
+                       ++ " but found " ++ show lps
+         metas <- replicateM (length (names sc))
+                             (nextElab nextMeta)
+         let args = [ Var (Meta meta) | meta <- metas ]
+         pscs' <- forM (zip pscs patTys) $ \(psc,patTy) -> do
+                    subs <- getElab substitution
+                    (xs,ns,p) <- open context psc
+                    p' <- extendElab
+                            context
+                            (zip xs (map (substMetas subs) args))
+                            (checkifyPattern p (substMetas subs patTy))
+                    return $ scope ns p'
+         subs <- getElab substitution
+         (xs,ns,m) <- open context sc
+         (m',ret) <- extendElab context (zip xs (map (substMetas subs) args))
+                       $ synthify m
+         subs' <- getElab substitution
+         return ( Core.substTypeMetasClause subs' (Core.Clause pscs' (scope ns m'))
+                , substMetas subs' ret
+                )
 
 
 
@@ -763,7 +770,11 @@ synthifyClauses patTys cs =
      case ts of
        [] -> throwError "Empty clauses."
        t:ts' -> do
-         catchError (mapM_ (unify substitution context t) ts') $ \e ->
+         let unifier :: Type -> Elaborator ()
+             unifier t' = do
+               subs <- getElab substitution
+               unify substitution context (substMetas subs t) (substMetas subs t')
+         catchError (mapM_ unifier ts') $ \e ->
            throwError $ "Clauses do not all return the same type:\n"
                      ++ unlines (map pretty ts) ++ "\n"
                      ++ "Unification failed with error: " ++ e
