@@ -886,19 +886,10 @@ checkify (In (Bind m sc)) b =
             ++ "Against non-computation type: " ++ pretty b
 checkify (In (PrimData (PrimInt x))) (In PlutusInt) =
   return $ Core.primIntH x
-checkify m@(In (PrimData (PrimInt _))) a =
-  throwError $ "Cannot check int: " ++ pretty m ++ "\n"
-            ++ "Against non-integer type: " ++ pretty a
 checkify (In (PrimData (PrimFloat x))) (In PlutusFloat) =
   return $ Core.primFloatH x
-checkify m@(In (PrimData (PrimFloat _))) a =
-  throwError $ "Cannot check float: " ++ pretty m ++ "\n"
-            ++ "Against non-float type: " ++ pretty a
 checkify (In (PrimData (PrimByteString x))) (In PlutusByteString) =
   return $ Core.primByteStringH x
-checkify m@(In (PrimData (PrimByteString _))) a =
-  throwError $ "Cannot check byteString: " ++ pretty m ++ "\n"
-            ++ "Against non-byteString type: " ++ pretty a
 checkify m t =
   do (m',t') <- synthify m
      subtype t' t
