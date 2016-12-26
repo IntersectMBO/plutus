@@ -29,7 +29,7 @@ data Program =
   Program
   { typeConstructors :: [(String,TyConSig)]
   , constructors :: [(String,ConSig)]
-  , termDeclarations :: [(Sourced String, (Term, Type))]
+  , termDeclarations :: [(Sourced String, (Term, PolymorphicType))]
   }
   deriving (Generic)
 

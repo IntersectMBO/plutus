@@ -49,7 +49,7 @@ L.makeLenses ''Signature
 -- | A definition consists of a declared name together with its definition
 -- and its type.
 
-type Definitions = [(Sourced String,(Core.Term,Type))]
+type Definitions = [(Sourced String,(Core.Term,PolymorphicType))]
 
 definitionsToEnvironment :: Definitions -> Env (Sourced String) Core.Term
 definitionsToEnvironment defs =

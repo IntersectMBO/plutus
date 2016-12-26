@@ -310,6 +310,20 @@ forallBody :: Parsec String u Type
 forallBody = datatype
 
 
+polydatatype :: Parsec String u PolymorphicType
+polydatatype = forallType <|> (polymorphicTypeH [] <$> datatype)
+  where
+    forallType =
+      do reserved "forall"
+         xs <- many1 $ do
+                 x <- varName
+                 guard (x /= "_")
+                 return x
+         reservedOp "."
+         b <- forallBody
+         return $ polymorphicTypeH xs b
+
+
 
 
 
@@ -672,7 +686,7 @@ whereTermDecl =
        x <- varName
        reservedOp ":"
        return x
-     t <- datatype
+     t <- polydatatype
      preclauses <- braces (patternMatchClause x `sepBy1` reservedOp ";")
      return $ WhereDeclaration (User x) t preclauses
 
