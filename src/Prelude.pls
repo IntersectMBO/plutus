@@ -99,6 +99,23 @@ data Either a b = { Left a | Right b }
 
 
 
+-- Some Int builtins
+
+lessThanEqualsInt : Int -> Int -> Bool {
+  lessThanEqualsInt x y = not (!lessThanInt y x)
+}
+
+
+
+-- Some Float builtins
+
+lessThanEqualsFloat : Float -> Float -> Bool {
+  lessThanEqualsFloat x y = not (!lessThanFloat y x)
+}
+
+
+
+
 -- Multisig verification
 
 verify : ByteString -> ByteString -> Maybe ByteString -> Bool {
@@ -109,7 +126,7 @@ verify : ByteString -> ByteString -> Maybe ByteString -> Bool {
 verifyMultiSig : Int -> List ByteString -> ByteString -> List (Maybe ByteString) -> Comp Unit {
   verifyMultiSig n keys dat sigs =
     case and (!equalsInt (length keys) (length sigs))
-              (!lessThanInt n (length (filter (\x -> x) (zipWith (verify dat) keys sigs)))) of {
+              (lessThanEqualsInt n (length (filter (\x -> x) (zipWith (verify dat) keys sigs)))) of {
       True -> success MkUnit ;
       False -> failure
     }
