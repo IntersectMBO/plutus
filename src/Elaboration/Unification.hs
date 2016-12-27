@@ -40,7 +40,7 @@ instance MonadUnify TypeF Elaborator where
        unless (length as1 == length as2)
          $ throwError $ "Mismatching type constructor arg lengths between "
                          ++ pretty (In (TyCon tycon1 as1)) ++ " and "
-                         ++ pretty (In (TyCon tycon2 as1))
+                         ++ pretty (In (TyCon tycon2 as2))
        return $ zipWith
                   Equation
                   (map instantiate0 as1)
