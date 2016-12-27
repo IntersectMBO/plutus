@@ -152,6 +152,8 @@ substTypeMetas subs x0 = runIdentity (go x0)
   where
     go :: Term -> Identity Term
     go (Var x) = return (Var x)
+    go (In (Decname n ts)) =
+      return (In (Decname n (map (substMetas subs) ts)))
     go (In (Lam t sc)) = (In . Lam (substMetas subs t)) <$> underF go sc
     go (In (Failure t)) = return (In (Failure (substMetas subs t)))
     go (In x) = In <$> traverse (underF go) x
