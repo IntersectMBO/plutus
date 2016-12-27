@@ -36,6 +36,18 @@ data List a = { Nil | Cons a (List a) }
 
 -- Function utils
 
+id : forall a. a -> a {
+  id x = x
+}
+
+const : forall a b. a -> b -> a {
+  const x _ = x
+}
+
+flip : forall a b c. (a -> b -> c) -> b -> a -> c {
+  flip f x y = f y x
+}
+
 applyTo : forall a b. a -> (a -> b) -> b {
   applyTo x f = f x
 }
