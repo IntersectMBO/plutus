@@ -725,7 +725,7 @@ alternativeArg =
  <|> intType
  <|> floatType
  <|> byteStringType
- <|> typeCon
+ <|> noArgTypeCon
  <|> typeVar
 
 typeDecl :: Parsec String u TypeDeclaration
