@@ -655,3 +655,113 @@ verifyMultiSig : Int -> List ByteString -> ByteString -> List (Maybe ByteString)
       False -> failure
     }
 }
+
+
+
+
+-- MAST
+
+data MASTProp =
+  { MASTTrue
+  | MASTFalse
+  | MASTNot MASTProp
+  | MASTAnd MASTProp MASTProp
+  | MASTOr MASTProp MASTProp
+  }
+
+data MASTTree =
+  { MASTSuccess
+  | MASTFailure
+  | MASTIf MASTProp MASTTree MASTTree
+  }
+
+data MASTPath =
+  { MASTPathSuccess
+  | MASTPathFailure
+  | MASTPathIfTrue MASTProp MASTPath ByteString
+  | MASTPathIfFalse MASTProp ByteString MASTPath
+  }
+
+evalMASTProp : MASTProp -> Bool {
+  evalMASTProp (MASTNot x) = not (evalMASTProp x) ;
+  evalMASTProp (MASTAnd x y) =
+    and (evalMASTProp x) (evalMASTProp y) ;
+  evalMASTProp (MASTOr x y) =
+    or (evalMASTProp x) (evalMASTProp y)
+}
+
+evalMASTPath : MASTPath -> Bool {
+  evalMASTPath MASTPathSuccess = True ;
+  evalMASTPath MASTPathFailure = False ;
+  evalMASTPath (MASTPathIfTrue test t _) =
+    case evalMASTProp test of {
+      True -> evalMASTPath t ;
+      False -> False
+    } ;
+  evalMASTPath (MASTPathIfFalse test _ f) =
+    case evalMASTProp test of {
+      True -> False ;
+      False -> evalMASTPath f
+    }
+}
+
+hashMASTProp : MASTProp -> ByteString {
+  hashMASTProp (MASTNot x) =
+    !sha2_256
+      (!concatenate
+        #00
+        (hashMASTProp x)) ;
+  hashMASTProp (MASTAnd x y) =
+    !sha2_256
+      (!concatenate
+        #01
+        (!concatenate
+          (hashMASTProp x)
+          (hashMASTProp y))) ;
+  hashMASTProp (MASTOr x y) =
+    !sha2_256
+      (!concatenate
+        #02
+        (!concatenate
+          (hashMASTProp x)
+          (hashMASTProp y)))
+}
+
+hashMASTTree : MASTTree -> ByteString {
+  hashMASTTree MASTSuccess = #00 ;
+  hashMASTTree MASTFailure = #01 ;
+  hashMASTTree (MASTIf test t f) =
+    !sha2_256
+      (!concatenate
+        #02
+        (!concatenate
+          (hashMASTTree t)
+          (hashMASTTree f)))
+}
+
+hashMASTPath : MASTPath -> ByteString {
+  hashMASTPath MASTPathSuccess = #00 ;
+  hashMASTPath MASTPathFailure = #01 ;
+  hashMASTPath (MASTPathIfTrue test t fhash) =
+    !sha2_256
+      (!concatenate
+        #02
+        (!concatenate
+          (hashMASTPath t)
+          fhash)) ;
+  hashMASTPath (MASTPathIfFalse test thash f) =
+    !sha2_256
+      (!concatenate
+        #02
+        (!concatenate
+          thash
+          (hashMASTPath f)))
+}
+
+checkMAST : ByteString -> MASTPath -> Bool {
+  checkMAST hash path =
+    case evalMASTPath path of {
+      False -> False ;
+      True -> !equalsByteString hash (hashMASTPath path)
+    }
+}
