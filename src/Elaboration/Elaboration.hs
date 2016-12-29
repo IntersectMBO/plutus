@@ -315,7 +315,7 @@ builtinInSignature n =
           conSigH [] [byteStringH,byteStringH] (tyConH "Bool" []))
       , ("verifySignature",
           conSigH [] [byteStringH,byteStringH,byteStringH] (tyConH "Bool" []))
-      , ("transactionInfo", conSigH [] [] (tyConH "Comp" [byteStringH]))
+      , ("transactionInfo", conSigH [] [] (compH byteStringH))
       ]
 
 
