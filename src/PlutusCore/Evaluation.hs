@@ -584,9 +584,8 @@ instance MEval
         case xs of
           [] -> do
             TransactionInfo txInfo <- fst <$> ask
-            return $ In (PrimData
-                          (PrimByteString
-                            txInfo))
+            return $ successH
+                       (primByteStringH txInfo)
           _ ->
             throwError $ "Incorrect arguments for builtin transactionInfo: "
                       ++ intercalate "," (map pretty xs)     
