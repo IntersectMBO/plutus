@@ -146,7 +146,7 @@ instance Parens Type where
 
 
 data PolymorphicType = PolymorphicType (Scope TypeF)
- deriving (Show)
+ deriving (Show, Generic)
 
 polymorphicTypeH :: [String] -> Type -> PolymorphicType
 polymorphicTypeH xs a = PolymorphicType (scope xs a)
