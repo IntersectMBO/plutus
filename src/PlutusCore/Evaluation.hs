@@ -331,53 +331,61 @@ instance MEval
     where
       go :: Term -> PetrolEvaluator Term
       go (Var v) =
-        return $ Var v
+        do tick
+           return $ Var v
       go (In (Decname x _)) =
-        do env <- declEnvironment
+        do tick
+           env <- declEnvironment
            case lookup x env of
              Nothing -> throwError $ "Unknown constant/defined term: "
                                   ++ showSourced x
              Just m  -> return m
       go (In (Let m sc)) =
-        do em <- meval (instantiate0 m)
-           tick
+        do tick 
+           em <- meval (instantiate0 m)
            meval (instantiate sc [em])
       go (In (Lam t sc)) =
-        return $ In (Lam t sc)
+        do tick
+           return $ In (Lam t sc)
       go (In (App f a)) =
-        do ef <- meval (instantiate0 f)
+        do tick
+           ef <- meval (instantiate0 f)
            ea <- meval (instantiate0 a)
            case ef of
-             In (Lam _ sc) -> do
-               tick
+             In (Lam _ sc) ->
                meval (instantiate sc [ea])
              _ -> return $ appH ef ea
       go (In (Con c as)) =
-        do eas <- mapM (meval . instantiate0) as
+        do tick
+           eas <- mapM (meval . instantiate0) as
            return $ conH c eas
       go (In (Case ms cs)) =
-        do ems <- mapM (meval . instantiate0) ms
-           tick
+        do tick
+           ems <- mapM (meval . instantiate0) ms
            case matchClauses cs ems of
              Nothing -> throwError $ "Incomplete pattern match: "
                                   ++ pretty (In (Case ms cs))
              Just b  -> meval b
       go (In (Success m)) =
-        do em <- meval (instantiate0 m)
+        do tick
+           em <- meval (instantiate0 m)
            return $ successH em
       go (In (Failure t)) =
-        return $ failureH t
+        do tick
+           return $ failureH t
       go (In (Bind m sc)) =
-        do em <- meval (instantiate0 m)
-           tick
+        do tick
+           em <- meval (instantiate0 m)
            case em of
              In (Failure t) -> return $ failureH t
              In (Success m') -> meval (instantiate sc [instantiate0 m'])
              _ -> throwError $ "Cannot bind a non-computation: " ++ pretty em
       go (In (PrimData x)) =
-        return $ In (PrimData x)
+        do tick
+           return $ In (PrimData x)
       go (In (Builtin n0 xs0)) =
-        do xs' <- mapM (meval . instantiate0) xs0
+        do tick
+           xs' <- mapM (meval . instantiate0) xs0
            builtin n0 xs'
       
       builtin :: String -> [Term] -> PetrolEvaluator Term
