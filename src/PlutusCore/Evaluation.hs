@@ -70,7 +70,7 @@ instance Eval (Env (Sourced String) Term) Term where
        case lookup x env of
          Nothing -> throwError $ "Unknown constant/defined term: "
                               ++ showSourced x
-         Just m  -> return m
+         Just m  -> eval m
   eval (In (Let m sc)) =
     do em <- eval (instantiate0 m)
        eval (instantiate sc [em])
@@ -339,7 +339,7 @@ instance MEval
            case lookup x env of
              Nothing -> throwError $ "Unknown constant/defined term: "
                                   ++ showSourced x
-             Just m  -> return m
+             Just m  -> go m
       go (In (Let m sc)) =
         do tick 
            em <- meval (instantiate0 m)
