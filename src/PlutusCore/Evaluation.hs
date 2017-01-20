@@ -561,7 +561,7 @@ instance MEval
                             (BS.pack
                               (BA.unpack (hash (BS.toStrict x) :: Digest SHA3_256)))))
           _ ->
-            throwError $ "Incorrect arguments for builtin sha2_256: "
+            throwError $ "Incorrect arguments for builtin sha3_256: "
                       ++ intercalate "," (map pretty xs)
       builtin "equalsByteString" xs =
         case xs of
