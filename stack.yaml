@@ -1,7 +1,16 @@
-resolver: lts-7.9
+resolver: lts-8.2
+
 packages:
 - '.'
-extra-deps: []
+- location:
+    git: https://github.com/flyingleafe/cardano-crypto
+    commit: b0f261c88a0c6b38d3227cec139690f2ec67fe1a
+  extra-dep: true
+- location:
+    git: https://github.com/haskell-crypto/cryptonite.git
+    commit: 2932df9e243aa7ae7eb2b25d7c60fa77a30c6fb5
+  extra-dep: true
+
 flags: {}
 extra-package-dbs: []
 nix:
