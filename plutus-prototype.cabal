@@ -54,6 +54,7 @@ library
                        bytestring,
                        cardano-crypto,
                        cryptonite,
+                       filepath,
                        lens,
                        memory,
                        mtl,
