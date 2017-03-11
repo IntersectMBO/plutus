@@ -3,8 +3,8 @@ resolver: lts-8.2
 packages:
 - '.'
 - location:
-    git: https://github.com/flyingleafe/cardano-crypto
-    commit: b0f261c88a0c6b38d3227cec139690f2ec67fe1a
+    git: https://github.com/input-output-hk/cardano-crypto
+    commit: 838b064d8a59286142aa2fe14434fe7601896ddb
   extra-dep: true
 - location:
     git: https://github.com/haskell-crypto/cryptonite.git
