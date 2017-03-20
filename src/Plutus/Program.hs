@@ -11,6 +11,7 @@ module Plutus.Program where
 import Utils.ABT
 import Utils.Names
 import Utils.Pretty
+import Utils.Vars
 import Plutus.Term
 import PlutusTypes.ConSig
 import PlutusTypes.Type
@@ -29,6 +30,11 @@ instance Show Program where
   show (Program stmts) = intercalate "\n\n" (map show stmts)
 
 
+substTypeMetasProgram :: [(MetaVar,Type)] -> Program -> Program
+substTypeMetasProgram s (Program stmts) =
+  Program (map (substTypeMetasStatement s) stmts)
+
+
 
 
 
@@ -41,6 +47,13 @@ data Statement
 instance Show Statement where
   show (TyDecl td) = show td
   show (TmDecl td) = show td
+
+
+substTypeMetasStatement :: [(MetaVar,Type)] -> Statement -> Statement
+substTypeMetasStatement s (TyDecl tydecl) =
+  TyDecl (substTypeMetasTypeDecl s tydecl)
+substTypeMetasStatement s (TmDecl tmdecl) =
+  TmDecl (substTypeMetasTermDecl s tmdecl)
 
 
 
@@ -80,6 +93,26 @@ instance Show TermDeclaration where
       showPreclause (ps,_,b) =
         intercalate " " (map pretty ps) ++ " = " ++ pretty b
 
+termDeclarationName :: TermDeclaration -> Sourced String
+termDeclarationName (TermDeclaration n _ _) = n
+termDeclarationName (WhereDeclaration n _ _) = n
+
+substTypeMetasTermDecl
+  :: [(MetaVar,Type)] -> TermDeclaration -> TermDeclaration
+substTypeMetasTermDecl s (TermDeclaration n a m) =
+  TermDeclaration
+    n
+    (substMetasPolymorphicType s a)
+    (substTypeMetas s m)
+substTypeMetasTermDecl s (WhereDeclaration n a cls) =
+  WhereDeclaration
+    n
+    (substMetasPolymorphicType s a)
+    [ (ps, xs, substTypeMetas s m)
+      | (ps, xs, m) <- cls
+      ]
+
+
 
 
 
@@ -104,3 +137,13 @@ instance Show TypeDeclaration where
      showAlt :: String -> [Type] -> String
      showAlt c [] = c
      showAlt c as = c ++ " " ++ unwords (map pretty as)
+
+substTypeMetasTypeDecl
+  :: [(MetaVar,Type)] -> TypeDeclaration -> TypeDeclaration
+substTypeMetasTypeDecl s (TypeDeclaration n xs alts) =
+  TypeDeclaration
+    n
+    xs
+    [ (c, substMetasConSig s consig)
+      | (c, consig) <- alts
+      ]

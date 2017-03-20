@@ -26,7 +26,7 @@ import Control.Monad.Except
 
 
 
-
+{-
 
 
 
@@ -63,3 +63,5 @@ instance MonadUnify TypeF Elaborator where
     return []
   equate l r =
     throwError $ "Cannot unify " ++ pretty (In l) ++ " with " ++ pretty (In r)
+    
+-}

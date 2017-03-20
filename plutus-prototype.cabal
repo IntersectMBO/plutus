@@ -32,7 +32,6 @@ library
                        Plutus.Program,
                        Plutus.Parser,
                        Elaboration.Elaborator,
-                       Elaboration.Unification,
                        Elaboration.Elaboration,
                        Interface.REPL,
                        Interface.Integration,
@@ -54,9 +53,11 @@ library
                        bytestring,
                        cryptonite,
                        ed25519,
+                       either,
                        lens,
                        memory,
                        mtl,
+                       operational,
                        parsec,
                        transformers
   hs-source-dirs:      src

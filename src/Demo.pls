@@ -13,6 +13,7 @@ even : Nat -> Bool {
   even (Suc (Suc n)) = even n
 }
 
+
 plus : Nat -> Nat -> Nat {
   plus Zero y = y ;
   plus (Suc x) y = Suc (plus x y)
@@ -31,13 +32,3 @@ fac : Nat -> Nat {
 data Unit = { Unit }
 
 data List a = { Nil | Cons a (List a) }
-
-localTest : Nat -> Nat {
-  localTest x =
-    let { locid : Unit -> Nat -> Nat { locid z y = x } }
-    in locid Unit Zero
-}
-
-validator : Comp Int -> Comp Int {
-  validator x = x
-}

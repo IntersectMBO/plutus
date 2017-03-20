@@ -19,6 +19,7 @@ module PlutusTypes.Type where
 
 import Utils.ABT
 import Utils.Pretty
+import Utils.Vars
 
 import GHC.Generics
 
@@ -150,6 +151,13 @@ data PolymorphicType = PolymorphicType (Scope TypeF)
 
 polymorphicTypeH :: [String] -> Type -> PolymorphicType
 polymorphicTypeH xs a = PolymorphicType (scope xs a)
+
+
+substMetasPolymorphicType
+  :: [(MetaVar,Type)] -> PolymorphicType -> PolymorphicType
+substMetasPolymorphicType subs (PolymorphicType sc) =
+  PolymorphicType (under (substMetas subs) sc)
+
 
 instance Parens PolymorphicType where
   type Loc PolymorphicType = ()
