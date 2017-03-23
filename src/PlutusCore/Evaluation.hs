@@ -340,7 +340,7 @@ instance MEval
            case lookup x env of
              Nothing -> throwError $ "Unknown constant/defined term: "
                                   ++ showSourced x
-             Just m  -> go m
+             Just m  -> return m
       go (In (Let m sc)) =
         do tick 
            em <- meval (instantiate0 m)
