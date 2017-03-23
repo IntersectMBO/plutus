@@ -6,6 +6,7 @@
 module Interface.REPL where
 
 import Utils.ABT
+import Utils.JSABT
 import Utils.Names
 import Utils.Pretty
 import qualified Utils.ProofDeveloper as PD
@@ -61,9 +62,24 @@ repl src0 = case loadProgram src0 of
          -- (_,ElabState sig defs ctx _ _ _ _ _) <- runElaborator0 (elabProgram prog)
          -- return (sig,defs,ctx)
     
+    parseAndElab :: DeclContext -> String -> Either String (Core.Term,DeclContext)
+    parseAndElab dctx src =
+      do tm0 <- parseTerm src
+         let tm = freeToDefined (In . Decname . User) tm0
+         case runElaborator (PD.elaborator (Synth dctx emptyHypContext tm)) of
+           Left e -> Left (PD.showElabError e)
+           Right ((tm',_,dctx'),_) -> Right (tm',dctx')
+    
     loadTerm :: DeclContext -> String -> Either String Core.Term
     loadTerm dctx src =
-      do tm0 <- parseTerm src
+      do (tm',dctx') <- parseAndElab dctx src
+         evaluate (TransactionInfo undefined {- !!! -})
+                      (definitionsToEnvironment (definitions dctx'))
+                      3750
+                      tm'
+        
+        {-
+        tm0 <- parseTerm src
          let tm = freeToDefined (In . Decname . User) tm0
          case runElaborator (PD.elaborator (Synth dctx emptyHypContext tm)) of
            Left e -> Left (PD.showElabError e)
@@ -72,6 +88,7 @@ repl src0 = case loadProgram src0 of
                       (definitionsToEnvironment (definitions dctx'))
                       3750
                       tm' --runReaderT (eval tm') env
+          -}
          {-
          case runElaborator (synth tm) sig defs ctx of
            Left e -> Left e
@@ -91,6 +108,14 @@ repl src0 = case loadProgram src0 of
             | (n,_) <- definitions dctx
             ]
           ++ "\n")
+    evalAndPrint dctx (':':'e':'l':'a':'b':src) =
+      case parseAndElab dctx src of
+        Left e -> flushStr ("ERROR: " ++ e ++ "\n")
+        Right (m,_) -> flushStr (pretty m ++ "\n")
+    evalAndPrint dctx (':':'j':'s':src) =
+      case parseAndElab dctx src of
+        Left e -> flushStr ("ERROR: " ++ e ++ "\n")
+        Right (m,_) -> flushStr (jsABTToSource (toJS m) ++ "\n")
     evalAndPrint dctx src =
       case loadTerm dctx src of
         Left e -> flushStr ("ERROR: " ++ e ++ "\n")

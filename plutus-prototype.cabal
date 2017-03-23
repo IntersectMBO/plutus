@@ -28,6 +28,7 @@ library
                        PlutusCore.Term,
                        PlutusCore.Evaluation,
                        PlutusCore.Program,
+                       PlutusCore.CKMachine,
                        Plutus.Term,
                        Plutus.Program,
                        Plutus.Parser,
@@ -39,6 +40,7 @@ library
                        Utils.Names,
                        Utils.Vars,
                        Utils.ABT
+                       Utils.JSABT
   other-modules:       Utils.Elaborator,
                        Utils.Env,
                        Utils.Eval,
