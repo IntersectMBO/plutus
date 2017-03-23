@@ -6,10 +6,9 @@ packages:
     git: https://github.com/input-output-hk/cardano-crypto
     commit: 838b064d8a59286142aa2fe14434fe7601896ddb
   extra-dep: true
-- location:
-    git: https://github.com/haskell-crypto/cryptonite.git
-    commit: 2932df9e243aa7ae7eb2b25d7c60fa77a30c6fb5
-  extra-dep: true
+
+extra-deps:
+- cryptonite-0.22
 
 flags: {}
 extra-package-dbs: []
