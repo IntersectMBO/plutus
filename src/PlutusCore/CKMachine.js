@@ -78,41 +78,41 @@ function zipWith2Proc(xs,ys,f) {
 }
 
 function matchPattern(p,v) {
-  return p.cases(
+  return cases(p, {
     
-    "VarPat", function (_) { return Just([v]); },
+    VarPat: function (_) { return Just([v]); },
     
-    "ConPat", function (c,ps) {
-      return v.cases(
-        "Con", function (c2,vs2) {
+    ConPat: function (c,ps) {
+      return cases(v, {
+        Con: function (c2,vs2) {
           if (c === c2 && ps.length === vs2.length) {
             return matchPatterns(ps,vs2);
           } else {
             return Nothing();
           }
         },
-        "otherwise", function () {
+        otherwise: function () {
           return Nothing();
         }
-      )
+      })
     },
     
-    "PrimPat", function (pd) {
-      return v.cases(
-        "PrimData", function (pd2) {
+    PrimPat: function (pd) {
+      return cases(v, {
+        PrimData: function (pd2) {
           return pd === pd2;
         },
-        "otherwise", function () {
+        otherwise: function () {
           return Nothing();
         }
-      )
+      })
     },
     
-    "otherwise", function () {
+    otherwise: function () {
       return Nothing();
     }
     
-  );
+  });
 }
 
 function matchPatterns (ps,vs) {
@@ -120,10 +120,10 @@ function matchPatterns (ps,vs) {
   let everNothing = false;
   
   zipWith2Proc(ps,vs, function (p,v) {
-    matchPattern(p,v).cases(
-      "Nothing", function () { everNothing = true; },
-      "Just", function (r) { rs = rs.concat(r); }
-    );
+    cases(matchPattern(p,v), {
+      Nothing: function () { everNothing = true; },
+      Just: function (r) { rs = rs.concat(r); }
+    });
   });
   
   if (everNothing) {
@@ -137,14 +137,14 @@ function matchClauses(cs,vs) {
   if (0 === cs.length) {
     return Nothing();
   } else {
-    return cs[0].cases(
-      "Clause", function (ps, sc) {
-        return matchPatterns(ps,vs).cases(
-          "Nothing", function () { return matchClauses(cs.slice(1), vs); },
-          "Just", function (xs) { return Just(sc.apply(null,xs)); }
-        );
+    return cases(cs[0], {
+      Clause: function (ps, sc) {
+        return cases(matchPatterns(ps,vs), {
+          Nothing: function () { return matchClauses(cs.slice(1), vs); },
+          Just: function (xs) { return Just(sc.apply(null,xs)); }
+        });
       }
-    );
+    });
   }
 }
 
@@ -181,6 +181,8 @@ function builtin(n, ms) {
     equalsByteString
     
   */
+  
+  ms = ms.map(m => m.args[0].args[0]);
   
   if ("addInt" === n) {
     if (2 === ms.length && typeof ms[0] === "number" && typeof ms[1] === "number") {
@@ -367,6 +369,12 @@ function evaluate(denv, term) {
   while (petrol > 0) {
     petrol--;
     
+    console.log("");
+    console.log("Petrol: ", petrol);
+    console.log("Direction: ", direction);
+    console.log("Focus: ", show(focus));
+    console.log("Stack size: ", stack.length);
+    
     if (REC === direction) {
       
       /*
@@ -398,13 +406,13 @@ function evaluate(denv, term) {
       
       let err = null;
       console.log(direction, show(focus));
-      focus.cases(
+      cases(focus, {
         
-        "Var", function (x) {
+        Var: function (x) {
           direction = RET;
         },
         
-        "Decname", function (n) {
+        Decname: function (n) {
           if (denv[n]) {
             focus = denv[n];
             direction = RET;
@@ -413,21 +421,21 @@ function evaluate(denv, term) {
           }
         },
         
-        "Let", function (m, sc) {
+        Let: function (m, sc) {
           stack.push(InLet(sc));
           focus = m;
         },
         
-        "Lam", function (sc) {
+        Lam: function (sc) {
           direction = RET;
         },
         
-        "App", function (f,x) {
+        App: function (f,x) {
           stack.push(InAppLeft(x));
           focus = f;
         },
         
-        "Con", function (c,ms) {
+        Con: function (c,ms) {
           if (0 === ms.length) {
             direction = RET;
           } else {
@@ -436,20 +444,20 @@ function evaluate(denv, term) {
           }
         },
         
-        "Case", function (ms,cs) {
+        Case: function (ms,cs) {
           if (0 === ms.length) {
             
-            matchClauses(cs,ms).cases(
+            cases(matchClauses(cs,ms), {
               
-              "Nothing", function () {
+              Nothing: function () {
                 err = "Incomplete pattern match: " + show(focus);
               },
               
-              "Just", function (m) {
+              Just: function (m) {
                 focus = m;
               }
               
-            );
+            });
             
           } else {
             stack.push(InCase([],ms.slice(1),cs));
@@ -457,40 +465,40 @@ function evaluate(denv, term) {
           }
         },
         
-        "Success", function (m) {
+        Success: function (m) {
           stack.push(InSuccess());
           focus = m;
         },
         
-        "Failure", function () {
+        Failure: function () {
           direction = RET;
         },
         
-        "Bind", function (m,sc) {
+        Bind: function (m,sc) {
           stack.push(InBind(sc));
           focus = m;
         },
         
-        "PrimData", function (d) {
+        PrimData: function (d) {
+          console.log("ok");
           direction = RET;
-          focus = d;
         },
         
-        "Builtin", function (n,ms) {
+        Builtin: function (n,ms) {
           if (0 === ms.length) {
             
-            builtin(n, []).cases(
+            cases(builtin(n, []), {
               
-              "Left", function (e) {
+              Left: function (e) {
                 err = e;
               },
               
-              "Right", function (m) {
+              Right: function (m) {
                 focus = m;
                 direction = RET;
               }
               
-            );
+            });
             
           } else {
             stack.push(InBuiltin(n,[],ms.slice(1)));
@@ -498,7 +506,7 @@ function evaluate(denv, term) {
           }
         }
         
-      );
+      });
       
       if (err) {
         return Left(err);
@@ -567,35 +575,35 @@ function evaluate(denv, term) {
         let frame = stack.pop();
         let err = null;
         
-        frame.cases(
+        cases(frame, {
           
-          "InLet", function (sc) {
+          InLet: function (sc) {
             direction = REC;
             focus = sc(focus);
           },
           
-          "InAppLeft", function (x) {
+          InAppLeft: function (x) {
             direction = REC;
             stack.push(InAppRight(focus));
             focus = x;
           },
           
-          "InAppRight", function (f) {
-            f.cases(
+          InAppRight: function (f) {
+            cases(f, {
               
-              "Lam", function (b) {
+              Lam: function (b) {
                 direction = REC;
                 focus = f.args[0](focus);
               },
               
-              "otherwise", function () {
+              otherwise: function () {
                 focus = App(f,focus);
               }
-            )
+            })
             
           },
           
-          "InCon", function (c,ls,rs) {
+          InCon: function (c,ls,rs) {
             if (0 === rs.length) {
               ls.push(focus);
               focus = Con(c,ls);
@@ -610,20 +618,20 @@ function evaluate(denv, term) {
             }
           },
           
-          "InCase", function (ls,rs,cs) {
+          InCase: function (ls,rs,cs) {
             if (0 === rs.length) {
               ls.push(focus);
-              matchClauses(cs,ls).cases(
+              cases(matchClauses(cs,ls), {
                 
-                "Nothing", function () {
+                Nothing: function () {
                   err = "Incomplete pattern match: " + show(focus);
                 },
                 
-                "Just", function (m) {
+                Just: function (m) {
                   focus = m;
                 }
                 
-              );
+              });
               
             } else {
               
@@ -636,35 +644,35 @@ function evaluate(denv, term) {
             }
           },
           
-          "InSuccess", function (m) {
+          InSuccess: function (m) {
             
             focus = Success(m);
             
           },
           
-          "InBind", function (sc) {
+          InBind: function (sc) {
             
             direction = REC;
             focus = sc(focus);
             
           },
           
-          "InBuiltin", function (n,ls,rs) {
+          InBuiltin: function (n,ls,rs) {
             
             if (0 === rs.length) {
               
               ls.push(focus);
-              builtin(n,ls).cases(
+              cases(builtin(n,ls), {
                 
-                "Left", function (e) {
+                Left: function (e) {
                   err = e;
                 },
                 
-                "Right", function (m) {
+                Right: function (m) {
                   focus = m;
                 }
                 
-              );
+              });
               
             } else {
               
@@ -678,7 +686,7 @@ function evaluate(denv, term) {
             
           }
           
-        );
+        });
         
         if (err) {
           return Left(err);
