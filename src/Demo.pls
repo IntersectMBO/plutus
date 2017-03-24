@@ -41,3 +41,7 @@ localTest : Nat -> Nat {
 validator : Comp Int -> Comp Int {
   validator x = x
 }
+
+x : Int -> Int {
+  x i = i
+}
