@@ -347,11 +347,13 @@ instance ToJS Term where
            (x,b) <- withVar $ \_ -> go (body sc)
            return $ JSABT "Bind" [m', JSScope [x] b]
       go (In (PrimData (PrimInt i))) =
-        return $ JSInt i
+        return $ JSABT "PrimData" [JSABT "PrimInt" [JSInt i]]
       go (In (PrimData (PrimFloat f))) =
-        return $ JSFloat f
+        return $ JSABT "PrimData" [JSABT "PrimFloat" [JSFloat f]]
       go (In (PrimData (PrimByteString bs))) =
-        return $ JSString (BSChar8.unpack bs)
+        return $ JSABT "PrimData"
+                   [JSABT "PrimByteString"
+                     [JSString (BSChar8.unpack bs)]]
       go (In (Builtin n ms)) =
         do ms' <- mapM (go . instantiate0) ms
            return $ JSABT "Builtin" [JSString n, JSArray ms']
