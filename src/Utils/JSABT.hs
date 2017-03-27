@@ -39,6 +39,6 @@ jsABTToSource (JSString s) =
 jsABTToSource (JSVar x) =
   x
 jsABTToSource (JSScope xs b) =
-  "function (" ++ intercalate "," xs ++ ") { return " ++ jsABTToSource b ++ "; }"
+  "(" ++ intercalate "," xs ++ ") => (" ++ jsABTToSource b ++ ")"
 jsABTToSource (JSArray ms) =
   "[" ++ intercalate "," (map jsABTToSource ms) ++ "]"
