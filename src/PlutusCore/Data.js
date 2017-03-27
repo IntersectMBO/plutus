@@ -44,6 +44,12 @@ function show(x) {
     return "[" + x.map(x => show(x)).join(",") + "]";
   } else if (x instanceof String || typeof x == "string"){
     return JSON.stringify(x);
+  } else if (x instanceof Function) {
+    let names = x.toString().match(/^function \(([^\)]*)\)/)[1].split(",");
+    let vars = names.map(x => ({ variable: true, name: x }));
+    return "(" + names.join(",") + ") => " + show(x.apply(null, vars));
+  } else if (x.variable) {
+    return x.name;
   } else {
     return x.toString();
   }
