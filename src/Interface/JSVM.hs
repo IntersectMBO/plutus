@@ -13,6 +13,7 @@ import Elaboration.Elaboration ()
 import Elaboration.Elaborator
 import Elaboration.Judgments
 import Plutus.Term
+import PlutusCore.Evaluation
 import qualified PlutusCore.Term as Core
 import Plutus.Parser
 import Utils.ABT
@@ -41,7 +42,20 @@ environmentToJS env =
 
 loadExpression :: String -> String -> Either String String
 loadExpression decls expr =
-  _
+  do dctx <- loadProgram decls
+     (tm,dctx') <- parseAndElab dctx expr
+     return
+       (jsABTToSource
+         (JSABT "Program"
+           [ JSArray
+               [ JSABT "Decl"
+                   [ JSString (showSourced n)
+                   , toJS m
+                   ]
+               | (n,m) <- definitionsToEnvironment (definitions dctx')
+               ]
+           , toJS tm
+           ]))
   where
     loadProgram
       :: String -> Either String DeclContext
