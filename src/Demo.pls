@@ -32,3 +32,17 @@ fac : Nat -> Nat {
 data Unit = { Unit }
 
 data List a = { Nil | Cons a (List a) }
+
+localTest : Nat -> Nat {
+  localTest x =
+    let { locid : Unit -> Nat -> Nat { locid z y = x } }
+    in locid Unit Zero
+}
+
+validator : Comp Int -> Comp Int {
+  validator x = x
+}
+
+x : Int -> Int {
+  x i = i
+}

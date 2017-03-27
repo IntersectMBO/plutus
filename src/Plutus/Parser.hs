@@ -80,9 +80,6 @@ parens = Token.parens tokenParser
 braces :: Parsec String u a -> Parsec String u a
 braces = Token.braces tokenParser
 
-symbol :: String -> Parsec String u String
-symbol = Token.symbol tokenParser
-
 whiteSpace :: Parsec String u ()
 whiteSpace = Token.whiteSpace tokenParser
 
@@ -445,7 +442,8 @@ letDecl =
 
 letClause :: String -> Parsec String u LetClause
 letClause n =
-  do _ <- symbol n
+  do n' <- varName
+     guard (n == n') <?> ("Expecting name " ++ n ++ " but saw " ++ n')
      ps <- many letClausePattern
      reservedOp "="
      b <- term
@@ -692,7 +690,8 @@ whereTermDecl =
 
 patternMatchClause :: String -> Parsec String u ([Pattern],[String],Term)
 patternMatchClause x =
-  do _ <- symbol x
+  do x' <- varName
+     guard (x == x') <?> ("name " ++ x ++ " but saw " ++ x')
      ps <- many patternMatchPattern
      reservedOp "="
      b <- term

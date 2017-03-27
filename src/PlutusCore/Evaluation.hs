@@ -21,7 +21,8 @@ import Utils.Pretty (pretty)
 import qualified PlutusCore.CKMachine as CK
 import PlutusCore.Term
 
-import qualified Crypto.Sign.Ed25519 as Ed25519
+import Data.Either (isRight)
+import qualified Cardano.Crypto.Wallet as CC
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -71,7 +72,7 @@ instance Eval (Env (Sourced String) Term) Term where
        case lookup x env of
          Nothing -> throwError $ "Unknown constant/defined term: "
                               ++ showSourced x
-         Just m  -> return m
+         Just m  -> eval m
   eval (In (Let m sc)) =
     do em <- eval (instantiate0 m)
        eval (instantiate sc [em])
@@ -283,7 +284,7 @@ instance Eval (Env (Sourced String) Term) Term where
                             (BS.pack
                               (BA.unpack (hash (BS.toStrict x) :: Digest SHA3_256)))))
           _ ->
-            throwError $ "Incorrect arguments for builtin sha2_256: "
+            throwError $ "Incorrect arguments for builtin sha3_256: "
                       ++ intercalate "," (map pretty xs)
       builtin "equalsByteString" xs =
         case xs of
@@ -562,7 +563,7 @@ instance MEval
                             (BS.pack
                               (BA.unpack (hash (BS.toStrict x) :: Digest SHA3_256)))))
           _ ->
-            throwError $ "Incorrect arguments for builtin sha2_256: "
+            throwError $ "Incorrect arguments for builtin sha3_256: "
                       ++ intercalate "," (map pretty xs)
       builtin "equalsByteString" xs =
         case xs of
@@ -579,13 +580,9 @@ instance MEval
             , In (PrimData (PrimByteString val))
             , In (PrimData (PrimByteString sig))
             ] ->
-            return $ let key' = Ed25519.PublicKey (BS.toStrict key)
-                         sig' = Ed25519.Signature (BS.toStrict sig)
-                         val' = BS.toStrict val
-                     in if BS.length key == 32 && BS.length sig == 64 &&
-                           Ed25519.dverify key' val' sig'
-                          then conH "True" []
-                          else conH "False" []
+            return $ if verify key val sig
+                       then conH "True" []
+                       else conH "False" []
           _ ->
             throwError $ "Incorrect arguments for builtin verifySignature: "
                       ++ intercalate "," (map pretty xs)     
@@ -612,3 +609,20 @@ evaluate txinfo env ptrl m =
       result = runStateT (runReaderT evlt (txinfo,env)) ptrl
   in fst <$> result
   -}
+
+----------------------------------------------------------------------------
+-- Crypto
+----------------------------------------------------------------------------
+
+publicKeyLength, signatureLength, chainCodeLength :: Int
+publicKeyLength = 32
+signatureLength = 64
+chainCodeLength = 32
+
+verify :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Bool
+verify key val sig = isRight $ do
+  key' <- CC.xpub (BS.toStrict key)
+  sig' <- CC.xsignature (BS.toStrict sig)
+  case CC.verify key' (BS.toStrict val) sig' of
+    True  -> Right ()
+    False -> Left ""
