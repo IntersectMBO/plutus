@@ -137,3 +137,18 @@ open l sc =
          newNames = [ x | FreeVar x <- ns ]
          m = instantiate sc newVars
      return (ns, newNames, m)
+
+
+
+
+
+openScope :: (Functor f, Foldable f)
+          => [(FreeVar,a)] -> Scope f -> ([FreeVar], [String], ABT f)
+openScope ctx sc =
+  let ns = names sc
+      oldNs = [ n' | (FreeVar n',_) <- ctx ]
+      freshNs = map FreeVar (freshen oldNs ns)
+      newVars = [ Var (Free n) | n <- freshNs ]
+      newNames = [ x | FreeVar x <- freshNs ]
+      m = instantiate sc newVars
+  in (freshNs, newNames, m)

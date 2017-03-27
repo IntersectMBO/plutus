@@ -13,6 +13,7 @@ module PlutusTypes.ConSig where
 
 import Utils.ABT
 import Utils.Pretty (pretty)
+import Utils.Vars
 import PlutusTypes.Type
 
 import Data.List (intercalate)
@@ -43,3 +44,8 @@ instance Show ConSig where
 
 conSigH :: [String] -> [Type] -> Type -> ConSig
 conSigH ns as r = ConSig (map (scope ns) as) (scope ns r)
+
+substMetasConSig :: [(MetaVar,Type)] -> ConSig -> ConSig
+substMetasConSig subs (ConSig ascs bsc) =
+  ConSig (map (under (substMetas subs)) ascs)
+         (under (substMetas subs) bsc)

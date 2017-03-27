@@ -19,11 +19,14 @@ module PlutusCore.Term where
 
 import PlutusTypes.Type
 import Utils.ABT
+import Utils.JSABT
 import Utils.Names
 import Utils.Pretty
 import Utils.Vars
 
+import Control.Monad.State
 import qualified Data.ByteString.Lazy as BS
+import qualified Data.ByteString.Lazy.Char8 as BSChar8
 import Data.Functor.Identity
 import Data.List (intercalate)
 
@@ -272,3 +275,106 @@ instance Parens Pattern where
     "primPat[float[" ++ show x ++ "]]"
   parenRec (In (PrimPat (PrimByteString x))) =
     "primPat[byteString[" ++ prettyByteString x ++ "]]"
+
+
+
+
+
+
+
+instance ToJS Term where
+  toJS m0 = fst (runState (go m0) (0,[]))
+    where
+      getVar :: Int -> State (Int,[String]) String
+      getVar i =
+        do (_,ctx) <- get
+           return (ctx !! i)
+      
+      withVar :: (String -> State (Int,[String]) a) -> State (Int,[String]) (String,a)
+      withVar f =
+        do (i,ctx) <- get
+           let x = "x" ++ show i
+           put (i+1, x : ctx)
+           a <- f x
+           (i',_) <- get
+           put (i',ctx)
+           return (x,a)
+      
+      withVars :: Int -> ([String] -> State (Int,[String]) a) -> State (Int,[String]) ([String],a)
+      withVars n f =
+        do (i,ctx) <- get
+           let xs = [ "x" ++ show j | j <- [i..i+n-1] ]
+           put (i+n, xs ++ ctx)
+           a <- f xs
+           put (i+n, ctx)
+           return (xs,a)
+      
+      go :: Term -> State (Int,[String]) JSABT
+      go (Var (Free _)) =
+        error "There should never be free vars in a JS-able term."
+      go (Var (Bound _ (BoundVar i))) =
+        do x <- getVar i
+           return (JSVar x)
+      go (Var (Meta _)) =
+        error "There should never be meta vars in a JS-able term."
+      go (In (Decname n _)) =
+        return $ JSABT "Decname" [JSString (showSourced n)]
+      go (In (Let m sc)) =
+        do m' <- go (instantiate0 m)
+           (x,b) <- withVar $ \_ -> go (body sc)
+           return $ JSABT "Let" [m', JSScope [x] b]
+      go (In (Lam _ sc)) =
+        do (x,b) <- withVar $ \_ -> go (body sc)
+           return $ JSABT "Lam" [JSScope [x] b]
+      go (In (App f x)) =
+        do f' <- go (instantiate0 f)
+           x' <- go (instantiate0 x)
+           return $ JSABT "App" [f',x']
+      go (In (Con c ms)) =
+        do ms' <- mapM (go . instantiate0) ms
+           return $ JSABT "Con" [JSString c, JSArray ms']
+      go (In (Case ms cs)) =
+        do ms' <- mapM (go . instantiate0) ms
+           cs' <- mapM goClause cs
+           return $ JSABT "Case" [JSArray ms', JSArray cs']
+      go (In (Success m)) =
+        do m' <- go (instantiate0 m)
+           return $ JSABT "Success" [m']
+      go (In (Failure _)) =
+        return $ JSABT "Failure" []
+      go (In (Bind m sc)) =
+        do m' <- go (instantiate0 m)
+           (x,b) <- withVar $ \_ -> go (body sc)
+           return $ JSABT "Bind" [m', JSScope [x] b]
+      go (In (PrimData (PrimInt i))) =
+        return $ JSABT "PrimData" [JSABT "PrimInt" [JSInt i]]
+      go (In (PrimData (PrimFloat f))) =
+        return $ JSABT "PrimData" [JSABT "PrimFloat" [JSFloat f]]
+      go (In (PrimData (PrimByteString bs))) =
+        return $ JSABT "PrimData"
+                   [JSABT "PrimByteString"
+                     [JSString (BSChar8.unpack bs)]]
+      go (In (Builtin n ms)) =
+        do ms' <- mapM (go . instantiate0) ms
+           return $ JSABT "Builtin" [JSString n, JSArray ms']
+      
+      goClause :: Clause -> State (Int,[String]) JSABT
+      goClause (Clause pscs sc) =
+        do (xs, (ps, b)) <- withVars (length (names sc)) $ \_ ->
+                              do ps <- mapM (goPattern . body) pscs
+                                 b <- go (body sc)
+                                 return (ps,b)
+           return $ JSABT "Clause" [JSArray ps, JSScope xs b]
+      
+      goPattern :: Pattern -> State (Int,[String]) JSABT
+      goPattern (Var _) =
+        return $ JSABT "Var" []
+      goPattern (In (ConPat c ps)) =
+        do ps' <- mapM (goPattern . instantiate0) ps
+           return $ JSABT "ConPat" [JSString c, JSArray ps']
+      goPattern (In (PrimPat (PrimInt i))) =
+        return $ JSInt i
+      goPattern (In (PrimPat (PrimFloat f))) =
+        return $ JSFloat f
+      goPattern (In (PrimPat (PrimByteString bs))) =
+        return $ JSString (BSChar8.unpack bs)

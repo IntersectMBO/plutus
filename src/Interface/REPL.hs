@@ -6,15 +6,21 @@
 module Interface.REPL where
 
 import Utils.ABT
+import Utils.JSABT
 import Utils.Names
 import Utils.Pretty
+import qualified Utils.ProofDeveloper as PD
 import qualified PlutusCore.Term as Core
 import PlutusCore.Evaluation
 import Plutus.Parser
 import Plutus.Term
-import Elaboration.Elaboration
+import Elaboration.Contexts
+--import Elaboration.ElabState
+import Elaboration.Elaboration ()
 import Elaboration.Elaborator
+import Elaboration.Judgments
 
+import Data.Either.Combinators
 import System.IO
 
 
@@ -37,22 +43,53 @@ until_ p prompt action = do
 repl :: String -> IO ()
 repl src0 = case loadProgram src0 of
              Left e -> flushStr ("ERROR: " ++ e ++ "\n")
-             Right (sig,defs,ctx)
+             Right dctx --(sig,defs,ctx)
                -> do hSetBuffering stdin LineBuffering
                      until_ (== ":quit")
                             (readPrompt "$> ")
-                            (evalAndPrint sig defs ctx)
+                            (evalAndPrint dctx)
   where
-    loadProgram :: String -> Either String (Signature,Definitions,Context)
+    loadProgram
+      :: String -> Either String DeclContext
     loadProgram src =
       do prog <- parseProgram src
-         (_,ElabState sig defs ctx _ _ _ _ _) <- runElaborator0 (elabProgram prog)
-         return (sig,defs,ctx)
+         (dctx,_)
+           <- mapLeft PD.showElabError
+                      (runElaborator
+                        (PD.elaborator
+                          (ElabProgram emptyDeclContext prog)))
+         return dctx
+         -- (_,ElabState sig defs ctx _ _ _ _ _) <- runElaborator0 (elabProgram prog)
+         -- return (sig,defs,ctx)
     
-    loadTerm :: Signature -> Definitions -> Context -> String -> Either String Core.Term
-    loadTerm sig defs ctx src =
+    parseAndElab :: DeclContext -> String -> Either String (Core.Term,DeclContext)
+    parseAndElab dctx src =
       do tm0 <- parseTerm src
          let tm = freeToDefined (In . Decname . User) tm0
+         case runElaborator (PD.elaborator (Synth dctx emptyHypContext tm)) of
+           Left e -> Left (PD.showElabError e)
+           Right ((tm',_,dctx'),_) -> Right (tm',dctx')
+    
+    loadTerm :: DeclContext -> String -> Either String Core.Term
+    loadTerm dctx src =
+      do (tm',dctx') <- parseAndElab dctx src
+         evaluate (TransactionInfo undefined {- !!! -})
+                      (definitionsToEnvironment (definitions dctx'))
+                      3750
+                      tm'
+        
+        {-
+        tm0 <- parseTerm src
+         let tm = freeToDefined (In . Decname . User) tm0
+         case runElaborator (PD.elaborator (Synth dctx emptyHypContext tm)) of
+           Left e -> Left (PD.showElabError e)
+           Right ((tm',_,dctx'),_) ->
+             evaluate (TransactionInfo undefined {- !!! -})
+                      (definitionsToEnvironment (definitions dctx'))
+                      3750
+                      tm' --runReaderT (eval tm') env
+          -}
+         {-
          case runElaborator (synth tm) sig defs ctx of
            Left e -> Left e
            Right ((tm',_),elabstate) ->
@@ -60,13 +97,27 @@ repl src0 = case loadProgram src0 of
                       (definitionsToEnvironment (_definitions elabstate))
                       3750
                       tm' --runReaderT (eval tm') env
-    
-    evalAndPrint :: Signature -> Definitions -> Context -> String -> IO ()
-    evalAndPrint _ _ _ "" = return ()
-    evalAndPrint _ defs _ ":defs" =
-      flushStr (unlines [ showSourced n | (n,_) <- defs ] ++ "\n")
-    evalAndPrint sig defs ctx src =
-      case loadTerm sig defs ctx src of
+                      -}
+                      
+    evalAndPrint :: DeclContext -> String -> IO ()
+    evalAndPrint _ "" = return ()
+    evalAndPrint dctx ":defs" =
+      flushStr
+        (unlines
+          [ showSourced n
+            | (n,_) <- definitions dctx
+            ]
+          ++ "\n")
+    evalAndPrint dctx (':':'e':'l':'a':'b':src) =
+      case parseAndElab dctx src of
+        Left e -> flushStr ("ERROR: " ++ e ++ "\n")
+        Right (m,_) -> flushStr (pretty m ++ "\n")
+    evalAndPrint dctx (':':'j':'s':src) =
+      case parseAndElab dctx src of
+        Left e -> flushStr ("ERROR: " ++ e ++ "\n")
+        Right (m,_) -> flushStr (jsABTToSource (toJS m) ++ "\n")
+    evalAndPrint dctx src =
+      case loadTerm dctx src of
         Left e -> flushStr ("ERROR: " ++ e ++ "\n")
         Right v -> flushStr (pretty v ++ "\n")
 

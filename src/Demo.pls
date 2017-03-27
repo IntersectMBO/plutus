@@ -13,6 +13,7 @@ even : Nat -> Bool {
   even (Suc (Suc n)) = even n
 }
 
+
 plus : Nat -> Nat -> Nat {
   plus Zero y = y ;
   plus (Suc x) y = Suc (plus x y)

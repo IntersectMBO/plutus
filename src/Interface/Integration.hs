@@ -11,17 +11,20 @@
 module Interface.Integration where
 
 import Utils.ABT
-import Utils.Elaborator
+--import Utils.Elaborator
 import Utils.Env
 import Utils.Names
+import qualified Utils.ProofDeveloper as PD
 import Utils.Vars
-import qualified Plutus.Program as Plutus
+--import qualified Plutus.Program as Plutus
 import qualified PlutusCore.Evaluation as Core
 import qualified PlutusCore.Term as Core
 import qualified PlutusCore.Program as Core
 import Plutus.Parser
-import Elaboration.Elaboration
+import Elaboration.Contexts
+import Elaboration.Elaboration ()
 import Elaboration.Elaborator
+import Elaboration.Judgments
 
 import Control.Monad.Except
 import Data.List
@@ -40,76 +43,54 @@ programToDeclEnv (Core.Program _ _ defs) = definitionsToEnvironment defs
 
 -- | This function parses and elaborates a program.
 
-loadProgram :: String -> Elaborator Core.Program
-loadProgram src =
+loadProgram :: DeclContext
+            -> String
+            -> Either String Core.Program --Elaborator Core.Program
+loadProgram dctx src =
   case parseProgram src of
-    Left err -> throwError err
-    Right (Plutus.Program stmts) ->
-      do oldDefs <- getElab definitions
-         Signature oldTypeCons oldCons <- getElab signature
-         mapM_ elabStatement stmts
-         newDefs <- getElab definitions
-         Signature newTypeCons newCons <- getElab signature
-         let deltaTypeCons =
-               deleteFirstsBy
-                 (\x y -> fst x == fst y)
-                 newTypeCons
-                 oldTypeCons
-             deltaCons =
-               deleteFirstsBy
-                 (\x y -> fst x == fst y)
-                 newCons
-                 oldCons
-             deltaDefs =
-               deleteFirstsBy
-                 (\x y -> fst x == fst y)
-                 newDefs
-                 oldDefs
-         return $ Core.Program
-                    deltaTypeCons
-                    deltaCons
-                    deltaDefs
+    Left err -> Left err
+    Right p ->
+      case runElaborator (PD.elaborator (ElabProgram dctx p)) of
+        Left elabErr ->
+          Left (PD.showElabError elabErr)
+        Right (dctx', _) ->
+          Right
+            (Core.Program
+              { Core.typeConstructors =
+                  typeConstructors (signature dctx')
+              , Core.constructors =
+                  dataConstructors (signature dctx')
+              , Core.termDeclarations =
+                  definitions dctx'
+              })
+
 
 
 
 -- | This function loads a validator program and ensures that it can be used
 -- to validate a transaction.
 
-loadValidator :: String -> Elaborator Core.Program
-loadValidator src =
-  do prog <- loadProgram src
-     defs <- getElab definitions
-     case lookup (User "validator") defs of
+loadValidator :: DeclContext -> String -> Either String Core.Program
+loadValidator dctx src =
+  do prog <- loadProgram dctx src
+     case lookup (User "validator") (Core.termDeclarations prog) of
        Nothing -> throwError "Validators must declare the term `validator`"
        Just _ -> return prog
+
 
 
 
 -- | This function loads a redeemer program and ensures that it can be used to
 -- redeem a transaction.
 
-loadRedeemer :: String -> Elaborator Core.Program
-loadRedeemer src =
-  do prog <- loadProgram src
-     defs <- getElab definitions
-     case lookup (User "redeemer") defs of
+loadRedeemer :: DeclContext -> String -> Either String Core.Program
+loadRedeemer dctx src =
+  do prog <- loadProgram dctx src
+     case lookup (User "redeemer") (Core.termDeclarations prog) of
        Nothing -> throwError "Redeemers must declare the term `redeemer`"
        Just _ -> return prog
 
 
-
--- | We can run an elaborator in the context of some previous program, e.g.
--- a standard library.
-
-runElabInContexts :: [Core.Program] -> Elaborator a -> Either String a
-runElabInContexts programs m =
-  let (tyConSigs, conSigs, defs) =
-        foldr
-          (\(Core.Program ptcs pcs pd) (tcs,cs,d) ->
-            (ptcs ++ tcs, pcs ++ cs, pd ++ d))
-          ([],[],[])
-          programs
-  in fmap fst (runElaborator m (Signature tyConSigs conSigs) defs [])
 
 
 

@@ -18,6 +18,7 @@ import Utils.Env
 import Utils.Eval
 import Utils.Names
 import Utils.Pretty (pretty)
+import qualified PlutusCore.CKMachine as CK
 import PlutusCore.Term
 
 import Data.Either (isRight)
@@ -602,9 +603,12 @@ instance MEval
 evaluate
   :: TransactionInfo -> SourcedEnv -> Petrol -> Term -> Either String Term
 evaluate txinfo env ptrl m =
+  CK.evaluate env m
+  {-
   let evlt = meval m :: PetrolEvaluator Term
       result = runStateT (runReaderT evlt (txinfo,env)) ptrl
   in fst <$> result
+  -}
 
 ----------------------------------------------------------------------------
 -- Crypto

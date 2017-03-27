@@ -22,6 +22,7 @@ import Utils.Names
 import Utils.Pretty
 import Utils.Vars
 
+import Control.Monad.Identity
 import qualified Data.ByteString.Lazy as BS
 import Data.List (intercalate)
 
@@ -188,6 +189,23 @@ primByteStringH x = In (PrimData (PrimByteString x))
 builtinH :: String -> [Term] -> Term
 builtinH n ms = In (Builtin n (map (scope []) ms))
 
+
+
+substTypeMetas :: [(MetaVar,Type)] -> Term -> Term
+substTypeMetas subs x0 = runIdentity (go x0)
+  where
+    go :: Term -> Identity Term
+    go (Var x) =
+      return (Var x)
+    go (In (Ann m t)) =
+      In <$> (Ann <$> underF go m <*> pure (substMetas subs t))
+    go (In x) =
+      In <$> traverse (underF go) x
+
+
+substTypeMetasClause :: [(MetaVar,Type)] -> Clause -> Clause
+substTypeMetasClause subs (Clause ps sc) =
+  Clause ps (under (substTypeMetas subs) sc)
 
 
 

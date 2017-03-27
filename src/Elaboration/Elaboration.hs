@@ -1,4 +1,6 @@
 {-# OPTIONS -Wall #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 
 
@@ -18,21 +20,72 @@ import Utils.ABT
 import Utils.Elaborator
 import Utils.Names
 import Utils.Pretty
-import Utils.Unifier
+import Utils.ProofDeveloper hiding (Decomposer,ElabError)
+--import Utils.Unifier
 import Utils.Vars
 import Plutus.Term
 import PlutusTypes.ConSig
 import PlutusTypes.Type
 import Plutus.Program
 import qualified PlutusCore.Term as Core
-import qualified PlutusCore.Program as Core
+--import qualified PlutusCore.Program as Core
+import Elaboration.Contexts
 import Elaboration.Elaborator
-import Elaboration.Unification ()
+import Elaboration.ElabState
+import Elaboration.Judgments
+--import Elaboration.Unification ()
 
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Functor.Identity
 import Data.List
+import Data.Maybe (isJust)
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+instance Decomposable ElabState ElabError Judgment where
+  decompose (ElabProgram dctx prog) = elabProgram dctx prog
+  decompose (ElabTermDecl dctx tmdecl) = elabTermDecl dctx tmdecl
+  decompose (ElabAlt dctx n consig) = elabAlt dctx n consig
+  decompose (ElabTypeDecl dctx tydecl) = elabTypeDecl dctx tydecl
+  -- decompose (TyVarExists hctx x) = tyVarExists hctx x
+  -- decompose (TyConExists dctx n) = tyconExists dctx n
+  -- decompose (TypeInContext hctx x) = typeInContext hctx x
+  decompose (IsType dctx hctx a) = isType dctx hctx a
+  decompose (IsPolymorphicType dctx hctx a) = isPolymorphicType dctx hctx a
+  decompose (Synth dctx hctx m) = synthify dctx hctx m
+  decompose (SynthClause dctx hctx as cl) = synthifyClause dctx hctx as cl
+  decompose (Check dctx hctx a m) = checkify dctx hctx a m
+  decompose (CheckPattern dctx a p) = checkifyPattern dctx a p
+  decompose (CheckConSig dctx consig) = checkifyConSig dctx consig
+  decompose (Unify a b) = unify a b
+  decompose (UnifyAll as) = unifyAll as
+  decompose (Subtype a b) = subtype a b
+
 
 
 
@@ -51,7 +104,7 @@ import Data.List
 -------------------------------------------------
 
 
-
+{-
 
 
 -- | We can add a new defined value declaration given a name, core term,
@@ -77,7 +130,7 @@ addConstructor :: String -> ConSig -> Elaborator ()
 addConstructor n consig = addElab (signature.dataConstructors) [(n,consig)]
 
 
-
+-}
 
 
 -- | Elaborating a term declaration takes one of two forms, depending on what
@@ -95,26 +148,38 @@ addConstructor n consig = addElab (signature.dataConstructors) [(n,consig)]
 --    Σ ; Δ ⊢ term n type A def M ⊣ Δ, n : A ↦ M'
 -- @
 
-elabTermDecl :: TermDeclaration -> Elaborator ()
-elabTermDecl (TermDeclaration n ty@(PolymorphicType sc) m) =
-  do putElab currentNameBeingDeclared (unsourced n)
-     when' (typeInDefinitions n)
-         $ throwError ("Term already defined: " ++ showSourced n)
-     isPolymorphicType ty
-     (xs,_,a) <- open tyVarContext sc
-     let def = freeToDefined (In . Decname . User) m
-     def' <- extendElab' definitions
-               [(n,(error "This should never be used in elaboration.",ty))]
-               (\(n',_) -> n' == n)
-             $ extendElab tyVarContext
-                 (map (\x -> (x,())) xs)
-                 $ check def a
-     addDeclaration n def' ty
-elabTermDecl (WhereDeclaration n ty preclauses) =
+elabTermDecl :: DeclContext
+             -> TermDeclaration
+             -> Decomposer DeclContext
+elabTermDecl dctx (TermDeclaration n ty@(PolymorphicType sc) m) =
+  do when (isJust (lookup n (definitions dctx)))
+       $ failure (ElabError ("Term already defined: " ++ showSourced n))
+     goal (IsPolymorphicType dctx (HypContext [] []) ty)
+     let (xs,_,a) = openScope [] sc
+         def = freeToDefined (In . Decname . User) m
+         definitions' =
+           (n,(error "This should never be used in elaboration.",ty))
+             : definitions dctx
+         dctxTemp = dctx { definitions = definitions' }
+         hctx = HypContext
+                { tyVarContext =
+                    tyVarContextFromFreeVars xs ++ tyVarContext hctx
+                , context = []
+                }
+     (def',dctx') <- goal (Check dctxTemp hctx a def)
+     let newDefs = 
+           (n,(def',ty))
+             : filter (\(n',_) -> n' /= n)
+                      (definitions dctx')
+     return (dctx' { definitions = newDefs })
+elabTermDecl dctx (WhereDeclaration n ty preclauses) =
   case preclauses of
-    [] -> throwError "Cannot create an empty let-where definition."
+    [] ->
+      failure
+        (ElabError "Cannot create an empty let-where definition.")
     [(ps,xs,b)] | all isVarPat ps
       -> elabTermDecl
+           dctx
            (TermDeclaration
               n
               ty
@@ -125,6 +190,7 @@ elabTermDecl (WhereDeclaration n ty preclauses) =
                        ]
              xs0 = [ "x" ++ show i | i <- [0..length ps0-1] ]
          in elabTermDecl
+              dctx
               (TermDeclaration
                  n
                  ty
@@ -155,12 +221,18 @@ elabTermDecl (WhereDeclaration n ty preclauses) =
 -- define this in terms of the judgment @Γ ⊢ [α*](A0,...,An)B consig@ which
 -- is implemented in the @checkifyConsig@ function.
 
-elabAlt :: String -> ConSig -> Elaborator ()
-elabAlt n consig =
-  do when' (typeInSignature n)
-         $ throwError ("Constructor already declared: " ++ n)
-     checkifyConSig consig
-     addConstructor n consig
+elabAlt :: DeclContext
+        -> String
+        -> ConSig
+        -> Decomposer DeclContext
+elabAlt dctx n consig =
+  do when (isJust (lookup n (dataConstructors (signature dctx))))
+       $ failure (ElabError ("Constructor already declared: " ++ n))
+     goal (CheckConSig dctx consig)
+     let cons' = (n,consig) : dataConstructors (signature dctx)
+         sig' = (signature dctx) { dataConstructors = cons' }
+         dctx' = dctx { signature = sig' }
+     return dctx'
 
 
 
@@ -180,35 +252,19 @@ elabAlt n consig =
 --
 -- where here @Σ # c@ means that @c@ is not a type constructor in @Σ@.
 
-elabTypeDecl :: TypeDeclaration -> Elaborator ()
-elabTypeDecl (TypeDeclaration tycon params alts) =
-  do when' (tyconExists tycon)
-         $ throwError ("Type constructor already declared: " ++ tycon)
-     addTypeConstructor tycon (TyConSig (length params))
-     mapM_ (uncurry elabAlt) alts
-
-
-
-
-
--- | Elaborating a statement is just a choice between each kind.
-
-elabStatement :: Statement -> Elaborator ()
-elabStatement (TyDecl td) = elabTypeDecl td
-elabStatement (TmDecl td) = elabTermDecl td
-
-
-
-
-
--- | Extracting a program just involves pulling out the relevant parts of the
--- elaboration environment
-
-extractProgram :: Elaborator Core.Program
-extractProgram =
-  do Signature tyConSigs conSigs <- getElab signature
-     defs <- getElab definitions
-     return $ Core.Program tyConSigs conSigs defs
+elabTypeDecl :: DeclContext
+             -> TypeDeclaration
+             -> Decomposer DeclContext
+elabTypeDecl dctx (TypeDeclaration tycon params alts) =
+  do when (isJust (lookup tycon (typeConstructors (signature dctx))))
+       $ failure (ElabError ("Type constructor already declared: " ++ tycon))
+     let tycons' =
+           (tycon, TyConSig (length params))
+             : typeConstructors (signature dctx)
+         sig' = (signature dctx) { typeConstructors = tycons' }
+         dctx' = dctx { signature = sig' }
+     chainM dctx' alts $ \dctx'' (n,consig) ->
+       goal (ElabAlt dctx'' n consig)
 
 
 
@@ -230,10 +286,21 @@ extractProgram =
 --               Σ ; Δ ⊢ x : A { M } ; P ⊣ Σ'' ; Δ''
 -- @
 
-elabProgram :: Program -> Elaborator Core.Program
-elabProgram (Program stmts0) =
-  do mapM_ elabStatement stmts0
-     extractProgram
+elabProgram :: DeclContext -> Program -> Decomposer DeclContext
+elabProgram dctx0 (Program stmts0) =
+  elabStatements dctx0 stmts0
+  where
+    elabStatements :: DeclContext -> [Statement] -> Decomposer DeclContext
+    elabStatements dctx [] =
+      return dctx
+    elabStatements dctx (stmt:stmts) =
+      do dctx' <- elabStatement dctx stmt
+         elabStatements dctx' stmts
+    
+    elabStatement :: DeclContext -> Statement -> Decomposer DeclContext
+    elabStatement dctx (TyDecl tyd) = goal (ElabTypeDecl dctx tyd)
+    elabStatement dctx (TmDecl tmd) = goal (ElabTermDecl dctx tmd)
+
 
 
 
@@ -258,32 +325,32 @@ elabProgram (Program stmts0) =
 -- | We can check that a type constructor exists by looking in the signature.
 -- This corresponds to the judgment @Σ ∋ n : *^k@
 
-tyconExists :: String -> TypeChecker TyConSig
-tyconExists n =
-  do tycons <- getElab (signature.typeConstructors)
-     case lookup n tycons of
-       Nothing -> throwError $ "Unknown type constructor: " ++ n
-       Just sig -> return sig
+tyconExists :: DeclContext -> String -> Decomposer TyConSig
+tyconExists dctx n =
+  case lookup n (typeConstructors (signature dctx)) of
+    Nothing -> failure (ElabError ("Unknown type constructor: " ++ n))
+    Just sig -> return sig
+
 
 
 -- | We can get the consig of a constructor by looking in the signature.
 -- This corresponds to the judgment @Σ ∋ n : S@
 
-typeInSignature :: String -> TypeChecker ConSig
-typeInSignature n =
-  do consigs <- getElab (signature.dataConstructors)
-     case lookup n consigs of
-       Nothing -> throwError $ "Unknown constructor: " ++ n
-       Just t  -> return t
+typeInSignature :: DeclContext -> String -> Decomposer ConSig
+typeInSignature dctx n =
+  case lookup n (dataConstructors (signature dctx)) of
+    Nothing -> failure (ElabError ("Unknown constructor: " ++ n))
+    Just t  -> return t
+
 
 
 -- | We can get the signature of a built-in by looking in the signature.
 -- This corresponds to the judgment @Σ ∋ !n : S@
 
-builtinInSignature :: String -> TypeChecker ConSig
+builtinInSignature :: String -> Decomposer ConSig
 builtinInSignature n =
   do case lookup n builtinSigs of
-       Nothing -> throwError $ "Unknown builtin: " ++ n
+       Nothing -> failure (ElabError ("Unknown builtin: " ++ n))
        Just t  -> return t
   where
     builtinSigs :: [(String,ConSig)]
@@ -319,38 +386,39 @@ builtinInSignature n =
       ]
 
 
+
 -- | We can get the type of a declared name by looking in the definitions.
 -- This corresponds to the judgment @Δ ∋ n : A@
 
-typeInDefinitions :: Sourced String -> TypeChecker PolymorphicType
-typeInDefinitions n =
-  do defs <- getElab definitions
-     case lookup n defs of
-       Nothing -> throwError $ "Unknown constant/defined term: "
-                            ++ showSourced n
-       Just (_,t) -> return t
+typeInDefinitions :: DeclContext
+                  -> Sourced String
+                  -> Decomposer PolymorphicType
+typeInDefinitions dctx n =
+  case lookup n (definitions dctx) of
+    Nothing ->
+      failure
+        (ElabError
+          ("Unknown constant/defined term: " ++ showSourced n))
+    Just (_,t) ->
+      return t
+
 
 
 -- | We can get the type of a generated variable by looking in the context.
 -- This corresponds to the judgment @Γ ∋ x : A@
 
-typeInContext :: FreeVar -> TypeChecker Type
-typeInContext x@(FreeVar n) =
-  do ctx <- getElab context
-     case lookup x ctx of
-       Nothing -> throwError $ "Unbound variable: " ++ n
-       Just t -> return t
+typeInContext :: HypContext -> FreeVar -> Maybe Type
+typeInContext hctx x =
+  lookup x (context hctx)
+
 
 
 -- | We can check if a type variable is in scope. This corresponds to the
 -- judgment @Γ ∋ α type@
 
-tyVarExists :: FreeVar -> TypeChecker ()
-tyVarExists x@(FreeVar n) =
-  do tyVarCtx <- getElab tyVarContext
-     case lookup x tyVarCtx of
-       Nothing -> throwError $ "Unbound type variable: " ++ n
-       Just _ -> return ()
+tyVarExists :: HypContext -> FreeVar -> Bool
+tyVarExists hctx x =
+  isJust (lookup x (tyVarContext hctx))
 
 
 
@@ -381,45 +449,51 @@ tyVarExists x@(FreeVar n) =
 --     Γ ⊢ ∀α. A type
 -- @
 
-isType :: Type -> TypeChecker ()
-isType (Var (Free x)) =
-  tyVarExists x
-isType (Var (Bound _ _)) =
+isType :: DeclContext -> HypContext -> Type -> Decomposer ()
+isType _ hctx (Var (Free x@(FreeVar n))) =
+  if tyVarExists hctx x
+  then return ()
+  else failure (ElabError ("Unbound type variable: " ++ n))
+isType _ _ (Var (Bound _ _)) =
   error "Bound type variables should not be the subject of type checking."
-isType (Var (Meta _)) =
+isType _ _ (Var (Meta _)) =
   error "Metavariables should not be the subject of type checking."
-isType (In (TyCon c as)) =
-  do TyConSig ar <- tyconExists c
+isType dctx hctx (In (TyCon c as)) =
+  do TyConSig ar <- tyconExists dctx c
      let las = length as
      unless (ar == las)
-       $ throwError $ c ++ " expects " ++ show ar ++ " "
-                   ++ (if ar == 1 then "arg" else "args")
-                   ++ " but was given " ++ show las
-     mapM_ (isType.instantiate0) as
-isType (In (Fun a b)) =
-  do isType (instantiate0 a)
-     isType (instantiate0 b)
--- isType (In (Forall sc)) =
---   do ([x],_,a) <- open tyVarContext sc
---      extendElab tyVarContext [(x,())]
---        $ isType a
-isType (In (Comp a)) =
-  isType (instantiate0 a)
-isType (In PlutusInt) =
+       $ failure
+           (ElabError $
+             c ++ " expects " ++ show ar ++ " "
+               ++ (if ar == 1 then "arg" else "args")
+               ++ " but was given " ++ show las)
+     forM_ as $ \a ->
+       goal (IsType dctx hctx (instantiate0 a))
+isType dctx hctx (In (Fun a b)) =
+  do goal (IsType dctx hctx (instantiate0 a))
+     goal (IsType dctx hctx (instantiate0 b))
+isType dctx hctx (In (Comp a)) =
+  goal (IsType dctx hctx (instantiate0 a))
+isType _ _ (In PlutusInt) =
   return ()
-isType (In PlutusFloat) =
+isType _ _ (In PlutusFloat) =
   return ()
-isType (In PlutusByteString) =
+isType _ _ (In PlutusByteString) =
   return ()
 
 
 
 
-isPolymorphicType :: PolymorphicType -> TypeChecker ()
-isPolymorphicType (PolymorphicType sc) =
-  do (xs,_,a) <- open tyVarContext sc
-     extendElab tyVarContext (map (\x -> (x,())) xs)
-       $ isType a
+isPolymorphicType :: DeclContext
+                  -> HypContext
+                  -> PolymorphicType
+                  -> Decomposer ()
+isPolymorphicType dctx hctx (PolymorphicType sc) =
+  do let (xs,_,a) = openScope (tyVarContext hctx) sc
+         hctx' = hctx { tyVarContext =
+                          tyVarContextFromFreeVars xs ++ tyVarContext hctx
+                      }
+     goal (IsType dctx hctx' a)
 
 
 
@@ -428,11 +502,9 @@ isPolymorphicType (PolymorphicType sc) =
 -- | We can instantiate the argument and return types for a constructor
 -- signature with variables.
 
-instantiateParams :: [Scope TypeF] -> Scope TypeF -> TypeChecker ([Type],Type)
+instantiateParams :: [Scope TypeF] -> Scope TypeF -> Decomposer ([Type],Type)
 instantiateParams argscs retsc =
-  do metas <- replicateM
-               (length (names retsc))
-               (nextElab nextMeta)
+  do metas <- replicateM (length (names retsc)) newMeta
      let ms = map (Var . Meta) metas
      return ( map (\sc -> instantiate sc ms) argscs
             , instantiate retsc ms
@@ -448,7 +520,7 @@ instantiateParams argscs retsc =
 -- @∀α. (∀β. α → β) → α@ would become @(∀β. ?0 → β) → ?0@ and the type
 -- @A → ∀β. A → β@ would be unchanged.
 
-instantiateQuantifiers :: Type -> TypeChecker Type
+instantiateQuantifiers :: Type -> Decomposer Type
 -- instantiateQuantifiers (In (Forall sc)) =
 --   do meta <- nextElab nextMeta
 --      let m = Var (Meta meta)
@@ -500,12 +572,16 @@ instantiateQuantifiers t = return t
 -- over the variables of @Γ*@, and @helper Γ*@ is iterated application. For
 -- the above example, @Γ* = y : B@.
 
-letLift :: String -> Term -> Type -> TypeChecker Core.Term
-letLift liftName m a =
+letLift :: DeclContext
+        -> HypContext
+        -> String
+        -> Term
+        -> Type
+        -> Decomposer (Core.Term, DeclContext)
+letLift dctx hctx liftName m a =
   do let fvs = freeVars m
-     i <- nextElab nextGeneratedNameIndex
-     currentName <- getElab currentNameBeingDeclared
-     ctx <- getElab context
+     i <- newGeneratedNameIndex
+     currentName <- nameBeingDeclared
      let helperName :: Sourced String
          helperName =
              Generated (currentName ++ "_" ++ liftName ++ "_" ++ show i)
@@ -513,7 +589,7 @@ letLift liftName m a =
          fvsWithTypes = [ (fv,t)
                         | fv <- fvs
                         , fv /= FreeVar liftName
-                        , let Just t = lookup fv ctx
+                        , let Just t = lookup fv (context hctx)
                         ]
          helperType :: PolymorphicType
          helperType = polymorphicTypeH []
@@ -539,10 +615,16 @@ letLift liftName m a =
            | otherwise =
                Identity (In (Decname x))
          swapName (In x) = In <$> traverse (underF swapName) x
+     dctx' <- goal
+                (ElabTermDecl
+                  dctx
+                  (TermDeclaration helperName helperType helperDef))
+     goal (Check dctx' hctx a newM)
+     {-
      elabTermDecl
        (TermDeclaration helperName helperType helperDef)
      checkify newM a
-
+     -}
 
 
 
@@ -614,115 +696,156 @@ letLift liftName m a =
 --     Γ ⊢ do { x <- M ; N } ▹ bind(M';x.N') ∈ Comp B
 -- @
 
-synthify :: Term -> TypeChecker (Core.Term, Type)
-synthify (Var (Bound _ _)) =
+synthify :: DeclContext
+         -> HypContext
+         -> Term
+         -> Decomposer (Core.Term, Type, DeclContext)
+synthify _ _ (Var (Bound _ _)) =
   error "A bound variable should never be the subject of type synthesis."
-synthify (Var (Free n)) =
-  do t <- typeInContext n
-     return (Var (Free n), t)
-synthify (Var (Meta _)) =
+synthify dctx hctx (Var (Free x@(FreeVar n))) =
+  case typeInContext hctx x of
+    Nothing ->
+      failure (ElabError ("Unbound variable: " ++ n))
+    Just t ->
+      return (Var (Free x), t, dctx)
+synthify _ _ (Var (Meta _)) =
   error "Metavariables should not be the subject of type synthesis."
-synthify (In (Decname x)) =
-  do PolymorphicType sc <- typeInDefinitions x
-     metas <- replicateM (length (names sc))
-                         (nextElab nextMeta)
-     let as = [ Var (Meta meta) | meta <- metas ]
-     return (Core.decnameH x as, instantiate sc as)
-synthify (In (Ann m t)) =
-  do isType t
-     m' <- checkify (instantiate0 m) t
-     subs <- getElab substitution
-     return (Core.substTypeMetas subs m', substMetas subs t)
-synthify (In (Let a m sc)) =
-  do m' <- letLift (head (names sc)) (instantiate0 m) a
-     ([x],[v],n) <- open context sc
-     (n',b) <- extendElab context [(x,a)]
-                 $ synthify n
-     return (Core.letH m' v n', b)
-synthify (In (Lam sc)) =
-  do meta <- nextElab nextMeta
-     let arg = Var (Meta meta)
-     ([x],[n],m) <- open context sc
-     (m',ret) <- extendElab context [(x,arg)]
-                   $ synthify m
-     subs <- getElab substitution
-     return ( Core.substTypeMetas subs (Core.lamH arg n m')
-            , substMetas subs (funH arg ret)
+synthify dctx _ (In (Decname x)) =
+  do PolymorphicType sc <- typeInDefinitions dctx x
+     metas <- replicateM (length (names sc)) newMeta
+     let as = map (Var . Meta) metas
+     return (Core.decnameH x as, instantiate sc as, dctx)
+synthify dctx hctx (In (Ann m t)) =
+  do goal (IsType dctx hctx t)
+     (m',dctx') <- goal (Check dctx hctx t (instantiate0 m))
+     return (m', t, dctx')
+synthify dctx hctx (In (Let a m sc)) =
+  do (m', dctx') <- letLift dctx hctx (head (names sc)) (instantiate0 m) a
+     let ([x],[v],n) = openScope (context hctx) sc
+         ctx' = (x,a) : context hctx
+         hctx' = hctx { context = ctx' }
+     (n', b, dctx'') <- goal (Synth dctx' hctx' n)
+     return ( Core.letH m' v n'
+            , b
+            , dctx''
             )
-synthify (In (App f a)) =
-  do (f', t) <- synthify (instantiate0 f)
+synthify dctx hctx (In (Lam sc)) =
+  do meta <- newMeta
+     let arg = (Var (Meta meta))
+         ([x],[n],m) = openScope (context hctx) sc
+         ctx' = (x,arg) : context hctx
+     (m', ret, dctx') <- goal (Synth dctx (hctx { context = ctx' }) m)
+     return (Core.lamH arg n m', funH arg ret, dctx')
+synthify dctx hctx (In (App f a)) =
+  do (f', t, dctx') <- goal (Synth dctx hctx (instantiate0 f))
      t' <- instantiateQuantifiers t
      case t' of
        In (Fun arg ret) -> do
-         a' <- checkify (instantiate0 a) (instantiate0 arg)
-         subs <- getElab substitution
-         return ( Core.substTypeMetas subs (Core.appH f' a')
-                , substMetas subs (instantiate0 ret)
+         (a', dctx'') <-
+           goal (Check dctx' hctx (instantiate0 arg) (instantiate0 a))
+         return ( Core.appH f' a'
+                , instantiate0 ret
+                , dctx''
                 )
-       _ -> throwError $ "Expected a function type when checking"
-                      ++ " the expression: " ++ pretty (instantiate0 f)
-                      ++ "\nbut instead found: " ++ pretty t'
-synthify (In (Con c as)) =
-  do ConSig argscs retsc <- typeInSignature c
+       _ -> failure
+              (ElabError
+                $ "Expected a function type when checking"
+                    ++ " the expression: " ++ pretty (instantiate0 f)
+                    ++ "\nbut instead found: " ++ pretty t')
+synthify dctx hctx (In (Con c ms)) =
+  do ConSig argscs retsc <- typeInSignature dctx c
      (args',ret') <- instantiateParams argscs retsc
-     let las = length as
+     let lms = length ms
          largs' = length args'
-     unless (las == largs')
-       $ throwError $ c ++ " expects " ++ show largs' ++ " "
-                 ++ (if largs' == 1 then "arg" else "args")
-                 ++ " but was given " ++ show las
-     as' <- checkifyMulti (map instantiate0 as) args'
-     subs <- getElab substitution
-     return ( Core.substTypeMetas subs (Core.conH c as')
-            , substMetas subs ret'
+     unless (lms == largs')
+       $ failure
+           (ElabError
+             (c ++ " expects " ++ show largs' ++ " "
+                ++ (if largs' == 1 then "arg" else "args")
+                ++ " but was given " ++ show lms))
+     (ms', dctx') <- checkifyMulti dctx hctx args' (map instantiate0 ms)
+     return ( Core.conH c ms'
+            , ret'
+            , dctx'
             )
-synthify (In (Case ms cs)) =
-  do (ms', as) <- unzip <$> mapM (synthify.instantiate0) ms
-     (cs', b) <- synthifyClauses as cs
-     return (Core.caseH ms' cs', b)
-synthify (In (Success m)) =
-  do (m',a) <- synthify (instantiate0 m)
-     return (Core.successH m', compH a)
-synthify (In Failure) =
-  do meta <- nextElab nextMeta
+synthify dctx hctx (In (Case ms cs)) =
+  do (ms', as, dctx') <- synthifyCaseArgs dctx hctx (map instantiate0 ms)
+     (cs', bs, dctx'') <- synthifyClauses dctx' hctx as cs
+     b <- goal (UnifyAll bs)
+     return ( Core.caseH ms' cs'
+            , b
+            , dctx''
+            )
+synthify dctx hctx (In (Success m)) =
+  do (m',a, dctx') <- goal (Synth dctx hctx (instantiate0 m))
+     return (Core.successH m', compH a, dctx')
+synthify dctx _ (In Failure) =
+  do meta <- newMeta
      return ( Core.failureH (Var (Meta meta))
             , compH (Var (Meta meta))
+            , dctx
             )
-synthify (In (Bind m sc)) =
-  do (m',ca) <- synthify (instantiate0 m)
+synthify dctx hctx (In (Bind m sc)) =
+  do (m', ca, dctx') <- goal (Synth dctx hctx (instantiate0 m))
      case ca of
        In (Comp a) -> do
-         do ([x],[v],n) <- open context sc
-            (n',cb) <- extendElab context [(x,instantiate0 a)]
-                         $ synthify n
+         do let ([x],[v],n) = openScope (context hctx) sc
+                ctx' = (x,instantiate0 a) : context hctx
+                hctx' = hctx { context = ctx' }
+            (n', cb, dctx'') <- goal (Synth dctx' hctx' n)
             case cb of
               In (Comp b) ->
-                return (Core.bindH m' v n', In (Comp b))
+                return ( Core.bindH m' v n'
+                       , In (Comp b)
+                       , dctx''
+                       )
               _ ->
-                throwError $ "Expected a computation type but found "
-                      ++ pretty cb ++ "\nWhen checking term " ++ pretty n
-       _ -> throwError $ "Expected a computation type but found " ++ pretty ca
-                      ++ "\nWhen checking term " ++ pretty (instantiate0 m)
-synthify (In (PrimData (PrimInt x))) =
-  return (Core.primIntH x, intH)
-synthify (In (PrimData (PrimFloat x))) =
-  return (Core.primFloatH x, floatH)
-synthify (In (PrimData (PrimByteString x))) =
-  return (Core.primByteStringH x, byteStringH)
-synthify (In (Builtin n as)) =
+                failure
+                  (ElabError
+                    ("Expected a computation type but found "
+                      ++ pretty cb ++ "\nWhen checking term " ++ pretty n))
+       _ -> failure
+              (ElabError
+                ("Expected a computation type but found " ++ pretty ca
+                  ++ "\nWhen checking term " ++ pretty (instantiate0 m)))
+synthify dctx _ (In (PrimData (PrimInt x))) =
+  return (Core.primIntH x, intH, dctx)
+synthify dctx _ (In (PrimData (PrimFloat x))) =
+  return (Core.primFloatH x, floatH, dctx)
+synthify dctx _ (In (PrimData (PrimByteString x))) =
+  return (Core.primByteStringH x, byteStringH, dctx)
+synthify dctx hctx (In (Builtin n ms)) =
   do ConSig argscs retsc <- builtinInSignature n
      (args',ret') <- instantiateParams argscs retsc
-     let las = length as
+     let lms = length ms
          largs' = length args'
-     unless (las == largs')
-       $ throwError $ n ++ " expects " ++ show largs' ++ " "
-                 ++ (if largs' == 1 then "arg" else "args")
-                 ++ " but was given " ++ show las
-     as' <- checkifyMulti (map instantiate0 as) args'
-     subs <- getElab substitution
-     return ( Core.substTypeMetas subs (Core.builtinH n as')
-            , substMetas subs ret'
+     unless (lms == largs')
+       $ failure
+           (ElabError
+             (n ++ " expects " ++ show largs' ++ " "
+                ++ (if largs' == 1 then "arg" else "args")
+                ++ " but was given " ++ show lms))
+     (ms', dctx') <- checkifyMulti dctx hctx args' (map instantiate0 ms)
+     return ( Core.builtinH n ms'
+            , ret'
+            , dctx'
             )
+
+
+
+
+
+
+synthifyCaseArgs :: DeclContext
+                 -> HypContext
+                 -> [Term]
+                 -> Decomposer ([Core.Term], [Type], DeclContext)
+synthifyCaseArgs dctx _ [] =
+  return ([], [], dctx)
+synthifyCaseArgs dctx hctx (m:ms) =
+  do (m', a, dctx') <- goal (Synth dctx hctx m)
+     (ms', as, dctx'') <- synthifyCaseArgs dctx' hctx ms
+     return (m':ms', a:as, dctx'')
 
 
 
@@ -741,37 +864,41 @@ synthify (In (Builtin n as)) =
 --      P'0 | ... | P'k → M' from A0,...,Ak to B
 -- @
 
-synthifyClause :: [Type] -> Clause -> TypeChecker (Core.Clause, Type)
-synthifyClause patTys (Clause pscs sc) =
+synthifyClause :: DeclContext
+               -> HypContext
+               -> [Type]
+               -> Clause
+               -> Decomposer (Core.Clause, Type, DeclContext)
+synthifyClause dctx hctx patTys (Clause pscs sc) =
   case names sc \\ nub (names sc) of
     x:xs ->
-      throwError $ "Repeated names " ++ unwords (x:xs)
-                ++ "\nIn clause pattern "
-                ++ intercalate " | " (map (pretty . body) pscs)
+      failure
+        (ElabError
+          ("Repeated names " ++ unwords (x:xs)
+             ++ "\nIn clause pattern "
+             ++ intercalate " | " (map (pretty . body) pscs)))
     [] ->
       do let lps = length pscs
          unless (length patTys == lps)
-           $ throwError $ "Mismatching number of patterns. Expected "
-                       ++ show (length patTys)
-                       ++ " but found " ++ show lps
-         metas <- replicateM (length (names sc))
-                             (nextElab nextMeta)
-         let args = [ Var (Meta meta) | meta <- metas ]
-         pscs' <- forM (zip pscs patTys) $ \(psc,patTy) -> do
-                    subs <- getElab substitution
-                    (xs,ns,p) <- open context psc
-                    p' <- extendElab
-                            context
-                            (zip xs (map (substMetas subs) args))
-                            (checkifyPattern p (substMetas subs patTy))
-                    return $ scope ns p'
-         subs <- getElab substitution
-         (xs,ns,m) <- open context sc
-         (m',ret) <- extendElab context (zip xs (map (substMetas subs) args))
-                       $ synthify m
-         subs' <- getElab substitution
-         return ( Core.substTypeMetasClause subs' (Core.Clause pscs' (scope ns m'))
-                , substMetas subs' ret
+           $ failure
+               (ElabError
+                 ("Mismatching number of patterns. Expected "
+                    ++ show (length patTys)
+                    ++ " but found " ++ show lps))
+         pscsOutTyss' <-
+           forM (zip patTys pscs) $ \(patTy,psc) -> do
+             let (_,ns,p) = openScope (context hctx) psc
+             (p',outTys) <- goal (CheckPattern dctx patTy p)
+             return (scope ns p', outTys)
+         let (pscs',outTyss) = unzip pscsOutTyss'
+             outTys = concat outTyss
+             (xs,ns,m) = openScope (context hctx) sc
+             ctx' = zip xs outTys ++ context hctx
+             hctx' = hctx { context = ctx' }
+         (m', ret, dctx') <- goal (Synth dctx hctx' m)
+         return ( Core.Clause pscs' (scope ns m')
+                , ret
+                , dctx'
                 )
 
 
@@ -781,8 +908,22 @@ synthifyClause patTys (Clause pscs sc) =
 -- | The monadic generalization of 'synthClause', ensuring that there's at
 -- least one clause to check, and that all clauses have the same result type.
 
-synthifyClauses :: [Type] -> [Clause] -> TypeChecker ([Core.Clause], Type)
-synthifyClauses patTys cs =
+synthifyClauses :: DeclContext
+                -> HypContext
+                -> [Type]
+                -> [Clause]
+                -> Decomposer ([Core.Clause], [Type], DeclContext)
+synthifyClauses _ _ _ [] =
+  failure
+    (ElabError "Empty clauses.")
+synthifyClauses dctx hctx patTys [cl] =
+  do (cl',a,dctx') <- synthifyClause dctx hctx patTys cl
+     return ([cl'],[a],dctx')
+synthifyClauses dctx hctx patTys (cl:cls) =
+  do (cl',a,dctx') <- synthifyClause dctx hctx patTys cl
+     (cls',as,dctx'') <- synthifyClauses dctx' hctx patTys cls
+     return (cl':cls', a:as, dctx'')
+{-
   do (cs',ts) <- unzip <$> mapM (synthifyClause patTys) cs
      case ts of
        [] -> throwError "Empty clauses."
@@ -801,7 +942,7 @@ synthifyClauses patTys cs =
                 )
 
 
-
+-}
 
 
 -- | Type checking corresponds to the judgment @Γ ⊢ A ∋ M ▹ M'@.
@@ -843,74 +984,105 @@ synthifyClauses patTys cs =
 --        B ∋ M ▹ M'
 -- @
 
-checkify :: Term -> Type -> TypeChecker Core.Term
--- checkify m (In (Forall sc)) =
---   do ([a],_,b) <- open tyVarContext sc
---      extendElab tyVarContext [(a,())]
---        $ checkify m b
-checkify (In (Let a m sc)) b =
-  do m' <- letLift (head (names sc)) (instantiate0 m) a
-     ([x],[v],n) <- open context sc
-     n' <- extendElab context [(x,a)]
-             $ checkify n b
-     return $ Core.letH m' v n'
-checkify (In (Lam sc)) (In (Fun arg ret)) =
-  do ([x],[v],m) <- open context sc
-     m' <- extendElab context [(x,instantiate0 arg)]
-             $ checkify m (instantiate0 ret)
-     subs <- getElab substitution
-     return $ Core.substTypeMetas subs (Core.lamH (instantiate0 arg) v m')
-checkify (In (Lam sc)) t =
-  throwError $ "Cannot check term: " ++ pretty (In (Lam sc)) ++ "\n"
-            ++ "Against non-function type: " ++ pretty t
-checkify (In (Con c as)) b =
-  do ConSig argscs retsc <- typeInSignature c
+checkify :: DeclContext
+         -> HypContext
+         -> Type
+         -> Term
+         -> Decomposer (Core.Term, DeclContext)
+checkify dctx hctx a (In (Let b m sc)) =
+  do (m', dctx') <- letLift dctx hctx (head (names sc)) (instantiate0 m) a
+     let ([x],[v],n) = openScope (context hctx) sc
+         ctx' = (x,a) : context hctx
+         hctx' = hctx { context = ctx' }
+     (n', dctx'') <- goal (Check dctx' hctx' b n)
+     return ( Core.letH m' v n'
+            , dctx''
+            )
+checkify dctx hctx (In (Fun arg ret)) (In (Lam sc)) =
+  do let ([x],[v],m) = openScope (context hctx) sc
+         ctx' = (x,instantiate0 arg) : context hctx
+         hctx' = hctx { context = ctx' }
+     (m', dctx') <- goal (Check dctx hctx' (instantiate0 ret) m)
+     return ( Core.lamH (instantiate0 arg) v m'
+            , dctx'
+            )
+checkify _ _ a (In (Lam sc)) =
+  failure
+    (ElabError
+      ("Cannot check term: " ++ pretty (In (Lam sc)) ++ "\n"
+         ++ "Against non-function type: " ++ pretty a))
+checkify dctx hctx a (In (Con c ms)) =
+  do ConSig argscs retsc <- typeInSignature dctx c
      (args',ret') <- instantiateParams argscs retsc
-     let las = length as
+     let lms = length ms
          largs' = length args'
-     unless (las == largs')
-       $ throwError $ c ++ " expects " ++ show largs' ++ " "
-                 ++ (if largs' == 1 then "arg" else "args")
-                 ++ " but was given " ++ show las
-     unify substitution context b ret'
-     subs <- getElab substitution
-     as' <- checkifyMulti (map instantiate0 as)
-                          (map (substMetas subs) args')
-     return $ Core.conH c as'
-checkify (In (Success m)) (In (Comp a)) =
-  do m' <- checkify (instantiate0 m) (instantiate0 a)
-     return $ Core.successH m'
-checkify (In (Success m)) a =
-  throwError $ "Cannot check term: " ++ pretty (In (Success m)) ++ "\n"
-            ++ "Against non-computation type: " ++ pretty a
-checkify (In Failure) (In (Comp a)) =
-  return $ Core.failureH (In (Comp a))
-checkify (In Failure) a =
-  throwError $ "Cannot check term: " ++ pretty (In Failure) ++ "\n"
-            ++ "Against non-computation type: " ++ pretty a
-checkify (In (Bind m sc)) (In (Comp b)) =
-  do (m',ca) <- synthify (instantiate0 m)
+     unless (lms == largs')
+       $ failure
+           (ElabError
+             (c ++ " expects " ++ show largs' ++ " "
+                ++ (if largs' == 1 then "arg" else "args")
+                ++ " but was given " ++ show lms))
+     goal (Unify a ret')
+     (ms',dctx') <- checkifyMulti dctx hctx args' (map instantiate0 ms)
+     return ( Core.conH c ms'
+            , dctx'
+            )
+checkify dctx hctx (In (Comp a)) (In (Success m)) =
+  do (m',dctx') <- goal (Check dctx hctx (instantiate0 a) (instantiate0 m))
+     return ( Core.successH m'
+            , dctx'
+            )
+checkify _ _ a (In (Success m)) =
+  failure
+    (ElabError
+      ("Cannot check term: " ++ pretty (In (Success m)) ++ "\n"
+         ++ "Against non-computation type: " ++ pretty a))
+checkify dctx _ (In (Comp a)) (In Failure) =
+  return ( Core.failureH (In (Comp a))
+         , dctx
+         )
+checkify _ _ a (In Failure) =
+  failure
+    (ElabError
+      ("Cannot check term: " ++ pretty (In Failure) ++ "\n"
+         ++ "Against non-computation type: " ++ pretty a))
+checkify dctx hctx (In (Comp b)) (In (Bind m sc)) =
+  do (m', ca, dctx') <- goal (Synth dctx hctx (instantiate0 m))
      case ca of
        In (Comp a) -> do
-         do ([x],[v],n) <- open context sc
-            n' <- extendElab context [(x,instantiate0 a)]
-                    $ checkify n (In (Comp b))
-            return $ Core.bindH m' v n'
-       _ -> throwError $ "Expected a computation type but found " ++ pretty ca
-                      ++ "\nWhen checking term " ++ pretty (instantiate0 m)
-checkify (In (Bind m sc)) b =
-  throwError $ "Cannot check term: " ++ pretty (In (Bind m sc)) ++ "\n"
-            ++ "Against non-computation type: " ++ pretty b
-checkify (In (PrimData (PrimInt x))) (In PlutusInt) =
-  return $ Core.primIntH x
-checkify (In (PrimData (PrimFloat x))) (In PlutusFloat) =
-  return $ Core.primFloatH x
-checkify (In (PrimData (PrimByteString x))) (In PlutusByteString) =
-  return $ Core.primByteStringH x
-checkify m t =
-  do (m',t') <- synthify m
-     subtype t' t
-     return m'
+         do let ([x],[v],n) = openScope (context hctx) sc
+                ctx' = (x,instantiate0 a) : context hctx
+                hctx' = hctx { context = ctx' }
+            (n', dctx'') <- goal (Check dctx' hctx' (In (Comp b)) n)
+            return ( Core.bindH m' v n'
+                   , dctx''
+                   )
+       _ ->
+         failure
+           (ElabError
+             ("Expected a computation type but found " ++ pretty ca
+                ++ "\nWhen checking term " ++ pretty (instantiate0 m)))
+checkify _ _ a (In (Bind m sc)) =
+  failure
+    (ElabError
+      ("Cannot check term: " ++ pretty (In (Bind m sc)) ++ "\n"
+         ++ "Against non-computation type: " ++ pretty a))
+checkify dctx _ (In PlutusInt) (In (PrimData (PrimInt x))) =
+  return ( Core.primIntH x
+         , dctx
+         )
+checkify dctx _ (In PlutusFloat) (In (PrimData (PrimFloat x))) =
+  return ( Core.primFloatH x
+         , dctx
+         )
+checkify dctx _ (In PlutusByteString) (In (PrimData (PrimByteString x))) =
+  return ( Core.primByteStringH x
+         , dctx
+         )
+checkify dctx hctx a m =
+  do (m', a', dctx') <- goal (Synth dctx hctx m)
+     subtype a' a
+     return (m', dctx')
 
 
 
@@ -921,15 +1093,18 @@ checkify m t =
 -- as a by product of the need to explicitly propagate the effects of
 -- unification.
 
-checkifyMulti :: [Term] -> [Type] -> TypeChecker [Core.Term]
-checkifyMulti [] [] = return []
-checkifyMulti (m:ms) (t:ts) =
-  do subs <- getElab substitution
-     m' <- checkify m (substMetas subs t)
-     ms' <- checkifyMulti ms ts
-     return $ m':ms'
-checkifyMulti _ _ =
-  throwError "Mismatched constructor signature lengths."
+checkifyMulti :: DeclContext
+              -> HypContext
+              -> [Type]
+              -> [Term]
+              -> Decomposer ([Core.Term], DeclContext)
+checkifyMulti dctx _ [] [] = return ([],dctx)
+checkifyMulti dctx hctx (t:ts) (m:ms) =
+  do (m', dctx') <- goal (Check dctx hctx t m)
+     (ms', dctx'') <- checkifyMulti dctx' hctx ts ms
+     return (m':ms', dctx'')
+checkifyMulti _ _ _ _ =
+  failure (ElabError "Mismatched constructor signature lengths.")
 
 
 
@@ -956,7 +1131,9 @@ checkifyMulti _ _ =
 --    A ⊑ A
 -- @
 
-subtype :: Type -> Type -> TypeChecker ()
+subtype :: Type -> Type -> Decomposer ()
+subtype a b = unify a b
+{-
 -- subtype a (In (Forall sc')) =
 --   do (_,_,b) <- open tyVarContext sc'
 --      subtype a b
@@ -970,7 +1147,7 @@ subtype a b =
   unify substitution context a b
 
 
-
+-}
 
 
 -- | Type checking for patterns corresponds to the judgment
@@ -994,47 +1171,57 @@ subtype a b =
 --    Σ ⊢ A pattern V ▹ V ⊣ ε
 -- @
 
-checkifyPattern :: Pattern -> Type -> TypeChecker Core.Pattern
-checkifyPattern (Var (Bound _ _)) _ =
+checkifyPattern :: DeclContext
+                -> Type
+                -> Pattern
+                -> Decomposer (Core.Pattern, [Type])
+checkifyPattern _ _ (Var (Bound _ _)) =
   error "A bound variable should not be the subject of pattern type checking."
-checkifyPattern (Var (Meta _)) _ =
+checkifyPattern _ _ (Var (Meta _)) =
   error "Metavariables should not be the subject of type checking."
-checkifyPattern (Var (Free n)) t =
-  do t' <- typeInContext n
-     unify substitution context t t'
-     return $ Var (Free n)
-checkifyPattern (In (ConPat c ps)) t =
-  do ConSig argscs retsc <- typeInSignature c
+checkifyPattern _ t (Var (Free n)) =
+  return (Var (Free n), [t])
+checkifyPattern dctx t (In (ConPat c ps)) =
+  do ConSig argscs retsc <- typeInSignature dctx c
      (args',ret') <- instantiateParams argscs retsc
      let lps = length ps
          largs' = length args'
      unless (lps == largs')
-       $ throwError $ c ++ " expects " ++ show largs' ++ " "
-                 ++ (if largs' == 1 then "arg" else "args")
-                 ++ " but was given " ++ show lps
-     unify substitution context t ret'
-     subs <- getElab substitution
-     ps' <- zipWithM
-              checkifyPattern
-              (map instantiate0 ps)
-              (map (substMetas subs) args')
-     return $ Core.conPatH c ps'
-checkifyPattern (In (PrimPat (PrimInt x))) (In PlutusInt) =
-  return $ Core.primIntPatH x
-checkifyPattern m@(In (PrimPat (PrimInt _))) a =
-  throwError $ "Cannot check int pattern: " ++ pretty m ++ "\n"
-            ++ "Against non-integer type: " ++ pretty a
-checkifyPattern (In (PrimPat (PrimFloat x))) (In PlutusFloat) =
-  return $ Core.primFloatPatH x
-checkifyPattern m@(In (PrimPat (PrimFloat _))) a =
-  throwError $ "Cannot check float pattern: " ++ pretty m ++ "\n"
-            ++ "Against non-float type: " ++ pretty a
-checkifyPattern (In (PrimPat (PrimByteString x))) (In PlutusByteString) =
-  return $ Core.primByteStringPatH x
-checkifyPattern m@(In (PrimPat (PrimByteString _))) a =
-  throwError $ "Cannot check byteString pattern: " ++ pretty m ++ "\n"
-            ++ "Against non-byteString type: " ++ pretty a
-
+       $ failure
+           (ElabError
+             (c ++ " expects " ++ show largs' ++ " "
+                ++ (if largs' == 1 then "arg" else "args")
+                ++ " but was given " ++ show lps))
+     goal (Unify t ret') --unify substitution context t ret'
+     psVarTyss' --(ps',varTyss)
+       <- zipWithM
+            (checkifyPattern dctx)
+            args'
+            (map instantiate0 ps)
+     let (ps',varTyss) = unzip psVarTyss'
+         varTys = concat varTyss
+     return (Core.conPatH c ps', varTys)
+checkifyPattern _ (In PlutusInt) (In (PrimPat (PrimInt x)))  =
+  return (Core.primIntPatH x, [])
+checkifyPattern _ a m@(In (PrimPat (PrimInt _))) =
+  failure
+    (ElabError
+      ("Cannot check int pattern: " ++ pretty m ++ "\n"
+         ++ "Against non-integer type: " ++ pretty a))
+checkifyPattern _ (In PlutusFloat) (In (PrimPat (PrimFloat x))) =
+  return (Core.primFloatPatH x, [])
+checkifyPattern _ a m@(In (PrimPat (PrimFloat _))) =
+  failure
+    (ElabError
+      ("Cannot check float pattern: " ++ pretty m ++ "\n"
+         ++ "Against non-float type: " ++ pretty a))
+checkifyPattern _ (In PlutusByteString) (In (PrimPat (PrimByteString x))) =
+  return (Core.primByteStringPatH x, [])
+checkifyPattern _ a m@(In (PrimPat (PrimByteString _))) =
+  failure
+    (ElabError
+      ("Cannot check byteString pattern: " ++ pretty m ++ "\n"
+          ++ "Against non-byteString type: " ++ pretty a))
 
 
 
@@ -1055,15 +1242,79 @@ checkifyPattern m@(In (PrimPat (PrimByteString _))) a =
 -- convenience method for the elaboration process because constructor
 -- signatures are already a bunch of information in the implementation.
 
-checkifyConSig :: ConSig -> TypeChecker ()
-checkifyConSig (ConSig argscs retsc) =
+checkifyConSig :: DeclContext
+               -> ConSig
+               -> Decomposer ()
+checkifyConSig dctx (ConSig argscs retsc) =
   do forM_ argscs $ \argsc -> do
-       (xs,_,a) <- open tyVarContext argsc
-       extendElab tyVarContext [ (x,()) | x <- xs ]
-         $ isType a
-     (xs,_,b) <- open tyVarContext retsc
-     extendElab tyVarContext [ (x,()) | x <- xs ]
-       $ isType b
+       let (xs,_,a) = openScope [] argsc
+           tyVarCtx = [ (x,()) | x <- xs ]
+       goal (IsType dctx (HypContext tyVarCtx []) a)
+     let (xs,_,b) = openScope [] retsc
+         tyVarCtx = [ (x,()) | x <- xs ]
+     goal (IsType dctx (HypContext tyVarCtx []) b)
+
+
+
+
+
+unify :: Type -> Type -> Decomposer ()
+unify (Var (Meta x)) b =
+  assignMeta x b
+unify a (Var (Meta y)) =
+  assignMeta y a
+unify a@(Var x) b@(Var y) =
+  if x == y
+  then return ()
+  else failure
+         (ElabError
+           ("Mismatching variables: " ++ pretty a ++ " and " ++ pretty b))
+unify (In (TyCon tycon1 as1)) (In (TyCon tycon2 as2)) =
+  do unless (tycon1 == tycon2)
+       $ failure
+           (ElabError
+             ("Mismatching type constructors "
+                ++ tycon1 ++ " and " ++ tycon2))
+     unless (length as1 == length as2)
+       $ failure
+           (ElabError
+             ("Mismatching type constructor arg lengths between "
+                ++ pretty (In (TyCon tycon1 as1)) ++ " and "
+                ++ pretty (In (TyCon tycon2 as2))))
+     zipWithM_
+       (\a1 a2 -> goal (Unify a1 a2))
+       (map instantiate0 as1)
+       (map instantiate0 as2)
+unify (In (Fun a1 b1)) (In (Fun a2 b2)) =
+  do goal (Unify (instantiate0 a1) (instantiate0 a2))
+     goal (Unify (instantiate0 b1) (instantiate0 b2))
+unify (In (Comp a1)) (In (Comp a2)) =
+  goal (Unify (instantiate0 a1) (instantiate0 a2))
+unify (In PlutusInt) (In PlutusInt) =
+  return ()
+unify (In PlutusFloat) (In PlutusFloat) =
+  return ()
+unify (In PlutusByteString) (In PlutusByteString) =
+  return ()
+unify l r =
+  failure
+    (ElabError
+      ("Cannot unify " ++ pretty l ++ " with " ++ pretty r))
+
+
+
+
+
+unifyAll :: [Type] -> Decomposer Type
+unifyAll [] =
+  failure (ElabError "No types to unify.")
+unifyAll [a] =
+  return a
+unifyAll (a:as) =
+  do a' <- unifyAll as
+     goal (Unify a a')
+     return a
+
 
 
 
@@ -1072,14 +1323,15 @@ checkifyConSig (ConSig argscs retsc) =
 -- | All metavariables have been solved when the next metavar to produces is
 -- the number of substitutions we've found.
 
-metasSolved :: TypeChecker ()
-metasSolved = do s <- get
-                 unless (_nextMeta s == MetaVar (length (_substitution s)))
-                   $ throwError "Not all metavariables have been solved."
+metasSolved :: Decomposer ()
+metasSolved =
+  do s <- get
+     unless (nextMeta s == MetaVar (length (substitution s)))
+       $ failure (ElabError "Not all metavariables have been solved.")
 
 
 
-
+{-
 
 -- | Checking is just checkifying with a requirement that all metas have been
 -- solved.
@@ -1104,3 +1356,5 @@ synth m = do (m',t) <- synthify m
              return ( Core.substTypeMetas subs m'
                     , substMetas subs t
                     )
+
+--}
