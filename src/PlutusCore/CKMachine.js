@@ -504,6 +504,10 @@ function evaluate(denv, term) {
             stack.push(InBuiltin(n,[],ms.slice(1)));
             focus = ms[0];
           }
+        },
+        
+        otherwise: function () {
+          err = "Unknown term.";
         }
         
       });
@@ -684,6 +688,10 @@ function evaluate(denv, term) {
               
             }
             
+          },
+          
+          otherwise: function () {
+            err = "Unknown term.";
           }
           
         });
