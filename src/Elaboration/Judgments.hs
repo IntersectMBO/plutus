@@ -71,12 +71,6 @@ data Judgment r where
          -> Type
          -> Judgment ()
   
-  -- DECL ; CTX ⊢ A polytype
-  IsPolymorphicType :: DeclContext
-                    -> HypContext
-                    -> PolymorphicType
-                    -> Judgment ()
-  
   -- DECL ; CTX ⊢ M ▹ M' ∈ A ⊣ DECL
   Synth :: DeclContext
         -> HypContext
@@ -114,7 +108,7 @@ data Judgment r where
   UnifyAll :: [Type] -> Judgment Type
   
   -- A ⊑ B
-  Subtype :: Type -> Type -> Judgment ()
+  Subtype :: HypContext -> Type -> Type -> Judgment ()
 
 
 
@@ -162,11 +156,6 @@ instance PD.Metas ElabState Judgment where
       dctx
       (substituteHypContext s hctx)
       (substMetas (substitution s) a)
-  substitute s (IsPolymorphicType dctx hctx a) =
-    IsPolymorphicType
-      dctx
-      (substituteHypContext s hctx)
-      (substMetasPolymorphicType (substitution s) a)
   substitute s (Synth dctx hctx m) =
     Synth
       dctx
@@ -199,7 +188,8 @@ instance PD.Metas ElabState Judgment where
       (substMetas (substitution s) b)
   substitute s (UnifyAll as) =
     UnifyAll (map (substMetas (substitution s)) as)
-  substitute s (Subtype a b) =
+  substitute s (Subtype hctx a b) =
     Subtype
+      (substituteHypContext s hctx)
       (substMetas (substitution s) a)
       (substMetas (substitution s) b)

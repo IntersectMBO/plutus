@@ -118,8 +118,6 @@ instance PD.ShowElabError ElabState ElabError Judgment where
         "the type declaration for `" ++ tycon ++ " " ++ unwords args ++ "`"
       prettyJudgment (IsType _ _ a) =
         "checking that `" ++ pretty a ++ "` is a type"
-      prettyJudgment (IsPolymorphicType _ _ a) =
-        "checking that `" ++ pretty a ++ "` is a polymorphic type"
       prettyJudgment (Synth _ _ m) =
         "synthesizing the type of `" ++ pretty m ++ "`"
       prettyJudgment (SynthClause _ _ _ (Clause pscs bsc)) =
@@ -143,6 +141,6 @@ instance PD.ShowElabError ElabState ElabError Judgment where
       prettyJudgment (UnifyAll as) =
         "unifying the types "
         ++ unwords (map (\a -> "`" ++ pretty a ++ "`") as)
-      prettyJudgment (Subtype a b) =
+      prettyJudgment (Subtype _ a b) =
         "checking that `" ++ pretty a
         ++ "` is a subtype of `" ++ pretty b ++ "`"

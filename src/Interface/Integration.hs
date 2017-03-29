@@ -18,6 +18,7 @@ import qualified Utils.ProofDeveloper as PD
 import Utils.Vars
 --import qualified Plutus.Program as Plutus
 import qualified PlutusCore.Evaluation as Core
+import qualified PlutusCore.EvaluatorTypes as Core
 import qualified PlutusCore.Term as Core
 import qualified PlutusCore.Program as Core
 import Plutus.Parser
@@ -37,7 +38,7 @@ import qualified Data.ByteString.Lazy as BS
 -- | This function converts a program to a declaration environment.
 
 programToDeclEnv :: Core.Program -> Env (Sourced String) Core.Term
-programToDeclEnv (Core.Program _ _ defs) = definitionsToEnvironment defs
+programToDeclEnv (Core.Program defs) = definitionsToEnvironment defs
 
 
 
@@ -56,11 +57,7 @@ loadProgram dctx src =
         Right (dctx', _) ->
           Right
             (Core.Program
-              { Core.typeConstructors =
-                  typeConstructors (signature dctx')
-              , Core.constructors =
-                  dataConstructors (signature dctx')
-              , Core.termDeclarations =
+              { Core.termDeclarations =
                   definitions dctx'
               })
 
@@ -106,19 +103,14 @@ buildValidationScript
   -> Core.Program
   -> Either String (Core.Term, Env (Sourced String) Core.Term)
 buildValidationScript
-  (Core.Program stdlibTyCons stdlibCons stdlibDefs)
-  (Core.Program valTyCons valCons valDefs)
-  (Core.Program redTyCons redCons redDefs)
+  (Core.Program stdlibDefs)
+  (Core.Program valDefs)
+  (Core.Program redDefs)
   =
-  let evalTyCons = stdlibTyCons ++ valTyCons ++ redTyCons
-      evalCons = stdlibCons ++ valCons ++ redCons
-      evalDefs = stdlibDefs ++ valDefs ++ redDefs
+  let evalDefs = stdlibDefs ++ valDefs ++ redDefs
   in
-    case ( repeats (map fst evalTyCons)
-         , repeats (map fst evalCons)
-         , repeats (map fst evalDefs)
-         ) of
-      ([],[],[]) ->
+    case repeats (map fst evalDefs) of
+      [] ->
         case ( lookup (User "validator") valDefs
              , lookup (User "redeemer") redDefs
              ) of
@@ -132,17 +124,9 @@ buildValidationScript
            throwError "The redeemer script is missing `redeemer`"
          (Just _,Just _) ->
            return (validationScript, definitionsToEnvironment evalDefs)
-      ([],[],xs) ->
+      xs ->
         throwError
           $ "There are overlapping declared names in these scripts: "
-            ++ unwords (map show xs)
-      ([],xs,_) ->
-        throwError
-          $ "There are overlapping constructors in these scripts: "
-            ++ unwords (map show xs)
-      (xs,_,_) ->
-        throwError
-          $ "There are overlapping type constructors in these scripts: "
             ++ unwords (map show xs)
   where
     repeats :: Eq a => [a] -> [a]
@@ -151,9 +135,9 @@ buildValidationScript
     validationScript :: Core.Term
     validationScript =
       Core.bindH
-        (Core.decnameH (User "redeemer") [])
+        (Core.decnameH (User "redeemer"))
         "x"
-        (Core.appH (Core.decnameH (User "validator") [])
+        (Core.appH (Core.decnameH (User "validator"))
                    (Var (Free (FreeVar "x"))))
 
 
@@ -166,6 +150,6 @@ checkValidationResult txInfo (script, env) =
   do res <- Core.evaluate (Core.TransactionInfo txInfo) env 3750 script
      case res of
        In (Core.Success _) -> Right True
-       In (Core.Failure _) -> Right False
+       In Core.Failure -> Right False
        _                   -> Left $ "The validation result isn't of type "
                                   ++ "Comp (i.e. neither success nor failure)"

@@ -78,8 +78,8 @@ substTypeMetasStatement s (TmDecl tmdecl) =
 -- The former is only used internally but is useful to have in mind.
 
 data TermDeclaration
-  = TermDeclaration (Sourced String) PolymorphicType Term
-  | WhereDeclaration (Sourced String) PolymorphicType [([Pattern],[String],Term)]
+  = TermDeclaration (Sourced String) Type Term
+  | WhereDeclaration (Sourced String) Type [([Pattern],[String],Term)]
 
 instance Show TermDeclaration where
   show (TermDeclaration n ty def) =
@@ -102,12 +102,12 @@ substTypeMetasTermDecl
 substTypeMetasTermDecl s (TermDeclaration n a m) =
   TermDeclaration
     n
-    (substMetasPolymorphicType s a)
+    (substMetas s a)
     (substTypeMetas s m)
 substTypeMetasTermDecl s (WhereDeclaration n a cls) =
   WhereDeclaration
     n
-    (substMetasPolymorphicType s a)
+    (substMetas s a)
     [ (ps, xs, substTypeMetas s m)
       | (ps, xs, m) <- cls
       ]

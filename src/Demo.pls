@@ -33,6 +33,16 @@ data Unit = { Unit }
 
 data List a = { Nil | Cons a (List a) }
 
+map : forall a b. (a -> b) -> List a -> List b {
+  map f Nil = Nil ;
+  map f (Cons x xs) = Cons (f x) (map f xs)
+}
+
+doit : (forall a. a -> a) -> Int -> Int {
+  doit f x = f x
+}
+
+{-
 localTest : Nat -> Nat {
   localTest x =
     let { locid : Unit -> Nat -> Nat { locid z y = x } }
@@ -46,3 +56,4 @@ validator : Comp Int -> Comp Int {
 x : Int -> Int {
   x i = i
 }
+-}

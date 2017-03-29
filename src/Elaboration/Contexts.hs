@@ -40,7 +40,7 @@ data Signature
 -- | A definition consists of a declared name together with its definition
 -- and its type.
 
-type Definitions = [(Sourced String,(Core.Term,PolymorphicType))]
+type Definitions = [(Sourced String,(Core.Term,Type))]
 
 definitionsToEnvironment :: Definitions -> Env (Sourced String) Core.Term
 definitionsToEnvironment defs =

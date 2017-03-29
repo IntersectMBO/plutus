@@ -12,6 +12,7 @@ import Utils.Pretty
 import qualified Utils.ProofDeveloper as PD
 import qualified PlutusCore.Term as Core
 import PlutusCore.Evaluation
+import PlutusCore.EvaluatorTypes
 import Plutus.Parser
 import Plutus.Term
 import Elaboration.Contexts

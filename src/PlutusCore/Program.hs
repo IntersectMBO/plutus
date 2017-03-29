@@ -27,25 +27,13 @@ import GHC.Generics
 
 data Program =
   Program
-  { typeConstructors :: [(String,TyConSig)]
-  , constructors :: [(String,ConSig)]
-  , termDeclarations :: [(Sourced String, (Term, PolymorphicType))]
+  { termDeclarations :: [(Sourced String, (Term, Type))]
   }
   deriving (Generic)
 
 instance Show Program where
-  show (Program tycons cons stmts) =
+  show (Program stmts) =
     "program("
-      ++ intercalate ","
-           [ "tyConSig(" ++ n ++ ";" ++ show tyConSig ++ ")"
-           | (n,tyConSig) <- tycons
-           ]
-      ++ ";"
-      ++ intercalate ","
-           [ "conSig(" ++ n ++ ";" ++ show conSig ++ ")"
-           | (n,conSig) <- cons
-           ]
-      ++ ";"
       ++ intercalate ","
            [ "dec(" ++ showSourced n
                ++ ";" ++ pretty def

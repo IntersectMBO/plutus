@@ -43,14 +43,14 @@ import GHC.Generics
 -- binds @bind(e1;x.e2)@, and finally, built-ins @builtin[n](e*)@.
 
 data TermF r
-  = Decname (Sourced String) [Type]
+  = Decname (Sourced String)
   | Let r r
-  | Lam Type r
+  | Lam r
   | App r r
   | Con String [r]
   | Case [r] [ClauseF r]
   | Success r
-  | Failure Type
+  | Failure
   | Bind r r
   | PrimData PrimData
   | Builtin String [r]
@@ -92,14 +92,14 @@ type Pattern = ABT PatternF
 
 
 
-decnameH :: Sourced String -> [Type] -> Term
-decnameH n as = In (Decname n as)
+decnameH :: Sourced String -> Term
+decnameH n = In (Decname n)
 
 letH :: Term -> String -> Term -> Term
 letH m x n = In (Let (scope [] m) (scope [x] n))
 
-lamH :: Type -> String -> Term -> Term
-lamH t v b = In (Lam t (scope [v] b))
+lamH :: String -> Term -> Term
+lamH v b = In (Lam (scope [v] b))
 
 appH :: Term -> Term -> Term
 appH f x = In (App (scope [] f) (scope [] x))
@@ -128,8 +128,8 @@ primByteStringPatH x = In (PrimPat (PrimByteString x))
 successH :: Term -> Term
 successH m = In (Success (scope [] m))
 
-failureH :: Type -> Term
-failureH t = In (Failure t)
+failureH :: Term
+failureH = In Failure
 
 bindH :: Term -> String -> Term -> Term
 bindH m x n = In (Bind (scope [] m) (scope [x] n))
@@ -150,28 +150,6 @@ builtinH n ms = In (Builtin n (map (scope []) ms))
 
 
 
-substTypeMetas :: [(MetaVar,Type)] -> Term -> Term
-substTypeMetas subs x0 = runIdentity (go x0)
-  where
-    go :: Term -> Identity Term
-    go (Var x) = return (Var x)
-    go (In (Decname n ts)) =
-      return (In (Decname n (map (substMetas subs) ts)))
-    go (In (Lam t sc)) = (In . Lam (substMetas subs t)) <$> underF go sc
-    go (In (Failure t)) = return (In (Failure (substMetas subs t)))
-    go (In x) = In <$> traverse (underF go) x
-
-
-substTypeMetasClause :: [(MetaVar,Type)] -> Clause -> Clause
-substTypeMetasClause subs (Clause ps sc) =
-  Clause ps (under (substTypeMetas subs) sc)
-
-
-
-
-
-
-
 
 
 -- | Terms have a variety of locations that can potentially be sites of
@@ -184,10 +162,8 @@ instance Parens Term where
 
   parenRec (Var v) =
     name v
-  parenRec (In (Decname n as)) =
+  parenRec (In (Decname n)) =
     "defined[" ++ showSourced n
-      ++ ";"
-      ++ intercalate "," (map pretty as)
       ++ "]"
   parenRec (In (Let m n)) =
     "let("
@@ -195,8 +171,8 @@ instance Parens Term where
     ++ ";"
     ++ head (names n) ++ "." ++ parenthesize Nothing (body n)
     ++ ")"
-  parenRec (In (Lam t sc)) =
-    "\\(" ++ pretty t ++ ";"
+  parenRec (In (Lam sc)) =
+    "\\("
       ++ unwords (names sc)
       ++ "."
       ++ parenthesize Nothing (body sc)
@@ -231,8 +207,8 @@ instance Parens Term where
     "success("
       ++ parenthesize Nothing (instantiate0 m)
       ++ ")"
-  parenRec (In (Failure t)) =
-    "failure(" ++ pretty t ++ ")"
+  parenRec (In Failure ) =
+    "failure()"
   parenRec (In (Bind m sc)) =
     "bind("
     ++ parenthesize Nothing (instantiate0 m)
@@ -317,13 +293,13 @@ instance ToJS Term where
            return (JSVar x)
       go (Var (Meta _)) =
         error "There should never be meta vars in a JS-able term."
-      go (In (Decname n _)) =
+      go (In (Decname n)) =
         return $ JSABT "Decname" [JSString (showSourced n)]
       go (In (Let m sc)) =
         do m' <- go (instantiate0 m)
            (x,b) <- withVar $ \_ -> go (body sc)
            return $ JSABT "Let" [m', JSScope [x] b]
-      go (In (Lam _ sc)) =
+      go (In (Lam sc)) =
         do (x,b) <- withVar $ \_ -> go (body sc)
            return $ JSABT "Lam" [JSScope [x] b]
       go (In (App f x)) =
@@ -340,7 +316,7 @@ instance ToJS Term where
       go (In (Success m)) =
         do m' <- go (instantiate0 m)
            return $ JSABT "Success" [m']
-      go (In (Failure _)) =
+      go (In Failure) =
         return $ JSABT "Failure" []
       go (In (Bind m sc)) =
         do m' <- go (instantiate0 m)

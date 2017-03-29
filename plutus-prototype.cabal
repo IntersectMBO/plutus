@@ -29,6 +29,7 @@ library
                        PlutusCore.BuiltinEvaluation,
                        PlutusCore.PatternMatching,
                        PlutusCore.Evaluation,
+                       PlutusCore.EvaluatorTypes,
                        PlutusCore.Program,
                        PlutusCore.CKMachine,
                        Plutus.Term,

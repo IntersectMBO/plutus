@@ -76,7 +76,6 @@ instance Decomposable ElabState ElabError Judgment where
   -- decompose (TyConExists dctx n) = tyconExists dctx n
   -- decompose (TypeInContext hctx x) = typeInContext hctx x
   decompose (IsType dctx hctx a) = isType dctx hctx a
-  decompose (IsPolymorphicType dctx hctx a) = isPolymorphicType dctx hctx a
   decompose (Synth dctx hctx m) = synthify dctx hctx m
   decompose (SynthClause dctx hctx as cl) = synthifyClause dctx hctx as cl
   decompose (Check dctx hctx a m) = checkify dctx hctx a m
@@ -84,7 +83,7 @@ instance Decomposable ElabState ElabError Judgment where
   decompose (CheckConSig dctx consig) = checkifyConSig dctx consig
   decompose (Unify a b) = unify a b
   decompose (UnifyAll as) = unifyAll as
-  decompose (Subtype a b) = subtype a b
+  decompose (Subtype hctx a b) = subtype hctx a b
 
 
 
@@ -151,22 +150,16 @@ addConstructor n consig = addElab (signature.dataConstructors) [(n,consig)]
 elabTermDecl :: DeclContext
              -> TermDeclaration
              -> Decomposer DeclContext
-elabTermDecl dctx (TermDeclaration n ty@(PolymorphicType sc) m) =
+elabTermDecl dctx (TermDeclaration n ty m) =
   do when (isJust (lookup n (definitions dctx)))
        $ failure (ElabError ("Term already defined: " ++ showSourced n))
-     goal (IsPolymorphicType dctx (HypContext [] []) ty)
-     let (xs,_,a) = openScope [] sc
-         def = freeToDefined (In . Decname . User) m
+     goal (IsType dctx (HypContext [] []) ty)
+     let def = freeToDefined (In . Decname . User) m
          definitions' =
            (n,(error "This should never be used in elaboration.",ty))
              : definitions dctx
          dctxTemp = dctx { definitions = definitions' }
-         hctx = HypContext
-                { tyVarContext =
-                    tyVarContextFromFreeVars xs ++ tyVarContext hctx
-                , context = []
-                }
-     (def',dctx') <- goal (Check dctxTemp hctx a def)
+     (def',dctx') <- goal (Check dctxTemp emptyHypContext ty def)
      let newDefs = 
            (n,(def',ty))
              : filter (\(n',_) -> n' /= n)
@@ -392,7 +385,7 @@ builtinInSignature n =
 
 typeInDefinitions :: DeclContext
                   -> Sourced String
-                  -> Decomposer PolymorphicType
+                  -> Decomposer Type
 typeInDefinitions dctx n =
   case lookup n (definitions dctx) of
     Nothing ->
@@ -472,6 +465,14 @@ isType dctx hctx (In (TyCon c as)) =
 isType dctx hctx (In (Fun a b)) =
   do goal (IsType dctx hctx (instantiate0 a))
      goal (IsType dctx hctx (instantiate0 b))
+isType dctx hctx (In (Forall sc)) =
+  do let (xs,_,a) = openScope (tyVarContext hctx) sc
+     goal (IsType dctx
+                  (hctx { tyVarContext =
+                            map (\a' -> (a',())) xs
+                            ++ tyVarContext hctx
+                        })
+                  a)
 isType dctx hctx (In (Comp a)) =
   goal (IsType dctx hctx (instantiate0 a))
 isType _ _ (In PlutusInt) =
@@ -482,18 +483,6 @@ isType _ _ (In PlutusByteString) =
   return ()
 
 
-
-
-isPolymorphicType :: DeclContext
-                  -> HypContext
-                  -> PolymorphicType
-                  -> Decomposer ()
-isPolymorphicType dctx hctx (PolymorphicType sc) =
-  do let (xs,_,a) = openScope (tyVarContext hctx) sc
-         hctx' = hctx { tyVarContext =
-                          tyVarContextFromFreeVars xs ++ tyVarContext hctx
-                      }
-     goal (IsType dctx hctx' a)
 
 
 
@@ -521,10 +510,10 @@ instantiateParams argscs retsc =
 -- @A → ∀β. A → β@ would be unchanged.
 
 instantiateQuantifiers :: Type -> Decomposer Type
--- instantiateQuantifiers (In (Forall sc)) =
---   do meta <- nextElab nextMeta
---      let m = Var (Meta meta)
---      instantiateQuantifiers (instantiate sc [m])
+instantiateQuantifiers (In (Forall sc)) =
+  do meta <- newMeta
+     let m = Var (Meta meta)
+     instantiateQuantifiers (instantiate sc [m])
 instantiateQuantifiers t = return t
 
 
@@ -591,12 +580,11 @@ letLift dctx hctx liftName m a =
                         , fv /= FreeVar liftName
                         , let Just t = lookup fv (context hctx)
                         ]
-         helperType :: PolymorphicType
-         helperType = polymorphicTypeH []
-                      $ helperFold
-                          (\(_,b) c -> funH b c)
-                          fvsWithTypes
-                          a
+         helperType :: Type
+         helperType = helperFold
+                        (\(_,b) c -> funH b c)
+                        fvsWithTypes
+                        a
          newM :: Term
          newM = helperFold
                   (\(x,_) f -> appH f (Var (Free x)))
@@ -711,10 +699,8 @@ synthify dctx hctx (Var (Free x@(FreeVar n))) =
 synthify _ _ (Var (Meta _)) =
   error "Metavariables should not be the subject of type synthesis."
 synthify dctx _ (In (Decname x)) =
-  do PolymorphicType sc <- typeInDefinitions dctx x
-     metas <- replicateM (length (names sc)) newMeta
-     let as = map (Var . Meta) metas
-     return (Core.decnameH x as, instantiate sc as, dctx)
+  do a <- typeInDefinitions dctx x
+     return (Core.decnameH x, a, dctx)
 synthify dctx hctx (In (Ann m t)) =
   do goal (IsType dctx hctx t)
      (m',dctx') <- goal (Check dctx hctx t (instantiate0 m))
@@ -735,7 +721,7 @@ synthify dctx hctx (In (Lam sc)) =
          ([x],[n],m) = openScope (context hctx) sc
          ctx' = (x,arg) : context hctx
      (m', ret, dctx') <- goal (Synth dctx (hctx { context = ctx' }) m)
-     return (Core.lamH arg n m', funH arg ret, dctx')
+     return (Core.lamH n m', funH arg ret, dctx')
 synthify dctx hctx (In (App f a)) =
   do (f', t, dctx') <- goal (Synth dctx hctx (instantiate0 f))
      t' <- instantiateQuantifiers t
@@ -781,7 +767,7 @@ synthify dctx hctx (In (Success m)) =
      return (Core.successH m', compH a, dctx')
 synthify dctx _ (In Failure) =
   do meta <- newMeta
-     return ( Core.failureH (Var (Meta meta))
+     return ( Core.failureH
             , compH (Var (Meta meta))
             , dctx
             )
@@ -989,6 +975,9 @@ checkify :: DeclContext
          -> Type
          -> Term
          -> Decomposer (Core.Term, DeclContext)
+checkify dctx hctx (In (Forall sc)) m =
+  do a <- instantiateQuantifiers (In (Forall sc))
+     goal (Check dctx hctx a m)
 checkify dctx hctx a (In (Let b m sc)) =
   do (m', dctx') <- letLift dctx hctx (head (names sc)) (instantiate0 m) a
      let ([x],[v],n) = openScope (context hctx) sc
@@ -1003,7 +992,7 @@ checkify dctx hctx (In (Fun arg ret)) (In (Lam sc)) =
          ctx' = (x,instantiate0 arg) : context hctx
          hctx' = hctx { context = ctx' }
      (m', dctx') <- goal (Check dctx hctx' (instantiate0 ret) m)
-     return ( Core.lamH (instantiate0 arg) v m'
+     return ( Core.lamH v m'
             , dctx'
             )
 checkify _ _ a (In (Lam sc)) =
@@ -1037,8 +1026,8 @@ checkify _ _ a (In (Success m)) =
     (ElabError
       ("Cannot check term: " ++ pretty (In (Success m)) ++ "\n"
          ++ "Against non-computation type: " ++ pretty a))
-checkify dctx _ (In (Comp a)) (In Failure) =
-  return ( Core.failureH (In (Comp a))
+checkify dctx _ (In (Comp _)) (In Failure) =
+  return ( Core.failureH
          , dctx
          )
 checkify _ _ a (In Failure) =
@@ -1081,7 +1070,7 @@ checkify dctx _ (In PlutusByteString) (In (PrimData (PrimByteString x))) =
          )
 checkify dctx hctx a m =
   do (m', a', dctx') <- goal (Synth dctx hctx m)
-     subtype a' a
+     subtype hctx a' a
      return (m', dctx')
 
 
@@ -1131,23 +1120,27 @@ checkifyMulti _ _ _ _ =
 --    A ⊑ A
 -- @
 
-subtype :: Type -> Type -> Decomposer ()
-subtype a b = unify a b
-{-
--- subtype a (In (Forall sc')) =
---   do (_,_,b) <- open tyVarContext sc'
---      subtype a b
--- subtype (In (Forall sc)) b =
---   do meta <- nextElab nextMeta
---      subtype (instantiate sc [Var (Meta meta)]) b
--- subtype (In (Fun arg ret)) (In (Fun arg' ret')) =
---   do subtype (instantiate0 arg') (instantiate0 arg)
---      subtype (instantiate0 ret) (instantiate0 ret')
-subtype a b =
-  unify substitution context a b
+subtype :: HypContext -> Type -> Type -> Decomposer ()
+subtype hctx a (In (Forall sc')) =
+  do let (xs,_,b) = openScope (tyVarContext hctx) sc'
+     goal
+       (Subtype
+         (hctx { tyVarContext =
+                   map (\a' -> (a',())) xs ++ tyVarContext hctx
+               })
+         a
+         b)
+subtype hctx (In (Forall sc)) b =
+  do meta <- newMeta
+     goal (Subtype hctx (instantiate sc [Var (Meta meta)]) b)
+subtype hctx (In (Fun arg ret)) (In (Fun arg' ret')) =
+  do goal (Subtype hctx (instantiate0 arg') (instantiate0 arg))
+     goal (Subtype hctx (instantiate0 ret) (instantiate0 ret'))
+subtype _ a b =
+  goal (Unify a b)
 
 
--}
+
 
 
 -- | Type checking for patterns corresponds to the judgment

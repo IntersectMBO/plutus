@@ -230,9 +230,8 @@ nybble =
 
 datatype :: Parsec String u Type
 datatype =
-      -- forallType
-  -- <|> 
-      (compType <|> intType <|> floatType <|> byteStringType
+  forallType
+  <|> (compType <|> intType <|> floatType <|> byteStringType
           <|> typeCon <|> parenType <|> typeVar)
         >>=? functionSuffix
 
@@ -274,16 +273,16 @@ typeVar =
      guard (x /= "_")
      return $ Var (Free (FreeVar x))
 
--- forallType :: Parsec String u Type
--- forallType =
---   do reserved "forall"
---      xs <- many1 $ do
---              x <- varName
---              guard (x /= "_")
---              return x
---      reservedOp "."
---      b <- forallBody
---      return $ helperFold forallH xs b
+forallType :: Parsec String u Type
+forallType =
+  do reserved "forall"
+     xs <- many1 $ do
+             x <- varName
+             guard (x /= "_")
+             return x
+     reservedOp "."
+     b <- forallBody
+     return $ helperFold forallH xs b
 
 functionSuffix :: Type -> Parsec String u Type
 functionSuffix arg =
@@ -306,19 +305,6 @@ funRight = datatype
 forallBody :: Parsec String u Type
 forallBody = datatype
 
-
-polydatatype :: Parsec String u PolymorphicType
-polydatatype = forallType <|> (polymorphicTypeH [] <$> datatype)
-  where
-    forallType =
-      do reserved "forall"
-         xs <- many1 $ do
-                 x <- varName
-                 guard (x /= "_")
-                 return x
-         reservedOp "."
-         b <- forallBody
-         return $ polymorphicTypeH xs b
 
 
 
@@ -684,7 +670,7 @@ whereTermDecl =
        x <- varName
        reservedOp ":"
        return x
-     t <- polydatatype
+     t <- datatype
      preclauses <- braces (patternMatchClause x `sepBy1` reservedOp ";")
      return $ WhereDeclaration (User x) t preclauses
 

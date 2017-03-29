@@ -48,8 +48,7 @@ instance Show TyConSig where
 data TypeF r
   = TyCon String [r]
   | Fun r r
-  -- | Forall r  -- no `forall` for now, until polymorphic resource awareness
-                 -- is better understood
+  | Forall r
   | Comp r
   | PlutusInt
   | PlutusFloat
@@ -69,8 +68,8 @@ tyConH c as = In (TyCon c (map (scope []) as))
 funH :: Type -> Type -> Type
 funH a b = In (Fun (scope [] a) (scope [] b))
 
---forallH :: String -> Type -> Type
---forallH x b = In (Forall (scope [x] b))
+forallH :: String -> Type -> Type
+forallH x b = In (Forall (scope [x] b))
 
 compH :: Type -> Type
 compH a = In (Comp (scope [] a))
@@ -109,8 +108,8 @@ instance Parens Type where
     [FunRight,ForallBody]
   parenLoc (In (Fun _ _)) =
     [FunRight,ForallBody]
-  -- parenLoc (In (Forall _)) =
-  --  [FunRight,ForallBody]
+  parenLoc (In (Forall _)) =
+    [FunRight,ForallBody]
   parenLoc (In (Comp _)) =
     [FunRight,ForallBody]
   parenLoc (In PlutusInt) =
@@ -130,9 +129,9 @@ instance Parens Type where
     parenthesize (Just FunLeft) (instantiate0 a)
       ++ " -> "
       ++ parenthesize (Just FunRight) (instantiate0 b)
-  -- parenRec (In (Forall sc)) =
-  --  "forall " ++ unwords (names sc) ++ ". "
-  --  ++ parenthesize (Just ForallBody) (body sc)
+  parenRec (In (Forall sc)) =
+    "forall " ++ unwords (names sc) ++ ". "
+    ++ parenthesize (Just ForallBody) (body sc)
   parenRec (In (Comp a)) =
     "Comp " ++ parenthesize (Just TyConArg) (instantiate0 a)
   parenRec (In PlutusInt) =
@@ -141,28 +140,3 @@ instance Parens Type where
     "Float"
   parenRec (In PlutusByteString) =
     "ByteString"
-
-
-
-
-
-data PolymorphicType = PolymorphicType (Scope TypeF)
- deriving (Show, Generic)
-
-polymorphicTypeH :: [String] -> Type -> PolymorphicType
-polymorphicTypeH xs a = PolymorphicType (scope xs a)
-
-
-substMetasPolymorphicType
-  :: [(MetaVar,Type)] -> PolymorphicType -> PolymorphicType
-substMetasPolymorphicType subs (PolymorphicType sc) =
-  PolymorphicType (under (substMetas subs) sc)
-
-
-instance Parens PolymorphicType where
-  type Loc PolymorphicType = ()
-  
-  parenLoc _ = [()]
-  
-  parenRec (PolymorphicType sc) =
-    "forall " ++ unwords (names sc) ++ ". " ++ pretty (body sc)
