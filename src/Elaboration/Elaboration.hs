@@ -855,7 +855,7 @@ findOverlappingClauses [] = []
 findOverlappingClauses (cl:cls) =
   case filter (overlappingClauses cl) cls of
     [] -> findOverlappingClauses cls
-    cls' -> cls'
+    cls' -> cl:cls'
 
 
 
