@@ -49,22 +49,6 @@ data Judgment r where
                -> TypeDeclaration
                -> Judgment DeclContext
   
-  {-
-  -- CTX ⊢ D ∋ a
-  TyVarExists :: HypContext
-              -> FreeVar
-              -> Judgment ()
-  
-  -- DECL ⊢ c tycon
-  TyConExists :: DeclContext
-              -> String
-              -> Judgment TyConSig
-  
-  TypeInContext :: HypContext
-                -> FreeVar 
-                -> Judgment Type
-  -}
-  
   -- DECL ; CTX ⊢ A type
   IsType :: DeclContext
          -> HypContext
@@ -82,7 +66,7 @@ data Judgment r where
               -> HypContext
               -> [Type]
               -> Clause
-              -> Judgment (Core.Clause, Type, DeclContext)
+              -> Judgment (Scope Core.TermF, Type, DeclContext)
   
   -- DECL ; CTX ⊢ A ∋ M ▹ M' ⊣ DECL
   Check :: DeclContext
@@ -95,7 +79,7 @@ data Judgment r where
   CheckPattern :: DeclContext
                -> Type
                -> Pattern
-               -> Judgment (Core.Pattern, [Type])
+               -> Judgment [Type]
   
   -- DECL ⊢ [α*](A0,...,An)B consig
   CheckConSig :: DeclContext
