@@ -21,6 +21,7 @@ import Utils.Pretty (pretty)
 import qualified PlutusCore.CKMachine as CK
 import PlutusCore.BuiltinEvaluation
 import PlutusCore.EvaluatorTypes
+import PlutusCore.PatternMatching
 import PlutusCore.Term
 
 import Data.Either (isRight)
@@ -30,31 +31,6 @@ import Control.Monad.Reader
 import Control.Monad.State
 import qualified Data.ByteString.Lazy as BS
 
-
-
-
-
--- | Pattern matching for case expressions.
-
-matchPattern :: Pattern -> Term -> Maybe [Term]
-matchPattern (Var _) v = Just [v]
-matchPattern (In (ConPat c ps)) (In (Con c' as))
-  | c == c' && length ps == length as =
-    fmap concat (zipWithM matchPattern (map body ps) (map body as))
-matchPattern (In (PrimPat x)) (In (PrimData y))
-  | x == y = Just []
-matchPattern _ _ = Nothing
-
-matchPatterns :: [Pattern] -> [Term] -> Maybe [Term]
-matchPatterns ps zs = fmap concat (zipWithM matchPattern ps zs)
-
-matchClauses :: [Clause] -> [Term] -> Maybe Term
-matchClauses [] _ =
-  Nothing
-matchClauses (Clause pscs sc:cs) vs =
-  case matchPatterns (map body pscs) vs of
-    Nothing -> matchClauses cs vs
-    Just xs -> Just (instantiate sc xs)
 
 
 
@@ -85,10 +61,10 @@ instance Eval (Env (Sourced String) Term) Term where
   eval (In (Con c as)) =
     do eas <- mapM (eval . instantiate0) as
        return $ conH c eas
-  eval (In (Case ms cs)) =
-    do ems <- mapM (eval . instantiate0) ms
+  eval (In (Case m cs)) =
+    do ems <- eval (instantiate0 m)
        case matchClauses cs ems of
-         Nothing -> throwError $ "Incomplete pattern match: " ++ pretty (In (Case ms cs))
+         Nothing -> throwError $ "Incomplete pattern match: " ++ pretty (In (Case m cs))
          Just b  -> eval b
   eval (In (Success m)) =
     do em <- eval (instantiate0 m)
@@ -167,12 +143,12 @@ instance MEval
         do tick
            eas <- mapM (meval . instantiate0) as
            return $ conH c eas
-      go (In (Case ms cs)) =
+      go (In (Case m cs)) =
         do tick
-           ems <- mapM (meval . instantiate0) ms
-           case matchClauses cs ems of
+           em <- meval (instantiate0 m)
+           case matchClauses cs em of
              Nothing -> throwError $ "Incomplete pattern match: "
-                                  ++ pretty (In (Case ms cs))
+                                  ++ pretty (In (Case m cs))
              Just b  -> meval b
       go (In (Success m)) =
         do tick

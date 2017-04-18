@@ -758,10 +758,22 @@ synthify dctx hctx (In (Case ms cs)) =
   do (ms', as, dctx') <- synthifyCaseArgs dctx hctx (map instantiate0 ms)
      (cs', bs, dctx'') <- synthifyClauses dctx' hctx as cs
      b <- goal (UnifyAll bs)
-     return ( Core.caseH ms' cs'
-            , b
-            , dctx''
-            )
+     case findOverlappingClauses cs of
+       [] -> do
+         let desugared = desugarCase hctx ms' cs'
+         return ( desugared
+                , b
+                , dctx''
+                )
+       cls ->
+         failure
+           (ElabError
+             ("The following clauses overlap:\n" ++
+               unlines [ "  " ++
+                          unwords
+                            (map (parenthesize (Just ConPatArg) . body) pscs)
+                       | Clause pscs _ <- cls
+                       ]))
 synthify dctx hctx (In (Success m)) =
   do (m',a, dctx') <- goal (Synth dctx hctx (instantiate0 m))
      return (Core.successH m', compH a, dctx')
@@ -821,6 +833,269 @@ synthify dctx hctx (In (Builtin n ms)) =
 
 
 
+overlappingPatterns :: Pattern -> Pattern -> Bool
+overlappingPatterns (Var _) _ = True
+overlappingPatterns _ (Var _) = True
+overlappingPatterns (In (ConPat c1 ps1)) (In (ConPat c2 ps2)) =
+  c1 == c2 &&
+    all (uncurry overlappingPatterns)
+        (zip (map body ps1) (map body ps2))
+
+overlappingClauses :: Clause -> Clause -> Bool
+overlappingClauses (Clause pscs1 _) (Clause pscs2 _)
+  | length pscs1 /= length pscs2 = False
+  | otherwise =
+      let ps1 = map body pscs1
+          ps2 = map body pscs2
+      in all (uncurry overlappingPatterns)
+             (zip ps1 ps2)
+
+findOverlappingClauses :: [Clause] -> [Clause]
+findOverlappingClauses [] = []
+findOverlappingClauses (cl:cls) =
+  case filter (overlappingClauses cl) cls of
+    [] -> findOverlappingClauses cls
+    cls' -> cl:cls'
+
+
+
+
+
+desugarCase :: HypContext
+            -> [Core.Term]
+            -> [([Scope PatternF], Scope Core.TermF)]
+            -> Core.Term
+desugarCase hctx ms0 cls0 =
+  -- find the left-most all-matched position
+  -- if no such position exists, then there's only variables left
+  -- and we can substitute them out of existence
+  -- if there is such a position, then we collect the clauses and split
+  -- along them and recurse.
+  goDesugar initialNames ms0 protoclauses
+  
+  where
+    goDesugar :: [String]
+              -> [Core.Term]
+              -> [([String], [Pattern], Core.Term)]
+              -> Core.Term
+    goDesugar _ [] [(_,_,b)] =
+      b
+    goDesugar _ [] _ =
+      error "There should always at the end be exactly one case to desugar."  
+    goDesugar ctx ms cls =
+      case findSplittable cls of
+        Nothing ->
+          let (_,ps,b) = head cls
+              subs = [ (v,m)
+                     | (Var (Free v), m) <- zip ps ms
+                     ]
+          in subst 0 subs b
+        Just [] ->
+          error "There should always be some split causes."
+        Just splittable@((_,ls,_,_,_):_) ->
+          let splits = splitIntoCases splittable
+              numberToPeekUnder = length ls
+              before = take numberToPeekUnder ms
+              newFocus : after = drop numberToPeekUnder ms
+          in Core.caseH
+               newFocus
+               (do ((c,arity), cls') <- splits
+                   let newNames = freshen ctx (replicate arity "x")
+                       newCtx = newNames ++ ctx
+                   return $
+                     Core.clauseH
+                       (Core.ConPat c)
+                       newNames
+                       (goDesugar
+                         newCtx
+                         (before
+                           ++ map (Var . Free . FreeVar) newNames
+                           ++ after)
+                         cls'))
+    
+    -- splittable positions are positions that are all constructor-headed
+    findSplittable :: [([String],[Pattern],Core.Term)]
+                   -> Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+    findSplittable cls1 = initialZips >>= go
+      where
+        initialZips :: Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+        initialZips =
+          sequence [ Just (ns, [], p, ps, b)
+                   | (ns, p:ps, b) <- cls1
+                   ]
+        
+        go :: [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+           -> Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+        go cls
+          | all (\(_, _, p, _, _) -> isConPat p) cls
+              = Just cls
+          | otherwise
+              = move cls >>= go
+        
+        isConPat :: Pattern -> Bool
+        isConPat (In (ConPat _ _)) = True
+        isConPat _ = False
+        
+        move :: [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+             -> Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+        move [] = Nothing
+        move cls = sequence (map moveOne cls)
+        
+        moveOne :: ([String], [Pattern], Pattern, [Pattern], Core.Term)
+                -> Maybe ([String], [Pattern], Pattern, [Pattern], Core.Term)
+        moveOne (_, _, _, [], _) = Nothing
+        moveOne (ns, ls, p, r:rs, b) = Just (ns, p:ls, r, rs, b)
+    
+    protoclauses :: [([String],[Pattern],Core.Term)]
+    protoclauses =
+      do (pscs, bsc) <- cls0
+         let (xs,ns,b) = openScope (context hctx) bsc
+             ps = [ instantiate psc (map (Var . Free) xs) | psc <- pscs ]
+         return (ns ++ initialNames, ps, b)
+    
+    initialNames :: [String]
+    initialNames = [ n | (FreeVar n, _) <- context hctx ]
+    
+    splitIntoCases :: [([String], [Pattern], Pattern, [Pattern], Core.Term)]
+                   -> [((String, Int), [([String], [Pattern], Core.Term)])]
+    splitIntoCases cls =
+      [ (info, map decomposePattern cls')
+      | (info,cls') <- grouped
+      ]
+      where
+        grouped :: [((String, Int), [([String], [Pattern], Pattern, [Pattern], Core.Term)])]
+        grouped =
+          groupOn (\(_,_,In (ConPat c ps),_,_) -> (c, length ps))
+                  cls
+        
+        decomposePattern
+          :: ([String], [Pattern], Pattern, [Pattern], Core.Term)
+          -> ([String], [Pattern], Core.Term)
+        decomposePattern (ns, ls, In (ConPat _ ps), rs, b) =
+          (ns, reverse ls ++ map body ps ++ rs, b)
+        decomposePattern _ =
+          error "We should never try to decmopose non-constructor patterns."
+    
+    groupOn :: Eq b => (a -> b) -> [a] -> [(b,[a])]
+    groupOn f xs = collapsedTag
+      where
+        tagged = map (\x -> (f x, x)) xs
+        grouped = groupBy (\(b,_) (b',_) -> b == b') tagged
+        unzipped = map unzip grouped
+        collapsedTag = map (\(b:_,as) -> (b,as)) unzipped
+  {-
+  go ms0
+     [ ( [ n | (FreeVar n,_) <- context hctx ]
+         , ps
+         , b
+         )
+     | (ps,b) <- protoclauses
+     ]
+  where
+    protoclauses :: [([Pattern], Core.Term)]
+    protoclauses =
+      do (pscs, bsc) <- cls0
+         let (xs,_,b) = openScope (context hctx) bsc
+             ps = [ instantiate psc (map (Var . Free) xs) | psc <- pscs ]
+         return (ps, b)
+    
+    go :: [Core.Term]
+       -> [([String], [Pattern], Core.Term)]
+       -> Core.Term
+    go [] _ = _
+    go (v@(Var _):ms) cls =
+      -- v must be cased on or substituted, depending on what cls is like
+      -- if everything in cls.fst is a variable, substitute,
+      -- otherwise enrich as necessary, then subdivide and continue
+      if all (\(_,p:_,_) -> isVarPat p) cls
+      then
+        let subbedCls = do
+              (ctx,Var (Free x):ps,b) <- cls
+              return ( ctx
+                     , ps
+                     , subst 0 [(x,v)] b
+                     )
+        in go ms subbedCls
+      else
+        let enrichedAsNecessary = enrichIfNecessary cls
+        in Core.caseH v (makeClauses ms enrichedAsNecessary)
+    go (m@(In _):ms) cls =
+      -- m should be let bound and turned into a variable
+      let ctxs = concat [ ctx | (ctx,_,_) <- cls ]
+          n = freshenName ctxs "x"
+          ms' = Var (Free (FreeVar n)) : ms
+      in Core.letH m n (go ms' cls)
+    
+    enrichIfNecessary :: [([String], [Pattern], Core.Term)]
+                      -> [([String], [Pattern], Core.Term)]
+    enrichIfNecessary cls =
+      if all (\(_,p:_,_) -> isVarPat p) cls
+      then cls
+      else let enrichTargets =
+                 nub (catMaybes (map (\(_,p:_,_) -> enrichTarget p) cls))
+           in cls >>= splitIfNecessary enrichTargets
+    
+    isVarPat :: Pattern -> Bool
+    isVarPat (Var _) = True
+    isVarPat (In _) = False
+    
+    enrichTarget :: Pattern -> Maybe (String,Int)
+    enrichTarget (Var _) = Nothing
+    enrichTarget (In (ConPat n ps)) = Just (n, length ps)
+    
+    splitIfNecessary :: [(String,Int)]
+                     -> ([String], [Pattern], Core.Term)
+                     -> [([String], [Pattern], Core.Term)]
+    splitIfNecessary _ cl@(_, In _:_, _) = [cl]
+    splitIfNecessary arities (ctx, Var (Free v):ps, m) =
+      do (c,arity) <- arities
+         let ns = take arity (repeat "x")
+             freshNs = freshen ctx ns
+             xs :: [ABT f]
+             xs = map (Var . Free . FreeVar) freshNs
+             newPattern = conPatH c xs
+             substValue = Core.conH c xs
+             newBody = subst 0 [(v,substValue)] m
+         return ( freshNs ++ ctx
+                , newPattern:ps
+                , newBody
+                )
+    
+    groupOn :: Eq b => (a -> b) -> [a] -> [(b,[a])]
+    groupOn f xs = collapsedTag
+      where
+        tagged = map (\x -> (f x, x)) xs
+        grouped = groupBy (\(b,_) (b',_) -> b == b') tagged
+        unzipped = map unzip grouped
+        collapsedTag = map (\(b:_,as) -> (b,as)) unzipped
+    
+    makeClauses :: [Core.Term]
+                -> [([String], [Pattern], Core.Term)]
+                -> [Core.Clause]
+    makeClauses ms cls =
+      let groupedProtoclauses =
+            groupOn
+              (\(_,In (ConPat n ps):_,_) -> (n,length ps))
+              cls
+      in do ((c,arr), clsForC) <- groupedProtoclauses
+            let ctxs = concat [ ctx | (ctx,_,_) <- clsForC ]
+                ns = freshen ctxs (take arr (repeat "x"))
+                xs = map (Var . Free . FreeVar) ns
+                cls' = do (ctx,In (ConPat _ ps):ps',b) <- clsForC
+                          return ( ns ++ ctx
+                                 , xs ++ map instantiate0 ps ++ ps'
+                                 , b
+                                 )
+            return $ Core.clauseH
+                       (Core.ConPat c)
+                       ns
+                       (go (xs ++ ms) cls')
+  -}
+    
+
+
+
+
 
 synthifyCaseArgs :: DeclContext
                  -> HypContext
@@ -854,7 +1129,7 @@ synthifyClause :: DeclContext
                -> HypContext
                -> [Type]
                -> Clause
-               -> Decomposer (Core.Clause, Type, DeclContext)
+               -> Decomposer (Scope Core.TermF, Type, DeclContext)
 synthifyClause dctx hctx patTys (Clause pscs sc) =
   case names sc \\ nub (names sc) of
     x:xs ->
@@ -871,18 +1146,17 @@ synthifyClause dctx hctx patTys (Clause pscs sc) =
                  ("Mismatching number of patterns. Expected "
                     ++ show (length patTys)
                     ++ " but found " ++ show lps))
-         pscsOutTyss' <-
+         outTyss <-
            forM (zip patTys pscs) $ \(patTy,psc) -> do
              let (_,ns,p) = openScope (context hctx) psc
-             (p',outTys) <- goal (CheckPattern dctx patTy p)
-             return (scope ns p', outTys)
-         let (pscs',outTyss) = unzip pscsOutTyss'
-             outTys = concat outTyss
+             outTys <- goal (CheckPattern dctx patTy p)
+             return outTys
+         let outTys = concat outTyss
              (xs,ns,m) = openScope (context hctx) sc
              ctx' = zip xs outTys ++ context hctx
              hctx' = hctx { context = ctx' }
          (m', ret, dctx') <- goal (Synth dctx hctx' m)
-         return ( Core.Clause pscs' (scope ns m')
+         return ( scope ns m'
                 , ret
                 , dctx'
                 )
@@ -898,37 +1172,26 @@ synthifyClauses :: DeclContext
                 -> HypContext
                 -> [Type]
                 -> [Clause]
-                -> Decomposer ([Core.Clause], [Type], DeclContext)
+                -> Decomposer ([([Scope PatternF], Scope Core.TermF)], [Type], DeclContext)
 synthifyClauses _ _ _ [] =
   failure
     (ElabError "Empty clauses.")
-synthifyClauses dctx hctx patTys [cl] =
-  do (cl',a,dctx') <- synthifyClause dctx hctx patTys cl
-     return ([cl'],[a],dctx')
-synthifyClauses dctx hctx patTys (cl:cls) =
-  do (cl',a,dctx') <- synthifyClause dctx hctx patTys cl
-     (cls',as,dctx'') <- synthifyClauses dctx' hctx patTys cls
-     return (cl':cls', a:as, dctx'')
-{-
-  do (cs',ts) <- unzip <$> mapM (synthifyClause patTys) cs
-     case ts of
-       [] -> throwError "Empty clauses."
-       t:ts' -> do
-         let unifier :: Type -> Elaborator ()
-             unifier t' = do
-               subs <- getElab substitution
-               unify substitution context (substMetas subs t) (substMetas subs t')
-         catchError (mapM_ unifier ts') $ \e ->
-           throwError $ "Clauses do not all return the same type:\n"
-                     ++ unlines (map pretty ts) ++ "\n"
-                     ++ "Unification failed with error: " ++ e
-         subs <- getElab substitution
-         return ( map (Core.substTypeMetasClause subs) cs'
-                , substMetas subs t
-                )
+synthifyClauses dctx hctx patTys [cl@(Clause pscs _)] =
+  do (bsc, a, dctx') <- synthifyClause dctx hctx patTys cl
+     return ( [(pscs,bsc)]
+            , [a]
+            , dctx'
+            )
+synthifyClauses dctx hctx patTys (cl@(Clause pscs _):cls) =
+  do (bsc, a, dctx') <- synthifyClause dctx hctx patTys cl
+     (pscsbscs, as, dctx'') <- synthifyClauses dctx' hctx patTys cls
+     return ( (pscs,bsc) : pscsbscs
+            , a:as
+            , dctx''
+            )
 
 
--}
+
 
 
 -- | Type checking corresponds to the judgment @Γ ⊢ A ∋ M ▹ M'@.
@@ -1167,13 +1430,13 @@ subtype _ a b =
 checkifyPattern :: DeclContext
                 -> Type
                 -> Pattern
-                -> Decomposer (Core.Pattern, [Type])
+                -> Decomposer [Type]
 checkifyPattern _ _ (Var (Bound _ _)) =
   error "A bound variable should not be the subject of pattern type checking."
 checkifyPattern _ _ (Var (Meta _)) =
   error "Metavariables should not be the subject of type checking."
 checkifyPattern _ t (Var (Free n)) =
-  return (Var (Free n), [t])
+  return [t]
 checkifyPattern dctx t (In (ConPat c ps)) =
   do ConSig argscs retsc <- typeInSignature dctx c
      (args',ret') <- instantiateParams argscs retsc
@@ -1186,35 +1449,14 @@ checkifyPattern dctx t (In (ConPat c ps)) =
                 ++ (if largs' == 1 then "arg" else "args")
                 ++ " but was given " ++ show lps))
      goal (Unify t ret') --unify substitution context t ret'
-     psVarTyss' --(ps',varTyss)
+     varTyss --(ps',varTyss)
        <- zipWithM
             (checkifyPattern dctx)
             args'
             (map instantiate0 ps)
-     let (ps',varTyss) = unzip psVarTyss'
-         varTys = concat varTyss
-     return (Core.conPatH c ps', varTys)
-checkifyPattern _ (In PlutusInt) (In (PrimPat (PrimInt x)))  =
-  return (Core.primIntPatH x, [])
-checkifyPattern _ a m@(In (PrimPat (PrimInt _))) =
-  failure
-    (ElabError
-      ("Cannot check int pattern: " ++ pretty m ++ "\n"
-         ++ "Against non-integer type: " ++ pretty a))
-checkifyPattern _ (In PlutusFloat) (In (PrimPat (PrimFloat x))) =
-  return (Core.primFloatPatH x, [])
-checkifyPattern _ a m@(In (PrimPat (PrimFloat _))) =
-  failure
-    (ElabError
-      ("Cannot check float pattern: " ++ pretty m ++ "\n"
-         ++ "Against non-float type: " ++ pretty a))
-checkifyPattern _ (In PlutusByteString) (In (PrimPat (PrimByteString x))) =
-  return (Core.primByteStringPatH x, [])
-checkifyPattern _ a m@(In (PrimPat (PrimByteString _))) =
-  failure
-    (ElabError
-      ("Cannot check byteString pattern: " ++ pretty m ++ "\n"
-          ++ "Against non-byteString type: " ++ pretty a))
+     let varTys = concat varTyss
+     return varTys
+
 
 
 

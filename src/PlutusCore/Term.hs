@@ -30,7 +30,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSChar8
 import Data.Functor.Identity
 import Data.List (intercalate)
 
-import GHC.Generics
+import GHC.Generics hiding (Constructor)
 
 
 
@@ -48,7 +48,7 @@ data TermF r
   | Lam r
   | App r r
   | Con String [r]
-  | Case [r] [ClauseF r]
+  | Case r [ClauseF r]
   | Success r
   | Failure
   | Bind r r
@@ -69,24 +69,25 @@ data PrimData = PrimInt Int
   deriving (Eq,Generic)
 
 
+
+-- | A `Constructor` is either just a `String` that names the constructor
+-- for a user-defined type, or a `PrimData`.
+
+data SimplePattern = VarPat String | ConPat String
+  deriving (Generic)
+
+
+
+
 -- | Clauses are a component of terms that have bunch of pattern scopes
 -- together with a clause body.
 
-data ClauseF r = Clause [Scope PatternF] r
+data ClauseF r = Clause SimplePattern r
   deriving (Functor,Foldable,Traversable,Generic)
 
 
 type Clause = ClauseF (Scope TermF)
 
-
--- | Patterns are only constructor patterns, with some number of pattern args.
-
-data PatternF r = ConPat String [r]
-                | PrimPat PrimData
-  deriving (Functor,Foldable,Traversable,Generic)
-
-  
-type Pattern = ABT PatternF
 
 
 
@@ -107,23 +108,11 @@ appH f x = In (App (scope [] f) (scope [] x))
 conH :: String -> [Term] -> Term
 conH c xs = In (Con c (map (scope []) xs))
 
-caseH :: [Term] -> [Clause] -> Term
-caseH as cs = In (Case (map (scope []) as) cs)
+caseH :: Term -> [Clause] -> Term
+caseH a cs = In (Case (scope [] a) cs)
 
-clauseH :: [String] -> [Pattern] -> Term -> Clause
-clauseH vs ps b = Clause (map (scope vs) ps) (scope vs b)
-
-conPatH :: String -> [Pattern] -> Pattern
-conPatH c xs = In (ConPat c (map (scope []) xs))
-
-primIntPatH :: Int -> Pattern
-primIntPatH x = In (PrimPat (PrimInt x))
-
-primFloatPatH :: Float -> Pattern
-primFloatPatH x = In (PrimPat (PrimFloat x))
-
-primByteStringPatH :: BS.ByteString -> Pattern
-primByteStringPatH x = In (PrimPat (PrimByteString x))
+clauseH :: SimplePattern -> [String] -> Term -> Clause
+clauseH p vs b = Clause p (scope vs b)
 
 successH :: Term -> Term
 successH m = In (Success (scope [] m))
@@ -149,6 +138,15 @@ builtinH n ms = In (Builtin n (map (scope []) ms))
 
 
 
+
+
+prettyPrimData :: PrimData -> String
+prettyPrimData (PrimInt x) =
+  "int[" ++ show x ++ "]"
+prettyPrimData (PrimFloat x) =
+  "float[" ++ show x ++ "]"
+prettyPrimData (PrimByteString x) =
+  "byteString[" ++ prettyByteString x ++ "]"
 
 
 
@@ -189,18 +187,24 @@ instance Parens Term where
            ";"
            (map (parenthesize Nothing . instantiate0) as)
       ++ ")"
-  parenRec (In (Case as cs)) =
+  parenRec (In (Case a cs)) =
     "case("
-      ++ intercalate "," (map (parenthesize Nothing . body) as)
+      ++ parenthesize Nothing (body a)
       ++ ";"
       ++ intercalate "," (map auxClause cs)
       ++ ")"
     where
+      auxPat :: SimplePattern -> String
+      auxPat (VarPat x) = x
+      auxPat (ConPat c) = c
+      
       auxClause :: Clause -> String
-      auxClause (Clause ps sc) =
+      auxClause (Clause con sc) =
         "cl("
-        ++ intercalate "," (map (parenthesize Nothing . body) ps)
+        ++ auxPat con
         ++ ";"
+        ++ intercalate "," (names sc)
+        ++ "."
         ++ parenthesize Nothing (body sc)
         ++ ")"
   parenRec (In (Success m)) =
@@ -217,40 +221,11 @@ instance Parens Term where
     ++ "."
     ++ parenthesize Nothing (body sc)
     ++ ")"
-  parenRec (In (PrimData (PrimInt x))) =
-    "int[" ++ show x ++ "]"
-  parenRec (In (PrimData (PrimFloat x))) =
-    "float[" ++ show x ++ "]"
-  parenRec (In (PrimData (PrimByteString x))) =
-    "byteString[" ++ prettyByteString x ++ "]"
+  parenRec (In (PrimData pd)) = prettyPrimData pd
   parenRec (In (Builtin n ms)) =
     "buildin[" ++ n ++ "]("
       ++ intercalate "," (map (parenthesize Nothing . instantiate0) ms)
       ++ ")"
-
-
-
-
-
--- | Pattern locations are even simpler, as there's only one: constructor arg.
-
-instance Parens Pattern where
-  type Loc Pattern = ()
-  
-  parenLoc _ = [()]
-  
-  parenRec (Var v) =
-    name v
-  parenRec (In (ConPat c ps)) =
-    "conPat[" ++ c ++ "]("
-      ++ intercalate "," (map (parenthesize Nothing . body) ps)
-      ++ ")"
-  parenRec (In (PrimPat (PrimInt x))) =
-    "primPat[int[" ++ show x ++ "]]"
-  parenRec (In (PrimPat (PrimFloat x))) =
-    "primPat[float[" ++ show x ++ "]]"
-  parenRec (In (PrimPat (PrimByteString x))) =
-    "primPat[byteString[" ++ prettyByteString x ++ "]]"
 
 
 
@@ -309,10 +284,10 @@ instance ToJS Term where
       go (In (Con c ms)) =
         do ms' <- mapM (go . instantiate0) ms
            return $ JSABT "Con" [JSString c, JSArray ms']
-      go (In (Case ms cs)) =
-        do ms' <- mapM (go . instantiate0) ms
+      go (In (Case m cs)) =
+        do m' <- go (instantiate0 m)
            cs' <- mapM goClause cs
-           return $ JSABT "Case" [JSArray ms', JSArray cs']
+           return $ JSABT "Case" [m', JSArray cs']
       go (In (Success m)) =
         do m' <- go (instantiate0 m)
            return $ JSABT "Success" [m']
@@ -322,35 +297,30 @@ instance ToJS Term where
         do m' <- go (instantiate0 m)
            (x,b) <- withVar $ \_ -> go (body sc)
            return $ JSABT "Bind" [m', JSScope [x] b]
-      go (In (PrimData (PrimInt i))) =
-        return $ JSABT "PrimData" [JSABT "PrimInt" [JSInt i]]
-      go (In (PrimData (PrimFloat f))) =
-        return $ JSABT "PrimData" [JSABT "PrimFloat" [JSFloat f]]
-      go (In (PrimData (PrimByteString bs))) =
-        return $ JSABT "PrimData"
-                   [JSABT "PrimByteString"
-                     [JSString (BSChar8.unpack bs)]]
+      go (In (PrimData pd)) =
+        do pd' <- goPrimData pd
+           return $ JSABT "PrimData" [pd']
       go (In (Builtin n ms)) =
         do ms' <- mapM (go . instantiate0) ms
            return $ JSABT "Builtin" [JSString n, JSArray ms']
       
-      goClause :: Clause -> State (Int,[String]) JSABT
-      goClause (Clause pscs sc) =
-        do (xs, (ps, b)) <- withVars (length (names sc)) $ \_ ->
-                              do ps <- mapM (goPattern . body) pscs
-                                 b <- go (body sc)
-                                 return (ps,b)
-           return $ JSABT "Clause" [JSArray ps, JSScope xs b]
+      goPrimData :: PrimData -> State (Int,[String]) JSABT
+      goPrimData (PrimInt i) =
+        return $ JSABT "PrimInt" [JSInt i]
+      goPrimData (PrimFloat f) =
+        return $ JSABT "PrimFloat" [JSFloat f]
+      goPrimData (PrimByteString bs) =
+        return $ JSABT "PrimByteString" [JSString (BSChar8.unpack bs)]
       
-      goPattern :: Pattern -> State (Int,[String]) JSABT
-      goPattern (Var _) =
-        return $ JSABT "Var" []
-      goPattern (In (ConPat c ps)) =
-        do ps' <- mapM (goPattern . instantiate0) ps
-           return $ JSABT "ConPat" [JSString c, JSArray ps']
-      goPattern (In (PrimPat (PrimInt i))) =
-        return $ JSInt i
-      goPattern (In (PrimPat (PrimFloat f))) =
-        return $ JSFloat f
-      goPattern (In (PrimPat (PrimByteString bs))) =
-        return $ JSString (BSChar8.unpack bs)
+      goClause :: Clause -> State (Int,[String]) JSABT
+      goClause (Clause c sc) =
+        do p' <- goSimplePattern c
+           (xs, b) <- withVars (length (names sc)) $ \_ ->
+                        go (body sc)
+           return $ JSABT "Clause" [p', JSScope xs b]
+      
+      goSimplePattern :: SimplePattern -> State (Int,[String]) JSABT
+      goSimplePattern (VarPat x) =
+        return $ JSABT "VarPat" [JSString x]
+      goSimplePattern (ConPat c) =
+        return $ JSABT "ConPat" [JSString c]

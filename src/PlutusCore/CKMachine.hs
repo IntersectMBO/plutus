@@ -26,7 +26,7 @@ data CKFrame = InLet (Scope TermF)
              | InAppLeft Term
              | InAppRight Term
              | InCon String [Term] [Term]
-             | InCase [Term] [Term] [ClauseF (Scope TermF)]
+             | InCase [ClauseF (Scope TermF)]
              | InSuccess
              | InBind (Scope TermF)
              | InBuiltin String [Term] [Term]
@@ -57,15 +57,8 @@ rec petrol denv stk m@(In (Con _ [])) =
   ret (petrol - 1) denv stk m
 rec petrol denv stk (In (Con c (m:ms))) =
   rec (petrol - 1) denv (InCon c [] (map instantiate0 ms) : stk) (instantiate0 m)
-rec petrol denv stk (In (Case [] cs)) =
-  case matchClauses cs [] of
-    Nothing ->
-      Left ("Incomplete pattern match: "
-             ++ pretty (In (Case [] cs)))
-    Just m'  ->
-      rec (petrol - 1) denv stk m'
-rec petrol denv stk (In (Case (m:ms) cs)) =
-  rec (petrol - 1) denv (InCase [] (map instantiate0 ms) cs : stk) (instantiate0 m)
+rec petrol denv stk (In (Case m cs)) =
+  rec (petrol - 1) denv (InCase cs : stk) (instantiate0 m)
 rec petrol denv stk (In (Success m)) =
   rec (petrol - 1) denv (InSuccess : stk) (instantiate0 m)
 rec petrol denv stk m@(In Failure) =
@@ -104,17 +97,13 @@ ret petrol denv (InCon c revls rs : stk) m =
   case rs of
     [] -> ret (petrol - 1) denv stk (conH c (reverse (m:revls)))
     m':rs' -> rec (petrol - 1) denv (InCon c (m:revls) rs' : stk) m'
-ret petrol denv (InCase revls rs cs : stk) m =
-  case rs of
-    [] ->
-      let ems = reverse (m:revls)
-      in case matchClauses cs ems of
-        Nothing ->
-          Left ("Incomplete pattern match: "
-                 ++ pretty (In (Case (map (scope []) ems) cs)))
-        Just m'  ->
-          rec (petrol - 1) denv stk m'
-    m':rs' -> rec (petrol - 1) denv (InCase (m:revls) rs' cs : stk) m'
+ret petrol denv (InCase cs : stk) m =
+  case matchClauses cs m of
+    Nothing ->
+      Left ("Incomplete pattern match: "
+             ++ pretty (In (Case (scope [] m) cs)))
+    Just m'  ->
+      rec (petrol - 1) denv stk m'
 ret petrol denv (InSuccess : stk) m =
   ret (petrol - 1) denv stk (successH m)
 ret petrol denv (InBind sc : stk) m =

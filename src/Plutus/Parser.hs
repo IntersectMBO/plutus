@@ -478,21 +478,6 @@ conPattern =
      ps <- many conPatternArg
      return $ conPatH c ps
 
-primIntPattern :: Parsec String u Pattern
-primIntPattern =
-  do x <- try intLiteral
-     return $ primIntPatH x
-
-primFloatPattern :: Parsec String u Pattern
-primFloatPattern =
-  do x <- try floatLiteral
-     return $ primFloatPatH x
-
-primByteStringPattern :: Parsec String u Pattern
-primByteStringPattern =
-  do x <- try byteStringLiteral
-     return $ primByteStringPatH x
-
 parenPattern :: Parsec String u Pattern
 parenPattern = parens pattern
 
@@ -501,9 +486,6 @@ pattern =
       parenPattern
   <|> conPattern
   <|> varPattern
-  <|> primFloatPattern
-  <|> primIntPattern
-  <|> primByteStringPattern
 
 clause :: Parsec String u Clause
 clause =
@@ -599,9 +581,6 @@ letClausePattern =
       parenPattern
   <|> noArgConPattern
   <|> varPattern
-  <|> primFloatPattern
-  <|> primIntPattern
-  <|> primByteStringPattern
 
 letBody :: Parsec String u Term
 letBody = term
@@ -635,9 +614,6 @@ conPatternArg =
       parenPattern
   <|> noArgConPattern
   <|> varPattern
-  <|> primFloatPattern
-  <|> primIntPattern
-  <|> primByteStringPattern
 
 binderDoClauseArg :: Parsec String u Term
 binderDoClauseArg = term
@@ -691,9 +667,6 @@ patternMatchPattern =
       parenPattern
   <|> noArgConPattern
   <|> varPattern
-  <|> primIntPattern
-  <|> primFloatPattern
-  <|> primByteStringPattern
 
 termDecl :: Parsec String u TermDeclaration
 termDecl = whereTermDecl

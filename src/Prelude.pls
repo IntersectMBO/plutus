@@ -90,12 +90,14 @@ swap : forall a b. Pair a b -> Pair b a {
 
 and : Bool -> Bool -> Bool {
   and True True = True ;
-  and _ _ = False
+  and True False = False ;
+  and False _ = False
 }
 
 or : Bool -> Bool -> Bool {
   or False False = False ;
-  or _ _ = True
+  or False True = True ;
+  or True _ = True
 }
 
 not : Bool -> Bool {
@@ -173,7 +175,7 @@ head : forall a. List a -> Maybe a {
 last : forall a. List a -> Maybe a {
   last Nil = Nothing ;
   last (Cons x Nil) = Just x ;
-  last (Cons _ xs) = last xs
+  last (Cons _ (Cons x xs)) = last (Cons x xs)
 }
 
 tail : forall a. List a -> Maybe (List a) {
@@ -197,7 +199,7 @@ uncons : forall a. List a -> Maybe (Pair a (List a)) {
 
 null : forall a. List a -> Bool {
   null Nil = True ;
-  null _ = False
+  null (Cons _ _) = False
 }
 
 length : forall a. List a -> Int {
@@ -206,24 +208,38 @@ length : forall a. List a -> Int {
 }
 
 take : forall a. Int -> List a -> List a {
-  take 0 _ = Nil ;
-  take _ Nil = Nil ;
-  take n (Cons x xs) = Cons x (take (!subtractInt n 1) xs)
+  take n xs =
+    case !equalsInt n 0 of {
+      True -> Nil ;
+      False -> case xs of {
+        Nil -> Nil ;
+        Cons x xs -> Cons x (take (!subtractInt n 1) xs)
+      }
+    }
 }
 
 drop : forall a. Int -> List a -> List a {
-  drop 0 xs = xs ;
-  drop _ Nil = Nil ;
-  drop n (Cons x xs) = drop (!subtractInt n 1) xs
+  drop n xs =
+    case !equalsInt n 0 of {
+      True -> xs ;
+      False -> case xs of {
+        Nil -> Nil ;
+        Cons x xs -> drop (!subtractInt n 1) xs
+      }
+    }
 }
 
 splitAt : forall a. Int -> List a -> Pair (List a) (List a) {
-  splitAt 0 xs = MkPair Nil xs ;
-  splitAt n Nil = MkPair Nil Nil ;
-  splitAt n (Cons x xs) =
-    case splitAt n xs of {
-      MkPair ys zs -> MkPair (Cons x ys) zs
+splitAt n xs =
+  case !equalsInt n 0 of {
+    True -> MkPair Nil xs ;
+    False -> case xs of {
+      Nil -> MkPair Nil Nil ;
+      Cons x xs -> case splitAt (!subtractInt n 1) xs of {
+        MkPair ys zs -> MkPair (Cons x ys) zs
+      }
     }
+  }
 }
 
 takeWhile : forall a. (a -> Bool) -> List a -> List a {
@@ -270,7 +286,7 @@ foldr : forall a b. (a -> b -> b) -> b -> List a -> b {
 
 foldr1 : forall a. (a -> a -> a) -> List a -> a {
   foldr1 c (Cons x Nil) = x ;
-  foldr1 c (Cons x xs) = c x (foldr1 c xs)
+  foldr1 c (Cons x (Cons x' xs)) = c x (foldr1 c (Cons x' xs))
 }
 
 foldl : forall a b. (b -> a -> b) -> b -> List a -> b {
@@ -291,8 +307,11 @@ unfoldr : forall a b. (b -> Maybe (Pair a b)) -> b -> List a {
 }
 
 replicate : forall a. Int -> a -> List a {
-  replicate 0 _ = Nil ;
-  replicate n x = Cons x (replicate (!subtractInt n 1) x)
+  replicate n x =
+    case !equalsInt n 0 of {
+      True -> Nil ;
+      False -> Cons x (replicate (!subtractInt n 1) x)
+    }
 }
 
 map : forall a b. (a -> b) -> List a -> List b {
@@ -370,9 +389,10 @@ nubBy : forall a. (a -> a -> Bool) -> List a -> List a {
 }
 
 zipWith : forall a b c. (a -> b -> c) -> List a -> List b -> List c {
+  zipWith _ Nil _ = Nil ;
+  zipWith _ (Cons _ _) Nil = Nil ;
   zipWith f (Cons x xs) (Cons y ys) =
-    Cons (f x y) (zipWith f xs ys) ;
-  zipWith _ _ _ = Nil
+    Cons (f x y) (zipWith f xs ys)
 }
 
 zip : forall a b. List a -> List b -> List (Pair a b) {
@@ -459,8 +479,11 @@ minimumFloat : List Float -> Float {
 
 project : forall a. List a -> Int -> Maybe a {
   project Nil _ = Nothing ;
-  project (Cons x _) 0 = Just x ;
-  project (Cons _ xs) n = project xs (!subtractInt n 1)
+  project (Cons x xs) n =
+    case !equalsInt n 0 of {
+      True -> Just x ;
+      False -> project xs (!subtractInt n 1)
+    }
 }
 
 findIndex : forall a. (a -> Bool) -> List a -> Maybe Int {
@@ -504,7 +527,7 @@ evenOddSplit : forall a. List a -> Pair (List a) (List a) {
 
 mergeBy : forall a. (a -> a -> Bool) -> List a -> List a -> List a {
   mergeBy _ Nil ys = ys ;
-  mergeBy _ xs Nil = xs ;
+  mergeBy _ (Cons x xs) Nil = Cons x xs ;
   mergeBy comp (Cons x xs) (Cons y ys) =
     case comp x y of {
       True -> Cons x (mergeBy comp xs (Cons y ys)) ;
@@ -514,8 +537,8 @@ mergeBy : forall a. (a -> a -> Bool) -> List a -> List a -> List a {
 
 mergeSortBy : forall a. (a -> a -> Bool) -> List a -> List a {
   mergeSortBy _ Nil = Nil ;
-  mergeSortBy comp xs =
-    case evenOddSplit xs of {
+  mergeSortBy comp (Cons x xs) =
+    case evenOddSplit (Cons x xs) of {
       MkPair es os ->
         mergeBy comp (mergeSortBy comp es) (mergeSortBy comp os)
     }
@@ -596,23 +619,23 @@ either : forall a b c. (a -> c) -> (b -> c) -> Either a b -> c {
 lefts : forall a b. List (Either a b) -> List a {
   lefts Nil = Nil ;
   lefts (Cons (Left x) es) = Cons x (lefts es) ;
-  lefts (Cons _ es) = lefts es
+  lefts (Cons (Right _) es) = lefts es
 }
 
 rights : forall a b. List (Either a b) -> List b {
   rights Nil = Nil ;
   rights (Cons (Right y) es) = Cons y (rights es) ;
-  rights (Cons _ es) = rights es
+  rights (Cons (Left _) es) = rights es
 }
 
 isLeft : forall a b. Either a b -> Bool {
   isLeft (Left _) = True ;
-  isLeft _ = False
+  isLeft (Right _) = False
 }
 
 isRight : forall a b. Either a b -> Bool {
   isRight (Right _) = True ;
-  isRight _ = False
+  isRight (Left _) = False
 }
 
 partitionEithers : forall a b. List (Either a b) -> Pair (List a) (List b) {

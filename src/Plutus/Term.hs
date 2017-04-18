@@ -92,7 +92,6 @@ type Clause = ClauseF (Scope TermF)
 -- | Patterns are only constructor patterns, with some number of pattern args.
 
 data PatternF r = ConPat String [r]
-                | PrimPat PrimData
   deriving (Show,Functor,Foldable,Traversable)
 
   
@@ -158,15 +157,6 @@ clauseH vs ps b = Clause (map (scope vs) ps) (scope vs b)
 
 conPatH :: String -> [Pattern] -> Pattern
 conPatH c xs = In (ConPat c (map (scope []) xs))
-
-primIntPatH :: Int -> Pattern
-primIntPatH x = In (PrimPat (PrimInt x))
-
-primFloatPatH :: Float -> Pattern
-primFloatPatH x = In (PrimPat (PrimFloat x))
-
-primByteStringPatH :: BS.ByteString -> Pattern
-primByteStringPatH x = In (PrimPat (PrimByteString x))
 
 successH :: Term -> Term
 successH m = In (Success (scope [] m))
@@ -356,16 +346,9 @@ instance Parens Pattern where
   parenLoc (Var _)            = [ConPatArg]
   parenLoc (In (ConPat _ [])) = [ConPatArg]
   parenLoc (In (ConPat _ _))  = []
-  parenLoc (In (PrimPat _)) = [ConPatArg]
   
   parenRec (Var v) =
     name v
   parenRec (In (ConPat c [])) = c
   parenRec (In (ConPat c ps)) =
     c ++ " " ++ unwords (map (parenthesize (Just ConPatArg) . body) ps)
-  parenRec (In (PrimPat (PrimInt x))) =
-    show x
-  parenRec (In (PrimPat (PrimFloat x))) =
-    show x
-  parenRec (In (PrimPat (PrimByteString x))) =
-    "#" ++ prettyByteString x
