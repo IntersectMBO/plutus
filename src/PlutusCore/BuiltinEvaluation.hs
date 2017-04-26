@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-# OPTIONS -Wall #-}
 
 
@@ -182,26 +184,6 @@ builtin "take" xs =
     _ ->
       Left $ "Incorrect arguments for builtin take: "
                 ++ intercalate "," (map pretty xs)
-builtin "sha2_256" xs =
-  case xs of
-    [In (PrimData (PrimByteString x))] ->
-      Right $ In (PrimData
-                    (PrimByteString
-                      (BS.pack
-                        (BA.unpack (hash (BS.toStrict x) :: Digest SHA256)))))
-    _ ->
-      Left $ "Incorrect arguments for builtin sha2_256: "
-                ++ intercalate "," (map pretty xs)
-builtin "sha3_256" xs =
-  case xs of
-    [In (PrimData (PrimByteString x))] ->
-      Right $ In (PrimData
-                    (PrimByteString
-                      (BS.pack
-                        (BA.unpack (hash (BS.toStrict x) :: Digest SHA3_256)))))
-    _ ->
-      Left $ "Incorrect arguments for builtin sha2_256: "
-                ++ intercalate "," (map pretty xs)
 builtin "equalsByteString" xs =
   case xs of
     [ In (PrimData (PrimByteString x))
@@ -211,5 +193,25 @@ builtin "equalsByteString" xs =
     _ ->
       Left $ "Incorrect arguments for builtin equalsByteString: "
                 ++ intercalate "," (map pretty xs)     
+builtin "sha2_256"    xs = hashBuiltin "sha2_256" SHA256 xs
+builtin "sha3_256"    xs = hashBuiltin "sha3_256" SHA3_256 xs
+builtin "blake2b_224" xs = hashBuiltin "blake2b_224" Blake2b_224 xs
 builtin n _ =
   Left $ "No builtin named " ++ n
+
+hashBuiltin :: forall algo. HashAlgorithm algo
+            => String
+            -> algo
+            -> [Term]
+            -> Either String Term
+hashBuiltin builtinName algo xs =
+  case xs of
+    [In (PrimData (PrimByteString x))] ->
+      Right $ In (PrimData
+                    (PrimByteString
+                      (BS.pack
+                        (BA.unpack (hash (BS.toStrict x) :: Digest algo)))))
+    _ ->
+      Left $ "Incorrect arguments for builtin " ++ builtinName ++ ": "
+                ++ intercalate "," (map pretty xs)
+

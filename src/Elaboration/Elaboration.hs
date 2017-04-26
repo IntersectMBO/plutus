@@ -371,6 +371,7 @@ builtinInSignature n =
       , ("take", conSigH [] [intH,byteStringH] byteStringH)
       , ("sha2_256", conSigH [] [byteStringH] byteStringH)
       , ("sha3_256", conSigH [] [byteStringH] byteStringH)
+      , ("blake2b_224", conSigH [] [byteStringH] byteStringH)
       , ("equalsByteString",
           conSigH [] [byteStringH,byteStringH] (tyConH "Bool" []))
       , ("verifySignature",
