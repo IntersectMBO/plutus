@@ -15,11 +15,13 @@ import Utils.ABT
 import Utils.Pretty
 
 import Crypto.Hash
+import qualified Cardano.Crypto.Wallet as CC
 import qualified Crypto.Sign.Ed25519 as Ed25519 ()
 import qualified Data.Binary as B
 import qualified Data.ByteArray as BA
 import qualified Data.ByteString.Lazy as BS
 import Data.List (intercalate)
+import Data.Either (isRight)
 
 
 
@@ -193,11 +195,23 @@ builtin "equalsByteString" xs =
     _ ->
       Left $ "Incorrect arguments for builtin equalsByteString: "
                 ++ intercalate "," (map pretty xs)     
+builtin "verifySignature" xs =
+  case xs of
+    [ In (PrimData (PrimByteString key))
+      , In (PrimData (PrimByteString val))
+      , In (PrimData (PrimByteString sig))
+      ] ->
+      return $ if verify key val sig then conH "True" [] else conH "False" []
+    _ ->
+      Left $ "Incorrect arguments for builtin verifySignature: "
+                ++ intercalate "," (map pretty xs)
 builtin "sha2_256"    xs = hashBuiltin "sha2_256" SHA256 xs
 builtin "sha3_256"    xs = hashBuiltin "sha3_256" SHA3_256 xs
 builtin "blake2b_224" xs = hashBuiltin "blake2b_224" Blake2b_224 xs
 builtin n _ =
   Left $ "No builtin named " ++ n
+
+-- Cryptography
 
 hashBuiltin :: forall algo. HashAlgorithm algo
             => String
@@ -215,3 +229,15 @@ hashBuiltin builtinName algo xs =
       Left $ "Incorrect arguments for builtin " ++ builtinName ++ ": "
                 ++ intercalate "," (map pretty xs)
 
+publicKeyLength, signatureLength, chainCodeLength :: Int
+publicKeyLength = 32
+signatureLength = 64
+chainCodeLength = 32
+
+verify :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Bool
+verify key val sig = isRight $ do
+  key' <- CC.xpub (BS.toStrict key)
+  sig' <- CC.xsignature (BS.toStrict sig)
+  case CC.verify key' (BS.toStrict val) sig' of
+    True  -> Right ()
+    False -> Left ""
