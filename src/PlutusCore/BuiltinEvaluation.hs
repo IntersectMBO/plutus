@@ -11,6 +11,7 @@
 module PlutusCore.BuiltinEvaluation where
 
 import PlutusCore.Term
+import PlutusCore.EvaluatorTypes
 import Utils.ABT
 import Utils.Pretty
 
@@ -20,6 +21,7 @@ import qualified Crypto.Sign.Ed25519 as Ed25519 ()
 import qualified Data.Binary as B
 import qualified Data.ByteArray as BA
 import qualified Data.ByteString.Lazy as BS
+import Control.Monad.Reader (ask)
 import Data.List (intercalate)
 import Data.Either (isRight)
 
@@ -204,6 +206,15 @@ builtin "verifySignature" xs =
       return $ if verify key val sig then conH "True" [] else conH "False" []
     _ ->
       Left $ "Incorrect arguments for builtin verifySignature: "
+                ++ intercalate "," (map pretty xs)
+builtin "transactionInfo" xs =
+  case xs of
+    [] -> do
+      TransactionInfo txInfo <- fst <$> ask
+      return $ successH
+                 (primByteStringH txInfo)
+    _ ->
+      Left $ "Incorrect arguments for builtin transactionInfo: "
                 ++ intercalate "," (map pretty xs)
 builtin "sha2_256"    xs = hashBuiltin "sha2_256" SHA256 xs
 builtin "sha3_256"    xs = hashBuiltin "sha3_256" SHA3_256 xs
