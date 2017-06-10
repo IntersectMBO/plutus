@@ -42,6 +42,10 @@ doit : (forall a. a -> a) -> Int -> Int {
   doit f x = f x
 }
 
+id : forall a. a -> a {
+  id x = x
+}
+
 {-
 localTest : Nat -> Nat {
   localTest x =
