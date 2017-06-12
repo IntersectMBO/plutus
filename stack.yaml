@@ -13,4 +13,4 @@ extra-deps:
 flags: {}
 extra-package-dbs: []
 nix:
-  packages: [gmp]
+  packages: [gmp, openssl]
