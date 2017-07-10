@@ -43,6 +43,8 @@ data TermF r
   | Success r
   | Failure
   | Bind r r
+  | TxHash
+  | TxDistrHash
   | PrimData PrimData
   | Builtin String [r]
   deriving (Show,Functor,Foldable,Traversable)
@@ -167,6 +169,12 @@ failureH = In Failure
 bindH :: String -> Term -> Term -> Term
 bindH x m n = In (Bind (scope [] m) (scope [x] n))
 
+txHashH :: Term
+txHashH = In TxHash
+
+txDistrHashH :: Term
+txDistrHashH = In TxDistrHash
+
 primIntH :: Int -> Term
 primIntH x = In (PrimData (PrimInt x))
 
@@ -239,6 +247,10 @@ instance Parens Term where
     [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
   parenLoc (In (Bind _ _)) =
     [LetArg,LetBody,LamBody,CaseArg,ClauseBody,BindArg,BindBody]
+  parenLoc (In TxHash) =
+    [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
+  parenLoc (In TxDistrHash) =
+    [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
   parenLoc (In (PrimData (PrimInt _))) =
     [AnnTerm,LetArg,LetBody,LamBody,AppFun,AppArg,ConArg,CaseArg,ClauseBody,BindArg,BindBody]
   parenLoc (In (PrimData (PrimFloat _))) =
@@ -319,6 +331,10 @@ instance Parens Term where
         let (rs,n) = gatherBinds (body sc)
         in ((head (names sc), instantiate0 m):rs, n)
       gatherBinds n = ([], n)
+  parenRec (In TxHash) =
+    "txhash"
+  parenRec (In TxDistrHash) =
+    "txdistrhash"
   parenRec (In (PrimData (PrimInt x))) =
     show x
   parenRec (In (PrimData (PrimFloat x))) =

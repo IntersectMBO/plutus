@@ -53,8 +53,9 @@ languageDef = Token.LanguageDef
                 , Token.opStart = oneOf ""
                 , Token.opLetter = oneOf ""
                 , Token.reservedNames =
-                    ["data","let","in","case","of","success","failure","do"
-                    ,"forall","Comp","Int","Float","ByteString"]
+                    ["data","let","in","case","of","success","failure"
+                    ,"txhash","txdistrhash","do","forall","Comp","Int"
+                    ,"Float","ByteString"]
                 , Token.reservedOpNames = ["|","->","\\",":","=","<-",";",".","!"]
                 , Token.caseSensitive = True
                 }
@@ -384,8 +385,8 @@ term =
   <|> lambda
   <|> caseExp
   <|> bind
-  <|> (conData <|> success <|> failure <|> builtin
-          <|> primFloat <|> primInt <|> primByteString)
+  <|> (conData <|> success <|> failure <|> txhash <|> txdistrhash
+          <|> builtin <|> primFloat <|> primInt <|> primByteString)
         >>=? annotationSuffix
   <|> (parenTerm <|> variable)
         >>=? applicationSuffix >>=? annotationSuffix
@@ -553,6 +554,16 @@ binderDoClause =
 
 finalDoClause :: Parsec String u Term
 finalDoClause = term
+
+txhash :: Parsec String u Term
+txhash =
+  do reserved "txhash"
+     return txHashH
+
+txdistrhash :: Parsec String u Term
+txdistrhash =
+  do reserved "txdistrhash"
+     return txDistrHashH
 
 primInt :: Parsec String u Term
 primInt =

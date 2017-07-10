@@ -144,10 +144,11 @@ buildValidationScript
 
 checkValidationResult
   :: BS.ByteString
+  -> BS.ByteString
   -> (Core.Term, Env (Sourced String) Core.Term)
   -> Either String Bool
-checkValidationResult txInfo (script, env) =
-  do res <- Core.evaluate (Core.TransactionInfo txInfo) env 3750 script
+checkValidationResult txh txdh (script, env) =
+  do res <- Core.evaluate (Core.TransactionInfo txh txdh) env 3750 script
      case res of
        In (Core.Success _) -> Right True
        In Core.Failure -> Right False

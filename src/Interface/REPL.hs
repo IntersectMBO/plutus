@@ -74,7 +74,7 @@ repl src0 = case loadProgram src0 of
     loadTerm :: DeclContext -> String -> Either String Core.Term
     loadTerm dctx src =
       do (tm',dctx') <- parseAndElab dctx src
-         evaluate (TransactionInfo undefined {- !!! -})
+         evaluate (TransactionInfo undefined undefined {- !!! -})
                       (definitionsToEnvironment (definitions dctx'))
                       3750
                       tm'

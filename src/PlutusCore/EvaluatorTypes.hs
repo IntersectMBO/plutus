@@ -21,7 +21,11 @@ import qualified Data.ByteString.Lazy as BS
 
 
 
-newtype TransactionInfo = TransactionInfo BS.ByteString
+data TransactionInfo =
+  TransactionInfo
+  { txHash :: BS.ByteString
+  , txDistrHash :: BS.ByteString
+  }
 
 newtype Petrol = Petrol Int
   deriving (Show,Num,Eq,Ord)

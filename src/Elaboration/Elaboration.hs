@@ -806,6 +806,10 @@ synthify dctx hctx (In (Bind m sc)) =
               (ElabError
                 ("Expected a computation type but found " ++ pretty ca
                   ++ "\nWhen checking term " ++ pretty (instantiate0 m)))
+synthify dctx _ (In TxHash) =
+  return (Core.txHashH, compH byteStringH, dctx)
+synthify dctx _ (In TxDistrHash) =
+  return (Core.txDistrHashH, compH byteStringH, dctx)
 synthify dctx _ (In (PrimData (PrimInt x))) =
   return (Core.primIntH x, intH, dctx)
 synthify dctx _ (In (PrimData (PrimFloat x))) =

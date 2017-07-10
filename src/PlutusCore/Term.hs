@@ -52,6 +52,8 @@ data TermF r
   | Success r
   | Failure
   | Bind r r
+  | TxHash
+  | TxDistrHash
   | PrimData PrimData
   | Builtin String [r]
   deriving (Functor,Foldable,Traversable,Generic)
@@ -122,6 +124,12 @@ failureH = In Failure
 
 bindH :: Term -> String -> Term -> Term
 bindH m x n = In (Bind (scope [] m) (scope [x] n))
+
+txHashH :: Term
+txHashH = In TxHash
+
+txDistrHashH :: Term
+txDistrHashH = In TxDistrHash
 
 primIntH :: Int -> Term
 primIntH x = In (PrimData (PrimInt x))
@@ -221,6 +229,8 @@ instance Parens Term where
     ++ "."
     ++ parenthesize Nothing (body sc)
     ++ ")"
+  parenRec (In TxHash) = "txinfo()"
+  parenRec (In TxDistrHash) = "txdistrinfo()"
   parenRec (In (PrimData pd)) = prettyPrimData pd
   parenRec (In (Builtin n ms)) =
     "buildin[" ++ n ++ "]("
@@ -297,6 +307,10 @@ instance ToJS Term where
         do m' <- go (instantiate0 m)
            (x,b) <- withVar $ \_ -> go (body sc)
            return $ JSABT "Bind" [m', JSScope [x] b]
+      go (In TxHash) =
+        return $ JSABT "TxHash" []
+      go (In TxDistrHash) =
+        return $ JSABT "TxDistrHash" []
       go (In (PrimData pd)) =
         do pd' <- goPrimData pd
            return $ JSABT "PrimData" [pd']
