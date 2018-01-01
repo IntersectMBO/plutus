@@ -31,8 +31,8 @@ import qualified Data.Text.IO                                     as T ()
 import qualified Escrow
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
-import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe
+import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import qualified Language.PlutusTx.AssocMap                       as Map
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
@@ -216,7 +216,7 @@ writePangramJson outputDir = do
 
         token = Token "aa" "name"
 
-    let pangram = 
+    let pangram =
             Assert TrueObs
                 (When
                     [ Case (Deposit alicePk alicePk ada valueExpr)
@@ -245,7 +245,7 @@ writePangramJson outputDir = do
     createDirectoryIfMissing True (outputDir </> "JSON")
     BS.writeFile (outputDir </> "JSON" </> "contract.json") encodedPangram
     BS.writeFile (outputDir </> "JSON" </> "state.json") encodedState
-        
+
 type Web = ("api" :> (API.API :<|> Auth.FrontendAPI)) :<|> MS.API :<|> Webghc.FrontendAPI
 
 generate :: FilePath -> IO ()

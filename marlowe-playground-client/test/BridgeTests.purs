@@ -95,7 +95,6 @@ serializationTest =
       expected = replace rx "" expectedJson
 
       expectedState = replace rx "" expectedStateJson
-
     equal json expected
     equal expectedState jsonState
     equal (Right contract) (runExcept $ decodeJSON json)
