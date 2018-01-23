@@ -663,17 +663,41 @@ maybeToEither : forall a b. a -> Maybe b -> Either a b {
 
 
 
--- Multisig verification
+-- Hashing
 
-verify : ByteString -> ByteString -> Maybe ByteString -> Bool {
-  verify _ _ Nothing = False ;
-  verify dat k (Just s) = !verifySignature k dat s
+addressHash : ByteString -> ByteString {
+  addressHash x = blake2b_224 (sha3_256 x)
 }
 
-verifyMultiSig : Int -> List ByteString -> ByteString -> List (Maybe ByteString) -> Comp Unit {
-  verifyMultiSig n keys dat sigs =
-    case and (!equalsInt (length keys) (length sigs))
-              (lessThanEqualsInt n (length (filter (\x -> x) (zipWith (verify dat) keys sigs)))) of {
+
+
+
+
+-- Multisig verification
+
+-- arguments:
+--   * signed data
+--   * hash of key
+--   * key and signature
+--
+verifyHelper : ByteString -> ByteString -> Maybe (Pair ByteString ByteString) -> Bool {
+  verifyHelper _ _ Nothing = False ;
+  verifyHelper dat kh (Just (MkPair k s)) =
+    and (!equalsByteString kh (addressHash k))
+        (!verifySignature k dat s)
+}
+
+-- arguments:
+--   * how many valid signatures are needed
+--   * list of pubkey hashes that are allowed to "vote" for the transaction
+--     (the hash used is 'addressHash')
+--   * TxSigData
+--   * list of pubkeys who have provided sigs, and corresponding sigs
+--
+verifyMultiSig : Int -> List ByteString -> ByteString -> List (Maybe (Pair ByteString ByteString)) -> Comp Unit {
+  verifyMultiSig n keyhashes dat sigs =
+    case and (!equalsInt (length keyhashes) (length sigs))
+             (lessThanEqualsInt n (length (filter (\x -> x) (zipWith (verify dat) keyhashes sigs)))) of {
       True -> success MkUnit ;
       False -> failure
     }

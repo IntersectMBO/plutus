@@ -178,6 +178,7 @@ function builtin(n, ms) {
     take
     sha2_256
     sha3_256
+    blake2b_224
     equalsByteString
     
   */
@@ -337,6 +338,10 @@ function builtin(n, ms) {
     // !!!! This needs to change in any real implementation.
     return Left("sha3_256 is not supported at this time.")
     
+  } else if ("blake2b_224" === n) {
+    // !!!! This needs to change in any real implementation.
+    return Left("blake2b_224 is not supported at this time.")
+
   } else if ("equalsByteString" === n) {
     if (2 === ms.length && typeof ms[0] === "string" && typeof ms[1] === "string") {
       return Right(ms[0] === ms[1]);

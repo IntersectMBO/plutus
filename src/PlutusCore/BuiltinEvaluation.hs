@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-# OPTIONS -Wall #-}
 
 
@@ -9,15 +11,19 @@
 module PlutusCore.BuiltinEvaluation where
 
 import PlutusCore.Term
+import PlutusCore.EvaluatorTypes
 import Utils.ABT
 import Utils.Pretty
 
 import Crypto.Hash
+import qualified Cardano.Crypto.Wallet as CC
 import qualified Crypto.Sign.Ed25519 as Ed25519 ()
 import qualified Data.Binary as B
 import qualified Data.ByteArray as BA
 import qualified Data.ByteString.Lazy as BS
+import Control.Monad.Reader (ask)
 import Data.List (intercalate)
+import Data.Either (isRight)
 
 
 
@@ -182,26 +188,6 @@ builtin "take" xs =
     _ ->
       Left $ "Incorrect arguments for builtin take: "
                 ++ intercalate "," (map pretty xs)
-builtin "sha2_256" xs =
-  case xs of
-    [In (PrimData (PrimByteString x))] ->
-      Right $ In (PrimData
-                    (PrimByteString
-                      (BS.pack
-                        (BA.unpack (hash (BS.toStrict x) :: Digest SHA256)))))
-    _ ->
-      Left $ "Incorrect arguments for builtin sha2_256: "
-                ++ intercalate "," (map pretty xs)
-builtin "sha3_256" xs =
-  case xs of
-    [In (PrimData (PrimByteString x))] ->
-      Right $ In (PrimData
-                    (PrimByteString
-                      (BS.pack
-                        (BA.unpack (hash (BS.toStrict x) :: Digest SHA3_256)))))
-    _ ->
-      Left $ "Incorrect arguments for builtin sha2_256: "
-                ++ intercalate "," (map pretty xs)
 builtin "equalsByteString" xs =
   case xs of
     [ In (PrimData (PrimByteString x))
@@ -211,5 +197,58 @@ builtin "equalsByteString" xs =
     _ ->
       Left $ "Incorrect arguments for builtin equalsByteString: "
                 ++ intercalate "," (map pretty xs)     
+builtin "verifySignature" xs =
+  case xs of
+    [ In (PrimData (PrimByteString key))
+      , In (PrimData (PrimByteString val))
+      , In (PrimData (PrimByteString sig))
+      ] ->
+      return $ if verify key val sig then conH "True" [] else conH "False" []
+    _ ->
+      Left $ "Incorrect arguments for builtin verifySignature: "
+                ++ intercalate "," (map pretty xs)
+builtin "transactionInfo" xs =
+  case xs of
+    [] -> do
+      TransactionInfo txInfo <- fst <$> ask
+      return $ successH
+                 (primByteStringH txInfo)
+    _ ->
+      Left $ "Incorrect arguments for builtin transactionInfo: "
+                ++ intercalate "," (map pretty xs)
+builtin "sha2_256"    xs = hashBuiltin "sha2_256" SHA256 xs
+builtin "sha3_256"    xs = hashBuiltin "sha3_256" SHA3_256 xs
+builtin "blake2b_224" xs = hashBuiltin "blake2b_224" Blake2b_224 xs
 builtin n _ =
   Left $ "No builtin named " ++ n
+
+-- Cryptography
+
+hashBuiltin :: forall algo. HashAlgorithm algo
+            => String
+            -> algo
+            -> [Term]
+            -> Either String Term
+hashBuiltin builtinName algo xs =
+  case xs of
+    [In (PrimData (PrimByteString x))] ->
+      Right $ In (PrimData
+                    (PrimByteString
+                      (BS.pack
+                        (BA.unpack (hash (BS.toStrict x) :: Digest algo)))))
+    _ ->
+      Left $ "Incorrect arguments for builtin " ++ builtinName ++ ": "
+                ++ intercalate "," (map pretty xs)
+
+publicKeyLength, signatureLength, chainCodeLength :: Int
+publicKeyLength = 32
+signatureLength = 64
+chainCodeLength = 32
+
+verify :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Bool
+verify key val sig = isRight $ do
+  key' <- CC.xpub (BS.toStrict key)
+  sig' <- CC.xsignature (BS.toStrict sig)
+  case CC.verify key' (BS.toStrict val) sig' of
+    True  -> Right ()
+    False -> Left ""
