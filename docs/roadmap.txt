@@ -1,0 +1,49 @@
+= Current Plutus
+  - User-friendly Documentation for Plutus
+    - In-source
+    - Out-of-source
+  = Improved feedback from the type checker
+    = Better error messages
+      - Better explanations/localizations of messages
+      - Better information on the context (both scope and syntactic context)
+      - Better suggestion for repair
+        - Missing name suggestions
+      + Better implementation/factorization of error messages out of real code
+    - Holes??
+  = Good REPL
+    - Better handling of inputs (eg backspace, cursor movement, etc)
+    - Command history
+    + More options (type of a term, info on a term, module imports/exports, etc)
+    - In-REPL definition/extension of the definitions/declarations
+    ? Dependency/import visualizations
+      ? No modules = no longer relevant?
+    - Use Haskeline/Repline??
+    - REPL coloring
+  = Improved PL framework
+    + New ABT rep
+    - Better scope handling
+  - Extracted tools for PL design/implementation
+    - ABT Framework
+    - Proof Development Framework
+  = Good testing tools
+    = Support for running test files w/ conventionalized test function names
+      Partially supported with :prefix stuff
+    - Network simulation tools
+
+- Ideal Future Plutus
+  - Hoogle-like search
+  - Good editor support
+    - REPL-in-editor?
+    - Good syntax highlighting, bracket completion, etc.
+  - Interactive editor tools
+    - Holes!!
+    - Structural editing
+    - Smart refactoring, code changes, etc.
+  - Symbolic execution
+  - Integrations for formal methods
+    - Official formal models in Agda, Coq, etc. w/ associated theorems
+  - Multiple compilers for different backends
+    - Abstract/virtual machines targets
+    - Transpiler targets
+      - JS (Lisk and other bad ideas)
+      - Michelson (Tezos)
