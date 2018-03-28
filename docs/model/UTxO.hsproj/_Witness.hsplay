@@ -1,0 +1,17 @@
+-- Haskell Playground 1.0
+{-# LANGUAGE TemplateHaskell #-}
+
+myScript = $$(script [|| 1 + 2 ||])
+scriptText myScript
+scriptHash myScript
+
+scriptValue myScript
+
+yourScript = $$(script [|| 2 + 1 ||])
+scriptText yourScript
+scriptHash yourScript
+
+scriptValue yourScript
+
+witnessHash $$(revealPreimage "abc")
+witnessHash $$(revealPreimage "def")

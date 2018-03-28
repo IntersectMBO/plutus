@@ -1,0 +1,135 @@
+{-# LANGUAGE PackageImports, RecordWildCards #-}
+
+module Ledger (
+
+  -- ** Ledger & transaction types
+  Ledger, Tx(..), TxIn(..), TxOut(..), TxOutRef(..), txIn,
+  
+  -- ** Ledger & transaction state for scripts
+  hashTx, state
+) where
+  
+import "cryptonite" 
+       Crypto.Hash
+import qualified
+       Data.ByteArray         as BA
+import qualified 
+       Data.ByteString.Char8  as BS
+import Data.Set               (Set)
+import qualified
+       Data.Set               as Set
+
+import Types
+import Witness
+
+
+-- Ledger and transaction types
+-- ----------------------------
+
+-- |An UTxO ledger
+--
+type Ledger = [Tx]        -- last transaction first
+
+-- |A single transaction
+--
+data Tx
+  = Tx
+    { inputsTX  :: [TxIn]
+    , outputsTX :: [TxOut]
+    , forgeTX   :: Value
+    , feeTX     :: Value
+    }
+    deriving (Show)
+
+data TxStripped
+  = TxStripped
+    { inputsTXS  :: Set TxOutRef
+    , outputsTXS :: [TxOut]
+    , forgeTXS   :: Value
+    , feeTXS     :: Value
+    }
+    deriving (Show)
+    
+stripTx :: Tx -> TxStripped
+stripTx Tx{..}
+  = TxStripped{..}
+  where
+    inputsTXS   = Set.fromList . map refTI $ inputsTX
+    outputsTXS  = outputsTX
+    forgeTXS    = forgeTX
+    feeTXS      = feeTX
+
+-- |Hash the given transaction *without* witnesses.
+--    
+hashTx :: Tx -> Digest SHA256
+hashTx tx = hash (hash (stripTx tx) :: Digest SHA256)
+
+data TxOutRef
+  = TxOutRef
+    { idTOR    :: TxId
+    , indexTOR :: Int
+    }
+    deriving (Show, Eq, Ord)
+    
+-- |A single transaction input
+--
+data TxIn
+  = TxIn
+    { refTI     :: TxOutRef
+    , witnessTI :: Witness
+    }
+    deriving (Show)  
+    
+-- |Convenience constructor for inputs.
+--
+txIn :: TxId -> Int -> Witness -> TxIn
+txIn txId idx wit = TxIn (TxOutRef txId idx) wit  
+    
+---- Equality of transaction inputs is only predicated on the output that the input
+---- refers to, *not* on the witness. This is curcial so that two 'TxIn' values
+---- spending the same input are considered the same.
+----
+--instance Eq TxIn where
+--  txIn1 == txIn2 = idTI txIn1 == idTI txIn2 && indexTI txIn1 == indexTI txIn2
+--  
+---- As for equality
+----
+--instance Ord TxIn where
+--  txIn1 <= txIn2 
+--    = idTI txIn1 < idTI txIn2 || (idTI txIn1 == idTI txIn2 && indexTI txIn1 < indexTI txIn2)
+
+-- |A single transaction output, paying a value to a script address 
+--
+data TxOut
+  = TxOut
+    { addressTO :: Address
+    , valueTO   :: Value
+    }
+    deriving (Eq, Show)
+
+instance BA.ByteArrayAccess Tx where
+  length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
+  withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
+        
+instance BA.ByteArrayAccess TxStripped where
+  length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
+  withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
+        
+instance BA.ByteArrayAccess TxIn where
+  length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
+  withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
+    
+instance BA.ByteArrayAccess TxOut where
+  length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
+  withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
+
+
+-- Ledger & transaction state for scripts
+-- --------------------------------------
+
+-- |Given a transaction and a ledger that the transaction is to be validated against, extract
+-- the state information needed by validation scripts.
+--
+state :: Tx -> Ledger -> State
+state tx ledger = State (length ledger) (hashTx tx)
+

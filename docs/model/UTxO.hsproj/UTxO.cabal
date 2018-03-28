@@ -1,0 +1,32 @@
+name: UTxO
+version: 2.0
+cabal-version: 1.22
+build-type: Simple
+license: MIT
+copyright: Input Output
+maintainer: Manuel M T Chakravarty
+stability: experimental
+synopsis: Chimeric Ledgers UTxO model with Template Haskell witnesses
+author: Manuel M T Chakravarty
+x-ghc-framework-version: 8.0.2-8.9-3
+x-last-ide-version: HfM1.5.1
+Executable UTxO
+  main-is: Main.hs
+  buildable: True
+  build-depends:
+      bytestring -any,
+      memory -any,
+      cryptohash -any,
+      hashable -any,
+      base -any,
+      cryptonite -any,
+      template-haskell -any,
+      containers -any
+  default-language: Haskell2010
+  other-modules:
+      Ledger
+      Witness
+      Types
+      UTxO
+      Examples.PubKey
+      Examples.Simple
