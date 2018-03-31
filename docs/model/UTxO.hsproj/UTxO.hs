@@ -108,8 +108,10 @@ unspentOutputs
 --
 -- * The transaction preserves value (value preservation).
 --
+-- * All values in the transaction are non-negative.
+--
 valid :: Tx -> Ledger -> Bool
-valid t ledger = inputsAreValid && valueIsPreserved
+valid t ledger = inputsAreValid && valueIsPreserved && validValuesTx t
   where
     inputsAreValid    = all (`validatesIn` unspentOutputs ledger) (inputsTX t)
     valueIsPreserved  = forgeTX t + sum (map (fromJust . value ledger) (map refTI $ inputsTX t))

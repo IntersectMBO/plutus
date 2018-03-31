@@ -6,7 +6,7 @@ module Ledger (
   Ledger, Tx(..), TxIn(..), TxOut(..), TxOutRef(..), txIn,
   
   -- ** Ledger & transaction state for scripts
-  hashTx, state
+  hashTx, validValuesTx, state
 ) where
   
 import "cryptonite" 
@@ -63,6 +63,12 @@ stripTx Tx{..}
 --    
 hashTx :: Tx -> Digest SHA256
 hashTx tx = hash (hash (stripTx tx) :: Digest SHA256)
+
+-- |Check that all values in a transaction are no.
+--
+validValuesTx :: Tx -> Bool
+validValuesTx Tx{..}
+  = all ((>= 0) . valueTO) outputsTX && forgeTX >= 0 && feeTX >= 0
 
 data TxOutRef
   = TxOutRef
