@@ -1,6 +1,8 @@
 = Current Plutus
   - User-friendly Documentation for Plutus
-    - In-source
+    = In-source
+      + PL Kit
+      = Plutus Core
     - Out-of-source
   = Improved feedback from the type checker
     = Better error messages
@@ -22,9 +24,9 @@
   = Improved PL framework
     + New ABT rep
     - Better scope handling
-  - Extracted tools for PL design/implementation
-    - ABT Framework
-    - Proof Development Framework
+  + Extracted tools for PL design/implementation
+    + ABT Framework
+    + Proof Development Framework
   = Good testing tools
     = Support for running test files w/ conventionalized test function names
       Partially supported with :prefix stuff
