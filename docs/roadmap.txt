@@ -23,7 +23,8 @@
     - REPL coloring
   = Improved PL framework
     + New ABT rep
-    - Better scope handling
+    = Better scope handling
+      Current approach has been improved. It's suboptimal imo but it's less cluttered?
   + Extracted tools for PL design/implementation
     + ABT Framework
     + Proof Development Framework
