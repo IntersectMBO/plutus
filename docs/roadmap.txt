@@ -1,5 +1,5 @@
 = Current Plutus
-  - User-friendly Documentation for Plutus
+  = User-friendly Documentation for Plutus
     = In-source
       + PL Kit
       = Plutus Core
