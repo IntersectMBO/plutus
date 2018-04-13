@@ -1,4 +1,4 @@
-Test data concerning size increase of datatypes when removing mutual recursion from the system via the Bekic identity can be found in results/test-results.md
+Test data concerning size increase of datatypes when removing mutual recursion from the system via the Bekic identity can be found (here)[results/test-results.md]
 
 You can also run your own tests:
 
@@ -18,7 +18,7 @@ You can also play with the system. I suggest enabling quasiquotes in GHCI:
 You can now get the mutual recursion and algebraic types out of signatures with
    > ghci> runExample example
 
-Some examples to try are "fgh","treeforest","onlyList", "multi", and "(generate (veryDense 3))". See also the function "generate" in Examples.hs.
+Some examples to try are "fgh","treeforest","onlyList", "multi", and "(instantiate (veryDense 3))". See also the function "instantiate" in Examples.hs.
 You can parse declarations of algebraic types using the quasiquoter, as in
   > ghci> list_decl = algDecl [declExp| all. 1 + ((list a) * a)  |]
 
