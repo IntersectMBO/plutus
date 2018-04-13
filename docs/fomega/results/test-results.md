@@ -104,13 +104,13 @@ The shape of the graph tells us two things. First, the worst case for a system o
 
 The worst case probably never occurs in practice. I've certainly never seen a system of 10 mutually recursive types in which each type directly references each other type in the wild. It also makes sense to consider the system in which ti refers directly to ti+1, and tN refers to t1, creating a cycle. This is one of the sparser systems in which every type refers to every other type. Plotting this system for (N in [1..20]) types yields:
 
-![small-nontrivial](/results/small-nontrivial.png)
+![small-nontrivial](small-nontrivial.png)
 
 It looks like a polynomial function. This isn't terrible.
 
 As a sort of control, I've also plotted the system where each type refers only to itself (no mutual recursion) for (N in [1..20]) types:
 
-![trivial](/results/trivial.png)
+![trivial](trivial.png)
 
 It seems to be growing linearly, as expected. (It isn't quite Y=X, but it's very, very close). 
 
@@ -122,39 +122,39 @@ While the curve looks more or less the same across all densities tested (becomin
 
 Density 10:
 
-![100 random systems of size 1..9 with density 10](/results/density-10.png)
+![100 random systems of size 1..9 with density 10](density-10.png)
 
 Density 20:
 
-![100 random systems of size 1..9 with density 20](/results/density-20.png)
+![100 random systems of size 1..9 with density 20](density-20.png)
 
 Density 30:
 
-![100 random systems of size 1..9 with density 30](/results/density-30.png)
+![100 random systems of size 1..9 with density 30](density-30.png)
 
 Density 40:
 
-![100 random systems of size 1..9 with density 40](/results/density-40.png)
+![100 random systems of size 1..9 with density 40](density-40.png)
 
 Density 50:
 
-![100 random systems of size 1..9 with density 50](/results/density-50.png)
+![100 random systems of size 1..9 with density 50](density-50.png)
 
 Density 60:
 
-![100 random systems of size 1..9 with density 60](/results/density-60.png)
+![100 random systems of size 1..9 with density 60](density-60.png)
 
 Density 70:
 
-![100 random systems of size 1..9 with density 70](/results/density-70.png)
+![100 random systems of size 1..9 with density 70](density-70.png)
 
 Density 80:
 
-![100 random systems of size 1..9 with density 80](/results/density-80.png)
+![100 random systems of size 1..9 with density 80](density-80.png)
 
 Density 90:
 
-![100 random systems of size 1..9 with density 90](/results/density-90.png)
+![100 random systems of size 1..9 with density 90](density-90.png)
 
 ## Large Systems Found in the Wild
 
