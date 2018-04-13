@@ -1,4 +1,4 @@
-Test data concerning size increase of datatypes when removing mutual recursion from the system via the Bekic identity can be found (here)[results/test-results.md]
+Test data concerning size increase of datatypes when removing mutual recursion from the system via the Bekic identity can be found [here](results/test-results.md])
 
 You can also run your own tests:
 
