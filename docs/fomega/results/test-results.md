@@ -98,7 +98,7 @@ Individual tests have been plotted as points, with the X coordinate being the si
 
 The worst case considered is the case in which the matrix consists entirely of 1. Plotting the result of removing mutual recursion from the system corresponding to this matrix of size 1..10 yields: 
 
-![worst-case](/results/worst-case.png)
+![worst-case](worst-case.png)
 
 The shape of the graph tells us two things. First, the worst case for a system of 10 types is gigantic (about size 1.9*10^8, with initial size ~180). Second, the function this graph plots is growing absurdly fast (the little dip is caused by the line being a spline. The function never decreases).
 
