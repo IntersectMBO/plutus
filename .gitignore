@@ -15,3 +15,5 @@ TAGS
 *#
 *.prof
 .stack-work
+
+.uuid
