@@ -103,5 +103,5 @@ where `m` is the size of the list:
 | 10^4 | 386us | 236us |
 | 10^5 | 5.92ms | 4.66ms |
 
-We find that built in lists are, on average, ~1.7 times faster than Scott encoded lists. This is close to the difference of ~2.4 (discarding the two (m=10^2,m=10^3) test cases that differ in execution time by an order of magnitude in their data as outliers).
+We find that built in lists are, on average, ~1.7 times faster than Scott encoded lists. This is close to the difference of ~2.4 found by Koopman et al. (discarding the two (m=10^2,m=10^3) test cases that differ in execution time by an order of magnitude in their data as outliers).
 
