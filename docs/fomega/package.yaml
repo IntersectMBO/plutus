@@ -26,6 +26,7 @@ dependencies:
 - BNFC-meta
 - QuickCheck
 - random
+- criterion
 
 library:
   source-dirs: src
