@@ -1,5 +1,11 @@
 # Syntax of Version Identifiers in Similar Systems
 
+Blockchain systems are the only place I'm seeing this done. In my experience this sort of version management is offloaded to other software systems (package managers and their lookalikes, including `make` and `nix`). I suppose this makes sense.
+
+Solidity and Liquidity embody the two sides of a design tradeoff. With Solidity, source files may (and really, should) specify a version range, and compilers will refuse to compile the code if they are outside of the range. With Liquidity, source files specify a version of the language, and a compiler will accept the code if and only if it supports that version.
+
+The approach in Liquidity strikes me as being a lot friendlier to the programmer, and I propose we adopt their scheme (compiler decides) and syntax.
+
 ## Solidity (Ethereum)
 
 The [version pragma](http://solidity.readthedocs.io/en/v0.4.22/layout-of-source-files.html?) is optional but reccommended. For example:
@@ -21,5 +27,5 @@ The [documentation](https://github.com/aeternity/protocol/blob/master/contracts/
 
 ## Solar (Qtum)
 
-Contracts include a Solidity version pragma. (see [examples](https://github.com/qtumproject/solar/tree/master/contracts)).
+Exapmle contracts include a Solidity version pragma. (see [examples](https://github.com/qtumproject/solar/tree/master/contracts)).
 
