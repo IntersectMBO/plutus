@@ -9,3 +9,7 @@ The material in this directory provides an incomplete overview over other blockc
 * [Tezos](Tezos.md)
 * [Waves](Waves.md)
 * [Qtum](Qtum.md)
+
+Here are also some smart contract-related technologies that are outside of blockchains:
+
+* [Oraclize](Oraclize.md)
