@@ -14,3 +14,4 @@ The material in this directory provides an incomplete overview over other blockc
 Here are also some smart contract-related technologies that are outside of blockchains:
 
 * [Oraclize](Oraclize.md)
+* [Pay-to-contract extensions to Bitcoin transactions](PayToContract.md)
