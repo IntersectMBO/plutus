@@ -6,6 +6,7 @@ The material in this directory provides an incomplete overview over other blockc
 * [Counterparty](Counterparty.md)
 * [EOS](EOS.md)
 * [NEO](NEO.md)
+* [Sequence](Sequence.md)
 * [Tezos](Tezos.md)
 * [Waves](Waves.md)
 * [Qtum](Qtum.md)
