@@ -14,7 +14,7 @@
 - error: {lhs: "f >> pure ()", rhs: "void f", name: "Use void"}
 - error: {lhs: "over _1 f x", rhs: "first f x", name: "Use arrows"}
 - error: {lhs: "over _2 f x", rhs: "second f x", name: "Use arrows"}
-- error: {lhs: "bool x x p", rhs: "x", name: "Avoid bool"}
+- error: {lhs: "bool x x p", rhs: "x", name: "Redundant bool"}
 - error: {lhs: "const f", rhs: "pure f", name: "Generalize const"}
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
