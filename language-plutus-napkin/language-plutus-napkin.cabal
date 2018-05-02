@@ -23,7 +23,7 @@ Flag development {
 library
   hs-source-dirs:      src
   exposed-modules:     Language.PlutusNapkin
-                     , Language.PlutusNapkin.Type
+  other-modules:       Language.PlutusNapkin.Type
   build-depends:       base >= 4.3 && < 5
                      , bytestring
   default-language:    Haskell2010
