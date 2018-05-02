@@ -1,4 +1,4 @@
 constraints: language-plutus-napkin +development
-tests: true
+-- tests: true
 benchmarks: true
 documentation: true
