@@ -1,0 +1,57 @@
+---
+# Specify additional command line arguments
+#
+# - arguments: [--color, --cpp-simple, -XQuasiQuotes]
+
+
+# Control which extensions/flags/modules/functions can be used
+#
+# - extensions:
+#   - default: false # all extension are banned by default
+#   - name: [PatternGuards, ViewPatterns] # only these listed extensions can be used
+#   - {name: CPP, within: CrossPlatform} # CPP can only be used in a given module
+#
+# - flags:
+#   - {name: -w, within: []} # -w is allowed nowhere
+#
+# - modules:
+#   - {name: Control.Arrow, within: []} # Certain modules are banned entirely
+#
+- functions:
+  - {name: unsafePerformIO, within: []}  # unsafePerformIO can appear nowhere
+  - {name: error, within: []}  # throw real errors
+  - {name: undefined, within: []}
+  - {name: fromJust, within: []}  # this is hell to track down
+  - {name: foldl, within: []}  # foldl has bad properties
+
+
+# Add custom hints for this project
+#
+- error: {lhs: "hylo embed", rhs: "ana", name: "Use anamorphism"}
+- error: {lhs: "hylo f project", rhs: "cata f", name: "Use catamorphism"}
+- error: {lhs: "do { x <- y ; pure (f x) }", rhs: "f =<< y", name: "Avoid do-notation"}
+# - error: {lhs: "do { a ; b }", rhs: "a >> b", name: "Avoid do-notation"}
+- error: {lhs: "concat", rhs: "join", name: "Generalize concat"}
+- error: {lhs: "concatMap", rhs: "(=<<)", name: "Generalize concatMap"}
+- error: {lhs: "f >> pure ()", rhs: "void f", name: "Use void"}
+- error: {lhs: "over _1 f x", rhs: "first f x", name: "Use arrows"}
+- error: {lhs: "over _2 f x", rhs: "second f x", name: "Use arrows"}
+- error: {lhs: "bool x x p", rhs: "x", name: "Avoid bool"}
+- error: {lhs: "const f", rhs: "pure f", name: "Generalize const"}
+- error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
+- error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
+
+
+# Turn on hints that are off by default
+#
+# Generalise map to fmap, ++ to <>
+# - group: {name: generalise, enabled: true}
+
+
+# Ignore some builtin hints
+# - ignore: {name: Use let}
+# - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
+
+# Define some custom infix operators
+- fixity: infixr 3 ***
+- fixity: infixr 3 &&&
