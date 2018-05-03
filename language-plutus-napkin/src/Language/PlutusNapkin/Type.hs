@@ -1,8 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 
-module Language.PlutusNapkin.Type ( PlutusNapkinF (..)
-                                  , PlutusNapkin
-                                  , Fix (..)
+module Language.PlutusNapkin.Type ( Fix (..)
                                   , TermF (..)
                                   , Term
                                   , TypeF (..)
@@ -13,6 +11,7 @@ module Language.PlutusNapkin.Type ( PlutusNapkinF (..)
                                   , Clause (..)
                                   , KindSig (..)
                                   , Alt (..)
+                                  , Builtin (..)
                                   ) where
 
 import qualified Data.ByteString.Lazy as BSL
@@ -21,6 +20,40 @@ import           Data.List.NonEmpty
 -- FIXME use the actual spec!
 --
 -- Term, Clause, Declaration, Type, Kind, Data Declaration, etc.
+
+data Builtin = AddInteger
+             | SubtractInteger
+             | MultiplyInteger
+             | DivideInteger
+             | RemainderInteger
+             | LessThanInteger
+             | LessThanEqInteger
+             | GreaterThanInteger
+             | GreaterThanEqInteger
+             | EqInteger
+             | IntToFloat
+             | IntToByteString
+             | AddFloat
+             | SubtractFloat
+             | MultiplyFloat
+             | DivideFloat
+             | LessThanFloat
+             | LessThanEqFloat
+             | GreaterThanFloat
+             | GreaterThanEqFloat
+             | EqFloar
+             | Ceiling
+             | Floor
+             | Round
+             | Concatenate
+             | TakeByteString
+             | DropByteString
+             | SHA2
+             | SHA3
+             | EqByteString
+             | TxHash
+             | BlockNum
+             | BlockTime
 
 -- | Lexical units
 data Lex a = LexVar a BSL.ByteString
@@ -31,6 +64,7 @@ data Lex a = LexVar a BSL.ByteString
            | LexFloat a Float -- TODO watch for silent truncation in the lexer
            | LexExp a Integer
            | LexBS a BSL.ByteString
+           | LexBuiltin a Builtin
 
 -- TODO builtins
 data TypeF a x = TyVar a (Lex a) -- TODO actual type safety here??
@@ -78,20 +112,9 @@ data KindF a x = Type (Type a)
 
 data KindSig a = KindSig a (Lex a) (Kind a)
 
--- | Base functor for Plutus Napkin expressions
-data PlutusNapkinF a x = PNByteString a BSL.ByteString
-                       | PNInt a Int
-                       | PNFloat a Float
-                       | Let a x x
-                       | App a x x
-                       | TxHash a
-                       | TxDistrHash a
-                       deriving (Functor)
-
 newtype Fix f = Fix { unFix :: f (Fix f) }
 
 -- | Annotated type for Plutus Napkin expressions.
-type PlutusNapkin a = Fix (PlutusNapkinF a)
 type Term a = Fix (TermF a)
 type Type a = Fix (TypeF a)
 type Dec a = Fix (DecF a)

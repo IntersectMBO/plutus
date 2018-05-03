@@ -1,8 +1,8 @@
 module Language.PlutusNapkin
     ( head'
-    , PlutusNapkinF (..)
+    , TermF (..)
     , Fix (..)
-    , PlutusNapkin
+    , Term
     ) where
 
 import           Language.PlutusNapkin.Type
