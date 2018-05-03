@@ -71,6 +71,7 @@ data DecF a x = TypeDec a (Lex a) (Type a)
 
 data Alt a = Alt (Lex a) [Type a]
 
+-- | Base functor for kinds.
 data KindF a x = Type (Type a)
                | KindFun x x
                deriving (Functor)
