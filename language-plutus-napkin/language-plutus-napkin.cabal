@@ -4,7 +4,7 @@ version: 0.1.0.0
 license: BSD3
 license-file: LICENSE
 copyright: Copyright: (c) 2018 Input Output
-maintainer: vamchale@gmail.com
+maintainer: vanessa.mchale@iohk.io
 author: Vanessa McHale
 synopsis: Language library for Plutus Napkin
 description:
@@ -36,7 +36,7 @@ library
     other-extensions: DeriveFunctor
     ghc-options: -Wall
     build-depends:
-        base >=4.3 && <5,
+        base >=4.9 && <5,
         bytestring -any
     
     if flag(development)
