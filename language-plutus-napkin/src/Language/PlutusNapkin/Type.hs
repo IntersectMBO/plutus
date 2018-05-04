@@ -1,8 +1,6 @@
 module Language.PlutusNapkin.Type ( Term (..)
                                   , Type (..)
                                   , Name (..)
-                                  , KindSig (..)
-                                  , Alt (..)
                                   , Builtin (..)
                                   , Kind (..)
                                   ) where
@@ -81,12 +79,7 @@ data Term a = Var a BSL.ByteString
             | PrimBS BSL.ByteString
             | PrimSize (Name a)
 
--- | An alternative; used for sum types.
-data Alt a = Alt (Name a) [Type a]
-
 -- | Base functor for kinds.
 data Kind a = Type a
             | KindArrow (Kind a) (Kind a)
             | Size a
-
-data KindSig a = KindSig a (Name a) (Kind a)
