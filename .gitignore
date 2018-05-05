@@ -1,3 +1,6 @@
+.ghc.environment*
+tags
+dist-newstyle
 dist
 cabal-dev
 *.o
