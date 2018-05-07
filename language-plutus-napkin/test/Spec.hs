@@ -1,8 +1,17 @@
+module Main ( main
+            , genPosn
+            ) where
+
 import           Hedgehog
-import qualified Hedgehog.Gen        as Gen
-import qualified Hedgehog.Range      as Range
+import qualified Hedgehog.Gen          as Gen
+import qualified Hedgehog.Range        as Range
+import           Language.PlutusNapkin
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
+
+genPosn :: MonadGen m => m AlexPosn
+genPosn = AlexPn <$> int' <*> int' <*> int'
+    where int' = Gen.int (Range.linear 0 1000)
 
 main :: IO ()
 main = defaultMain tests

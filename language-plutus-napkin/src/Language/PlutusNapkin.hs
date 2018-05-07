@@ -4,6 +4,8 @@ module Language.PlutusNapkin
     , Builtin (..)
     , Token (..)
     , Kind (..)
+    , AlexPosn (..)
+    , ParseError (..)
     -- * Parser
     , parse
     -- * Pretty-printer
@@ -14,6 +16,7 @@ module Language.PlutusNapkin
 
 import           Control.Monad                     ((<=<))
 import qualified Data.ByteString.Lazy              as BSL
+import           Language.PlutusNapkin.Lexer
 import           Language.PlutusNapkin.Parser
 import           Language.PlutusNapkin.PrettyPrint
 import           Language.PlutusNapkin.Type

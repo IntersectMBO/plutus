@@ -5,7 +5,6 @@
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusNapkin.Lexer ( alexMonadScan
                                        , runAlexST
-                                       , alexEOF
                                        -- * Types
                                        , AlexPosn (..)
                                        , Alex (..)
@@ -26,7 +25,7 @@ import Language.PlutusNapkin.Identifier
 %wrapper "monadUserState-bytestring"
 
 $digit = 0-9
-$hex_digit = [a-f A-F 0-9]
+$hex_digit = [$digit a-f A-F]
 $lower = [a-z]
 $upper = [A-Z]
 
