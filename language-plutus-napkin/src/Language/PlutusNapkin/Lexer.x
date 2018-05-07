@@ -34,12 +34,32 @@ tokens :-
 
     <0> $white+                  ;
 
+    -- Keywords
+    <0> isa                      { keyword KwIsa }
+    <0> abs                      { keyword KwAbs }
+    <0> inst                     { keyword KwInst }
+    <0> lam                      { keyword KwLam }
+    <0> fix                      { keyword KwFix }
+    <0> builtin                  { keyword KwBuiltin }
+    <0> fun                      { keyword KwFun }
+    <0> forall                   { keyword KwForall }
+    <0> bytestring               { keyword KwByteString }
+    <0> integer                  { keyword KwInteger }
+    <0> float                    { keyword KwFloat }
+    <0> size                     { keyword KwSize }
+    <0> type                     { keyword KwType }
+
     -- Builtins
-    <0> addInteger               { tok (\p _ -> alex $ LexBuiltin p AddInteger) }
-    <0> subtractInteger          { tok (\p _ -> alex $ LexBuiltin p SubtractInteger) }
-    <0> multiplyInteger          { tok (\p _ -> alex $ LexBuiltin p MultiplyInteger) }
-    <0> divideInteger            { tok (\p _ -> alex $ LexBuiltin p DivideInteger) }
-    <0> remainderIntger          { tok (\p _ -> alex $ LexBuiltin p RemainderInteger) }
+    <0> addInteger               { builtin AddInteger }
+    <0> subtractInteger          { builtin SubtractInteger }
+    <0> multiplyInteger          { builtin MultiplyInteger}
+    <0> divideInteger            { builtin DivideInteger }
+    <0> remainderInteger         { builtin RemainderInteger }
+    <0> lessThanInteger          { builtin LessThanInteger }
+    <0> lessThanEqualsInteger    { builtin LessThanEqInteger }
+    <0> greaterThanInteger       { builtin GreaterThanInteger }
+    <0> greaterThanEqualsInteger { builtin GreaterThanEqInteger }
+    <0> equalsInteger            { builtin EqInteger }
 
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL s)) }
     <0> @float                   { tok (\p s -> alex $ LexFloat p (readBSL s)) }
@@ -49,10 +69,16 @@ tokens :-
 
 {
 
+constructor c t = tok (\p _ -> alex $ c p t)
+
+builtin = constructor LexBuiltin
+
+keyword = constructor LexKeyword
+
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
 handle_identifier p s =
     sets_alex (modifyUST (snd . newIdentifier s)) >> 
-    LexVar p <$> gets_alex (fst . newIdentifier s . alex_ust) 
+    LexName p <$> gets_alex (fst . newIdentifier s . alex_ust)
 
 -- this conversion is safe because we only lex digits
 -- FIXME this messes up when we feed it a string like +15

@@ -3,6 +3,7 @@ module Language.PlutusNapkin.Type ( Term (..)
                                   , Token (..)
                                   , Builtin (..)
                                   , Kind (..)
+                                  , Keyword (..)
                                   ) where
 
 import qualified Data.ByteString.Lazy as BSL
@@ -44,10 +45,22 @@ data Builtin = AddInteger
              | BlockNum
              | BlockTime
 
+data Keyword = KwIsa
+             | KwAbs
+             | KwInst
+             | KwLam
+             | KwFix
+             | KwBuiltin
+             | KwFun
+             | KwForall
+             | KwByteString
+             | KwInteger
+             | KwFloat
+             | KwSize
+             | KwType
+
 -- | Annotated type for names
-data Token a = LexVar a Int
-             | LexTyVar a Int
-             | LexTermVar a Int
+data Token a = LexName a Int
              | LexInt a Integer
              | LexFloat a Float -- TODO check for silent truncation in the lexer
              | LexExp a Integer
@@ -55,6 +68,7 @@ data Token a = LexVar a Int
              | LexBuiltin a Builtin
              | LexSize a Natural
              | LexSizeTerm a Natural
+             | LexKeyword a Keyword
              | EOF a
 
 data Type a = TyVar a (Token a)
