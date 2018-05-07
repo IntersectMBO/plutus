@@ -4,6 +4,7 @@ module Language.PlutusNapkin.Type ( Term (..)
                                   , Builtin (..)
                                   , Kind (..)
                                   , Keyword (..)
+                                  , Special (..)
                                   ) where
 
 import qualified Data.ByteString.Lazy as BSL
@@ -30,7 +31,7 @@ data Builtin = AddInteger
              | LessThanEqFloat
              | GreaterThanFloat
              | GreaterThanEqFloat
-             | EqFloar
+             | EqFloat
              | Ceiling
              | Floor
              | Round
@@ -59,6 +60,11 @@ data Keyword = KwIsa
              | KwSize
              | KwType
 
+data Special = OpenParen
+             | CloseParen
+             | OpenBracket
+             | CloseBracket
+
 -- | Annotated type for names
 data Token a = LexName a Int
              | LexInt a Integer
@@ -69,6 +75,7 @@ data Token a = LexName a Int
              | LexSize a Natural
              | LexSizeTerm a Natural
              | LexKeyword a Keyword
+             | LexSpecial a Special
              | EOF a
 
 data Type a = TyVar a (Token a)
@@ -81,7 +88,7 @@ data Type a = TyVar a (Token a)
             | TyLam a (Token a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
 
-data Term a = Var a BSL.ByteString
+data Term a = Var a Int
             | TyAnnot a (Type a) (Term a)
             | TyAbs a (Token a) (Term a)
             | TyInst a (Term a) (Type a)

@@ -3,6 +3,9 @@
     module Language.PlutusNapkin.Lexer ( alexMonadScan
                                        , runAlex
                                        , alexEOF
+                                       -- * Types
+                                       , AlexPosn (..)
+                                       , Alex
                                        ) where
 
 import GHC.Natural
@@ -60,16 +63,49 @@ tokens :-
     <0> greaterThanInteger       { builtin GreaterThanInteger }
     <0> greaterThanEqualsInteger { builtin GreaterThanEqInteger }
     <0> equalsInteger            { builtin EqInteger }
+    <0> intToFloat               { builtin IntToFloat }
+    <0> intToByteString          { builtin IntToByteString }
+    <0> addFloat                 { builtin AddFloat }
+    <0> subtractFloat            { builtin SubtractFloat }
+    <0> multiplyFloat            { builtin MultiplyFloat }
+    <0> divideFloat              { builtin DivideFloat }
+    <0> lessThanFloat            { builtin LessThanFloat }
+    <0> lessThanEqualsFloat      { builtin LessThanEqFloat }
+    <0> greaterThanFloat         { builtin GreaterThanFloat }
+    <0> greaterThanEqualsFloat   { builtin GreaterThanEqFloat }
+    <0> equalsFloat              { builtin EqFloat }
+    <0> ceil                     { builtin Ceiling }
+    <0> floor                    { builtin Floor }
+    <0> round                    { builtin Round }
+    <0> concatenate              { builtin Concatenate }
+    <0> takeByteString           { builtin TakeByteString }
+    <0> dropByteString           { builtin DropByteString }
+    <0> "sha2_256"               { builtin SHA2 }
+    <0> "sha3_256"               { builtin SHA3 }
+    <0> verifySignature          { builtin VerifySignature }
+    <0> equalsByteString         { builtin EqByteString }
+    <0> txhash                   { builtin TxHash }
+    <0> blocknum                 { builtin BlockNum }
+    <0> blocktime                { builtin BlockTime }
+
+    <0> "("                      { special OpenParen }
+    <0> ")"                      { special CloseParen }
+    <0> "["                      { special OpenBracket }
+    <0> "]"                      { special CloseBracket }
 
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL s)) }
     <0> @float                   { tok (\p s -> alex $ LexFloat p (readBSL s)) }
     <0> @size                    { tok (\p s -> alex $ LexSize p (readBSL s)) }
+
+    -- TODO string literals
 
     <0> @identifier              { tok handle_identifier }
 
 {
 
 constructor c t = tok (\p _ -> alex $ c p t)
+
+special = constructor LexSpecial
 
 builtin = constructor LexBuiltin
 

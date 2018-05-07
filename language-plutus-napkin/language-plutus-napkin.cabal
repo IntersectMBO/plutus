@@ -29,12 +29,13 @@ flag development
 library
     exposed-modules:
         Language.PlutusNapkin
-    build-tools: alex -any
+    build-tools: alex -any, happy -any
     hs-source-dirs: src
     other-modules:
         Language.PlutusNapkin.Type
         Language.PlutusNapkin.Identifier
         Language.PlutusNapkin.Lexer
+        Language.PlutusNapkin.Parser
     default-language: Haskell2010
     other-extensions: CPP MagicHash
     ghc-options: -Wall
@@ -42,7 +43,9 @@ library
         base >=4.9 && <5,
         bytestring -any,
         containers >=0.5.11,
-        array -any
+        array -any,
+        mtl,
+        transformers
     
     if flag(development)
         ghc-options: -Werror
