@@ -1,7 +1,8 @@
 {
-    module Language.PlutusNapkin.Parser ( parsePlutusNapkin
+    module Language.PlutusNapkin.Parser ( parse
                                         ) where
 
+import qualified Data.ByteString.Lazy as BSL
 import Control.Monad.Trans.Except
 import Control.Monad.Except
 import Language.PlutusNapkin.Lexer
@@ -20,12 +21,23 @@ import Language.PlutusNapkin.Type
 
 %token
 
+    isa { LexKeyword $$ KwIsa }
+    abs { LexKeyword $$ KwAbs }
+    inst { LexKeyword $$ KwInst }
+    lam { LexKeyword $$ KwLam }
+    fix { LexKeyword $$ KwFix }
+    builtin { LexKeyword $$ KwBuiltin }
+    fun { LexKeyword $$ KwFun }
+    forall { LexKeyword $$ KwForall }
+    size { LexKeyword $$ KwSize }
     integer { LexKeyword $$ KwInteger }
     float { LexKeyword $$ KwFloat }
     bytestring { LexKeyword $$ KwByteString }
 
     openParen { LexSpecial $$ OpenParen }
     closeParen { LexSpecial $$ CloseParen }
+    openBracket { LexSpecial $$ OpenBracket }
+    closeBracket { LexSpecial $$ CloseBracket }
 
     var { $$@LexName{} }
 
@@ -42,9 +54,16 @@ some(p)
 parens(p)
     : openParen p closeParen { $2 }
 
-Term : var { Var (extract $1) (get_identifier $1) }
+Term : var { Var (extract $1) (Name (extract $1) (get_identifier $1)) }
 
 {
+
+liftErr :: Either String (Either ParseError a) -> Either ParseError a
+liftErr (Left s)  = Left (LexErr s)
+liftErr (Right x) = x
+
+parse :: BSL.ByteString -> Either ParseError (Term AlexPosn)
+parse str = liftErr (runAlex str (runExceptT parsePlutusNapkin))
 
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)

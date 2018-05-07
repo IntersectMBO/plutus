@@ -5,13 +5,11 @@ module Language.PlutusNapkin
     , Builtin (..)
     , Token (..)
     , Kind (..)
-    -- * Lexer
-    , alexMonadScan
-    , runAlex
-    , alexEOF
+    -- * Parser
+    , parse
     ) where
 
-import           Language.PlutusNapkin.Lexer
+import           Language.PlutusNapkin.Parser
 import           Language.PlutusNapkin.Type
 
 head' :: [a] -> Maybe a

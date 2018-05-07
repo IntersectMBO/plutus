@@ -5,6 +5,7 @@ module Language.PlutusNapkin.Type ( Term (..)
                                   , Kind (..)
                                   , Keyword (..)
                                   , Special (..)
+                                  , Name (..)
                                   ) where
 
 import qualified Data.ByteString.Lazy as BSL
@@ -78,28 +79,30 @@ data Token a = LexName a Int
              | LexSpecial a Special
              | EOF a
 
-data Type a = TyVar a (Token a)
+data Name a = Name a Int
+
+data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
-            | TyFix a (Token a) (Kind a) (Type a)
-            | TyForall a (Token a) (Kind a) (Type a)
+            | TyFix a (Name a) (Kind a) (Type a)
+            | TyForall a (Name a) (Kind a) (Type a)
             | TyByteString
             | TyInteger
             | TyFloat
-            | TyLam a (Token a) (Kind a) (Type a)
+            | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
 
-data Term a = Var a Int
+data Term a = Var a (Name a)
             | TyAnnot a (Type a) (Term a)
-            | TyAbs a (Token a) (Term a)
+            | TyAbs a (Name a) (Term a)
             | TyInst a (Term a) (Type a)
-            | LamAbs a (Token a) (Term a)
+            | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
-            | Fix a (Token a) (Term a)
+            | Fix a (Name a) (Term a)
             | Builtin a Builtin [Term a]
             | PrimInt Integer
             | PrimFloat Float
             | PrimBS BSL.ByteString
-            | PrimSize (Token a)
+            | PrimSize (Name a)
 
 -- | Base functor for kinds.
 data Kind a = Type a
