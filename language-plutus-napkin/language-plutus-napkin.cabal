@@ -34,12 +34,11 @@ library
         Language.PlutusNapkin.Type
         Language.PlutusNapkin.Identifier
     default-language: Haskell2010
-    other-extensions: DeriveFunctor
     ghc-options: -Wall
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
-        containers >=0.5.9
+        containers >=0.5.11
     
     if flag(development)
         ghc-options: -Werror

@@ -12,6 +12,9 @@ import qualified Data.Map             as M
 -- indexed by 'ByteString's.
 type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Int)
 
+-- | This is a naïve implementation of interned identifiers. In particular, it
+-- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast
+-- lookups while lexing and otherwise.
 newIdentifier :: BSL.ByteString -> IdentifierState -> (Int, IdentifierState)
 newIdentifier str st@(is, ss) = case M.lookup str ss of
     Just k -> (k, st)
