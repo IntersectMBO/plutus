@@ -83,6 +83,7 @@ data Token a = LexName { loc :: a, identifier :: Int }
              deriving (Show)
 
 data Name a = Name a Int
+            deriving (Show)
 
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
@@ -93,6 +94,7 @@ data Type a = TyVar a (Name a)
             | TyFloat
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
+            deriving (Show)
 
 data Term a = Var a (Name a)
             | TyAnnot a (Type a) (Term a)
@@ -101,13 +103,15 @@ data Term a = Var a (Name a)
             | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
             | Fix a (Name a) (Term a)
-            | Builtin a Builtin [Term a]
-            | PrimInt Integer
-            | PrimFloat Float
-            | PrimBS BSL.ByteString
-            | PrimSize (Name a)
+            | Builtin a Builtin
+            | PrimInt a Integer
+            | PrimFloat a Float
+            | PrimBS a BSL.ByteString
+            | PrimSize a (Name a)
+            deriving (Show)
 
 -- | Base functor for kinds.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
             | Size a
+            deriving (Show)

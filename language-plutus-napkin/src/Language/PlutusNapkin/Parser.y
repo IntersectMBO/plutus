@@ -3,6 +3,8 @@
                                         , ParseError (..)
                                         ) where
 
+import Data.Foldable (toList)
+import Data.List.NonEmpty (NonEmpty (..))
 import Control.Arrow
 import qualified Data.ByteString.Lazy as BSL
 import Control.Monad.Except
@@ -43,6 +45,11 @@ import Language.PlutusNapkin.Type
     openBracket { LexSpecial $$ OpenBracket }
     closeBracket { LexSpecial $$ CloseBracket }
 
+    builtinVar { $$@LexBuiltin{} }
+
+    integerLit { $$@LexInt{} }
+    floatLit { $$@LexFloat{} }
+
     var { $$@LexName{} }
 
 %%
@@ -52,8 +59,8 @@ many(p)
     | { [] }
 
 some(p)
-    : some(p) p { $2 : $1 }
-    | p { [$1] }
+    : some(p) p { $2 :| toList $1 }
+    | p { $1 :| [] }
 
 parens(p)
     : openParen p closeParen { $2 }
@@ -61,6 +68,13 @@ parens(p)
 Term : var { Var (loc $1) (asName $1) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
+     | openParen inst Term Type closeParen { TyInst $2 $3 $4 }
+     | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
+     | openBracket Term some(Term) closeBracket { Apply $1 $2 $3 }
+     | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
+     | openParen builtin builtinVar closeParen { Builtin $2 (builtin $3) }
+     | integerLit { PrimInt (loc $1) (int $1) }
+     | floatLit { PrimFloat (loc $1) (float $1) }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

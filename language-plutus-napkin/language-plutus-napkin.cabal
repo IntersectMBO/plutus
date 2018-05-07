@@ -29,7 +29,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusNapkin
-    build-tools: alex -any, happy -any
+    build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src
     other-modules:
         Language.PlutusNapkin.Type
@@ -45,8 +45,8 @@ library
         bytestring -any,
         containers >=0.5.11,
         array -any,
-        mtl,
-        transformers
+        mtl -any,
+        transformers -any
     
     if flag(development)
         ghc-options: -Werror
