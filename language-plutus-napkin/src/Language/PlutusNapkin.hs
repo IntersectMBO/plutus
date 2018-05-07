@@ -1,6 +1,5 @@
 module Language.PlutusNapkin
-    ( head'
-    , Term (..)
+    ( Term (..)
     , Type (..)
     , Builtin (..)
     , Token (..)
@@ -23,7 +22,3 @@ format :: BSL.ByteString -> Either ParseError BSL.ByteString
 format = (g . prettyPrint) <=< parse
     where g (Just x) = Right x
           g Nothing  = Left InternalError
-
-head' :: [a] -> Maybe a
-head' []    = Nothing
-head' (x:_) = Just x

@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
+
 module Language.PlutusNapkin.Type ( Term (..)
                                   , Type (..)
                                   , Token (..)
@@ -8,8 +11,10 @@ module Language.PlutusNapkin.Type ( Term (..)
                                   , Name (..)
                                   ) where
 
+import           Control.DeepSeq      (NFData)
 import qualified Data.ByteString.Lazy as BSL
 import           Data.List.NonEmpty
+import           GHC.Generics         (Generic)
 import           GHC.Natural
 
 data Builtin = AddInteger
@@ -46,7 +51,7 @@ data Builtin = AddInteger
              | TxHash
              | BlockNum
              | BlockTime
-             deriving (Show)
+             deriving (Show, Generic, NFData)
 
 data Keyword = KwIsa
              | KwAbs
@@ -61,13 +66,13 @@ data Keyword = KwIsa
              | KwFloat
              | KwSize
              | KwType
-             deriving (Show)
+             deriving (Show, Generic, NFData)
 
 data Special = OpenParen
              | CloseParen
              | OpenBracket
              | CloseBracket
-             deriving (Show)
+             deriving (Show, Generic, NFData)
 
 -- | Annotated type for names
 data Token a = LexName { loc :: a, identifier :: Int }
@@ -80,7 +85,7 @@ data Token a = LexName { loc :: a, identifier :: Int }
              | LexKeyword { loc :: a, keyword :: Keyword }
              | LexSpecial { loc :: a, special :: Special }
              | EOF { loc :: a }
-             deriving (Show)
+             deriving (Show, Generic, NFData)
 
 data Name a = Name a Int
             deriving (Show)

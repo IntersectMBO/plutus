@@ -14,6 +14,6 @@ prop_reverse =
     reverse (reverse xs) === xs
 
 tests :: TestTree
-tests = testGroup "tasty-hedgehog tests" [
+tests = testGroup "parser tests" [
    testProperty "reverse" prop_reverse
  ]

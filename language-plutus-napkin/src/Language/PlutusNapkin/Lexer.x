@@ -1,5 +1,8 @@
 {
     {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-imports #-}
+    {-# LANGUAGE DeriveAnyClass     #-}
+    {-# LANGUAGE DeriveGeneric      #-}
+    {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusNapkin.Lexer ( alexMonadScan
                                        , runAlexST
                                        , alexEOF
@@ -9,6 +12,8 @@
                                        , AlexState (..)
                                        ) where
 
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData)
 import GHC.Natural
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
@@ -103,6 +108,9 @@ tokens :-
     <0> @identifier              { tok handle_identifier }
 
 {
+
+deriving instance Generic AlexPosn
+deriving instance NFData AlexPosn
 
 constructor c t = tok (\p _ -> alex $ c p t)
 

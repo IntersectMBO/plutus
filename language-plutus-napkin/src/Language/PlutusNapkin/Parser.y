@@ -1,8 +1,12 @@
 {
+    {-# LANGUAGE DeriveAnyClass #-}
+    {-# LANGUAGE DeriveGeneric  #-}
     module Language.PlutusNapkin.Parser ( parse
                                         , ParseError (..)
                                         ) where
 
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData)
 import Data.Foldable (toList)
 import Data.List.NonEmpty (NonEmpty (..))
 import Control.Arrow
@@ -100,7 +104,7 @@ data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Expected AlexPosn [String] String
                 | InternalError
-                deriving (Show)
+                deriving (Show, Generic, NFData)
 
 type Parse = ExceptT ParseError Alex
 

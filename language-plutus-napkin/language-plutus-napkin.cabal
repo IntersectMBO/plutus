@@ -38,7 +38,7 @@ library
         Language.PlutusNapkin.Parser
         Language.PlutusNapkin.PrettyPrint
     default-language: Haskell2010
-    other-extensions: CPP MagicHash
+    other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass StandaloneDeriving
     ghc-options: -Wall
     build-depends:
         base >=4.9 && <5,
@@ -46,7 +46,8 @@ library
         containers >=0.5.11,
         array -any,
         mtl -any,
-        transformers -any
+        transformers -any,
+        deepseq
     
     if flag(development)
         ghc-options: -Werror
@@ -86,11 +87,13 @@ benchmark language-plutus-napkin-bench
     main-is: Bench.hs
     hs-source-dirs: bench
     default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -O3 -Wall
+    other-extensions: OverloadedStrings
+    ghc-options: -O2 -Wall
     build-depends:
         base -any,
         language-plutus-napkin -any,
-        criterion -any
+        criterion -any,
+        bytestring -any
     
     if flag(development)
         ghc-options: -Werror
