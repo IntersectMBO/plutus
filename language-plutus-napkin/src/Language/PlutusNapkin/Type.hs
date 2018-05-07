@@ -68,16 +68,15 @@ data Special = OpenParen
 
 -- | Annotated type for names
 data Token a = LexName { loc :: a, identifier :: Int }
-             | LexInt a Integer
-             | LexFloat a Float -- TODO check for silent truncation in the lexer
-             | LexExp a Integer
-             | LexBS a BSL.ByteString
-             | LexBuiltin a Builtin
-             | LexSize a Natural
-             | LexSizeTerm a Natural
-             | LexKeyword a Keyword
-             | LexSpecial a Special
-             | EOF a
+             | LexInt { loc :: a, int :: Integer }
+             | LexFloat { loc :: a, float :: Float } -- TODO check for silent truncation in the lexer
+             | LexBS { loc :: a, bytestring :: BSL.ByteString }
+             | LexBuiltin { loc :: a, builtin :: Builtin }
+             | LexSize { loc :: a, size :: Natural }
+             | LexSizeTerm { loc :: a, sizeTerm :: Natural }
+             | LexKeyword { loc :: a, keyword :: Keyword }
+             | LexSpecial { loc :: a, special :: Special }
+             | EOF { loc :: a }
 
 data Name a = Name a Int
 

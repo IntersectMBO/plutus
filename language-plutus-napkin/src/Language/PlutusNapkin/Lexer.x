@@ -5,7 +5,7 @@
                                        , alexEOF
                                        -- * Types
                                        , AlexPosn (..)
-                                       , Alex
+                                       , Alex (..)
                                        ) where
 
 import GHC.Natural
@@ -38,60 +38,60 @@ tokens :-
     <0> $white+                  ;
 
     -- Keywords
-    <0> isa                      { keyword KwIsa }
-    <0> abs                      { keyword KwAbs }
-    <0> inst                     { keyword KwInst }
-    <0> lam                      { keyword KwLam }
-    <0> fix                      { keyword KwFix }
-    <0> builtin                  { keyword KwBuiltin }
-    <0> fun                      { keyword KwFun }
-    <0> forall                   { keyword KwForall }
-    <0> bytestring               { keyword KwByteString }
-    <0> integer                  { keyword KwInteger }
-    <0> float                    { keyword KwFloat }
-    <0> size                     { keyword KwSize }
-    <0> type                     { keyword KwType }
+    <0> isa                      { mkKeyword KwIsa }
+    <0> abs                      { mkKeyword KwAbs }
+    <0> inst                     { mkKeyword KwInst }
+    <0> lam                      { mkKeyword KwLam }
+    <0> fix                      { mkKeyword KwFix }
+    <0> builtin                  { mkKeyword KwBuiltin }
+    <0> fun                      { mkKeyword KwFun }
+    <0> forall                   { mkKeyword KwForall }
+    <0> bytestring               { mkKeyword KwByteString }
+    <0> integer                  { mkKeyword KwInteger }
+    <0> float                    { mkKeyword KwFloat }
+    <0> size                     { mkKeyword KwSize }
+    <0> type                     { mkKeyword KwType }
 
     -- Builtins
-    <0> addInteger               { builtin AddInteger }
-    <0> subtractInteger          { builtin SubtractInteger }
-    <0> multiplyInteger          { builtin MultiplyInteger}
-    <0> divideInteger            { builtin DivideInteger }
-    <0> remainderInteger         { builtin RemainderInteger }
-    <0> lessThanInteger          { builtin LessThanInteger }
-    <0> lessThanEqualsInteger    { builtin LessThanEqInteger }
-    <0> greaterThanInteger       { builtin GreaterThanInteger }
-    <0> greaterThanEqualsInteger { builtin GreaterThanEqInteger }
-    <0> equalsInteger            { builtin EqInteger }
-    <0> intToFloat               { builtin IntToFloat }
-    <0> intToByteString          { builtin IntToByteString }
-    <0> addFloat                 { builtin AddFloat }
-    <0> subtractFloat            { builtin SubtractFloat }
-    <0> multiplyFloat            { builtin MultiplyFloat }
-    <0> divideFloat              { builtin DivideFloat }
-    <0> lessThanFloat            { builtin LessThanFloat }
-    <0> lessThanEqualsFloat      { builtin LessThanEqFloat }
-    <0> greaterThanFloat         { builtin GreaterThanFloat }
-    <0> greaterThanEqualsFloat   { builtin GreaterThanEqFloat }
-    <0> equalsFloat              { builtin EqFloat }
-    <0> ceil                     { builtin Ceiling }
-    <0> floor                    { builtin Floor }
-    <0> round                    { builtin Round }
-    <0> concatenate              { builtin Concatenate }
-    <0> takeByteString           { builtin TakeByteString }
-    <0> dropByteString           { builtin DropByteString }
-    <0> "sha2_256"               { builtin SHA2 }
-    <0> "sha3_256"               { builtin SHA3 }
-    <0> verifySignature          { builtin VerifySignature }
-    <0> equalsByteString         { builtin EqByteString }
-    <0> txhash                   { builtin TxHash }
-    <0> blocknum                 { builtin BlockNum }
-    <0> blocktime                { builtin BlockTime }
+    <0> addInteger               { mkBuiltin AddInteger }
+    <0> subtractInteger          { mkBuiltin SubtractInteger }
+    <0> multiplyInteger          { mkBuiltin MultiplyInteger}
+    <0> divideInteger            { mkBuiltin DivideInteger }
+    <0> remainderInteger         { mkBuiltin RemainderInteger }
+    <0> lessThanInteger          { mkBuiltin LessThanInteger }
+    <0> lessThanEqualsInteger    { mkBuiltin LessThanEqInteger }
+    <0> greaterThanInteger       { mkBuiltin GreaterThanInteger }
+    <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
+    <0> equalsInteger            { mkBuiltin EqInteger }
+    <0> intToFloat               { mkBuiltin IntToFloat }
+    <0> intToByteString          { mkBuiltin IntToByteString }
+    <0> addFloat                 { mkBuiltin AddFloat }
+    <0> subtractFloat            { mkBuiltin SubtractFloat }
+    <0> multiplyFloat            { mkBuiltin MultiplyFloat }
+    <0> divideFloat              { mkBuiltin DivideFloat }
+    <0> lessThanFloat            { mkBuiltin LessThanFloat }
+    <0> lessThanEqualsFloat      { mkBuiltin LessThanEqFloat }
+    <0> greaterThanFloat         { mkBuiltin GreaterThanFloat }
+    <0> greaterThanEqualsFloat   { mkBuiltin GreaterThanEqFloat }
+    <0> equalsFloat              { mkBuiltin EqFloat }
+    <0> ceil                     { mkBuiltin Ceiling }
+    <0> floor                    { mkBuiltin Floor }
+    <0> round                    { mkBuiltin Round }
+    <0> concatenate              { mkBuiltin Concatenate }
+    <0> takeByteString           { mkBuiltin TakeByteString }
+    <0> dropByteString           { mkBuiltin DropByteString }
+    <0> "sha2_256"               { mkBuiltin SHA2 }
+    <0> "sha3_256"               { mkBuiltin SHA3 }
+    <0> verifySignature          { mkBuiltin VerifySignature }
+    <0> equalsByteString         { mkBuiltin EqByteString }
+    <0> txhash                   { mkBuiltin TxHash }
+    <0> blocknum                 { mkBuiltin BlockNum }
+    <0> blocktime                { mkBuiltin BlockTime }
 
-    <0> "("                      { special OpenParen }
-    <0> ")"                      { special CloseParen }
-    <0> "["                      { special OpenBracket }
-    <0> "]"                      { special CloseBracket }
+    <0> "("                      { mkSpecial OpenParen }
+    <0> ")"                      { mkSpecial CloseParen }
+    <0> "["                      { mkSpecial OpenBracket }
+    <0> "]"                      { mkSpecial CloseBracket }
 
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL s)) }
     <0> @float                   { tok (\p s -> alex $ LexFloat p (readBSL s)) }
@@ -105,11 +105,11 @@ tokens :-
 
 constructor c t = tok (\p _ -> alex $ c p t)
 
-special = constructor LexSpecial
+mkSpecial = constructor LexSpecial
 
-builtin = constructor LexBuiltin
+mkBuiltin = constructor LexBuiltin
 
-keyword = constructor LexKeyword
+mkKeyword = constructor LexKeyword
 
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
 handle_identifier p s =

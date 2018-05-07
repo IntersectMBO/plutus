@@ -54,10 +54,10 @@ some(p)
 parens(p)
     : openParen p closeParen { $2 }
 
-Term : var { Var (extract $1) (Name (extract $1) (identifier $1)) }
+Term : var { Var (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
 
-Type : var { TyVar (extract $1) (Name (extract $1) (identifier $1)) }
+Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
 
 {
@@ -77,10 +77,5 @@ type Parse = ExceptT ParseError Alex
 
 parseError :: Token AlexPosn -> Parse b
 parseError = throwE . Unexpected
-
-extract :: Token a -> a
-extract (LexName p _) = p
-extract (LexInt p _)  = p
-extract _ = error "FIXME get rid of this"
 
 }
