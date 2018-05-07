@@ -6,3 +6,4 @@ documentation: true
 
 program-options
   alex-options: -g
+  happy-options: -gcsa

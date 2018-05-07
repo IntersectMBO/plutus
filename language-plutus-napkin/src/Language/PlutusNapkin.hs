@@ -3,10 +3,15 @@ module Language.PlutusNapkin
     , Term (..)
     , Type (..)
     , Builtin (..)
-    , Name (..)
+    , Token (..)
     , Kind (..)
+    -- * Lexer
+    , alexMonadScan
+    , runAlex
+    , alexEOF
     ) where
 
+import           Language.PlutusNapkin.Lexer
 import           Language.PlutusNapkin.Type
 
 head' :: [a] -> Maybe a

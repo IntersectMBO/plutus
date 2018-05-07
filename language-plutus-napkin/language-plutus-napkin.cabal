@@ -36,12 +36,13 @@ library
         Language.PlutusNapkin.Identifier
         Language.PlutusNapkin.Lexer
     default-language: Haskell2010
+    other-extensions: CPP MagicHash
     ghc-options: -Wall
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         containers >=0.5.11,
-        array
+        array -any
     
     if flag(development)
         ghc-options: -Werror
