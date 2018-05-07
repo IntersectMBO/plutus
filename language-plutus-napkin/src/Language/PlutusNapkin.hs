@@ -1,6 +1,10 @@
 module Language.PlutusNapkin
     ( head'
     , Term (..)
+    , Type (..)
+    , Builtin (..)
+    , Name (..)
+    , Kind (..)
     ) where
 
 import           Language.PlutusNapkin.Type

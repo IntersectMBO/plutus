@@ -55,6 +55,7 @@ data Name a = LexVar a BSL.ByteString
             | LexBuiltin a Builtin
             | LexSize a Natural
             | LexSizeTerm a BSL.ByteString
+            | EOF a
 
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)

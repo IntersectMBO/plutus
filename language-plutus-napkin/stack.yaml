@@ -2,7 +2,8 @@
 resolver: lts-11.7
 packages:
   - '.'
-extra-deps: []
+extra-deps:
+  - containers-0.5.11.0
 flags:
   language-plutus-napkin:
     development: true

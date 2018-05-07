@@ -29,16 +29,19 @@ flag development
 library
     exposed-modules:
         Language.PlutusNapkin
+    build-tools: alex -any
     hs-source-dirs: src
     other-modules:
         Language.PlutusNapkin.Type
         Language.PlutusNapkin.Identifier
+        Language.PlutusNapkin.Lexer
     default-language: Haskell2010
     ghc-options: -Wall
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
-        containers >=0.5.11
+        containers >=0.5.11,
+        array
     
     if flag(development)
         ghc-options: -Werror

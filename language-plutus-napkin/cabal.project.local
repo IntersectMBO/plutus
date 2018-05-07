@@ -3,3 +3,6 @@ constraints: language-plutus-napkin +development
 tests: true
 benchmarks: true
 documentation: true
+
+program-options
+  alex-options: -g

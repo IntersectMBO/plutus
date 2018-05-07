@@ -2,6 +2,7 @@ module Language.PlutusNapkin.Identifier ( -- * Types
                                           IdentifierState
                                         -- * Functions
                                         , newIdentifier
+                                        , emptyIdentifierState
                                         ) where
 
 import qualified Data.ByteString.Lazy as BSL
@@ -11,6 +12,9 @@ import qualified Data.Map             as M
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's.
 type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Int)
+
+emptyIdentifierState :: IdentifierState
+emptyIdentifierState = (mempty, mempty)
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast
