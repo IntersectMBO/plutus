@@ -1,5 +1,6 @@
 {
     module Language.PlutusNapkin.Parser ( parse
+                                        , ParseError (..)
                                         ) where
 
 import Control.Arrow
@@ -74,6 +75,7 @@ parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlut
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Expected AlexPosn [String] String
+                | InternalError
 
 type Parse = ExceptT ParseError Alex
 

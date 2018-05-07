@@ -36,6 +36,7 @@ library
         Language.PlutusNapkin.Identifier
         Language.PlutusNapkin.Lexer
         Language.PlutusNapkin.Parser
+        Language.PlutusNapkin.PrettyPrint
     default-language: Haskell2010
     other-extensions: CPP MagicHash
     ghc-options: -Wall
