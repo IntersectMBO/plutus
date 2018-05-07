@@ -54,7 +54,11 @@ some(p)
 parens(p)
     : openParen p closeParen { $2 }
 
-Term : var { Var (extract $1) (Name (extract $1) (get_identifier $1)) }
+Term : var { Var (extract $1) (Name (extract $1) (identifier $1)) }
+     | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
+
+Type : var { TyVar (extract $1) (Name (extract $1) (identifier $1)) }
+     | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
 
 {
 
@@ -78,9 +82,5 @@ extract :: Token a -> a
 extract (LexName p _) = p
 extract (LexInt p _)  = p
 extract _ = error "FIXME get rid of this"
-
-get_identifier :: Token a -> Int
-get_identifier (LexName _ i) = i
-get_identifier _             = error "internal error."
 
 }

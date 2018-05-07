@@ -67,7 +67,7 @@ data Special = OpenParen
              | CloseBracket
 
 -- | Annotated type for names
-data Token a = LexName a Int
+data Token a = LexName { loc :: a, identifier :: Int }
              | LexInt a Integer
              | LexFloat a Float -- TODO check for silent truncation in the lexer
              | LexExp a Integer
