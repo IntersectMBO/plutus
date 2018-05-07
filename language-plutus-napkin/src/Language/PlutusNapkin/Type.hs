@@ -46,6 +46,7 @@ data Builtin = AddInteger
              | TxHash
              | BlockNum
              | BlockTime
+             deriving (Show)
 
 data Keyword = KwIsa
              | KwAbs
@@ -60,11 +61,13 @@ data Keyword = KwIsa
              | KwFloat
              | KwSize
              | KwType
+             deriving (Show)
 
 data Special = OpenParen
              | CloseParen
              | OpenBracket
              | CloseBracket
+             deriving (Show)
 
 -- | Annotated type for names
 data Token a = LexName { loc :: a, identifier :: Int }
@@ -77,6 +80,7 @@ data Token a = LexName { loc :: a, identifier :: Int }
              | LexKeyword { loc :: a, keyword :: Keyword }
              | LexSpecial { loc :: a, special :: Special }
              | EOF { loc :: a }
+             deriving (Show)
 
 data Name a = Name a Int
 
@@ -105,5 +109,5 @@ data Term a = Var a (Name a)
 
 -- | Base functor for kinds.
 data Kind a = Type a
-            | KindArrow (Kind a) (Kind a)
+            | KindArrow a (Kind a) (Kind a)
             | Size a

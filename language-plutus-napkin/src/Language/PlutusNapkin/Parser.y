@@ -36,6 +36,7 @@ import Language.PlutusNapkin.Type
     integer { LexKeyword $$ KwInteger }
     float { LexKeyword $$ KwFloat }
     bytestring { LexKeyword $$ KwByteString }
+    type { LexKeyword $$ KwType }
 
     openParen { LexSpecial $$ OpenParen }
     closeParen { LexSpecial $$ CloseParen }
@@ -57,13 +58,22 @@ some(p)
 parens(p)
     : openParen p closeParen { $2 }
 
-Term : var { Var (loc $1) (Name (loc $1) (identifier $1)) }
+Term : var { Var (loc $1) (asName $1) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
+     | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
+     | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
+
+Kind : parens(type) { Type $1 }
+     | fun Kind Kind { KindArrow $1 $2 $3 }
+     | parens(size) { Size $1 }
 
 {
+
+asName :: Token a -> Name a
+asName t = Name (loc t) (identifier t)
 
 parse :: BSL.ByteString -> Either ParseError (IdentifierState, (Term AlexPosn))
 parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlutusNapkin))
@@ -76,6 +86,7 @@ data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Expected AlexPosn [String] String
                 | InternalError
+                deriving (Show)
 
 type Parse = ExceptT ParseError Alex
 
