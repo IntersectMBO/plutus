@@ -2,10 +2,12 @@
     module Language.PlutusNapkin.Parser ( parse
                                         ) where
 
+import Control.Arrow
 import qualified Data.ByteString.Lazy as BSL
-import Control.Monad.Trans.Except
 import Control.Monad.Except
+import Control.Monad.Trans.Except
 import Language.PlutusNapkin.Lexer
+import Language.PlutusNapkin.Identifier
 import Language.PlutusNapkin.Type
 
 }
@@ -62,12 +64,12 @@ Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
 
 {
 
-liftErr :: Either String (Either ParseError a) -> Either ParseError a
-liftErr (Left s)  = Left (LexErr s)
-liftErr (Right x) = x
-
-parse :: BSL.ByteString -> Either ParseError (Term AlexPosn)
-parse str = liftErr (runAlex str (runExceptT parsePlutusNapkin))
+parse :: BSL.ByteString -> Either ParseError (IdentifierState, (Term AlexPosn))
+parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlutusNapkin))
+    where go (st, Left err) = Left err
+          go (st, Right x) = Right (st, x)
+          liftErr (Left s)  = Left (LexErr s)
+          liftErr (Right x) = x
 
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)

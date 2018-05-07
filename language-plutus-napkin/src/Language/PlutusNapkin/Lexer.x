@@ -1,11 +1,12 @@
 {
     {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-imports #-}
     module Language.PlutusNapkin.Lexer ( alexMonadScan
-                                       , runAlex
+                                       , runAlexST
                                        , alexEOF
                                        -- * Types
                                        , AlexPosn (..)
                                        , Alex (..)
+                                       , AlexState (..)
                                        ) where
 
 import GHC.Natural
@@ -145,5 +146,15 @@ get_pos = gets_alex alex_pos
 
 alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF <$> get_pos
+
+runAlexST :: BSL.ByteString -> Alex a -> Either String (AlexState, a)
+runAlexST input (Alex f) = f st
+    where st = AlexState { alex_pos = alexStartPos
+                         , alex_bpos = 0
+                         , alex_inp = input
+                         , alex_chr = '\n'
+                         , alex_ust = alexInitUserState
+                         , alex_scd = 0 
+                         }
 
 }
