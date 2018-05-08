@@ -1,5 +1,6 @@
 optimization: 2
 constraints: language-plutus-core +development
+           , comonad -test-doctests
 tests: true
 benchmarks: true
 documentation: true

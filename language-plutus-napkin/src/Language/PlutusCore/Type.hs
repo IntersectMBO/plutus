@@ -1,5 +1,11 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveFoldable    #-}
+{-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Type ( Term (..)
                                 , Type (..)
@@ -9,10 +15,13 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Keyword (..)
                                 , Special (..)
                                 , Name (..)
+                                -- * Base functors
+                                , TermF (..)
                                 ) where
 
 import           Control.DeepSeq                (NFData)
 import qualified Data.ByteString.Lazy           as BSL
+import           Data.Functor.Foldable.TH
 import           Data.List.NonEmpty
 import           GHC.Generics                   (Generic)
 import           GHC.Natural
@@ -100,6 +109,7 @@ data Term a = Var a (Name a)
             | PrimInt a Integer
             | PrimBS a BSL.ByteString
             | PrimSize a (Name a)
+            | PrintVar a BSL.ByteString
             deriving (Show)
 
 -- | Base functor for kinds.
@@ -107,3 +117,5 @@ data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
             | Size a
             deriving (Show)
+
+makeBaseFunctor ''Term
