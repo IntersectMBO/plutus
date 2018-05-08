@@ -11,11 +11,12 @@ module Language.PlutusNapkin.Type ( Term (..)
                                   , Name (..)
                                   ) where
 
-import           Control.DeepSeq      (NFData)
-import qualified Data.ByteString.Lazy as BSL
+import           Control.DeepSeq                  (NFData)
+import qualified Data.ByteString.Lazy             as BSL
 import           Data.List.NonEmpty
-import           GHC.Generics         (Generic)
+import           GHC.Generics                     (Generic)
 import           GHC.Natural
+import           Language.PlutusNapkin.Identifier
 
 data Builtin = AddInteger
              | SubtractInteger
@@ -75,7 +76,7 @@ data Special = OpenParen
              deriving (Show, Generic, NFData)
 
 -- | Annotated type for names
-data Token a = LexName { loc :: a, identifier :: Int }
+data Token a = LexName { loc :: a, identifier :: Unique }
              | LexInt { loc :: a, int :: Integer }
              | LexFloat { loc :: a, float :: Float } -- TODO check for silent truncation in the lexer
              | LexBS { loc :: a, bytestring :: BSL.ByteString }
@@ -87,7 +88,7 @@ data Token a = LexName { loc :: a, identifier :: Int }
              | EOF { loc :: a }
              deriving (Show, Generic, NFData)
 
-data Name a = Name a Int
+data Name a = Name a Unique
             deriving (Show)
 
 data Type a = TyVar a (Name a)

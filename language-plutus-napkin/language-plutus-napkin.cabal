@@ -39,7 +39,7 @@ library
         Language.PlutusNapkin.PrettyPrint
     default-language: Haskell2010
     other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass
-                      StandaloneDeriving
+                      StandaloneDeriving GeneralizedNewtypeDeriving
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints
                  -Wnoncanonical-monad-instances
