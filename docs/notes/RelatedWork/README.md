@@ -15,3 +15,7 @@ Here are also some smart contract-related technologies that are outside of block
 
 * [Oraclize](Oraclize.md)
 * [Pay-to-contract extensions to Bitcoin transactions](PayToContract.md)
+
+Work that contributes towards modelling smart contracts:
+
+* [BitML](BitML.md)
