@@ -53,7 +53,6 @@ tokens :-
     <0> forall                   { mkKeyword KwForall }
     <0> bytestring               { mkKeyword KwByteString }
     <0> integer                  { mkKeyword KwInteger }
-    <0> float                    { mkKeyword KwFloat }
     <0> size                     { mkKeyword KwSize }
     <0> type                     { mkKeyword KwType }
 
@@ -68,17 +67,7 @@ tokens :-
     <0> greaterThanInteger       { mkBuiltin GreaterThanInteger }
     <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
     <0> equalsInteger            { mkBuiltin EqInteger }
-    <0> intToFloat               { mkBuiltin IntToFloat }
     <0> intToByteString          { mkBuiltin IntToByteString }
-    <0> addFloat                 { mkBuiltin AddFloat }
-    <0> subtractFloat            { mkBuiltin SubtractFloat }
-    <0> multiplyFloat            { mkBuiltin MultiplyFloat }
-    <0> divideFloat              { mkBuiltin DivideFloat }
-    <0> lessThanFloat            { mkBuiltin LessThanFloat }
-    <0> lessThanEqualsFloat      { mkBuiltin LessThanEqFloat }
-    <0> greaterThanFloat         { mkBuiltin GreaterThanFloat }
-    <0> greaterThanEqualsFloat   { mkBuiltin GreaterThanEqFloat }
-    <0> equalsFloat              { mkBuiltin EqFloat }
     <0> ceil                     { mkBuiltin Ceiling }
     <0> floor                    { mkBuiltin Floor }
     <0> round                    { mkBuiltin Round }
@@ -99,7 +88,6 @@ tokens :-
     <0> "]"                      { mkSpecial CloseBracket }
 
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL s)) }
-    <0> @float                   { tok (\p s -> alex $ LexFloat p (readBSL s)) }
     <0> @size                    { tok (\p s -> alex $ LexSize p (readBSL s)) }
 
     -- TODO string literals

@@ -11,10 +11,10 @@ module Language.PlutusCore.Type ( Term (..)
                                   , Name (..)
                                   ) where
 
-import           Control.DeepSeq                  (NFData)
-import qualified Data.ByteString.Lazy             as BSL
+import           Control.DeepSeq                (NFData)
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.List.NonEmpty
-import           GHC.Generics                     (Generic)
+import           GHC.Generics                   (Generic)
 import           GHC.Natural
 import           Language.PlutusCore.Identifier
 
@@ -28,17 +28,7 @@ data Builtin = AddInteger
              | GreaterThanInteger
              | GreaterThanEqInteger
              | EqInteger
-             | IntToFloat
              | IntToByteString
-             | AddFloat
-             | SubtractFloat
-             | MultiplyFloat
-             | DivideFloat
-             | LessThanFloat
-             | LessThanEqFloat
-             | GreaterThanFloat
-             | GreaterThanEqFloat
-             | EqFloat
              | Ceiling
              | Floor
              | Round
@@ -64,7 +54,6 @@ data Keyword = KwIsa
              | KwForall
              | KwByteString
              | KwInteger
-             | KwFloat
              | KwSize
              | KwType
              deriving (Show, Generic, NFData)
@@ -78,7 +67,6 @@ data Special = OpenParen
 -- | Annotated type for names
 data Token a = LexName { loc :: a, identifier :: Unique }
              | LexInt { loc :: a, int :: Integer }
-             | LexFloat { loc :: a, float :: Float } -- TODO check for silent truncation in the lexer
              | LexBS { loc :: a, bytestring :: BSL.ByteString }
              | LexBuiltin { loc :: a, builtin :: Builtin }
              | LexSize { loc :: a, size :: Natural }
@@ -97,7 +85,6 @@ data Type a = TyVar a (Name a)
             | TyForall a (Name a) (Kind a) (Type a)
             | TyByteString
             | TyInteger
-            | TyFloat
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Show)
@@ -111,7 +98,6 @@ data Term a = Var a (Name a)
             | Fix a (Name a) (Term a)
             | Builtin a Builtin
             | PrimInt a Integer
-            | PrimFloat a Float
             | PrimBS a BSL.ByteString
             | PrimSize a (Name a)
             deriving (Show)

@@ -40,7 +40,6 @@ import Language.PlutusCore.Type
     forall { LexKeyword $$ KwForall }
     size { LexKeyword $$ KwSize }
     integer { LexKeyword $$ KwInteger }
-    float { LexKeyword $$ KwFloat }
     bytestring { LexKeyword $$ KwByteString }
     type { LexKeyword $$ KwType }
 
@@ -52,7 +51,6 @@ import Language.PlutusCore.Type
     builtinVar { $$@LexBuiltin{} }
 
     integerLit { $$@LexInt{} }
-    floatLit { $$@LexFloat{} }
 
     var { $$@LexName{} }
 
@@ -78,7 +76,6 @@ Term : var { Var (loc $1) (asName $1) }
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
      | openParen builtin builtinVar closeParen { Builtin $2 (builtin $3) }
      | integerLit { PrimInt (loc $1) (int $1) }
-     | floatLit { PrimFloat (loc $1) (float $1) }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
@@ -93,6 +90,7 @@ Kind : parens(type) { Type $1 }
 asName :: Token a -> Name a
 asName t = Name (loc t) (identifier t)
 
+-- FIXME the identifier state should be included with a plain parse error as well.
 parse :: BSL.ByteString -> Either ParseError (IdentifierState, (Term AlexPosn))
 parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlutusNapkin))
     where go (st, Left err) = Left err
