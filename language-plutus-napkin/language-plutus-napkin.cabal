@@ -40,7 +40,9 @@ library
     default-language: Haskell2010
     other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass
                       StandaloneDeriving
-    ghc-options: -Wall
+    ghc-options: -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints
+                 -Wnoncanonical-monad-instances
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -53,10 +55,6 @@ library
     if flag(development)
         ghc-options: -Werror
     
-    if impl(ghc >=8.0)
-        ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
-                     -Wredundant-constraints -Wnoncanonical-monad-instances
-    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -66,6 +64,8 @@ test-suite language-plutus-napkin-test
     hs-source-dirs: test
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Wnoncanonical-monad-instances
     build-depends:
         base -any,
         language-plutus-napkin -any,
@@ -76,10 +76,6 @@ test-suite language-plutus-napkin-test
     if flag(development)
         ghc-options: -Werror
     
-    if impl(ghc >=8.0)
-        ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
-                     -Wredundant-constraints -Wnoncanonical-monad-instances
-    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -89,7 +85,9 @@ benchmark language-plutus-napkin-bench
     hs-source-dirs: bench
     default-language: Haskell2010
     other-extensions: OverloadedStrings
-    ghc-options: -O3 -Wall
+    ghc-options: -O3 -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints
+                 -Wnoncanonical-monad-instances
     build-depends:
         base -any,
         language-plutus-napkin -any,
@@ -98,10 +96,6 @@ benchmark language-plutus-napkin-bench
     
     if flag(development)
         ghc-options: -Werror
-    
-    if impl(ghc >=8.0)
-        ghc-options: -Wincomplete-uni-patterns -Wincomplete-record-updates
-                     -Wredundant-constraints -Wnoncanonical-monad-instances
     
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
