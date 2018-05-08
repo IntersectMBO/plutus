@@ -68,7 +68,7 @@ test-suite language-plutus-napkin-test
                  -Wredundant-constraints -Wnoncanonical-monad-instances
     build-depends:
         base -any,
-        language-plutus-napkin -any,
+        language-plutus-core -any,
         tasty -any,
         hedgehog -any,
         tasty-hedgehog -any
@@ -90,7 +90,7 @@ benchmark language-plutus-napkin-bench
                  -Wnoncanonical-monad-instances
     build-depends:
         base -any,
-        language-plutus-napkin -any,
+        language-plutus-core -any,
         criterion -any,
         bytestring -any
     
