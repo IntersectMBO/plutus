@@ -7,6 +7,7 @@ module Language.PlutusCore
     , Kind (..)
     , AlexPosn (..)
     , ParseError (..)
+    , Version (..)
     -- * Parser
     , parse
     -- * Formatter

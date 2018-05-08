@@ -59,7 +59,7 @@ data Builtin = AddInteger
              | BlockTime
              deriving (Show, Generic, NFData)
 
-data Version = Version !Integer !Integer !Integer
+data Version = Version Integer Integer Integer
 
 data Keyword = KwIsa
              | KwAbs
@@ -82,14 +82,14 @@ data Special = OpenParen
              deriving (Show, Generic, NFData)
 
 -- | Annotated type for names
-data Token a = LexName { loc :: a, identifier :: !Unique }
-             | LexInt { loc :: a, int :: !Integer }
+data Token a = LexName { loc :: a, identifier :: Unique }
+             | LexInt { loc :: a, int :: Integer }
              | LexBS { loc :: a, bytestring :: BSL.ByteString }
-             | LexBuiltin { loc :: a, builtin :: !Builtin }
-             | LexSize { loc :: a, size :: !Natural }
-             | LexSizeTerm { loc :: a, sizeTerm :: !Natural }
-             | LexKeyword { loc :: a, keyword :: !Keyword }
-             | LexSpecial { loc :: a, special :: !Special }
+             | LexBuiltin { loc :: a, builtin :: Builtin }
+             | LexSize { loc :: a, size :: Natural }
+             | LexSizeTerm { loc :: a, sizeTerm :: Natural }
+             | LexKeyword { loc :: a, keyword :: Keyword }
+             | LexSpecial { loc :: a, special :: Special }
              | EOF { loc :: a }
              deriving (Show, Generic, NFData)
 
@@ -100,8 +100,9 @@ data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
             | TyFix a (Name a) (Kind a) (Type a)
             | TyForall a (Name a) (Kind a) (Type a)
-            | TyByteString
-            | TyInteger
+            | TyByteString a
+            | TyInteger a
+            | TySize a
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Show, Generic, NFData)
@@ -129,10 +130,14 @@ data Kind a = Type a
 makeBaseFunctor ''Term
 makeBaseFunctor ''Type
 
+instance Pretty Builtin where
+    pretty AddInteger = "addInteger"
+    pretty _          = undefined
+
 instance Pretty (Term a) where
     pretty = cata a where
-        a (PrintVarF _ s)         = pretty (decodeUtf8 $ BSL.toStrict s)
-        a (BuiltinF _ AddInteger) = "(builtin addInteger)"
-        a (ApplyF _ t ts)         = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a VarF{}                  = undefined
-        a _                       = undefined
+        a (PrintVarF _ s) = pretty (decodeUtf8 $ BSL.toStrict s)
+        a (BuiltinF _ b)  = parens ("builtin" <+> pretty b)
+        a (ApplyF _ t ts) = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a VarF{}          = undefined
+        a _               = undefined

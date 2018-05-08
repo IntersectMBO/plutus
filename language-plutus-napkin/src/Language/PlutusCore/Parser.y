@@ -80,6 +80,10 @@ Term : var { Var (loc $1) (asName $1) }
 Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
+     -- FIXME update to the spec
+     | size { TySize $1 }
+     | integer { TyInteger $1 }
+     | bytestring { TyByteString $1 }
 
 Kind : parens(type) { Type $1 }
      | fun Kind Kind { KindArrow $1 $2 $3 }
