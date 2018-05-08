@@ -1,4 +1,4 @@
-module Language.PlutusNapkin
+module Language.PlutusCore
     ( Term (..)
     , Type (..)
     , Builtin (..)
@@ -16,10 +16,10 @@ module Language.PlutusNapkin
 
 import           Control.Monad                     ((<=<))
 import qualified Data.ByteString.Lazy              as BSL
-import           Language.PlutusNapkin.Lexer
-import           Language.PlutusNapkin.Parser
-import           Language.PlutusNapkin.PrettyPrint
-import           Language.PlutusNapkin.Type
+import           Language.PlutusCore.Lexer
+import           Language.PlutusCore.Parser
+import           Language.PlutusCore.PrettyPrint
+import           Language.PlutusCore.Type
 
 format :: BSL.ByteString -> Either ParseError BSL.ByteString
 format = (g . prettyPrint) <=< parse

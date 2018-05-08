@@ -5,7 +5,7 @@ module Main ( main
 import           Hedgehog
 import qualified Hedgehog.Gen          as Gen
 import qualified Hedgehog.Range        as Range
-import           Language.PlutusNapkin
+import           Language.PlutusCore
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

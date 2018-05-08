@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 
-module Language.PlutusNapkin.Type ( Term (..)
+module Language.PlutusCore.Type ( Term (..)
                                   , Type (..)
                                   , Token (..)
                                   , Builtin (..)
@@ -16,7 +16,7 @@ import qualified Data.ByteString.Lazy             as BSL
 import           Data.List.NonEmpty
 import           GHC.Generics                     (Generic)
 import           GHC.Natural
-import           Language.PlutusNapkin.Identifier
+import           Language.PlutusCore.Identifier
 
 data Builtin = AddInteger
              | SubtractInteger

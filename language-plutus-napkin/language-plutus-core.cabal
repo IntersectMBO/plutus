@@ -1,5 +1,5 @@
 cabal-version: 1.18
-name: language-plutus-napkin
+name: language-plutus-core
 version: 0.1.0.0
 license: BSD3
 license-file: LICENSE
@@ -28,15 +28,15 @@ flag development
 
 library
     exposed-modules:
-        Language.PlutusNapkin
+        Language.PlutusCore
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src
     other-modules:
-        Language.PlutusNapkin.Type
-        Language.PlutusNapkin.Identifier
-        Language.PlutusNapkin.Lexer
-        Language.PlutusNapkin.Parser
-        Language.PlutusNapkin.PrettyPrint
+        Language.PlutusCore.Type
+        Language.PlutusCore.Identifier
+        Language.PlutusCore.Lexer
+        Language.PlutusCore.Parser
+        Language.PlutusCore.PrettyPrint
     default-language: Haskell2010
     other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass
                       StandaloneDeriving GeneralizedNewtypeDeriving

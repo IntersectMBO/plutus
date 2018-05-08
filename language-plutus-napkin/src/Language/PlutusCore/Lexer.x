@@ -3,7 +3,7 @@
     {-# LANGUAGE DeriveAnyClass     #-}
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE StandaloneDeriving #-}
-    module Language.PlutusNapkin.Lexer ( alexMonadScan
+    module Language.PlutusCore.Lexer ( alexMonadScan
                                        , runAlexST
                                        -- * Types
                                        , AlexPosn (..)
@@ -17,8 +17,8 @@ import GHC.Natural
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
 import Control.Arrow
-import Language.PlutusNapkin.Type
-import Language.PlutusNapkin.Identifier
+import Language.PlutusCore.Type
+import Language.PlutusCore.Identifier
 
 }
 

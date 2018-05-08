@@ -1,7 +1,7 @@
 {
     {-# LANGUAGE DeriveAnyClass #-}
     {-# LANGUAGE DeriveGeneric  #-}
-    module Language.PlutusNapkin.Parser ( parse
+    module Language.PlutusCore.Parser ( parse
                                         , ParseError (..)
                                         ) where
 
@@ -13,9 +13,9 @@ import Control.Arrow
 import qualified Data.ByteString.Lazy as BSL
 import Control.Monad.Except
 import Control.Monad.Trans.Except
-import Language.PlutusNapkin.Lexer
-import Language.PlutusNapkin.Identifier
-import Language.PlutusNapkin.Type
+import Language.PlutusCore.Lexer
+import Language.PlutusCore.Identifier
+import Language.PlutusCore.Type
 
 }
 

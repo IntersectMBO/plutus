@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Language.PlutusNapkin.Identifier ( -- * Types
+module Language.PlutusCore.Identifier ( -- * Types
                                           IdentifierState
                                         , Unique (..)
                                         -- * Functions
