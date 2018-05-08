@@ -2,14 +2,14 @@
 {-# LANGUAGE DeriveGeneric  #-}
 
 module Language.PlutusCore.Type ( Term (..)
-                                  , Type (..)
-                                  , Token (..)
-                                  , Builtin (..)
-                                  , Kind (..)
-                                  , Keyword (..)
-                                  , Special (..)
-                                  , Name (..)
-                                  ) where
+                                , Type (..)
+                                , Token (..)
+                                , Builtin (..)
+                                , Kind (..)
+                                , Keyword (..)
+                                , Special (..)
+                                , Name (..)
+                                ) where
 
 import           Control.DeepSeq                (NFData)
 import qualified Data.ByteString.Lazy           as BSL

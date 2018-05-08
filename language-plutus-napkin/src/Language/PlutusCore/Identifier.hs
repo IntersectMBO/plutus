@@ -1,12 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Language.PlutusCore.Identifier ( -- * Types
-                                          IdentifierState
-                                        , Unique (..)
-                                        -- * Functions
-                                        , newIdentifier
-                                        , emptyIdentifierState
-                                        ) where
+                                        IdentifierState
+                                      , Unique (..)
+                                      -- * Functions
+                                      , newIdentifier
+                                      , emptyIdentifierState
+                                      ) where
 
 import           Control.DeepSeq      (NFData)
 import qualified Data.ByteString.Lazy as BSL

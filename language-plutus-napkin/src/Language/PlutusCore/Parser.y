@@ -2,8 +2,8 @@
     {-# LANGUAGE DeriveAnyClass #-}
     {-# LANGUAGE DeriveGeneric  #-}
     module Language.PlutusCore.Parser ( parse
-                                        , ParseError (..)
-                                        ) where
+                                      , ParseError (..)
+                                      ) where
 
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)

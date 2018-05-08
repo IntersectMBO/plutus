@@ -4,12 +4,12 @@
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
-                                       , runAlexST
-                                       -- * Types
-                                       , AlexPosn (..)
-                                       , Alex (..)
-                                       , AlexState (..)
-                                       ) where
+                                     , runAlexST
+                                     -- * Types
+                                     , AlexPosn (..)
+                                     , Alex (..)
+                                     , AlexState (..)
+                                     ) where
 
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)

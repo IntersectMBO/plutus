@@ -1,8 +1,8 @@
 module Language.PlutusCore.PrettyPrint ( prettyPrint
-                                         ) where
+                                       ) where
 
-import qualified Data.ByteString.Lazy             as BSL
-import qualified Data.IntMap                      as IM
+import qualified Data.ByteString.Lazy           as BSL
+import qualified Data.IntMap                    as IM
 import           Language.PlutusCore.Identifier
 import           Language.PlutusCore.Type
 
