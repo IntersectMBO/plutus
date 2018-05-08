@@ -5,6 +5,6 @@ packages:
 extra-deps:
   - containers-0.5.11.0
 flags:
-  language-plutus-napkin:
+  language-plutus-core:
     development: true
 extra-package-dbs: []
