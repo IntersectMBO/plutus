@@ -20,6 +20,7 @@ type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique)
 emptyIdentifierState :: IdentifierState
 emptyIdentifierState = (mempty, mempty)
 
+-- | A newtype wrapper for unique identifiers.
 newtype Unique = Unique Int
     deriving (Show, NFData)
 

@@ -1,5 +1,6 @@
 module Language.PlutusCore
-    ( Term (..)
+    ( -- * Types
+      Term (..)
     , Type (..)
     , Builtin (..)
     , Token (..)
@@ -8,20 +9,20 @@ module Language.PlutusCore
     , ParseError (..)
     -- * Parser
     , parse
-    -- * Pretty-printer
-    , prettyPrint
     -- * Formatter
     , format
+    -- * Base functors
+    , TermF (..)
+    , TypeF (..)
     ) where
 
 import           Control.Monad                   ((<=<))
 import qualified Data.ByteString.Lazy            as BSL
+import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.PrettyPrint
 import           Language.PlutusCore.Type
 
-format :: BSL.ByteString -> Either ParseError BSL.ByteString
-format = g . prettyPrint <=< parse
-    where g (Just x) = Right x
-          g Nothing  = Left InternalError
+format :: BSL.ByteString -> Either ParseError (Doc a)
+format = fmap pretty . rewrite <=< parse

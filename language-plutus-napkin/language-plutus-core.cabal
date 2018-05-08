@@ -41,7 +41,7 @@ library
     other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass
                       StandaloneDeriving GeneralizedNewtypeDeriving TemplateHaskell
                       KindSignatures TypeFamilies DeriveFunctor DeriveFoldable
-                      DeriveTraversable FlexibleContexts
+                      DeriveTraversable FlexibleContexts OverloadedStrings
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints
                  -Wnoncanonical-monad-instances
@@ -53,7 +53,9 @@ library
         mtl -any,
         transformers -any,
         deepseq -any,
-        recursion-schemes -any
+        recursion-schemes -any,
+        prettyprinter -any,
+        text
     
     if flag(development)
         ghc-options: -Werror
@@ -95,7 +97,8 @@ benchmark language-plutus-napkin-bench
         base -any,
         language-plutus-core -any,
         criterion -any,
-        bytestring -any
+        bytestring -any,
+        prettyprinter
     
     if flag(development)
         ghc-options: -Werror

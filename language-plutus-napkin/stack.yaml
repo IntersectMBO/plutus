@@ -1,5 +1,5 @@
 ---
-resolver: lts-11.7
+resolver: lts-11.8
 packages:
   - '.'
 extra-deps:
@@ -9,4 +9,6 @@ flags:
     development: true
   comonad:
     test-doctests: false
+  semigroupoids:
+    doctests: false
 extra-package-dbs: []
