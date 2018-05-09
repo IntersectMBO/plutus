@@ -11,12 +11,9 @@
                                      , AlexState (..)
                                      ) where
 
-import GHC.Generics (Generic)
-import Control.DeepSeq (NFData)
-import GHC.Natural
+import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
-import Control.Arrow
 import Language.PlutusCore.Type
 import Language.PlutusCore.Identifier
 
@@ -41,6 +38,8 @@ $upper = [A-Z]
 tokens :-
 
     <0> $white+                  ;
+    <0> "--".*                   ;
+    <0> "{-"                     { \_ _ -> nested_comment }
 
     -- Keywords
     <0> isa                      { mkKeyword KwIsa }
@@ -86,8 +85,9 @@ tokens :-
     <0> ")"                      { mkSpecial CloseParen }
     <0> "["                      { mkSpecial OpenBracket }
     <0> "]"                      { mkSpecial CloseBracket }
+    <0> "."                      { mkSpecial Dot }
 
-    <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL s)) }
+    <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
     <0> @size                    { tok (\p s -> alex $ LexSize p (readBSL s)) }
 
     -- TODO string literals
@@ -98,6 +98,35 @@ tokens :-
 
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
+
+-- Taken from example by Simon Marlow.
+-- This provides Haskell-style comments for Plutus Core
+nested_comment :: Alex (Token AlexPosn)
+nested_comment = go 1 =<< alexGetInput
+
+    where go :: Int -> AlexInput -> Alex (Token AlexPosn)
+          go 0 input = alexSetInput input >> alexMonadScan
+          go n input =
+            case alexGetByte input of
+                Nothing -> err input
+                Just (c, input') ->
+                    case Data.Char.chr (fromIntegral c) of
+                        '-' ->
+                            case alexGetByte input' of
+                                Nothing -> err input'
+                                Just (125,input_) -> go (n-1) input_
+                                Just (_,input_) -> go n input_
+                        '{' ->
+                            case alexGetByte input' of
+                                Nothing -> err input'
+                                Just (c',input'') -> go (addLevel c' $ n) input''
+                        _ -> go n input'
+
+          addLevel c' = bool id (+1) (c'==45)
+
+          err (pos,_,_,_) =
+            let (AlexPn _ line col) = pos in
+                alexError ("Error in nested comment at line " ++ show line ++ ", column " ++ show col)
 
 constructor c t = tok (\p _ -> alex $ c p t)
 
@@ -116,6 +145,9 @@ handle_identifier p s =
 -- FIXME this messes up when we feed it a string like +15
 readBSL :: (Read a) => BSL.ByteString -> a
 readBSL = read . ASCII.unpack
+
+stripPlus :: BSL.ByteString -> BSL.ByteString
+stripPlus b = if BSL.head b == 43 then BSL.tail b else b
 
 alex :: a -> Alex a
 alex = pure

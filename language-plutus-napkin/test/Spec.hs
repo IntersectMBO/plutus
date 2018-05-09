@@ -3,8 +3,8 @@ module Main ( main
             ) where
 
 import           Hedgehog
-import qualified Hedgehog.Gen          as Gen
-import qualified Hedgehog.Range        as Range
+import qualified Hedgehog.Gen        as Gen
+import qualified Hedgehog.Range      as Range
 import           Language.PlutusCore
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -15,6 +15,8 @@ genPosn = AlexPn <$> int' <*> int' <*> int'
 
 main :: IO ()
 main = defaultMain tests
+
+-- TODO add unit test
 
 prop_reverse :: Property
 prop_reverse =

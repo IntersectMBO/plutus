@@ -17,21 +17,19 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Special (..)
                                 , Name (..)
                                 , Version (..)
+                                , Program (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
                                 ) where
 
-import           Control.DeepSeq                (NFData)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          (cata)
 import           Data.Functor.Foldable.TH
-import           Data.List.NonEmpty
 import           Data.Text.Encoding             (decodeUtf8)
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                   (Generic)
-import           GHC.Natural
 import           Language.PlutusCore.Identifier
+import           PlutusPrelude
 
 data Builtin = AddInteger
              | SubtractInteger
@@ -59,7 +57,7 @@ data Builtin = AddInteger
              | BlockTime
              deriving (Show, Generic, NFData)
 
-data Version = Version Integer Integer Integer
+data Version a = Version a Integer Integer Integer
 
 data Keyword = KwIsa
              | KwAbs
@@ -79,6 +77,7 @@ data Special = OpenParen
              | CloseParen
              | OpenBracket
              | CloseBracket
+             | Dot
              deriving (Show, Generic, NFData)
 
 -- | Annotated type for names
@@ -127,9 +126,12 @@ data Kind a = Type a
             | Size a
             deriving (Show, Generic, NFData)
 
+data Program a = Program a (Version a) (Term a)
+
 makeBaseFunctor ''Term
 makeBaseFunctor ''Type
 
+-- TODO figure out indentation etc.
 instance Pretty Builtin where
     pretty AddInteger = "addInteger"
     pretty _          = undefined

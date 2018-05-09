@@ -5,11 +5,7 @@
                                       , ParseError (..)
                                       ) where
 
-import GHC.Generics (Generic)
-import Control.DeepSeq (NFData)
-import Data.Foldable (toList)
-import Data.List.NonEmpty (NonEmpty (..))
-import Control.Arrow
+import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import Control.Monad.Except
 import Control.Monad.Trans.Except
@@ -47,6 +43,7 @@ import Language.PlutusCore.Type
     closeParen { LexSpecial $$ CloseParen }
     openBracket { LexSpecial $$ OpenBracket }
     closeBracket { LexSpecial $$ CloseBracket }
+    dot { LexSpecial $$ Dot }
 
     builtinVar { $$@LexBuiltin{} }
 

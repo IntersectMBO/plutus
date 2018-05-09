@@ -8,10 +8,10 @@ module Language.PlutusCore.Identifier ( -- * Types
                                       , emptyIdentifierState
                                       ) where
 
-import           Control.DeepSeq      (NFData)
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IntMap          as IM
 import qualified Data.Map             as M
+import           PlutusPrelude
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's.
