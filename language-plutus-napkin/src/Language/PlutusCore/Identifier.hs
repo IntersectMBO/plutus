@@ -22,7 +22,7 @@ emptyIdentifierState = (mempty, mempty)
 
 -- | A newtype wrapper for unique identifiers.
 newtype Unique = Unique Int
-    deriving (Show, NFData)
+    deriving (Eq, Show, NFData)
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast

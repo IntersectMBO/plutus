@@ -54,6 +54,7 @@ tokens :-
     <0> integer                  { mkKeyword KwInteger }
     <0> size                     { mkKeyword KwSize }
     <0> type                     { mkKeyword KwType }
+    <0> program                  { mkKeyword KwProgram }
 
     -- Builtins
     <0> addInteger               { mkBuiltin AddInteger }

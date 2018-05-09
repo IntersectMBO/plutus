@@ -12,10 +12,11 @@ import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer
 import Language.PlutusCore.Identifier
 import Language.PlutusCore.Type
+import qualified Data.List.NonEmpty as NE
 
 }
 
-%name parsePlutusNapkin
+%name parsePlutusCore
 %tokentype { Token AlexPosn }
 %error { parseError }
 %monad { Parse } { (>>=) } { return }
@@ -38,6 +39,7 @@ import Language.PlutusCore.Type
     integer { LexKeyword $$ KwInteger }
     bytestring { LexKeyword $$ KwByteString }
     type { LexKeyword $$ KwType }
+    program { LexKeyword $$ KwProgram }
 
     openParen { LexSpecial $$ OpenParen }
     closeParen { LexSpecial $$ CloseParen }
@@ -64,12 +66,16 @@ some(p)
 parens(p)
     : openParen p closeParen { $2 }
 
+Program : openParen program Version Term closeParen { Program $2 $3 $4 }
+
+Version : integerLit dot integerLit dot integerLit { Version (loc $1) (int $1) (int $3) (int $5) }
+
 Term : var { Var (loc $1) (asName $1) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
      | openParen inst Term Type closeParen { TyInst $2 $3 $4 }
      | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
-     | openBracket Term some(Term) closeBracket { Apply $1 $2 $3 }
+     | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
      | openParen builtin builtinVar closeParen { Builtin $2 (builtin $3) }
      | integerLit { PrimInt (loc $1) (int $1) }
@@ -92,8 +98,8 @@ asName :: Token a -> Name a
 asName t = Name (loc t) (identifier t)
 
 -- FIXME the identifier state should be included with a plain parse error as well.
-parse :: BSL.ByteString -> Either ParseError (IdentifierState, (Term AlexPosn))
-parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlutusNapkin))
+parse :: BSL.ByteString -> Either ParseError (IdentifierState, (Program AlexPosn))
+parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlutusCore))
     where go (st, Left err) = Left err
           go (st, Right x) = Right (st, x)
           liftErr (Left s)  = Left (LexErr s)
@@ -103,7 +109,7 @@ data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Expected AlexPosn [String] String
                 | InternalError
-                deriving (Show, Generic, NFData)
+                deriving (Show, Eq, Generic, NFData)
 
 type Parse = ExceptT ParseError Alex
 

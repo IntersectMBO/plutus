@@ -55,9 +55,10 @@ data Builtin = AddInteger
              | TxHash
              | BlockNum
              | BlockTime
-             deriving (Show, Generic, NFData)
+             deriving (Show, Eq, Generic, NFData)
 
 data Version a = Version a Integer Integer Integer
+               deriving (Generic, NFData)
 
 data Keyword = KwIsa
              | KwAbs
@@ -71,14 +72,15 @@ data Keyword = KwIsa
              | KwInteger
              | KwSize
              | KwType
-             deriving (Show, Generic, NFData)
+             | KwProgram
+             deriving (Show, Eq, Generic, NFData)
 
 data Special = OpenParen
              | CloseParen
              | OpenBracket
              | CloseBracket
              | Dot
-             deriving (Show, Generic, NFData)
+             deriving (Show, Eq, Generic, NFData)
 
 -- | Annotated type for names
 data Token a = LexName { loc :: a, identifier :: Unique }
@@ -90,7 +92,7 @@ data Token a = LexName { loc :: a, identifier :: Unique }
              | LexKeyword { loc :: a, keyword :: Keyword }
              | LexSpecial { loc :: a, special :: Special }
              | EOF { loc :: a }
-             deriving (Show, Generic, NFData)
+             deriving (Show, Eq, Generic, NFData)
 
 data Name a = Name a Unique
             deriving (Show, Generic, NFData)
@@ -120,13 +122,13 @@ data Term a = Var a (Name a)
             | PrintVar a BSL.ByteString
             deriving (Show, Generic, NFData)
 
--- | Base functor for kinds.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
             | Size a
             deriving (Show, Generic, NFData)
 
 data Program a = Program a (Version a) (Term a)
+               deriving (Generic, NFData)
 
 makeBaseFunctor ''Term
 makeBaseFunctor ''Type
@@ -135,6 +137,12 @@ makeBaseFunctor ''Type
 instance Pretty Builtin where
     pretty AddInteger = "addInteger"
     pretty _          = undefined
+
+instance Pretty (Version a) where
+    pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
+
+instance Pretty (Program a) where
+    pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
 instance Pretty (Term a) where
     pretty = cata a where

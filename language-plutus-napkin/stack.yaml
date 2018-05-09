@@ -11,4 +11,6 @@ flags:
     test-doctests: false
   semigroupoids:
     doctests: false
+  lens:
+    test-doctests: false
 extra-package-dbs: []

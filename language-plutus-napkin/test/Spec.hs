@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main ( main
             , genPosn
             ) where
@@ -7,7 +9,7 @@ import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
 import           Language.PlutusCore
 import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import           Test.Tasty.HUnit
 
 genPosn :: MonadGen m => m AlexPosn
 genPosn = AlexPn <$> int' <*> int' <*> int'
@@ -16,15 +18,6 @@ genPosn = AlexPn <$> int' <*> int' <*> int'
 main :: IO ()
 main = defaultMain tests
 
--- TODO add unit test
-
-prop_reverse :: Property
-prop_reverse =
-  property $ do
-    xs <- forAll $ Gen.list (Range.linear 0 100) Gen.alpha
-    reverse (reverse xs) === xs
-
 tests :: TestTree
-tests = testGroup "parser tests" [
-   testProperty "reverse" prop_reverse
- ]
+tests = testCase "builtin" $
+    format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
