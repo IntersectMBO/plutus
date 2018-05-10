@@ -78,7 +78,7 @@ instance Pretty (Name a) where
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
--- TODO nicer identation
+-- TODO better identation
 instance Pretty (Term a) where
     pretty = cata a where
         a (BuiltinF _ b)    = parens ("builtin" <+> pretty b)

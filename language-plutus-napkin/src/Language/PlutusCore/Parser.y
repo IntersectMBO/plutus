@@ -106,10 +106,10 @@ parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x
 
+-- TODO pretty instance?
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Expected AlexPosn [String] String
-                | InternalError
                 deriving (Show, Eq, Generic, NFData)
 
 type Parse = ExceptT ParseError Alex

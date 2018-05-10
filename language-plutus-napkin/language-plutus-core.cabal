@@ -91,7 +91,6 @@ benchmark language-plutus-core-bench
     main-is: Bench.hs
     hs-source-dirs: bench
     default-language: Haskell2010
-    other-extensions: OverloadedStrings
     ghc-options: -O3 -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints
                  -Wnoncanonical-monad-instances

@@ -1,18 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main (main) where
 
 import           Criterion.Main
 import qualified Data.ByteString.Lazy as BSL
 import           Language.PlutusCore
 
-tinyProgram :: BSL.ByteString
-tinyProgram = "[(builtin addInteger) x y]"
-
 main :: IO ()
 main =
-    defaultMain [ bgroup "format"
-                      [ bench "format" $ nf format tinyProgram ]
-                , bgroup "parse"
-                      [ bench "parse" $ nf parse tinyProgram ]
+    defaultMain [ env envFile $ \ f ->
+                  bgroup "format"
+                      [ bench "format" $ nf format f ]
+                , env envFile $ \ f ->
+                  bgroup "parse"
+                      [ bench "parse" $ nf parse f ]
                 ]
+    where envFile = BSL.readFile "test/data/addInteger.pls"

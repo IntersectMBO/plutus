@@ -16,6 +16,8 @@ genPosn :: MonadGen m => m AlexPosn
 genPosn = AlexPn <$> int' <*> int' <*> int'
     where int' = Gen.int (Range.linear 0 1000)
 
+-- TODO generate random trees, print them, parse the original result (hopefully)
+
 main :: IO ()
 main = defaultMain tests
 
