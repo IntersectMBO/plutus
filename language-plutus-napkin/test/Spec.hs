@@ -15,14 +15,11 @@ import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
 main :: IO ()
-main =
-    traverse_ defaultMain [tests, propertyTests]
+main = traverse_ defaultMain [tests, propertyTests]
 
 genPosn :: MonadGen m => m AlexPosn
 genPosn = AlexPn <$> int' <*> int' <*> int'
     where int' = Gen.int (Range.linear 0 1000)
-
--- TODO generate random trees, print them, parse the original result (hopefully)
 
 versionEq :: Version a -> Version a -> Bool
 versionEq (Version _ i j k) (Version _ i' j' k') =
@@ -31,7 +28,6 @@ versionEq (Version _ i j k) (Version _ i' j' k') =
 programEq :: Program a -> Program a -> Bool
 programEq (Program _ v t) (Program _ v' t') = versionEq v v' && termEq t t'
 
--- TODO catamorphism?
 termEq :: Term a -> Term a -> Bool
 termEq _ = undefined
 
@@ -41,7 +37,7 @@ propParser = property $ do
     xs === xs
 
 propertyTests :: TestTree
-propertyTests = testGroup "property tests" $
+propertyTests = testGroup "property tests"
     [ testProperty "property test" propParser
     ]
 
