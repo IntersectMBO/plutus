@@ -16,6 +16,10 @@ Here are also some smart contract-related technologies that are outside of block
 * [Oraclize](Oraclize.md)
 * [Pay-to-contract extensions to Bitcoin transactions](PayToContract.md)
 
+Work on testing smart contracts:
+
+* [Echidna](Echidna.md) — property-based testing of Solidity contracts as state machines (with Hedgehog)
+
 Work that contributes towards modelling smart contracts:
 
-* [BitML](BitML.md)
+* [BitML](BitML.md) — process algebra-like DSL to generate Bitcoin script
