@@ -19,6 +19,6 @@ steps:
       remove_redundant: false
 
   - trailing_whitespace: {}
-columns: 80
+columns: 100
 newline: native
 language_extensions: [CPP]

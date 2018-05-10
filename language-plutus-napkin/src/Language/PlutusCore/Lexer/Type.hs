@@ -7,11 +7,17 @@ module Language.PlutusCore.Lexer.Type ( Builtin (..)
                                       , Keyword (..)
                                       , Special (..)
                                       , Token (..)
+                                      , TypeBuiltin (..)
                                       ) where
 
 import qualified Data.ByteString.Lazy           as BSL
 import           Language.PlutusCore.Identifier
 import           PlutusPrelude
+
+data TypeBuiltin = TyByteString
+                 | TyInteger
+                 | TySize
+                 deriving (Show, Generic, NFData)
 
 data Builtin = AddInteger
              | SubtractInteger
@@ -103,6 +109,11 @@ instance Pretty Builtin where
     pretty TxHash               = "txhash"
     pretty BlockNum             = "blocknum"
     pretty BlockTime            = "blocktime"
+
+instance Pretty TypeBuiltin where
+    pretty TyInteger    = "integer"
+    pretty TyByteString = "bytestring"
+    pretty TySize       = "size"
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

@@ -11,7 +11,6 @@ import Control.Monad.Except
 import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
-import Language.PlutusCore.Identifier
 import Language.PlutusCore.Type
 import qualified Data.List.NonEmpty as NE
 
@@ -87,9 +86,9 @@ Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
      -- FIXME update to the spec
-     | size { TySize $1 }
-     | integer { TyInteger $1 }
-     | bytestring { TyByteString $1 }
+     | size { TyBuiltin $1 TySize }
+     | integer { TyBuiltin $1 TyInteger }
+     | bytestring { TyBuiltin $1 TyByteString }
 
 Kind : parens(type) { Type $1 }
      | fun Kind Kind { KindArrow $1 $2 $3 }

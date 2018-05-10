@@ -34,9 +34,7 @@ data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
             | TyFix a (Name a) (Kind a) (Type a)
             | TyForall a (Name a) (Kind a) (Type a)
-            | TyByteString a
-            | TyInteger a
-            | TySize a
+            | TyBuiltin a TypeBuiltin
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Show, Generic, NFData)
@@ -94,8 +92,10 @@ instance Pretty (Term a) where
 
 instance Pretty (Type a) where
     pretty = cata a where
-        a (TyAppF _ t ts)  = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a (TyVarF _ n)     = pretty n
-        a (TyFunF _ t t')  = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n k t) = parens ("fix" <+> pretty n <+> pretty k <+> t)
-        a _                = undefined
+        a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyVarF _ n)        = pretty n
+        a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
+        a (TyFixF _ n k t)    = parens ("fix" <+> pretty n <+> pretty k <+> t)
+        a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
+        a (TyBuiltinF _ n)    = parens ("builtin" <+> pretty n)
+        a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)

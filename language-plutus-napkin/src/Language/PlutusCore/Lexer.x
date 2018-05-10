@@ -1,5 +1,4 @@
 {
-    {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-imports #-}
     {-# LANGUAGE DeriveAnyClass     #-}
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE StandaloneDeriving #-}
@@ -8,7 +7,6 @@
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
-                                     , AlexState (..)
                                      ) where
 
 import PlutusPrelude

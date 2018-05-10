@@ -2,7 +2,7 @@
 - functions:
   - {name: unsafePerformIO, within: []}
   - {name: error, within: []}
-  - {name: undefined, within: [Language.PlutusCore.Type]}
+  - {name: undefined, within: [Language.PlutusCore.Type, Main]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
 
