@@ -50,6 +50,7 @@ import qualified Data.List.NonEmpty as NE
     builtinVar { $$@LexBuiltin{} }
 
     integerLit { $$@LexInt{} }
+    sizeLit { $$@LexSize{} }
 
     var { $$@LexName{} }
 
@@ -79,6 +80,7 @@ Term : var { Var (loc $1) (asName $1) }
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
      | openParen builtin builtinVar closeParen { Builtin $2 (builtin $3) }
      | integerLit { PrimInt (loc $1) (int $1) }
+     | sizeLit { PrimSize (loc $1) (size $1) }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

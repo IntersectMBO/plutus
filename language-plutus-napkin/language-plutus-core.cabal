@@ -56,7 +56,7 @@ library
         deepseq -any,
         recursion-schemes -any,
         prettyprinter -any,
-        text
+        text -any
     
     if flag(development)
         ghc-options: -Werror
@@ -78,8 +78,7 @@ test-suite language-plutus-core-test
         language-plutus-core -any,
         tasty -any,
         hedgehog -any,
-        tasty-hedgehog -any,
-        tasty-hunit
+        tasty-hunit -any
     
     if flag(development)
         ghc-options: -Werror

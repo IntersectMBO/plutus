@@ -4,6 +4,7 @@ module Main ( main
             , genPosn
             ) where
 
+import           Data.Foldable       (fold)
 import           Hedgehog
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
@@ -19,5 +20,8 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testCase "builtin" $
-    format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
+tests = testCase "builtin" $ fold
+    [ format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
+    , format "(program 0.1.0 [(builtin addInteger) +1 y])" @?= Right "(program 0.1.0 [ (builtin addInteger) 1 y ])"
+    , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    ]

@@ -35,6 +35,12 @@ $upper = [A-Z]
 
 @identifier = $lower [$lower $upper $digit \_ \']*
 
+$ascii = [$digit $lower $upper \~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\[\]\{\]\|\;\:\'\,\.\<\>\/\?]
+@special = \\\\ | \\\"
+
+@unicode_in = [^\\\"] | @special
+@ascii_in = $ascii | @special
+
 tokens :-
 
     <0> $white+                  ;
@@ -74,6 +80,8 @@ tokens :-
     <0> concatenate              { mkBuiltin Concatenate }
     <0> takeByteString           { mkBuiltin TakeByteString }
     <0> dropByteString           { mkBuiltin DropByteString }
+    <0> equalsByteString         { mkBuiltin EqByteString }
+    <0> resizeByteString         { mkBuiltin ResizeByteString }
     <0> "sha2_256"               { mkBuiltin SHA2 }
     <0> "sha3_256"               { mkBuiltin SHA3 }
     <0> verifySignature          { mkBuiltin VerifySignature }
@@ -87,6 +95,10 @@ tokens :-
     <0> "["                      { mkSpecial OpenBracket }
     <0> "]"                      { mkSpecial CloseBracket }
     <0> "."                      { mkSpecial Dot }
+
+    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p s) }
+    <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p s) }
+    <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p s) }
 
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
     <0> @size                    { tok (\p s -> alex $ LexSize p (readBSL s)) }

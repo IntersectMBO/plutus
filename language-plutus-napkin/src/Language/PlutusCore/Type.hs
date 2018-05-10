@@ -48,6 +48,7 @@ data Builtin = AddInteger
              | Concatenate
              | TakeByteString
              | DropByteString
+             | ResizeByteString
              | SHA2
              | SHA3
              | VerifySignature
@@ -118,7 +119,7 @@ data Term a = Var a (Name a)
             | Builtin a Builtin
             | PrimInt a Integer
             | PrimBS a BSL.ByteString
-            | PrimSize a (Name a)
+            | PrimSize a Natural
             | PrintVar a BSL.ByteString
             deriving (Show, Generic, NFData)
 
@@ -135,8 +136,31 @@ makeBaseFunctor ''Type
 
 -- TODO figure out indentation etc.
 instance Pretty Builtin where
-    pretty AddInteger = "addInteger"
-    pretty _          = undefined
+    pretty AddInteger           = "addInteger"
+    pretty SubtractInteger      = "subtractInteger"
+    pretty MultiplyInteger      = "multiplyInteger"
+    pretty DivideInteger        = "divideInteger"
+    pretty RemainderInteger     = "remainderInteger"
+    pretty LessThanInteger      = "lessThanInteger"
+    pretty LessThanEqInteger    = "lessThanEqualsInteger"
+    pretty GreaterThanInteger   = "greaterThanInteger"
+    pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
+    pretty EqInteger            = "eqInteger"
+    pretty IntToByteString      = "intToByteString"
+    pretty Concatenate          = "concatenate"
+    pretty TakeByteString       = "takeByteString"
+    pretty DropByteString       = "dropByteString"
+    pretty ResizeByteString     = "resizeByteString"
+    pretty EqByteString         = "equalsByteString"
+    pretty SHA2                 = "sha2_256"
+    pretty SHA3                 = "sha3_256"
+    pretty Ceiling              = "ceil"
+    pretty Floor                = "floor"
+    pretty Round                = "round"
+    pretty VerifySignature      = "verifySignature"
+    pretty TxHash               = "txhash"
+    pretty BlockNum             = "blocknum"
+    pretty BlockTime            = "blocktime"
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
@@ -144,10 +168,18 @@ instance Pretty (Version a) where
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
+-- TODO nicer identation
 instance Pretty (Term a) where
     pretty = cata a where
-        a (PrintVarF _ s) = pretty (decodeUtf8 $ BSL.toStrict s)
-        a (BuiltinF _ b)  = parens ("builtin" <+> pretty b)
-        a (ApplyF _ t ts) = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a VarF{}          = undefined
+        a (PrintVarF _ s)   = pretty (decodeUtf8 $ BSL.toStrict s)
+        a (BuiltinF _ b)    = parens ("builtin" <+> pretty b)
+        a (ApplyF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (PrimIntF _ i)    = pretty i
+        a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
+        a VarF{}            = undefined
+        a _                 = undefined
+
+instance Pretty (Type a) where
+    pretty = cata a where
+        a (TyAppF _ t ts) = "[" <+> t <+> hsep (toList ts) <+> "]"
         a _               = undefined
