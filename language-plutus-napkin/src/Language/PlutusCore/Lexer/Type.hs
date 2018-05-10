@@ -66,7 +66,7 @@ data Special = OpenParen
              deriving (Show, Eq, Generic, NFData)
 
 -- | Annotated type for names
-data Token a = LexName { loc :: a, identifier :: Unique }
+data Token a = LexName { loc :: a, name :: BSL.ByteString, identifier :: Unique }
              | LexInt { loc :: a, int :: Integer }
              | LexBS { loc :: a, bytestring :: BSL.ByteString }
              | LexBuiltin { loc :: a, builtin :: Builtin }

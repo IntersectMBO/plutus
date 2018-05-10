@@ -4,7 +4,7 @@
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
-                                     , runAlexST
+                                     , runAlex
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
@@ -152,7 +152,7 @@ mkKeyword = constructor LexKeyword
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
 handle_identifier p s =
     sets_alex (modifyUST (snd . newIdentifier s)) >> 
-    LexName p <$> gets_alex (fst . newIdentifier s . alex_ust)
+    LexName p s <$> gets_alex (fst . newIdentifier s . alex_ust)
 
 -- this conversion is safe because we only lex digits
 -- FIXME this messes up when we feed it a string like +15
@@ -186,15 +186,5 @@ get_pos = gets_alex alex_pos
 
 alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF <$> get_pos
-
-runAlexST :: BSL.ByteString -> Alex a -> Either String (AlexState, a)
-runAlexST input (Alex f) = f st
-    where st = AlexState { alex_pos = alexStartPos
-                         , alex_bpos = 0
-                         , alex_inp = input
-                         , alex_chr = '\n'
-                         , alex_ust = alexInitUserState
-                         , alex_scd = 0 
-                         }
 
 }

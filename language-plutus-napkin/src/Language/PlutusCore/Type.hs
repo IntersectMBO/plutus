@@ -27,7 +27,7 @@ import           Language.PlutusCore.Identifier
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
-data Name a = Name a Unique
+data Name a = Name a BSL.ByteString Unique
             deriving (Show, Generic, NFData)
 
 data Type a = TyVar a (Name a)
@@ -52,7 +52,6 @@ data Term a = Var a (Name a)
             | PrimInt a Integer
             | PrimBS a BSL.ByteString
             | PrimSize a Natural
-            | PrintVar a BSL.ByteString
             deriving (Show, Generic, NFData)
 
 data Kind a = Type a
@@ -66,21 +65,24 @@ data Program a = Program a (Version a) (Term a)
 makeBaseFunctor ''Term
 makeBaseFunctor ''Type
 
+instance Pretty (Name a) where
+    pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
+
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
 -- TODO nicer identation
 instance Pretty (Term a) where
     pretty = cata a where
-        a (PrintVarF _ s)   = pretty (decodeUtf8 $ BSL.toStrict s)
         a (BuiltinF _ b)    = parens ("builtin" <+> pretty b)
         a (ApplyF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (PrimIntF _ i)    = pretty i
         a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
-        a VarF{}            = undefined
+        a (VarF _ n)        = pretty n
         a _                 = undefined
 
 instance Pretty (Type a) where
     pretty = cata a where
         a (TyAppF _ t ts) = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyVarF _ n)    = pretty n
         a _               = undefined

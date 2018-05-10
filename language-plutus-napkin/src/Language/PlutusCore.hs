@@ -8,7 +8,9 @@ module Language.PlutusCore
     , Version (..)
     , Program (..)
     , Name (..)
-    -- * Lexer Types
+    , Special (..)
+    , Unique
+    -- * Lexer
     , AlexPosn (..)
     , Token (..)
     -- * Parser
@@ -21,19 +23,18 @@ module Language.PlutusCore
     , TypeF (..)
     ) where
 
-import           Control.Monad                         ((<=<))
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import           Language.PlutusCore.Identifier
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Parser
-import           Language.PlutusCore.PrettyPrint
 import           Language.PlutusCore.Type
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
-formatDoc = fmap pretty . rewriteTerm <=< parse
+formatDoc = fmap pretty . parse
 
 format :: BSL.ByteString -> Either ParseError T.Text
 format = fmap (renderStrict . layoutSmart defaultLayoutOptions) . formatDoc

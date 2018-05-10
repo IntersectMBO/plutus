@@ -83,7 +83,7 @@ Term : var { Var (loc $1) (asName $1) }
      | integerLit { PrimInt (loc $1) (int $1) }
      | sizeLit { PrimSize (loc $1) (size $1) }
 
-Type : var { TyVar (loc $1) (Name (loc $1) (identifier $1)) }
+Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
      -- FIXME update to the spec
@@ -98,14 +98,12 @@ Kind : parens(type) { Type $1 }
 {
 
 asName :: Token a -> Name a
-asName t = Name (loc t) (identifier t)
+asName t = Name (loc t) (name t) (identifier t)
 
 -- FIXME the identifier state should be included with a plain parse error as well.
-parse :: BSL.ByteString -> Either ParseError (IdentifierState, (Program AlexPosn))
-parse str = liftErr (go . first alex_ust <$> runAlexST str (runExceptT parsePlutusCore))
-    where go (st, Left err) = Left err
-          go (st, Right x) = Right (st, x)
-          liftErr (Left s)  = Left (LexErr s)
+parse :: BSL.ByteString -> Either ParseError (Program AlexPosn)
+parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
+    where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x
 
 data ParseError = LexErr String
