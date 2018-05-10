@@ -9,6 +9,7 @@ import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import Control.Monad.Except
 import Control.Monad.Trans.Except
+import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
 import Language.PlutusCore.Identifier
 import Language.PlutusCore.Type

@@ -1,0 +1,25 @@
+module PlutusPrelude ( (<=<)
+                     , (&&&)
+                     , toList
+                     , bool
+                     , first
+                     , Generic
+                     , NFData
+                     , Natural
+                     , NonEmpty (..)
+                     , Pretty (..)
+                     , (<>)
+                     ) where
+
+#if __GLASGOW_HASKELL__ < 804
+import           Data.Semigroup
+#endif
+import           Control.Arrow             (first, (&&&))
+import           Control.DeepSeq           (NFData)
+import           Control.Monad             ((<=<))
+import           Data.Bool                 (bool)
+import           Data.Foldable             (toList)
+import           Data.List.NonEmpty        (NonEmpty (..))
+import           Data.Text.Prettyprint.Doc
+import           GHC.Generics              (Generic)
+import           GHC.Natural               (Natural)

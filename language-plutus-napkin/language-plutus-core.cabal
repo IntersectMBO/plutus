@@ -29,12 +29,13 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
-    build-tools: alex -any, happy >=1.17.1
+    build-tools: alex -any, happy >=1.17.1, cpphs
     hs-source-dirs: src
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Identifier
         Language.PlutusCore.Lexer
+        Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.PrettyPrint
         PlutusPrelude

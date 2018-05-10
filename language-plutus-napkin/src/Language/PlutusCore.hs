@@ -1,14 +1,16 @@
 module Language.PlutusCore
-    ( -- * Types
+    ( -- * AST
       Term (..)
     , Type (..)
     , Builtin (..)
-    , Token (..)
     , Kind (..)
-    , AlexPosn (..)
     , ParseError (..)
     , Version (..)
     , Program (..)
+    , Name (..)
+    -- * Lexer Types
+    , AlexPosn (..)
+    , Token (..)
     -- * Parser
     , parse
     -- * Formatter
@@ -25,6 +27,7 @@ import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Language.PlutusCore.Lexer
+import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.PrettyPrint
 import           Language.PlutusCore.Type
