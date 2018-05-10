@@ -62,8 +62,15 @@ data Kind a = Type a
 data Program a = Program a (Version a) (Term a)
                deriving (Generic, NFData)
 
+makeBaseFunctor ''Kind
 makeBaseFunctor ''Term
 makeBaseFunctor ''Type
+
+instance Pretty (Kind a) where
+    pretty = cata a where
+        a TypeF{}             = "(type)"
+        a SizeF{}             = "(size)"
+        a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance Pretty (Name a) where
     pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
@@ -79,10 +86,16 @@ instance Pretty (Term a) where
         a (PrimIntF _ i)    = pretty i
         a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
         a (VarF _ n)        = pretty n
+        a (TyAbsF _ n t)    = parens ("abs" <+> pretty n <+> t)
+        a (TyInstF _ t te)  = parens ("inst" <+> t <+> pretty te)
+        a (FixF _ n t)      = parens ("fix" <+> pretty n <+> t)
+        a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
         a _                 = undefined
 
 instance Pretty (Type a) where
     pretty = cata a where
-        a (TyAppF _ t ts) = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a (TyVarF _ n)    = pretty n
-        a _               = undefined
+        a (TyAppF _ t ts)  = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyVarF _ n)     = pretty n
+        a (TyFunF _ t t')  = parens ("fun" <+> t <+> t')
+        a (TyFixF _ n k t) = parens ("fix" <+> pretty n <+> pretty k <+> t)
+        a _                = undefined
