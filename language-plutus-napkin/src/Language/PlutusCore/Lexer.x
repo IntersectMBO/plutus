@@ -93,6 +93,7 @@ tokens :-
     <0> "["                      { mkSpecial OpenBracket }
     <0> "]"                      { mkSpecial CloseBracket }
     <0> "."                      { mkSpecial Dot }
+    <0> "!"                      { mkSpecial Exclamation }
 
     <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p s) }
     <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p s) }
