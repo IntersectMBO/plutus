@@ -46,6 +46,7 @@ import qualified Data.List.NonEmpty as NE
     openBracket { LexSpecial $$ OpenBracket }
     closeBracket { LexSpecial $$ CloseBracket }
     dot { LexSpecial $$ Dot }
+    exclamation { LexSpecial $$ Exclamation }
 
     builtinVar { $$@LexBuiltin{} }
 
@@ -71,6 +72,10 @@ Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
 Version : integerLit dot integerLit dot integerLit { Version (loc $1) (int $1) (int $3) (int $5) }
 
+Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
+        | sizeLit exclamation integerLit { BuiltinInt (loc $1) (size $1) (int $3) }
+        | sizeLit { BuiltinSize (loc $1) (size $1) }
+
 Term : var { Var (loc $1) (asName $1) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
@@ -78,9 +83,7 @@ Term : var { Var (loc $1) (asName $1) }
      | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
-     | openParen builtin builtinVar closeParen { Builtin $2 (builtin $3) }
-     | integerLit { PrimInt (loc $1) (int $1) }
-     | sizeLit { PrimSize (loc $1) (size $1) }
+     | openParen builtin Builtin closeParen { Builtin $2 $3 }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

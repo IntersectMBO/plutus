@@ -6,7 +6,7 @@ module Main ( main
             ) where
 
 import           Data.Foldable       (fold, traverse_)
-import           Hedgehog
+import           Hedgehog            hiding (Var)
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
 import           Language.PlutusCore
@@ -28,8 +28,17 @@ versionEq (Version _ i j k) (Version _ i' j' k') =
 programEq :: Program a -> Program a -> Bool
 programEq (Program _ v t) (Program _ v' t') = versionEq v v' && termEq t t'
 
+builtinEq :: Builtin a -> Builtin a -> Bool
+builtinEq (BuiltinInt _ s i) (BuiltinInt _ s' i') = s == s' && i == i'
+builtinEq (BuiltinSize _ s) (BuiltinSize _ s')    = s == s'
+builtinEq (BuiltinBS _ s b) (BuiltinBS _ s' b')   = s == s' && b == b'
+builtinEq (BuiltinName _ n) (BuiltinName _ n')    = n == n'
+builtinEq _ _                                     = False
+
 termEq :: Term a -> Term a -> Bool
-termEq _ = undefined
+termEq (Builtin _ b) (Builtin _ b') = builtinEq b b'
+termEq (Var _ n) (Var _ n')         = n == n'
+termEq _ _                          = undefined
 
 propParser :: Property
 propParser = property $ do
@@ -44,6 +53,5 @@ propertyTests = testGroup "property tests"
 tests :: TestTree
 tests = testCase "builtin" $ fold
     [ format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
-    , format "(program 0.1.0 [(builtin addInteger) +1 y])" @?= Right "(program 0.1.0 [ (builtin addInteger) 1 y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     ]

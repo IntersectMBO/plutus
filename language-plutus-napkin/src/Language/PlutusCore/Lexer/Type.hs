@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.PlutusCore.Lexer.Type ( Builtin (..)
+module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , Version (..)
                                       , Keyword (..)
                                       , Special (..)
@@ -19,32 +19,32 @@ data TypeBuiltin = TyByteString
                  | TySize
                  deriving (Show, Generic, NFData)
 
-data Builtin = AddInteger
-             | SubtractInteger
-             | MultiplyInteger
-             | DivideInteger
-             | RemainderInteger
-             | LessThanInteger
-             | LessThanEqInteger
-             | GreaterThanInteger
-             | GreaterThanEqInteger
-             | EqInteger
-             | IntToByteString
-             | Ceiling
-             | Floor
-             | Round
-             | Concatenate
-             | TakeByteString
-             | DropByteString
-             | ResizeByteString
-             | SHA2
-             | SHA3
-             | VerifySignature
-             | EqByteString
-             | TxHash
-             | BlockNum
-             | BlockTime
-             deriving (Show, Eq, Generic, NFData)
+data BuiltinName = AddInteger
+                 | SubtractInteger
+                 | MultiplyInteger
+                 | DivideInteger
+                 | RemainderInteger
+                 | LessThanInteger
+                 | LessThanEqInteger
+                 | GreaterThanInteger
+                 | GreaterThanEqInteger
+                 | EqInteger
+                 | IntToByteString
+                 | Ceiling
+                 | Floor
+                 | Round
+                 | Concatenate
+                 | TakeByteString
+                 | DropByteString
+                 | ResizeByteString
+                 | SHA2
+                 | SHA3
+                 | VerifySignature
+                 | EqByteString
+                 | TxHash
+                 | BlockNum
+                 | BlockTime
+                 deriving (Show, Eq, Generic, NFData)
 
 data Version a = Version a Integer Integer Integer
                deriving (Generic, NFData)
@@ -69,13 +69,14 @@ data Special = OpenParen
              | OpenBracket
              | CloseBracket
              | Dot
+             | Exclamation
              deriving (Show, Eq, Generic, NFData)
 
 -- | Annotated type for names
 data Token a = LexName { loc :: a, name :: BSL.ByteString, identifier :: Unique }
              | LexInt { loc :: a, int :: Integer }
              | LexBS { loc :: a, bytestring :: BSL.ByteString }
-             | LexBuiltin { loc :: a, builtin :: Builtin }
+             | LexBuiltin { loc :: a, builtin :: BuiltinName }
              | LexSize { loc :: a, size :: Natural }
              | LexSizeTerm { loc :: a, sizeTerm :: Natural }
              | LexKeyword { loc :: a, keyword :: Keyword }
@@ -83,7 +84,7 @@ data Token a = LexName { loc :: a, name :: BSL.ByteString, identifier :: Unique 
              | EOF { loc :: a }
              deriving (Show, Eq, Generic, NFData)
 
-instance Pretty Builtin where
+instance Pretty BuiltinName where
     pretty AddInteger           = "addInteger"
     pretty SubtractInteger      = "subtractInteger"
     pretty MultiplyInteger      = "multiplyInteger"

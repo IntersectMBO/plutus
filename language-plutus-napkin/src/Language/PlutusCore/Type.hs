@@ -13,6 +13,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Kind (..)
                                 , Name (..)
                                 , Program (..)
+                                , Builtin (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
@@ -27,8 +28,11 @@ import           Language.PlutusCore.Identifier
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
-data Name a = Name a BSL.ByteString Unique
+data Name a = Name { nameLoc :: a, asString :: BSL.ByteString, unique :: Unique }
             deriving (Show, Generic, NFData)
+
+instance Eq (Name a) where
+    (==) = (==) `on` unique
 
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
@@ -39,6 +43,12 @@ data Type a = TyVar a (Name a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Show, Generic, NFData)
 
+data Builtin a = BuiltinInt a Natural Integer
+               | BuiltinBS a Natural BSL.ByteString
+               | BuiltinSize a Natural
+               | BuiltinName a BuiltinName
+               deriving (Show, Generic, NFData)
+
 data Term a = Var a (Name a)
             | TyAnnot a (Type a) (Term a)
             | TyAbs a (Name a) (Term a)
@@ -46,10 +56,7 @@ data Term a = Var a (Name a)
             | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
             | Fix a (Name a) (Term a)
-            | Builtin a Builtin
-            | PrimInt a Integer
-            | PrimBS a BSL.ByteString
-            | PrimSize a Natural
+            | Builtin a (Builtin a)
             deriving (Show, Generic, NFData)
 
 data Kind a = Type a
@@ -76,19 +83,23 @@ instance Pretty (Name a) where
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
+instance Pretty (Builtin a) where
+    pretty (BuiltinInt _ s i) = pretty s <> "!" <> pretty i
+    pretty (BuiltinSize _ s)  = pretty s
+    pretty (BuiltinBS _ s b)  = pretty s <> "!" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
+    pretty (BuiltinName _ n)  = pretty n
+
 -- TODO better identation
 instance Pretty (Term a) where
     pretty = cata a where
         a (BuiltinF _ b)    = parens ("builtin" <+> pretty b)
         a (ApplyF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a (PrimIntF _ i)    = pretty i
         a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
         a (VarF _ n)        = pretty n
         a (TyAbsF _ n t)    = parens ("abs" <+> pretty n <+> t)
         a (TyInstF _ t te)  = parens ("inst" <+> t <+> pretty te)
         a (FixF _ n t)      = parens ("fix" <+> pretty n <+> t)
         a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
-        a _                 = undefined
 
 instance Pretty (Type a) where
     pretty = cata a where

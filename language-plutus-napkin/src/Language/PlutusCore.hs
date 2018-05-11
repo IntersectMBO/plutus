@@ -10,6 +10,7 @@ module Language.PlutusCore
     , Name (..)
     , Special (..)
     , Unique
+    , BuiltinName (..)
     -- * Lexer
     , AlexPosn (..)
     , Token (..)
