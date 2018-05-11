@@ -29,7 +29,7 @@ import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
 data Name a = Name { nameLoc :: a, asString :: BSL.ByteString, unique :: Unique }
-            deriving (Show, Generic, NFData)
+            deriving (Functor, Show, Generic, NFData)
 
 instance Eq (Name a) where
     (==) = (==) `on` unique
@@ -41,13 +41,13 @@ data Type a = TyVar a (Name a)
             | TyBuiltin a TypeBuiltin
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
-            deriving (Show, Generic, NFData)
+            deriving (Functor, Show, Eq, Generic, NFData)
 
 data Builtin a = BuiltinInt a Natural Integer
                | BuiltinBS a Natural BSL.ByteString
                | BuiltinSize a Natural
                | BuiltinName a BuiltinName
-               deriving (Show, Generic, NFData)
+               deriving (Functor, Show, Eq, Generic, NFData)
 
 data Term a = Var a (Name a)
             | TyAnnot a (Type a) (Term a)
@@ -57,15 +57,15 @@ data Term a = Var a (Name a)
             | Apply a (Term a) (NonEmpty (Term a))
             | Fix a (Name a) (Term a)
             | Builtin a (Builtin a)
-            deriving (Show, Generic, NFData)
+            deriving (Functor, Show, Eq, Generic, NFData)
 
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
             | Size a
-            deriving (Show, Generic, NFData)
+            deriving (Functor, Eq, Show, Generic, NFData)
 
 data Program a = Program a (Version a) (Term a)
-               deriving (Generic, NFData)
+               deriving (Eq, Generic, NFData)
 
 makeBaseFunctor ''Kind
 makeBaseFunctor ''Term

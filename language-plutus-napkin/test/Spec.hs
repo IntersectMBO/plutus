@@ -21,24 +21,12 @@ genPosn :: MonadGen m => m AlexPosn
 genPosn = AlexPn <$> int' <*> int' <*> int'
     where int' = Gen.int (Range.linear 0 1000)
 
-versionEq :: Version a -> Version a -> Bool
-versionEq (Version _ i j k) (Version _ i' j' k') =
-    and (zipWith (==) [i, j, k] [i', j', k'])
+emptyPosn :: AlexPosn
+emptyPosn = AlexPn 0 0 0
 
-programEq :: Program a -> Program a -> Bool
-programEq (Program _ v t) (Program _ v' t') = versionEq v v' && termEq t t'
-
-builtinEq :: Builtin a -> Builtin a -> Bool
-builtinEq (BuiltinInt _ s i) (BuiltinInt _ s' i') = s == s' && i == i'
-builtinEq (BuiltinSize _ s) (BuiltinSize _ s')    = s == s'
-builtinEq (BuiltinBS _ s b) (BuiltinBS _ s' b')   = s == s' && b == b'
-builtinEq (BuiltinName _ n) (BuiltinName _ n')    = n == n'
-builtinEq _ _                                     = False
-
-termEq :: Term a -> Term a -> Bool
-termEq (Builtin _ b) (Builtin _ b') = builtinEq b b'
-termEq (Var _ n) (Var _ n')         = n == n'
-termEq _ _                          = undefined
+termEq :: Program AlexPosn -> Program AlexPosn -> Bool
+termEq p p' = nullPosn p == nullPosn p'
+    where nullPosn = fmap (pure emptyPosn)
 
 propParser :: Property
 propParser = property $ do
