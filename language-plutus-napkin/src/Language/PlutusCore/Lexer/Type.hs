@@ -78,7 +78,7 @@ data Token a = LexName { loc :: a, name :: BSL.ByteString, identifier :: Unique 
              | LexInt { loc :: a, int :: Integer }
              | LexBS { loc :: a, bytestring :: BSL.ByteString }
              | LexBuiltin { loc :: a, builtin :: BuiltinName }
-             | LexSize { loc :: a, size :: Natural }
+             | LexNat { loc :: a, nat :: Natural }
              | LexSizeTerm { loc :: a, sizeTerm :: Natural }
              | LexKeyword { loc :: a, keyword :: Keyword }
              | LexSpecial { loc :: a, special :: Special }
