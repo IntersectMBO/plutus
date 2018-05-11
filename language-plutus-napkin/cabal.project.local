@@ -1,5 +1,11 @@
 optimization: 2
-constraints: language-plutus-napkin +development
+constraints: language-plutus-core +development
+           , comonad -test-doctests
+           , semigroupoids -doctests
 tests: true
 benchmarks: true
 documentation: true
+
+program-options
+  alex-options: -g
+  happy-options: -gcsa

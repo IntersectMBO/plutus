@@ -21,4 +21,4 @@ steps:
   - trailing_whitespace: {}
 columns: 80
 newline: native
-language_extensions: []
+language_extensions: [CPP]
