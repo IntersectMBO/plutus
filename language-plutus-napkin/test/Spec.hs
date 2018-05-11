@@ -39,8 +39,10 @@ genType = simpleRecursive nonRecursive recursive
     where varGen = TyVar emptyPosn <$> genName
           funGen = TyFun emptyPosn <$> genType <*> genType
           lamGen = TyLam emptyPosn <$> genName <*> genKind <*> genType
+          forallGen = TyForall emptyPosn <$> genName <*> genKind <*> genType
+          fixGen = TyFix emptyPosn <$> genName <*> genKind <*> genType
           recursive = [funGen]
-          nonRecursive = [varGen, lamGen]
+          nonRecursive = [varGen, lamGen, forallGen, fixGen]
 
 genTerm :: MonadGen m => m (Term AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
