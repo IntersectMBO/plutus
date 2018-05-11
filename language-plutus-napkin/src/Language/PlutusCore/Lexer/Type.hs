@@ -47,7 +47,7 @@ data BuiltinName = AddInteger
                  | BlockTime
                  deriving (Show, Eq, Generic, NFData)
 
-data Version a = Version a Integer Integer Integer
+data Version a = Version a Natural Natural Natural
                deriving (Show, Eq, Functor, Generic, NFData)
 
 data Keyword = KwIsa
@@ -95,7 +95,7 @@ instance Pretty BuiltinName where
     pretty LessThanEqInteger    = "lessThanEqualsInteger"
     pretty GreaterThanInteger   = "greaterThanInteger"
     pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
-    pretty EqInteger            = "eqInteger"
+    pretty EqInteger            = "equalsInteger"
     pretty IntToByteString      = "intToByteString"
     pretty Concatenate          = "concatenate"
     pretty TakeByteString       = "takeByteString"

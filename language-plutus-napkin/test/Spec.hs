@@ -34,6 +34,24 @@ genKind = simpleRecursive nonRecursive recursive
     where nonRecursive = pure <$> sequence [Type, Size] emptyPosn
           recursive = [KindArrow emptyPosn <$> genKind <*> genKind]
 
+genBuiltinName :: MonadGen m => m BuiltinName
+genBuiltinName = Gen.choice $ pure <$>
+    [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger
+    , LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger
+    , EqInteger, IntToByteString, IntToByteString, Ceiling, Floor, Round
+    , Concatenate, TakeByteString, DropByteString, ResizeByteString, SHA2, SHA3
+    , VerifySignature, EqByteString, TxHash, BlockNum, BlockTime
+    ]
+
+genBuiltin :: MonadGen m => m (Builtin AlexPosn)
+genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
+    where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
+          size' = Gen.integral_ (Range.linear 8 64)
+          string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.latin1
+          genInt = BuiltinInt emptyPosn <$> size' <*> int'
+          genSize = BuiltinSize emptyPosn <$> size'
+          genBS = BuiltinBS emptyPosn <$> size' <*> string'
+
 genType :: MonadGen m => m (Type AlexPosn)
 genType = simpleRecursive nonRecursive recursive
     where varGen = TyVar emptyPosn <$> genName
@@ -53,7 +71,7 @@ genTerm = simpleRecursive nonRecursive recursive
           instGen = TyInst emptyPosn <$> genTerm <*> genType
           lamGen = LamAbs emptyPosn <$> genName <*> genTerm
           recursive = [fixGen, annotGen, absGen, instGen, lamGen]
-          nonRecursive = [varGen]
+          nonRecursive = [varGen, Builtin emptyPosn <$> genBuiltin]
 
 genProgram :: MonadGen m => m (Program AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm
@@ -77,5 +95,6 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    , format "(program 0.1.0 (builtin 8!-1)" @?= Right "(program 0.1.0 8!-1)"
     , format "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))" @?= Right "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))"
     ]

@@ -70,10 +70,11 @@ parens(p)
 
 Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
-Version : integerLit dot integerLit dot integerLit { Version (loc $1) (int $1) (int $3) (int $5) }
+Version : sizeLit dot sizeLit dot sizeLit { Version (loc $1) (size $1) (size $3) (size $5) }
 
 Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
         | sizeLit exclamation integerLit { BuiltinInt (loc $1) (size $1) (int $3) }
+        | sizeLit exclamation sizeLit { BuiltinInt (loc $1) (size $1) (fromIntegral (size $1)) }
         | sizeLit { BuiltinSize (loc $1) (size $1) }
 
 Term : var { Var (loc $1) (asName $1) }

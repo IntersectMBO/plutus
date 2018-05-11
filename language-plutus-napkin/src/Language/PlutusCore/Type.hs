@@ -92,9 +92,9 @@ instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
 instance Pretty (Builtin a) where
-    pretty (BuiltinInt _ s i) = pretty s <> "!" <> pretty i
+    pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
-    pretty (BuiltinBS _ s b)  = pretty s <> "!" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
+    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#u" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
     pretty (BuiltinName _ n)  = pretty n
 
 -- TODO better identation

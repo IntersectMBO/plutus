@@ -98,8 +98,8 @@ tokens :-
     <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p s) }
     <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p s) }
 
-    <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
     <0> @size                    { tok (\p s -> alex $ LexSize p (readBSL s)) }
+    <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
 
     -- TODO string literals
 
