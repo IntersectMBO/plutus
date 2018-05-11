@@ -47,7 +47,7 @@ genBuiltin :: MonadGen m => m (Builtin AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 8 64)
-          string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.latin1
+          string' = ("\"" <>) . (<> "\"") . BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.alpha
           genInt = BuiltinInt emptyPosn <$> size' <*> int'
           genSize = BuiltinSize emptyPosn <$> size'
           genBS = BuiltinBS emptyPosn <$> size' <*> string'
@@ -95,6 +95,5 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , format "(program 0.1.0 (builtin 8!-1)" @?= Right "(program 0.1.0 8!-1)"
     , format "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))" @?= Right "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))"
     ]

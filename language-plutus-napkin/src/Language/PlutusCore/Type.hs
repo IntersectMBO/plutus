@@ -94,7 +94,7 @@ instance Pretty (Program a) where
 instance Pretty (Builtin a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
-    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> pretty (decodeUtf8 (BSL.toStrict b)) -- "#u" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
+    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> pretty (decodeUtf8 (BSL.toStrict b)) -- "#u" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
     pretty (BuiltinName _ n)  = pretty n
 
 -- TODO better identation
