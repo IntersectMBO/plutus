@@ -75,7 +75,7 @@ Version : sizeLit dot sizeLit dot sizeLit { Version (loc $1) (size $1) (size $3)
 
 Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
         | sizeLit exclamation integerLit { BuiltinInt (loc $1) (size $1) (int $3) }
-        | sizeLit exclamation sizeLit { BuiltinInt (loc $1) (size $1) (fromIntegral (size $1)) }
+        | sizeLit exclamation sizeLit { BuiltinInt (loc $1) (size $1) (fromIntegral (size $3)) }
         | sizeLit exclamation byteStringLit { BuiltinBS (loc $1) (size $1) (bytestring $3) } -- this is kinda broken but I'm waiting for a new spec
         | sizeLit { BuiltinSize (loc $1) (size $1) }
 
