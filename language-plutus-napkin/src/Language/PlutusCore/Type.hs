@@ -65,7 +65,7 @@ data Kind a = Type a
             deriving (Functor, Eq, Show, Generic, NFData)
 
 data Program a = Program a (Version a) (Term a)
-               deriving (Eq, Generic, NFData)
+               deriving (Show, Eq, Functor, Generic, NFData)
 
 makeBaseFunctor ''Kind
 makeBaseFunctor ''Term

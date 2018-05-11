@@ -9,7 +9,7 @@ module Language.PlutusCore
     , Program (..)
     , Name (..)
     , Special (..)
-    , Unique
+    , Unique (..)
     , BuiltinName (..)
     -- * Lexer
     , AlexPosn (..)
@@ -22,6 +22,8 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
+    -- * Helper functions
+    , prettyText
     ) where
 
 import qualified Data.ByteString.Lazy                  as BSL
@@ -37,5 +39,11 @@ import           Language.PlutusCore.Type
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
+prettyText :: Program a -> T.Text
+prettyText = render . pretty
+
+render :: Doc a -> T.Text
+render = renderStrict . layoutSmart defaultLayoutOptions
+
 format :: BSL.ByteString -> Either ParseError T.Text
-format = fmap (renderStrict . layoutSmart defaultLayoutOptions) . formatDoc
+format = fmap render . formatDoc

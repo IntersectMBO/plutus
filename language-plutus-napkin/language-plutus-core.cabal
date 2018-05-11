@@ -79,7 +79,9 @@ test-suite language-plutus-core-test
         tasty -any,
         hedgehog -any,
         tasty-hunit -any,
-        tasty-hedgehog
+        tasty-hedgehog,
+        bytestring,
+        text -any
     
     if flag(development)
         ghc-options: -Werror

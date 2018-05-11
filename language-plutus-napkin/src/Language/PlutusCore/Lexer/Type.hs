@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -17,7 +18,7 @@ import           PlutusPrelude
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
-                 deriving (Show, Generic, NFData)
+                 deriving (Show, Eq, Generic, NFData)
 
 data BuiltinName = AddInteger
                  | SubtractInteger
@@ -47,7 +48,7 @@ data BuiltinName = AddInteger
                  deriving (Show, Eq, Generic, NFData)
 
 data Version a = Version a Integer Integer Integer
-               deriving (Generic, NFData)
+               deriving (Show, Eq, Functor, Generic, NFData)
 
 data Keyword = KwIsa
              | KwAbs

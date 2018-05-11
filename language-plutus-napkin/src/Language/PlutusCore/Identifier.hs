@@ -20,6 +20,8 @@ type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique)
 emptyIdentifierState :: IdentifierState
 emptyIdentifierState = (mempty, mempty)
 
+-- N.B. the constructors for 'Unique' are exported for the sake of the test
+-- suite; I don't know if there is an easier/better way to do this
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, NFData)
