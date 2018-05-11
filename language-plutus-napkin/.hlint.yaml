@@ -2,7 +2,7 @@
 - functions:
   - {name: unsafePerformIO, within: []}
   - {name: error, within: []}
-  - {name: undefined, within: [Main]}
+  - {name: undefined, within: []}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
 

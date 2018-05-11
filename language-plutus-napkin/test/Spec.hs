@@ -6,7 +6,7 @@ module Main ( main
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable        (fold)
 import           Data.Text.Encoding   (encodeUtf8)
-import           Hedgehog             hiding (Var)
+import           Hedgehog             hiding (Size, Var)
 import qualified Hedgehog.Gen         as Gen
 import qualified Hedgehog.Range       as Range
 import           Language.PlutusCore
@@ -26,9 +26,32 @@ genName = Name emptyPosn <$> name' <*> int'
     where int' = Unique <$> Gen.int (Range.linear 0 3000)
           name' = BSL.fromStrict <$> Gen.utf8 (Range.linear 1 20) Gen.lower
 
+simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
+simpleRecursive = Gen.recursive Gen.choice
+
+genKind :: MonadGen m => m (Kind AlexPosn)
+genKind = simpleRecursive nonRecursive recursive
+    where nonRecursive = pure <$> sequence [Type, Size] emptyPosn
+          recursive = [KindArrow emptyPosn <$> genKind <*> genKind]
+
+genType :: MonadGen m => m (Type AlexPosn)
+genType = simpleRecursive nonRecursive recursive
+    where varGen = TyVar emptyPosn <$> genName
+          funGen = TyFun emptyPosn <$> genType <*> genType
+          lamGen = TyLam emptyPosn <$> genName <*> genKind <*> genType
+          recursive = [funGen]
+          nonRecursive = [varGen, lamGen]
+
 genTerm :: MonadGen m => m (Term AlexPosn)
-genTerm = Gen.choice [varGen]
+genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
+          annotGen = TyAnnot emptyPosn <$> genType <*> genTerm
+          fixGen = Fix emptyPosn <$> genName <*> genTerm
+          absGen = TyAbs emptyPosn <$> genName <*> genTerm
+          instGen = TyInst emptyPosn <$> genTerm <*> genType
+          lamGen = LamAbs emptyPosn <$> genName <*> genTerm
+          recursive = [fixGen, annotGen, absGen, instGen, lamGen]
+          nonRecursive = [varGen]
 
 genProgram :: MonadGen m => m (Program AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm
@@ -45,12 +68,12 @@ propParser = property $ do
 
 allTests :: TestTree
 allTests = testGroup "all tests"
-    [ testProperty "parser round-trip" propParser
-    , tests
+    [ tests
+    , testProperty "parser round-trip" propParser
     ]
-
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ (builtin addInteger) x y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    , format "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))" @?= Right "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))"
     ]
