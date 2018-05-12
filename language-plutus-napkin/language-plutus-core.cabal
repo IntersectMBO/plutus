@@ -29,7 +29,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
-    build-tools: alex -any, happy >=1.17.1, cpphs
+    build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src
     other-modules:
         Language.PlutusCore.Type
@@ -58,7 +58,7 @@ library
         prettyprinter -any,
         text -any
     
-    if flag(development)
+    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
     
     if impl(ghc >=8.4)
@@ -79,11 +79,11 @@ test-suite language-plutus-core-test
         tasty -any,
         hedgehog -any,
         tasty-hunit -any,
-        tasty-hedgehog,
-        bytestring,
+        tasty-hedgehog -any,
+        bytestring -any,
         text -any
     
-    if flag(development)
+    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
     
     if impl(ghc >=8.4)

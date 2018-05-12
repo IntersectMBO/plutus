@@ -24,6 +24,7 @@ module Language.PlutusCore
     , TypeF (..)
     -- * Helper functions
     , prettyText
+    , compareName
     ) where
 
 import qualified Data.ByteString.Lazy                  as BSL

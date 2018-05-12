@@ -7,8 +7,4 @@ extra-deps:
 flags:
   language-plutus-core:
     development: true
-  comonad:
-    test-doctests: false
-  semigroupoids:
-    doctests: false
 extra-package-dbs: []
