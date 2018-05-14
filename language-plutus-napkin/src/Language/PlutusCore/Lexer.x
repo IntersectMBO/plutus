@@ -71,9 +71,6 @@ tokens :-
     <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
     <0> equalsInteger            { mkBuiltin EqInteger }
     <0> intToByteString          { mkBuiltin IntToByteString }
-    <0> ceil                     { mkBuiltin Ceiling }
-    <0> floor                    { mkBuiltin Floor }
-    <0> round                    { mkBuiltin Round }
     <0> concatenate              { mkBuiltin Concatenate }
     <0> takeByteString           { mkBuiltin TakeByteString }
     <0> dropByteString           { mkBuiltin DropByteString }

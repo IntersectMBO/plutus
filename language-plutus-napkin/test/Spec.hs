@@ -40,12 +40,12 @@ genBuiltinName :: MonadGen m => m BuiltinName
 genBuiltinName = Gen.choice $ pure <$>
     [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger
     , LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger
-    , EqInteger, IntToByteString, IntToByteString, Ceiling, Floor, Round
-    , Concatenate, TakeByteString, DropByteString, ResizeByteString, SHA2, SHA3
-    , VerifySignature, EqByteString, TxHash, BlockNum, BlockTime
+    , EqInteger, IntToByteString, IntToByteString, Concatenate, TakeByteString
+    , DropByteString, ResizeByteString, SHA2, SHA3, VerifySignature
+    , EqByteString, TxHash, BlockNum, BlockTime
     ]
 
-genBuiltin :: MonadGen m => m (Builtin AlexPosn)
+genBuiltin :: MonadGen m => m (Constant AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 8 64)
@@ -73,7 +73,7 @@ genTerm = simpleRecursive nonRecursive recursive
           instGen = TyInst emptyPosn <$> genTerm <*> Gen.nonEmpty (Range.linear 1 4) genType
           lamGen = LamAbs emptyPosn <$> genName <*> genTerm
           recursive = [fixGen, annotGen, absGen, instGen, lamGen]
-          nonRecursive = [varGen, Builtin emptyPosn <$> genBuiltin]
+          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin]
 
 genProgram :: MonadGen m => m (Program AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm

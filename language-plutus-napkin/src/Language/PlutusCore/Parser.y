@@ -87,7 +87,7 @@ Term : var { Var (loc $1) (asName $1) }
      | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
-     | openParen con Builtin closeParen { Builtin $2 $3 }
+     | openParen con Builtin closeParen { Constant $2 $3 }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
@@ -108,7 +108,7 @@ Kind : parens(type) { Type $1 }
 asName :: Token a -> Name a
 asName t = Name (loc t) (name t) (identifier t)
 
--- FIXME the identifier state should be included with a plain parse error as well.
+-- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 parse :: BSL.ByteString -> Either ParseError (Program AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)

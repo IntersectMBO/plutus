@@ -1,29 +1,29 @@
 module Language.PlutusCore
-    ( -- * AST
-      Term (..)
+    ( -- * Parser
+      parse
+    -- * Pretty-printing
+    , prettyText
+    -- * AST
+    , Term (..)
     , Type (..)
-    , Builtin (..)
+    , Constant (..)
     , Kind (..)
     , ParseError (..)
     , Version (..)
     , Program (..)
     , Name (..)
-    , Special (..)
     , Unique (..)
     , BuiltinName (..)
+    , TypeBuiltin (..)
     -- * Lexer
     , AlexPosn (..)
-    , Token (..)
-    -- * Parser
-    , parse
-    -- * Formatter
+    -- * Formatting
     , format
     , formatDoc
     -- * Base functors
     , TermF (..)
     , TypeF (..)
     -- * Helper functions
-    , prettyText
     , compareName
     ) where
 
@@ -40,6 +40,7 @@ import           Language.PlutusCore.Type
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
+-- | Render a 'Program' as strict 'Text'.
 prettyText :: Program a -> T.Text
 prettyText = render . pretty
 

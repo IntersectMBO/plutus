@@ -13,7 +13,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Kind (..)
                                 , Name (..)
                                 , Program (..)
-                                , Builtin (..)
+                                , Constant (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
@@ -30,7 +30,11 @@ import           Language.PlutusCore.Identifier
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
-data Name a = Name { nameLoc :: a, asString :: BSL.ByteString, unique :: Unique }
+-- | A 'Name' represents variables/names in Plutus Core.
+data Name a = Name { nameLoc  :: a -- ^ 'AlexPosn' in normal usage.
+                   , asString :: BSL.ByteString -- ^ The identifier name, for use in error messages.
+                   , unique   :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
+                   }
             deriving (Functor, Show, Generic, NFData)
 
 -- N.B. unfortunately this is necessary to allow the test suite to instead
@@ -42,6 +46,7 @@ compareName = (==) `on` unique
 instance Eq (Name a) where
     (==) = (==) `on` asString
 
+-- | A 'Type' assigned to expressions.
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
             | TyFix a (Name a) (Kind a) (Type a)
@@ -51,19 +56,21 @@ data Type a = TyVar a (Name a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
 
-data Builtin a = BuiltinInt a Natural Integer
-               | BuiltinBS a Natural BSL.ByteString
-               | BuiltinSize a Natural
-               | BuiltinName a BuiltinName
-               deriving (Functor, Show, Eq, Generic, NFData)
+-- | A constant value.
+data Constant a = BuiltinInt a Natural Integer
+                | BuiltinBS a Natural BSL.ByteString
+                | BuiltinSize a Natural
+                | BuiltinName a BuiltinName
+                deriving (Functor, Show, Eq, Generic, NFData)
 
+-- | A 'Term' is a value.
 data Term a = Var a (Name a)
             | TyAnnot a (Type a) (Term a)
             | TyAbs a (Name a) (Term a)
             | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
             | Fix a (Name a) (Term a)
-            | Builtin a (Builtin a)
+            | Constant a (Constant a)
             | TyInst a (Term a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
 
@@ -73,6 +80,7 @@ data Kind a = Type a
             | Size a
             deriving (Functor, Eq, Show, Generic, NFData)
 
+-- | A 'Program' is simply a 'Term' coupled with a 'Version' of the spec.
 data Program a = Program a (Version a) (Term a)
                deriving (Show, Eq, Functor, Generic, NFData)
 
@@ -92,7 +100,7 @@ instance Pretty (Name a) where
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
-instance Pretty (Builtin a) where
+instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> pretty (decodeUtf8 (BSL.toStrict b)) -- "#u" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
@@ -101,7 +109,7 @@ instance Pretty (Builtin a) where
 -- TODO better identation
 instance Pretty (Term a) where
     pretty = cata a where
-        a (BuiltinF _ b)    = parens ("con" <+> pretty b)
+        a (ConstantF _ b)   = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
         a (VarF _ n)        = pretty n
