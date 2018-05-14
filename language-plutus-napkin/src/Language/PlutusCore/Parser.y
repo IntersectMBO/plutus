@@ -2,7 +2,7 @@
     {-# LANGUAGE DeriveAnyClass #-}
     {-# LANGUAGE DeriveGeneric  #-}
     module Language.PlutusCore.Parser ( parse
-                                      , ParseError (..)
+                                      , ParseError
                                       ) where
 
 import PlutusPrelude
@@ -114,10 +114,10 @@ parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x
 
--- TODO pretty instance?
+-- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
-                | Expected AlexPosn [String] String
+                -- TODO | Expected AlexPosn [String] String
                 deriving (Show, Eq, Generic, NFData)
 
 type Parse = ExceptT ParseError Alex

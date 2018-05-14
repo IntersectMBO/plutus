@@ -80,7 +80,8 @@ data Kind a = Type a
             | Size a
             deriving (Functor, Eq, Show, Generic, NFData)
 
--- | A 'Program' is simply a 'Term' coupled with a 'Version' of the spec.
+-- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
+-- language.
 data Program a = Program a (Version a) (Term a)
                deriving (Show, Eq, Functor, Generic, NFData)
 
