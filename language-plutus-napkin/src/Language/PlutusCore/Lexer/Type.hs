@@ -52,10 +52,8 @@ data Version a = Version a Natural Natural Natural
 
 data Keyword = KwIsa
              | KwAbs
-             | KwInst
              | KwLam
              | KwFix
-             | KwBuiltin
              | KwFun
              | KwForall
              | KwByteString
@@ -63,6 +61,7 @@ data Keyword = KwIsa
              | KwSize
              | KwType
              | KwProgram
+             | KwCon
              deriving (Show, Eq, Generic, NFData)
 
 data Special = OpenParen
@@ -71,6 +70,8 @@ data Special = OpenParen
              | CloseBracket
              | Dot
              | Exclamation
+             | OpenBrace
+             | CloseBrace
              deriving (Show, Eq, Generic, NFData)
 
 -- | Annotated type for names

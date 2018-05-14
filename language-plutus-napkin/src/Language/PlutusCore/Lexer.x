@@ -48,10 +48,8 @@ tokens :-
     -- Keywords
     <0> isa                      { mkKeyword KwIsa }
     <0> abs                      { mkKeyword KwAbs }
-    <0> inst                     { mkKeyword KwInst }
     <0> lam                      { mkKeyword KwLam }
     <0> fix                      { mkKeyword KwFix }
-    <0> builtin                  { mkKeyword KwBuiltin }
     <0> fun                      { mkKeyword KwFun }
     <0> forall                   { mkKeyword KwForall }
     <0> bytestring               { mkKeyword KwByteString }
@@ -59,6 +57,7 @@ tokens :-
     <0> size                     { mkKeyword KwSize }
     <0> type                     { mkKeyword KwType }
     <0> program                  { mkKeyword KwProgram }
+    <0> con                      { mkKeyword KwCon }
 
     -- Builtins
     <0> addInteger               { mkBuiltin AddInteger }
@@ -94,6 +93,8 @@ tokens :-
     <0> "]"                      { mkSpecial CloseBracket }
     <0> "."                      { mkSpecial Dot }
     <0> "!"                      { mkSpecial Exclamation }
+    <0> "{"                      { mkSpecial OpenBrace }
+    <0> "}"                      { mkSpecial CloseBrace }
 
     <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
     <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p (BSL.tail s)) }

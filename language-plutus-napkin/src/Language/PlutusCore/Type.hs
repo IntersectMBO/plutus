@@ -60,13 +60,14 @@ data Builtin a = BuiltinInt a Natural Integer
 data Term a = Var a (Name a)
             | TyAnnot a (Type a) (Term a)
             | TyAbs a (Name a) (Term a)
-            | TyInst a (Term a) (Type a)
             | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
             | Fix a (Name a) (Term a)
             | Builtin a (Builtin a)
+            | TyInst a (Term a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
 
+-- | Kinds. Each type has an associated kind.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
             | Size a
@@ -100,12 +101,12 @@ instance Pretty (Builtin a) where
 -- TODO better identation
 instance Pretty (Term a) where
     pretty = cata a where
-        a (BuiltinF _ b)    = parens ("builtin" <+> pretty b)
+        a (BuiltinF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
         a (VarF _ n)        = pretty n
         a (TyAbsF _ n t)    = parens ("abs" <+> pretty n <+> t)
-        a (TyInstF _ t te)  = parens ("inst" <+> t <+> pretty te)
+        a (TyInstF _ t te)  = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
         a (FixF _ n t)      = parens ("fix" <+> pretty n <+> t)
         a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
 
@@ -116,5 +117,5 @@ instance Pretty (Type a) where
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
         a (TyFixF _ n k t)    = parens ("fix" <+> pretty n <+> pretty k <+> t)
         a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
-        a (TyBuiltinF _ n)    = parens ("builtin" <+> pretty n)
+        a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)

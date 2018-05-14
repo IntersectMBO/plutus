@@ -29,10 +29,9 @@ import qualified Data.List.NonEmpty as NE
 
     isa { LexKeyword $$ KwIsa }
     abs { LexKeyword $$ KwAbs }
-    inst { LexKeyword $$ KwInst }
     lam { LexKeyword $$ KwLam }
     fix { LexKeyword $$ KwFix }
-    builtin { LexKeyword $$ KwBuiltin }
+    con { LexKeyword $$ KwCon }
     fun { LexKeyword $$ KwFun }
     forall { LexKeyword $$ KwForall }
     size { LexKeyword $$ KwSize }
@@ -47,6 +46,8 @@ import qualified Data.List.NonEmpty as NE
     closeBracket { LexSpecial $$ CloseBracket }
     dot { LexSpecial $$ Dot }
     exclamation { LexSpecial $$ Exclamation }
+    openBrace { LexSpecial $$ OpenBrace }
+    closeBrace { LexSpecial $$ CloseBrace }
 
     builtinVar { $$@LexBuiltin{} }
 
@@ -82,11 +83,11 @@ Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
 Term : var { Var (loc $1) (asName $1) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
-     | openParen inst Term Type closeParen { TyInst $2 $3 $4 }
+     | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
      | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
-     | openParen builtin Builtin closeParen { Builtin $2 $3 }
+     | openParen con Builtin closeParen { Builtin $2 $3 }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
