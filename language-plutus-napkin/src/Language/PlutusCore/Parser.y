@@ -109,6 +109,10 @@ asName :: Token a -> Name a
 asName t = Name (loc t) (name t) (identifier t)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
+--
+-- >>> :set -XOverloadedStrings
+-- >>> parse "(program 0.1.0 [(con addInteger) x y])"
+-- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameLoc = AlexPn 33 1 34, asString = "x", unique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {nameLoc = AlexPn 35 1 36, asString = "y", unique = Unique {unUnique = 1}})])))
 parse :: BSL.ByteString -> Either ParseError (Program AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
