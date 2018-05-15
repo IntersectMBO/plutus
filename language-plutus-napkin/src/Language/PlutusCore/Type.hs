@@ -64,13 +64,13 @@ data Constant a = BuiltinInt a Natural Integer
                 deriving (Functor, Show, Eq, Generic, NFData)
 
 -- | A 'Term' is a value.
-data Term a = Var a (Name a)
-            | TyAnnot a (Type a) (Term a)
+data Term a = Var a (Name a) -- ^ A named variable
+            | TyAnnot a (Type a) (Term a) -- ^ A 'Term' annotated with a 'Type'
             | TyAbs a (Name a) (Term a)
             | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
             | Fix a (Name a) (Term a)
-            | Constant a (Constant a)
+            | Constant a (Constant a) -- ^ A constant term
             | TyInst a (Term a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
 

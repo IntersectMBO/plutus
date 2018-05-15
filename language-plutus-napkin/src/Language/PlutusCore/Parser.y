@@ -94,6 +94,7 @@ Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
      | openParen lam var Kind Type closeParen { TyLam $2 (asName $3) $4 $5 }
      | openParen fix var Kind Type closeParen { TyFix $2 (asName $3) $4 $5 }
+     | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
      -- FIXME update to the spec
      | size { TyBuiltin $1 TySize }
      | integer { TyBuiltin $1 TyInteger }

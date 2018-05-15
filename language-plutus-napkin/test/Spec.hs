@@ -61,8 +61,10 @@ genType = simpleRecursive nonRecursive recursive
           lamGen = TyLam emptyPosn <$> genName <*> genKind <*> genType
           forallGen = TyForall emptyPosn <$> genName <*> genKind <*> genType
           fixGen = TyFix emptyPosn <$> genName <*> genKind <*> genType
-          recursive = [funGen]
+          applyGen = TyApp emptyPosn <$> genType <*> args genType
+          recursive = [funGen, applyGen]
           nonRecursive = [varGen, lamGen, forallGen, fixGen]
+          args = Gen.nonEmpty (Range.linear 1 4)
 
 genTerm :: MonadGen m => m (Term AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
@@ -70,10 +72,12 @@ genTerm = simpleRecursive nonRecursive recursive
           annotGen = TyAnnot emptyPosn <$> genType <*> genTerm
           fixGen = Fix emptyPosn <$> genName <*> genTerm
           absGen = TyAbs emptyPosn <$> genName <*> genTerm
-          instGen = TyInst emptyPosn <$> genTerm <*> Gen.nonEmpty (Range.linear 1 4) genType
+          instGen = TyInst emptyPosn <$> genTerm <*> args genType
           lamGen = LamAbs emptyPosn <$> genName <*> genTerm
-          recursive = [fixGen, annotGen, absGen, instGen, lamGen]
+          applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
+          recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin]
+          args = Gen.nonEmpty (Range.linear 1 4)
 
 genProgram :: MonadGen m => m (Program AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm
