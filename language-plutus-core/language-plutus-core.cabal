@@ -43,9 +43,9 @@ library
                       StandaloneDeriving GeneralizedNewtypeDeriving TemplateHaskell
                       KindSignatures TypeFamilies DeriveFunctor DeriveFoldable
                       DeriveTraversable FlexibleContexts OverloadedStrings
-    ghc-options: -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints
-                 -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
