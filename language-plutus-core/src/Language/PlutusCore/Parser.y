@@ -80,22 +80,23 @@ Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
         | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (nat $1) (bytestring $3) } -- this is kinda broken but I'm waiting for a new spec
         | naturalLit { BuiltinSize (loc $1) (nat $1) }
 
-Term : var { Var (loc $1) (asName $1) }
+Name : var { Name (loc $1) (name $1) (identifier $1) }
+
+Term : Name { Var (nameLoc $1) $1 }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
-     | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
+     | openParen abs Name Term closeParen { TyAbs $2 $3 $4 }
      | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
-     | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
+     | openParen lam Name Term closeParen { LamAbs $2 $3 $4 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
-     | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
+     | openParen fix Name Term closeParen { Fix $2 $3 $4 }
      | openParen con Builtin closeParen { Constant $2 $3 }
 
-Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
+Type : Name { TyVar (nameLoc $1) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
-     | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
-     | openParen lam var Kind Type closeParen { TyLam $2 (asName $3) $4 $5 }
-     | openParen fix var Kind Type closeParen { TyFix $2 (asName $3) $4 $5 }
+     | openParen forall Name Kind Type closeParen { TyForall $2 $3 $4 $5 }
+     | openParen lam Name Kind Type closeParen { TyLam $2 $3 $4 $5 }
+     | openParen fix Name Kind Type closeParen { TyFix $2 $3 $4 $5 }
      | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
-     -- FIXME update to the spec
      | size { TyBuiltin $1 TySize }
      | integer { TyBuiltin $1 TyInteger }
      | bytestring { TyBuiltin $1 TyByteString }
@@ -105,9 +106,6 @@ Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
-
-asName :: Token a -> Name a
-asName t = Name (loc t) (name t) (identifier t)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --

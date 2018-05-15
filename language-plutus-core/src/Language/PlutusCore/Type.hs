@@ -49,9 +49,9 @@ instance Eq (Name a) where
 -- | A 'Type' assigned to expressions.
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
-            | TyFix a (Name a) (Kind a) (Type a)
+            | TyFix a (Name a) (Kind a) (Type a) -- ^ Fix-point type, for constructing self-recursive types
             | TyForall a (Name a) (Kind a) (Type a)
-            | TyBuiltin a TypeBuiltin
+            | TyBuiltin a TypeBuiltin -- ^ Builtin type
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
