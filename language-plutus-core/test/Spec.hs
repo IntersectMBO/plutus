@@ -121,7 +121,9 @@ propParser = property $ do
     prog <- forAll genProgram
     let nullPosn = fmap (pure emptyPosn)
         reprint = BSL.fromStrict . encodeUtf8 . prettyText
-    Hedgehog.assert ((compareProgram (nullPosn prog) <$> (nullPosn <$> parse (reprint prog))) == Right True)
+        proc = nullPosn <$> parse (reprint prog)
+        compared = and (compareProgram (nullPosn prog) <$> proc)
+    Hedgehog.assert compared
 
 allTests :: TestTree
 allTests = testGroup "all tests"
