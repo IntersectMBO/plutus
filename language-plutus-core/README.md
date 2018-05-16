@@ -1,4 +1,4 @@
-# Plutus Napkin language library
+# Plutus Core language library
 
 
 ## Specification
