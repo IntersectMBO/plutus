@@ -1,5 +1,4 @@
 {
-    {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-imports #-}
     {-# LANGUAGE DeriveAnyClass     #-}
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE StandaloneDeriving #-}
@@ -8,7 +7,6 @@
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
-                                     , AlexState (..)
                                      ) where
 
 import PlutusPrelude
@@ -50,10 +48,8 @@ tokens :-
     -- Keywords
     <0> isa                      { mkKeyword KwIsa }
     <0> abs                      { mkKeyword KwAbs }
-    <0> inst                     { mkKeyword KwInst }
     <0> lam                      { mkKeyword KwLam }
     <0> fix                      { mkKeyword KwFix }
-    <0> builtin                  { mkKeyword KwBuiltin }
     <0> fun                      { mkKeyword KwFun }
     <0> forall                   { mkKeyword KwForall }
     <0> bytestring               { mkKeyword KwByteString }
@@ -61,6 +57,7 @@ tokens :-
     <0> size                     { mkKeyword KwSize }
     <0> type                     { mkKeyword KwType }
     <0> program                  { mkKeyword KwProgram }
+    <0> con                      { mkKeyword KwCon }
 
     -- Builtins
     <0> addInteger               { mkBuiltin AddInteger }
@@ -74,9 +71,6 @@ tokens :-
     <0> greaterThanEqualsInteger { mkBuiltin GreaterThanEqInteger }
     <0> equalsInteger            { mkBuiltin EqInteger }
     <0> intToByteString          { mkBuiltin IntToByteString }
-    <0> ceil                     { mkBuiltin Ceiling }
-    <0> floor                    { mkBuiltin Floor }
-    <0> round                    { mkBuiltin Round }
     <0> concatenate              { mkBuiltin Concatenate }
     <0> takeByteString           { mkBuiltin TakeByteString }
     <0> dropByteString           { mkBuiltin DropByteString }
@@ -95,13 +89,16 @@ tokens :-
     <0> "["                      { mkSpecial OpenBracket }
     <0> "]"                      { mkSpecial CloseBracket }
     <0> "."                      { mkSpecial Dot }
+    <0> "!"                      { mkSpecial Exclamation }
+    <0> "{"                      { mkSpecial OpenBrace }
+    <0> "}"                      { mkSpecial CloseBrace }
 
-    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p s) }
-    <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p s) }
-    <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p s) }
+    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
+    <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
+    <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
 
+    <0> @size                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
-    <0> @size                    { tok (\p s -> alex $ LexSize p (readBSL s)) }
 
     -- TODO string literals
 

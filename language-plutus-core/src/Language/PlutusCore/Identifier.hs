@@ -20,6 +20,8 @@ type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique)
 emptyIdentifierState :: IdentifierState
 emptyIdentifierState = (mempty, mempty)
 
+-- N.B. the constructors for 'Unique' are exported for the sake of the test
+-- suite; I don't know if there is an easier/better way to do this
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, NFData)
@@ -31,5 +33,5 @@ newIdentifier :: BSL.ByteString -> IdentifierState -> (Unique, IdentifierState)
 newIdentifier str st@(is, ss) = case M.lookup str ss of
     Just k -> (k, st)
     Nothing -> case IM.lookupMax is of
-        Just (i,_) -> (Unique $ i+1, (IM.insert (i+1) str is, M.insert str (Unique (i+1)) ss))
+        Just (i,_) -> (Unique (i+1), (IM.insert (i+1) str is, M.insert str (Unique (i+1)) ss))
         Nothing    -> (Unique 0, (IM.singleton 0 str, M.singleton str (Unique 0)))

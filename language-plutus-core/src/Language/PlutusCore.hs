@@ -1,26 +1,30 @@
 module Language.PlutusCore
-    ( -- * AST
-      Term (..)
+    ( -- * Parser
+      parse
+    -- * Pretty-printing
+    , prettyText
+    -- * AST
+    , Term (..)
     , Type (..)
-    , Builtin (..)
+    , Constant (..)
     , Kind (..)
-    , ParseError (..)
+    , ParseError
     , Version (..)
     , Program (..)
     , Name (..)
-    , Special (..)
-    , Unique
+    , Unique (..)
+    , BuiltinName (..)
+    , TypeBuiltin (..)
     -- * Lexer
     , AlexPosn (..)
-    , Token (..)
-    -- * Parser
-    , parse
-    -- * Formatter
+    -- * Formatting
     , format
     , formatDoc
     -- * Base functors
     , TermF (..)
     , TypeF (..)
+    -- * Helper functions
+    , compareName
     ) where
 
 import qualified Data.ByteString.Lazy                  as BSL
@@ -36,5 +40,12 @@ import           Language.PlutusCore.Type
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
+-- | Render a 'Program' as strict 'Text'.
+prettyText :: Program a -> T.Text
+prettyText = render . pretty
+
+render :: Doc a -> T.Text
+render = renderStrict . layoutSmart defaultLayoutOptions
+
 format :: BSL.ByteString -> Either ParseError T.Text
-format = fmap (renderStrict . layoutSmart defaultLayoutOptions) . formatDoc
+format = fmap render . formatDoc

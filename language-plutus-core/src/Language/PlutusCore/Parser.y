@@ -2,7 +2,7 @@
     {-# LANGUAGE DeriveAnyClass #-}
     {-# LANGUAGE DeriveGeneric  #-}
     module Language.PlutusCore.Parser ( parse
-                                      , ParseError (..)
+                                      , ParseError
                                       ) where
 
 import PlutusPrelude
@@ -11,7 +11,6 @@ import Control.Monad.Except
 import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
-import Language.PlutusCore.Identifier
 import Language.PlutusCore.Type
 import qualified Data.List.NonEmpty as NE
 
@@ -30,10 +29,9 @@ import qualified Data.List.NonEmpty as NE
 
     isa { LexKeyword $$ KwIsa }
     abs { LexKeyword $$ KwAbs }
-    inst { LexKeyword $$ KwInst }
     lam { LexKeyword $$ KwLam }
     fix { LexKeyword $$ KwFix }
-    builtin { LexKeyword $$ KwBuiltin }
+    con { LexKeyword $$ KwCon }
     fun { LexKeyword $$ KwFun }
     forall { LexKeyword $$ KwForall }
     size { LexKeyword $$ KwSize }
@@ -47,11 +45,15 @@ import qualified Data.List.NonEmpty as NE
     openBracket { LexSpecial $$ OpenBracket }
     closeBracket { LexSpecial $$ CloseBracket }
     dot { LexSpecial $$ Dot }
+    exclamation { LexSpecial $$ Exclamation }
+    openBrace { LexSpecial $$ OpenBrace }
+    closeBrace { LexSpecial $$ CloseBrace }
 
     builtinVar { $$@LexBuiltin{} }
 
     integerLit { $$@LexInt{} }
-    sizeLit { $$@LexSize{} }
+    naturalLit { $$@LexNat{} }
+    byteStringLit { $$@LexBS{} }
 
     var { $$@LexName{} }
 
@@ -70,46 +72,57 @@ parens(p)
 
 Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
-Version : integerLit dot integerLit dot integerLit { Version (loc $1) (int $1) (int $3) (int $5) }
+Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (nat $1) (nat $3) (nat $5) }
+
+Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
+        | naturalLit exclamation integerLit { BuiltinInt (loc $1) (nat $1) (int $3) }
+        | naturalLit exclamation naturalLit { BuiltinInt (loc $1) (nat $1) (fromIntegral (nat $3)) }
+        | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (nat $1) (bytestring $3) } -- this is kinda broken but I'm waiting for a new spec
+        | naturalLit { BuiltinSize (loc $1) (nat $1) }
 
 Term : var { Var (loc $1) (asName $1) }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs var Term closeParen { TyAbs $2 (asName $3) $4 }
-     | openParen inst Term Type closeParen { TyInst $2 $3 $4 }
+     | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
      | openParen lam var Term closeParen { LamAbs $2 (asName $3) $4 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix var Term closeParen { Fix $2 (asName $3) $4 }
-     | openParen builtin builtinVar closeParen { Builtin $2 (builtin $3) }
-     | integerLit { PrimInt (loc $1) (int $1) }
-     | sizeLit { PrimSize (loc $1) (size $1) }
+     | openParen con Builtin closeParen { Constant $2 $3 }
 
 Type : var { TyVar (loc $1) (Name (loc $1) (name $1) (identifier $1)) }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen forall var Kind Type closeParen { TyForall $2 (asName $3) $4 $5 }
+     | openParen lam var Kind Type closeParen { TyLam $2 (asName $3) $4 $5 }
+     | openParen fix var Kind Type closeParen { TyFix $2 (asName $3) $4 $5 }
+     | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
      -- FIXME update to the spec
-     | size { TySize $1 }
-     | integer { TyInteger $1 }
-     | bytestring { TyByteString $1 }
+     | size { TyBuiltin $1 TySize }
+     | integer { TyBuiltin $1 TyInteger }
+     | bytestring { TyBuiltin $1 TyByteString }
 
 Kind : parens(type) { Type $1 }
-     | fun Kind Kind { KindArrow $1 $2 $3 }
      | parens(size) { Size $1 }
+     | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
 
 asName :: Token a -> Name a
 asName t = Name (loc t) (name t) (identifier t)
 
--- FIXME the identifier state should be included with a plain parse error as well.
+-- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
+--
+-- >>> :set -XOverloadedStrings
+-- >>> parse "(program 0.1.0 [(con addInteger) x y])"
+-- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameLoc = AlexPn 33 1 34, asString = "x", unique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {nameLoc = AlexPn 35 1 36, asString = "y", unique = Unique {unUnique = 1}})])))
 parse :: BSL.ByteString -> Either ParseError (Program AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x
 
--- TODO pretty instance?
+-- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
-                | Expected AlexPosn [String] String
+                -- TODO | Expected AlexPosn [String] String
                 deriving (Show, Eq, Generic, NFData)
 
 type Parse = ExceptT ParseError Alex

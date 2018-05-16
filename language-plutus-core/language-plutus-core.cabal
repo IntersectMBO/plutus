@@ -29,7 +29,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
-    build-tools: alex -any, happy >=1.17.1, cpphs
+    build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src
     other-modules:
         Language.PlutusCore.Type
@@ -43,9 +43,9 @@ library
                       StandaloneDeriving GeneralizedNewtypeDeriving TemplateHaskell
                       KindSignatures TypeFamilies DeriveFunctor DeriveFoldable
                       DeriveTraversable FlexibleContexts OverloadedStrings
-    ghc-options: -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints
-                 -Wnoncanonical-monad-instances
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -58,7 +58,7 @@ library
         prettyprinter -any,
         text -any
     
-    if flag(development)
+    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
     
     if impl(ghc >=8.4)
@@ -78,9 +78,12 @@ test-suite language-plutus-core-test
         language-plutus-core -any,
         tasty -any,
         hedgehog -any,
-        tasty-hunit -any
+        tasty-hunit -any,
+        tasty-hedgehog -any,
+        bytestring -any,
+        text -any
     
-    if flag(development)
+    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
     
     if impl(ghc >=8.4)
@@ -91,7 +94,7 @@ benchmark language-plutus-core-bench
     main-is: Bench.hs
     hs-source-dirs: bench
     default-language: Haskell2010
-    ghc-options: -O3 -Wall -Wincomplete-uni-patterns
+    ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints
                  -Wnoncanonical-monad-instances
     build-depends:
