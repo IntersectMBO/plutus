@@ -74,6 +74,9 @@ data Term a = Var a (Name a) -- ^ A named variable
             | TyInst a (Term a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
 
+-- TODO: implement renamer, i.e. annotate each variable with its type
+-- Step 1: typeOf for builtins?
+
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
