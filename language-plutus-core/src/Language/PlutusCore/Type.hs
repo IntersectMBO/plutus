@@ -11,7 +11,6 @@
 module Language.PlutusCore.Type ( Term (..)
                                 , Type (..)
                                 , Kind (..)
-                                , Name (..)
                                 , Program (..)
                                 , Constant (..)
                                 -- * Base functors
@@ -24,19 +23,9 @@ import           Data.Functor.Foldable          (cata)
 import           Data.Functor.Foldable.TH
 import           Data.Text.Encoding             (decodeUtf8)
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.Identifier
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
-
--- | A 'Name' represents variables/names in Plutus Core.
-data Name a = Name { nameLoc  :: a -- ^ 'AlexPosn' in normal usage.
-                   , asString :: BSL.ByteString -- ^ The identifier name, for use in error messages.
-                   , unique   :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
-                   }
-            deriving (Functor, Show, Generic, NFData)
-
-instance Eq (Name a) where
-    (==) = (==) `on` unique
 
 -- | A 'Type' assigned to expressions.
 data Type a = TyVar a (Name a)
@@ -68,6 +57,7 @@ data Term a = Var a (Name a) -- ^ A named variable
 
 -- TODO: implement renamer, i.e. annotate each variable with its type
 -- Step 1: typeOf for builtins?
+-- Step 2: use this for surrounding & inner data
 
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
@@ -89,9 +79,6 @@ instance Pretty (Kind a) where
         a TypeF{}             = "(type)"
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
-
-instance Pretty (Name a) where
-    pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
 
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)

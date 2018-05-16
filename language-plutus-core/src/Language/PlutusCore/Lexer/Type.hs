@@ -12,7 +12,7 @@ module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       ) where
 
 import qualified Data.ByteString.Lazy           as BSL
-import           Language.PlutusCore.Identifier
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 -- | A builtin type

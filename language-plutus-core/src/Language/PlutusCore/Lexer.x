@@ -13,7 +13,7 @@ import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
 import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Identifier
+import Language.PlutusCore.Name
 
 }
 

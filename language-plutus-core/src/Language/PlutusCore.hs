@@ -29,7 +29,7 @@ import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Language.PlutusCore.Identifier
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Parser
