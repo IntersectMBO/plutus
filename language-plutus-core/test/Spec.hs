@@ -5,6 +5,8 @@ module Main ( main
 
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable        (fold)
+import           Data.Function        (on)
+import qualified Data.List.NonEmpty   as NE
 import           Data.Semigroup
 import           Data.Text.Encoding   (encodeUtf8)
 import           Hedgehog             hiding (Size, Var)
@@ -17,6 +19,33 @@ import           Test.Tasty.HUnit
 
 main :: IO ()
 main = defaultMain allTests
+
+compareName :: Name a -> Name a -> Bool
+compareName = (==) `on` asString
+
+compareTerm :: Eq a => Term a -> Term a -> Bool
+compareTerm (Var _ n) (Var _ n')                = compareName n n'
+compareTerm (TyAnnot _ t te) (TyAnnot _ t' te') = compareType t t' && compareTerm te te'
+compareTerm (TyAbs _ n t) (TyAbs _ n' t')       = compareName n n' && compareTerm t t'
+compareTerm (LamAbs _ n t) (LamAbs _ n' t')     = compareName n n' && compareTerm t t'
+compareTerm (Apply _ t ts) (Apply _ t' ts')     = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
+compareTerm (Fix _ n t) (Fix _ n' t')           = compareName n n' && compareTerm t t'
+compareTerm x@Constant{} y@Constant{}           = x == y
+compareTerm (TyInst _ t ts) (TyInst _ t' ts')   = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm _ _                                 = False
+
+compareType :: Eq a => Type a -> Type a -> Bool
+compareType (TyVar _ n) (TyVar _ n')                 = compareName n n'
+compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
+compareType (TyFix _ n k t) (TyFix _ n' k' t')       = compareName n n' && k == k' && compareType t t'
+compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareName n n' && k == k' && compareType t t'
+compareType x@TyBuiltin{} y@TyBuiltin{}              = x == y
+compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareName n n' && k == k' && compareType t t'
+compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
+compareType _ _                                      = False
+
+compareProgram :: Eq a => Program a -> Program a -> Bool
+compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 genVersion :: MonadGen m => m (Version AlexPosn)
 genVersion = Version emptyPosn <$> int' <*> int' <*> int'
@@ -92,7 +121,7 @@ propParser = property $ do
     prog <- forAll genProgram
     let nullPosn = fmap (pure emptyPosn)
         reprint = BSL.fromStrict . encodeUtf8 . prettyText
-    Right (nullPosn prog) === (nullPosn <$> parse (reprint prog))
+    Hedgehog.assert ((compareProgram (nullPosn prog) <$> (nullPosn <$> parse (reprint prog))) == Right True)
 
 allTests :: TestTree
 allTests = testGroup "all tests"

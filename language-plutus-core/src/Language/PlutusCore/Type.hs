@@ -17,8 +17,6 @@ module Language.PlutusCore.Type ( Term (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
-                                -- * Helper functions
-                                , compareName
                                 ) where
 
 import qualified Data.ByteString.Lazy           as BSL
@@ -37,14 +35,8 @@ data Name a = Name { nameLoc  :: a -- ^ 'AlexPosn' in normal usage.
                    }
             deriving (Functor, Show, Generic, NFData)
 
--- N.B. unfortunately this is necessary to allow the test suite to instead
--- compare strings. I am not satisfied with this solution, but it will have to
--- do for now.
-compareName :: Name a -> Name a -> Bool
-compareName = (==) `on` unique
-
 instance Eq (Name a) where
-    (==) = (==) `on` asString
+    (==) = (==) `on` unique
 
 -- | A 'Type' assigned to expressions.
 data Type a = TyVar a (Name a)

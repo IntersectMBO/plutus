@@ -26,7 +26,7 @@ deploy:
   on:
     appveyor_repo_tag: true
   auth_token:
-    secure: cNzi4ZEE4PIrKxBJXEDPHkqrHI4fdSJtIQZ8n7qbYJwBtsx8TkBxduK8eIr6fzdY
+    secure: 0qzMr6xmEwRoj/9TJOgDuW/LXWfGVM/4A7kvAXGe0BAwWCF13AWE2SARrYkyc3ji
 
 branches:
   only:

@@ -23,8 +23,6 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
-    -- * Helper functions
-    , compareName
     ) where
 
 import qualified Data.ByteString.Lazy                  as BSL
