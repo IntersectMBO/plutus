@@ -85,6 +85,8 @@ genProgram = Program emptyPosn <$> genVersion <*> genTerm
 emptyPosn :: AlexPosn
 emptyPosn = AlexPn 0 0 0
 
+-- Generate a random 'Program', pretty-print it, and parse the pretty-printed
+-- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
