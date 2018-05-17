@@ -17,8 +17,6 @@ module Language.PlutusCore.Type ( Term (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
-                                -- * Helper functions
-                                , compareName
                                 ) where
 
 import qualified Data.ByteString.Lazy           as BSL
@@ -37,21 +35,15 @@ data Name a = Name { nameLoc  :: a -- ^ 'AlexPosn' in normal usage.
                    }
             deriving (Functor, Show, Generic, NFData)
 
--- N.B. unfortunately this is necessary to allow the test suite to instead
--- compare strings. I am not satisfied with this solution, but it will have to
--- do for now.
-compareName :: Name a -> Name a -> Bool
-compareName = (==) `on` unique
-
 instance Eq (Name a) where
-    (==) = (==) `on` asString
+    (==) = (==) `on` unique
 
 -- | A 'Type' assigned to expressions.
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
-            | TyFix a (Name a) (Kind a) (Type a)
+            | TyFix a (Name a) (Kind a) (Type a) -- ^ Fix-point type, for constructing self-recursive types
             | TyForall a (Name a) (Kind a) (Type a)
-            | TyBuiltin a TypeBuiltin
+            | TyBuiltin a TypeBuiltin -- ^ Builtin type
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
@@ -73,6 +65,9 @@ data Term a = Var a (Name a) -- ^ A named variable
             | Constant a (Constant a) -- ^ A constant term
             | TyInst a (Term a) (NonEmpty (Type a))
             deriving (Functor, Show, Eq, Generic, NFData)
+
+-- TODO: implement renamer, i.e. annotate each variable with its type
+-- Step 1: typeOf for builtins?
 
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a

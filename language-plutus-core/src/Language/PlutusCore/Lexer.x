@@ -84,6 +84,7 @@ tokens :-
     <0> blocknum                 { mkBuiltin BlockNum }
     <0> blocktime                { mkBuiltin BlockTime }
 
+    -- Various special characters
     <0> "("                      { mkSpecial OpenParen }
     <0> ")"                      { mkSpecial CloseParen }
     <0> "["                      { mkSpecial OpenBracket }
@@ -93,15 +94,16 @@ tokens :-
     <0> "{"                      { mkSpecial OpenBrace }
     <0> "}"                      { mkSpecial CloseBrace }
 
+    -- ByteStrings
     <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
     <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
     <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
 
+    -- Integer/size literals
     <0> @size                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
 
-    -- TODO string literals
-
+    -- Identifiers
     <0> @identifier              { tok handle_identifier }
 
 {
@@ -110,7 +112,7 @@ deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
 
 -- Taken from example by Simon Marlow.
--- This provides Haskell-style comments for Plutus Core
+-- This handles Haskell-style comments
 nested_comment :: Alex (Token AlexPosn)
 nested_comment = go 1 =<< alexGetInput
 
@@ -124,8 +126,8 @@ nested_comment = go 1 =<< alexGetInput
                         '-' ->
                             case alexGetByte input' of
                                 Nothing -> err input'
-                                Just (125,input_) -> go (n-1) input_
-                                Just (_,input_) -> go n input_
+                                Just (125,input'') -> go (n-1) input''
+                                Just (_,input'') -> go n input''
                         '{' ->
                             case alexGetByte input' of
                                 Nothing -> err input'
@@ -146,6 +148,8 @@ mkBuiltin = constructor LexBuiltin
 
 mkKeyword = constructor LexKeyword
 
+-- TODO convert hex digits to a ByteString
+
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
 handle_identifier p s =
     sets_alex (modifyUST (snd . newIdentifier s)) >> 
@@ -156,6 +160,8 @@ handle_identifier p s =
 readBSL :: (Read a) => BSL.ByteString -> a
 readBSL = read . ASCII.unpack
 
+-- This strips off the initial '+' from a bytestring so that we can use 'read'
+-- to get an integer
 stripPlus :: BSL.ByteString -> BSL.ByteString
 stripPlus b = if BSL.head b == 43 then BSL.tail b else b
 

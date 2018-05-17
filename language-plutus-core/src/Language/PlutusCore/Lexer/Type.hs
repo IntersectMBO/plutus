@@ -65,6 +65,8 @@ data Keyword = KwIsa
              | KwCon
              deriving (Show, Eq, Generic, NFData)
 
+-- | A special character. This type is only used internally between the lexer
+-- and the parser.
 data Special = OpenParen
              | CloseParen
              | OpenBracket
