@@ -98,8 +98,6 @@ tokens :-
 
     -- ByteStrings
     <0> \# ($hex_digit{2})*      { tok (\p s -> LexBS p <$> asBSLiteral s) }
-    <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
-    <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
 
     -- Integer/size literals
     <0> @size                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
