@@ -7,7 +7,6 @@ import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable        (fold)
 import           Data.Function        (on)
 import qualified Data.List.NonEmpty   as NE
-import           Data.Semigroup
 import           Data.Text.Encoding   (encodeUtf8)
 import           Hedgehog             hiding (Size, Var)
 import qualified Hedgehog.Gen         as Gen
@@ -78,7 +77,7 @@ genBuiltin :: MonadGen m => m (Constant AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 8 64)
-          string' = ("\"" <>) . (<> "\"") . BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.alpha
+          string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
           genInt = BuiltinInt emptyPosn <$> size' <*> int'
           genSize = BuiltinSize emptyPosn <$> size'
           genBS = BuiltinBS emptyPosn <$> size' <*> string'
