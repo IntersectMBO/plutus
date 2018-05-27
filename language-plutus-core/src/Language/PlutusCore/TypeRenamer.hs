@@ -20,5 +20,5 @@ squish = fmap (pure mempty)
 rename :: Term TypeAnnot -> Term TypeAnnot
 rename = ana a where
     a (TyAnnot _ t (Var _ n))                                                  = VarF (Just (squish t)) n
-    a (Apply _ (Constant _ (BuiltinName _ AddInteger)) (Var _ _ :| [Var _ _])) = let x = x in x -- undefined
+    a (Apply _ (Constant _ (BuiltinName _ AddInteger)) (Var _ _ :| [Var _ _])) = undefined
     a x                                                                        = project x
