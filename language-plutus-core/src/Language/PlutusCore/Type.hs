@@ -24,7 +24,6 @@ import           Data.Functor.Foldable.TH
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
-import           Debug.Trace
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Numeric                            (showHex)

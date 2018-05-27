@@ -129,7 +129,7 @@ handlePair c c' = (+) <$> (fmap (16 *) (handleChar c)) <*> handleChar c'
 
 asBytes :: BSL.ByteString -> Alex [Word8]
 asBytes "" = pure mempty
-asBytes x = let c  = BSL.index x 0
+asBytes x = let c  = BSL.index x 0 -- safe b/c macro always matches them in pairs
                 c' = BSL.index x 1
     in (:) <$> handlePair c c' <*> asBytes (BSL.drop 2 x)
 
