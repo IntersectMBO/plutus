@@ -2,7 +2,7 @@
     {-# LANGUAGE DeriveAnyClass #-}
     {-# LANGUAGE DeriveGeneric  #-}
     module Language.PlutusCore.Parser ( parse
-                                      , ParseError
+                                      , ParseError (..)
                                       ) where
 
 import PlutusPrelude

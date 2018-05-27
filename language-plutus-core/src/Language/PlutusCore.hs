@@ -11,7 +11,7 @@ module Language.PlutusCore
     , Type (..)
     , Constant (..)
     , Kind (..)
-    , ParseError
+    , ParseError (..)
     , Version (..)
     , Program (..)
     , Name (..)

@@ -135,4 +135,5 @@ tests = testCase "example programs" $ fold
     [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ (con addInteger) x y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     , format "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))" @?= Right "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))"
+    , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
