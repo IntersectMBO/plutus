@@ -35,11 +35,7 @@ $upper = [A-Z]
 
 @identifier = $lower [$lower $upper $digit \_ \']*
 
-$ascii = [$digit $lower $upper \~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\[\]\{\]\|\;\:\'\,\.\<\>\/\?]
 @special = \\\\ | \\\"
-
-@unicode_in = [^\\\"] | @special
-@ascii_in = $ascii | @special
 
 tokens :-
 
