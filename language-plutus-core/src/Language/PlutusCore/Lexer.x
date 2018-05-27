@@ -5,7 +5,6 @@
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlex
-                                     , handleChar
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
