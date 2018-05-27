@@ -1,9 +1,11 @@
 {
     {-# LANGUAGE DeriveAnyClass     #-}
     {-# LANGUAGE DeriveGeneric      #-}
+    {-# LANGUAGE OverloadedStrings  #-}
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlex
+                                     , handleChar
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
@@ -95,7 +97,7 @@ tokens :-
     <0> "}"                      { mkSpecial CloseBrace }
 
     -- ByteStrings
-    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
+    <0> \# ($hex_digit{2})*      { tok (\p s -> LexBS p <$> asBSLiteral s) }
     <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
     <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
 
@@ -110,6 +112,33 @@ tokens :-
 
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
+
+stringError :: Alex a
+stringError = do
+    (AlexPn _ line col) <- get_pos
+    alexError ("Error in string literal at line " ++ show line ++ ", column " ++ show col)
+
+handleChar :: Word8 -> Alex Word8
+handleChar x
+    | x >= 48 && x <= 57 = pure $ x - 48 -- hexits 0-9
+    | x >= 97 && x <= 102 = pure $ x - 87 -- hexits a-f
+    | x >= 65 && x <= 70 = pure $ x - 55 -- hexits A-F
+    | otherwise = stringError
+
+-- turns a pair of bytes such as "a6" into a single Word8
+handlePair :: Word8 -> Word8 -> Alex Word8
+handlePair c c' = (+) <$> (fmap (16 *) (handleChar c)) <*> handleChar c'
+
+asBytes :: BSL.ByteString -> Alex [Word8]
+asBytes "" = pure mempty
+asBytes x = let c  = BSL.index x 0
+                c' = BSL.index x 1
+    in (:) <$> handlePair c c' <*> asBytes (BSL.drop 2 x)
+
+asBSLiteral :: BSL.ByteString -> Alex BSL.ByteString
+asBSLiteral = fmap BSL.pack . asBytes . BSL.tail 
+
+-- TODO look at haskell lexer
 
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments
