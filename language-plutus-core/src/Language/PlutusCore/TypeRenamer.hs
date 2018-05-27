@@ -16,6 +16,7 @@ fill = fmap (pure Nothing)
 squish :: Type a -> Type ()
 squish = fmap (pure mempty)
 
+-- we should also annotate each 'TyVar' with the kind of its binder.
 -- | Annotate each 'Var' with the type of its binder.
 rename :: Term TypeAnnot -> Term TypeAnnot
 rename = ana a where

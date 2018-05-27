@@ -9,8 +9,12 @@ main =
     defaultMain [ env envFile $ \ f ->
                   bgroup "format"
                       [ bench "format" $ nf format f ]
-                , env envFile $ \ f ->
+                , env files $ \ ~(f, g) ->
                   bgroup "parse"
-                      [ bench "parse" $ nf parse f ]
+                      [ bench "parse (addInteger)" $ nf parse f
+                      , bench "parse (stringLiteral)" $ nf parse g
+                      ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"
+          stringFile = BSL.readFile "test/data/stringLiteral.plc"
+          files = (,) <$> envFile <*> stringFile
