@@ -1,3 +1,4 @@
+{- nested {- comment -} -}
 (program 0.1.0
   [
     (lam x

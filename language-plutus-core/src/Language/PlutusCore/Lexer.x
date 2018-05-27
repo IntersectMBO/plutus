@@ -1,4 +1,5 @@
 {
+    {-# OPTIONS_GHC -fno-warn-unused-imports #-}
     {-# LANGUAGE DeriveAnyClass     #-}
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE OverloadedStrings  #-}
@@ -130,8 +131,6 @@ asBytes x = let c  = BSL.index x 0 -- safe b/c macro always matches them in pair
 asBSLiteral :: BSL.ByteString -> BSL.ByteString
 asBSLiteral = BSL.pack . asBytes . BSL.tail 
 
--- TODO look at haskell lexer
-
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments
 nested_comment :: Alex (Token AlexPosn)
@@ -143,13 +142,13 @@ nested_comment = go 1 =<< alexGetInput
             case alexGetByte input of
                 Nothing -> err input
                 Just (c, input') ->
-                    case Data.Char.chr (fromIntegral c) of
-                        '-' ->
+                    case c of
+                        45 ->
                             case alexGetByte input' of
                                 Nothing -> err input'
                                 Just (125,input'') -> go (n-1) input''
                                 Just (_,input'') -> go n input''
-                        '{' ->
+                        123 ->
                             case alexGetByte input' of
                                 Nothing -> err input'
                                 Just (c',input'') -> go (addLevel c' $ n) input''
@@ -169,15 +168,12 @@ mkBuiltin = constructor LexBuiltin
 
 mkKeyword = constructor LexKeyword
 
--- TODO convert hex digits to a ByteString
-
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
 handle_identifier p s =
     sets_alex (modifyUST (snd . newIdentifier s)) >> 
     LexName p s <$> gets_alex (fst . newIdentifier s . alex_ust)
 
 -- this conversion is safe because we only lex digits
--- FIXME this messes up when we feed it a string like +15
 readBSL :: (Read a) => BSL.ByteString -> a
 readBSL = read . ASCII.unpack
 
