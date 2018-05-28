@@ -56,6 +56,8 @@ tokens :-
     <0> type                     { mkKeyword KwType }
     <0> program                  { mkKeyword KwProgram }
     <0> con                      { mkKeyword KwCon }
+    <0> wrap                     { mkKeyword KwWrap }
+    <0> unwrap                   { mkKeyword KwUnwrap }
 
     -- Builtins
     <0> addInteger               { mkBuiltin AddInteger }
@@ -118,14 +120,14 @@ handleChar x
 handlePair :: Word8 -> Word8 -> Word8
 handlePair c c' = 16 * handleChar c + handleChar c'
 
-asBytes :: BSL.ByteString -> [Word8]
-asBytes "" = mempty
-asBytes x = let c  = BSL.index x 0 -- safe b/c macro matches them in pairs
-                c' = BSL.index x 1
-    in handlePair c c' : asBytes (BSL.drop 2 x)
+asBytes :: [Word8] -> [Word8]
+asBytes [] = mempty
+asBytes (c:c':cs) = handlePair c c' : asBytes cs
+asBytes _ = undefined -- safe b/c macro matches them in pairs
 
 asBSLiteral :: BSL.ByteString -> BSL.ByteString
-asBSLiteral = BSL.pack . asBytes . BSL.tail 
+asBSLiteral = withBytes asBytes . BSL.tail
+    where withBytes f = BSL.pack . f . BSL.unpack
 
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments

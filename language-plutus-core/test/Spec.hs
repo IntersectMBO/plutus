@@ -31,6 +31,8 @@ compareTerm (Apply _ t ts) (Apply _ t' ts')     = compareTerm t t' && and (NE.zi
 compareTerm (Fix _ n t) (Fix _ n' t')           = compareName n n' && compareTerm t t'
 compareTerm x@Constant{} y@Constant{}           = x == y
 compareTerm (TyInst _ t ts) (TyInst _ t' ts')   = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm (Unwrap _ t) (Unwrap _ t')          = compareTerm t t'
+compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')  = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm _ _                                 = False
 
 compareType :: Eq a => Type a -> Type a -> Bool
@@ -103,7 +105,9 @@ genTerm = simpleRecursive nonRecursive recursive
           instGen = TyInst emptyPosn <$> genTerm <*> args genType
           lamGen = LamAbs emptyPosn <$> genName <*> genTerm
           applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
-          recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen]
+          unwrapGen = Unwrap emptyPosn <$> genTerm
+          wrapGen = Wrap emptyPosn <$> genName <*> genType <*> genTerm
+          recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin]
           args = Gen.nonEmpty (Range.linear 1 4)
 

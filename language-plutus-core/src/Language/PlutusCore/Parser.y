@@ -25,6 +25,11 @@ import qualified Data.List.NonEmpty as NE
 %nonassoc integer
 %nonassoc float
 %nonassoc bytestring
+%nonassoc wrap
+%nonassoc unwrap
+%nonassoc lam
+%nonassoc con
+%nonassoc bi
 
 %token
 
@@ -40,6 +45,8 @@ import qualified Data.List.NonEmpty as NE
     bytestring { LexKeyword $$ KwByteString }
     type { LexKeyword $$ KwType }
     program { LexKeyword $$ KwProgram }
+    wrap { LexKeyword $$ KwWrap }
+    unwrap { LexKeyword $$ KwUnwrap }
 
     openParen { LexSpecial $$ OpenParen }
     closeParen { LexSpecial $$ CloseParen }
@@ -91,6 +98,8 @@ Term : Name { Var (attribute $1) $1 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix Name Term closeParen { Fix $2 $3 $4 }
      | openParen con Builtin closeParen { Constant $2 $3 }
+     | openParen wrap Name Type Term closeParen { Wrap $2 $3 $4 $5 }
+     | openParen unwrap Term closeParen { Unwrap $2 $3 }
 
 Type : Name { TyVar (attribute $1) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

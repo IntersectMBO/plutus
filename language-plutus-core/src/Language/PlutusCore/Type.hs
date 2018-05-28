@@ -55,6 +55,8 @@ data Term a = Var a (Name a) -- ^ A named variable
             | Fix a (Name a) (Term a)
             | Constant a (Constant a) -- ^ A constant term
             | TyInst a (Term a) (NonEmpty (Type a))
+            | Unwrap a (Term a)
+            | Wrap a (Name a) (Type a) (Term a)
             deriving (Functor, Show, Eq, Generic, NFData)
 
 -- TODO: implement renamer, i.e. annotate each variable with its type
@@ -105,6 +107,8 @@ instance Pretty (Term a) where
         a (TyInstF _ t te)  = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
         a (FixF _ n t)      = parens ("fix" <+> pretty n <+> t)
         a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
+        a (UnwrapF _ t)     = parens ("unwrap" <+> t)
+        a (WrapF _ n ty t)  = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
 
 instance Pretty (Type a) where
     pretty = cata a where
