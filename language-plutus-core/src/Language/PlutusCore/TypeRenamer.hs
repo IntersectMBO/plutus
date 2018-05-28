@@ -16,6 +16,10 @@ fill = fmap (pure Nothing)
 squish :: Type a -> Type ()
 squish = fmap (pure mempty)
 
+-- TODO: how should we handle this? should it be based on the judgment rules?
+-- If so, it should be relatively easy, however, I need to know it will
+-- terminate.
+--
 -- we should also annotate each 'TyVar' with the kind of its binder.
 -- | Annotate each 'Var' with the type of its binder.
 rename :: Term TypeAnnot -> Term TypeAnnot

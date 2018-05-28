@@ -91,7 +91,7 @@ Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
 
 Name : var { Name (loc $1) (name $1) (identifier $1) }
 
-Term : Name { Var (attribute $1) $1 }
+Term : Name { Var (nameAttribute $1) $1 }
      | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs Name Term closeParen { TyAbs $2 $3 $4 }
      | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
@@ -103,7 +103,7 @@ Term : Name { Var (attribute $1) $1 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
-Type : Name { TyVar (attribute $1) $1 }
+Type : Name { TyVar (nameAttribute $1) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen forall Name Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam Name Kind Type closeParen { TyLam $2 $3 $4 $5 }
@@ -123,7 +123,7 @@ Kind : parens(type) { Type $1 }
 --
 -- >>> :set -XOverloadedStrings
 -- >>> parse "(program 0.1.0 [(con addInteger) x y])"
--- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {attribute = AlexPn 33 1 34, asString = "x", unique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {attribute = AlexPn 35 1 36, asString = "y", unique = Unique {unUnique = 1}})])))
+-- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, asString = "x", nameUnique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, asString = "y", nameUnique = Unique {unUnique = 1}})])))
 parse :: BSL.ByteString -> Either ParseError (Program AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)

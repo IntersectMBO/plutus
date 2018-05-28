@@ -20,14 +20,14 @@ import           Data.Text.Encoding   (decodeUtf8)
 import           PlutusPrelude
 
 -- | A 'Name' represents variables/names in Plutus Core.
-data Name a = Name { attribute :: a
-                   , asString  :: BSL.ByteString -- ^ The identifier name, for use in error messages.
-                   , unique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
+data Name a = Name { nameAttribute :: a
+                   , asString      :: BSL.ByteString -- ^ The identifier name, for use in error messages.
+                   , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
                    }
             deriving (Functor, Show, Generic, NFData)
 
 instance Eq (Name a) where
-    (==) = (==) `on` unique
+    (==) = (==) `on` nameUnique
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's.
