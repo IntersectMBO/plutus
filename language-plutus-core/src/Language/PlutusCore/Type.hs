@@ -57,6 +57,7 @@ data Term a = Var a (Name a) -- ^ A named variable
             | TyInst a (Term a) (NonEmpty (Type a))
             | Unwrap a (Term a)
             | Wrap a (Name a) (Type a) (Term a)
+            | Error a (Type a)
             deriving (Functor, Show, Eq, Generic, NFData)
 
 -- TODO: implement renamer, i.e. annotate each variable with its type
@@ -109,6 +110,7 @@ instance Pretty (Term a) where
         a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
         a (UnwrapF _ t)     = parens ("unwrap" <+> t)
         a (WrapF _ n ty t)  = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
+        a (ErrorF _ ty)     = parens ("error" <+> pretty ty)
 
 instance Pretty (Type a) where
     pretty = cata a where

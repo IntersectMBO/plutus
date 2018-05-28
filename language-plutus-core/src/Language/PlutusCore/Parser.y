@@ -47,6 +47,7 @@ import qualified Data.List.NonEmpty as NE
     program { LexKeyword $$ KwProgram }
     wrap { LexKeyword $$ KwWrap }
     unwrap { LexKeyword $$ KwUnwrap }
+    errorTerm { LexKeyword $$ KwError }
 
     openParen { LexSpecial $$ OpenParen }
     closeParen { LexSpecial $$ CloseParen }
@@ -100,6 +101,7 @@ Term : Name { Var (attribute $1) $1 }
      | openParen con Builtin closeParen { Constant $2 $3 }
      | openParen wrap Name Type Term closeParen { Wrap $2 $3 $4 $5 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
+     | openParen errorTerm Type closeParen { Error $2 $3 }
 
 Type : Name { TyVar (attribute $1) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

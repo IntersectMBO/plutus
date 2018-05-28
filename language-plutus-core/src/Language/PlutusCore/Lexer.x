@@ -58,6 +58,7 @@ tokens :-
     <0> con                      { mkKeyword KwCon }
     <0> wrap                     { mkKeyword KwWrap }
     <0> unwrap                   { mkKeyword KwUnwrap }
+    <0> error                    { mkKeyword KwError }
 
     -- Builtins
     <0> addInteger               { mkBuiltin AddInteger }

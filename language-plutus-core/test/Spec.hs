@@ -33,6 +33,7 @@ compareTerm x@Constant{} y@Constant{}           = x == y
 compareTerm (TyInst _ t ts) (TyInst _ t' ts')   = compareTerm t t' && and (NE.zipWith compareType ts ts')
 compareTerm (Unwrap _ t) (Unwrap _ t')          = compareTerm t t'
 compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')  = compareName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (Error _ ty) (Error _ ty')          = compareType ty ty'
 compareTerm _ _                                 = False
 
 compareType :: Eq a => Type a -> Type a -> Bool
@@ -107,8 +108,9 @@ genTerm = simpleRecursive nonRecursive recursive
           applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
           unwrapGen = Unwrap emptyPosn <$> genTerm
           wrapGen = Wrap emptyPosn <$> genName <*> genType <*> genTerm
+          errorGen = Error emptyPosn <$> genType
           recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin]
+          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
 genProgram :: MonadGen m => m (Program AlexPosn)

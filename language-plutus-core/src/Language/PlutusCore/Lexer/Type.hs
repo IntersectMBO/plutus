@@ -65,6 +65,7 @@ data Keyword = KwIsa
              | KwCon
              | KwWrap
              | KwUnwrap
+             | KwError
              deriving (Show, Eq, Generic, NFData)
 
 -- | A special character. This type is only used internally between the lexer
