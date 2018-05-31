@@ -6,6 +6,7 @@ module Language.PlutusCore
     -- * Type checking
     , fill
     , rename
+    , kindCheck
     -- * AST
     , Term (..)
     , Type (..)
