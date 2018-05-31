@@ -20,7 +20,7 @@ main :: IO ()
 main = defaultMain allTests
 
 compareName :: Name a -> Name a -> Bool
-compareName = (==) `on` asString
+compareName = (==) `on` nameString
 
 compareTerm :: Eq a => Term a -> Term a -> Bool
 compareTerm (Var _ n) (Var _ n')                = compareName n n'

@@ -21,7 +21,7 @@ import           PlutusPrelude
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
-                   , asString      :: BSL.ByteString -- ^ The identifier name, for use in error messages.
+                   , nameString    :: BSL.ByteString -- ^ The identifier name, for use in error messages.
                    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
                    }
             deriving (Functor, Show, Generic, NFData)

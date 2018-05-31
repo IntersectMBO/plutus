@@ -18,7 +18,8 @@ squish = fmap (pure mempty)
 
 -- TODO: how should we handle this? should it be based on the judgment rules?
 -- If so, it should be relatively easy, however, I need to know it will
--- terminate.
+-- terminate. Ideally I could cite the spec.
+-- Maybe that should just be in a function called typecheck or the like?
 --
 -- we should also annotate each 'TyVar' with the kind of its binder.
 -- | Annotate each 'Var' with the type of its binder.
