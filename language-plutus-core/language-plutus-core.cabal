@@ -56,7 +56,7 @@ library
         mtl -any,
         transformers -any,
         deepseq -any,
-        recursion-schemes >= 5.0.1,
+        recursion-schemes >=5.0.1,
         prettyprinter -any,
         text -any
     
