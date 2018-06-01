@@ -32,7 +32,9 @@ State channels are set up between two parties. Their creation and destruction (s
 
 ### Oracles
 
-The purpose of oracles is to record real-world data on the blockchain. That data is structured and may be fairly large.
+The purpose of oracles is to record real-world data on the blockchain. That data is structured and may be fairly large. Oracles in Æternity essentially consist of three different transaction types to (1) create a new oracle, (2) send a query to an oracle, and (3) for an oracle to respond to a query. This is purely an information exchange mechanism without any guarantees concerning the validity of the information supplied by the oracle (except that it does come from whoever registered the oracle in question).
+
+Æternity provide a [more detailed description](https://github.com/aeternity/protocol/blob/master/oracles/oracles.md) of how oracles function.
 
 ## Varna
 
