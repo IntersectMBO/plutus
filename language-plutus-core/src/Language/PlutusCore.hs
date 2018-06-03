@@ -4,9 +4,9 @@ module Language.PlutusCore
     -- * Pretty-printing
     , prettyText
     -- * Type checking
-    , fill
-    , rename
     , kindCheck
+    , typeCheck
+    , annotate
     -- * AST
     , Term (..)
     , Type (..)
@@ -23,6 +23,8 @@ module Language.PlutusCore
     , AlexPosn (..)
     -- * Type-checking types
     , TypeAnnot
+    , KindAnnot
+    , TypeError (..)
     -- * Formatting
     , format
     , formatDoc
@@ -33,7 +35,7 @@ module Language.PlutusCore
 
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
-import           Data.Text.Prettyprint.Doc             hiding (fill)
+import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type

@@ -97,7 +97,6 @@ instance Pretty (Constant a) where
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> fold (asBytes <$> BSL.unpack b)
     pretty (BuiltinName _ n)  = pretty n
 
--- TODO better identation
 instance Pretty (Term a) where
     pretty = cata a where
         a (ConstantF _ b)   = parens ("con" <+> pretty b)

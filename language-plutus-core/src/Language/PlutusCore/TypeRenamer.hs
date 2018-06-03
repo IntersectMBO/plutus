@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Language.PlutusCore.TypeRenamer ( rename
-                                       , fill
-                                       , kindCheck
+module Language.PlutusCore.TypeRenamer ( kindCheck
                                        , typeCheck
+                                       , annotate
                                        , TypeAnnot
+                                       , KindAnnot
                                        , CheckM (..)
                                        , CheckState (..)
                                        , TypeError (..)
@@ -12,21 +12,12 @@ module Language.PlutusCore.TypeRenamer ( rename
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
-import           Data.Functor.Foldable
-import qualified Data.IntMap                    as IM
-import           Language.PlutusCore.Lexer.Type
+import qualified Data.IntMap              as IM
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 type TypeAnnot = Maybe (Type ())
 type KindAnnot = Maybe (Kind ())
-
-fill :: Type a -> Type (Maybe a)
-fill = fmap (pure Nothing)
-
-squish :: Type a -> Type ()
-squish = fmap (pure mempty)
 
 type KindContext = IM.IntMap (Kind ())
 type TypeContext = IM.IntMap (Type ())
@@ -37,6 +28,9 @@ type TypeContext = IM.IntMap (Type ())
 data CheckState = CheckState { kindContext :: KindContext
                              , typeContext :: TypeContext
                              }
+
+emptyState :: CheckState
+emptyState = CheckState mempty mempty
 
 data TypeError = KindMismatch (Kind ()) (Kind ())
                | InternalError
@@ -56,6 +50,9 @@ extract (TyFix x _ _ _)    = x
 extract (TyForall x _ _ _) = x
 extract (TyBuiltin x _)    = x
 extract (TyLam x _ _ _)    = x
+
+annotate :: Term TypeAnnot -> Either TypeError (Term TypeAnnot)
+annotate = flip evalStateT emptyState . unCheckM . typeCheck
 
 -- TODO: throw an error at the end if type-checking is ambiguous?
 -- TODO: figure out a way to "assume" things for added context?
@@ -80,16 +77,3 @@ typeCheck (Var Nothing n) = do
     let maybeType = IM.lookup (unUnique $ nameUnique n) tSt
     pure $ Var maybeType n
 typeCheck x = pure x
-
--- TODO: how should we handle this? should it be based on the judgment rules?
--- If so, it should be relatively easy, however, I need to know it will
--- terminate. Ideally I could cite the spec.
--- Maybe that should just be in a function called typecheck or the like?
---
--- we should also annotate each 'TyVar' with the kind of its binder.
--- | Annotate each 'Var' with the type of its binder.
-rename :: Term TypeAnnot -> Term TypeAnnot
-rename = ana a where
-    a (TyAnnot _ t (Var _ n))                                                  = VarF (Just (squish t)) n
-    a (Apply _ (Constant _ (BuiltinName _ AddInteger)) (Var _ _ :| [Var _ _])) = undefined
-    a x                                                                        = project x
