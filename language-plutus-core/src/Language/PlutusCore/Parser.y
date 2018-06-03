@@ -120,9 +120,12 @@ Kind : parens(type) { Type $1 }
 {
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
-handleInteger x sz i = if i > 2 ^ (3 * sz)
+handleInteger x sz i = if isOverflow
     then throwE (Overflow x sz i)
     else pure (BuiltinInt x sz i)
+
+    where isOverflow = bw i (-1 * (8 ^ sz `div` 2)) (8 ^ sz `div` 2 - 1)
+          bw x y z = x > y && x < z
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
