@@ -124,7 +124,8 @@ handleInteger x sz i = if isOverflow
     then throwE (Overflow x sz i)
     else pure (BuiltinInt x sz i)
 
-    where isOverflow = bw i (-1 * (8 ^ sz `div` 2)) (8 ^ sz `div` 2 - 1)
+    where isOverflow = bw i (-k) (k - 1)
+          k = 8 ^ sz `div` 2
           bw x y z = x > y && x < z
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
