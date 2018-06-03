@@ -6,7 +6,6 @@ module Language.PlutusCore.TypeRenamer ( kindCheck
                                        , TypeAnnot
                                        , KindAnnot
                                        , CheckM (..)
-                                       , CheckState (..)
                                        , TypeError (..)
                                        ) where
 
