@@ -84,8 +84,8 @@ Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (nat $1) (nat $3) (nat $5) }
 
 Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
-        | naturalLit exclamation integerLit { BuiltinInt (loc $1) (nat $1) (int $3) }
-        | naturalLit exclamation naturalLit { BuiltinInt (loc $1) (nat $1) (fromIntegral (nat $3)) }
+        | naturalLit exclamation integerLit {% handleInteger (loc $1) (nat $1) (int $3) }
+        | naturalLit exclamation naturalLit {% handleInteger (loc $1) (nat $1) (fromIntegral (nat $3)) }
         | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (nat $1) (bytestring $3) } -- this is kinda broken but I'm waiting for a new spec
         | naturalLit { BuiltinSize (loc $1) (nat $1) }
 
@@ -119,6 +119,11 @@ Kind : parens(type) { Type $1 }
 
 {
 
+handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
+handleInteger x sz i = if i > 2 ^ (3 * sz)
+    then throwE (Overflow x sz i)
+    else pure (BuiltinInt x sz i)
+
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
 -- >>> :set -XOverloadedStrings
@@ -132,6 +137,7 @@ parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
 -- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
+                | Overflow AlexPosn Natural Integer 
                 -- TODO | Expected AlexPosn [String] String
                 deriving (Show, Eq, Generic, NFData)
 
