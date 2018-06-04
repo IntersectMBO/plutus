@@ -105,8 +105,9 @@ renameTerm x                = pure x
 
 -- rename a particular unique in a subterm
 rewriteWith :: Unique -> Unique -> Term a -> IdentifierM (Term a)
-rewriteWith i j (Var x (Name x' s i'))
-    | i' == i = pure $ Var x (Name x' s j)
+rewriteWith i j@(Unique u) (Var x (Name x' s i')) | i' == i = do
+    modify (first (IM.insert u s))
+    pure $ Var x (Name x' s j)
 rewriteWith _ _ x = pure x
 
 renameType :: Type a -> IdentifierM (Type a)
