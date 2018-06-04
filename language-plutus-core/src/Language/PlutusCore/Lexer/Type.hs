@@ -51,8 +51,7 @@ data Version a = Version a Natural Natural Natural
                deriving (Show, Eq, Functor, Generic, NFData)
 
 -- | A keyword in Plutus Core.
-data Keyword = KwIsa
-             | KwAbs
+data Keyword = KwAbs
              | KwLam
              | KwFix
              | KwFun

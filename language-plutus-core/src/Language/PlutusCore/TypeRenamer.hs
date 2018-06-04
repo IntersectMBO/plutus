@@ -13,8 +13,10 @@ module Language.PlutusCore.TypeRenamer ( kindCheck
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap              as IM
+import qualified Data.Map                 as M
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 type TypeAnnot = Maybe (Type ())
 type KindAnnot = Maybe (Kind ())
@@ -78,7 +80,19 @@ typeCheck (Var Nothing n) = do
     pure $ Var maybeType n
 typeCheck x = pure x
 
+type IdentifierM = State IdentifierState
+
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
-rename :: Term a -> Term a
-rename = id
+rename :: IdentifierState -> Term a -> Term a
+rename st = flip evalState st . renameTerm
+
+renameTerm :: Term a -> IdentifierM (Term a)
+renameTerm v@(Var _ (Name _ s (Unique u))) =
+    modify (first (IM.insert u s) . second (M.insert s (Unique u))) >>
+    pure v
+renameTerm (TyInst x t tys) = TyInst x <$> renameTerm t <*> traverse renameType tys
+renameTerm x                = pure x
+
+renameType :: Type a -> IdentifierM (Type a)
+renameType = pure

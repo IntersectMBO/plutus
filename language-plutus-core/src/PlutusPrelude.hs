@@ -2,6 +2,7 @@ module PlutusPrelude ( (&&&)
                      , toList
                      , bool
                      , first
+                     , second
                      , on
                      , fold
                      , Generic
@@ -13,7 +14,7 @@ module PlutusPrelude ( (&&&)
                      , (<>)
                      ) where
 
-import           Control.Arrow             (first, (&&&))
+import           Control.Arrow             (first, second, (&&&))
 import           Control.DeepSeq           (NFData)
 import           Data.Bool                 (bool)
 import           Data.Foldable             (fold, toList)

@@ -33,7 +33,6 @@ import qualified Data.List.NonEmpty as NE
 
 %token
 
-    isa { LexKeyword $$ KwIsa }
     abs { LexKeyword $$ KwAbs }
     lam { LexKeyword $$ KwLam }
     fix { LexKeyword $$ KwFix }
@@ -92,7 +91,6 @@ Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
 Name : var { Name (loc $1) (name $1) (identifier $1) }
 
 Term : Name { Var (nameAttribute $1) $1 }
-     | openParen isa Type Term closeParen { TyAnnot $2 $3 $4 }
      | openParen abs Name Term closeParen { TyAbs $2 $3 $4 }
      | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Term closeParen { LamAbs $2 $3 $4 }
