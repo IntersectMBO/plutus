@@ -1,6 +1,8 @@
 {
+    {-# OPTIONS_GHC -fno-warn-unused-imports #-}
     {-# LANGUAGE DeriveAnyClass     #-}
     {-# LANGUAGE DeriveGeneric      #-}
+    {-# LANGUAGE OverloadedStrings  #-}
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlex
@@ -13,7 +15,7 @@ import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
 import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.Identifier
+import Language.PlutusCore.Name
 
 }
 
@@ -33,11 +35,7 @@ $upper = [A-Z]
 
 @identifier = $lower [$lower $upper $digit \_ \']*
 
-$ascii = [$digit $lower $upper \~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\[\]\{\]\|\;\:\'\,\.\<\>\/\?]
 @special = \\\\ | \\\"
-
-@unicode_in = [^\\\"] | @special
-@ascii_in = $ascii | @special
 
 tokens :-
 
@@ -58,6 +56,9 @@ tokens :-
     <0> type                     { mkKeyword KwType }
     <0> program                  { mkKeyword KwProgram }
     <0> con                      { mkKeyword KwCon }
+    <0> wrap                     { mkKeyword KwWrap }
+    <0> unwrap                   { mkKeyword KwUnwrap }
+    <0> error                    { mkKeyword KwError }
 
     -- Builtins
     <0> addInteger               { mkBuiltin AddInteger }
@@ -95,9 +96,7 @@ tokens :-
     <0> "}"                      { mkSpecial CloseBrace }
 
     -- ByteStrings
-    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
-    <0> \#u\" @unicode_in* \"    { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
-    <0> \#\" @ascii_in* \"       { tok (\p s -> alex $ LexBS p (BSL.tail s)) }
+    <0> \# ($hex_digit{2})*      { tok (\p s -> alex $ LexBS p (asBSLiteral s)) }
 
     -- Integer/size literals
     <0> @size                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
@@ -111,6 +110,26 @@ tokens :-
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
 
+handleChar :: Word8 -> Word8
+handleChar x
+    | x >= 48 && x <= 57 = x - 48 -- hexits 0-9
+    | x >= 97 && x <= 102 = x - 87 -- hexits a-f
+    | x >= 65 && x <= 70 = x - 55 -- hexits A-F
+    | otherwise = undefined -- safe b/c macro only matches hexits
+
+-- turns a pair of bytes such as "a6" into a single Word8
+handlePair :: Word8 -> Word8 -> Word8
+handlePair c c' = 16 * handleChar c + handleChar c'
+
+asBytes :: [Word8] -> [Word8]
+asBytes [] = mempty
+asBytes (c:c':cs) = handlePair c c' : asBytes cs
+asBytes _ = undefined -- safe b/c macro matches them in pairs
+
+asBSLiteral :: BSL.ByteString -> BSL.ByteString
+asBSLiteral = withBytes asBytes . BSL.tail
+    where withBytes f = BSL.pack . f . BSL.unpack
+
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments
 nested_comment :: Alex (Token AlexPosn)
@@ -122,13 +141,13 @@ nested_comment = go 1 =<< alexGetInput
             case alexGetByte input of
                 Nothing -> err input
                 Just (c, input') ->
-                    case Data.Char.chr (fromIntegral c) of
-                        '-' ->
+                    case c of
+                        45 ->
                             case alexGetByte input' of
                                 Nothing -> err input'
                                 Just (125,input'') -> go (n-1) input''
                                 Just (_,input'') -> go n input''
-                        '{' ->
+                        123 ->
                             case alexGetByte input' of
                                 Nothing -> err input'
                                 Just (c',input'') -> go (addLevel c' $ n) input''
@@ -148,15 +167,12 @@ mkBuiltin = constructor LexBuiltin
 
 mkKeyword = constructor LexKeyword
 
--- TODO convert hex digits to a ByteString
-
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
 handle_identifier p s =
     sets_alex (modifyUST (snd . newIdentifier s)) >> 
     LexName p s <$> gets_alex (fst . newIdentifier s . alex_ust)
 
 -- this conversion is safe because we only lex digits
--- FIXME this messes up when we feed it a string like +15
 readBSL :: (Read a) => BSL.ByteString -> a
 readBSL = read . ASCII.unpack
 

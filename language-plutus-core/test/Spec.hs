@@ -7,7 +7,6 @@ import qualified Data.ByteString.Lazy as BSL
 import           Data.Foldable        (fold)
 import           Data.Function        (on)
 import qualified Data.List.NonEmpty   as NE
-import           Data.Semigroup
 import           Data.Text.Encoding   (encodeUtf8)
 import           Hedgehog             hiding (Size, Var)
 import qualified Hedgehog.Gen         as Gen
@@ -21,7 +20,7 @@ main :: IO ()
 main = defaultMain allTests
 
 compareName :: Name a -> Name a -> Bool
-compareName = (==) `on` asString
+compareName = (==) `on` nameString
 
 compareTerm :: Eq a => Term a -> Term a -> Bool
 compareTerm (Var _ n) (Var _ n')                = compareName n n'
@@ -32,6 +31,9 @@ compareTerm (Apply _ t ts) (Apply _ t' ts')     = compareTerm t t' && and (NE.zi
 compareTerm (Fix _ n t) (Fix _ n' t')           = compareName n n' && compareTerm t t'
 compareTerm x@Constant{} y@Constant{}           = x == y
 compareTerm (TyInst _ t ts) (TyInst _ t' ts')   = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm (Unwrap _ t) (Unwrap _ t')          = compareTerm t t'
+compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')  = compareName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (Error _ ty) (Error _ ty')          = compareType ty ty'
 compareTerm _ _                                 = False
 
 compareType :: Eq a => Type a -> Type a -> Bool
@@ -78,7 +80,7 @@ genBuiltin :: MonadGen m => m (Constant AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 8 64)
-          string' = ("\"" <>) . (<> "\"") . BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.alpha
+          string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
           genInt = BuiltinInt emptyPosn <$> size' <*> int'
           genSize = BuiltinSize emptyPosn <$> size'
           genBS = BuiltinBS emptyPosn <$> size' <*> string'
@@ -104,8 +106,11 @@ genTerm = simpleRecursive nonRecursive recursive
           instGen = TyInst emptyPosn <$> genTerm <*> args genType
           lamGen = LamAbs emptyPosn <$> genName <*> genTerm
           applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
-          recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen]
-          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin]
+          unwrapGen = Unwrap emptyPosn <$> genTerm
+          wrapGen = Wrap emptyPosn <$> genName <*> genType <*> genTerm
+          errorGen = Error emptyPosn <$> genType
+          recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
 genProgram :: MonadGen m => m (Program AlexPosn)
@@ -136,4 +141,5 @@ tests = testCase "example programs" $ fold
     [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ (con addInteger) x y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     , format "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))" @?= Right "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))"
+    , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]

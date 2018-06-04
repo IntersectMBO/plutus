@@ -11,7 +11,6 @@
 module Language.PlutusCore.Type ( Term (..)
                                 , Type (..)
                                 , Kind (..)
-                                , Name (..)
                                 , Program (..)
                                 , Constant (..)
                                 -- * Base functors
@@ -19,24 +18,16 @@ module Language.PlutusCore.Type ( Term (..)
                                 , TypeF (..)
                                 ) where
 
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable          (cata)
+import qualified Data.ByteString.Lazy               as BSL
+import           Data.Functor.Foldable              (cata)
 import           Data.Functor.Foldable.TH
-import           Data.Text.Encoding             (decodeUtf8)
+import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.Identifier
+import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Name
+import           Numeric                            (showHex)
 import           PlutusPrelude
-
--- | A 'Name' represents variables/names in Plutus Core.
-data Name a = Name { nameLoc  :: a -- ^ 'AlexPosn' in normal usage.
-                   , asString :: BSL.ByteString -- ^ The identifier name, for use in error messages.
-                   , unique   :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
-                   }
-            deriving (Functor, Show, Generic, NFData)
-
-instance Eq (Name a) where
-    (==) = (==) `on` unique
 
 -- | A 'Type' assigned to expressions.
 data Type a = TyVar a (Name a)
@@ -64,10 +55,14 @@ data Term a = Var a (Name a) -- ^ A named variable
             | Fix a (Name a) (Term a)
             | Constant a (Constant a) -- ^ A constant term
             | TyInst a (Term a) (NonEmpty (Type a))
+            | Unwrap a (Term a)
+            | Wrap a (Name a) (Type a) (Term a)
+            | Error a (Type a)
             deriving (Functor, Show, Eq, Generic, NFData)
 
 -- TODO: implement renamer, i.e. annotate each variable with its type
 -- Step 1: typeOf for builtins?
+-- Step 2: use this for surrounding & inner data
 
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
@@ -90,19 +85,18 @@ instance Pretty (Kind a) where
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance Pretty (Name a) where
-    pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
-
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
+
+asBytes :: Word8 -> Doc a
+asBytes = Text 2 . T.pack . ($ mempty) . showHex
 
 instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
-    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> pretty (decodeUtf8 (BSL.toStrict b)) -- "#u" <> dquotes (pretty (decodeUtf8 (BSL.toStrict b)))
+    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> fold (asBytes <$> BSL.unpack b)
     pretty (BuiltinName _ n)  = pretty n
 
--- TODO better identation
 instance Pretty (Term a) where
     pretty = cata a where
         a (ConstantF _ b)   = parens ("con" <+> pretty b)
@@ -113,6 +107,9 @@ instance Pretty (Term a) where
         a (TyInstF _ t te)  = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
         a (FixF _ n t)      = parens ("fix" <+> pretty n <+> t)
         a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
+        a (UnwrapF _ t)     = parens ("unwrap" <+> t)
+        a (WrapF _ n ty t)  = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
+        a (ErrorF _ ty)     = parens ("error" <+> pretty ty)
 
 instance Pretty (Type a) where
     pretty = cata a where

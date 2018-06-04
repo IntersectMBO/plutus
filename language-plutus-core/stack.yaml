@@ -1,5 +1,5 @@
 ---
-resolver: lts-11.9
+resolver: lts-11.11
 packages:
   - '.'
 extra-deps:

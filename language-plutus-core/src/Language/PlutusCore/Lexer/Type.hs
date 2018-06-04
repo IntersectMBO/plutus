@@ -11,8 +11,8 @@ module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , TypeBuiltin (..)
                                       ) where
 
-import qualified Data.ByteString.Lazy           as BSL
-import           Language.PlutusCore.Identifier
+import qualified Data.ByteString.Lazy     as BSL
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 -- | A builtin type
@@ -63,6 +63,9 @@ data Keyword = KwIsa
              | KwType
              | KwProgram
              | KwCon
+             | KwWrap
+             | KwUnwrap
+             | KwError
              deriving (Show, Eq, Generic, NFData)
 
 -- | A special character. This type is only used internally between the lexer

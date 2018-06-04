@@ -33,16 +33,18 @@ library
     hs-source-dirs: src
     other-modules:
         Language.PlutusCore.Type
-        Language.PlutusCore.Identifier
+        Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
+        Language.PlutusCore.TypeRenamer
         PlutusPrelude
     default-language: Haskell2010
     other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass
                       StandaloneDeriving GeneralizedNewtypeDeriving TemplateHaskell
                       KindSignatures TypeFamilies DeriveFunctor DeriveFoldable
                       DeriveTraversable FlexibleContexts OverloadedStrings
+                      DerivingStrategies
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints
@@ -54,7 +56,7 @@ library
         mtl -any,
         transformers -any,
         deepseq -any,
-        recursion-schemes -any,
+        recursion-schemes >=5.0.1,
         prettyprinter -any,
         text -any
     

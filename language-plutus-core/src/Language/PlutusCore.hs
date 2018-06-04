@@ -3,12 +3,16 @@ module Language.PlutusCore
       parse
     -- * Pretty-printing
     , prettyText
+    -- * Type checking
+    , kindCheck
+    , typeCheck
+    , annotate
     -- * AST
     , Term (..)
     , Type (..)
     , Constant (..)
     , Kind (..)
-    , ParseError
+    , ParseError (..)
     , Version (..)
     , Program (..)
     , Name (..)
@@ -17,6 +21,10 @@ module Language.PlutusCore
     , TypeBuiltin (..)
     -- * Lexer
     , AlexPosn (..)
+    -- * Type-checking types
+    , TypeAnnot
+    , KindAnnot
+    , TypeError (..)
     -- * Formatting
     , format
     , formatDoc
@@ -27,13 +35,14 @@ module Language.PlutusCore
 
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import           Language.PlutusCore.Identifier
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.TypeRenamer
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
