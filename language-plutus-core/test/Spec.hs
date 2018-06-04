@@ -143,6 +143,7 @@ allTests plcFiles = testGroup "all tests"
 testsGolden :: [FilePath] -> TestTree
 testsGolden plcFiles= testGroup "golden tests" $ fmap asGolden plcFiles
     where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
+          -- TODO consider more useful output here
           asIO = fmap (either (error . show) (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
 
 tests :: TestTree
