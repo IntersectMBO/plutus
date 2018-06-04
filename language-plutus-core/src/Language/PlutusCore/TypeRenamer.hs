@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Language.PlutusCore.TypeRenamer ( kindCheck
@@ -12,8 +13,8 @@ module Language.PlutusCore.TypeRenamer ( kindCheck
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
+import           Data.Functor.Foldable
 import qualified Data.IntMap              as IM
-import qualified Data.Map                 as M
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -89,9 +90,6 @@ rename st = flip evalState st . renameTerm
 
 -- TODO use an anamorphism?
 renameTerm :: Term a -> IdentifierM (Term a)
-renameTerm v@(Var _ (Name _ s (Unique u))) =
-    modify (first (IM.insert u s) . second (M.insert s (Unique u))) >>
-    pure v
 renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
     pastDef <- gets (IM.lookup u . fst)
     m <- gets (fst . IM.findMax . fst)
@@ -103,12 +101,20 @@ renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm t
 renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
 renameTerm x                = pure x
 
+cataM :: (Recursive t, Traversable (Base t), Monad m) => (Base t a -> m a) -> (t -> m a)
+cataM phi = c where c = phi <=< (traverse c . project)
+
 -- rename a particular unique in a subterm
 rewriteWith :: Unique -> Unique -> Term a -> IdentifierM (Term a)
-rewriteWith i j@(Unique u) (Var x (Name x' s i')) | i' == i = do
-    modify (first (IM.insert u s))
-    pure $ Var x (Name x' s j)
-rewriteWith _ _ x = pure x
+rewriteWith i j@(Unique u) = cataM aM where
+    aM (VarF x (Name x' s i')) | i == i' = do
+        modify (first (IM.insert u s))
+        pure $ Var x (Name x' s j)
+    aM (LamAbsF x (Name x' s i') t) | i == i' = do
+        modify (first (IM.insert u s))
+        pure $ LamAbs x (Name x' s j) t
+    aM x = pure (embed x)
 
+-- TODO do the same thing here
 renameType :: Type a -> IdentifierM (Type a)
 renameType = pure
