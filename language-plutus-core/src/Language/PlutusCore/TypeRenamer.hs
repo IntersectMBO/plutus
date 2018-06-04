@@ -87,12 +87,27 @@ type IdentifierM = State IdentifierState
 rename :: IdentifierState -> Term a -> Term a
 rename st = flip evalState st . renameTerm
 
+-- TODO use an anamorphism?
 renameTerm :: Term a -> IdentifierM (Term a)
 renameTerm v@(Var _ (Name _ s (Unique u))) =
     modify (first (IM.insert u s) . second (M.insert s (Unique u))) >>
     pure v
+renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
+    pastDef <- gets (IM.lookup u . fst)
+    m <- gets (fst . IM.findMax . fst)
+    case pastDef of
+        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> rewriteWith (Unique u) (Unique $ m+1) t'
+        _      -> pure t
 renameTerm (TyInst x t tys) = TyInst x <$> renameTerm t <*> traverse renameType tys
+renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm ts
+renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
 renameTerm x                = pure x
+
+-- rename a particular unique in a subterm
+rewriteWith :: Unique -> Unique -> Term a -> IdentifierM (Term a)
+rewriteWith i j (Var x (Name x' s i'))
+    | i' == i = pure $ Var x (Name x' s j)
+rewriteWith _ _ x = pure x
 
 renameType :: Type a -> IdentifierM (Type a)
 renameType = pure
