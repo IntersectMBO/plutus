@@ -3,6 +3,7 @@
 module Language.PlutusCore.TypeRenamer ( kindCheck
                                        , typeCheck
                                        , annotate
+                                       , rename
                                        , TypeAnnot
                                        , KindAnnot
                                        , CheckM (..)
@@ -76,3 +77,8 @@ typeCheck (Var Nothing n) = do
     let maybeType = IM.lookup (unUnique $ nameUnique n) tSt
     pure $ Var maybeType n
 typeCheck x = pure x
+
+-- This renames terms so that they have a unique identifier. This is useful
+-- because of scoping.
+rename :: Term a -> Term a
+rename = id

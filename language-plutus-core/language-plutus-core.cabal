@@ -83,6 +83,7 @@ test-suite language-plutus-core-test
         tasty-hunit -any,
         tasty-hedgehog -any,
         bytestring -any,
+        tasty-golden -any,
         text -any
     
     if (flag(development) && impl(ghc <8.4))

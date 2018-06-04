@@ -13,11 +13,14 @@ import qualified Hedgehog.Gen         as Gen
 import qualified Hedgehog.Range       as Range
 import           Language.PlutusCore
 import           Test.Tasty
+import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
 main :: IO ()
-main = defaultMain allTests
+main = do
+    plcFiles <- findByExtension ["plc"] "test/data"
+    defaultMain (allTests plcFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -79,7 +82,7 @@ genBuiltinName = Gen.choice $ pure <$>
 genBuiltin :: MonadGen m => m (Constant AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
-          size' = Gen.integral_ (Range.linear 8 64)
+          size' = Gen.integral_ (Range.linear 1 10)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
           genInt = BuiltinInt emptyPosn <$> size' <*> int'
           genSize = BuiltinSize emptyPosn <$> size'
@@ -130,11 +133,19 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: TestTree
-allTests = testGroup "all tests"
+allTests :: [FilePath] -> TestTree
+allTests plcFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
+    , testsGolden plcFiles
     ]
+
+testsGolden :: [FilePath] -> TestTree
+testsGolden plcFiles= testGroup "golden tests" $
+    fmap asGolden plcFiles
+
+    where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
+          asIO = fmap (either (error . show) (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
