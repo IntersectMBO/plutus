@@ -19,7 +19,7 @@ import           Test.Tasty.HUnit
 
 main :: IO ()
 main = do
-    plcFiles <- findByExtension ["plc"] "test/data"
+    plcFiles <- findByExtension [".plc"] "test/data"
     defaultMain (allTests plcFiles)
 
 compareName :: Name a -> Name a -> Bool
@@ -141,9 +141,7 @@ allTests plcFiles = testGroup "all tests"
     ]
 
 testsGolden :: [FilePath] -> TestTree
-testsGolden plcFiles= testGroup "golden tests" $
-    fmap asGolden plcFiles
-
+testsGolden plcFiles= testGroup "golden tests" $ fmap asGolden plcFiles
     where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
           asIO = fmap (either (error . show) (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
 

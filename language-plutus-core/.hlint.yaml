@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: []}
-  - {name: error, within: []}
+  - {name: error, within: [Main]}
   - {name: undefined, within: [Language.PlutusCore.TypeRenamer]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
