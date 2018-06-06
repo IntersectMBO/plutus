@@ -1,19 +1,23 @@
 {
-    {-# LANGUAGE DeriveAnyClass #-}
-    {-# LANGUAGE DeriveGeneric  #-}
+    {-# LANGUAGE DeriveAnyClass     #-}
+    {-# LANGUAGE DeriveGeneric      #-}
+    {-# LANGUAGE OverloadedStrings  #-}
     module Language.PlutusCore.Parser ( parse
                                       , ParseError (..)
                                       ) where
 
 import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Text as T
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
 import Language.PlutusCore.Type
 import Language.PlutusCore.Name
-import qualified Data.List.NonEmpty as NE
 
 }
 
@@ -141,6 +145,14 @@ data ParseError = LexErr String
                 | Overflow AlexPosn Natural Integer 
                 -- TODO | Expected AlexPosn [String] String
                 deriving (Show, Eq, Generic, NFData)
+
+instance Pretty AlexPosn where
+    pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
+
+instance Pretty ParseError where
+    pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
+    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
+    pretty (Overflow pos _ _) = "Integer overflow at" <> pretty pos <> "."
 
 type Parse = ExceptT ParseError Alex
 

@@ -18,15 +18,12 @@ module Language.PlutusCore.Type ( Term (..)
                                 , TypeF (..)
                                 ) where
 
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.Functor.Foldable              (cata)
+import qualified Data.ByteString.Lazy           as BSL
+import           Data.Functor.Foldable          (cata)
 import           Data.Functor.Foldable.TH
-import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Numeric                            (showHex)
 import           PlutusPrelude
 
 -- | A 'Type' assigned to expressions.
@@ -87,13 +84,10 @@ instance Pretty (Kind a) where
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
-asBytes :: Word8 -> Doc a
-asBytes = Text 2 . T.pack . ($ mempty) . showHex
-
 instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
-    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> fold (asBytes <$> BSL.unpack b)
+    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
 instance Pretty (Term a) where

@@ -84,7 +84,8 @@ test-suite language-plutus-core-test
         tasty-hedgehog -any,
         bytestring -any,
         tasty-golden -any,
-        text -any
+        text -any,
+        prettyprinter
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

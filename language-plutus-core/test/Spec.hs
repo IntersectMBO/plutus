@@ -3,14 +3,16 @@
 module Main ( main
             ) where
 
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Foldable        (fold)
-import           Data.Function        (on)
-import qualified Data.List.NonEmpty   as NE
-import           Data.Text.Encoding   (encodeUtf8)
-import           Hedgehog             hiding (Size, Var)
-import qualified Hedgehog.Gen         as Gen
-import qualified Hedgehog.Range       as Range
+import qualified Data.ByteString.Lazy                  as BSL
+import           Data.Foldable                         (fold)
+import           Data.Function                         (on)
+import qualified Data.List.NonEmpty                    as NE
+import           Data.Text.Encoding                    (encodeUtf8)
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.Text
+import           Hedgehog                              hiding (Size, Var)
+import qualified Hedgehog.Gen                          as Gen
+import qualified Hedgehog.Range                        as Range
 import           Language.PlutusCore
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -142,7 +144,10 @@ testsGolden :: [FilePath] -> TestTree
 testsGolden plcFiles= testGroup "golden tests" $ fmap asGolden plcFiles
     where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
           -- TODO consider more useful output here
-          asIO = fmap (either (error . show) (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
+          asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
+          errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+
+
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
