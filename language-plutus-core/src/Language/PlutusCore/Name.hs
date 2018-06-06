@@ -5,13 +5,13 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Language.PlutusCore.Name ( -- * Types
-                                        IdentifierState
-                                      , Unique (..)
-                                      , Name (..)
-                                      -- * Functions
-                                      , newIdentifier
-                                      , emptyIdentifierState
-                                      ) where
+                                  IdentifierState
+                                , Unique (..)
+                                , Name (..)
+                                -- * Functions
+                                , newIdentifier
+                                , emptyIdentifierState
+                                ) where
 
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IntMap          as IM

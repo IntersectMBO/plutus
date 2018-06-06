@@ -3,38 +3,42 @@
 module Main ( main
             ) where
 
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Foldable        (fold)
-import           Data.Function        (on)
-import qualified Data.List.NonEmpty   as NE
-import           Data.Text.Encoding   (encodeUtf8)
-import           Hedgehog             hiding (Size, Var)
-import qualified Hedgehog.Gen         as Gen
-import qualified Hedgehog.Range       as Range
+import qualified Data.ByteString.Lazy                  as BSL
+import           Data.Foldable                         (fold)
+import           Data.Function                         (on)
+import qualified Data.List.NonEmpty                    as NE
+import           Data.Text.Encoding                    (encodeUtf8)
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.Text
+import           Hedgehog                              hiding (Size, Var)
+import qualified Hedgehog.Gen                          as Gen
+import qualified Hedgehog.Range                        as Range
 import           Language.PlutusCore
 import           Test.Tasty
+import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
 main :: IO ()
-main = defaultMain allTests
+main = do
+    plcFiles <- findByExtension [".plc"] "test/data"
+    defaultMain (allTests plcFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
 
 compareTerm :: Eq a => Term a -> Term a -> Bool
-compareTerm (Var _ n) (Var _ n')                = compareName n n'
-compareTerm (TyAnnot _ t te) (TyAnnot _ t' te') = compareType t t' && compareTerm te te'
-compareTerm (TyAbs _ n t) (TyAbs _ n' t')       = compareName n n' && compareTerm t t'
-compareTerm (LamAbs _ n t) (LamAbs _ n' t')     = compareName n n' && compareTerm t t'
-compareTerm (Apply _ t ts) (Apply _ t' ts')     = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
-compareTerm (Fix _ n t) (Fix _ n' t')           = compareName n n' && compareTerm t t'
-compareTerm x@Constant{} y@Constant{}           = x == y
-compareTerm (TyInst _ t ts) (TyInst _ t' ts')   = compareTerm t t' && and (NE.zipWith compareType ts ts')
-compareTerm (Unwrap _ t) (Unwrap _ t')          = compareTerm t t'
-compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')  = compareName n n' && compareType ty ty' && compareTerm t t'
-compareTerm (Error _ ty) (Error _ ty')          = compareType ty ty'
-compareTerm _ _                                 = False
+compareTerm (Var _ n) (Var _ n')               = compareName n n'
+compareTerm (TyAbs _ n t) (TyAbs _ n' t')      = compareName n n' && compareTerm t t'
+compareTerm (LamAbs _ n t) (LamAbs _ n' t')    = compareName n n' && compareTerm t t'
+compareTerm (Apply _ t ts) (Apply _ t' ts')    = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
+compareTerm (Fix _ n t) (Fix _ n' t')          = compareName n n' && compareTerm t t'
+compareTerm x@Constant{} y@Constant{}          = x == y
+compareTerm (TyInst _ t ts) (TyInst _ t' ts')  = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm (Unwrap _ t) (Unwrap _ t')         = compareTerm t t'
+compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (Error _ ty) (Error _ ty')         = compareType ty ty'
+compareTerm _ _                                = False
 
 compareType :: Eq a => Type a -> Type a -> Bool
 compareType (TyVar _ n) (TyVar _ n')                 = compareName n n'
@@ -79,7 +83,7 @@ genBuiltinName = Gen.choice $ pure <$>
 genBuiltin :: MonadGen m => m (Constant AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
-          size' = Gen.integral_ (Range.linear 8 64)
+          size' = Gen.integral_ (Range.linear 1 10)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
           genInt = BuiltinInt emptyPosn <$> size' <*> int'
           genSize = BuiltinSize emptyPosn <$> size'
@@ -100,7 +104,6 @@ genType = simpleRecursive nonRecursive recursive
 genTerm :: MonadGen m => m (Term AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
-          annotGen = TyAnnot emptyPosn <$> genType <*> genTerm
           fixGen = Fix emptyPosn <$> genName <*> genTerm
           absGen = TyAbs emptyPosn <$> genName <*> genTerm
           instGen = TyInst emptyPosn <$> genTerm <*> args genType
@@ -109,7 +112,7 @@ genTerm = simpleRecursive nonRecursive recursive
           unwrapGen = Unwrap emptyPosn <$> genTerm
           wrapGen = Wrap emptyPosn <$> genName <*> genType <*> genTerm
           errorGen = Error emptyPosn <$> genType
-          recursive = [fixGen, annotGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+          recursive = [fixGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
@@ -130,16 +133,25 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: TestTree
-allTests = testGroup "all tests"
+allTests :: [FilePath] -> TestTree
+allTests plcFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
+    , testsGolden plcFiles
     ]
+
+testsGolden :: [FilePath] -> TestTree
+testsGolden plcFiles= testGroup "golden tests" $ fmap asGolden plcFiles
+    where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
+          -- TODO consider more useful output here
+          asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
+          errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+
+
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ (con addInteger) x y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , format "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))" @?= Right "(program 0.1.0 (isa (lam x (fun (type) (type)) y) z))"
     , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]

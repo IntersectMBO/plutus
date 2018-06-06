@@ -1,8 +1,10 @@
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Language.PlutusCore.TypeRenamer ( kindCheck
                                        , typeCheck
                                        , annotate
+                                       , rename
                                        , TypeAnnot
                                        , KindAnnot
                                        , CheckM (..)
@@ -11,9 +13,11 @@ module Language.PlutusCore.TypeRenamer ( kindCheck
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
+import           Data.Functor.Foldable
 import qualified Data.IntMap              as IM
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 type TypeAnnot = Maybe (Type ())
 type KindAnnot = Maybe (Kind ())
@@ -76,3 +80,41 @@ typeCheck (Var Nothing n) = do
     let maybeType = IM.lookup (unUnique $ nameUnique n) tSt
     pure $ Var maybeType n
 typeCheck x = pure x
+
+type IdentifierM = State IdentifierState
+
+-- This renames terms so that they have a unique identifier. This is useful
+-- because of scoping.
+rename :: IdentifierState -> Term a -> Term a
+rename st = flip evalState st . renameTerm
+
+-- TODO use an anamorphism?
+renameTerm :: Term a -> IdentifierM (Term a)
+renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
+    pastDef <- gets (IM.lookup u . fst)
+    m <- gets (fst . IM.findMax . fst)
+    case pastDef of
+        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> rewriteWith (Unique u) (Unique $ m+1) t'
+        _      -> pure t
+renameTerm (TyInst x t tys) = TyInst x <$> renameTerm t <*> traverse renameType tys
+renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm ts
+renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
+renameTerm x                = pure x
+
+cataM :: (Recursive t, Traversable (Base t), Monad m) => (Base t a -> m a) -> (t -> m a)
+cataM phi = c where c = phi <=< (traverse c . project)
+
+-- rename a particular unique in a subterm
+rewriteWith :: Unique -> Unique -> Term a -> IdentifierM (Term a)
+rewriteWith i j@(Unique u) = cataM aM where
+    aM (VarF x (Name x' s i')) | i == i' = do
+        modify (first (IM.insert u s))
+        pure $ Var x (Name x' s j)
+    aM (LamAbsF x (Name x' s i') t) | i == i' = do
+        modify (first (IM.insert u s))
+        pure $ LamAbs x (Name x' s j) t
+    aM x = pure (embed x)
+
+-- TODO do the same thing here
+renameType :: Type a -> IdentifierM (Type a)
+renameType = pure

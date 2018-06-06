@@ -44,7 +44,6 @@ tokens :-
     <0> "{-"                     { \_ _ -> nested_comment }
 
     -- Keywords
-    <0> isa                      { mkKeyword KwIsa }
     <0> abs                      { mkKeyword KwAbs }
     <0> lam                      { mkKeyword KwLam }
     <0> fix                      { mkKeyword KwFix }

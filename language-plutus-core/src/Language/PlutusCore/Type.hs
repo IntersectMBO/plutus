@@ -18,15 +18,12 @@ module Language.PlutusCore.Type ( Term (..)
                                 , TypeF (..)
                                 ) where
 
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.Functor.Foldable              (cata)
+import qualified Data.ByteString.Lazy           as BSL
+import           Data.Functor.Foldable          (cata)
 import           Data.Functor.Foldable.TH
-import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Numeric                            (showHex)
 import           PlutusPrelude
 
 -- | A 'Type' assigned to expressions.
@@ -48,7 +45,6 @@ data Constant a = BuiltinInt a Natural Integer
 
 -- | A 'Term' is a value.
 data Term a = Var a (Name a) -- ^ A named variable
-            | TyAnnot a (Type a) (Term a) -- ^ A 'Term' annotated with a 'Type'
             | TyAbs a (Name a) (Term a)
             | LamAbs a (Name a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
@@ -88,28 +84,24 @@ instance Pretty (Kind a) where
 instance Pretty (Program a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
-asBytes :: Word8 -> Doc a
-asBytes = Text 2 . T.pack . ($ mempty) . showHex
-
 instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
-    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> "#" <> fold (asBytes <$> BSL.unpack b)
+    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
 instance Pretty (Term a) where
     pretty = cata a where
-        a (ConstantF _ b)   = parens ("con" <+> pretty b)
-        a (ApplyF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a (TyAnnotF _ t te) = parens ("isa" <+> pretty t <+> te)
-        a (VarF _ n)        = pretty n
-        a (TyAbsF _ n t)    = parens ("abs" <+> pretty n <+> t)
-        a (TyInstF _ t te)  = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
-        a (FixF _ n t)      = parens ("fix" <+> pretty n <+> t)
-        a (LamAbsF _ n t)   = parens ("lam" <+> pretty n <+> t)
-        a (UnwrapF _ t)     = parens ("unwrap" <+> t)
-        a (WrapF _ n ty t)  = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
-        a (ErrorF _ ty)     = parens ("error" <+> pretty ty)
+        a (ConstantF _ b)  = parens ("con" <+> pretty b)
+        a (ApplyF _ t ts)  = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (VarF _ n)       = pretty n
+        a (TyAbsF _ n t)   = parens ("abs" <+> pretty n <+> t)
+        a (TyInstF _ t te) = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
+        a (FixF _ n t)     = parens ("fix" <+> pretty n <+> t)
+        a (LamAbsF _ n t)  = parens ("lam" <+> pretty n <+> t)
+        a (UnwrapF _ t)    = parens ("unwrap" <+> t)
+        a (WrapF _ n ty t) = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
+        a (ErrorF _ ty)    = parens ("error" <+> pretty ty)
 
 instance Pretty (Type a) where
     pretty = cata a where

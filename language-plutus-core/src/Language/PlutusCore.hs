@@ -3,6 +3,8 @@ module Language.PlutusCore
       parse
     -- * Pretty-printing
     , prettyText
+    -- * Renaming
+    , rename
     -- * Type checking
     , kindCheck
     , typeCheck

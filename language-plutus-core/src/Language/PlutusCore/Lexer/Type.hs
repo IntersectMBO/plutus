@@ -9,10 +9,15 @@ module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , Special (..)
                                       , Token (..)
                                       , TypeBuiltin (..)
+                                      , prettyBytes
                                       ) where
 
-import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.ByteString.Lazy               as BSL
+import qualified Data.Text                          as T
+import           Data.Text.Encoding                 (decodeUtf8)
+import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Language.PlutusCore.Name
+import           Numeric                            (showHex)
 import           PlutusPrelude
 
 -- | A builtin type
@@ -51,8 +56,7 @@ data Version a = Version a Natural Natural Natural
                deriving (Show, Eq, Functor, Generic, NFData)
 
 -- | A keyword in Plutus Core.
-data Keyword = KwIsa
-             | KwAbs
+data Keyword = KwAbs
              | KwLam
              | KwFix
              | KwFun
@@ -93,6 +97,48 @@ data Token a = LexName { loc        :: a
              | LexSpecial { loc :: a, special :: Special }
              | EOF { loc :: a }
              deriving (Show, Eq, Generic, NFData)
+
+asBytes :: Word8 -> Doc a
+asBytes = Text 2 . T.pack . ($ mempty) . showHex
+
+prettyBytes :: BSL.ByteString -> Doc a
+prettyBytes b = "#" <> fold (asBytes <$> BSL.unpack b)
+
+instance Pretty Special where
+    pretty OpenParen    = "("
+    pretty CloseParen   = ")"
+    pretty OpenBracket  = "["
+    pretty CloseBracket = "]"
+    pretty Dot          = "."
+    pretty Exclamation  = "!"
+    pretty OpenBrace    = "{"
+    pretty CloseBrace   = "}"
+
+instance Pretty Keyword where
+    pretty KwAbs        = "abs"
+    pretty KwLam        = "lam"
+    pretty KwFix        = "fix"
+    pretty KwFun        = "fun"
+    pretty KwForall     = "forall"
+    pretty KwByteString = "bytestring"
+    pretty KwInteger    = "integer"
+    pretty KwSize       = "size"
+    pretty KwType       = "type"
+    pretty KwProgram    = "program"
+    pretty KwCon        = "con"
+    pretty KwWrap       = "wrap"
+    pretty KwUnwrap     = "unwrap"
+    pretty KwError      = "error"
+
+instance Pretty (Token a) where
+    pretty (LexName _ n _)   = pretty (decodeUtf8 (BSL.toStrict n))
+    pretty (LexInt _ i)      = pretty i
+    pretty (LexNat _ n)      = pretty n
+    pretty (LexBS _ bs)      = prettyBytes bs
+    pretty (LexBuiltin _ bn) = pretty bn
+    pretty (LexKeyword _ kw) = pretty kw
+    pretty (LexSpecial _ s)  = pretty s
+    pretty EOF{}             = mempty
 
 instance Pretty BuiltinName where
     pretty AddInteger           = "addInteger"
