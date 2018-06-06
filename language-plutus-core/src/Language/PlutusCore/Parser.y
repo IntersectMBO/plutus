@@ -152,7 +152,7 @@ instance Pretty AlexPosn where
 instance Pretty ParseError where
     pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
-    pretty (Overflow pos _ _) = "Integer overflow at" <> pretty pos <> "."
+    pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
 
 type Parse = ExceptT ParseError Alex
 
