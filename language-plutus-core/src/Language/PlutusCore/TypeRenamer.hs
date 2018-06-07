@@ -15,6 +15,7 @@ import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import           Data.Functor.Foldable
 import qualified Data.IntMap              as IM
+import qualified Data.Map                 as M
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -85,16 +86,20 @@ type IdentifierM = State IdentifierState
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
-rename :: IdentifierState -> Term a -> Term a
-rename st = flip evalState st . renameTerm
+rename :: IdentifierState -> Program a -> Program a
+rename st (Program x v p) = Program x v (evalState (renameTerm p) st)
 
--- TODO use an anamorphism?
+-- TODO: just reuse the information from parsing
 renameTerm :: Term a -> IdentifierM (Term a)
+renameTerm v@(Var _ (Name _ s (Unique u))) =
+    modify (first (IM.insert u s) . second (M.insert s (Unique u))) >>
+    pure v
 renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
+    modify (first (IM.insert u s) . second (M.insert s (Unique u)))
     pastDef <- gets (IM.lookup u . fst)
     m <- gets (fst . IM.findMax . fst)
     case pastDef of
-        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> rewriteWith (Unique u) (Unique $ m+1) t'
+        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> (renameTerm =<< rewriteWith (Unique u) (Unique $ m+1) t')
         _      -> pure t
 renameTerm (TyInst x t tys) = TyInst x <$> renameTerm t <*> traverse renameType tys
 renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm ts
