@@ -13,9 +13,9 @@ module Language.PlutusCore.TypeRenamer ( kindCheck
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
+import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Foldable
 import qualified Data.IntMap              as IM
-import qualified Data.Map                 as M
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -89,15 +89,22 @@ type IdentifierM = State IdentifierState
 rename :: IdentifierState -> Program a -> Program a
 rename st (Program x v p) = Program x v (evalState (renameTerm p) st)
 
+insertName :: Int -> BSL.ByteString -> IdentifierM ()
+insertName u s = modify (first (IM.insert u s))
+
+-- This has to be matched on lazily because findMax may fail. This won't be
+-- a problem as long if the first lookup succeeds, however.
+defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
+defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
+
 -- TODO: just reuse the information from parsing
 renameTerm :: Term a -> IdentifierM (Term a)
 renameTerm v@(Var _ (Name _ s (Unique u))) =
-    modify (first (IM.insert u s) . second (M.insert s (Unique u))) >>
+    insertName u s >>
     pure v
 renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
-    modify (first (IM.insert u s) . second (M.insert s (Unique u)))
-    pastDef <- gets (IM.lookup u . fst)
-    m <- gets (fst . IM.findMax . fst)
+    insertName u s
+    ~(pastDef, m) <- defMax u
     case pastDef of
         Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> (renameTerm =<< rewriteWith (Unique u) (Unique $ m+1) t')
         _      -> pure t
@@ -113,10 +120,10 @@ cataM phi = c where c = phi <=< (traverse c . project)
 rewriteWith :: Unique -> Unique -> Term a -> IdentifierM (Term a)
 rewriteWith i j@(Unique u) = cataM aM where
     aM (VarF x (Name x' s i')) | i == i' = do
-        modify (first (IM.insert u s))
+        insertName u s
         pure $ Var x (Name x' s j)
     aM (LamAbsF x (Name x' s i') t) | i == i' = do
-        modify (first (IM.insert u s))
+        insertName u s
         pure $ LamAbs x (Name x' s j) t
     aM x = pure (embed x)
 
