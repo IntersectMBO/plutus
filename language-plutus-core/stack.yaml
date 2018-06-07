@@ -1,5 +1,5 @@
 ---
-resolver: lts-11.11
+resolver: lts-11.12
 packages:
   - '.'
 extra-deps:
@@ -7,4 +7,3 @@ extra-deps:
 flags:
   language-plutus-core:
     development: true
-extra-package-dbs: []

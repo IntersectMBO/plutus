@@ -120,6 +120,12 @@ renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm t
 renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
 renameTerm x                = pure x
 
+rewriteType :: Unique -> Unique -> Type a -> Type a
+rewriteType i j = cata a where
+    a (TyVarF x (Name x' s i')) | i == i' =
+        TyVar x (Name x' s j)
+    a x = embed x
+
 -- rename a particular unique in a subterm
 rewriteWith :: Unique -> Unique -> Term a -> Term a
 rewriteWith i j = cata a where
@@ -136,4 +142,10 @@ renameType :: Type a -> IdentifierM (Type a)
 renameType v@(TyVar _ (Name _ s (Unique u))) =
     insertName u s >>
     pure v
+renameType ty@(TyLam x (Name x' s (Unique u)) k ty') = do
+    insertName u s
+    ~(pastDef, m) <- defMax u
+    case pastDef of
+        Just _ -> TyLam x (Name x' s (Unique $ m+1)) k <$> renameType (rewriteType (Unique u) (Unique $ m+1) ty')
+        _      -> pure ty
 renameType x = pure x

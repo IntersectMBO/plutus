@@ -10,7 +10,6 @@
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
-                                     , AlexState (..)
                                      ) where
 
 import PlutusPrelude
