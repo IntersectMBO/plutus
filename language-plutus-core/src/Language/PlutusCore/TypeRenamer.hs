@@ -98,6 +98,7 @@ defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
 defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
 
 -- TODO: just reuse the information from parsing
+-- in fact, until we do this, it will fail.
 renameTerm :: Term a -> IdentifierM (Term a)
 renameTerm v@(Var _ (Name _ s (Unique u))) =
     insertName u s >>
@@ -106,27 +107,33 @@ renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
     insertName u s
     ~(pastDef, m) <- defMax u
     case pastDef of
-        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> (renameTerm =<< rewriteWith (Unique u) (Unique $ m+1) t')
+        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
+        _      -> pure t
+renameTerm t@(Wrap x (Name x' s (Unique u)) ty t') = do
+    insertName u s
+    ~(pastDef, m) <- defMax u
+    case pastDef of
+        Just _ -> Wrap x (Name x' s (Unique $ m+1)) ty <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
         _      -> pure t
 renameTerm (TyInst x t tys) = TyInst x <$> renameTerm t <*> traverse renameType tys
 renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm ts
 renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
 renameTerm x                = pure x
 
-cataM :: (Recursive t, Traversable (Base t), Monad m) => (Base t a -> m a) -> (t -> m a)
-cataM phi = c where c = phi <=< (traverse c . project)
-
 -- rename a particular unique in a subterm
-rewriteWith :: Unique -> Unique -> Term a -> IdentifierM (Term a)
-rewriteWith i j@(Unique u) = cataM aM where
-    aM (VarF x (Name x' s i')) | i == i' = do
-        insertName u s
-        pure $ Var x (Name x' s j)
-    aM (LamAbsF x (Name x' s i') t) | i == i' = do
-        insertName u s
-        pure $ LamAbs x (Name x' s j) t
-    aM x = pure (embed x)
+rewriteWith :: Unique -> Unique -> Term a -> Term a
+rewriteWith i j = cata a where
+    a (VarF x (Name x' s i')) | i == i' =
+        Var x (Name x' s j)
+    a (LamAbsF x (Name x' s i') t) | i == i' =
+        LamAbs x (Name x' s j) t
+    a (WrapF x (Name x' s i') ty t) | i == i' =
+        Wrap x (Name x' s j) ty t
+    a x = embed x
 
 -- TODO do the same thing here
 renameType :: Type a -> IdentifierM (Type a)
-renameType = pure
+renameType v@(TyVar _ (Name _ s (Unique u))) =
+    insertName u s >>
+    pure v
+renameType x = pure x
