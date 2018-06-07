@@ -103,11 +103,11 @@ renameTerm :: Term a -> IdentifierM (Term a)
 renameTerm v@(Var _ (Name _ s (Unique u))) =
     insertName u s >>
     pure v
-renameTerm t@(LamAbs x (Name x' s (Unique u)) t') = do
+renameTerm t@(LamAbs x (Name x' s (Unique u)) ty t') = do
     insertName u s
     ~(pastDef, m) <- defMax u
     case pastDef of
-        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
+        Just _ -> LamAbs x (Name x' s (Unique $ m+1)) ty <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
         _      -> pure t
 renameTerm t@(Wrap x (Name x' s (Unique u)) ty t') = do
     insertName u s
@@ -125,8 +125,8 @@ rewriteWith :: Unique -> Unique -> Term a -> Term a
 rewriteWith i j = cata a where
     a (VarF x (Name x' s i')) | i == i' =
         Var x (Name x' s j)
-    a (LamAbsF x (Name x' s i') t) | i == i' =
-        LamAbs x (Name x' s j) t
+    a (LamAbsF x (Name x' s i') ty t) | i == i' =
+        LamAbs x (Name x' s j) ty t
     a (WrapF x (Name x' s i') ty t) | i == i' =
         Wrap x (Name x' s j) ty t
     a x = embed x

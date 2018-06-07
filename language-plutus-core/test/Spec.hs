@@ -28,17 +28,17 @@ compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
 
 compareTerm :: Eq a => Term a -> Term a -> Bool
-compareTerm (Var _ n) (Var _ n')               = compareName n n'
-compareTerm (TyAbs _ n t) (TyAbs _ n' t')      = compareName n n' && compareTerm t t'
-compareTerm (LamAbs _ n t) (LamAbs _ n' t')    = compareName n n' && compareTerm t t'
-compareTerm (Apply _ t ts) (Apply _ t' ts')    = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
-compareTerm (Fix _ n t) (Fix _ n' t')          = compareName n n' && compareTerm t t'
-compareTerm x@Constant{} y@Constant{}          = x == y
-compareTerm (TyInst _ t ts) (TyInst _ t' ts')  = compareTerm t t' && and (NE.zipWith compareType ts ts')
-compareTerm (Unwrap _ t) (Unwrap _ t')         = compareTerm t t'
-compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
-compareTerm (Error _ ty) (Error _ ty')         = compareType ty ty'
-compareTerm _ _                                = False
+compareTerm (Var _ n) (Var _ n')                   = compareName n n'
+compareTerm (TyAbs _ n t) (TyAbs _ n' t')          = compareName n n' && compareTerm t t'
+compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (Apply _ t ts) (Apply _ t' ts')        = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
+compareTerm (Fix _ n t) (Fix _ n' t')              = compareName n n' && compareTerm t t'
+compareTerm x@Constant{} y@Constant{}              = x == y
+compareTerm (TyInst _ t ts) (TyInst _ t' ts')      = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
+compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
+compareTerm _ _                                    = False
 
 compareType :: Eq a => Type a -> Type a -> Bool
 compareType (TyVar _ n) (TyVar _ n')                 = compareName n n'
@@ -107,7 +107,7 @@ genTerm = simpleRecursive nonRecursive recursive
           fixGen = Fix emptyPosn <$> genName <*> genTerm
           absGen = TyAbs emptyPosn <$> genName <*> genTerm
           instGen = TyInst emptyPosn <$> genTerm <*> args genType
-          lamGen = LamAbs emptyPosn <$> genName <*> genTerm
+          lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
           applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
           unwrapGen = Unwrap emptyPosn <$> genTerm
           wrapGen = Wrap emptyPosn <$> genName <*> genType <*> genTerm
