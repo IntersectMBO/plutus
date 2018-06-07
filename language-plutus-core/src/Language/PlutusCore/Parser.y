@@ -3,6 +3,7 @@
     {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE OverloadedStrings  #-}
     module Language.PlutusCore.Parser ( parse
+                                      , parseST
                                       , ParseError (..)
                                       ) where
 
@@ -129,6 +130,13 @@ handleInteger x sz i = if isOverflow
     where isOverflow = i < (-k) || i > (k - 1)
           k = 8 ^ sz `div` 2
 
+parseST :: BSL.ByteString -> Either ParseError (IdentifierState, Program AlexPosn)
+parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
+    where liftErr (Left s)  = Left (LexErr s)
+          liftErr (Right x) = normalize x
+          normalize (x, Left y) = Left y
+          normalize (x, Right y) = Right (x, y)
+
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
 -- >>> :set -XOverloadedStrings
@@ -143,7 +151,6 @@ parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Overflow AlexPosn Natural Integer 
-                -- TODO | Expected AlexPosn [String] String
                 deriving (Show, Eq, Generic, NFData)
 
 instance Pretty AlexPosn where

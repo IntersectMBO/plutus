@@ -6,9 +6,11 @@
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlex
+                                     , runAlexST
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
+                                     , AlexState (..)
                                      ) where
 
 import PlutusPrelude
@@ -204,5 +206,16 @@ get_pos = gets_alex alex_pos
 
 alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF <$> get_pos
+
+runAlexST :: ByteString.ByteString -> Alex a -> Either String (IdentifierState, a)
+runAlexST input (Alex f) = first alex_ust <$> 
+    f (AlexState { alex_pos = alexStartPos
+                 , alex_bpos = 0
+                 , alex_inp = input
+                 , alex_chr = '\n'
+                 , alex_ust = alexInitUserState
+                 , alex_scd = 0
+                 })
+
 
 }
