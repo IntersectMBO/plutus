@@ -1,10 +1,9 @@
 module Language.PlutusCore
     ( -- * Parser
       parse
+    , parseScoped
     -- * Pretty-printing
     , prettyText
-    -- * Renaming
-    , rename
     -- * Type checking
     , kindCheck
     , typeCheck
@@ -45,6 +44,11 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
+
+-- | Parse and rewrite so that names are globally unique, not just unique within
+-- their scope.
+parseScoped :: BSL.ByteString -> Either ParseError (Program AlexPosn)
+parseScoped = fmap (uncurry rename) . parseST
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
