@@ -47,13 +47,13 @@ newtype CheckM a = CheckM { unCheckM :: StateT CheckState (Either TypeError) a }
     deriving (Functor, Applicative, Monad, MonadState CheckState, MonadError TypeError)
 
 extract :: Type a -> a
-extract (TyApp x _ _)      = x
-extract (TyVar x _)        = x
-extract (TyFun x _ _)      = x
-extract (TyFix x _ _ _)    = x
-extract (TyForall x _ _ _) = x
-extract (TyBuiltin x _)    = x
-extract (TyLam x _ _ _)    = x
+extract (TyApp x _ _)    = x
+extract (TyVar x _)      = x
+extract (TyFun x _ _)    = x
+extract (TyFix x _ _ _)  = x
+extract (TyForall x _ _) = x
+extract (TyBuiltin x _)  = x
+extract (TyLam x _ _ _)  = x
 
 annotate :: Term TypeAnnot -> Either TypeError (Term TypeAnnot)
 annotate = flip evalStateT emptyState . unCheckM . typeCheck
@@ -124,6 +124,8 @@ rewriteType :: Unique -> Unique -> Type a -> Type a
 rewriteType i j = cata a where
     a (TyVarF x (Name x' s i')) | i == i' =
         TyVar x (Name x' s j)
+    a (TyLamF x (Name x' s i') k ty) | i == i' =
+        TyLam x (Name x' s j) k ty
     a x = embed x
 
 -- rename a particular unique in a subterm

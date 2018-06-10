@@ -30,7 +30,7 @@ import           PlutusPrelude
 data Type a = TyVar a (Name a)
             | TyFun a (Type a) (Type a)
             | TyFix a (Name a) (Kind a) (Type a) -- ^ Fix-point type, for constructing self-recursive types
-            | TyForall a (Name a) (Kind a) (Type a)
+            | TyForall a (Name a) (Type a)
             | TyBuiltin a TypeBuiltin -- ^ Builtin type
             | TyLam a (Name a) (Kind a) (Type a)
             | TyApp a (Type a) (NonEmpty (Type a))
@@ -105,10 +105,10 @@ instance Pretty (Term a) where
 
 instance Pretty (Type a) where
     pretty = cata a where
-        a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
-        a (TyVarF _ n)        = pretty n
-        a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n k t)    = parens ("fix" <+> pretty n <+> pretty k <+> t)
-        a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
-        a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
-        a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
+        a (TyAppF _ t ts)   = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyVarF _ n)      = pretty n
+        a (TyFunF _ t t')   = parens ("fun" <+> t <+> t')
+        a (TyFixF _ n k t)  = parens ("fix" <+> pretty n <+> pretty k <+> t)
+        a (TyForallF _ n t) = parens ("forall" <+> pretty n <+> t)
+        a (TyBuiltinF _ n)  = parens ("con" <+> pretty n)
+        a (TyLamF _ n k t)  = parens ("lam" <+> pretty n <+> pretty k <+> t)
