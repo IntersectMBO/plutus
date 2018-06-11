@@ -47,13 +47,13 @@ newtype CheckM a = CheckM { unCheckM :: StateT CheckState (Either TypeError) a }
     deriving (Functor, Applicative, Monad, MonadState CheckState, MonadError TypeError)
 
 extract :: Type a -> a
-extract (TyApp x _ _)    = x
-extract (TyVar x _)      = x
-extract (TyFun x _ _)    = x
-extract (TyFix x _ _ _)  = x
-extract (TyForall x _ _) = x
-extract (TyBuiltin x _)  = x
-extract (TyLam x _ _ _)  = x
+extract (TyApp x _ _)      = x
+extract (TyVar x _)        = x
+extract (TyFun x _ _)      = x
+extract (TyFix x _ _ _)    = x
+extract (TyForall x _ _ _) = x
+extract (TyBuiltin x _)    = x
+extract (TyLam x _ _ _)    = x
 
 annotate :: Term TypeAnnot -> Either TypeError (Term TypeAnnot)
 annotate = flip evalStateT emptyState . unCheckM . typeCheck
@@ -121,6 +121,12 @@ renameTerm t@(Wrap x (Name x' s (Unique u)) ty t') = do
     case pastDef of
         Just _ -> Wrap x (Name x' s (Unique $ m+1)) ty <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
         _      -> pure t
+renameTerm t@(TyAbs x (Name x' s (Unique u)) k t') = do
+    insertName u s
+    ~(pastDef, m) <- defMax u
+    case pastDef of
+        Just _ -> TyAbs x (Name x' s (Unique $ m+1)) k <$> renameTerm (mapType (rewriteType (Unique u) (Unique $ m+1)) t')
+        _      -> pure t
 renameTerm (TyInst x t tys) = TyInst x <$> renameTerm t <*> traverse renameType tys
 renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm ts
 renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
@@ -133,6 +139,10 @@ rewriteType i j = cata a where
         TyVar x (Name x' s j)
     a (TyLamF x (Name x' s i') k ty) | i == i' =
         TyLam x (Name x' s j) k ty
+    a (TyFixF x (Name x' s i') k ty) | i == i' =
+        TyFix x (Name x' s j) k ty
+    a (TyForallF x (Name x' s i') k ty) | i == i' =
+        TyForall x (Name x' s j) k ty
     a x = embed x
 
 -- rename a particular unique in a subterm
@@ -144,7 +154,15 @@ rewriteWith i j = cata a where
         LamAbs x (Name x' s j) ty t
     a (WrapF x (Name x' s i') ty t) | i == i' =
         Wrap x (Name x' s j) ty t
+    a (FixF x (Name x' s i') ty t) | i == i' =
+        Fix x (Name x' s j) ty t
     a x = embed x
+
+mapType :: (Type a -> Type a) -> Term a -> Term a
+mapType f (LamAbs x n ty t) = LamAbs x n (f ty) t
+mapType f (Fix x n ty t)    = Fix x n (f ty) t
+mapType f (Wrap x n ty t)   = Wrap x n (f ty) t
+mapType _ x                 = x
 
 renameType :: Type a -> IdentifierM (Type a)
 renameType v@(TyVar _ (Name _ s (Unique u))) =
@@ -155,5 +173,17 @@ renameType ty@(TyLam x (Name x' s (Unique u)) k ty') = do
     ~(pastDef, m) <- defMax u
     case pastDef of
         Just _ -> TyLam x (Name x' s (Unique $ m+1)) k <$> renameType (rewriteType (Unique u) (Unique $ m+1) ty')
+        _      -> pure ty
+renameType ty@(TyForall x (Name x' s (Unique u)) k ty') = do
+    insertName u s
+    ~(pastDef, m) <- defMax u
+    case pastDef of
+        Just _ -> TyForall x (Name x' s (Unique $ m+1)) k <$> renameType (rewriteType (Unique u) (Unique $ m+1) ty')
+        _      -> pure ty
+renameType ty@(TyFix x (Name x' s (Unique u)) k ty') = do
+    insertName u s
+    ~(pastDef, m) <- defMax u
+    case pastDef of
+        Just _ -> TyFix x (Name x' s (Unique $ m+1)) k <$> renameType (rewriteType (Unique u) (Unique $ m+1) ty')
         _      -> pure ty
 renameType x = pure x

@@ -41,14 +41,14 @@ compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
 compareType :: Eq a => Type a -> Type a -> Bool
-compareType (TyVar _ n) (TyVar _ n')            = compareName n n'
-compareType (TyFun _ t s) (TyFun _ t' s')       = compareType t t' && compareType s s'
-compareType (TyFix _ n k t) (TyFix _ n' k' t')  = compareName n n' && k == k' && compareType t t'
-compareType (TyForall _ n t) (TyForall _ n' t') = compareName n n' && compareType t t'
-compareType x@TyBuiltin{} y@TyBuiltin{}         = x == y
-compareType (TyLam _ n k t) (TyLam _ n' k' t')  = compareName n n' && k == k' && compareType t t'
-compareType (TyApp _ t ts) (TyApp _ t' ts')     = compareType t t' && and (NE.zipWith compareType ts ts')
-compareType _ _                                 = False
+compareType (TyVar _ n) (TyVar _ n')                 = compareName n n'
+compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
+compareType (TyFix _ n k t) (TyFix _ n' k' t')       = compareName n n' && k == k' && compareType t t'
+compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareName n n' && k == k' && compareType t t'
+compareType x@TyBuiltin{} y@TyBuiltin{}              = x == y
+compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareName n n' && k == k' && compareType t t'
+compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
+compareType _ _                                      = False
 
 compareProgram :: Eq a => Program a -> Program a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
@@ -94,7 +94,7 @@ genType = simpleRecursive nonRecursive recursive
     where varGen = TyVar emptyPosn <$> genName
           funGen = TyFun emptyPosn <$> genType <*> genType
           lamGen = TyLam emptyPosn <$> genName <*> genKind <*> genType
-          forallGen = TyForall emptyPosn <$> genName <*> genType
+          forallGen = TyForall emptyPosn <$> genName <*> genKind <*> genType
           fixGen = TyFix emptyPosn <$> genName <*> genKind <*> genType
           applyGen = TyApp emptyPosn <$> genType <*> args genType
           recursive = [funGen, applyGen]

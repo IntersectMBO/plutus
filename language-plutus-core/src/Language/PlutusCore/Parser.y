@@ -108,7 +108,7 @@ Term : Name { Var (nameAttribute $1) $1 }
 
 Type : Name { TyVar (nameAttribute $1) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
-     | openParen forall Name Type closeParen { TyForall $2 $3 $4 }
+     | openParen forall Name Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam Name Kind Type closeParen { TyLam $2 $3 $4 $5 }
      | openParen fix Name Kind Type closeParen { TyFix $2 $3 $4 $5 }
      | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
