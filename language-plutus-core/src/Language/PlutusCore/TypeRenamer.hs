@@ -15,7 +15,7 @@ type IdentifierM = State IdentifierState
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
-rename :: IdentifierState -> Program (Name b) a -> Program (Name b) a
+rename :: IdentifierState -> Program Name a -> Program Name a
 rename st (Program x v p) = Program x v (evalState (renameTerm p) st)
 
 insertName :: Int -> BSL.ByteString -> IdentifierM ()
@@ -28,7 +28,7 @@ defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
 
 -- TODO: just reuse the information from parsing
 -- in fact, until we do this, it will fail.
-renameTerm :: Term (Name b) a -> IdentifierM (Term (Name b) a)
+renameTerm :: Term Name a -> IdentifierM (Term Name a)
 renameTerm v@(Var _ (Name _ s (Unique u))) =
     insertName u s >>
     pure v
@@ -62,7 +62,7 @@ renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
 renameTerm x                = pure x
 
 -- rename a particular type
-rewriteType :: Unique -> Unique -> Type (Name b) a -> Type (Name b) a
+rewriteType :: Unique -> Unique -> Type Name a -> Type Name a
 rewriteType i j = cata a where
     a (TyVarF x (Name x' s i')) | i == i' =
         TyVar x (Name x' s j)
@@ -75,7 +75,7 @@ rewriteType i j = cata a where
     a x = embed x
 
 -- rename a particular unique in a subterm
-rewriteWith :: Unique -> Unique -> Term (Name b) a -> Term (Name b) a
+rewriteWith :: Unique -> Unique -> Term Name a -> Term Name a
 rewriteWith i j = cata a where
     a (VarF x (Name x' s i')) | i == i' =
         Var x (Name x' s j)
@@ -87,13 +87,13 @@ rewriteWith i j = cata a where
         Fix x (Name x' s j) ty t
     a x = embed x
 
-mapType :: (Type (Name b) a -> Type (Name b) a) -> Term (Name b) a -> Term (Name b) a
+mapType :: (Type Name a -> Type Name a) -> Term Name a -> Term Name a
 mapType f (LamAbs x n ty t) = LamAbs x n (f ty) t
 mapType f (Fix x n ty t)    = Fix x n (f ty) t
 mapType f (Wrap x n ty t)   = Wrap x n (f ty) t
 mapType _ x                 = x
 
-renameType :: Type (Name b) a -> IdentifierM (Type (Name b) a)
+renameType :: Type Name a -> IdentifierM (Type Name a)
 renameType v@(TyVar _ (Name _ s (Unique u))) =
     insertName u s >>
     pure v

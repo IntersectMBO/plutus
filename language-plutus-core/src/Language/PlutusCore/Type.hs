@@ -29,12 +29,12 @@ import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 -- | A 'Type' assigned to expressions.
-data Type n a = TyVar a n
+data Type n a = TyVar a (n a)
               | TyFun a (Type n a) (Type n a)
-              | TyFix a n (Kind a) (Type n a) -- ^ Fix-point type, for constructing self-recursive types
-              | TyForall a n (Kind a) (Type n a)
+              | TyFix a (n a) (Kind a) (Type n a) -- ^ Fix-point type, for constructing self-recursive types
+              | TyForall a (n a) (Kind a) (Type n a)
               | TyBuiltin a TypeBuiltin -- ^ Builtin type
-              | TyLam a n (Kind a) (Type n a)
+              | TyLam a (n a) (Kind a) (Type n a)
               | TyApp a (Type n a) (NonEmpty (Type n a))
               deriving (Functor, Show, Eq, Generic, NFData)
 
@@ -79,7 +79,7 @@ instance Pretty (Kind a) where
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance Pretty (Program (Name a) b) where
+instance Pretty (Program Name b) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
 instance Pretty (Constant a) where
@@ -88,7 +88,7 @@ instance Pretty (Constant a) where
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
-instance Pretty (Term (Name a) b) where
+instance Pretty (Term Name b) where
     pretty = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -101,7 +101,7 @@ instance Pretty (Term (Name a) b) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> pretty ty)
 
-instance Pretty (Type (Name a) b) where
+instance Pretty (Type Name b) where
     pretty = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = pretty n

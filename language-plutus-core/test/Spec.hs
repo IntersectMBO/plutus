@@ -27,7 +27,7 @@ main = do
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
 
-compareTerm :: Eq a => Term (Name b) a -> Term (Name b) a -> Bool
+compareTerm :: Eq a => Term Name a -> Term Name a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
@@ -40,7 +40,7 @@ compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareName n n' && compare
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
-compareType :: Eq a => Type (Name b) a -> Type (Name b) a -> Bool
+compareType :: Eq a => Type Name a -> Type Name a -> Bool
 compareType (TyVar _ n) (TyVar _ n')                 = compareName n n'
 compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
 compareType (TyFix _ n k t) (TyFix _ n' k' t')       = compareName n n' && k == k' && compareType t t'
@@ -50,7 +50,7 @@ compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareName n n' && k == 
 compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
 compareType _ _                                      = False
 
-compareProgram :: Eq a => Program (Name b) a -> Program (Name b) a -> Bool
+compareProgram :: Eq a => Program Name a -> Program Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 genVersion :: MonadGen m => m (Version AlexPosn)
@@ -89,7 +89,7 @@ genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSi
           genSize = BuiltinSize emptyPosn <$> size'
           genBS = BuiltinBS emptyPosn <$> size' <*> string'
 
-genType :: MonadGen m => m (Type (Name AlexPosn) AlexPosn)
+genType :: MonadGen m => m (Type Name AlexPosn)
 genType = simpleRecursive nonRecursive recursive
     where varGen = TyVar emptyPosn <$> genName
           funGen = TyFun emptyPosn <$> genType <*> genType
@@ -101,7 +101,7 @@ genType = simpleRecursive nonRecursive recursive
           nonRecursive = [varGen, lamGen, forallGen, fixGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
-genTerm :: MonadGen m => m (Term (Name AlexPosn) AlexPosn)
+genTerm :: MonadGen m => m (Term Name AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
           fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
@@ -116,7 +116,7 @@ genTerm = simpleRecursive nonRecursive recursive
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
-genProgram :: MonadGen m => m (Program (Name AlexPosn) AlexPosn)
+genProgram :: MonadGen m => m (Program Name AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm
 
 emptyPosn :: AlexPosn

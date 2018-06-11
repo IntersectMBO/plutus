@@ -39,14 +39,14 @@ import           Language.PlutusCore.TypeRenamer
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: BSL.ByteString -> Either ParseError (Program (Name AlexPosn) AlexPosn)
+parseScoped :: BSL.ByteString -> Either ParseError (Program Name AlexPosn)
 parseScoped = fmap (uncurry rename) . parseST
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
 -- | Render a 'Program' as strict 'Text'.
-prettyText :: Program (Name b) a -> T.Text
+prettyText :: Program Name a -> T.Text
 prettyText = render . pretty
 
 render :: Doc a -> T.Text
