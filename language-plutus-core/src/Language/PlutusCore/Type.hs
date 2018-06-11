@@ -3,6 +3,8 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -27,14 +29,14 @@ import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 -- | A 'Type' assigned to expressions.
-data Type a = TyVar a (Name a)
-            | TyFun a (Type a) (Type a)
-            | TyFix a (Name a) (Kind a) (Type a) -- ^ Fix-point type, for constructing self-recursive types
-            | TyForall a (Name a) (Kind a) (Type a)
-            | TyBuiltin a TypeBuiltin -- ^ Builtin type
-            | TyLam a (Name a) (Kind a) (Type a)
-            | TyApp a (Type a) (NonEmpty (Type a))
-            deriving (Functor, Show, Eq, Generic, NFData)
+data Type n a = TyVar a n
+              | TyFun a (Type n a) (Type n a)
+              | TyFix a n (Kind a) (Type n a) -- ^ Fix-point type, for constructing self-recursive types
+              | TyForall a n (Kind a) (Type n a)
+              | TyBuiltin a TypeBuiltin -- ^ Builtin type
+              | TyLam a n (Kind a) (Type n a)
+              | TyApp a (Type n a) (NonEmpty (Type n a))
+              deriving (Functor, Show, Eq, Generic, NFData)
 
 -- | A constant value.
 data Constant a = BuiltinInt a Natural Integer
@@ -44,21 +46,17 @@ data Constant a = BuiltinInt a Natural Integer
                 deriving (Functor, Show, Eq, Generic, NFData)
 
 -- | A 'Term' is a value.
-data Term a = Var a (Name a) -- ^ A named variable
-            | TyAbs a (Name a) (Kind a) (Term a)
-            | LamAbs a (Name a) (Type a) (Term a)
-            | Apply a (Term a) (NonEmpty (Term a))
-            | Fix a (Name a) (Type a) (Term a)
-            | Constant a (Constant a) -- ^ A constant term
-            | TyInst a (Term a) (NonEmpty (Type a))
-            | Unwrap a (Term a)
-            | Wrap a (Name a) (Type a) (Term a)
-            | Error a (Type a)
-            deriving (Functor, Show, Eq, Generic, NFData)
-
--- TODO: implement renamer, i.e. annotate each variable with its type
--- Step 1: typeOf for builtins?
--- Step 2: use this for surrounding & inner data
+data Term n a = Var a (Name a) -- ^ A named variable
+              | TyAbs a (Name a) (Kind a) (Term n a)
+              | LamAbs a (Name a) (Type n a) (Term n a)
+              | Apply a (Term n a) (NonEmpty (Term n a))
+              | Fix a (Name a) (Type n a) (Term n a)
+              | Constant a (Constant a) -- ^ A constant term
+              | TyInst a (Term n a) (NonEmpty (Type n a))
+              | Unwrap a (Term n a)
+              | Wrap a (Name a) (Type n a) (Term n a)
+              | Error a (Type n a)
+              deriving (Functor, Show, Eq, Generic, NFData)
 
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
@@ -68,8 +66,8 @@ data Kind a = Type a
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
 -- language.
-data Program a = Program a (Version a) (Term a)
-               deriving (Show, Eq, Functor, Generic, NFData)
+data Program n a = Program a (Version a) (Term n a)
+                 deriving (Show, Eq, Functor, Generic, NFData)
 
 makeBaseFunctor ''Kind
 makeBaseFunctor ''Term
@@ -81,7 +79,7 @@ instance Pretty (Kind a) where
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance Pretty (Program a) where
+instance Pretty (Program (Name a) b) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
 instance Pretty (Constant a) where
@@ -90,7 +88,7 @@ instance Pretty (Constant a) where
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
-instance Pretty (Term a) where
+instance Pretty (Term (Name a) b) where
     pretty = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -103,7 +101,7 @@ instance Pretty (Term a) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> pretty ty)
 
-instance Pretty (Type a) where
+instance Pretty (Type (Name a) b) where
     pretty = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = pretty n

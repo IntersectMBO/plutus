@@ -130,7 +130,7 @@ handleInteger x sz i = if isOverflow
     where isOverflow = i < (-k) || i > (k - 1)
           k = 8 ^ sz `div` 2
 
-parseST :: BSL.ByteString -> Either ParseError (IdentifierState, Program AlexPosn)
+parseST :: BSL.ByteString -> Either ParseError (IdentifierState, Program (Name AlexPosn) AlexPosn)
 parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = normalize x
@@ -142,7 +142,7 @@ parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
 -- >>> :set -XOverloadedStrings
 -- >>> parse "(program 0.1.0 [(con addInteger) x y])"
 -- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}})])))
-parse :: BSL.ByteString -> Either ParseError (Program AlexPosn)
+parse :: BSL.ByteString -> Either ParseError (Program (Name AlexPosn) AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x

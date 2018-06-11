@@ -4,10 +4,6 @@ module Language.PlutusCore
     , parseScoped
     -- * Pretty-printing
     , prettyText
-    -- * Type checking
-    , kindCheck
-    , typeCheck
-    , annotate
     -- * AST
     , Term (..)
     , Type (..)
@@ -22,10 +18,6 @@ module Language.PlutusCore
     , TypeBuiltin (..)
     -- * Lexer
     , AlexPosn (..)
-    -- * Type-checking types
-    , TypeAnnot
-    , KindAnnot
-    , TypeError (..)
     -- * Formatting
     , format
     , formatDoc
@@ -36,7 +28,7 @@ module Language.PlutusCore
 
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
-import           Data.Text.Prettyprint.Doc             hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -47,14 +39,14 @@ import           Language.PlutusCore.TypeRenamer
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: BSL.ByteString -> Either ParseError (Program AlexPosn)
+parseScoped :: BSL.ByteString -> Either ParseError (Program (Name AlexPosn) AlexPosn)
 parseScoped = fmap (uncurry rename) . parseST
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
 -- | Render a 'Program' as strict 'Text'.
-prettyText :: Program a -> T.Text
+prettyText :: Program (Name b) a -> T.Text
 prettyText = render . pretty
 
 render :: Doc a -> T.Text
