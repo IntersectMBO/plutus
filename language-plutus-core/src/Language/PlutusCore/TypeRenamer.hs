@@ -14,7 +14,7 @@ module Language.PlutusCore.TypeRenamer ( kindCheck
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.ByteString.Lazy     as BSL
-import           Data.Functor.Foldable
+import           Data.Functor.Foldable    hiding (Fix (..))
 import qualified Data.IntMap              as IM
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
@@ -109,6 +109,12 @@ renameTerm t@(LamAbs x (Name x' s (Unique u)) ty t') = do
     case pastDef of
         Just _ -> LamAbs x (Name x' s (Unique $ m+1)) ty <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
         _      -> pure t
+renameTerm t@(Fix x (Name x' s (Unique u)) ty t') = do
+    insertName u s
+    ~(pastDef, m) <- defMax u
+    case pastDef of
+        Just _ -> Fix x (Name x' s (Unique $ m+1)) ty <$> renameTerm (rewriteWith (Unique u) (Unique $ m+1) t')
+        _      -> pure t
 renameTerm t@(Wrap x (Name x' s (Unique u)) ty t') = do
     insertName u s
     ~(pastDef, m) <- defMax u
@@ -120,6 +126,7 @@ renameTerm (Apply x t ts)   = Apply x <$> renameTerm t <*> traverse renameTerm t
 renameTerm (Unwrap x t)     = Unwrap x <$> renameTerm t
 renameTerm x                = pure x
 
+-- rename a particular type
 rewriteType :: Unique -> Unique -> Type a -> Type a
 rewriteType i j = cata a where
     a (TyVarF x (Name x' s i')) | i == i' =
@@ -139,7 +146,6 @@ rewriteWith i j = cata a where
         Wrap x (Name x' s j) ty t
     a x = embed x
 
--- TODO do the same thing here
 renameType :: Type a -> IdentifierM (Type a)
 renameType v@(TyVar _ (Name _ s (Unique u))) =
     insertName u s >>

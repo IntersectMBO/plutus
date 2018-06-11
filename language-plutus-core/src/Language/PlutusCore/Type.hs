@@ -45,10 +45,10 @@ data Constant a = BuiltinInt a Natural Integer
 
 -- | A 'Term' is a value.
 data Term a = Var a (Name a) -- ^ A named variable
-            | TyAbs a (Name a) (Term a)
+            | TyAbs a (Name a) (Kind a) (Term a)
             | LamAbs a (Name a) (Type a) (Term a)
             | Apply a (Term a) (NonEmpty (Term a))
-            | Fix a (Name a) (Term a)
+            | Fix a (Name a) (Type a) (Term a)
             | Constant a (Constant a) -- ^ A constant term
             | TyInst a (Term a) (NonEmpty (Type a))
             | Unwrap a (Term a)
@@ -95,9 +95,9 @@ instance Pretty (Term a) where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (VarF _ n)         = pretty n
-        a (TyAbsF _ n t)     = parens ("abs" <+> pretty n <+> t)
+        a (TyAbsF _ n k t)   = parens ("abs" <+> pretty n <+> pretty k <+> t)
         a (TyInstF _ t te)   = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
-        a (FixF _ n t)       = parens ("fix" <+> pretty n <+> t)
+        a (FixF _ n ty t)    = parens ("fix" <+> pretty n <+> pretty ty <+> t)
         a (LamAbsF _ n ty t) = parens ("lam" <+> pretty n <+> pretty ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)

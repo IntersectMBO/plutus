@@ -96,11 +96,11 @@ Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
 Name : var { Name (loc $1) (name $1) (identifier $1) }
 
 Term : Name { Var (nameAttribute $1) $1 }
-     | openParen abs Name Term closeParen { TyAbs $2 $3 $4 }
+     | openParen abs Name Kind Term closeParen { TyAbs $2 $3 $4 $5 }
      | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
-     | openParen fix Name Term closeParen { Fix $2 $3 $4 }
+     | openParen fix Name Type Term closeParen { Fix $2 $3 $4 $5 }
      | openParen con Builtin closeParen { Constant $2 $3 }
      | openParen wrap Name Type Term closeParen { Wrap $2 $3 $4 $5 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }

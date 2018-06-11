@@ -29,10 +29,10 @@ compareName = (==) `on` nameString
 
 compareTerm :: Eq a => Term a -> Term a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
-compareTerm (TyAbs _ n t) (TyAbs _ n' t')          = compareName n n' && compareTerm t t'
+compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t ts) (Apply _ t' ts')        = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
-compareTerm (Fix _ n t) (Fix _ n' t')              = compareName n n' && compareTerm t t'
+compareTerm (Fix _ n ty t) (Fix _ n' ty' t')       = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm x@Constant{} y@Constant{}              = x == y
 compareTerm (TyInst _ t ts) (TyInst _ t' ts')      = compareTerm t t' && and (NE.zipWith compareType ts ts')
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
@@ -104,8 +104,8 @@ genType = simpleRecursive nonRecursive recursive
 genTerm :: MonadGen m => m (Term AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
-          fixGen = Fix emptyPosn <$> genName <*> genTerm
-          absGen = TyAbs emptyPosn <$> genName <*> genTerm
+          fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
+          absGen = TyAbs emptyPosn <$> genName <*> genKind <*> genTerm
           instGen = TyInst emptyPosn <$> genTerm <*> args genType
           lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
           applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
