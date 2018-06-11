@@ -95,22 +95,24 @@ Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
 
 Name : var { Name (loc $1) (name $1) (identifier $1) }
 
+TyName : Name { TyName $1 }
+
 Term : Name { Var (nameAttribute $1) $1 }
-     | openParen abs Name Kind Term closeParen { TyAbs $2 $3 $4 $5 }
+     | openParen abs TyName Kind Term closeParen { TyAbs $2 $3 $4 $5 }
      | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix Name Type Term closeParen { Fix $2 $3 $4 $5 }
      | openParen con Builtin closeParen { Constant $2 $3 }
-     | openParen wrap Name Type Term closeParen { Wrap $2 $3 $4 $5 }
+     | openParen wrap TyName Type Term closeParen { Wrap $2 $3 $4 $5 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
-Type : Name { TyVar (nameAttribute $1) $1 }
+Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
-     | openParen forall Name Kind Type closeParen { TyForall $2 $3 $4 $5 }
-     | openParen lam Name Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen fix Name Kind Type closeParen { TyFix $2 $3 $4 $5 }
+     | openParen forall TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
+     | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
+     | openParen fix TyName Kind Type closeParen { TyFix $2 $3 $4 $5 }
      | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
      | size { TyBuiltin $1 TySize }
      | integer { TyBuiltin $1 TyInteger }
@@ -130,7 +132,7 @@ handleInteger x sz i = if isOverflow
     where isOverflow = i < (-k) || i > (k - 1)
           k = 8 ^ sz `div` 2
 
-parseST :: BSL.ByteString -> Either ParseError (IdentifierState, Program Name AlexPosn)
+parseST :: BSL.ByteString -> Either ParseError (IdentifierState, Program TyName Name AlexPosn)
 parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = normalize x
@@ -142,7 +144,7 @@ parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
 -- >>> :set -XOverloadedStrings
 -- >>> parse "(program 0.1.0 [(con addInteger) x y])"
 -- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}})])))
-parse :: BSL.ByteString -> Either ParseError (Program Name AlexPosn)
+parse :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x

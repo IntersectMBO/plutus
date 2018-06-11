@@ -8,6 +8,7 @@ module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
                                 , Unique (..)
                                 , Name (..)
+                                , TyName (..)
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
@@ -25,6 +26,10 @@ data Name a = Name { nameAttribute :: a
                    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
                    }
             deriving (Functor, Show, Generic, NFData)
+
+newtype TyName a = TyName { unTyName :: Name a }
+    deriving Show
+    deriving newtype (Functor, NFData, Pretty)
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique

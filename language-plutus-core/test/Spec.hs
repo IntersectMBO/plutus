@@ -27,35 +27,41 @@ main = do
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
 
-compareTerm :: Eq a => Term Name a -> Term Name a -> Bool
+compareTyName :: TyName a -> TyName a -> Bool
+compareTyName (TyName n) (TyName n') = compareName n n'
+
+compareTerm :: Eq a => Term TyName Name a -> Term TyName Name a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
-compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareName n n' && k == k' && compareTerm t t'
+compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t ts) (Apply _ t' ts')        = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
 compareTerm (Fix _ n ty t) (Fix _ n' ty' t')       = compareName n n' && compareType ty ty' && compareTerm t t'
-compareTerm x@Constant{} y@Constant{}              = x == y
+compareTerm (Constant _ x) (Constant _ y)          = x == y
 compareTerm (TyInst _ t ts) (TyInst _ t' ts')      = compareTerm t t' && and (NE.zipWith compareType ts ts')
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
-compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
-compareType :: Eq a => Type Name a -> Type Name a -> Bool
-compareType (TyVar _ n) (TyVar _ n')                 = compareName n n'
+compareType :: Eq a => Type TyName a -> Type TyName a -> Bool
+compareType (TyVar _ n) (TyVar _ n')                 = compareTyName n n'
 compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
-compareType (TyFix _ n k t) (TyFix _ n' k' t')       = compareName n n' && k == k' && compareType t t'
-compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareName n n' && k == k' && compareType t t'
-compareType x@TyBuiltin{} y@TyBuiltin{}              = x == y
-compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareName n n' && k == k' && compareType t t'
+compareType (TyFix _ n k t) (TyFix _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
+compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k == k' && compareType t t'
+compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
+compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
 compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
 compareType _ _                                      = False
 
-compareProgram :: Eq a => Program Name a -> Program Name a -> Bool
+compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 genVersion :: MonadGen m => m (Version AlexPosn)
 genVersion = Version emptyPosn <$> int' <*> int' <*> int'
     where int' = Gen.integral_ (Range.linear 0 10)
+
+genTyName :: MonadGen m => m (TyName AlexPosn)
+genTyName = TyName <$> genName
 
 -- TODO make this robust against generating identfiers such as "fix"?
 genName :: MonadGen m => m (Name AlexPosn)
@@ -89,34 +95,34 @@ genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSi
           genSize = BuiltinSize emptyPosn <$> size'
           genBS = BuiltinBS emptyPosn <$> size' <*> string'
 
-genType :: MonadGen m => m (Type Name AlexPosn)
+genType :: MonadGen m => m (Type TyName AlexPosn)
 genType = simpleRecursive nonRecursive recursive
-    where varGen = TyVar emptyPosn <$> genName
+    where varGen = TyVar emptyPosn <$> genTyName
           funGen = TyFun emptyPosn <$> genType <*> genType
-          lamGen = TyLam emptyPosn <$> genName <*> genKind <*> genType
-          forallGen = TyForall emptyPosn <$> genName <*> genKind <*> genType
-          fixGen = TyFix emptyPosn <$> genName <*> genKind <*> genType
+          lamGen = TyLam emptyPosn <$> genTyName <*> genKind <*> genType
+          forallGen = TyForall emptyPosn <$> genTyName <*> genKind <*> genType
+          fixGen = TyFix emptyPosn <$> genTyName <*> genKind <*> genType
           applyGen = TyApp emptyPosn <$> genType <*> args genType
           recursive = [funGen, applyGen]
           nonRecursive = [varGen, lamGen, forallGen, fixGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
-genTerm :: MonadGen m => m (Term Name AlexPosn)
+genTerm :: MonadGen m => m (Term TyName Name AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
           fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
-          absGen = TyAbs emptyPosn <$> genName <*> genKind <*> genTerm
+          absGen = TyAbs emptyPosn <$> genTyName <*> genKind <*> genTerm
           instGen = TyInst emptyPosn <$> genTerm <*> args genType
           lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
           applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
           unwrapGen = Unwrap emptyPosn <$> genTerm
-          wrapGen = Wrap emptyPosn <$> genName <*> genType <*> genTerm
+          wrapGen = Wrap emptyPosn <$> genTyName <*> genType <*> genTerm
           errorGen = Error emptyPosn <$> genType
           recursive = [fixGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
-genProgram :: MonadGen m => m (Program Name AlexPosn)
+genProgram :: MonadGen m => m (Program TyName Name AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm
 
 emptyPosn :: AlexPosn
