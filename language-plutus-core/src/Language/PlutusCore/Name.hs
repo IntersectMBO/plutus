@@ -29,7 +29,7 @@ data Name a = Name { nameAttribute :: a
 
 newtype TyName a = TyName { unTyName :: Name a }
     deriving Show
-    deriving newtype (Functor, NFData, Pretty)
+    deriving newtype (Eq, Functor, NFData, Pretty)
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique

@@ -26,8 +26,6 @@ insertName u s = modify (first (IM.insert u s))
 defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
 defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
 
--- TODO: just reuse the information from parsing
--- in fact, until we do this, it will fail.
 renameTerm :: Term TyName Name a -> IdentifierM (Term TyName Name a)
 renameTerm v@(Var _ (Name _ s (Unique u))) =
     insertName u s >>
