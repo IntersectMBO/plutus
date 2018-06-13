@@ -145,6 +145,7 @@ allTests plcFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testsGolden plcFiles
+    , renameTests
     ]
 
 testsGolden :: [FilePath] -> TestTree
