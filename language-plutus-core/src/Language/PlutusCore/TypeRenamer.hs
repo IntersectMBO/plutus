@@ -27,9 +27,6 @@ defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
 defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
 
 renameTerm :: Term TyName Name a -> IdentifierM (Term TyName Name a)
-renameTerm v@(Var _ (Name _ s (Unique u))) =
-    insertName u s >>
-    pure v
 renameTerm t@(LamAbs x (Name x' s (Unique u)) ty t') = do
     insertName u s
     ~(pastDef, m) <- defMax u
@@ -92,9 +89,6 @@ mapType f (Wrap x n ty t)   = Wrap x n (f ty) t
 mapType _ x                 = x
 
 renameType :: Type TyName a -> IdentifierM (Type TyName a)
-renameType v@(TyVar _ (TyName (Name _ s (Unique u)))) =
-    insertName u s >>
-    pure v
 renameType ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
     insertName u s
     ~(pastDef, m) <- defMax u

@@ -155,7 +155,6 @@ testsGolden plcFiles= testGroup "golden tests" $ fmap asGolden plcFiles
           asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
           errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
 
-
 renameTests :: TestTree
 renameTests = testCase "example programs" $ fold
     [ parseScoped "(program 0.1.0 (lam x y (lam x z [(con addInteger) x x])))" @?= Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (LamAbs (AlexPn 16 1 17) (Name {nameAttribute = AlexPn 20 1 21, nameString = "x", nameUnique = Unique {unUnique = 3}}) (TyVar (AlexPn 22 1 23) (TyName {unTyName = Name {nameAttribute = AlexPn 22 1 23, nameString = "y", nameUnique = Unique {unUnique = 1}}})) (LamAbs (AlexPn 25 1 26) (Name {nameAttribute = AlexPn 29 1 30, nameString = "x", nameUnique = Unique {unUnique = 4}}) (TyVar (AlexPn 31 1 32) (TyName {unTyName = Name {nameAttribute = AlexPn 31 1 32, nameString = "z", nameUnique = Unique {unUnique = 2}}})) (Apply (AlexPn 33 1 34) (Constant (AlexPn 35 1 36) (BuiltinName (AlexPn 39 1 40) AddInteger)) (Var (AlexPn 51 1 52) (Name {nameAttribute = AlexPn 51 1 52, nameString = "x", nameUnique = Unique {unUnique = 4}}) :| [Var (AlexPn 53 1 54) (Name {nameAttribute = AlexPn 53 1 54, nameString = "x", nameUnique = Unique {unUnique = 4}})]))))) ]
