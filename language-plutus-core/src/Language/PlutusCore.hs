@@ -22,6 +22,8 @@ module Language.PlutusCore
     -- * Formatting
     , format
     , formatDoc
+    -- * Processing
+    , annotate
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -29,7 +31,7 @@ module Language.PlutusCore
 
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type

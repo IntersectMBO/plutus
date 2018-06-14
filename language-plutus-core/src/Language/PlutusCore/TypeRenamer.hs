@@ -40,10 +40,12 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
 
-data RenameError a = NotInScope (Name a)
-                   | TyNotInScope (TyName a)
+data RenameError a = UnboundVar (Name a)
+                   | UnboundTyVar (TyName a)
                    | InternalError -- TODO get rid of this
 
+-- | Annotate a program with type/kind information at all bound variables,
+-- failing if we encounter a free variable.
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
 annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
 
