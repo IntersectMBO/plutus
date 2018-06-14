@@ -24,6 +24,11 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , annotate
+    , RenamedTerm
+    , RenamedType
+    , RenameError (..)
+    , TyNameWithKind (..)
+    , NameWithType (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
