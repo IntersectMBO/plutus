@@ -11,7 +11,7 @@ module PlutusPrelude ( (&&&)
                      , NonEmpty (..)
                      , Pretty (..)
                      , Word8
-                     , (<>)
+                     , Semigroup (..)
                      ) where
 
 import           Control.Arrow             (first, second, (&&&))

@@ -24,6 +24,7 @@ instance Semigroup (TypeState a) where
 
 instance Monoid (TypeState a) where
     mempty = TypeState mempty mempty
+    mappend = (<>)
 
 type IdentifierM = State IdentifierState
 type TypeM a = StateT (TypeState a) (Either (RenameError a))
