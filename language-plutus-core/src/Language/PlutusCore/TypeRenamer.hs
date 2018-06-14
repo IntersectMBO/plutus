@@ -1,6 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Language.PlutusCore.TypeRenamer ( rename
+                                       , annotate
+                                       , RenamedTerm
+                                       , NameWithType (..)
+                                       , RenamedType
+                                       , TyNameWithKind (..)
                                        ) where
 
 import           Control.Monad.State.Lazy
@@ -12,6 +17,25 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 type IdentifierM = State IdentifierState
+
+type RenamedTerm a = Term TyNameWithKind NameWithType a
+newtype NameWithType a = NameWithType (Name (a, RenamedType a))
+type RenamedType a = Type TyNameWithKind a
+newtype TyNameWithKind a = TyNamedWithKind (TyName (a, Kind a))
+
+annotate :: Program TyName Name a -> Program TyNameWithKind NameWithType a
+annotate (Program x v p) = Program x v (annotateTerm p)
+
+annotateTerm :: Term TyName Name a -> Term TyNameWithKind NameWithType a
+annotateTerm (LamAbs x (Name x' s u) ty t) =
+    let at = annotateType ty
+        nwt = NameWithType (Name (x', at) s u)
+    in
+        LamAbs x nwt at (annotateTerm t)
+annotateTerm _ = undefined
+
+annotateType :: Type TyName a -> Type TyNameWithKind a
+annotateType = undefined
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
@@ -26,6 +50,8 @@ insertName u s = modify (first (IM.insert u s))
 defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
 defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
 
+-- POSSIBLY consider instead of rewriteWith, just adding to an IntMap and then
+-- rewrite down?
 renameTerm :: Term TyName Name a -> IdentifierM (Term TyName Name a)
 renameTerm t@(LamAbs x (Name x' s (Unique u)) ty t') = do
     insertName u s
