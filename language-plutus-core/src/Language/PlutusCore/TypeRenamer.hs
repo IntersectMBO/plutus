@@ -6,6 +6,7 @@ module Language.PlutusCore.TypeRenamer ( rename
                                        , NameWithType (..)
                                        , RenamedType
                                        , TyNameWithKind (..)
+                                       , RenameError (..)
                                        ) where
 
 import           Control.Monad.Except
@@ -15,9 +16,14 @@ import           Data.Functor.Foldable    hiding (Fix (..))
 import qualified Data.IntMap              as IM
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           Lens.Micro
 import           PlutusPrelude
 
-data TypeState a = TypeState (IM.IntMap (Type TyName a)) (IM.IntMap (Kind a))
+data TypeState a = TypeState { _terms :: IM.IntMap (Type TyNameWithKind a), _types :: IM.IntMap (Kind a) }
+
+terms :: Lens' (TypeState a) (IM.IntMap (Type TyNameWithKind a))
+terms f s = fmap (\x -> s { _terms = x }) (f (_terms s))
+{-# INLINE terms #-}
 
 instance Semigroup (TypeState a) where
     (<>) (TypeState x x') (TypeState y y') = TypeState (x <> y) (x' <> y')
@@ -42,10 +48,11 @@ annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithK
 annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
 
 annotateTerm :: Term TyName Name a -> TypeM a (Term TyNameWithKind NameWithType a)
-annotateTerm (LamAbs x (Name x' s u) ty t) = do
-    at <- annotateType ty
-    let nwt = NameWithType (Name (x', at) s u)
-    LamAbs x nwt at <$> annotateTerm t
+annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
+    aty <- annotateType ty
+    let nwt = NameWithType (Name (x', aty) s u)
+    modify (over terms (IM.insert i aty))
+    LamAbs x nwt aty <$> annotateTerm t
 annotateTerm _ = throwError InternalError
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)

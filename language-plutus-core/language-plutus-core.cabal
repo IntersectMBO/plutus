@@ -58,7 +58,8 @@ library
         deepseq -any,
         recursion-schemes >=5.0.1,
         prettyprinter -any,
-        text -any
+        text -any,
+        microlens -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -85,7 +86,7 @@ test-suite language-plutus-core-test
         bytestring -any,
         tasty-golden -any,
         text -any,
-        prettyprinter
+        prettyprinter -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
