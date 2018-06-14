@@ -8,6 +8,7 @@ module Language.PlutusCore.TypeRenamer ( rename
                                        , TyNameWithKind (..)
                                        ) where
 
+import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Foldable    hiding (Fix (..))
@@ -16,26 +17,41 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+data TypeState a = TypeState (IM.IntMap (Type TyName a)) (IM.IntMap (Kind a))
+
+instance Semigroup (TypeState a) where
+    (<>) (TypeState x x') (TypeState y y') = TypeState (x <> y) (x' <> y')
+
+instance Monoid (TypeState a) where
+    mempty = TypeState mempty mempty
+
 type IdentifierM = State IdentifierState
+type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
 type RenamedType a = Type TyNameWithKind a
-newtype TyNameWithKind a = TyNamedWithKind (TyName (a, Kind a))
+newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
 
-annotate :: Program TyName Name a -> Program TyNameWithKind NameWithType a
-annotate (Program x v p) = Program x v (annotateTerm p)
+data RenameError a = NotInScope (Name a)
+                   | TyNotInScope (TyName a)
+                   | InternalError -- TODO get rid of this
 
-annotateTerm :: Term TyName Name a -> Term TyNameWithKind NameWithType a
-annotateTerm (LamAbs x (Name x' s u) ty t) =
-    let at = annotateType ty
-        nwt = NameWithType (Name (x', at) s u)
-    in
-        LamAbs x nwt at (annotateTerm t)
-annotateTerm _ = undefined
+annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
+annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
 
-annotateType :: Type TyName a -> Type TyNameWithKind a
-annotateType = undefined
+annotateTerm :: Term TyName Name a -> TypeM a (Term TyNameWithKind NameWithType a)
+annotateTerm (LamAbs x (Name x' s u) ty t) = do
+    at <- annotateType ty
+    let nwt = NameWithType (Name (x', at) s u)
+    LamAbs x nwt at <$> annotateTerm t
+annotateTerm _ = throwError InternalError
+
+annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
+annotateType (TyLam x (TyName (Name x' s u)) k ty) = do
+    let nwty = TyNameWithKind (TyName (Name (x', k) s u))
+    TyLam x nwty k <$> annotateType ty
+annotateType _ = throwError InternalError
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
