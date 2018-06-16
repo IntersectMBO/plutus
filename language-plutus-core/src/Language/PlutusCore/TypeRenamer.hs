@@ -50,6 +50,11 @@ annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithK
 annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
 
 annotateTerm :: Term TyName Name a -> TypeM a (Term TyNameWithKind NameWithType a)
+annotateTerm (Var x (Name x' b (Unique u))) = do
+    st <- gets _terms
+    case IM.lookup u st of
+        Just ty -> pure $ Var x (NameWithType (Name (x', ty) b (Unique u)))
+        Nothing -> throwError $ UnboundVar (Name x' b (Unique u))
 annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
     aty <- annotateType ty
     let nwt = NameWithType (Name (x', aty) s u)
@@ -58,6 +63,11 @@ annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
 annotateTerm _ = throwError InternalError
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
+annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
+    st <- gets _types
+    case IM.lookup u st of
+        Just ty -> pure $ TyVar x (TyNameWithKind (TyName (Name (x', ty) b (Unique u))))
+        Nothing -> throwError $ UnboundVar (Name x' b (Unique u))
 annotateType (TyLam x (TyName (Name x' s u)) k ty) = do
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
     TyLam x nwty k <$> annotateType ty
