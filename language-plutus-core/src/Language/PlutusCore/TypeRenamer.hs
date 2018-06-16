@@ -9,6 +9,7 @@ module Language.PlutusCore.TypeRenamer ( rename
                                        , RenameError (..)
                                        ) where
 
+import           Control.Composition
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.ByteString.Lazy     as BSL
@@ -23,7 +24,9 @@ data TypeState a = TypeState { _terms :: IM.IntMap (Type TyNameWithKind a), _typ
 
 terms :: Lens' (TypeState a) (IM.IntMap (Type TyNameWithKind a))
 terms f s = fmap (\x -> s { _terms = x }) (f (_terms s))
-{-# INLINE terms #-}
+
+types :: Lens' (TypeState a) (IM.IntMap (Kind a))
+types f s = fmap (\x -> s { _types = x }) (f (_types s))
 
 instance Semigroup (TypeState a) where
     (<>) (TypeState x x') (TypeState y y') = TypeState (x <> y) (x' <> y')
@@ -49,6 +52,12 @@ data RenameError a = UnboundVar (Name a)
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
 annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
 
+insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
+insertType = modify .* over terms .* IM.insert
+
+insertKind :: Int -> Kind a -> TypeM a ()
+insertKind = modify .* over types .* IM.insert
+
 annotateTerm :: Term TyName Name a -> TypeM a (Term TyNameWithKind NameWithType a)
 annotateTerm (Var x (Name x' b (Unique u))) = do
     st <- gets _terms
@@ -58,9 +67,28 @@ annotateTerm (Var x (Name x' b (Unique u))) = do
 annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
     aty <- annotateType ty
     let nwt = NameWithType (Name (x', aty) s u)
-    modify (over terms (IM.insert i aty))
+    insertType i aty
     LamAbs x nwt aty <$> annotateTerm t
-annotateTerm _ = throwError InternalError
+annotateTerm (Fix x (Name x' s u@(Unique i)) ty t) = do
+    aty <- annotateType ty
+    let nwt = NameWithType (Name (x', aty) s u)
+    insertType i aty
+    Fix x nwt aty <$> annotateTerm t
+annotateTerm (Unwrap x t) =
+    Unwrap x <$> annotateTerm t
+annotateTerm (Error x ty) =
+    Error x <$> annotateType ty
+annotateTerm (TyAbs x (TyName (Name x' b u@(Unique i))) k t) = do
+    insertKind i k
+    let nwty = TyNameWithKind (TyName (Name (x', k) b u))
+    TyAbs x nwty k <$> annotateTerm t
+annotateTerm (Apply x t ts) =
+    Apply x <$> annotateTerm t <*> traverse annotateTerm ts
+annotateTerm (Constant x c) =
+    pure (Constant x c)
+annotateTerm (TyInst x t tys) =
+    TyInst x <$> annotateTerm t <*> traverse annotateType tys
+annotateTerm Wrap{} = throwError InternalError -- TODO don't do this
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
 annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
@@ -68,10 +96,23 @@ annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
     case IM.lookup u st of
         Just ty -> pure $ TyVar x (TyNameWithKind (TyName (Name (x', ty) b (Unique u))))
         Nothing -> throwError $ UnboundVar (Name x' b (Unique u))
-annotateType (TyLam x (TyName (Name x' s u)) k ty) = do
+annotateType (TyLam x (TyName (Name x' s u@(Unique i))) k ty) = do
+    insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
     TyLam x nwty k <$> annotateType ty
-annotateType _ = throwError InternalError
+annotateType (TyForall x (TyName (Name x' s u@(Unique i))) k ty) = do
+    insertKind i k
+    let nwty = TyNameWithKind (TyName (Name (x', k) s u))
+    TyForall x nwty k <$> annotateType ty
+annotateType (TyFix x (TyName (Name x' s u@(Unique i))) k ty) = do
+    insertKind i k
+    let nwty = TyNameWithKind (TyName (Name (x', k) s u))
+    TyFix x nwty k <$> annotateType ty
+annotateType (TyFun x ty ty') =
+    TyFun x <$> annotateType ty <*> annotateType ty'
+annotateType (TyApp x ty tys) =
+    TyApp x <$> annotateType ty <*> traverse annotateType tys
+annotateType (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.

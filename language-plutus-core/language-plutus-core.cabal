@@ -59,7 +59,8 @@ library
         recursion-schemes >=5.0.1,
         prettyprinter -any,
         text -any,
-        microlens -any
+        microlens -any,
+        composition-prelude
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
