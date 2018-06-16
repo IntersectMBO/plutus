@@ -9,7 +9,6 @@ module Language.PlutusCore.TypeRenamer ( rename
                                        , RenameError (..)
                                        ) where
 
-import           Control.Composition
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.ByteString.Lazy     as BSL
@@ -45,7 +44,7 @@ newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
-                   | InternalError -- TODO get rid of this
+                   | InternalError
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
@@ -74,14 +73,14 @@ annotateTerm (Fix x (Name x' s u@(Unique i)) ty t) = do
     let nwt = NameWithType (Name (x', aty) s u)
     insertType i aty
     Fix x nwt aty <$> annotateTerm t
-annotateTerm (Unwrap x t) =
-    Unwrap x <$> annotateTerm t
-annotateTerm (Error x ty) =
-    Error x <$> annotateType ty
 annotateTerm (TyAbs x (TyName (Name x' b u@(Unique i))) k t) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
     TyAbs x nwty k <$> annotateTerm t
+annotateTerm (Unwrap x t) =
+    Unwrap x <$> annotateTerm t
+annotateTerm (Error x ty) =
+    Error x <$> annotateType ty
 annotateTerm (Apply x t ts) =
     Apply x <$> annotateTerm t <*> traverse annotateTerm ts
 annotateTerm (Constant x c) =

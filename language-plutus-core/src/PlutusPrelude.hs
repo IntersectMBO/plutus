@@ -5,6 +5,7 @@ module PlutusPrelude ( (&&&)
                      , second
                      , on
                      , fold
+                     , (.*)
                      , Generic
                      , NFData
                      , Natural
@@ -15,6 +16,7 @@ module PlutusPrelude ( (&&&)
                      ) where
 
 import           Control.Arrow             (first, second, (&&&))
+import           Control.Composition       ((.*))
 import           Control.DeepSeq           (NFData)
 import           Data.Bool                 (bool)
 import           Data.Foldable             (fold, toList)
