@@ -13,6 +13,7 @@ module PlutusPrelude ( (&&&)
                      , Pretty (..)
                      , Word8
                      , Semigroup (..)
+                     , module X
                      ) where
 
 import           Control.Arrow             (first, second, (&&&))
@@ -25,5 +26,6 @@ import           Data.List.NonEmpty        (NonEmpty (..))
 import           Data.Semigroup
 import           Data.Text.Prettyprint.Doc
 import           Data.Word                 (Word8)
+import           Debug.Trace               as X
 import           GHC.Generics              (Generic)
 import           GHC.Natural               (Natural)

@@ -48,7 +48,7 @@ import           Language.PlutusCore.TypeRenamer
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
-parseScoped = fmap rename . parse
+parseScoped = fmap (uncurry rename) . parseST
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
