@@ -14,6 +14,7 @@ import           Control.Monad.State.Lazy
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Foldable    hiding (Fix (..))
 import qualified Data.IntMap              as IM
+import qualified Data.IntSet              as IS
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Lens.Micro
@@ -44,7 +45,7 @@ newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
-                   | InternalError
+                   | NotImplemented
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
@@ -87,7 +88,7 @@ annotateTerm (Constant x c) =
     pure (Constant x c)
 annotateTerm (TyInst x t tys) =
     TyInst x <$> annotateTerm t <*> traverse annotateType tys
-annotateTerm Wrap{} = throwError InternalError -- TODO don't do this
+annotateTerm Wrap{} = throwError NotImplemented -- TODO don't do this
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
 annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
@@ -125,6 +126,9 @@ insertName u s = modify (first (IM.insert u s))
 -- a problem as long if the first lookup succeeds, however.
 defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
 defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
+
+type Rewrites = IM.IntMap Int
+type RewriteM = State (IS.IntSet, Rewrites)
 
 -- POSSIBLY consider instead of rewriteWith, just adding to an IntMap and then
 -- rewrite down?
