@@ -14,7 +14,6 @@ import           Control.Monad.State.Lazy
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Foldable    hiding (Fix (..))
 import qualified Data.IntMap              as IM
-import qualified Data.IntSet              as IS
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Lens.Micro
@@ -128,7 +127,27 @@ defMax :: Int -> IdentifierM (Maybe BSL.ByteString, Int)
 defMax u = (,) <$> gets (IM.lookup u . fst) <*> gets (fst . IM.findMax . fst)
 
 type Rewrites = IM.IntMap Int
-type RewriteM = State (IS.IntSet, Rewrites)
+type RewriteM = State Rewrites
+
+defMax' :: Int -> RewriteM (Maybe Int, Int)
+defMax' u = (,) <$> gets (IM.lookup u) <*> gets (fst . IM.findMax)
+
+insertRw :: Int -> Int -> RewriteM ()
+insertRw = modify .* IM.insert
+
+renameTerm' :: Term TyName Name a -> RewriteM (Term TyName Name a)
+renameTerm' t@(LamAbs x (Name x' s (Unique u)) ty t') = do
+    ~(pastDef, m) <- defMax' u
+    case pastDef of
+        Just _ -> do
+            insertRw u (m+1)
+            LamAbs x (Name x' s (Unique $ m+1)) ty <$> renameTerm' t'
+        _      -> pure t
+renameTerm' t@(Var x (Name x' s (Unique i))) = do
+    mn <- gets (IM.lookup i)
+    case mn of
+        Just j -> pure $ Var x (Name x' s (Unique j))
+        _      -> pure t
 
 -- POSSIBLY consider instead of rewriteWith, just adding to an IntMap and then
 -- rewrite down?
