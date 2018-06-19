@@ -118,16 +118,18 @@ rename (st, _) (Program x v p) = Program x v (renameTerm (Identifiers st') p)
           keys = IM.keys st
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
+    deriving Show
 
 identifiers :: Lens' Identifiers (IM.IntMap Int)
 identifiers f s = fmap (\x -> s { _identifiers = x }) (f (_identifiers s))
 
+-- FIXME renameType and renameTerm should not be independent?
 renameTerm :: Identifiers -> Term TyName Name a -> Term TyName Name a
 renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') =
     case pastDef of
         Just _ -> LamAbs x (Name x' s (Unique (m+1))) (renameType st' ty) (renameTerm st' t')
         _ -> t
-    where st' = over identifiers (IM.insert u (m+1)) st
+    where st' = over identifiers (IM.insert u (m+1) . IM.insert (m+1) (m+1)) st
           m = fst (IM.findMax (_identifiers st))
           pastDef = IM.lookup u (_identifiers st)
 renameTerm st t@(Var x (Name x' s (Unique u))) =
