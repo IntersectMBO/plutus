@@ -60,7 +60,7 @@ library
         prettyprinter -any,
         text -any,
         microlens -any,
-        composition-prelude
+        composition-prelude -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
