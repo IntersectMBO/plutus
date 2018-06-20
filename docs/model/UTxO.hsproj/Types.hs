@@ -41,7 +41,8 @@ type Height = Int
 -- 
 data State
   = State
-    { stateHeight :: Height
-    , stateTxHash :: TxId
+    { stateHeight    :: Height
+    , stateTxHash    :: TxId    -- double SHA256 hash
+    , stateTxPreHash :: TxId    -- single SHA256 hash
     }
     

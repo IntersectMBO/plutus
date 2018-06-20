@@ -1,9 +1,11 @@
 {-# LANGUAGE PackageImports, BangPatterns, TemplateHaskell #-}
 
 -- This code models a UTxO-style ledger using the approach from
--- "An Abstract Model of UTXO-based Cryptocurrencies with Scripts"
+--
+--   "An Abstract Model of UTXO-based Cryptocurrencies with Scripts" <https://eprint.iacr.org/2018/469>
+--
 -- using Template Haskell as a concrete notation for validation
--- scirpts.
+-- scripts.
 
 -- |
 -- Module      : UTxO
@@ -110,8 +112,8 @@ unspentOutputs
 --
 -- * All values in the transaction are non-negative.
 --
-valid :: Tx -> Ledger -> Bool
-valid t ledger = inputsAreValid && valueIsPreserved && validValuesTx t
+validTx :: Tx -> Ledger -> Bool
+validTx t ledger = inputsAreValid && valueIsPreserved && validValuesTx t
   where
     inputsAreValid    = all (`validatesIn` unspentOutputs ledger) (inputsTX t)
     valueIsPreserved  = forgeTX t + sum (map (fromJust . value ledger) (map refTI $ inputsTX t))
@@ -123,11 +125,17 @@ valid t ledger = inputsAreValid && valueIsPreserved && validValuesTx t
           Just addr -> validate addr (state t ledger) (witnessTI txIn)
           _         -> False
 
+-- |Determine whether the given ledger is valid; i.e., all transactions are valid where they appear.
+--
+valid :: Ledger -> Bool
+valid []         = True
+valid (t:ledger) = validTx t ledger && valid ledger
+
 -- |The UTxO balance of a given address in a valid transaction for the given ledger.
 --
 balanceTx :: Address -> Tx -> Ledger -> Value
 balanceTx addr t ledger 
-  | not (t `valid` ledger)
+  | not (t `validTx` ledger)
   = error "transaction not valid in ledger"
   | otherwise = received - spent
   where

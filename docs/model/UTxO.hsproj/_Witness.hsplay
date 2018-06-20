@@ -13,5 +13,5 @@ scriptHash yourScript
 
 scriptValue yourScript
 
-witnessHash $$(revealPreimage "abc")
-witnessHash $$(revealPreimage "def")
+validatorHash $$(revealPreimage "abc")
+validatorHash $$(revealPreimage "def")

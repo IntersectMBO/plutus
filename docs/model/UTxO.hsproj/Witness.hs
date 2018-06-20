@@ -21,8 +21,8 @@ module Witness (
   lockUntilValidator,
 
   -- ** Witnesses
-  Height, Witness, witness, witnessHash,
-  revealPreimage, lockWithPublicKey, lockWithMultiSig, lockWithPublicKeyHash, 
+  Height, Witness, witness, noWitness, validatorHash, redeemerHash,
+  revealPreimage, lockWithPublicKey, lockWithKeyPair, lockWithMultiSig, lockWithPublicKeyHash, 
   revealCollision, revealFixedPoint, lockUntil,
   
   -- ** Witness validation
@@ -68,6 +68,10 @@ scriptHash Script{..} = hash (hash . BS.pack $ scriptText :: Digest SHA256)
 -- Common scripts
 -- --------------
 
+instance Lift PublicKey where
+  lift pubkey = [| read $(lift $ show pubkey) |]
+    -- cheap'n'cheesy lifting of public keys into the Q monad
+
 -- |This validator checks that the given preimage has the SHA256 hash embedded in the script.
 --
 revealPreimageValidator :: BA.ByteArrayAccess v => v -> Q (TExp (Script (State -> v -> Bool)))
@@ -75,38 +79,37 @@ revealPreimageValidator preimage
   = script [|| \state preimage -> show (hash preimage :: Digest SHA256) == digest ||]
   where
     digest = show (hash preimage :: Digest SHA256)
-
+    
 -- |This validator checks that the transaction signature matches the given public key.
 --
 lockWithPublicKeyValidator :: PublicKey -> Q (TExp (Script (State -> Signature -> Bool)))
 lockWithPublicKeyValidator pubkey 
-  = script [|| \state sig -> verify SHA256 (read pubkeyString) sig (stateTxHash state) ||]
-  where
-    pubkeyString = show pubkey    -- FIXME: we can't TH lift keys directly
+  = script [|| \state sig -> verify SHA256 pubkey sig (stateTxPreHash state) ||]
 
--- |This validator checks that the specified number of transaction signatures are distinct and each match
--- one of the given public keys.
+-- |This validator checks that the specified number of transaction signatures are distinct and
+-- each match one of the given public keys.
 --
 lockWithMultiSigValidator :: [PublicKey] -> Int -> Q (TExp (Script (State -> [Signature] -> Bool)))
 lockWithMultiSigValidator pubkeys requiredSigCount
   = script [|| \state sigs ->
-                 let pubkeys = map read pubkeyStrings
-                     disjoint []     = True
+                 let disjoint []     = True
                      disjoint (x:xs) = x `notElem` xs && disjoint xs
                  in
                    length sigs == requiredSigCount
                    && disjoint sigs
-                   && all (\sig -> any (\pubkey -> verify SHA256 pubkey sig (stateTxHash state)) pubkeys) sigs ||]
-  where
-    pubkeyStrings = map show pubkeys    -- FIXME: we can't TH lift keys directly
+                   && all (\sig -> 
+                             any (\pubkey -> verify SHA256 pubkey sig (stateTxPreHash state)) pubkeys)
+                          sigs
+           ||]
 
 -- |This validator checks that the transaction signature matches the public key with the given hash.
 --
-lockWithPublicKeyHashValidator :: PublicKey -> Q (TExp (Script (State -> (PublicKey, Signature) -> Bool)))
+lockWithPublicKeyHashValidator :: PublicKey 
+                               -> Q (TExp (Script (State -> (PublicKey, Signature) -> Bool)))
 lockWithPublicKeyHashValidator pubKey 
   = script [|| \state (pubKey, sig) -> 
                  show (hash (show pubKey) :: Digest SHA256) == digest 
-                 && verify SHA256 pubKey sig (stateTxHash state) ||]
+                 && verify SHA256 pubKey sig (stateTxPreHash state) ||]
   where
     digest = show (hash (show pubKey) :: Digest SHA256)    -- hash of public key
     
@@ -133,10 +136,7 @@ lockUntilValidator :: PublicKey -> Height -> Q (TExp (Script (State -> Signature
 lockUntilValidator pubkey minHeight
   = script [|| \state sig -> 
                  stateHeight state >= minHeight 
-                 && verify SHA256 (read pubkeyString) sig (stateTxHash state) ||]
-  where
-    pubkeyString = show pubkey    -- FIXME: we can't TH lift keys directly
-
+                 && verify SHA256 pubkey sig (stateTxPreHash state) ||]
 
 
 -- Witness types
@@ -153,10 +153,18 @@ witness :: Q (TExp (Script (State -> proof -> Bool)))
         -> Q (TExp Witness)
 witness validatorQ redeemerQ = [|| Witness $$validatorQ $$redeemerQ ||]
 
+noWitness :: Witness
+noWitness = Witness (error "no validator") (error "no redeemer")
+
 -- |The hash of the witness' validator.
 --
-witnessHash :: Witness -> Digest SHA256
-witnessHash Witness{..} = scriptHash validator
+validatorHash :: Witness -> Digest SHA256
+validatorHash Witness{..} = scriptHash validator
+
+-- |The hash of the witness' redeemer.
+--
+redeemerHash :: Witness -> Digest SHA256
+redeemerHash Witness{..} = scriptHash validator
 
 instance Show (Script t) where
   show = scriptText
@@ -171,30 +179,36 @@ instance BA.ByteArrayAccess Witness where
 -- Common witnesses    
 -- ----------------
 
+instance Lift Signature where
+  lift sig = [| read $(lift $ show sig) |]
+    -- cheap'n'cheesy lifting of signature into the Q monad
+
 revealPreimage :: (BA.ByteArrayAccess v, Lift v) => v -> Q (TExp Witness)
 revealPreimage preimage = witness (revealPreimageValidator preimage) (script [|| const preimage ||])
 
 lockWithPublicKey :: PublicKey -> Signature -> Q (TExp Witness)
 lockWithPublicKey pubKey sig
   = witness (lockWithPublicKeyValidator pubKey) 
-            (script [|| const $ read sigString ||])
-  where
-    sigString = show sig       -- FIXME: we can't TH lift signatures directly
+            (script [|| const sig ||])
+
+lockWithKeyPair :: BA.ByteArrayAccess h => KeyPair -> h -> Q (TExp Witness)
+lockWithKeyPair keys h 
+  = do
+    { sig <- runIO $ sign (toPrivateKey keys) SHA256 h
+    ; lockWithPublicKey (toPublicKey keys) sig
+    }
 
 lockWithMultiSig :: [PublicKey] -> Int -> [Signature] -> Q (TExp Witness)
 lockWithMultiSig pubkeys requiredSigCount sigs
   = witness (lockWithMultiSigValidator pubkeys requiredSigCount)
-            (script [|| const $ (map read sigStrings) ||])
+            (script [|| const sigs ||])
   where
     sigStrings = map show sigs
 
 lockWithPublicKeyHash :: PublicKey -> Signature -> Q (TExp Witness)
 lockWithPublicKeyHash pubKey sig
   = witness (lockWithPublicKeyHashValidator pubKey) 
-            (script [|| const $ (read pubKeyString, read sigString) ||])
-  where
-    pubKeyString = show pubKey    -- FIXME: we can't TH lift keys directly
-    sigString    = show sig       -- FIXME: we can't TH lift signatures directly
+            (script [|| const $ (pubKey, sig) ||])
     
 revealCollision :: (BA.ByteArrayAccess v, Eq v, Lift v) => v -> v -> Q (TExp Witness) 
 revealCollision value1 value2 = witness revealCollisionValidator (script [|| const (value1, value2) ||])
@@ -205,10 +219,7 @@ revealFixedPoint value = witness revealFixedPointValidator (script [|| const val
 lockUntil :: PublicKey -> Signature -> Height -> Q (TExp Witness)
 lockUntil pubKey sig minHeight
   = witness (lockUntilValidator pubKey minHeight) 
-            (script [|| const $ read sigString ||])
-  where
-    sigString = show sig       -- FIXME: we can't TH lift signatures directly
-
+            (script [|| const sig ||])
 
 
 -- Witness validation
