@@ -126,22 +126,38 @@ type MaxM = State Int
 identifiers :: Lens' Identifiers (IM.IntMap Int)
 identifiers f s = fmap (\x -> s { _identifiers = x }) (f (_identifiers s))
 
+modifyIdentifiers :: Int -> Int -> Identifiers -> Identifiers
+modifyIdentifiers u m = over identifiers (IM.insert u (m+1) . IM.insert (m+1) (m+1))
+
+lookupId :: Int -> Identifiers -> Maybe Int
+lookupId u st = IM.lookup u (_identifiers st)
+
 renameTerm :: Identifiers -> Term TyName Name a -> MaxM (Term TyName Name a)
 renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') = do
     m <- get
-    let st' = over identifiers (IM.insert u (m+1) . IM.insert (m+1) (m+1)) st
-        pastDef = IM.lookup u (_identifiers st)
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
     case pastDef of
         Just _ ->
-            put (m+1) >>
+            modify (+1) >>
             LamAbs x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
         _      -> pure t
+renameTerm st t@(Fix x (Name x' s (Unique u)) ty t') = do
+    m <- get
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
+    case pastDef of
+        Just _ ->
+            modify (+1) >>
+            Fix x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
+        _ -> pure t
 renameTerm st t@(Var x (Name x' s (Unique u))) =
     case pastDef of
         Just j -> pure $ Var x (Name x' s (Unique j))
         _      -> pure t
     where pastDef = IM.lookup u (_identifiers st)
 renameTerm st (Apply x t ts) = Apply x <$> renameTerm st t <*> traverse (renameTerm st) ts
+renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
 renameTerm _ x = pure x
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
