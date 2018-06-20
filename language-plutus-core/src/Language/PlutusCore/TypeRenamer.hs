@@ -132,6 +132,9 @@ modifyIdentifiers u m = over identifiers (IM.insert u (m+1) . IM.insert (m+1) (m
 lookupId :: Int -> Identifiers -> Maybe Int
 lookupId u st = IM.lookup u (_identifiers st)
 
+-- this convoluted affair lets us track the maximum in a global state monad,
+-- while keeping the table for renaming local (so that we don't rename things in
+-- function applications)
 renameTerm :: Identifiers -> Term TyName Name a -> MaxM (Term TyName Name a)
 renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') = do
     m <- get
@@ -155,7 +158,7 @@ renameTerm st t@(Var x (Name x' s (Unique u))) =
     case pastDef of
         Just j -> pure $ Var x (Name x' s (Unique j))
         _      -> pure t
-    where pastDef = IM.lookup u (_identifiers st)
+    where pastDef = lookupId u st
 renameTerm st (Apply x t ts) = Apply x <$> renameTerm st t <*> traverse (renameTerm st) ts
 renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
 renameTerm _ x@Constant{} = pure x
@@ -171,4 +174,9 @@ renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
             modify (+1) >>
             TyLam x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
         _ -> pure ty
+renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
+    case pastDef of
+        Just j -> pure $ TyVar x (TyName (Name x' s (Unique j)))
+        _      -> pure ty
+    where pastDef = lookupId u st
 renameType _ x = pure x
