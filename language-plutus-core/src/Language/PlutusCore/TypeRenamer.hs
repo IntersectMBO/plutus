@@ -158,7 +158,17 @@ renameTerm st t@(Var x (Name x' s (Unique u))) =
     where pastDef = IM.lookup u (_identifiers st)
 renameTerm st (Apply x t ts) = Apply x <$> renameTerm st t <*> traverse (renameTerm st) ts
 renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
+renameTerm _ x@Constant{} = pure x
 renameTerm _ x = pure x
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
-renameType _ = pure
+renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
+    m <- get
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
+    case pastDef of
+        Just _ ->
+            modify (+1) >>
+            TyLam x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
+        _ -> pure ty
+renameType _ x = pure x
