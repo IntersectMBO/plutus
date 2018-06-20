@@ -113,32 +113,35 @@ annotateType (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
 rename :: IdentifierState -> Program TyName Name a -> Program TyName Name a
-rename (st, _) (Program x v p) = Program x v (renameTerm (Identifiers st') p)
+rename (st, _) (Program x v p) = Program x v (evalState (renameTerm (Identifiers st') p) m)
     where st' = IM.fromList (zip keys keys)
           keys = IM.keys st
+          m = fst (IM.findMax st)
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
     deriving Show
+
+type MaxM = State Int
 
 identifiers :: Lens' Identifiers (IM.IntMap Int)
 identifiers f s = fmap (\x -> s { _identifiers = x }) (f (_identifiers s))
 
 -- FIXME renameType and renameTerm should not be independent?
-renameTerm :: Identifiers -> Term TyName Name a -> Term TyName Name a
+renameTerm :: Identifiers -> Term TyName Name a -> MaxM (Term TyName Name a)
 renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') =
     case pastDef of
-        Just _ -> LamAbs x (Name x' s (Unique (m+1))) (renameType st' ty) (renameTerm st' t')
-        _      -> t
+        Just _ -> LamAbs x (Name x' s (Unique (m+1))) <$> (renameType st' ty) <*> (renameTerm st' t')
+        _      -> pure t
     where st' = over identifiers (IM.insert u (m+1) . IM.insert (m+1) (m+1)) st
           m = fst (IM.findMax (_identifiers st))
           pastDef = IM.lookup u (_identifiers st)
 renameTerm st t@(Var x (Name x' s (Unique u))) =
     case pastDef of
-        Just j -> Var x (Name x' s (Unique j))
-        _      -> t
+        Just j -> pure $ Var x (Name x' s (Unique j))
+        _      -> pure t
     where pastDef = IM.lookup u (_identifiers st)
-renameTerm st (Apply x t ts) = Apply x (renameTerm st t) (renameTerm st <$> ts)
-renameTerm _ x = x
+renameTerm st (Apply x t ts) = Apply x <$> (renameTerm st t) <*> (traverse (renameTerm st) ts)
+renameTerm _ x = pure x
 
-renameType :: Identifiers -> Type TyName a -> Type TyName a
-renameType _ = id
+renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
+renameType _ = pure
