@@ -24,11 +24,13 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , annotate
+    , debugScopes
     , RenamedTerm
     , RenamedType
     , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
+    , Debug (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -44,6 +46,9 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
+
+debugScopes :: BSL.ByteString -> Either ParseError T.Text
+debugScopes = fmap (render . debug) . parseScoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.

@@ -84,7 +84,7 @@ instance Pretty (Program TyName Name a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
 instance Debug (Program TyName Name a) where
-    debug = pretty
+    debug (Program _ v t) = parens ("program" <+> pretty v <+> debug t)
 
 instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
@@ -111,7 +111,7 @@ instance Debug (Term TyName Name a) where
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (VarF _ n)         = debug n
         a (TyAbsF _ n k t)   = parens ("abs" <+> debug n <+> pretty k <+> t)
-        a (TyInstF _ t te)   = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
+        a (TyInstF _ t te)   = "{" <+> t <+> hsep (debug <$> toList te) <+> "}"
         a (FixF _ n ty t)    = parens ("fix" <+> debug n <+> debug ty <+> t)
         a (LamAbsF _ n ty t) = parens ("lam" <+> debug n <+> debug ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
