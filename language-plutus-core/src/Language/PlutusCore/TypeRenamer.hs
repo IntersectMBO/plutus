@@ -127,7 +127,7 @@ identifiers :: Lens' Identifiers (IM.IntMap Int)
 identifiers f s = fmap (\x -> s { _identifiers = x }) (f (_identifiers s))
 
 modifyIdentifiers :: Int -> Int -> Identifiers -> Identifiers
-modifyIdentifiers u m = over identifiers (IM.insert u (m+1) . IM.insert (m+1) (m+1))
+modifyIdentifiers u m = over identifiers (IM.insert u (m+1))
 
 lookupId :: Int -> Identifiers -> Maybe Int
 lookupId u st = IM.lookup u (_identifiers st)
@@ -162,7 +162,7 @@ renameTerm st t@(Var x (Name x' s (Unique u))) =
 renameTerm st (Apply x t ts) = Apply x <$> renameTerm st t <*> traverse (renameTerm st) ts
 renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
 renameTerm _ x@Constant{} = pure x
-renameTerm _ x = pure x
+renameTerm _ x = pure x -- FIXME this is incomplete
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
 renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
@@ -179,4 +179,4 @@ renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
         Just j -> pure $ TyVar x (TyName (Name x' s (Unique j)))
         _      -> pure ty
     where pastDef = lookupId u st
-renameType _ x = pure x
+renameType _ x = pure x -- FIXME this is incomplete
