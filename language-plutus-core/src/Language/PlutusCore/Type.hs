@@ -83,6 +83,9 @@ instance Pretty (Kind a) where
 instance Pretty (Program TyName Name a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
+instance Debug (Program TyName Name a) where
+    debug = pretty
+
 instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     pretty (BuiltinSize _ s)  = pretty s
@@ -102,6 +105,19 @@ instance Pretty (Term TyName Name a) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> pretty ty)
 
+instance Debug (Term TyName Name a) where
+    debug = cata a where
+        a (ConstantF _ b)    = parens ("con" <+> pretty b)
+        a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (VarF _ n)         = debug n
+        a (TyAbsF _ n k t)   = parens ("abs" <+> debug n <+> pretty k <+> t)
+        a (TyInstF _ t te)   = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
+        a (FixF _ n ty t)    = parens ("fix" <+> debug n <+> debug ty <+> t)
+        a (LamAbsF _ n ty t) = parens ("lam" <+> debug n <+> debug ty <+> t)
+        a (UnwrapF _ t)      = parens ("unwrap" <+> t)
+        a (WrapF _ n ty t)   = parens ("wrap" <+> debug n <+> debug ty <+> t)
+        a (ErrorF _ ty)      = parens ("error" <+> debug ty)
+
 instance Pretty (Type TyName a) where
     pretty = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -111,3 +127,13 @@ instance Pretty (Type TyName a) where
         a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
+
+instance Debug (Type TyName a) where
+    debug = cata a where
+        a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyVarF _ n)        = debug n
+        a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
+        a (TyFixF _ n k t)    = parens ("fix" <+> debug n <+> pretty k <+> t)
+        a (TyForallF _ n k t) = parens ("forall" <+> debug n <+> pretty k <+> t)
+        a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
+        a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
