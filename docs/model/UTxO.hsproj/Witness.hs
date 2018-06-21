@@ -202,8 +202,6 @@ lockWithMultiSig :: [PublicKey] -> Int -> [Signature] -> Q (TExp Witness)
 lockWithMultiSig pubkeys requiredSigCount sigs
   = witness (lockWithMultiSigValidator pubkeys requiredSigCount)
             (script [|| const sigs ||])
-  where
-    sigStrings = map show sigs
 
 lockWithPublicKeyHash :: PublicKey -> Signature -> Q (TExp Witness)
 lockWithPublicKeyHash pubKey sig
