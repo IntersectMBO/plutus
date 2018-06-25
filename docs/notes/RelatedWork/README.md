@@ -3,6 +3,7 @@
 The material in this directory provides an incomplete overview over other blockchains and their smart contract languages.
 
 * [Æternity](Aeternity.md)
+* [Corda](Corda.md)
 * [Counterparty](Counterparty.md)
 * [EOS](EOS.md)
 * [NEO](NEO.md)
