@@ -144,7 +144,7 @@ renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') = do
         Just _ ->
             modify (+1) >>
             LamAbs x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
-        _      -> renameTerm st t
+        _      -> renameTerm st' t
 renameTerm st t@(Fix x (Name x' s (Unique u)) ty t') = do
     m <- get
     let st' = modifyIdentifiers u m st
@@ -153,7 +153,7 @@ renameTerm st t@(Fix x (Name x' s (Unique u)) ty t') = do
         Just _ ->
             modify (+1) >>
             Fix x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
-        _ -> renameTerm st t
+        _ -> renameTerm st' t
 renameTerm st t@(Var x (Name x' s (Unique u))) =
     case pastDef of
         Just j -> pure $ Var x (Name x' s (Unique j))
