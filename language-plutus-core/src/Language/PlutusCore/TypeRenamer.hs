@@ -154,6 +154,24 @@ renameTerm st t@(Fix x (Name x' s (Unique u)) ty t') = do
             modify (+1) >>
             Fix x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
         _ -> renameTerm st' t
+renameTerm st t@(Wrap x (TyName (Name x' s (Unique u))) ty t') = do
+    m <- get
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
+    case pastDef of
+        Just _ ->
+            modify (+1) >>
+            Wrap x (TyName (Name x' s (Unique (m+1)))) <$> renameType st' ty <*> renameTerm st' t'
+        _ -> renameTerm st' t
+renameTerm st t@(TyAbs x (TyName (Name x' s (Unique u))) k t') = do
+    m <- get
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
+    case pastDef of
+        Just _ ->
+            modify (+1) >>
+            TyAbs x (TyName (Name x' s (Unique (m+1)))) k <$> renameTerm st' t'
+        _ -> renameTerm st' t
 renameTerm st t@(Var x (Name x' s (Unique u))) =
     case pastDef of
         Just j -> pure $ Var x (Name x' s (Unique j))
@@ -162,7 +180,8 @@ renameTerm st t@(Var x (Name x' s (Unique u))) =
 renameTerm st (Apply x t ts) = Apply x <$> renameTerm st t <*> traverse (renameTerm st) ts
 renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
 renameTerm _ x@Constant{} = pure x
-renameTerm _ x = pure x -- FIXME this is incomplete
+renameTerm st (Error x ty) = Error x <$> renameType st ty
+renameTerm st (TyInst x t tys) = TyInst x <$> renameTerm st t <*> traverse (renameType st) tys
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
 renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
@@ -174,9 +193,29 @@ renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
             modify (+1) >>
             TyLam x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
         _ -> renameType st' ty
+renameType st ty@(TyForall x (TyName (Name x' s (Unique u))) k ty') = do
+    m <- get
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
+    case pastDef of
+        Just _ ->
+            modify (+1) >>
+            TyForall x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
+        _ -> renameType st' ty
+renameType st ty@(TyFix x (TyName (Name x' s (Unique u))) k ty') = do
+    m <- get
+    let st' = modifyIdentifiers u m st
+        pastDef = lookupId u st
+    case pastDef of
+        Just _ ->
+            modify (+1) >>
+            TyFix x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
+        _ -> renameType st' ty
 renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
     case pastDef of
         Just j -> pure $ TyVar x (TyName (Name x' s (Unique j)))
         _      -> pure ty
     where pastDef = lookupId u st
-renameType _ x = pure x -- FIXME this is incomplete
+renameType st (TyApp x ty tys) = TyApp x <$> renameType st ty <*> traverse (renameType st) tys
+renameType st (TyFun x ty ty') = TyFun x <$> renameType st ty <*> renameType st ty'
+renameType _ ty@TyBuiltin{} = pure ty
