@@ -173,7 +173,7 @@ renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
         Just _ ->
             modify (+1) >>
             TyLam x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
-        _ -> renameType st ty
+        _ -> renameType st' ty
 renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
     case pastDef of
         Just j -> pure $ TyVar x (TyName (Name x' s (Unique j)))
