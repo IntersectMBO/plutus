@@ -24,6 +24,7 @@ let
     });
   });
   other = rec {
+    shellcheckTests = pkgs.callPackage ./scripts/test/shellcheck.nix { src = ./.; };
     stack2nix = import (pkgs.fetchFromGitHub {
       owner = "avieth";
       repo = "stack2nix";
