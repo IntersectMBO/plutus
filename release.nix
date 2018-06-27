@@ -15,9 +15,9 @@ let
   pkgs = import fixedNixpkgs { config = {}; };
   platforms = {
     plutus-prototype = supportedSystems;
+    language-plutus-core = supportedSystems;
   };
   mapped = mapTestOn platforms;
-  shellcheckTests = plutusPkgs.shellcheckTests;
-in {
-  inherit shellcheckTests;
+in mapped // {
+  tests = plutusPkgs.tests;
 }

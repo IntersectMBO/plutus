@@ -23,8 +23,33 @@ let
       patches = drv.patches ++ [ ./ghc-8.0.2-darwin-rec-link.patch ];
     });
   });
+  cleanSourceFilter = with pkgs.stdenv;
+    name: type: let baseName = baseNameOf (toString name); in ! (
+      # Filter out .git repo
+      (type == "directory" && baseName == ".git") ||
+      # Filter out editor backup / swap files.
+      lib.hasSuffix "~" baseName ||
+      builtins.match "^\\.sw[a-z]$" baseName != null ||
+      builtins.match "^\\..*\\.sw[a-z]$" baseName != null ||
+
+      # Filter out locally generated/downloaded things.
+      baseName == "dist" ||
+
+      # Filter out the files which I'm editing often.
+      lib.hasSuffix ".nix" baseName ||
+      lib.hasSuffix ".dhall" baseName ||
+      # Filter out nix-build result symlinks
+      (type == "symlink" && lib.hasPrefix "result" baseName) ||
+      (type == "directory" && baseName == ".stack-work")
+    );
+  source = builtins.filterSource cleanSourceFilter ./.;
   other = rec {
-    shellcheckTests = pkgs.callPackage ./scripts/test/shellcheck.nix { src = ./.; };
+    tests = {
+      shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
+      hedgehog = pkgs.callPackage ./tests/hedgehog.nix {
+        inherit pkgs plutusPkgs source;
+      };
+    };
     stack2nix = import (pkgs.fetchFromGitHub {
       owner = "avieth";
       repo = "stack2nix";
