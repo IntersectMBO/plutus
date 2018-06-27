@@ -41,7 +41,6 @@ newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
-                   | NotImplemented
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
@@ -84,7 +83,15 @@ annotateTerm (Constant x c) =
     pure (Constant x c)
 annotateTerm (TyInst x t tys) =
     TyInst x <$> annotateTerm t <*> traverse annotateType tys
-annotateTerm Wrap{} = throwError NotImplemented -- TODO don't do this
+annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
+    aty <- annotateType ty
+    let k = kindOf aty
+    insertKind i k
+    let nwty = TyNameWithKind (TyName (Name (x', k) b u))
+    Wrap x nwty aty <$> annotateTerm t
+
+kindOf :: Type TyNameWithKind a -> Kind a
+kindOf _ = undefined
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
 annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
