@@ -1,7 +1,9 @@
-resolver: lts-8.2
+resolver: lts-11.15
 
 packages:
 - '.'
+- language-plutus-core
+
 - location:
     git: https://github.com/input-output-hk/cardano-crypto
     commit: 838b064d8a59286142aa2fe14434fe7601896ddb
@@ -9,6 +11,7 @@ packages:
 
 extra-deps:
 - cryptonite-0.22
+- containers-0.5.11.0
 
 flags: {}
 extra-package-dbs: []
