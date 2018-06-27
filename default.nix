@@ -47,7 +47,8 @@ let
     tests = {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
       hedgehog = pkgs.callPackage ./tests/hedgehog.nix {
-        inherit pkgs plutusPkgs source;
+        inherit pkgs plutusPkgs;
+        source = ./.;
       };
     };
     stack2nix = import (pkgs.fetchFromGitHub {
