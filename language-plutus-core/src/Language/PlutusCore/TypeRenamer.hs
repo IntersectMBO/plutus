@@ -92,6 +92,7 @@ annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
 
 kindOf :: Type TyNameWithKind a -> Kind a
 kindOf (TyBuiltin x _) = Type x
+-- kindOf (TyFun x ty ty') = Type x
 kindOf _               = undefined
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
