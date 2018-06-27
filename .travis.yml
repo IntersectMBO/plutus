@@ -23,6 +23,8 @@ before_install:
 
 install:
 # Build dependencies
+- stack --no-terminal --install-ghc install happy
+- stack --no-terminal --install-ghc install alex
 - stack --no-terminal --install-ghc test --only-dependencies
 
 script:
