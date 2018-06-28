@@ -17,7 +17,7 @@ newtype BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) -- (Type TyNa
 type TypeCheckM table a = ReaderT (table a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
-                 | InternalError -- lookups of builtins should never fail
+                 | InternalError
 
 isType :: Kind a -> Bool
 isType Type{} = True
