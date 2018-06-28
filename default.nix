@@ -18,11 +18,7 @@ with pkgs.lib;
 with pkgs.haskell.lib;
 
 let
-  plutusPkgs = ((import ./pkgs { inherit pkgs; }).override {
-    ghc = overrideDerivation pkgs.haskell.compiler.ghc822 (drv: {
-      patches = drv.patches ++ [ ./ghc-8.0.2-darwin-rec-link.patch ];
-    });
-  });
+  plutusPkgs = import ./pkgs { inherit pkgs; };
   cleanSourceFilter = with pkgs.stdenv;
     name: type: let baseName = baseNameOf (toString name); in ! (
       # Filter out .git repo
@@ -47,8 +43,7 @@ let
     tests = {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
       hedgehog = pkgs.callPackage ./tests/hedgehog.nix {
-        inherit pkgs plutusPkgs;
-        source = ./.;
+        inherit pkgs plutusPkgs source;
       };
     };
     stack2nix = import (pkgs.fetchFromGitHub {
