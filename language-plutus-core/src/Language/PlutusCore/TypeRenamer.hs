@@ -104,10 +104,11 @@ annotateType (TyForall x (TyName (Name x' s u@(Unique i))) k ty) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
     TyForall x nwty k <$> annotateType ty
-annotateType (TyFix x (TyName (Name x' s u@(Unique i))) k ty) = do
+annotateType (TyFix x (TyName (Name x' s u@(Unique i))) ty) = do
+    let k = Type x'
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
-    TyFix x nwty k <$> annotateType ty
+    TyFix x nwty <$> annotateType ty
 annotateType (TyFun x ty ty') =
     TyFun x <$> annotateType ty <*> annotateType ty'
 annotateType (TyApp x ty tys) =
@@ -206,14 +207,14 @@ renameType st ty@(TyForall x (TyName (Name x' s (Unique u))) k ty') = do
             modify (+1) >>
             TyForall x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
         _ -> renameType st' ty
-renameType st ty@(TyFix x (TyName (Name x' s (Unique u))) k ty') = do
+renameType st ty@(TyFix x (TyName (Name x' s (Unique u))) ty') = do
     m <- get
     let st' = modifyIdentifiers u m st
         pastDef = lookupId u st
     case pastDef of
         Just _ ->
             modify (+1) >>
-            TyFix x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
+            TyFix x (TyName (Name x' s (Unique (m+1)))) <$> renameType st' ty'
         _ -> renameType st' ty
 renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
     case pastDef of

@@ -112,7 +112,7 @@ Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen forall TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen fix TyName Kind Type closeParen { TyFix $2 $3 $4 $5 }
+     | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
      | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
      | size { TyBuiltin $1 TySize }
      | integer { TyBuiltin $1 TyInteger }

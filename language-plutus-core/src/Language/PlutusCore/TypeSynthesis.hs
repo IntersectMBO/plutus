@@ -43,6 +43,11 @@ kindOf (TyBuiltin _ b) = do
     case M.lookup b tyst of
         Just k -> pure (void k)
         _      -> throwError InternalError
+kindOf (TyFix _ _ ty) = do
+    k <- kindOf ty
+    if isType k
+        then pure (Type ())
+        else throwError NotImplemented
 kindOf _ = throwError NotImplemented
 
 typeOf :: Term NameWithType TyNameWithKind a -> TypeCheckM BuiltinTable a (Type TyNameWithKind ())

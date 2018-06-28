@@ -31,7 +31,7 @@ import           PlutusPrelude
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
                    | TyFun a (Type tyname a) (Type tyname a)
-                   | TyFix a (tyname a) (Kind a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
+                   | TyFix a (tyname a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
                    | TyForall a (tyname a) (Kind a) (Type tyname a)
                    | TyBuiltin a TypeBuiltin -- ^ Builtin type
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
@@ -123,7 +123,7 @@ instance Pretty (Type TyName a) where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = pretty n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n k t)    = parens ("fix" <+> pretty n <+> pretty k <+> t)
+        a (TyFixF _ n t)      = parens ("fix" <+> pretty n <+> t)
         a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
@@ -133,7 +133,7 @@ instance Debug (Type TyName a) where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = debug n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n k t)    = parens ("fix" <+> debug n <+> pretty k <+> t)
+        a (TyFixF _ n t)      = parens ("fix" <+> debug n <+> t)
         a (TyForallF _ n k t) = parens ("forall" <+> debug n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
