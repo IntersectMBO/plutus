@@ -1,5 +1,4 @@
 let
-  # temporary hack until scripts/nix-shell.sh ceases to use -p
   fetchNixpkgs = rev: sha256unpacked: builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
     sha256 = sha256unpacked;
