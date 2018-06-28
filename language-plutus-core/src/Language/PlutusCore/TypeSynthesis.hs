@@ -1,5 +1,8 @@
-module Language.PlutusCore.TypeSynthesis ( kindSynthesis
-                                         , typeSynthesis
+{-# LANGUAGE MonadComprehensions #-}
+
+module Language.PlutusCore.TypeSynthesis ( kindOf
+                                         , typeOf
+                                         , typeEq
                                          ) where
 
 import           Control.Monad.Except
@@ -18,14 +21,24 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
-kindSynthesis :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
-kindSynthesis (TyFun _ ty' ty'') = do
-    k <- kindSynthesis ty'
-    k' <- kindSynthesis ty''
+kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
+kindOf (TyFun _ ty' ty'') = do
+    k <- kindOf ty'
+    k' <- kindOf ty''
     if isType k && isType k'
         then pure (Type ())
         else throwError NotImplemented
-kindSynthesis _ = throwError NotImplemented
+kindOf (TyForall _ _ _ ty) = do
+    k <- kindOf ty
+    if isType k
+        then pure (Type ())
+        else throwError NotImplemented
+kindOf (TyLam _ _ k ty) =
+    [ KindArrow () (void k) k' | k' <- kindOf ty ]
+kindOf _ = throwError NotImplemented
 
-typeSynthesis :: Term NameWithType TyNameWithKind a -> TypeCheckM a (Type TyNameWithKind ())
-typeSynthesis _ = throwError NotImplemented
+typeOf :: Term NameWithType TyNameWithKind a -> TypeCheckM a (Type TyNameWithKind ())
+typeOf _ = throwError NotImplemented
+
+typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
+typeEq _ _ = False
