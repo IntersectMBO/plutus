@@ -85,15 +85,10 @@ annotateTerm (TyInst x t tys) =
     TyInst x <$> annotateTerm t <*> traverse annotateType tys
 annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
     aty <- annotateType ty
-    let k = kindOf aty
+    let k = Type x'
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
     Wrap x nwty aty <$> annotateTerm t
-
-kindOf :: Type TyNameWithKind a -> Kind a
-kindOf (TyBuiltin x _) = Type x
--- kindOf (TyFun x ty ty') = Type x
-kindOf _               = undefined
 
 annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
 annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
