@@ -1,7 +1,7 @@
 resolver: lts-11.11
 
 packages:
-- '.'
+- plutus-prototype
 - language-plutus-core
 
 - location:

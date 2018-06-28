@@ -55575,7 +55575,7 @@ mkDerivation {
 
 pname = "plutus-prototype";
 version = "0.1.0.0";
-src = ./../.;
+src = ./../plutus-prototype;
 enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 base
