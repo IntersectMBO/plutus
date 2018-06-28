@@ -24,7 +24,7 @@ import           PlutusPrelude
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
-                 deriving (Show, Eq, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | Builtin functions
 data BuiltinName = AddInteger
