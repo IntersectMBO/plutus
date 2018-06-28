@@ -5,7 +5,7 @@ Whether implicitly or explicitly, we must beta-reduce types of Plutus Core to no
 
 Since we are using system F-omega, every term of the simply-typed lambda calculus defines a type of Plutus Core, and beta-reducing that type is the same as beta-reducing the original term. This allows us to apply results concerning beta-reduction in the simply-typed lambda calculus to our setting.
 
-In particular, following [(Schwichtenberg 1982)](www.google.com), we define a series of kinds indexed by the natural numbers:
+In particular, following [(Schwichtenberg 1982)](https://github.com/Cubesoup/literature-review-notes/blob/master/papers/schwichtenberg-1982-complexity-of-normalization-in-the-pure-typed-lambda-calculus.pdf), we define a series of kinds indexed by the natural numbers:
 ```
 0   = *
 N+1 = N -> N
@@ -86,4 +86,5 @@ f(f x)) (\(f::(((* -> *) -> (* -> *)) -> ((* -> *) -> (* -> *)
 While the term is rather large, it is not prohibitively so, and Schwichtenberg's result tells us that reducing it to normal form must take at least `F2(5) - 7 = (2^65536) - 7` steps.
 
 Note also that most of the size of the term comes from the kind signatures associated with type-level lambdas. In a system with "Curry-style kinding", `t_7` is much smaller. It is also easy to see that the size of `t_N` grows far, far more slowly than `F2(N-2) - N`.
+
 
