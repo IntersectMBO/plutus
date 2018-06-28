@@ -13,7 +13,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
 
-newtype BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) -- (Type TyNameWithKind a))
+newtype BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a))
 type TypeCheckM table a = ReaderT (table a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
