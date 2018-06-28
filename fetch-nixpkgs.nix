@@ -8,6 +8,4 @@ let
   pkgs_path = fetchNixpkgs nixpkgsJson.rev nixpkgsJson.sha256unpacked;
   pkgs = import pkgs_path { config = {}; overlays = []; };
 in
-pkgs.runCommand "nixpkgs" {} ''
-  ln -sv ${pkgs_path} $out
-''
+pkgs_path
