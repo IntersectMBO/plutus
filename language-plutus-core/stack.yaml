@@ -1,9 +1,0 @@
----
-resolver: lts-11.14
-packages:
-  - '.'
-extra-deps:
-  - containers-0.5.11.0
-flags:
-  language-plutus-core:
-    development: true

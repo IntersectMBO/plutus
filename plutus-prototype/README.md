@@ -14,6 +14,15 @@ modules handle the translation of Plutus into the Core language, as well as
 providing, while the interface modules handle interaction with the world
 beyond Plutus (including a REPL and the integration tools for blockchain use).
 
+## Using nix package manager
+
+You can get all the dependencies required for plutus-prototype using `nix-shell`.
+
+To do so, run:
+
+    nix-shell --run ghci
+    import Interface.REPL
+
 ## Running the demo file
 
 Run `cabal repl`, then do `:m + Interface.REPL` to make the REPL available,
