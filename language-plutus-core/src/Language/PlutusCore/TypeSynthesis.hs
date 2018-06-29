@@ -13,7 +13,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
 
-newtype BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a))
+data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
 type TypeCheckM table a = ReaderT (table a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
@@ -39,7 +39,7 @@ kindOf (TyLam _ _ k ty) =
     [ KindArrow () (void k) k' | k' <- kindOf ty ]
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = do
-    (BuiltinTable tyst) <- ask
+    (BuiltinTable tyst _) <- ask
     case M.lookup b tyst of
         Just k -> pure (void k)
         _      -> throwError InternalError
