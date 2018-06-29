@@ -52,6 +52,9 @@ kindOf _ = throwError NotImplemented
 
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM BuiltinTable a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
+typeOf (Fix _ _ _ t)                             = typeOf t
+typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
+typeOf (Error _ ty)                              = pure (void ty)
 typeOf _                                         = throwError NotImplemented
 
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
