@@ -2,7 +2,6 @@
 
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
-                                         , typeEq
                                          ) where
 
 import           Control.Monad.Except
@@ -12,9 +11,10 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
+import           PlutusPrelude
 
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
-type TypeCheckM table a = ReaderT (table a) (Either (TypeError a))
+type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
                  | InternalError
@@ -23,7 +23,7 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
-kindOf :: Type TyNameWithKind a -> TypeCheckM BuiltinTable a (Kind ())
+kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
 kindOf (TyFun _ ty' ty'') = do
     k <- kindOf ty'
     k' <- kindOf ty''
@@ -50,12 +50,9 @@ kindOf (TyFix _ _ ty) = do
         else throwError NotImplemented
 kindOf _ = throwError NotImplemented
 
-typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM BuiltinTable a (Type TyNameWithKind ())
+typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
 typeOf (Fix _ _ _ t)                             = typeOf t
 typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
 typeOf (Error _ ty)                              = pure (void ty)
 typeOf _                                         = throwError NotImplemented
-
-typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
-typeEq _ _ = False
