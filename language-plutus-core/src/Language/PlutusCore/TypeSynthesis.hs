@@ -11,7 +11,6 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
-import           PlutusPrelude
 
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
 type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
