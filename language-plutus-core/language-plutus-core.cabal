@@ -6,9 +6,9 @@ license-file: LICENSE
 copyright: Copyright: (c) 2018 Input Output
 maintainer: vanessa.mchale@iohk.io
 author: Vanessa McHale
-synopsis: Language library for Plutus Napkin
+synopsis: Language library for Plutus Core
 description:
-    Pretty-printer, parser, and typechecker for Plutus Napkin.
+    Pretty-printer, parser, and typechecker for Plutus Core.
 category: Language
 build-type: Simple
 extra-source-files:
@@ -58,7 +58,9 @@ library
         deepseq -any,
         recursion-schemes >=5.0.1,
         prettyprinter -any,
-        text -any
+        text -any,
+        microlens -any,
+        composition-prelude -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -85,7 +87,7 @@ test-suite language-plutus-core-test
         bytestring -any,
         tasty-golden -any,
         text -any,
-        prettyprinter
+        prettyprinter -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

@@ -1,1 +1,1 @@
-(program 0.1.0 [ (lam x [ (con addInteger) x y ]) z ])
+(program 0.1.0 [ (lam x t [ (con addInteger) x y ]) z ])

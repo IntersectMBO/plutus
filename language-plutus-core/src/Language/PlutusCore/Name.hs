@@ -3,20 +3,25 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
                                 , Unique (..)
                                 , Name (..)
+                                , TyName (..)
+                                -- * Classes
+                                , Debug (..)
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
                                 ) where
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.IntMap          as IM
-import qualified Data.Map             as M
-import           Data.Text.Encoding   (decodeUtf8)
+import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.IntMap               as IM
+import qualified Data.Map                  as M
+import           Data.Text.Encoding        (decodeUtf8)
+import           Data.Text.Prettyprint.Doc
 import           PlutusPrelude
 
 -- | A 'Name' represents variables/names in Plutus Core.
@@ -25,6 +30,13 @@ data Name a = Name { nameAttribute :: a
                    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
                    }
             deriving (Functor, Show, Generic, NFData)
+
+newtype TyName a = TyName { unTyName :: Name a }
+    deriving Show
+    deriving newtype (Eq, Functor, NFData, Pretty, Debug)
+
+class Debug a where
+    debug :: a -> Doc ann
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique
@@ -55,3 +67,6 @@ newIdentifier str st@(is, ss) = case M.lookup str ss of
 
 instance Pretty (Name a) where
     pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
+
+instance Debug (Name a) where
+    debug (Name _ s (Unique u)) = pretty (decodeUtf8 (BSL.toStrict s)) <> "_" <> pretty u

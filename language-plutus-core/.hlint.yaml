@@ -2,7 +2,7 @@
 - functions:
   - {name: unsafePerformIO, within: []}
   - {name: error, within: [Main]}
-  - {name: undefined, within: [Language.PlutusCore.TypeRenamer]}
+  - {name: undefined, within: []}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
 
@@ -19,6 +19,9 @@
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
+- ignore: {name: Reduce duplication, within: [Language.PlutusCore.TypeRenamer]}
+
+- fixity: infixr 8 .*
 - fixity: infixr 3 ***
 - fixity: infixr 3 &&&
 - fixity: infixr 1 <=<

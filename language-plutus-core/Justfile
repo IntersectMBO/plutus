@@ -1,0 +1,18 @@
+ci:
+    cabal new-build all
+    cabal new-test
+    cabal install --dependencies-only
+    cabal configure
+    cabal build
+    cabal doctest
+    cabal new-build all -w ghc-8.2.2
+    hlint src bench test
+    yamllint stack.yaml
+    yamllint .travis.yml
+    yamllint appveyor.yml
+    stack build --bench --test --no-run-benchmarks --no-run-tests
+    weeder .
+    cabal check
+
+docs:
+    google-chrome $(fd '\.html$' -I | tail -n1) &
