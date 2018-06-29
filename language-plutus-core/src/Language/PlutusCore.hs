@@ -31,6 +31,9 @@ module Language.PlutusCore
     , TyNameWithKind (..)
     , NameWithType (..)
     , Debug (..)
+    -- * Type checking
+    , typeOf
+    , kindOf
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -46,6 +49,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
+import           Language.PlutusCore.TypeSynthesis
 
 debugScopes :: BSL.ByteString -> Either ParseError T.Text
 debugScopes = fmap (render . debug) . parseScoped
