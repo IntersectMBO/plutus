@@ -50,8 +50,9 @@ kindOf (TyFix _ _ ty) = do
         else throwError NotImplemented
 kindOf _ = throwError NotImplemented
 
-typeOf :: Term NameWithType TyNameWithKind a -> TypeCheckM BuiltinTable a (Type TyNameWithKind ())
-typeOf _ = throwError NotImplemented
+typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM BuiltinTable a (Type TyNameWithKind ())
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
+typeOf _                                         = throwError NotImplemented
 
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
 typeEq _ _ = False
