@@ -6,7 +6,7 @@ module Ledger (
   Ledger, Tx(..), TxIn(..), TxOut(..), TxOutRef(..), txIn,
   
   -- ** Ledger & transaction state for scripts
-  hashTx, validValuesTx, state
+  hashTx, preHashTx, validValuesTx, state
 ) where
   
 import "cryptonite" 
@@ -59,10 +59,15 @@ stripTx Tx{..}
     forgeTXS    = forgeTX
     feeTXS      = feeTX
 
--- |Hash the given transaction *without* witnesses.
+-- |Hash (double) the given transaction *without* witnesses.
 --    
 hashTx :: Tx -> Digest SHA256
-hashTx tx = hash (hash (stripTx tx) :: Digest SHA256)
+hashTx = hash . preHashTx
+
+-- |Hash (once) the given transaction *without* witnesses.
+--    
+preHashTx :: Tx -> Digest SHA256
+preHashTx tx = hash (stripTx tx)
 
 -- |Check that all values in a transaction are no.
 --
@@ -137,5 +142,5 @@ instance BA.ByteArrayAccess TxOut where
 -- the state information needed by validation scripts.
 --
 state :: Tx -> Ledger -> State
-state tx ledger = State (length ledger) (hashTx tx)
+state tx ledger = State (length ledger) (hashTx tx) (preHashTx tx)
 

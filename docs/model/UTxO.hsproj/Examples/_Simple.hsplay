@@ -16,7 +16,7 @@ Map.toList $ unspentOutputs simpleLedger
 
 
 
-vhash = witnessHash
+vhash = validatorHash
 wit1  = $$(revealPreimage "1") 
 wit2  = $$(revealPreimage "2")
 wit3  = $$(revealPreimage "3")

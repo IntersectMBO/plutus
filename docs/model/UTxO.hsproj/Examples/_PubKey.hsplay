@@ -1,0 +1,18 @@
+-- Haskell Playground 1.0
+Map.toList $ unspentOutputs pubKeyLedger
+
+
+
+
+
+
+
+
+
+
+
+
+
+valid pubKeyLedger
+
+balance val1Hash pubKeyLedger
