@@ -64,6 +64,6 @@ typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKin
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
 typeOf (Fix _ _ _ t)                             = typeOf t
 typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
-typeOf (Error _ ty)                              = pure (void ty)
+typeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
 typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> typeOf t
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
