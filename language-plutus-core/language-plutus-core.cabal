@@ -12,7 +12,6 @@ description:
 category: Language
 build-type: Simple
 extra-source-files:
-    stack.yaml
     cabal.project.local
 extra-doc-files: README.md
 
