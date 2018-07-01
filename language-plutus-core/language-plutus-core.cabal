@@ -41,11 +41,11 @@ library
         Language.PlutusCore.TypeSynthesis
         PlutusPrelude
     default-language: Haskell2010
-    other-extensions: CPP MagicHash DeriveGeneric DeriveAnyClass
-                      StandaloneDeriving GeneralizedNewtypeDeriving TemplateHaskell
-                      KindSignatures TypeFamilies DeriveFunctor DeriveFoldable
-                      DeriveTraversable FlexibleContexts OverloadedStrings
-                      DerivingStrategies MonadComprehensions
+    other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
+                      GeneralizedNewtypeDeriving TemplateHaskell KindSignatures
+                      TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
+                      FlexibleContexts OverloadedStrings DerivingStrategies
+                      MonadComprehensions
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints
