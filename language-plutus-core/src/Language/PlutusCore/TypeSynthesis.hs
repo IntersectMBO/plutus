@@ -18,7 +18,7 @@ type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
                  | InternalError
-                 | KindMismatch
+                 | KindMismatch -- TODO this should be more detailed
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -60,10 +60,19 @@ kindOf (TyApp _ ty (ty' :| [])) = do
         _ -> throwError KindMismatch
 kindOf TyApp{} = throwError NotImplemented -- TODO handle this
 
+integerType :: Natural -> Type a ()
+integerType _ = TyBuiltin () TyInteger
+
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
 typeOf (Fix _ _ _ t)                             = typeOf t
 typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
 typeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
 typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> typeOf t
+typeOf (Constant _ (BuiltinName _ n)) = do
+    (BuiltinTable _ st) <- ask
+    case M.lookup n st of
+        Just k -> pure (void k)
+        _      -> throwError InternalError
+typeOf (Constant _ (BuiltinInt _ n _)) = pure (integerType n)
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these

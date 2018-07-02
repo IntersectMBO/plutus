@@ -21,7 +21,7 @@ import           Numeric                            (showHex)
 import           PlutusPrelude
 
 -- | A builtin type
-data TypeBuiltin = TyByteString
+data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals
                  | TyInteger
                  | TySize
                  deriving (Show, Eq, Ord, Generic, NFData)
@@ -49,7 +49,7 @@ data BuiltinName = AddInteger
                  | TxHash
                  | BlockNum
                  | BlockTime
-                 deriving (Show, Eq, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
