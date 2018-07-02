@@ -95,5 +95,6 @@ typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
 
+-- FIXME actually implement this
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
 typeEq _ _ = False
