@@ -19,6 +19,7 @@ type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
 data TypeError a = NotImplemented
                  | InternalError
                  | KindMismatch -- TODO this should be more detailed
+                 | TypeMismatch
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -79,4 +80,16 @@ typeOf (Constant _ (BuiltinName _ n)) = do
         _      -> throwError InternalError
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
+typeOf (Apply _ t (t' :| [])) = do
+    ty <- typeOf t
+    case ty of
+        TyFun _ ty' ty'' -> do
+            ty''' <- typeOf t'
+            if typeEq ty'' ty'''
+                then pure ty'
+                else throwError TypeMismatch
+        _ -> throwError TypeMismatch
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
+
+typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
+typeEq _ _ = False
