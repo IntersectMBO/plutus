@@ -11,6 +11,7 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeRenamer
+import qualified Data.List.NonEmpty as NE
 import           PlutusPrelude
 
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
@@ -59,7 +60,8 @@ kindOf (TyApp _ ty (ty' :| [])) = do
                 then pure k'
                 else throwError KindMismatch
         _ -> throwError KindMismatch
-kindOf TyApp{} = throwError NotImplemented -- TODO handle this
+kindOf (TyApp x ty (ty' :| tys)) =
+    kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
 integerType :: Natural -> Type a ()
 integerType _ = TyBuiltin () TyInteger
@@ -89,6 +91,8 @@ typeOf (Apply _ t (t' :| [])) = do
                 then pure ty'
                 else throwError TypeMismatch
         _ -> throwError TypeMismatch
+typeOf (Apply x t (t' :| ts)) =
+    typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
 
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
