@@ -63,6 +63,9 @@ kindOf TyApp{} = throwError NotImplemented -- TODO handle this
 integerType :: Natural -> Type a ()
 integerType _ = TyBuiltin () TyInteger
 
+bsType :: Natural -> Type a ()
+bsType _ = TyBuiltin () TyByteString
+
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
 typeOf (Fix _ _ _ t)                             = typeOf t
@@ -74,5 +77,6 @@ typeOf (Constant _ (BuiltinName _ n)) = do
     case M.lookup n st of
         Just k -> pure (void k)
         _      -> throwError InternalError
-typeOf (Constant _ (BuiltinInt _ n _)) = pure (integerType n)
+typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
+typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
