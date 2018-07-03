@@ -1,6 +1,5 @@
 optimization: 2
 constraints: language-plutus-core +development
-           , base-compat < 0.10.2
 tests: true
 benchmarks: true
 documentation: true
