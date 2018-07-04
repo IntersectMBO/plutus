@@ -1,4 +1,4 @@
-# Plutus Core language library
+# Plutus Core Language Library
 
 **TODO**: add link to Plutus Core specification
 
