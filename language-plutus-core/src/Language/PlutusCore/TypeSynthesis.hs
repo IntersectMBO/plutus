@@ -6,12 +6,12 @@ module Language.PlutusCore.TypeSynthesis ( kindOf
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import qualified Data.List.NonEmpty              as NE
 import qualified Data.Map                        as M
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeRenamer
-import qualified Data.List.NonEmpty as NE
+import           Language.PlutusCore.Renamer
 import           PlutusPrelude
 
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
@@ -26,6 +26,7 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
+-- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
 kindOf (TyFun _ ty' ty'') = do
     k <- kindOf ty'
@@ -69,6 +70,7 @@ integerType _ = TyBuiltin () TyInteger
 bsType :: Natural -> Type a ()
 bsType _ = TyBuiltin () TyByteString
 
+-- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
 typeOf (Fix _ _ _ t)                             = typeOf t
@@ -94,7 +96,13 @@ typeOf (Apply _ t (t' :| [])) = do
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
--- 
+
+-- TODO test suite for this
+--
+-- 1. Possibly use golden tests? Definitely test error messages.
+-- 2. Test some nontrivial type inference, e.g. addInteger 1 2 or something
+-- 3. Also fix up parser for integer types
+
 -- FIXME actually implement this
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
 typeEq _ _ = False

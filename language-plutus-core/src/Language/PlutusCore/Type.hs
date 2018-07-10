@@ -135,3 +135,5 @@ instance Debug (Type TyName a) where
         a (TyForallF _ n k t) = parens ("forall" <+> debug n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
+
+-- TODO: add binary serialize/deserialize instances here.

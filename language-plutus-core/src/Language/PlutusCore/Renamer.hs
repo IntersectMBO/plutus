@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Language.PlutusCore.TypeRenamer ( rename
-                                       , annotate
-                                       , RenamedTerm
-                                       , NameWithType (..)
-                                       , RenamedType
-                                       , TyNameWithKind (..)
-                                       , RenameError (..)
-                                       ) where
+module Language.PlutusCore.Renamer ( rename
+                                   , annotate
+                                   , RenamedTerm
+                                   , NameWithType (..)
+                                   , RenamedType
+                                   , TyNameWithKind (..)
+                                   , RenameError (..)
+                                   ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy

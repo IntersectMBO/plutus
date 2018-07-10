@@ -1,8 +1,0 @@
-ci:
-    cabal new-build all
-    cabal new-test
-    hlint src bench test
-    cabal check
-
-docs:
-    google-chrome $(fd '\.html$' -I | tail -n1) &

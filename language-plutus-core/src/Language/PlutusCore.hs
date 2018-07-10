@@ -48,7 +48,7 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeRenamer
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TypeSynthesis
 
 debugScopes :: BSL.ByteString -> Either ParseError T.Text
