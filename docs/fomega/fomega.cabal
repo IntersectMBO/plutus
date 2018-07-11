@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.27.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0532ef7cbaea6525619441322c92ccb7f17662a2fe971fda83770940c552067b
+-- hash: e849bdd14902cd1bd4b3043c379047dfd6292feccbd411ab182249f631586e49
 
 name:           fomega
 version:        0.1.0.0
@@ -15,7 +15,6 @@ copyright:      2018 Author name here
 license:        BSD3
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     ChangeLog.md
     README.md
@@ -32,11 +31,13 @@ library
     , QuickCheck
     , base >=4.7 && <5
     , containers
+    , criterion
     , mtl
     , random
   exposed-modules:
       AlgTypes
       Examples
+      Large
       Scott
       Solver
       SystemF
@@ -54,6 +55,7 @@ executable fomega-exe
     , QuickCheck
     , base >=4.7 && <5
     , containers
+    , criterion
     , fomega
     , mtl
     , random
@@ -72,9 +74,28 @@ test-suite fomega-test
     , QuickCheck
     , base >=4.7 && <5
     , containers
+    , criterion
     , fomega
     , mtl
     , random
   other-modules:
       Paths_fomega
+  default-language: Haskell2010
+
+benchmark fomega-z-combinator-benchmarks
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks.hs
+  other-modules:
+      Paths_fomega
+  hs-source-dirs:
+      z-combinator-benchmarks
+  ghc-options: -O0 -fmax-simplifier-iterations=0
+  build-depends:
+      BNFC-meta
+    , QuickCheck
+    , base >=4.7 && <5
+    , containers
+    , criterion
+    , mtl
+    , random
   default-language: Haskell2010
