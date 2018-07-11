@@ -6,12 +6,13 @@ module Language.PlutusCore.TypeSynthesis ( kindOf
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import qualified Data.List.NonEmpty              as NE
-import qualified Data.Map                        as M
+import           Data.Functor.Foldable          hiding (Fix (..))
+import qualified Data.List.NonEmpty             as NE
+import qualified Data.Map                       as M
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
@@ -95,13 +96,37 @@ typeOf (Apply _ t (t' :| [])) = do
         _ -> throwError TypeMismatch
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
+typeOf (TyInst _ t (ty :| [])) = do
+    ty' <- typeOf t
+    case ty' of
+        TyForall _ n k ty'' -> do
+            k' <- kindOf ty
+            if k == k'
+                then pure (tySubstitute (extractUnique n) (void ty) ty'')
+                else throwError KindMismatch
+        _ -> throwError TypeMismatch
+typeOf (TyInst x t (ty :| tys)) =
+    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys))
 typeOf _                                         = throwError NotImplemented -- TODO handle all of these
+
+extractUnique :: TyNameWithKind a -> Unique
+extractUnique = nameUnique . unTyName . unTyNameWithKind
+
+tySubstitute :: Unique -- ^ Unique associated with type variable
+             -> Type TyNameWithKind a -- ^ Type we are binding to free variable
+             -> Type TyNameWithKind a -- ^ Type we are substituting in
+             -> Type TyNameWithKind a
+tySubstitute u ty = cata a where
+    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
+    a x                                                  = embed x
 
 -- TODO test suite for this
 --
 -- 1. Possibly use golden tests? Definitely test error messages.
 -- 2. Test some nontrivial type inference, e.g. addInteger 1 2 or something
 -- 3. Also fix up parser for integer types
+
+-- TODO: checking type normality &c.
 
 -- FIXME actually implement this
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool

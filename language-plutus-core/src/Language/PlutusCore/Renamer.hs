@@ -38,7 +38,7 @@ type TypeM a = StateT (TypeState a) (Either (RenameError a))
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
 type RenamedType a = Type TyNameWithKind a
-newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
+newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Functor)
 
 data RenameError a = UnboundVar (Name a)
