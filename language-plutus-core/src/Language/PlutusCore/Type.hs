@@ -70,7 +70,9 @@ data Kind a = Type a
 data Program tyname name a = Program a (Version a) (Term tyname name a)
                  deriving (Show, Eq, Functor, Generic, NFData)
 
-fold <$> traverse makeBaseFunctor [''Kind, ''Term, ''Type]
+makeBaseFunctor ''Kind
+makeBaseFunctor ''Term
+makeBaseFunctor ''Type
 
 instance Pretty (Kind a) where
     pretty = cata a where

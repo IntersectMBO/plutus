@@ -15,12 +15,14 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+-- | A builtin table contains the kinds of builtin types and the types of
+-- builtin names.
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
 type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
                  | InternalError
-                 | KindMismatch -- TODO this should be more detailed
+                 | KindMismatch -- TODO this should be more detailed and in particular include a subexpression
                  | TypeMismatch
 
 isType :: Kind a -> Bool
@@ -71,6 +73,9 @@ integerType _ = TyBuiltin () TyInteger
 bsType :: Natural -> Type a ()
 bsType _ = TyBuiltin () TyByteString
 
+sizeType :: Natural -> Type a ()
+sizeType _ = TyBuiltin () TySize
+
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
@@ -85,6 +90,7 @@ typeOf (Constant _ (BuiltinName _ n)) = do
         _      -> throwError InternalError
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
+typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
 typeOf (Apply _ t (t' :| [])) = do
     ty <- typeOf t
     case ty of
@@ -106,8 +112,13 @@ typeOf (TyInst _ t (ty :| [])) = do
                 else throwError KindMismatch
         _ -> throwError TypeMismatch
 typeOf (TyInst x t (ty :| tys)) =
-    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys))
-typeOf _                                         = throwError NotImplemented -- TODO handle all of these
+    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys)) -- TODO: is this correct?
+typeOf (Unwrap _ t) = do
+    ty <- typeOf t
+    case ty of
+        TyFix _ n ty' -> pure (tySubstitute (extractUnique n) ty ty')
+        _             -> throwError TypeMismatch
+typeOf Wrap{} = throwError NotImplemented -- TODO handle all of these
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
@@ -119,6 +130,7 @@ tySubstitute :: Unique -- ^ Unique associated with type variable
 tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
+-- TODO: make type substitutions occur in a state monad somewhere?
 
 -- TODO test suite for this
 --
