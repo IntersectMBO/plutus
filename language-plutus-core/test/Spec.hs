@@ -7,6 +7,7 @@ import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
 import qualified Data.List.NonEmpty                    as NE
+import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
@@ -148,18 +149,22 @@ allTests plcFiles rwFiles = testGroup "all tests"
     , testsRewrite rwFiles
     ]
 
+type TestFunction = BSL.ByteString -> Either ParseError T.Text
+
+asIO :: TestFunction -> FilePath -> IO BSL.ByteString
+asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
+
+errorgen :: ParseError -> BSL.ByteString
+errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+
+asGolden :: TestFunction -> TestName -> TestTree
+asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
+
 testsGolden :: [FilePath] -> TestTree
-testsGolden = testGroup "golden tests" . fmap asGolden
-    where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
-          -- TODO consider more useful output here
-          asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
-          errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+testsGolden = testGroup "golden tests" . fmap (asGolden format)
 
 testsRewrite :: [FilePath] -> TestTree
-testsRewrite = testGroup "golden rewrite tests" . fmap asGolden
-    where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
-          asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . debugScopes) . BSL.readFile
-          errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden debugScopes)
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
