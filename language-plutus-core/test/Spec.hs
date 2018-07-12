@@ -149,15 +149,15 @@ allTests plcFiles rwFiles = testGroup "all tests"
     , testsRewrite rwFiles
     ]
 
-type TestFunction = BSL.ByteString -> Either ParseError T.Text
+type TestFunction a = BSL.ByteString -> Either a T.Text
 
-asIO :: TestFunction -> FilePath -> IO BSL.ByteString
+asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
-errorgen :: ParseError -> BSL.ByteString
+errorgen :: Pretty a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
 
-asGolden :: TestFunction -> TestName -> TestTree
+asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsGolden :: [FilePath] -> TestTree
