@@ -1,4 +1,5 @@
 {-# LANGUAGE MonadComprehensions #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
@@ -9,6 +10,7 @@ import           Control.Monad.Reader
 import           Data.Functor.Foldable          hiding (Fix (..))
 import qualified Data.List.NonEmpty             as NE
 import qualified Data.Map                       as M
+import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Renamer
@@ -22,8 +24,14 @@ type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
 
 data TypeError a = NotImplemented
                  | InternalError
-                 | KindMismatch -- TODO this should be more detailed and in particular include a subexpression
-                 | TypeMismatch
+                 | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ()) -- TODO this should be more detailed and in particular include a subexpression
+                 | TypeMismatch a
+
+instance Pretty a => Pretty (TypeError a) where
+    pretty NotImplemented   = "Type synthesis not yet implementd."
+    pretty InternalError    = "Internal error."
+    pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> pretty ty <> ". Expected kind" <+> pretty k <+> ", found kind" <+> pretty k'
+    pretty (TypeMismatch x) = "Type mismatch at" <+> pretty x
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -31,17 +39,17 @@ isType _      = False
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
-kindOf (TyFun _ ty' ty'') = do
+kindOf (TyFun x ty' ty'') = do
     k <- kindOf ty'
     k' <- kindOf ty''
     if isType k && isType k'
         then pure (Type ())
-        else throwError KindMismatch
-kindOf (TyForall _ _ _ ty) = do
+        else throwError (KindMismatch x undefined undefined undefined)
+kindOf (TyForall x _ _ ty) = do
     k <- kindOf ty
     if isType k
         then pure (Type ())
-        else throwError KindMismatch
+        else throwError (KindMismatch x (void ty) (Type ()) k)
 kindOf (TyLam _ _ k ty) =
     [ KindArrow () (void k) k' | k' <- kindOf ty ]
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
@@ -50,20 +58,20 @@ kindOf (TyBuiltin _ b) = do
     case M.lookup b tyst of
         Just k -> pure (void k)
         _      -> throwError InternalError
-kindOf (TyFix _ _ ty) = do
+kindOf (TyFix x _ ty) = do
     k <- kindOf ty
     if isType k
         then pure (Type ())
-        else throwError KindMismatch
-kindOf (TyApp _ ty (ty' :| [])) = do
+        else throwError (KindMismatch x (void ty) (Type ()) k)
+kindOf (TyApp x ty (ty' :| [])) = do
     k <- kindOf ty
     case k of
         KindArrow _ k' k'' -> do
             k''' <- kindOf ty'
             if k'' == k'''
                 then pure k'
-                else throwError KindMismatch
-        _ -> throwError KindMismatch
+                else throwError (KindMismatch x (void ty') k'' k''')
+        _ -> throwError (KindMismatch x (void ty') undefined k)
 kindOf (TyApp x ty (ty' :| tys)) =
     kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
@@ -91,33 +99,33 @@ typeOf (Constant _ (BuiltinName _ n)) = do
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
-typeOf (Apply _ t (t' :| [])) = do
+typeOf (Apply x t (t' :| [])) = do
     ty <- typeOf t
     case ty of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
             if typeEq ty'' ty'''
                 then pure ty'
-                else throwError TypeMismatch
-        _ -> throwError TypeMismatch
+                else throwError (TypeMismatch x)
+        _ -> throwError (TypeMismatch x)
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
-typeOf (TyInst _ t (ty :| [])) = do
+typeOf (TyInst x t (ty :| [])) = do
     ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
             k' <- kindOf ty
             if k == k'
                 then pure (tySubstitute (extractUnique n) (void ty) ty'')
-                else throwError KindMismatch
-        _ -> throwError TypeMismatch
+                else throwError (KindMismatch x (void ty) k k')
+        _ -> throwError (TypeMismatch x)
 typeOf (TyInst x t (ty :| tys)) =
     typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys)) -- TODO: is this correct?
-typeOf (Unwrap _ t) = do
+typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
         TyFix _ n ty' -> pure (tySubstitute (extractUnique n) ty ty')
-        _             -> throwError TypeMismatch
+        _             -> throwError (TypeMismatch x)
 typeOf Wrap{} = throwError NotImplemented -- TODO handle all of these
 
 extractUnique :: TyNameWithKind a -> Unique

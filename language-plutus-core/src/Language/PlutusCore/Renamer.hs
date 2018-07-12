@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveFunctor    #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
@@ -37,9 +38,10 @@ type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
+    deriving (Pretty)
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Functor)
+    deriving (Functor, Pretty)
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)

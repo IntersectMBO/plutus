@@ -80,10 +80,10 @@ instance Pretty (Kind a) where
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance Pretty (Program TyName Name a) where
+instance (Pretty (f a), Pretty (g a)) => Pretty (Program f g a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
-instance Debug (Program TyName Name a) where
+instance (Debug (f a), Debug (g a)) => Debug (Program f g a) where
     debug (Program _ v t) = parens ("program" <+> pretty v <+> debug t)
 
 instance Pretty (Constant a) where
@@ -92,7 +92,7 @@ instance Pretty (Constant a) where
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
-instance Pretty (Term TyName Name a) where
+instance (Pretty (f a), Pretty (g a)) => Pretty (Term f g a) where
     pretty = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -105,7 +105,7 @@ instance Pretty (Term TyName Name a) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> pretty ty)
 
-instance Debug (Term TyName Name a) where
+instance (Debug (f a), Debug (g a)) => Debug (Term f g a) where
     debug = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -118,7 +118,7 @@ instance Debug (Term TyName Name a) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> debug n <+> debug ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> debug ty)
 
-instance Pretty (Type TyName a) where
+instance Pretty (f a) => Pretty (Type f a) where
     pretty = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = pretty n
@@ -128,7 +128,7 @@ instance Pretty (Type TyName a) where
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
 
-instance Debug (Type TyName a) where
+instance Debug (f a) => Debug (Type f a) where
     debug = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = debug n
