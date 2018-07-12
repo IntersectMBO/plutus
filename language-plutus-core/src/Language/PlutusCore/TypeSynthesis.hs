@@ -44,7 +44,10 @@ kindOf (TyFun x ty' ty'') = do
     k' <- kindOf ty''
     if isType k && isType k'
         then pure (Type ())
-        else throwError (KindMismatch x undefined undefined undefined)
+        else
+            if isType k
+                then throwError (KindMismatch x (void ty'') k' (Type ()))
+                else throwError (KindMismatch x (void ty') k (Type ()))
 kindOf (TyForall x _ _ ty) = do
     k <- kindOf ty
     if isType k
@@ -71,7 +74,7 @@ kindOf (TyApp x ty (ty' :| [])) = do
             if k'' == k'''
                 then pure k'
                 else throwError (KindMismatch x (void ty') k'' k''')
-        _ -> throwError (KindMismatch x (void ty') undefined k)
+        _ -> throwError (KindMismatch x (void ty') (KindArrow () (Type ()) (Type ())) k)
 kindOf (TyApp x ty (ty' :| tys)) =
     kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
