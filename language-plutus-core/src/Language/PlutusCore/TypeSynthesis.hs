@@ -3,6 +3,7 @@
 
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
+                                         , TypeError (..)
                                          ) where
 
 import           Control.Monad.Except
@@ -21,6 +22,12 @@ import           PlutusPrelude
 -- builtin names.
 data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
 type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
+
+instance Semigroup (BuiltinTable a) where
+    (<>) (BuiltinTable x y) (BuiltinTable x' y') = BuiltinTable (x <> x') (y <> y')
+
+instance Monoid (BuiltinTable a) where
+    mempty = BuiltinTable mempty mempty
 
 data TypeError a = NotImplemented
                  | InternalError
@@ -141,7 +148,7 @@ tySubstitute :: Unique -- ^ Unique associated with type variable
 tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
--- TODO: make type substitutions occur in a state monad somewhere?
+-- TODO: make type substitutions occur in a state monad instead
 
 -- TODO test suite for this
 --

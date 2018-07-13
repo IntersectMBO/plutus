@@ -155,9 +155,6 @@ data ParseError = LexErr String
                 | Overflow AlexPosn Natural Integer 
                 deriving (Show, Eq, Generic, NFData)
 
-instance Pretty AlexPosn where
-    pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
-
 instance Pretty ParseError where
     pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)

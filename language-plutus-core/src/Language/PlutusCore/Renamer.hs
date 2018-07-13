@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
@@ -13,7 +15,9 @@ module Language.PlutusCore.Renamer ( rename
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
-import qualified Data.IntMap              as IM
+import qualified Data.IntMap               as IM
+import           Data.Text.Prettyprint.Doc hiding (annotate)
+import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Lens.Micro
@@ -41,10 +45,14 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Pretty)
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Functor, Pretty)
+    deriving (Functor, Show, Pretty)
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
+
+instance Pretty (RenameError AlexPosn) where
+    pretty (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> pretty n <+> "is not in scope."
+    pretty (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> pretty n <+> "is not in scope."
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.

@@ -3,15 +3,16 @@
 module Main ( main
             ) where
 
+import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
 import qualified Data.List.NonEmpty                    as NE
 import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text
-import           Hedgehog                              hiding (Size, Var)
+import           Hedgehog                              hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen                          as Gen
 import qualified Hedgehog.Range                        as Range
 import           Language.PlutusCore
@@ -24,7 +25,8 @@ main :: IO ()
 main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
-    defaultMain (allTests plcFiles rwFiles)
+    typeFiles <- findByExtension [".plc"] "test/types"
+    defaultMain (allTests plcFiles rwFiles typeFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -141,12 +143,13 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testsGolden plcFiles
     , testsRewrite rwFiles
+    , testsType typeFiles
     ]
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
@@ -155,10 +158,27 @@ asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: Pretty a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+errorgen = BSL.fromStrict . encodeUtf8 . printError
+
+printError :: Pretty a => a -> T.Text
+printError = renderStrict . layoutSmart defaultLayoutOptions . pretty
+
+collectErrors :: Either ParseError (Either (RenameError AlexPosn) T.Text) -> Either Error T.Text
+collectErrors (Left x)          = Left (ParseError x)
+collectErrors (Right (Left x))  = Left (RenameError x)
+collectErrors (Right (Right x)) = Right x
+
+withTypes :: BSL.ByteString -> Either Error T.Text
+withTypes = collectErrors . fmap (fmap showType . annotate) . parseScoped
+
+showType :: Pretty a => Program TyNameWithKind NameWithType a -> T.Text
+showType (Program _ _ t) = either printError (T.pack . show) $ flip runReaderT mempty $ typeOf t
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
+
+testsType :: [FilePath] -> TestTree
+testsType = testGroup "golden type synthesis tests" . fmap (asGolden withTypes)
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden = testGroup "golden tests" . fmap (asGolden format)

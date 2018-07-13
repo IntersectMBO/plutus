@@ -31,9 +31,12 @@ module Language.PlutusCore
     , TyNameWithKind (..)
     , NameWithType (..)
     , Debug (..)
-    -- * Type checking
+    -- * Type synthesis
     , typeOf
     , kindOf
+    , TypeError (..)
+    -- * Errors
+    , Error (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -43,6 +46,7 @@ import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name

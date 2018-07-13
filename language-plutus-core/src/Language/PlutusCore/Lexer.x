@@ -110,6 +110,9 @@ tokens :-
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
 
+instance Pretty (AlexPosn) where
+    pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
+
 handleChar :: Word8 -> Word8
 handleChar x
     | x >= 48 && x <= 57 = x - 48 -- hexits 0-9
