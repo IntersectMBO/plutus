@@ -3,7 +3,6 @@
 module Main ( main
             ) where
 
-import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
@@ -172,7 +171,7 @@ withTypes :: BSL.ByteString -> Either Error T.Text
 withTypes = collectErrors . fmap (fmap showType . annotate) . parseScoped
 
 showType :: Pretty a => Program TyNameWithKind NameWithType a -> T.Text
-showType (Program _ _ t) = either printError (T.pack . show) $ flip runReaderT mempty $ typeOf t
+showType (Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM $ typeOf t
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)

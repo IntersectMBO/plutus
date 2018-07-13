@@ -88,8 +88,7 @@ test-suite language-plutus-core-test
         bytestring -any,
         tasty-golden -any,
         text -any,
-        prettyprinter -any,
-        mtl
+        prettyprinter -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

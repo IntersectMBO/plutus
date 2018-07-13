@@ -3,6 +3,7 @@
 
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
+                                         , runTypeCheckM
                                          , TypeError (..)
                                          ) where
 
@@ -28,6 +29,7 @@ instance Semigroup (BuiltinTable a) where
 
 instance Monoid (BuiltinTable a) where
     mempty = BuiltinTable mempty mempty
+    mappend = (<>)
 
 data TypeError a = NotImplemented
                  | InternalError
@@ -43,6 +45,9 @@ instance Pretty a => Pretty (TypeError a) where
 isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
+
+runTypeCheckM :: TypeCheckM a b -> Either (TypeError a) b
+runTypeCheckM = flip runReaderT mempty
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())

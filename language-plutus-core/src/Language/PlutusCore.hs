@@ -34,6 +34,7 @@ module Language.PlutusCore
     -- * Type synthesis
     , typeOf
     , kindOf
+    , runTypeCheckM
     , TypeError (..)
     -- * Errors
     , Error (..)
