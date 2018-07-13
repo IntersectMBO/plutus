@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Language.PlutusCore.CkMachine where
 
 import           Language.PlutusCore.Type
