@@ -35,8 +35,8 @@ data TypeError a = NotImplemented
 instance Pretty a => Pretty (TypeError a) where
     pretty NotImplemented   = "Type synthesis not yet implementd."
     pretty InternalError    = "Internal error."
-    pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> pretty ty <> ". Expected kind" <+> pretty k <+> ", found kind" <+> pretty k'
-    pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> pretty t <> ". Expected type" <+> pretty ty <+> ", found type" <+> pretty ty'
+    pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (pretty ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
+    pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (pretty t) <> ". Expected type" <+> squotes (pretty ty) <+> ", found type" <+> squotes (pretty ty')
 
 isType :: Kind a -> Bool
 isType Type{} = True
