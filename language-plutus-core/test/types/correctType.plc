@@ -1,0 +1,8 @@
+(program 0.1.0
+  [
+    (lam x [(con integer) 1]
+      [(con addInteger) x (1 ! 1)]
+    )
+    (2 ! 1)
+  ]
+)
