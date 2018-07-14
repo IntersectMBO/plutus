@@ -55,18 +55,18 @@ intop = do
         fty = TyFun () ity (TyFun () ity ity)
     pure $ TyForall () nam (Size ()) fty
 
-defaultTable :: BuiltinTable
-defaultTable = BuiltinTable tyTable termTable
+defaultTable :: Int -> BuiltinTable
+defaultTable i = BuiltinTable tyTable termTable
     where tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
                                , (TySize, Size ())
                                , (TyInteger, KindArrow () (Size ()) (Type ()))
                                ]
-          termTable = M.fromList [ (AddInteger, evalState intop 500) -- FIXME: actually feed it the correct number
+          termTable = M.fromList [ (AddInteger, evalState intop i) -- FIXME: actually feed it the correct number
                                  ]
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: TypeCheckM a b -> Either (TypeError a) b
-runTypeCheckM = flip runReaderT defaultTable
+runTypeCheckM :: Int -> TypeCheckM a b -> Either (TypeError a) b
+runTypeCheckM = flip runReaderT . defaultTable
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())

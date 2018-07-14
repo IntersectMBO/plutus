@@ -6,11 +6,13 @@
 
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
+                                   , annotateST
                                    , RenamedTerm
                                    , NameWithType (..)
                                    , RenamedType
                                    , TyNameWithKind (..)
                                    , RenameError (..)
+                                   , TypeState (..)
                                    ) where
 
 import           Control.Monad.Except
@@ -57,7 +59,12 @@ instance Pretty (RenameError AlexPosn) where
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
-annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
+annotate = fmap snd . annotateST
+
+annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
+annotateST (Program x v p) = do
+    (t, st) <- runStateT (annotateTerm p) mempty
+    pure (st, Program x v t)
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert

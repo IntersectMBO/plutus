@@ -24,6 +24,7 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , annotate
+    , annotateST
     , debugScopes
     , RenamedTerm
     , RenamedType
@@ -31,6 +32,7 @@ module Language.PlutusCore
     , TyNameWithKind (..)
     , NameWithType (..)
     , Debug (..)
+    , TypeState (..)
     -- * Type synthesis
     , typeOf
     , kindOf

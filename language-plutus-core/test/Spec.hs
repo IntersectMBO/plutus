@@ -6,6 +6,7 @@ module Main ( main
 import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
+import qualified Data.IntMap                           as IM
 import qualified Data.List.NonEmpty                    as NE
 import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
@@ -168,10 +169,11 @@ collectErrors (Right (Left x))  = Left (RenameError x)
 collectErrors (Right (Right x)) = Right x
 
 withTypes :: BSL.ByteString -> Either Error T.Text
-withTypes = collectErrors . fmap (fmap showType . annotate) . parseScoped
+withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 
-showType :: Pretty a => Program TyNameWithKind NameWithType a -> T.Text
-showType (Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM $ typeOf t
+showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
+showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i $ typeOf t
+    where i = fst $ IM.findMax tys
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
