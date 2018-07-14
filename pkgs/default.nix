@@ -42208,11 +42208,13 @@ license = stdenv.lib.licenses.bsd3;
 , array
 , base
 , bytestring
+, composition-prelude
 , containers
 , criterion
 , deepseq
 , happy
 , hedgehog
+, microlens
 , mtl
 , prettyprinter
 , recursion-schemes
@@ -42233,8 +42235,10 @@ libraryHaskellDepends = [
 array
 base
 bytestring
+composition-prelude
 containers
 deepseq
+microlens
 mtl
 prettyprinter
 recursion-schemes
@@ -42262,7 +42266,7 @@ bytestring
 criterion
 ];
 doHaddock = false;
-description = "Language library for Plutus Napkin";
+description = "Language library for Plutus Core";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
