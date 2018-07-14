@@ -30,13 +30,13 @@ type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
 data TypeError a = NotImplemented
                  | InternalError
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ()) -- TODO this should be more detailed and in particular include a subexpression
-                 | TypeMismatch a
+                 | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
 
 instance Pretty a => Pretty (TypeError a) where
     pretty NotImplemented   = "Type synthesis not yet implementd."
     pretty InternalError    = "Internal error."
     pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> pretty ty <> ". Expected kind" <+> pretty k <+> ", found kind" <+> pretty k'
-    pretty (TypeMismatch x) = "Type mismatch at" <+> pretty x
+    pretty (TypeMismatch x _ _ _) = "Type mismatch at" <+> pretty x
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -61,7 +61,7 @@ defaultTable = BuiltinTable tyTable termTable
                                , (TySize, Size ())
                                , (TyInteger, KindArrow () (Size ()) (Type ()))
                                ]
-          termTable = M.fromList [ (AddInteger, evalState intop 50)
+          termTable = M.fromList [ (AddInteger, evalState intop 500) -- FIXME: actually feed it the correct number
                                  ]
 
 -- | Run the type checker with a default context.
@@ -140,8 +140,8 @@ typeOf (Apply x t (t' :| [])) = do
             ty''' <- typeOf t'
             if typeEq ty'' ty'''
                 then pure ty'
-                else throwError (TypeMismatch x)
-        _ -> throwError (TypeMismatch x)
+                else throwError (TypeMismatch x (void t') ty (TyFun () ty' ty'''))
+        _ -> throwError (TypeMismatch x (void t) ty (TyFun () undefined undefined))
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
 typeOf (TyInst x t (ty :| [])) = do
@@ -152,14 +152,14 @@ typeOf (TyInst x t (ty :| [])) = do
             if k == k'
                 then pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x)
+        _ -> throwError (TypeMismatch x (void t) (void ty) (TyForall () undefined undefined undefined))
 typeOf (TyInst x t (ty :| tys)) =
     typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys)) -- TODO: is this correct?
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
         TyFix _ n ty' -> pure (tySubstitute (extractUnique n) ty ty')
-        _             -> throwError (TypeMismatch x)
+        _             -> throwError (TypeMismatch x (void t) (void ty) (TyFix () undefined undefined))
 typeOf Wrap{} = throwError NotImplemented -- TODO handle all of these
 
 extractUnique :: TyNameWithKind a -> Unique
