@@ -49,7 +49,7 @@ tokens :-
     <0> lam                      { mkKeyword KwLam }
     <0> fix                      { mkKeyword KwFix }
     <0> fun                      { mkKeyword KwFun }
-    <0> forall                   { mkKeyword KwForall }
+    <0> all                      { mkKeyword KwAll }
     <0> bytestring               { mkKeyword KwByteString }
     <0> integer                  { mkKeyword KwInteger }
     <0> size                     { mkKeyword KwSize }

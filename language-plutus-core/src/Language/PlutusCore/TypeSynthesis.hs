@@ -40,12 +40,12 @@ isType Type{} = True
 isType _      = False
 
 defaultTable :: BuiltinTable
-defaultTable = BuiltinTable
-    (M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
-                , (TySize, Size ())
-                , (TyInteger, KindArrow () (Size ()) (Type ()))
-                ])
-    mempty
+defaultTable = BuiltinTable tyTable termTable
+    where tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
+                               , (TySize, Size ())
+                               , (TyInteger, KindArrow () (Size ()) (Type ()))
+                               ]
+          termTable = mempty
 
 runTypeCheckM :: TypeCheckM a b -> Either (TypeError a) b
 runTypeCheckM = flip runReaderT defaultTable

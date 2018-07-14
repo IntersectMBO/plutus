@@ -43,7 +43,7 @@ import Language.PlutusCore.Name
     fix { LexKeyword $$ KwFix }
     con { LexKeyword $$ KwCon }
     fun { LexKeyword $$ KwFun }
-    forall { LexKeyword $$ KwForall }
+    all { LexKeyword $$ KwAll }
     size { LexKeyword $$ KwSize }
     integer { LexKeyword $$ KwInteger }
     bytestring { LexKeyword $$ KwByteString }
@@ -114,7 +114,7 @@ BuiltinType : size { TyBuiltin $1 TySize }
 
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
-     | openParen forall TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
+     | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
      | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
      | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }

@@ -60,7 +60,7 @@ data Keyword = KwAbs
              | KwLam
              | KwFix
              | KwFun
-             | KwForall
+             | KwAll
              | KwByteString
              | KwInteger
              | KwSize
@@ -119,7 +119,7 @@ instance Pretty Keyword where
     pretty KwLam        = "lam"
     pretty KwFix        = "fix"
     pretty KwFun        = "fun"
-    pretty KwForall     = "forall"
+    pretty KwAll        = "forall"
     pretty KwByteString = "bytestring"
     pretty KwInteger    = "integer"
     pretty KwSize       = "size"
