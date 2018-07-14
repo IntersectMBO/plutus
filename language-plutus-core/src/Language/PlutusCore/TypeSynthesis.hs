@@ -21,15 +21,8 @@ import           PlutusPrelude
 
 -- | A builtin table contains the kinds of builtin types and the types of
 -- builtin names.
-data BuiltinTable a = BuiltinTable (M.Map TypeBuiltin (Kind a)) (M.Map BuiltinName (Type TyNameWithKind a))
-type TypeCheckM a = ReaderT (BuiltinTable a) (Either (TypeError a))
-
-instance Semigroup (BuiltinTable a) where
-    (<>) (BuiltinTable x y) (BuiltinTable x' y') = BuiltinTable (x <> x') (y <> y')
-
-instance Monoid (BuiltinTable a) where
-    mempty = BuiltinTable mempty mempty
-    mappend = (<>)
+data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (Type TyNameWithKind ()))
+type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
 
 data TypeError a = NotImplemented
                  | InternalError
@@ -46,8 +39,16 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
+defaultTable :: BuiltinTable
+defaultTable = BuiltinTable
+    (M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
+                , (TySize, Size ())
+                , (TyInteger, KindArrow () (Size ()) (Type ()))
+                ])
+    mempty
+
 runTypeCheckM :: TypeCheckM a b -> Either (TypeError a) b
-runTypeCheckM = flip runReaderT mempty
+runTypeCheckM = flip runReaderT defaultTable
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
@@ -71,7 +72,7 @@ kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = do
     (BuiltinTable tyst _) <- ask
     case M.lookup b tyst of
-        Just k -> pure (void k)
+        Just k -> pure k
         _      -> throwError InternalError
 kindOf (TyFix x _ ty) = do
     k <- kindOf ty
@@ -109,7 +110,7 @@ typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k)
 typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
-        Just k -> pure (void k)
+        Just k -> pure k
         _      -> throwError InternalError
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
