@@ -4,6 +4,7 @@ import           Criterion.Main
 import qualified Data.ByteString.Lazy as BSL
 import           Language.PlutusCore
 
+-- TODO: benchmark the typechecker!
 main :: IO ()
 main =
     defaultMain [ env envFile $ \ f ->

@@ -61,7 +61,7 @@ defaultTable i = BuiltinTable tyTable termTable
                                , (TySize, Size ())
                                , (TyInteger, KindArrow () (Size ()) (Type ()))
                                ]
-          termTable = M.fromList [ (AddInteger, evalState intop i) -- FIXME: actually feed it the correct number
+          termTable = M.fromList [ (AddInteger, evalState intop i) -- FIXME actually use a state monad here.
                                  ]
 
 -- | Run the type checker with a default context.
