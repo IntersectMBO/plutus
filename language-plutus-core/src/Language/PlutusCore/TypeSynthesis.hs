@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
@@ -9,6 +10,8 @@ module Language.PlutusCore.TypeSynthesis ( kindOf
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State.Class
+import           Control.Monad.Trans.State      hiding (get, modify)
 import           Data.Functor.Foldable          hiding (Fix (..))
 import qualified Data.List.NonEmpty             as NE
 import qualified Data.Map                       as M
@@ -39,14 +42,29 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
+newTyName :: (MonadState Int m) => Kind () -> m (TyNameWithKind ())
+newTyName k = do
+    i <- get
+    modify (+1)
+    pure $ TyNameWithKind (TyName (Name ((), k) "" (Unique $ i+1)))
+
+intop :: MonadState Int m => m (Type TyNameWithKind ())
+intop = do
+    nam <- newTyName (Size ())
+    let ity = TyBuiltin () TyInteger
+        fty = TyFun () ity (TyFun () ity ity)
+    pure $ TyForall () nam (Size ()) fty
+
 defaultTable :: BuiltinTable
 defaultTable = BuiltinTable tyTable termTable
     where tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
                                , (TySize, Size ())
                                , (TyInteger, KindArrow () (Size ()) (Type ()))
                                ]
-          termTable = mempty
+          termTable = M.fromList [ (AddInteger, evalState intop 50)
+                                 ]
 
+-- | Run the type checker with a default context.
 runTypeCheckM :: TypeCheckM a b -> Either (TypeError a) b
 runTypeCheckM = flip runReaderT defaultTable
 
