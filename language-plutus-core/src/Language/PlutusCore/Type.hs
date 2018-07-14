@@ -124,7 +124,7 @@ instance Pretty (f a) => Pretty (Type f a) where
         a (TyVarF _ n)        = pretty n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
         a (TyFixF _ n t)      = parens ("fix" <+> pretty n <+> t)
-        a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
+        a (TyForallF _ n k t) = parens ("all" <+> pretty n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
 
@@ -134,7 +134,7 @@ instance Debug (f a) => Debug (Type f a) where
         a (TyVarF _ n)        = debug n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
         a (TyFixF _ n t)      = parens ("fix" <+> debug n <+> t)
-        a (TyForallF _ n k t) = parens ("forall" <+> debug n <+> pretty k <+> t)
+        a (TyForallF _ n k t) = parens ("all" <+> debug n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
 

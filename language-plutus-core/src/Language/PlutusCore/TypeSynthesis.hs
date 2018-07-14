@@ -36,7 +36,7 @@ instance Pretty a => Pretty (TypeError a) where
     pretty NotImplemented   = "Type synthesis not yet implementd."
     pretty InternalError    = "Internal error."
     pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> pretty ty <> ". Expected kind" <+> pretty k <+> ", found kind" <+> pretty k'
-    pretty (TypeMismatch x _ _ _) = "Type mismatch at" <+> pretty x
+    pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> pretty t <> ". Expected type" <+> pretty ty <+> ", found type" <+> pretty ty'
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -118,6 +118,18 @@ bsType _ = TyBuiltin () TyByteString
 sizeType :: Natural -> Type a ()
 sizeType _ = TyBuiltin () TySize
 
+dummyUnique :: Unique
+dummyUnique = Unique 0
+
+dummyTyName :: TyNameWithKind ()
+dummyTyName = TyNameWithKind (TyName (Name ((), Type ()) "*" dummyUnique))
+
+dummyKind :: Kind ()
+dummyKind = Type ()
+
+dummyType :: Type TyNameWithKind ()
+dummyType = TyVar () dummyTyName
+
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
@@ -140,8 +152,8 @@ typeOf (Apply x t (t' :| [])) = do
             ty''' <- typeOf t'
             if typeEq ty'' ty'''
                 then pure ty'
-                else throwError (TypeMismatch x (void t') ty (TyFun () ty' ty'''))
-        _ -> throwError (TypeMismatch x (void t) ty (TyFun () undefined undefined))
+                else throwError (TypeMismatch x (void t') (TyFun () ty' ty''') ty)
+        _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
 typeOf (TyInst x t (ty :| [])) = do
@@ -152,14 +164,14 @@ typeOf (TyInst x t (ty :| [])) = do
             if k == k'
                 then pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x (void t) (void ty) (TyForall () undefined undefined undefined))
+        _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 typeOf (TyInst x t (ty :| tys)) =
     typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys)) -- TODO: is this correct?
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
         TyFix _ n ty' -> pure (tySubstitute (extractUnique n) ty ty')
-        _             -> throwError (TypeMismatch x (void t) (void ty) (TyFix () undefined undefined))
+        _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf Wrap{} = throwError NotImplemented -- TODO handle all of these
 
 extractUnique :: TyNameWithKind a -> Unique
