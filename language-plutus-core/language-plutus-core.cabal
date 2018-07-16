@@ -89,7 +89,7 @@ test-suite language-plutus-core-test
         tasty-golden -any,
         text -any,
         prettyprinter -any,
-        containers
+        containers -any
     
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
