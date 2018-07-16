@@ -31,8 +31,8 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
 
 data TypeError a = NotImplemented
-                 | InternalError
-                 | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ()) -- TODO this should be more detailed and in particular include a subexpression
+                 | InternalError -- ^ This is thrown if builtin lookup fails
+                 | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
                  | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
 
 instance Pretty a => Pretty (TypeError a) where
