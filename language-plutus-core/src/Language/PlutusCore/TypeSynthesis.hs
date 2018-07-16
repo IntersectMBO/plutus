@@ -25,6 +25,9 @@ import           PlutusPrelude
 -- | A builtin table contains the kinds of builtin types and the types of
 -- builtin names.
 data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (Type TyNameWithKind ()))
+
+-- | The type checking monad contains the 'BuiltinTable' and it lets us throw
+-- 'TypeError's.
 type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
 
 data TypeError a = NotImplemented
@@ -62,6 +65,9 @@ defaultTable i = BuiltinTable tyTable termTable
                                , (TyInteger, KindArrow () (Size ()) (Type ()))
                                ]
           termTable = M.fromList [ (AddInteger, evalState intop i) -- FIXME actually use a state monad here.
+                                 , (SubtractInteger, evalState intop (i+1))
+                                 , (MultiplyInteger, evalState intop (i+2))
+                                 , (DivideInteger, evalState intop (i+3))
                                  ]
 
 -- | Run the type checker with a default context.
@@ -166,7 +172,7 @@ typeOf (TyInst x t (ty :| [])) = do
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 typeOf (TyInst x t (ty :| tys)) =
-    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys)) -- TODO: is this correct?
+    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
@@ -186,14 +192,5 @@ tySubstitute u ty = cata a where
     a x                                                  = embed x
 -- TODO: make type substitutions occur in a state monad instead
 
--- TODO test suite for this
---
--- 1. Possibly use golden tests? Definitely test error messages.
--- 2. Test some nontrivial type inference, e.g. addInteger 1 2 or something
--- 3. Also fix up parser for integer types
-
--- TODO: checking type normality &c.
-
--- FIXME actually implement this
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
 typeEq _ _ = False

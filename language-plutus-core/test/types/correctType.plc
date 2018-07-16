@@ -1,8 +1,12 @@
 (program 0.1.0
   [
-    (lam x (all s (size) [(con integer) s])
-      [(con addInteger) x (con 1 ! 1)]
-    )
-    (con 2 ! 1)
+    {
+      (abs s (size)
+        (lam x [(con integer) s]
+          [(con addInteger) x (con s ! 1)])
+      )
+      [(con size) 1]
+    }
+    (con 1 ! 2)
   ]
 )
