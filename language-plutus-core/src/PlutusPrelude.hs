@@ -7,6 +7,7 @@ module PlutusPrelude ( (&&&)
                      , fold
                      , (.*)
                      , prettyText
+                     , prettyString
                      , Generic
                      , NFData
                      , Natural
@@ -32,7 +33,11 @@ import           Debug.Trace               as X
 import           GHC.Generics              (Generic)
 import           GHC.Natural               (Natural)
 
-import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
+import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 
 prettyText :: Pretty a => a -> Text
 prettyText = renderStrict . layoutPretty defaultLayoutOptions . pretty
+
+prettyString :: Pretty a => a -> String
+prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
