@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Language.PlutusCore.CkMachine where
+module Language.PlutusCore.CkMachine (evaluateCk) where
 
 import           PlutusPrelude
 import           Language.PlutusCore.Type
@@ -7,17 +7,17 @@ import           Language.PlutusCore.Constant (reduceConstantApplication)
 
 infix 4 |>, <|
 
-data Frame tyname name a = FrameTyAbs a (tyname a) (Kind a) (Term tyname name a)
-                         | FrameLamAbs a (name a) (Type tyname a) (Term tyname name a)
-                         | FrameApplyFun (Term tyname name a)
+data Frame tyname name a = FrameApplyFun (Term tyname name a)
                          | FrameApplyArg (Term tyname name a)
-                         | FrameFix a (name a) (Type tyname a) (Term tyname name a)
+                         -- TODO: add this to the CK machine.
+                         | FrameRun a (name a) (Type tyname a) (Term tyname name a)
                          | FrameTyInstArg
                          | FrameUnwrap
                          | FrameWrap a (tyname a) (Type tyname a)
 
 type Context tyname name a = [Frame tyname name a]
 
+-- | Check whether a term is a value.
 isValue :: Term tyname name a -> Bool
 isValue (TyAbs  _ _ _ body) = isValue body
 isValue (Wrap   _ _ _ term) = isValue term
@@ -25,6 +25,8 @@ isValue (LamAbs _ _ _ body) = isValue body
 isValue (Constant _ _)      = True
 isValue _                   = False
 
+-- | Substitute a term for a variable in a term that can contain duplicate binders.
+-- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
     :: Eq (name a)
     => name a -> Term tyname name a -> Term tyname name a -> Term tyname name a
@@ -42,10 +44,7 @@ substituteDb varFor new = go where
 
     goUnder var term = if var == varFor then term else go term
 
-viewConstant :: Term tyname name a -> Maybe (Constant a)
-viewConstant (Constant _ constant) = Just constant
-viewConstant _                     = Nothing
-
+-- | The computing part of the CK machine. Rules are as follows:
 -- s ▷ abs α K M  ↦ s ◁ abs α K M
 -- s ▷ {M A}      ↦ s , {_ A} ▷ M
 -- s ▷ [M N]      ↦ s , [_ N] ▷ M
@@ -65,6 +64,7 @@ stack |> Unwrap _ term        = FrameUnwrap : stack |> term
 stack |> err@Error{}          = stack <| err
 _     |> _                    = error "Panic: unhandled case in `(|>)`"
 
+-- | The returning part of the CK machine. Rules are as follows:
 -- s , {_ S}           ◁ abs α K M  ↦ s ▷ M
 -- s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
@@ -85,6 +85,7 @@ FrameUnwrap          : stack <| Wrap _ _ _ term  = stack <| term
 _                    : stack <| err@Error{}      = stack <| err
 _                            <| _                = error "Panic: unhandled case in `(|>)`"
 
+-- | Apply a function to an argument and proceed.
 applyReduce
     :: (Pretty (Term tyname name ()), Eq (name ()))
     => Context tyname name () -> Term tyname name () -> Term tyname name () -> Constant ()
@@ -98,3 +99,9 @@ applyReduce stack fun                    arg =
             , ") to ("
             , prettyString arg
             ]
+
+-- | Evaluate a term using the CK machine.
+evaluateCk
+    :: (Pretty (Term tyname name ()), Eq (name ()))
+    => Term tyname name () -> Constant ()
+evaluateCk = ([] |>)
