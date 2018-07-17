@@ -3,6 +3,7 @@ module Language.PlutusCore.CkMachine where
 
 import           PlutusPrelude
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.Constant (reduceConstantApplication)
 
 infix 4 |>, <|
 
@@ -43,27 +44,6 @@ viewConstant :: Term tyname name a -> Maybe (Constant a)
 viewConstant (Constant _ constant) = Just constant
 viewConstant _                     = Nothing
 
-reduceConstantApply :: Constant a -> [Constant a] -> Maybe (Constant a)
-reduceConstantApply = undefined
-
-data IteratedApplication tyname name a = IteratedApplication
-    { iteratedApplicationHead  :: Term tyname name a
-    , iteratedApplicationSpine :: [Term tyname name a]
-    }
-
-viewIteratedApplication :: Term tyname name a -> Maybe (IteratedApplication tyname name a)
-viewIteratedApplication term@Apply{} = Just $ go id term where
-    go k (Apply _ fun arg) = go (k . (undefined arg :)) fun
-    go k  fun              = IteratedApplication fun $ k []
-viewIteratedApplication _            = Nothing
-
-reduceConstantApplication :: Term tyname name () -> Maybe (Term tyname name ())
-reduceConstantApplication term = do
-    IteratedApplication termHead termSpine <- viewIteratedApplication term
-    constHead <- viewConstant termHead
-    constSpine <- traverse viewConstant termSpine
-    return . maybe term (Constant ()) $ reduceConstantApply constHead constSpine
-
 -- s ▷ abs α K M  ↦ s ◁ abs α K M
 -- s ▷ {M A}      ↦ s , {_ A} ▷ M
 -- s ▷ [M N]      ↦ s , [_ N] ▷ M
@@ -88,7 +68,7 @@ _     |> _                    = error "Panic: unhandled case in `(|>)`"
 -- s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
 -- s , [C _]           ◁ S          ↦ s ◁ [C S]  -- partially saturated constant
 -- s , [C _]           ◁ S          ↦ s ◁ V      -- fully saturated constant, [C S] ~> V
--- s , (wrap α S _)    ◁ V          ↦ s ▷ wrap α S V
+-- s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- s , f               ◁ error A    ↦ s ◁ error A
 (<|)
