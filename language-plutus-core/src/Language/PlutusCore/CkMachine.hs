@@ -25,20 +25,22 @@ isValue (LamAbs _ _ _ body) = isValue body
 isValue (Constant _ _)      = True
 isValue _                   = False
 
-subst
+substituteDb
     :: Eq (name a)
     => name a -> Term tyname name a -> Term tyname name a -> Term tyname name a
-subst varFor new = go where
-    go (Var ann var)            = if varFor == var then new else Var ann var
+substituteDb varFor new = go where
+    go (Var ann var)            = if var == varFor then new else Var ann var
     go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
-    go (LamAbs ann var ty body) = LamAbs ann var ty (go body)
+    go (LamAbs ann var ty body) = LamAbs ann var ty (goUnder var body)
     go (Apply ann fun arg)      = Apply ann (go fun) (undefined (go (undefined arg)))
-    go (Fix ann var ty body)    = Fix ann var ty (go body)
+    go (Fix ann var ty body)    = Fix ann var ty (goUnder var body)
     go (Constant ann constant)  = Constant ann constant
     go (TyInst ann fun arg)     = TyInst ann (go fun) arg
     go (Unwrap ann term)        = Unwrap ann (go term)
     go (Wrap ann tyn ty term)   = Wrap ann tyn ty (go term)
     go (Error ann ty)           = Error ann ty
+
+    goUnder var term = if var == varFor then term else go term
 
 viewConstant :: Term tyname name a -> Maybe (Constant a)
 viewConstant (Constant _ constant) = Just constant
@@ -86,7 +88,7 @@ _                            <| _                = error "Panic: unhandled case 
 applyReduce
     :: (Pretty (Term tyname name ()), Eq (name ()))
     => Context tyname name () -> Term tyname name () -> Term tyname name () -> Constant ()
-applyReduce stack (LamAbs _ name _ body) arg = stack |> subst name arg body
+applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyReduce stack fun                    arg =
     case reduceConstantApplication $ Apply () fun (undefined arg) of
         Just conApp -> stack <| conApp
