@@ -7,6 +7,13 @@ import           Language.PlutusCore.Type
 import           Data.Text (Text)
 import qualified Data.Text as Text
 
+data ConstantApplicationException = ConstantApplicationException Text
+
+instance Show ConstantApplicationException where
+    show (ConstantApplicationException err) = Text.unpack err
+
+instance Exception ConstantApplicationException
+
 data IteratedApplication tyname name a = IteratedApplication
     { iteratedApplicationHead  :: Term tyname name a
     , iteratedApplicationSpine :: [Term tyname name a]
@@ -24,11 +31,11 @@ viewConstant _                     = Nothing
 
 -- TODO: this is a stub.
 applyBuiltinSizeIntInt
-    :: (Integer -> Integer -> Integer) -> [Constant ()] -> Either Text (Maybe (Constant ()))
+    :: (Integer -> Integer -> Integer) -> [Constant ()] -> Maybe (Constant ())
 applyBuiltinSizeIntInt op [BuiltinSize _ s, BuiltinInt _ n i, BuiltinInt _ m j] =
-    Right . Just . BuiltinInt () m $ op i j
+    Just . BuiltinInt () m $ op i j
 
-applyBuiltinName :: BuiltinName -> [Constant ()] -> Either Text (Maybe (Constant ()))
+applyBuiltinName :: BuiltinName -> [Constant ()] -> Maybe (Constant ())
 applyBuiltinName AddInteger           = applyBuiltinSizeIntInt (+)
 applyBuiltinName SubtractInteger      = undefined
 applyBuiltinName MultiplyInteger      = undefined
@@ -52,9 +59,9 @@ applyBuiltinName TxHash               = undefined
 applyBuiltinName BlockNum             = undefined
 applyBuiltinName BlockTime            = undefined
 
-applyConstant :: Constant () -> [Constant ()] -> Either Text (Maybe (Constant ()))
+applyConstant :: Constant () -> [Constant ()] -> Maybe (Constant ())
 applyConstant (BuiltinName _ fun) args = applyBuiltinName fun args
-applyConstant  constant           args = Left $ mconcat
+applyConstant  constant           args = throw . ConstantApplicationException $ mconcat
     [ "Cannot reduce ("
     , Text.intercalate " " . map prettyText $ constant : args
     , ") because ("
@@ -67,7 +74,4 @@ reduceConstantApplication term = do
     IteratedApplication termHead termSpine <- viewIteratedApplication term
     constHead <- viewConstant termHead
     constSpine <- traverse viewConstant termSpine
-    case applyConstant constHead constSpine of
-      Left err         -> error $ Text.unpack err
-      Right Nothing    -> Just term
-      Right (Just con) -> Just $ Constant () con
+    Just . maybe term (Constant ()) $ applyConstant constHead constSpine
