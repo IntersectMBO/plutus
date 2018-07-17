@@ -10,7 +10,7 @@ infix 4 |>, <|
 data Frame tyname name a = FrameApplyFun (Term tyname name a)
                          | FrameApplyArg (Term tyname name a)
                          -- TODO: add this to the CK machine.
-                         | FrameRun a (name a) (Type tyname a) (Term tyname name a)
+                         | FrameFix a (name a) (Type tyname a) (Term tyname name a)
                          | FrameTyInstArg
                          | FrameUnwrap
                          | FrameWrap a (tyname a) (Type tyname a)
@@ -61,6 +61,7 @@ stack |> TyInst _ fun _       = FrameTyInstArg : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
 stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
 stack |> Unwrap _ term        = FrameUnwrap : stack |> term
+stack |> constant@Constant{}  = stack <| constant
 stack |> err@Error{}          = stack <| err
 _     |> _                    = error "Panic: unhandled case in `(|>)`"
 
