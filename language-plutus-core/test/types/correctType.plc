@@ -1,5 +1,5 @@
 (program 0.1.0
   (lam x (all s (size) [(con integer) s])
-    [(con addInteger) x (con 1 ! 1)]
+    x
   )
 )
