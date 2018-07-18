@@ -26,7 +26,7 @@ z1 = \f -> let a = \r -> f (\x -> unroll r $! x) in a (Self a)
 
 We also have functions that are exactly like `bz1` and `z1`, but with strictness placed differently:
 
-```
+```haskell
 -- fix {τ} (x. e) = unroll (self {τ} (y. [unroll y / x] e))
 bz2 :: ((a -> b) -> a -> b) -> a -> b
 bz2 = \f -> unroll . Self $ \s x -> (f $! unroll s) $! x
@@ -34,6 +34,8 @@ bz2 = \f -> unroll . Self $ \s x -> (f $! unroll s) $! x
 z2 :: ((a -> b) -> a -> b) -> a -> b
 z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 ```
+
+In short, `bz1` and `z1` are mostly on par with `fix'`, but sometimes can be up to 20% slower or faster in no predictable way. `bz2` and `z2` are reliably slower that `fix'` by a factor of 1.2 - 1.5. Why the difference? No idea.
 
 <details>
   <summary> Results </summary>
