@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 module Main where
 
 import Criterion.Main.Options
@@ -7,10 +8,25 @@ import Criterion.Types
 fix' :: ((a -> b) -> a -> b) -> a -> b
 fix' f x = (f $! fix' f) $! x
 
-newtype Rec a = In { out :: Rec a -> a }
+newtype Self a = Self { unfold :: Self a -> a }
 
-z :: ((a -> b) -> a -> b) -> a -> b
-z = \f -> let a = \r -> f (\x -> out r r $! x) in a (In a)
+-- unroll (self {τ} (x.e)) ↦ [self {τ} (x.e) / x] e
+unroll :: Self a -> a
+unroll s = unfold s s
+
+-- fix {τ} (x. e) = unroll (self {τ} (y. [unroll y / x] e))
+bz1 :: ((a -> b) -> a -> b) -> a -> b
+bz1 = \f -> unroll . Self $ \s -> f (\x -> unroll s $! x)
+
+-- fix {τ} (x. e) = unroll (self {τ} (y. [unroll y / x] e))
+bz2 :: ((a -> b) -> a -> b) -> a -> b
+bz2 = \f -> unroll . Self $ \s x -> (f $! unroll s) $! x
+
+z1 :: ((a -> b) -> a -> b) -> a -> b
+z1 = \f -> let a = \r -> f (\x -> unroll r $! x) in a (Self a)
+
+z2 :: ((a -> b) -> a -> b) -> a -> b
+z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 
 countdownBy
   :: (((Int -> Bool) -> Int -> Bool) -> Int -> Bool)
@@ -31,27 +47,30 @@ leakingNatSumUpToBy recurse = recurse $ \r x -> if x == 0 then 0 else x + r (x -
 -- Benchmarks --
 ----------------
 
-countdownBy_fix'_z :: Benchmark
-countdownBy_fix'_z = bgroup "countdownBy" $ [10^5, 10^6, 10^7] >>= \n ->
-  [ bench ("fix'/" ++ show n) $ whnf (countdownBy fix') n
-  , bench ("z/"    ++ show n) $ whnf (countdownBy z   ) n
+bench_fixed_points
+  :: String
+  -> ((forall a b. ((a -> b) -> a -> b) -> a -> b) -> Int -> c)
+  -> Benchmark
+bench_fixed_points name fun = bgroup name $ [10^5, 10^6, 10^7] >>= \n ->
+  [ bench ("fix'/" ++ show n) $ whnf (fun fix') n
+  , bench ("bz1/"  ++ show n) $ whnf (fun bz1 ) n
+  , bench ("bz2/"  ++ show n) $ whnf (fun bz2 ) n
+  , bench ("z1/"   ++ show n) $ whnf (fun z1  ) n
+  , bench ("z2/"   ++ show n) $ whnf (fun z2  ) n
   ]
 
-natSumUpToBy_fix'_z :: Benchmark
-natSumUpToBy_fix'_z = bgroup "natSumUpToBy" $ [10^5, 10^6, 10^7] >>= \n ->
-  [ bench ("fix'/" ++ show n) $ whnf (natSumUpToBy fix') n
-  , bench ("z/"    ++ show n) $ whnf (natSumUpToBy z   ) n
-  ]
+bench_countdownBy :: Benchmark
+bench_countdownBy = bench_fixed_points "countdownBy" countdownBy
 
-leakingNatSumUpToBy_fix'_z :: Benchmark
-leakingNatSumUpToBy_fix'_z = bgroup "leakingNatSumUpToBy" $ [10^5, 10^6, 10^7] >>= \n ->
-  [ bench ("fix'/" ++ show n) $ whnf (leakingNatSumUpToBy fix') n
-  , bench ("z/"    ++ show n) $ whnf (leakingNatSumUpToBy z   ) n
-  ]
+bench_natSumUpToBy :: Benchmark
+bench_natSumUpToBy = bench_fixed_points "natSumUpToBy" natSumUpToBy
+
+bench_leakingNatSumUpToBy :: Benchmark
+bench_leakingNatSumUpToBy = bench_fixed_points "leakingNatSumUpToBy" leakingNatSumUpToBy
 
 main :: IO ()
 main = defaultMain
-  [ countdownBy_fix'_z
-  , natSumUpToBy_fix'_z
-  , leakingNatSumUpToBy_fix'_z
+  [ bench_countdownBy
+  , bench_natSumUpToBy
+  , bench_leakingNatSumUpToBy
   ]

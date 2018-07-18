@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e849bdd14902cd1bd4b3043c379047dfd6292feccbd411ab182249f631586e49
+-- hash: b7d37f2e5d15616c5c328230dd89daf584a0ee424665fe95c683c6778a9a920b
 
 name:           fomega
 version:        0.1.0.0
@@ -89,7 +89,7 @@ benchmark fomega-z-combinator-benchmarks
       Paths_fomega
   hs-source-dirs:
       z-combinator-benchmarks
-  ghc-options: -O0 -fmax-simplifier-iterations=0
+  ghc-options: -O0 -fmax-simplifier-iterations=0 -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       BNFC-meta
     , QuickCheck

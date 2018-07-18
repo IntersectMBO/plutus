@@ -60,3 +60,6 @@ benchmarks:
     ghc-options:
     - -O0
     - -fmax-simplifier-iterations=0
+    - -threaded
+    - -rtsopts
+    - '-with-rtsopts=-N'
