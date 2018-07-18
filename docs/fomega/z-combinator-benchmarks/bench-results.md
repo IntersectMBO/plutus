@@ -35,8 +35,8 @@ z2 :: ((a -> b) -> a -> b) -> a -> b
 z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 ```
 
-<details><summary> results </summary><p>
-
+<details><summary> results </summary>
+```
 benchmarking countdownBy/fix'/100000
 time                 22.89 ms   (21.36 ms .. 24.08 ms)
                      0.983 R²   (0.956 R² .. 0.997 R²)
@@ -348,4 +348,5 @@ time                 4.505 s    (4.290 s .. 4.674 s)
 mean                 4.565 s    (4.509 s .. 4.596 s)
 std dev              49.45 ms   (0.0 s .. 54.40 ms)
 variance introduced by outliers: 19% (moderately inflated)
-</p></details>
+```
+</details>
