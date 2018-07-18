@@ -38,7 +38,8 @@ z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 <details>
   <summary> Results </summary>
   <p>
-```haskell
+
+```
 benchmarking countdownBy/fix'/100000
 time                 22.89 ms   (21.36 ms .. 24.08 ms)
                      0.983 R²   (0.956 R² .. 0.997 R²)
