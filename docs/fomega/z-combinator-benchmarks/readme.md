@@ -1,3 +1,41 @@
+# The `Z` combinator becnhmarks
+
+## Preface
+
+Here we explore the possibility of using type-level recursion in order to define a term-level recursion combinator in a strict setting. The standard `Y` combinator
+
+```
+Y f
+  = (\r. f (r r)) (\r. f (r r))
+  ↦ f ((\r. f (r r)) (\r. f (r r)))
+  ~ f (Y f)
+```
+
+loops in such a setting, because in the last step `Y f` must be evaluated before its results is passed to `f` and this is an infinite recursion. The common way to mitigate this is via eta-expansion of `f`:
+
+```
+Z f
+  = (\r. f (\x. r r x)) (\r. f (\x. r r x))
+  ↦ f (\x. (\r. f (\x. r r x)) (\r. f (\x. r r x)) x)
+  ~ f (\x. Z f x)
+```
+
+Since in a usual strict setting functions get evaluated only when they're applied to all necessary arguments, `\x. Z f x` does not reduces any further and gets passed to `f` as is. Hence infinite recursion is broken. The trade-off is that `Z` has more restrictive type than `Y`, it's
+
+```
+((a -> b) -> a -> b) -> a -> b
+```
+
+versus
+
+```
+(a -> a) -> a
+```
+
+due to the eta-expansion of `f`.
+
+## Details
+
 We compare a fixed point operator defined directly by recursion
 
 ```haskell
@@ -35,7 +73,7 @@ z2 :: ((a -> b) -> a -> b) -> a -> b
 z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 ```
 
-In short, `bz1` and `z1` are mostly on par with `fix'`, but sometimes can be up to 20% slower or faster in no predictable way. `bz2` and `z2` are reliably slower that `fix'` by a factor of 1.2 - 1.5. Why the difference? No idea.
+In short, `bz1` and `z1` are mostly on par with `fix'`, but sometimes can be up to 20% slower or faster in no predictable way. `bz2` and `z2` are reliably slower than `fix'` by a factor of 1.2 - 1.5. Why the difference? No idea.
 
 <details>
   <summary> Results </summary>
