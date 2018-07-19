@@ -1,5 +1,10 @@
-{-# LANGUAGE FlexibleContexts #-}
-module Language.PlutusCore.CkMachine (evaluateCk) where
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE UndecidableInstances #-}
+module Language.PlutusCore.CkMachine ( CkError(..)
+                                     , CkException(..)
+                                     , evaluateCk
+                                     ) where
 
 import           PlutusPrelude
 import           Language.PlutusCore.Type
@@ -9,13 +14,44 @@ infix 4 |>, <|
 
 data Frame tyname name a = FrameApplyFun (Term tyname name a)
                          | FrameApplyArg (Term tyname name a)
-                         -- TODO: add this to the CK machine.
-                         | FrameFix a (name a) (Type tyname a) (Term tyname name a)
                          | FrameTyInstArg
                          | FrameUnwrap
                          | FrameWrap a (tyname a) (Type tyname a)
 
 type Context tyname name a = [Frame tyname name a]
+
+data CkError = NonConstantReturnedCkError
+             | NonTyAbsInstantiatedError
+             | NonWrapUnwrappedCkError
+             | NonReducibleApplicationCkError
+             | OpenTermEvaluatedCkError
+
+data CkException tyname name = CkException
+    { _ckExceptionError :: CkError
+    , _ckExceptionCause :: Term tyname name ()
+    }
+
+ckErrorString :: CkError -> String
+ckErrorString NonConstantReturnedCkError     =
+    "returned a non-constant"
+ckErrorString NonTyAbsInstantiatedError      =
+    "attempted to reduce a non-type-abstraction applied to a type"
+ckErrorString NonWrapUnwrappedCkError        =
+    "attempted to unwrap a not wrapped term"
+ckErrorString NonReducibleApplicationCkError =
+    "attempted to reduce a not immediately reducible application"
+ckErrorString OpenTermEvaluatedCkError       =
+    "attempted to evaluate an open term"
+
+instance Pretty (Term tyname name ()) => Show (CkException tyname name) where
+    show (CkException err cause) = concat
+        ["The CK machine " , ckErrorString err , ": " , prettyString cause]
+
+instance (Pretty (Term tyname name ()), Typeable tyname, Typeable name) =>
+    Exception (CkException tyname name)
+
+type CkContext tyname name =
+    (Pretty (Term tyname name ()), Eq (name ()), Typeable tyname, Typeable name)
 
 -- | Check whether a term is a value.
 isValue :: Term tyname name a -> Bool
@@ -45,25 +81,29 @@ substituteDb varFor new = go where
     goUnder var term = if var == varFor then term else go term
 
 -- | The computing part of the CK machine. Rules are as follows:
--- s ▷ abs α K M  ↦ s ◁ abs α K M
 -- s ▷ {M A}      ↦ s , {_ A} ▷ M
 -- s ▷ [M N]      ↦ s , [_ N] ▷ M
 -- s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
 -- s ▷ unwrap M   ↦ s , (unwrap _) ▷ M
+-- s ▷ abs α K M  ↦ s ◁ abs α K M
 -- s ▷ lam x A M  ↦ s ◁ lam x A M
+-- s ▷ con c      ↦ s ◁ con c
 -- s ▷ error A    ↦ s ◁ error A
 (|>)
-    :: (Pretty (Term tyname name ()), Eq (name ()))
-    => Context tyname name () -> Term tyname name () -> Constant ()
-stack |> tyAbs@TyAbs{}        = stack <| tyAbs
-stack |> lamAbs@LamAbs{}      = stack <| lamAbs
+    :: CkContext tyname name
+    => Context tyname name ()
+    -> Term tyname name ()
+    -> Either (Type tyname ()) (Constant ())
 stack |> TyInst _ fun _       = FrameTyInstArg : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
 stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
 stack |> Unwrap _ term        = FrameUnwrap : stack |> term
+stack |> tyAbs@TyAbs{}        = stack <| tyAbs
+stack |> lamAbs@LamAbs{}      = stack <| lamAbs
 stack |> constant@Constant{}  = stack <| constant
 stack |> err@Error{}          = stack <| err
-_     |> _                    = error "Panic: unhandled case in `(|>)`"
+_     |> Fix{}                = undefined
+_     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 
 -- | The returning part of the CK machine. Rules are as follows:
 -- s , {_ S}           ◁ abs α K M  ↦ s ▷ M
@@ -75,34 +115,40 @@ _     |> _                    = error "Panic: unhandled case in `(|>)`"
 -- s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- s , f               ◁ error A    ↦ s ◁ error A
 (<|)
-    :: (Pretty (Term tyname name ()), Eq (name ()))
-    => Context tyname name () -> Term tyname name () -> Constant ()
-[]                           <| Constant _ con   = con
-FrameTyInstArg       : stack <| TyAbs _ _ _ body = stack |> body
-FrameApplyArg arg    : stack <| fun              = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun    : stack <| arg              = applyReduce stack fun arg
-FrameWrap ann tyn ty : stack <| term             = stack <| Wrap ann tyn ty term
-FrameUnwrap          : stack <| Wrap _ _ _ term  = stack <| term
-_                    : stack <| err@Error{}      = stack <| err
-_                            <| _                = error "Panic: unhandled case in `(|>)`"
+    :: CkContext tyname name
+    => Context tyname name ()
+    -> Term tyname name ()
+    -> Either (Type tyname ()) (Constant ())
+_                            <| Error _ ty = Left ty
+[]                           <| constant   = case constant of
+    Constant _ con -> Right con
+    term           -> throw $ CkException NonConstantReturnedCkError term
+FrameTyInstArg       : stack <| tyAbs      = case tyAbs of
+    TyAbs _ _ _ body -> stack |> body
+    term             -> throw $ CkException NonTyAbsInstantiatedError term
+FrameApplyArg arg    : stack <| fun        = FrameApplyFun fun : stack |> arg
+FrameApplyFun fun    : stack <| arg        = applyReduce stack fun arg
+FrameWrap ann tyn ty : stack <| value      = stack <| Wrap ann tyn ty value -- Should we check here that term is indeed a value?
+FrameUnwrap          : stack <| wrapped    = case wrapped of
+    Wrap _ _ _ term -> stack <| term
+    term            -> throw $ CkException NonWrapUnwrappedCkError term
 
 -- | Apply a function to an argument and proceed.
 applyReduce
-    :: (Pretty (Term tyname name ()), Eq (name ()))
-    => Context tyname name () -> Term tyname name () -> Term tyname name () -> Constant ()
+    :: CkContext tyname name
+    => Context tyname name ()
+    -> Term tyname name ()
+    -> Term tyname name ()
+    -> Either (Type tyname ()) (Constant ())
 applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyReduce stack fun                    arg =
-    case reduceConstantApplication $ Apply () fun (undefined arg) of
+    let term = Apply () fun (undefined arg)
+    in case reduceConstantApplication term of
         Just conApp -> stack <| conApp
-        Nothing     -> error $ concat
-            [ "Panic: cannot apply ("
-            , prettyString fun
-            , ") to ("
-            , prettyString arg
-            ]
+        Nothing     -> throw $ CkException NonReducibleApplicationCkError term
 
 -- | Evaluate a term using the CK machine.
 evaluateCk
-    :: (Pretty (Term tyname name ()), Eq (name ()))
-    => Term tyname name () -> Constant ()
+    :: CkContext tyname name
+    => Term tyname name () -> Either (Type tyname ()) (Constant ())
 evaluateCk = ([] |>)

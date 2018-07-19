@@ -15,6 +15,7 @@ module PlutusPrelude ( (&&&)
                      , Natural
                      , NonEmpty (..)
                      , Pretty (..)
+                     , Typeable
                      , Word8
                      , Semigroup (..)
                      , module X
@@ -31,6 +32,7 @@ import           Data.List.NonEmpty        (NonEmpty (..))
 import           Data.Semigroup
 import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
+import           Data.Typeable             (Typeable)
 import           Data.Word                 (Word8)
 import           Debug.Trace               as X
 import           GHC.Generics              (Generic)

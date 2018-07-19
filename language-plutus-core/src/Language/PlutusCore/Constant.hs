@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusCore.Constant ( ConstantApplicationException
+module Language.PlutusCore.Constant ( ConstantApplicationException(..)
                                     , reduceConstantApplication
                                     ) where
 
