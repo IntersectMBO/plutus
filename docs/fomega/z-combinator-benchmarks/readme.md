@@ -78,6 +78,7 @@ In short, `bz1` and `z1` are mostly on par with `fix'`, but sometimes can be up 
 ## Results
 
 <details>
+  <summary> Results </summary>
   <p>
 
 ```
