@@ -6,6 +6,7 @@ license-file: LICENSE
 copyright: Copyright: (c) 2018 Input Output
 maintainer: vanessa.mchale@iohk.io
 author: Vanessa McHale
+tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Language library for Plutus Core
 description:
     Pretty-printer, parser, and typechecker for Plutus Core.
