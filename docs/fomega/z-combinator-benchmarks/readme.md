@@ -75,8 +75,9 @@ z2 = \f -> let a = \r x -> (f $! unroll r) $! x in a (Self a)
 
 In short, `bz1` and `z1` are mostly on par with `fix'`, but sometimes can be up to 20% slower or faster in no predictable way. `bz2` and `z2` are reliably slower than `fix'` by a factor of 1.2 - 1.5. Why the difference? No idea.
 
+## Results
+
 <details>
-  <summary> Results </summary>
   <p>
 
 ```
