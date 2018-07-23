@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.Constant ( ConstantApplicationResult(..)
@@ -13,7 +14,9 @@ import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
 import           Language.PlutusCore.Type
 
 import           Data.List
-import           Control.Monad
+import           Data.IntMap.Strict (IntMap)
+import qualified Data.IntMap.Strict as IntMap
+import qualified Data.ByteString.Lazy as BSL
 
 data ConstantApplicationResult = ConstantApplicationSuccess (Constant ())
                                | ConstantApplicationFailure
@@ -35,7 +38,7 @@ instance Show ConstantApplicationException where
 
 instance Exception ConstantApplicationException
 
--- | A term (called "head") applied to a list of arguments (called "spine").
+-- | A function (called "head") applied to a list of arguments (called "spine").
 data IteratedApplication head arg = IteratedApplication
     { _iteratedApplicationHead  :: head
     , _iteratedApplicationSpine :: [arg]
@@ -78,36 +81,97 @@ checkBoundsInt :: Size -> Integer -> Bool
 checkBoundsInt s i = -2 ^ p <= i && i < 2 ^ p where
   p = 8 * fromIntegral s - 1 :: Int
 
--- TODO: this begs to be more general and type-safe.
-applyBuiltinSizeIntInt
-    :: BuiltinName -> (Integer -> Integer -> Integer) -> [Constant ()] -> Maybe ConstantApplicationResult
-applyBuiltinSizeIntInt name op args = do
-    let throwAppExc err = throw $ ConstantApplicationException err name args
-    (a1, args') <- uncons args
-    case a1 of
-        BuiltinInt _ n i -> do
-            (a2, args'') <- uncons args'
-            case a2 of
-                BuiltinInt _ m j -> do
-                    when (n /= m) . throwAppExc $ SizeMismatchApplicationError a1 a2
-                    when (not $ null args'') . throwAppExc $ ExcessArgumentsApplicationError args''
-                    let k = i `op` j
-                    Just $ if checkBoundsInt n k
-                        then ConstantApplicationSuccess $ BuiltinInt () n k
-                        else ConstantApplicationFailure
-                _                -> throwAppExc $ IllTypedApplicationError a2
-        _                -> throwAppExc $ IllTypedApplicationError a1
+infixr 9 `SchemaArrow`
+
+newtype SizeVar = SizeVar
+    { unSizeVar :: Int
+    }
+
+newtype SizeValues = SizeValues
+    { unSizeValues :: IntMap Size
+    }
+
+instance Enum SizeVar where
+    toEnum = SizeVar
+    fromEnum = unSizeVar
+
+data TypedBuiltin a where
+    TypedBuiltinInt  :: SizeVar -> TypedBuiltin Integer
+    TypedBuiltinBS   :: SizeVar -> TypedBuiltin BSL.ByteString
+    TypedBuiltinSize :: SizeVar -> TypedBuiltin Size
+
+data TypeSchema a where
+    SchemaBuiltin :: TypedBuiltin a -> TypeSchema a
+    SchemaArrow   :: TypeSchema a -> TypeSchema b -> TypeSchema (a -> b)
+    SchemaForall  :: (SizeVar -> TypeSchema a) -> TypeSchema a
+
+data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeSchema a)
+
+sizeIntIntInt :: TypeSchema (Integer -> Integer -> Integer)
+sizeIntIntInt =
+    SchemaForall $ \s ->
+        SchemaBuiltin (TypedBuiltinInt s) `SchemaArrow`
+        SchemaBuiltin (TypedBuiltinInt s) `SchemaArrow`
+        SchemaBuiltin (TypedBuiltinInt s)
+
+typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedAddInteger = TypedBuiltinName AddInteger sizeIntIntInt
+
+typedSubtractInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedSubtractInteger = TypedBuiltinName SubtractInteger sizeIntIntInt
+
+typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
+
+typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
+
+typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
+
+-- throwAppExc $ SizeMismatchApplicationError a1 a2
+-- throwAppExc $ IllTypedApplicationError a1
+applySchemed :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> (b, SizeValues)
+applySchemed = undefined
+
+--  TODO: `checkBoundsInt n k`
+wrapConstant :: SizeValues -> TypedBuiltin a -> a -> Constant ()
+wrapConstant (SizeValues sizes) (TypedBuiltinInt  (SizeVar sizeIndex)) int  =
+    BuiltinInt  () (sizes IntMap.! sizeIndex) int
+wrapConstant (SizeValues sizes) (TypedBuiltinBS   (SizeVar sizeIndex)) str  =
+    BuiltinBS   () (sizes IntMap.! sizeIndex) str
+wrapConstant (SizeValues sizes) (TypedBuiltinSize (SizeVar sizeIndex)) size
+    | sizes IntMap.! sizeIndex == size = BuiltinSize () size
+    | otherwise                        = undefined
+
+applyTypedBuiltinName
+    :: TypedBuiltinName a -> a -> [Constant ()] -> Maybe ConstantApplicationResult
+applyTypedBuiltinName (TypedBuiltinName name schema) f0 args0 =
+    go schema (SizeVar 0) (SizeValues mempty) f0 args0 where
+        throwAppExc err = throw $ ConstantApplicationException err name args0
+
+        go :: TypeSchema a -> SizeVar -> SizeValues -> a -> [Constant ()] -> Maybe ConstantApplicationResult
+        go (SchemaBuiltin builtin)       _       sizeValues y args =
+            case args of
+                [] -> Just $ ConstantApplicationSuccess $ wrapConstant sizeValues builtin y
+                _  -> throwAppExc $ ExcessArgumentsApplicationError args
+        go (SchemaArrow schemaA schemaB) sizeVar sizeValues f args = do
+            (x, args') <- uncons args
+            let (y, sizeValues') = applySchemed schemaA sizeValues f x
+            go schemaB sizeVar sizeValues' y args'
+        go (SchemaForall k)              sizeVar sizeValues f args =
+            go (k sizeVar) (succ sizeVar) sizeValues f args
 
 -- | Apply a `BuiltinName` to a list of arguments.
 -- If the `BuiltinName` is saturated, return `Just` applied to the result of the computation.
 -- Otherwise return `Nothing`.
--- Throw the `ConstantApplicationException` exception when something goes wrong.
+-- Throw a `ConstantApplicationException` if something goes wrong.
 applyBuiltinName :: BuiltinName -> [Constant ()] -> Maybe ConstantApplicationResult
-applyBuiltinName AddInteger           = applyBuiltinSizeIntInt AddInteger       (+)
-applyBuiltinName SubtractInteger      = applyBuiltinSizeIntInt SubtractInteger  (-)
-applyBuiltinName MultiplyInteger      = applyBuiltinSizeIntInt MultiplyInteger  (*)
-applyBuiltinName DivideInteger        = applyBuiltinSizeIntInt DivideInteger    (div)
-applyBuiltinName RemainderInteger     = applyBuiltinSizeIntInt RemainderInteger (mod)
+applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger       (+)
+applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger  (-)
+applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger  (*)
+applyBuiltinName DivideInteger        = applyTypedBuiltinName typedDivideInteger    div
+applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInteger mod
 applyBuiltinName LessThanInteger      = undefined
 applyBuiltinName LessThanEqInteger    = undefined
 applyBuiltinName GreaterThanInteger   = undefined

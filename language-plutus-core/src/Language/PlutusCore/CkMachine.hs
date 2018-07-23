@@ -139,7 +139,6 @@ FrameUnwrap          : stack <| wrapped    = case wrapped of
 -- as an iterated application of a `BuiltinName` to a list of `Constants`.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether `BuiltinName` is saturated or not.
--- Throw a `CkException` or a `ConstantApplicationException` if something goes wrong.
 applyReduce
     :: CkContext tyname name
     => Context tyname name () -> Term tyname name () -> Term tyname name () -> CkEvaluationResult
@@ -156,6 +155,7 @@ applyReduce stack fun                    arg =
                     Just ConstantApplicationFailure       -> CkEvaluationFailure
 
 -- | Evaluate a term using the CK machine.
+-- May throw a `CkException` or a `ConstantApplicationException`.
 evaluateCk
     :: CkContext tyname name
     => Term tyname name () -> CkEvaluationResult
