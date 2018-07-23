@@ -1,62 +1,113 @@
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusCore.Constant ( ConstantApplicationException(..)
-                                    , reduceConstantApplication
+module Language.PlutusCore.Constant ( ConstantApplicationResult(..)
+                                    , ConstantApplicationError(..)
+                                    , ConstantApplicationException(..)
+                                    , IteratedApplication(..)
+                                    , viewPrimIteratedApplication
+                                    , applyBuiltinName
                                     ) where
 
 import           PlutusPrelude
 import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
 import           Language.PlutusCore.Type
-import           Data.Text (Text)
-import qualified Data.Text as Text
+
+import           Data.List
+import           Control.Monad
+
+data ConstantApplicationResult = ConstantApplicationSuccess (Constant ())
+                               | ConstantApplicationFailure
+
+data ConstantApplicationError = SizeMismatchApplicationError (Constant ()) (Constant ())
+                              | IllTypedApplicationError (Constant ())
+                              | ExcessArgumentsApplicationError [Constant ()]
 
 -- | An attempt to apply a constant to inapproriate arguments results in this exception.
-data ConstantApplicationException = ConstantApplicationException Text
+data ConstantApplicationException = ConstantApplicationException
+    { _constantApplicationExceptionError :: ConstantApplicationError
+    , _constantApplicationExceptionHead  :: BuiltinName
+    , _constantApplicationExceptionSpine :: [Constant ()]
+    }
 
 instance Show ConstantApplicationException where
-    show (ConstantApplicationException err) = Text.unpack err
+    show = undefined
+    -- show (ConstantApplicationException err) = Text.unpack err
 
 instance Exception ConstantApplicationException
 
 -- | A term (called "head") applied to a list of arguments (called "spine").
-data IteratedApplication tyname name a = IteratedApplication
-    { _iteratedApplicationHead  :: Term tyname name a
-    , _iteratedApplicationSpine :: [Term tyname name a]
+data IteratedApplication head arg = IteratedApplication
+    { _iteratedApplicationHead  :: head
+    , _iteratedApplicationSpine :: [arg]
     }
 
--- | View a `Term` as an `IteratedApplication`.
-viewIteratedApplication :: Term tyname name a -> Maybe (IteratedApplication tyname name a)
-viewIteratedApplication term@Apply{} = Just $ go [] term where
-    go args (Apply _ fun arg) = go (undefined arg : args) fun
-    go args  fun              = IteratedApplication fun args
-viewIteratedApplication _            = Nothing
+type TermIteratedApplication tyname name a =
+    IteratedApplication (Term tyname name a) (Term tyname name a)
 
--- | View a `Term` as a `Constant`.
-viewConstant :: Term tyname name a -> Maybe (Constant a)
-viewConstant (Constant _ constant) = Just constant
-viewConstant _                     = Nothing
+type PrimIteratedApplication =
+    IteratedApplication BuiltinName (Constant ())
 
 -- | View a `Constant` as a `BuiltinName`.
 viewBuiltinName :: Constant a -> Maybe BuiltinName
 viewBuiltinName (BuiltinName _ name) = Just name
 viewBuiltinName _                    = Nothing
 
--- TODO: this is a stub.
+-- | View a `Term` as a `Constant`.
+viewConstant :: Term tyname name a -> Maybe (Constant a)
+viewConstant (Constant _ constant) = Just constant
+viewConstant _                     = Nothing
+
+-- | View a `Term` as an `IteratedApplication`.
+viewTermIteratedApplication :: Term tyname name a -> Maybe (TermIteratedApplication tyname name a)
+viewTermIteratedApplication term@Apply{} = Just $ go [] term where
+    go args (Apply _ fun arg) = go (undefined arg : args) fun
+    go args  fun              = IteratedApplication fun args
+viewTermIteratedApplication _            = Nothing
+
+-- | View a `Term` as an iterated application of a `BuiltinName` to a list of `Constants`.
+viewPrimIteratedApplication :: Term tyname name () -> Maybe PrimIteratedApplication
+viewPrimIteratedApplication term = do
+    IteratedApplication termHead termSpine <- viewTermIteratedApplication term
+    headName <- viewConstant termHead >>= viewBuiltinName
+    spine <- traverse viewConstant termSpine
+    Just $ IteratedApplication headName spine
+
+type Size = Natural
+
+checkBoundsInt :: Size -> Integer -> Bool
+checkBoundsInt s i = -2 ^ p <= i && i < 2 ^ p where
+  p = 8 * fromIntegral s - 1 :: Int
+
+-- TODO: this begs to be more general and type-safe.
 applyBuiltinSizeIntInt
-    :: (Integer -> Integer -> Integer) -> [Constant ()] -> Maybe (Constant ())
-applyBuiltinSizeIntInt op [BuiltinSize _ s, BuiltinInt _ n i, BuiltinInt _ m j] =
-    Just . BuiltinInt () m $ op i j
+    :: BuiltinName -> (Integer -> Integer -> Integer) -> [Constant ()] -> Maybe ConstantApplicationResult
+applyBuiltinSizeIntInt name op args = do
+    let throwAppExc err = throw $ ConstantApplicationException err name args
+    (a1, args') <- uncons args
+    case a1 of
+        BuiltinInt _ n i -> do
+            (a2, args'') <- uncons args'
+            case a2 of
+                BuiltinInt _ m j -> do
+                    when (n /= m) . throwAppExc $ SizeMismatchApplicationError a1 a2
+                    when (not $ null args'') . throwAppExc $ ExcessArgumentsApplicationError args''
+                    let k = i `op` j
+                    Just $ if checkBoundsInt n k
+                        then ConstantApplicationSuccess $ BuiltinInt () n k
+                        else ConstantApplicationFailure
+                _                -> throwAppExc $ IllTypedApplicationError a2
+        _                -> throwAppExc $ IllTypedApplicationError a1
 
 -- | Apply a `BuiltinName` to a list of arguments.
 -- If the `BuiltinName` is saturated, return `Just` applied to the result of the computation.
 -- Otherwise return `Nothing`.
--- Throw the `ConstantApplicationException` exception if there is any type mismatch
--- between the `BuiltinName` and the arguments.
-applyBuiltinName :: BuiltinName -> [Constant ()] -> Maybe (Constant ())
-applyBuiltinName AddInteger           = applyBuiltinSizeIntInt (+)
-applyBuiltinName SubtractInteger      = undefined
-applyBuiltinName MultiplyInteger      = undefined
-applyBuiltinName DivideInteger        = undefined
-applyBuiltinName RemainderInteger     = undefined
+-- Throw the `ConstantApplicationException` exception when something goes wrong.
+applyBuiltinName :: BuiltinName -> [Constant ()] -> Maybe ConstantApplicationResult
+applyBuiltinName AddInteger           = applyBuiltinSizeIntInt AddInteger       (+)
+applyBuiltinName SubtractInteger      = applyBuiltinSizeIntInt SubtractInteger  (-)
+applyBuiltinName MultiplyInteger      = applyBuiltinSizeIntInt MultiplyInteger  (*)
+applyBuiltinName DivideInteger        = applyBuiltinSizeIntInt DivideInteger    (div)
+applyBuiltinName RemainderInteger     = applyBuiltinSizeIntInt RemainderInteger (mod)
 applyBuiltinName LessThanInteger      = undefined
 applyBuiltinName LessThanEqInteger    = undefined
 applyBuiltinName GreaterThanInteger   = undefined
@@ -74,13 +125,3 @@ applyBuiltinName EqByteString         = undefined
 applyBuiltinName TxHash               = undefined
 applyBuiltinName BlockNum             = undefined
 applyBuiltinName BlockTime            = undefined
-
--- | View a `Term` as an iterated application of a `BuiltinName` to a list of `Constants`.
--- If succesful, return `Just` applied to either this same term or
--- the result of the computation depending on whether `BuiltinName` is saturated or not.
-reduceConstantApplication :: Term tyname name () -> Maybe (Term tyname name ())
-reduceConstantApplication term = do
-    IteratedApplication termHead termSpine <- viewIteratedApplication term
-    headName <- viewConstant termHead >>= viewBuiltinName
-    spine <- traverse viewConstant termSpine
-    Just . maybe term (Constant ()) $ applyBuiltinName headName spine
