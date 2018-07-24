@@ -18,6 +18,14 @@ import           Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
 import qualified Data.ByteString.Lazy as BSL
 
+newtype PairT b f a = PairT
+  { unPairT :: f (b, a)
+  }
+
+instance Functor f => Functor (PairT b f) where
+  fmap f (PairT p) = PairT $ fmap (fmap f) p
+  {-# INLINE fmap #-}
+
 data ConstAppRes = ConstAppSuccess (Constant ())
                  | ConstAppFailure
 
@@ -126,30 +134,36 @@ data TypeSchema a where
 
 data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeSchema a)
 
--- applyToBuiltin
---     :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
--- applyToBuiltin (TypedBuiltinInt (Sizesize
-
 -- throwAppExc $ SizeMismatchConstAppErr a1 a2
 -- throwAppExc $ IllTypedConstAppErr a1
+applyToSizedBuiltin
+    :: TypedSizedBuiltin a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppErr (b, Size)
+applyToSizedBuiltin TypedBuiltinInt size f = undefined
+
+applyToBuiltin
+    :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
+applyToBuiltin (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) f constant =
+    unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
+        upd maySize = fmap Just . PairT $ applyToSizedBuiltin typedSizedBuiltin maySize f constant
+
 applySchemed
     :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
-applySchemed (TypeSchemaBuiltin a) _ f = undefined
-applySchemed (TypeSchemaArrow a b) _ f = undefined
-applySchemed (TypeSchemaForall  k) _ f = undefined
+applySchemed (TypeSchemaBuiltin a) sizeValues = applyToBuiltin a sizeValues
+applySchemed (TypeSchemaArrow a b) sizeValues = undefined
+applySchemed (TypeSchemaForall  k) sizeValues = undefined
 
 wrapSizedConstant
-    :: Size -> TypedSizedBuiltin a -> a -> Either ConstAppErr ConstAppRes
-wrapSizedConstant size TypedBuiltinInt  int   = Right $ makeBuiltinInt size int
-wrapSizedConstant size TypedBuiltinBS   bs    = Right $ makeBuiltinBS  size bs
-wrapSizedConstant size TypedBuiltinSize size'
+    :: TypedSizedBuiltin a -> Size -> a -> Either ConstAppErr ConstAppRes
+wrapSizedConstant TypedBuiltinInt  size int   = Right $ makeBuiltinInt size int
+wrapSizedConstant TypedBuiltinBS   size bs    = Right $ makeBuiltinBS  size bs
+wrapSizedConstant TypedBuiltinSize size size'
     | size == size' = Right . ConstAppSuccess $ BuiltinSize () size
     | otherwise     = Left $ NonSingletonSizeConstAppErr size size'
 
 wrapConstant
-    :: SizeValues -> TypedBuiltin a -> a -> Either ConstAppErr ConstAppRes
-wrapConstant (SizeValues sizes) (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) =
-    wrapSizedConstant (sizes IntMap.! sizeIndex) typedSizedBuiltin
+    :: TypedBuiltin a -> SizeValues -> a -> Either ConstAppErr ConstAppRes
+wrapConstant (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) =
+    wrapSizedConstant typedSizedBuiltin $ sizes IntMap.! sizeIndex
 
 applyTypedBuiltinName
     :: TypedBuiltinName a -> a -> [Constant ()] -> Either ConstAppErr (Maybe ConstAppRes)
@@ -163,7 +177,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
         -> Either ConstAppErr (Maybe ConstAppRes)
     go (TypeSchemaBuiltin builtin)       _       sizeValues y args =
         case args of
-            [] -> Just <$> wrapConstant sizeValues builtin y
+            [] -> Just <$> wrapConstant builtin sizeValues y
             _  -> Left $ ExcessArgumentsConstAppErr args
     go (TypeSchemaArrow schemaA schemaB) sizeVar sizeValues f args =
         case args of
