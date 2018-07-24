@@ -22,15 +22,15 @@ data ConstAppRes = ConstAppSuccess (Constant ())
                  | ConstAppFailure
 
 -- | The type of constant applications errors.
-data ConstAppErr = SizeMismatchAppErr (Constant ()) (Constant ())
-                 | IllTypedAppErr (Constant ())
-                 | ExcessArgumentsAppErr [Constant ()]
-                 | NonSingletonSizeAppErr Natural Natural
+data ConstAppErr = SizeMismatchConstAppErr (Constant ()) (Constant ())
+                 | IllTypedConstAppErr (Constant ())
+                 | ExcessArgumentsConstAppErr [Constant ()]
+                 | NonSingletonSizeConstAppErr Natural Natural
 
 -- | The type of constant applications exceptions.
 -- An attempt to apply a constant to inapproriate arguments results in this exception.
 data ConstAppExc = ConstAppExc
-    { _constAppExcErr :: ConstAppErr
+    { _constAppExcErr   :: ConstAppErr
     , _constAppExcHead  :: BuiltinName
     , _constAppExcSpine :: [Constant ()]
     }
@@ -111,10 +111,13 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum = unSizeVar
 
+data TypedSizedBuiltin a where
+    TypedBuiltinInt  :: TypedSizedBuiltin Integer
+    TypedBuiltinBS   :: TypedSizedBuiltin BSL.ByteString
+    TypedBuiltinSize :: TypedSizedBuiltin Size
+
 data TypedBuiltin a where
-    TypedBuiltinInt  :: SizeVar -> TypedBuiltin Integer
-    TypedBuiltinBS   :: SizeVar -> TypedBuiltin BSL.ByteString
-    TypedBuiltinSize :: SizeVar -> TypedBuiltin Size
+    TypedSizedBuiltin :: SizeVar -> TypedSizedBuiltin a -> TypedBuiltin a
 
 data TypeSchema a where
     TypeSchemaBuiltin :: TypedBuiltin a -> TypeSchema a
@@ -123,24 +126,30 @@ data TypeSchema a where
 
 data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeSchema a)
 
--- throwAppExc $ SizeMismatchAppErr a1 a2
--- throwAppExc $ IllTypedAppErr a1
+-- applyToBuiltin
+--     :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
+-- applyToBuiltin (TypedBuiltinInt (Sizesize
+
+-- throwAppExc $ SizeMismatchConstAppErr a1 a2
+-- throwAppExc $ IllTypedConstAppErr a1
 applySchemed
     :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
 applySchemed (TypeSchemaBuiltin a) _ f = undefined
 applySchemed (TypeSchemaArrow a b) _ f = undefined
 applySchemed (TypeSchemaForall  k) _ f = undefined
 
+wrapSizedConstant
+    :: Size -> TypedSizedBuiltin a -> a -> Either ConstAppErr ConstAppRes
+wrapSizedConstant size TypedBuiltinInt  int   = Right $ makeBuiltinInt size int
+wrapSizedConstant size TypedBuiltinBS   bs    = Right $ makeBuiltinBS  size bs
+wrapSizedConstant size TypedBuiltinSize size'
+    | size == size' = Right . ConstAppSuccess $ BuiltinSize () size
+    | otherwise     = Left $ NonSingletonSizeConstAppErr size size'
+
 wrapConstant
     :: SizeValues -> TypedBuiltin a -> a -> Either ConstAppErr ConstAppRes
-wrapConstant (SizeValues sizes) (TypedBuiltinInt  (SizeVar sizeIndex)) int  =
-    Right $ makeBuiltinInt (sizes IntMap.! sizeIndex) int
-wrapConstant (SizeValues sizes) (TypedBuiltinBS   (SizeVar sizeIndex)) str  =
-    Right $ makeBuiltinBS  (sizes IntMap.! sizeIndex) str
-wrapConstant (SizeValues sizes) (TypedBuiltinSize (SizeVar sizeIndex)) size
-    | size == size' = Right . ConstAppSuccess $ BuiltinSize () size
-    | otherwise     = Left $ NonSingletonSizeAppErr size size'
-    where size' = sizes IntMap.! sizeIndex
+wrapConstant (SizeValues sizes) (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) =
+    wrapSizedConstant (sizes IntMap.! sizeIndex) typedSizedBuiltin
 
 applyTypedBuiltinName
     :: TypedBuiltinName a -> a -> [Constant ()] -> Either ConstAppErr (Maybe ConstAppRes)
@@ -155,7 +164,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
     go (TypeSchemaBuiltin builtin)       _       sizeValues y args =
         case args of
             [] -> Just <$> wrapConstant sizeValues builtin y
-            _  -> Left $ ExcessArgumentsAppErr args
+            _  -> Left $ ExcessArgumentsConstAppErr args
     go (TypeSchemaArrow schemaA schemaB) sizeVar sizeValues f args =
         case args of
             []        -> Right Nothing
@@ -168,9 +177,9 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
 sizeIntIntInt :: TypeSchema (Integer -> Integer -> Integer)
 sizeIntIntInt =
     TypeSchemaForall $ \s ->
-        TypeSchemaBuiltin (TypedBuiltinInt s) `TypeSchemaArrow`
-        TypeSchemaBuiltin (TypedBuiltinInt s) `TypeSchemaArrow`
-        TypeSchemaBuiltin (TypedBuiltinInt s)
+        TypeSchemaBuiltin (TypedSizedBuiltin s TypedBuiltinInt) `TypeSchemaArrow`
+        TypeSchemaBuiltin (TypedSizedBuiltin s TypedBuiltinInt) `TypeSchemaArrow`
+        TypeSchemaBuiltin (TypedSizedBuiltin s TypedBuiltinInt)
 
 typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
 typedAddInteger = TypedBuiltinName AddInteger sizeIntIntInt
