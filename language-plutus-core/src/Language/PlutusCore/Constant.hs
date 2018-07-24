@@ -34,7 +34,6 @@ data ConstAppErr
     = SizeMismatchConstAppErr Size (Constant ())
     | forall a. IllTypedConstAppErr (TypedSizedBuiltin a) (Constant ())
     | ExcessArgumentsConstAppErr [Constant ()]
-    | NonSingletonSizeConstAppErr Natural Natural
 
 -- | The type of constant applications exceptions.
 -- An attempt to apply a constant to inapproriate arguments results in this exception.
@@ -44,9 +43,20 @@ data ConstAppExc = ConstAppExc
     , _constAppExcSpine :: [Constant ()]
     }
 
+constAppErrString :: ConstAppErr -> String
+constAppErrString (SizeMismatchConstAppErr seenSize constant)   = undefined
+constAppErrString (IllTypedConstAppErr expType constant)        = undefined
+constAppErrString (ExcessArgumentsConstAppErr excessArgs)       = undefined
+
+-- TODO: we may not need those brackets.
 instance Show ConstAppExc where
-    show = undefined
-    -- show (ConstAppExc err) = Text.unpack err
+    show (ConstAppExc err name spine) = concat
+        [ "An error occured while trying to reduce ("
+        , prettyString name
+        , spine >>= \arg -> " (" ++ prettyString arg ++ ")"
+        , ") :"
+        , constAppErrString err
+        ]
 
 instance Exception ConstAppExc
 
@@ -106,6 +116,11 @@ makeBuiltinBS size bs
     | checkBoundsBS size bs = ConstAppSuccess $ BuiltinBS () size bs
     | otherwise             = ConstAppFailure
 
+makeBuiltinSize :: Size -> Size -> ConstAppRes
+makeBuiltinSize size size'
+    | size == size' = ConstAppSuccess $ BuiltinSize () size
+    | otherwise     = ConstAppFailure
+
 infixr 9 `TypeSchemaArrow`
 
 newtype SizeVar = SizeVar
@@ -164,15 +179,13 @@ applySchemed (TypeSchemaArrow a b) sizeValues = undefined
 applySchemed (TypeSchemaForall  k) sizeValues = undefined
 
 wrapSizedConstant
-    :: TypedSizedBuiltin a -> Size -> a -> Either ConstAppErr ConstAppRes
-wrapSizedConstant TypedBuiltinInt  size int   = Right $ makeBuiltinInt size int
-wrapSizedConstant TypedBuiltinBS   size bs    = Right $ makeBuiltinBS  size bs
-wrapSizedConstant TypedBuiltinSize size size'
-    | size == size' = Right . ConstAppSuccess $ BuiltinSize () size
-    | otherwise     = Left $ NonSingletonSizeConstAppErr size size'
+    :: TypedSizedBuiltin a -> Size -> a -> ConstAppRes
+wrapSizedConstant TypedBuiltinInt  size int   = makeBuiltinInt  size int
+wrapSizedConstant TypedBuiltinBS   size bs    = makeBuiltinBS   size bs
+wrapSizedConstant TypedBuiltinSize size size' = makeBuiltinSize size size'
 
 wrapConstant
-    :: TypedBuiltin a -> SizeValues -> a -> Either ConstAppErr ConstAppRes
+    :: TypedBuiltin a -> SizeValues -> a -> ConstAppRes
 wrapConstant (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) =
     wrapSizedConstant typedSizedBuiltin $ sizes IntMap.! sizeIndex
 
@@ -188,7 +201,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
         -> Either ConstAppErr (Maybe ConstAppRes)
     go (TypeSchemaBuiltin builtin)       _       sizeValues y args =
         case args of
-            [] -> Just <$> wrapConstant builtin sizeValues y
+            [] -> Right . Just $ wrapConstant builtin sizeValues y
             _  -> Left $ ExcessArgumentsConstAppErr args
     go (TypeSchemaArrow schemaA schemaB) sizeVar sizeValues f args =
         case args of
