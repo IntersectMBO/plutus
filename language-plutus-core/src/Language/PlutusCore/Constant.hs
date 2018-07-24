@@ -13,27 +13,28 @@ import           PlutusPrelude
 import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
 import           Language.PlutusCore.Type
 
-import           Data.List
 import           Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
 import qualified Data.ByteString.Lazy as BSL
 
 newtype PairT b f a = PairT
-  { unPairT :: f (b, a)
-  }
+    { unPairT :: f (b, a)
+    }
 
 instance Functor f => Functor (PairT b f) where
-  fmap f (PairT p) = PairT $ fmap (fmap f) p
-  {-# INLINE fmap #-}
+    fmap f (PairT p) = PairT $ fmap (fmap f) p
+    {-# INLINE fmap #-}
 
-data ConstAppRes = ConstAppSuccess (Constant ())
-                 | ConstAppFailure
+data ConstAppRes
+    = ConstAppSuccess (Constant ())
+    | ConstAppFailure
 
 -- | The type of constant applications errors.
-data ConstAppErr = SizeMismatchConstAppErr (Constant ()) (Constant ())
-                 | IllTypedConstAppErr (Constant ())
-                 | ExcessArgumentsConstAppErr [Constant ()]
-                 | NonSingletonSizeConstAppErr Natural Natural
+data ConstAppErr
+    = SizeMismatchConstAppErr Size (Constant ())
+    | forall a. IllTypedConstAppErr (TypedSizedBuiltin a) (Constant ())
+    | ExcessArgumentsConstAppErr [Constant ()]
+    | NonSingletonSizeConstAppErr Natural Natural
 
 -- | The type of constant applications exceptions.
 -- An attempt to apply a constant to inapproriate arguments results in this exception.
@@ -90,7 +91,7 @@ type Size = Natural
 
 checkBoundsInt :: Size -> Integer -> Bool
 checkBoundsInt s i = -2 ^ p <= i && i < 2 ^ p where
-  p = 8 * fromIntegral s - 1 :: Int
+    p = 8 * fromIntegral s - 1 :: Int
 
 checkBoundsBS :: Size -> BSL.ByteString -> Bool
 checkBoundsBS = undefined
@@ -134,17 +135,27 @@ data TypeSchema a where
 
 data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeSchema a)
 
--- throwAppExc $ SizeMismatchConstAppErr a1 a2
--- throwAppExc $ IllTypedConstAppErr a1
+checkBuiltinSize :: Maybe Size -> Size -> Constant () -> b -> Either ConstAppErr (b, Size)
+checkBuiltinSize (Just size) size' constant _ | size /= size' =
+    Left $ SizeMismatchConstAppErr size constant
+checkBuiltinSize  _          size' _        y = Right (y, size')
+
 applyToSizedBuiltin
     :: TypedSizedBuiltin a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppErr (b, Size)
-applyToSizedBuiltin TypedBuiltinInt size f = undefined
+applyToSizedBuiltin TypedBuiltinInt  maySize f constant@(BuiltinInt  () size' int) =
+    checkBuiltinSize maySize size' constant (f int)
+applyToSizedBuiltin TypedBuiltinBS   maySize f constant@(BuiltinBS   () size' bs ) =
+    checkBuiltinSize maySize size' constant (f bs)
+applyToSizedBuiltin TypedBuiltinSize maySize f constant@(BuiltinSize () size'    ) =
+    checkBuiltinSize maySize size' constant (f size')
+applyToSizedBuiltin typedBuiltin     _       _ constant                            =
+    Left $ IllTypedConstAppErr typedBuiltin constant
 
 applyToBuiltin
     :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
-applyToBuiltin (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) f constant =
+applyToBuiltin (TypedSizedBuiltin (SizeVar sizeIndex) typedBuiltin) (SizeValues sizes) f constant =
     unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
-        upd maySize = fmap Just . PairT $ applyToSizedBuiltin typedSizedBuiltin maySize f constant
+        upd maySize = fmap Just . PairT $ applyToSizedBuiltin typedBuiltin maySize f constant
 
 applySchemed
     :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
@@ -239,6 +250,6 @@ applyBuiltinNameSafe BlockNum             = undefined
 applyBuiltinNameSafe BlockTime            = undefined
 
 applyBuiltinName :: BuiltinName -> [Constant ()] -> Maybe ConstAppRes
-applyBuiltinName name args
-    = either (\err -> throw $ ConstAppExc err name args) id
-    $ applyBuiltinNameSafe name args
+applyBuiltinName name args =
+    either (\err -> throw $ ConstAppExc err name args) id $
+        applyBuiltinNameSafe name args
