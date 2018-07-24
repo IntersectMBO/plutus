@@ -133,6 +133,7 @@ annotateType (TyFun x ty ty') =
 annotateType (TyApp x ty tys) =
     TyApp x <$> annotateType ty <*> traverse annotateType tys
 annotateType (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
+annotateType (TyInt x n) = pure (TyInt x n)
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
@@ -208,6 +209,7 @@ renameTerm st (Error x ty) = Error x <$> renameType st ty
 renameTerm st (TyInst x t tys) = TyInst x <$> renameTerm st t <*> traverse (renameType st) tys
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
+renameType _ ty@TyInt{} = pure ty
 renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
     m <- get
     let st' = modifyIdentifiers u m st
