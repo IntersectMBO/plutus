@@ -109,8 +109,9 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
 BuiltinType : size { TyBuiltin $1 TySize }
-        | integer { TyBuiltin $1 TyInteger }
-        | bytestring { TyBuiltin $1 TyByteString }
+            | integer { TyBuiltin $1 TyInteger }
+            | bytestring { TyBuiltin $1 TyByteString }
+            | naturalLit { TyInt (loc $1) (nat $1) }
 
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }

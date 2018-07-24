@@ -34,6 +34,7 @@ data Type tyname a = TyVar a (tyname a)
                    | TyFix a (tyname a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
                    | TyForall a (tyname a) (Kind a) (Type tyname a)
                    | TyBuiltin a TypeBuiltin -- ^ Builtin type
+                   | TyInt a Natural
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (NonEmpty (Type tyname a))
                    deriving (Functor, Show, Eq, Generic, NFData)
@@ -126,6 +127,7 @@ instance Pretty (f a) => Pretty (Type f a) where
         a (TyFixF _ n t)      = parens ("fix" <+> pretty n <+> t)
         a (TyForallF _ n k t) = parens ("all" <+> pretty n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
+        a (TyIntF _ n)        = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
 
 instance Debug (f a) => Debug (Type f a) where
@@ -136,6 +138,7 @@ instance Debug (f a) => Debug (Type f a) where
         a (TyFixF _ n t)      = parens ("fix" <+> debug n <+> t)
         a (TyForallF _ n k t) = parens ("all" <+> debug n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
+        a (TyIntF _ n)        = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
 
 -- TODO: add binary serialize/deserialize instances here.

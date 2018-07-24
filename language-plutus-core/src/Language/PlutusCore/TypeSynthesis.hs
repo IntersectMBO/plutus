@@ -45,12 +45,14 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
+-- | Create a dummy 'TyName'
 newTyName :: (MonadState Int m) => Kind () -> m (TyNameWithKind ())
 newTyName k = do
     i <- get
     modify (+1)
     pure $ TyNameWithKind (TyName (Name ((), k) "" (Unique $ i+1)))
 
+-- | Create a new 'Type' for an integer operation.
 intop :: MonadState Int m => m (Type TyNameWithKind ())
 intop = do
     nam <- newTyName (Size ())
@@ -76,6 +78,7 @@ runTypeCheckM = flip runReaderT . defaultTable
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
+kindOf TyInt{} = pure (Size ())
 kindOf (TyFun x ty' ty'') = do
     k <- kindOf ty'
     k' <- kindOf ty''

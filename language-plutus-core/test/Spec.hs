@@ -55,6 +55,7 @@ compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k =
 compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
 compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
+compareType (TyInt _ n) (TyInt _ n')                 = n == n'
 compareType _ _                                      = False
 
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
@@ -107,8 +108,9 @@ genType = simpleRecursive nonRecursive recursive
           forallGen = TyForall emptyPosn <$> genTyName <*> genKind <*> genType
           fixGen = TyFix emptyPosn <$> genTyName <*> genType
           applyGen = TyApp emptyPosn <$> genType <*> args genType
+          numGen = TyInt emptyPosn <$> Gen.integral (Range.linear 0 256)
           recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen, fixGen]
+          nonRecursive = [varGen, lamGen, forallGen, fixGen, numGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
 genTerm :: MonadGen m => m (Term TyName Name AlexPosn)
