@@ -145,17 +145,17 @@ applyReduce
 applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyReduce stack fun                    arg =
     let term = Apply () fun (undefined arg) in
-        case viewPrimIteratedApplication term of
-            Nothing                                   ->
+        case viewPrimIterApp term of
+            Nothing                       ->
                 throw $ CkException NonPrimitiveApplicationCkError term
-            Just (IteratedApplication headName spine) ->
+            Just (IterApp headName spine) ->
                 case applyBuiltinName headName spine of
                     Nothing                               -> stack <| term
-                    Just (ConstantApplicationSuccess con) -> stack <| Constant () con
-                    Just ConstantApplicationFailure       -> CkEvaluationFailure
+                    Just (ConstAppSuccess con) -> stack <| Constant () con
+                    Just ConstAppFailure       -> CkEvaluationFailure
 
 -- | Evaluate a term using the CK machine.
--- May throw a `CkException` or a `ConstantApplicationException`.
+-- May throw a `CkException` or a `ConstAppException`.
 evaluateCk
     :: CkContext tyname name
     => Term tyname name () -> CkEvaluationResult
