@@ -24,6 +24,7 @@ data ConstantApplicationResult = ConstantApplicationSuccess (Constant ())
 data ConstantApplicationError = SizeMismatchApplicationError (Constant ()) (Constant ())
                               | IllTypedApplicationError (Constant ())
                               | ExcessArgumentsApplicationError [Constant ()]
+                              | NonSingletonSizeApplicationError Natural Natural
 
 -- | An attempt to apply a constant to inapproriate arguments results in this exception.
 data ConstantApplicationException = ConstantApplicationException
@@ -81,6 +82,19 @@ checkBoundsInt :: Size -> Integer -> Bool
 checkBoundsInt s i = -2 ^ p <= i && i < 2 ^ p where
   p = 8 * fromIntegral s - 1 :: Int
 
+checkBoundsBS :: Size -> BSL.ByteString -> Bool
+checkBoundsBS = undefined
+
+makeBuiltinInt :: Size -> Integer -> ConstantApplicationResult
+makeBuiltinInt size int
+    | checkBoundsInt size int = ConstantApplicationSuccess $ BuiltinInt () size int
+    | otherwise               = ConstantApplicationFailure
+
+makeBuiltinBS :: Size -> BSL.ByteString -> ConstantApplicationResult
+makeBuiltinBS size bs
+    | checkBoundsBS size bs = ConstantApplicationSuccess $ BuiltinBS () size bs
+    | otherwise             = ConstantApplicationFailure
+
 infixr 9 `SchemaArrow`
 
 newtype SizeVar = SizeVar
@@ -134,27 +148,30 @@ typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
 applySchemed :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> (b, SizeValues)
 applySchemed = undefined
 
---  TODO: `checkBoundsInt n k`
-wrapConstant :: SizeValues -> TypedBuiltin a -> a -> Constant ()
-wrapConstant (SizeValues sizes) (TypedBuiltinInt  (SizeVar sizeIndex)) int  =
-    BuiltinInt  () (sizes IntMap.! sizeIndex) int
-wrapConstant (SizeValues sizes) (TypedBuiltinBS   (SizeVar sizeIndex)) str  =
-    BuiltinBS   () (sizes IntMap.! sizeIndex) str
-wrapConstant (SizeValues sizes) (TypedBuiltinSize (SizeVar sizeIndex)) size
-    | sizes IntMap.! sizeIndex == size = BuiltinSize () size
-    | otherwise                        = undefined
+wrapConstant
+    :: (forall c. ConstantApplicationError -> c)
+    -> SizeValues -> TypedBuiltin a -> a -> ConstantApplicationResult
+wrapConstant _           (SizeValues sizes) (TypedBuiltinInt  (SizeVar sizeIndex)) int  =
+    makeBuiltinInt (sizes IntMap.! sizeIndex) int
+wrapConstant _           (SizeValues sizes) (TypedBuiltinBS   (SizeVar sizeIndex)) str  =
+    makeBuiltinBS  (sizes IntMap.! sizeIndex) str
+wrapConstant throwAppErr (SizeValues sizes) (TypedBuiltinSize (SizeVar sizeIndex)) size
+    | size == size' = ConstantApplicationSuccess $ BuiltinSize () size
+    | otherwise     = throwAppErr $ NonSingletonSizeApplicationError size size'
+    where size' = sizes IntMap.! sizeIndex
 
 applyTypedBuiltinName
     :: TypedBuiltinName a -> a -> [Constant ()] -> Maybe ConstantApplicationResult
 applyTypedBuiltinName (TypedBuiltinName name schema) f0 args0 =
     go schema (SizeVar 0) (SizeValues mempty) f0 args0 where
-        throwAppExc err = throw $ ConstantApplicationException err name args0
+        throwAppErr :: ConstantApplicationError -> c
+        throwAppErr err = throw $ ConstantApplicationException err name args0
 
         go :: TypeSchema a -> SizeVar -> SizeValues -> a -> [Constant ()] -> Maybe ConstantApplicationResult
         go (SchemaBuiltin builtin)       _       sizeValues y args =
             case args of
-                [] -> Just $ ConstantApplicationSuccess $ wrapConstant sizeValues builtin y
-                _  -> throwAppExc $ ExcessArgumentsApplicationError args
+                [] -> Just $ wrapConstant throwAppErr sizeValues builtin y
+                _  -> throwAppErr $ ExcessArgumentsApplicationError args
         go (SchemaArrow schemaA schemaB) sizeVar sizeValues f args = do
             (x, args') <- uncons args
             let (y, sizeValues') = applySchemed schemaA sizeValues f x
