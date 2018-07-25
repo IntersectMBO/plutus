@@ -12,7 +12,7 @@ then we have:
 -> [[(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]/x]M
 == [(fix x A M)/x]M
 ```
-and so defining `(fix x A M)` in this way results in two evaluation steps, where before there was only one evaluation step. Thus, any sequence of evaluation rewrites in Plutus Core with explicit term-level fixed points becomes at most twice as long when explicit term-level fixed points are removed, instead being implicitly present according to the above scheme. In practice, most sequences of rewrites involving `(fix x A M) -> [(fix x A M)/x]M` are not composed entirely of that rule, and the number of extra rewrites will be more modest. Note also that `M` occurs twice in the definition above, which may be undesirable for large `M`.
+and so defining `(fix x A M)` in this way results in two evaluation steps, where before there was only one evaluation step. Thus, any sequence of evaluation rewrites in Plutus Core with explicit term-level fixed points becomes at most twice as long when explicit term-level fixed points are removed, instead being implicitly present according to the above scheme. In practice, most sequences of rewrites involving `(fix x A M) -> [(fix x A M)/x]M` are not composed entirely of that rule, and the number of extra rewrites will be more modest. Note also that `M` occurs twice in the definition above, which may be undesirable for large `M`. If our implementation does not reduce the two copies of `M` in parallel, we may reduce `M` to normal form twice before performing the sequence of rewrites above. The resulting sequence of rewrites is still at most twice as long as the original.
 
 ## In Depth
 
