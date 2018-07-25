@@ -9,18 +9,19 @@ module Language.PlutusCore.CkMachine ( CkError(..)
 
 import           PlutusPrelude
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Constant
 
 infix 4 |>, <|
 
-data Frame tyname name a
-    = FrameApplyFun (Term tyname name a)
-    | FrameApplyArg (Term tyname name a)
+data Frame
+    = FrameApplyFun (Term TyName Name ())
+    | FrameApplyArg (Term TyName Name ())
     | FrameTyInstArg
     | FrameUnwrap
-    | FrameWrap a (tyname a) (Type tyname a)
+    | FrameWrap () (TyName ()) (Type TyName ())
 
-type Context tyname name a = [Frame tyname name a]
+type Context = [Frame]
 
 data CkError
     = NonConstantReturnedCkError
@@ -28,34 +29,41 @@ data CkError
     | NonWrapUnwrappedCkError
     | NonPrimitiveApplicationCkError
     | OpenTermEvaluatedCkError
+    | ConstAppCkError ConstAppError
 
-data CkException tyname name = CkException
+data CkException = CkException
     { _ckExceptionError :: CkError
-    , _ckExceptionCause :: Term tyname name ()
+    , _ckExceptionCause :: Term TyName Name ()
     }
 
-data CkEvalResult tyname name
-    = CkEvalSuccess (Term tyname name ())
+data CkEvalResult
+    = CkEvalSuccess (Term TyName Name ())
     | CkEvalFailure
 
-ckErrString :: CkError -> String
-ckErrString NonConstantReturnedCkError     =
+constAppErrorString :: ConstAppError -> String
+constAppErrorString (SizeMismatchConstAppError seenSize constant) = undefined
+constAppErrorString (IllTypedConstAppError expType constant)      = undefined
+constAppErrorString (ExcessArgumentsConstAppErr excessArgs)       = undefined
+
+ckErrorString :: CkError -> String
+ckErrorString NonConstantReturnedCkError      =
     "returned a non-constant"
-ckErrString NonTyAbsInstantiatedCkError    =
+ckErrorString NonTyAbsInstantiatedCkError     =
     "attempted to reduce a non-type-abstraction applied to a type"
-ckErrString NonWrapUnwrappedCkError        =
+ckErrorString NonWrapUnwrappedCkError         =
     "attempted to unwrap a not wrapped term"
-ckErrString NonPrimitiveApplicationCkError =
+ckErrorString NonPrimitiveApplicationCkError  =
     "attempted to reduce a not immediately reducible application"
-ckErrString OpenTermEvaluatedCkError       =
+ckErrorString OpenTermEvaluatedCkError        =
     "attempted to evaluate an open term"
+ckErrorString (ConstAppCkError constAppError) =
+    constAppErrorString constAppError
 
-instance Pretty (Term tyname name ()) => Show (CkException tyname name) where
+instance Show CkException where
     show (CkException err cause) = concat
-        ["The CK machine " , ckErrString err , ": " , prettyString cause]
+        ["The CK machine " , ckErrorString err , ": " , prettyString cause]
 
-instance (Pretty (Term tyname name ()), Typeable tyname, Typeable name) =>
-    Exception (CkException tyname name)
+instance Exception CkException
 
 -- | Check whether a term is a value.
 isValue :: Term tyname name a -> Bool
@@ -83,9 +91,6 @@ substituteDb varFor new = go where
 
     goUnder var term = if var == varFor then term else go term
 
-type CkContext tyname name =
-    (Pretty (Term tyname name ()), Eq (name ()), Typeable tyname, Typeable name)
-
 -- | The computing part of the CK machine. Rules are as follows:
 -- s ▷ {M A}      ↦ s , {_ A} ▷ M
 -- s ▷ [M N]      ↦ s , [_ N] ▷ M
@@ -95,9 +100,7 @@ type CkContext tyname name =
 -- s ▷ lam x A M  ↦ s ◁ lam x A M
 -- s ▷ con c      ↦ s ◁ con c
 -- s ▷ error A    ↦ s ◁ error A
-(|>)
-    :: CkContext tyname name
-    => Context tyname name () -> Term tyname name () -> CkEvalResult tyname name
+(|>) :: Context -> Term TyName Name () -> CkEvalResult
 stack |> TyInst _ fun _       = FrameTyInstArg : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
 stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
@@ -118,9 +121,7 @@ _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 -- s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- s , f               ◁ error A    ↦ s ◁ error A
-(<|)
-    :: CkContext tyname name
-    => Context tyname name () -> Term tyname name () -> CkEvalResult tyname name
+(<|) :: Context -> Term TyName Name () -> CkEvalResult
 _                            <| Error _ _ = CkEvalFailure
 []                           <| constant  = case constant of
     Constant _ con -> CkEvalSuccess $ Constant () con
@@ -140,9 +141,7 @@ FrameUnwrap          : stack <| wrapped   = case wrapped of
 -- as an iterated application of a `BuiltinName` to a list of `Constants`.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether `BuiltinName` is saturated or not.
-applyReduce
-    :: CkContext tyname name
-    => Context tyname name () -> Term tyname name () -> Term tyname name () -> CkEvalResult tyname name
+applyReduce :: Context -> Term TyName Name () -> Term TyName Name () -> CkEvalResult
 applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyReduce stack fun                    arg =
     let term = Apply () fun (undefined arg) in
@@ -154,10 +153,10 @@ applyReduce stack fun                    arg =
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> CkEvalFailure
                     ConstAppStuck         -> stack <| term
+                    ConstAppError err     ->
+                        throw $ CkException (ConstAppCkError err) term
 
 -- | Evaluate a term using the CK machine.
 -- May throw a `CkException` or a `ConstAppExc`.
-evaluateCk
-    :: CkContext tyname name
-    => Term tyname name () -> CkEvalResult tyname name
+evaluateCk :: Term TyName Name () -> CkEvalResult
 evaluateCk = ([] |>)
