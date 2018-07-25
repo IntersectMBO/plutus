@@ -56,7 +56,7 @@ with the property that `(fix x A M)` reduces to `[(fix x A M)/x]M`. (i.e., we ha
                            -----------------------------------------------
                             Γ,x : A ⊢ self{A}(y.[unroll(y)/x]M) : self(A)
                            ------------------------------------------------------
-                            Γ,x : A ⊢ unroll(self{A}(y.[unroll(y)/x]M) : self(A)
+                            Γ,x : A ⊢ unroll(self{A}(y.[unroll(y)/x]M) : A
 ```
 and has the requried property with respect to evaulation:
 ```
