@@ -40,13 +40,27 @@ then we can define a term `(fix x A M)` with typing given by:
 ---------------------
  Γ ⊢ (fix x A M) : A
 ```
-with the property that `(fix x A M)` reduces to `[(fix x A M)/x]M`. (i.e., we have a term-level fixed point operator). Specifically, we define `(fix x A M)` to be `unroll(self{A}(y.[unroll(y)/x]M))`, and indeed
+with the property that `(fix x A M)` reduces to `[(fix x A M)/x]M`. (i.e., we have a term-level fixed point operator). Specifically, we define `(fix x A M)` to be `unroll(self{A}(y.[unroll(y)/x]M))`. This definition is admissible via:
+```
+                                                              --------------------------------------
+     x : A free in M : A                                       Γ, x : A, y : self(A) ⊢ y : self(A)
+----------------------------------                            ---------------------------------------
+ Γ,x : A ⊢ (lam x [M x]) : A -> A                              Γ, x : A, y : self(A) ⊢ unroll(y) : A
+--------------------------------------------------------      ---------------------------------------
+                            Γ,x : A, y : self(A) ⊢ [(lam x A [M x]) unroll(y)] : A
+                           --------------------------------------------------------
+                               Γ,x : A ⊢ self{A}(y.[unroll(y)/x]M) : self(A)
+                              ------------------------------------------------------
+                               Γ,x : A ⊢ unroll(self{A}(y.[unroll(y)/x]M) : self(A)
+```
+and has the requried property with respect to evaulation:
 ```
 unroll(self{A}(y.[unroll(y)/x]M))
 -> [self{A}(y.[unroll(y)/x]M)/y]([unroll(y)/x]M)
 == [unroll(self{A}(y.[unroll(y)/x]M))/x]M
 ```
-as required. Thus, if we can find definitions of `self(A)`, `self{A}(x.M)`, and `unroll(M)` in Plutus Core such that the above typing and reduction rules are admissible, we will be able to define `(fix x A M)` in the language.
+
+Thus, if we can find definitions of `self(A)`, `self{A}(x.M)`, and `unroll(M)` in Plutus Core such that the above typing and reduction rules are admissible, we will be able to define `(fix x A M)` in the language.
 
 In Plutus Core, we have isorecursive types in the form of:
 ```
@@ -114,4 +128,6 @@ unroll(self{A}(x.M))
 -> [(wrap a (a -> A) (lam x (fix a (a -> A)) M))/x]M
 == [self{A}(x.M)/x]M
 ```
-as required. 
+as required.
+
+At this point we know a fixed point is definable in Plutus Core, and it remains only to write out the term. Suppose 
