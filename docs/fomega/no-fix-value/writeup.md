@@ -16,7 +16,7 @@ and so defining `(fix x A M)` in this way results in two evaluation steps, where
 
 ## In Depth
 
-Following (Harper 2016), we may use the machinery of recursive types to define recursive terms, even if our language has no explicit term-level recursion. Specifically, if for each type `A`, expression `M`, and variable `x` our language admits a type `self(A)` and expressions `self{A}(x.M)` and `unroll(M)` with typing/kinding:
+Following (Harper 2016), we may use the machinery of recursive types to define recursive terms, even if our language has no explicit term-level recursion. Specifically, if for each type `A`, expression `M`, and variable `x` our language admits a type `self(A) :: type ` and expressions `self{A}(x.M)` and `unroll(M)` with typing:
 ```
  Γ, x : self(A) ⊢ M : A
 ----------------------------
@@ -30,9 +30,9 @@ and evaluation given by:
 
 + `self{A}(x.M)` is a value (in normal form).
 
-+ if `M` evaulates to `M'` in one step, then `unroll(M)` evaluates to `unroll(M')` in one step.
++ if `M` evaulates to `M'`, then `unroll(M)` evaluates to `unroll(M')`.
 
-+ `unroll(self{A}(x.M))` evaluates to `[self{A}(x.M)/x]M` in one step.
++ `unroll(self{A}(x.M))` evaluates to `[self{A}(x.M)/x]M`.
 
 then we can define a term `(fix x A M)` with typing given by:
 ```
@@ -46,18 +46,18 @@ unroll(self{A}(y.[unroll(y)/x]M))
 -> [self{A}(y.[unroll(y)/x]M)/y]([unroll(y)/x]M)
 == [unroll(self{A}(y.[unroll(y)/x]M))/x]M
 ```
-as required. Thus, if we can find definitions of `self(A)`, `self{A}(x.M)`, and `unroll(M)` in Plutus Core such that the above typing and reduction rules are admissible, we will be able to define `(fix x A M)` as above. 
+as required. Thus, if we can find definitions of `self(A)`, `self{A}(x.M)`, and `unroll(M)` in Plutus Core such that the above typing and reduction rules are admissible, we will be able to define `(fix x A M)` in the language.
 
 In Plutus Core, we have isorecursive types in the form of:
 ```
- Γ,a :: K ⊢ A :: K
----------------------
- Γ ⊢ (fix a A) :: K
+ Γ,a :: type ⊢ A :: type
+----------------------------
+ Γ ⊢ (fix a A) :: type
 
 
- Γ,a :: K ⊢ A :: K    Γ ⊢ M : [(fix a A)/a]A
-----------------------------------------------
- Γ ⊢ (wrap a A M) : (fix a A)
+ Γ,a :: type ⊢ A :: type    Γ ⊢ M : [(fix a A)/a]A
+---------------------------------------------------
+          Γ ⊢ (wrap a A M) : (fix a A)
 
 
       Γ ⊢ M : (fix a A)
@@ -95,3 +95,23 @@ and we show that the typing rules are admissible:
 			    ========================
 			      Γ ⊢ unroll(M) : A
 ```
+We must also show that the reduction rules are admissible. First, we observe that
+```
+self{A}(x.M) == (wrap a (a -> A) (lam x (fix a (a -> A)) M)) 
+```
+is a value (is in weak head normal form). Next, supposing `M` evaluates to `M'` we have
+```
+unroll(M)
+== [(unwrap M) M]
+-> [(unwrap M') M']
+== unroll(M')
+```
+and finally we have
+```
+unroll(self{A}(x.M))
+== [(unwrap (wrap a (a -> A) (lam x (fix a (a -> A)) M))) (wrap a (a -> A) (lam x (fix a (a -> A)) M))]
+-> [(lam x (fix a (a -> A)) M) (wrap a (a -> A) (lam x (fix a (a -> A)) M))]
+-> [(wrap a (a -> A) (lam x (fix a (a -> A)) M))/x]M
+== [self{A}(x.M)/x]M
+```
+as required. 
