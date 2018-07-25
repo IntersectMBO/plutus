@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE UndecidableInstances #-}
 module Language.PlutusCore.CkMachine ( CkError(..)
                                      , CkException(..)
                                      , CkEvalResult(..)
@@ -173,6 +170,6 @@ applyReduce stack fun                    arg =
                         throw $ CkException (ConstAppCkError err) term
 
 -- | Evaluate a term using the CK machine.
--- May throw a `CkException` or a `ConstAppExc`.
+-- May throw a `CkException`.
 evaluateCk :: Term TyName Name () -> CkEvalResult
 evaluateCk = ([] |>)

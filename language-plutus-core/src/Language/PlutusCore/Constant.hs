@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.Constant ( ConstAppResult(..)
                                     , ConstAppError(..)
                                     , IterApp(..)
