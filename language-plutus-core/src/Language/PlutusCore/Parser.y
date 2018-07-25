@@ -11,8 +11,8 @@ import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer.Type
