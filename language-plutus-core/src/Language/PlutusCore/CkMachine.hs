@@ -41,27 +41,43 @@ data CkEvalResult
     | CkEvalFailure
 
 constAppErrorString :: ConstAppError -> String
-constAppErrorString (SizeMismatchConstAppError seenSize constant) = undefined
-constAppErrorString (IllTypedConstAppError expType constant)      = undefined
-constAppErrorString (ExcessArgumentsConstAppErr excessArgs)       = undefined
+constAppErrorString (SizeMismatchConstAppError seenSize constant) = concat
+    [ "encoutered an unexpected size in ("
+    , prettyString constant
+    , ") (previously seen size: "
+    , prettyString seenSize
+    , ") in"
+    ]
+constAppErrorString (IllTypedConstAppError expType constant)      = concat
+    [ "encountered an ill-typed argument: ("
+    , prettyString constant
+    , ") (expected type: "
+    , prettyString expType
+    , ") in"
+    ]
+constAppErrorString (ExcessArgumentsConstAppErr excessArgs)       = concat
+    [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
+    , prettyString excessArgs
+    , ") in"
+    ]
 
 ckErrorString :: CkError -> String
 ckErrorString NonConstantReturnedCkError      =
-    "returned a non-constant"
+    "returned a non-constant: "
 ckErrorString NonTyAbsInstantiatedCkError     =
-    "attempted to reduce a non-type-abstraction applied to a type"
+    "attempted to reduce a non-type-abstraction applied to a type: "
 ckErrorString NonWrapUnwrappedCkError         =
-    "attempted to unwrap a not wrapped term"
+    "attempted to unwrap a not wrapped term: "
 ckErrorString NonPrimitiveApplicationCkError  =
-    "attempted to reduce a not immediately reducible application"
+    "attempted to reduce a not immediately reducible application: "
 ckErrorString OpenTermEvaluatedCkError        =
-    "attempted to evaluate an open term"
+    "attempted to evaluate an open term: "
 ckErrorString (ConstAppCkError constAppError) =
     constAppErrorString constAppError
 
 instance Show CkException where
     show (CkException err cause) = concat
-        ["The CK machine " , ckErrorString err , ": " , prettyString cause]
+        ["The CK machine " , ckErrorString err, prettyString cause]
 
 instance Exception CkException
 

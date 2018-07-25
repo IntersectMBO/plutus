@@ -4,6 +4,8 @@
 module Language.PlutusCore.Constant ( ConstAppResult(..)
                                     , ConstAppError(..)
                                     , IterApp(..)
+                                    , TypedBuiltinSized(..)
+                                    , TypedBuiltin(..)
                                     , viewPrimIterApp
                                     , applyBuiltinName
                                     ) where
@@ -28,7 +30,7 @@ instance Functor f => Functor (PairT b f) where
 -- | The type of constant applications errors.
 data ConstAppError
     = SizeMismatchConstAppError Size (Constant ())
-    | forall a. IllTypedConstAppError (TypedSizedBuiltin a) (Constant ())
+    | forall a. IllTypedConstAppError (TypedBuiltinSized a) (Constant ())
     | ExcessArgumentsConstAppErr [Constant ()]
 
 data ConstAppResult
@@ -117,13 +119,13 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
-data TypedSizedBuiltin a where
-    TypedBuiltinInt  :: TypedSizedBuiltin Integer
-    TypedBuiltinBS   :: TypedSizedBuiltin BSL.ByteString
-    TypedBuiltinSize :: TypedSizedBuiltin Size
+data TypedBuiltinSized a where
+    TypedBuiltinInt  :: TypedBuiltinSized Integer
+    TypedBuiltinBS   :: TypedBuiltinSized BSL.ByteString
+    TypedBuiltinSize :: TypedBuiltinSized Size
 
 data TypedBuiltin a where
-    TypedBuiltinSized :: SizeVar -> TypedSizedBuiltin a -> TypedBuiltin a
+    TypedBuiltinSized :: SizeVar -> TypedBuiltinSized a -> TypedBuiltin a
     TypedBuiltinBool  :: TypedBuiltin Bool
 
 data TypeSchema a where
@@ -133,13 +135,19 @@ data TypeSchema a where
 
 data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeSchema a)
 
+instance Pretty (TypedBuiltinSized a) where
+    pretty = undefined
+
+instance Pretty (TypedBuiltin a) where
+    pretty = undefined
+
 checkBuiltinSize :: Maybe Size -> Size -> Constant () -> b -> Either ConstAppError (b, Size)
 checkBuiltinSize (Just size) size' constant _ | size /= size' =
     Left $ SizeMismatchConstAppError size constant
 checkBuiltinSize  _          size' _        y = Right (y, size')
 
 applyToSizedBuiltin
-    :: TypedSizedBuiltin a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppError (b, Size)
+    :: TypedBuiltinSized a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppError (b, Size)
 applyToSizedBuiltin TypedBuiltinInt  maySize f constant@(BuiltinInt  () size' int) =
     checkBuiltinSize maySize size' constant (f int)
 applyToSizedBuiltin TypedBuiltinBS   maySize f constant@(BuiltinBS   () size' bs ) =
@@ -163,7 +171,7 @@ applySchemed (TypeSchemaArrow a b) sizeValues = undefined
 applySchemed (TypeSchemaForall  k) sizeValues = undefined
 
 wrapSizedConstant
-    :: TypedSizedBuiltin a -> Size -> a -> ConstAppResult
+    :: TypedBuiltinSized a -> Size -> a -> ConstAppResult
 wrapSizedConstant TypedBuiltinInt  size int   = makeBuiltinInt  size int
 wrapSizedConstant TypedBuiltinBS   size bs    = makeBuiltinBS   size bs
 wrapSizedConstant TypedBuiltinSize size size' = makeBuiltinSize size size'
