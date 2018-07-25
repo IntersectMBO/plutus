@@ -38,7 +38,11 @@ library
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.TypeRenamer
-        Language.PlutusCore.Constant
+        Language.PlutusCore.Constant.Prelude
+        Language.PlutusCore.Constant.Make
+        Language.PlutusCore.Constant.View
+        Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.Constant.Apply
         Language.PlutusCore.CkMachine
         PlutusPrelude
     default-language: Haskell2010

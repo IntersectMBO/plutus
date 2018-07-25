@@ -14,6 +14,7 @@ module PlutusPrelude ( (&&&)
                      , NFData
                      , Natural
                      , NonEmpty (..)
+                     , PairT (..)
                      , Pretty (..)
                      , Typeable
                      , Word8
@@ -40,6 +41,14 @@ import           GHC.Natural               (Natural)
 
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
+
+newtype PairT b f a = PairT
+    { unPairT :: f (b, a)
+    }
+
+instance Functor f => Functor (PairT b f) where
+    fmap f (PairT p) = PairT $ fmap (fmap f) p
+    {-# INLINE fmap #-}
 
 prettyText :: Pretty a => a -> Text
 prettyText = renderStrict . layoutPretty defaultLayoutOptions . pretty

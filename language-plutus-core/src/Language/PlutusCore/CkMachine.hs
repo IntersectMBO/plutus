@@ -7,7 +7,8 @@ module Language.PlutusCore.CkMachine ( CkError(..)
 import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.View
+import           Language.PlutusCore.Constant.Apply
 
 infix 4 |>, <|
 
