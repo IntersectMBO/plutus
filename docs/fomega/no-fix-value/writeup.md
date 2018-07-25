@@ -16,7 +16,7 @@ and so defining `(fix x A M)` in this way results in two evaluation steps, where
 
 ## In Depth
 
-Following (Harper 2016), we may use the machinery of recursive types to define recursive terms, even if our language has no explicit term-level recursion. Specifically, if for each type `A`, expression `M`, and variable `x` our language admits a type `self(A) :: type ` and expressions `self{A}(x.M)` and `unroll(M)` with typing:
+Following (Harper 2016), we may use the machinery of recursive types to define recursive terms, even if our language has no explicit term-level recursion. Specifically, if for each type `A :: type`, expression `M : A`, and variable `x` our language admits a type `self(A) :: type ` and expressions `self{A}(x.M)` and `unroll(M)` with typing:
 ```
  Γ, x : self(A) ⊢ M : A
 ----------------------------
@@ -42,11 +42,14 @@ then we can define a term `(fix x A M)` with typing given by:
 ```
 with the property that `(fix x A M)` reduces to `[(fix x A M)/x]M`. (i.e., we have a term-level fixed point operator). Specifically, we define `(fix x A M)` to be `unroll(self{A}(y.[unroll(y)/x]M))`. This definition is admissible via:
 ```
-                                                              --------------------------------------
-     x : A free in M : A                                       Γ, x : A, y : self(A) ⊢ y : self(A)
-----------------------------------                            ---------------------------------------
- Γ,x : A ⊢ (lam x [M x]) : A -> A                              Γ, x : A, y : self(A) ⊢ unroll(y) : A
---------------------------------------------------------      ---------------------------------------
+ x : A free in M : A
+-----------------------
+ Γ, x : A ⊢ M : A -> A
+------------------------------------                          ------------------------------
+ Γ, x : A, y : self(A) ⊢ M : A -> A                            Γ, y : self(A) ⊢ y : self(A)     
+-----------------------------------------                     --------------------------------
+ Γ y : self (A) ⊢ (lam x [M x]) : A -> A                       Γ, y : self(A) ⊢ unroll(y) : A
+--------------------------------------------------------      --------------------------------
                             Γ,x : A, y : self(A) ⊢ [(lam x A [M x]) unroll(y)] : A
                            --------------------------------------------------------
                                Γ,x : A ⊢ self{A}(y.[unroll(y)/x]M) : self(A)
