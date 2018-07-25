@@ -114,17 +114,17 @@ _     |> var@Var{}            = throw $ CkExc OpenTermEvaluatedCkErr var
 -- s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- s , f               ◁ error A    ↦ s ◁ error A
 (<|) :: CkContext tyname name => Context tyname name () -> Term tyname name () -> CkEvalRes
-_                            <| Error _ _  = CkEvalFailure
-[]                           <| constant   = case constant of
+_                            <| Error _ _ = CkEvalFailure
+[]                           <| constant  = case constant of
     Constant _ con -> CkEvalSuccess con
     term           -> throw $ CkExc NonConstantReturnedCkErr term
-FrameTyInstArg       : stack <| tyAbs      = case tyAbs of
+FrameTyInstArg       : stack <| tyAbs     = case tyAbs of
     TyAbs _ _ _ body -> stack |> body
     term             -> throw $ CkExc NonTyAbsInstantiatedCkErr term
-FrameApplyArg arg    : stack <| fun        = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun    : stack <| arg        = applyReduce stack fun arg
-FrameWrap ann tyn ty : stack <| value      = stack <| Wrap ann tyn ty value -- Should we check here that term is indeed a value?
-FrameUnwrap          : stack <| wrapped    = case wrapped of
+FrameApplyArg arg    : stack <| fun       = FrameApplyFun fun : stack |> arg
+FrameApplyFun fun    : stack <| arg       = applyReduce stack fun arg
+FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value -- Should we check here that term is indeed a value?
+FrameUnwrap          : stack <| wrapped   = case wrapped of
     Wrap _ _ _ term -> stack <| term
     term            -> throw $ CkExc NonWrapUnwrappedCkErr term
 
