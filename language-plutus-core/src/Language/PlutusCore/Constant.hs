@@ -1,9 +1,9 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusCore.Constant ( ConstAppRes(..)
-                                    , ConstAppErr(..)
-                                    , ConstAppExc(..)
+module Language.PlutusCore.Constant ( ConstAppResult(..)
+                                    , ConstAppError(..)
+                                    , ConstAppException(..)
                                     , IterApp(..)
                                     , viewPrimIterApp
                                     , applyBuiltinName
@@ -25,32 +25,33 @@ instance Functor f => Functor (PairT b f) where
     fmap f (PairT p) = PairT $ fmap (fmap f) p
     {-# INLINE fmap #-}
 
-data ConstAppRes
-    = ConstAppSuccess (Constant ())
+data ConstAppResult tyname name
+    = ConstAppSuccess (Term tyname name ())
     | ConstAppFailure
+    | ConstAppStuck
 
 -- | The type of constant applications errors.
-data ConstAppErr
-    = SizeMismatchConstAppErr Size (Constant ())
-    | forall a. IllTypedConstAppErr (TypedSizedBuiltin a) (Constant ())
-    | ExcessArgumentsConstAppErr [Constant ()]
+data ConstAppError
+    = SizeMismatchConstAppError Size (Constant ())
+    | forall a. IllTypedConstAppError (TypedSizedBuiltin a) (Constant ())
+    | ExcessArgumentsConstAppError [Constant ()]
 
 -- | The type of constant applications exceptions.
 -- An attempt to apply a constant to inapproriate arguments results in this exception.
-data ConstAppExc = ConstAppExc
-    { _constAppExcErr   :: ConstAppErr
+data ConstAppException = ConstAppException
+    { _constAppExcErr   :: ConstAppError
     , _constAppExcHead  :: BuiltinName
     , _constAppExcSpine :: [Constant ()]
     }
 
-constAppErrString :: ConstAppErr -> String
-constAppErrString (SizeMismatchConstAppErr seenSize constant)   = undefined
-constAppErrString (IllTypedConstAppErr expType constant)        = undefined
-constAppErrString (ExcessArgumentsConstAppErr excessArgs)       = undefined
+constAppErrString :: ConstAppError -> String
+constAppErrString (SizeMismatchConstAppError seenSize constant) = undefined
+constAppErrString (IllTypedConstAppError expType constant)      = undefined
+constAppErrString (ExcessArgumentsConstAppError excessArgs)     = undefined
 
 -- TODO: we may not need those brackets.
-instance Show ConstAppExc where
-    show (ConstAppExc err name spine) = concat
+instance Show ConstAppException where
+    show (ConstAppException err name spine) = concat
         [ "An error occured while trying to reduce ("
         , prettyString name
         , spine >>= \arg -> " (" ++ prettyString arg ++ ")"
@@ -58,7 +59,7 @@ instance Show ConstAppExc where
         , constAppErrString err
         ]
 
-instance Exception ConstAppExc
+instance Exception ConstAppException
 
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp
@@ -106,19 +107,19 @@ checkBoundsInt s i = -2 ^ p <= i && i < 2 ^ p where
 checkBoundsBS :: Size -> BSL.ByteString -> Bool
 checkBoundsBS = undefined
 
-makeBuiltinInt :: Size -> Integer -> ConstAppRes
+makeBuiltinInt :: Size -> Integer -> ConstAppResult tyname name
 makeBuiltinInt size int
-    | checkBoundsInt size int = ConstAppSuccess $ BuiltinInt () size int
+    | checkBoundsInt size int = ConstAppSuccess . Constant () $ BuiltinInt () size int
     | otherwise               = ConstAppFailure
 
-makeBuiltinBS :: Size -> BSL.ByteString -> ConstAppRes
+makeBuiltinBS :: Size -> BSL.ByteString -> ConstAppResult tyname name
 makeBuiltinBS size bs
-    | checkBoundsBS size bs = ConstAppSuccess $ BuiltinBS () size bs
+    | checkBoundsBS size bs = ConstAppSuccess . Constant () $ BuiltinBS () size bs
     | otherwise             = ConstAppFailure
 
-makeBuiltinSize :: Size -> Size -> ConstAppRes
+makeBuiltinSize :: Size -> Size -> ConstAppResult tyname name
 makeBuiltinSize size size'
-    | size == size' = ConstAppSuccess $ BuiltinSize () size
+    | size == size' = ConstAppSuccess . Constant () $ BuiltinSize () size
     | otherwise     = ConstAppFailure
 
 infixr 9 `TypeSchemaArrow`
@@ -150,13 +151,13 @@ data TypeSchema a where
 
 data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeSchema a)
 
-checkBuiltinSize :: Maybe Size -> Size -> Constant () -> b -> Either ConstAppErr (b, Size)
+checkBuiltinSize :: Maybe Size -> Size -> Constant () -> b -> Either ConstAppError (b, Size)
 checkBuiltinSize (Just size) size' constant _ | size /= size' =
-    Left $ SizeMismatchConstAppErr size constant
+    Left $ SizeMismatchConstAppError size constant
 checkBuiltinSize  _          size' _        y = Right (y, size')
 
 applyToSizedBuiltin
-    :: TypedSizedBuiltin a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppErr (b, Size)
+    :: TypedSizedBuiltin a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppError (b, Size)
 applyToSizedBuiltin TypedBuiltinInt  maySize f constant@(BuiltinInt  () size' int) =
     checkBuiltinSize maySize size' constant (f int)
 applyToSizedBuiltin TypedBuiltinBS   maySize f constant@(BuiltinBS   () size' bs ) =
@@ -164,33 +165,33 @@ applyToSizedBuiltin TypedBuiltinBS   maySize f constant@(BuiltinBS   () size' bs
 applyToSizedBuiltin TypedBuiltinSize maySize f constant@(BuiltinSize () size'    ) =
     checkBuiltinSize maySize size' constant (f size')
 applyToSizedBuiltin typedBuiltin     _       _ constant                            =
-    Left $ IllTypedConstAppErr typedBuiltin constant
+    Left $ IllTypedConstAppError typedBuiltin constant
 
 applyToBuiltin
-    :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
+    :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppError (b, SizeValues)
 applyToBuiltin (TypedSizedBuiltin (SizeVar sizeIndex) typedBuiltin) (SizeValues sizes) f constant =
     unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
         upd maySize = fmap Just . PairT $ applyToSizedBuiltin typedBuiltin maySize f constant
 
 applySchemed
-    :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppErr (b, SizeValues)
+    :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppError (b, SizeValues)
 applySchemed (TypeSchemaBuiltin a) sizeValues = applyToBuiltin a sizeValues
 applySchemed (TypeSchemaArrow a b) sizeValues = undefined
 applySchemed (TypeSchemaForall  k) sizeValues = undefined
 
 wrapSizedConstant
-    :: TypedSizedBuiltin a -> Size -> a -> ConstAppRes
+    :: TypedSizedBuiltin a -> Size -> a -> ConstAppResult tyname name
 wrapSizedConstant TypedBuiltinInt  size int   = makeBuiltinInt  size int
 wrapSizedConstant TypedBuiltinBS   size bs    = makeBuiltinBS   size bs
 wrapSizedConstant TypedBuiltinSize size size' = makeBuiltinSize size size'
 
 wrapConstant
-    :: TypedBuiltin a -> SizeValues -> a -> ConstAppRes
+    :: TypedBuiltin a -> SizeValues -> a -> ConstAppResult tyname name
 wrapConstant (TypedSizedBuiltin (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) =
     wrapSizedConstant typedSizedBuiltin $ sizes IntMap.! sizeIndex
 
 applyTypedBuiltinName
-    :: TypedBuiltinName a -> a -> [Constant ()] -> Either ConstAppErr (Maybe ConstAppRes)
+    :: TypedBuiltinName a -> a -> [Constant ()] -> Either ConstAppError (ConstAppResult tyname name)
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go
         :: TypeSchema a
@@ -198,14 +199,14 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
         -> SizeValues
         -> a
         -> [Constant ()]
-        -> Either ConstAppErr (Maybe ConstAppRes)
+        -> Either ConstAppError (ConstAppResult tyname name)
     go (TypeSchemaBuiltin builtin)       _       sizeValues y args =
         case args of
-            [] -> Right . Just $ wrapConstant builtin sizeValues y
-            _  -> Left $ ExcessArgumentsConstAppErr args
+            [] -> Right $ wrapConstant builtin sizeValues y
+            _  -> Left $ ExcessArgumentsConstAppError args
     go (TypeSchemaArrow schemaA schemaB) sizeVar sizeValues f args =
         case args of
-            []        -> Right Nothing
+            []        -> Right ConstAppStuck
             x : args' -> do
                 (y, sizeValues') <- applySchemed schemaA sizeValues f x
                 go schemaB sizeVar sizeValues' y args'
@@ -237,8 +238,8 @@ typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
 -- | Apply a `BuiltinName` to a list of arguments.
 -- If the `BuiltinName` is saturated, return `Just` applied to the result of the computation.
 -- Otherwise return `Nothing`.
--- Throw a `ConstAppExc` if something goes wrong.
-applyBuiltinNameSafe :: BuiltinName -> [Constant ()] -> Either ConstAppErr (Maybe ConstAppRes)
+-- Throw a `ConstAppException` if something goes wrong.
+applyBuiltinNameSafe :: BuiltinName -> [Constant ()] -> Either ConstAppError (ConstAppResult tyname name)
 applyBuiltinNameSafe AddInteger           = applyTypedBuiltinName typedAddInteger       (+)
 applyBuiltinNameSafe SubtractInteger      = applyTypedBuiltinName typedSubtractInteger  (-)
 applyBuiltinNameSafe MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger  (*)
@@ -262,7 +263,7 @@ applyBuiltinNameSafe TxHash               = undefined
 applyBuiltinNameSafe BlockNum             = undefined
 applyBuiltinNameSafe BlockTime            = undefined
 
-applyBuiltinName :: BuiltinName -> [Constant ()] -> Maybe ConstAppRes
+applyBuiltinName :: BuiltinName -> [Constant ()] -> ConstAppResult tyname name
 applyBuiltinName name args =
-    either (\err -> throw $ ConstAppExc err name args) id $
+    either (\err -> throw $ ConstAppException err name args) id $
         applyBuiltinNameSafe name args
