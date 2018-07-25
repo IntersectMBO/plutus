@@ -98,7 +98,7 @@ substituteDb varFor new = go where
 -- s ▷ unwrap M   ↦ s , (unwrap _) ▷ M
 -- s ▷ abs α K M  ↦ s ◁ abs α K M
 -- s ▷ lam x A M  ↦ s ◁ lam x A M
--- s ▷ con c      ↦ s ◁ con c
+-- s ▷ con cn     ↦ s ◁ con cn
 -- s ▷ error A    ↦ s ◁ error A
 (|>) :: Context -> Term TyName Name () -> CkEvalResult
 stack |> TyInst _ fun _       = FrameTyInstArg : stack |> fun
@@ -113,11 +113,11 @@ _     |> Fix{}                = undefined
 _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 
 -- | The returning part of the CK machine. Rules are as follows:
--- s , {_ S}           ◁ abs α K M  ↦ s ▷ M
+-- s , {_ A}           ◁ abs α K M  ↦ s ▷ M
 -- s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
--- s , [C _]           ◁ S          ↦ s ◁ [C S]  -- partially saturated constant
--- s , [C _]           ◁ S          ↦ s ◁ V      -- fully saturated constant, [C S] ~> V
+-- s , [M _]           ◁ V          ↦ s ◁ [M V]  -- partially saturated constant
+-- s , [M _]           ◁ V          ↦ s ◁ W      -- fully saturated constant, [M V] ~> W
 -- s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- s , f               ◁ error A    ↦ s ◁ error A
@@ -131,7 +131,7 @@ FrameTyInstArg       : stack <| tyAbs     = case tyAbs of
     term             -> throw $ CkException NonTyAbsInstantiatedCkError term
 FrameApplyArg arg    : stack <| fun       = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun    : stack <| arg       = applyReduce stack fun arg
-FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value -- Should we check here that term is indeed a value?
+FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value
 FrameUnwrap          : stack <| wrapped   = case wrapped of
     Wrap _ _ _ term -> stack <| term
     term            -> throw $ CkException NonWrapUnwrappedCkError term
