@@ -1,15 +1,15 @@
-# Recursive Types Induce Recursive Terms
+# Recursive Types Induce Recursive Terms-
 
 The short version is that if we define `(fix x A M)` to be
 ```
-[(unwrap (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))) (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))]
+[(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]
 ```
 then we have:
 ```
-(fix x A M)
-== [(unwrap (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))) (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))]
--> (\y. [((unwrap y) y)/x]M) (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))]
--> [((unwrap (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))]) (wrap a (a -> A) (\y. [((unwrap y) y)/x]M))])/x]M
+(fix x A M) 
+== [(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]
+-> [(lam y (fix (fun a A)) [[(unwrap y) y]/x]M) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]
+-> [[(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]/x]M
 == [(fix x A M)/x]M
 ```
 and so defining `(fix x A M)` in this way results in two evaluation steps, where before there was only one evaluation step. Thus, any sequence of evaluation rewrites in Plutus Core with explicit term-level fixed points becomes at most twice as long when explicit term-level fixed points are removed, instead being implicitly present according to the above scheme. In practice, most sequences of rewrites involving `(fix x A M) -> [(fix x A M)/x]M` are not composed entirely of that rule, and the number of extra rewrites will be more modest. Note also that `M` occurs twice in the definition above, which may be undesirable for large `M`.
@@ -43,18 +43,20 @@ then we can define a term `(fix x A M)` with typing given by:
 with the property that `(fix x A M)` reduces to `[(fix x A M)/x]M`. (i.e., we have a term-level fixed point operator). Specifically, we define `(fix x A M)` to be `unroll(self{A}(y.[unroll(y)/x]M))`. This definition is admissible via:
 ```
  x : A free in M : A
------------------------
- Γ, x : A ⊢ M : A -> A
-------------------------------------                          ------------------------------
- Γ, x : A, y : self(A) ⊢ M : A -> A                            Γ, y : self(A) ⊢ y : self(A)     
------------------------------------------                     --------------------------------
- Γ y : self (A) ⊢ (lam x [M x]) : A -> A                       Γ, y : self(A) ⊢ unroll(y) : A
---------------------------------------------------------      --------------------------------
+--------------------------
+ Γ, x : A ⊢ M : (fun A A)
+---------------------------------------                          ------------------------------
+ Γ, x : A, y : self(A) ⊢ M : (fun A A)                            Γ, y : self(A) ⊢ y : self(A)     
+--------------------------------------------                    ---------------------------------
+ Γ y : self (A) ⊢ (lam x [M x]) : (fun A A)                      Γ, y : self(A) ⊢ unroll(y) : A
+-------------------------------------------------------------------------------------------------
                             Γ,x : A, y : self(A) ⊢ [(lam x A [M x]) unroll(y)] : A
-                           --------------------------------------------------------
-                               Γ,x : A ⊢ self{A}(y.[unroll(y)/x]M) : self(A)
-                              ------------------------------------------------------
-                               Γ,x : A ⊢ unroll(self{A}(y.[unroll(y)/x]M) : self(A)
+                           ========================================================
+                            Γ,x : A, y : self(A) ⊢ [unroll(y)/x]M : A
+                           -----------------------------------------------
+                            Γ,x : A ⊢ self{A}(y.[unroll(y)/x]M) : self(A)
+                           ------------------------------------------------------
+                            Γ,x : A ⊢ unroll(self{A}(y.[unroll(y)/x]M) : self(A)
 ```
 and has the requried property with respect to evaulation:
 ```
@@ -77,44 +79,44 @@ In Plutus Core, we have isorecursive types in the form of:
           Γ ⊢ (wrap a A M) : (fix a A)
 
 
-      Γ ⊢ M : (fix a A)
---------------------------------
-Γ ⊢ (unwrap M) : [(fix a A)/a]A
+ Γ ⊢ M : (fix a A)
+---------------------------------
+ Γ ⊢ (unwrap M) : [(fix a A)/a]A
 ```
-where `(unwrap (wrap a A V)` reduces to `V` for any term value `V` (eager evaluation). We define
+where `(unwrap (wrap a A V))` reduces to `V` for any term value `V` (eager evaluation). We define
 ```
-self(A) == (fix a (a -> A))
+self(A) == (fix a (fun a A))
 
-self{A}(x.M) == (wrap a (a -> A) (lam x (fix a (a -> A)) M))
+self{A}(x.M) == (wrap a (fun a A) (lam x (fix a (fun a A)) M))
 
 unroll(M) == [(unwrap M) M]
 ```
 and we show that the typing rules are admissible:
 ```
  Γ, x : self(A) ⊢ M : A
-=================================
- Γ, x : (fix a (a -> A)) ⊢ M : A
----------------------------------------------------------------
- Γ ⊢ (lam x (fix a (a -> A)) M) : [(fix a (a -> A))/a](a -> A)
----------------------------------------------------------------------
- Γ ⊢ (wrap a (a -> A) (lam x (fix a (a -> A)) M)) : (fix a (a -> A))
-=====================================================================
+==================================
+ Γ, x : (fix a (fun a A)) ⊢ M : A
+------------------------------------------------------------------
+ Γ ⊢ (lam x (fix a (fun a A)) M) : [(fix a (fun a A))/a](fun a A)
+------------------------------------------------------------------------
+ Γ ⊢ (wrap a (fun a A) (lam x (fix a (fun a A)) M)) : (fix a (fun a A))
+========================================================================
  Γ ⊢ self{A}(x.M) : self(A)
 
 
 Γ ⊢ M : self(A)
-========================                    
-Γ ⊢ M : (fix a (a -> A))                    Γ ⊢ M : self(A)
----------------------------------------    ==========================
-Γ ⊢ (unwrap M) : (fix a (a -> A)) -> A      Γ ⊢ M : (fix a (a -> A)) 
----------------------------------------------------------------------
+==========================                    
+Γ ⊢ M : (fix a (fun a A))                      Γ ⊢ M : self(A)
+------------------------------------------    ===========================
+Γ ⊢ (unwrap M) : (fun (fix a (fun a A)) A)     Γ ⊢ M : (fix a (fun a A)) 
+-----------------------------------------------------------------------
                              Γ ⊢ [(unwrap M) M] : A
 			    ========================
 			      Γ ⊢ unroll(M) : A
 ```
 We must also show that the reduction rules are admissible. First, we observe that
 ```
-self{A}(x.M) == (wrap a (a -> A) (lam x (fix a (a -> A)) M)) 
+self{A}(x.M) == (wrap a (fun a A) (lam x (fix a (fun a A)) M)) 
 ```
 is a value (is in weak head normal form). Next, supposing `M` evaluates to `M'` we have
 ```
@@ -126,11 +128,25 @@ unroll(M)
 and finally we have
 ```
 unroll(self{A}(x.M))
-== [(unwrap (wrap a (a -> A) (lam x (fix a (a -> A)) M))) (wrap a (a -> A) (lam x (fix a (a -> A)) M))]
--> [(lam x (fix a (a -> A)) M) (wrap a (a -> A) (lam x (fix a (a -> A)) M))]
--> [(wrap a (a -> A) (lam x (fix a (a -> A)) M))/x]M
+== [(unwrap (wrap a (fun a A) (lam x (fix a (fun a A)) M))) (wrap a (fun a A) (lam x (fix a (fun a A)) M))]
+-> [(lam x (fix a (fun a A)) M) (wrap a (fun a A) (lam x (fix a (fun a A)) M))]
+-> [(wrap a (fun a A) (lam x (fix a (fun a A)) M))/x]M
 == [self{A}(x.M)/x]M
 ```
 as required.
 
-At this point we know a fixed point is definable in Plutus Core, and it remains only to write out the term. Suppose 
+At this point we know term-level fixed points are definable in Plutus Core. Precisely, we define
+```
+(fix x A M)
+== unroll(self{A}(y.[unroll(y)/x]M))
+== unroll(wrap (fun a A) (lam y (fix (fun a A)) [unroll(y)/x]M))
+== [(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]
+```
+and observe that, as expected:
+```
+(fix x A M) 
+== [(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]
+-> [(lam y (fix (fun a A)) [[(unwrap y) y]/x]M) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]
+-> [[(unwrap (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix (fun a A)) [[(unwrap y) y]/x]M))]/x]M
+== [(fix x A M)/x]M
+```
