@@ -47,7 +47,7 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Functor, Pretty)
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Functor, Show, Pretty)
+    deriving (Eq, Functor, Show, Pretty)
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
