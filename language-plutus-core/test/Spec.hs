@@ -86,7 +86,7 @@ genBuiltinName :: MonadGen m => m BuiltinName
 genBuiltinName = Gen.choice $ pure <$>
     [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger
     , LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger
-    , EqInteger, IntToByteString, IntToByteString, Concatenate, TakeByteString
+    , EqInteger, ResizeInteger, IntToByteString, IntToByteString, Concatenate, TakeByteString
     , DropByteString, ResizeByteString, SHA2, SHA3, VerifySignature
     , EqByteString, TxHash, BlockNum, BlockTime
     ]
