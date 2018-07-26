@@ -186,6 +186,13 @@ typeOf Wrap{} = throwError NotImplemented -- TODO handle all of these
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
+fixSubstitute :: Type TyNameWithKind a -- ^ Type associated with type variable
+              -> Unique -- ^ Variable we are binding to type
+              -> Type TyNameWithKind a -- ^ Type we are substituting in
+              -> Type TyNameWithKind a
+fixSubstitute _ _ = cata a where
+    a = embed
+
 -- TODO: make type substitutions occur in a state monad instead
 tySubstitute :: Unique -- ^ Unique associated with type variable
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
@@ -195,5 +202,6 @@ tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 
+-- TODO: tyReduce!
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
 typeEq _ _ = False

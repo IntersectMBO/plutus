@@ -34,7 +34,7 @@ data Type tyname a = TyVar a (tyname a)
                    | TyFix a (tyname a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
                    | TyForall a (tyname a) (Kind a) (Type tyname a)
                    | TyBuiltin a TypeBuiltin -- ^ Builtin type
-                   | TyInt a Natural
+                   | TyInt a Natural -- ^ Type-level size
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (NonEmpty (Type tyname a))
                    deriving (Functor, Show, Eq, Generic, NFData)
