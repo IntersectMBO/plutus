@@ -21,14 +21,24 @@ import qualified Data.IntMap.Strict as IntMap
 data ConstAppError
     = SizeMismatchConstAppError Size (Constant ())
     | forall a. IllTypedConstAppError (TypedBuiltinSized a) (Constant ())
+      -- ^ A mismatch between the type of an argument function expects and its actual type.
     | ExcessArgumentsConstAppErr [Constant ()]
+      -- ^ A constant is applied to more arguments than needed in order to reduce.
+      -- Note that this error occurs even if an expression is well-typed, because
+      -- constant application is supposed to be computed as soon as there are enough arguments
 
+-- | The type of constant applications results.
 data ConstAppResult
     = ConstAppSuccess (Term TyName Name ())
+      -- ^ Successfully computed a value.
     | ConstAppFailure
+      -- ^ Not enough fuel.
     | ConstAppStuck
+      -- ^ Not enough arguments.
     | ConstAppError ConstAppError
+      -- ^ An internal error occurred during evaluation.
 
+-- | An 'IntMap' from size variables to sizes.
 newtype SizeValues = SizeValues (IntMap Size)
 
 checkBuiltinSize :: Maybe Size -> Size -> Constant () -> b -> Either ConstAppError (b, Size)
@@ -36,6 +46,7 @@ checkBuiltinSize (Just size) size' constant _ | size /= size' =
     Left $ SizeMismatchConstAppError size constant
 checkBuiltinSize  _          size' _        y = Right (y, size')
 
+-- | Apply a Haskell function to a PLC built-in indexed by size.
 applyToSizedBuiltin
     :: TypedBuiltinSized a -> Maybe Size -> (a -> b) -> Constant () -> Either ConstAppError (b, Size)
 applyToSizedBuiltin TypedBuiltinInt  maySize f constant@(BuiltinInt  () size' int) =
@@ -47,6 +58,7 @@ applyToSizedBuiltin TypedBuiltinSize maySize f constant@(BuiltinSize () size'   
 applyToSizedBuiltin typedBuiltin     _       _ constant                            =
     Left $ IllTypedConstAppError typedBuiltin constant
 
+-- | Apply a Haskell function to a PLC built-in.
 applyToBuiltin
     :: TypedBuiltin a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppError (b, SizeValues)
 applyToBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltin) (SizeValues sizes) f constant =
@@ -54,46 +66,49 @@ applyToBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltin) (SizeValues 
         upd maySize = fmap Just . PairT $ applyToSizedBuiltin typedBuiltin maySize f constant
 applyToBuiltin TypedBuiltinBool _ f constant = undefined
 
+-- | Apply a Haskell function to a PLC constant.
 applySchemed
     :: TypeScheme a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppError (b, SizeValues)
 applySchemed (TypeSchemeBuiltin a) sizeValues = applyToBuiltin a sizeValues
 applySchemed (TypeSchemeArrow a b) sizeValues = undefined
 applySchemed (TypeSchemeForall  k) sizeValues = undefined
 
+-- | Coerce a Haskell value to a PLC constant indexed by size checking all constraints
+-- (e.g. an `Integer` is in appropriate bounds) along the way.
 wrapSizedConstant
     :: TypedBuiltinSized a -> Size -> a -> Maybe (Term TyName Name ())
 wrapSizedConstant TypedBuiltinInt  size int   = makeBuiltinInt  size int
 wrapSizedConstant TypedBuiltinBS   size bs    = makeBuiltinBS   size bs
 wrapSizedConstant TypedBuiltinSize size size' = makeBuiltinSize size size'
 
+-- | Coerce a Haskell value to a PLC term checking all constraints
+-- (e.g. an `Integer` is in appropriate bounds) along the way.
 wrapConstant
     :: TypedBuiltin a -> SizeValues -> a -> Maybe (Term TyName Name ())
 wrapConstant (TypedBuiltinSized (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) =
     wrapSizedConstant typedSizedBuiltin $ sizes IntMap.! sizeIndex
 wrapConstant TypedBuiltinBool                                           _                 =
-    makeBuiltinBool
+    Just . makeBuiltinBool
 
+-- | Apply a 'TypedBuiltinName' to a list of constant arguments.
 applyTypedBuiltinName
     :: TypedBuiltinName a -> a -> [Constant ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme a -> SizeVar -> SizeValues -> a -> [Constant ()] -> ConstAppResult
-    go (TypeSchemeBuiltin builtin)       _       sizeValues y args = case args of
-       [] -> case wrapConstant builtin sizeValues y of
-           Just wc -> ConstAppSuccess wc
-           Nothing -> ConstAppFailure
+    go (TypeSchemeBuiltin builtin)       _       sizeValues y args = case args of  -- Computed the result.
+       [] -> case wrapConstant builtin sizeValues y of                             -- Coerce the result to a PLC term.
+           Just wc -> ConstAppSuccess wc                                           -- Return the coerced result.
+           Nothing -> ConstAppFailure                                              -- Report a failure.
        _  -> ConstAppError $ ExcessArgumentsConstAppErr args
     go (TypeSchemeArrow schemaA schemaB) sizeVar sizeValues f args = case args of
-        []        -> ConstAppStuck
-        x : args' -> case applySchemed schemaA sizeValues f x of
-            Left err               -> ConstAppError err
-            Right (y, sizeValues') -> go schemaB sizeVar sizeValues' y args'
+        []        -> ConstAppStuck                                            -- Not enough arguments to compute.
+        x : args' -> case applySchemed schemaA sizeValues f x of              -- Apply the function to an argument.
+            Left err               -> ConstAppError err                       -- The application resulted in an error.
+            Right (y, sizeValues') -> go schemaB sizeVar sizeValues' y args'  -- The application is fine, proceed recursively.
     go (TypeSchemeForall k)              sizeVar sizeValues f args =
-        go (k sizeVar) (succ sizeVar) sizeValues f args
+        go (k sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var and proceed recursively.
 
--- | Apply a `BuiltinName` to a list of arguments.
--- If the `BuiltinName` is saturated, return `Just` applied to the result of the computation.
--- Otherwise return `Nothing`.
--- Throw a `ConstAppException` if something goes wrong.
+-- | Apply a 'BuiltinName' to a list of arguments.
 applyBuiltinName :: BuiltinName -> [Constant ()] -> ConstAppResult
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger       (+)
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger  (-)

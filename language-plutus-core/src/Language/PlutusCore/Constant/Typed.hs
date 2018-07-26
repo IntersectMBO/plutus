@@ -1,3 +1,5 @@
+-- | See the 'docs/Constant application.md' article for how this module emerged.
+
 {-# LANGUAGE GADTs #-}
 module Language.PlutusCore.Constant.Typed
     ( SizeVar(..)
@@ -29,20 +31,26 @@ infixr 9 `TypeSchemeArrow`
 
 newtype SizeVar = SizeVar Int
 
+-- | Built-in types indexed by @size@.
 data TypedBuiltinSized a where
     TypedBuiltinInt  :: TypedBuiltinSized Integer
     TypedBuiltinBS   :: TypedBuiltinSized BSL.ByteString
     TypedBuiltinSize :: TypedBuiltinSized Size
 
+-- | Built-in types. A type is considired "built-in" if it can appear in the type signature
+-- of a primitive operation. So @boolean@ is considered built-in even though it is defined in PLC
+-- and is not primitive.
 data TypedBuiltin a where
     TypedBuiltinSized :: SizeVar -> TypedBuiltinSized a -> TypedBuiltin a
     TypedBuiltinBool  :: TypedBuiltin Bool
 
+-- | Type schemes of primitive operations.
 data TypeScheme a where
     TypeSchemeBuiltin :: TypedBuiltin a -> TypeScheme a
     TypeSchemeArrow   :: TypeScheme a -> TypeScheme b -> TypeScheme (a -> b)
     TypeSchemeForall  :: (SizeVar -> TypeScheme a) -> TypeScheme a
 
+-- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a = TypedBuiltinName BuiltinName (TypeScheme a)
 
 instance Enum SizeVar where

@@ -15,26 +15,37 @@ infix 4 |>, <|
 
 data Frame
     = FrameApplyFun (Term TyName Name ())
+      -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name ())
+      -- ^ @[_ N]@
     | FrameTyInstArg
+      -- ^ @{_ A}@
     | FrameUnwrap
+      -- ^ @(unwrap _)@
     | FrameWrap () (TyName ()) (Type TyName ())
+      -- ^ @(wrap α A _)@
 
 type Context = [Frame]
 
 data CkError
-    = NonConstantReturnedCkError
-    | NonTyAbsInstantiatedCkError
+    = NonTyAbsInstantiatedCkError
+      -- ^ An attempt to reduce a non-type-abstraction applied to a type.
     | NonWrapUnwrappedCkError
+      -- ^ An attempt to unwrap a not wrapped term.
     | NonPrimitiveApplicationCkError
+      -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedCkError
+      -- ^ An attempt to evaluate an open term.
     | ConstAppCkError ConstAppError
+      -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
 
+-- | The type of exceptions the CK machine can throw.
 data CkException = CkException
-    { _ckExceptionError :: CkError
-    , _ckExceptionCause :: Term TyName Name ()
+    { _ckExceptionError :: CkError              -- ^ An error.
+    , _ckExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
     }
 
+-- | The type of results the CK machine returns.
 data CkEvalResult
     = CkEvalSuccess (Term TyName Name ())
     | CkEvalFailure
@@ -61,8 +72,6 @@ constAppErrorString (ExcessArgumentsConstAppErr excessArgs)       = concat
     ]
 
 ckErrorString :: CkError -> String
-ckErrorString NonConstantReturnedCkError      =
-    "returned a non-constant: "
 ckErrorString NonTyAbsInstantiatedCkError     =
     "attempted to reduce a non-type-abstraction applied to a type: "
 ckErrorString NonWrapUnwrappedCkError         =
@@ -108,14 +117,15 @@ substituteDb varFor new = go where
     goUnder var term = if var == varFor then term else go term
 
 -- | The computing part of the CK machine. Rules are as follows:
--- s ▷ {M A}      ↦ s , {_ A} ▷ M
--- s ▷ [M N]      ↦ s , [_ N] ▷ M
--- s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
--- s ▷ unwrap M   ↦ s , (unwrap _) ▷ M
--- s ▷ abs α K M  ↦ s ◁ abs α K M
--- s ▷ lam x A M  ↦ s ◁ lam x A M
--- s ▷ con cn     ↦ s ◁ con cn
--- s ▷ error A    ↦ s ◁ error A
+--
+-- > s ▷ {M A}      ↦ s , {_ A} ▷ M
+-- > s ▷ [M N]      ↦ s , [_ N] ▷ M
+-- > s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
+-- > s ▷ unwrap M   ↦ s , (unwrap _) ▷ M
+-- > s ▷ abs α K M  ↦ s ◁ abs α K M
+-- > s ▷ lam x A M  ↦ s ◁ lam x A M
+-- > s ▷ con cn     ↦ s ◁ con cn
+-- > s ▷ error A    ↦ s ◁ error A
 (|>) :: Context -> Term TyName Name () -> CkEvalResult
 stack |> TyInst _ fun _       = FrameTyInstArg : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
@@ -129,19 +139,18 @@ _     |> Fix{}                = undefined
 _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 
 -- | The returning part of the CK machine. Rules are as follows:
--- s , {_ A}           ◁ abs α K M  ↦ s ▷ M
--- s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
--- s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
--- s , [M _]           ◁ V          ↦ s ◁ [M V]  -- partially saturated constant
--- s , [M _]           ◁ V          ↦ s ◁ W      -- fully saturated constant, [M V] ~> W
--- s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
--- s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
--- s , f               ◁ error A    ↦ s ◁ error A
+--
+-- > s , {_ A}           ◁ abs α K M  ↦ s ▷ M
+-- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
+-- > s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
+-- > s , [M _]           ◁ V          ↦ s ◁ [M V]  -- partially saturated constant
+-- > s , [M _]           ◁ V          ↦ s ◁ W      -- fully saturated constant, [M V] ~> W
+-- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
+-- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
+-- > s , f               ◁ error A    ↦ s ◁ error A
 (<|) :: Context -> Term TyName Name () -> CkEvalResult
 _                            <| Error _ _ = CkEvalFailure
-[]                           <| constant  = case constant of
-    Constant _ con -> CkEvalSuccess $ Constant () con
-    term           -> throw $ CkException NonConstantReturnedCkError term
+[]                           <| term      = CkEvalSuccess term
 FrameTyInstArg       : stack <| tyAbs     = case tyAbs of
     TyAbs _ _ _ body -> stack |> body
     term             -> throw $ CkException NonTyAbsInstantiatedCkError term
@@ -153,10 +162,10 @@ FrameUnwrap          : stack <| wrapped   = case wrapped of
     term            -> throw $ CkException NonWrapUnwrappedCkError term
 
 -- | Apply a function to an argument and proceed.
--- If the function is not a lambda, then `Apply` it to the argument and view this
--- as an iterated application of a `BuiltinName` to a list of `Constants`.
+-- If the function is not a lambda, then 'Apply' it to the argument and view this
+-- as an iterated application of a 'BuiltinName' to a list of 'Constant's.
 -- If succesful, proceed with either this same term or with the result of the computation
--- depending on whether `BuiltinName` is saturated or not.
+-- depending on whether 'BuiltinName' is saturated or not.
 applyReduce :: Context -> Term TyName Name () -> Term TyName Name () -> CkEvalResult
 applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyReduce stack fun                    arg =
@@ -173,6 +182,6 @@ applyReduce stack fun                    arg =
                         throw $ CkException (ConstAppCkError err) term
 
 -- | Evaluate a term using the CK machine.
--- May throw a `CkException`.
+-- May throw a 'CkException'.
 evaluateCk :: Term TyName Name () -> CkEvalResult
 evaluateCk = ([] |>)
