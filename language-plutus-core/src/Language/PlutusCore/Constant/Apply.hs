@@ -55,10 +55,10 @@ applyToBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltin) (SizeValues 
 applyToBuiltin TypedBuiltinBool _ f constant = undefined
 
 applySchemed
-    :: TypeSchema a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppError (b, SizeValues)
-applySchemed (TypeSchemaBuiltin a) sizeValues = applyToBuiltin a sizeValues
-applySchemed (TypeSchemaArrow a b) sizeValues = undefined
-applySchemed (TypeSchemaForall  k) sizeValues = undefined
+    :: TypeScheme a -> SizeValues -> (a -> b) -> Constant () -> Either ConstAppError (b, SizeValues)
+applySchemed (TypeSchemeBuiltin a) sizeValues = applyToBuiltin a sizeValues
+applySchemed (TypeSchemeArrow a b) sizeValues = undefined
+applySchemed (TypeSchemeForall  k) sizeValues = undefined
 
 wrapSizedConstant
     :: TypedBuiltinSized a -> Size -> a -> Maybe (Term TyName Name ())
@@ -76,18 +76,18 @@ wrapConstant TypedBuiltinBool                                           _       
 applyTypedBuiltinName
     :: TypedBuiltinName a -> a -> [Constant ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
-    go :: TypeSchema a -> SizeVar -> SizeValues -> a -> [Constant ()] -> ConstAppResult
-    go (TypeSchemaBuiltin builtin)       _       sizeValues y args = case args of
+    go :: TypeScheme a -> SizeVar -> SizeValues -> a -> [Constant ()] -> ConstAppResult
+    go (TypeSchemeBuiltin builtin)       _       sizeValues y args = case args of
        [] -> case wrapConstant builtin sizeValues y of
            Just wc -> ConstAppSuccess wc
            Nothing -> ConstAppFailure
        _  -> ConstAppError $ ExcessArgumentsConstAppErr args
-    go (TypeSchemaArrow schemaA schemaB) sizeVar sizeValues f args = case args of
+    go (TypeSchemeArrow schemaA schemaB) sizeVar sizeValues f args = case args of
         []        -> ConstAppStuck
         x : args' -> case applySchemed schemaA sizeValues f x of
             Left err               -> ConstAppError err
             Right (y, sizeValues') -> go schemaB sizeVar sizeValues' y args'
-    go (TypeSchemaForall k)              sizeVar sizeValues f args =
+    go (TypeSchemeForall k)              sizeVar sizeValues f args =
         go (k sizeVar) (succ sizeVar) sizeValues f args
 
 -- | Apply a `BuiltinName` to a list of arguments.

@@ -1,8 +1,9 @@
-module Language.PlutusCore.CkMachine ( CkError(..)
-                                     , CkException(..)
-                                     , CkEvalResult(..)
-                                     , evaluateCk
-                                     ) where
+module Language.PlutusCore.CkMachine
+    ( CkError(..)
+    , CkException(..)
+    , CkEvalResult(..)
+    , evaluateCk
+    ) where
 
 import           PlutusPrelude
 import           Language.PlutusCore.Type
@@ -79,6 +80,7 @@ instance Show CkException where
 
 instance Exception CkException
 
+-- TODO: move me somewhere else.
 -- | Check whether a term is a value.
 isValue :: Term tyname name a -> Bool
 isValue (TyAbs  _ _ _ body) = isValue body
