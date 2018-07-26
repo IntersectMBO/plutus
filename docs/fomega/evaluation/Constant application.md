@@ -89,7 +89,11 @@ sizeIntIntInt =
         TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinInt)
 ```
 
-Note how the `sizeIntIntInt` TypeScheme reflects the type of, say, `addInteger`.
+Note how the `sizeIntIntInt` TypeScheme reflects the type of, say, `addInteger`:
+
+ - `TypeSchemeForall $ \s -> ...` represents `all s. ...`
+ - `TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinInt)` represents `integer s`
+ - `TypeSchemeArrow` represents `(->)`
 
 `TypeScheme` is a GADT indexed by the Haskell interpretation of a PLC type. In the example above the type of `addInteger` becomes `Integer -> Integer -> Integer` on the Haskell side. For another example, `intToByteString` looks like this:
 
