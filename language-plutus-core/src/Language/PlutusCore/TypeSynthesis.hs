@@ -30,13 +30,11 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 -- 'TypeError's.
 type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
 
-data TypeError a = NotImplemented
-                 | InternalError -- ^ This is thrown if builtin lookup fails
+data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
                  | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
 
 instance Pretty a => Pretty (TypeError a) where
-    pretty NotImplemented   = "Type synthesis not yet implementd."
     pretty InternalError    = "Internal error."
     pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (pretty ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
     pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (pretty t) <> ". Expected type" <+> squotes (pretty ty) <+> ", found type" <+> squotes (pretty ty')
