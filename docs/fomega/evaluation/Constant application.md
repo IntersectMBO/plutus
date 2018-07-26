@@ -4,7 +4,7 @@
 
 We need to apply a built-in function to several arguments, how do we do that?
 
-As an example, let's pick the `addInteger` built-in which interpretation is `(+)` and which type is `all s. integer s -> integer s -> integer s`.
+As an example, let's pick the `addInteger` built-in whose interpretation is `(+)` and whose type is `all s. integer s -> integer s -> integer s`.
 
 This is what I wrote as a first attempt:
 
@@ -109,7 +109,7 @@ typedIntToByteString =
 
 Having interpretation defined over `TypeScheme`s solves all the problems mentioned above:
 
- 1. Types prevent us from interpreting `equalsInteger` as `(+)` -- this simply won't type check provided the typing scheme of `equalsInteger` is written correctly. You still can confuse `addInteger` with `mulInteger`, though.
+ 1. Types prevent us from interpreting `equalsInteger` as `(+)` -- this simply won't type check provided the type scheme of `equalsInteger` is written correctly. You still can confuse `addInteger` with `mulInteger`, though.
  2. Sizes are checked automatically. First time a size is encountered for some particular size variable during evaluation of a constant application, this size is memorized and all subsequent sizes that come from the same size variable are checked against that memorized size.
  3. No code duplication. The interpretation function is written once and for all. If you want to add a new primitive, you just supply a new `TypeScheme`.
 
