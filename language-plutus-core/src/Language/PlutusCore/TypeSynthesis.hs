@@ -213,6 +213,9 @@ tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 
+tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
+tyReduce (TyApp _ (TyLam _ n@(TyNameWithKind (TyName (Name _ _ u))) _ t) (t' :| [])) = tySubstitute u t' t
+
 -- TODO: tyReduce!
 typeEq :: Type TyNameWithKind () -> Type TyNameWithKind () -> Bool
 typeEq _ _ = False
