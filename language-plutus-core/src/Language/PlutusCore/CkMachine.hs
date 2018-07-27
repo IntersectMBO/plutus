@@ -181,7 +181,6 @@ applyReduce stack fun                    arg =
                     ConstAppError err     ->
                         throw $ CkException (ConstAppCkError err) term
 
--- | Evaluate a term using the CK machine.
--- May throw a 'CkException'.
+-- | Evaluate a term using the CK machine. May throw a 'CkException'.
 evaluateCk :: Term TyName Name () -> CkEvalResult
 evaluateCk = ([] |>)
