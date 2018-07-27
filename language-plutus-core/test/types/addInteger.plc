@@ -1,8 +1,8 @@
 (program 0.1.0
   [
-    (lam x t
-      [(con addInteger) x y]
+    (lam x [(con integer) (con 2)]
+      [(con addInteger) x (con 2 ! 1)]
     )
-    z
+    (con 2 ! 1)
   ]
 )

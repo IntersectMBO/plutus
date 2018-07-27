@@ -157,7 +157,7 @@ typeOf (Apply x t (t' :| [])) = do
     case ty of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
-            if typeEq ty'' ty'''
+            if ty'' == ty'''
                 then pure ty'
                 else throwError (TypeMismatch x (void t') (TyFun () ty' ty''') ty)
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
@@ -177,7 +177,9 @@ typeOf (TyInst x t (ty :| tys)) =
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
-        TyFix _ n ty' -> pure (tySubstitute (extractUnique n) ty ty')
+        TyFix _ n ty' -> do
+            let subst = tySubstitute (extractUnique n) ty ty'
+            pure subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     k <- kindOf ty
@@ -186,7 +188,7 @@ typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
         _      -> throwError (KindMismatch x (void ty) (Type ()) (void k))
     ty' <- typeOf t'
     let fixed = fixSubstitute (u, TyFix () (void n) (void ty)) u (void ty)
-    if typeEq fixed ty'
+    if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) (void ty') fixed) -- (throwError NotImplemented
 
@@ -202,7 +204,7 @@ fixSubstitute (u, ty) u'' = cata a where
     a (TyFixF l (TyNameWithKind (TyName (Name (l', _) _ u'))) ty') | u == u' && ty == ty' = TyVar l (TyNameWithKind (TyName (Name (l', Type l') "" u'')))
     a x                                                            = embed x
 
--- TODO: make type substitutions occur in a state monad instead
+-- TODO: make type substitutions occur in a state monad + benchmark
 tySubstitute :: Unique -- ^ Unique associated with type variable
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
              -> Type TyNameWithKind a -- ^ Type we are substituting in
@@ -216,6 +218,3 @@ tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) (ty' :| 
 tyReduce (TyApp x ty (ty' :| tys)) =
     tyReduce (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 tyReduce x = x
-
-typeEq :: Eq a => Type TyNameWithKind a -> Type TyNameWithKind a -> Bool
-typeEq = (==) `on` tyReduce
