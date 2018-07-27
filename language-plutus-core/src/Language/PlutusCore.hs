@@ -24,6 +24,7 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , annotate
+    , annotateST
     , debugScopes
     , RenamedTerm
     , RenamedType
@@ -31,6 +32,14 @@ module Language.PlutusCore
     , TyNameWithKind (..)
     , NameWithType (..)
     , Debug (..)
+    , TypeState (..)
+    -- * Type synthesis
+    , typeOf
+    , kindOf
+    , runTypeCheckM
+    , TypeError (..)
+    -- * Errors
+    , Error (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -40,12 +49,14 @@ import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeRenamer
+import           Language.PlutusCore.TypeSynthesis
 
 debugScopes :: BSL.ByteString -> Either ParseError T.Text
 debugScopes = fmap (render . debug) . parseScoped

@@ -21,10 +21,10 @@ import           Numeric                            (showHex)
 import           PlutusPrelude
 
 -- | A builtin type
-data TypeBuiltin = TyByteString
+data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals
                  | TyInteger
                  | TySize
-                 deriving (Show, Eq, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | Builtin functions
 data BuiltinName = AddInteger
@@ -37,6 +37,7 @@ data BuiltinName = AddInteger
                  | GreaterThanInteger
                  | GreaterThanEqInteger
                  | EqInteger
+                 | ResizeInteger
                  | IntToByteString
                  | Concatenate
                  | TakeByteString
@@ -49,7 +50,7 @@ data BuiltinName = AddInteger
                  | TxHash
                  | BlockNum
                  | BlockTime
-                 deriving (Show, Eq, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
@@ -60,7 +61,7 @@ data Keyword = KwAbs
              | KwLam
              | KwFix
              | KwFun
-             | KwForall
+             | KwAll
              | KwByteString
              | KwInteger
              | KwSize
@@ -119,7 +120,7 @@ instance Pretty Keyword where
     pretty KwLam        = "lam"
     pretty KwFix        = "fix"
     pretty KwFun        = "fun"
-    pretty KwForall     = "forall"
+    pretty KwAll        = "forall"
     pretty KwByteString = "bytestring"
     pretty KwInteger    = "integer"
     pretty KwSize       = "size"
@@ -151,6 +152,7 @@ instance Pretty BuiltinName where
     pretty GreaterThanInteger   = "greaterThanInteger"
     pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
     pretty EqInteger            = "equalsInteger"
+    pretty ResizeInteger        = "resizeInteger"
     pretty IntToByteString      = "intToByteString"
     pretty Concatenate          = "concatenate"
     pretty TakeByteString       = "takeByteString"

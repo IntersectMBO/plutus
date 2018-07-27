@@ -31,9 +31,10 @@ import           PlutusPrelude
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
                    | TyFun a (Type tyname a) (Type tyname a)
-                   | TyFix a (tyname a) (Kind a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
+                   | TyFix a (tyname a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
                    | TyForall a (tyname a) (Kind a) (Type tyname a)
                    | TyBuiltin a TypeBuiltin -- ^ Builtin type
+                   | TyInt a Natural -- ^ Type-level size
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (NonEmpty (Type tyname a))
                    deriving (Functor, Show, Eq, Generic, NFData)
@@ -80,10 +81,10 @@ instance Pretty (Kind a) where
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance Pretty (Program TyName Name a) where
+instance (Pretty (f a), Pretty (g a)) => Pretty (Program f g a) where
     pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
 
-instance Debug (Program TyName Name a) where
+instance (Debug (f a), Debug (g a)) => Debug (Program f g a) where
     debug (Program _ v t) = parens ("program" <+> pretty v <+> debug t)
 
 instance Pretty (Constant a) where
@@ -92,7 +93,7 @@ instance Pretty (Constant a) where
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
-instance Pretty (Term TyName Name a) where
+instance (Pretty (f a), Pretty (g a)) => Pretty (Term f g a) where
     pretty = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -105,7 +106,7 @@ instance Pretty (Term TyName Name a) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> pretty ty)
 
-instance Debug (Term TyName Name a) where
+instance (Debug (f a), Debug (g a)) => Debug (Term f g a) where
     debug = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
@@ -118,22 +119,26 @@ instance Debug (Term TyName Name a) where
         a (WrapF _ n ty t)   = parens ("wrap" <+> debug n <+> debug ty <+> t)
         a (ErrorF _ ty)      = parens ("error" <+> debug ty)
 
-instance Pretty (Type TyName a) where
+instance Pretty (f a) => Pretty (Type f a) where
     pretty = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = pretty n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n k t)    = parens ("fix" <+> pretty n <+> pretty k <+> t)
-        a (TyForallF _ n k t) = parens ("forall" <+> pretty n <+> pretty k <+> t)
+        a (TyFixF _ n t)      = parens ("fix" <+> pretty n <+> t)
+        a (TyForallF _ n k t) = parens ("all" <+> pretty n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
+        a (TyIntF _ n)        = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
 
-instance Debug (Type TyName a) where
+instance Debug (f a) => Debug (Type f a) where
     debug = cata a where
         a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
         a (TyVarF _ n)        = debug n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n k t)    = parens ("fix" <+> debug n <+> pretty k <+> t)
-        a (TyForallF _ n k t) = parens ("forall" <+> debug n <+> pretty k <+> t)
+        a (TyFixF _ n t)      = parens ("fix" <+> debug n <+> t)
+        a (TyForallF _ n k t) = parens ("all" <+> debug n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
+        a (TyIntF _ n)        = parens ("con" <+> pretty n)
         a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
+
+-- TODO: add binary serialize/deserialize instances here.
