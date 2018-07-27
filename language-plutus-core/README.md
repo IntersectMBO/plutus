@@ -1,6 +1,6 @@
 # Plutus Core Language Library
 
-**TODO**: add link to Plutus Core specification
+The Haskell package `language-plutus-core` implements a range of functionality for manipulating Plutus Core programs. The implementation is based on the [Plutus Core language specification](https://github.com/input-output-hk/plutus-prototype/tree/master/docs/plutus-core).
 
 ## Specification
 
@@ -12,9 +12,11 @@
 
 * Plutus Core abstract syntax
 
-* Typechecker
+* Renamer
 
-* Evaluator that closely follows the Plutus Core specification (the aim is to obviously follow the specification and not efficiency)
+* Type checker
+
+* Evaluator (interpreter based on the CK machine) that closely follows the Plutus Core specification (the aim is to obviously match the specification without much concern for efficiency)
 
 ### Testing
 
@@ -22,7 +24,7 @@
 
 * Round trip testing of parser with pretty-printer and serialisation with deserialisation using `hedgehog`
 
-* Tests against sample PLC programs
+* Golden tests against sample PLC programs
 
 ### Documentation
 
