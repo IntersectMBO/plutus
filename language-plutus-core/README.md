@@ -41,11 +41,11 @@ The lexer & parser are based on Alex & Happy and the pretty printer uses the `pr
 
 Parsing, pretty-printing and the AST representation closely follow the Plutus Core specification. AST nodes are parametereised with the same attribute as the embedded names. 
 
-NB: At this stage, every occurences of a particular name (identifier lexeme) receives the same unqiue. Hence, binders can be shadowed according to the scoping rules of Plutus Core.
+NB: At this stage, every occurrences of a particular name (identifier lexeme) receives the same unique. Hence, binders can be shadowed according to the scoping rules of Plutus Core.
 
 ### Renamer
 
-The renamer performs scope resolution and replaces all usage occurences of identifiers with their definition. In the case of Plutus Core, identifiers are either term or type variables whose definition assigns a type or kind, respectively. In other words, we can regard the renamer phase as the propagation of kind and type information from the site of the declaration of a term or type variable to all usages positions of those variables.
+The renamer performs scope resolution and replaces all usage occurrences of identifiers with their definition. In the case of Plutus Core, identifiers are either term or type variables whose definition assigns a type or kind, respectively. In other words, we can regard the renamer phase as the propagation of kind and type information from the site of the declaration of a term or type variable to all usages positions of those variables.
 
 Moreover, renaming ensures that programs meet the **global uniqueness property**: every unique in a program is only bound exactly once. Hence, there is no shadowing or reusing of names in disjoint scopes anymore after this phase.
 
