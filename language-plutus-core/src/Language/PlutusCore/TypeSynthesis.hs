@@ -54,8 +54,8 @@ newTyName k = do
 intop :: MonadState Int m => m (Type TyNameWithKind ())
 intop = do
     nam <- newTyName (Size ())
-    let ity = TyBuiltin () TyInteger
-        fty = TyFun () ity (TyFun () ity ity)
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam :| [])
+        fty = TyFun () ity (TyFun () ity ity) -- TODO: does this associate in the right direction?
     pure $ TyForall () nam (Size ()) fty
 
 defaultTable :: Int -> BuiltinTable
@@ -109,21 +109,21 @@ kindOf (TyApp x ty (ty' :| [])) = do
     case k of
         KindArrow _ k' k'' -> do
             k''' <- kindOf ty'
-            if k'' == k'''
-                then pure k'
-                else throwError (KindMismatch x (void ty') k'' k''')
+            if k' == k'''
+                then pure k''
+                else throwError (KindMismatch x (void ty') k'' k''') -- this is the branch that fails!
         _ -> throwError (KindMismatch x (void ty') (KindArrow () (Type ()) (Type ())) k)
 kindOf (TyApp x ty (ty' :| tys)) =
     kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
 integerType :: Natural -> Type a ()
-integerType _ = TyBuiltin () TyInteger
+integerType n = TyApp () (TyBuiltin () TyInteger) (TyInt () n :| [])
 
 bsType :: Natural -> Type a ()
-bsType _ = TyBuiltin () TyByteString
+bsType n = TyApp () (TyBuiltin () TyByteString) (TyInt () n :| [])
 
 sizeType :: Natural -> Type a ()
-sizeType _ = TyBuiltin () TySize
+sizeType n = TyApp () (TyBuiltin () TySize) (TyInt () n :| [])
 
 dummyUnique :: Unique
 dummyUnique = Unique 0
@@ -157,9 +157,9 @@ typeOf (Apply x t (t' :| [])) = do
     case ty of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
-            if ty'' == ty'''
-                then pure ty'
-                else throwError (TypeMismatch x (void t') (TyFun () ty' ty''') ty)
+            if ty' == ty'''
+                then pure ty''
+                else throwError (TypeMismatch x (void t') ty' ty''') --  (TyFun () ty''' ty'') ty)
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
