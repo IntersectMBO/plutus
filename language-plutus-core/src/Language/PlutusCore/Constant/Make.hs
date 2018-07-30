@@ -4,7 +4,7 @@ module Language.PlutusCore.Constant.Make
     ( makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
-    , makeBuiltinBool
+    , makeDupBuiltinBool
     ) where
 
 import           PlutusPrelude
@@ -35,5 +35,5 @@ makeBuiltinSize :: Size -> Size -> Maybe (Term TyName Name ())
 makeBuiltinSize size size' = size == size' ? Constant () (BuiltinSize () size)
 
 -- | Coerce a 'Bool' to PLC's @boolean@.
-makeBuiltinBool :: Bool -> Term TyName Name ()
-makeBuiltinBool b = if b then builtinTrue else builtinFalse
+makeDupBuiltinBool :: Bool -> Term TyName Name ()
+makeDupBuiltinBool b = dropFresh $ if b then getBuiltinTrue else getBuiltinFalse

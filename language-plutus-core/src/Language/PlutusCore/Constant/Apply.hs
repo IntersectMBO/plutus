@@ -88,7 +88,7 @@ wrapConstant
 wrapConstant (TypedBuiltinSized (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) =
     wrapSizedConstant typedSizedBuiltin $ sizes IntMap.! sizeIndex
 wrapConstant TypedBuiltinBool                                           _                 =
-    Just . makeBuiltinBool
+    Just . makeDupBuiltinBool
 
 -- | Apply a 'TypedBuiltinName' to a list of constant arguments.
 applyTypedBuiltinName

@@ -11,22 +11,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
 
-import qualified Data.ByteString as BSL
-
 type Size = Natural
-
-newtype Fresh a = Fresh ()
-
-instance Functor Fresh where
-    fmap = undefined
-instance Applicative Fresh where
-instance Monad Fresh where
-
-freshName :: a -> BSL.ByteString -> Fresh (Name a)
-freshName = undefined
-
-freshTyName :: a -> BSL.ByteString -> Fresh (TyName a)
-freshTyName = fmap TyName .* freshName
 
 -- | Church-encoded '()' as a PLC type.
 --
