@@ -116,14 +116,17 @@ kindOf (TyApp x ty (ty' :| [])) = do
 kindOf (TyApp x ty (ty' :| tys)) =
     kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
+intApp :: Type a () -> Natural -> Type a ()
+intApp ty n = TyApp () ty (TyInt () n :| [])
+
 integerType :: Natural -> Type a ()
-integerType n = TyApp () (TyBuiltin () TyInteger) (TyInt () n :| [])
+integerType = intApp (TyBuiltin () TyInteger)
 
 bsType :: Natural -> Type a ()
-bsType n = TyApp () (TyBuiltin () TyByteString) (TyInt () n :| [])
+bsType = intApp (TyBuiltin () TyByteString)
 
 sizeType :: Natural -> Type a ()
-sizeType n = TyApp () (TyBuiltin () TySize) (TyInt () n :| [])
+sizeType = intApp (TyBuiltin () TySize)
 
 dummyUnique :: Unique
 dummyUnique = Unique 0
