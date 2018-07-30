@@ -1,0 +1,19 @@
+packages: ./
+optimization: 2
+constraints: language-plutus-core +development
+tests: true
+documentation: true
+
+program-options
+  alex-options: -g
+  happy-options: -gcsa
+
+allow-newer:
+    base
+    template-haskell
+    stm
+
+source-repository-package
+    type: git
+    location: https://github.com/haskell/stm
+    tag: 4c24db6071fc1319232934562f7dbed45d498831

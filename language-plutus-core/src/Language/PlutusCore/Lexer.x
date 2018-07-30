@@ -49,7 +49,7 @@ tokens :-
     <0> lam                      { mkKeyword KwLam }
     <0> fix                      { mkKeyword KwFix }
     <0> fun                      { mkKeyword KwFun }
-    <0> forall                   { mkKeyword KwForall }
+    <0> all                      { mkKeyword KwAll }
     <0> bytestring               { mkKeyword KwByteString }
     <0> integer                  { mkKeyword KwInteger }
     <0> size                     { mkKeyword KwSize }
@@ -109,6 +109,9 @@ tokens :-
 
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
+
+instance Pretty (AlexPosn) where
+    pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
 
 handleChar :: Word8 -> Word8
 handleChar x
@@ -215,6 +218,5 @@ runAlexST input (Alex f) = first alex_ust <$>
                  , alex_ust = alexInitUserState
                  , alex_scd = 0
                  })
-
 
 }

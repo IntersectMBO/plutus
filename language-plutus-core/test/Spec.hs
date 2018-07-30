@@ -6,11 +6,13 @@ module Main ( main
 import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
+import qualified Data.IntMap                           as IM
 import qualified Data.List.NonEmpty                    as NE
+import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text
-import           Hedgehog                              hiding (Size, Var)
+import           Hedgehog                              hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen                          as Gen
 import qualified Hedgehog.Range                        as Range
 import           Language.PlutusCore
@@ -23,7 +25,8 @@ main :: IO ()
 main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
-    defaultMain (allTests plcFiles rwFiles)
+    typeFiles <- findByExtension [".plc"] "test/types"
+    defaultMain (allTests plcFiles rwFiles typeFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -47,11 +50,12 @@ compareTerm _ _                                    = False
 compareType :: Eq a => Type TyName a -> Type TyName a -> Bool
 compareType (TyVar _ n) (TyVar _ n')                 = compareTyName n n'
 compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
-compareType (TyFix _ n k t) (TyFix _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
+compareType (TyFix _ n t) (TyFix _ n' t')            = compareTyName n n' && compareType t t'
 compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k == k' && compareType t t'
 compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
 compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
+compareType (TyInt _ n) (TyInt _ n')                 = n == n'
 compareType _ _                                      = False
 
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
@@ -82,7 +86,7 @@ genBuiltinName :: MonadGen m => m BuiltinName
 genBuiltinName = Gen.choice $ pure <$>
     [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger
     , LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger
-    , EqInteger, IntToByteString, IntToByteString, Concatenate, TakeByteString
+    , EqInteger, ResizeInteger, IntToByteString, Concatenate, TakeByteString
     , DropByteString, ResizeByteString, SHA2, SHA3, VerifySignature
     , EqByteString, TxHash, BlockNum, BlockTime
     ]
@@ -102,10 +106,11 @@ genType = simpleRecursive nonRecursive recursive
           funGen = TyFun emptyPosn <$> genType <*> genType
           lamGen = TyLam emptyPosn <$> genTyName <*> genKind <*> genType
           forallGen = TyForall emptyPosn <$> genTyName <*> genKind <*> genType
-          fixGen = TyFix emptyPosn <$> genTyName <*> genKind <*> genType
+          fixGen = TyFix emptyPosn <$> genTyName <*> genType
           applyGen = TyApp emptyPosn <$> genType <*> args genType
+          numGen = TyInt emptyPosn <$> Gen.integral (Range.linear 0 256)
           recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen, fixGen]
+          nonRecursive = [varGen, lamGen, forallGen, fixGen, numGen]
           args = Gen.nonEmpty (Range.linear 1 4)
 
 genTerm :: MonadGen m => m (Term TyName Name AlexPosn)
@@ -140,26 +145,49 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testsGolden plcFiles
     , testsRewrite rwFiles
+    , testsType typeFiles
     ]
 
+type TestFunction a = BSL.ByteString -> Either a T.Text
+
+asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
+
+errorgen :: Pretty a => a -> BSL.ByteString
+errorgen = BSL.fromStrict . encodeUtf8 . printError
+
+printError :: Pretty a => a -> T.Text
+printError = renderStrict . layoutSmart defaultLayoutOptions . pretty
+
+collectErrors :: Either ParseError (Either (RenameError AlexPosn) T.Text) -> Either Error T.Text
+collectErrors (Left x)          = Left (ParseError x)
+collectErrors (Right (Left x))  = Left (RenameError x)
+collectErrors (Right (Right x)) = Right x
+
+withTypes :: BSL.ByteString -> Either Error T.Text
+withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
+
+showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
+showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i $ typeOf t
+    where i = fst $ IM.findMax tys
+
+asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
+asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
+
+testsType :: [FilePath] -> TestTree
+testsType = testGroup "golden type synthesis tests" . fmap (asGolden withTypes)
+
 testsGolden :: [FilePath] -> TestTree
-testsGolden = testGroup "golden tests" . fmap asGolden
-    where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
-          -- TODO consider more useful output here
-          asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . format) . BSL.readFile
-          errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+testsGolden = testGroup "golden tests" . fmap (asGolden format)
 
 testsRewrite :: [FilePath] -> TestTree
-testsRewrite = testGroup "golden rewrite tests" . fmap asGolden
-    where asGolden file = goldenVsString file (file ++ ".golden") (asIO file)
-          asIO = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . debugScopes) . BSL.readFile
-          errorgen = BSL.fromStrict . encodeUtf8 . renderStrict . layoutSmart defaultLayoutOptions . pretty
+testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden debugScopes)
 
 tests :: TestTree
 tests = testCase "example programs" $ fold

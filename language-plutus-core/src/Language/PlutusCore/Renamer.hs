@@ -1,17 +1,25 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
-module Language.PlutusCore.TypeRenamer ( rename
-                                       , annotate
-                                       , RenamedTerm
-                                       , NameWithType (..)
-                                       , RenamedType
-                                       , TyNameWithKind (..)
-                                       , RenameError (..)
-                                       ) where
+module Language.PlutusCore.Renamer ( rename
+                                   , annotate
+                                   , annotateST
+                                   , RenamedTerm
+                                   , NameWithType (..)
+                                   , RenamedType
+                                   , TyNameWithKind (..)
+                                   , RenameError (..)
+                                   , TypeState (..)
+                                   ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
-import qualified Data.IntMap              as IM
+import qualified Data.IntMap               as IM
+import           Data.Text.Prettyprint.Doc hiding (annotate)
+import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Lens.Micro
@@ -36,16 +44,27 @@ type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
+    deriving (Functor, Pretty)
 type RenamedType a = Type TyNameWithKind a
-newtype TyNameWithKind a = TyNameWithKind (TyName (a, Kind a))
+newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
+    deriving (Eq, Functor, Show, Pretty)
 
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
 
+instance Pretty (RenameError AlexPosn) where
+    pretty (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> pretty n <+> "is not in scope."
+    pretty (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> pretty n <+> "is not in scope."
+
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
-annotate (Program x v p) = Program x v <$> evalStateT (annotateTerm p) mempty
+annotate = fmap snd . annotateST
+
+annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
+annotateST (Program x v p) = do
+    (t, st) <- runStateT (annotateTerm p) mempty
+    pure (st, Program x v t)
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert
@@ -104,15 +123,17 @@ annotateType (TyForall x (TyName (Name x' s u@(Unique i))) k ty) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
     TyForall x nwty k <$> annotateType ty
-annotateType (TyFix x (TyName (Name x' s u@(Unique i))) k ty) = do
+annotateType (TyFix x (TyName (Name x' s u@(Unique i))) ty) = do
+    let k = Type x'
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
-    TyFix x nwty k <$> annotateType ty
+    TyFix x nwty <$> annotateType ty
 annotateType (TyFun x ty ty') =
     TyFun x <$> annotateType ty <*> annotateType ty'
 annotateType (TyApp x ty tys) =
     TyApp x <$> annotateType ty <*> traverse annotateType tys
 annotateType (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
+annotateType (TyInt x n) = pure (TyInt x n)
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
@@ -188,6 +209,7 @@ renameTerm st (Error x ty) = Error x <$> renameType st ty
 renameTerm st (TyInst x t tys) = TyInst x <$> renameTerm st t <*> traverse (renameType st) tys
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
+renameType _ ty@TyInt{} = pure ty
 renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
     m <- get
     let st' = modifyIdentifiers u m st
@@ -206,14 +228,14 @@ renameType st ty@(TyForall x (TyName (Name x' s (Unique u))) k ty') = do
             modify (+1) >>
             TyForall x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
         _ -> renameType st' ty
-renameType st ty@(TyFix x (TyName (Name x' s (Unique u))) k ty') = do
+renameType st ty@(TyFix x (TyName (Name x' s (Unique u))) ty') = do
     m <- get
     let st' = modifyIdentifiers u m st
         pastDef = lookupId u st
     case pastDef of
         Just _ ->
             modify (+1) >>
-            TyFix x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
+            TyFix x (TyName (Name x' s (Unique (m+1)))) <$> renameType st' ty'
         _ -> renameType st' ty
 renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
     case pastDef of

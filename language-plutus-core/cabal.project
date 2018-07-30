@@ -1,3 +1,4 @@
+packages: ./
 optimization: 2
 constraints: language-plutus-core +development
 tests: true

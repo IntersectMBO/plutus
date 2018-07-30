@@ -11,8 +11,8 @@ import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer.Type
@@ -43,7 +43,7 @@ import Language.PlutusCore.Name
     fix { LexKeyword $$ KwFix }
     con { LexKeyword $$ KwCon }
     fun { LexKeyword $$ KwFun }
-    forall { LexKeyword $$ KwForall }
+    all { LexKeyword $$ KwAll }
     size { LexKeyword $$ KwSize }
     integer { LexKeyword $$ KwInteger }
     bytestring { LexKeyword $$ KwByteString }
@@ -108,15 +108,18 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
+BuiltinType : size { TyBuiltin $1 TySize }
+            | integer { TyBuiltin $1 TyInteger }
+            | bytestring { TyBuiltin $1 TyByteString }
+            | naturalLit { TyInt (loc $1) (nat $1) }
+
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
-     | openParen forall TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
+     | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen fix TyName Kind Type closeParen { TyFix $2 $3 $4 $5 }
+     | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
      | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
-     | size { TyBuiltin $1 TySize }
-     | integer { TyBuiltin $1 TyInteger }
-     | bytestring { TyBuiltin $1 TyByteString }
+     | openParen con BuiltinType closeParen { $3 }
 
 Kind : parens(type) { Type $1 }
      | parens(size) { Size $1 }
@@ -154,9 +157,6 @@ data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Overflow AlexPosn Natural Integer 
                 deriving (Show, Eq, Generic, NFData)
-
-instance Pretty AlexPosn where
-    pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
 
 instance Pretty ParseError where
     pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
