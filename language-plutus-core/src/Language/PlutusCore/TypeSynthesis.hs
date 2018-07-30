@@ -54,8 +54,8 @@ newTyName k = do
 intop :: MonadState Int m => m (Type TyNameWithKind ())
 intop = do
     nam <- newTyName (Size ())
-    let ity = TyBuiltin () TyInteger
-        fty = TyFun () ity (TyFun () ity ity)
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam :| [])
+        fty = TyFun () ity (TyFun () ity ity) -- TODO: does this associate in the right direction?
     pure $ TyForall () nam (Size ()) fty
 
 defaultTable :: Int -> BuiltinTable
@@ -109,21 +109,24 @@ kindOf (TyApp x ty (ty' :| [])) = do
     case k of
         KindArrow _ k' k'' -> do
             k''' <- kindOf ty'
-            if k'' == k'''
-                then pure k'
-                else throwError (KindMismatch x (void ty') k'' k''')
+            if k' == k'''
+                then pure k''
+                else throwError (KindMismatch x (void ty') k'' k''') -- this is the branch that fails!
         _ -> throwError (KindMismatch x (void ty') (KindArrow () (Type ()) (Type ())) k)
 kindOf (TyApp x ty (ty' :| tys)) =
     kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
+intApp :: Type a () -> Natural -> Type a ()
+intApp ty n = TyApp () ty (TyInt () n :| [])
+
 integerType :: Natural -> Type a ()
-integerType _ = TyBuiltin () TyInteger
+integerType = intApp (TyBuiltin () TyInteger)
 
 bsType :: Natural -> Type a ()
-bsType _ = TyBuiltin () TyByteString
+bsType = intApp (TyBuiltin () TyByteString)
 
 sizeType :: Natural -> Type a ()
-sizeType _ = TyBuiltin () TySize
+sizeType = intApp (TyBuiltin () TySize)
 
 dummyUnique :: Unique
 dummyUnique = Unique 0
@@ -157,9 +160,9 @@ typeOf (Apply x t (t' :| [])) = do
     case ty of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
-            if typeEq ty'' ty'''
-                then pure ty'
-                else throwError (TypeMismatch x (void t') (TyFun () ty' ty''') ty)
+            if ty' == ty'''
+                then pure ty''
+                else throwError (TypeMismatch x (void t') ty' ty''') --  (TyFun () ty''' ty'') ty)
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 typeOf (Apply x t (t' :| ts)) =
     typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
@@ -177,7 +180,9 @@ typeOf (TyInst x t (ty :| tys)) =
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
-        TyFix _ n ty' -> pure (tySubstitute (extractUnique n) ty ty')
+        TyFix _ n ty' -> do
+            let subst = tySubstitute (extractUnique n) ty ty'
+            pure subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     k <- kindOf ty
@@ -186,7 +191,7 @@ typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
         _      -> throwError (KindMismatch x (void ty) (Type ()) (void k))
     ty' <- typeOf t'
     let fixed = fixSubstitute (u, TyFix () (void n) (void ty)) u (void ty)
-    if typeEq fixed ty'
+    if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) (void ty') fixed) -- (throwError NotImplemented
 
@@ -202,7 +207,7 @@ fixSubstitute (u, ty) u'' = cata a where
     a (TyFixF l (TyNameWithKind (TyName (Name (l', _) _ u'))) ty') | u == u' && ty == ty' = TyVar l (TyNameWithKind (TyName (Name (l', Type l') "" u'')))
     a x                                                            = embed x
 
--- TODO: make type substitutions occur in a state monad instead
+-- TODO: make type substitutions occur in a state monad + benchmark
 tySubstitute :: Unique -- ^ Unique associated with type variable
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
              -> Type TyNameWithKind a -- ^ Type we are substituting in
@@ -216,6 +221,3 @@ tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) (ty' :| 
 tyReduce (TyApp x ty (ty' :| tys)) =
     tyReduce (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 tyReduce x = x
-
-typeEq :: Eq a => Type TyNameWithKind a -> Type TyNameWithKind a -> Bool
-typeEq = (==) `on` tyReduce
