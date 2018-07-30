@@ -13,7 +13,7 @@ description:
 category: Language
 build-type: Simple
 extra-source-files:
-    cabal.project.local
+    cabal.project
 extra-doc-files: README.md
 
 source-repository head
