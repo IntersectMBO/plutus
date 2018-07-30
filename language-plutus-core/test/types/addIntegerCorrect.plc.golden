@@ -1,1 +1,1 @@
-Type mismatch at 4:7 in term '(con addInteger)'. Expected type '(fun * *)' , found type '(all  (size) (fun (con integer) (fun (con integer) (con integer))))'
+TyApp () (TyBuiltin () TyInteger) (TyInt () 2 :| [])
