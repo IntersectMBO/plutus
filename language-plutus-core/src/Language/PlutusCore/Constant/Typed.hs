@@ -17,7 +17,7 @@ module Language.PlutusCore.Constant.Typed
     , typedGreaterThanInteger
     , typedGreaterThanEqInteger
     , typedEqInteger
-    -- , typedResizeInteger
+    , typedResizeInteger
     , typedIntToByteString
     ) where
 
@@ -107,13 +107,13 @@ typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger sizeIntIntBool
 typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool)
 typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
 
--- typedResizeInteger :: TypedBuiltinName (Natural -> Integer -> Integer)
--- typedResizeInteger =
---     TypedBuiltinName ResizeInteger $
---         TypeSchemeForall $ \s0 -> TypeSchemeForall $ \s1 ->
---             TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinSize) `TypeSchemeArrow`
---             TypeSchemeBuiltin (TypedBuiltinSized s0 TypedBuiltinInt) `TypeSchemeArrow`
---             TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinInt)
+typedResizeInteger :: TypedBuiltinName (Natural -> Integer -> Integer)
+typedResizeInteger =
+    TypedBuiltinName ResizeInteger $
+        TypeSchemeForall $ \s0 -> TypeSchemeForall $ \s1 ->
+            TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinSize) `TypeSchemeArrow`
+            TypeSchemeBuiltin (TypedBuiltinSized s0 TypedBuiltinInt) `TypeSchemeArrow`
+            TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinInt)
 
 typedIntToByteString :: TypedBuiltinName (Natural -> Integer -> BSL.ByteString)
 typedIntToByteString =

@@ -8,13 +8,14 @@ module Language.PlutusCore.CkMachine
 import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Constant.Apply
 
 infix 4 |>, <|
 
 data Frame
-    = FrameApplyFun (Term TyName Name ())
+    = FrameApplyFun (Value TyName Name ())
       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name ())
       -- ^ @[_ N]@
@@ -47,7 +48,7 @@ data CkException = CkException
 
 -- | The type of results the CK machine returns.
 data CkEvalResult
-    = CkEvalSuccess (Term TyName Name ())
+    = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
 
 constAppErrorString :: ConstAppError -> String
@@ -65,7 +66,7 @@ constAppErrorString (IllTypedConstAppError expType constant)      = concat
     , prettyString expType
     , ") in"
     ]
-constAppErrorString (ExcessArgumentsConstAppErr excessArgs)       = concat
+constAppErrorString (ExcessArgumentsConstAppError excessArgs)     = concat
     [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
     , prettyString excessArgs
     , ") in"
@@ -89,19 +90,10 @@ instance Show CkException where
 
 instance Exception CkException
 
--- TODO: move me somewhere else.
--- | Check whether a term is a value.
-isValue :: Term tyname name a -> Bool
-isValue (TyAbs  _ _ _ body) = isValue body
-isValue (Wrap   _ _ _ term) = isValue term
-isValue (LamAbs _ _ _ body) = isValue body
-isValue (Constant _ _)      = True
-isValue _                   = False
-
 -- | Substitute a term for a variable in a term that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
-    :: Eq (name a) => name a -> Term tyname name a -> Term tyname name a -> Term tyname name a
+    :: Eq (name a) => name a -> Value tyname name a -> Term tyname name a -> Term tyname name a
 substituteDb varFor new = go where
     go (Var ann var)            = if var == varFor then new else Var ann var
     go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
@@ -148,7 +140,7 @@ _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- > s , f               ◁ error A    ↦ s ◁ error A
-(<|) :: Context -> Term TyName Name () -> CkEvalResult
+(<|) :: Context -> Value TyName Name () -> CkEvalResult
 _                            <| Error _ _ = CkEvalFailure
 []                           <| term      = CkEvalSuccess term
 FrameTyInstArg       : stack <| tyAbs     = case tyAbs of
@@ -166,7 +158,7 @@ FrameUnwrap          : stack <| wrapped   = case wrapped of
 -- as an iterated application of a 'BuiltinName' to a list of 'Constant's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyReduce :: Context -> Term TyName Name () -> Term TyName Name () -> CkEvalResult
+applyReduce :: Context -> Value TyName Name () -> Term TyName Name () -> CkEvalResult
 applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyReduce stack fun                    arg =
     let term = Apply () fun (undefined arg) in

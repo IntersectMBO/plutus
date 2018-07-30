@@ -6,6 +6,7 @@ module PlutusPrelude ( (&&&)
                      , first
                      , second
                      , on
+                     , isJust
                      , guard
                      , fold
                      , throw
@@ -40,6 +41,7 @@ import           Data.Bool                 (bool)
 import           Data.Foldable             (fold, toList)
 import           Data.Function             (on)
 import           Data.List.NonEmpty        (NonEmpty (..))
+import           Data.Maybe                (isJust)
 import           Data.Semigroup
 import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc

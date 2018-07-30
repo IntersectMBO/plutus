@@ -23,17 +23,17 @@ checkBoundsBS :: Size -> BSL.ByteString -> Bool
 checkBoundsBS = undefined
 
 -- | Check whether an 'Integer' is in bounds (see 'checkBoundsInt') and return it as a term.
-makeBuiltinInt :: Size -> Integer -> Maybe (Term TyName Name ())
-makeBuiltinInt size int = checkBoundsInt size int ? Constant () (BuiltinInt () size int)
+makeBuiltinInt :: Size -> Integer -> Maybe (Constant ())
+makeBuiltinInt size int = checkBoundsInt size int ? BuiltinInt () size int
 
 -- | Check whether a 'ByteString' is in bounds (see 'checkBoundsBS') and return it as a term.
-makeBuiltinBS :: Size -> BSL.ByteString -> Maybe (Term TyName Name ())
-makeBuiltinBS size bs = checkBoundsBS size bs ? Constant () (BuiltinBS () size bs)
+makeBuiltinBS :: Size -> BSL.ByteString -> Maybe (Constant ())
+makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 
 -- | Check whether a 'Size' is a singleton and return it as a term.
-makeBuiltinSize :: Size -> Size -> Maybe (Term TyName Name ())
-makeBuiltinSize size size' = size == size' ? Constant () (BuiltinSize () size)
+makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
+makeBuiltinSize size size' = size == size' ? BuiltinSize () size
 
 -- | Coerce a 'Bool' to PLC's @boolean@.
-makeDupBuiltinBool :: Bool -> Term TyName Name ()
+makeDupBuiltinBool :: Bool -> Value TyName Name ()
 makeDupBuiltinBool b = dropFresh $ if b then getBuiltinTrue else getBuiltinFalse

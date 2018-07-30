@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.Constant.Prelude
     ( Size
+    , Value
     , getBuiltinUnit
     , getBuiltinUnitval
     , getBuiltinTrue
@@ -12,6 +13,7 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
 
 type Size = Natural
+type Value = Term
 
 -- | Church-encoded '()' as a PLC type.
 --
@@ -26,7 +28,7 @@ getBuiltinUnit = do
 -- | Church-encoded '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Fresh (Term TyName Name ())
+getBuiltinUnitval :: Fresh (Value TyName Name ())
 getBuiltinUnitval = do
     a <- freshTyName () "A"
     x <- freshName () "x"
@@ -38,7 +40,7 @@ getBuiltinUnitval = do
 -- | Church-encoded 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
-getBuiltinTrue :: Fresh (Term TyName Name ())
+getBuiltinTrue :: Fresh (Value TyName Name ())
 getBuiltinTrue = do
     builtinUnit <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
@@ -55,7 +57,7 @@ getBuiltinTrue = do
 -- | Church-encoded 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
-getBuiltinFalse :: Fresh (Term TyName Name ())
+getBuiltinFalse :: Fresh (Value TyName Name ())
 getBuiltinFalse = do
     builtinUnit <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
