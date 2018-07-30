@@ -1,4 +1,5 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE PatternSynonyms #-}
 module Main where
 
 import Criterion.Main.Options
@@ -8,7 +9,18 @@ import Criterion.Types
 fix' :: ((a -> b) -> a -> b) -> a -> b
 fix' f x = (f $! fix' f) $! x
 
-newtype Self a = Self { unfold :: Self a -> a }
+newtype Fix f = Fix (f (Fix f))
+
+newtype SelfF a r = SelfF
+  { unSelfF :: r -> a
+  }
+
+type Self a = Fix (SelfF a)
+
+pattern Self f = Fix (SelfF f)
+
+unfold :: Self a -> Self a -> a
+unfold (Self f) = f
 
 -- unroll (self {τ} (x.e)) ↦ [self {τ} (x.e) / x] e
 unroll :: Self a -> a
