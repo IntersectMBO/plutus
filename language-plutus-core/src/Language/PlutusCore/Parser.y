@@ -99,7 +99,7 @@ TyName : Name { TyName $1 }
 
 Term : Name { Var (nameAttribute $1) $1 }
      | openParen abs TyName Kind Term closeParen { TyAbs $2 $3 $4 $5 }
-     | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
+     | openBrace Term some(Type) closeBrace { tyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix Name Type Term closeParen { Fix $2 $3 $4 $5 }
@@ -126,6 +126,10 @@ Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
+
+tyInst :: a -> Term tyname name a -> NonEmpty (Type tyname a) -> Term tyname name a
+tyInst loc t (ty :| []) = TyInst loc t ty
+tyInst loc t (ty :| tys) = TyInst loc (tyInst loc t (ty:|init tys)) (last tys)
 
 tyApps :: a -> Type tyname a -> NonEmpty (Type tyname a) -> Type tyname a
 tyApps loc ty (ty' :| [])  = TyApp loc ty ty'

@@ -100,8 +100,8 @@ annotateTerm (Apply x t t') =
     Apply x <$> annotateTerm t <*> annotateTerm t'
 annotateTerm (Constant x c) =
     pure (Constant x c)
-annotateTerm (TyInst x t tys) =
-    TyInst x <$> annotateTerm t <*> traverse annotateType tys
+annotateTerm (TyInst x t ty) =
+    TyInst x <$> annotateTerm t <*> annotateType ty
 annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
     aty <- annotateType ty
     let k = Type x'
@@ -206,7 +206,7 @@ renameTerm st (Apply x t t') = Apply x <$> renameTerm st t <*> renameTerm st t'
 renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
 renameTerm _ x@Constant{} = pure x
 renameTerm st (Error x ty) = Error x <$> renameType st ty
-renameTerm st (TyInst x t tys) = TyInst x <$> renameTerm st t <*> traverse (renameType st) tys
+renameTerm st (TyInst x t tys) = TyInst x <$> renameTerm st t <*> renameType st tys
 
 renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
 renameType _ ty@TyInt{} = pure ty

@@ -7,7 +7,6 @@ import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
 import qualified Data.IntMap                           as IM
-import qualified Data.List.NonEmpty                    as NE
 import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
 import           Data.Text.Prettyprint.Doc             hiding (annotate)
@@ -41,7 +40,7 @@ compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compare
 compareTerm (Apply _ t t') (Apply _ t'' t''')      = compareTerm t t'' && compareTerm t' t'''
 compareTerm (Fix _ n ty t) (Fix _ n' ty' t')       = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)          = x == y
-compareTerm (TyInst _ t ts) (TyInst _ t' ts')      = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
@@ -117,7 +116,7 @@ genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
           fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
           absGen = TyAbs emptyPosn <$> genTyName <*> genKind <*> genTerm
-          instGen = TyInst emptyPosn <$> genTerm <*> args genType
+          instGen = TyInst emptyPosn <$> genTerm <*> genType
           lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
           applyGen = Apply emptyPosn <$> genTerm <*> genTerm
           unwrapGen = Unwrap emptyPosn <$> genTerm
@@ -125,7 +124,6 @@ genTerm = simpleRecursive nonRecursive recursive
           errorGen = Error emptyPosn <$> genType
           recursive = [fixGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
-          args = Gen.nonEmpty (Range.linear 1 4)
 
 genProgram :: MonadGen m => m (Program TyName Name AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm

@@ -13,7 +13,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
 import           Data.Functor.Foldable          hiding (Fix (..))
-import qualified Data.List.NonEmpty             as NE
 import qualified Data.Map                       as M
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer.Type
@@ -163,7 +162,7 @@ typeOf (Apply x t t') = do
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''')
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
-typeOf (TyInst x t (ty :| [])) = do
+typeOf (TyInst x t ty) = do
     ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
@@ -172,8 +171,6 @@ typeOf (TyInst x t (ty :| [])) = do
                 then pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
-typeOf (TyInst x t (ty :| tys)) =
-    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
