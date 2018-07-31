@@ -101,7 +101,7 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openParen abs TyName Kind Term closeParen { TyAbs $2 $3 $4 $5 }
      | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
-     | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
+     | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen fix Name Type Term closeParen { Fix $2 $3 $4 $5 }
      | openParen con Builtin closeParen { Constant $2 $3 }
      | openParen wrap TyName Type Term closeParen { Wrap $2 $3 $4 $5 }
@@ -118,7 +118,7 @@ Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
      | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
+     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
      | openParen con BuiltinType closeParen { $3 }
 
 Kind : parens(type) { Type $1 }
@@ -126,6 +126,14 @@ Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
+
+tyApps :: a -> Type tyname a -> NonEmpty (Type tyname a) -> Type tyname a
+tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
+tyApps loc ty (ty' :| tys) = TyApp loc ty (tyApps loc ty' (NE.fromList tys))
+
+app :: a -> Term tyname name a -> NonEmpty (Term tyname name a) -> Term tyname name a
+app loc t (t' :| []) = Apply loc t t'
+app loc t (t' :| ts) = Apply loc t (app loc t' (NE.fromList ts))
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
 handleInteger x sz i = if isOverflow

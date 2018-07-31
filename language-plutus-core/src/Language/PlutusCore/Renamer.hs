@@ -96,8 +96,8 @@ annotateTerm (Unwrap x t) =
     Unwrap x <$> annotateTerm t
 annotateTerm (Error x ty) =
     Error x <$> annotateType ty
-annotateTerm (Apply x t ts) =
-    Apply x <$> annotateTerm t <*> traverse annotateTerm ts
+annotateTerm (Apply x t t') =
+    Apply x <$> annotateTerm t <*> annotateTerm t'
 annotateTerm (Constant x c) =
     pure (Constant x c)
 annotateTerm (TyInst x t tys) =
@@ -130,8 +130,8 @@ annotateType (TyFix x (TyName (Name x' s u@(Unique i))) ty) = do
     TyFix x nwty <$> annotateType ty
 annotateType (TyFun x ty ty') =
     TyFun x <$> annotateType ty <*> annotateType ty'
-annotateType (TyApp x ty tys) =
-    TyApp x <$> annotateType ty <*> traverse annotateType tys
+annotateType (TyApp x ty ty') =
+    TyApp x <$> annotateType ty <*> annotateType ty'
 annotateType (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
 annotateType (TyInt x n) = pure (TyInt x n)
 
@@ -202,7 +202,7 @@ renameTerm st t@(Var x (Name x' s (Unique u))) =
         Just j -> pure $ Var x (Name x' s (Unique j))
         _      -> pure t
     where pastDef = lookupId u st
-renameTerm st (Apply x t ts) = Apply x <$> renameTerm st t <*> traverse (renameTerm st) ts
+renameTerm st (Apply x t t') = Apply x <$> renameTerm st t <*> renameTerm st t'
 renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
 renameTerm _ x@Constant{} = pure x
 renameTerm st (Error x ty) = Error x <$> renameType st ty
@@ -242,6 +242,6 @@ renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
         Just j -> pure $ TyVar x (TyName (Name x' s (Unique j)))
         _      -> pure ty
     where pastDef = lookupId u st
-renameType st (TyApp x ty tys) = TyApp x <$> renameType st ty <*> traverse (renameType st) tys
+renameType st (TyApp x ty ty') = TyApp x <$> renameType st ty <*> renameType st ty'
 renameType st (TyFun x ty ty') = TyFun x <$> renameType st ty <*> renameType st ty'
 renameType _ ty@TyBuiltin{} = pure ty
