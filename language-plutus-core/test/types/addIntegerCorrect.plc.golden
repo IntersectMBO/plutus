@@ -1,0 +1,1 @@
+TyApp () (TyBuiltin () TyInteger) (TyInt () 2 :| [])
