@@ -1,3 +1,4 @@
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 module Language.PlutusCore.Constant.Apply
@@ -20,7 +21,7 @@ import qualified Data.IntMap.Strict as IntMap
 -- | The type of constant applications errors.
 data ConstAppError
     = SizeMismatchConstAppError Size (Constant ())
-    | forall a. IllTypedConstAppError (TypedBuiltinSized a) (Constant ())
+    | IllTypedConstAppError BuiltinSized (Constant ())
       -- ^ A mismatch between the type of an argument function expects and its actual type.
     | ExcessArgumentsConstAppError [Value TyName Name ()]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
@@ -28,6 +29,7 @@ data ConstAppError
       -- constant application is supposed to be computed as soon as there are enough arguments
     | SizedValueConstAppError (Value TyName Name ())
     | NotImplementedConstAppError
+    deriving (Show, Eq)
 
 -- | The type of constant applications results.
 data ConstAppResult
@@ -39,9 +41,12 @@ data ConstAppResult
       -- ^ Not enough arguments.
     | ConstAppError ConstAppError
       -- ^ An internal error occurred during evaluation.
+    deriving (Show, Eq)
 
 -- | An 'IntMap' from size variables to sizes.
 newtype SizeValues = SizeValues (IntMap Size)
+
+-- instance Eq ConstAppError where
 
 dechurchBool :: ((() -> Bool) -> (() -> Bool) -> Bool) -> Bool
 dechurchBool if' = if' (const True) (const False)
@@ -53,21 +58,21 @@ checkBuiltinSize  _          size' _        y = Right (y, size')
 
 extractSizedBuiltin
     :: TypedBuiltinSized a -> Maybe Size -> Constant () -> Either ConstAppError (a, Size)
-extractSizedBuiltin TypedBuiltinInt  maySize constant@(BuiltinInt  () size' int) =
+extractSizedBuiltin TypedBuiltinSizedInt  maySize constant@(BuiltinInt  () size' int) =
     checkBuiltinSize maySize size' constant int
-extractSizedBuiltin TypedBuiltinBS   maySize constant@(BuiltinBS   () size' bs ) =
+extractSizedBuiltin TypedBuiltinSizedBS   maySize constant@(BuiltinBS   () size' bs ) =
     checkBuiltinSize maySize size' constant bs
-extractSizedBuiltin TypedBuiltinSize maySize constant@(BuiltinSize () size'    ) =
+extractSizedBuiltin TypedBuiltinSizedSize maySize constant@(BuiltinSize () size'    ) =
     checkBuiltinSize maySize size' constant size'
-extractSizedBuiltin typedBuiltin     _       constant                            =
-    Left $ IllTypedConstAppError typedBuiltin constant
+extractSizedBuiltin typedBuiltinSized     _       constant                            =
+    Left $ IllTypedConstAppError (eraseTypedBuiltinSized typedBuiltinSized) constant
 
 extractBuiltin
     :: TypedBuiltin a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
-extractBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltin) (SizeValues sizes) value =
+extractBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltinSized) (SizeValues sizes) value =
     case value of
         Constant () constant -> unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
-            upd maySize = fmap Just . PairT $ extractSizedBuiltin typedBuiltin maySize constant
+            upd maySize = fmap Just . PairT $ extractSizedBuiltin typedBuiltinSized maySize constant
         _                    -> Left $ SizedValueConstAppError value
 extractBuiltin TypedBuiltinBool                                     _                  _     =
     -- Plan: evaluate the 'value' to a dynamically typed Church-encoded 'Bool'
@@ -95,9 +100,9 @@ applySchemed schema sizeValues f value =
 -- (e.g. an `Integer` is in appropriate bounds) along the way.
 wrapSizedConstant
     :: TypedBuiltinSized a -> Size -> a -> Maybe (Constant ())
-wrapSizedConstant TypedBuiltinInt  size int   = makeBuiltinInt  size int
-wrapSizedConstant TypedBuiltinBS   size bs    = makeBuiltinBS   size bs
-wrapSizedConstant TypedBuiltinSize size size' = makeBuiltinSize size size'
+wrapSizedConstant TypedBuiltinSizedInt  size int   = makeBuiltinInt  size int
+wrapSizedConstant TypedBuiltinSizedBS   size bs    = makeBuiltinBS   size bs
+wrapSizedConstant TypedBuiltinSizedSize size size' = makeBuiltinSize size size'
 
 -- | Coerce a Haskell value to a PLC term checking all constraints
 -- (e.g. an `Integer` is in appropriate bounds) along the way.
@@ -109,8 +114,7 @@ wrapConstant TypedBuiltinBool                                           _       
     Just $ makeDupBuiltinBool b
 
 -- | Apply a 'TypedBuiltinName' to a list of constant arguments.
-applyTypedBuiltinName
-    :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
+applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
     go (TypeSchemeBuiltin builtin)       _       sizeValues y args = case args of  -- Computed the result.

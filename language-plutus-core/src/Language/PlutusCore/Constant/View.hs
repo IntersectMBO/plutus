@@ -2,6 +2,7 @@ module Language.PlutusCore.Constant.View
     ( IterApp(..)
     , TermIterApp
     , PrimIterApp
+    , viewBuiltinInt
     , viewBuiltinName
     , viewConstant
     , viewTermIterApp
@@ -24,6 +25,11 @@ type TermIterApp tyname name a =
 
 type PrimIterApp tyname name a =
     IterApp BuiltinName (Value tyname name a)
+
+-- | View a 'Constant' as an 'Integer'.
+viewBuiltinInt :: Constant a -> Maybe Integer
+viewBuiltinInt (BuiltinInt _ _ int) = Just int
+viewBuiltinInt _                    = Nothing
 
 -- | View a 'Constant' as a 'BuiltinName'.
 viewBuiltinName :: Constant a -> Maybe BuiltinName

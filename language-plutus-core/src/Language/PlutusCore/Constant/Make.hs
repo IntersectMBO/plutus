@@ -1,7 +1,6 @@
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE RankNTypes        #-}
 module Language.PlutusCore.Constant.Make
-    ( makeBuiltinInt
+    ( toBoundsInt
+    , makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
     , makeDupBuiltinBool
@@ -14,10 +13,15 @@ import           Language.PlutusCore.Constant.Prelude
 
 import qualified Data.ByteString.Lazy as BSL
 
+-- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of given size.
+toBoundsInt :: Size -> (Integer, Integer)
+toBoundsInt s = (-2 ^ p, 2 ^ p) where
+    p = 8 * fromIntegral s - 1 :: Int
+
 -- | Check whether an 'Integer' is in the @[-2^(8s - 1), 2^(8s - 1))@ interval.
 checkBoundsInt :: Size -> Integer -> Bool
-checkBoundsInt s i = -2 ^ p <= i && i < 2 ^ p where
-    p = 8 * fromIntegral s - 1 :: Int
+checkBoundsInt s i = low <= i && i < high where
+    (low, high) = toBoundsInt s
 
 checkBoundsBS :: Size -> BSL.ByteString -> Bool
 checkBoundsBS = undefined
