@@ -32,11 +32,13 @@ type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
 data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
                  | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
+                 | OutOfGas
 
 instance Pretty a => Pretty (TypeError a) where
     pretty InternalError    = "Internal error."
     pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (pretty ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
     pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (pretty t) <> ". Expected type" <+> squotes (pretty ty) <+> ", found type" <+> squotes (pretty ty')
+    pretty OutOfGas = "Type checking ran out of gas."
 
 isType :: Kind a -> Bool
 isType Type{} = True
