@@ -129,11 +129,11 @@ Kind : parens(type) { Type $1 }
 
 tyApps :: a -> Type tyname a -> NonEmpty (Type tyname a) -> Type tyname a
 tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
-tyApps loc ty (ty' :| tys) = TyApp loc ty (tyApps loc ty' (NE.fromList tys))
+tyApps loc ty (ty' :| tys) = TyApp loc (tyApps loc ty (ty':|init tys)) (last tys)
 
 app :: a -> Term tyname name a -> NonEmpty (Term tyname name a) -> Term tyname name a
 app loc t (t' :| []) = Apply loc t t'
-app loc t (t' :| ts) = Apply loc t (app loc t' (NE.fromList ts))
+app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
 handleInteger x sz i = if isOverflow
