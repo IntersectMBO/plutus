@@ -190,7 +190,7 @@ testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden debugScopes)
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ (con addInteger) x y ])"
+    [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
