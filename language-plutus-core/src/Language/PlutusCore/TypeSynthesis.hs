@@ -187,22 +187,13 @@ typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
         Type{} -> pure ()
         _      -> throwError (KindMismatch x (void ty) (Type ()) (void k))
     ty' <- typeOf t'
-    let fixed = fixSubstitute (u, TyFix () (void n) (void ty)) u (void ty)
+    let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
     if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) (void ty') fixed)
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
-
-fixSubstitute :: Eq a
-              => (Unique, Type TyNameWithKind a) -- ^ Type and unique associated with a 'Fix'
-              -> Unique -- ^ Variable we are binding to type
-              -> Type TyNameWithKind a -- ^ Type we are substituting in
-              -> Type TyNameWithKind a
-fixSubstitute (u, ty) u'' = cata a where
-    a (TyFixF l (TyNameWithKind (TyName (Name (l', _) _ u'))) ty') | u == u' && ty == ty' = TyVar l (TyNameWithKind (TyName (Name (l', Type l') "" u'')))
-    a x                                                            = embed x
 
 -- TODO: make type substitutions occur in a state monad + benchmark
 tySubstitute :: Unique -- ^ Unique associated with type variable
