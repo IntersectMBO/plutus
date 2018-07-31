@@ -27,10 +27,21 @@ tests_typedBuiltinName :: TestTree
 tests_typedBuiltinName =
     testGroup "typedBuiltinName"
        [ test_typedAddInteger
+       , test_typedSubtractInteger
+       -- , test_typedMultiplyInteger
+       -- , test_typedDivideInteger
+       -- , test_typedRemainderInteger
+       -- , test_typedLessThanInteger
+       -- , test_typedLessThanEqInteger
+       -- , test_typedGreaterThanInteger
+       -- , test_typedGreaterThanEqInteger
+       -- , test_typedEqInteger
+       -- , test_typedResizeInteger
        ]
 
 allTypedBuiltinSized :: Size -> TypedBuiltinSized a -> PropertyT IO a
 allTypedBuiltinSized size TypedBuiltinSizedInt  =
+    -- TODO: this works only for addition, fix it.
     let (low, high) = toBoundsInt size in
         forAll . Gen.integral $ Range.linear (low `div` 2) (high `div` 2)
 allTypedBuiltinSized size TypedBuiltinSizedBS   = undefined
@@ -79,3 +90,53 @@ test_typedAddInteger :: TestTree
 test_typedAddInteger =
     testProperty "typedAddInteger" $
         prop_typedBuiltinName typedAddInteger (+)
+
+test_typedSubtractInteger :: TestTree
+test_typedSubtractInteger =
+    testProperty "typedSubtractInteger" $
+        prop_typedBuiltinName typedSubtractInteger (-)
+
+test_typedMultiplyInteger :: TestTree
+test_typedMultiplyInteger =
+    testProperty "typedMultiplyInteger" $
+        prop_typedBuiltinName typedMultiplyInteger (*)
+
+test_typedDivideInteger :: TestTree
+test_typedDivideInteger =
+    testProperty "typedDivideInteger" $
+        prop_typedBuiltinName typedDivideInteger div
+
+test_typedRemainderInteger :: TestTree
+test_typedRemainderInteger =
+    testProperty "typedRemainderInteger" $
+        prop_typedBuiltinName typedRemainderInteger mod
+
+test_typedLessThanInteger :: TestTree
+test_typedLessThanInteger =
+    testProperty "typedLessThanInteger" $
+        prop_typedBuiltinName typedLessThanInteger (<)
+
+test_typedLessThanEqInteger :: TestTree
+test_typedLessThanEqInteger =
+    testProperty "typedLessThanEqInteger" $
+        prop_typedBuiltinName typedLessThanEqInteger (<=)
+
+test_typedGreaterThanInteger :: TestTree
+test_typedGreaterThanInteger =
+    testProperty "typedGreaterThanInteger" $
+        prop_typedBuiltinName typedGreaterThanInteger (>)
+
+test_typedGreaterThanEqInteger :: TestTree
+test_typedGreaterThanEqInteger =
+    testProperty "typedGreaterThanEqInteger" $
+        prop_typedBuiltinName typedGreaterThanEqInteger (>=)
+
+test_typedEqInteger :: TestTree
+test_typedEqInteger =
+    testProperty "typedEqInteger" $
+        prop_typedBuiltinName typedEqInteger (==)
+
+test_typedResizeInteger :: TestTree
+test_typedResizeInteger =
+    testProperty "typedResizeInteger" $
+        prop_typedBuiltinName typedResizeInteger (const id)
