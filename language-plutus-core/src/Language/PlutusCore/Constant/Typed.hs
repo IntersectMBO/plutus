@@ -1,14 +1,15 @@
 -- | See the 'docs/Constant application.md' article for how this module emerged.
 
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE RankNTypes #-}
 module Language.PlutusCore.Constant.Typed
-    ( SizeVar(..)
-    , BuiltinSized(..)
+    ( BuiltinSized(..)
     , TypedBuiltinSized(..)
     , TypedBuiltin(..)
     , TypeScheme(..)
     , TypedBuiltinName(..)
     , eraseTypedBuiltinSized
+    , fmapSizeTypedBuiltin
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -31,8 +32,6 @@ import qualified Data.ByteString.Lazy as BSL
 
 infixr 9 `TypeSchemeArrow`
 
-newtype SizeVar = SizeVar Int
-
 -- | Built-in types indexed by @size@.
 data BuiltinSized
     = BuiltinSizedInt
@@ -49,25 +48,25 @@ data TypedBuiltinSized a where
 -- | Built-in types. A type is considired "built-in" if it can appear in the type signature
 -- of a primitive operation. So @boolean@ is considered built-in even though it is defined in PLC
 -- and is not primitive.
-data TypedBuiltin a where
-    TypedBuiltinSized :: SizeVar -> TypedBuiltinSized a -> TypedBuiltin a
-    TypedBuiltinBool  :: TypedBuiltin Bool
+data TypedBuiltin size a where
+    TypedBuiltinSized :: size -> TypedBuiltinSized a -> TypedBuiltin size a
+    TypedBuiltinBool  :: TypedBuiltin size Bool
 
 -- | Type schemes of primitive operations.
-data TypeScheme a where
-    TypeSchemeBuiltin :: TypedBuiltin a -> TypeScheme a
-    TypeSchemeArrow   :: TypeScheme a -> TypeScheme b -> TypeScheme (a -> b)
-    TypeSchemeForall  :: (SizeVar -> TypeScheme a) -> TypeScheme a
+data TypeScheme size a where
+    TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a
+    TypeSchemeArrow   :: TypeScheme size a -> TypeScheme size b -> TypeScheme size (a -> b)
+    -- This is nailed to @size@ rather than being a generic @TypeSchemeForall@ for simplicity
+    -- and because at the moment we do not need anything else.
+    -- We can make this generic by parametrising @TypeScheme@ by an
+     -- @f :: Kind () -> *@ rather than @size@.
+    TypeSchemeAllSize :: (size -> TypeScheme size a) -> TypeScheme size a
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a = TypedBuiltinName
     { _typedBuiltinNameUntyped    :: BuiltinName
-    , _typedBuiltinNameTypeScheme :: TypeScheme a
+    , _typedBuiltinNameTypeScheme :: forall size. TypeScheme size a
     }
-
-instance Enum SizeVar where
-    toEnum = SizeVar
-    fromEnum (SizeVar sizeIndex) = sizeIndex
 
 instance Pretty BuiltinSized where
     pretty = undefined
@@ -75,7 +74,7 @@ instance Pretty BuiltinSized where
 instance Pretty (TypedBuiltinSized a) where
     pretty = undefined
 
-instance Pretty (TypedBuiltin a) where
+instance Pretty (TypedBuiltin size a) where
     pretty = undefined
 
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
@@ -83,16 +82,20 @@ eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt
 eraseTypedBuiltinSized TypedBuiltinSizedBS   = BuiltinSizedBS
 eraseTypedBuiltinSized TypedBuiltinSizedSize = BuiltinSizedSize
 
-sizeIntIntInt :: TypeScheme (Integer -> Integer -> Integer)
+fmapSizeTypedBuiltin :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
+fmapSizeTypedBuiltin f (TypedBuiltinSized size tbs) = TypedBuiltinSized (f size) tbs
+fmapSizeTypedBuiltin _ TypedBuiltinBool             = TypedBuiltinBool
+
+sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer)
 sizeIntIntInt =
-    TypeSchemeForall $ \s ->
+    TypeSchemeAllSize $ \s ->
         TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinSizedInt)
 
-sizeIntIntBool :: TypeScheme (Integer -> Integer -> Bool)
+sizeIntIntBool :: TypeScheme size (Integer -> Integer -> Bool)
 sizeIntIntBool =
-    TypeSchemeForall $ \s ->
+    TypeSchemeAllSize $ \s ->
         TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized s TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin TypedBuiltinBool
@@ -130,7 +133,7 @@ typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
 typedResizeInteger :: TypedBuiltinName (Natural -> Integer -> Integer)
 typedResizeInteger =
     TypedBuiltinName ResizeInteger $
-        TypeSchemeForall $ \s0 -> TypeSchemeForall $ \s1 ->
+        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
             TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinSizedSize) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized s0 TypedBuiltinSizedInt) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinSizedInt)
@@ -138,7 +141,7 @@ typedResizeInteger =
 typedIntToByteString :: TypedBuiltinName (Natural -> Integer -> BSL.ByteString)
 typedIntToByteString =
     TypedBuiltinName IntToByteString $
-        TypeSchemeForall $ \s0 -> TypeSchemeForall $ \s1 ->
+        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
             TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinSizedSize) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized s0 TypedBuiltinSizedInt) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized s1 TypedBuiltinSizedBS)

@@ -1,4 +1,3 @@
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 module Language.PlutusCore.Constant.Apply
@@ -43,18 +42,25 @@ data ConstAppResult
       -- ^ An internal error occurred during evaluation.
     deriving (Show, Eq)
 
+newtype SizeVar = SizeVar Int
+
 -- | An 'IntMap' from size variables to sizes.
 newtype SizeValues = SizeValues (IntMap Size)
 
--- instance Eq ConstAppError where
+instance Enum SizeVar where
+    toEnum = SizeVar
+    fromEnum (SizeVar sizeIndex) = sizeIndex
 
-dechurchBool :: ((() -> Bool) -> (() -> Bool) -> Bool) -> Bool
-dechurchBool if' = if' (const True) (const False)
+sizeAt :: SizeVar -> SizeValues -> Size
+sizeAt (SizeVar sizeIndex) (SizeValues sizes) = sizes IntMap.! sizeIndex
 
 checkBuiltinSize :: Maybe Size -> Size -> Constant () -> b -> Either ConstAppError (b, Size)
 checkBuiltinSize (Just size) size' constant _ | size /= size' =
     Left $ SizeMismatchConstAppError size constant
 checkBuiltinSize  _          size' _        y = Right (y, size')
+
+expandSizeVars :: SizeValues -> TypedBuiltin SizeVar a -> TypedBuiltin Size a
+expandSizeVars = fmapSizeTypedBuiltin . flip sizeAt
 
 extractSizedBuiltin
     :: TypedBuiltinSized a -> Maybe Size -> Constant () -> Either ConstAppError (a, Size)
@@ -68,7 +74,7 @@ extractSizedBuiltin typedBuiltinSized     _       constant                      
     Left $ IllTypedConstAppError (eraseTypedBuiltinSized typedBuiltinSized) constant
 
 extractBuiltin
-    :: TypedBuiltin a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
+    :: TypedBuiltin SizeVar a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
 extractBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltinSized) (SizeValues sizes) value =
     case value of
         Constant () constant -> unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
@@ -81,54 +87,31 @@ extractBuiltin TypedBuiltinBool                                     _           
 
 -- | Coerce a PLC value to a Haskell value.
 extractSchemed
-    :: TypeScheme a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
+    :: TypeScheme SizeVar a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
 extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
 extractSchemed (TypeSchemeArrow _ _) _          _     = Left NotImplementedConstAppError
-extractSchemed (TypeSchemeForall  _) _          _     = Left NotImplementedConstAppError
-
--- | Apply a Haskell function to a PLC value.
-applySchemed
-    :: TypeScheme a
-    -> SizeValues
-    -> (a -> b)
-    -> Value TyName Name ()
-    -> Either ConstAppError (b, SizeValues)
-applySchemed schema sizeValues f value =
-    first f <$> extractSchemed schema sizeValues value
-
--- | Coerce a Haskell value to a PLC constant indexed by size checking all constraints
--- (e.g. an `Integer` is in appropriate bounds) along the way.
-wrapSizedConstant
-    :: TypedBuiltinSized a -> Size -> a -> Maybe (Constant ())
-wrapSizedConstant TypedBuiltinSizedInt  size int   = makeBuiltinInt  size int
-wrapSizedConstant TypedBuiltinSizedBS   size bs    = makeBuiltinBS   size bs
-wrapSizedConstant TypedBuiltinSizedSize size size' = makeBuiltinSize size size'
-
--- | Coerce a Haskell value to a PLC term checking all constraints
--- (e.g. an `Integer` is in appropriate bounds) along the way.
-wrapConstant
-    :: TypedBuiltin a -> SizeValues -> a -> Maybe (Value TyName Name ())
-wrapConstant (TypedBuiltinSized (SizeVar sizeIndex) typedSizedBuiltin) (SizeValues sizes) x =
-    Constant () <$> wrapSizedConstant typedSizedBuiltin (sizes IntMap.! sizeIndex) x
-wrapConstant TypedBuiltinBool                                           _                 b =
-    Just $ makeDupBuiltinBool b
+extractSchemed (TypeSchemeAllSize _) _          _     = Left NotImplementedConstAppError
 
 -- | Apply a 'TypedBuiltinName' to a list of constant arguments.
 applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
-    go :: TypeScheme a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
-    go (TypeSchemeBuiltin builtin)       _       sizeValues y args = case args of  -- Computed the result.
-       [] -> case wrapConstant builtin sizeValues y of                             -- Coerce the result to a PLC term.
-           Just wc -> ConstAppSuccess wc                                           -- Return the coerced result.
-           Nothing -> ConstAppFailure                                              -- Report a failure.
-       _  -> ConstAppError $ ExcessArgumentsConstAppError args
-    go (TypeSchemeArrow schemaA schemaB) sizeVar sizeValues f args = case args of
-        []        -> ConstAppStuck                                            -- Not enough arguments to compute.
-        x : args' -> case applySchemed schemaA sizeValues f x of              -- Apply the function to an argument.
-            Left err               -> ConstAppError err                       -- The application resulted in an error.
-            Right (y, sizeValues') -> go schemaB sizeVar sizeValues' y args'  -- The application is fine, proceed recursively.
-    go (TypeSchemeForall k)              sizeVar sizeValues f args =
-        go (k sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var and proceed recursively.
+    go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
+    go (TypeSchemeBuiltin builtin) _       sizeValues y args =   -- Computed the result.
+        case args of
+            [] -> case makeConstant (expandSizeVars sizeValues builtin) y of
+                Just wc -> ConstAppSuccess wc                    -- Coerced the result to a PLC term.
+                Nothing -> ConstAppFailure                       -- Failed to perform the coercion.
+            _  -> ConstAppError $ ExcessArgumentsConstAppError args
+    go (TypeSchemeArrow schA schB) sizeVar sizeValues f args =
+        case args of
+            []          -> ConstAppStuck                         -- Not enough arguments to compute.
+            arg : args' ->                                       -- Peel off one argument.
+                case extractSchemed schA sizeValues arg of       -- Coerce the argument to a Haskell value.
+                    Left err               -> ConstAppError err  -- The coercion resulted in an error.
+                    Right (x, sizeValues') ->
+                        go schB sizeVar sizeValues' (f x) args'  -- Apply the function to the coerced argument, proceed recursively.
+    go (TypeSchemeAllSize schK)    sizeVar sizeValues f args =
+        go (schK sizeVar) (succ sizeVar) sizeValues f args       -- Instantiate the `forall` with a fresh var and proceed recursively.
 
 -- | Apply a 'BuiltinName' to a list of arguments.
 applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult

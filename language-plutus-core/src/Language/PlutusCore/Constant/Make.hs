@@ -1,15 +1,18 @@
+{-# LANGUAGE GADTs #-}
 module Language.PlutusCore.Constant.Make
     ( toBoundsInt
     , makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
     , makeDupBuiltinBool
+    , makeConstant
     ) where
 
 import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Constant.Prelude
+import           Language.PlutusCore.Constant.Typed
 
 import qualified Data.ByteString.Lazy as BSL
 
@@ -41,3 +44,16 @@ makeBuiltinSize size size' = size == size' ? BuiltinSize () size
 -- | Coerce a 'Bool' to PLC's @boolean@.
 makeDupBuiltinBool :: Bool -> Value TyName Name ()
 makeDupBuiltinBool b = dropFresh $ if b then getBuiltinTrue else getBuiltinFalse
+
+-- | Coerce a Haskell value to a PLC constant indexed by size checking all constraints
+-- (e.g. an `Integer` is in appropriate bounds) along the way.
+makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
+makeSizedConstant size TypedBuiltinSizedInt  int   = makeBuiltinInt  size int
+makeSizedConstant size TypedBuiltinSizedBS   bs    = makeBuiltinBS   size bs
+makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
+
+-- | Coerce a Haskell value to a PLC term checking all constraints
+-- (e.g. an `Integer` is in appropriate bounds) along the way.
+makeConstant :: TypedBuiltin Size a -> a -> Maybe (Value TyName Name ())
+makeConstant (TypedBuiltinSized size tbs) x = Constant () <$> makeSizedConstant size tbs x
+makeConstant TypedBuiltinBool             b = Just $ makeDupBuiltinBool b
