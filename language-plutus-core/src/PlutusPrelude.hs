@@ -6,6 +6,7 @@ module PlutusPrelude ( (&&&)
                      , on
                      , fold
                      , (.*)
+                     , (<+>)
                      , Generic
                      , NFData
                      , Natural

@@ -18,6 +18,9 @@ module Language.PlutusCore.Type ( Term (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
+                                -- * Helper functions
+                                , tyLoc
+                                , termLoc
                                 ) where
 
 import qualified Data.ByteString.Lazy           as BSL
@@ -38,6 +41,27 @@ data Type tyname a = TyVar a (tyname a)
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (Type tyname a)
                    deriving (Functor, Show, Eq, Generic, NFData)
+
+tyLoc :: Type tyname a -> a
+tyLoc (TyVar l _)        = l
+tyLoc (TyFun l _ _)      = l
+tyLoc (TyFix l _ _)      = l
+tyLoc (TyForall l _ _ _) = l
+tyLoc (TyBuiltin l _)    = l
+tyLoc (TyInt l _)        = l
+tyLoc (TyLam l _ _ _)    = l
+tyLoc (TyApp l _ _)      = l
+
+termLoc :: Term tyname name a -> a
+termLoc (Var l _)        = l
+termLoc (TyAbs l _ _ _)  = l
+termLoc (Apply l _ _)    = l
+termLoc (Constant l _)   = l
+termLoc (TyInst l _ _)   = l
+termLoc (Unwrap l _)     = l
+termLoc (Wrap l _ _ _)   = l
+termLoc (Error l _ )     = l
+termLoc (LamAbs l _ _ _) = l
 
 -- | A constant value.
 data Constant a = BuiltinInt a Natural Integer

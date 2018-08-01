@@ -16,7 +16,7 @@ import           PlutusPrelude
 data Error = ParseError ParseError
            | RenameError (RenameError AlexPosn)
            | TypeError (TypeError AlexPosn)
-           | NormalizationError NormalizationError
+           | NormalizationError (NormalizationError AlexPosn)
 
 class IsError a where
 
@@ -42,7 +42,7 @@ instance IsError (RenameError AlexPosn) where
 instance IsError (TypeError AlexPosn) where
     asError = TypeError
 
-instance IsError NormalizationError where
+instance IsError (NormalizationError AlexPosn) where
     asError = NormalizationError
 
 instance Pretty Error where

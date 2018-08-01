@@ -48,6 +48,7 @@ library
                       TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
                       FlexibleContexts OverloadedStrings DerivingStrategies
                       MonadComprehensions FlexibleInstances ConstrainedClassMethods
+                      DuplicateRecordFields
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints
