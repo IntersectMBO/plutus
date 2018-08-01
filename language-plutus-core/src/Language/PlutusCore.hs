@@ -33,6 +33,8 @@ module Language.PlutusCore
     , NameWithType (..)
     , Debug (..)
     , TypeState (..)
+    -- * Normalization
+    , normalize
     -- * Type synthesis
     , typeOf
     , kindOf
@@ -53,6 +55,7 @@ import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type

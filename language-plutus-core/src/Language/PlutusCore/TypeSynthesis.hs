@@ -81,11 +81,10 @@ runTypeCheckM i n = flip runReaderT (defaultTable i) . flip evalStateT n
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
-    modify (subtract 1)
     i <- get
     if i == 0
         then throwError OutOfGas
-        else pure ()
+        else modify (subtract 1)
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
