@@ -33,6 +33,9 @@ class IsError a where
     collectErrors (Right (Left x))  = asLeft x
     collectErrors (Right (Right x)) = Right x
 
+instance IsError Error where
+    asError = id
+
 instance IsError ParseError where
     asError = ParseError
 

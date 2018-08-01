@@ -31,10 +31,14 @@ data Name a = Name { nameAttribute :: a
                    }
             deriving (Functor, Show, Generic, NFData)
 
+-- | We use a @newtype@ to enforce separation between names used for types and
+-- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
     deriving Show
     deriving newtype (Eq, Functor, NFData, Pretty, Debug)
 
+-- | This is like 'Pretty', but it dumps 'Unique's for each 'Name' / 'TyName' as
+-- well.
 class Debug a where
     debug :: a -> Doc ann
 
@@ -42,7 +46,7 @@ instance Eq (Name a) where
     (==) = (==) `on` nameUnique
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
--- indexed by 'ByteString's.
+-- indexed by 'ByteString's. It is used during parsing and renaming.
 type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique)
 
 emptyIdentifierState :: IdentifierState

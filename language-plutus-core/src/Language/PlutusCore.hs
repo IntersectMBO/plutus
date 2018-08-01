@@ -26,8 +26,6 @@ module Language.PlutusCore
     , annotate
     , annotateST
     , debugScopes
-    , RenamedTerm
-    , RenamedType
     , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
@@ -39,6 +37,7 @@ module Language.PlutusCore
     , typeOf
     , kindOf
     , runTypeCheckM
+    , programType
     , TypeError (..)
     -- * Errors
     , Error (..)
@@ -49,6 +48,7 @@ module Language.PlutusCore
     ) where
 
 import qualified Data.ByteString.Lazy                  as BSL
+import qualified Data.IntMap                           as IM
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc             hiding (annotate)
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
@@ -61,6 +61,7 @@ import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
+import           PlutusPrelude
 
 debugScopes :: BSL.ByteString -> Either ParseError T.Text
 debugScopes = fmap (render . debug) . parseScoped
@@ -69,6 +70,10 @@ debugScopes = fmap (render . debug) . parseScoped
 -- their scope.
 parseScoped :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
 parseScoped = fmap (uncurry rename) . parseST
+
+programType :: Natural -> TypeState a -> Program TyNameWithKind NameWithType a -> Either (TypeError a) (RenamedType ())
+programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
+    where i = maybe 0 fst (IM.lookupMax tys)
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse

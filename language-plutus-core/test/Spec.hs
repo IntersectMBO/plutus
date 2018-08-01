@@ -3,10 +3,10 @@
 module Main ( main
             ) where
 
+import           Control.Composition
 import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
-import qualified Data.IntMap                           as IM
 import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
 import           Data.Text.Prettyprint.Doc             hiding (annotate)
@@ -163,8 +163,7 @@ withTypes :: BSL.ByteString -> Either Error T.Text
 withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 
 showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
-showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i 10000 $ typeOf t
-    where i = maybe 0 fst (IM.lookupMax tys)
+showType = uncurry (either printError (T.pack . show) .* programType 10000)
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)

@@ -25,9 +25,9 @@ import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
 
-data TypeState a = TypeState { _terms :: IM.IntMap (Type TyNameWithKind a), _types :: IM.IntMap (Kind a) }
+data TypeState a = TypeState { _terms :: IM.IntMap (RenamedType a), _types :: IM.IntMap (Kind a) }
 
-terms :: Lens' (TypeState a) (IM.IntMap (Type TyNameWithKind a))
+terms :: Lens' (TypeState a) (IM.IntMap (RenamedType a))
 terms f s = fmap (\x -> s { _terms = x }) (f (_terms s))
 
 types :: Lens' (TypeState a) (IM.IntMap (Kind a))
@@ -61,6 +61,8 @@ instance Pretty (RenameError AlexPosn) where
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
 annotate = fmap snd . annotateST
 
+-- | Annotate a program with type/kind information at all bound variables,
+-- additionally returning a 'TypeState'
 annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
 annotateST (Program x v p) = do
     (t, st) <- runStateT (annotateTerm p) mempty
@@ -72,7 +74,7 @@ insertType = modify .* over terms .* IM.insert
 insertKind :: Int -> Kind a -> TypeM a ()
 insertKind = modify .* over types .* IM.insert
 
-annotateTerm :: Term TyName Name a -> TypeM a (Term TyNameWithKind NameWithType a)
+annotateTerm :: Term TyName Name a -> TypeM a (RenamedTerm a)
 annotateTerm (Var x (Name x' b (Unique u))) = do
     st <- gets _terms
     case IM.lookup u st of
@@ -104,7 +106,7 @@ annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
     Wrap x nwty aty <$> annotateTerm t
 
-annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
+annotateType :: Type TyName a -> TypeM a (RenamedType a)
 annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
     st <- gets _types
     case IM.lookup u st of
