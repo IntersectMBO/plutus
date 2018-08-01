@@ -83,11 +83,6 @@ annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
     let nwt = NameWithType (Name (x', aty) s u)
     insertType i aty
     LamAbs x nwt aty <$> annotateTerm t
-annotateTerm (Fix x (Name x' s u@(Unique i)) ty t) = do
-    aty <- annotateType ty
-    let nwt = NameWithType (Name (x', aty) s u)
-    insertType i aty
-    Fix x nwt aty <$> annotateTerm t
 annotateTerm (TyAbs x (TyName (Name x' b u@(Unique i))) k t) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
@@ -170,15 +165,6 @@ renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') = do
             modify (+1) >>
             LamAbs x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
         _      -> renameTerm st' t
-renameTerm st t@(Fix x (Name x' s (Unique u)) ty t') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            Fix x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
-        _ -> renameTerm st' t
 renameTerm st t@(Wrap x (TyName (Name x' s (Unique u))) ty t') = do
     m <- get
     let st' = modifyIdentifiers u m st

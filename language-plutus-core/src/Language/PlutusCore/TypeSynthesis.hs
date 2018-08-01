@@ -12,7 +12,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
-import           Data.Functor.Foldable          hiding (Fix (..))
+import           Data.Functor.Foldable
 import qualified Data.Map                       as M
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer.Type
@@ -153,7 +153,6 @@ dummyType = TyVar () dummyTyName
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
-typeOf (Fix _ _ _ t)                             = typeOf t
 typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
 typeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
 typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> typeOf t

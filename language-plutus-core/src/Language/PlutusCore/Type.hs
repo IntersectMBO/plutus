@@ -52,7 +52,6 @@ data Term tyname name a = Var a (name a) -- ^ A named variable
                         | TyAbs a (tyname a) (Kind a) (Term tyname name a)
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
                         | Apply a (Term tyname name a) (Term tyname name a)
-                        | Fix a (name a) (Type tyname a) (Term tyname name a)
                         | Constant a (Constant a) -- ^ A constant term
                         | TyInst a (Term tyname name a) (Type tyname a)
                         | Unwrap a (Term tyname name a)
@@ -100,7 +99,6 @@ instance (Pretty (f a), Pretty (g a)) => Pretty (Term f g a) where
         a (VarF _ n)         = pretty n
         a (TyAbsF _ n k t)   = parens ("abs" <+> pretty n <+> pretty k <+> t)
         a (TyInstF _ t ty)   = "{" <+> t <+> pretty ty <+> "}"
-        a (FixF _ n ty t)    = parens ("fix" <+> pretty n <+> pretty ty <+> t)
         a (LamAbsF _ n ty t) = parens ("lam" <+> pretty n <+> pretty ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
         a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
@@ -113,7 +111,6 @@ instance (Debug (f a), Debug (g a)) => Debug (Term f g a) where
         a (VarF _ n)         = debug n
         a (TyAbsF _ n k t)   = parens ("abs" <+> debug n <+> pretty k <+> t)
         a (TyInstF _ t ty)   = "{" <+> t <+> debug ty <+> "}"
-        a (FixF _ n ty t)    = parens ("fix" <+> debug n <+> debug ty <+> t)
         a (LamAbsF _ n ty t) = parens ("lam" <+> debug n <+> debug ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
         a (WrapF _ n ty t)   = parens ("wrap" <+> debug n <+> debug ty <+> t)

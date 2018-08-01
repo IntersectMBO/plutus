@@ -13,11 +13,16 @@ data NormalizationError = BadType
 normalize :: Program tyname name a -> Either NormalizationError (Program tyname name a)
 normalize (Program l v t) = Program l v <$> normalizeTerm t
 
--- this basically ensures all type instatiations occur only with type *values*
+-- this basically ensures all type instatiations, etc. occur only with type *values*
 normalizeTerm :: Term tyname name a -> Either NormalizationError (Term tyname name a)
-normalizeTerm (Error l ty)    = Error l <$> typeValue ty
-normalizeTerm (TyInst l t ty) = TyInst l t <$> typeValue ty
-normalizeTerm x               = pure x
+normalizeTerm (Error l ty)      = Error l <$> typeValue ty
+normalizeTerm (TyInst l t ty)   = TyInst l <$> normalizeTerm t <*> typeValue ty
+normalizeTerm (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> normalizeTerm t
+normalizeTerm (Unwrap l t)      = Unwrap l <$> normalizeTerm t
+normalizeTerm (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> normalizeTerm t
+normalizeTerm (Apply l t t')    = Apply l <$> normalizeTerm t <*> normalizeTerm t'
+normalizeTerm t@Var{}           = pure t
+normalizeTerm t@Constant{}      = pure t
 
 typeValue :: Type tyname a -> Either NormalizationError (Type tyname a)
 typeValue = cataM aM where
