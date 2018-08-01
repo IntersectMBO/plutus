@@ -19,11 +19,15 @@ data Error = ParseError ParseError
            | NormalizationError NormalizationError
 
 class IsError a where
+
     asError :: a -> Error
+
     asLeft :: a -> Either Error b
     asLeft = Left . asError
+
     convertError :: Either a b -> Either Error b
     convertError = first asError
+
     collectErrors :: (IsError a') => Either a (Either a' b) -> Either Error b
     collectErrors (Left x)          = asLeft x
     collectErrors (Right (Left x))  = asLeft x
