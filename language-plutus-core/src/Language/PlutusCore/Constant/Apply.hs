@@ -3,7 +3,7 @@
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
     , ConstAppResult(..)
-    , makeCostantApp
+    , makeConstantApp
     , applyBuiltinName
     ) where
 
@@ -52,8 +52,8 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
-makeCostantApp :: TypedBuiltin Size a -> a -> ConstAppResult
-makeCostantApp builtin x = case makeConstant builtin x of
+makeConstantApp :: TypedBuiltin Size a -> a -> ConstAppResult
+makeConstantApp builtin x = case makeConstant builtin x of
     Nothing -> ConstAppFailure
     Just wc -> ConstAppSuccess wc
 
@@ -105,7 +105,7 @@ applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> Co
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
     go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result
-        [] -> makeCostantApp (expandSizeVars sizeValues builtin) y
+        [] -> makeConstantApp (expandSizeVars sizeValues builtin) y
         _  -> ConstAppError $ ExcessArgumentsConstAppError args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> ConstAppStuck                         -- Not enough arguments to compute.
