@@ -6,7 +6,6 @@ module PlutusPrelude ( (&&&)
                      , on
                      , fold
                      , (.*)
-                     , (<+>)
                      -- * Custom functions
                      , prettyText
                      , render
@@ -17,6 +16,10 @@ module PlutusPrelude ( (&&&)
                      , Pretty (..)
                      , Word8
                      , Semigroup (..)
+                     -- Reëxports from "Data.Text.Prettyprint.Doc"
+                     , (<+>)
+                     , parens
+                     , squotes
                      , Doc
                      ) where
 

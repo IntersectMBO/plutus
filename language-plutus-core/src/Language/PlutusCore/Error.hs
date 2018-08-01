@@ -5,7 +5,6 @@ module Language.PlutusCore.Error ( Error (..)
                                  , IsError (..)
                                  ) where
 
-import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser

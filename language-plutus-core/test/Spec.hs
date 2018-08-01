@@ -3,18 +3,15 @@
 module Main ( main
             ) where
 
-import           Control.Composition
-import qualified Data.ByteString.Lazy                  as BSL
-import           Data.Foldable                         (fold)
-import           Data.Function                         (on)
-import qualified Data.Text                             as T
-import           Data.Text.Encoding                    (encodeUtf8)
-import           Data.Text.Prettyprint.Doc             hiding (annotate)
-import           Data.Text.Prettyprint.Doc.Render.Text
-import           Hedgehog                              hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen                          as Gen
-import qualified Hedgehog.Range                        as Range
+import qualified Data.ByteString.Lazy as BSL
+import           Data.Foldable        (fold)
+import qualified Data.Text            as T
+import           Data.Text.Encoding   (encodeUtf8)
+import           Hedgehog             hiding (Size, Var, annotate)
+import qualified Hedgehog.Gen         as Gen
+import qualified Hedgehog.Range       as Range
 import           Language.PlutusCore
+import           PlutusPrelude
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -154,16 +151,13 @@ asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: Pretty a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . printError
-
-printError :: Pretty a => a -> T.Text
-printError = renderStrict . layoutSmart defaultLayoutOptions . pretty
+errorgen = BSL.fromStrict . encodeUtf8 . prettyText
 
 withTypes :: BSL.ByteString -> Either Error T.Text
 withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 
 showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
-showType = uncurry (either printError (T.pack . show) .* programType 10000)
+showType = uncurry (either prettyText (T.pack . show) .* programType 10000)
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)

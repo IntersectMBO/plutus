@@ -26,7 +26,6 @@ module Language.PlutusCore.Type ( Term (..)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          (cata)
 import           Data.Functor.Foldable.TH
-import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           PlutusPrelude

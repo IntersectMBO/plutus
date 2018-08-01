@@ -17,11 +17,10 @@ module Language.PlutusCore.Name ( -- * Types
                                 , emptyIdentifierState
                                 ) where
 
-import qualified Data.ByteString.Lazy      as BSL
-import qualified Data.IntMap               as IM
-import qualified Data.Map                  as M
-import           Data.Text.Encoding        (decodeUtf8)
-import           Data.Text.Prettyprint.Doc
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.IntMap          as IM
+import qualified Data.Map             as M
+import           Data.Text.Encoding   (decodeUtf8)
 import           PlutusPrelude
 
 -- | A 'Name' represents variables/names in Plutus Core.

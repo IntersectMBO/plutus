@@ -18,7 +18,6 @@ module Language.PlutusCore.Renamer ( rename
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap               as IM
-import           Data.Text.Prettyprint.Doc hiding (annotate)
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type

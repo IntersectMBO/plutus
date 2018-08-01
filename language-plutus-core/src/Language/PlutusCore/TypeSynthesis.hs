@@ -14,7 +14,6 @@ import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
 import           Data.Functor.Foldable
 import qualified Data.Map                       as M
-import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Renamer
