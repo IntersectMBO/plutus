@@ -10,6 +10,7 @@ module Language.PlutusCore.Constant.Typed
     , TypedBuiltinName(..)
     , eraseTypedBuiltinSized
     , fmapSizeTypedBuiltin
+    , prettyTypedBuiltinString
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -85,6 +86,9 @@ eraseTypedBuiltinSized TypedBuiltinSizedSize = BuiltinSizedSize
 fmapSizeTypedBuiltin :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
 fmapSizeTypedBuiltin f (TypedBuiltinSized size tbs) = TypedBuiltinSized (f size) tbs
 fmapSizeTypedBuiltin _ TypedBuiltinBool             = TypedBuiltinBool
+
+prettyTypedBuiltinString :: Pretty size => TypedBuiltin size a -> a -> String
+prettyTypedBuiltinString = undefined
 
 sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer)
 sizeIntIntInt =

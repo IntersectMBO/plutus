@@ -3,6 +3,7 @@
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
     , ConstAppResult(..)
+    , makeCostantApp
     , applyBuiltinName
     ) where
 
@@ -51,6 +52,11 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
+makeCostantApp :: TypedBuiltin Size a -> a -> ConstAppResult
+makeCostantApp builtin x = case makeConstant builtin x of
+    Nothing -> ConstAppFailure
+    Just wc -> ConstAppSuccess wc
+
 sizeAt :: SizeVar -> SizeValues -> Size
 sizeAt (SizeVar sizeIndex) (SizeValues sizes) = sizes IntMap.! sizeIndex
 
@@ -70,17 +76,19 @@ extractSizedBuiltin TypedBuiltinSizedBS   maySize constant@(BuiltinBS   () size'
     checkBuiltinSize maySize size' constant bs
 extractSizedBuiltin TypedBuiltinSizedSize maySize constant@(BuiltinSize () size'    ) =
     checkBuiltinSize maySize size' constant size'
-extractSizedBuiltin typedBuiltinSized     _       constant                            =
-    Left $ IllTypedConstAppError (eraseTypedBuiltinSized typedBuiltinSized) constant
+extractSizedBuiltin tbs            _       constant                            =
+    Left $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
 
 extractBuiltin
-    :: TypedBuiltin SizeVar a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
-extractBuiltin (TypedBuiltinSized (SizeVar sizeIndex) typedBuiltinSized) (SizeValues sizes) value =
-    case value of
-        Constant () constant -> unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
-            upd maySize = fmap Just . PairT $ extractSizedBuiltin typedBuiltinSized maySize constant
-        _                    -> Left $ SizedValueConstAppError value
-extractBuiltin TypedBuiltinBool                                     _                  _     =
+    :: TypedBuiltin SizeVar a
+    -> SizeValues
+    -> Value TyName Name ()
+    -> Either ConstAppError (a, SizeValues)
+extractBuiltin (TypedBuiltinSized (SizeVar sizeIndex) tbs) (SizeValues sizes) value = case value of
+    Constant () constant -> unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
+        upd maySize = fmap Just . PairT $ extractSizedBuiltin tbs maySize constant
+    _                    -> Left $ SizedValueConstAppError value
+extractBuiltin TypedBuiltinBool                            _                  _     =
     -- Plan: evaluate the 'value' to a dynamically typed Church-encoded 'Bool'
     -- specialized to 'Bool' and coerce it to an actual 'Bool'.
     Left NotImplementedConstAppError
@@ -96,30 +104,26 @@ extractSchemed (TypeSchemeAllSize _) _          _     = Left NotImplementedConst
 applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
-    go (TypeSchemeBuiltin builtin) _       sizeValues y args =   -- Computed the result.
-        case args of
-            [] -> case makeConstant (expandSizeVars sizeValues builtin) y of
-                Just wc -> ConstAppSuccess wc                    -- Coerced the result to a PLC term.
-                Nothing -> ConstAppFailure                       -- Failed to perform the coercion.
-            _  -> ConstAppError $ ExcessArgumentsConstAppError args
-    go (TypeSchemeArrow schA schB) sizeVar sizeValues f args =
-        case args of
-            []          -> ConstAppStuck                         -- Not enough arguments to compute.
-            arg : args' ->                                       -- Peel off one argument.
-                case extractSchemed schA sizeValues arg of       -- Coerce the argument to a Haskell value.
-                    Left err               -> ConstAppError err  -- The coercion resulted in an error.
-                    Right (x, sizeValues') ->
-                        go schB sizeVar sizeValues' (f x) args'  -- Apply the function to the coerced argument, proceed recursively.
+    go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result
+        [] -> makeCostantApp (expandSizeVars sizeValues builtin) y
+        _  -> ConstAppError $ ExcessArgumentsConstAppError args
+    go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
+        []          -> ConstAppStuck                         -- Not enough arguments to compute.
+        arg : args' ->                                       -- Peel off one argument.
+            case extractSchemed schA sizeValues arg of       -- Coerce the argument to a Haskell value.
+                Left err               -> ConstAppError err  -- The coercion resulted in an error.
+                Right (x, sizeValues') ->
+                    go schB sizeVar sizeValues' (f x) args'  -- Apply the function to the coerced argument, proceed recursively.
     go (TypeSchemeAllSize schK)    sizeVar sizeValues f args =
-        go (schK sizeVar) (succ sizeVar) sizeValues f args       -- Instantiate the `forall` with a fresh var and proceed recursively.
+        go (schK sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var and proceed recursively.
 
 -- | Apply a 'BuiltinName' to a list of arguments.
 applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
-applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger       (+)
-applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger  (-)
-applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger  (*)
-applyBuiltinName DivideInteger        = applyTypedBuiltinName typedDivideInteger    div
-applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInteger mod
+applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
+applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
+applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)
+applyBuiltinName DivideInteger        = applyTypedBuiltinName typedDivideInteger        div
+applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInteger     mod
 applyBuiltinName LessThanInteger      = applyTypedBuiltinName typedLessThanInteger      (<)
 applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInteger    (<=)
 applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)

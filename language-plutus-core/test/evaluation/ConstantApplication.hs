@@ -10,6 +10,7 @@ import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Constant.Apply
 
+import           GHC.Stack
 import           Control.Monad.Reader
 import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
@@ -30,16 +31,16 @@ tests_ConstantApplication =
 tests_typedBuiltinName :: TestTree
 tests_typedBuiltinName =
     testGroup "typedBuiltinName"
-       [ test_typedAddInteger
-       , test_typedSubtractInteger
-       , test_typedMultiplyInteger
-       , test_typedDivideInteger
-       , test_typedRemainderInteger
-       , test_typedLessThanInteger
-       , test_typedLessThanEqInteger
-       , test_typedGreaterThanInteger
-       , test_typedGreaterThanEqInteger
-       , test_typedEqInteger
+       [ test_typedAddIntegerSuccess
+       , test_typedSubtractIntegerSuccess
+       , test_typedMultiplyIntegerSuccess
+       , test_typedDivideIntegerSuccess
+       , test_typedRemainderIntegerSuccess
+       , test_typedLessThanIntegerSuccess
+       , test_typedLessThanEqIntegerSuccess
+       , test_typedGreaterThanIntegerSuccess
+       , test_typedGreaterThanEqIntegerSuccess
+       , test_typedEqIntegerSuccess
        -- TODO: that's not gonna work.
        -- , test_typedResizeInteger
        ]
@@ -57,11 +58,8 @@ allTypedBuiltin (TypedBuiltinSized size tbs) = do
 allTypedBuiltin TypedBuiltinBool             = forAll Gen.bool
 
 typedBuiltinAsValue :: TypedBuiltin Size a -> a -> ConstAppProperty (Value TyName Name ())
-typedBuiltinAsValue builtin
-    = evalEither
-    -- TODO: improve the error message.
-    . maybe (Left "prop_typedAddInteger: out of bounds") Right
-    . makeConstant builtin
+typedBuiltinAsValue builtin x = evalMaybe err $ makeConstant builtin x where
+    err = "prop_typedAddInteger: out of bounds: " ++ prettyTypedBuiltinString builtin x
 
 getTypedBuiltinAndItsValue :: TypedBuiltin Size a -> ConstAppProperty (a, Value TyName Name ())
 getTypedBuiltinAndItsValue builtin = do
@@ -75,11 +73,12 @@ getSchemedAndItsValue (TypeSchemeArrow _ _)       = undefined
 getSchemedAndItsValue (TypeSchemeAllSize _)       = undefined
 
 prop_typedBuiltinName
-    :: TypedBuiltinName a
+    :: (forall b. TypedBuiltin Size b -> b -> ConstAppProperty ConstAppResult)
+    -> TypedBuiltinName a
     -> a
     -> (forall b. Size -> TypedBuiltinSized b -> ConstAppProperty b)
     -> Property
-prop_typedBuiltinName (TypedBuiltinName name schema) op allTbs = result where
+prop_typedBuiltinName getFinal (TypedBuiltinName name schema) op allTbs = result where
     result = property . hoist (flip runReaderT $ AllTypedBuiltinSized allTbs) $ do
         size <- forAll . Gen.integral $ Range.exponential 1 128
         go (applyBuiltinName name) size schema op
@@ -88,13 +87,22 @@ prop_typedBuiltinName (TypedBuiltinName name schema) op allTbs = result where
         :: ([Value TyName Name ()] -> ConstAppResult)
         -> Size -> TypeScheme Size a -> a -> ConstAppProperty ()
     go app _    (TypeSchemeBuiltin builtin) y = do
-        w <- typedBuiltinAsValue builtin y
-        app [] === ConstAppSuccess w
+        final <- getFinal builtin y
+        app [] === final
     go app size (TypeSchemeArrow schA schB) f = do
         (x, v) <- getSchemedAndItsValue schA
         go (app . (v :)) size schB (f x)
     go app size (TypeSchemeAllSize schK)    f =
         go app size (schK size) f
+
+prop_typedBuiltinNameSuccess
+    :: TypedBuiltinName a
+    -> a
+    -> (forall b. Size -> TypedBuiltinSized b -> ConstAppProperty b)
+    -> Property
+prop_typedBuiltinNameSuccess =
+    prop_typedBuiltinName $ \builtin y ->
+        ConstAppSuccess <$> typedBuiltinAsValue builtin y
 
 allTypedBuiltinSizedDef :: Size -> TypedBuiltinSized a -> ConstAppProperty a
 allTypedBuiltinSizedDef _ tbs = fail $ concat
@@ -118,62 +126,62 @@ allTypedBuiltinSizedIntSum =
     allTypedBuiltinSizedInt $ \low high ->
         Range.linear (low `div` 2) (high `div` 2)
 
-test_typedAddInteger :: TestTree
-test_typedAddInteger =
+test_typedAddIntegerSuccess :: TestTree
+test_typedAddIntegerSuccess =
     testProperty "typedAddInteger" $
-        prop_typedBuiltinName typedAddInteger (+) allTypedBuiltinSizedIntSum
+        prop_typedBuiltinNameSuccess typedAddInteger (+) allTypedBuiltinSizedIntSum
 
-test_typedSubtractInteger :: TestTree
-test_typedSubtractInteger =
+test_typedSubtractIntegerSuccess :: TestTree
+test_typedSubtractIntegerSuccess =
     testProperty "typedSubtractInteger" $
-        prop_typedBuiltinName typedSubtractInteger (-) allTypedBuiltinSizedIntSum
+        prop_typedBuiltinNameSuccess typedSubtractInteger (-) allTypedBuiltinSizedIntSum
 
-test_typedMultiplyInteger :: TestTree
-test_typedMultiplyInteger =
+test_typedMultiplyIntegerSuccess :: TestTree
+test_typedMultiplyIntegerSuccess =
     testProperty "typedMultiplyInteger" $
-        prop_typedBuiltinName typedMultiplyInteger (*) $
+        prop_typedBuiltinNameSuccess typedMultiplyInteger (*) $
             allTypedBuiltinSizedInt $ \low high ->
                 Range.linear (negate . isqrt . abs $ low) (isqrt high)
 
-test_typedDivideInteger :: TestTree
-test_typedDivideInteger =
+test_typedDivideIntegerSuccess :: TestTree
+test_typedDivideIntegerSuccess =
     testProperty "typedDivideInteger" $
-        prop_typedBuiltinName typedDivideInteger div allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedDivideInteger div allTypedBuiltinSizedIntDef
 
-test_typedRemainderInteger :: TestTree
-test_typedRemainderInteger =
+test_typedRemainderIntegerSuccess :: TestTree
+test_typedRemainderIntegerSuccess =
     testProperty "typedRemainderInteger" $
-        prop_typedBuiltinName typedRemainderInteger mod allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedRemainderInteger mod allTypedBuiltinSizedIntDef
 
-test_typedLessThanInteger :: TestTree
-test_typedLessThanInteger =
+test_typedLessThanIntegerSuccess :: TestTree
+test_typedLessThanIntegerSuccess =
     testProperty "typedLessThanInteger" $
-        prop_typedBuiltinName typedLessThanInteger (<) allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedLessThanInteger (<) allTypedBuiltinSizedIntDef
 
-test_typedLessThanEqInteger :: TestTree
-test_typedLessThanEqInteger =
+test_typedLessThanEqIntegerSuccess :: TestTree
+test_typedLessThanEqIntegerSuccess =
     testProperty "typedLessThanEqInteger" $
-        prop_typedBuiltinName typedLessThanEqInteger (<=) allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedLessThanEqInteger (<=) allTypedBuiltinSizedIntDef
 
-test_typedGreaterThanInteger :: TestTree
-test_typedGreaterThanInteger =
+test_typedGreaterThanIntegerSuccess :: TestTree
+test_typedGreaterThanIntegerSuccess =
     testProperty "typedGreaterThanInteger" $
-        prop_typedBuiltinName typedGreaterThanInteger (>) allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedGreaterThanInteger (>) allTypedBuiltinSizedIntDef
 
-test_typedGreaterThanEqInteger :: TestTree
-test_typedGreaterThanEqInteger =
+test_typedGreaterThanEqIntegerSuccess :: TestTree
+test_typedGreaterThanEqIntegerSuccess =
     testProperty "typedGreaterThanEqInteger" $
-        prop_typedBuiltinName typedGreaterThanEqInteger (>=) allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedGreaterThanEqInteger (>=) allTypedBuiltinSizedIntDef
 
-test_typedEqInteger :: TestTree
-test_typedEqInteger =
+test_typedEqIntegerSuccess :: TestTree
+test_typedEqIntegerSuccess =
     testProperty "typedEqInteger" $
-        prop_typedBuiltinName typedEqInteger (==) allTypedBuiltinSizedIntDef
+        prop_typedBuiltinNameSuccess typedEqInteger (==) allTypedBuiltinSizedIntDef
 
-test_typedResizeInteger :: TestTree
-test_typedResizeInteger =
-    testProperty "typedResizeInteger" $
-        prop_typedBuiltinName typedResizeInteger (const id) allTypedBuiltinSizedIntDef
+-- test_typedResizeIntegerAny :: TestTree
+-- test_typedResizeIntegerAny =
+--     testProperty "typedResizeInteger" $
+--         prop_typedBuiltinNameAny typedResizeInteger (const id) allTypedBuiltinSizedIntDef
 
 isqrt :: Integer -> Integer
 isqrt n
@@ -188,3 +196,6 @@ isqrt n
         newtonStep x = div (x + n `div` x) 2
         iters = iterate newtonStep (isqrt (n `div` lowerN) * lowerRoot)
         isRoot r = sqr r <= n && n < sqr (r+1)
+
+evalMaybe :: (MonadTest m, Show e, HasCallStack) => e -> Maybe a -> m a
+evalMaybe e = evalEither . maybe (Left e) Right
