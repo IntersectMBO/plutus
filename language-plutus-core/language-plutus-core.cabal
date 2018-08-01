@@ -1,4 +1,4 @@
-cabal-version: 1.18
+cabal-version: 2.0
 name: language-plutus-core
 version: 0.1.0.0
 license: BSD3
@@ -41,7 +41,6 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
-        Data.Functor.Foldable.Monadic
         PlutusPrelude
     default-language: Haskell2010
     other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
@@ -64,9 +63,29 @@ library
         prettyprinter -any,
         text -any,
         microlens -any,
-        composition-prelude -any
+        composition-prelude -any,
+        recursion -any
     
     if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+    
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
+
+library recursion
+    exposed-modules:
+        Data.Functor.Foldable.Monadic
+    hs-source-dirs: recursion
+    default-language: Haskell2010
+    other-extensions: FlexibleContexts
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints
+    build-depends:
+        base -any,
+        recursion-schemes -any
+    
+    if flag(development)
         ghc-options: -Werror
     
     if impl(ghc >=8.4)
