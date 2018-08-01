@@ -77,7 +77,7 @@ runTypeCheckM :: Int
               -> Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
               -> Either (TypeError a) b
-runTypeCheckM i n = flip runReaderT (defaultTable i) . flip evalStateT n
+runTypeCheckM i = flip runReaderT (defaultTable i) .* flip evalStateT
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
