@@ -38,7 +38,6 @@ compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t') (Apply _ t'' t''')      = compareTerm t t'' && compareTerm t' t'''
-compareTerm (Fix _ n ty t) (Fix _ n' ty' t')       = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)          = x == y
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
@@ -105,16 +104,14 @@ genType = simpleRecursive nonRecursive recursive
           funGen = TyFun emptyPosn <$> genType <*> genType
           lamGen = TyLam emptyPosn <$> genTyName <*> genKind <*> genType
           forallGen = TyForall emptyPosn <$> genTyName <*> genKind <*> genType
-          fixGen = TyFix emptyPosn <$> genTyName <*> genType
           applyGen = TyApp emptyPosn <$> genType <*> genType
           numGen = TyInt emptyPosn <$> Gen.integral (Range.linear 0 256)
           recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen, fixGen, numGen]
+          nonRecursive = [varGen, lamGen, forallGen, numGen]
 
 genTerm :: MonadGen m => m (Term TyName Name AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
-          fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
           absGen = TyAbs emptyPosn <$> genTyName <*> genKind <*> genTerm
           instGen = TyInst emptyPosn <$> genTerm <*> genType
           lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
@@ -122,7 +119,7 @@ genTerm = simpleRecursive nonRecursive recursive
           unwrapGen = Unwrap emptyPosn <$> genTerm
           wrapGen = Wrap emptyPosn <$> genTyName <*> genType <*> genTerm
           errorGen = Error emptyPosn <$> genType
-          recursive = [fixGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+          recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
 
 genProgram :: MonadGen m => m (Program TyName Name AlexPosn)
