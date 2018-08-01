@@ -21,6 +21,7 @@ normalizeTerm (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> normalizeTerm t
 normalizeTerm (Unwrap l t)      = Unwrap l <$> normalizeTerm t
 normalizeTerm (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> normalizeTerm t
 normalizeTerm (Apply l t t')    = Apply l <$> normalizeTerm t <*> normalizeTerm t'
+normalizeTerm (TyAbs l tn k t)  = TyAbs l tn k <$> normalizeTerm t
 normalizeTerm t@Var{}           = pure t
 normalizeTerm t@Constant{}      = pure t
 
