@@ -47,7 +47,7 @@ library
                       GeneralizedNewtypeDeriving TemplateHaskell KindSignatures
                       TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
                       FlexibleContexts OverloadedStrings DerivingStrategies
-                      MonadComprehensions
+                      MonadComprehensions FlexibleInstances
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints

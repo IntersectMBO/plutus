@@ -42,6 +42,7 @@ module Language.PlutusCore
     , TypeError (..)
     -- * Errors
     , Error (..)
+    , IsError (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)

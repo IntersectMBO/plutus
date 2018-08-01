@@ -159,11 +159,6 @@ errorgen = BSL.fromStrict . encodeUtf8 . printError
 printError :: Pretty a => a -> T.Text
 printError = renderStrict . layoutSmart defaultLayoutOptions . pretty
 
-collectErrors :: Either ParseError (Either (RenameError AlexPosn) T.Text) -> Either Error T.Text
-collectErrors (Left x)          = Left (ParseError x)
-collectErrors (Right (Left x))  = Left (RenameError x)
-collectErrors (Right (Right x)) = Right x
-
 withTypes :: BSL.ByteString -> Either Error T.Text
 withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 

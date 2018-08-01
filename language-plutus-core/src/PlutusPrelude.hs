@@ -16,9 +16,10 @@ module PlutusPrelude ( (&&&)
                      , module X
                      ) where
 
-import           Control.Arrow             (first, second, (&&&))
+import           Control.Arrow             ((&&&))
 import           Control.Composition       ((.*))
 import           Control.DeepSeq           (NFData)
+import           Data.Bifunctor            (first, second)
 import           Data.Bool                 (bool)
 import           Data.Foldable             (fold, toList)
 import           Data.Function             (on)

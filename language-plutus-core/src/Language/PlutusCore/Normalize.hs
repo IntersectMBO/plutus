@@ -1,14 +1,20 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 -- | This module makes sure terms and types are well-formed according to Fig. 2
 module Language.PlutusCore.Normalize ( normalize
+                                     , NormalizationError (..)
                                      ) where
 
 import           Data.Functor.Foldable
 import           Data.Functor.Foldable.Monadic
 import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 data NormalizationError = BadType
+
+instance Pretty NormalizationError where
+    pretty BadType = "Program is not normalized. Please ensure all instantiations, wraps, unwraps, and lambdas use type values"
 
 normalize :: Program tyname name a -> Either NormalizationError (Program tyname name a)
 normalize (Program l v t) = Program l v <$> normalizeTerm t
