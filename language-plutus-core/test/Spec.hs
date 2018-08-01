@@ -171,7 +171,7 @@ withTypes :: BSL.ByteString -> Either Error T.Text
 withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 
 showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
-showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i $ typeOf t
+showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i 10000 $ typeOf t
     where i = maybe 0 fst (IM.lookupMax tys)
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree

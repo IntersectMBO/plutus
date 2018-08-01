@@ -27,7 +27,7 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = ReaderT BuiltinTable (Either (TypeError a))
+type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (Either (TypeError a)))
 
 data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
@@ -73,8 +73,19 @@ defaultTable i = BuiltinTable tyTable termTable
                                  ]
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: Int -> TypeCheckM a b -> Either (TypeError a) b
-runTypeCheckM = flip runReaderT . defaultTable
+runTypeCheckM :: Int
+              -> Natural -- ^ Amount of gas to provide typechecker
+              -> TypeCheckM a b
+              -> Either (TypeError a) b
+runTypeCheckM i n = flip runReaderT (defaultTable i) . flip evalStateT n
+
+typeCheckStep :: TypeCheckM a ()
+typeCheckStep = do
+    modify (subtract 1)
+    i <- get
+    if i == 0
+        then throwError OutOfGas
+        else pure ()
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
@@ -203,6 +214,7 @@ tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 
+-- TODO: add left-instatiation etc.
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty
 tyReduce x                                                                   = x
