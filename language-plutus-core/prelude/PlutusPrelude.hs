@@ -1,14 +1,11 @@
-module PlutusPrelude ( (&&&)
+module PlutusPrelude ( -- * Reëxports from base
+                       (&&&)
                      , toList
                      , bool
                      , first
                      , second
                      , on
                      , fold
-                     , (.*)
-                     -- * Custom functions
-                     , prettyText
-                     , render
                      , Generic
                      , NFData
                      , Natural
@@ -16,6 +13,11 @@ module PlutusPrelude ( (&&&)
                      , Pretty (..)
                      , Word8
                      , Semigroup (..)
+                     -- * Reëxports from "Control.Composition"
+                     , (.*)
+                     -- * Custom functions
+                     , prettyText
+                     , render
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
