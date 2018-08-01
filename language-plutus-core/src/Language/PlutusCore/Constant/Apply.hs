@@ -17,6 +17,7 @@ import           Language.PlutusCore.Constant.Typed
 
 import           Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
+import qualified Data.ByteString.Lazy as BSL
 
 -- | The type of constant applications errors.
 data ConstAppError
@@ -65,9 +66,6 @@ checkBuiltinSize (Just size) size' constant _ | size /= size' =
     Left $ SizeMismatchConstAppError size constant
 checkBuiltinSize  _          size' _        y = Right (y, size')
 
-expandSizeVars :: SizeValues -> TypedBuiltin SizeVar a -> TypedBuiltin Size a
-expandSizeVars = fmapSizeTypedBuiltin . flip sizeAt
-
 extractSizedBuiltin
     :: TypedBuiltinSized a -> Maybe Size -> Constant () -> Either ConstAppError (a, Size)
 extractSizedBuiltin TypedBuiltinSizedInt  maySize constant@(BuiltinInt  () size' int) =
@@ -79,14 +77,21 @@ extractSizedBuiltin TypedBuiltinSizedSize maySize constant@(BuiltinSize () size'
 extractSizedBuiltin tbs            _       constant                            =
     Left $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
 
+expandSizeVars :: SizeValues -> TypedBuiltin SizeVar a -> TypedBuiltin Size a
+expandSizeVars = fmapSizeTypedBuiltin . flip sizeAt
+
 extractBuiltin
     :: TypedBuiltin SizeVar a
     -> SizeValues
     -> Value TyName Name ()
     -> Either ConstAppError (a, SizeValues)
-extractBuiltin (TypedBuiltinSized (SizeVar sizeIndex) tbs) (SizeValues sizes) value = case value of
-    Constant () constant -> unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
-        upd maySize = fmap Just . PairT $ extractSizedBuiltin tbs maySize constant
+extractBuiltin (TypedBuiltinSized sizeEntry tbs) (SizeValues sizes) value = case value of
+    Constant () constant -> case sizeEntry of
+        SizeValue size                ->
+            (SizeValues sizes <$) <$> extractSizedBuiltin tbs (Just size) constant
+        SizeBound (SizeVar sizeIndex) ->
+            unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
+                upd maySize = fmap Just . PairT $ extractSizedBuiltin tbs maySize constant
     _                    -> Left $ SizedValueConstAppError value
 extractBuiltin TypedBuiltinBool                            _                  _     =
     -- Plan: evaluate the 'value' to a dynamically typed Church-encoded 'Bool'
@@ -130,15 +135,15 @@ applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanIn
 applyBuiltinName GreaterThanEqInteger = applyTypedBuiltinName typedGreaterThanEqInteger (>=)
 applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger            (==)
 applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (const id)
-applyBuiltinName IntToByteString      = undefined
-applyBuiltinName Concatenate          = undefined
-applyBuiltinName TakeByteString       = undefined
-applyBuiltinName DropByteString       = undefined
-applyBuiltinName ResizeByteString     = undefined
-applyBuiltinName SHA2                 = undefined
-applyBuiltinName SHA3                 = undefined
-applyBuiltinName VerifySignature      = undefined
-applyBuiltinName EqByteString         = undefined
-applyBuiltinName TxHash               = undefined
+applyBuiltinName IntToByteString      = applyTypedBuiltinName typedIntToByteString      undefined
+applyBuiltinName Concatenate          = applyTypedBuiltinName typedConcatenate          (<>)
+applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
+applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
+applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
+applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 undefined
+applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 undefined
+applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
+applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
+applyBuiltinName TxHash               = applyTypedBuiltinName typedTxHash               undefined
 applyBuiltinName BlockNum             = undefined
 applyBuiltinName BlockTime            = undefined

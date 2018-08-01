@@ -16,7 +16,7 @@ import           Language.PlutusCore.Constant.Typed
 
 import qualified Data.ByteString.Lazy as BSL
 
--- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of given size.
+-- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)
 toBoundsInt s = (-2 ^ p, 2 ^ p) where
     p = 8 * fromIntegral s - 1 :: Int
@@ -26,8 +26,13 @@ checkBoundsInt :: Size -> Integer -> Bool
 checkBoundsInt s i = low <= i && i < high where
     (low, high) = toBoundsInt s
 
+-- | Check whether the length of a 'ByteString' is less than or equal to a given 'Size'.
 checkBoundsBS :: Size -> BSL.ByteString -> Bool
-checkBoundsBS = undefined
+checkBoundsBS size bs = BSL.length bs <= fromIntegral size
+
+-- | Check whether a 'Size' is a singleton.
+checkBoundsSize :: Size -> Size -> Bool
+checkBoundsSize = (==)
 
 -- | Check whether an 'Integer' is in bounds (see 'checkBoundsInt') and return it as a term.
 makeBuiltinInt :: Size -> Integer -> Maybe (Constant ())
@@ -39,7 +44,7 @@ makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 
 -- | Check whether a 'Size' is a singleton and return it as a term.
 makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
-makeBuiltinSize size size' = size == size' ? BuiltinSize () size
+makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 
 -- | Coerce a 'Bool' to PLC's @boolean@.
 makeDupBuiltinBool :: Bool -> Value TyName Name ()
@@ -55,5 +60,6 @@ makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
 -- | Coerce a Haskell value to a PLC term checking all constraints
 -- (e.g. an `Integer` is in appropriate bounds) along the way.
 makeConstant :: TypedBuiltin Size a -> a -> Maybe (Value TyName Name ())
-makeConstant (TypedBuiltinSized size tbs) x = Constant () <$> makeSizedConstant size tbs x
-makeConstant TypedBuiltinBool             b = Just $ makeDupBuiltinBool b
+makeConstant (TypedBuiltinSized se tbs) x =
+    Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
+makeConstant TypedBuiltinBool           b = Just $ makeDupBuiltinBool b

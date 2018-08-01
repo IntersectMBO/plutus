@@ -58,10 +58,10 @@ tests_typedBuiltinName =
 type ConstAppProperty = PropertyT (ReaderT TheAllTypedBuiltinSized IO)
 
 allTypedBuiltin :: TypedBuiltin Size a -> ConstAppProperty a
-allTypedBuiltin (TypedBuiltinSized size tbs) = do
+allTypedBuiltin (TypedBuiltinSized sizeEntry tbs) = do
     TheAllTypedBuiltinSized allTbs <- ask
-    allTbs size tbs
-allTypedBuiltin TypedBuiltinBool             = forAll Gen.bool
+    allTbs (flattenSizeEntry sizeEntry) tbs
+allTypedBuiltin TypedBuiltinBool                  = forAll Gen.bool
 
 typedBuiltinAsValue :: TypedBuiltin Size a -> a -> ConstAppProperty (Value TyName Name ())
 typedBuiltinAsValue builtin x = evalMaybe err $ makeConstant builtin x where
