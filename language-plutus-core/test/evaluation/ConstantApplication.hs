@@ -43,7 +43,7 @@ allTypedBuiltinSized :: Size -> TypedBuiltinSized a -> PropertyT IO a
 allTypedBuiltinSized size TypedBuiltinSizedInt  =
     -- TODO: this works only for addition, fix it.
     let (low, high) = toBoundsInt size in
-        forAll . Gen.integral $ Range.linear (low `div` 2) (high `div` 2)
+        forAll . Gen.integral $ Range.linear (low `div` 2) ((high - 1) `div` 2)
 allTypedBuiltinSized size TypedBuiltinSizedBS   = undefined
 allTypedBuiltinSized size TypedBuiltinSizedSize = undefined
 
