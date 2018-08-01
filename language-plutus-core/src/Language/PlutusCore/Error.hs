@@ -27,7 +27,7 @@ class IsError a where
     convertError :: Either a b -> Either Error b
     convertError = first asError
 
-    collectErrors :: (IsError a') => Either a (Either a' b) -> Either Error b
+    collectErrors :: (IsError b) => Either a (Either b c) -> Either Error c
     collectErrors (Left x)          = asLeft x
     collectErrors (Right (Left x))  = asLeft x
     collectErrors (Right (Right x)) = Right x
