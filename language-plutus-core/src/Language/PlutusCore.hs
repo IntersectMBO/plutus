@@ -47,11 +47,9 @@ module Language.PlutusCore
     , TypeF (..)
     ) where
 
-import qualified Data.ByteString.Lazy                  as BSL
-import qualified Data.IntMap                           as IM
-import qualified Data.Text                             as T
-import           Data.Text.Prettyprint.Doc             hiding (annotate)
-import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import qualified Data.ByteString.Lazy              as BSL
+import qualified Data.IntMap                       as IM
+import qualified Data.Text                         as T
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -71,19 +69,15 @@ debugScopes = fmap (render . debug) . parseScoped
 parseScoped :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
 parseScoped = fmap (uncurry rename) . parseST
 
-programType :: Natural -> TypeState a -> Program TyNameWithKind NameWithType a -> Either (TypeError a) (RenamedType ())
+programType :: Natural -- ^ Gas provided to typechecker
+            -> TypeState a
+            -> Program TyNameWithKind NameWithType a
+            -> Either (TypeError a) (RenamedType ())
 programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
     where i = maybe 0 fst (IM.lookupMax tys)
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
-
--- | Render a 'Program' as strict 'Text'.
-prettyText :: Program TyName Name a -> T.Text
-prettyText = render . pretty
-
-render :: Doc a -> T.Text
-render = renderStrict . layoutSmart defaultLayoutOptions
 
 format :: BSL.ByteString -> Either ParseError T.Text
 format = fmap render . formatDoc

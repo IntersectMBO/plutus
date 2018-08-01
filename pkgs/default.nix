@@ -42252,7 +42252,7 @@ happy
 testHaskellDepends = [
 base
 bytestring
-containers
+composition-prelude
 hedgehog
 prettyprinter
 tasty
