@@ -19,6 +19,7 @@ instance Pretty a => Pretty (NormalizationError a) where
     pretty (BadType l) = "Malformed type at" <+> pretty l
     pretty (BadTerm l) = "Malformed term at" <+> pretty l
 
+-- | Ensure that all terms and types are well-formed accoring to Fig. 2
 normalize :: Program tyname name a -> Either (NormalizationError a) (Program tyname name a)
 normalize (Program l v t) = Program l v <$> normalizeTerm t
 

@@ -26,19 +26,20 @@ module Language.PlutusCore
     , annotate
     , annotateST
     , debugScopes
-    , RenameError (..)
+    , RenameError
     , TyNameWithKind (..)
     , NameWithType (..)
     , Debug (..)
     , TypeState (..)
     -- * Normalization
     , normalize
+    , NormalizationError
     -- * Type synthesis
     , typeOf
     , kindOf
     , runTypeCheckM
     , programType
-    , TypeError (..)
+    , TypeError
     -- * Errors
     , Error (..)
     , IsError (..)
