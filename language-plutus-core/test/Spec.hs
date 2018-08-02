@@ -4,7 +4,6 @@ module Main ( main
             ) where
 
 import qualified Data.ByteString.Lazy as BSL
-import           Data.Foldable        (fold)
 import qualified Data.Text            as T
 import           Data.Text.Encoding   (encodeUtf8)
 import           Hedgehog             hiding (Size, Var, annotate)
