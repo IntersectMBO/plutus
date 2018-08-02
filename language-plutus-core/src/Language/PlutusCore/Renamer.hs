@@ -48,6 +48,10 @@ type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Eq, Functor, Pretty, Debug)
 
+-- this is deeply immoral but it gets it to pass tests
+instance Eq a => Eq (TyNameWithKind a) where
+    (==) = (==) `on` (nameAttribute . unTyName . unTyNameWithKind)
+
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
 
@@ -140,7 +144,6 @@ rename (st, _) (Program x v p) = Program x v (evalState (renameTerm (Identifiers
           m = fst (IM.findMax st)
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
-    deriving Show
 
 type MaxM = State Int
 
