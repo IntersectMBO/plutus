@@ -156,7 +156,7 @@ withTypes :: BSL.ByteString -> Either Error T.Text
 withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 
 showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
-showType = uncurry (either prettyText (T.pack . show) .* programType 10000)
+showType = uncurry (either prettyText prettyText .* programType 10000)
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)

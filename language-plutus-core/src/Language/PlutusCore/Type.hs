@@ -88,6 +88,9 @@ data Kind a = Type a
             | Size a
             deriving (Functor, Eq, Show, Generic, NFData)
 
+instance Debug (Kind a) where
+    debug = pretty
+
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
 -- language.
 data Program tyname name a = Program a (Version a) (Term tyname name a)
