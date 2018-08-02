@@ -36,13 +36,13 @@ test_typedAddIntegerSuccess :: TestTree
 test_typedAddIntegerSuccess
     = testProperty "typedAddInteger"
     $ prop_applyBuiltinNameSuccess typedAddInteger (+)
-    $ allTypedBuiltinSizedIntSum
+    $ allTypedBuiltinSizedSum
 
 test_typedSubtractIntegerSuccess :: TestTree
 test_typedSubtractIntegerSuccess
     = testProperty "typedSubtractInteger"
     $ prop_applyBuiltinNameSuccess typedSubtractInteger (-)
-    $ allTypedBuiltinSizedIntSum
+    $ allTypedBuiltinSizedSum
 
 test_typedMultiplyIntegerSuccess :: TestTree
 test_typedMultiplyIntegerSuccess
@@ -56,13 +56,13 @@ test_typedDivideIntegerSuccess :: TestTree
 test_typedDivideIntegerSuccess
     = testProperty "typedDivideInteger"
     $ prop_applyBuiltinNameSuccess typedDivideInteger div
-    $ allTypedBuiltinSizedIntDiv
+    $ allTypedBuiltinSizedDiv
 
 test_typedRemainderIntegerSuccess :: TestTree
 test_typedRemainderIntegerSuccess
     = testProperty "typedRemainderInteger"
     $ prop_applyBuiltinNameSuccess typedRemainderInteger mod
-    $ allTypedBuiltinSizedIntDiv
+    $ allTypedBuiltinSizedDiv
 
 test_typedLessThanIntegerSuccess :: TestTree
 test_typedLessThanIntegerSuccess

@@ -1,6 +1,17 @@
+-- | This module defines the 'AllTypedBuiltinSized' type and functions of this type
+-- which control size-induced bounds of values generated in the 'prop_applyBuiltinName'
+-- function and its derivatives defined in the "Apply" module.
+
 {-# LANGUAGE RankNTypes   #-}
 {-# LANGUAGE TypeFamilies #-}
-module Evaluation.Constant.AllTypedBuiltinSized where
+module Evaluation.Constant.AllTypedBuiltinSized
+    ( AllTypedBuiltinSized
+    , TheAllTypedBuiltinSized(..)
+    , updateAllTypedBuiltinSized
+    , allTypedBuiltinSizedDef
+    , allTypedBuiltinSizedSum
+    , allTypedBuiltinSizedDiv
+    ) where
 
 import           Language.PlutusCore.Constant
 
@@ -72,16 +83,16 @@ allTypedBuiltinSizedDef
 
 -- | A sized builtins generator that produces 'Integer's in bounds narrowed by a factor of 2,
 -- so one can use '(+)' or '(-)' over such integers without the risk of getting an overflow.
-allTypedBuiltinSizedIntSum :: AllTypedBuiltinSized
-allTypedBuiltinSizedIntSum
+allTypedBuiltinSizedSum :: AllTypedBuiltinSized
+allTypedBuiltinSizedSum
     = updateAllTypedBuiltinSized TypedBuiltinSizedInt
           (\low high -> Gen.integral $ Range.linear (low `div` 2) (high `div` 2))
     $ allTypedBuiltinSizedDef
 
 -- | A sized builtins generator that doesn't produce @0 :: Integer@,
 -- so one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-allTypedBuiltinSizedIntDiv :: AllTypedBuiltinSized
-allTypedBuiltinSizedIntDiv
+allTypedBuiltinSizedDiv :: AllTypedBuiltinSized
+allTypedBuiltinSizedDiv
     = updateAllTypedBuiltinSized TypedBuiltinSizedInt
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
     $ allTypedBuiltinSizedDef

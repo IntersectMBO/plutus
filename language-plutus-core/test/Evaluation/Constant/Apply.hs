@@ -1,3 +1,7 @@
+-- | This module contains definitions which allow to test the 'applyBuiltinName' function.
+-- See the "Success" and "SuccessFailure" module for actual tests implemented
+-- in terms of functions defined here.
+
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs      #-}
 module Evaluation.Constant.Apply
@@ -20,7 +24,7 @@ import qualified Hedgehog.Range as Range
 -- | The internal type used in properties defined in this module.
 -- It is parameterized by an 'TheAllTypedBuiltinSized' which determines
 -- how to generate sized builtins having a 'Size'. See for example
--- 'allTypedBuiltinSizedIntSum' and 'allTypedBuiltinSizedIntDiv'.
+-- 'allTypedBuiltinSizedSum' and 'allTypedBuiltinSizedDiv'.
 type ConstAppProperty = PropertyT (ReaderT TheAllTypedBuiltinSized IO)
 
 evalMaybe :: (MonadTest m, Show e, HasCallStack) => e -> Maybe a -> m a
@@ -58,7 +62,7 @@ getSchemedAndItsValue (TypeSchemeAllSize _)       = undefined
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
 -- taking size-induced bounds (controlled by the 'AllTypedBuiltinSized' parameter) into account
 -- for arguments and either taking those bounds into account for the final result or using the
--- standard ones as seen in the spec or ignoring them completely depending on how you instantiate
+-- default ones (as per the spec) or ignoring them completely depending on how you instantiate
 -- the first parameter. An argument is generated as a Haskell value, then coerced to the
 -- corresponding PLC value which gets appended to the spine of arguments 'applyBuiltinName' expects.
 -- The generated Haskell value is passed to the semantics of the 'TypedBuiltinName'
@@ -97,10 +101,19 @@ prop_applyBuiltinName getFinal (TypedBuiltinName name schema) op allTbs = result
         go app size (schK size) f                   -- Instantiate a size variable with the size
                                                     -- generated above.
 
+-- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
+-- the Haskell side must fit into the specified (by the 'AllTypedBuiltinSized' argument) bounds
+-- and hence the result of the 'applyBuiltinName' computation must be a 'ConstAppSuccess'.
+-- See 'allTypedBuiltinSizedSum' for how this is achieved for 'AddInteger' and 'SubtractInteger'.
+-- See the "Success" module for tests defined in terms of this function.
 prop_applyBuiltinNameSuccess :: TypedBuiltinName a -> a -> AllTypedBuiltinSized -> Property
 prop_applyBuiltinNameSuccess =
     prop_applyBuiltinName $ \tbs -> fmap ConstAppSuccess . typedBuiltinAsValue tbs
 
+-- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
+-- the Haskell side may or may not fit into the default bounds (as per the spec) and hence the
+-- result of the 'applyBuiltinName' computation must be either a 'ConstAppSuccess' or 'ConstAppFailure'.
+-- See the "SuccessFailure" module for tests defined in terms of this function.
 prop_applyBuiltinNameSuccessFailure :: TypedBuiltinName a -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
     prop_applyBuiltinName (\tbs -> return . makeConstantApp tbs) tbn x allTypedBuiltinSizedDef
