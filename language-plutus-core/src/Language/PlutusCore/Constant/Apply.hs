@@ -27,7 +27,7 @@ data ConstAppError
     | ExcessArgumentsConstAppError [Value TyName Name ()]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
-      -- constant application is supposed to be computed as soon as there are enough arguments
+      -- constant application is supposed to be computed as soon as there are enough arguments.
     | SizedValueConstAppError (Value TyName Name ())
     | NotImplementedConstAppError
     deriving (Show, Eq)
@@ -109,7 +109,7 @@ extractSchemed (TypeSchemeAllSize _) _          _     = Left NotImplementedConst
 applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
-    go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result
+    go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result.
         [] -> makeConstantApp (expandSizeVars sizeValues builtin) y
         _  -> ConstAppError $ ExcessArgumentsConstAppError args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
@@ -118,9 +118,11 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
             case extractSchemed schA sizeValues arg of       -- Coerce the argument to a Haskell value.
                 Left err               -> ConstAppError err  -- The coercion resulted in an error.
                 Right (x, sizeValues') ->
-                    go schB sizeVar sizeValues' (f x) args'  -- Apply the function to the coerced argument, proceed recursively.
+                    go schB sizeVar sizeValues' (f x) args'  -- Apply the function to the coerced argument
+                                                             -- and proceed recursively.
     go (TypeSchemeAllSize schK)    sizeVar sizeValues f args =
-        go (schK sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var and proceed recursively.
+        go (schK sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var
+                                                            -- and proceed recursively.
 
 -- | Apply a 'BuiltinName' to a list of arguments.
 applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
