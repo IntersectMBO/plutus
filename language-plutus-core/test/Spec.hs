@@ -17,6 +17,7 @@ import           Hedgehog                              hiding (Size, Var, annota
 import qualified Hedgehog.Gen                          as Gen
 import qualified Hedgehog.Range                        as Range
 import           Language.PlutusCore
+import           Evaluation.Constant.All
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -153,6 +154,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
+    , test_constantApplication
     ]
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
