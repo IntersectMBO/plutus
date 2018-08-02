@@ -46,7 +46,7 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Functor, Pretty, Debug)
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Eq, Functor, Pretty, Debug)
+    deriving (Functor, Pretty, Debug)
 
 -- this is deeply immoral but it gets it to pass tests
 instance Eq a => Eq (TyNameWithKind a) where
