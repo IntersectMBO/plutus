@@ -5,24 +5,19 @@ module Evaluation.Constant.SuccessFailure
 import           Language.PlutusCore.Constant
 import           Evaluation.Constant.Apply
 
+import           Data.Semigroup
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 test_applyBuiltinNameSuccessFailure :: TestTree
 test_applyBuiltinNameSuccessFailure =
-    -- TODO: fix the divide-by-zero error.
     testGroup "applyBuiltinNameSuccessFailure"
         [ test_typedAddIntegerSuccessFailure
         , test_typedSubtractIntegerSuccessFailure
         , test_typedMultiplyIntegerSuccessFailure
-        , test_typedDivideIntegerSuccessFailure
-        , test_typedRemainderIntegerSuccessFailure
-        , test_typedLessThanIntegerSuccessFailure
-        , test_typedLessThanEqIntegerSuccessFailure
-        , test_typedGreaterThanIntegerSuccessFailure
-        , test_typedGreaterThanEqIntegerSuccessFailure
-        , test_typedEqIntegerSuccessFailure
         , test_typedResizeIntegerSuccessFailure
+        , test_typedConcatenateSuccessFailure
+        , test_typedResizeByteStringSuccessFailure
         ]
 
 test_typedAddIntegerSuccessFailure :: TestTree
@@ -40,50 +35,17 @@ test_typedMultiplyIntegerSuccessFailure
     = testProperty "typedMultiplyInteger"
     $ prop_applyBuiltinNameSuccessFailure typedMultiplyInteger (*)
 
-test_typedDivideIntegerSuccessFailure :: TestTree
-test_typedDivideIntegerSuccessFailure
-    = testProperty "typedDivideInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedDivideInteger div
-
-test_typedRemainderIntegerSuccessFailure :: TestTree
-test_typedRemainderIntegerSuccessFailure
-    = testProperty "typedRemainderInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedRemainderInteger mod
-
-test_typedLessThanIntegerSuccessFailure :: TestTree
-test_typedLessThanIntegerSuccessFailure
-    = testProperty "typedLessThanInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedLessThanInteger (<)
-
-test_typedLessThanEqIntegerSuccessFailure :: TestTree
-test_typedLessThanEqIntegerSuccessFailure
-    = testProperty "typedLessThanEqInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedLessThanEqInteger (<=)
-
-test_typedGreaterThanIntegerSuccessFailure :: TestTree
-test_typedGreaterThanIntegerSuccessFailure
-    = testProperty "typedGreaterThanInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedGreaterThanInteger (>)
-
-test_typedGreaterThanEqIntegerSuccessFailure :: TestTree
-test_typedGreaterThanEqIntegerSuccessFailure
-    = testProperty "typedGreaterThanEqInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedGreaterThanEqInteger (>=)
-
-test_typedEqIntegerSuccessFailure :: TestTree
-test_typedEqIntegerSuccessFailure
-    = testProperty "typedEqInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedEqInteger (==)
-
 test_typedResizeIntegerSuccessFailure :: TestTree
 test_typedResizeIntegerSuccessFailure
     = testProperty "typedResizeInteger"
     $ prop_applyBuiltinNameSuccessFailure typedResizeInteger (const id)
 
+test_typedConcatenateSuccessFailure :: TestTree
+test_typedConcatenateSuccessFailure
+    = testProperty "typedConcatenate"
+    $ prop_applyBuiltinNameSuccessFailure typedConcatenate (<>)
 
-{-
-    , typedConcatenate
-    , typedTakeByteString
-    , typedDropByteString
-    , typedEqByteString
--}
+test_typedResizeByteStringSuccessFailure :: TestTree
+test_typedResizeByteStringSuccessFailure
+    = testProperty "typedResizeByteString"
+    $ prop_applyBuiltinNameSuccessFailure typedResizeByteString (const id)

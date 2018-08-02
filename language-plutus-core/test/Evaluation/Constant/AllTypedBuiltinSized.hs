@@ -4,6 +4,7 @@ module Evaluation.Constant.AllTypedBuiltinSized where
 
 import           Language.PlutusCore.Constant
 
+import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen   as Gen
@@ -38,30 +39,38 @@ class UpdateAllTypedBuiltinSized a where
         -> AllTypedBuiltinSized
 
 instance UpdateAllTypedBuiltinSized Integer where
-    type RangeUpdater Integer = Integer -> Integer -> Range Integer
+    type RangeUpdater Integer = Integer -> Integer -> Gen Integer
 
-    updateAllTypedBuiltinSized _ toRange _      size TypedBuiltinSizedInt =
+    updateAllTypedBuiltinSized _ genInteger _      size TypedBuiltinSizedInt =
         let (low, high) = toBoundsInt size in
-            forAll . Gen.integral $ toRange low (high - 1)
-    updateAllTypedBuiltinSized _ _       allTbs size tbs                  =
+            forAll $ genInteger low (high - 1)
+    updateAllTypedBuiltinSized _ _          allTbs size tbs                  =
         allTbs size tbs
 
 instance UpdateAllTypedBuiltinSized BSL.ByteString where
-    type RangeUpdater BSL.ByteString = Int -> Range Int
+    type RangeUpdater BSL.ByteString = Int -> Gen BS.ByteString
 
-    updateAllTypedBuiltinSized _ toRange _      size TypedBuiltinSizedBS =
-        forAll . fmap BSL.fromStrict . Gen.bytes . toRange $ fromIntegral size
-    updateAllTypedBuiltinSized _ _       allTbs size tbs                 =
+    updateAllTypedBuiltinSized _ genBytes _      size TypedBuiltinSizedBS =
+        forAll . fmap BSL.fromStrict . genBytes $ fromIntegral size
+    updateAllTypedBuiltinSized _ _        allTbs size tbs                 =
         allTbs size tbs
 
 allTypedBuiltinSizedDef :: AllTypedBuiltinSized
 allTypedBuiltinSizedDef
-    = updateAllTypedBuiltinSized TypedBuiltinSizedInt Range.linear
-    $ updateAllTypedBuiltinSized TypedBuiltinSizedBS (Range.linear 0)
+    = updateAllTypedBuiltinSized TypedBuiltinSizedInt
+          (\low high -> Gen.integral $ Range.linear low high)
+    $ updateAllTypedBuiltinSized TypedBuiltinSizedBS
+          (Gen.bytes . Range.linear 0)
     $ allTypedBuiltinSizedSize
 
 allTypedBuiltinSizedIntSum :: AllTypedBuiltinSized
 allTypedBuiltinSizedIntSum
     = updateAllTypedBuiltinSized TypedBuiltinSizedInt
-          (\low high -> Range.linear (low `div` 2) (high `div` 2))
+          (\low high -> Gen.integral $ Range.linear (low `div` 2) (high `div` 2))
+    $ allTypedBuiltinSizedDef
+
+allTypedBuiltinSizedIntDiv :: AllTypedBuiltinSized
+allTypedBuiltinSizedIntDiv
+    = updateAllTypedBuiltinSized TypedBuiltinSizedInt
+          (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
     $ allTypedBuiltinSizedDef
