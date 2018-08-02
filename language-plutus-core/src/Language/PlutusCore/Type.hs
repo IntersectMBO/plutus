@@ -3,8 +3,6 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -24,7 +22,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 ) where
 
 import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable          (cata)
+import           Data.Functor.Foldable
 import           Data.Functor.Foldable.TH
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
@@ -39,7 +37,61 @@ data Type tyname a = TyVar a (tyname a)
                    | TyInt a Natural -- ^ Type-level size
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (Type tyname a)
-                   deriving (Functor, Show, Eq, Generic, NFData)
+                   deriving (Functor, Show, Generic, NFData) -- FIXME: this instance for Eq fails to handle universal quantifiers correctly!
+
+data TypeF tyname a x = TyVarF a (tyname a)
+                      | TyFunF a x x
+                      | TyFixF a (tyname a) x
+                      | TyForallF a (tyname a) (Kind a) x
+                      | TyBuiltinF a TypeBuiltin
+                      | TyIntF a Natural
+                      | TyLamF a (tyname a) (Kind a) x
+                      | TyAppF a x x
+                      deriving (Functor, Traversable, Foldable)
+
+type instance Base (Type tyname a) = TypeF tyname a
+
+instance Recursive (Type tyname a) where
+    project (TyVar l tn)         = TyVarF l tn
+    project (TyFun l ty ty')     = TyFunF l ty ty'
+    project (TyFix l tn ty)      = TyFixF l tn ty
+    project (TyForall l tn k ty) = TyForallF l tn k ty
+    project (TyBuiltin l b)      = TyBuiltinF l b
+    project (TyInt l n)          = TyIntF l n
+    project (TyLam l tn k ty)    = TyLamF l tn k ty
+    project (TyApp l ty ty')     = TyAppF l ty ty'
+
+instance Corecursive (Type tyname a) where
+    embed (TyVarF l tn)         = TyVar l tn
+    embed (TyFunF l ty ty')     = TyFun l ty ty'
+    embed (TyFixF l tn ty)      = TyFix l tn ty
+    embed (TyForallF l tn k ty) = TyForall l tn k ty
+    embed (TyBuiltinF l b)      = TyBuiltin l b
+    embed (TyIntF l n)          = TyInt l n
+    embed (TyLamF l tn k ty)    = TyLam l tn k ty
+    embed (TyAppF l ty ty')     = TyApp l ty ty'
+
+-- | Substitute @a@ for @b@ in @c@.
+tyNameSubstitute :: Eq (tyname a) 
+                 => tyname a -- ^ @a@
+                 -> tyname a -- ^ @b@
+                 -> Type tyname a -- ^ @c@ 
+                 -> Type tyname a
+tyNameSubstitute tn tn' = cata a where
+    a (TyVarF x tn'') | tn == tn'' = TyVar x tn'
+    a x                           = embed x
+
+instance (Eq (tyname a), Eq a) => Eq (Type tyname a) where
+    (==) (TyVar _ tn) (TyVar _ tn')            = tn == tn'
+    (==) (TyFun _ ty ty') (TyFun _ ty'' ty''') = ty == ty'' && ty' == ty'''
+    (==) (TyFix _ tn ty) (TyFix _ tn' ty') = tyNameSubstitute tn' tn ty' == ty
+    (==) (TyForall _ tn k ty) (TyForall _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
+    (==) (TyBuiltin _ b) (TyBuiltin _ b') = b == b'
+    (==) (TyInt _ n) (TyInt _ n') = n == n'
+    (==) (TyLam _ tn k ty) (TyLam _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
+    (==) (TyApp _ ty ty') (TyApp _ ty'' ty''') = ty == ty'' && ty' == ty'''
+    (==) _ _ = False
+
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
@@ -98,7 +150,6 @@ data Program tyname name a = Program a (Version a) (Term tyname name a)
 
 makeBaseFunctor ''Kind
 makeBaseFunctor ''Term
-makeBaseFunctor ''Type
 
 instance Pretty (Kind a) where
     pretty = cata a where
