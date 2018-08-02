@@ -140,6 +140,18 @@ data Kind a = Type a
             | Size a
             deriving (Functor, Eq, Show, Generic, NFData)
 
+data KindF a x = TypeF a
+               | KindArrowF a x x
+               | SizeF a
+               deriving (Functor)
+
+type instance Base (Kind a) = KindF a
+
+instance Recursive (Kind a) where
+    project (Type l) = TypeF l
+    project (KindArrow l k k') = KindArrowF l k k'
+    project (Size l) = SizeF l
+
 instance Debug (Kind a) where
     debug = pretty
 
@@ -148,7 +160,6 @@ instance Debug (Kind a) where
 data Program tyname name a = Program a (Version a) (Term tyname name a)
                  deriving (Show, Eq, Functor, Generic, NFData)
 
-makeBaseFunctor ''Kind
 makeBaseFunctor ''Term
 
 instance Pretty (Kind a) where
