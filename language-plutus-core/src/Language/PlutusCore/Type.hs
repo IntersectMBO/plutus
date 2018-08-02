@@ -3,9 +3,7 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Type ( Term (..)
@@ -23,7 +21,6 @@ module Language.PlutusCore.Type ( Term (..)
 
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
-import           Data.Functor.Foldable.TH
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           PlutusPrelude
@@ -134,6 +131,30 @@ data Term tyname name a = Var a (name a) -- ^ A named variable
                         | Error a (Type tyname a)
                         deriving (Functor, Show, Eq, Generic, NFData)
 
+data TermF tyname name a x = VarF a (name a)
+                           | TyAbsF a (tyname a) (Kind a) x
+                           | LamAbsF a (name a) (Type tyname a) x
+                           | ApplyF a x x
+                           | ConstantF a (Constant a)
+                           | TyInstF a x (Type tyname a)
+                           | UnwrapF a x
+                           | WrapF a (tyname a) (Type tyname a) x
+                           | ErrorF a (Type tyname a)
+                           deriving (Functor)
+
+type instance Base (Term tyname name a) = TermF tyname name a
+
+instance Recursive (Term tyname name a) where
+    project (Var x n)         = VarF x n
+    project (TyAbs x n k t)   = TyAbsF x n k t
+    project (LamAbs x n ty t) = LamAbsF x n ty t
+    project (Apply x t t')    = ApplyF x t t'
+    project (Constant x c)    = ConstantF x c
+    project (TyInst x t ty)   = TyInstF x t ty
+    project (Unwrap x t)      = UnwrapF x t
+    project (Wrap x tn ty t)  = WrapF x tn ty t
+    project (Error x ty)      = ErrorF x ty
+
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
@@ -148,9 +169,9 @@ data KindF a x = TypeF a
 type instance Base (Kind a) = KindF a
 
 instance Recursive (Kind a) where
-    project (Type l) = TypeF l
+    project (Type l)           = TypeF l
     project (KindArrow l k k') = KindArrowF l k k'
-    project (Size l) = SizeF l
+    project (Size l)           = SizeF l
 
 instance Debug (Kind a) where
     debug = pretty
@@ -159,8 +180,6 @@ instance Debug (Kind a) where
 -- language.
 data Program tyname name a = Program a (Version a) (Term tyname name a)
                  deriving (Show, Eq, Functor, Generic, NFData)
-
-makeBaseFunctor ''Term
 
 instance Pretty (Kind a) where
     pretty = cata a where

@@ -43,7 +43,7 @@ library
         Language.PlutusCore.Normalize
     default-language: Haskell2010
     other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
-                      GeneralizedNewtypeDeriving TemplateHaskell KindSignatures
+                      GeneralizedNewtypeDeriving
                       TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
                       FlexibleContexts OverloadedStrings DerivingStrategies
                       MonadComprehensions FlexibleInstances ConstrainedClassMethods
