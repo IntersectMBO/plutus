@@ -20,9 +20,11 @@ data IterApp head arg = IterApp
     , _iterAppSpine :: [arg]
     }
 
+-- | An iterated application of a 'Term' to a list of 'Term's.
 type TermIterApp tyname name a =
     IterApp (Term tyname name a) (Term tyname name a)
 
+-- | An iterated application of a 'BuiltinName' to a list of 'Value's.
 type PrimIterApp tyname name a =
     IterApp BuiltinName (Value tyname name a)
 
@@ -41,14 +43,14 @@ viewConstant :: Term tyname name a -> Maybe (Constant a)
 viewConstant (Constant _ constant) = Just constant
 viewConstant _                     = Nothing
 
--- | View a 'Term' as an 'IterApp'.
+-- | An iterated application of a 'Term' to a list of 'Term's.
 viewTermIterApp :: Term tyname name a -> Maybe (TermIterApp tyname name a)
 viewTermIterApp term@Apply{} = Just $ go [] term where
     go args (Apply _ fun arg) = go (undefined arg : args) fun
     go args  fun              = IterApp fun args
 viewTermIterApp _            = Nothing
 
--- | View a 'Term' as an iterated application of a 'BuiltinName' to a list of 'Constants'.
+-- | View a 'Term' as an iterated application of a 'BuiltinName' to a list of 'Value's.
 viewPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
 viewPrimIterApp term = do
     IterApp termHead spine <- viewTermIterApp term
@@ -56,7 +58,7 @@ viewPrimIterApp term = do
     guard $ all isValue spine
     Just $ IterApp headName spine
 
--- | Check whether a term is a value.
+-- | Check whether a 'Term' is a 'Value'.
 isValue :: Term tyname name a -> Bool
 isValue (TyAbs  _ _ _ body) = isValue body
 isValue (Wrap   _ _ _ term) = isValue term

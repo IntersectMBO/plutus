@@ -105,7 +105,7 @@ extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeVal
 extractSchemed (TypeSchemeArrow _ _) _          _     = Left NotImplementedConstAppError
 extractSchemed (TypeSchemeAllSize _) _          _     = Left NotImplementedConstAppError
 
--- | Apply a 'TypedBuiltinName' to a list of constant arguments.
+-- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
@@ -124,7 +124,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
         go (schK sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var
                                                             -- and proceed recursively.
 
--- | Apply a 'BuiltinName' to a list of arguments.
+-- | Apply a 'BuiltinName' to a list of 'Value's.
 applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)

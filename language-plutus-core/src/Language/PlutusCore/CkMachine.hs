@@ -15,16 +15,11 @@ import           Language.PlutusCore.Constant.Apply
 infix 4 |>, <|
 
 data Frame
-    = FrameApplyFun (Value TyName Name ())
-      -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name ())
-      -- ^ @[_ N]@
-    | FrameTyInstArg
-      -- ^ @{_ A}@
-    | FrameUnwrap
-      -- ^ @(unwrap _)@
-    | FrameWrap () (TyName ()) (Type TyName ())
-      -- ^ @(wrap α A _)@
+    = FrameApplyFun (Value TyName Name ())       -- ^ @[V _]@
+    | FrameApplyArg (Term TyName Name ())        -- ^ @[_ N]@
+    | FrameTyInstArg                             -- ^ @{_ A}@
+    | FrameUnwrap                                -- ^ @(unwrap _)@
+    | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
 
 type Context = [Frame]
 

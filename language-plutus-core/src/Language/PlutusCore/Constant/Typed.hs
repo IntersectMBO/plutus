@@ -74,11 +74,11 @@ data TypedBuiltin size a where
 data TypeScheme size a where
     TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a
     TypeSchemeArrow   :: TypeScheme size a -> TypeScheme size b -> TypeScheme size (a -> b)
+    TypeSchemeAllSize :: (size -> TypeScheme size a) -> TypeScheme size a
     -- This is nailed to @size@ rather than being a generic @TypeSchemeForall@ for simplicity
     -- and because at the moment we do not need anything else.
     -- We can make this generic by parametrising @TypeScheme@ by an
      -- @f :: Kind () -> *@ rather than @size@.
-    TypeSchemeAllSize :: (size -> TypeScheme size a) -> TypeScheme size a
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a = TypedBuiltinName
