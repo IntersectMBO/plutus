@@ -118,7 +118,7 @@ substituteDb varFor new = go where
 -- > s ▷ abs α K M  ↦ s ◁ abs α K M
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
 -- > s ▷ con cn     ↦ s ◁ con cn
--- > s ▷ error A    ↦ s ◁ error A
+-- > s ▷ error A    ↦ ◆
 (|>) :: Context -> Term TyName Name () -> CkEvalResult
 stack |> TyInst _ fun ty      = FrameTyInstArg (undefined ty) : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
@@ -127,7 +127,7 @@ stack |> Unwrap _ term        = FrameUnwrap : stack |> term
 stack |> tyAbs@TyAbs{}        = stack <| tyAbs
 stack |> lamAbs@LamAbs{}      = stack <| lamAbs
 stack |> constant@Constant{}  = stack <| constant
-stack |> err@Error{}          = stack <| err
+_     |> Error{}              = CkEvalFailure
 _     |> Fix{}                = error "Deprecated."
 _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 
@@ -136,14 +136,12 @@ _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 -- > s , {_ A}           ◁ abs α K M  ↦ s ▷ M
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- > s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
--- > s , {_ A}           ◁ V          ↦ s ◁ {V A}  -- Partially saturated constant.
--- > s , [M _]           ◁ V          ↦ s ◁ [M V]  -- Partially saturated constant.
--- > s , [M _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [M V] ~> W.
+-- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially saturated constant.
+-- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated constant.
+-- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
--- > s , f               ◁ error A    ↦ s ◁ error A
 (<|) :: Context -> Value TyName Name () -> CkEvalResult
-_                            <| Error _ _ = CkEvalFailure
 []                           <| term      = CkEvalSuccess term
 FrameTyInstArg ty    : stack <| fun       = instantiateEvaluate stack ty fun
 FrameApplyArg arg    : stack <| fun       = FrameApplyFun fun : stack |> arg
@@ -184,5 +182,12 @@ applyEvaluate stack fun                    arg =
                         throw $ CkException (ConstAppCkError err) term
 
 -- | Evaluate a term using the CK machine. May throw a 'CkException'.
+-- This differs from the spec version: we do not have the following rule:
+--
+-- > s , {_ A} ◁ F ↦ s ◁ W  -- Fully saturated constant, {F A} ~> W.
+--
+-- The reason for that is that the operational semantics of constant applications is
+-- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
+-- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk :: Term TyName Name () -> CkEvalResult
 evaluateCk = ([] |>)
