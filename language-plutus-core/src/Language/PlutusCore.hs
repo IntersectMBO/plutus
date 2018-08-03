@@ -4,6 +4,7 @@ module Language.PlutusCore
     , parseScoped
     -- * Pretty-printing
     , prettyText
+    , prettyString
     -- * AST
     , Term (..)
     , Type (..)
@@ -45,6 +46,7 @@ module Language.PlutusCore
     , TypeF (..)
     ) where
 
+import           PlutusPrelude (prettyString)
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc             hiding (annotate)

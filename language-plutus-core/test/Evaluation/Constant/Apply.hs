@@ -43,7 +43,8 @@ allTypedBuiltin TypedBuiltinBool                  = forAll Gen.bool
 -- fail in case constraints are not satisfied.
 typedBuiltinAsValue :: TypedBuiltin Size a -> a -> ConstAppProperty (Value TyName Name ())
 typedBuiltinAsValue builtin x = evalMaybe err $ makeConstant builtin x where
-    err = "prop_typedAddInteger: out of bounds: " ++ prettyTypedBuiltinString builtin x
+    sx = prettyString $ TypedBuiltinValue builtin x
+    err = "prop_typedAddInteger: out of bounds: " ++ sx
 
 -- | Generate a value of one of the builtin types (see 'TypedBuiltin' for
 -- the list of such types) and return it along with the corresponding PLC value.
@@ -55,8 +56,8 @@ getTypedBuiltinAndItsValue builtin = do
 
 getSchemedAndItsValue :: TypeScheme Size a -> ConstAppProperty (a, Value TyName Name ())
 getSchemedAndItsValue (TypeSchemeBuiltin builtin) = getTypedBuiltinAndItsValue builtin
-getSchemedAndItsValue (TypeSchemeArrow _ _)       = undefined
-getSchemedAndItsValue (TypeSchemeAllSize _)       = undefined
+getSchemedAndItsValue (TypeSchemeArrow _ _)       = error "Not implemented."
+getSchemedAndItsValue (TypeSchemeAllSize _)       = error "Not implemented."
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)

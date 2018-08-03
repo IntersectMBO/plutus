@@ -17,15 +17,15 @@ infix 4 |>, <|
 data Frame
     = FrameApplyFun (Value TyName Name ())       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name ())        -- ^ @[_ N]@
-    | FrameTyInstArg                             -- ^ @{_ A}@
+    | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
     | FrameUnwrap                                -- ^ @(unwrap _)@
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
 
 type Context = [Frame]
 
 data CkError
-    = NonTyAbsInstantiatedCkError
-      -- ^ An attempt to reduce a non-type-abstraction applied to a type.
+    = NonPrimitiveInstantiationCkError
+      -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedCkError
       -- ^ An attempt to unwrap a not wrapped term.
     | NonPrimitiveApplicationCkError
@@ -46,37 +46,43 @@ data CkEvalResult
     = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
 
+-- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
-constAppErrorString (SizeMismatchConstAppError seenSize constant) = concat
+constAppErrorString (SizeMismatchConstAppError seenSize arg) = concat
     [ "encoutered an unexpected size in ("
-    , prettyString constant
+    , prettyString arg
     , ") (previously seen size: "
     , prettyString seenSize
     , ") in"
     ]
-constAppErrorString (IllTypedConstAppError expType constant)      = concat
+constAppErrorString (IllTypedConstAppError expType constant) = concat
     [ "encountered an ill-typed argument: ("
     , prettyString constant
     , ") (expected type: "
     , prettyString expType
     , ") in"
     ]
-constAppErrorString (ExcessArgumentsConstAppError excessArgs)     = concat
+constAppErrorString (ExcessArgumentsConstAppError excessArgs) = concat
     [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
     , prettyString excessArgs
     , ") in"
     ]
+constAppErrorString (SizedNonConstantConstAppError arg)       = concat
+    [ "encountered a non-constant argument of a sized type: ("
+    , prettyString arg
+    , ") in"
+    ]
 
 ckErrorString :: CkError -> String
-ckErrorString NonTyAbsInstantiatedCkError     =
-    "attempted to reduce a non-type-abstraction applied to a type: "
-ckErrorString NonWrapUnwrappedCkError         =
+ckErrorString NonPrimitiveInstantiationCkError =
+    "attempted to reduce a not immediately reducible type instantiation: "
+ckErrorString NonWrapUnwrappedCkError          =
     "attempted to unwrap a not wrapped term: "
-ckErrorString NonPrimitiveApplicationCkError  =
+ckErrorString NonPrimitiveApplicationCkError   =
     "attempted to reduce a not immediately reducible application: "
-ckErrorString OpenTermEvaluatedCkError        =
+ckErrorString OpenTermEvaluatedCkError         =
     "attempted to evaluate an open term: "
-ckErrorString (ConstAppCkError constAppError) =
+ckErrorString (ConstAppCkError constAppError)  =
     constAppErrorString constAppError
 
 instance Show CkException where
@@ -114,7 +120,7 @@ substituteDb varFor new = go where
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ s ◁ error A
 (|>) :: Context -> Term TyName Name () -> CkEvalResult
-stack |> TyInst _ fun _       = FrameTyInstArg : stack |> fun
+stack |> TyInst _ fun ty      = FrameTyInstArg (undefined ty) : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
 stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
 stack |> Unwrap _ term        = FrameUnwrap : stack |> term
@@ -122,7 +128,7 @@ stack |> tyAbs@TyAbs{}        = stack <| tyAbs
 stack |> lamAbs@LamAbs{}      = stack <| lamAbs
 stack |> constant@Constant{}  = stack <| constant
 stack |> err@Error{}          = stack <| err
-_     |> Fix{}                = undefined
+_     |> Fix{}                = error "Deprecated."
 _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 
 -- | The returning part of the CK machine. Rules are as follows:
@@ -130,32 +136,41 @@ _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 -- > s , {_ A}           ◁ abs α K M  ↦ s ▷ M
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- > s , [(lam x A M) _] ◁ V          ↦ s ▷ [V/x]M
--- > s , [M _]           ◁ V          ↦ s ◁ [M V]  -- partially saturated constant
--- > s , [M _]           ◁ V          ↦ s ◁ W      -- fully saturated constant, [M V] ~> W
+-- > s , {_ A}           ◁ V          ↦ s ◁ {V A}  -- Partially saturated constant.
+-- > s , [M _]           ◁ V          ↦ s ◁ [M V]  -- Partially saturated constant.
+-- > s , [M _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [M V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 -- > s , f               ◁ error A    ↦ s ◁ error A
 (<|) :: Context -> Value TyName Name () -> CkEvalResult
 _                            <| Error _ _ = CkEvalFailure
 []                           <| term      = CkEvalSuccess term
-FrameTyInstArg       : stack <| tyAbs     = case tyAbs of
-    TyAbs _ _ _ body -> stack |> body
-    term             -> throw $ CkException NonTyAbsInstantiatedCkError term
+FrameTyInstArg ty    : stack <| fun       = instantiateEvaluate stack ty fun
 FrameApplyArg arg    : stack <| fun       = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun    : stack <| arg       = applyReduce stack fun arg
+FrameApplyFun fun    : stack <| arg       = applyEvaluate stack fun arg
 FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value
 FrameUnwrap          : stack <| wrapped   = case wrapped of
     Wrap _ _ _ term -> stack <| term
     term            -> throw $ CkException NonWrapUnwrappedCkError term
 
+-- | Instantiate a term with a type and proceed.
+-- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
+-- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
+-- apply the term to the type via 'TyInst'.
+instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> CkEvalResult
+instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
+instantiateEvaluate stack ty fun
+    | isJust $ viewPrimIterApp fun = stack <| TyInst () fun (undefined ty)
+    | otherwise                    = throw $ CkException NonPrimitiveInstantiationCkError fun
+
 -- | Apply a function to an argument and proceed.
--- If the function is not a lambda, then 'Apply' it to the argument and view this
--- as an iterated application of a 'BuiltinName' to a list of 'Constant's.
+-- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
+-- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyReduce :: Context -> Value TyName Name () -> Term TyName Name () -> CkEvalResult
-applyReduce stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
-applyReduce stack fun                    arg =
+applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> CkEvalResult
+applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
+applyEvaluate stack fun                    arg =
     let term = Apply () fun (undefined arg) in
         case viewPrimIterApp term of
             Nothing                       ->

@@ -1,19 +1,20 @@
 -- | See the 'docs/Constant application.md' article for how this module emerged.
 
-{-# LANGUAGE GADTs         #-}
-{-# LANGUAGE RankNTypes    #-}
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized(..)
     , TypedBuiltinSized(..)
     , SizeEntry(..)
     , TypedBuiltin(..)
+    , TypedBuiltinValue(..)
     , TypeScheme(..)
     , TypedBuiltinName(..)
     , flattenSizeEntry
     , eraseTypedBuiltinSized
     , fmapSizeTypedBuiltin
-    , prettyTypedBuiltinString
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -40,8 +41,10 @@ module Language.PlutusCore.Constant.Typed
 import           PlutusPrelude
 import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
 import           Language.PlutusCore.Constant.Prelude
+import           Language.PlutusCore.Lexer.Type
 
-import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import           Data.Text.Prettyprint.Doc
 
 infixr 9 `TypeSchemeArrow`
 
@@ -70,6 +73,8 @@ data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
 
+data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
+
 -- | Type schemes of primitive operations.
 data TypeScheme size a where
     TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a
@@ -87,13 +92,28 @@ data TypedBuiltinName a = TypedBuiltinName
     }
 
 instance Pretty BuiltinSized where
-    pretty = undefined
+    pretty BuiltinSizedInt  = "integer"
+    pretty BuiltinSizedBS   = "bytestring"
+    pretty BuiltinSizedSize = "size"
 
 instance Pretty (TypedBuiltinSized a) where
-    pretty = undefined
+    pretty = pretty . eraseTypedBuiltinSized
 
-instance Pretty (TypedBuiltin size a) where
-    pretty = undefined
+instance Pretty size => Pretty (SizeEntry size) where
+    pretty (SizeValue size) = pretty size
+    pretty (SizeBound size) = pretty size
+
+instance Pretty size => Pretty (TypedBuiltin size a) where
+    pretty (TypedBuiltinSized sizeEntry tbs) = parens $ pretty tbs <+> pretty sizeEntry
+    pretty TypedBuiltinBool                  = "bool"
+
+instance size ~ Size => Pretty (TypedBuiltinValue size a) where
+    pretty (TypedBuiltinValue (TypedBuiltinSized size tbs) x) =
+        pretty size <+> "!" <+> case tbs of
+            TypedBuiltinSizedInt  -> pretty      x
+            TypedBuiltinSizedBS   -> prettyBytes x
+            TypedBuiltinSizedSize -> pretty      x
+    pretty (TypedBuiltinValue TypedBuiltinBool             b) = pretty b
 
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
 eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt
@@ -107,9 +127,6 @@ flattenSizeEntry (SizeBound size) = size
 fmapSizeTypedBuiltin :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
 fmapSizeTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (fmap f se) tbs
 fmapSizeTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
-
-prettyTypedBuiltinString :: Pretty size => TypedBuiltin size a -> a -> String
-prettyTypedBuiltinString = undefined
 
 sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer)
 sizeIntIntInt =

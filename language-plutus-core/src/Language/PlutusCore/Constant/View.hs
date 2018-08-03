@@ -47,6 +47,7 @@ viewConstant _                     = Nothing
 viewTermIterApp :: Term tyname name a -> Maybe (TermIterApp tyname name a)
 viewTermIterApp term@Apply{} = Just $ go [] term where
     go args (Apply _ fun arg) = go (undefined arg : args) fun
+    go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args
 viewTermIterApp _            = Nothing
 
