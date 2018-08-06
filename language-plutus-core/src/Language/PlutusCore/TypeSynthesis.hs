@@ -39,6 +39,12 @@ instance Pretty a => Pretty (TypeError a) where
     pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (pretty t) <> ". Expected type" <+> squotes (pretty ty) <+> ", found type" <+> squotes (pretty ty')
     pretty OutOfGas = "Type checking ran out of gas."
 
+instance Pretty a => Debug (TypeError a) where
+    debug InternalError    = "Internal error."
+    debug (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (debug ty) <> ". Expected kind" <+> squotes (debug k) <+> ", found kind" <+> squotes (debug k')
+    debug (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (debug t) <> ". Expected type" <+> squotes (debug ty) <+> ", found type" <+> squotes (debug ty')
+    debug OutOfGas = "Type checking ran out of gas."
+
 isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
