@@ -17,6 +17,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (.*)
                      -- * Custom functions
                      , prettyText
+                     , debugText
                      , render
                      , repeatM
                      , Debug (..)
@@ -51,6 +52,9 @@ class Debug a where
 -- | Render a 'Program' as strict 'Text'.
 prettyText :: Pretty a => a -> T.Text
 prettyText = render . pretty
+
+debugText :: Debug a => a -> T.Text
+debugText = render . debug
 
 render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions
