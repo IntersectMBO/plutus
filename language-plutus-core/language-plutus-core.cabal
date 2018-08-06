@@ -114,6 +114,7 @@ library prelude
 test-suite language-plutus-core-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    other-modules: Generators
     hs-source-dirs: test
     default-language: Haskell2010
     other-extensions: OverloadedStrings
