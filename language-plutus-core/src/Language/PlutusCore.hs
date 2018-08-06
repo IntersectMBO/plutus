@@ -29,11 +29,13 @@ module Language.PlutusCore
     -- * Processing
     , annotate
     , annotateST
-    , RenameError
+    , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
     , Debug (..)
     , TypeState (..)
+    , RenamedType
+    , RenamedTerm
     -- * Normalization
     , normalize
     , NormalizationError
@@ -42,7 +44,7 @@ module Language.PlutusCore
     , kindOf
     , runTypeCheckM
     , programType
-    , TypeError
+    , TypeError (..)
     -- * Errors
     , Error (..)
     , IsError (..)

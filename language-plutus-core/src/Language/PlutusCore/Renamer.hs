@@ -9,6 +9,7 @@ module Language.PlutusCore.Renamer ( rename
                                    , annotateST
                                    , NameWithType (..)
                                    , RenamedType
+                                   , RenamedTerm
                                    , TyNameWithKind (..)
                                    , RenameError
                                    , TypeState (..)
@@ -47,6 +48,8 @@ type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Eq, Functor, Pretty, Debug)
 
+-- | A 'RenameError' is thrown when a free variable is encountered during
+-- rewriting.
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
 
