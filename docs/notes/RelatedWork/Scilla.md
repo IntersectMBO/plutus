@@ -1,0 +1,9 @@
+# Scilla
+
+* [Paper](https://arxiv.org/abs/1801.00687)
+
+*Scilla* is a smart contract intermediate language that aims to capture most of the complexity of Solidity-style contracts, but renders these contracts in a manner that is suitable for the formal verification of safety properties. The presented approach (and representation of contracts in Scilla) aims to decompose contracts into a local computation component modelled as a form of stateful automaton in conjunction with message passing communication. 
+
+Scilla presents contracts as a form of communicating automata, where automata computations operate on contract-local state and pure computations are syntactically separate from side-effecting assignments. Moreover, all message sending is in tail positions and, if a continuation is required, it needs to be explicitly specified as such. All this facilitates a shallow embedding of (a subset of) Scilla into Coq, which is presented in the paper. It provides the language with an operational semantics, sketches proofs for safety and consistency properties and establishes a few functional properties of an example crowdfunding contract, which is also the basis for the discussion of the various language features of Scilla earlier in the paper.
+
+The work presented in the paper is not yet complete. So far, the formalisation in Coq only covers part of the proposed feature set of Scilla and there is no compiler from a higher-level language, such as Solidity, into Scilla. Both is promised in the form of future work. Moreover, there appears to be no mapping from Scilla to an actual blockchain or existing blockchain scripting language yet.
