@@ -10,8 +10,6 @@ module Language.PlutusCore.Name ( -- * Types
                                 , Unique (..)
                                 , Name (..)
                                 , TyName (..)
-                                -- * Classes
-                                , Debug (..)
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
@@ -35,11 +33,6 @@ data Name a = Name { nameAttribute :: a
 newtype TyName a = TyName { unTyName :: Name a }
     deriving Show
     deriving newtype (Eq, Functor, NFData, Pretty, Debug)
-
--- | This is like 'Pretty', but it dumps 'Unique's for each 'Name' / 'TyName' as
--- well.
-class Debug a where
-    debug :: a -> Doc ann
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique

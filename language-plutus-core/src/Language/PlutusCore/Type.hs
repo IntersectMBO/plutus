@@ -22,7 +22,6 @@ module Language.PlutusCore.Type ( Term (..)
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
 import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 -- | A 'Type' assigned to expressions.

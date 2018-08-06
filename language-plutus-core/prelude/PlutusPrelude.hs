@@ -19,6 +19,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , prettyText
                      , render
                      , repeatM
+                     , Debug (..)
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
@@ -41,6 +42,11 @@ import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import           Data.Word                             (Word8)
 import           GHC.Generics                          (Generic)
 import           GHC.Natural                           (Natural)
+
+-- | This is like 'Pretty', but it dumps 'Unique's for each 'Name' / 'TyName' as
+-- well.
+class Debug a where
+    debug :: a -> Doc ann
 
 -- | Render a 'Program' as strict 'Text'.
 prettyText :: Pretty a => a -> T.Text
