@@ -83,11 +83,12 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Evaluation.Constant.AllTypedBuiltinSized
+        Evaluation.Constant.GenTypedBuiltinSized
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
         Evaluation.Constant.All
+        Evaluation.Generator
     default-language: Haskell2010
     other-extensions: OverloadedStrings
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall

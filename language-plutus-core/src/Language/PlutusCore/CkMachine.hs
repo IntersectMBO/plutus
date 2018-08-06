@@ -1,8 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
     ( CkError(..)
     , CkException(..)
     , CkEvalResult(..)
     , evaluateCk
+    , runCk
     ) where
 
 import           PlutusPrelude
@@ -45,6 +47,11 @@ data CkException = CkException
 data CkEvalResult
     = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
+    deriving (Show, Eq)
+
+instance Pretty CkEvalResult where
+    pretty (CkEvalSuccess value) = pretty value
+    pretty CkEvalFailure         = "Failure"
 
 -- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
@@ -192,3 +199,8 @@ applyEvaluate stack fun                    arg =
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk :: Term TyName Name () -> CkEvalResult
 evaluateCk = ([] |>)
+
+-- | Run a program using the CK machine. May throw a 'CkException'.
+-- Calls 'evaluateCk' under the hood, so the same caveats apply.
+runCk :: Program TyName Name () -> CkEvalResult
+runCk (Program _ _ term) = evaluateCk term

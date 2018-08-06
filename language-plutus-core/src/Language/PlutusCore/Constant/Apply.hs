@@ -75,7 +75,7 @@ extractSizedBuiltin TypedBuiltinSizedBS   maySize constant@(BuiltinBS   () size'
     checkBuiltinSize maySize size' constant bs
 extractSizedBuiltin TypedBuiltinSizedSize maySize constant@(BuiltinSize () size'    ) =
     checkBuiltinSize maySize size' constant size'
-extractSizedBuiltin tbs            _       constant                            =
+extractSizedBuiltin tbs                   _       constant                            =
     Left $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
 
 expandSizeVars :: SizeValues -> TypedBuiltin SizeVar a -> TypedBuiltin Size a

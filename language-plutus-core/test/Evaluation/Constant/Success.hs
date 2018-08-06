@@ -3,7 +3,7 @@ module Evaluation.Constant.Success
     ) where
 
 import           Language.PlutusCore.Constant
-import           Evaluation.Constant.AllTypedBuiltinSized
+import           Evaluation.Constant.GenTypedBuiltinSized
 import           Evaluation.Constant.Apply
 
 import           Data.Semigroup
@@ -36,89 +36,89 @@ test_typedAddIntegerSuccess :: TestTree
 test_typedAddIntegerSuccess
     = testProperty "typedAddInteger"
     $ prop_applyBuiltinNameSuccess typedAddInteger (+)
-    $ allTypedBuiltinSizedSum
+    $ genTypedBuiltinSizedSum
 
 test_typedSubtractIntegerSuccess :: TestTree
 test_typedSubtractIntegerSuccess
     = testProperty "typedSubtractInteger"
     $ prop_applyBuiltinNameSuccess typedSubtractInteger (-)
-    $ allTypedBuiltinSizedSum
+    $ genTypedBuiltinSizedSum
 
 test_typedMultiplyIntegerSuccess :: TestTree
 test_typedMultiplyIntegerSuccess
     = testProperty "typedMultiplyInteger"
     $ prop_applyBuiltinNameSuccess typedMultiplyInteger (*)
-    $ updateAllTypedBuiltinSized TypedBuiltinSizedInt
+    $ updateGenTypedBuiltinSized TypedBuiltinSizedInt
           (\low high -> Gen.integral $ Range.linear (negate . isqrt . abs $ low) (isqrt high))
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedDivideIntegerSuccess :: TestTree
 test_typedDivideIntegerSuccess
     = testProperty "typedDivideInteger"
     $ prop_applyBuiltinNameSuccess typedDivideInteger div
-    $ allTypedBuiltinSizedDiv
+    $ genTypedBuiltinSizedDiv
 
 test_typedRemainderIntegerSuccess :: TestTree
 test_typedRemainderIntegerSuccess
     = testProperty "typedRemainderInteger"
     $ prop_applyBuiltinNameSuccess typedRemainderInteger mod
-    $ allTypedBuiltinSizedDiv
+    $ genTypedBuiltinSizedDiv
 
 test_typedLessThanIntegerSuccess :: TestTree
 test_typedLessThanIntegerSuccess
     = testProperty "typedLessThanInteger"
     $ prop_applyBuiltinNameSuccess typedLessThanInteger (<)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedLessThanEqIntegerSuccess :: TestTree
 test_typedLessThanEqIntegerSuccess
     = testProperty "typedLessThanEqInteger"
     $ prop_applyBuiltinNameSuccess typedLessThanEqInteger (<=)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedGreaterThanIntegerSuccess :: TestTree
 test_typedGreaterThanIntegerSuccess
     = testProperty "typedGreaterThanInteger"
     $ prop_applyBuiltinNameSuccess typedGreaterThanInteger (>)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedGreaterThanEqIntegerSuccess :: TestTree
 test_typedGreaterThanEqIntegerSuccess
     = testProperty "typedGreaterThanEqInteger"
     $ prop_applyBuiltinNameSuccess typedGreaterThanEqInteger (>=)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedEqIntegerSuccess :: TestTree
 test_typedEqIntegerSuccess
     = testProperty "typedEqInteger"
     $ prop_applyBuiltinNameSuccess typedEqInteger (==)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedConcatenateSuccess :: TestTree
 test_typedConcatenateSuccess
     = testProperty "typedConcatenate"
     $ prop_applyBuiltinNameSuccess typedConcatenate (<>)
-    $ updateAllTypedBuiltinSized TypedBuiltinSizedBS
+    $ updateGenTypedBuiltinSized TypedBuiltinSizedBS
           (\high -> Gen.bytes $ Range.linear 0 (high `div` 2))
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedTakeByteStringSuccess :: TestTree
 test_typedTakeByteStringSuccess
     = testProperty "typedTakeByteString"
     $ prop_applyBuiltinNameSuccess typedTakeByteString (BSL.take . fromIntegral)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedDropByteStringSuccess :: TestTree
 test_typedDropByteStringSuccess
     = testProperty "typedDropByteString"
     $ prop_applyBuiltinNameSuccess typedDropByteString (BSL.drop . fromIntegral)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 test_typedEqByteStringSuccess :: TestTree
 test_typedEqByteStringSuccess
     = testProperty "typedEqByteString"
     $ prop_applyBuiltinNameSuccess typedEqByteString (==)
-    $ allTypedBuiltinSizedDef
+    $ genTypedBuiltinSizedDef
 
 isqrt :: Integer -> Integer
 isqrt n
