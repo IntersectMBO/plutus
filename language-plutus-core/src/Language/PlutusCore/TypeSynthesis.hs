@@ -91,7 +91,8 @@ defaultTable = do
     is <- repeatM intop
     irs <- repeatM intRel
 
-    let termTable = M.fromList (zip intTypes is ++ zip intRelTypes irs)
+    let f = M.fromList .* zip
+        termTable = f intTypes is <> f intRelTypes irs
 
     pure $ BuiltinTable tyTable termTable
 
