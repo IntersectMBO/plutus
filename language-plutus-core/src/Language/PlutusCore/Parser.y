@@ -24,7 +24,7 @@ import Language.PlutusCore.Name
 %name parsePlutusCore
 %tokentype { Token AlexPosn }
 %error { parseError }
-%monad { Parse } { (>>=) } { return }
+%monad { Parse } { (>>=) } { pure }
 %lexer { lift alexMonadScan >>= } { EOF _ }
 %nonassoc integer
 %nonassoc float

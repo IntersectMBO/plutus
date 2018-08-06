@@ -7,6 +7,7 @@ module Language.PlutusCore
     , parseScoped
     -- * Pretty-printing
     , prettyText
+    , debugText
     -- * AST
     , Term (..)
     , Type (..)
@@ -67,9 +68,11 @@ import           PlutusPrelude
 newtype Configuration = Configuration { _printDebug :: Bool
                                       }
 
+-- | This is the default 'Configuration' most users will want
 defaultCfg :: Configuration
 defaultCfg = Configuration False
 
+-- | Use this 'Configuration' when debugging the library
 debugCfg :: Configuration
 debugCfg = Configuration True
 
