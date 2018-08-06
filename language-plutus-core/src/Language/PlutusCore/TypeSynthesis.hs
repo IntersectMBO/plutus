@@ -58,25 +58,25 @@ intop = do
         fty = TyFun () ity (TyFun () ity ity) -- TODO: does this associate in the right direction?
     pure $ TyForall () nam (Size ()) fty
 
-defaultTable :: Int -> BuiltinTable
-defaultTable i = BuiltinTable tyTable termTable
-    where tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
-                               , (TySize, Size ())
-                               , (TyInteger, KindArrow () (Size ()) (Type ()))
-                               ]
-          termTable = M.fromList [ (AddInteger, evalState intop i) -- FIXME actually use a state monad here.
-                                 , (SubtractInteger, evalState intop (i+1))
-                                 , (MultiplyInteger, evalState intop (i+2))
-                                 , (DivideInteger, evalState intop (i+3))
-                                 -- TODO: add all the other builtins
-                                 ]
+defaultTable :: MonadState Int m => m BuiltinTable
+defaultTable = do
+    let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
+                             , (TySize, Size ())
+                             , (TyInteger, KindArrow () (Size ()) (Type ()))
+                             ]
+        intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger ]
+
+    is <- replicateM (length intTypes) intop
+    let termTable = M.fromList (zip intTypes is)
+
+    pure $ BuiltinTable tyTable termTable
 
 -- | Run the type checker with a default context.
 runTypeCheckM :: Int
               -> Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
               -> Either (TypeError a) b
-runTypeCheckM i = flip runReaderT (defaultTable i) .* flip evalStateT
+runTypeCheckM i = flip runReaderT (evalState defaultTable i) .* flip evalStateT
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
