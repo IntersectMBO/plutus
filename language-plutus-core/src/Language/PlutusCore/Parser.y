@@ -11,7 +11,6 @@ import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
-import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.Trans.Except
@@ -25,7 +24,7 @@ import Language.PlutusCore.Name
 %name parsePlutusCore
 %tokentype { Token AlexPosn }
 %error { parseError }
-%monad { Parse } { (>>=) } { return }
+%monad { Parse } { (>>=) } { pure }
 %lexer { lift alexMonadScan >>= } { EOF _ }
 %nonassoc integer
 %nonassoc float
@@ -99,10 +98,9 @@ TyName : Name { TyName $1 }
 
 Term : Name { Var (nameAttribute $1) $1 }
      | openParen abs TyName Kind Term closeParen { TyAbs $2 $3 $4 $5 }
-     | openBrace Term some(Type) closeBrace { TyInst $1 $2 (NE.reverse $3) }
+     | openBrace Term some(Type) closeBrace { tyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
-     | openBracket Term some(Term) closeBracket { Apply $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
-     | openParen fix Name Type Term closeParen { Fix $2 $3 $4 $5 }
+     | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen con Builtin closeParen { Constant $2 $3 }
      | openParen wrap TyName Type Term closeParen { Wrap $2 $3 $4 $5 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
@@ -118,7 +116,7 @@ Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
      | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket { TyApp $1 $2 (NE.reverse $3) }
+     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
      | openParen con BuiltinType closeParen { $3 }
 
 Kind : parens(type) { Type $1 }
@@ -126,6 +124,18 @@ Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
+
+tyInst :: a -> Term tyname name a -> NonEmpty (Type tyname a) -> Term tyname name a
+tyInst loc t (ty :| []) = TyInst loc t ty
+tyInst loc t (ty :| tys) = TyInst loc (tyInst loc t (ty:|init tys)) (last tys)
+
+tyApps :: a -> Type tyname a -> NonEmpty (Type tyname a) -> Type tyname a
+tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
+tyApps loc ty (ty' :| tys) = TyApp loc (tyApps loc ty (ty':|init tys)) (last tys)
+
+app :: a -> Term tyname name a -> NonEmpty (Term tyname name a) -> Term tyname name a
+app loc t (t' :| []) = Apply loc t t'
+app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
 handleInteger x sz i = if isOverflow
@@ -146,12 +156,13 @@ parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
 --
 -- >>> :set -XOverloadedStrings
 -- >>> parse "(program 0.1.0 [(con addInteger) x y])"
--- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}) :| [Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}})])))
+-- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}))) (Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}}))))
 parse :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
 parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x
 
+-- TODO: debug info should carry parser/lexer state
 -- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)

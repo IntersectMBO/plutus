@@ -42253,7 +42253,6 @@ testHaskellDepends = [
 base
 bytestring
 hedgehog
-prettyprinter
 tasty
 tasty-golden
 tasty-hedgehog

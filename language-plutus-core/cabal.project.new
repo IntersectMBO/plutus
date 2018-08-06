@@ -12,6 +12,7 @@ allow-newer:
     base
     template-haskell
     stm
+    Cabal
 
 source-repository-package
     type: git
