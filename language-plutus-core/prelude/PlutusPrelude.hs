@@ -18,6 +18,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Custom functions
                      , prettyText
                      , render
+                     , repeatM
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
@@ -47,3 +48,7 @@ prettyText = render . pretty
 
 render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions
+
+-- | Make sure your 'Applicative' is sufficiently lazy!
+repeatM :: Applicative f => f a -> f [a]
+repeatM x = (:) <$> x <*> repeatM x

@@ -88,8 +88,9 @@ defaultTable = do
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
 
-    is <- replicateM (length intTypes) intop
-    irs <- replicateM (length intRelTypes) intRel
+    is <- repeatM intop
+    irs <- repeatM intRel
+
     let termTable = M.fromList (zip intTypes is ++ zip intRelTypes irs)
 
     pure $ BuiltinTable tyTable termTable
