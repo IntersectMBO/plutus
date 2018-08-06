@@ -62,13 +62,8 @@ newTyName k = do
 intop :: MonadState Int m => m (Type TyNameWithKind ())
 intop = do
     nam <- newTyName (Size ())
-<<<<<<< HEAD
-    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam :| [])
-        fty = TyFun () ity (TyFun () ity ity) -- TODO: does this associate in the right direction?
-=======
     let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity ity)
->>>>>>> 953117215f96d479456f7ac6302e045d5d099bdd
     pure $ TyForall () nam (Size ()) fty
 
 unit :: MonadState Int m => m (Type TyNameWithKind ())
@@ -165,9 +160,6 @@ kindOf (TyApp x ty ty') = do
 
 intApp :: Type a () -> Natural -> Type a ()
 intApp ty n = TyApp () ty (TyInt () n)
-
-intApp :: Type a () -> Natural -> Type a ()
-intApp ty n = TyApp () ty (TyInt () n :| [])
 
 integerType :: Natural -> Type a ()
 integerType = intApp (TyBuiltin () TyInteger)
