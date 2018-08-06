@@ -162,6 +162,7 @@ parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
     where liftErr (Left s)  = Left (LexErr s)
           liftErr (Right x) = x
 
+-- TODO: debug info should carry parser/lexer state
 -- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)

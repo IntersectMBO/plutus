@@ -15,7 +15,7 @@ extra-deps:
 
 flags:
   language-plutus-core:
-    development: true
+    development: false
 extra-package-dbs: []
 nix:
   packages: [gmp, openssl]
