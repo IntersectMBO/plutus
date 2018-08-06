@@ -55,7 +55,28 @@ intop :: MonadState Int m => m (Type TyNameWithKind ())
 intop = do
     nam <- newTyName (Size ())
     let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
-        fty = TyFun () ity (TyFun () ity ity) -- TODO: does this associate in the right direction?
+        fty = TyFun () ity (TyFun () ity ity)
+    pure $ TyForall () nam (Size ()) fty
+
+unit :: MonadState Int m => m (Type TyNameWithKind ())
+unit =
+    [ TyForall () nam (Type ()) (TyVar () nam) | nam <- newTyName (Type ()) ]
+
+boolean :: MonadState Int m => m (Type TyNameWithKind ())
+boolean = do
+    nam <- newTyName (Type ())
+    u <- unit
+    let var = TyVar () nam
+        unitVar = TyFun () u var
+    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar var))
+
+-- | Create a new 'Type' for an integer relation
+intRel :: MonadState Int m => m (Type TyNameWithKind ())
+intRel = do
+    nam <- newTyName (Size ())
+    b <- boolean
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
+        fty = TyFun () ity (TyFun () ity b)
     pure $ TyForall () nam (Size ()) fty
 
 defaultTable :: MonadState Int m => m BuiltinTable
@@ -64,10 +85,12 @@ defaultTable = do
                              , (TySize, Size ())
                              , (TyInteger, KindArrow () (Size ()) (Type ()))
                              ]
-        intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger ]
+        intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
+        intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
 
     is <- replicateM (length intTypes) intop
-    let termTable = M.fromList (zip intTypes is)
+    irs <- replicateM (length intRelTypes) intRel
+    let termTable = M.fromList (zip intTypes is ++ zip intRelTypes irs)
 
     pure $ BuiltinTable tyTable termTable
 
