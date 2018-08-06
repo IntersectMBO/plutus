@@ -5,7 +5,9 @@
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
                                          , runTypeCheckM
-                                         , TypeError
+                                         , TypeError (..)
+                                         , TypeCheckM
+                                         , BuiltinTable (..)
                                          ) where
 
 import           Control.Monad.Except

@@ -11,7 +11,7 @@ module Language.PlutusCore.Renamer ( rename
                                    , RenamedType
                                    , RenamedTerm
                                    , TyNameWithKind (..)
-                                   , RenameError
+                                   , RenameError (..)
                                    , TypeState (..)
                                    ) where
 

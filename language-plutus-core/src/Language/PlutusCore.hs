@@ -45,6 +45,8 @@ module Language.PlutusCore
     , runTypeCheckM
     , programType
     , TypeError (..)
+    , TypeCheckM
+    , BuiltinTable (..)
     -- * Errors
     , Error (..)
     , IsError (..)
