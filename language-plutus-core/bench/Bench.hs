@@ -9,7 +9,7 @@ main :: IO ()
 main =
     defaultMain [ env envFile $ \ f ->
                   bgroup "format"
-                      [ bench "format" $ nf format f ]
+                      [ bench "format" $ nf (format defaultCfg) f ]
                 , env files $ \ ~(f, g) ->
                   bgroup "parse"
                       [ bench "parse (addInteger)" $ nf parse f

@@ -95,14 +95,15 @@ testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden withTypes)
 
 testsGolden :: [FilePath] -> TestTree
-testsGolden = testGroup "golden tests" . fmap (asGolden format)
+testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
 
 testsRewrite :: [FilePath] -> TestTree
-testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden debugScopes)
+testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCfg))
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
-    , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
+    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
+    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    , format cfg "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
+    where cfg = defaultCfg

@@ -1,6 +1,9 @@
 module Language.PlutusCore
-    ( -- * Parser
-      parse
+    ( Configuration (..)
+    , defaultCfg
+    , debugCfg
+      -- * Parser
+    , parse
     , parseScoped
     -- * Pretty-printing
     , prettyText
@@ -25,7 +28,6 @@ module Language.PlutusCore
     -- * Processing
     , annotate
     , annotateST
-    , debugScopes
     , RenameError
     , TyNameWithKind (..)
     , NameWithType (..)
@@ -62,8 +64,14 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
-debugScopes :: BSL.ByteString -> Either ParseError T.Text
-debugScopes = fmap (render . debug) . parseScoped
+newtype Configuration = Configuration { _printDebug :: Bool
+                                      }
+
+defaultCfg :: Configuration
+defaultCfg = Configuration False
+
+debugCfg :: Configuration
+debugCfg = Configuration True
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -80,5 +88,6 @@ programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
-format :: BSL.ByteString -> Either ParseError T.Text
-format = fmap render . formatDoc
+format :: Configuration -> BSL.ByteString -> Either ParseError T.Text
+format (Configuration True)  = fmap (render . debug) . parseScoped
+format (Configuration False) = fmap render . formatDoc

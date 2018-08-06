@@ -4,7 +4,7 @@
 
 -- | This module makes sure terms and types are well-formed according to Fig. 2
 module Language.PlutusCore.Normalize ( normalize
-                                     , NormalizationError (..)
+                                     , NormalizationError
                                      ) where
 
 import           Data.Functor.Foldable

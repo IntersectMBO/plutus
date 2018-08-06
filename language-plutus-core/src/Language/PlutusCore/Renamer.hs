@@ -7,11 +7,10 @@
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
                                    , annotateST
-                                   , RenamedTerm
                                    , NameWithType (..)
                                    , RenamedType
                                    , TyNameWithKind (..)
-                                   , RenameError (..)
+                                   , RenameError
                                    , TypeState (..)
                                    ) where
 
