@@ -2,11 +2,11 @@ module Language.PlutusCore.Constant.View
     ( IterApp(..)
     , TermIterApp
     , PrimIterApp
-    , viewBuiltinInt
-    , viewBuiltinName
-    , viewConstant
-    , viewTermIterApp
-    , viewPrimIterApp
+    , constantAsInteger
+    , constantAsBuiltinName
+    , termAsConstant
+    , termAsTermIterApp
+    , termAsPrimIterApp
     ) where
 
 import           PlutusPrelude
@@ -29,33 +29,33 @@ type PrimIterApp tyname name a =
     IterApp BuiltinName (Value tyname name a)
 
 -- | View a 'Constant' as an 'Integer'.
-viewBuiltinInt :: Constant a -> Maybe Integer
-viewBuiltinInt (BuiltinInt _ _ int) = Just int
-viewBuiltinInt _                    = Nothing
+constantAsInteger :: Constant a -> Maybe Integer
+constantAsInteger (BuiltinInt _ _ int) = Just int
+constantAsInteger _                    = Nothing
 
 -- | View a 'Constant' as a 'BuiltinName'.
-viewBuiltinName :: Constant a -> Maybe BuiltinName
-viewBuiltinName (BuiltinName _ name) = Just name
-viewBuiltinName _                    = Nothing
+constantAsBuiltinName :: Constant a -> Maybe BuiltinName
+constantAsBuiltinName (BuiltinName _ name) = Just name
+constantAsBuiltinName _                    = Nothing
 
 -- | View a 'Term' as a 'Constant'.
-viewConstant :: Term tyname name a -> Maybe (Constant a)
-viewConstant (Constant _ constant) = Just constant
-viewConstant _                     = Nothing
+termAsConstant :: Term tyname name a -> Maybe (Constant a)
+termAsConstant (Constant _ constant) = Just constant
+termAsConstant _                     = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
-viewTermIterApp :: Term tyname name a -> Maybe (TermIterApp tyname name a)
-viewTermIterApp term@Apply{} = Just $ go [] term where
+termAsTermIterApp :: Term tyname name a -> Maybe (TermIterApp tyname name a)
+termAsTermIterApp term@Apply{} = Just $ go [] term where
     go args (Apply _ fun arg) = go (undefined arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args
-viewTermIterApp _            = Nothing
+termAsTermIterApp _            = Nothing
 
 -- | View a 'Term' as an iterated application of a 'BuiltinName' to a list of 'Value's.
-viewPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
-viewPrimIterApp term = do
-    IterApp termHead spine <- viewTermIterApp term
-    headName <- viewConstant termHead >>= viewBuiltinName
+termAsPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
+termAsPrimIterApp term = do
+    IterApp termHead spine <- termAsTermIterApp term
+    headName <- termAsConstant termHead >>= constantAsBuiltinName
     guard $ all isValue spine
     Just $ IterApp headName spine
 
@@ -65,4 +65,4 @@ isValue (TyAbs  _ _ _ body) = isValue body
 isValue (Wrap   _ _ _ term) = isValue term
 isValue (LamAbs _ _ _ body) = isValue body
 isValue (Constant _ _)      = True
-isValue  term               = isJust $ viewPrimIterApp term
+isValue  term               = isJust $ termAsPrimIterApp term

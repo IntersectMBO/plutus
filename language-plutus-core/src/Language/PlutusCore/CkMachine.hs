@@ -158,8 +158,9 @@ FrameUnwrap          : stack <| wrapped   = case wrapped of
 instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> CkEvalResult
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
-    | isJust $ viewPrimIterApp fun = stack <| TyInst () fun (undefined ty)
-    | otherwise                    = throw $ CkException NonPrimitiveInstantiationCkError fun
+    | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun (undefined ty)
+    | otherwise                      =
+          throw $ CkException NonPrimitiveInstantiationCkError fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -170,7 +171,7 @@ applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> CkEv
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyEvaluate stack fun                    arg =
     let term = Apply () fun (undefined arg) in
-        case viewPrimIterApp term of
+        case termAsPrimIterApp term of
             Nothing                       ->
                 throw $ CkException NonPrimitiveApplicationCkError term
             Just (IterApp headName spine) ->
