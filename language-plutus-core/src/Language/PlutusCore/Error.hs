@@ -52,3 +52,9 @@ instance Pretty Error where
     pretty (RenameError e)        = pretty e
     pretty (TypeError e)          = pretty e
     pretty (NormalizationError e) = pretty e
+
+instance Debug Error where
+    debug (ParseError e)         = pretty e
+    debug (RenameError e)        = debug e
+    debug (TypeError e)          = debug e
+    debug (NormalizationError e) = pretty e

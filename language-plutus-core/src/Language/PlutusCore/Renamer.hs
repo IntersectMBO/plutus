@@ -54,6 +54,10 @@ instance Pretty (RenameError AlexPosn) where
     pretty (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> pretty n <+> "is not in scope."
     pretty (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> pretty n <+> "is not in scope."
 
+instance Debug (RenameError AlexPosn) where
+    debug (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> debug n <+> "is not in scope."
+    debug (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> debug n <+> "is not in scope."
+
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
