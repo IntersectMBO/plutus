@@ -116,7 +116,7 @@ Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
      | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
+     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) } 
      | openParen con BuiltinType closeParen { $3 }
 
 Kind : parens(type) { Type $1 }

@@ -4,8 +4,6 @@ module Main ( main
             ) where
 
 import qualified Data.ByteString.Lazy as BSL
-import           Data.Foldable        (fold)
-import           Data.Function        (on)
 import qualified Data.Text            as T
 import           Data.Text.Encoding   (encodeUtf8)
 import           Generators
@@ -34,7 +32,7 @@ compareTerm :: Eq a => Term TyName Name a -> Term TyName Name a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
-compareTerm (Apply _ t t') (Apply _ t'' t''')      = compareTerm t t'' && compareTerm t' t'''
+compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Constant _ x) (Constant _ y)          = x == y
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
