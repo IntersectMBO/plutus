@@ -7,8 +7,6 @@ import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.Function                         (on)
 import qualified Data.IntMap                           as IM
-import qualified Data.List.NonEmpty                    as NE
-import           Data.Maybe                            (fromMaybe)
 import qualified Data.Text                             as T
 import           Data.Text.Encoding                    (encodeUtf8)
 import           Data.Text.Prettyprint.Doc             hiding (annotate)
@@ -40,10 +38,10 @@ compareTerm :: Eq a => Term TyName Name a -> Term TyName Name a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
-compareTerm (Apply _ t ts) (Apply _ t' ts')        = compareTerm t t' && and (NE.zipWith compareTerm ts ts')
+compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Fix _ n ty t) (Fix _ n' ty' t')       = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)          = x == y
-compareTerm (TyInst _ t ts) (TyInst _ t' ts')      = compareTerm t t' && and (NE.zipWith compareType ts ts')
+compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
@@ -56,7 +54,7 @@ compareType (TyFix _ n t) (TyFix _ n' t')            = compareTyName n n' && com
 compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k == k' && compareType t t'
 compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
-compareType (TyApp _ t ts) (TyApp _ t' ts')          = compareType t t' && and (NE.zipWith compareType ts ts')
+compareType (TyApp _ t ty) (TyApp _ t' ty')          = compareType t t' && compareType ty ty'
 compareType (TyInt _ n) (TyInt _ n')                 = n == n'
 compareType _ _                                      = False
 
@@ -109,26 +107,24 @@ genType = simpleRecursive nonRecursive recursive
           lamGen = TyLam emptyPosn <$> genTyName <*> genKind <*> genType
           forallGen = TyForall emptyPosn <$> genTyName <*> genKind <*> genType
           fixGen = TyFix emptyPosn <$> genTyName <*> genType
-          applyGen = TyApp emptyPosn <$> genType <*> args genType
+          applyGen = TyApp emptyPosn <$> genType <*> genType
           numGen = TyInt emptyPosn <$> Gen.integral (Range.linear 0 256)
           recursive = [funGen, applyGen]
           nonRecursive = [varGen, lamGen, forallGen, fixGen, numGen]
-          args = Gen.nonEmpty (Range.linear 1 4)
 
 genTerm :: MonadGen m => m (Term TyName Name AlexPosn)
 genTerm = simpleRecursive nonRecursive recursive
     where varGen = Var emptyPosn <$> genName
           fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
           absGen = TyAbs emptyPosn <$> genTyName <*> genKind <*> genTerm
-          instGen = TyInst emptyPosn <$> genTerm <*> args genType
+          instGen = TyInst emptyPosn <$> genTerm <*> genType
           lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
-          applyGen = Apply emptyPosn <$> genTerm <*> args genTerm
+          applyGen = Apply emptyPosn <$> genTerm <*> genTerm
           unwrapGen = Unwrap emptyPosn <$> genTerm
           wrapGen = Wrap emptyPosn <$> genTyName <*> genType <*> genTerm
           errorGen = Error emptyPosn <$> genType
           recursive = [fixGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
           nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
-          args = Gen.nonEmpty (Range.linear 1 4)
 
 genProgram :: MonadGen m => m (Program TyName Name AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm
@@ -178,7 +174,7 @@ withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
 
 showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
 showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i $ typeOf t
-    where i = fromMaybe 0 (fst <$> IM.lookupMax tys)
+    where i = maybe 0 fst (IM.lookupMax tys)
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
@@ -194,7 +190,7 @@ testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden debugScopes)
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ (con addInteger) x y ])"
+    [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
     , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
