@@ -56,3 +56,6 @@ main = defaultMain test_constant
 --     (\g -> g 3 `equalsByteString` intToByteString 3)
 
 -- which is a pretty good start.
+
+-- exists a. Typed BuiltinName a r
+-- exists a. Typed (Name ())   a r
