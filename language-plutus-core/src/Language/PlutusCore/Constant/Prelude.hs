@@ -4,6 +4,7 @@ module Language.PlutusCore.Constant.Prelude
     , Value
     , getBuiltinUnit
     , getBuiltinUnitval
+    , getBuiltinBool
     , getBuiltinTrue
     , getBuiltinFalse
     ) where
@@ -23,7 +24,8 @@ getBuiltinUnit = do
     a <- freshTyName () "A"
     return
         . TyForall () a (Type ())
-        $ TyFun () (TyVar () a) (TyVar () a)
+        . TyFun () (TyVar () a)
+        $ TyVar () a
 
 -- | Church-encoded '()' as a PLC term.
 --
@@ -36,6 +38,19 @@ getBuiltinUnitval = do
         . TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
         $ Var () x
+
+-- | Church-encoded '()' as a PLC type.
+--
+-- > all (A :: *). (() -> A) -> (() -> A) -> A
+getBuiltinBool :: Fresh (Type TyName ())
+getBuiltinBool = do
+    a <- freshTyName () "A"
+    unit <- getBuiltinUnit
+    return
+        . TyForall () a (Type ())
+        . TyFun () (TyFun () unit (TyVar () a))
+        . TyFun () (TyFun () unit (TyVar () a))
+        $ TyVar () a
 
 -- | Church-encoded 'True' as a PLC term.
 --

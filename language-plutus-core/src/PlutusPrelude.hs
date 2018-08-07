@@ -9,6 +9,7 @@ module PlutusPrelude ( (&&&)
                      , on
                      , isJust
                      , guard
+                     , foldl'
                      , fold
                      , throw
                      , (.*)
@@ -41,6 +42,7 @@ import           Control.Monad             (guard)
 import           Data.Bool                 (bool)
 import           Data.Foldable             (fold, toList)
 import           Data.Function             (on)
+import           Data.List                 (foldl')
 import           Data.List.NonEmpty        (NonEmpty (..))
 import           Data.Maybe                (isJust)
 import           Data.Semigroup

@@ -24,7 +24,7 @@ import qualified Hedgehog.Range as Range
 -- | A function of this type generates values of sized builtin types
 -- (see 'TypedBuiltinSized' for the list of such types).
 -- Bounds induced by the 'Size' parameter (as per the spec) must be met, but can be narrowed.
-type GenTypedBuiltinSized = forall a. Size -> TypedBuiltinSized a -> Gen a
+type GenTypedBuiltinSized = forall m a. Monad m => Size -> TypedBuiltinSized a -> GenT m a
 
 newtype TheGenTypedBuiltinSized = TheGenTypedBuiltinSized
     { unTheAlltypedBuilinSized :: GenTypedBuiltinSized
@@ -53,7 +53,8 @@ instance UpdateGenTypedBuiltinSized Integer where
     type GenUpdater Integer = Integer -> Integer -> Gen Integer
 
     updateGenTypedBuiltinSized _ genInteger _      size TypedBuiltinSizedInt =
-        let (low, high) = toBoundsInt size in genInteger low (high - 1)
+        let (low, high) = toBoundsInt size in
+            Gen.lift $ genInteger low (high - 1)
     updateGenTypedBuiltinSized _ _          allTbs size tbs                  =
         allTbs size tbs
 
@@ -62,7 +63,7 @@ instance UpdateGenTypedBuiltinSized BSL.ByteString where
 
     updateGenTypedBuiltinSized _ genBytes _      size TypedBuiltinSizedBS =
         -- TODO: 'genBytes' might be inappropriate.
-        fmap BSL.fromStrict . genBytes $ fromIntegral size
+        fmap BSL.fromStrict . Gen.lift . genBytes $ fromIntegral size
     updateGenTypedBuiltinSized _ _        allTbs size tbs                 =
         allTbs size tbs
 

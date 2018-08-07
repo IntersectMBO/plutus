@@ -15,6 +15,9 @@ module Language.PlutusCore.Constant.Typed
     , flattenSizeEntry
     , eraseTypedBuiltinSized
     , fmapSizeTypedBuiltin
+    , typedBuiltinSizedToType
+    , typedBuiltinToType
+    , typeSchemeToType
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -39,9 +42,10 @@ module Language.PlutusCore.Constant.Typed
     ) where
 
 import           PlutusPrelude
-import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
+import           Language.PlutusCore.Lexer.Type (BuiltinName(..), TypeBuiltin(..), prettyBytes)
 import           Language.PlutusCore.Constant.Prelude
-import           Language.PlutusCore.Lexer.Type
 
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Text.Prettyprint.Doc
@@ -127,6 +131,26 @@ flattenSizeEntry (SizeBound size) = size
 fmapSizeTypedBuiltin :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
 fmapSizeTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (fmap f se) tbs
 fmapSizeTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
+
+typedBuiltinSizedToType :: TypedBuiltinSized a -> Type TyName ()
+typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
+typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
+typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
+
+typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Fresh (Type TyName ())
+typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
+    return . TyApp () (typedBuiltinSizedToType tbs) . pure $ case sizeEntry of
+        SizeValue size -> TyInt () size
+        SizeBound name -> TyVar () name
+typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool
+
+typeSchemeToType :: TypeScheme (TyName ()) a -> Fresh (Type TyName ())
+typeSchemeToType (TypeSchemeBuiltin builtin) = typedBuiltinToType builtin
+typeSchemeToType (TypeSchemeArrow schA schB) =
+    TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB
+typeSchemeToType (TypeSchemeAllSize schK)    = do
+    s <- freshTyName () "s"
+    typeSchemeToType $ schK s
 
 sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer)
 sizeIntIntInt =

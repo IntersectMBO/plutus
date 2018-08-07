@@ -14,6 +14,8 @@ import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Constant.Prelude
 
+import           Data.Text.Prettyprint.Doc
+
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp
     { _iterAppHead  :: head
@@ -27,6 +29,10 @@ type TermIterApp tyname name a =
 -- | An iterated application of a 'BuiltinName' to a list of 'Value's.
 type PrimIterApp tyname name a =
     IterApp BuiltinName (Value tyname name a)
+
+instance (Pretty head, Pretty arg) => Pretty (IterApp head arg) where
+    pretty (IterApp appHead appSpine) =
+        parens $ foldl' (\fun arg -> fun <+> pretty arg) (pretty appHead) appSpine
 
 -- | View a 'Constant' as an 'Integer'.
 constantAsInteger :: Constant a -> Maybe Integer
