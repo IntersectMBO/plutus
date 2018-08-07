@@ -9,7 +9,7 @@ module Evaluation.Generator
     , typedBuiltinAsValue
     , GenPlcT
     , runPlcT
-    , PrimIterAppValue(..)
+    , IterAppValue(..)
     , genTypedBuiltin
     , genPrimIterAppValue
     , genTypedBuiltinAndItsValue
@@ -50,13 +50,16 @@ typedBuiltinAsValue tb x = maybe (error err) return $ makeConstant tb x where
 -- 'genTypedBuiltinSizedSum' and 'genTypedBuiltinSizedDiv'.
 type GenPlcT m = GenT (ReaderT (TheGenTypedBuiltinSizedT m) m)
 
-data PrimIterAppValue r = PrimIterAppValue
+data IterAppValue head arg r = IterAppValue
     (Term TyName Name ())
-    (PrimIterApp TyName Name ())
+    (IterApp head arg)
     (TypedBuiltinValue Size r)
 
-instance Pretty (PrimIterAppValue r) where
-    pretty (PrimIterAppValue term pia tbv) = parens $ mconcat
+type PrimIterAppValue =
+    IterAppValue BuiltinName (Value TyName Name ())
+
+instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
+    pretty (IterAppValue term pia tbv) = parens $ mconcat
         [ "As a term: ", pretty term, line
         , "As an iterated application: ", pretty pia, line
         , "As a value: ", pretty tbv
@@ -107,7 +110,7 @@ genPrimIterAppValue (Typed name schema) op = go schema term0 id op where
     go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
         let pia = IterApp name $ args []
             tbv = TypedBuiltinValue builtin y
-        return $ PrimIterAppValue term pia tbv
+        return $ IterAppValue term pia tbv
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
         (x, v) <- genSchemedAndItsValue schA         -- Get a Haskell and the correspoding PLC values.
 
