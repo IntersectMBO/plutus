@@ -106,7 +106,7 @@ substituteDb varFor new = go where
     go (Var ann var)            = if var == varFor then new else Var ann var
     go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
     go (LamAbs ann var ty body) = LamAbs ann var ty (goUnder var body)
-    go (Apply ann fun arg)      = Apply ann (go fun) (undefined (go (undefined arg)))
+    go (Apply ann fun arg)      = Apply ann (go fun) (go arg)
     go (Fix ann var ty body)    = Fix ann var ty (goUnder var body)
     go (Constant ann constant)  = Constant ann constant
     go (TyInst ann fun arg)     = TyInst ann (go fun) arg
@@ -127,8 +127,8 @@ substituteDb varFor new = go where
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>) :: Context -> Term TyName Name () -> CkEvalResult
-stack |> TyInst _ fun ty      = FrameTyInstArg (undefined ty) : stack |> fun
-stack |> Apply _ fun arg      = FrameApplyArg (undefined arg) : stack |> fun
+stack |> TyInst _ fun ty      = FrameTyInstArg ty : stack |> fun
+stack |> Apply _ fun arg      = FrameApplyArg arg : stack |> fun
 stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
 stack |> Unwrap _ term        = FrameUnwrap : stack |> term
 stack |> tyAbs@TyAbs{}        = stack <| tyAbs
@@ -165,7 +165,7 @@ FrameUnwrap          : stack <| wrapped   = case wrapped of
 instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> CkEvalResult
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
-    | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun (undefined ty)
+    | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
     | otherwise                      =
           throw $ CkException NonPrimitiveInstantiationCkError fun
 
@@ -177,7 +177,7 @@ instantiateEvaluate stack ty fun
 applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> CkEvalResult
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyEvaluate stack fun                    arg =
-    let term = Apply () fun (undefined arg) in
+    let term = Apply () fun arg in
         case termAsPrimIterApp term of
             Nothing                       ->
                 throw $ CkException NonPrimitiveApplicationCkError term

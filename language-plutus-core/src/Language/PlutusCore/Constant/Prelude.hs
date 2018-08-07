@@ -67,7 +67,7 @@ getBuiltinTrue = do
        . TyAbs () a (Type ())
        . LamAbs () x unitFunA
        . LamAbs () y unitFunA
-       $ Apply () (Var () x) (pure builtinUnitval)
+       $ Apply () (Var () x) builtinUnitval
 
 -- | Church-encoded 'False' as a PLC term.
 --
@@ -84,4 +84,4 @@ getBuiltinFalse = do
        . TyAbs () a (Type ())
        . LamAbs () x unitFunA
        . LamAbs () y unitFunA
-       $ Apply () (Var () y) (pure builtinUnitval)
+       $ Apply () (Var () y) builtinUnitval

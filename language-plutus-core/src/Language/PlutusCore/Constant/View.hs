@@ -52,7 +52,7 @@ termAsConstant _                     = Nothing
 -- | An iterated application of a 'Term' to a list of 'Term's.
 termAsTermIterApp :: Term tyname name a -> Maybe (TermIterApp tyname name a)
 termAsTermIterApp term@Apply{} = Just $ go [] term where
-    go args (Apply _ fun arg) = go (undefined arg : args) fun
+    go args (Apply _ fun arg) = go (arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args
 termAsTermIterApp _            = Nothing

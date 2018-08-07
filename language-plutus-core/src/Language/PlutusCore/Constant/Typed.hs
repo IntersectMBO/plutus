@@ -139,7 +139,7 @@ typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
 
 typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Fresh (Type TyName ())
 typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
-    return . TyApp () (typedBuiltinSizedToType tbs) . pure $ case sizeEntry of
+    return . TyApp () (typedBuiltinSizedToType tbs) $ case sizeEntry of
         SizeValue size -> TyInt () size
         SizeBound name -> TyVar () name
 typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool

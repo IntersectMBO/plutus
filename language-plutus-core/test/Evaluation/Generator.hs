@@ -109,8 +109,8 @@ genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op wh
         go schB term' args' y
     go (TypeSchemeAllSize schK)    term args f = do
         size <- genSizeDef                           -- Generate a size.
-        let term' = TyInst () term $ pure (TyInt () size) -- Instantiate the term with the generated size.
-        go (schK size) term' args f                 -- Instantiate a size variable with the generated size.
+        let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
+        go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
 genConstant :: Size -> Gen (Constant ())
 genConstant size = Gen.choice
