@@ -45,7 +45,7 @@ prop_applyBuiltinName
     -> GenTypedBuiltinSized  -- ^ How to generate values of sized builtin types.
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property $ do
-    PrimIterAppValue _ iterApp tbv <- forAllPretty . runPlc allTbs $ genPrimIterAppValue tbn op
+    PrimIterAppValue _ iterApp tbv <- forAllPretty . runPlcT allTbs $ genPrimIterAppValue tbn op
     let IterApp name spine = iterApp
         TypedBuiltinValue tb y = tbv
         app = applyBuiltinName name

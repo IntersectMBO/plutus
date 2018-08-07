@@ -4,15 +4,16 @@
 {-# LANGUAGE OverloadedStrings         #-}
 module Evaluation.Generator
     ( max_size
+    , hoistSupply
     , genSizeDef
     , typedBuiltinAsValue
-    , GenPlc
-    , runPlc
+    , GenPlcT
+    , runPlcT
     , PrimIterAppValue(..)
     , genTypedBuiltin
     , genPrimIterAppValue
     , genTypedBuiltinAndItsValue
-    , genConstant
+    , genConstantSized
     ) where
 
 import           Language.PlutusCore
@@ -29,6 +30,9 @@ import qualified Hedgehog.Range as Range
 max_size :: Size
 max_size = 128
 
+hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
+hoistSupply r = hoist $ flip runReaderT r
+
 genSizeDef :: Monad m => GenT m Size
 genSizeDef = Gen.integral $ Range.exponential 1 max_size
 
@@ -44,7 +48,7 @@ typedBuiltinAsValue tb x = maybe (error err) return $ makeConstant tb x where
 -- It is parameterized by an 'TheGenTypedBuiltinSized' which determines
 -- how to generate sized builtins having a 'Size'. See for example
 -- 'genTypedBuiltinSizedSum' and 'genTypedBuiltinSizedDiv'.
-type GenPlc = GenT (Reader TheGenTypedBuiltinSized)
+type GenPlcT m = GenT (ReaderT (TheGenTypedBuiltinSizedT m) m)
 
 data PrimIterAppValue = forall a. PrimIterAppValue
     (Term TyName Name ())
@@ -58,46 +62,48 @@ instance Pretty PrimIterAppValue where
         , "As a value: ", pretty tbv
         ]
 
-runPlc :: GenTypedBuiltinSized -> GenPlc a -> Gen a
-runPlc genTbs = hoist $ flip runReaderT $ TheGenTypedBuiltinSized genTbs
+runPlcT :: Monad m => GenTypedBuiltinSizedT m -> GenPlcT m a -> GenT m a
+runPlcT genTbs = hoistSupply $ TheGenTypedBuiltinSized genTbs
 
 -- | Generate a value of one of the builtin types.
 -- See 'TypedBuiltin' for the list of such types.
-genTypedBuiltin :: TypedBuiltin Size a -> GenPlc a
+genTypedBuiltin :: Monad m => TypedBuiltin Size a -> GenPlcT m a
 genTypedBuiltin (TypedBuiltinSized sizeEntry tbs) = do
     let size = flattenSizeEntry sizeEntry
     TheGenTypedBuiltinSized genTbs <- ask
-    genTbs size tbs
+    hoist lift $ genTbs size tbs
 genTypedBuiltin TypedBuiltinBool                  = Gen.bool
 
 -- | Generate a value of one of the builtin types (see 'TypedBuiltin' for
 -- the list of such types) and return it along with the corresponding PLC value.
-genTypedBuiltinAndItsValue :: TypedBuiltin Size a -> GenPlc (a, Value TyName Name ())
+genTypedBuiltinAndItsValue :: Monad m => TypedBuiltin Size a -> GenPlcT m (a, Value TyName Name ())
 genTypedBuiltinAndItsValue tb = do
     x <- genTypedBuiltin tb
     v <- typedBuiltinAsValue tb x
     return (x, v)
 
 -- | Generate a value out of a 'TypeScheme' and return it along with the corresponding PLC value.
-genSchemedAndItsValue :: TypeScheme Size a -> GenPlc (a, Value TyName Name ())
+genSchemedAndItsValue :: Monad m => TypeScheme Size a -> GenPlcT m (a, Value TyName Name ())
 genSchemedAndItsValue (TypeSchemeBuiltin tb) = genTypedBuiltinAndItsValue tb
 genSchemedAndItsValue (TypeSchemeArrow _ _)  = error "Not implemented."
 genSchemedAndItsValue (TypeSchemeAllSize _)  = error "Not implemented."
 
 genPrimIterAppValue
-    :: TypedBuiltinName a       -- ^ A (typed) builtin name to apply.
+    :: Monad m
+    => TypedBuiltinName a       -- ^ A (typed) builtin name to apply.
     -> a                        -- ^ The semantics of the builtin name. E.g. the semantics of
                                 -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> GenPlc PrimIterAppValue
+    -> GenPlcT m PrimIterAppValue
 genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op where
     term0 = Constant () $ BuiltinName () name
 
     go
-        :: TypeScheme Size a
+        :: Monad m
+        => TypeScheme Size a
         -> Term TyName Name ()
         -> ([Value TyName Name ()] -> [Value TyName Name ()])
         -> a
-        -> GenPlc PrimIterAppValue
+        -> GenPlcT m PrimIterAppValue
     go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
         let pia = IterApp name $ args []
             tbv = TypedBuiltinValue builtin y
@@ -113,8 +119,8 @@ genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op wh
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
-genConstant :: Size -> Gen (Constant ())
-genConstant size = Gen.choice
+genConstantSized :: Size -> Gen (Constant ())
+genConstantSized size = Gen.choice
     [ BuiltinInt () size <$> genTypedBuiltinSizedDef size TypedBuiltinSizedInt
     , BuiltinBS  () size <$> genTypedBuiltinSizedDef size TypedBuiltinSizedBS
     , return $ BuiltinSize () size
