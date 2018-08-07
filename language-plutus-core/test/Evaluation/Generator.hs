@@ -1,6 +1,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE OverloadedStrings         #-}
 module Evaluation.Generator
     ( max_size
@@ -11,8 +12,8 @@ module Evaluation.Generator
     , runPlcT
     , IterAppValue(..)
     , genTypedBuiltin
-    , genPrimIterAppValue
-    , genTypedBuiltinAndItsValue
+    , genIterAppValue
+    , genTypedBuiltinPair
     , genConstantSized
     ) where
 
@@ -55,9 +56,6 @@ data IterAppValue head arg r = IterAppValue
     (IterApp head arg)
     (TypedBuiltinValue Size r)
 
-type PrimIterAppValue =
-    IterAppValue BuiltinName (Value TyName Name ())
-
 instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
     pretty (IterAppValue term pia tbv) = parens $ mconcat
         [ "As a term: ", pretty term, line
@@ -79,40 +77,38 @@ genTypedBuiltin TypedBuiltinBool                  = Gen.bool
 
 -- | Generate a value of one of the builtin types (see 'TypedBuiltin' for
 -- the list of such types) and return it along with the corresponding PLC value.
-genTypedBuiltinAndItsValue :: Monad m => TypedBuiltin Size a -> GenPlcT m (a, Value TyName Name ())
-genTypedBuiltinAndItsValue tb = do
+genTypedBuiltinPair :: Monad m => TypedBuiltin Size a -> GenPlcT m (a, Term TyName Name ())
+genTypedBuiltinPair tb = do
     x <- genTypedBuiltin tb
     v <- typedBuiltinAsValue tb x
     return (x, v)
 
 -- | Generate a value out of a 'TypeScheme' and return it along with the corresponding PLC value.
-genSchemedAndItsValue :: Monad m => TypeScheme Size a r -> GenPlcT m (a, Value TyName Name ())
-genSchemedAndItsValue (TypeSchemeBuiltin tb) = genTypedBuiltinAndItsValue tb
-genSchemedAndItsValue (TypeSchemeArrow _ _)  = error "Not implemented."
-genSchemedAndItsValue (TypeSchemeAllSize _)  = error "Not implemented."
+genSchemedPair :: Monad m => TypeScheme Size a r -> GenPlcT m (a, Term TyName Name ())
+genSchemedPair (TypeSchemeBuiltin tb) = genTypedBuiltinPair tb
+genSchemedPair (TypeSchemeArrow _ _)  = error "Not implemented."
+genSchemedPair (TypeSchemeAllSize _)  = error "Not implemented."
 
-genPrimIterAppValue
-    :: Monad m
-    => Typed BuiltinName a r           -- ^ A (typed) builtin name to apply.
-    -> a                               -- ^ The semantics of the builtin name. E.g. the semantics of
-                                       -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> GenPlcT m (PrimIterAppValue r)
-genPrimIterAppValue (Typed name schema) op = go schema term0 id op where
-    term0 = Constant () $ BuiltinName () name
-
+genIterAppValue
+    :: forall head a r m. Monad m
+    => (head -> Term TyName Name ())
+    -> Typed head a r  -- ^ A (typed) builtin name to apply.
+    -> a               -- ^ The semantics of the builtin name. E.g. the semantics of
+                       -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> GenPlcT m (IterAppValue head (Term TyName Name ()) r)
+genIterAppValue embHead (Typed h schema) op = go schema (embHead h) id op where
     go
-        :: Monad m
-        => TypeScheme Size a r
+        :: TypeScheme Size c r
         -> Term TyName Name ()
         -> ([Value TyName Name ()] -> [Value TyName Name ()])
-        -> a
-        -> GenPlcT m (PrimIterAppValue r)
+        -> c
+        -> GenPlcT m (IterAppValue head (Term TyName Name ()) r)
     go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
-        let pia = IterApp name $ args []
+        let pia = IterApp h $ args []
             tbv = TypedBuiltinValue builtin y
         return $ IterAppValue term pia tbv
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
-        (x, v) <- genSchemedAndItsValue schA         -- Get a Haskell and the correspoding PLC values.
+        (x, v) <- genSchemedPair schA                -- Get a Haskell and the correspoding PLC values.
 
         let term' = Apply () term v                  -- Apply the term to the PLC value.
             args' = args . (v :)                     -- Append the PLC value to the spine.
