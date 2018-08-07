@@ -103,7 +103,7 @@ genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op wh
         return $ PrimIterAppValue term pia tbv
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
         (x, v) <- genSchemedAndItsValue schA         -- Get a Haskell and the correspoding PLC values.
-        let term' = Apply () term (undefined v)      -- Apply the term to the PLC value.
+        let term' = Apply () term v                  -- Apply the term to the PLC value.
             args' = args . (v :)                     -- Add the PLC value to the spine.
             y     = f x                              -- Apply the Haskell function to the generated argument.
         go schB term' args' y
