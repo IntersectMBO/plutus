@@ -42215,6 +42215,7 @@ license = stdenv.lib.licenses.bsd3;
 , happy
 , hedgehog
 , microlens
+, mmorph
 , mtl
 , prettyprinter
 , recursion-schemes
@@ -42225,6 +42226,7 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-hunit
 , text
 , transformers
+, value-supply
 }:
 mkDerivation {
 
@@ -42244,6 +42246,7 @@ prettyprinter
 recursion-schemes
 text
 transformers
+value-supply
 ];
 libraryToolDepends = [
 alex
@@ -42252,7 +42255,10 @@ happy
 testHaskellDepends = [
 base
 bytestring
+containers
 hedgehog
+mmorph
+mtl
 prettyprinter
 tasty
 tasty-golden
@@ -76100,6 +76106,26 @@ doCheck = false;
 homepage = "https://github.com/NorfairKing/validity#readme";
 description = "Validity instances for vector";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"value-supply" = callPackage
+({
+  mkDerivation
+, base
+, stdenv
+}:
+mkDerivation {
+
+pname = "value-supply";
+version = "0.6";
+sha256 = "6555ab70c48b28f1ca383b5198daab5ef18f87039ea7dc5c6dab3d6dc8cca639";
+libraryHaskellDepends = [
+base
+];
+doHaddock = false;
+doCheck = false;
+description = "A library for generating values without having to thread state";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "varying" = callPackage

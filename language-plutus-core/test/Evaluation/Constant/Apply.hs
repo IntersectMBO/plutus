@@ -37,12 +37,12 @@ forAllPretty = forAllWith prettyString
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
     :: (forall b. TypedBuiltin Size b -> b -> Gen ConstAppResult)
-                             -- ^ How to get a 'ConstAppResult' having a Haskell value of
-                             -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
-    -> TypedBuiltinName a r  -- ^ A (typed) builtin name to apply.
-    -> a                     -- ^ The semantics of the builtin name. E.g. the semantics of
-                             -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> GenTypedBuiltinSized  -- ^ How to generate values of sized builtin types.
+                              -- ^ How to get a 'ConstAppResult' having a Haskell value of
+                              -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
+    -> Typed BuiltinName a r  -- ^ A (typed) builtin name to apply.
+    -> a                      -- ^ The semantics of the builtin name. E.g. the semantics of
+                              -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> GenTypedBuiltinSized   -- ^ How to generate values of sized builtin types.
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property $ do
     PrimIterAppValue _ iterApp tbv <- forAllPretty . runPlcT allTbs $ genPrimIterAppValue tbn op
@@ -58,7 +58,7 @@ prop_applyBuiltinName getFinal tbn op allTbs = property $ do
 -- and hence the result of the 'applyBuiltinName' computation must be a 'ConstAppSuccess'.
 -- See 'genTypedBuiltinSizedSum' for how this is achieved for 'AddInteger' and 'SubtractInteger'.
 -- See the "Success" module for tests defined in terms of this function.
-prop_applyBuiltinNameSuccess :: TypedBuiltinName a r -> a -> GenTypedBuiltinSized -> Property
+prop_applyBuiltinNameSuccess :: Typed BuiltinName a r -> a -> GenTypedBuiltinSized -> Property
 prop_applyBuiltinNameSuccess =
     prop_applyBuiltinName $ \tbs -> fmap ConstAppSuccess . typedBuiltinAsValue tbs
 
@@ -66,6 +66,6 @@ prop_applyBuiltinNameSuccess =
 -- the Haskell side may or may not fit into the default bounds (as per the spec) and hence the
 -- result of the 'applyBuiltinName' computation must be either a 'ConstAppSuccess' or 'ConstAppFailure'.
 -- See the "SuccessFailure" module for tests defined in terms of this function.
-prop_applyBuiltinNameSuccessFailure :: TypedBuiltinName a r -> a -> Property
+prop_applyBuiltinNameSuccessFailure :: Typed BuiltinName a r -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
     prop_applyBuiltinName (\tbs -> return . makeConstantApp tbs) tbn x genTypedBuiltinSizedDef
