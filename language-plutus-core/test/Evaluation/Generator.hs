@@ -50,12 +50,12 @@ typedBuiltinAsValue tb x = maybe (error err) return $ makeConstant tb x where
 -- 'genTypedBuiltinSizedSum' and 'genTypedBuiltinSizedDiv'.
 type GenPlcT m = GenT (ReaderT (TheGenTypedBuiltinSizedT m) m)
 
-data PrimIterAppValue = forall a. PrimIterAppValue
+data PrimIterAppValue r = PrimIterAppValue
     (Term TyName Name ())
     (PrimIterApp TyName Name ())
-    (TypedBuiltinValue Size a)
+    (TypedBuiltinValue Size r)
 
-instance Pretty PrimIterAppValue where
+instance Pretty (PrimIterAppValue r) where
     pretty (PrimIterAppValue term pia tbv) = parens $ mconcat
         [ "As a term: ", pretty term, line
         , "As an iterated application: ", pretty pia, line
@@ -83,33 +83,34 @@ genTypedBuiltinAndItsValue tb = do
     return (x, v)
 
 -- | Generate a value out of a 'TypeScheme' and return it along with the corresponding PLC value.
-genSchemedAndItsValue :: Monad m => TypeScheme Size a -> GenPlcT m (a, Value TyName Name ())
+genSchemedAndItsValue :: Monad m => TypeScheme Size a r -> GenPlcT m (a, Value TyName Name ())
 genSchemedAndItsValue (TypeSchemeBuiltin tb) = genTypedBuiltinAndItsValue tb
 genSchemedAndItsValue (TypeSchemeArrow _ _)  = error "Not implemented."
 genSchemedAndItsValue (TypeSchemeAllSize _)  = error "Not implemented."
 
 genPrimIterAppValue
     :: Monad m
-    => TypedBuiltinName a  -- ^ A (typed) builtin name to apply.
-    -> a                   -- ^ The semantics of the builtin name. E.g. the semantics of
-                           -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> GenPlcT m PrimIterAppValue
+    => TypedBuiltinName a r            -- ^ A (typed) builtin name to apply.
+    -> a                               -- ^ The semantics of the builtin name. E.g. the semantics of
+                                       -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> GenPlcT m (PrimIterAppValue r)
 genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op where
     term0 = Constant () $ BuiltinName () name
 
     go
         :: Monad m
-        => TypeScheme Size a
+        => TypeScheme Size a r
         -> Term TyName Name ()
         -> ([Value TyName Name ()] -> [Value TyName Name ()])
         -> a
-        -> GenPlcT m PrimIterAppValue
+        -> GenPlcT m (PrimIterAppValue r)
     go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
         let pia = IterApp name $ args []
             tbv = TypedBuiltinValue builtin y
         return $ PrimIterAppValue term pia tbv
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
         (x, v) <- genSchemedAndItsValue schA         -- Get a Haskell and the correspoding PLC values.
+
         let term' = Apply () term v                  -- Apply the term to the PLC value.
             args' = args . (v :)                     -- Append the PLC value to the spine.
             y     = f x                              -- Apply the Haskell function to the generated argument.

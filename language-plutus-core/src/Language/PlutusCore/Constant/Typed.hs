@@ -80,19 +80,19 @@ data TypedBuiltin size a where
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
 
 -- | Type schemes of primitive operations.
-data TypeScheme size a where
-    TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a
-    TypeSchemeArrow   :: TypeScheme size a -> TypeScheme size b -> TypeScheme size (a -> b)
-    TypeSchemeAllSize :: (size -> TypeScheme size a) -> TypeScheme size a
+data TypeScheme size a r where
+    TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a a
+    TypeSchemeArrow   :: TypeScheme size a q -> TypeScheme size b r -> TypeScheme size (a -> b) r
+    TypeSchemeAllSize :: (size -> TypeScheme size a r) -> TypeScheme size a r
     -- This is nailed to @size@ rather than being a generic @TypeSchemeForall@ for simplicity
     -- and because at the moment we do not need anything else.
     -- We can make this generic by parametrising @TypeScheme@ by an
      -- @f :: Kind () -> *@ rather than @size@.
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName a = TypedBuiltinName
+data TypedBuiltinName a r = TypedBuiltinName
     { _typedBuiltinNameUntyped    :: BuiltinName
-    , _typedBuiltinNameTypeScheme :: forall size. TypeScheme size a
+    , _typedBuiltinNameTypeScheme :: forall size. TypeScheme size a r
     }
 
 instance Pretty BuiltinSized where
@@ -144,7 +144,7 @@ typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
         SizeBound name -> TyVar () name
 typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool
 
-typeSchemeToType :: TypeScheme (TyName ()) a -> Fresh (Type TyName ())
+typeSchemeToType :: TypeScheme (TyName ()) a r -> Fresh (Type TyName ())
 typeSchemeToType (TypeSchemeBuiltin builtin) = typedBuiltinToType builtin
 typeSchemeToType (TypeSchemeArrow schA schB) =
     TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB
@@ -152,51 +152,51 @@ typeSchemeToType (TypeSchemeAllSize schK)    = do
     s <- freshTyName () "s"
     typeSchemeToType $ schK s
 
-sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer)
+sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer) Integer
 sizeIntIntInt =
     TypeSchemeAllSize $ \s ->
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
 
-sizeIntIntBool :: TypeScheme size (Integer -> Integer -> Bool)
+sizeIntIntBool :: TypeScheme size (Integer -> Integer -> Bool) Bool
 sizeIntIntBool =
     TypeSchemeAllSize $ \s ->
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
         TypeSchemeBuiltin TypedBuiltinBool
 
-typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedAddInteger = TypedBuiltinName AddInteger sizeIntIntInt
 
-typedSubtractInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedSubtractInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedSubtractInteger = TypedBuiltinName SubtractInteger sizeIntIntInt
 
-typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
 
-typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
 
-typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer)
+typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
 
-typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool)
+typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
 typedLessThanInteger = TypedBuiltinName LessThanInteger sizeIntIntBool
 
-typedLessThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool)
+typedLessThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
 typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger sizeIntIntBool
 
-typedGreaterThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool)
+typedGreaterThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
 typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger sizeIntIntBool
 
-typedGreaterThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool)
+typedGreaterThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
 typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger sizeIntIntBool
 
-typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool)
+typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
 typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
 
-typedResizeInteger :: TypedBuiltinName (Size -> Integer -> Integer)
+typedResizeInteger :: TypedBuiltinName (Size -> Integer -> Integer) Integer
 typedResizeInteger =
     TypedBuiltinName ResizeInteger $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -204,7 +204,7 @@ typedResizeInteger =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedInt) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedInt)
 
-typedIntToByteString :: TypedBuiltinName (Size -> Integer -> BSL.ByteString)
+typedIntToByteString :: TypedBuiltinName (Size -> Integer -> BSL.ByteString) BSL.ByteString
 typedIntToByteString =
     TypedBuiltinName IntToByteString $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -212,7 +212,7 @@ typedIntToByteString =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedInt) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
 
-typedConcatenate :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString)
+typedConcatenate :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedConcatenate =
     TypedBuiltinName Concatenate $
         TypeSchemeAllSize $ \s ->
@@ -220,7 +220,7 @@ typedConcatenate =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS)
 
-typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString)
+typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedTakeByteString =
     TypedBuiltinName TakeByteString $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -228,7 +228,7 @@ typedTakeByteString =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
 
-typedDropByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString)
+typedDropByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedDropByteString =
     TypedBuiltinName DropByteString $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -236,21 +236,21 @@ typedDropByteString =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
 
-typedSHA2 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString)
+typedSHA2 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedSHA2 =
     TypedBuiltinName SHA2 $
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
 
-typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString)
+typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedSHA3 =
     TypedBuiltinName SHA3 $
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
 
-typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Bool)
+typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Bool) Bool
 typedVerifySignature =
     TypedBuiltinName VerifySignature $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 -> TypeSchemeAllSize $ \s2 ->
@@ -259,7 +259,7 @@ typedVerifySignature =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s2) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin TypedBuiltinBool
 
-typedResizeByteString :: TypedBuiltinName (Size -> BSL.ByteString -> BSL.ByteString)
+typedResizeByteString :: TypedBuiltinName (Size -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedResizeByteString =
     TypedBuiltinName ResizeByteString $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -267,7 +267,7 @@ typedResizeByteString =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
 
-typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool)
+typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
 typedEqByteString =
     TypedBuiltinName EqByteString $
         TypeSchemeAllSize $ \s ->
@@ -275,7 +275,7 @@ typedEqByteString =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin TypedBuiltinBool
 
-typedTxHash :: TypedBuiltinName BSL.ByteString
+typedTxHash :: TypedBuiltinName BSL.ByteString BSL.ByteString
 typedTxHash =
     TypedBuiltinName TxHash $
         TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)

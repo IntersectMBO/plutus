@@ -101,15 +101,15 @@ extractBuiltin TypedBuiltinBool                            _                  _ 
 
 -- | Coerce a PLC value to a Haskell value.
 extractSchemed
-    :: TypeScheme SizeVar a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
+    :: TypeScheme SizeVar a r -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
 extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
 extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
-applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
+applyTypedBuiltinName :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
-    go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
+    go :: TypeScheme SizeVar a r -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
     go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result.
         [] -> makeConstantApp (expandSizeVars sizeValues builtin) y
         _  -> ConstAppError $ ExcessArgumentsConstAppError args
