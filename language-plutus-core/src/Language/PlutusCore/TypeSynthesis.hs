@@ -13,7 +13,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
 import           Data.Functor.Foldable          hiding (Fix (..))
-import qualified Data.List.NonEmpty             as NE
 import qualified Data.Map                       as M
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Lexer.Type
@@ -54,7 +53,7 @@ newTyName k = do
 intop :: MonadState Int m => m (Type TyNameWithKind ())
 intop = do
     nam <- newTyName (Size ())
-    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam :| [])
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity ity) -- TODO: does this associate in the right direction?
     pure $ TyForall () nam (Size ()) fty
 
@@ -104,7 +103,7 @@ kindOf (TyFix x _ ty) = do
     if isType k
         then pure (Type ())
         else throwError (KindMismatch x (void ty) (Type ()) k)
-kindOf (TyApp x ty (ty' :| [])) = do
+kindOf (TyApp x ty ty') = do
     k <- kindOf ty
     case k of
         KindArrow _ k' k'' -> do
@@ -113,11 +112,9 @@ kindOf (TyApp x ty (ty' :| [])) = do
                 then pure k''
                 else throwError (KindMismatch x (void ty') k'' k''') -- this is the branch that fails!
         _ -> throwError (KindMismatch x (void ty') (KindArrow () (Type ()) (Type ())) k)
-kindOf (TyApp x ty (ty' :| tys)) =
-    kindOf (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
 
 intApp :: Type a () -> Natural -> Type a ()
-intApp ty n = TyApp () ty (TyInt () n :| [])
+intApp ty n = TyApp () ty (TyInt () n)
 
 integerType :: Natural -> Type a ()
 integerType = intApp (TyBuiltin () TyInteger)
@@ -155,7 +152,7 @@ typeOf (Constant _ (BuiltinName _ n)) = do
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
-typeOf (Apply x t (t' :| [])) = do
+typeOf (Apply x t t') = do
     ty <- typeOf t
     case ty of
         TyFun _ ty' ty'' -> do
@@ -164,9 +161,7 @@ typeOf (Apply x t (t' :| [])) = do
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''') --  (TyFun () ty''' ty'') ty)
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
-typeOf (Apply x t (t' :| ts)) =
-    typeOf (Apply x (Apply x t (t' :| [])) (NE.fromList ts))
-typeOf (TyInst x t (ty :| [])) = do
+typeOf (TyInst x t ty) = do
     ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
@@ -175,8 +170,6 @@ typeOf (TyInst x t (ty :| [])) = do
                 then pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
-typeOf (TyInst x t (ty :| tys)) =
-    typeOf (TyInst x (TyInst x t (ty :| [])) (NE.fromList tys))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
@@ -217,7 +210,5 @@ tySubstitute u ty = cata a where
     a x                                                  = embed x
 
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) (ty' :| [])) = tySubstitute u ty' ty
-tyReduce (TyApp x ty (ty' :| tys)) =
-    tyReduce (TyApp x (TyApp x ty (ty' :| [])) (NE.fromList tys))
-tyReduce x = x
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty
+tyReduce x                                                                   = x

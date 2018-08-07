@@ -36,7 +36,7 @@ data Type tyname a = TyVar a (tyname a)
                    | TyBuiltin a TypeBuiltin -- ^ Builtin type
                    | TyInt a Natural -- ^ Type-level size
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
-                   | TyApp a (Type tyname a) (NonEmpty (Type tyname a))
+                   | TyApp a (Type tyname a) (Type tyname a)
                    deriving (Functor, Show, Eq, Generic, NFData)
 
 -- | A constant value.
@@ -51,10 +51,10 @@ data Constant a = BuiltinInt a Natural Integer
 data Term tyname name a = Var a (name a) -- ^ A named variable
                         | TyAbs a (tyname a) (Kind a) (Term tyname name a)
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
-                        | Apply a (Term tyname name a) (NonEmpty (Term tyname name a))
+                        | Apply a (Term tyname name a) (Term tyname name a)
                         | Fix a (name a) (Type tyname a) (Term tyname name a)
                         | Constant a (Constant a) -- ^ A constant term
-                        | TyInst a (Term tyname name a) (NonEmpty (Type tyname a))
+                        | TyInst a (Term tyname name a) (Type tyname a)
                         | Unwrap a (Term tyname name a)
                         | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
                         | Error a (Type tyname a)
@@ -96,10 +96,10 @@ instance Pretty (Constant a) where
 instance (Pretty (f a), Pretty (g a)) => Pretty (Term f g a) where
     pretty = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
-        a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
         a (VarF _ n)         = pretty n
         a (TyAbsF _ n k t)   = parens ("abs" <+> pretty n <+> pretty k <+> t)
-        a (TyInstF _ t te)   = "{" <+> t <+> hsep (pretty <$> toList te) <+> "}"
+        a (TyInstF _ t ty)   = "{" <+> t <+> pretty ty <+> "}"
         a (FixF _ n ty t)    = parens ("fix" <+> pretty n <+> pretty ty <+> t)
         a (LamAbsF _ n ty t) = parens ("lam" <+> pretty n <+> pretty ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
@@ -109,10 +109,10 @@ instance (Pretty (f a), Pretty (g a)) => Pretty (Term f g a) where
 instance (Debug (f a), Debug (g a)) => Debug (Term f g a) where
     debug = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
-        a (ApplyF _ t ts)    = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
         a (VarF _ n)         = debug n
         a (TyAbsF _ n k t)   = parens ("abs" <+> debug n <+> pretty k <+> t)
-        a (TyInstF _ t te)   = "{" <+> t <+> hsep (debug <$> toList te) <+> "}"
+        a (TyInstF _ t ty)   = "{" <+> t <+> debug ty <+> "}"
         a (FixF _ n ty t)    = parens ("fix" <+> debug n <+> debug ty <+> t)
         a (LamAbsF _ n ty t) = parens ("lam" <+> debug n <+> debug ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
@@ -121,7 +121,7 @@ instance (Debug (f a), Debug (g a)) => Debug (Term f g a) where
 
 instance Pretty (f a) => Pretty (Type f a) where
     pretty = cata a where
-        a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyAppF _ t t')     = "[" <+> t <+> t' <+> "]"
         a (TyVarF _ n)        = pretty n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
         a (TyFixF _ n t)      = parens ("fix" <+> pretty n <+> t)
@@ -132,7 +132,7 @@ instance Pretty (f a) => Pretty (Type f a) where
 
 instance Debug (f a) => Debug (Type f a) where
     debug = cata a where
-        a (TyAppF _ t ts)     = "[" <+> t <+> hsep (toList ts) <+> "]"
+        a (TyAppF _ t t')     = "[" <+> t <+> t' <+> "]"
         a (TyVarF _ n)        = debug n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
         a (TyFixF _ n t)      = parens ("fix" <+> debug n <+> t)
