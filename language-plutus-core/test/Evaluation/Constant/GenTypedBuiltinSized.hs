@@ -50,8 +50,8 @@ class UpdateGenTypedBuiltinSizedT m a where
 
     -- | Update a sized builtins generator by changing the generator for a particular @a@.
     updateGenTypedBuiltinSized
-        :: TypedBuiltinSized a     -- ^ Used as a @proxy@.
-        -> GenUpdater a            -- ^ A function that returns a new generator.
+        :: TypedBuiltinSized a      -- ^ Used as a @proxy@.
+        -> GenUpdater a             -- ^ A function that returns a new generator.
         -> GenTypedBuiltinSizedT m  -- ^ An old sized builtins generator.
         -> GenTypedBuiltinSizedT m  -- ^ The new sized builtint generator.
 

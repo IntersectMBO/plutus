@@ -90,9 +90,9 @@ genSchemedAndItsValue (TypeSchemeAllSize _)  = error "Not implemented."
 
 genPrimIterAppValue
     :: Monad m
-    => TypedBuiltinName a       -- ^ A (typed) builtin name to apply.
-    -> a                        -- ^ The semantics of the builtin name. E.g. the semantics of
-                                -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    => TypedBuiltinName a  -- ^ A (typed) builtin name to apply.
+    -> a                   -- ^ The semantics of the builtin name. E.g. the semantics of
+                           -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
     -> GenPlcT m PrimIterAppValue
 genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op where
     term0 = Constant () $ BuiltinName () name
