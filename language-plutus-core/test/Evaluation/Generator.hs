@@ -78,6 +78,7 @@ genTypedBuiltinAndItsValue tb = do
     v <- typedBuiltinAsValue tb x
     return (x, v)
 
+-- | Generate a value out of a 'TypeScheme' and return it along with the corresponding PLC value.
 genSchemedAndItsValue :: TypeScheme Size a -> GenPlc (a, Value TyName Name ())
 genSchemedAndItsValue (TypeSchemeBuiltin tb) = genTypedBuiltinAndItsValue tb
 genSchemedAndItsValue (TypeSchemeArrow _ _)  = error "Not implemented."
