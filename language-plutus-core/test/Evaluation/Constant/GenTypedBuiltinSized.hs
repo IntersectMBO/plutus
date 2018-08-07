@@ -1,11 +1,11 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 -- | This module defines the 'GenTypedBuiltinSized' type and functions of this type
 -- which control size-induced bounds of values generated in the 'prop_applyBuiltinName'
 -- function and its derivatives defined in the "Apply" module.
 
-{-# LANGUAGE RankNTypes   #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeFamilies          #-}
 module Evaluation.Constant.GenTypedBuiltinSized
     ( GenTypedBuiltinSizedT
     , GenTypedBuiltinSized
