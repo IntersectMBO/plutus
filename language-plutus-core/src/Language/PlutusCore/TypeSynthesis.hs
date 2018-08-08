@@ -222,10 +222,6 @@ typeOf (Unwrap x t) = do
             pure subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
-    k <- kindOf ty
-    case k of
-        Type{} -> pure ()
-        _      -> throwError (KindMismatch x (void ty) (Type ()) (void k))
     ty' <- typeOf t'
     let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
     if tyReduce fixed == ty'
