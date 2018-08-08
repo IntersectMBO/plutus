@@ -12,7 +12,7 @@ module Evaluation.Constant.Apply
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Evaluation.Constant.GenTypedBuiltinSized
+import           Evaluation.Constant.GenTypedBuiltin
 import           Evaluation.Generator
 
 import           Data.Foldable
@@ -42,7 +42,7 @@ prop_applyBuiltinName
     -> Typed BuiltinName a r  -- ^ A (typed) builtin name to apply.
     -> a                      -- ^ The semantics of the builtin name. E.g. the semantics of
                               -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> GenTypedBuiltinSized   -- ^ How to generate values of sized builtin types.
+    -> GenTypedBuiltin        -- ^ How to generate values of sized builtin types.
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property $ do
     let embBuiltinName = Constant () . BuiltinName ()
@@ -60,9 +60,9 @@ prop_applyBuiltinName getFinal tbn op allTbs = property $ do
 -- and hence the result of the 'applyBuiltinName' computation must be a 'ConstAppSuccess'.
 -- See 'genTypedBuiltinSizedSum' for how this is achieved for 'AddInteger' and 'SubtractInteger'.
 -- See the "Success" module for tests defined in terms of this function.
-prop_applyBuiltinNameSuccess :: Typed BuiltinName a r -> a -> GenTypedBuiltinSized -> Property
+prop_applyBuiltinNameSuccess :: Typed BuiltinName a r -> a -> GenTypedBuiltin -> Property
 prop_applyBuiltinNameSuccess =
-    prop_applyBuiltinName $ \tbs -> fmap ConstAppSuccess . typedBuiltinAsValue tbs
+    prop_applyBuiltinName $ \tb -> return . ConstAppSuccess . coerceTypedBuiltin tb
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
 -- the Haskell side may or may not fit into the default bounds (as per the spec) and hence the
@@ -70,4 +70,4 @@ prop_applyBuiltinNameSuccess =
 -- See the "SuccessFailure" module for tests defined in terms of this function.
 prop_applyBuiltinNameSuccessFailure :: Typed BuiltinName a r -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
-    prop_applyBuiltinName (\tbs -> return . makeConstantApp tbs) tbn x genTypedBuiltinSizedDef
+    prop_applyBuiltinName (\tbs -> return . makeConstantApp tbs) tbn x genTypedBuiltinDef

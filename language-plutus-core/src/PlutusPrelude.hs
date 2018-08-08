@@ -1,6 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor             #-}
 module PlutusPrelude ( (&&&)
                      , toList
                      , bool
@@ -64,11 +63,7 @@ infixr 2 ?
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
-    }
-
-instance Functor f => Functor (PairT b f) where
-    fmap f (PairT p) = PairT $ fmap (fmap f) p
-    {-# INLINE fmap #-}
+    } deriving (Functor)
 
 newtype Fresh a = Fresh
     { unFresh :: Reader (Supply Int) a
