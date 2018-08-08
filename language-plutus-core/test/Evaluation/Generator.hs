@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE RankNTypes                #-}
@@ -21,6 +21,9 @@ import           Evaluation.Constant.GenTypedBuiltin
 import           Control.Monad.Reader
 import           Control.Monad.Morph
 import           Data.Text.Prettyprint.Doc
+import           Data.GADT.Compare
+import           Data.Dependent.Map
+import qualified Data.Dependent.Map as DMap
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
@@ -47,9 +50,10 @@ data IterAppValue head arg r = IterAppValue
 
 instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
     pretty (IterAppValue term pia tbv) = parens $ mconcat
-        [ "As a term: ", pretty term, line
-        , "As an iterated application: ", pretty pia, line
-        , "As a value: ", pretty tbv
+        [ "{ As a term: ", pretty term, line
+        , "| As an iterated application: ", pretty pia, line
+        , "| As a value: ", pretty tbv, line
+        , "}"
         ]
 
 runPlcT :: Monad m => GenTypedBuiltinT m -> GenPlcT m a -> GenT m a
@@ -93,9 +97,43 @@ genIterAppValue embHead (Typed h schema) op = go schema (embHead h) id op where
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
--- genConstantSized :: Size -> Gen (Constant ())
--- genConstantSized size = Gen.choice
---     [ BuiltinInt () size <$> genTypedBuiltinDef (TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt)
---     , BuiltinBS  () size <$> genTypedBuiltinDef (TypedBuiltinSized (SizeValue size) TypedBuiltinSizedBS)
---     , return $ BuiltinSize () size
---     ]
+
+
+data SomeTypedSized v size r = forall a. SomeTypedSized
+    { _someTypedSizedValue  :: v
+    , _someTypedSizedScheme :: TypeScheme size a r
+    }
+
+newtype Context v size = Context
+    { unContext :: DMap (TypedBuiltin (Maybe size)) (SomeTypedSized v size)
+    }
+
+instance GEq (TypedBuiltin size)
+instance GCompare (TypedBuiltin size)
+
+insertTypedBuiltinName :: Typed BuiltinName a r -> Context BuiltinName size -> Context BuiltinName size
+insertTypedBuiltinName (Typed name scheme) (Context vs) =
+    Context $ DMap.insert (typeSchemeResult scheme) (SomeTypedSized name scheme) vs
+
+typedBuiltinNames :: Context BuiltinName size
+typedBuiltinNames
+    = insertTypedBuiltinName typedAddInteger
+    $ Context DMap.empty
+
+iterAppValueToTermOf :: IterAppValue head arg r -> TermOf r
+iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term x
+
+-- TypedBuiltin Size a -> GenT m (TermOf a)
+genTerm :: GenTypedBuiltin
+genTerm tb = Gen.recursive Gen.choice [genTypedBuiltinDef tb] . pure $ case tb of
+    TypedBuiltinSized _ TypedBuiltinSizedInt ->
+        iterAppValueToTermOf <$> hoistSupply (TheGenTypedBuiltin genTerm)
+            (genIterAppValue (Constant () . BuiltinName ()) typedAddInteger (+))
+
+-- { As a term: [ [ { (con addInteger) (con 2) } (con 2 ! -32633) ] (con 2 ! -23301) ]
+-- | As a value: -55934
+-- }
+blah :: IO ()
+blah = do
+    tx <- Gen.sample $ genTerm (TypedBuiltinSized (SizeValue 4) TypedBuiltinSizedInt)
+    putStrLn $ prettyString tx

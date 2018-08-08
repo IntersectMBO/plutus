@@ -107,7 +107,9 @@ test-suite language-plutus-core-test
         prettyprinter -any,
         containers -any,
         mtl -any,
-        mmorph -any
+        mmorph -any,
+        dependent-sum -any,
+        dependent-map -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

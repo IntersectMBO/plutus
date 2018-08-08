@@ -16,6 +16,7 @@ module Language.PlutusCore.Constant.Typed
     , eraseTypedBuiltinSized
     , fmapSizeTypedBuiltin
     , typedBuiltinSizedToType
+    , typeSchemeResult
     , typedBuiltinToType
     , typeSchemeToType
     , typedAddInteger
@@ -137,6 +138,11 @@ typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
 typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
 typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
 
+typeSchemeResult :: TypeScheme (Maybe size) a r -> TypedBuiltin (Maybe size) r
+typeSchemeResult (TypeSchemeBuiltin tb)   = tb
+typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
+typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK Nothing)
+
 typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Fresh (Type TyName ())
 typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
     return . TyApp () (typedBuiltinSizedToType tbs) $ case sizeEntry of
@@ -145,7 +151,7 @@ typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
 typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool
 
 typeSchemeToType :: TypeScheme (TyName ()) a r -> Fresh (Type TyName ())
-typeSchemeToType (TypeSchemeBuiltin builtin) = typedBuiltinToType builtin
+typeSchemeToType (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
 typeSchemeToType (TypeSchemeArrow schA schB) =
     TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB
 typeSchemeToType (TypeSchemeAllSize schK)    = do

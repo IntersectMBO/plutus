@@ -2,8 +2,9 @@
 -- which control size-induced bounds of values generated in the 'prop_applyBuiltinName'
 -- function and its derivatives defined in the "Apply" module.
 
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Evaluation.Constant.GenTypedBuiltin
     ( TermOf(..)
     , GenTypedBuiltinT
@@ -26,6 +27,7 @@ import           Language.PlutusCore.Constant
 import           Data.Maybe
 import           Data.Functor.Identity
 import qualified Data.ByteString.Lazy as BSL
+import           Data.Text.Prettyprint.Doc
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
@@ -55,15 +57,19 @@ newtype TheGenTypedBuiltinT m = TheGenTypedBuiltin
     { unTheAlltypedBuilinSized :: GenTypedBuiltinT m
     }
 
+instance Pretty a => Pretty (TermOf a) where
+    pretty (TermOf t x) = mconcat
+        [ "{ As a term: ", pretty t, line
+        , "| As a value: ", pretty x, line
+        , "}"
+        ]
+
 attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
 attachCoercedTerm tb = fmap $ \x -> TermOf (coerceTypedBuiltin tb x) x
 
 -- TODO: think about abstracting the pattern... or maybe not.
 updateGenTypedBuiltinInt
-    :: Functor m
-    => (Integer -> Integer -> GenT m Integer)
-    -> GenTypedBuiltinT m
-    -> GenTypedBuiltinT m
+    :: Functor m => (Integer -> Integer -> GenT m Integer) -> GenTypedBuiltinT m -> GenTypedBuiltinT m
 updateGenTypedBuiltinInt genInteger genTb tb = case tb of
     TypedBuiltinSized sizeEntry TypedBuiltinSizedInt ->
         let size = flattenSizeEntry sizeEntry
@@ -72,10 +78,7 @@ updateGenTypedBuiltinInt genInteger genTb tb = case tb of
     _                                                -> genTb tb
 
 updateGenTypedBuiltinBS
-    :: Monad m
-    => (Int -> GenT m BSL.ByteString)
-    -> GenTypedBuiltinT m
-    -> GenTypedBuiltinT m
+    :: Monad m => (Int -> GenT m BSL.ByteString) -> GenTypedBuiltinT m -> GenTypedBuiltinT m
 updateGenTypedBuiltinBS genBytes genTb tb = case tb of
     TypedBuiltinSized sizeEntry TypedBuiltinSizedBS ->
         let size = flattenSizeEntry sizeEntry in
@@ -83,9 +86,7 @@ updateGenTypedBuiltinBS genBytes genTb tb = case tb of
     _                                               -> genTb tb
 
 updateGenTypedBuiltinSize
-    :: Monad m
-    => GenTypedBuiltinT m
-    -> GenTypedBuiltinT m
+    :: Monad m => GenTypedBuiltinT m -> GenTypedBuiltinT m
 updateGenTypedBuiltinSize genTb tb = case tb of
     TypedBuiltinSized sizeEntry TypedBuiltinSizedSize ->
         let size = flattenSizeEntry sizeEntry in
@@ -93,10 +94,7 @@ updateGenTypedBuiltinSize genTb tb = case tb of
     _                                               -> genTb tb
 
 updateGenTypedBuiltinBool
-    :: Monad m
-    => GenT m Bool
-    -> GenTypedBuiltinT m
-    -> GenTypedBuiltinT m
+    :: Monad m => GenT m Bool -> GenTypedBuiltinT m -> GenTypedBuiltinT m
 updateGenTypedBuiltinBool genBool genTb tb = case tb of
     TypedBuiltinBool -> attachCoercedTerm tb $ genBool
     _                -> genTb tb
