@@ -105,7 +105,7 @@ defaultTable = do
     pure $ BuiltinTable tyTable termTable
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: Int
+runTypeCheckM :: Int -- ^ Largest @Unique@ in scope so far. This is used to allow us to generate globally unique names during type checking.
               -> Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
               -> Either (TypeError a) b
