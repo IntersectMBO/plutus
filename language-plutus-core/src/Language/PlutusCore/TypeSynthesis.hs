@@ -80,12 +80,21 @@ boolean = do
 
 -- | Create a new 'Type' for an integer relation
 intRel :: MonadState Int m => m (Type TyNameWithKind ())
-intRel = do
+intRel = builtinRel TyInteger
+
+bsRel :: MonadState Int m => m (Type TyNameWithKind ())
+bsRel = builtinRel TyByteString
+
+builtinRel :: MonadState Int m => TypeBuiltin -> m (Type TyNameWithKind ())
+builtinRel bi = do
     nam <- newTyName (Size ())
     b <- boolean
-    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
+    let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity b)
     pure $ TyForall () nam (Size ()) fty
+
+txHash :: Type TyNameWithKind ()
+txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
 defaultTable :: MonadState Int m => m BuiltinTable
 defaultTable = do
@@ -98,9 +107,10 @@ defaultTable = do
 
     is <- repeatM intop
     irs <- repeatM intRel
+    bsRelType <- bsRel
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs
+        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString] [txHash, bsRelType]
 
     pure $ BuiltinTable tyTable termTable
 
