@@ -83,6 +83,7 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Evaluation.Denotation
         Evaluation.Constant.GenTypedBuiltin
         Evaluation.Constant.Apply
         Evaluation.Constant.Success

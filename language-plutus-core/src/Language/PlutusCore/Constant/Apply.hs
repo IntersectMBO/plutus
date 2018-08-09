@@ -107,8 +107,9 @@ extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
-applyTypedBuiltinName :: Typed BuiltinName a r -> a -> [Value TyName Name ()] -> ConstAppResult
-applyTypedBuiltinName (Typed _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
+applyTypedBuiltinName
+    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> ConstAppResult
+applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a r -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
     go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result.
         [] -> makeConstantApp (expandSizeVars sizeValues builtin) y

@@ -58,11 +58,7 @@ newtype TheGenTypedBuiltinT m = TheGenTypedBuiltin
     }
 
 instance Pretty a => Pretty (TermOf a) where
-    pretty (TermOf t x) = mconcat
-        [ "{ As a term: ", pretty t, line
-        , "| As a value: ", pretty x, line
-        , "}"
-        ]
+    pretty (TermOf t x) = pretty t <+> "~>" <+> pretty x
 
 attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
 attachCoercedTerm tb = fmap $ \x -> TermOf (coerceTypedBuiltin tb x) x
