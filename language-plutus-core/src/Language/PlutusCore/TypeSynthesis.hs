@@ -36,16 +36,16 @@ data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | OutOfGas
 
 instance Pretty a => Pretty (TypeError a) where
-    pretty InternalError    = "Internal error."
+    pretty InternalError = "Internal error."
     pretty (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (pretty ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
     pretty (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (pretty t) <> ". Expected type" <+> squotes (pretty ty) <+> ", found type" <+> squotes (pretty ty')
-    pretty OutOfGas = "Type checking ran out of gas."
+    pretty OutOfGas = "Type checker ran out of gas."
 
 instance Pretty a => Debug (TypeError a) where
-    debug InternalError    = "Internal error."
+    debug InternalError = "Internal error."
     debug (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (debug ty) <> ". Expected kind" <+> squotes (debug k) <+> ", found kind" <+> squotes (debug k')
     debug (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (debug t) <> ". Expected type" <+> squotes (debug ty) <+> ", found type" <+> squotes (debug ty')
-    debug OutOfGas = "Type checking ran out of gas."
+    debug OutOfGas = "Type checker ran out of gas."
 
 isType :: Kind a -> Bool
 isType Type{} = True
