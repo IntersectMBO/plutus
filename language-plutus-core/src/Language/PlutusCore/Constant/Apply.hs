@@ -79,7 +79,7 @@ extractSizedBuiltin tbs                   _       constant                      
     Left $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
 
 expandSizeVars :: SizeValues -> TypedBuiltin SizeVar a -> TypedBuiltin Size a
-expandSizeVars = fmapSizeTypedBuiltin . flip sizeAt
+expandSizeVars = mapSizeTypedBuiltin . flip sizeAt
 
 extractBuiltin
     :: TypedBuiltin SizeVar a

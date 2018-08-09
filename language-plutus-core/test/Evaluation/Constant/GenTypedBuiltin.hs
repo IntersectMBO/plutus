@@ -106,10 +106,11 @@ genTypedBuiltinFail tb = fail $ concat
 genTypedBuiltinDef :: Monad m => GenTypedBuiltinT m
 genTypedBuiltinDef
     = updateGenTypedBuiltinInt
-          (\low high -> Gen.integral $ Range.linear low high)
+          (\low high -> Gen.integral $ Range.linearFrom 0 low high)
     $ updateGenTypedBuiltinBS
           (fmap BSL.fromStrict . Gen.bytes . Range.linear 0)
     $ updateGenTypedBuiltinSize
+    $ updateGenTypedBuiltinBool Gen.bool
     $ genTypedBuiltinFail
 
 -- | A sized builtins generator that produces 'Integer's in bounds narrowed by a factor of 2,

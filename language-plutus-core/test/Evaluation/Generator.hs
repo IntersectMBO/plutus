@@ -19,6 +19,7 @@ import           Language.PlutusCore.Constant
 import           Evaluation.Denotation
 import           Evaluation.Constant.GenTypedBuiltin
 
+import           Data.Functor.Compose
 import           Control.Monad.Reader
 import           Control.Monad.Morph
 import           Data.Text.Prettyprint.Doc
@@ -34,7 +35,7 @@ hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
 
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = Gen.integral $ Range.exponential 1 max_size
+genSizeDef = Gen.integral $ Range.exponential 2 max_size
 
 -- | The type used in generators defined in this module.
 -- It is parameterized by an 'TheGenTypedBuiltin' which determines
@@ -97,17 +98,13 @@ genIterAppValue (Denotation object toTerm meta scheme) = go scheme (toTerm objec
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
 genTerm :: GenTypedBuiltin
-genTerm tb = Gen.recursive Gen.choice [genTypedBuiltinDef tb] $ case tb of
-    TypedBuiltinSized _ TypedBuiltinSizedInt ->
-        case DMap.lookup (TypedBuiltinSized (SizeBound ()) TypedBuiltinSizedInt)
-                 (unContext typedBuiltinNames) of
-            Nothing         -> []
-            Just denotation -> pure $
-                iterAppValueToTermOf <$> hoistSupply (TheGenTypedBuiltin genTerm)
-                    (genIterAppValue denotation)
-
--- [ [ { (con addInteger) (con 2) } (con 2 ! -32633) ] (con 2 ! -23301) ] ~> -55934
-blah :: IO ()
-blah = do
-    tx <- Gen.sample $ genTerm (TypedBuiltinSized (SizeValue 4) TypedBuiltinSizedInt)
-    putStrLn $ prettyString tx
+genTerm tb =
+    Gen.recursive Gen.choice [genTypedBuiltinDef tb] $
+        let desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb in
+            case DMap.lookup desizedTb (unContext typedBuiltinNames) of
+                Nothing                    -> []
+                Just (Compose denotations) -> map gen denotations where
+                    gen
+                        = fmap iterAppValueToTermOf
+                        . hoistSupply (TheGenTypedBuiltin genTerm)
+                        . genIterAppValue

@@ -14,7 +14,8 @@ module Language.PlutusCore.Constant.Typed
     , TypedBuiltinName(..)
     , flattenSizeEntry
     , eraseTypedBuiltinSized
-    , fmapSizeTypedBuiltin
+    , mapSizeEntryTypedBuiltin
+    , mapSizeTypedBuiltin
     , typedBuiltinSizedToType
     , typeSchemeResult
     , typedBuiltinToType
@@ -128,9 +129,14 @@ flattenSizeEntry :: SizeEntry Size -> Size
 flattenSizeEntry (SizeValue size) = size
 flattenSizeEntry (SizeBound size) = size
 
-fmapSizeTypedBuiltin :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
-fmapSizeTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (fmap f se) tbs
-fmapSizeTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
+mapSizeEntryTypedBuiltin
+    :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
+mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
+mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
+
+mapSizeTypedBuiltin
+    :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
+mapSizeTypedBuiltin = mapSizeEntryTypedBuiltin . fmap
 
 typedBuiltinSizedToType :: TypedBuiltinSized a -> Type TyName ()
 typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
