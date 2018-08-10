@@ -20,6 +20,8 @@ import           Evaluation.Denotation
 import           Evaluation.Constant.GenTypedBuiltin
 
 import           Data.Functor.Compose
+import           Control.Exception (evaluate)
+import           Control.Exception.Safe (tryAny)
 import           Control.Monad.Reader
 import           Control.Monad.Morph
 import           Data.Text.Prettyprint.Doc
@@ -27,6 +29,7 @@ import qualified Data.Dependent.Map as DMap
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
+import           System.IO.Unsafe
 
 max_size :: Size
 max_size = 32
@@ -76,17 +79,20 @@ genIterAppValue
     :: forall head r m. Monad m
     => Denotation head Size r
     -> GenPlcT m (IterAppValue head (Term TyName Name ()) r)
-genIterAppValue (Denotation object toTerm meta scheme) = go scheme (toTerm object) id meta where
+genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (toTerm object) id meta where
     go
         :: TypeScheme Size c r
         -> Term TyName Name ()
         -> ([Term TyName Name ()] -> [Term TyName Name ()])
         -> c
-        -> GenPlcT m (IterAppValue head (Term TyName Name ()) r)
+        -> GenPlcT m (Maybe (IterAppValue head (Term TyName Name ()) r))
     go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
-        let pia = IterApp object $ args []
-            tbv = TypedBuiltinValue builtin y
-        return $ IterAppValue term pia tbv
+        return $ case unsafePerformIO . tryAny $ evaluate y of
+            Left _   -> Nothing
+            Right y' -> do
+                let pia = IterApp object $ args []
+                    tbv = TypedBuiltinValue builtin y'
+                return $ IterAppValue term pia tbv
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
         TermOf v x <- genSchemedPair schA            -- Get a Haskell and the correspoding PLC values.
 

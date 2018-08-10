@@ -108,6 +108,7 @@ test-suite language-plutus-core-test
         prettyprinter -any,
         containers -any,
         mtl -any,
+        safe-exceptions -any,
         mmorph -any,
         dependent-sum -any,
         dependent-map -any
