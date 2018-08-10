@@ -21,9 +21,6 @@ import           Data.List
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog hiding (Size, Var, annotate)
 
-forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
-forAllPretty = forAllWith prettyString
-
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
 -- taking size-induced bounds (controlled by the 'GenTypedBuiltinSized' parameter) into account

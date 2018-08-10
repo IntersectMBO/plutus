@@ -2,11 +2,13 @@
 module Language.PlutusCore.Constant.Prelude
     ( Size
     , Value
+    , getBuiltinConst
     , getBuiltinUnit
     , getBuiltinUnitval
     , getBuiltinBool
     , getBuiltinTrue
     , getBuiltinFalse
+    , getBuiltinIf
     ) where
 
 import           PlutusPrelude
@@ -15,6 +17,22 @@ import           Language.PlutusCore.Name
 
 type Size = Natural
 type Value = Term
+
+-- | Church-encoded 'const' as a PLC type.
+--
+-- > /\ (A B :: *) -> \(x : A) (y : B) -> x
+getBuiltinConst :: Fresh (Term TyName Name ())
+getBuiltinConst = do
+    a <- freshTyName () "A"
+    b <- freshTyName () "B"
+    x <- freshName () "x"
+    y <- freshName () "y"
+    return
+        . TyAbs () a (Type ())
+        . TyAbs () b (Type ())
+        . LamAbs () x (TyVar () a)
+        . LamAbs () y (TyVar () b)
+        $ Var () x
 
 -- | Church-encoded '()' as a PLC type.
 --
@@ -44,8 +62,8 @@ getBuiltinUnitval = do
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
 getBuiltinBool :: Fresh (Type TyName ())
 getBuiltinBool = do
-    a <- freshTyName () "A"
     unit <- getBuiltinUnit
+    a <- freshTyName () "A"
     return
         . TyForall () a (Type ())
         . TyFun () (TyFun () unit (TyVar () a))
@@ -57,7 +75,7 @@ getBuiltinBool = do
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
 getBuiltinTrue :: Fresh (Value TyName Name ())
 getBuiltinTrue = do
-    builtinUnit <- getBuiltinUnit
+    builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
     a <- freshTyName () "A"
     x <- freshName () "x"
@@ -74,7 +92,7 @@ getBuiltinTrue = do
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
 getBuiltinFalse :: Fresh (Value TyName Name ())
 getBuiltinFalse = do
-    builtinUnit <- getBuiltinUnit
+    builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
     a <- freshTyName () "A"
     x <- freshName () "x"
@@ -85,3 +103,24 @@ getBuiltinFalse = do
        . LamAbs () x unitFunA
        . LamAbs () y unitFunA
        $ Apply () (Var () y) builtinUnitval
+
+-- | Church-encoded @if_then_else_@ as a PLC term.
+--
+-- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b x y
+getBuiltinIf :: Fresh (Value TyName Name ())
+getBuiltinIf = do
+    builtinUnit <- getBuiltinUnit
+    builtinBool <- getBuiltinBool
+    a <- freshTyName () "A"
+    b <- freshName () "b"
+    x <- freshName () "x"
+    y <- freshName () "y"
+    let unitFunA = TyFun () builtinUnit (TyVar () a)
+    return
+       . TyAbs () a (Type ())
+       . LamAbs () b builtinBool
+       . LamAbs () x unitFunA
+       . LamAbs () y unitFunA
+       $ foldl (Apply ())
+           (TyInst () (Var () b) (TyVar () a))
+           [Var () x, Var () y]

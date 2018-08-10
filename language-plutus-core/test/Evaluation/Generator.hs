@@ -6,6 +6,7 @@ module Evaluation.Generator
     ( GenPlcT
     , IterAppValue(..)
     , max_size
+    , forAllPretty
     , hoistSupply
     , denoteTypedBuiltinName
     , genSizeDef
@@ -33,6 +34,9 @@ import           System.IO.Unsafe
 
 max_size :: Size
 max_size = 32
+
+forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
+forAllPretty = forAllWith prettyString
 
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
@@ -112,6 +116,7 @@ genTerm tb =
             case DMap.lookup desizedTb (unContext typedBuiltinNames) of
                 Nothing                    -> []
                 Just (Compose denotations) -> map gen denotations where
+                    -- TODO: resize here.
                     gen (MemberDenotation denotation)
                         = fmap iterAppValueToTermOf
                         . hoistSupply (TheGenTypedBuiltin genTerm)

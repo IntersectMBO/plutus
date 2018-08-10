@@ -13,6 +13,7 @@ module PlutusPrelude ( (&&&)
                      , throw
                      , (.*)
                      , freshInt
+                     , runFresh
                      , dropFresh
                      , prettyText
                      , prettyString
@@ -80,6 +81,9 @@ instance Monad Fresh where
 
 freshInt :: Fresh Int
 freshInt = Fresh $ reader supplyValue
+
+runFresh :: Fresh a -> IO a
+runFresh (Fresh a) = runReader a <$> newEnumSupply
 
 dropFresh :: Fresh a -> a
 dropFresh (Fresh f) = runReader f $ unsafePerformIO newEnumSupply
