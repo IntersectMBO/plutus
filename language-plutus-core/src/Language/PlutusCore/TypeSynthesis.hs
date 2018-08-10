@@ -215,7 +215,7 @@ typeOf (Apply x t t') = do
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''')
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
-typeOf (TyInst x t ty) = do
+typeOf (TyInst x t ty) = do -- TODO: make this efficient for nested type instantiations
     ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do

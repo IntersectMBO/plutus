@@ -95,7 +95,7 @@ data Token a = LexName { loc        :: a
              | LexBuiltin { loc :: a, builtin :: BuiltinName }
              | LexNat { loc :: a, nat :: Natural }
              | LexKeyword { loc :: a, keyword :: Keyword }
-             | LexSpecial { loc :: a, special :: Special }
+             | LexSpecial a Special -- { loc :: a, special :: Special }
              | EOF { loc :: a }
              deriving (Show, Eq, Generic, NFData)
 

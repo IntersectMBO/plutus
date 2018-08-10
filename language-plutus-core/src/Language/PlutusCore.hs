@@ -69,8 +69,7 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
-newtype Configuration = Configuration { _printDebug :: Bool
-                                      }
+newtype Configuration = Configuration Bool
 
 -- | This is the default 'Configuration' most users will want
 defaultCfg :: Configuration
