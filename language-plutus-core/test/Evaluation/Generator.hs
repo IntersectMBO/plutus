@@ -29,13 +29,14 @@ import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 
 max_size :: Size
-max_size = 128
+max_size = 32
 
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
 
+-- TODO: make customizable.
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = Gen.integral $ Range.exponential 2 max_size
+genSizeDef = Gen.integral $ Range.linear 3 max_size
 
 -- | The type used in generators defined in this module.
 -- It is parameterized by an 'TheGenTypedBuiltin' which determines
@@ -43,10 +44,11 @@ genSizeDef = Gen.integral $ Range.exponential 2 max_size
 -- 'genTypedBuiltinSum' and 'genTypedBuiltinDiv'.
 type GenPlcT m = GenT (ReaderT (TheGenTypedBuiltinT m) m)
 
+-- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
 data IterAppValue head arg r = IterAppValue
-    (Term TyName Name ())
-    (IterApp head arg)
-    (TypedBuiltinValue Size r)
+    (Term TyName Name ())       -- ^ As a PLC 'Term'.
+    (IterApp head arg)          -- ^ As an 'IterApp'.
+    (TypedBuiltinValue Size r)  -- ^ As a Haskell value.
 
 instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
     pretty (IterAppValue term pia tbv) = parens $ mconcat
@@ -104,7 +106,12 @@ genTerm tb =
             case DMap.lookup desizedTb (unContext typedBuiltinNames) of
                 Nothing                    -> []
                 Just (Compose denotations) -> map gen denotations where
-                    gen
+                    gen (MemberDenotation denotation)
                         = fmap iterAppValueToTermOf
                         . hoistSupply (TheGenTypedBuiltin genTerm)
-                        . genIterAppValue
+                        $ genIterAppValue denotation
+
+blah :: IO ()
+blah = do
+    tx <- Gen.sample $ genTerm TypedBuiltinBool
+    putStrLn $ prettyString tx

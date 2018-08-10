@@ -89,7 +89,7 @@ data TypeScheme size a r where
     -- This is nailed to @size@ rather than being a generic @TypeSchemeForall@ for simplicity
     -- and because at the moment we do not need anything else.
     -- We can make this generic by parametrising @TypeScheme@ by an
-     -- @f :: Kind () -> *@ rather than @size@.
+    -- @f :: Kind () -> *@ rather than @size@.
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeScheme size a r)
