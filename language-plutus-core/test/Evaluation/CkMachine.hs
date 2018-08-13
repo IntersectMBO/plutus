@@ -24,9 +24,9 @@ test_ifIntegers :: TestTree
 test_ifIntegers = testProperty "ifIntegers" . property $ do
     size <- forAll genSizeDef
     let int = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    TermOf b bv <- forAllPretty . genTerm $ TypedBuiltinBool
-    TermOf i iv <- forAllPretty $ genTerm int
-    TermOf j jv <- forAllPretty $ genTerm int
+    TermOf b bv <- forAllPretty $ genTermLoose TypedBuiltinBool
+    TermOf i iv <- forAllPretty $ genTermLoose int
+    TermOf j jv <- forAllPretty $ genTermLoose int
     term <- liftIO . runFresh $ do
         builtinConst <- getBuiltinConst
         builtinUnit  <- getBuiltinUnit
@@ -39,9 +39,11 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
             (TyInst () builtinIf $ TyBuiltin () TyInteger)
             [b, constSpec i, constSpec j]
     case evaluateCk term of
-        CkEvalFailure     -> return ()
+        CkEvalFailure     -> lift . putStrLn $ prettyString term ++ "\n"
         CkEvalSuccess res -> case makeConstant int $ if bv then iv else jv of
-            Nothing   -> return ()
-            Just res' -> res === res'
+            Nothing   -> fail "No way"
+            Just res' -> do
+                lift $ putStrLn "fine"
+                res === res'
 
 main = defaultMain test_ifIntegers

@@ -16,8 +16,11 @@ module Evaluation.Constant.TypedBuiltinGen
     , updateTypedBuiltinGenBool
     , genTypedBuiltinFail
     , genTypedBuiltinDef
+    , genTypedBuiltinLoose
     , genTypedBuiltinSum
     , genTypedBuiltinDiv
+    , isqrt
+    , iasqrt
     ) where
 
 import           Language.PlutusCore
@@ -108,6 +111,15 @@ genTypedBuiltinDef
     $ updateTypedBuiltinGenBool Gen.bool
     $ genTypedBuiltinFail
 
+-- | A default sized builtins generator that produces values in bounds seen in the spec.
+genTypedBuiltinLoose :: Monad m => TypedBuiltinGenT m
+genTypedBuiltinLoose
+    = updateTypedBuiltinGenInt
+          (\low high -> Gen.integral $ Range.constantFrom 0 (iasqrt low `div` 2) (isqrt high `div` 2))
+    $ updateTypedBuiltinGenBS
+          (fmap BSL.fromStrict . Gen.bytes . Range.constant 0 . (`div` 3) . (* 2))
+    $ genTypedBuiltinDef
+
 -- | A sized builtins generator that produces 'Integer's in bounds narrowed by a factor of 2,
 -- so one can use '(+)' or '(-)' over such integers without the risk of getting an overflow.
 genTypedBuiltinSum :: Monad m => TypedBuiltinGenT m
@@ -123,3 +135,19 @@ genTypedBuiltinDiv
     = updateTypedBuiltinGenInt
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
     $ genTypedBuiltinDef
+
+isqrt :: Integer -> Integer
+isqrt n
+    | n < 0     = error "isqrt: negative number"
+    | n <= 1    = n
+    | otherwise = head $ dropWhile (not . isRoot) iters
+    where
+        sqr = (^ (2 :: Int))
+        twopows = iterate sqr 2
+        (lowerRoot, lowerN) = last . takeWhile ((n >=) . snd) $ zip (1 : twopows) twopows
+        newtonStep x = (x + n `div` x) `div` 2
+        iters = iterate newtonStep $ isqrt (n `div` lowerN) * lowerRoot
+        isRoot r = sqr r <= n && n < sqr (r + 1)
+
+iasqrt :: Integer -> Integer
+iasqrt n = signum n * isqrt (abs n)

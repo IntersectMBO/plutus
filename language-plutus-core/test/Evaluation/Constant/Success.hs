@@ -120,17 +120,3 @@ test_typedEqByteStringSuccess
     = testProperty "typedEqByteString"
     $ prop_applyBuiltinNameSuccess typedEqByteString (==)
     $ genTypedBuiltinDef
-
-isqrt :: Integer -> Integer
-isqrt n
-    | n < 0     = error "isqrt: negative number"
-    | n <= 1    = n
-    | otherwise = head $ dropWhile (not . isRoot) iters
-    where
-        sqr :: Integer -> Integer
-        sqr = (^ (2 :: Int))
-        twopows = iterate sqr 2
-        (lowerRoot, lowerN) = last. takeWhile ((n >=) . snd) $ zip (1 : twopows) twopows
-        newtonStep x = div (x + n `div` x) 2
-        iters = iterate newtonStep (isqrt (n `div` lowerN) * lowerRoot)
-        isRoot r = sqr r <= n && n < sqr (r+1)

@@ -14,6 +14,7 @@ module Evaluation.Generator
     , runPlcT
     , genIterAppValue
     , genTerm
+    , genTermLoose
     ) where
 
 import           Language.PlutusCore
@@ -34,7 +35,7 @@ import qualified Hedgehog.Range as Range
 import           System.IO.Unsafe
 
 min_size :: Size
-min_size = 2
+min_size = 1
 -- With @1@ terms generation very often loops,
 -- see https://github.com/hedgehogqa/haskell-hedgehog/issues/216
 
@@ -127,19 +128,23 @@ genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (t
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
-genTerm :: TypedBuiltinGen
-genTerm tb =
-    Gen.recursive Gen.choice [genTypedBuiltinDef tb] $
+genTerm :: TypedBuiltinGen -> TypedBuiltinGen
+genTerm genBase = go where
+    go :: TypedBuiltinGen
+    go tb = Gen.recursive Gen.choice [genBase tb] $
         let desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb in
             case DMap.lookup desizedTb (unContext typedBuiltinNames) of
                 Nothing                    -> []
                 Just (Compose denotations) -> map gen denotations where
                     gen (MemberDenotation denotation)
                         = fmap iterAppValueToTermOf
-                        . hoistSupply (BuiltinGensT (genSizeFrom tb) genTerm)
+                        . hoistSupply (BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go))
                         $ genIterAppValue denotation
 
-blah :: IO ()
-blah = do
-    tx <- Gen.sample $ genTerm TypedBuiltinBool
+genTermLoose :: TypedBuiltinGen
+genTermLoose = Gen.small . genTerm genTypedBuiltinLoose
+
+getTerm :: IO ()
+getTerm = do
+    tx <- Gen.sample $ genTermLoose TypedBuiltinBool
     putStrLn $ prettyString tx
