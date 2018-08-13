@@ -18,7 +18,16 @@ with pkgs.lib;
 with pkgs.haskell.lib;
 
 let
-  plutusPkgs = import ./pkgs { inherit pkgs; };
+  addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
+    testTarget = "--show-details=streaming";
+  });
+  plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
+    overrides = self: super: {
+      plutus-prototype = addRealTimeTestLogs super.plutus-prototype;
+      language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
+
+    };
+  };
   cleanSourceFilter = with pkgs.stdenv;
     name: type: let baseName = baseNameOf (toString name); in ! (
       # Filter out .git repo
@@ -42,9 +51,6 @@ let
   other = rec {
     tests = {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
-      hedgehog = pkgs.callPackage ./tests/hedgehog.nix {
-        inherit pkgs plutusPkgs source;
-      };
     };
     stack2nix = import (pkgs.fetchFromGitHub {
       owner = "avieth";
