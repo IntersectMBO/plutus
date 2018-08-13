@@ -10,20 +10,18 @@ module Evaluation.Constant.Apply
     , prop_applyBuiltinNameSuccessFailure
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Evaluation.Denotation
-import           Evaluation.Constant.GenTypedBuiltin
+import           Evaluation.Constant.TypedBuiltinGen
 import           Evaluation.Generator
 
 import           Data.Foldable
 import           Data.List
-import           Data.Text.Prettyprint.Doc
 import           Hedgehog hiding (Size, Var, annotate)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
--- taking size-induced bounds (controlled by the 'GenTypedBuiltinSized' parameter) into account
+-- taking size-induced bounds (controlled by the 'TypedBuiltinGenSized' parameter) into account
 -- for arguments and either taking those bounds into account for the final result or using the
 -- default ones (as per the spec) or ignoring them completely depending on how you instantiate
 -- the first parameter. An argument is generated as a Haskell value, then coerced to the
@@ -40,10 +38,10 @@ prop_applyBuiltinName
     -> TypedBuiltinName a r   -- ^ A (typed) builtin name to apply.
     -> a                      -- ^ The semantics of the builtin name. E.g. the semantics of
                               -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> GenTypedBuiltin        -- ^ How to generate values of sized builtin types.
+    -> TypedBuiltinGen        -- ^ How to generate values of sized builtin types.
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property $ do
-    let getIterAppValue = runPlcT allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
+    let getIterAppValue = runPlcT genSizeDef allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
     IterAppValue _ iterApp tbv <- forAllPretty getIterAppValue
     let IterApp name spine = iterApp
         TypedBuiltinValue tb y = tbv
@@ -53,11 +51,11 @@ prop_applyBuiltinName getFinal tbn op allTbs = property $ do
     app spine === final
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
--- the Haskell side must fit into the specified (by the 'GenTypedBuiltinSized' argument) bounds
+-- the Haskell side must fit into the specified (by the 'TypedBuiltinGenSized' argument) bounds
 -- and hence the result of the 'applyBuiltinName' computation must be a 'ConstAppSuccess'.
 -- See 'genTypedBuiltinSizedSum' for how this is achieved for 'AddInteger' and 'SubtractInteger'.
 -- See the "Success" module for tests defined in terms of this function.
-prop_applyBuiltinNameSuccess :: TypedBuiltinName a r -> a -> GenTypedBuiltin -> Property
+prop_applyBuiltinNameSuccess :: TypedBuiltinName a r -> a -> TypedBuiltinGen -> Property
 prop_applyBuiltinNameSuccess =
     prop_applyBuiltinName $ \tb -> return . ConstAppSuccess . coerceTypedBuiltin tb
 

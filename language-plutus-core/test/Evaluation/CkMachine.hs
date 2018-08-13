@@ -1,19 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Evaluation.CkMachine where
+module Evaluation.CkMachine
+    ( test_ifIntegers
+    ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
-import           Evaluation.Constant.GenTypedBuiltin
+import           Evaluation.Constant.TypedBuiltinGen
 import           Evaluation.Generator
 
-import           Control.Applicative
 import qualified Data.ByteString.Lazy as BSL
 import           Control.Monad.Reader
-import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen   as Gen
-import qualified Hedgehog.Range as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -40,8 +38,6 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         return $ foldl (Apply ())
             (TyInst () builtinIf $ TyBuiltin () TyInteger)
             [b, constSpec i, constSpec j]
-    liftIO $ putStrLn $ prettyString term
-    liftIO $ putStrLn $ prettyString $ makeConstant int $ if bv then iv else jv
     case evaluateCk term of
         CkEvalFailure     -> return ()
         CkEvalSuccess res -> case makeConstant int $ if bv then iv else jv of

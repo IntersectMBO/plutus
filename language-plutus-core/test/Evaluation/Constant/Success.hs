@@ -3,7 +3,7 @@ module Evaluation.Constant.Success
     ) where
 
 import           Language.PlutusCore.Constant
-import           Evaluation.Constant.GenTypedBuiltin
+import           Evaluation.Constant.TypedBuiltinGen
 import           Evaluation.Constant.Apply
 
 import           Data.Semigroup
@@ -48,7 +48,7 @@ test_typedMultiplyIntegerSuccess :: TestTree
 test_typedMultiplyIntegerSuccess
     = testProperty "typedMultiplyInteger"
     $ prop_applyBuiltinNameSuccess typedMultiplyInteger (*)
-    $ updateGenTypedBuiltinInt
+    $ updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linear (negate . isqrt . abs $ low) (isqrt high))
     $ genTypedBuiltinDef
 
@@ -98,7 +98,7 @@ test_typedConcatenateSuccess :: TestTree
 test_typedConcatenateSuccess
     = testProperty "typedConcatenate"
     $ prop_applyBuiltinNameSuccess typedConcatenate (<>)
-    $ updateGenTypedBuiltinBS
+    $ updateTypedBuiltinGenBS
           -- TODO 'Gen.bytes' is probably inappropriate.
           (\high -> fmap BSL.fromStrict . Gen.bytes $ Range.linear 0 (high `div` 2))
     $ genTypedBuiltinDef

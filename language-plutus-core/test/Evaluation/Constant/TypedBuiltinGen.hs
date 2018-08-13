@@ -1,20 +1,19 @@
--- | This module defines the 'GenTypedBuiltin' type and functions of this type
+-- | This module defines the 'TypedBuiltinGen' type and functions of this type
 -- which control size-induced bounds of values generated in the 'prop_applyBuiltinName'
 -- function and its derivatives defined in the "Apply" module.
 
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Evaluation.Constant.GenTypedBuiltin
+module Evaluation.Constant.TypedBuiltinGen
     ( TermOf(..)
-    , GenTypedBuiltinT
-    , GenTypedBuiltin
-    , TheGenTypedBuiltinT(..)
+    , TypedBuiltinGenT
+    , TypedBuiltinGen
     , coerceTypedBuiltin
-    , updateGenTypedBuiltinInt
-    , updateGenTypedBuiltinBS
-    , updateGenTypedBuiltinSize
-    , updateGenTypedBuiltinBool
+    , updateTypedBuiltinGenInt
+    , updateTypedBuiltinGenBS
+    , updateTypedBuiltinGenSize
+    , updateTypedBuiltinGenBool
     , genTypedBuiltinFail
     , genTypedBuiltinDef
     , genTypedBuiltinSum
@@ -49,13 +48,9 @@ data TermOf a = TermOf
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 -- the list of such types) and returns it along with the corresponding PLC value.
 -- Bounds induced (as per the spec) by the 'Size' values must be met, but can be narrowed.
-type GenTypedBuiltinT m = forall a. TypedBuiltin Size a -> GenT m (TermOf a)
+type TypedBuiltinGenT m = forall a. TypedBuiltin Size a -> GenT m (TermOf a)
 
-type GenTypedBuiltin = GenTypedBuiltinT Identity
-
-newtype TheGenTypedBuiltinT m = TheGenTypedBuiltin
-    { unTheAlltypedBuilinSized :: GenTypedBuiltinT m
-    }
+type TypedBuiltinGen = TypedBuiltinGenT Identity
 
 instance Pretty a => Pretty (TermOf a) where
     pretty (TermOf t x) = pretty t <+> "~>" <+> pretty x
@@ -64,67 +59,67 @@ attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (Ter
 attachCoercedTerm tb = fmap $ \x -> TermOf (coerceTypedBuiltin tb x) x
 
 -- TODO: think about abstracting the pattern... or maybe not.
-updateGenTypedBuiltinInt
-    :: Functor m => (Integer -> Integer -> GenT m Integer) -> GenTypedBuiltinT m -> GenTypedBuiltinT m
-updateGenTypedBuiltinInt genInteger genTb tb = case tb of
+updateTypedBuiltinGenInt
+    :: Functor m => (Integer -> Integer -> GenT m Integer) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
+updateTypedBuiltinGenInt genInteger genTb tb = case tb of
     TypedBuiltinSized sizeEntry TypedBuiltinSizedInt ->
         let size = flattenSizeEntry sizeEntry
             (low, high) = toBoundsInt size in
             attachCoercedTerm tb $ genInteger low (high - 1)
     _                                                -> genTb tb
 
-updateGenTypedBuiltinBS
-    :: Monad m => (Int -> GenT m BSL.ByteString) -> GenTypedBuiltinT m -> GenTypedBuiltinT m
-updateGenTypedBuiltinBS genBytes genTb tb = case tb of
+updateTypedBuiltinGenBS
+    :: Monad m => (Int -> GenT m BSL.ByteString) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
+updateTypedBuiltinGenBS genBytes genTb tb = case tb of
     TypedBuiltinSized sizeEntry TypedBuiltinSizedBS ->
         let size = flattenSizeEntry sizeEntry in
             attachCoercedTerm tb . genBytes $ fromIntegral size
     _                                               -> genTb tb
 
-updateGenTypedBuiltinSize
-    :: Monad m => GenTypedBuiltinT m -> GenTypedBuiltinT m
-updateGenTypedBuiltinSize genTb tb = case tb of
+updateTypedBuiltinGenSize
+    :: Monad m => TypedBuiltinGenT m -> TypedBuiltinGenT m
+updateTypedBuiltinGenSize genTb tb = case tb of
     TypedBuiltinSized sizeEntry TypedBuiltinSizedSize ->
         let size = flattenSizeEntry sizeEntry in
             attachCoercedTerm tb $ return size
-    _                                               -> genTb tb
+    _                                                 -> genTb tb
 
-updateGenTypedBuiltinBool
-    :: Monad m => GenT m Bool -> GenTypedBuiltinT m -> GenTypedBuiltinT m
-updateGenTypedBuiltinBool genBool genTb tb = case tb of
+updateTypedBuiltinGenBool
+    :: Monad m => GenT m Bool -> TypedBuiltinGenT m -> TypedBuiltinGenT m
+updateTypedBuiltinGenBool genBool genTb tb = case tb of
     TypedBuiltinBool -> attachCoercedTerm tb $ genBool
     _                -> genTb tb
 
 -- | A built-ins generator that always fails.
-genTypedBuiltinFail :: Monad m => GenTypedBuiltinT m
+genTypedBuiltinFail :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinFail tb = fail $ concat
     [ "A generator for the following builtin is not implemented: "
     , prettyString tb
     ]
 
 -- | A default sized builtins generator that produces values in bounds seen in the spec.
-genTypedBuiltinDef :: Monad m => GenTypedBuiltinT m
+genTypedBuiltinDef :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinDef
-    = updateGenTypedBuiltinInt
+    = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linearFrom 0 low high)
-    $ updateGenTypedBuiltinBS
+    $ updateTypedBuiltinGenBS
           (fmap BSL.fromStrict . Gen.bytes . Range.linear 0)
-    $ updateGenTypedBuiltinSize
-    $ updateGenTypedBuiltinBool Gen.bool
+    $ updateTypedBuiltinGenSize
+    $ updateTypedBuiltinGenBool Gen.bool
     $ genTypedBuiltinFail
 
 -- | A sized builtins generator that produces 'Integer's in bounds narrowed by a factor of 2,
 -- so one can use '(+)' or '(-)' over such integers without the risk of getting an overflow.
-genTypedBuiltinSum :: Monad m => GenTypedBuiltinT m
+genTypedBuiltinSum :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinSum
-    = updateGenTypedBuiltinInt
+    = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linear (low `div` 2) (high `div` 2))
     $ genTypedBuiltinDef
 
 -- | A sized builtins generator that doesn't produce @0 :: Integer@,
 -- so one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-genTypedBuiltinDiv :: Monad m => GenTypedBuiltinT m
+genTypedBuiltinDiv :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinDiv
-    = updateGenTypedBuiltinInt
+    = updateTypedBuiltinGenInt
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
     $ genTypedBuiltinDef

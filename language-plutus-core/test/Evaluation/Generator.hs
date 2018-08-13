@@ -3,13 +3,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
 module Evaluation.Generator
-    ( GenPlcT
-    , IterAppValue(..)
+    ( min_size
     , max_size
+    , PlcGenT
+    , IterAppValue(..)
     , forAllPretty
     , hoistSupply
-    , denoteTypedBuiltinName
     , genSizeDef
+    , denoteTypedBuiltinName
     , runPlcT
     , genIterAppValue
     , genTerm
@@ -18,7 +19,7 @@ module Evaluation.Generator
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Evaluation.Denotation
-import           Evaluation.Constant.GenTypedBuiltin
+import           Evaluation.Constant.TypedBuiltinGen
 
 import           Data.Functor.Compose
 import           Control.Exception (evaluate)
@@ -32,8 +33,16 @@ import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 import           System.IO.Unsafe
 
+min_size :: Size
+min_size = 2
+-- With @1@ terms generation very often loops,
+-- see https://github.com/hedgehogqa/haskell-hedgehog/issues/216
+
 max_size :: Size
-max_size = 32
+max_size = 16
+
+liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a
+liftT = hoist lift
 
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString
@@ -41,15 +50,23 @@ forAllPretty = forAllWith prettyString
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
 
--- TODO: make customizable.
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = Gen.integral $ Range.linear 3 max_size
+genSizeDef = Gen.integral $ Range.linear min_size max_size
+
+genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
+genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
+genSizeFrom TypedBuiltinBool                = genSizeDef
+
+data BuiltinGensT m = BuiltinGensT
+    { _builtinGensSize  :: GenT m Size
+    , _builtinGensTyped :: TypedBuiltinGenT m
+    }
 
 -- | The type used in generators defined in this module.
--- It is parameterized by an 'TheGenTypedBuiltin' which determines
+-- It is parameterized by an 'TheTypedBuiltinGen' which determines
 -- how to generate sized builtins having a 'Size'. See for example
 -- 'genTypedBuiltinSum' and 'genTypedBuiltinDiv'.
-type GenPlcT m = GenT (ReaderT (TheGenTypedBuiltinT m) m)
+type PlcGenT m = GenT (ReaderT (BuiltinGensT m) m)
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
 data IterAppValue head arg r = IterAppValue
@@ -65,31 +82,31 @@ instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
         , "}"
         ]
 
-runPlcT :: Monad m => GenTypedBuiltinT m -> GenPlcT m a -> GenT m a
-runPlcT genTbs = hoistSupply $ TheGenTypedBuiltin genTbs
+runPlcT :: Monad m => GenT m Size -> TypedBuiltinGenT m -> PlcGenT m a -> GenT m a
+runPlcT genSize genTb = hoistSupply $ BuiltinGensT genSize genTb
 
 iterAppValueToTermOf :: IterAppValue head arg r -> TermOf r
 iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term x
 
 -- | Generate a value out of a 'TypeScheme' and return it along with the corresponding PLC value.
-genSchemedPair :: Monad m => TypeScheme Size a r -> GenPlcT m (TermOf a)
+genSchemedPair :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
 genSchemedPair (TypeSchemeBuiltin tb) = do
-    TheGenTypedBuiltin genTb <- ask
-    hoist lift $ genTb tb
+    BuiltinGensT _ genTb <- ask
+    liftT $ genTb tb
 genSchemedPair (TypeSchemeArrow _ _)  = error "Not implemented."
 genSchemedPair (TypeSchemeAllSize _)  = error "Not implemented."
 
 genIterAppValue
     :: forall head r m. Monad m
     => Denotation head Size r
-    -> GenPlcT m (IterAppValue head (Term TyName Name ()) r)
+    -> PlcGenT m (IterAppValue head (Term TyName Name ()) r)
 genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (toTerm object) id meta where
     go
         :: TypeScheme Size c r
         -> Term TyName Name ()
         -> ([Term TyName Name ()] -> [Term TyName Name ()])
         -> c
-        -> GenPlcT m (Maybe (IterAppValue head (Term TyName Name ()) r))
+        -> PlcGenT m (Maybe (IterAppValue head (Term TyName Name ()) r))
     go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
         return $ case unsafePerformIO . tryAny $ evaluate y of
             Left _   -> Nothing
@@ -105,21 +122,21 @@ genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (t
             y     = f x                              -- Apply the Haskell function to the generated argument.
         go schB term' args' y
     go (TypeSchemeAllSize schK)    term args f = do
-        size <- genSizeDef                           -- Generate a size.
+        BuiltinGensT genSize _ <- ask
+        size <- liftT genSize                        -- Generate a size.
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
-genTerm :: GenTypedBuiltin
+genTerm :: TypedBuiltinGen
 genTerm tb =
     Gen.recursive Gen.choice [genTypedBuiltinDef tb] $
         let desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb in
             case DMap.lookup desizedTb (unContext typedBuiltinNames) of
                 Nothing                    -> []
                 Just (Compose denotations) -> map gen denotations where
-                    -- TODO: resize here.
                     gen (MemberDenotation denotation)
                         = fmap iterAppValueToTermOf
-                        . hoistSupply (TheGenTypedBuiltin genTerm)
+                        . hoistSupply (BuiltinGensT (genSizeFrom tb) genTerm)
                         $ genIterAppValue denotation
 
 blah :: IO ()

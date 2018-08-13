@@ -30,6 +30,7 @@ library
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Constant
+        Language.PlutusCore.CkMachine
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src
     other-modules:
@@ -43,7 +44,6 @@ library
         Language.PlutusCore.Constant.View
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Constant.Apply
-        Language.PlutusCore.CkMachine
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
@@ -83,12 +83,13 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Evaluation.Denotation
-        Evaluation.Constant.GenTypedBuiltin
+        Evaluation.CkMachine
+        Evaluation.Constant.All
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
-        Evaluation.Constant.All
+        Evaluation.Constant.TypedBuiltinGen
+        Evaluation.Denotation
         Evaluation.Generator
     default-language: Haskell2010
     other-extensions: OverloadedStrings
