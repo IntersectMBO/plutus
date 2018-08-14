@@ -47,7 +47,7 @@ emptyIdentifierState = (mempty, mempty)
 -- N.B. the constructors for 'Unique' are exported for the sake of the test
 -- suite; I don't know if there is an easier/better way to do this
 -- | A unique identifier
-newtype Unique = Unique { unUnique :: Int } -- TODO: should this be a Word?
+newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show)
     deriving newtype NFData
 

@@ -44,6 +44,8 @@ module Language.PlutusCore
     , kindOf
     , runTypeCheckM
     , programType
+    , fileType
+    , printType
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
@@ -70,6 +72,18 @@ import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
 newtype Configuration = Configuration Bool
+
+-- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
+-- its type or an error message.
+fileType :: FilePath -> IO T.Text
+fileType = fmap (either prettyText id . printType) . BSL.readFile
+
+-- | Print the type of a program contained in a 'ByteString'
+printType :: BSL.ByteString -> Either Error T.Text
+printType = collectErrors . fmap (fmap typeText . annotateST) . parseScoped
+
+typeText :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
+typeText = uncurry (either prettyText prettyText .* programType 10000)
 
 -- | This is the default 'Configuration' most users will want
 defaultCfg :: Configuration

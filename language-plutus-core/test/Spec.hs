@@ -82,17 +82,11 @@ asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 errorgen :: Pretty a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . prettyText
 
-withTypes :: BSL.ByteString -> Either Error T.Text
-withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
-
-showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
-showType = uncurry (either prettyText prettyText .* programType 10000)
-
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
-testsType = testGroup "golden type synthesis tests" . fmap (asGolden withTypes)
+testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
