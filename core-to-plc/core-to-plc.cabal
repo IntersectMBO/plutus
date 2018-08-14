@@ -1,0 +1,58 @@
+cabal-version: 1.18
+name: core-to-plc
+version: 0.1.0.0
+license: BSD3
+license-file: LICENSE
+copyright: Copyright: (c) 2018 Input Output
+maintainer: michael.peyton-jones@iohk.io
+author: Michael Peyton Jones
+synopsis: GHC Core to Plutus Core compiler
+description:
+    Complier that converts GHC Core to Plutus Core
+category: Language
+build-type: Simple
+extra-doc-files: README.md
+
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus-prototype
+
+library
+    exposed-modules:
+        Language.Plutus.CoreToPLC.Plugin
+        Language.Plutus.CoreToPLC.Error
+    other-modules:
+        Language.Plutus.CoreToPLC
+    hs-source-dirs: src
+    default-extensions: 
+        -- should be in base
+        ScopedTypeVariables ExplicitForAll
+    default-language: Haskell2010
+    ghc-options: -Wall
+    build-depends:
+        base >=4.9 && <5,
+        ghc,
+        template-haskell,
+        language-plutus-core,
+        containers,
+        mtl,
+        transformers,
+        bytestring,
+        text,
+        prettyprinter,
+        mmorph
+
+test-suite core-to-plc-plugin
+    default-language: Haskell2010
+    hs-source-dirs: test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    build-depends:
+        base >=4.9 && <5,
+        core-to-plc,
+        language-plutus-core,
+        bytestring,
+        text,
+        tasty,
+        tasty-hunit,
+        tasty-golden

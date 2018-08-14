@@ -1,0 +1,16 @@
+(program 1.0.0
+  (lam
+    ds_1
+    (all bool_matchOut_0 (type) (fun bool_matchOut_0 (fun bool_matchOut_0 bool_matchOut_0)))
+    [
+      [
+        [
+          { ds_1 [(con integer) (con 64)] }
+          (lam thunk_2 (all a_3 (type) (fun a_3 a_3)) (con 64 ! 2))
+        ]
+        (lam thunk_4 (all a_5 (type) (fun a_5 a_5)) (con 64 ! 1))
+      ]
+      (abs a_6 (type) (lam x_7 a_6 x_7))
+    ]
+  )
+)

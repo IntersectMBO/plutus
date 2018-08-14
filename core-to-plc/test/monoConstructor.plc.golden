@@ -1,0 +1,27 @@
+(program 1.0.0
+  (lam
+    mono1_arg0_4
+    [(con integer) (con 64)]
+    (lam
+      mono1_arg1_5
+      [(con integer) (con 64)]
+      (abs
+        myMonoData_matchOut_0
+        (type)
+        (lam
+          mono1_1
+          (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] myMonoData_matchOut_0))
+          (lam
+            mono2_2
+            (fun [(con integer) (con 64)] myMonoData_matchOut_0)
+            (lam
+              mono3_3
+              (fun [(con integer) (con 64)] myMonoData_matchOut_0)
+              [ [ mono1_1 mono1_arg0_4 ] mono1_arg1_5 ]
+            )
+          )
+        )
+      )
+    )
+  )
+)

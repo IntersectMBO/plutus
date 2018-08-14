@@ -1,0 +1,43 @@
+(program 1.0.0
+  [
+    [
+      {
+        {
+          (abs
+            a_0
+            (type)
+            (abs
+              b_1
+              (type)
+              (lam
+                poly1_arg0_5
+                a_0
+                (lam
+                  poly1_arg1_6
+                  b_1
+                  (abs
+                    myPolyData_matchOut_2
+                    (type)
+                    (lam
+                      poly1_3
+                      (fun a_0 (fun b_1 myPolyData_matchOut_2))
+                      (lam
+                        poly2_4
+                        (fun a_0 myPolyData_matchOut_2)
+                        [ [ poly1_3 poly1_arg0_5 ] poly1_arg1_6 ]
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+          [(con integer) (con 64)]
+        }
+        [(con integer) (con 64)]
+      }
+      (con 64 ! 1)
+    ]
+    (con 64 ! 2)
+  ]
+)
