@@ -1,3 +1,4 @@
+=======
 ## Results of the research.
 
 CEK is a fine first step, but this machine is unoptimized. Eventually we'll need something better. Perhaps something along the lines of eval/apply. It is particularly nice how GHC has a special-purpose language for evaluation (the one that gets executed by the STG machine).
@@ -55,3 +56,4 @@ Makes some strong claims (refers to GHC and the standard OCaml compiler):
 
 ## [B. Accattoli, B. Barras. Environments and the Complexity of Abstract Machines, 2017](https://sites.google.com/site/beniaminoaccattoli/Accattoli%2C%20Barras%20-%20Environments%20and%20the%20Complexity%20of%20Abstract%20Machines.pdf?attredirects=0)
 Analyses efficiency of various machines. Call-by-name and call-by-need, but the paper claims that results also apply to call-by-value.
+

@@ -15,6 +15,8 @@ module Language.PlutusCore.Name ( -- * Types
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
+                                , freshName
+                                , freshTyName
                                 ) where
 
 import qualified Data.ByteString.Lazy      as BSL
@@ -64,6 +66,12 @@ newIdentifier str st@(is, ss) = case M.lookup str ss of
     Nothing -> case IM.lookupMax is of
         Just (i,_) -> (Unique (i+1), (IM.insert (i+1) str is, M.insert str (Unique (i+1)) ss))
         Nothing    -> (Unique 0, (IM.singleton 0 str, M.singleton str (Unique 0)))
+
+freshName :: a -> BSL.ByteString -> Fresh (Name a)
+freshName attr name = Name attr name . Unique <$> freshInt
+
+freshTyName :: a -> BSL.ByteString -> Fresh (TyName a)
+freshTyName = fmap TyName .* freshName
 
 instance Pretty (Name a) where
     pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
