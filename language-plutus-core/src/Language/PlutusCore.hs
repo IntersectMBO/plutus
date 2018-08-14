@@ -47,9 +47,12 @@ module Language.PlutusCore
     , Fresh
     , runFresh
     , dropFresh
+    , freshInt
+    , freshName
+    , freshTyName
     ) where
 
-import           PlutusPrelude (prettyString, Fresh, runFresh, dropFresh)
+import           PlutusPrelude                         (prettyString, Fresh, runFresh, dropFresh, freshInt)
 import qualified Data.ByteString.Lazy                  as BSL
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc             hiding (annotate)

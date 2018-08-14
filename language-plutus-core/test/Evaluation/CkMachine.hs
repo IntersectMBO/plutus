@@ -11,6 +11,7 @@ import           Evaluation.Generator
 
 import qualified Data.ByteString.Lazy as BSL
 import           Control.Monad.Reader
+import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -24,26 +25,27 @@ test_ifIntegers :: TestTree
 test_ifIntegers = testProperty "ifIntegers" . property $ do
     size <- forAll genSizeDef
     let int = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    TermOf b bv <- forAllPretty $ genTermLoose TypedBuiltinBool
-    TermOf i iv <- forAllPretty $ genTermLoose int
-    TermOf j jv <- forAllPretty $ genTermLoose int
-    term <- liftIO . runFresh $ do
-        builtinConst <- getBuiltinConst
-        builtinUnit  <- getBuiltinUnit
-        builtinIf    <- getBuiltinIf
+    TermOf term value <- hoist runFresh $ do
+        TermOf b bv <- forAllPrettyT $ genTermLoose TypedBuiltinBool
+        TermOf i iv <- forAllPrettyT $ genTermLoose int
+        TermOf j jv <- forAllPrettyT $ genTermLoose int
+
+        builtinConst <- lift getBuiltinConst
+        builtinUnit  <- lift getBuiltinUnit
+        builtinIf    <- lift getBuiltinIf
         let constSpec k =
                 Apply ()
                     (foldl (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit])
                     k
-        return $ foldl (Apply ())
-            (TyInst () builtinIf $ TyBuiltin () TyInteger)
-            [b, constSpec i, constSpec j]
+        let term = foldl (Apply ())
+                (TyInst () builtinIf $ TyBuiltin () TyInteger)
+                [b, constSpec i, constSpec j]
+            value = if bv then iv else jv
+        return $ TermOf term value
     case evaluateCk term of
-        CkEvalFailure     -> lift $ putStrLn "silly" -- lift . putStrLn $ prettyString term ++ "\n"
-        CkEvalSuccess res -> case makeConstant int $ if bv then iv else jv of
-            Nothing   -> fail "No way"
-            Just res' -> do
-                lift $ putStrLn "fine"
-                res === res'
+        CkEvalFailure     -> return ()
+        CkEvalSuccess res -> case makeConstant int value of
+            Nothing   -> fail "ifIntegers: value out of bounds"
+            Just res' -> do liftIO $ putStrLn $ prettyString term ++ "\n"; res === res'
 
 main = defaultMain test_ifIntegers

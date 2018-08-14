@@ -8,6 +8,7 @@ module Language.PlutusCore.Constant.Typed
     ( BuiltinSized(..)
     , TypedBuiltinSized(..)
     , SizeEntry(..)
+    , Builtin(..)
     , TypedBuiltin(..)
     , TypedBuiltinValue(..)
     , TypeScheme(..)
@@ -18,6 +19,8 @@ module Language.PlutusCore.Constant.Typed
     , mapSizeTypedBuiltin
     , closeTypedBuiltin
     , typedBuiltinSizedToType
+    , withTypedBuiltinSized
+    , withTypedBuiltin
     , typeSchemeResult
     , typedBuiltinToType
     , typeSchemeToType
@@ -73,6 +76,10 @@ data SizeEntry size
     | SizeBound size
     deriving (Eq, Ord, Functor)
 
+data Builtin size
+    = BuiltinSized (SizeEntry size) BuiltinSized
+    | BuiltinBool
+
 -- | Built-in types. A type is considired "built-in" if it can appear in the type signature
 -- of a primitive operation. So @boolean@ is considered built-in even though it is defined in PLC
 -- and is not primitive.
@@ -110,12 +117,12 @@ instance Pretty size => Pretty (SizeEntry size) where
     pretty (SizeBound size) = pretty size
 
 instance Pretty size => Pretty (TypedBuiltin size a) where
-    pretty (TypedBuiltinSized sizeEntry tbs) = parens $ pretty tbs <+> pretty sizeEntry
-    pretty TypedBuiltinBool                  = "bool"
+    pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
+    pretty TypedBuiltinBool           = "bool"
 
 instance size ~ Size => Pretty (TypedBuiltinValue size a) where
-    pretty (TypedBuiltinValue (TypedBuiltinSized size tbs) x) =
-        pretty size <+> "!" <+> case tbs of
+    pretty (TypedBuiltinValue (TypedBuiltinSized se tbs) x) =
+        pretty se <+> "!" <+> case tbs of
             TypedBuiltinSizedInt  -> pretty      x
             TypedBuiltinSizedBS   -> prettyBytes x
             TypedBuiltinSizedSize -> pretty      x
@@ -147,25 +154,33 @@ typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
 typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
 typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
 
+withTypedBuiltinSized :: BuiltinSized -> (forall a. TypedBuiltinSized a -> c) -> c
+withTypedBuiltinSized BuiltinSizedInt  k = k TypedBuiltinSizedInt
+withTypedBuiltinSized BuiltinSizedBS   k = k TypedBuiltinSizedBS
+withTypedBuiltinSized BuiltinSizedSize k = k TypedBuiltinSizedSize
+
+withTypedBuiltin :: Builtin size -> (forall a. TypedBuiltin size a -> c) -> c
+withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
+withTypedBuiltin BuiltinBool         k = k TypedBuiltinBool
+
 typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
 typeSchemeResult (TypeSchemeBuiltin tb)   = tb
 typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK ())
 
-typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Fresh (Type TyName ())
-typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
-    return . TyApp () (typedBuiltinSizedToType tbs) $ case sizeEntry of
+typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Fresh (Type TyName ())
+typedBuiltinToType (TypedBuiltinSized se tbs) =
+    return . TyApp () (typedBuiltinSizedToType tbs) $ case se of
         SizeValue size -> TyInt () size
-        SizeBound name -> TyVar () name
-typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool
+        SizeBound ty   -> ty
+typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
 
-typeSchemeToType :: TypeScheme (TyName ()) a r -> Fresh (Type TyName ())
+typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Fresh (Type TyName ())
 typeSchemeToType (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
 typeSchemeToType (TypeSchemeArrow schA schB) =
     TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB
-typeSchemeToType (TypeSchemeAllSize schK)    = do
-    s <- freshTyName () "s"
-    typeSchemeToType $ schK s
+typeSchemeToType (TypeSchemeAllSize schK)    =
+    freshTyName () "s" >>= typeSchemeToType . schK . TyVar ()
 
 sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer) Integer
 sizeIntIntInt =

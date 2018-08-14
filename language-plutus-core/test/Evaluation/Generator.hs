@@ -8,6 +8,7 @@ module Evaluation.Generator
     , PlcGenT
     , IterAppValue(..)
     , forAllPretty
+    , forAllPrettyT
     , hoistSupply
     , genSizeDef
     , denoteTypedBuiltinName
@@ -22,8 +23,9 @@ import           Language.PlutusCore.Constant
 import           Evaluation.Denotation
 import           Evaluation.Constant.TypedBuiltinGen
 
-import           Data.Foldable
 import           Data.Functor.Compose
+import           Data.String
+import           Control.Applicative
 import           Control.Exception (evaluate)
 import           Control.Exception.Safe (tryAny)
 import           Control.Monad.Reader
@@ -31,15 +33,16 @@ import           Control.Monad.Morph
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Dependent.Map as DMap
 import           Hedgehog hiding (Size, Var, annotate)
+import           Hedgehog.Internal.Property (forAllWithT)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 import           System.IO.Unsafe
 
 min_size :: Size
-min_size = 1
+min_size = 2
 
 max_size :: Size
-max_size = 16
+max_size = 2
 
 liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a
 liftT = hoist lift
@@ -47,8 +50,15 @@ liftT = hoist lift
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString
 
+forAllPrettyT :: (Monad m, Pretty a) => GenT m a -> PropertyT m a
+forAllPrettyT = forAllWithT prettyString
+
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
+
+choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
+choiceDef a [] = a
+choiceDef _ as = Gen.choice as
 
 genSizeDef :: Monad m => GenT m Size
 genSizeDef = Gen.integral $ Range.linear min_size max_size
@@ -56,6 +66,16 @@ genSizeDef = Gen.integral $ Range.linear min_size max_size
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
 genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
 genSizeFrom TypedBuiltinBool                = genSizeDef
+
+genBuiltinSized :: Monad m => GenT m BuiltinSized
+genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
+
+genBuiltin :: Monad m => GenT m (Builtin size)
+genBuiltin =
+    BuiltinSized . SizeValue <$> genSizeDef <*> genBuiltinSized <|> return BuiltinBool
+
+withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
+withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
 
 data BuiltinGensT m = BuiltinGensT
     { _builtinGensSize  :: GenT m Size
@@ -127,24 +147,39 @@ genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (t
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
-genTerm :: TypedBuiltinGen -> Context -> Int -> TypedBuiltin Size r -> Gen (TermOf r)
+genTerm
+    :: TypedBuiltinGenT Fresh -> Context -> Int -> TypedBuiltin Size r -> GenT Fresh (TermOf r)
 genTerm genBase = go where
-    go :: Context -> Int -> TypedBuiltin Size r -> Gen (TermOf r)
-    go context n tb
-        | n == 0    = genBase tb
-        | otherwise = Gen.choice $ genBase tb : map recurse recursive
+    go :: Context -> Int -> TypedBuiltin Size r -> GenT Fresh (TermOf r)
+    go context depth tb
+        | depth == 0 = choiceDef (genBase tb) variables
+        | depth == 1 = choiceDef (genBase tb) $ variables ++ recursive
+        | depth == 2 = Gen.choice $ lambdaApply : variables ++ recursive
+        | depth == 3 = Gen.choice $ lambdaApply : recursive
+        | otherwise  = lambdaApply
         where
             desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb
-            builtinGens = BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go context (n - 1))
+            builtinGens = BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go context (depth - 1))
             recurse (MemberDenotation denotation) =
                 fmap iterAppValueToTermOf . hoistSupply builtinGens $ genIterAppValue denotation
-            toRecursive tb' = foldMap getCompose . DMap.lookup tb' $ unContext context
-            recursive = toRecursive desizedTb ++ toRecursive (closeTypedBuiltin tb)
+            lookupInContext tb' = foldMap getCompose . DMap.lookup tb' $ unContext context
+            variables = map recurse . lookupInContext $ closeTypedBuiltin tb
+            recursive = map recurse $ lookupInContext desizedTb
+            lambdaApply = withTypedBuiltinGen $ \argTb -> do
+                -- TODO: 'freshInt' is not supposed to be here.
+                name <- lift $ freshInt >>= \i -> freshName () $ "x" <> fromString (show i)
+                let argTyTb = mapSizeTypedBuiltin (\_ -> TyBuiltin () TySize) argTb
+                argTy <- lift $ typedBuiltinToType argTyTb
+                TermOf arg  x <- go context (depth - 1) argTb
+                TermOf body y <- go (insertVariable name argTb x context) (depth - 1) tb
+                let term = Apply () (LamAbs () name argTy body) arg
+                return $ TermOf term y
 
-genTermLoose :: TypedBuiltinGen
-genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 3
+genTermLoose :: TypedBuiltinGenT Fresh
+genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
 
 getTerm :: IO ()
 getTerm = do
-    tx <- Gen.sample $ genTermLoose TypedBuiltinBool
+    tx <- Gen.sample . hoist (return . dropFresh) $
+              genTermLoose $ TypedBuiltinSized (SizeValue 2) TypedBuiltinSizedInt
     putStrLn $ prettyString tx

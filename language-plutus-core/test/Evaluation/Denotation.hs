@@ -41,6 +41,9 @@ newtype Context = Context
 
 -- which is a pretty good start.
 
+denoteVariable :: Name () -> TypedBuiltin size r -> r -> Denotation (Name ()) size r
+denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin tb)
+
 denoteTypedBuiltinName :: TypedBuiltinName a r -> a -> Denotation BuiltinName size r
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
     Denotation name (Constant () . BuiltinName ()) meta scheme
@@ -92,13 +95,21 @@ instance Alternative f => Alternative (Compose f g) where
     Compose x <|> Compose y = Compose (x <|> y)
 -}
 
-insertTypedBuiltinName :: TypedBuiltinName a r -> a -> Context -> Context
-insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta (Context vs) = Context $
+insertDenotation :: TypedBuiltin () r -> Denotation object Size r -> Context -> Context
+insertDenotation tb denotation (Context vs) = Context $
     DMap.insertWith'
         (\(Compose xs) (Compose ys) -> Compose $ xs ++ ys)
-        (typeSchemeResult scheme)
-        (Compose [MemberDenotation $ denoteTypedBuiltinName tbn meta])
+        tb
+        (Compose [MemberDenotation denotation])
         vs
+
+insertVariable :: Name () -> TypedBuiltin Size a -> a -> Context -> Context
+insertVariable name tb meta =
+    insertDenotation (closeTypedBuiltin tb) (denoteVariable name tb meta)
+
+insertTypedBuiltinName :: TypedBuiltinName a r -> a -> Context -> Context
+insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
+    insertDenotation (typeSchemeResult scheme) (denoteTypedBuiltinName tbn meta)
 
 typedBuiltinNames :: Context
 typedBuiltinNames
