@@ -50,17 +50,16 @@ termAsConstant (Constant _ constant) = Just constant
 termAsConstant _                     = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
-termAsTermIterApp :: Term tyname name a -> Maybe (TermIterApp tyname name a)
-termAsTermIterApp term@Apply{} = Just $ go [] term where
+termAsTermIterApp :: Term tyname name a -> TermIterApp tyname name a
+termAsTermIterApp term = go [] term where
     go args (Apply _ fun arg) = go (arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args
-termAsTermIterApp _            = Nothing
 
 -- | View a 'Term' as an iterated application of a 'BuiltinName' to a list of 'Value's.
 termAsPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
 termAsPrimIterApp term = do
-    IterApp termHead spine <- termAsTermIterApp term
+    let IterApp termHead spine = termAsTermIterApp term
     headName <- termAsConstant termHead >>= constantAsBuiltinName
     guard $ all isValue spine
     Just $ IterApp headName spine
