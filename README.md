@@ -22,7 +22,7 @@ nix-shell default.nix -A language-plutus-core.env
 `pkgs/default.nix` contains a generated package set with all the dependencies for this projet.
 
 You should regenerate this if you change any dependencies in cabal files. To do this, use the 
-defined in `shell.nix`, and run `pkgs/generate.sh`.
+environment defined in `shell.nix`, and run `pkgs/generate.sh`.
 
 ## CI
 
