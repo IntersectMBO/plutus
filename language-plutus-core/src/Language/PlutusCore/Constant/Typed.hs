@@ -16,6 +16,7 @@ module Language.PlutusCore.Constant.Typed
     , eraseTypedBuiltinSized
     , mapSizeEntryTypedBuiltin
     , mapSizeTypedBuiltin
+    , closeTypedBuiltin
     , typedBuiltinSizedToType
     , typeSchemeResult
     , typedBuiltinToType
@@ -137,6 +138,9 @@ mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
 mapSizeTypedBuiltin
     :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeTypedBuiltin = mapSizeEntryTypedBuiltin . fmap
+
+closeTypedBuiltin :: TypedBuiltin Size a -> TypedBuiltin b a
+closeTypedBuiltin = mapSizeEntryTypedBuiltin $ SizeValue . flattenSizeEntry
 
 typedBuiltinSizedToType :: TypedBuiltinSized a -> Type TyName ()
 typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger

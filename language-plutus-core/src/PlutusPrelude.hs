@@ -45,7 +45,7 @@ import           Data.Function             (on)
 import           Data.List                 (foldl')
 import           Data.List.NonEmpty        (NonEmpty (..))
 import           Data.Maybe                (isJust)
-import           Data.Semigroup
+import           Data.Semigroup            (Semigroup (..))
 import           Data.Text                 (Text)
 import           Data.Text.Prettyprint.Doc
 import           Data.Typeable             (Typeable)

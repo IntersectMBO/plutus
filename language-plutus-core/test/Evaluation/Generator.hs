@@ -22,6 +22,7 @@ import           Language.PlutusCore.Constant
 import           Evaluation.Denotation
 import           Evaluation.Constant.TypedBuiltinGen
 
+import           Data.Foldable
 import           Data.Functor.Compose
 import           Control.Exception (evaluate)
 import           Control.Exception.Safe (tryAny)
@@ -36,8 +37,6 @@ import           System.IO.Unsafe
 
 min_size :: Size
 min_size = 1
--- With @1@ terms generation very often loops,
--- see https://github.com/hedgehogqa/haskell-hedgehog/issues/216
 
 max_size :: Size
 max_size = 16
@@ -90,12 +89,12 @@ iterAppValueToTermOf :: IterAppValue head arg r -> TermOf r
 iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term x
 
 -- | Generate a value out of a 'TypeScheme' and return it along with the corresponding PLC value.
-genSchemedPair :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
-genSchemedPair (TypeSchemeBuiltin tb) = do
+genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
+genSchemedTermOf (TypeSchemeBuiltin tb) = do
     BuiltinGensT _ genTb <- ask
     liftT $ genTb tb
-genSchemedPair (TypeSchemeArrow _ _)  = error "Not implemented."
-genSchemedPair (TypeSchemeAllSize _)  = error "Not implemented."
+genSchemedTermOf (TypeSchemeArrow _ _)  = error "Not implemented."
+genSchemedTermOf (TypeSchemeAllSize _)  = error "Not implemented."
 
 genIterAppValue
     :: forall head r m. Monad m
@@ -116,7 +115,7 @@ genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (t
                     tbv = TypedBuiltinValue builtin y'
                 return $ IterAppValue term pia tbv
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
-        TermOf v x <- genSchemedPair schA            -- Get a Haskell and the correspoding PLC values.
+        TermOf v x <- genSchemedTermOf schA          -- Get a Haskell and the correspoding PLC values.
 
         let term' = Apply () term v                  -- Apply the term to the PLC value.
             args' = args . (v :)                     -- Append the PLC value to the spine.
@@ -128,21 +127,22 @@ genIterAppValue (Denotation object toTerm meta scheme) = Gen.just $ go scheme (t
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
-genTerm :: TypedBuiltinGen -> TypedBuiltinGen
+genTerm :: TypedBuiltinGen -> Context -> Int -> TypedBuiltin Size r -> Gen (TermOf r)
 genTerm genBase = go where
-    go :: TypedBuiltinGen
-    go tb = Gen.recursive Gen.choice [genBase tb] $
-        let desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb in
-            case DMap.lookup desizedTb (unContext typedBuiltinNames) of
-                Nothing                    -> []
-                Just (Compose denotations) -> map gen denotations where
-                    gen (MemberDenotation denotation)
-                        = fmap iterAppValueToTermOf
-                        . hoistSupply (BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go))
-                        $ genIterAppValue denotation
+    go :: Context -> Int -> TypedBuiltin Size r -> Gen (TermOf r)
+    go context n tb
+        | n == 0    = genBase tb
+        | otherwise = Gen.choice $ genBase tb : map recurse recursive
+        where
+            desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb
+            builtinGens = BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go context (n - 1))
+            recurse (MemberDenotation denotation) =
+                fmap iterAppValueToTermOf . hoistSupply builtinGens $ genIterAppValue denotation
+            toRecursive tb' = foldMap getCompose . DMap.lookup tb' $ unContext context
+            recursive = toRecursive desizedTb ++ toRecursive (closeTypedBuiltin tb)
 
 genTermLoose :: TypedBuiltinGen
-genTermLoose = Gen.small . genTerm genTypedBuiltinLoose
+genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 3
 
 getTerm :: IO ()
 getTerm = do

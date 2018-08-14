@@ -39,7 +39,7 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
             (TyInst () builtinIf $ TyBuiltin () TyInteger)
             [b, constSpec i, constSpec j]
     case evaluateCk term of
-        CkEvalFailure     -> lift . putStrLn $ prettyString term ++ "\n"
+        CkEvalFailure     -> lift $ putStrLn "silly" -- lift . putStrLn $ prettyString term ++ "\n"
         CkEvalSuccess res -> case makeConstant int $ if bv then iv else jv of
             Nothing   -> fail "No way"
             Just res' -> do
