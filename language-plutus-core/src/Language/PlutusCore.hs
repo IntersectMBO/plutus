@@ -37,7 +37,7 @@ module Language.PlutusCore
     , RenamedType
     , RenamedTerm
     -- * Normalization
-    , normalize
+    , check
     , NormalizationError
     -- * Type synthesis
     , typeOf
