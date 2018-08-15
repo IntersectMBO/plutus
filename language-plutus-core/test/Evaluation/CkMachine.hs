@@ -19,7 +19,8 @@ import           Test.Tasty.Hedgehog
 parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
 parseRunCk = fmap (runCk . void) . parseScoped
 
--- blah = parseRunCk $ "(program 0.1.0 [(lam x [(con integer) (con 32)] x) (con 32 ! 123456)])"
+-- Z f = (\r. f (\x. r r x)) (\r. f (\x. r r x))
+blah = parseRunCk "(program 0.1.0 [(lam x [(con integer) (con 32)] x) (con 32 ! 123456)])"
 
 test_ifIntegers :: TestTree
 test_ifIntegers = testProperty "ifIntegers" . property $ do
@@ -29,23 +30,24 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         TermOf b bv <- forAllPrettyT $ genTermLoose TypedBuiltinBool
         TermOf i iv <- forAllPrettyT $ genTermLoose int
         TermOf j jv <- forAllPrettyT $ genTermLoose int
-
         builtinConst <- lift getBuiltinConst
         builtinUnit  <- lift getBuiltinUnit
         builtinIf    <- lift getBuiltinIf
-        let constSpec k =
+        let builtinConstSpec k =
                 Apply ()
                     (foldl (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit])
                     k
         let term = foldl (Apply ())
                 (TyInst () builtinIf $ TyBuiltin () TyInteger)
-                [b, constSpec i, constSpec j]
+                [b, builtinConstSpec i, builtinConstSpec j]
             value = if bv then iv else jv
         return $ TermOf term value
     case evaluateCk term of
-        CkEvalFailure     -> return ()
+        CkEvalFailure     -> liftIO $ putStrLn "failure\n"
         CkEvalSuccess res -> case makeConstant int value of
             Nothing   -> fail "ifIntegers: value out of bounds"
-            Just res' -> do liftIO $ putStrLn $ prettyString term ++ "\n"; res === res'
+            Just res' -> do
+                liftIO . putStrLn $ prettyString term ++ "\n"
+                res === res'
 
 main = defaultMain test_ifIntegers

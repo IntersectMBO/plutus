@@ -18,7 +18,7 @@ import           Language.PlutusCore.Name
 type Size = Natural
 type Value = Term
 
--- | Church-encoded 'const' as a PLC type.
+-- | 'const' as a PLC term.
 --
 -- > /\ (A B :: *) -> \(x : A) (y : B) -> x
 getBuiltinConst :: Fresh (Term TyName Name ())
@@ -34,7 +34,7 @@ getBuiltinConst = do
         . LamAbs () y (TyVar () b)
         $ Var () x
 
--- | Church-encoded '()' as a PLC type.
+-- | '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
 getBuiltinUnit :: Fresh (Type TyName ())
@@ -45,7 +45,7 @@ getBuiltinUnit = do
         . TyFun () (TyVar () a)
         $ TyVar () a
 
--- | Church-encoded '()' as a PLC term.
+-- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
 getBuiltinUnitval :: Fresh (Value TyName Name ())
@@ -57,7 +57,7 @@ getBuiltinUnitval = do
         . LamAbs () x (TyVar () a)
         $ Var () x
 
--- | Church-encoded '()' as a PLC type.
+-- | 'Bool' as a PLC type.
 --
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
 getBuiltinBool :: Fresh (Type TyName ())
@@ -70,7 +70,7 @@ getBuiltinBool = do
         . TyFun () (TyFun () unit (TyVar () a))
         $ TyVar () a
 
--- | Church-encoded 'True' as a PLC term.
+-- | 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
 getBuiltinTrue :: Fresh (Value TyName Name ())
@@ -87,7 +87,7 @@ getBuiltinTrue = do
        . LamAbs () y unitFunA
        $ Apply () (Var () x) builtinUnitval
 
--- | Church-encoded 'False' as a PLC term.
+-- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
 getBuiltinFalse :: Fresh (Value TyName Name ())
@@ -104,7 +104,7 @@ getBuiltinFalse = do
        . LamAbs () y unitFunA
        $ Apply () (Var () y) builtinUnitval
 
--- | Church-encoded @if_then_else_@ as a PLC term.
+-- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b x y
 getBuiltinIf :: Fresh (Value TyName Name ())
