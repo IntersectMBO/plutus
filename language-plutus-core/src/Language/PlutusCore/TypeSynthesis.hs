@@ -197,6 +197,10 @@ dummyKind = Type ()
 dummyType :: Type TyNameWithKind ()
 dummyType = TyVar () dummyTyName
 
+assign :: TyNameWithKind a -> Type TyNameWithKind () -> TypeCheckM b ()
+assign (TyNameWithKind (TyName (Name _ _ u))) ty =
+    modify (first (IM.insert (unUnique u) ty))
+
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
@@ -228,7 +232,9 @@ typeOf (TyInst x t ty) = do -- TODO: make this efficient for nested type instant
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tySubstitute (extractUnique n) (void ty) ty'')
+                then
+                    assign n (void ty) >>
+                    pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 typeOf (Unwrap x t) = do
