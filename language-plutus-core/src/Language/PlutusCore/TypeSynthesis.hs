@@ -237,7 +237,7 @@ preTypeOf (Apply x t t') = do
                 else throwError (TypeMismatch x (void t') ty' ty''')
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 preTypeOf (TyInst x t ty) = do
-    ty' <- typeOf t -- TODO: should this be preTypeOf??
+    ty' <- preTypeOf t
     case ty' of
         TyForall _ n k ty'' -> do
             k' <- kindOf ty
@@ -249,7 +249,7 @@ preTypeOf (TyInst x t ty) = do
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 preTypeOf (Unwrap x t) = do
-    ty <- typeOf t
+    ty <- preTypeOf t
     case ty of
         TyFix _ n ty' -> do
             let subst = tySubstitute (extractUnique n) ty ty'
