@@ -2,6 +2,7 @@ packages: ./
 optimization: 2
 constraints: language-plutus-core +development
 tests: true
+benchmarks: true
 documentation: true
 
 program-options
@@ -13,8 +14,3 @@ allow-newer:
     template-haskell
     stm
     Cabal
-
-source-repository-package
-    type: git
-    location: https://github.com/haskell/stm
-    tag: 4c24db6071fc1319232934562f7dbed45d498831
