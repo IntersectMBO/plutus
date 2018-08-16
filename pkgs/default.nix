@@ -42257,12 +42257,9 @@ base
 bytestring
 containers
 hedgehog
-<<<<<<< HEAD
-=======
 mmorph
 mtl
 prettyprinter
->>>>>>> 13f8932409027c5f247125e8ee42893a5b0c6a9b
 tasty
 tasty-golden
 tasty-hedgehog
