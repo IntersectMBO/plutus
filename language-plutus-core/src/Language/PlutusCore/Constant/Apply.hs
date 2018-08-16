@@ -56,7 +56,7 @@ instance Enum SizeVar where
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
 makeConstantApp :: TypedBuiltin Size a -> a -> ConstAppResult
-makeConstantApp builtin x = case makeConstant builtin x of
+makeConstantApp builtin x = case unsafeMakeConstant builtin x of
     Nothing -> ConstAppFailure
     Just wc -> ConstAppSuccess wc
 

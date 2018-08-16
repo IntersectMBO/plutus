@@ -4,8 +4,9 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
-    , makeDupBuiltinBool
-    , makeConstant
+    , unsafeMakeBuiltinBool
+    , makeSizedConstant
+    , unsafeMakeConstant
     ) where
 
 import           PlutusPrelude
@@ -47,8 +48,9 @@ makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
 makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 
 -- | Coerce a 'Bool' to the corresponding PLC's @boolean@.
-makeDupBuiltinBool :: Bool -> Value TyName Name ()
-makeDupBuiltinBool b = dropFresh $ if b then getBuiltinTrue else getBuiltinFalse
+-- Does not preserve the global uniqueness condition.
+unsafeMakeBuiltinBool :: Bool -> Value TyName Name ()
+unsafeMakeBuiltinBool b = unsafeRunFresh $ if b then getBuiltinTrue else getBuiltinFalse
 
 -- | Coerce a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
@@ -59,7 +61,7 @@ makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
 
 -- | Coerce a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
-makeConstant :: TypedBuiltin Size a -> a -> Maybe (Value TyName Name ())
-makeConstant (TypedBuiltinSized se tbs) x =
+unsafeMakeConstant :: TypedBuiltin Size a -> a -> Maybe (Value TyName Name ())
+unsafeMakeConstant (TypedBuiltinSized se tbs) x =
     Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
-makeConstant TypedBuiltinBool           b = Just $ makeDupBuiltinBool b
+unsafeMakeConstant TypedBuiltinBool           b = Just $ unsafeMakeBuiltinBool b

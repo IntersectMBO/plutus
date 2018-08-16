@@ -38,7 +38,7 @@ import qualified Hedgehog.Range as Range
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
 coerceTypedBuiltin :: TypedBuiltin Size a -> a -> Value TyName Name ()
-coerceTypedBuiltin tb x = fromMaybe err $ makeConstant tb x where
+coerceTypedBuiltin tb x = fromMaybe err $ unsafeMakeConstant tb x where
     sx = prettyString $ TypedBuiltinValue tb x
     err = error $ "prop_typedAddInteger: out of bounds: " ++ sx
 

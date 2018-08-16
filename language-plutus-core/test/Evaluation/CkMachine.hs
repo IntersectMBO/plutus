@@ -74,7 +74,7 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         return $ TermOf term value
     case evaluateCk term of
         CkEvalFailure     -> liftIO $ putStrLn "failure\n"
-        CkEvalSuccess res -> case makeConstant int value of
+        CkEvalSuccess res -> case unsafeMakeConstant int value of
             Nothing   -> fail "ifIntegers: value out of bounds"
             Just res' -> do
                 liftIO . putStrLn $ prettyString term ++ "\n"

@@ -32,7 +32,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , prettyString
                      , freshInt
                      , runFresh
-                     , dropFresh
+                     , unsafeRunFresh
                      , prettyText
                      , debugText
                      , render
@@ -124,9 +124,12 @@ freshInt = Fresh $ reader supplyValue
 runFresh :: Fresh a -> IO a
 runFresh (Fresh a) = runReader a <$> newEnumSupply
 
-dropFresh :: Fresh a -> a
-dropFresh (Fresh f) = runReader f $ unsafePerformIO newEnumSupply
-{-# NOINLINE dropFresh #-}
+-- | Same as 'runFresh' but strips 'IO' using 'unsafePerformIO'.
+-- This function allows to break the global uniqueness condition,
+-- so do not use it in contexts where this condition must be satisfied.
+unsafeRunFresh :: Fresh a -> a
+unsafeRunFresh = unsafePerformIO . runFresh
+{-# NOINLINE unsafeRunFresh #-}
 
 (?) :: Alternative f => Bool -> a -> f a
 (?) b x = x <$ guard b
