@@ -1,9 +1,9 @@
 -- | See the 'docs/Constant application.md' article for how this module emerged.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized(..)
     , TypedBuiltinSized(..)
@@ -41,14 +41,13 @@ module Language.PlutusCore.Constant.Typed
     , typedTxHash
     ) where
 
-import           PlutusPrelude
+import           Language.PlutusCore.Constant.Prelude
+import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.Lexer.Type (BuiltinName(..), TypeBuiltin(..), prettyBytes)
-import           Language.PlutusCore.Constant.Prelude
+import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.Text.Prettyprint.Doc
+import qualified Data.ByteString.Lazy.Char8           as BSL
 
 infixr 9 `TypeSchemeArrow`
 
