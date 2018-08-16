@@ -58,3 +58,19 @@ NB: Whenever the global uniqueness property is not a given, care needs be taken 
 The type checker synthesises the kind of a given type and the type of a given term. This does not involve any form of inference as Plutus Core is already fully typed. It merely checks the consistency of all variable declarations and the well-formedness of types and terms, while deriving the kind or type of the given type or term.
 
 NB: The type checker requires terms to meet the global unqiueness property. If this is not a given, use a renamer pass to suitably pre-process the term in question.
+
+### Evaluation
+
+The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the `Language.PlutusCore.CkMachine` module:
+
+```haskell
+runCk :: Program TyName Name () -> CkEvalResult
+```
+
+It returns a `CkEvalResult` which is either a succesfully computed `Value` (which is a type synonym for `Term`) or a failure:
+
+```haskell
+data CkEvalResult
+    = CkEvalSuccess (Value TyName Name ())
+    | CkEvalFailure
+```
