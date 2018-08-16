@@ -40,10 +40,10 @@ getBuiltinNatToInteger s n = do
           , n
           ]
 
--- | Generate an 'Integer', turn it into a PLC @Nat@ (see 'getBuiltinNat'),
+-- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a right fold (see 'getBuiltinFoldrNat')
--- defined in terms of generic fix (see 'getBuiltinFix') and check that the original 'Integer'
--- and the computed @integer@ are in sync.
+-- defined in terms of generic fix (see 'getBuiltinFix'), feed the resulting 'Term' to the CK machine
+-- (see 'evaluateCk') and check that the original 'Integer' and the computed @integer@ are in sync.
 test_NatRoundtrip :: TestTree
 test_NatRoundtrip = testProperty "NatRoundTrip" . property $ do
     let size = 1
