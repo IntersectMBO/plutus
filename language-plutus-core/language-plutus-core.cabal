@@ -53,7 +53,7 @@ library
                       GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
                       DeriveFoldable DeriveTraversable FlexibleContexts OverloadedStrings
                       DerivingStrategies MonadComprehensions FlexibleInstances
-                      ConstrainedClassMethods
+                      ConstrainedClassMethods TupleSections GADTs RankNTypes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -72,10 +72,10 @@ library
         recursion -any,
         prelude -any,
         microlens -any
-
+    
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
+    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -113,7 +113,7 @@ library prelude
         value-supply -any,
         deepseq -any,
         text -any,
-        transformers
+        transformers -any
     
     if flag(development)
         ghc-options: -Werror
@@ -153,10 +153,10 @@ test-suite language-plutus-core-test
         containers -any,
         mtl -any,
         mmorph -any
-
+    
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
+    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -172,9 +172,9 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any
-
+    
     if flag(development)
         ghc-options: -Werror
-
+    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists

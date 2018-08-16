@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
@@ -15,6 +16,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
 import           Data.Functor.Foldable
+import qualified Data.IntMap                    as IM
 import qualified Data.Map                       as M
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
@@ -26,9 +28,11 @@ import           PlutusPrelude
 -- builtin names.
 data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (Type TyNameWithKind ()))
 
+type TypeSt = IM.IntMap (Type TyNameWithKind ())
+
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (Either (TypeError a)))
+type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT BuiltinTable (Either (TypeError a)))
 
 data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
@@ -119,14 +123,14 @@ runTypeCheckM :: Int -- ^ Largest @Unique@ in scope so far. This is used to allo
               -> Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
               -> Either (TypeError a) b
-runTypeCheckM i = flip runReaderT (evalState defaultTable i) .* flip evalStateT
+runTypeCheckM i = flip runReaderT (evalState defaultTable i) .* flip evalStateT . (mempty ,)
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
-    i <- get
+    (_, i) <- get
     if i == 0
         then throwError OutOfGas
-        else modify (subtract 1)
+        else modify (second (subtract 1))
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
