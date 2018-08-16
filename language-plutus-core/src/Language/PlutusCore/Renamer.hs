@@ -7,9 +7,9 @@
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
                                    , annotateST
-                                   , RenamedTerm
                                    , NameWithType (..)
                                    , RenamedType
+                                   , RenamedTerm
                                    , TyNameWithKind (..)
                                    , RenameError (..)
                                    , TypeState (..)
@@ -18,16 +18,15 @@ module Language.PlutusCore.Renamer ( rename
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap               as IM
-import           Data.Text.Prettyprint.Doc hiding (annotate)
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
 
-data TypeState a = TypeState { _terms :: IM.IntMap (Type TyNameWithKind a), _types :: IM.IntMap (Kind a) }
+data TypeState a = TypeState { _terms :: IM.IntMap (RenamedType a), _types :: IM.IntMap (Kind a) }
 
-terms :: Lens' (TypeState a) (IM.IntMap (Type TyNameWithKind a))
+terms :: Lens' (TypeState a) (IM.IntMap (RenamedType a))
 terms f s = fmap (\x -> s { _terms = x }) (f (_terms s))
 
 types :: Lens' (TypeState a) (IM.IntMap (Kind a))
@@ -44,11 +43,13 @@ type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Functor, Pretty)
+    deriving (Functor, Pretty, Debug)
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Eq, Functor, Show, Pretty)
+    deriving (Eq, Functor, Pretty, Debug)
 
+-- | A 'RenameError' is thrown when a free variable is encountered during
+-- rewriting.
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
 
@@ -56,11 +57,17 @@ instance Pretty (RenameError AlexPosn) where
     pretty (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> pretty n <+> "is not in scope."
     pretty (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> pretty n <+> "is not in scope."
 
+instance Debug (RenameError AlexPosn) where
+    debug (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> debug n <+> "is not in scope."
+    debug (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> debug n <+> "is not in scope."
+
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
 annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
 annotate = fmap snd . annotateST
 
+-- | Annotate a program with type/kind information at all bound variables,
+-- additionally returning a 'TypeState'
 annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
 annotateST (Program x v p) = do
     (t, st) <- runStateT (annotateTerm p) mempty
@@ -72,7 +79,7 @@ insertType = modify .* over terms .* IM.insert
 insertKind :: Int -> Kind a -> TypeM a ()
 insertKind = modify .* over types .* IM.insert
 
-annotateTerm :: Term TyName Name a -> TypeM a (Term TyNameWithKind NameWithType a)
+annotateTerm :: Term TyName Name a -> TypeM a (RenamedTerm a)
 annotateTerm (Var x (Name x' b (Unique u))) = do
     st <- gets _terms
     case IM.lookup u st of
@@ -83,11 +90,6 @@ annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
     let nwt = NameWithType (Name (x', aty) s u)
     insertType i aty
     LamAbs x nwt aty <$> annotateTerm t
-annotateTerm (Fix x (Name x' s u@(Unique i)) ty t) = do
-    aty <- annotateType ty
-    let nwt = NameWithType (Name (x', aty) s u)
-    insertType i aty
-    Fix x nwt aty <$> annotateTerm t
 annotateTerm (TyAbs x (TyName (Name x' b u@(Unique i))) k t) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
@@ -109,7 +111,7 @@ annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
     Wrap x nwty aty <$> annotateTerm t
 
-annotateType :: Type TyName a -> TypeM a (Type TyNameWithKind a)
+annotateType :: Type TyName a -> TypeM a (RenamedType a)
 annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
     st <- gets _types
     case IM.lookup u st of
@@ -144,7 +146,6 @@ rename (st, _) (Program x v p) = Program x v (evalState (renameTerm (Identifiers
           m = fst (IM.findMax st)
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
-    deriving Show
 
 type MaxM = State Int
 
@@ -170,15 +171,6 @@ renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') = do
             modify (+1) >>
             LamAbs x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
         _      -> renameTerm st' t
-renameTerm st t@(Fix x (Name x' s (Unique u)) ty t') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            Fix x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
-        _ -> renameTerm st' t
 renameTerm st t@(Wrap x (TyName (Name x' s (Unique u))) ty t') = do
     m <- get
     let st' = modifyIdentifiers u m st

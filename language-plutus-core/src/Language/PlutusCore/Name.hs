@@ -10,8 +10,6 @@ module Language.PlutusCore.Name ( -- * Types
                                 , Unique (..)
                                 , Name (..)
                                 , TyName (..)
-                                -- * Classes
-                                , Debug (..)
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
@@ -19,11 +17,10 @@ module Language.PlutusCore.Name ( -- * Types
                                 , freshTyName
                                 ) where
 
-import qualified Data.ByteString.Lazy      as BSL
-import qualified Data.IntMap               as IM
-import qualified Data.Map                  as M
-import           Data.Text.Encoding        (decodeUtf8)
-import           Data.Text.Prettyprint.Doc
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.IntMap          as IM
+import qualified Data.Map             as M
+import           Data.Text.Encoding   (decodeUtf8)
 import           PlutusPrelude
 
 -- | A 'Name' represents variables/names in Plutus Core.
@@ -33,18 +30,17 @@ data Name a = Name { nameAttribute :: a
                    }
             deriving (Functor, Show, Generic, NFData)
 
+-- | We use a @newtype@ to enforce separation between names used for types and
+-- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
     deriving Show
     deriving newtype (Eq, Functor, NFData, Pretty, Debug)
-
-class Debug a where
-    debug :: a -> Doc ann
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
--- indexed by 'ByteString's.
+-- indexed by 'ByteString's. It is used during parsing and renaming.
 type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique)
 
 emptyIdentifierState :: IdentifierState

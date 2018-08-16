@@ -18,6 +18,7 @@ module Evaluation.Generator
     , genTermLoose
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Evaluation.Denotation
@@ -25,7 +26,6 @@ import           Evaluation.Constant.TypedBuiltinGen
 
 import           Data.Functor.Compose
 import           Data.String
-import           Control.Applicative
 import           Control.Exception (evaluate)
 import           Control.Exception.Safe (tryAny)
 import           Control.Monad.Reader
@@ -178,8 +178,8 @@ genTerm genBase = go where
 genTermLoose :: TypedBuiltinGenT Fresh
 genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
 
-getTerm :: IO ()
-getTerm = do
-    tx <- Gen.sample . hoist (return . dropFresh) $
-              genTermLoose $ TypedBuiltinSized (SizeValue 2) TypedBuiltinSizedInt
-    putStrLn $ prettyString tx
+-- getTerm :: IO ()
+-- getTerm = do
+--     tx <- Gen.sample . hoist (return . dropFresh) $
+--               genTermLoose $ TypedBuiltinSized (SizeValue 2) TypedBuiltinSizedInt
+--     putStrLn $ prettyString tx

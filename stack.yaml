@@ -14,7 +14,9 @@ extra-deps:
 - containers-0.5.11.0
 - value-supply-0.6
 
-flags: {}
+flags:
+  language-plutus-core:
+    development: true
 extra-package-dbs: []
 nix:
   packages: [gmp, openssl]

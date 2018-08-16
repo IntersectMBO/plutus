@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Evaluation.Terms where
 
+import           PlutusPrelude
 import           Language.PlutusCore
 
 data NamedType tyname a = NamedType (tyname a) (Type tyname a)

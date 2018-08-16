@@ -4,6 +4,7 @@ module Evaluation.CkMachine
     , test_ifIntegers
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
@@ -11,7 +12,6 @@ import           Evaluation.Constant.TypedBuiltinGen
 import           Evaluation.Generator
 import           Evaluation.Terms
 
-import           GHC.Natural
 import           Control.Monad.Reader
 import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
@@ -80,4 +80,4 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
                 liftIO . putStrLn $ prettyString term ++ "\n"
                 res === res'
 
-main = defaultMain test_NatRoundtrip
+-- main = defaultMain test_NatRoundtrip
