@@ -1,6 +1,6 @@
 ---
 - functions:
-  - {name: unsafePerformIO, within: []}
+  - {name: unsafePerformIO, within: [PlutusPrelude]}
   - {name: error, within: [Main]}
   - {name: undefined, within: []}
   - {name: fromJust, within: []}

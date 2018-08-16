@@ -12,6 +12,7 @@ packages:
 extra-deps:
 - cryptonite-0.22
 - containers-0.5.11.0
+- value-supply-0.6
 
 flags:
   language-plutus-core:

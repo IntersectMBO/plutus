@@ -29,6 +29,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
+        Language.PlutusCore.Constant
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src
     other-modules:
@@ -37,6 +38,12 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
+        Language.PlutusCore.Constant.Prelude
+        Language.PlutusCore.Constant.Make
+        Language.PlutusCore.Constant.View
+        Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.Constant.Apply
+        Language.PlutusCore.CkMachine
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
@@ -63,11 +70,12 @@ library
         prettyprinter -any,
         microlens -any,
         recursion -any,
-        prelude -any
-    
+        prelude -any,
+        microlens -any
+
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-    
+
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -102,8 +110,10 @@ library prelude
         base -any,
         prettyprinter -any,
         composition-prelude -any,
+        value-supply -any,
         deepseq -any,
-        text -any
+        text -any,
+        transformers
     
     if flag(development)
         ghc-options: -Werror
@@ -117,6 +127,12 @@ test-suite language-plutus-core-test
     hs-source-dirs: test
     other-modules:
         Generators
+        Evaluation.Constant.GenTypedBuiltinSized
+        Evaluation.Constant.Apply
+        Evaluation.Constant.Success
+        Evaluation.Constant.SuccessFailure
+        Evaluation.Constant.All
+        Evaluation.Generator
     default-language: Haskell2010
     other-extensions: OverloadedStrings
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
@@ -132,11 +148,15 @@ test-suite language-plutus-core-test
         bytestring -any,
         tasty-golden -any,
         text -any,
-        prelude -any
-    
+        prelude -any,
+        prettyprinter -any,
+        containers -any,
+        mtl -any,
+        mmorph -any
+
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-    
+
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -152,9 +172,9 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any
-    
+
     if flag(development)
         ghc-options: -Werror
-    
+
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists

@@ -8,6 +8,7 @@ module Language.PlutusCore
     -- * Pretty-printing
     , prettyText
     , debugText
+    , prettyString
     -- * AST
     , Term (..)
     , Type (..)
@@ -55,11 +56,14 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
+    , Fresh
+    , dropFresh
     ) where
 
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
+import           Data.Text.Prettyprint.Doc         hiding (annotate)
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type

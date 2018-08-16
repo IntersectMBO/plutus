@@ -3,11 +3,12 @@
 module Main ( main
             ) where
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text            as T
-import           Data.Text.Encoding   (encodeUtf8)
+import qualified Data.ByteString.Lazy    as BSL
+import qualified Data.Text               as T
+import           Data.Text.Encoding      (encodeUtf8)
+import           Evaluation.Constant.All
 import           Generators
-import           Hedgehog             hiding (Var, annotate)
+import           Hedgehog                hiding (Var, annotate)
 import           Language.PlutusCore
 import           PlutusPrelude
 import           Test.Tasty
@@ -72,6 +73,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
+    , test_constantApplication
     ]
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
