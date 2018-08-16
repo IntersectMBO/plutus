@@ -44,8 +44,8 @@ coerceTypedBuiltin tb x = fromMaybe err $ makeConstant tb x where
 
 -- This has an interesting @Apply@ instance (no pun intended).
 data TermOf a = TermOf
-    { _termOfTerm :: Term TyName Name ()
-    , _termOfType :: a
+    { _termOfTerm  :: Term TyName Name ()
+    , _termOfValue :: a
     }
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for

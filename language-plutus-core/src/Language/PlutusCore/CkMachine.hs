@@ -98,7 +98,7 @@ instance Show CkException where
 
 instance Exception CkException
 
--- | Substitute a term for a variable in a term that can contain duplicate binders.
+-- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
     :: Eq (name a) => name a -> Value tyname name a -> Term tyname name a -> Term tyname name a

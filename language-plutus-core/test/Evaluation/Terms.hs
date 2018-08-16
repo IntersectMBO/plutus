@@ -5,6 +5,65 @@ import           Language.PlutusCore
 
 data NamedType tyname a = NamedType (tyname a) (Type tyname a)
 
+-- TODO: every 'TyApp' in this module must be computing.
+
+-- | @Self@ as a PLC type.
+--
+-- > \(A :: *) -> fix \(Self :: *) -> Self -> A
+getBuiltinSelf :: Fresh (NamedType TyName ())
+getBuiltinSelf = do
+    a    <- freshTyName () "A"
+    self <- freshTyName () "Self"
+    return
+        . NamedType self
+        . TyLam () a (Type ())
+        . TyFix () self
+        . TyFun () (TyVar () self)
+        $ TyVar () a
+
+-- | @unroll@ as a PLC term.
+--
+-- > /\(A :: *) -> \(s : Self A) -> unwrap s s
+getBuiltinUnroll :: Fresh (Term TyName Name ())
+getBuiltinUnroll = do
+    NamedType _ builtinSelf <- getBuiltinSelf
+    a <- freshTyName () "A"
+    s <- freshName () "s"
+    return
+        . TyAbs () a (Type ())
+        . LamAbs () s (TyApp () builtinSelf $ TyVar () a)
+        . Apply () (Unwrap () $ Var () s)
+        $ Var () s
+
+-- | 'fix' as a PLC term.
+--
+-- > /\(A B :: *) -> \(f : (A -> B) -> A -> B) ->
+-- >    unroll {A -> B} (wrap \(s : Self (A -> B)) \(x : A) -> f (unroll {A -> B} s) x)
+getBuiltinFix :: Fresh (Term TyName Name ())
+getBuiltinFix = do
+    NamedType self builtinSelf <- getBuiltinSelf
+    builtinUnroll <- getBuiltinUnroll
+    a <- freshTyName () "A"
+    b <- freshTyName () "B"
+    f <- freshName () "f"
+    s <- freshName () "s"
+    x <- freshName () "x"
+    let funAB = TyFun () (TyVar () a) (TyVar () b)
+        builtinUnrollFunAB = TyInst () builtinUnroll funAB
+        builtinSelfFunAB   = TyApp () builtinSelf funAB
+    return
+        . TyAbs () a (Type ())
+        . TyAbs () b (Type ())
+        . LamAbs () f (TyFun () funAB funAB)
+        . Apply () builtinUnrollFunAB
+        . Wrap () self builtinSelfFunAB
+        . LamAbs () s builtinSelfFunAB
+        . LamAbs () x (TyVar () a)
+        . foldl (Apply ()) (Var () f)
+        $ [ Apply () builtinUnrollFunAB $ Var () s
+          , Var () x
+          ]
+
 -- | Church-encoded @Nat@ as a PLC type.
 --
 -- > all (R :: *). R -> (R -> R) -> R
@@ -33,21 +92,22 @@ getBuiltinChurchZero = do
 
 -- | Church-encoded 'succ' as a PLC term.
 --
--- > /\(R :: *) -> \(n : Nat) (z : R) (f : R -> R) -> z
+-- > \(n : Nat) -> /\(R :: *) -> \(z : R) (f : R -> R) -> f (n {R} f z)
 getBuiltinChurchSucc :: Fresh (Term TyName Name ())
 getBuiltinChurchSucc = do
     builtinNat <- getBuiltinChurchNat
-    r <- freshTyName () "R"
     n <- freshName () "n"
+    r <- freshTyName () "R"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . TyAbs () r (Type ())
         . LamAbs () n builtinNat
+        . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
         . Apply () (Var () f)
-        $ foldl (Apply ()) (Var () n) [Var () f, Var () z]
+        . foldl (Apply ()) (TyInst () (Var () n) $ TyVar () r)
+        $ [Var () f, Var () z]
 
 -- | @Nat@ as a PLC type.
 --
@@ -77,7 +137,7 @@ getBuiltinZero = do
         . Wrap () nat builtinNat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
+        . LamAbs () f (TyFun () builtinNat (TyVar () r))
         $ Var () z
 
 -- |  'succ' as a PLC term.
@@ -95,9 +155,37 @@ getBuiltinSucc = do
         . Wrap () nat builtinNat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
+        . LamAbs () f (TyFun () builtinNat (TyVar () r))
         . Apply () (Var () f)
         $ Var () n
+
+-- |  @foldNat@ as a PLC term.
+--
+-- > /\(R :: *) -> \(z : R) (f : R -> R) ->
+-- >     fix {Nat} {R} \(rec : Nat -> R) (n : Nat) ->
+-- >         unwrap n {R} z \(n' : Nat) -> f (rec n')
+getBuiltinFoldrNat :: Fresh (Term TyName Name ())
+getBuiltinFoldrNat = do
+    NamedType _ builtinNat <- getBuiltinNat
+    builtinFix <- getBuiltinFix
+    r   <- freshTyName () "R"
+    z   <- freshName () "z"
+    f   <- freshName () "f"
+    n   <- freshName () "n"
+    n'  <- freshName () "n'"
+    rec <- freshName () "rec"
+    return
+        . TyAbs () r (Type ())
+        . LamAbs () z (TyVar () r)
+        . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
+        . Apply () (foldl (TyInst ()) builtinFix [builtinNat, TyVar () r])
+        . LamAbs () rec (TyFun () builtinNat $ TyVar () r)
+        . LamAbs () n builtinNat
+        . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
+        . LamAbs () n' builtinNat
+        . Apply () (Var () f)
+        . Apply () (Var () rec)
+        $ Var () n'
 
 -- | @List@ as a PLC type.
 --
@@ -126,7 +214,6 @@ getBuiltinNil = do
     r <- freshTyName () "R"
     z <- freshName () "z"
     f <- freshName () "f"
-    -- This must be computing.
     let builtinListA = TyApp () builtinList $ TyVar () a
     return
         . TyAbs () a (Type ())
@@ -159,77 +246,3 @@ getBuiltinCons = do
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () builtinListA $ TyVar () r)
         $ foldl (Apply ()) (Var () f) [Var () x, Var () xs]
-
--- | @Self@ as a PLC type.
---
--- > \(A :: *) -> fix \(Self :: *) -> Self -> A
-getBuiltinSelf :: Fresh (NamedType TyName ())
-getBuiltinSelf = do
-    a    <- freshTyName () "A"
-    self <- freshTyName () "Self"
-    return
-        . NamedType self
-        . TyLam () a (Type ())
-        . TyFix () self
-        . TyFun () (TyVar () self)
-        $ TyVar () a
-
--- | @unroll@ as a PLC term.
---
--- > /\(A :: *) -> \(s : Self A) -> unwrap s s
-getBuiltinUnroll :: Fresh (Term TyName Name ())
-getBuiltinUnroll = do
-    NamedType _ builtinSelf <- getBuiltinSelf
-    a <- freshTyName () "A"
-    s <- freshName () "s"
-    let builtinSelfA = TyApp () builtinSelf $ TyVar () a
-    return
-        . TyAbs () a (Type ())
-        . LamAbs () s builtinSelfA
-        . Apply () (Unwrap () $ Var () s)
-        $ Var () s
-
--- | 'fix' as a PLC term.
---
--- > /\(A B :: *) -> \(f : (A -> B) -> A -> B) ->
--- >    unroll {A -> B} (wrap \s -> f (unroll {A -> B} s))
-getBuiltinFix :: Fresh (Term TyName Name ())
-getBuiltinFix = do
-    NamedType self builtinSelf <- getBuiltinSelf
-    builtinUnroll <- getBuiltinUnroll
-    a <- freshTyName () "A"
-    b <- freshTyName () "B"
-    f <- freshName () "f"
-    s <- freshName () "s"
-    let funAB = TyFun () (TyVar () a) (TyVar () b)
-        builtinUnrollFunAB = TyInst () builtinUnroll funAB
-        builtinSelfFunAB   = TyApp () builtinSelf funAB
-    return
-        . TyAbs () a (Type ())
-        . TyAbs () b (Type ())
-        . LamAbs () f (TyFun () funAB funAB)
-        . Apply () builtinUnrollFunAB
-        . Wrap () self builtinSelfFunAB
-        . LamAbs () s builtinSelfFunAB
-        . Apply () (Var () f)
-        . Apply () builtinUnrollFunAB
-        $ Var () s
-
-{-
-newtype SelfF a r = SelfF
-  { unSelfF :: r -> a
-  }
-
-type Self a = Fix (SelfF a)
-
-pattern Self f = Fix (SelfF f)
-
-unfold :: Self a -> Self a -> a
-unfold (Self f) = f
-
--- unroll (self {τ} (x.e)) ↦ [self {τ} (x.e) / x] e
-unroll :: Self a -> a
-unroll s = unfold s s
-
-bz1 = \f -> unroll (Self (\s -> f (unroll s))
--}

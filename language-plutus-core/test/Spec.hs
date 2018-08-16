@@ -152,6 +152,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsRewrite rwFiles
     , testsType typeFiles
     , test_constantApplication
+    , test_NatRoundtrip
     , test_ifIntegers
     ]
 
