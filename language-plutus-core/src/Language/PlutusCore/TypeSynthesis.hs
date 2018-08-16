@@ -163,6 +163,7 @@ kindOf (TyApp x ty ty') = do
     case k of
         KindArrow _ k' k'' -> do
             k''' <- kindOf ty'
+            typeCheckStep
             if k' == k'''
                 then pure k''
                 else throwError (KindMismatch x (void ty') k'' k''') -- this is the branch that fails!
@@ -211,6 +212,7 @@ typeOf (Apply x t t') = do
     case ty of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
+            typeCheckStep
             if ty' == ty'''
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''')
@@ -220,6 +222,7 @@ typeOf (TyInst x t ty) = do -- TODO: make this efficient for nested type instant
     case ty' of
         TyForall _ n k ty'' -> do
             k' <- kindOf ty
+            typeCheckStep
             if k == k'
                 then pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
@@ -234,6 +237,7 @@ typeOf (Unwrap x t) = do
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
     let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
+    typeCheckStep
     if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) (void ty') fixed)
