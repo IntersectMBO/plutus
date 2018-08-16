@@ -16,6 +16,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
 import           Data.Functor.Foldable
+import           Data.Functor.Foldable.Monadic
 import qualified Data.IntMap                    as IM
 import qualified Data.Map                       as M
 import           Language.PlutusCore.Lexer.Type
@@ -201,6 +202,13 @@ assign :: TyNameWithKind a -> Type TyNameWithKind () -> TypeCheckM b ()
 assign (TyNameWithKind (TyName (Name _ _ u))) ty =
     modify (first (IM.insert (unUnique u) ty))
 
+lookupType :: Unique -> Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
+lookupType u ty = do
+    (st, _) <- get
+    case IM.lookup (unUnique u) st of
+        Just ty' -> pure ty'
+        Nothing  -> pure ty
+
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
@@ -234,7 +242,7 @@ typeOf (TyInst x t ty) = do -- TODO: make this efficient for nested type instant
             if k == k'
                 then
                     assign n (void ty) >>
-                    pure (tySubstitute (extractUnique n) (void ty) ty'')
+                    rewriteCtx ty''
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 typeOf (Unwrap x t) = do
@@ -254,6 +262,12 @@ typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
+
+rewriteCtx :: Type TyNameWithKind ()
+           -> TypeCheckM a (Type TyNameWithKind ())
+rewriteCtx = cataM aM where
+    aM ty@(TyVarF _ (TyNameWithKind (TyName (Name (_, _) _ u)))) = lookupType u (embed ty)
+    aM x                                                         = pure (embed x)
 
 -- TODO: make type substitutions occur in a state monad + benchmark
 tySubstitute :: Unique -- ^ Unique associated with type variable
