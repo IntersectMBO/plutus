@@ -55,26 +55,26 @@ instance Pretty CkEvalResult where
 
 -- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
-constAppErrorString (SizeMismatchConstAppError seenSize arg) = concat
+constAppErrorString (SizeMismatchConstAppError seenSize arg) = join
     [ "encoutered an unexpected size in ("
     , prettyString arg
     , ") (previously seen size: "
     , prettyString seenSize
     , ") in"
     ]
-constAppErrorString (IllTypedConstAppError expType constant) = concat
+constAppErrorString (IllTypedConstAppError expType constant) = join
     [ "encountered an ill-typed argument: ("
     , prettyString constant
     , ") (expected type: "
     , prettyString expType
     , ") in"
     ]
-constAppErrorString (ExcessArgumentsConstAppError excessArgs) = concat
+constAppErrorString (ExcessArgumentsConstAppError excessArgs) = join
     [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
     , prettyString excessArgs
     , ") in"
     ]
-constAppErrorString (SizedNonConstantConstAppError arg)       = concat
+constAppErrorString (SizedNonConstantConstAppError arg)       = join
     [ "encountered a non-constant argument of a sized type: ("
     , prettyString arg
     , ") in"
@@ -93,7 +93,7 @@ ckErrorString (ConstAppCkError constAppError)  =
     constAppErrorString constAppError
 
 instance Show CkException where
-    show (CkException err cause) = concat
+    show (CkException err cause) = join
         ["The CK machine " , ckErrorString err, prettyString cause]
 
 instance Exception CkException

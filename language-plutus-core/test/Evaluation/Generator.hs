@@ -1,9 +1,10 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
+
 module Evaluation.Generator
-    ( max_size
+    ( maxSize
     , hoistSupply
     , genSizeDef
     , typedBuiltinAsValue
@@ -16,25 +17,26 @@ module Evaluation.Generator
     , genConstantSized
     ) where
 
+import           Evaluation.Constant.GenTypedBuiltinSized
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Evaluation.Constant.GenTypedBuiltinSized
+import           PlutusPrelude
 
-import           Control.Monad.Reader
 import           Control.Monad.Morph
+import           Control.Monad.Reader
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen   as Gen
-import qualified Hedgehog.Range as Range
+import           Hedgehog                                 hiding (Size, Var, annotate)
+import qualified Hedgehog.Gen                             as Gen
+import qualified Hedgehog.Range                           as Range
 
-max_size :: Size
-max_size = 128
+maxSize :: Size
+maxSize = 128
 
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
 
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = Gen.integral $ Range.exponential 1 max_size
+genSizeDef = Gen.integral $ Range.exponential 1 maxSize
 
 -- | Coerce a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
@@ -56,7 +58,7 @@ data PrimIterAppValue = forall a. PrimIterAppValue
     (TypedBuiltinValue Size a)
 
 instance Pretty PrimIterAppValue where
-    pretty (PrimIterAppValue term pia tbv) = parens $ mconcat
+    pretty (PrimIterAppValue term pia tbv) = parens $ fold
         [ "As a term: ", pretty term, line
         , "As an iterated application: ", pretty pia, line
         , "As a value: ", pretty tbv
@@ -94,7 +96,7 @@ genPrimIterAppValue
     -> a                   -- ^ The semantics of the builtin name. E.g. the semantics of
                            -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
     -> GenPlcT m PrimIterAppValue
-genPrimIterAppValue (TypedBuiltinName name schema) op = go schema term0 id op where
+genPrimIterAppValue (TypedBuiltinName name schema) = go schema term0 id where
     term0 = Constant () $ BuiltinName () name
 
     go

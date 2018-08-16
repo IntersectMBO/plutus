@@ -1,8 +1,8 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude]}
-  - {name: error, within: [Main]}
-  - {name: undefined, within: []}
+  - {name: error, within: [Main, Evaluation.Constant.Success, Evaluation.Generator, Language.PlutusCore.Constant.Apply]}
+  - {name: undefined, within: [Language.PlutusCore.Constant.Apply]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
 
@@ -19,7 +19,7 @@
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
-- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer]}
+- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude]}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***
