@@ -1,6 +1,4 @@
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE ExistentialQuantification  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)

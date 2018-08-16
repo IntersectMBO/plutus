@@ -282,6 +282,7 @@ tySubstitute u ty = cata a where
     a x                                                  = embed x
 
 -- TODO: add left-instatiation etc.
+-- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty
 tyReduce x                                                                   = x
