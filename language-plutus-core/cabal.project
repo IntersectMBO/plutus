@@ -1,6 +1,7 @@
 packages: ./
 optimization: 2
 constraints: language-plutus-core +development
+           , recursion-schemes -template-haskell
 tests: true
 benchmarks: true
 documentation: true

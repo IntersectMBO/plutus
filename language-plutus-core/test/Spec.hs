@@ -3,19 +3,14 @@
 module Main ( main
             ) where
 
-import qualified Data.ByteString.Lazy                  as BSL
-import           Data.Foldable                         (fold)
-import           Data.Function                         (on)
-import qualified Data.IntMap                           as IM
-import qualified Data.Text                             as T
-import           Data.Text.Encoding                    (encodeUtf8)
-import           Data.Text.Prettyprint.Doc             hiding (annotate)
-import           Data.Text.Prettyprint.Doc.Render.Text
-import           Hedgehog                              hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen                          as Gen
-import qualified Hedgehog.Range                        as Range
-import           Language.PlutusCore
+import qualified Data.ByteString.Lazy    as BSL
+import qualified Data.Text               as T
+import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.Constant.All
+import           Generators
+import           Hedgehog                hiding (Var, annotate)
+import           Language.PlutusCore
+import           PlutusPrelude
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -39,7 +34,6 @@ compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
-compareTerm (Fix _ n ty t) (Fix _ n' ty' t')       = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)          = x == y
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
@@ -54,83 +48,12 @@ compareType (TyFix _ n t) (TyFix _ n' t')            = compareTyName n n' && com
 compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k == k' && compareType t t'
 compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
-compareType (TyApp _ t ty) (TyApp _ t' ty')          = compareType t t' && compareType ty ty'
+compareType (TyApp _ t t') (TyApp _ t'' t''')        = compareType t t'' && compareType t' t'''
 compareType (TyInt _ n) (TyInt _ n')                 = n == n'
 compareType _ _                                      = False
 
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
-
-genVersion :: MonadGen m => m (Version AlexPosn)
-genVersion = Version emptyPosn <$> int' <*> int' <*> int'
-    where int' = Gen.integral_ (Range.linear 0 10)
-
-genTyName :: MonadGen m => m (TyName AlexPosn)
-genTyName = TyName <$> genName
-
--- TODO make this robust against generating identfiers such as "fix"?
-genName :: MonadGen m => m (Name AlexPosn)
-genName = Name emptyPosn <$> name' <*> int'
-    where int' = Unique <$> Gen.int (Range.linear 0 3000)
-          name' = BSL.fromStrict <$> Gen.utf8 (Range.linear 1 20) Gen.lower
-
-simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
-simpleRecursive = Gen.recursive Gen.choice
-
-genKind :: MonadGen m => m (Kind AlexPosn)
-genKind = simpleRecursive nonRecursive recursive
-    where nonRecursive = pure <$> sequence [Type, Size] emptyPosn
-          recursive = [KindArrow emptyPosn <$> genKind <*> genKind]
-
-genBuiltinName :: MonadGen m => m BuiltinName
-genBuiltinName = Gen.choice $ pure <$>
-    [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger
-    , LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger
-    , EqInteger, ResizeInteger, IntToByteString, Concatenate, TakeByteString
-    , DropByteString, ResizeByteString, SHA2, SHA3, VerifySignature
-    , EqByteString, TxHash, BlockNum, BlockTime
-    ]
-
-genBuiltin :: MonadGen m => m (Constant AlexPosn)
-genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
-    where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
-          size' = Gen.integral_ (Range.linear 1 10)
-          string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
-          genInt = BuiltinInt emptyPosn <$> size' <*> int'
-          genSize = BuiltinSize emptyPosn <$> size'
-          genBS = BuiltinBS emptyPosn <$> size' <*> string'
-
-genType :: MonadGen m => m (Type TyName AlexPosn)
-genType = simpleRecursive nonRecursive recursive
-    where varGen = TyVar emptyPosn <$> genTyName
-          funGen = TyFun emptyPosn <$> genType <*> genType
-          lamGen = TyLam emptyPosn <$> genTyName <*> genKind <*> genType
-          forallGen = TyForall emptyPosn <$> genTyName <*> genKind <*> genType
-          fixGen = TyFix emptyPosn <$> genTyName <*> genType
-          applyGen = TyApp emptyPosn <$> genType <*> genType
-          numGen = TyInt emptyPosn <$> Gen.integral (Range.linear 0 256)
-          recursive = [funGen, applyGen]
-          nonRecursive = [varGen, lamGen, forallGen, fixGen, numGen]
-
-genTerm :: MonadGen m => m (Term TyName Name AlexPosn)
-genTerm = simpleRecursive nonRecursive recursive
-    where varGen = Var emptyPosn <$> genName
-          fixGen = Fix emptyPosn <$> genName <*> genType <*> genTerm
-          absGen = TyAbs emptyPosn <$> genTyName <*> genKind <*> genTerm
-          instGen = TyInst emptyPosn <$> genTerm <*> genType
-          lamGen = LamAbs emptyPosn <$> genName <*> genType <*> genTerm
-          applyGen = Apply emptyPosn <$> genTerm <*> genTerm
-          unwrapGen = Unwrap emptyPosn <$> genTerm
-          wrapGen = Wrap emptyPosn <$> genTyName <*> genType <*> genTerm
-          errorGen = Error emptyPosn <$> genType
-          recursive = [fixGen, absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
-
-genProgram :: MonadGen m => m (Program TyName Name AlexPosn)
-genProgram = Program emptyPosn <$> genVersion <*> genTerm
-
-emptyPosn :: AlexPosn
-emptyPosn = AlexPn 0 0 0
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
@@ -159,38 +82,24 @@ asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: Pretty a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . printError
-
-printError :: Pretty a => a -> T.Text
-printError = renderStrict . layoutSmart defaultLayoutOptions . pretty
-
-collectErrors :: Either ParseError (Either (RenameError AlexPosn) T.Text) -> Either Error T.Text
-collectErrors (Left x)          = Left (ParseError x)
-collectErrors (Right (Left x))  = Left (RenameError x)
-collectErrors (Right (Right x)) = Right x
-
-withTypes :: BSL.ByteString -> Either Error T.Text
-withTypes = collectErrors . fmap (fmap showType . annotateST) . parseScoped
-
-showType :: Pretty a => (TypeState a, Program TyNameWithKind NameWithType a) -> T.Text
-showType (TypeState _ tys, Program _ _ t) = either printError (T.pack . show) $ runTypeCheckM i $ typeOf t
-    where i = maybe 0 fst (IM.lookupMax tys)
+errorgen = BSL.fromStrict . encodeUtf8 . prettyText
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
-testsType = testGroup "golden type synthesis tests" . fmap (asGolden withTypes)
+testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
 testsGolden :: [FilePath] -> TestTree
-testsGolden = testGroup "golden tests" . fmap (asGolden format)
+testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
 
 testsRewrite :: [FilePath] -> TestTree
-testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden debugScopes)
+testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCfg))
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
-    , format "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , format "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
+    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
+    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    , format cfg "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
+    where cfg = defaultCfg

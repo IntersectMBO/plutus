@@ -9,12 +9,10 @@ module Language.PlutusCore.Constant.View
     , termAsPrimIterApp
     ) where
 
-import           PlutusPrelude
-import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.Constant.Prelude
-
-import           Data.Text.Prettyprint.Doc
+import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
+import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp
@@ -51,7 +49,7 @@ termAsConstant _                     = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
 termAsTermIterApp :: Term tyname name a -> TermIterApp tyname name a
-termAsTermIterApp term = go [] term where
+termAsTermIterApp = go mempty where
     go args (Apply _ fun arg) = go (arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args

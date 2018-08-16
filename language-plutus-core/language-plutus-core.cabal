@@ -1,4 +1,4 @@
-cabal-version: 1.18
+cabal-version: 2.0
 name: language-plutus-core
 version: 0.1.0.0
 license: BSD3
@@ -30,8 +30,9 @@ library
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Constant
+        PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src
+    hs-source-dirs: src prelude recursion
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Name
@@ -47,16 +48,17 @@ library
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
-        PlutusPrelude
+        Language.PlutusCore.Normalize
+        Data.Functor.Foldable.Monadic
     default-language: Haskell2010
     other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
-                      GeneralizedNewtypeDeriving TemplateHaskell KindSignatures
-                      TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
-                      FlexibleContexts OverloadedStrings DerivingStrategies
-                      MonadComprehensions
+                      GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
+                      DeriveFoldable DeriveTraversable FlexibleContexts OverloadedStrings
+                      DerivingStrategies MonadComprehensions FlexibleInstances
+                      ConstrainedClassMethods TupleSections GADTs RankNTypes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints
+                 -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -66,15 +68,15 @@ library
         transformers -any,
         deepseq -any,
         recursion-schemes >=5.0.1,
-        prettyprinter -any,
         text -any,
-        value-supply -any,
+        prettyprinter -any,
         microlens -any,
+        value-supply -any,
         composition-prelude -any
-
+    
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
+    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -83,6 +85,7 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Generators
         Evaluation.Constant.GenTypedBuiltinSized
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
@@ -93,7 +96,7 @@ test-suite language-plutus-core-test
     other-extensions: OverloadedStrings
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Wnoncanonical-monad-instances
+                 -Wredundant-constraints -Widentities
     build-depends:
         base -any,
         language-plutus-core -any,
@@ -108,10 +111,10 @@ test-suite language-plutus-core-test
         containers -any,
         mtl -any,
         mmorph -any
-
+    
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-
+    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -121,16 +124,15 @@ benchmark language-plutus-core-bench
     hs-source-dirs: bench
     default-language: Haskell2010
     ghc-options: -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints
-                 -Wnoncanonical-monad-instances
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base -any,
         language-plutus-core -any,
         criterion -any,
         bytestring -any
-
+    
     if flag(development)
         ghc-options: -Werror
-
+    
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.Constant.Prelude
     ( Size
     , Value
@@ -9,9 +10,9 @@ module Language.PlutusCore.Constant.Prelude
     , getBuiltinFalse
     ) where
 
-import           PlutusPrelude
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 type Size = Natural
 type Value = Term

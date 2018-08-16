@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
+
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
     , ConstAppResult(..)
@@ -7,17 +8,17 @@ module Language.PlutusCore.Constant.Apply
     , applyBuiltinName
     ) where
 
-import           PlutusPrelude
-import           Language.PlutusCore.Lexer.Type (BuiltinName(..))
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Make
+import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
+import           PlutusPrelude
 
-import           Data.IntMap.Strict (IntMap)
-import qualified Data.IntMap.Strict as IntMap
-import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy                 as BSL
+import           Data.IntMap.Strict                   (IntMap)
+import qualified Data.IntMap.Strict                   as IntMap
 
 -- | The type of constant applications errors.
 data ConstAppError
@@ -137,12 +138,12 @@ applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInt
 applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
 applyBuiltinName GreaterThanEqInteger = applyTypedBuiltinName typedGreaterThanEqInteger (>=)
 applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger            (==)
-applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (const id)
+applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (pure id)
 applyBuiltinName IntToByteString      = applyTypedBuiltinName typedIntToByteString      undefined
 applyBuiltinName Concatenate          = applyTypedBuiltinName typedConcatenate          (<>)
 applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
 applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
-applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
+applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (pure id)
 applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 undefined
 applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 undefined
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
