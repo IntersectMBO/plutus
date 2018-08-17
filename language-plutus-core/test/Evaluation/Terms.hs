@@ -191,8 +191,8 @@ getBuiltinFoldrNat = do
 -- |  @foldNat@ as a PLC term.
 --
 -- > /\(R :: *) -> \(f : R -> R) ->
--- >     fix {Nat} {R} \(rec : Nat -> R) (z : R) (n : Nat) ->
--- >         unwrap n {R} z \(n' : Nat) -> rec (f z) n'
+-- >     fix {Nat} {R} \(rec : R -> Nat -> R) (z : R) (n : Nat) ->
+-- >         unwrap n {R} z (rec (f z))
 getBuiltinFoldNat :: Fresh (Term TyName Name ())
 getBuiltinFoldNat = do
     NamedType _ builtinNat <- getBuiltinNat
@@ -201,7 +201,6 @@ getBuiltinFoldNat = do
     f   <- freshName () "f"
     z   <- freshName () "z"
     n   <- freshName () "n"
-    n'  <- freshName () "n'"
     rec <- freshName () "rec"
     return
         . TyAbs () r (Type ())
@@ -211,11 +210,9 @@ getBuiltinFoldNat = do
         . LamAbs () z (TyVar () r)
         . LamAbs () n builtinNat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
-        . LamAbs () n' builtinNat
-        . foldl (Apply ()) (Var () rec)
-        $ [ Apply () (Var () f) (Var () z)
-          , Var () n'
-          ]
+        . Apply () (Var () rec)
+        . Apply () (Var () f)
+        $ Var () z
 
 -- | @List@ as a PLC type.
 --
@@ -276,3 +273,34 @@ getBuiltinCons = do
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () builtinListA $ TyVar () r)
         $ foldl (Apply ()) (Var () f) [Var () x, Var () xs]
+
+-- |  @foldList@ as a PLC term.
+--
+-- > /\(A :: *) (R :: *) -> \(f : R -> A -> R) ->
+-- >     fix {List A} {R} \(rec : R -> List A -> R) (z : R) (xs : List A) ->
+-- >         unwrap xs {R} z \(x : A) -> rec (f z x)
+getBuiltinFoldList :: Fresh (Term TyName Name ())
+getBuiltinFoldList = do
+    NamedType _ builtinList <- getBuiltinList
+    builtinFix <- getBuiltinFix
+    a   <- freshTyName () "A"
+    r   <- freshTyName () "R"
+    f   <- freshName () "f"
+    z   <- freshName () "z"
+    xs  <- freshName () "xs"
+    x   <- freshName () "x"
+    rec <- freshName () "rec"
+    let builtinListA = TyApp () builtinList $ TyVar () a
+    return
+        . TyAbs () a (Type ())
+        . TyAbs () r (Type ())
+        . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
+        . Apply () (foldl (TyInst ()) builtinFix [builtinListA, TyVar () r])
+        . LamAbs () rec (TyFun () builtinListA $ TyVar () r)
+        . LamAbs () z (TyVar () r)
+        . LamAbs () xs builtinListA
+        . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
+        . LamAbs () x (TyVar () a)
+        . Apply () (Var () rec)
+        . foldl (Apply ()) (Var () f)
+        $ [Var () z, Var () x]
