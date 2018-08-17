@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Evaluation.CkMachine
     ( test_NatRoundtrip
+    , test_ListSum
     , test_ifIntegers
     ) where
 
@@ -12,10 +13,12 @@ import           Evaluation.Constant.TypedBuiltinGen
 import           Evaluation.Generator
 import           Evaluation.Terms
 
+import           Data.Foldable
 import           Control.Monad.Reader
 import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -45,12 +48,37 @@ getBuiltinNatToInteger s n = do
 -- defined in terms of generic fix (see 'getBuiltinFix'), feed the resulting 'Term' to the CK machine
 -- (see 'evaluateCk') and check that the original 'Integer' and the computed @integer@ are in sync.
 test_NatRoundtrip :: TestTree
-test_NatRoundtrip = testProperty "NatRoundTrip" . property $ do
+test_NatRoundtrip = testProperty "NatRoundtrip" . property $ do
     let size = 1
-        int2 = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    TermOf n nv <- forAllPretty . Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef int2
+        int1 = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+    TermOf n nv <- forAllPretty . Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef int1
     term <- liftIO . runFresh $ getBuiltinIntegerToNat nv >>= getBuiltinNatToInteger size
     evaluateCk term === CkEvalSuccess n
+
+getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Fresh (Term TyName Name ())
+getListToBuiltinList ty ts = do
+    builtinNil  <- getBuiltinNil
+    builtinCons <- getBuiltinCons
+    return $ foldr
+        (\x xs -> foldl (Apply ()) (TyInst () builtinCons ty) [x, xs])
+        (TyInst () builtinNil ty)
+        ts
+
+-- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
+-- sum elements of the list (see 'getBuiltinSum'), feed the resulting 'Term' to the CK machine
+-- (see 'evaluateCk') and check that 'sum' applied to the original list is sync with the computed sum.
+test_ListSum :: TestTree
+test_ListSum = testProperty "ListSum" . property $ do
+    size <- forAll $ genSizeIn 1 8
+    let intSized      = TyBuiltin () TyInteger
+        typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+    ps <- forAllPretty . Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
+    term <- liftIO . runFresh $ do
+        builtinSum <- getBuiltinSum size
+        list <- getListToBuiltinList intSized $ map _termOfTerm ps
+        return $ Apply () builtinSum list
+    for_ (unsafeMakeConstant typedIntSized . sum $ map _termOfValue ps) $ \res ->
+        evaluateCk term === CkEvalSuccess res
 
 test_ifIntegers :: TestTree
 test_ifIntegers = testProperty "ifIntegers" . property $ do
@@ -78,4 +106,4 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
             Nothing   -> fail "ifIntegers: value out of bounds"
             Just res' -> res === res'
 
--- main = defaultMain test_NatRoundtrip
+-- main = defaultMain test_ListRoundtrip

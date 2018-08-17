@@ -77,6 +77,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsType typeFiles
     , test_constantApplication
     , test_NatRoundtrip
+    , test_ListSum
     , test_ifIntegers
     ]
 

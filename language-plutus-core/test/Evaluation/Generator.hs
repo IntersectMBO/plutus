@@ -10,6 +10,7 @@ module Evaluation.Generator
     , forAllPretty
     , forAllPrettyT
     , hoistSupply
+    , genSizeIn
     , genSizeDef
     , denoteTypedBuiltinName
     , runPlcT
@@ -39,7 +40,7 @@ import qualified Hedgehog.Range as Range
 import           System.IO.Unsafe
 
 min_size :: Size
-min_size = 2
+min_size = 1
 
 max_size :: Size
 max_size = 2
@@ -60,8 +61,11 @@ choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
 choiceDef a [] = a
 choiceDef _ as = Gen.choice as
 
+genSizeIn :: Monad m => Size -> Size -> GenT m Size
+genSizeIn = Gen.integral .* Range.linear
+
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = Gen.integral $ Range.linear min_size max_size
+genSizeDef = genSizeIn min_size max_size
 
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
 genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
