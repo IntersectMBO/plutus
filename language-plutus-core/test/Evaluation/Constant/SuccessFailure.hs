@@ -2,8 +2,8 @@ module Evaluation.Constant.SuccessFailure
     ( test_applyBuiltinNameSuccessFailure
     ) where
 
-import           Language.PlutusCore.Constant
 import           Evaluation.Constant.Apply
+import           Language.PlutusCore.Constant
 
 import           Data.Semigroup
 import           Test.Tasty
@@ -38,7 +38,7 @@ test_typedMultiplyIntegerSuccessFailure
 test_typedResizeIntegerSuccessFailure :: TestTree
 test_typedResizeIntegerSuccessFailure
     = testProperty "typedResizeInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedResizeInteger (const id)
+    $ prop_applyBuiltinNameSuccessFailure typedResizeInteger (pure id)
 
 test_typedConcatenateSuccessFailure :: TestTree
 test_typedConcatenateSuccessFailure
@@ -48,4 +48,4 @@ test_typedConcatenateSuccessFailure
 test_typedResizeByteStringSuccessFailure :: TestTree
 test_typedResizeByteStringSuccessFailure
     = testProperty "typedResizeByteString"
-    $ prop_applyBuiltinNameSuccessFailure typedResizeByteString (const id)
+    $ prop_applyBuiltinNameSuccessFailure typedResizeByteString (pure id)

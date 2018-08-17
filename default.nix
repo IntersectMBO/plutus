@@ -18,14 +18,23 @@ with pkgs.lib;
 with pkgs.haskell.lib;
 
 let
+  doHaddockHydra = drv: overrideCabal drv (attrs: {
+    doHaddock = true;
+    postInstall = ''
+      ${attrs.postInstall or ""}
+      mkdir -pv $doc/nix-support
+      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc/html .
+      echo "file binary-dist $doc/${attrs.pname}-docs.tar.gz" >> $doc/nix-support/hydra-build-products
+      echo "report ${attrs.pname}-docs.html $doc/share/doc/html index.html" >> $doc/nix-support/hydra-build-products
+    '';
+  });
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
   plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
     overrides = self: super: {
       plutus-prototype = addRealTimeTestLogs super.plutus-prototype;
-      language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
-
+      language-plutus-core = doHaddockHydra (addRealTimeTestLogs super.language-plutus-core);
     };
   };
   cleanSourceFilter = with pkgs.stdenv;
