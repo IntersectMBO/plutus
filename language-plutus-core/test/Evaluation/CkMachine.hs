@@ -31,17 +31,17 @@ getBuiltinIntegerToNat n
 
 getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Fresh (Term TyName Name ())
 getBuiltinNatToInteger s n = do
-    builtinFoldrNat <- getBuiltinFoldrNat
+    builtinFoldNat <- getBuiltinFoldNat
     let int = Constant () . BuiltinInt () s
     return
-        . foldl (Apply ()) (TyInst () builtinFoldrNat $ TyBuiltin () TyInteger)
-        $ [ int 0
-          , Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+        . foldl (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
+        $ [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+          , int 0
           , n
           ]
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
--- turn that @Nat@ into the corresponding PLC @integer@ using a right fold (see 'getBuiltinFoldrNat')
+-- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'getBuiltinFoldNat')
 -- defined in terms of generic fix (see 'getBuiltinFix'), feed the resulting 'Term' to the CK machine
 -- (see 'evaluateCk') and check that the original 'Integer' and the computed @integer@ are in sync.
 test_NatRoundtrip :: TestTree
@@ -73,11 +73,9 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
             value = if bv then iv else jv
         return $ TermOf term value
     case evaluateCk term of
-        CkEvalFailure     -> liftIO $ putStrLn "failure\n"
+        CkEvalFailure     -> return ()
         CkEvalSuccess res -> case unsafeMakeConstant int value of
             Nothing   -> fail "ifIntegers: value out of bounds"
-            Just res' -> do
-                liftIO . putStrLn $ prettyString term ++ "\n"
-                res === res'
+            Just res' -> res === res'
 
 -- main = defaultMain test_NatRoundtrip

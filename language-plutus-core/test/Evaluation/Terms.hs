@@ -160,9 +160,9 @@ getBuiltinSucc = do
         . Apply () (Var () f)
         $ Var () n
 
--- |  @foldNat@ as a PLC term.
+-- |  @foldrNat@ as a PLC term.
 --
--- > /\(R :: *) -> \(z : R) (f : R -> R) ->
+-- > /\(R :: *) -> \(f : R -> R) (z : R) ->
 -- >     fix {Nat} {R} \(rec : Nat -> R) (n : Nat) ->
 -- >         unwrap n {R} z \(n' : Nat) -> f (rec n')
 getBuiltinFoldrNat :: Fresh (Term TyName Name ())
@@ -170,15 +170,15 @@ getBuiltinFoldrNat = do
     NamedType _ builtinNat <- getBuiltinNat
     builtinFix <- getBuiltinFix
     r   <- freshTyName () "R"
-    z   <- freshName () "z"
     f   <- freshName () "f"
+    z   <- freshName () "z"
     n   <- freshName () "n"
     n'  <- freshName () "n'"
     rec <- freshName () "rec"
     return
         . TyAbs () r (Type ())
-        . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
+        . LamAbs () z (TyVar () r)
         . Apply () (foldl (TyInst ()) builtinFix [builtinNat, TyVar () r])
         . LamAbs () rec (TyFun () builtinNat $ TyVar () r)
         . LamAbs () n builtinNat
@@ -187,6 +187,35 @@ getBuiltinFoldrNat = do
         . Apply () (Var () f)
         . Apply () (Var () rec)
         $ Var () n'
+
+-- |  @foldNat@ as a PLC term.
+--
+-- > /\(R :: *) -> \(f : R -> R) ->
+-- >     fix {Nat} {R} \(rec : Nat -> R) (z : R) (n : Nat) ->
+-- >         unwrap n {R} z \(n' : Nat) -> rec (f z) n'
+getBuiltinFoldNat :: Fresh (Term TyName Name ())
+getBuiltinFoldNat = do
+    NamedType _ builtinNat <- getBuiltinNat
+    builtinFix <- getBuiltinFix
+    r   <- freshTyName () "R"
+    f   <- freshName () "f"
+    z   <- freshName () "z"
+    n   <- freshName () "n"
+    n'  <- freshName () "n'"
+    rec <- freshName () "rec"
+    return
+        . TyAbs () r (Type ())
+        . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
+        . Apply () (foldl (TyInst ()) builtinFix [builtinNat, TyVar () r])
+        . LamAbs () rec (TyFun () builtinNat $ TyVar () r)
+        . LamAbs () z (TyVar () r)
+        . LamAbs () n builtinNat
+        . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
+        . LamAbs () n' builtinNat
+        . foldl (Apply ()) (Var () rec)
+        $ [ Apply () (Var () f) (Var () z)
+          , Var () n'
+          ]
 
 -- | @List@ as a PLC type.
 --
