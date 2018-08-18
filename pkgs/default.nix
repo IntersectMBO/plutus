@@ -42218,7 +42218,7 @@ license = stdenv.lib.licenses.bsd3;
 , mmorph
 , mtl
 , prettyprinter
-, recursion-schemes
+, recursion
 , stdenv
 , tasty
 , tasty-golden
@@ -42243,7 +42243,7 @@ deepseq
 microlens
 mtl
 prettyprinter
-recursion-schemes
+recursion
 text
 transformers
 value-supply
