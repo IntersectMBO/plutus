@@ -32,7 +32,7 @@ library
         Language.PlutusCore.Constant
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude recursion
+    hs-source-dirs: src prelude
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Name
@@ -49,7 +49,6 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
-        Data.Functor.Foldable.Monadic
     default-language: Haskell2010
     other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
                       GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
@@ -67,7 +66,7 @@ library
         mtl -any,
         transformers -any,
         deepseq -any,
-        recursion-schemes >=5.0.1,
+        recursion >=1.0.0.0,
         text -any,
         prettyprinter -any,
         microlens -any,
