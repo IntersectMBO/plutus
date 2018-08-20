@@ -53,6 +53,8 @@ module Language.PlutusCore
     -- * Serialization
     , encodeProgram
     , decodeProgram
+    , readProgram
+    , writeProgram
     -- * Errors
     , Error (..)
     , IsError (..)

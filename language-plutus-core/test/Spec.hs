@@ -55,6 +55,13 @@ compareType _ _                                      = False
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
+propCBOR :: Property
+propCBOR = property $ do
+    prog <- forAll genProgram
+    let trip = writeProgram <=< (fmap readProgram . writeProgram)
+        compared = trip prog == writeProgram prog
+    Hedgehog.assert compared
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
@@ -70,6 +77,7 @@ allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
+    , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles

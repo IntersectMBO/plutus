@@ -1,9 +1,13 @@
 module Language.PlutusCore.CBOR ( encodeProgram
                                 , decodeProgram
+                                , readProgram
+                                , writeProgram
                                 ) where
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
+import           Codec.CBOR.Read
+import           Codec.CBOR.Write
 import           Control.Recursion
 import qualified Data.ByteString.Lazy           as BSL
 import           Language.PlutusCore.Lexer.Type
@@ -199,3 +203,9 @@ encodeProgram (Program _ v t) = encodeVersion v <> encodeTerm t
 
 decodeProgram :: Decoder s (Program TyName Name ())
 decodeProgram = Program () <$> decodeVersion <*> decodeTerm
+
+writeProgram :: Program TyName Name () -> BSL.ByteString
+writeProgram = toLazyByteString . encodeProgram
+
+readProgram :: BSL.ByteString -> Either DeserialiseFailure (Program TyName Name ())
+readProgram = fmap snd . deserialiseFromBytes decodeProgram
