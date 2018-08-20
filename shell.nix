@@ -1,3 +1,6 @@
+# TODO: replace with shellFor once our pinned nixpkgs advances past 
+# 5523ec8f3c78704c6e76b7675bfce41d24a3feb1, before which it doesn't
+# handle overridden dependencies properly
 let
   localLib = import ./lib.nix;
 in
@@ -19,7 +22,7 @@ let
   ]);
 
 in
-  # This is an environment for running the frontend deps regeneration script.
+  # This is an environment for running the deps regeneration script.
   pkgs.stdenv.mkDerivation {
     name = "plutus-ghc";
     buildInputs = with pkgs; [ ghc ];
