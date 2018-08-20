@@ -37,6 +37,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , repeatM
                      , (?)
                      , Debug (..)
+                     , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
@@ -53,6 +54,7 @@ import           Control.Monad                           (guard, join)
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import           Data.Foldable                           (fold, toList)
+import           Data.Functor.Foldable                   (Recursive, Corecursive, embed, project, Base)
 import           Data.Function                           (on)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))

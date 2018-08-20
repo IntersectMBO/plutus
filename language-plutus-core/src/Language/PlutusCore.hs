@@ -1,9 +1,15 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
+
 module Language.PlutusCore
     ( Configuration (..)
     , defaultCfg
     , debugCfg
       -- * Parser
     , parse
+    , parseST
+    , parseTermST
+    , parseTypeST
     , parseScoped
     -- * Pretty-printing
     , prettyText
@@ -45,6 +51,8 @@ module Language.PlutusCore
     , TypeState (..)
     , RenamedType
     , RenamedTerm
+    , discardAnnsTy
+    , discardAnnsTerm
     -- * Normalization
     , check
     , NormalizationError
@@ -83,6 +91,8 @@ import           Language.PlutusCore.View
 import           PlutusPrelude
 import           Control.Monad.Except
 import           Control.Monad.State
+import           Data.Functor.Foldable
+
 
 newtype Configuration = Configuration Bool
 
@@ -124,3 +134,51 @@ formatDoc = fmap pretty . parse
 format :: Configuration -> BSL.ByteString -> Either ParseError T.Text
 format (Configuration True)  = fmap (render . debug) . parseScoped
 format (Configuration False) = fmap render . formatDoc
+
+discardAnnsName :: Name a -> Name ()
+discardAnnsName n = n { nameAttribute = () }
+
+discardAnnsTyName :: TyName a -> TyName ()
+discardAnnsTyName = TyName . discardAnnsName . unTyName
+
+discardAnnsKind :: Kind a -> Kind ()
+discardAnnsKind = cata f
+    where
+        f :: KindF a (Kind ()) -> Kind ()
+        f(TypeF _)     = Type ()
+        f(KindArrowF _ k k')        = KindArrow () k k'
+        f(SizeF _)     = Size ()
+
+discardAnnsTy :: forall a . Type TyName a -> Type TyName ()
+discardAnnsTy = cata f
+    where
+        f :: TypeF TyName a (Type TyName ()) -> Type TyName ()
+        f(TyAppF _ t t')     = TyApp () t t'
+        f(TyVarF _ n)        = TyVar () (discardAnnsTyName n)
+        f(TyFunF _ t t')     = TyFun () t t'
+        f(TyFixF _ n t)      = TyFix () (discardAnnsTyName n) t
+        f(TyForallF _ n k t) = TyForall () (discardAnnsTyName n) (discardAnnsKind k) t
+        f(TyBuiltinF _ n)    = TyBuiltin () n
+        f(TyIntF _ n)        = TyInt () n
+        f(TyLamF _ n k t)    = TyLam () (discardAnnsTyName n) (discardAnnsKind k) t
+
+discardAnnsTerm :: forall a . Term TyName Name a -> Term TyName Name ()
+discardAnnsTerm = cata f
+    where
+        f :: TermF TyName Name a (Term TyName Name ()) -> Term TyName Name ()
+        f(VarF _ n)         = Var () (discardAnnsName n)
+        f(TyAbsF _ n k t)   = TyAbs () (discardAnnsTyName n) (discardAnnsKind k) t
+        f(LamAbsF _ n ty t) = LamAbs () (discardAnnsName n) (discardAnnsTy ty) t
+        f(ApplyF _ t t')    = Apply () t t'
+        f(ConstantF _ c)    = Constant () (discardAnnsConstant c)
+        f(TyInstF _ t ty)   = TyInst () t (discardAnnsTy ty)
+        f(UnwrapF _ t)      = Unwrap () t
+        f(WrapF _ tn ty t)  = Wrap () (discardAnnsTyName tn) (discardAnnsTy ty) t
+        f(ErrorF _ ty)      = Error () (discardAnnsTy ty)
+
+discardAnnsConstant :: Constant a -> Constant ()
+discardAnnsConstant = \case
+    BuiltinInt _ n i -> BuiltinInt () n i
+    BuiltinBS _ n bs -> BuiltinBS () n bs
+    BuiltinSize _ n -> BuiltinSize () n
+    BuiltinName _ n -> BuiltinName () n

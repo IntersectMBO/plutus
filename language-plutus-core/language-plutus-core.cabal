@@ -63,7 +63,8 @@ library
                       GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
                       DeriveFoldable DeriveTraversable FlexibleContexts OverloadedStrings
                       DerivingStrategies MonadComprehensions FlexibleInstances
-                      ConstrainedClassMethods TupleSections GADTs RankNTypes
+                      ConstrainedClassMethods TupleSections GADTs RankNTypes 
+                      DeriveLift TemplateHaskell QuasiQuotes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -79,7 +80,9 @@ library
         text -any,
         prettyprinter -any,
         microlens -any,
-        composition-prelude -any
+        composition-prelude -any,
+        template-haskell -any,
+        th-lift-instances -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
