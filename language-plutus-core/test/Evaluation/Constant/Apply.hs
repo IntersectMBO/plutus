@@ -21,7 +21,7 @@ import           Hedgehog hiding (Size, Var, annotate)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
--- taking size-induced bounds (controlled by the 'TypedBuiltinGenSized' parameter) into account
+-- taking size-induced bounds (controlled by the 'TypedBuiltinGen' parameter) into account
 -- for arguments and either taking those bounds into account for the final result or using the
 -- default ones (as per the spec) or ignoring them completely depending on how you instantiate
 -- the first parameter. An argument is generated as a Haskell value, then coerced to the

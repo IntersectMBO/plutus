@@ -66,7 +66,7 @@ getListToBuiltinList ty ts = do
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
 -- sum elements of the list (see 'getBuiltinSum'), feed the resulting 'Term' to the CK machine
--- (see 'evaluateCk') and check that 'sum' applied to the original list is sync with the computed sum.
+-- (see 'evaluateCk') and check that 'sum' applied to the original list is in sync with the computed sum.
 test_ListSum :: TestTree
 test_ListSum = testProperty "ListSum" . property $ do
     size <- forAll $ genSizeIn 1 8

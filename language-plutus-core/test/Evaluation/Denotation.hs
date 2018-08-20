@@ -34,13 +34,6 @@ newtype Context = Context
 -- be them variables or functions. Better if we also take types of arguments into account, but it is
 -- not required as we can always generate an argument out of thin air in a rank-0 setting (without @Void@).
 
--- This should allow us to generate terms like (likely less sensible, but still well-typed)
-
--- (\(f : (integer -> bytestring) -> bool) -> f $ \i -> intToByteString i)
---     (\g -> g 3 `equalsByteString` intToByteString 3)
-
--- which is a pretty good start.
-
 denoteVariable :: Name () -> TypedBuiltin size r -> r -> Denotation (Name ()) size r
 denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin tb)
 

@@ -42212,6 +42212,8 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , criterion
 , deepseq
+, dependent-map
+, dependent-sum
 , happy
 , hedgehog
 , microlens
@@ -42219,6 +42221,7 @@ license = stdenv.lib.licenses.bsd3;
 , mtl
 , prettyprinter
 , recursion-schemes
+, safe-exceptions
 , stdenv
 , tasty
 , tasty-golden
@@ -42256,10 +42259,13 @@ testHaskellDepends = [
 base
 bytestring
 containers
+dependent-map
+dependent-sum
 hedgehog
 mmorph
 mtl
 prettyprinter
+safe-exceptions
 tasty
 tasty-golden
 tasty-hedgehog
