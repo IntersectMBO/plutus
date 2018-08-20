@@ -24,8 +24,8 @@ type Value = Term
 -- > /\ (A B :: *) -> \(x : A) (y : B) -> x
 getBuiltinConst :: Fresh (Term TyName Name ())
 getBuiltinConst = do
-    a <- freshTyName () "A"
-    b <- freshTyName () "B"
+    a <- freshTyName () "a"
+    b <- freshTyName () "b"
     x <- freshName () "x"
     y <- freshName () "y"
     return
@@ -40,7 +40,7 @@ getBuiltinConst = do
 -- > all (A :: *). A -> A
 getBuiltinUnit :: Fresh (Type TyName ())
 getBuiltinUnit = do
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
         . TyFun () (TyVar () a)
@@ -51,7 +51,7 @@ getBuiltinUnit = do
 -- > /\(A :: *) -> \(x : A) -> x
 getBuiltinUnitval :: Fresh (Value TyName Name ())
 getBuiltinUnitval = do
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     x <- freshName () "x"
     return
         . TyAbs () a (Type ())
@@ -64,7 +64,7 @@ getBuiltinUnitval = do
 getBuiltinBool :: Fresh (Type TyName ())
 getBuiltinBool = do
     unit <- getBuiltinUnit
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
         . TyFun () (TyFun () unit (TyVar () a))
@@ -78,7 +78,7 @@ getBuiltinTrue :: Fresh (Value TyName Name ())
 getBuiltinTrue = do
     builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
     let unitFunA = TyFun () builtinUnit (TyVar () a)
@@ -95,7 +95,7 @@ getBuiltinFalse :: Fresh (Value TyName Name ())
 getBuiltinFalse = do
     builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
     let unitFunA = TyFun () builtinUnit (TyVar () a)
@@ -112,7 +112,7 @@ getBuiltinIf :: Fresh (Value TyName Name ())
 getBuiltinIf = do
     builtinUnit <- getBuiltinUnit
     builtinBool <- getBuiltinBool
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     b <- freshName () "b"
     x <- freshName () "x"
     y <- freshName () "y"

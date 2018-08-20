@@ -1,5 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Evaluation.Terms where
+module Evaluation.Terms
+    ( getBuiltinSelf
+    , getBuiltinUnroll
+    , getBuiltinFix
+    , getBuiltinChurchNat
+    , getBuiltinChurchZero
+    , getBuiltinChurchSucc
+    , getBuiltinNat
+    , getBuiltinZero
+    , getBuiltinSucc
+    , getBuiltinFoldrNat
+    , getBuiltinFoldNat
+    , getBuiltinList
+    , getBuiltinNil
+    , getBuiltinCons
+    , getBuiltinFoldrList
+    , getBuiltinFoldList
+    , getBuiltinSum
+    ) where
 
 import           PlutusPrelude
 import           Language.PlutusCore
@@ -13,8 +31,8 @@ data NamedType tyname a = NamedType (tyname a) (Type tyname a)
 -- > \(A :: *) -> fix \(Self :: *) -> Self -> A
 getBuiltinSelf :: Fresh (NamedType TyName ())
 getBuiltinSelf = do
-    a    <- freshTyName () "A"
-    self <- freshTyName () "Self"
+    a    <- freshTyName () "a"
+    self <- freshTyName () "self"
     return
         . NamedType self
         . TyLam () a (Type ())
@@ -28,7 +46,7 @@ getBuiltinSelf = do
 getBuiltinUnroll :: Fresh (Term TyName Name ())
 getBuiltinUnroll = do
     NamedType _ builtinSelf <- getBuiltinSelf
-    a <- freshTyName () "A"
+    a <- freshTyName () "a"
     s <- freshName () "s"
     return
         . TyAbs () a (Type ())
@@ -44,8 +62,8 @@ getBuiltinFix :: Fresh (Term TyName Name ())
 getBuiltinFix = do
     NamedType self builtinSelf <- getBuiltinSelf
     builtinUnroll <- getBuiltinUnroll
-    a <- freshTyName () "A"
-    b <- freshTyName () "B"
+    a <- freshTyName () "a"
+    b <- freshTyName () "b"
     f <- freshName () "f"
     s <- freshName () "s"
     x <- freshName () "x"
@@ -70,7 +88,7 @@ getBuiltinFix = do
 -- > all (R :: *). R -> (R -> R) -> R
 getBuiltinChurchNat :: Fresh (Type TyName ())
 getBuiltinChurchNat = do
-    r <- freshTyName () "R"
+    r <- freshTyName () "r"
     return
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -82,7 +100,7 @@ getBuiltinChurchNat = do
 -- > /\(R :: *) -> \(z : R) (f : R -> R) -> z
 getBuiltinChurchZero :: Fresh (Term TyName Name ())
 getBuiltinChurchZero = do
-    r <- freshTyName () "R"
+    r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
@@ -98,7 +116,7 @@ getBuiltinChurchSucc :: Fresh (Term TyName Name ())
 getBuiltinChurchSucc = do
     builtinNat <- getBuiltinChurchNat
     n <- freshName () "n"
-    r <- freshTyName () "R"
+    r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
@@ -117,8 +135,8 @@ getBuiltinChurchSucc = do
 -- > fix \(Nat :: *) -> all R. R -> (Nat -> R) -> R
 getBuiltinNat :: Fresh (NamedType TyName ())
 getBuiltinNat = do
-    nat <- freshTyName () "Nat"
-    r   <- freshTyName () "R"
+    nat <- freshTyName () "nat"
+    r   <- freshTyName () "r"
     return
         . NamedType nat
         . TyFix () nat
@@ -133,7 +151,7 @@ getBuiltinNat = do
 getBuiltinZero :: Fresh (Term TyName Name ())
 getBuiltinZero = do
     NamedType nat builtinNat <- getBuiltinNat
-    r <- freshTyName () "R"
+    r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
@@ -150,7 +168,7 @@ getBuiltinSucc :: Fresh (Term TyName Name ())
 getBuiltinSucc = do
     NamedType nat builtinNat <- getBuiltinNat
     n <- freshName () "n"
-    r <- freshTyName () "R"
+    r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
@@ -171,7 +189,7 @@ getBuiltinFoldrNat :: Fresh (Term TyName Name ())
 getBuiltinFoldrNat = do
     NamedType _ builtinNat <- getBuiltinNat
     builtinFix <- getBuiltinFix
-    r   <- freshTyName () "R"
+    r   <- freshTyName () "r"
     f   <- freshName () "f"
     z   <- freshName () "z"
     rec <- freshName () "rec"
@@ -199,7 +217,7 @@ getBuiltinFoldNat :: Fresh (Term TyName Name ())
 getBuiltinFoldNat = do
     NamedType _ builtinNat <- getBuiltinNat
     builtinFix <- getBuiltinFix
-    r   <- freshTyName () "R"
+    r   <- freshTyName () "r"
     f   <- freshName () "f"
     rec <- freshName () "rec"
     z   <- freshName () "z"
@@ -221,9 +239,9 @@ getBuiltinFoldNat = do
 -- > \(A :: *). fix \(List :: *) -> all (R :: *). R -> (A -> List -> R) -> R
 getBuiltinList :: Fresh (NamedType TyName ())
 getBuiltinList = do
-    a    <- freshTyName () "A"
-    list <- freshTyName () "List"
-    r    <- freshTyName () "R"
+    a    <- freshTyName () "a"
+    list <- freshTyName () "list"
+    r    <- freshTyName () "r"
     return
         . NamedType list
         . TyLam () a (Type ())
@@ -239,8 +257,8 @@ getBuiltinList = do
 getBuiltinNil :: Fresh (Term TyName Name ())
 getBuiltinNil = do
     NamedType list builtinList <- getBuiltinList
-    a <- freshTyName () "A"
-    r <- freshTyName () "R"
+    a <- freshTyName () "a"
+    r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     let builtinListA = TyApp () builtinList $ TyVar () a
@@ -259,10 +277,10 @@ getBuiltinNil = do
 getBuiltinCons :: Fresh (Term TyName Name ())
 getBuiltinCons = do
     NamedType list builtinList <- getBuiltinList
-    a  <- freshTyName () "A"
+    a  <- freshTyName () "a"
     x  <- freshName () "x"
     xs <- freshName () "xs"
-    r  <- freshTyName () "R"
+    r  <- freshTyName () "r"
     z  <- freshName () "z"
     f  <- freshName () "f"
     let builtinListA = TyApp () builtinList $ TyVar () a
@@ -288,8 +306,8 @@ getBuiltinFoldrList :: Fresh (Term TyName Name ())
 getBuiltinFoldrList = do
     NamedType _ builtinList <- getBuiltinList
     builtinFix <- getBuiltinFix
-    a   <- freshTyName () "A"
-    r   <- freshTyName () "R"
+    a   <- freshTyName () "a"
+    r   <- freshTyName () "r"
     f   <- freshName () "f"
     z   <- freshName () "z"
     rec <- freshName () "rec"
@@ -301,6 +319,7 @@ getBuiltinFoldrList = do
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
+        . LamAbs () z (TyVar () r)
         . Apply () (foldl (TyInst ()) builtinFix [builtinListA, TyVar () r])
         . LamAbs () rec (TyFun () builtinListA $ TyVar () r)
         . LamAbs () xs builtinListA
@@ -321,8 +340,8 @@ getBuiltinFoldList :: Fresh (Term TyName Name ())
 getBuiltinFoldList = do
     NamedType _ builtinList <- getBuiltinList
     builtinFix <- getBuiltinFix
-    a   <- freshTyName () "A"
-    r   <- freshTyName () "R"
+    a   <- freshTyName () "a"
+    r   <- freshTyName () "r"
     f   <- freshName () "f"
     rec <- freshName () "rec"
     z   <- freshName () "z"
