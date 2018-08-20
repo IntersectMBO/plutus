@@ -1,0 +1,1 @@
+(abs a_0 (type) (lam x_1 (fun (all a_5 (type) (fun a_5 a_5)) a_0) (lam y_3 (fun (all a_5 (type) (fun a_5 a_5)) a_0) [ x_1 (abs a_6 (type) (lam x_7 a_6 x_7)) ])))

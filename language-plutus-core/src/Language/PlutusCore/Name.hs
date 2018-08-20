@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DeriveLift                 #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
@@ -24,21 +25,28 @@ import qualified Data.Map             as M
 import           Data.Text.Encoding   (decodeUtf8)
 import           PlutusPrelude
 
+import           Language.Haskell.TH.Syntax (Lift)
+-- for bytestring Lift instance
+import           Instances.TH.Lift          ()
+
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
                    , nameString    :: BSL.ByteString -- ^ The identifier name, for use in error messages.
                    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
                    }
-            deriving (Functor, Show, Generic, NFData)
+            deriving (Functor, Show, Generic, NFData, Lift)
 
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
-    deriving Show
-    deriving newtype (Eq, Functor, NFData, Pretty, Debug)
+    deriving (Show, Lift)
+    deriving newtype (Eq, Ord, Functor, NFData, Pretty, Debug)
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique
+
+instance Ord (Name a) where
+  (<=) = (<=) `on` nameUnique
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's. It is used during parsing and renaming.
@@ -54,8 +62,8 @@ identifierStateFrom u = (mempty, mempty, u)
 -- suite; I don't know if there is an easier/better way to do this
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
-    deriving (Eq, Show)
-    deriving newtype NFData
+    deriving (Eq, Show, Ord, Lift)
+    deriving newtype (NFData)
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast

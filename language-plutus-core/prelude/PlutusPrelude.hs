@@ -34,6 +34,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , repeatM
                      , (?)
                      , Debug (..)
+                     , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
@@ -50,6 +51,7 @@ import           Control.Monad                           (guard, join)
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import           Data.Foldable                           (fold, toList)
+import           Data.Functor.Foldable                   (Recursive, Corecursive, embed, project, Base)
 import           Data.Function                           (on)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
@@ -97,3 +99,7 @@ instance Functor f => Functor (PairT b f) where
 
 prettyString :: Pretty a => a -> String
 prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
+
+-- | Like a version of 'everywhere' for recursion schemes. In an unreleased version thereof.
+hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
+hoist f = c where c = embed . f . fmap c . project

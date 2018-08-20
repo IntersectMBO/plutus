@@ -42050,7 +42050,9 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-golden
 , tasty-hedgehog
 , tasty-hunit
+, template-haskell
 , text
+, th-lift-instances
 , transformers
 }:
 mkDerivation {
@@ -42071,7 +42073,9 @@ microlens
 mtl
 prettyprinter
 recursion-schemes
+template-haskell
 text
+th-lift-instances
 transformers
 ];
 libraryToolDepends = [
