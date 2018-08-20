@@ -13,6 +13,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fold
                      , throw
                      , join
+                     , (<=<)
                      , Generic
                      , NFData
                      , Natural
@@ -44,6 +45,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , Doc
                      ) where
 
+import Control.Monad ((<=<))
 import           Control.Applicative                     (Alternative (..))
 import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
