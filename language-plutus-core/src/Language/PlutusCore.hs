@@ -67,6 +67,7 @@ import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
 import           Data.Text.Prettyprint.Doc         hiding (annotate)
+import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
