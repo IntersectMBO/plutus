@@ -122,13 +122,11 @@ encodeKind = cata a where
     a SizeF{}             = encodeTag 2
 
 decodeKind :: Decoder s (Kind ())
-decodeKind = do
-    tag <- decodeTag
-    case tag of
-        0 -> pure (Type ())
-        1 -> KindArrow () <$> decodeKind <*> decodeKind
-        2 -> pure (Size ())
-        _ -> fail "Failed to decode Kind ()"
+decodeKind = go =<< decodeTag
+    where go 0 = pure (Type ())
+          go 1 = KindArrow () <$> decodeKind <*> decodeKind
+          go 2 = pure (Size ())
+          go _ = fail "Failed to decode Kind ()"
 
 encodeType :: Type TyName () -> Encoding
 encodeType = cata a where
@@ -142,18 +140,16 @@ encodeType = cata a where
     a (TyAppF _ t t')      = encodeTag 7 <> t <> t'
 
 decodeType :: Decoder a (Type TyName ())
-decodeType = do
-    tag <- decodeTag
-    case tag of
-        0 -> TyVar () <$> decodeTyName
-        1 -> TyFun () <$> decodeType <*> decodeType
-        2 -> TyFix () <$> decodeTyName <*> decodeType
-        3 -> TyForall () <$> decodeTyName <*> decodeKind <*> decodeType
-        4 -> TyBuiltin () <$> decodeTyBuiltin
-        5 -> TyInt () <$> decodeNatural
-        6 -> TyLam () <$> decodeTyName <*> decodeKind <*> decodeType
-        7 -> TyApp () <$> decodeType <*> decodeType
-        _ -> fail "Failed to decode Type TyName ()"
+decodeType = go =<< decodeTag
+    where go 0 = TyVar () <$> decodeTyName
+          go 1 = TyFun () <$> decodeType <*> decodeType
+          go 2 = TyFix () <$> decodeTyName <*> decodeType
+          go 3 = TyForall () <$> decodeTyName <*> decodeKind <*> decodeType
+          go 4 = TyBuiltin () <$> decodeTyBuiltin
+          go 5 = TyInt () <$> decodeNatural
+          go 6 = TyLam () <$> decodeTyName <*> decodeKind <*> decodeType
+          go 7 = TyApp () <$> decodeType <*> decodeType
+          go _ = fail "Failed to decode Type TyName ()"
 
 encodeConstant :: Constant () -> Encoding
 encodeConstant (BuiltinInt _ n i) = fold [ encodeTag 0, encodeNatural n, encodeInteger i ]
@@ -162,14 +158,12 @@ encodeConstant (BuiltinSize _ n)  = encodeTag 2 <> encodeNatural n
 encodeConstant (BuiltinName _ bn) = encodeTag 3 <> encodeBuiltinName bn
 
 decodeConstant :: Decoder s (Constant ())
-decodeConstant = do
-    tag <- decodeTag
-    case tag of
-        0 -> BuiltinInt () <$> decodeNatural <*> decodeInteger
-        1 -> BuiltinBS () <$> decodeNatural <*> fmap BSL.fromStrict decodeBytes
-        2 -> BuiltinSize () <$> decodeNatural
-        3 -> BuiltinName () <$> decodeBuiltinName
-        _ -> fail "Failed to decode Constant ()"
+decodeConstant = go =<< decodeTag
+    where go 0 = BuiltinInt () <$> decodeNatural <*> decodeInteger
+          go 1 = BuiltinBS () <$> decodeNatural <*> fmap BSL.fromStrict decodeBytes
+          go 2 = BuiltinSize () <$> decodeNatural
+          go 3 = BuiltinName () <$> decodeBuiltinName
+          go _ = fail "Failed to decode Constant ()"
 
 encodeTerm :: Term TyName Name () -> Encoding
 encodeTerm = cata a where
@@ -184,19 +178,17 @@ encodeTerm = cata a where
     a (ErrorF _ ty)      = encodeTag 8 <> encodeType ty
 
 decodeTerm :: Decoder s (Term TyName Name ())
-decodeTerm = do
-    tag <- decodeTag
-    case tag of
-        0 -> Var () <$> decodeName
-        1 -> TyAbs () <$> decodeTyName <*> decodeKind <*> decodeTerm
-        2 -> LamAbs () <$> decodeName <*> decodeType <*> decodeTerm
-        3 -> Apply () <$> decodeTerm <*> decodeTerm
-        4 -> Constant () <$> decodeConstant
-        5 -> TyInst () <$> decodeTerm <*> decodeType
-        6 -> Unwrap () <$> decodeTerm
-        7 -> Wrap () <$> decodeTyName <*> decodeType <*> decodeTerm
-        8 -> Error () <$> decodeType
-        _ -> fail "Failed to decode Term TyName Name ()"
+decodeTerm = go =<< decodeTag
+    where go 0 = Var () <$> decodeName
+          go 1 = TyAbs () <$> decodeTyName <*> decodeKind <*> decodeTerm
+          go 2 = LamAbs () <$> decodeName <*> decodeType <*> decodeTerm
+          go 3 = Apply () <$> decodeTerm <*> decodeTerm
+          go 4 = Constant () <$> decodeConstant
+          go 5 = TyInst () <$> decodeTerm <*> decodeType
+          go 6 = Unwrap () <$> decodeTerm
+          go 7 = Wrap () <$> decodeTyName <*> decodeType <*> decodeTerm
+          go 8 = Error () <$> decodeType
+          go _ = fail "Failed to decode Term TyName Name ()"
 
 encodeProgram :: Program TyName Name () -> Encoding
 encodeProgram (Program _ v t) = encodeVersion v <> encodeTerm t

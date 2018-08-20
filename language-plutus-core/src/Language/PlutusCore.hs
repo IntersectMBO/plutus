@@ -81,6 +81,7 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
+-- TODO: optionally print annotations
 newtype Configuration = Configuration Bool
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
