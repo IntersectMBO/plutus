@@ -107,7 +107,7 @@ programType :: Natural -- ^ Gas provided to typechecker
             -> Program TyNameWithKind NameWithType a
             -> Either (TypeError a) (RenamedType ())
 programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
-    where i = maybe 0 fst (IM.lookupMax tys)
+    where i = maybe 0 (fst . fst) (IM.maxViewWithKey tys)
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
