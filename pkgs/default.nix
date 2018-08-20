@@ -42220,8 +42220,8 @@ license = stdenv.lib.licenses.bsd3;
 , mmorph
 , mtl
 , prettyprinter
-, recursion-schemes
 , safe-exceptions
+, recursion
 , stdenv
 , tasty
 , tasty-golden
@@ -42246,7 +42246,7 @@ deepseq
 microlens
 mtl
 prettyprinter
-recursion-schemes
+recursion
 text
 transformers
 value-supply
@@ -83667,4 +83667,3 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
-

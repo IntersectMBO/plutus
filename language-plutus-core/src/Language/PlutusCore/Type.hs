@@ -20,7 +20,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 ) where
 
 import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable
+import           Control.Recursion
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
