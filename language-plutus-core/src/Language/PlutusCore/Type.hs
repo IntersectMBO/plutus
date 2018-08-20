@@ -14,6 +14,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
+                                , KindF (..)
                                 -- * Helper functions
                                 , tyLoc
                                 , termLoc

@@ -50,6 +50,9 @@ module Language.PlutusCore
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
+    -- * Serialization
+    , encodeProgram
+    , decodeProgram
     -- * Errors
     , Error (..)
     , IsError (..)
