@@ -58,9 +58,10 @@ compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 propCBOR :: Property
 propCBOR = property $ do
     prog <- forAll genProgram
-    let trip = writeProgram <=< (fmap readProgram . writeProgram)
-        compared = trip prog == writeProgram prog
-    Hedgehog.assert compared
+    let nullPosn = fmap (pure ())
+        trip = readProgram . writeProgram
+        compared = (==) <$> trip (nullPosn prog) <*> pure (nullPosn prog)
+    Hedgehog.assert (fromRight False compared)
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
