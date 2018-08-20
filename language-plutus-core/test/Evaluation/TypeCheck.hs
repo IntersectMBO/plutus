@@ -13,35 +13,6 @@ import qualified Data.ByteString.Lazy as Bsl
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-typecheckProgram :: Program TyName Name () -> Maybe Error
-typecheckProgram
-    = either Just (\_ -> Nothing)
-    . printType
-    . Bsl.fromStrict
-    . Text.encodeUtf8
-    . prettyText
-
-typecheckTerm :: Term TyName Name () -> Maybe Error
-typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
-
-typecheckFreshTerm :: Fresh (Term TyName Name ()) -> Maybe Error
-typecheckFreshTerm = typecheckTerm . unsafeRunFresh
-
-assertFreshIllTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
-assertFreshIllTyped getTerm =
-    let term = unsafeRunFresh getTerm in
-        case typecheckTerm term of
-            Nothing -> assertFailure $ "Well-typed: " ++ prettyString term
-            Just _  -> return ()
-
-assertFreshWellTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
-assertFreshWellTyped getTerm =
-    let term = unsafeRunFresh getTerm in
-        for_ (typecheckTerm term) $ \err -> assertFailure $ concat
-            [ "Ill-typed: ", prettyString term, "\n"
-            , "Due to: ", prettyString err
-            ]
-
 test_typecheckPrelude :: TestTree
 test_typecheckPrelude = testCase "typecheckPrelude" $ foldMap assertFreshWellTyped
     [ getBuiltinConst
@@ -72,6 +43,35 @@ test_typecheckIllTyped :: TestTree
 test_typecheckIllTyped = testCase "typecheckIllTyped" $ foldMap assertFreshIllTyped
     [ getBuiltinSelfApply
     ]
+
+assertFreshWellTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
+assertFreshWellTyped getTerm =
+    let term = unsafeRunFresh getTerm in
+        for_ (typecheckTerm term) $ \err -> assertFailure $ concat
+            [ "Ill-typed: ", prettyString term, "\n"
+            , "Due to: ", prettyString err
+            ]
+
+assertFreshIllTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
+assertFreshIllTyped getTerm =
+    let term = unsafeRunFresh getTerm in
+        case typecheckTerm term of
+            Nothing -> assertFailure $ "Well-typed: " ++ prettyString term
+            Just _  -> return ()
+
+typecheckProgram :: Program TyName Name () -> Maybe Error
+typecheckProgram
+    = either Just (\_ -> Nothing)
+    . printType
+    . Bsl.fromStrict
+    . Text.encodeUtf8
+    . prettyText
+
+typecheckTerm :: Term TyName Name () -> Maybe Error
+typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
+
+typecheckFreshTerm :: Fresh (Term TyName Name ()) -> Maybe Error
+typecheckFreshTerm = typecheckTerm . unsafeRunFresh
 
 -- | Self-application. An example of ill-typed term.
 --

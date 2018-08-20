@@ -24,19 +24,31 @@ data Denotation object size r = forall a. Denotation
                                                           -- See 'sizeIntIntInt' for example.
     }
 
-data MemberDenotation r = forall object. MemberDenotation (Denotation object Size r)
+-- | A member of a 'DenotationContext'.
+-- @object@ is existentially quantified, so the only thing that can be done with it,
+-- is turning it into a 'Term' using '_denotationToTerm'.
+data DenotationContextMember r =
+    forall object. DenotationContextMember (Denotation object Size r)
 
-newtype Context = Context
-    { unContext :: DMap (TypedBuiltin ()) (Compose [] MemberDenotation)
+-- | A context of 'DenotationContextMember's.
+-- Each row is a mapping from a type to a list of things that can return that type.
+-- For example it can contain a mapping from @integer@ to
+--   1. a bound variable of type @integer@
+--   2. a bound variable of functional type with the result being @integer@
+--   3. the 'AddInteger' 'BuiltinName' or any other 'BuiltinName' which returns an @integer@.
+newtype DenotationContext = DenotationContext
+    { unDenotationContext :: DMap (TypedBuiltin ()) (Compose [] DenotationContextMember)
     }
 
 -- Here the only search that we need to perform is the search for things that return an appropriate @r@,
 -- be them variables or functions. Better if we also take types of arguments into account, but it is
 -- not required as we can always generate an argument out of thin air in a rank-0 setting (without @Void@).
 
+-- | Get the 'Denotation' of a variable.
 denoteVariable :: Name () -> TypedBuiltin size r -> r -> Denotation (Name ()) size r
 denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin tb)
 
+-- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName :: TypedBuiltinName a r -> a -> Denotation BuiltinName size r
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
     Denotation name (Constant () . BuiltinName ()) meta scheme
@@ -81,30 +93,27 @@ instance Ord size => GCompare (TypedBuiltin size) where
     gcompare (TypedBuiltinSized _ _)        TypedBuiltinBool               = GLT
     gcompare TypedBuiltinBool               (TypedBuiltinSized _ _)        = GGT
 
-{- -- This is rejected, because the 'Applicative' instance requires 'g' to be 'Applicative'.
--- Hence we can't simply use '(<|>)' in 'DMap.insertWith\'' below. Something is not right here.
-instance Alternative f => Alternative (Compose f g) where
-    empty = Compose empty
-    Compose x <|> Compose y = Compose (x <|> y)
--}
-
-insertDenotation :: TypedBuiltin () r -> Denotation object Size r -> Context -> Context
-insertDenotation tb denotation (Context vs) = Context $
+-- | Insert the 'Denotation' of an object into a 'DenotationContext'.
+insertDenotation :: TypedBuiltin () r -> Denotation object Size r -> DenotationContext -> DenotationContext
+insertDenotation tb denotation (DenotationContext vs) = DenotationContext $
     DMap.insertWith'
         (\(Compose xs) (Compose ys) -> Compose $ xs ++ ys)
         tb
-        (Compose [MemberDenotation denotation])
+        (Compose [DenotationContextMember denotation])
         vs
 
-insertVariable :: Name () -> TypedBuiltin Size a -> a -> Context -> Context
+-- | Insert a variable into a 'DenotationContext'.
+insertVariable :: Name () -> TypedBuiltin Size a -> a -> DenotationContext -> DenotationContext
 insertVariable name tb meta =
     insertDenotation (closeTypedBuiltin tb) (denoteVariable name tb meta)
 
-insertTypedBuiltinName :: TypedBuiltinName a r -> a -> Context -> Context
+-- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
+insertTypedBuiltinName :: TypedBuiltinName a r -> a -> DenotationContext -> DenotationContext
 insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
     insertDenotation (typeSchemeResult scheme) (denoteTypedBuiltinName tbn meta)
 
-typedBuiltinNames :: Context
+-- | A 'DenotationContext' that consists of 'TypedBuiltinName's.
+typedBuiltinNames :: DenotationContext
 typedBuiltinNames
     = insertTypedBuiltinName typedAddInteger           (+)
     . insertTypedBuiltinName typedSubtractInteger      (-)
@@ -127,4 +136,4 @@ typedBuiltinNames
     . insertTypedBuiltinName typedResizeByteString     (const id)
     . insertTypedBuiltinName typedEqByteString         (==)
 --     . insertTypedBuiltinName typedTxHash               undefined
-    $ Context DMap.empty
+    $ DenotationContext DMap.empty

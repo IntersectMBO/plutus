@@ -42,11 +42,12 @@ coerceTypedBuiltin tb x = fromMaybe err $ unsafeMakeConstant tb x where
     sx = prettyString $ TypedBuiltinValue tb x
     err = error $ "prop_typedAddInteger: out of bounds: " ++ sx
 
--- This has an interesting @Apply@ instance (no pun intended).
+-- | A PLC 'Term' along with the correspoding Haskell value.
 data TermOf a = TermOf
-    { _termOfTerm  :: Term TyName Name ()
-    , _termOfValue :: a
+    { _termOfTerm  :: Term TyName Name ()  -- ^ The PLC term
+    , _termOfValue :: a                    -- ^ The Haskell value.
     }
+-- This has an interesting @Apply@ instance (no pun intended).
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 -- the list of such types) and returns it along with the corresponding PLC value.
