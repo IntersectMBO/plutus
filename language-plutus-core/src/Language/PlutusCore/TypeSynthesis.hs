@@ -233,10 +233,10 @@ preTypeOf (Apply x t t') = do
             typeCheckStep
             if ty' == ty'''
                 then pure ty''
-                else throwError (TypeMismatch x (void t') ty' ty''')
+                else throwError (TypeMismatch x (void t') ty' ty''') -- this is where the error occurs
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 preTypeOf (TyInst x t ty) = do
-    ty' <- preTypeOf t
+    ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
             k' <- kindOf ty
