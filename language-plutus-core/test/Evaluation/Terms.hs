@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Evaluation.Terms
     ( getBuiltinSelf
@@ -22,70 +23,87 @@ module Evaluation.Terms
 import           PlutusPrelude
 import           Language.PlutusCore
 
-data NamedType tyname a = NamedType (tyname a) (Type tyname a)
+data HoledType tyname a = HoledType
+    { _holedTypeName :: tyname a
+    , _holedTypeCont :: (Type tyname a -> Type tyname a) -> Type tyname a
+    }
 
--- TODO: every 'TyApp' in this module must be computing.
+data RecursiveType tyname a = RecursiveType
+    { _recursiveWrap :: forall name. Term tyname name a -> Term tyname name a
+    , _recursiveType :: Type tyname a
+    }
+
+-- TODO: the 'TyApp' must be computing.
+holedTyApp :: HoledType tyname () -> Type tyname () -> HoledType tyname ()
+holedTyApp (HoledType name cont) arg = HoledType name $ \hole -> TyApp () (cont hole) arg
+
+holedToRecursive :: HoledType tyname () -> RecursiveType tyname ()
+holedToRecursive (HoledType name cont) =
+    RecursiveType (Wrap () name $ cont id) (cont $ TyFix () name)
 
 -- | @Self@ as a PLC type.
 --
--- > \(A :: *) -> fix \(Self :: *) -> Self -> A
-getBuiltinSelf :: Fresh (NamedType TyName ())
+-- > \(a :: *) -> fix \(self :: *) -> self -> a
+getBuiltinSelf :: Fresh (HoledType TyName ())
 getBuiltinSelf = do
     a    <- freshTyName () "a"
     self <- freshTyName () "self"
     return
-        . NamedType self
-        . TyLam () a (Type ())
-        . TyFix () self
+        . HoledType self $ \hole ->
+          TyLam () a (Type ())
+        . hole
         . TyFun () (TyVar () self)
         $ TyVar () a
 
 -- | @unroll@ as a PLC term.
 --
--- > /\(A :: *) -> \(s : Self A) -> unwrap s s
+-- > /\(a :: *) -> \(s : self a) -> unwrap s s
 getBuiltinUnroll :: Fresh (Term TyName Name ())
 getBuiltinUnroll = do
-    NamedType _ builtinSelf <- getBuiltinSelf
+    builtinSelf <- getBuiltinSelf
     a <- freshTyName () "a"
     s <- freshName () "s"
+    let RecursiveType _ builtinSelfA =
+            holedToRecursive . holedTyApp builtinSelf $ TyVar () a
     return
         . TyAbs () a (Type ())
-        . LamAbs () s (TyApp () builtinSelf $ TyVar () a)
+        . LamAbs () s builtinSelfA
         . Apply () (Unwrap () $ Var () s)
         $ Var () s
 
 -- | 'fix' as a PLC term.
 --
--- > /\(A B :: *) -> \(f : (A -> B) -> A -> B) ->
--- >    unroll {A -> B} (wrap \(s : Self (A -> B)) \(x : A) -> f (unroll {A -> B} s) x)
+-- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
+-- >    unroll {a -> b} (wrap \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 getBuiltinFix :: Fresh (Term TyName Name ())
 getBuiltinFix = do
-    NamedType self builtinSelf <- getBuiltinSelf
-    builtinUnroll <- getBuiltinUnroll
+    self   <- getBuiltinSelf
+    unroll <- getBuiltinUnroll
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     f <- freshName () "f"
     s <- freshName () "s"
     x <- freshName () "x"
-    let funAB = TyFun () (TyVar () a) (TyVar () b)
-        builtinUnrollFunAB = TyInst () builtinUnroll funAB
-        builtinSelfFunAB   = TyApp () builtinSelf funAB
+    let funAB = TyFun () (TyVar () a) $ TyVar () b
+        unrollFunAB = TyInst () unroll funAB
+        RecursiveType wrapSelfFunAB selfFunAB =
+            holedToRecursive $ holedTyApp self funAB
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
-        . Apply () builtinUnrollFunAB
-        . Wrap () self builtinSelfFunAB
-        . LamAbs () s builtinSelfFunAB
+        . Apply () unrollFunAB
+        . wrapSelfFunAB
+        . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
         . foldl (Apply ()) (Var () f)
-        $ [ Apply () builtinUnrollFunAB $ Var () s
+        $ [ Apply () unrollFunAB $ Var () s
           , Var () x
           ]
 
 -- | Church-encoded @Nat@ as a PLC type.
 --
--- > all (R :: *). R -> (R -> R) -> R
+-- > all (r :: *). r -> (r -> r) -> r
 getBuiltinChurchNat :: Fresh (Type TyName ())
 getBuiltinChurchNat = do
     r <- freshTyName () "r"
@@ -97,7 +115,7 @@ getBuiltinChurchNat = do
 
 -- | Church-encoded '0' as a PLC term.
 --
--- > /\(R :: *) -> \(z : R) (f : R -> R) -> z
+-- > /\(r :: *) -> \(z : r) (f : r -> r) -> z
 getBuiltinChurchZero :: Fresh (Term TyName Name ())
 getBuiltinChurchZero = do
     r <- freshTyName () "r"
@@ -111,35 +129,35 @@ getBuiltinChurchZero = do
 
 -- | Church-encoded 'succ' as a PLC term.
 --
--- > \(n : Nat) -> /\(R :: *) -> \(z : R) (f : R -> R) -> f (n {R} f z)
+-- > \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
 getBuiltinChurchSucc :: Fresh (Term TyName Name ())
 getBuiltinChurchSucc = do
-    builtinNat <- getBuiltinChurchNat
+    nat <- getBuiltinChurchNat
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . LamAbs () n builtinNat
+        . LamAbs () n nat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
         . Apply () (Var () f)
         . foldl (Apply ()) (TyInst () (Var () n) $ TyVar () r)
-        $ [ Var () f
-          , Var () z
+        $ [ Var () z
+          , Var () f
           ]
 
 -- | @Nat@ as a PLC type.
 --
--- > fix \(Nat :: *) -> all R. R -> (Nat -> R) -> R
-getBuiltinNat :: Fresh (NamedType TyName ())
+-- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
+getBuiltinNat :: Fresh (HoledType TyName ())
 getBuiltinNat = do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
     return
-        . NamedType nat
-        . TyFix () nat
+        . HoledType nat $ \hole ->
+          hole
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () nat) $ TyVar () r)
@@ -147,48 +165,48 @@ getBuiltinNat = do
 
 -- |  '0' as a PLC term.
 --
--- > wrap /\(R :: *) -> \(z : R) (f : Nat -> R) -> z
+-- > wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> z
 getBuiltinZero :: Fresh (Term TyName Name ())
 getBuiltinZero = do
-    NamedType nat builtinNat <- getBuiltinNat
+    RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . Wrap () nat builtinNat
+        . wrapNat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () builtinNat $ TyVar () r)
+        . LamAbs () f (TyFun () nat $ TyVar () r)
         $ Var () z
 
 -- |  'succ' as a PLC term.
 --
--- > \(n : Nat) -> wrap /\(R :: *) -> \(z : R) (f : Nat -> R) -> f n
+-- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
 getBuiltinSucc :: Fresh (Term TyName Name ())
 getBuiltinSucc = do
-    NamedType nat builtinNat <- getBuiltinNat
+    RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . LamAbs () n builtinNat
-        . Wrap () nat builtinNat
+        . LamAbs () n nat
+        . wrapNat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () builtinNat $ TyVar () r)
+        . LamAbs () f (TyFun () nat $ TyVar () r)
         . Apply () (Var () f)
         $ Var () n
 
 -- |  @foldrNat@ as a PLC term.
 --
--- > /\(R :: *) -> \(f : R -> R) (z : R) ->
--- >     fix {Nat} {R} \(rec : Nat -> R) (n : Nat) ->
--- >         unwrap n {R} z \(n' : Nat) -> f (rec n')
+-- > /\(r :: *) -> \(f : r -> r) (z : r) ->
+-- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
+-- >         unwrap n {r} z \(n' : nat) -> f (rec n')
 getBuiltinFoldrNat :: Fresh (Term TyName Name ())
 getBuiltinFoldrNat = do
-    NamedType _ builtinNat <- getBuiltinNat
-    builtinFix <- getBuiltinFix
+    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+    fix <- getBuiltinFix
     r   <- freshTyName () "r"
     f   <- freshName () "f"
     z   <- freshName () "z"
@@ -199,24 +217,24 @@ getBuiltinFoldrNat = do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
         . LamAbs () z (TyVar () r)
-        . Apply () (foldl (TyInst ()) builtinFix [builtinNat, TyVar () r])
-        . LamAbs () rec (TyFun () builtinNat $ TyVar () r)
-        . LamAbs () n builtinNat
+        . Apply () (foldl (TyInst ()) fix [nat, TyVar () r])
+        . LamAbs () rec (TyFun () nat $ TyVar () r)
+        . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
-        . LamAbs () n' builtinNat
+        . LamAbs () n' nat
         . Apply () (Var () f)
         . Apply () (Var () rec)
         $ Var () n'
 
 -- |  @foldNat@ as a PLC term.
 --
--- > /\(R :: *) -> \(f : R -> R) ->
--- >     fix {R} {Nat -> R} \(rec : R -> Nat -> R) (z : R) (n : Nat) ->
--- >         unwrap n {R} z (rec (f z))
+-- > /\(r :: *) -> \(f : r -> r) ->
+-- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
+-- >         unwrap n {r} z (rec (f z))
 getBuiltinFoldNat :: Fresh (Term TyName Name ())
 getBuiltinFoldNat = do
-    NamedType _ builtinNat <- getBuiltinNat
-    builtinFix <- getBuiltinFix
+    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+    fix <- getBuiltinFix
     r   <- freshTyName () "r"
     f   <- freshName () "f"
     rec <- freshName () "rec"
@@ -225,10 +243,10 @@ getBuiltinFoldNat = do
     return
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
-        . Apply () (foldl (TyInst ()) builtinFix [TyVar () r, TyFun () builtinNat $ TyVar () r])
-        . LamAbs () rec (TyFun () (TyVar () r) . TyFun () builtinNat $ TyVar () r)
+        . Apply () (foldl (TyInst ()) fix [TyVar () r, TyFun () nat $ TyVar () r])
+        . LamAbs () rec (TyFun () (TyVar () r) . TyFun () nat $ TyVar () r)
         . LamAbs () z (TyVar () r)
-        . LamAbs () n builtinNat
+        . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
         . Apply () (Var () rec)
         . Apply () (Var () f)
@@ -236,16 +254,16 @@ getBuiltinFoldNat = do
 
 -- | @List@ as a PLC type.
 --
--- > \(A :: *). fix \(List :: *) -> all (R :: *). R -> (A -> List -> R) -> R
-getBuiltinList :: Fresh (NamedType TyName ())
+-- > \(a :: *). fix \(list :: *) -> all (r :: *). r -> (a -> list -> r) -> r
+getBuiltinList :: Fresh (HoledType TyName ())
 getBuiltinList = do
     a    <- freshTyName () "a"
     list <- freshTyName () "list"
     r    <- freshTyName () "r"
     return
-        . NamedType list
-        . TyLam () a (Type ())
-        . TyFix () list
+        . HoledType list $ \hole ->
+          TyLam () a (Type ())
+        . hole
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () a) . TyFun () (TyVar () list) $ TyVar () r)
@@ -253,45 +271,47 @@ getBuiltinList = do
 
 -- |  '[]' as a PLC term.
 --
--- >  /\(A :: *) -> wrap /\(R :: *) -> \(z : R) (f : A -> List A -> R) -> z
+-- >  /\(a :: *) -> wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z
 getBuiltinNil :: Fresh (Term TyName Name ())
 getBuiltinNil = do
-    NamedType list builtinList <- getBuiltinList
+    list <- getBuiltinList
     a <- freshTyName () "a"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    let builtinListA = TyApp () builtinList $ TyVar () a
+    let RecursiveType wrapListA listA =
+            holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
-        . Wrap () list builtinListA
+        . wrapListA
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () a) . TyFun () builtinListA $ TyVar () r)
+        . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ Var () z
 
 -- |  '(:)' as a PLC term.
 --
--- > /\(A :: *) -> \(x : A) (xs : List A) ->
--- >     wrap /\(R :: *) -> \(z : R) (f : A -> List A -> R) -> f x xs
+-- > /\(a :: *) -> \(x : a) (xs : list a) ->
+-- >     wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
 getBuiltinCons :: Fresh (Term TyName Name ())
 getBuiltinCons = do
-    NamedType list builtinList <- getBuiltinList
+    list <- getBuiltinList
     a  <- freshTyName () "a"
     x  <- freshName () "x"
     xs <- freshName () "xs"
     r  <- freshTyName () "r"
     z  <- freshName () "z"
     f  <- freshName () "f"
-    let builtinListA = TyApp () builtinList $ TyVar () a
+    let RecursiveType wrapListA listA =
+            holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
-        . LamAbs () xs builtinListA
-        . Wrap () list builtinListA
+        . LamAbs () xs listA
+        . wrapListA
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () a) . TyFun () builtinListA $ TyVar () r)
+        . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         . foldl (Apply ()) (Var () f)
         $ [ Var () x
           , Var () xs
@@ -299,13 +319,13 @@ getBuiltinCons = do
 
 -- |  @foldrList@ as a PLC term.
 --
--- > /\(A :: *) (R :: *) -> \(f : R -> A -> R) (z : R) ->
--- >     fix {List A} {R} \(rec : List A -> R) (xs : List A) ->
--- >         unwrap xs {R} z \(x : A) (xs' : List A) -> f (rec xs') x
+-- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) (z : r) ->
+-- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
+-- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f (rec xs') x
 getBuiltinFoldrList :: Fresh (Term TyName Name ())
 getBuiltinFoldrList = do
-    NamedType _ builtinList <- getBuiltinList
-    builtinFix <- getBuiltinFix
+    list <- getBuiltinList
+    fix  <- getBuiltinFix
     a   <- freshTyName () "a"
     r   <- freshTyName () "r"
     f   <- freshName () "f"
@@ -313,19 +333,20 @@ getBuiltinFoldrList = do
     rec <- freshName () "rec"
     xs  <- freshName () "xs"
     x   <- freshName () "x"
-    xs'  <- freshName () "xs'"
-    let builtinListA = TyApp () builtinList $ TyVar () a
+    xs' <- freshName () "xs'"
+    let RecursiveType _ listA =
+            holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
         . LamAbs () z (TyVar () r)
-        . Apply () (foldl (TyInst ()) builtinFix [builtinListA, TyVar () r])
-        . LamAbs () rec (TyFun () builtinListA $ TyVar () r)
-        . LamAbs () xs builtinListA
+        . Apply () (foldl (TyInst ()) fix [listA, TyVar () r])
+        . LamAbs () rec (TyFun () listA $ TyVar () r)
+        . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
-        . LamAbs () xs' builtinListA
+        . LamAbs () xs' listA
         . foldl (Apply ()) (Var () f)
         $ [ Apply () (Var () rec) $ Var () xs'
           , Var () x
@@ -333,13 +354,13 @@ getBuiltinFoldrList = do
 
 -- |  @foldList@ as a PLC term.
 --
--- > /\(A :: *) (R :: *) -> \(f : R -> A -> R) ->
--- >     fix {R} {List A -> R} \(rec : R -> List A -> R) (z : R) (xs : List A) ->
--- >         unwrap xs {R} z \(x : A) -> rec (f z x)
+-- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
+-- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
+-- >         unwrap xs {r} z \(x : a) -> rec (f z x)
 getBuiltinFoldList :: Fresh (Term TyName Name ())
 getBuiltinFoldList = do
-    NamedType _ builtinList <- getBuiltinList
-    builtinFix <- getBuiltinFix
+    list <- getBuiltinList
+    fix  <- getBuiltinFix
     a   <- freshTyName () "a"
     r   <- freshTyName () "r"
     f   <- freshName () "f"
@@ -347,15 +368,16 @@ getBuiltinFoldList = do
     z   <- freshName () "z"
     xs  <- freshName () "xs"
     x   <- freshName () "x"
-    let builtinListA = TyApp () builtinList $ TyVar () a
+    let RecursiveType _ listA =
+            holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
-        . Apply () (foldl (TyInst ()) builtinFix [TyVar () r, TyFun () builtinListA $ TyVar () r])
-        . LamAbs () rec (TyFun () (TyVar () r) . TyFun () builtinListA $ TyVar () r)
+        . Apply () (foldl (TyInst ()) fix [TyVar () r, TyFun () listA $ TyVar () r])
+        . LamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
         . LamAbs () z (TyVar () r)
-        . LamAbs () xs builtinListA
+        . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . Apply () (Var () rec)
@@ -371,10 +393,10 @@ getBuiltinFoldList = do
 -- TODO: once sizes are added, make the implementation match the comment.
 getBuiltinSum :: Natural -> Fresh (Term TyName Name ())
 getBuiltinSum s = do
-    builtinFoldList <- getBuiltinFoldList
+    foldList <- getBuiltinFoldList
     let int = TyBuiltin () TyInteger
     return
-        . foldl (Apply ()) (foldl (TyInst ()) builtinFoldList [int, int])
+        . foldl (Apply ()) (foldl (TyInst ()) foldList [int, int])
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s -- @TyVar () s@
           , Constant () $ BuiltinInt () s 0                                  -- add 'resizeInteger'
           ]
