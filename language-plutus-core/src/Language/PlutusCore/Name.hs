@@ -17,10 +17,11 @@ module Language.PlutusCore.Name ( -- * Types
                                 , freshTyName
                                 ) where
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.IntMap          as IM
-import qualified Data.Map             as M
-import           Data.Text.Encoding   (decodeUtf8)
+import qualified Data.ByteString.Lazy          as BSL
+import qualified Data.IntMap                   as IM
+import qualified Data.Map                      as M
+import           Data.Text.Encoding            (decodeUtf8)
+import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
 
 -- | A 'Name' represents variables/names in Plutus Core.
@@ -74,3 +75,7 @@ instance Pretty (Name a) where
 
 instance Debug (Name a) where
     debug (Name _ s (Unique u)) = pretty (decodeUtf8 (BSL.toStrict s)) <> "_" <> pretty u
+
+instance PrettyCfg (Name s) where
+    prettyCfg (Configuration False _) (Name _ s _)         = pretty (decodeUtf8 (BSL.toStrict s))
+    prettyCfg (Configuration True _) (Name _ s (Unique u)) = pretty (decodeUtf8 (BSL.toStrict s)) <> "_" <> pretty u

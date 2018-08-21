@@ -76,13 +76,11 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
-
--- TODO: optionally print annotations
-newtype Configuration = Configuration Bool
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
@@ -98,11 +96,11 @@ typeErr = fmap prettyText . uncurry (programType 10000)
 
 -- | This is the default 'Configuration' most users will want
 defaultCfg :: Configuration
-defaultCfg = Configuration False
+defaultCfg = Configuration False False
 
 -- | Use this 'Configuration' when debugging the library
 debugCfg :: Configuration
-debugCfg = Configuration True
+debugCfg = Configuration True False
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -120,5 +118,5 @@ formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
 format :: Configuration -> BSL.ByteString -> Either ParseError T.Text
-format (Configuration True)  = fmap (render . debug) . parseScoped
-format (Configuration False) = fmap render . formatDoc
+format (Configuration True _)  = fmap (render . debug) . parseScoped
+format (Configuration False _) = fmap render . formatDoc

@@ -50,6 +50,7 @@ library
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
+        Language.PlutusCore.PrettyCfg
     default-language: Haskell2010
     other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
                       GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
