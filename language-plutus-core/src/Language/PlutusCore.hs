@@ -52,6 +52,11 @@ module Language.PlutusCore
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
+    -- * Serialization
+    , encodeProgram
+    , decodeProgram
+    , readProgram
+    , writeProgram
     -- * Errors
     , Error (..)
     , IsError (..)
@@ -64,6 +69,7 @@ import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
 import           Data.Text.Prettyprint.Doc         hiding (annotate)
+import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -75,6 +81,7 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
+-- TODO: optionally print annotations
 newtype Configuration = Configuration Bool
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
