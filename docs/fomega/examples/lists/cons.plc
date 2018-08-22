@@ -1,0 +1,7 @@
+(program 0.1.0 
+
+(abs a (type) (lam x a (lam xs (fix x (all r (type) (fun r (fun (fun a (fun x r)) r))))
+  (wrap x (all r (type) (fun r (fun (fun a (fun x r)) r)))
+  (abs r (type) (lam nil r (lam cons (fun a (fun (fix x (all r (type) (fun r (fun (fun a (fun x r)) r)))) r))
+    [cons x xs])))))))
+)
