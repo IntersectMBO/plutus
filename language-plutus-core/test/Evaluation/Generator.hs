@@ -24,7 +24,6 @@ import           Evaluation.Denotation
 import           Evaluation.Constant.TypedBuiltinGen
 
 import           Data.Functor.Compose
-import           Data.String
 import           Control.Exception (evaluate)
 import           Control.Exception.Safe (tryAny)
 import           Control.Monad.Reader
@@ -38,42 +37,56 @@ import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 import           System.IO.Unsafe
 
+-- | @hoist lift@
 liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a
 liftT = hoist lift
 
+-- | Same as 'Gen.choice', but with a default generator to be used
+-- when the supplied list of generators is empty.
 choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
 choiceDef a [] = a
 choiceDef _ as = Gen.choice as
 
+-- | Generate a value using the 'Pretty' class for getting its 'String' representation.
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString
 
+-- | Generate a value using the 'Pretty' class for getting its 'String' representation.
+-- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyT :: (Monad m, Pretty a) => GenT m a -> PropertyT m a
 forAllPrettyT = forAllWithT prettyString
 
+-- | Supply an environment to an inner 'ReaderT'.
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
 
+-- | Add to the 'ByteString' representation of a name its 'Unique'.
 revealUnique :: Name a -> Name a
 revealUnique (Name ann name uniq) = Name ann (name <> BSL.pack ('_' : show uniq)) uniq
 
+-- | Generate a size from bounds.
 genSizeIn :: Monad m => Size -> Size -> GenT m Size
 genSizeIn = Gen.integral .* Range.linear
 
+-- | Generate a size using the default range of @[1..3]@.
 genSizeDef :: Monad m => GenT m Size
 genSizeDef = genSizeIn 1 3
 
+-- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
 genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
 genSizeFrom TypedBuiltinBool                = genSizeDef
 
+-- | Generate a 'BuiltinSized'.
 genBuiltinSized :: Monad m => GenT m BuiltinSized
 genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
 
+-- | Generate a 'Builtin'.
 genBuiltin :: Monad m => GenT m (Builtin size)
 genBuiltin =
     BuiltinSized . SizeValue <$> genSizeDef <*> genBuiltinSized <|> return BuiltinBool
 
+-- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
 
@@ -163,14 +176,15 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
--- | Generate a PLC 'Term' and the corresponding Haskell value.
+-- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.
+-- Generates first-order functions and constants including constant applications.
+-- Arguments to functions and 'BuiltinName's are generated recursively.
 genTerm
     :: TypedBuiltinGenT Fresh  -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
                                -- Gets extended by a variable when an applied lambda is generated.
     -> Int                     -- ^ Depth of recursion.
-    -> TypedBuiltin Size r     -- ^ Determines the resulting type.
-    -> GenT Fresh (TermOf r)
+    -> TypedBuiltinGenT Fresh
 genTerm genBase = go where
     go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT Fresh (TermOf r)
     go context depth tb
@@ -180,7 +194,7 @@ genTerm genBase = go where
         | depth == 3 = Gen.choice $ lambdaApply : recursive
         | otherwise  = lambdaApply
         where
-            -- Instantiate all size variables with `()`.
+            -- Instantiate all size variables with '()'.
             desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb
             -- Generators of built-ins to feed them to 'genIterAppValue'.
             -- Note that we currently generate the same size over and over again (see 'genSizeFrom').
@@ -201,16 +215,24 @@ genTerm genBase = go where
             -- quantified 's'. For this we simply instantiate all variables with '()' in
             -- the type, a term of which we're currently generating, and look that type up in
             -- the current context where universally quantified variable are already
-            -- instantiate to '()' (which happens at the insertion phase, see ')
+            -- instantiate to '()' (which happens at the insertion phase, see 'insertTypedBuiltinName')
             recursive = map proceed $ lookupInContext desizedTb
+            -- Generate a lambda and immediately apply it to a generated argument of a generated type.
             lambdaApply = withTypedBuiltinGen $ \argTb -> do
                 let argTyTb = mapSizeTypedBuiltin (\_ -> TyBuiltin () TySize) argTb
+                -- Generate a name for the name representing the argument.
                 name  <- lift $ revealUnique <$> freshName () "x"
+                -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
                 argTy <- lift $ typedBuiltinToType argTyTb
+                -- Generate the argument.
                 TermOf arg  x <- go context (depth - 1) argTb
+                -- Generate the body of the lambda abstraction adding the new variable to the context.
                 TermOf body y <- go (insertVariable name argTb x context) (depth - 1) tb
+                -- Assemble the term.
                 let term = Apply () (LamAbs () name argTy body) arg
                 return $ TermOf term y
 
+-- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
+-- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose :: TypedBuiltinGenT Fresh
 genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
