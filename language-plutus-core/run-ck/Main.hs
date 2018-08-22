@@ -12,17 +12,19 @@ import qualified Data.Text    as Text
 import qualified Data.Text.IO as Text
 import           Data.Text.Encoding (encodeUtf8)
 
+-- | Parse a program and run it using the CK machine.
 parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
 parseRunCk = fmap (runCk . void) . parseScoped
 
-loop :: IO ()
-loop = do
+-- | Read-eval-print loop.
+repl :: IO ()
+repl = do
     line <- Text.getLine
     unless (line == ":q") $ do
         unless (Text.null line) $ do
             let res = parseRunCk . BSL.fromStrict $ encodeUtf8 line
             Text.putStrLn $ "Result: " <> either prettyText prettyText res <> "\n"
-        loop
+        repl
 
 main :: IO ()
 main = do
@@ -34,4 +36,4 @@ main = do
         , "Type \":q\" without the quotes to quit."
         , ""
         ]
-    loop
+    repl
