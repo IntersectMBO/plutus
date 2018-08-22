@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies      #-}
 
@@ -20,9 +21,10 @@ module Language.PlutusCore.Type ( Term (..)
                                 , termLoc
                                 ) where
 
-import qualified Data.ByteString.Lazy           as BSL
 import           Control.Recursion
+import qualified Data.ByteString.Lazy           as BSL
 import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
 
 -- | A 'Type' assigned to expressions.
@@ -69,25 +71,25 @@ instance Corecursive (Type tyname a) where
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
 -- | Substitute @a@ for @b@ in @c@.
-tyNameSubstitute :: Eq (tyname a) 
+tyNameSubstitute :: Eq (tyname a)
                  => tyname a -- ^ @a@
                  -> tyname a -- ^ @b@
-                 -> Type tyname a -- ^ @c@ 
+                 -> Type tyname a -- ^ @c@
                  -> Type tyname a
 tyNameSubstitute tn tn' = cata a where
     a (TyVarF x tn'') | tn == tn'' = TyVar x tn'
-    a x                           = embed x
+    a x               = embed x
 
 instance (Eq (tyname a), Eq a) => Eq (Type tyname a) where
-    (==) (TyVar _ tn) (TyVar _ tn')            = tn == tn'
-    (==) (TyFun _ ty ty') (TyFun _ ty'' ty''') = ty == ty'' && ty' == ty'''
-    (==) (TyFix _ tn ty) (TyFix _ tn' ty') = tyNameSubstitute tn' tn ty' == ty
+    (==) (TyVar _ tn) (TyVar _ tn')                   = tn == tn'
+    (==) (TyFun _ ty ty') (TyFun _ ty'' ty''')        = ty == ty'' && ty' == ty'''
+    (==) (TyFix _ tn ty) (TyFix _ tn' ty')            = tyNameSubstitute tn' tn ty' == ty
     (==) (TyForall _ tn k ty) (TyForall _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyBuiltin _ b) (TyBuiltin _ b') = b == b'
-    (==) (TyInt _ n) (TyInt _ n') = n == n'
-    (==) (TyLam _ tn k ty) (TyLam _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyApp _ ty ty') (TyApp _ ty'' ty''') = ty == ty'' && ty' == ty'''
-    (==) _ _ = False
+    (==) (TyBuiltin _ b) (TyBuiltin _ b')             = b == b'
+    (==) (TyInt _ n) (TyInt _ n')                     = n == n'
+    (==) (TyLam _ tn k ty) (TyLam _ tn' k' ty')       = tyNameSubstitute tn' tn ty' == ty && k == k'
+    (==) (TyApp _ ty ty') (TyApp _ ty'' ty''')        = ty == ty'' && ty' == ty'''
+    (==) _ _                                          = False
 
 
 tyLoc :: Type tyname a -> a
@@ -173,9 +175,6 @@ instance Recursive (Kind a) where
     project (KindArrow l k k') = KindArrowF l k k'
     project (Size l)           = SizeF l
 
-instance Debug (Kind a) where
-    debug = pretty
-
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
 -- language.
 data Program tyname name a = Program a (Version a) (Term tyname name a)
@@ -187,11 +186,8 @@ instance Pretty (Kind a) where
         a SizeF{}             = "(size)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance (Pretty (f a), Pretty (g a)) => Pretty (Program f g a) where
-    pretty (Program _ v t) = parens ("program" <+> pretty v <+> pretty t)
-
-instance (Debug (f a), Debug (g a)) => Debug (Program f g a) where
-    debug (Program _ v t) = parens ("program" <+> pretty v <+> debug t)
+instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Program f g a) where
+    prettyCfg cfg (Program _ v t) = parens ("program" <+> pretty v <+> prettyCfg cfg t)
 
 instance Pretty (Constant a) where
     pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
@@ -199,50 +195,25 @@ instance Pretty (Constant a) where
     pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
     pretty (BuiltinName _ n)  = pretty n
 
-instance (Pretty (f a), Pretty (g a)) => Pretty (Term f g a) where
-    pretty = cata a where
+instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
+    prettyCfg cfg = cata a where
         a (ConstantF _ b)    = parens ("con" <+> pretty b)
         a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
-        a (VarF _ n)         = pretty n
-        a (TyAbsF _ n k t)   = parens ("abs" <+> pretty n <+> pretty k <+> t)
-        a (TyInstF _ t ty)   = "{" <+> t <+> pretty ty <+> "}"
-        a (LamAbsF _ n ty t) = parens ("lam" <+> pretty n <+> pretty ty <+> t)
+        a (VarF _ n)         = prettyCfg cfg n
+        a (TyAbsF _ n k t)   = parens ("abs" <+> prettyCfg cfg n <+> pretty k <+> t)
+        a (TyInstF _ t ty)   = braces (t <+> prettyCfg cfg ty)
+        a (LamAbsF _ n ty t) = parens ("lam" <+> prettyCfg cfg n <+> prettyCfg cfg ty <+> t)
         a (UnwrapF _ t)      = parens ("unwrap" <+> t)
-        a (WrapF _ n ty t)   = parens ("wrap" <+> pretty n <+> pretty ty <+> t)
-        a (ErrorF _ ty)      = parens ("error" <+> pretty ty)
+        a (WrapF _ n ty t)   = parens ("wrap" <+> prettyCfg cfg n <+> prettyCfg cfg ty <+> t)
+        a (ErrorF _ ty)      = parens ("error" <+> prettyCfg cfg ty)
 
-instance (Debug (f a), Debug (g a)) => Debug (Term f g a) where
-    debug = cata a where
-        a (ConstantF _ b)    = parens ("con" <+> pretty b)
-        a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
-        a (VarF _ n)         = debug n
-        a (TyAbsF _ n k t)   = parens ("abs" <+> debug n <+> pretty k <+> t)
-        a (TyInstF _ t ty)   = "{" <+> t <+> debug ty <+> "}"
-        a (LamAbsF _ n ty t) = parens ("lam" <+> debug n <+> debug ty <+> t)
-        a (UnwrapF _ t)      = parens ("unwrap" <+> t)
-        a (WrapF _ n ty t)   = parens ("wrap" <+> debug n <+> debug ty <+> t)
-        a (ErrorF _ ty)      = parens ("error" <+> debug ty)
-
-instance Pretty (f a) => Pretty (Type f a) where
-    pretty = cata a where
-        a (TyAppF _ t t')     = "[" <+> t <+> t' <+> "]"
-        a (TyVarF _ n)        = pretty n
+instance (PrettyCfg (f a)) => PrettyCfg (Type f a) where
+    prettyCfg cfg = cata a where
+        a (TyAppF _ t t')     = brackets (t <+> t')
+        a (TyVarF _ n)        = prettyCfg cfg n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n t)      = parens ("fix" <+> pretty n <+> t)
-        a (TyForallF _ n k t) = parens ("all" <+> pretty n <+> pretty k <+> t)
+        a (TyFixF _ n t)      = parens ("fix" <+> prettyCfg cfg n <+> t)
+        a (TyForallF _ n k t) = parens ("all" <+> prettyCfg cfg n <+> pretty k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyIntF _ n)        = parens ("con" <+> pretty n)
-        a (TyLamF _ n k t)    = parens ("lam" <+> pretty n <+> pretty k <+> t)
-
-instance Debug (f a) => Debug (Type f a) where
-    debug = cata a where
-        a (TyAppF _ t t')     = "[" <+> t <+> t' <+> "]"
-        a (TyVarF _ n)        = debug n
-        a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n t)      = parens ("fix" <+> debug n <+> t)
-        a (TyForallF _ n k t) = parens ("all" <+> debug n <+> pretty k <+> t)
-        a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
-        a (TyIntF _ n)        = parens ("con" <+> pretty n)
-        a (TyLamF _ n k t)    = parens ("lam" <+> debug n <+> pretty k <+> t)
-
--- TODO: add binary serialize/deserialize instances here.
+        a (TyLamF _ n k t)    = parens ("lam" <+> prettyCfg cfg n <+> pretty k <+> t)

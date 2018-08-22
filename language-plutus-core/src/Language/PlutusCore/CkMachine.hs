@@ -11,6 +11,7 @@ import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 

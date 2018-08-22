@@ -29,19 +29,18 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Reëxports from "Control.Composition"
                      , (.*)
                      -- * Custom functions
-                     , prettyString
                      , freshInt
                      , dropFresh
-                     , prettyText
-                     , debugText
+                     , prettyString
                      , render
                      , repeatM
                      , (?)
-                     , Debug (..)
                      , Fresh
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
+                     , braces
+                     , brackets
                      , squotes
                      , Doc
                      ) where
@@ -74,18 +73,6 @@ import           GHC.Natural                             (Natural)
 import           System.IO.Unsafe
 
 infixr 2 ?
-
--- | This is like 'Pretty', but it dumps 'Unique's for each 'Name' / 'TyName' as
--- well.
-class Debug a where
-    debug :: a -> Doc ann
-
--- | Render a 'Program' as strict 'Text'.
-prettyText :: Pretty a => a -> T.Text
-prettyText = render . pretty
-
-debugText :: Debug a => a -> T.Text
-debugText = render . debug
 
 render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions

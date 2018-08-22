@@ -35,7 +35,7 @@ data Name a = Name { nameAttribute :: a
 -- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
     deriving Show
-    deriving newtype (Eq, Functor, NFData, Pretty, Debug)
+    deriving newtype (Eq, Functor, NFData, PrettyCfg)
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique
@@ -69,12 +69,6 @@ freshName attr name = Name attr name . Unique <$> freshInt
 
 freshTyName :: a -> BSL.ByteString -> Fresh (TyName a)
 freshTyName = fmap TyName .* freshName
-
-instance Pretty (Name a) where
-    pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))
-
-instance Debug (Name a) where
-    debug (Name _ s (Unique u)) = pretty (decodeUtf8 (BSL.toStrict s)) <> "_" <> pretty u
 
 instance PrettyCfg (Name s) where
     prettyCfg (Configuration False _) (Name _ s _)         = pretty (decodeUtf8 (BSL.toStrict s))

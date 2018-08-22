@@ -8,6 +8,7 @@ module Language.PlutusCore.Error ( Error (..)
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
@@ -47,14 +48,8 @@ instance IsError (TypeError AlexPosn) where
 instance IsError (NormalizationError AlexPosn) where
     asError = NormalizationError
 
-instance Pretty Error where
-    pretty (ParseError e)         = pretty e
-    pretty (RenameError e)        = pretty e
-    pretty (TypeError e)          = pretty e
-    pretty (NormalizationError e) = pretty e
-
-instance Debug Error where
-    debug (ParseError e)         = pretty e
-    debug (RenameError e)        = debug e
-    debug (TypeError e)          = debug e
-    debug (NormalizationError e) = pretty e
+instance PrettyCfg Error where
+    prettyCfg _ (ParseError e)         = pretty e
+    prettyCfg cfg (RenameError e)      = prettyCfg cfg e
+    prettyCfg cfg (TypeError e)        = prettyCfg cfg e
+    prettyCfg _ (NormalizationError e) = pretty e
