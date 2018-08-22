@@ -29,6 +29,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
+        Language.PlutusCore.CkMachine
         Language.PlutusCore.Constant
         Language.PlutusCore.CkMachine
         PlutusPrelude
