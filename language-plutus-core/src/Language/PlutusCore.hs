@@ -118,5 +118,4 @@ formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
 formatDoc = fmap pretty . parse
 
 format :: Configuration -> BSL.ByteString -> Either ParseError T.Text
-format (Configuration True _)  = fmap (render . debug) . parseScoped
-format (Configuration False _) = fmap render . formatDoc
+format cfg = fmap (render . prettyCfg cfg) . parseScoped

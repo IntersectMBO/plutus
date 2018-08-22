@@ -42,6 +42,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , braces
                      , brackets
                      , squotes
+                     , list
                      , Doc
                      ) where
 

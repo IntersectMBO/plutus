@@ -21,6 +21,9 @@ data Configuration = Configuration { _debug :: Bool, _annotation :: Bool }
 class PrettyCfg a where
     prettyCfg :: Configuration -> a -> Doc b
 
+instance PrettyCfg a => PrettyCfg [a] where
+    prettyCfg cfg = list . fmap (prettyCfg cfg)
+
 -- | Render a 'Program' as strict 'Text'.
 prettyText :: PrettyCfg a => a -> T.Text
 prettyText = render . prettyCfg defaultCfg

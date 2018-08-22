@@ -50,9 +50,9 @@ data CkEvalResult
     | CkEvalFailure
     deriving (Show, Eq)
 
-instance Pretty CkEvalResult where
-    pretty (CkEvalSuccess value) = pretty value
-    pretty CkEvalFailure         = "Failure"
+instance PrettyCfg CkEvalResult where
+    prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value
+    prettyCfg _ CkEvalFailure           = "Failure"
 
 -- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
@@ -72,12 +72,12 @@ constAppErrorString (IllTypedConstAppError expType constant) = join
     ]
 constAppErrorString (ExcessArgumentsConstAppError excessArgs) = join
     [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
-    , prettyString excessArgs
+    , prettyCfgString excessArgs -- TODO: allow user configuration here
     , ") in"
     ]
 constAppErrorString (SizedNonConstantConstAppError arg)       = join
     [ "encountered a non-constant argument of a sized type: ("
-    , prettyString arg
+    , prettyCfgString arg
     , ") in"
     ]
 
@@ -95,7 +95,7 @@ ckErrorString (ConstAppCkError constAppError)  =
 
 instance Show CkException where
     show (CkException err cause) = join
-        ["The CK machine " , ckErrorString err, prettyString cause]
+        ["The CK machine " , ckErrorString err, prettyCfgString cause]
 
 instance Exception CkException
 
