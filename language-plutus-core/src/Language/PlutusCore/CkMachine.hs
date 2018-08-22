@@ -58,14 +58,14 @@ instance PrettyCfg CkEvalResult where
 constAppErrorString :: ConstAppError -> String
 constAppErrorString (SizeMismatchConstAppError seenSize arg) = join
     [ "encoutered an unexpected size in ("
-    , prettyString arg
+    , prettyCfgString arg
     , ") (previously seen size: "
     , prettyString seenSize
     , ") in"
     ]
 constAppErrorString (IllTypedConstAppError expType constant) = join
     [ "encountered an ill-typed argument: ("
-    , prettyString constant
+    , prettyCfgString constant
     , ") (expected type: "
     , prettyString expType
     , ") in"

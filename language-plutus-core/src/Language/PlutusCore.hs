@@ -33,7 +33,6 @@ module Language.PlutusCore
     , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
-    , Debug (..)
     , TypeState (..)
     , RenamedType
     , RenamedTerm
@@ -55,7 +54,10 @@ module Language.PlutusCore
     , decodeProgram
     , readProgram
     , writeProgram
+    -- * Pretty-printing
+    , prettyCfgText
     -- * Errors
+    , PrettyCfg (..)
     , Error (..)
     , IsError (..)
     -- * Base functors
@@ -85,22 +87,14 @@ import           PlutusPrelude
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fmap (either prettyText id . printType) . BSL.readFile
+fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: BSL.ByteString -> Either Error T.Text
 printType = collectErrors . fmap (convertError . typeErr <=< convertError . annotateST) . parseScoped
 
 typeErr :: (TypeState a, Program TyNameWithKind NameWithType a) -> Either (TypeError a) T.Text
-typeErr = fmap prettyText . uncurry (programType 10000)
-
--- | This is the default 'Configuration' most users will want
-defaultCfg :: Configuration
-defaultCfg = Configuration False False
-
--- | Use this 'Configuration' when debugging the library
-debugCfg :: Configuration
-debugCfg = Configuration True False
+typeErr = fmap prettyCfgText . uncurry (programType 10000)
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -115,7 +109,7 @@ programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
     where i = maybe 0 (fst . fst) (IM.maxViewWithKey tys)
 
 formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
-formatDoc = fmap pretty . parse
+formatDoc = fmap (prettyCfg defaultCfg) . parse
 
 format :: Configuration -> BSL.ByteString -> Either ParseError T.Text
 format cfg = fmap (render . prettyCfg cfg) . parseScoped

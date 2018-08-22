@@ -23,7 +23,7 @@ repl = do
     unless (line == ":q") $ do
         unless (Text.null line) $ do
             let res = parseRunCk . BSL.fromStrict $ encodeUtf8 line
-            Text.putStrLn $ "Result: " <> either prettyText prettyText res <> "\n"
+            Text.putStrLn $ "Result: " <> either prettyCfgText prettyCfgText res <> "\n"
         repl
 
 main :: IO ()

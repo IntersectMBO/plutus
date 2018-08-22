@@ -189,15 +189,15 @@ instance Pretty (Kind a) where
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Program f g a) where
     prettyCfg cfg (Program _ v t) = parens ("program" <+> pretty v <+> prettyCfg cfg t)
 
-instance Pretty (Constant a) where
-    pretty (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
-    pretty (BuiltinSize _ s)  = pretty s
-    pretty (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
-    pretty (BuiltinName _ n)  = pretty n
+instance PrettyCfg (Constant a) where
+    prettyCfg _ (BuiltinInt _ s i)  = pretty s <+> "!" <+> pretty i
+    prettyCfg _ (BuiltinSize _ s)   = pretty s
+    prettyCfg _ (BuiltinBS _ s b)   = pretty s <+> "!" <+> prettyBytes b
+    prettyCfg cfg (BuiltinName _ n) = prettyCfg cfg n
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
     prettyCfg cfg = cata a where
-        a (ConstantF _ b)    = parens ("con" <+> pretty b)
+        a (ConstantF _ b)    = parens ("con" <+> prettyCfg cfg b)
         a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
         a (VarF _ n)         = prettyCfg cfg n
         a (TyAbsF _ n k t)   = parens ("abs" <+> prettyCfg cfg n <+> pretty k <+> t)

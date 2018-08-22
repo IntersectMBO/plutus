@@ -4,11 +4,11 @@
 module Language.PlutusCore.PrettyCfg ( PrettyCfg (..)
                                      , Configuration (..)
                                      -- * Helper functions
-                                     , prettyText
                                      , prettyCfgString
                                      , debugText
                                      , defaultCfg
                                      , debugCfg
+                                     , prettyCfgText
                                      ) where
 
 import qualified Data.Text                               as T
@@ -25,8 +25,8 @@ instance PrettyCfg a => PrettyCfg [a] where
     prettyCfg cfg = list . fmap (prettyCfg cfg)
 
 -- | Render a 'Program' as strict 'Text'.
-prettyText :: PrettyCfg a => a -> T.Text
-prettyText = render . prettyCfg defaultCfg
+prettyCfgText :: PrettyCfg a => a -> T.Text
+prettyCfgText = render . prettyCfg defaultCfg
 
 defaultCfg :: Configuration
 defaultCfg = Configuration False False

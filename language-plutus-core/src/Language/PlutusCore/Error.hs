@@ -49,7 +49,7 @@ instance IsError (NormalizationError AlexPosn) where
     asError = NormalizationError
 
 instance PrettyCfg Error where
-    prettyCfg _ (ParseError e)         = pretty e
+    prettyCfg cfg (ParseError e)       = prettyCfg cfg e
     prettyCfg cfg (RenameError e)      = prettyCfg cfg e
     prettyCfg cfg (TypeError e)        = prettyCfg cfg e
     prettyCfg _ (NormalizationError e) = pretty e

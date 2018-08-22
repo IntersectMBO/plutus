@@ -59,8 +59,8 @@ data PrimIterAppValue = forall a. PrimIterAppValue
 
 instance Pretty PrimIterAppValue where
     pretty (PrimIterAppValue term pia tbv) = parens $ fold
-        [ "As a term: ", pretty term, line
-        , "As an iterated application: ", pretty pia, line
+        [ "As a term: ", prettyCfg defaultCfg term, line
+        , "As an iterated application: ", prettyCfg defaultCfg pia, line
         , "As a value: ", pretty tbv
         ]
 

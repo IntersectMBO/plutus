@@ -11,6 +11,7 @@ module Language.PlutusCore.Constant.View
 
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -28,9 +29,9 @@ type TermIterApp tyname name a =
 type PrimIterApp tyname name a =
     IterApp BuiltinName (Value tyname name a)
 
-instance (Pretty head, Pretty arg) => Pretty (IterApp head arg) where
-    pretty (IterApp appHead appSpine) =
-        parens $ foldl' (\fun arg -> fun <+> pretty arg) (pretty appHead) appSpine
+instance (PrettyCfg head, PrettyCfg arg) => PrettyCfg (IterApp head arg) where
+    prettyCfg cfg (IterApp appHead appSpine) =
+        parens $ foldl' (\fun arg -> fun <+> prettyCfg cfg arg) (prettyCfg cfg appHead) appSpine
 
 -- | View a 'Constant' as an 'Integer'.
 constantAsInteger :: Constant a -> Maybe Integer

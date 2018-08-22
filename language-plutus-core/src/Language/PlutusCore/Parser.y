@@ -16,6 +16,7 @@ import Control.Monad.Except
 import Control.Monad.Trans.Except
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
+import Language.PlutusCore.PrettyCfg
 import Language.PlutusCore.Type
 import Language.PlutusCore.Name
 
@@ -169,10 +170,10 @@ data ParseError = LexErr String
                 | Overflow AlexPosn Natural Integer 
                 deriving (Show, Eq, Generic, NFData)
 
-instance Pretty ParseError where
-    pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
-    pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+instance PrettyCfg ParseError where
+    prettyCfg _ (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
+    prettyCfg cfg (Unexpected t)   = "Unexpected" <+> squotes (prettyCfg cfg t) <+> "at" <+> pretty (loc t)
+    prettyCfg _ (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
 
 type Parse = ExceptT ParseError Alex
 
