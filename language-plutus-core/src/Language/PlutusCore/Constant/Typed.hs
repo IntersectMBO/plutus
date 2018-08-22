@@ -55,6 +55,8 @@ import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
 
+-- TODO: whenever we write @TypedBuiltin Size@, it probably should be @TypedBuiltin Void@.
+
 infixr 9 `TypeSchemeArrow`
 
 -- | Built-in types indexed by @size@.
