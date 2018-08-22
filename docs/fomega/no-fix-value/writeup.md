@@ -1,4 +1,5 @@
-# Recursive Types Induce Recursive Terms-
+
+# Fixed Points in Plutus Core
 
 The short version is that if we define `(fix x A M)` to be
 ```
@@ -14,9 +15,49 @@ then we have:
 ```
 and so defining `(fix x A M)` in this way results in two evaluation steps, where before there was only one evaluation step. Thus, any sequence of evaluation rewrites in Plutus Core with explicit term-level fixed points becomes at most twice as long when explicit term-level fixed points are removed, instead being implicitly present according to the above scheme. In practice, most sequences of rewrites involving `(fix x A M) -> [(fix x A M)/x]M` are not composed entirely of that rule, and the number of extra rewrites will be more modest. Note also that `M` occurs twice in the definition above, which may be undesirable for large `M`. If our implementation does not reduce the two copies of `M` in parallel, we may reduce `M` to normal form twice before performing the sequence of rewrites above. The resulting sequence of rewrites is still at most twice as long as the original.
 
-## In Depth
+## Recursion in the Untyped Lambda Calculus
 
-Following (Harper 2016), we may use the machinery of recursive types to define recursive terms, even if our language has no explicit term-level recursion. Specifically, if for each type `A :: type`, expression `M : A`, and variable `x` our language admits a type `self(A) :: type ` and expressions `self{A}(x.M)` and `unroll(M)` with typing:
+The lambda calculus admits a fixed point combinator `Y` with the property that for all `g`, `Yg = g(Yg)`. While there are many terms with this property, the most popular definition is
+```
+Y = (lam f [(lam x [f [x x]]) (lam x [f [x x]])])
+```
+Observe that under a normal order (lazy) evaluation strategy we have, for every `f`:
+```
+Yg
+== [(lam f [(lam x [f [x x]]) (lam x [f [x x]])]) f]
+-> [(lam x [g [x x]]) (lam x [g [x x]])]
+-> [g [(lam x [g [x x]]) (lam x [g [x x]])]]
+== [g [(lam f [(lam x [f [x x]]) (lam x [f [x x]])]) g]]
+== g(Yg)
+```
+as promised. However, under a strict evaluation strategy we have:
+```
+Yg
+== [(lam f [(lam x [f [x x]]) (lam x [f [x x]])]) g]
+-> [(lam f [f [(lam x [f [x x]]) (lam x [f [x x]])]]) g]
+-> [(lam f [f [f [(lam x [f [x x]]) (lam x [f [x x]])]]]) g]
+-> [(lam f [f [f [f [(lam x [f [x x]]) (lam x [f [x x]])]]]]) g]
+-> ...
+```
+and so on. The top-level application is never reduced, and `g` is never substituted for the variable `f`!
+
+One way to work around this problem is to define a different `Yg` for every term `g`, building the substitution of `g` for `f` into the definition:
+```
+Yg = [(lam x [g [x x]]) (lam x [g [x x]])]
+```
+Then under both strict and lazy evaluation strategies, we have:
+```
+Yg
+== [(lam x [g [x x]]) (lam x [g [x x]])
+-> [g [(lam x [g [x x]]) (lam x [g [x x]])]]
+== g(Yg)
+```
+
+Plutus Core uses a strict evalutation strategy, and accordingly we will use this last style of fixed point in the language.
+
+## How to Type Fixed Points
+
+Following (Harper 2016), we show type-level fixed points allow us to type term-level fixed points. Specifically, if for each type `A :: type`, expression `M : A`, and variable `x` our language admits a type `self(A) :: type ` and expressions `self{A}(x.M)` and `unroll(M)` with typing:
 ```
  Γ, x : self(A) ⊢ M : A
 ----------------------------
@@ -150,3 +191,12 @@ and observe that, as expected:
 -> [[(unwrap (wrap (fun a A) (lam y (fix a (fun a A)) [[(unwrap y) y]/x]M))) (wrap (fun a A) (lam y (fix a (fun a A)) [[(unwrap y) y]/x]M))]/x]M
 == [(fix x A M)/x]M
 ```
+
+Notice that if we erase the type information (including `wrap` and `unwrap`) from the above term we obtain
+```
+[(lam y ([[y y]/x]M) ) (lam y ([[y y]/x]M))]
+== [(lam y [(lam x M) [y y]]) (lam y [(lam x M) [y y]])]
+```
+recovering the something familiar in the untyped setting.
+
+
