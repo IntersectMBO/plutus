@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Evaluation.CkMachine
-    ( test_NatRoundtrip
-    , test_ListSum
-    , test_ifIntegers
+    ( test_evaluateCk
     ) where
 
 import           PlutusPrelude
