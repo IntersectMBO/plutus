@@ -31,6 +31,9 @@ let
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
+  filterSource = drv: drv.overrideAttrs (attrs : {
+    src = builtins.filterSource cleanSourceFilter attrs.src;
+  });
   cleanSourceFilter = with pkgs.stdenv;
     name: type: let baseName = baseNameOf (toString name); in ! (
       # Filter out .git repo
@@ -45,16 +48,12 @@ let
       (type == "symlink" && lib.hasPrefix "result" baseName) ||
       (type == "directory" && baseName == ".stack-work")
     );
-  requiredOverlay = self: super: {
-    plutus-prototype = addRealTimeTestLogs super.plutus-prototype;
-    language-plutus-core = doHaddockHydra (addRealTimeTestLogs super.language-plutus-core);
-    mkDerivation = args: super.mkDerivation (args // optionalAttrs (args ? src) {
-      src = builtins.filterSource cleanSourceFilter args.src;
-    });
+  plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
+    overrides = self: super: {
+      plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
+      language-plutus-core = doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core));
+    };
   };
-  activeOverlays = [ requiredOverlay ];
-  plutusPkgsBase = import ./pkgs { inherit pkgs; };
-  plutusPkgs = builtins.foldl' (pkgs: overlay: pkgs.extend overlay) plutusPkgsBase activeOverlays;
   other = rec {
     tests = {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
