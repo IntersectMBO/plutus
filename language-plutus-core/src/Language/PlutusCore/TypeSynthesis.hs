@@ -232,7 +232,7 @@ preTypeOf (Apply x t t') = do
                 else throwError (TypeMismatch x (void t') ty' ty''') -- this is where the error occurs
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 preTypeOf (TyInst x t ty) = do
-    ty' <- preTypeOf t
+    ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
             k' <- kindOf ty
@@ -279,6 +279,9 @@ tySubstitute u ty = cata a where
 -- TODO: add left-instatiation etc.
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce = cata a where
-    a (TyAppF _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty
-    a x                                                                    = embed x
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty
+tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
+tyReduce (TyFun x ty ty')                                                    = TyFun x (tyReduce ty) (tyReduce ty')
+tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
+tyReduce (TyApp x ty ty')                                                    = TyApp x (tyReduce ty) (tyReduce ty')
+tyReduce x                                                                   = x
