@@ -6,7 +6,7 @@ module Language.PlutusCore
     , parse
     , parseScoped
     -- * Pretty-printing
-    , prettyText
+    , prettyCfgText
     , debugText
     , prettyString
     -- * AST
@@ -54,8 +54,6 @@ module Language.PlutusCore
     , decodeProgram
     , readProgram
     , writeProgram
-    -- * Pretty-printing
-    , prettyCfgText
     -- * Errors
     , PrettyCfg (..)
     , Error (..)

@@ -87,13 +87,13 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
 
-asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: PrettyCfg a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
-errorgen :: Pretty a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . prettyText
+errorgen :: PrettyCfg a => a -> BSL.ByteString
+errorgen = BSL.fromStrict . encodeUtf8 . prettyCfgText
 
-asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
+asGolden :: PrettyCfg a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
