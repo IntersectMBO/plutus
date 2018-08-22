@@ -17,6 +17,7 @@ data Error = ParseError ParseError
            | RenameError (RenameError AlexPosn)
            | TypeError (TypeError AlexPosn)
            | NormalizationError (NormalizationError AlexPosn)
+           deriving (Generic, NFData)
 
 class IsError a where
 

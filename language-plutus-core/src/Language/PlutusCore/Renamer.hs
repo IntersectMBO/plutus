@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -44,10 +45,12 @@ type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Functor)
+    deriving (Functor, Generic)
+    deriving newtype NFData
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Eq, Functor)
+    deriving (Eq, Functor, Generic)
+    deriving newtype NFData
 
 instance PrettyCfg (TyNameWithKind a) where
     prettyCfg cfg@(Configuration _ True) (TyNameWithKind (TyName tn@(Name (_, k) _ _))) = parens (prettyCfg cfg tn <+> ":" <+> pretty k)
@@ -61,6 +64,7 @@ instance PrettyCfg (NameWithType a) where
 -- rewriting.
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
+                   deriving (Generic, NFData)
 
 instance PrettyCfg (RenameError AlexPosn) where
     prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."

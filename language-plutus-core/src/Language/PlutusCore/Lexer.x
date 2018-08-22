@@ -1,7 +1,5 @@
 {
     {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-    {-# LANGUAGE DeriveAnyClass     #-}
-    {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE OverloadedStrings  #-}
     {-# LANGUAGE StandaloneDeriving #-}
     module Language.PlutusCore.Lexer ( alexMonadScan

@@ -39,6 +39,7 @@ data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
                  | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
                  | OutOfGas
+                 deriving (Generic, NFData)
 
 instance Pretty a => PrettyCfg (TypeError a) where
     prettyCfg _ InternalError = "Internal error."

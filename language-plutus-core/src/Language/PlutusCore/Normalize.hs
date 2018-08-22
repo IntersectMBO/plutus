@@ -13,6 +13,7 @@ import           PlutusPrelude
 
 data NormalizationError a = BadType a
                           | BadTerm a
+                          deriving (Generic, NFData)
 
 instance Pretty a => Pretty (NormalizationError a) where
     pretty (BadType l) = "Malformed type at" <+> pretty l
