@@ -22,9 +22,6 @@ import qualified Hedgehog.Range as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
--- parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
--- parseRunCk = fmap (runCk . void) . parseScoped
-
 getBuiltinIntegerToNat :: Integer -> Fresh (Term TyName Name ())
 getBuiltinIntegerToNat n
     | n < 0     = error $ "getBuiltinIntegerToNat: negative argument: " ++ show n
@@ -105,5 +102,3 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         CkEvalSuccess res -> case unsafeMakeConstant int value of
             Nothing   -> fail "ifIntegers: value out of bounds"
             Just res' -> res === res'
-
--- main = defaultMain test_ListRoundtrip

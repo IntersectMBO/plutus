@@ -108,6 +108,14 @@ insertVariable name tb meta =
     insertDenotation (closeTypedBuiltin tb) (denoteVariable name tb meta)
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
+-- All variables in the 'TypedBuiltinName' are instantiated to '()' which acts like a joker,
+-- i.e., morally, it unifies with any @a@ be it a constant or a variable.
+-- Practically, those constants and variables are turned into '()' as well,
+-- so we can simply unify things by using the 'GEq' instance. 'genTerm' does this.
+-- Note that here we only turn universally quantified variables into '()',
+-- while at the lookup side we also turn constants into '()', because
+-- universally quantified variables can be instantiated to constants or bound variables while
+-- constants can't be instantiated to variables -- that doesn't make sense.
 insertTypedBuiltinName :: TypedBuiltinName a r -> a -> DenotationContext -> DenotationContext
 insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
     insertDenotation (typeSchemeResult scheme) (denoteTypedBuiltinName tbn meta)

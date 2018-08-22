@@ -29,6 +29,7 @@ import           Control.Exception (evaluate)
 import           Control.Exception.Safe (tryAny)
 import           Control.Monad.Reader
 import           Control.Monad.Morph
+import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Dependent.Map as DMap
 import           Hedgehog hiding (Size, Var, annotate)
@@ -40,6 +41,10 @@ import           System.IO.Unsafe
 liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a
 liftT = hoist lift
 
+choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
+choiceDef a [] = a
+choiceDef _ as = Gen.choice as
+
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString
 
@@ -49,9 +54,8 @@ forAllPrettyT = forAllWithT prettyString
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
 hoistSupply r = hoist $ flip runReaderT r
 
-choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
-choiceDef a [] = a
-choiceDef _ as = Gen.choice as
+revealUnique :: Name a -> Name a
+revealUnique (Name ann name uniq) = Name ann (name <> BSL.pack ('_' : show uniq)) uniq
 
 genSizeIn :: Monad m => Size -> Size -> GenT m Size
 genSizeIn = Gen.integral .* Range.linear
@@ -73,7 +77,7 @@ genBuiltin =
 withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
 
--- | Generators supplied to computations that run in the 'PlcGenT' monad.
+-- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
 data BuiltinGensT m = BuiltinGensT
     { _builtinGensSize  :: GenT m Size         -- ^ Generates a 'Size'.
     , _builtinGensTyped :: TypedBuiltinGenT m  -- ^ Generates a PLC 'Term' and the corresponding
@@ -159,8 +163,14 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
         let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
         go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
 
+-- | Generate a PLC 'Term' and the corresponding Haskell value.
 genTerm
-    :: TypedBuiltinGenT Fresh -> DenotationContext -> Int -> TypedBuiltin Size r -> GenT Fresh (TermOf r)
+    :: TypedBuiltinGenT Fresh  -- ^ Ground generators of built-ins. The base case of the recursion.
+    -> DenotationContext       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
+                               -- Gets extended by a variable when an applied lambda is generated.
+    -> Int                     -- ^ Depth of recursion.
+    -> TypedBuiltin Size r     -- ^ Determines the resulting type.
+    -> GenT Fresh (TermOf r)
 genTerm genBase = go where
     go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT Fresh (TermOf r)
     go context depth tb
@@ -170,17 +180,32 @@ genTerm genBase = go where
         | depth == 3 = Gen.choice $ lambdaApply : recursive
         | otherwise  = lambdaApply
         where
+            -- Instantiate all size variables with `()`.
             desizedTb = mapSizeEntryTypedBuiltin (\_ -> SizeBound ()) tb
+            -- Generators of built-ins to feed them to 'genIterAppValue'.
+            -- Note that we currently generate the same size over and over again (see 'genSizeFrom').
+            -- We could also generate distinct sizes and use 'ResizeInteger'. That's a TODO probably.
+            -- Generating size variables would be nice too, but that's too complicated.
+            -- Note that the typed built-ins generator calls 'go' recursively.
             builtinGens = BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go context (depth - 1))
-            recurse (DenotationContextMember denotation) =
+            -- Generate arguments for functions recursively or return a variable.
+            proceed (DenotationContextMember denotation) =
                 fmap iterAppValueToTermOf . hoistSupply builtinGens $ genIterAppValue denotation
+            -- Look up a list of 'Denotation's from 'DenotationContext' each of which
+            -- has a type that ends in the same type as the one that 'tb\'' represents.
             lookupInContext tb' = foldMap getCompose . DMap.lookup tb' $ unDenotationContext context
-            variables = map recurse . lookupInContext $ closeTypedBuiltin tb
-            recursive = map recurse $ lookupInContext desizedTb
+            -- A list of variables generators.
+            variables = map proceed . lookupInContext $ closeTypedBuiltin tb
+            -- A list of recursive generators. We use 'desizedTb' instead of just 'tb'
+            -- in order to make e.g. 'integer 2' unifiable with 'integer s' for universally
+            -- quantified 's'. For this we simply instantiate all variables with '()' in
+            -- the type, a term of which we're currently generating, and look that type up in
+            -- the current context where universally quantified variable are already
+            -- instantiate to '()' (which happens at the insertion phase, see ')
+            recursive = map proceed $ lookupInContext desizedTb
             lambdaApply = withTypedBuiltinGen $ \argTb -> do
-                -- TODO: 'freshInt' is not supposed to be here.
-                name <- lift $ freshInt >>= \i -> freshName () $ "x" <> fromString (show i)
                 let argTyTb = mapSizeTypedBuiltin (\_ -> TyBuiltin () TySize) argTb
+                name  <- lift $ revealUnique <$> freshName () "x"
                 argTy <- lift $ typedBuiltinToType argTyTb
                 TermOf arg  x <- go context (depth - 1) argTb
                 TermOf body y <- go (insertVariable name argTb x context) (depth - 1) tb
