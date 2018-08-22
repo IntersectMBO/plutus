@@ -45,6 +45,7 @@ module Language.PlutusCore
     , runTypeCheckM
     , programType
     , fileType
+    , fileTypeCfg
     , printType
     , TypeError (..)
     , TypeCheckM
@@ -86,6 +87,12 @@ import           PlutusPrelude
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
 fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
+
+-- | Given a file, display
+-- its type or an error message, optionally dumping annotations and debug
+-- information.
+fileTypeCfg :: Configuration -> FilePath -> IO T.Text
+fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printType) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: BSL.ByteString -> Either Error T.Text

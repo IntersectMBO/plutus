@@ -9,6 +9,7 @@ module Language.PlutusCore.PrettyCfg ( PrettyCfg (..)
                                      , debugText
                                      , defaultCfg
                                      , debugCfg
+                                     , renderCfg
                                      ) where
 
 import qualified Data.Text                               as T
@@ -23,6 +24,9 @@ class PrettyCfg a where
 
 instance PrettyCfg a => PrettyCfg [a] where
     prettyCfg cfg = list . fmap (prettyCfg cfg)
+
+renderCfg :: PrettyCfg a => Configuration -> a -> T.Text
+renderCfg = render .* prettyCfg
 
 -- | Render a 'Program' as strict 'Text', using 'defaultCfg'
 prettyCfgText :: PrettyCfg a => a -> T.Text
