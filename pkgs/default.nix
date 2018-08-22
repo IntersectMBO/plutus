@@ -13,12 +13,18 @@ let
     self: {
 array = null;
 base = null;
+binary = null;
 bytestring = null;
+containers = null;
 deepseq = null;
 directory = null;
 filepath = null;
+ghc-boot = null;
 ghc-boot-th = null;
 ghc-prim = null;
+ghci = null;
+hoopl = null;
+hpc = null;
 integer-gmp = null;
 pretty = null;
 process = null;
@@ -8739,33 +8745,6 @@ description = "Two-column database server";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
-"binary" = callPackage
-({
-  mkDerivation
-, array
-, base
-, bytestring
-, containers
-, stdenv
-}:
-mkDerivation {
-
-pname = "binary";
-version = "0.8.5.1";
-sha256 = "deb91a69662288f38bb62e04f2cedf8ef60d84437a194c778dacf6c31dfe0596";
-libraryHaskellDepends = [
-array
-base
-bytestring
-containers
-];
-doHaddock = false;
-doCheck = false;
-homepage = "https://github.com/kolmodin/binary";
-description = "Binary serialisation for Haskell values using lazy ByteStrings";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
 "binary-bits" = callPackage
 ({
   mkDerivation
@@ -15402,32 +15381,6 @@ doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/alphaHeavy/consul-haskell";
 description = "A consul client for Haskell";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
-"containers" = callPackage
-({
-  mkDerivation
-, array
-, base
-, deepseq
-, ghc-prim
-, stdenv
-}:
-mkDerivation {
-
-pname = "containers";
-version = "0.5.11.0";
-sha256 = "58cd226ad5a147b12240f854a1fbadf809fd56cb9532123d60c1b23d13e04948";
-libraryHaskellDepends = [
-array
-base
-deepseq
-ghc-prim
-];
-doHaddock = false;
-doCheck = false;
-description = "Assorted concrete container types";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -26455,36 +26408,6 @@ description = "Create command line interfaces with ease";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
-"ghc-boot" = callPackage
-({
-  mkDerivation
-, base
-, binary
-, bytestring
-, directory
-, filepath
-, ghc-boot-th
-, stdenv
-}:
-mkDerivation {
-
-pname = "ghc-boot";
-version = "8.2.2";
-sha256 = "cf38a4d878a944b100a770450f5472d167657330a906b9d56695a0d29b76973b";
-libraryHaskellDepends = [
-base
-binary
-bytestring
-directory
-filepath
-ghc-boot-th
-];
-doHaddock = false;
-doCheck = false;
-description = "Shared functionality between GHC and its boot libraries";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
 "ghc-compact" = callPackage
 ({
   mkDerivation
@@ -26860,48 +26783,6 @@ doCheck = false;
 homepage = "http://www.clash-lang.org/";
 description = "GHC typechecker plugin for types of kind GHC.TypeLits.Nat";
 license = stdenv.lib.licenses.bsd2;
-
-}) {};
-"ghci" = callPackage
-({
-  mkDerivation
-, array
-, base
-, binary
-, bytestring
-, containers
-, deepseq
-, filepath
-, ghc-boot
-, ghc-boot-th
-, stdenv
-, template-haskell
-, transformers
-, unix
-}:
-mkDerivation {
-
-pname = "ghci";
-version = "8.2.2";
-sha256 = "f6978f3da79c52659d0f63c33cd763190a1bb2214c01b34abe0e6cc9b4c0ca48";
-libraryHaskellDepends = [
-array
-base
-binary
-bytestring
-containers
-deepseq
-filepath
-ghc-boot
-ghc-boot-th
-template-haskell
-transformers
-unix
-];
-doHaddock = false;
-doCheck = false;
-description = "The library supporting GHC's interactive interpreter";
-license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "ghcid" = callPackage
@@ -33935,31 +33816,6 @@ description = "Haskell API Search";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
-"hoopl" = callPackage
-({
-  mkDerivation
-, base
-, containers
-, stdenv
-}:
-mkDerivation {
-
-pname = "hoopl";
-version = "3.10.2.2";
-sha256 = "097b1316d5f1c8ffe71133223209eb2b095fe13f43dc01d1fe43fd8a545a2b97";
-revision = "2";
-editedCabalFile = "0j6pz4jzhvviyrhhn1j22ikmjvzrg60nzvq26lbpkcb6y4q6rlyx";
-libraryHaskellDepends = [
-base
-containers
-];
-doHaddock = false;
-doCheck = false;
-homepage = "https://github.com/haskell/hoopl";
-description = "A library to support dataflow analysis and optimization";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
 "hopenssl" = callPackage
 ({
   mkDerivation
@@ -34274,36 +34130,6 @@ doCheck = false;
 homepage = "https://github.com/sol/hpack#readme";
 description = "An alternative format for Haskell packages";
 license = stdenv.lib.licenses.mit;
-
-}) {};
-"hpc" = callPackage
-({
-  mkDerivation
-, base
-, containers
-, directory
-, filepath
-, stdenv
-, time
-}:
-mkDerivation {
-
-pname = "hpc";
-version = "0.6.0.3";
-sha256 = "16dac73e55899815a32715c35fa5986da077d7e7887ce8ef1c72b4f33a73a2aa";
-revision = "1";
-editedCabalFile = "1bddfsgn48kh8qa72asgmx7z4ym00zkh09g3hqp6l6yl919drn2i";
-libraryHaskellDepends = [
-base
-containers
-directory
-filepath
-time
-];
-doHaddock = false;
-doCheck = false;
-description = "Code Coverage Library for Haskell";
-license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "hpc-coveralls" = callPackage

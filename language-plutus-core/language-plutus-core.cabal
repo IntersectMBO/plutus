@@ -62,7 +62,7 @@ library
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
-        containers >=0.5.11,
+        containers -any,
         array -any,
         mtl -any,
         transformers -any,
