@@ -118,7 +118,7 @@ decodeVersion = Version () <$> decodeNatural <*> decodeNatural <*> decodeNatural
 encodeKind :: Kind () -> Encoding
 encodeKind = cata a where
     a TypeF{}             = encodeTag 0
-    a (KindArrowF _ k k') = encodeTag 1 <> k <> k'
+    a (KindArrowF _ k k') = fold [ encodeTag 1, k , k' ]
     a SizeF{}             = encodeTag 2
 
 decodeKind :: Decoder s (Kind ())

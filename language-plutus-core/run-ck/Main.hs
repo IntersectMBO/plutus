@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Main where
+module Main (main) where
 
-import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.CkMachine
+import           PlutusPrelude
 
-import           Data.List
 import           Control.Monad
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text    as Text
-import qualified Data.Text.IO as Text
-import           Data.Text.Encoding (encodeUtf8)
+import qualified Data.ByteString.Lazy          as BSL
+import           Data.List
+import qualified Data.Text                     as Text
+import           Data.Text.Encoding            (encodeUtf8)
+import qualified Data.Text.IO                  as Text
 
 -- | Parse a program and run it using the CK machine.
 parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
