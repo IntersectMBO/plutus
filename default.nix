@@ -51,7 +51,8 @@ let
   plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
     overrides = self: super: {
       plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
-      language-plutus-core = doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core));
+      # we want to enable benchmarking, which also means we have criterion in the corresponding env
+      language-plutus-core = doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)));
     };
   };
   other = rec {
