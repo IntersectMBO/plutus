@@ -29,6 +29,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
+        Language.PlutusCore.CkMachine
         Language.PlutusCore.Constant
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
@@ -44,7 +45,6 @@ library
         Language.PlutusCore.Constant.View
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Constant.Apply
-        Language.PlutusCore.CkMachine
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
@@ -73,10 +73,10 @@ library
         microlens -any,
         value-supply -any,
         composition-prelude -any
-    
+
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-    
+
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -111,10 +111,10 @@ test-suite language-plutus-core-test
         containers -any,
         mtl -any,
         mmorph -any
-    
+
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
-    
+
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
@@ -130,9 +130,32 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any
-    
+
     if flag(development)
         ghc-options: -Werror
-    
+
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
+
+executable language-plutus-core-run-ck
+    main-is: Main.hs
+    hs-source-dirs: run-ck
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        language-plutus-core -any,
+        bytestring -any,
+        text -any,
+        prettyprinter -any,
+        containers -any,
+        mtl -any,
+        mmorph -any
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists

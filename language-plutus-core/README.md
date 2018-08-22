@@ -39,7 +39,7 @@ The Haskell package `language-plutus-core` implements a range of functionality f
 
 The lexer & parser are based on Alex & Happy and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `Language.PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
 
-Parsing, pretty-printing and the AST representation closely follow the Plutus Core specification. AST nodes are parametereised with the same attribute as the embedded names. 
+Parsing, pretty-printing and the AST representation closely follow the Plutus Core specification. AST nodes are parametereised with the same attribute as the embedded names.
 
 NB: At this stage, every occurrences of a particular name (identifier lexeme) receives the same unique. Hence, binders can be shadowed according to the scoping rules of Plutus Core.
 
@@ -61,6 +61,8 @@ NB: The type checker requires terms to meet the global unqiueness property. If t
 
 ### Evaluation
 
+#### The CK machine
+
 The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the `Language.PlutusCore.CkMachine` module:
 
 ```haskell
@@ -74,3 +76,5 @@ data CkEvalResult
     = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
 ```
+
+There is an executable that runs programs on the CK machine. In order to use it, type in your terminal `stack build && stack exec language-plutus-core-run-ck` and follow the instructions.
