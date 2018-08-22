@@ -34,7 +34,7 @@ data Type tyname a = TyVar a (tyname a)
                    | TyInt a Natural -- ^ Type-level size
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (Type tyname a)
-                   deriving (Functor, Show, Generic, NFData) -- FIXME: this instance for Eq fails to handle universal quantifiers correctly!
+                   deriving (Functor, Show, Generic, NFData)
 
 data TypeF tyname a x = TyVarF a (tyname a)
                       | TyFunF a x x

@@ -60,9 +60,9 @@ newtype Unique = Unique { unUnique :: Int }
 newIdentifier :: BSL.ByteString -> IdentifierState -> (Unique, IdentifierState)
 newIdentifier str st@(is, ss) = case M.lookup str ss of
     Just k -> (k, st)
-    Nothing -> case IM.lookupMax is of
-        Just (i,_) -> (Unique (i+1), (IM.insert (i+1) str is, M.insert str (Unique (i+1)) ss))
-        Nothing    -> (Unique 0, (IM.singleton 0 str, M.singleton str (Unique 0)))
+    Nothing -> case IM.maxViewWithKey is of
+        Just ((i,_), _) -> (Unique (i+1), (IM.insert (i+1) str is, M.insert str (Unique (i+1)) ss))
+        Nothing         -> (Unique 0, (IM.singleton 0 str, M.singleton str (Unique 0)))
 
 freshName :: a -> BSL.ByteString -> Fresh (Name a)
 freshName attr name = Name attr name . Unique <$> freshInt
