@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Evaluation.CkMachine
-    ( test_NatRoundtrip
-    , test_ListSum
-    , test_ifIntegers
+    ( test_evaluateCk
     ) where
 
 import           PlutusPrelude
@@ -102,3 +100,10 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         CkEvalSuccess res -> case unsafeMakeConstant int value of
             Nothing   -> fail "ifIntegers: value out of bounds"
             Just res' -> res === res'
+
+test_evaluateCk :: TestTree
+test_evaluateCk = testGroup "evaluateCk"
+    [ test_NatRoundtrip
+    , test_ListSum
+    , test_ifIntegers
+    ]

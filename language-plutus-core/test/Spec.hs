@@ -85,9 +85,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsRewrite rwFiles
     , testsType typeFiles
     , test_constantApplication
-    , test_NatRoundtrip
-    , test_ListSum
-    , test_ifIntegers
+    , test_evaluateCk
     ]
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
