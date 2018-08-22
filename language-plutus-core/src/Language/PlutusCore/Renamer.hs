@@ -50,11 +50,11 @@ newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind 
     deriving (Eq, Functor)
 
 instance PrettyCfg (TyNameWithKind a) where
-    prettyCfg cfg@(Configuration _ True) (TyNameWithKind (TyName tn@(Name (_, k) _ _))) = prettyCfg cfg tn <+> ":" <+> pretty k
+    prettyCfg cfg@(Configuration _ True) (TyNameWithKind (TyName tn@(Name (_, k) _ _))) = parens (prettyCfg cfg tn <+> ":" <+> pretty k)
     prettyCfg cfg@(Configuration _ False) (TyNameWithKind tn) = prettyCfg cfg tn
 
 instance PrettyCfg (NameWithType a) where
-    prettyCfg cfg@(Configuration _ True) (NameWithType n@(Name (_, ty) _ _)) = prettyCfg cfg n <+> ":" <+> prettyCfg cfg ty
+    prettyCfg cfg@(Configuration _ True) (NameWithType n@(Name (_, ty) _ _)) = parens (prettyCfg cfg n <+> ":" <+> prettyCfg cfg ty)
     prettyCfg cfg@(Configuration _ False) (NameWithType n) = prettyCfg cfg n
 
 -- | A 'RenameError' is thrown when a free variable is encountered during
