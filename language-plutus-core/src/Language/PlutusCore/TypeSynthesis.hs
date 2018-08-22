@@ -239,8 +239,7 @@ preTypeOf (TyInst x t ty) = do
             typeCheckStep
             if k == k'
                 then
-                    assign n (void ty) >>
-                    pure ty''
+                    pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 preTypeOf (Unwrap x t) = do
@@ -248,7 +247,7 @@ preTypeOf (Unwrap x t) = do
     case ty of
         TyFix _ n ty' -> do
             let subst = tySubstitute (extractUnique n) ty ty'
-            pure subst
+            pure (tyReduce subst)
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 preTypeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
@@ -279,7 +278,7 @@ tySubstitute u ty = cata a where
 -- TODO: add left-instatiation etc.
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty -- TODO: use the substitution monad here
 tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
 tyReduce (TyFun x ty ty')                                                    = TyFun x (tyReduce ty) (tyReduce ty')
 tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
