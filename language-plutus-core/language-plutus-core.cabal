@@ -53,11 +53,11 @@ library
         Language.PlutusCore.PrettyCfg
     default-language: Haskell2010
     default-extensions: DeriveGeneric DeriveAnyClass
-    other-extensions: StandaloneDeriving
-                      GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
-                      DeriveFoldable DeriveTraversable FlexibleContexts OverloadedStrings
-                      DerivingStrategies MonadComprehensions FlexibleInstances
-                      ConstrainedClassMethods TupleSections GADTs RankNTypes
+    other-extensions: StandaloneDeriving GeneralizedNewtypeDeriving
+                      TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
+                      FlexibleContexts OverloadedStrings DerivingStrategies
+                      MonadComprehensions FlexibleInstances ConstrainedClassMethods
+                      TupleSections GADTs RankNTypes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
