@@ -193,9 +193,9 @@ dummyKind = Type ()
 dummyType :: Type TyNameWithKind ()
 dummyType = TyVar () dummyTyName
 
-assign :: TyNameWithKind a -> Type TyNameWithKind () -> TypeCheckM b ()
-assign (TyNameWithKind (TyName (Name _ _ u))) ty =
-    modify (first (IM.insert (unUnique u) ty))
+-- assign :: TyNameWithKind a -> Type TyNameWithKind () -> TypeCheckM b ()
+-- assign (TyNameWithKind (TyName (Name _ _ u))) ty =
+    -- modify (first (IM.insert (unUnique u) ty))
 
 lookupType :: Unique -> Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
 lookupType u ty = do
@@ -238,8 +238,7 @@ preTypeOf (TyInst x t ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then
-                    pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
+                then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
 preTypeOf (Unwrap x t) = do

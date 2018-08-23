@@ -15,11 +15,15 @@ main =
                       [ bench "parse (addInteger)" $ nf parse f
                       , bench "parse (stringLiteral)" $ nf parse g
                       ]
-                , env typeFile $ \ f ->
+                , env typeFiles $ \ ~(f, g) ->
                    bgroup "type-check"
-                      [ bench "fileType" $ nf printType f ]
+                      [ bench "printType" $ nf printType f
+                      , bench "printType" $ nf printType g
+                      ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"
           stringFile = BSL.readFile "test/data/stringLiteral.plc"
           files = (,) <$> envFile <*> stringFile
           typeFile = BSL.readFile "test/types/addIntegerCorrect.plc"
+          largeTypeFile = BSL.readFile "test/types/negation.plc"
+          typeFiles = (,) <$> typeFile <*> largeTypeFile
