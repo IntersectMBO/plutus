@@ -12,6 +12,7 @@ module Language.PlutusCore.Constant.Make
 import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
 

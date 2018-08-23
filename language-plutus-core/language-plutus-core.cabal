@@ -73,7 +73,6 @@ library
         text -any,
         prettyprinter -any,
         microlens -any,
-        value-supply -any,
         composition-prelude -any
 
     if (flag(development) && impl(ghc <8.4))

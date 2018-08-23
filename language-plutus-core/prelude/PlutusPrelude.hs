@@ -37,7 +37,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , repeatM
                      , (?)
                      , Debug (..)
-                     , Fresh
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
@@ -51,7 +50,6 @@ import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
 import           Control.Monad                           (guard, join)
-import           Control.Monad.Trans.Reader
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import           Data.Foldable                           (fold, toList)
@@ -60,7 +58,6 @@ import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
 import           Data.Semigroup
-import           Data.Supply
 import qualified Data.Text                               as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
@@ -69,7 +66,6 @@ import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
 import           GHC.Generics                            (Generic)
 import           GHC.Natural                             (Natural)
-import           System.IO.Unsafe
 
 infixr 2 ?
 
