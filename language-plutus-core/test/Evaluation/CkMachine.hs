@@ -7,12 +7,11 @@ import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
-import           Evaluation.Constant.TypedBuiltinGen
-import           Evaluation.Generator
+import           Language.PlutusCore.TestSupport
 import           Evaluation.Terms
 
 import           Data.Foldable
-import           Control.Monad.Reader
+import           Control.Monad.IO.Class
 import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen as Gen

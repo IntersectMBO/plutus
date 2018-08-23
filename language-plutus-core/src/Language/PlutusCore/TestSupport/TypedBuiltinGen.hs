@@ -5,7 +5,7 @@
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Evaluation.Constant.TypedBuiltinGen
+module Language.PlutusCore.TestSupport.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
     , TypedBuiltinGen

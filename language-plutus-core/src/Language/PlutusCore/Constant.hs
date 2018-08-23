@@ -1,4 +1,6 @@
-module Language.PlutusCore.Constant (module Export) where
+module Language.PlutusCore.Constant
+    ( module Export
+    ) where
 
 import           Language.PlutusCore.Constant.Prelude as Export
 import           Language.PlutusCore.Constant.Make    as Export
