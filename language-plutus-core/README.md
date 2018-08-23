@@ -32,7 +32,6 @@ The Haskell package `language-plutus-core` implements a range of functionality f
 
 * API documentation with Haddock
 
-
 ## Design
 
 ### Parser and pretty printer
@@ -77,4 +76,10 @@ data CkEvalResult
     | CkEvalFailure
 ```
 
-There is an executable that runs programs on the CK machine. In order to use it, type in your terminal `stack build && stack exec language-plutus-core-run-ck` and follow the instructions.
+There is an executable that runs programs on the CK machine. In order to install it, type in your terminal `stack install language-plutus-core-run-ck`. Once the build finishes, you can run `language-plutus-core-run-ck` and type a program, the program will be run and the result will be printed.
+
+An examle of usage:
+
+```
+echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | language-plutus-core-run-ck
+```
