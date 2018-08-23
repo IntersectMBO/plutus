@@ -8,6 +8,7 @@ import           Language.PlutusCore.CkMachine
 import           Data.List
 import           Control.Monad
 import qualified Data.ByteString.Lazy as BSL
+import           Data.Text (Text)
 import qualified Data.Text    as Text
 import qualified Data.Text.IO as Text
 import           Data.Text.Encoding (encodeUtf8)
@@ -16,18 +17,21 @@ import           Data.Text.Encoding (encodeUtf8)
 parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
 parseRunCk = fmap (runCk . void) . parseScoped
 
+-- | Parse a program, run it and prettyprint the result.
+textRunCk :: Text -> Text
+textRunCk = either prettyText prettyText . parseRunCk . BSL.fromStrict . encodeUtf8
+
 -- | Read-eval-print loop.
 repl :: IO ()
 repl = do
     line <- Text.getLine
     unless (line == ":q") $ do
-        unless (Text.null line) $ do
-            let res = parseRunCk . BSL.fromStrict $ encodeUtf8 line
-            Text.putStrLn $ "Result: " <> either prettyText prettyText res <> "\n"
+        unless (Text.null line) $
+            Text.putStrLn $ "Result: " <> textRunCk line <> "\n"
         repl
 
-main :: IO ()
-main = do
+interactive :: IO ()
+interactive = do
     putStrLn $ intercalate "\n"
         [ ""
         , "Type a program, press <enter> and the CK machine will run the program and print the result."
@@ -37,3 +41,9 @@ main = do
         , ""
         ]
     repl
+
+nonInteractive :: IO ()
+nonInteractive = Text.getLine >>= Text.putStrLn . textRunCk
+
+main :: IO ()
+main = nonInteractive
