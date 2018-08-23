@@ -14,6 +14,7 @@ import qualified Data.ByteString.Lazy as Bsl
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
+-- | Assert a 'Term' is well-typed.
 assertFreshWellTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
 assertFreshWellTyped getTerm =
     let term = unsafeRunFresh getTerm in
@@ -22,6 +23,7 @@ assertFreshWellTyped getTerm =
             , "Due to: ", prettyString err
             ]
 
+-- | Assert a term is ill-typed.
 assertFreshIllTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
 assertFreshIllTyped getTerm =
     let term = unsafeRunFresh getTerm in

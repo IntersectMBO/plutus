@@ -137,6 +137,7 @@ genTypedBuiltinDiv
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
     $ genTypedBuiltinDef
 
+-- | The integer square root.
 isqrt :: Integer -> Integer
 isqrt n
     | n < 0     = error "isqrt: negative number"

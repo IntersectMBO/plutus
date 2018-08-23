@@ -10,7 +10,6 @@ module Evaluation.Generator
     , hoistSupply
     , genSizeIn
     , genSizeDef
-    , denoteTypedBuiltinName
     , runPlcT
     , genIterAppValue
     , genTerm

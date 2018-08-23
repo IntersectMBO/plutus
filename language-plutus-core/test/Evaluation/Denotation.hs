@@ -1,7 +1,16 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Evaluation.Denotation where
+module Evaluation.Denotation
+    ( Denotation(..)
+    , DenotationContextMember(..)
+    , DenotationContext(..)
+    , denoteVariable
+    , denoteTypedBuiltinName
+    , insertVariable
+    , insertTypedBuiltinName
+    , typedBuiltinNames
+    ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
