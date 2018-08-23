@@ -5,8 +5,12 @@ module Evaluation.TypeCheck
 
 import           PlutusPrelude
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Evaluation.Terms
+import           Language.PlutusCore.StdLib.Data.Bool
+import           Language.PlutusCore.StdLib.Data.ChurchNat
+import           Language.PlutusCore.StdLib.Data.Function
+import           Language.PlutusCore.StdLib.Data.List
+import           Language.PlutusCore.StdLib.Data.Nat
+import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Data.Foldable
 import qualified Data.Text.Encoding as Text

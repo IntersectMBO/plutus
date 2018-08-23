@@ -12,7 +12,7 @@ module Language.PlutusCore.Constant.Make
 import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Constant.Prelude
+import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Constant.Typed
 
 import qualified Data.ByteString.Lazy as BSL

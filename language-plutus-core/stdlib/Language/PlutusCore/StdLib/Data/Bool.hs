@@ -1,62 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-
-module Language.PlutusCore.Constant.Prelude
-    ( Size
-    , Value
-    , getBuiltinConst
-    , getBuiltinUnit
-    , getBuiltinUnitval
-    , getBuiltinBool
+module Language.PlutusCore.StdLib.Data.Bool
+    ( getBuiltinBool
     , getBuiltinTrue
     , getBuiltinFalse
     , getBuiltinIf
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           PlutusPrelude
-
-type Size = Natural
-type Value = Term
-
--- | 'const' as a PLC term.
---
--- > /\ (A B :: *) -> \(x : A) (y : B) -> x
-getBuiltinConst :: Fresh (Term TyName Name ())
-getBuiltinConst = do
-    a <- freshTyName () "a"
-    b <- freshTyName () "b"
-    x <- freshName () "x"
-    y <- freshName () "y"
-    return
-        . TyAbs () a (Type ())
-        . TyAbs () b (Type ())
-        . LamAbs () x (TyVar () a)
-        . LamAbs () y (TyVar () b)
-        $ Var () x
-
--- | '()' as a PLC type.
---
--- > all (A :: *). A -> A
-getBuiltinUnit :: Fresh (Type TyName ())
-getBuiltinUnit = do
-    a <- freshTyName () "a"
-    return
-        . TyForall () a (Type ())
-        . TyFun () (TyVar () a)
-        $ TyVar () a
-
--- | '()' as a PLC term.
---
--- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Fresh (Value TyName Name ())
-getBuiltinUnitval = do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
-    return
-        . TyAbs () a (Type ())
-        . LamAbs () x (TyVar () a)
-        $ Var () x
+import           Language.PlutusCore.StdLib.Data.Unit
 
 -- | 'Bool' as a PLC type.
 --

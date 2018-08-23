@@ -9,7 +9,6 @@ module Language.PlutusCore.Constant.Apply
     ) where
 
 import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
 import           Language.PlutusCore.Name

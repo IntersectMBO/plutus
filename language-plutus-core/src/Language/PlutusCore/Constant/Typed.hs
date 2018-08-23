@@ -47,10 +47,10 @@ module Language.PlutusCore.Constant.Typed
     , typedTxHash
     ) where
 
-import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.StdLib.Data.Bool
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
