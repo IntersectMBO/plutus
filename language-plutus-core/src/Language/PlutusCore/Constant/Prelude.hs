@@ -13,6 +13,7 @@ module Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
+import           Language.PlutusCore.Quote
 
 type Size = Natural
 type Value = Term
@@ -20,7 +21,7 @@ type Value = Term
 -- | Church-encoded '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
-getBuiltinUnit :: Fresh (Type TyName ())
+getBuiltinUnit :: Q (Type TyName ())
 getBuiltinUnit = do
     a <- freshTyName () "A"
     return
@@ -31,7 +32,7 @@ getBuiltinUnit = do
 -- | Church-encoded '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Fresh (Value TyName Name ())
+getBuiltinUnitval :: Q (Value TyName Name ())
 getBuiltinUnitval = do
     a <- freshTyName () "A"
     x <- freshName () "x"
@@ -43,7 +44,7 @@ getBuiltinUnitval = do
 -- | Church-encoded '()' as a PLC type.
 --
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
-getBuiltinBool :: Fresh (Type TyName ())
+getBuiltinBool :: Q (Type TyName ())
 getBuiltinBool = do
     a <- freshTyName () "A"
     unit <- getBuiltinUnit
@@ -56,7 +57,7 @@ getBuiltinBool = do
 -- | Church-encoded 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
-getBuiltinTrue :: Fresh (Value TyName Name ())
+getBuiltinTrue :: Q (Value TyName Name ())
 getBuiltinTrue = do
     builtinUnit <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
@@ -73,7 +74,7 @@ getBuiltinTrue = do
 -- | Church-encoded 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
-getBuiltinFalse :: Fresh (Value TyName Name ())
+getBuiltinFalse :: Q (Value TyName Name ())
 getBuiltinFalse = do
     builtinUnit <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval

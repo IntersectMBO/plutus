@@ -45,6 +45,7 @@ import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.Quote
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
@@ -136,14 +137,14 @@ typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
 typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
 typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
 
-typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Fresh (Type TyName ())
+typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Q (Type TyName ())
 typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
     return . TyApp () (typedBuiltinSizedToType tbs) $ case sizeEntry of
         SizeValue size -> TyInt () size
         SizeBound name -> TyVar () name
 typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool
 
-typeSchemeToType :: TypeScheme (TyName ()) a -> Fresh (Type TyName ())
+typeSchemeToType :: TypeScheme (TyName ()) a -> Q (Type TyName ())
 typeSchemeToType (TypeSchemeBuiltin builtin) = typedBuiltinToType builtin
 typeSchemeToType (TypeSchemeArrow schA schB) =
     TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB

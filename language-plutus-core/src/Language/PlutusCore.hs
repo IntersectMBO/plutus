@@ -56,8 +56,6 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
-    , Fresh
-    , dropFresh
     ) where
 
 import qualified Data.ByteString.Lazy              as BSL

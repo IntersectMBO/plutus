@@ -31,6 +31,7 @@ library
         Language.PlutusCore
         Language.PlutusCore.CkMachine
         Language.PlutusCore.Constant
+        Language.PlutusCore.Quote
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src prelude recursion
@@ -71,7 +72,6 @@ library
         text -any,
         prettyprinter -any,
         microlens -any,
-        value-supply -any,
         composition-prelude -any
 
     if (flag(development) && impl(ghc <8.4))
