@@ -31,32 +31,30 @@ let
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
-  plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
-    overrides = self: super: {
-      plutus-prototype = addRealTimeTestLogs super.plutus-prototype;
-      language-plutus-core = doHaddockHydra (addRealTimeTestLogs super.language-plutus-core);
-    };
-  };
+  filterSource = drv: drv.overrideAttrs (attrs : {
+    src = builtins.filterSource cleanSourceFilter attrs.src;
+  });
   cleanSourceFilter = with pkgs.stdenv;
     name: type: let baseName = baseNameOf (toString name); in ! (
       # Filter out .git repo
       (type == "directory" && baseName == ".git") ||
-      # Filter out editor backup / swap files.
       lib.hasSuffix "~" baseName ||
       builtins.match "^\\.sw[a-z]$" baseName != null ||
       builtins.match "^\\..*\\.sw[a-z]$" baseName != null ||
-
-      # Filter out locally generated/downloaded things.
-      baseName == "dist" ||
-
-      # Filter out the files which I'm editing often.
+      baseName == "dist" || baseName == "dist-newstyle" ||
+      baseName == "cabal.project.local" ||
       lib.hasSuffix ".nix" baseName ||
       lib.hasSuffix ".dhall" baseName ||
-      # Filter out nix-build result symlinks
       (type == "symlink" && lib.hasPrefix "result" baseName) ||
       (type == "directory" && baseName == ".stack-work")
     );
-  source = builtins.filterSource cleanSourceFilter ./.;
+  plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
+    overrides = self: super: {
+      plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
+      # we want to enable benchmarking, which also means we have criterion in the corresponding env
+      language-plutus-core = doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)));
+    };
+  };
   other = rec {
     tests = {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
