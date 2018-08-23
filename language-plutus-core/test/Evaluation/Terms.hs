@@ -24,7 +24,6 @@ module Evaluation.Terms
 
 import           PlutusPrelude
 import           Language.PlutusCore
--- import           Language.PlutusCore.Constant
 
 data NamedType tyname a = NamedType (tyname a) (Type tyname a)
 
@@ -237,46 +236,6 @@ getBuiltinFoldNat = do
         . Apply () (Var () rec)
         . Apply () (Var () f)
         $ Var () z
-
--- -- | TODO: FIXME
--- --
--- -- > /\ (s :: size) -> fix {integer s} {nat} \(rec : integer s -> nat) (i : integer s) ->
--- -- >     if i == 0 then zero else succ (rec (i - s!1))
--- --
--- getBuiltinIntegerToNat :: Natural -> Fresh (Term TyName Name ())
--- getBuiltinIntegerToNat s = do
---     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
---     ifThenElse <- getBuiltinIf
---     fix        <- getBuiltinFix
---     scottZero  <- getBuiltinZero
---     scottSucc  <- getBuiltinSucc
---     rec <- freshName () "rec"
---     i   <- freshName () "i"
---     let integerToTerm n
---             = foldl (Apply ()) (Constant () $ BuiltinName () ResizeInteger)
---             $ [ Constant () $ BuiltinSize () s
---               , Constant () $ BuiltinInt () 1 n
---               ]
---     return
---         . Apply () (foldl (TyInst ()) fix [TyBuiltin () TyInteger, nat])
---         . LamAbs () rec (TyFun () (TyBuiltin () TyInteger) nat)
---         . LamAbs () i (TyBuiltin () TyInteger)
---         . foldl (Apply ()) ifThenElse
---         $ [     foldl (Apply ()) (Constant () $ BuiltinName () EqInteger)
---               $ [ Var () i
---                 , Constant $ ()
---                 ]
---           , scottZero
---           ,     Apply () scottSucc
---               . Apply () (Var () rec)
---               . foldl (Apply ()) (Constant () $ BuiltinName () SubtractInteger)
---               $ [ Var () i
---                 ,     foldl (Apply ()) (Constant () $ BuiltinName () ResizeInteger)
---                     $ [ Constant () $ BuiltinSize () s
---                       , Constant () $ BuiltinInt () 1 1
---                       ]
---                 ]
---           ]
 
 -- | @List@ as a PLC type.
 --
