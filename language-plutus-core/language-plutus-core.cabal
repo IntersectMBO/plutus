@@ -54,6 +54,7 @@ library
         Language.PlutusCore.TestSupport.Denotation
         Language.PlutusCore.TestSupport.Generator
         Language.PlutusCore.TestSupport.TypedBuiltinGen
+        Language.PlutusCore.TestSupport.Utils
     default-language: Haskell2010
     other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
                       GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor

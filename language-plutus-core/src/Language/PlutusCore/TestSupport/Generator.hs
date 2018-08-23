@@ -5,12 +5,9 @@
 module Language.PlutusCore.TestSupport.Generator
     ( PlcGenT
     , IterAppValue(..)
-    , forAllPretty
-    , forAllPrettyT
-    , hoistSupply
+    , runPlcT
     , genSizeIn
     , genSizeDef
-    , runPlcT
     , genIterAppValue
     , genTerm
     , genTermLoose
@@ -21,73 +18,19 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.TestSupport.Denotation
 import           Language.PlutusCore.TestSupport.TypedBuiltinGen
+import           Language.PlutusCore.TestSupport.Utils
 
 import           Data.Functor.Compose
 import           Control.Exception (evaluate)
 import           Control.Exception.Safe (tryAny)
 import           Control.Monad.Reader
-import           Control.Monad.Morph
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Dependent.Map as DMap
 import           Hedgehog hiding (Size, Var, annotate)
-import           Hedgehog.Internal.Property (forAllWithT)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 import           System.IO.Unsafe
-
--- | @hoist lift@
-liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a
-liftT = hoist lift
-
--- | Same as 'Gen.choice', but with a default generator to be used
--- when the supplied list of generators is empty.
-choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
-choiceDef a [] = a
-choiceDef _ as = Gen.choice as
-
--- | Generate a value using the 'Pretty' class for getting its 'String' representation.
-forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
-forAllPretty = forAllWith prettyString
-
--- | Generate a value using the 'Pretty' class for getting its 'String' representation.
--- A supplied generator has access to the 'Monad' the whole property has access to.
-forAllPrettyT :: (Monad m, Pretty a) => GenT m a -> PropertyT m a
-forAllPrettyT = forAllWithT prettyString
-
--- | Supply an environment to an inner 'ReaderT'.
-hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
-hoistSupply r = hoist $ flip runReaderT r
-
--- | Add to the 'ByteString' representation of a name its 'Unique'.
-revealUnique :: Name a -> Name a
-revealUnique (Name ann name uniq) = Name ann (name <> BSL.pack ('_' : show uniq)) uniq
-
--- | Generate a size from bounds.
-genSizeIn :: Monad m => Size -> Size -> GenT m Size
-genSizeIn = Gen.integral .* Range.linear
-
--- | Generate a size using the default range of @[1..3]@.
-genSizeDef :: Monad m => GenT m Size
-genSizeDef = genSizeIn 1 3
-
--- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
-genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
-genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
-genSizeFrom TypedBuiltinBool                = genSizeDef
-
--- | Generate a 'BuiltinSized'.
-genBuiltinSized :: Monad m => GenT m BuiltinSized
-genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
-
--- | Generate a 'Builtin'.
-genBuiltin :: Monad m => GenT m (Builtin size)
-genBuiltin =
-    BuiltinSized . SizeValue <$> genSizeDef <*> genBuiltinSized <|> return BuiltinBool
-
--- | Generate a 'Builtin' and supply its typed version to a continuation.
-withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
-withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
 data BuiltinGensT m = BuiltinGensT
@@ -122,9 +65,39 @@ instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
 runPlcT :: Monad m => GenT m Size -> TypedBuiltinGenT m -> PlcGenT m a -> GenT m a
 runPlcT genSize genTb = hoistSupply $ BuiltinGensT genSize genTb
 
+-- | Add to the 'ByteString' representation of a name its 'Unique'.
+revealUnique :: Name a -> Name a
+revealUnique (Name ann name uniq) = Name ann (name <> BSL.pack ('_' : show uniq)) uniq
+
 -- | Get a 'TermOf' out of an 'IterAppValue'.
 iterAppValueToTermOf :: IterAppValue head arg r -> TermOf r
 iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term x
+
+-- | Generate a size from bounds.
+genSizeIn :: Monad m => Size -> Size -> GenT m Size
+genSizeIn = Gen.integral .* Range.linear
+
+-- | Generate a size using the default range of @[1..3]@.
+genSizeDef :: Monad m => GenT m Size
+genSizeDef = genSizeIn 1 3
+
+-- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
+genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
+genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
+genSizeFrom TypedBuiltinBool                = genSizeDef
+
+-- | Generate a 'BuiltinSized'.
+genBuiltinSized :: Monad m => GenT m BuiltinSized
+genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
+
+-- | Generate a 'Builtin'.
+genBuiltin :: Monad m => GenT m (Builtin size)
+genBuiltin =
+    BuiltinSized . SizeValue <$> genSizeDef <*> genBuiltinSized <|> return BuiltinBool
+
+-- | Generate a 'Builtin' and supply its typed version to a continuation.
+withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
+withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
 genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
