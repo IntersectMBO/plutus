@@ -1,5 +1,6 @@
 module Main (main) where
 
+import           Control.Monad        (void)
 import           Criterion.Main
 import qualified Data.ByteString.Lazy as BSL
 import           Language.PlutusCore
@@ -20,6 +21,15 @@ main =
                       [ bench "printType" $ nf printType f
                       , bench "printType" $ nf printType g
                       ]
+                , env largeTypeFile $ \ g ->
+                   bgroup "normal-form check"
+                      [ bench "check" $ nf (fmap check) (parse g)
+                      ]
+                , env typeFiles $ \ ~(f, g) ->
+                  bgroup "CBOR"
+                    [ bench "writeProgram" $ nf (fmap writeProgram) (void <$> parse f)
+                    , bench "writeProgram" $ nf (fmap writeProgram) (void <$> parse g)
+                    ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"
           stringFile = BSL.readFile "test/data/stringLiteral.plc"

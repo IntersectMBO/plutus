@@ -56,8 +56,8 @@ library
     other-extensions: StandaloneDeriving GeneralizedNewtypeDeriving
                       TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
                       FlexibleContexts OverloadedStrings DerivingStrategies
-                      MonadComprehensions FlexibleInstances ConstrainedClassMethods
-                      TupleSections GADTs RankNTypes
+                      MonadComprehensions FlexibleInstances ConstrainedClassMethods GADTs
+                      RankNTypes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
