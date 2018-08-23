@@ -13,7 +13,7 @@ import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
-import Control.Monad.Trans.Except
+import Control.Monad.State
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
 import Language.PlutusCore.Type
@@ -139,18 +139,16 @@ app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
 handleInteger x sz i = if isOverflow
-    then throwE (Overflow x sz i)
+    then throwError (Overflow x sz i)
     else pure (BuiltinInt x sz i)
 
     where isOverflow = i < (-k) || i > (k - 1)
           k = 8 ^ sz `div` 2
 
-parseST :: BSL.ByteString -> Either ParseError (IdentifierState, Program TyName Name AlexPosn)
-parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
-    where liftErr (Left s)  = Left (LexErr s)
-          liftErr (Right x) = normalize x
-          normalize (x, Left y) = Left y
-          normalize (x, Right y) = Right (x, y)
+parseST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Program TyName Name AlexPosn)
+parseST str = do
+           run <- runAlexST' str (runExceptT parsePlutusCore)
+           liftEither run
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
@@ -158,25 +156,11 @@ parseST str = liftErr (runAlexST str (runExceptT parsePlutusCore))
 -- >>> parse "(program 0.1.0 [(con addInteger) x y])"
 -- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}))) (Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}}))))
 parse :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
-parse str = liftErr (runAlex str (runExceptT parsePlutusCore))
-    where liftErr (Left s)  = Left (LexErr s)
-          liftErr (Right x) = x
-
--- TODO: debug info should carry parser/lexer state
--- | An error encountered during parsing.
-data ParseError = LexErr String
-                | Unexpected (Token AlexPosn)
-                | Overflow AlexPosn Natural Integer 
-                deriving (Show, Eq, Generic, NFData)
-
-instance Pretty ParseError where
-    pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
-    pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+parse str = fmap fst $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
 type Parse = ExceptT ParseError Alex
 
 parseError :: Token AlexPosn -> Parse b
-parseError = throwE . Unexpected
+parseError = throwError . Unexpected
 
 }
