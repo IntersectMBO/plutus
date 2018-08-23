@@ -7,10 +7,14 @@
 {-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Type ( Term (..)
+                                , Value
                                 , Type (..)
                                 , Kind (..)
                                 , Program (..)
                                 , Constant (..)
+                                , BuiltinName (..)
+                                , TypeBuiltin (..)
+                                , Size
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
@@ -23,6 +27,8 @@ import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
+
+type Size = Natural
 
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
@@ -68,10 +74,10 @@ instance Corecursive (Type tyname a) where
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
 -- | Substitute @a@ for @b@ in @c@.
-tyNameSubstitute :: Eq (tyname a) 
+tyNameSubstitute :: Eq (tyname a)
                  => tyname a -- ^ @a@
                  -> tyname a -- ^ @b@
-                 -> Type tyname a -- ^ @c@ 
+                 -> Type tyname a -- ^ @c@
                  -> Type tyname a
 tyNameSubstitute tn tn' = cata a where
     a (TyVarF x tn'') | tn == tn'' = TyVar x tn'
@@ -142,6 +148,8 @@ data TermF tyname name a x = VarF a (name a)
                            deriving (Functor)
 
 type instance Base (Term tyname name a) = TermF tyname name a
+
+type Value = Term
 
 instance Recursive (Term tyname name a) where
     project (Var x n)         = VarF x n

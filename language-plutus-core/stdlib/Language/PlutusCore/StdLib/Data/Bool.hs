@@ -1,17 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-
-module Language.PlutusCore.Constant.Prelude
-    ( Size
-    , Value
-    , getBuiltinConst
-    , getBuiltinUnit
-    , getBuiltinUnitval
-    , getBuiltinBool
+module Language.PlutusCore.StdLib.Data.Bool
+    ( getBuiltinBool
     , getBuiltinTrue
     , getBuiltinFalse
     , getBuiltinIf
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude

@@ -7,11 +7,10 @@ module Language.PlutusCore.CkMachine
     , runCk
     ) where
 
-import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Constant.Prelude
-import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.View
+import           Language.PlutusCore.Constant.Apply
 import           PlutusPrelude
 
 infix 4 |>, <|

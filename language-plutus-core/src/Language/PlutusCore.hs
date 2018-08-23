@@ -20,10 +20,16 @@ module Language.PlutusCore
     , Name (..)
     , TyName (..)
     , Unique (..)
+    , Size
+    , Value
     , BuiltinName (..)
     , TypeBuiltin (..)
     -- * Lexer
     , AlexPosn (..)
+    -- * Views
+    , IterApp (..)
+    , TermIterApp
+    , PrimIterApp
     -- * Formatting
     , format
     , formatDoc
@@ -73,6 +79,7 @@ import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
+import           Language.PlutusCore.View
 import           PlutusPrelude
 import           Control.Monad.Except
 import           Control.Monad.State

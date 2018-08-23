@@ -10,6 +10,7 @@ module Evaluation.Constant.Apply
     , prop_applyBuiltinNameSuccessFailure
     ) where
 
+import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.TestSupport
 

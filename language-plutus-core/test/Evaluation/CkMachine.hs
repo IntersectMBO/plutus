@@ -8,7 +8,11 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.TestSupport
-import           Evaluation.Terms
+import           Language.PlutusCore.StdLib.Data.Bool
+import           Language.PlutusCore.StdLib.Data.Function
+import           Language.PlutusCore.StdLib.Data.List
+import           Language.PlutusCore.StdLib.Data.Nat
+import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Data.Foldable
 import           Control.Monad.IO.Class
