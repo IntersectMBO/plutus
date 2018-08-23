@@ -97,25 +97,26 @@ encodeUnique (Unique i) = encodeInt i
 decodeUnique :: Decoder s Unique
 decodeUnique = Unique <$> decodeInt
 
-encodeName :: Name () -> Encoding
+-- TODO: should we encode the name or not?
+encodeName :: Name a -> Encoding
 encodeName (Name _ bs u) = encodeBytes (BSL.toStrict bs) <> encodeUnique u
 
 decodeName :: Decoder s (Name ())
 decodeName = Name () <$> fmap BSL.fromStrict decodeBytes <*> decodeUnique
 
-encodeTyName :: TyName () -> Encoding
+encodeTyName :: TyName a -> Encoding
 encodeTyName (TyName n) = encodeName n
 
 decodeTyName :: Decoder s (TyName ())
 decodeTyName = TyName <$> decodeName
 
-encodeVersion :: Version () -> Encoding
+encodeVersion :: Version a -> Encoding
 encodeVersion (Version _ n n' n'') = fold [ encodeNatural n, encodeNatural n', encodeNatural n'' ]
 
 decodeVersion :: Decoder s (Version ())
 decodeVersion = Version () <$> decodeNatural <*> decodeNatural <*> decodeNatural
 
-encodeKind :: Kind () -> Encoding
+encodeKind :: Kind a -> Encoding
 encodeKind = cata a where
     a TypeF{}             = encodeTag 0
     a (KindArrowF _ k k') = fold [ encodeTag 1, k , k' ]
@@ -128,7 +129,7 @@ decodeKind = go =<< decodeTag
           go 2 = pure (Size ())
           go _ = fail "Failed to decode Kind ()"
 
-encodeType :: Type TyName () -> Encoding
+encodeType :: Type TyName a -> Encoding
 encodeType = cata a where
     a (TyVarF _ tn)        = encodeTag 0 <> encodeTyName tn
     a (TyFunF _ t t')      = encodeTag 1 <> t <> t'
@@ -151,7 +152,7 @@ decodeType = go =<< decodeTag
           go 7 = TyApp () <$> decodeType <*> decodeType
           go _ = fail "Failed to decode Type TyName ()"
 
-encodeConstant :: Constant () -> Encoding
+encodeConstant :: Constant a -> Encoding
 encodeConstant (BuiltinInt _ n i) = fold [ encodeTag 0, encodeNatural n, encodeInteger i ]
 encodeConstant (BuiltinBS _ n bs) = fold [ encodeTag 1, encodeNatural n, encodeBytes (BSL.toStrict bs) ]
 encodeConstant (BuiltinSize _ n)  = encodeTag 2 <> encodeNatural n
@@ -165,7 +166,7 @@ decodeConstant = go =<< decodeTag
           go 3 = BuiltinName () <$> decodeBuiltinName
           go _ = fail "Failed to decode Constant ()"
 
-encodeTerm :: Term TyName Name () -> Encoding
+encodeTerm :: Term TyName Name a -> Encoding
 encodeTerm = cata a where
     a (VarF _ n)         = encodeTag 0 <> encodeName n
     a (TyAbsF _ tn k t)  = encodeTag 1 <> encodeTyName tn <> encodeKind k <> t
@@ -190,13 +191,13 @@ decodeTerm = go =<< decodeTag
           go 8 = Error () <$> decodeType
           go _ = fail "Failed to decode Term TyName Name ()"
 
-encodeProgram :: Program TyName Name () -> Encoding
+encodeProgram :: Program TyName Name a -> Encoding
 encodeProgram (Program _ v t) = encodeVersion v <> encodeTerm t
 
 decodeProgram :: Decoder s (Program TyName Name ())
 decodeProgram = Program () <$> decodeVersion <*> decodeTerm
 
-writeProgram :: Program TyName Name () -> BSL.ByteString
+writeProgram :: Program TyName Name a -> BSL.ByteString
 writeProgram = toLazyByteString . encodeProgram
 
 readProgram :: BSL.ByteString -> Either DeserialiseFailure (Program TyName Name ())

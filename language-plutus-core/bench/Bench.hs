@@ -1,6 +1,5 @@
 module Main (main) where
 
-import           Control.Monad        (void)
 import           Criterion.Main
 import qualified Data.ByteString.Lazy as BSL
 import           Language.PlutusCore
@@ -27,8 +26,8 @@ main =
                       ]
                 , env typeFiles $ \ ~(f, g) ->
                   bgroup "CBOR"
-                    [ bench "writeProgram" $ nf (fmap writeProgram) (void <$> parse f)
-                    , bench "writeProgram" $ nf (fmap writeProgram) (void <$> parse g)
+                    [ bench "writeProgram" $ nf (fmap writeProgram) (parse f)
+                    , bench "writeProgram" $ nf (fmap writeProgram) (parse g)
                     ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"
