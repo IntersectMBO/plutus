@@ -11,9 +11,7 @@ module Evaluation.Constant.Apply
     ) where
 
 import           Language.PlutusCore.Constant
-import           Evaluation.Denotation
-import           Evaluation.Constant.TypedBuiltinGen
-import           Evaluation.Generator
+import           Language.PlutusCore.TestSupport
 
 import           Data.Foldable
 import           Data.List
@@ -33,12 +31,12 @@ import           Hedgehog hiding (Size, Var, annotate)
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
     :: (forall b. TypedBuiltin Size b -> b -> Gen ConstAppResult)
-                              -- ^ How to get a 'ConstAppResult' having a Haskell value of
-                              -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
-    -> TypedBuiltinName a r   -- ^ A (typed) builtin name to apply.
-    -> a                      -- ^ The semantics of the builtin name. E.g. the semantics of
-                              -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> TypedBuiltinGen        -- ^ How to generate values of sized builtin types.
+                             -- ^ How to get a 'ConstAppResult' having a Haskell value of
+                             -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
+    -> TypedBuiltinName a r  -- ^ A (typed) builtin name to apply.
+    -> a                     -- ^ The semantics of the builtin name. E.g. the semantics of
+                             -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> TypedBuiltinGen       -- ^ How to generate values of sized builtin types.
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property $ do
     let getIterAppValue = runPlcT genSizeDef allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op

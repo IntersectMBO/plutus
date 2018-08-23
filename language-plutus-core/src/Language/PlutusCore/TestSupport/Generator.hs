@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
-module Evaluation.Generator
+module Language.PlutusCore.TestSupport.Generator
     ( PlcGenT
     , IterAppValue(..)
     , forAllPretty
@@ -19,8 +19,8 @@ module Evaluation.Generator
 import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Evaluation.Denotation
-import           Evaluation.Constant.TypedBuiltinGen
+import           Language.PlutusCore.TestSupport.Denotation
+import           Language.PlutusCore.TestSupport.TypedBuiltinGen
 
 import           Data.Functor.Compose
 import           Control.Exception (evaluate)

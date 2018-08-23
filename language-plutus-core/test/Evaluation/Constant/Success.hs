@@ -3,7 +3,7 @@ module Evaluation.Constant.Success
     ) where
 
 import           Language.PlutusCore.Constant
-import           Evaluation.Constant.TypedBuiltinGen
+import           Language.PlutusCore.TestSupport
 import           Evaluation.Constant.Apply
 
 import           Data.Semigroup

@@ -1,7 +1,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Evaluation.Denotation
+module Language.PlutusCore.TestSupport.Denotation
     ( Denotation(..)
     , DenotationContextMember(..)
     , DenotationContext(..)
