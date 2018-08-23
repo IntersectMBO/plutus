@@ -34,4 +34,9 @@ If you add a dependency to a `.cabal` file, you will need to run
 ## Docs
 
 Docs are built by hydra. The latest docs for plutus core master branch can be found at
-https://hydra.iohk.io/job/serokell/plutus/language-plutus-core.x86_64-linux/latest/download/2
+https://hydra.iohk.io/job/serokell/plutus/language-plutus-core.x86_64-linux/latest
+
+You can also build the docs yourself locally. For example:
+```
+nix build -f default.nix language-plutus-core.doc
+```
