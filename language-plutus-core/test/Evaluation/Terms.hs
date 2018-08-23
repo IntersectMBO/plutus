@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Evaluation.Terms
-    ( getBuiltinSelf
+    ( HoledType(..)
+    , RecursiveType(..)
+    , holedToRecursive
+    , getBuiltinSelf
     , getBuiltinUnroll
     , getBuiltinFix
     , getBuiltinChurchNat

@@ -30,6 +30,7 @@ getBuiltinIntegerToNat n
           go 0 = getBuiltinZero
           go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
 
+-- | Convert a @nat@ to an 'Integer'.
 getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Fresh (Term TyName Name ())
 getBuiltinNatToInteger s n = do
     builtinFoldNat <- getBuiltinFoldNat
@@ -78,6 +79,9 @@ test_ListSum = testProperty "ListSum" . property $ do
     for_ (unsafeMakeConstant typedIntSized . sum $ map _termOfValue ps) $ \res ->
         evaluateCk term === CkEvalSuccess res
 
+-- | Generate a @boolean@ and two @integer@s and check whether
+-- @if b then i1 else i2@ means the same thing in Haskell and PLC.
+-- Terms are generated using 'genTermLoose'.
 test_ifIntegers :: TestTree
 test_ifIntegers = testProperty "ifIntegers" . property $ do
     size <- forAll genSizeDef
