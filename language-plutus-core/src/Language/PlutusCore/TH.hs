@@ -7,38 +7,29 @@
 
 module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 
-import           Language.Haskell.TH hiding (Name, Type)
+import           Language.Haskell.TH        hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
+import           Language.PlutusCore        (discardAnnsTerm, discardAnnsTy)
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser (ParseError)
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
-import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
-import           Language.PlutusCore (discardAnnsTerm, discardAnnsTy)
 
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
-import qualified Data.Text.Encoding         as TE
-
-import           Data.Set
-
-import qualified Data.Map                   as Map
+import           PlutusPrelude
 
 import           Control.Monad.Except
+import qualified Data.ByteString.Lazy       as BSL
 import           Data.Functor.Identity
+import qualified Data.Map                   as Map
+import qualified Data.Set                   as Set
 
 {-
 This uses the approach in https://www.well-typed.com/blog/2014/10/quasi-quoting-dsls/ to use free
 object-level variables as metavariables. This also means you can only construct closed terms, which
 is what we want.
 -}
-
-strToBs :: String -> BSL.ByteString
-strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
-
-bsToStr :: BSL.ByteString -> String
-bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 {- Note [Metavar map functions]
 These functions are a little complicated: essentially, we need to reify the whole substitution map at
@@ -57,7 +48,7 @@ substs fvsL = let substFun n = [| $(varE (mkName (bsToStr n)))|] in listE $ fmap
 -- See note [Metavar map functions]
 -- | Get a quotation of a map between names and Haskell variable references to terms using the
 -- name as the variable name.
-metavarMapTerm :: Set (Name a) -> Q Exp
+metavarMapTerm :: Set.Set (Name a) -> Q Exp
 metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
     [|
         let
@@ -73,7 +64,7 @@ metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
 -- See note [Metavar map functions]
 -- | Get a quotation of a map between type names and Haskell variable references to types using the
 -- type name as the variable name.
-metavarMapType :: Set (TyName a) -> Q Exp
+metavarMapType :: Set.Set (TyName a) -> Q Exp
 metavarMapType ftvs = let ftvsL = fmap (nameString . unTyName) $ toList $ ftvs in
     [|
         let
@@ -107,13 +98,13 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
 eval :: QuoteT (Except ParseError) a -> Q a
 eval c = case (runExcept $ runQuoteT c) of
-    Left e -> fail $ show e
+    Left e  -> fail $ show e
     Right p -> pure $ p
 
 unsafeDropErrors :: Except e a -> a
 unsafeDropErrors e = case (runExcept e) of
     Right r -> r
-    Left _ -> error "Impossible!"
+    Left _  -> error "Impossible!"
 
 {-- Note [Parsing and TH stages]
 We have a bit of a dilemma with the staging and parsing of PLC. We need the list of metavars at compile time
