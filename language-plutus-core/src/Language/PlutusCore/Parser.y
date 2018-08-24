@@ -146,7 +146,7 @@ handleInteger x sz i = if isOverflow
           k = 8 ^ sz `div` 2
 
 parseST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Program TyName Name AlexPosn)
-parseST str = liftEither $ runAlexST' str (runExceptT parsePlutusCore)
+parseST str =  runAlexST' str (runExceptT parsePlutusCore) >>= liftEither
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
