@@ -11,6 +11,7 @@ module Language.PlutusCore.Constant.Make
 import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
 
@@ -48,7 +49,7 @@ makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 
 -- | Coerce a 'Bool' to the corresponding PLC's @boolean@.
 makeDupBuiltinBool :: Bool -> Value TyName Name ()
-makeDupBuiltinBool b = dropFresh $ if b then getBuiltinTrue else getBuiltinFalse
+makeDupBuiltinBool b = runQuote $ if b then getBuiltinTrue else getBuiltinFalse
 
 -- | Coerce a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.

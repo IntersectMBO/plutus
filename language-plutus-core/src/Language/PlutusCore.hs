@@ -56,8 +56,6 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
-    , Fresh
-    , dropFresh
     ) where
 
 import qualified Data.ByteString.Lazy              as BSL
@@ -74,6 +72,8 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
+import           Control.Monad.Except
+import           Control.Monad.State
 
 newtype Configuration = Configuration Bool
 
@@ -100,7 +100,7 @@ debugCfg = Configuration True
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
-parseScoped = fmap (uncurry rename) . parseST
+parseScoped str = fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
 programType :: Natural -- ^ Gas provided to typechecker
             -> TypeState a
