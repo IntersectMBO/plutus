@@ -1,6 +1,6 @@
+{-# LANGUAGE ExplicitForAll             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ExplicitForAll             #-}
 {-# LANGUAGE Rank2Types                 #-}
 
 module Language.PlutusCore.Quote (
@@ -17,11 +17,11 @@ module Language.PlutusCore.Quote (
 import           Control.Monad.Except
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL
+import           Data.Functor.Identity
 import           Language.PlutusCore.Lexer  (AlexPosn)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser (ParseError, parseST)
 import           Language.PlutusCore.Type
-import           Data.Functor.Identity
 import           PlutusPrelude
 
 -- | The state contains the "next" 'Unique' that should be used for a name
@@ -57,8 +57,8 @@ mapInner f = QuoteT . mapStateT f . unQuoteT
 freshUnique :: (Monad m) => QuoteT m Unique
 freshUnique = do
     nextU <- get
-    put $ Unique ((unUnique nextU) + 1)
-    pure $ nextU
+    put $ Unique (unUnique nextU + 1)
+    pure nextU
 
 -- | Get a fresh 'Name', given the annotation an the name.
 freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
@@ -75,4 +75,4 @@ parse :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Program TyName
 -- parser state and get back the new next unique
 parse str = mapInner (liftEither . runExcept) $ QuoteT $ StateT $ \nextU -> do
     (p, (_, _, u)) <- runStateT (parseST str) (identifierStateFrom nextU)
-    pure $ (p, u)
+    pure (p, u)

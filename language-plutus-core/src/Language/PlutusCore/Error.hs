@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstrainedClassMethods #-}
+{-# LANGUAGE DeriveAnyClass          #-}
 {-# LANGUAGE FlexibleInstances       #-}
 
 module Language.PlutusCore.Error ( Error (..)

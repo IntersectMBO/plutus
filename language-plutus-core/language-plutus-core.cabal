@@ -59,8 +59,9 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.PrettyCfg
     default-language: Haskell2010
-    default-extensions: DeriveGeneric DeriveAnyClass
+    default-extensions: DeriveGeneric
     other-extensions: StandaloneDeriving GeneralizedNewtypeDeriving
+                      DeriveAnyClass
                       TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
                       FlexibleContexts OverloadedStrings DerivingStrategies
                       MonadComprehensions FlexibleInstances ConstrainedClassMethods GADTs
