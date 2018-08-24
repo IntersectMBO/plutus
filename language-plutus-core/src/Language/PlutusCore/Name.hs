@@ -14,6 +14,7 @@ module Language.PlutusCore.Name ( -- * Types
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
+                                , identifierStateFrom
                                 ) where
 
 import           Control.Monad.State
@@ -41,10 +42,13 @@ instance Eq (Name a) where
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's. It is used during parsing and renaming.
-type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique)
+type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique, Unique)
 
 emptyIdentifierState :: IdentifierState
-emptyIdentifierState = (mempty, mempty)
+emptyIdentifierState = (mempty, mempty, Unique 0)
+
+identifierStateFrom :: Unique -> IdentifierState
+identifierStateFrom u = (mempty, mempty, u)
 
 -- N.B. the constructors for 'Unique' are exported for the sake of the test
 -- suite; I don't know if there is an easier/better way to do this
@@ -58,17 +62,14 @@ newtype Unique = Unique { unUnique :: Int }
 -- lookups while lexing and otherwise.
 newIdentifier :: (MonadState IdentifierState m) => BSL.ByteString -> m Unique
 newIdentifier str = do
-  (is, ss) <- get
-  case M.lookup str ss of
-    Just k -> pure k
-    Nothing ->
-      let key = case IM.maxViewWithKey is of
-            Just ((i,_), _) -> i+1
-            Nothing         -> 0
-      in do
-          let u = Unique key
-          put (IM.insert key str is, M.insert str u ss)
-          pure u
+    (is, ss, nextU) <- get
+    case M.lookup str ss of
+        Just k -> pure k
+        Nothing -> do
+            let key = unUnique nextU
+            let nextU' = Unique (key+1)
+            put (IM.insert key str is, M.insert str nextU ss, nextU')
+            pure nextU
 
 instance Pretty (Name a) where
     pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))

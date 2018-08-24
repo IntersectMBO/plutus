@@ -241,10 +241,10 @@ runAlexST input (Alex f) initial = liftError $ first alex_ust <$>
 
 runAlexST' :: forall a. ByteString.ByteString -> Alex a -> StateT IdentifierState (Except ParseError) a
 runAlexST' input al = StateT $ \is -> let
-      run :: Either ParseError (a, IdentifierState)
-      run = case runAlexST input al is of
-          Left e -> Left e
-          Right (s, a) -> Right (a, s)
+        run :: Either ParseError (a, IdentifierState)
+        run = case runAlexST input al is of
+            Left e -> Left e
+            Right (s, a) -> Right (a, s)
     in liftEither run
 
 }
