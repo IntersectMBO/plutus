@@ -8,9 +8,14 @@ module Language.PlutusCore.TestSupport.Generator
     , runPlcT
     , genSizeIn
     , genSizeDef
+    , genSizeFrom
+    , genBuiltinSized
+    , genBuiltin
+    , withTypedBuiltinGen
     , genIterAppValue
     , genTerm
     , genTermLoose
+    , withAnyTermLoose
     ) where
 
 import           PlutusPrelude
@@ -67,7 +72,8 @@ runPlcT genSize genTb = hoistSupply $ BuiltinGensT genSize genTb
 
 -- | Add to the 'ByteString' representation of a name its 'Unique'.
 revealUnique :: Name a -> Name a
-revealUnique (Name ann name uniq) = Name ann (name <> BSL.pack ('_' : show uniq)) uniq
+revealUnique (Name ann name uniq) =
+    Name ann (name <> BSL.pack ('_' : show (unUnique uniq))) uniq
 
 -- | Get a 'TermOf' out of an 'IterAppValue'.
 iterAppValueToTermOf :: IterAppValue head arg r -> TermOf r
@@ -77,9 +83,9 @@ iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term
 genSizeIn :: Monad m => Size -> Size -> GenT m Size
 genSizeIn = Gen.integral .* Range.linear
 
--- | Generate a size using the default range of @[1..3]@.
+-- | Generate a size using the default range of @[2..3]@.
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = genSizeIn 1 3
+genSizeDef = genSizeIn 2 3
 
 -- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
@@ -208,3 +214,11 @@ genTerm genBase = go where
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose :: TypedBuiltinGenT Fresh
 genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
+
+-- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
+-- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass
+-- that to a continuation.
+withAnyTermLoose
+    :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Fresh c) -> GenT Fresh c
+withAnyTermLoose k =
+    withTypedBuiltinGen $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)
