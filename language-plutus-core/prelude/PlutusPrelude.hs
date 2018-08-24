@@ -43,6 +43,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , parens
                      , squotes
                      , Doc
+                     , strToBs
+                     , bsToStr
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -53,14 +55,16 @@ import           Control.Exception                       (Exception, throw)
 import           Control.Monad                           (guard, join)
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
+import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Foldable                           (fold, toList)
-import           Data.Functor.Foldable                   (Recursive, Corecursive, embed, project, Base)
 import           Data.Function                           (on)
+import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
 import           Data.Semigroup
 import qualified Data.Text                               as T
+import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
