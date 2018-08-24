@@ -32,6 +32,7 @@ emptyFreshState = Unique 0
 
 -- | The "quotation" monad transformer. This allows creation of fresh names and parsing.
 newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
+    -- the MonadState constraint is handy, but it's useless outside since we don't export the state type
     deriving (Functor, Applicative, Monad, MonadTrans, MonadState FreshState)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
@@ -52,18 +53,23 @@ runQuote = runIdentity . runQuoteT
 mapInner :: (forall b. m b -> n b) -> QuoteT m a -> QuoteT n a
 mapInner f = QuoteT . mapStateT f . unQuoteT
 
+-- | Get a fresh 'Unique'.
 freshUnique :: (Monad m) => QuoteT m Unique
 freshUnique = do
     nextU <- get
     put $ Unique ((unUnique nextU) + 1)
     pure $ nextU
 
+-- | Get a fresh 'Name', given the annotation an the name.
 freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
 freshName ann str = Name ann str <$> freshUnique
 
+-- | Get a fresh 'TyName', given the annotation an the name.
 freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 
+-- | Parse some PLC. The resulting program will have fresh names. The underlying monad must be capable
+-- of handling any parse errors.
 parse :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Program TyName Name AlexPosn)
 -- we need to run the parser starting from our current next unique, then throw away the rest of the
 -- parser state and get back the new next unique
