@@ -140,10 +140,10 @@ annotateType (TyInt x n) = pure (TyInt x n)
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.
 rename :: IdentifierState -> Program TyName Name a -> Program TyName Name a
-rename (st, _) (Program x v p) = Program x v (evalState (renameTerm (Identifiers st') p) m)
+rename (st, _, nextU) (Program x v p) = Program x v (evalState (renameTerm (Identifiers st') p) m)
     where st' = IM.fromList (zip keys keys)
           keys = IM.keys st
-          m = fst (IM.findMax st)
+          m = unUnique nextU
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
 

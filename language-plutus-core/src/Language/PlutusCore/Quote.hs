@@ -23,14 +23,19 @@ import           Language.PlutusCore.Type
 import           Data.Functor.Identity
 import           PlutusPrelude
 
+type FreshState = Unique
+
+emptyFreshState :: FreshState
+emptyFreshState = Unique 0
+
 -- | The "quotation" monad transformer. This allows creation of fresh names and parsing.
-newtype QuoteT m a = QuoteT { unQuoteT :: StateT IdentifierState m a }
-  deriving (Functor, Applicative, Monad, MonadTrans, MonadState IdentifierState)
+newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
+    deriving (Functor, Applicative, Monad, MonadTrans, MonadState FreshState)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
 -- be safely combined with other terms - that should happen inside 'QuoteT'.
 runQuoteT ::  (Monad m) => QuoteT m a -> m a
-runQuoteT q = evalStateT (unQuoteT q) emptyIdentifierState
+runQuoteT q = evalStateT (unQuoteT q) emptyFreshState
 
 -- | A non-transformer version of 'QuoteT'.
 type Quote a = QuoteT Identity a
@@ -46,10 +51,17 @@ mapInner :: (forall b. m b -> n b) -> QuoteT m a -> QuoteT n a
 mapInner f = QuoteT . mapStateT f . unQuoteT
 
 freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
-freshName ann str = Name ann str <$> newIdentifier str
+freshName ann str = do
+    nextU <- get
+    put $ Unique ((unUnique nextU) + 1)
+    pure $ Name ann str nextU
 
 freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 
 parse :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Program TyName Name AlexPosn)
-parse str = mapInner (liftEither . runExcept) $ QuoteT (parseST str)
+-- we need to run the parser starting from our current next unique, then throw away the rest of the
+-- parser state and get back the new next unique
+parse str = mapInner (liftEither . runExcept) $ QuoteT $ StateT $ \nextU -> do
+    (p, (_, _, u)) <- runStateT (parseST str) (identifierStateFrom nextU)
+    pure $ (p, u)
