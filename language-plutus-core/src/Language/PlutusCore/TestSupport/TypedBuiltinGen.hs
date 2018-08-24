@@ -2,6 +2,7 @@
 -- which control size-induced bounds of values generated in the 'prop_applyBuiltinName'
 -- function and its derivatives defined in the "Apply" module.
 
+{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -46,7 +47,7 @@ coerceTypedBuiltin tb x = fromMaybe err $ unsafeMakeConstant tb x where
 data TermOf a = TermOf
     { _termOfTerm  :: Term TyName Name ()  -- ^ The PLC term
     , _termOfValue :: a                    -- ^ The Haskell value.
-    }
+    } deriving (Functor)
 -- This has an interesting @Apply@ instance (no pun intended).
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
