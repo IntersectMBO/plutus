@@ -21,7 +21,7 @@ type Value = Term
 -- | Church-encoded '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
-getBuiltinUnit :: Q (Type TyName ())
+getBuiltinUnit :: Quote (Type TyName ())
 getBuiltinUnit = do
     a <- freshTyName () "A"
     return
@@ -32,7 +32,7 @@ getBuiltinUnit = do
 -- | Church-encoded '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Q (Value TyName Name ())
+getBuiltinUnitval :: Quote (Value TyName Name ())
 getBuiltinUnitval = do
     a <- freshTyName () "A"
     x <- freshName () "x"
@@ -44,7 +44,7 @@ getBuiltinUnitval = do
 -- | Church-encoded '()' as a PLC type.
 --
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
-getBuiltinBool :: Q (Type TyName ())
+getBuiltinBool :: Quote (Type TyName ())
 getBuiltinBool = do
     a <- freshTyName () "A"
     unit <- getBuiltinUnit
@@ -57,7 +57,7 @@ getBuiltinBool = do
 -- | Church-encoded 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
-getBuiltinTrue :: Q (Value TyName Name ())
+getBuiltinTrue :: Quote (Value TyName Name ())
 getBuiltinTrue = do
     builtinUnit <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
@@ -74,7 +74,7 @@ getBuiltinTrue = do
 -- | Church-encoded 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
-getBuiltinFalse :: Q (Value TyName Name ())
+getBuiltinFalse :: Quote (Value TyName Name ())
 getBuiltinFalse = do
     builtinUnit <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval

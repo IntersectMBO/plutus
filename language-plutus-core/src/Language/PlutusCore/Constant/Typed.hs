@@ -137,14 +137,14 @@ typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
 typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
 typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
 
-typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Q (Type TyName ())
+typedBuiltinToType :: TypedBuiltin (TyName ()) a -> Quote (Type TyName ())
 typedBuiltinToType (TypedBuiltinSized sizeEntry tbs) =
     return . TyApp () (typedBuiltinSizedToType tbs) $ case sizeEntry of
         SizeValue size -> TyInt () size
         SizeBound name -> TyVar () name
 typedBuiltinToType TypedBuiltinBool                  = getBuiltinBool
 
-typeSchemeToType :: TypeScheme (TyName ()) a -> Q (Type TyName ())
+typeSchemeToType :: TypeScheme (TyName ()) a -> Quote (Type TyName ())
 typeSchemeToType (TypeSchemeBuiltin builtin) = typedBuiltinToType builtin
 typeSchemeToType (TypeSchemeArrow schA schB) =
     TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB

@@ -1,10 +1,13 @@
 {
     {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-    {-# LANGUAGE DeriveAnyClass      #-}
-    {-# LANGUAGE DeriveGeneric       #-}
-    {-# LANGUAGE OverloadedStrings   #-}
-    {-# LANGUAGE StandaloneDeriving  #-}
-    {-# LANGUAGE ScopedTypeVariables #-}
+    {-# LANGUAGE DeriveAnyClass        #-}
+    {-# LANGUAGE DeriveGeneric         #-}
+    {-# LANGUAGE OverloadedStrings     #-}
+    {-# LANGUAGE StandaloneDeriving    #-}
+    {-# LANGUAGE ScopedTypeVariables   #-}
+    {-# LANGUAGE FlexibleContexts      #-}
+    {-# LANGUAGE FlexibleInstances     #-}
+    {-# LANGUAGE MultiParamTypeClasses #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlex
                                      , runAlexST
@@ -178,9 +181,11 @@ mkBuiltin = constructor LexBuiltin
 mkKeyword = constructor LexKeyword
 
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
-handle_identifier p s =
-    sets_alex (modifyUST (snd . newIdentifier s)) >> 
-    LexName p s <$> gets_alex (fst . newIdentifier s . alex_ust)
+handle_identifier p str = do
+    s1 <- gets alex_ust
+    let (u, s2) = runState (newIdentifier str) s1
+    modify (\s -> s { alex_ust = s2})
+    pure $ LexName p str u
 
 -- this conversion is safe because we only lex digits
 readBSL :: (Read a) => BSL.ByteString -> a
@@ -201,20 +206,12 @@ type AlexUserState = IdentifierState
 alexInitUserState :: AlexUserState
 alexInitUserState = emptyIdentifierState
 
-modifyUST :: (AlexUserState -> AlexUserState) -> AlexState -> AlexState
-modifyUST f st = st { alex_ust = f (alex_ust st) }
-
-sets_alex :: (AlexState -> AlexState) -> Alex ()
-sets_alex f = Alex (Right . (f &&& pure ()))
-
-gets_alex :: (AlexState -> a) -> Alex a
-gets_alex f = Alex (Right . (id &&& f))
-
-get_pos :: Alex AlexPosn
-get_pos = gets_alex alex_pos
+instance MonadState AlexState Alex where
+    get = Alex (\s -> Right (s, s))
+    put s = Alex (\_ -> Right (s, ()))
 
 alexEOF :: Alex (Token AlexPosn)
-alexEOF = EOF <$> get_pos
+alexEOF = EOF . alex_pos <$> get
 
 -- TODO: debug info should carry parser/lexer state
 -- | An error encountered during parsing.

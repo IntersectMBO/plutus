@@ -1,14 +1,16 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ExplicitForAll             #-}
+{-# LANGUAGE Rank2Types                 #-}
 
 module Language.PlutusCore.Quote (
-              runQT
-            , runQ
+              runQuoteT
+            , runQuote
             , freshName
             , freshTyName
             , parse
-            , QT
-            , Q
+            , QuoteT
+            , Quote
             ) where
 
 import           Control.Monad.Except
@@ -22,28 +24,32 @@ import           Data.Functor.Identity
 import           PlutusPrelude
 
 -- | The "quotation" monad transformer. This allows creation of fresh names and parsing.
-newtype QT m a = QT { unQT :: StateT IdentifierState m a }
+newtype QuoteT m a = QuoteT { unQuoteT :: StateT IdentifierState m a }
   deriving (Functor, Applicative, Monad, MonadTrans, MonadState IdentifierState)
 
--- | Run a quote from an empty identifier state.
-runQT ::  (Monad m) => QT m a -> m a
-runQT q = evalStateT (unQT q) emptyIdentifierState
+-- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
+-- be safely combined with other terms - that should happen inside 'QuoteT'.
+runQuoteT ::  (Monad m) => QuoteT m a -> m a
+runQuoteT q = evalStateT (unQuoteT q) emptyIdentifierState
 
-type Q a = QT Identity a
+-- | A non-transformer version of 'QuoteT'.
+type Quote a = QuoteT Identity a
 
--- | Run a quote from an empty identifier state.
-runQ :: Q a -> a
-runQ = runIdentity . runQT
+-- | See 'runQuoteT'.
+runQuote :: Quote a -> a
+runQuote = runIdentity . runQuoteT
 
-freshName :: (Monad m) => a -> BSL.ByteString -> QT m (Name a)
-freshName ann str = do
-  s1 <- get
-  let (u, s2) = newIdentifier str s1
-  put s2
-  pure $ Name ann str u
+-- this is like a slightly restricted version of 'mapStateT' that doesn't reveal that it's a state monad
+-- | Given a natural transformation on the internal monad, maps it over a 'QuoteT'. Useful for e.g. swapping
+-- out inner error-handling monads.
+mapInner :: (forall b. m b -> n b) -> QuoteT m a -> QuoteT n a
+mapInner f = QuoteT . mapStateT f . unQuoteT
 
-freshTyName :: (Monad m) => a -> BSL.ByteString -> QT m (TyName a)
+freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
+freshName ann str = Name ann str <$> newIdentifier str
+
+freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 
-parse :: (MonadError ParseError m) => BSL.ByteString -> QT m (Program TyName Name AlexPosn)
-parse str = QT $ mapStateT (liftEither . runExcept) (parseST str)
+parse :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Program TyName Name AlexPosn)
+parse str = mapInner (liftEither . runExcept) $ QuoteT (parseST str)
