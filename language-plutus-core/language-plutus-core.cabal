@@ -54,12 +54,19 @@ library
         Language.PlutusCore.Subst
         Data.Functor.Foldable.Monadic
     default-language: Haskell2010
-    other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
-                      GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
-                      DeriveFoldable DeriveTraversable FlexibleContexts OverloadedStrings
-                      DerivingStrategies MonadComprehensions FlexibleInstances
-                      ConstrainedClassMethods TupleSections GADTs RankNTypes 
-                      DeriveLift TemplateHaskell QuasiQuotes
+    default-extensions:
+        -- should be in base
+        ExplicitForAll ScopedTypeVariables
+        -- extensions to deriving
+        DeriveGeneric StandaloneDeriving DeriveLift
+        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+        DeriveTraversable DerivingStrategies
+    other-extensions:
+        DeriveAnyClass
+        FlexibleContexts FlexibleInstances MultiParamTypeClasses
+        TypeFamilies OverloadedStrings MonadComprehensions
+        ConstrainedClassMethods TupleSections GADTs RankNTypes
+        TemplateHaskell QuasiQuotes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities

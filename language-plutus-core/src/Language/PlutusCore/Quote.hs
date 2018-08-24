@@ -1,7 +1,5 @@
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ExplicitForAll             #-}
-{-# LANGUAGE Rank2Types                 #-}
+{-# LANGUAGE Rank2Types       #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Language.PlutusCore.Quote (
               runQuoteT
