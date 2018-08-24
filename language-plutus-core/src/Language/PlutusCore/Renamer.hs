@@ -143,7 +143,8 @@ rename :: IdentifierState -> Program TyName Name a -> Program TyName Name a
 rename (st, _, nextU) (Program x v p) = Program x v (evalState (renameTerm (Identifiers st') p) m)
     where st' = IM.fromList (zip keys keys)
           keys = IM.keys st
-          m = unUnique nextU
+          -- the next unique is one more than the maximum
+          m = (unUnique nextU)-1
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
 
