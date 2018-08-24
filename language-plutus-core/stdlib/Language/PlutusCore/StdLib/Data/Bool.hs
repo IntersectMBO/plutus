@@ -11,6 +11,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.TH
 
 type Size = Natural
 type Value = Term
