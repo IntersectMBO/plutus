@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE FlexibleContexts           #-}
 
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
@@ -15,6 +16,7 @@ module Language.PlutusCore.Name ( -- * Types
                                 , emptyIdentifierState
                                 ) where
 
+import           Control.Monad.State
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IntMap          as IM
 import qualified Data.Map             as M
@@ -54,12 +56,19 @@ newtype Unique = Unique { unUnique :: Int }
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast
 -- lookups while lexing and otherwise.
-newIdentifier :: BSL.ByteString -> IdentifierState -> (Unique, IdentifierState)
-newIdentifier str st@(is, ss) = case M.lookup str ss of
-    Just k -> (k, st)
-    Nothing -> case IM.maxViewWithKey is of
-        Just ((i,_), _) -> (Unique (i+1), (IM.insert (i+1) str is, M.insert str (Unique (i+1)) ss))
-        Nothing    -> (Unique 0, (IM.singleton 0 str, M.singleton str (Unique 0)))
+newIdentifier :: (MonadState IdentifierState m) => BSL.ByteString -> m Unique
+newIdentifier str = do
+  (is, ss) <- get
+  case M.lookup str ss of
+    Just k -> pure k
+    Nothing ->
+      let key = case IM.maxViewWithKey is of
+            Just ((i,_), _) -> i+1
+            Nothing         -> 0
+      in do
+          let u = Unique key
+          put (IM.insert key str is, M.insert str u ss)
+          pure u
 
 instance Pretty (Name a) where
     pretty (Name _ s _) = pretty (decodeUtf8 (BSL.toStrict s))

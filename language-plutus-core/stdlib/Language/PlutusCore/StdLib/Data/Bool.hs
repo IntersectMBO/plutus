@@ -34,7 +34,7 @@ getBuiltinConst = do
 -- | '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
-getBuiltinUnit :: Q (Type TyName ())
+getBuiltinUnit :: Quote (Type TyName ())
 getBuiltinUnit = do
     a <- freshTyName () "a"
     return
@@ -45,7 +45,7 @@ getBuiltinUnit = do
 -- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Q (Value TyName Name ())
+getBuiltinUnitval :: Quote (Value TyName Name ())
 getBuiltinUnitval = do
     a <- freshTyName () "a"
     x <- freshName () "x"
@@ -57,7 +57,7 @@ getBuiltinUnitval = do
 -- | 'Bool' as a PLC type.
 --
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
-getBuiltinBool :: Q (Type TyName ())
+getBuiltinBool :: Quote (Type TyName ())
 getBuiltinBool = do
     unit <- getBuiltinUnit
     a <- freshTyName () "a"
@@ -70,7 +70,7 @@ getBuiltinBool = do
 -- | 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
-getBuiltinTrue :: Q (Value TyName Name ())
+getBuiltinTrue :: Quote (Value TyName Name ())
 getBuiltinTrue = do
     builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
@@ -87,7 +87,7 @@ getBuiltinTrue = do
 -- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
-getBuiltinFalse :: Q (Value TyName Name ())
+getBuiltinFalse :: Quote (Value TyName Name ())
 getBuiltinFalse = do
     builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
