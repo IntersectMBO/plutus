@@ -6,6 +6,7 @@
 module Language.PlutusCore.Quote (
               runQuoteT
             , runQuote
+            , freshUnique
             , freshName
             , freshTyName
             , parse
@@ -23,6 +24,7 @@ import           Language.PlutusCore.Type
 import           Data.Functor.Identity
 import           PlutusPrelude
 
+-- | The state contains the "next" 'Unique' that should be used for a name
 type FreshState = Unique
 
 emptyFreshState :: FreshState
@@ -50,11 +52,14 @@ runQuote = runIdentity . runQuoteT
 mapInner :: (forall b. m b -> n b) -> QuoteT m a -> QuoteT n a
 mapInner f = QuoteT . mapStateT f . unQuoteT
 
-freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
-freshName ann str = do
+freshUnique :: (Monad m) => QuoteT m Unique
+freshUnique = do
     nextU <- get
     put $ Unique ((unUnique nextU) + 1)
-    pure $ Name ann str nextU
+    pure $ nextU
+
+freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
+freshName ann str = Name ann str <$> freshUnique
 
 freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
