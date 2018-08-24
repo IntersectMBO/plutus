@@ -42052,13 +42052,14 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-hunit
 , text
 , transformers
-, value-supply
 }:
 mkDerivation {
 
 pname = "language-plutus-core";
 version = "0.1.0.0";
 src = ./../language-plutus-core;
+isLibrary = true;
+isExecutable = true;
 libraryHaskellDepends = [
 array
 base
@@ -42072,11 +42073,16 @@ prettyprinter
 recursion
 text
 transformers
-value-supply
 ];
 libraryToolDepends = [
 alex
 happy
+];
+executableHaskellDepends = [
+base
+bytestring
+prettyprinter
+text
 ];
 testHaskellDepends = [
 base

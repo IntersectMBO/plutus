@@ -2,19 +2,34 @@
     {-# OPTIONS_GHC -fno-warn-unused-imports #-}
     {-# LANGUAGE OverloadedStrings  #-}
     {-# LANGUAGE StandaloneDeriving #-}
+    {-# LANGUAGE DeriveAnyClass        #-}
+    {-# LANGUAGE DeriveGeneric         #-}
+    {-# LANGUAGE OverloadedStrings     #-}
+    {-# LANGUAGE StandaloneDeriving    #-}
+    {-# LANGUAGE ScopedTypeVariables   #-}
+    {-# LANGUAGE FlexibleContexts      #-}
+    {-# LANGUAGE FlexibleInstances     #-}
+    {-# LANGUAGE MultiParamTypeClasses #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlex
                                      , runAlexST
+                                     , runAlexST'
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
+                                     , ParseError (..)
                                      ) where
 
 import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
+import qualified Data.Text as T
+import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.PrettyCfg
 import Language.PlutusCore.Name
+import Control.Monad.Except
+import Control.Monad.State
 
 }
 
@@ -169,9 +184,11 @@ mkBuiltin = constructor LexBuiltin
 mkKeyword = constructor LexKeyword
 
 handle_identifier :: AlexPosn -> BSL.ByteString -> Alex (Token AlexPosn)
-handle_identifier p s =
-    sets_alex (modifyUST (snd . newIdentifier s)) >> 
-    LexName p s <$> gets_alex (fst . newIdentifier s . alex_ust)
+handle_identifier p str = do
+    s1 <- gets alex_ust
+    let (u, s2) = runState (newIdentifier str) s1
+    modify (\s -> s { alex_ust = s2})
+    pure $ LexName p str u
 
 -- this conversion is safe because we only lex digits
 readBSL :: (Read a) => BSL.ByteString -> a
@@ -192,29 +209,44 @@ type AlexUserState = IdentifierState
 alexInitUserState :: AlexUserState
 alexInitUserState = emptyIdentifierState
 
-modifyUST :: (AlexUserState -> AlexUserState) -> AlexState -> AlexState
-modifyUST f st = st { alex_ust = f (alex_ust st) }
-
-sets_alex :: (AlexState -> AlexState) -> Alex ()
-sets_alex f = Alex (Right . (f &&& pure ()))
-
-gets_alex :: (AlexState -> a) -> Alex a
-gets_alex f = Alex (Right . (id &&& f))
-
-get_pos :: Alex AlexPosn
-get_pos = gets_alex alex_pos
+instance MonadState AlexState Alex where
+    get = Alex (\s -> Right (s, s))
+    put s = Alex (\_ -> Right (s, ()))
 
 alexEOF :: Alex (Token AlexPosn)
-alexEOF = EOF <$> get_pos
+alexEOF = EOF . alex_pos <$> get
 
-runAlexST :: ByteString.ByteString -> Alex a -> Either String (IdentifierState, a)
-runAlexST input (Alex f) = first alex_ust <$> 
+-- | An error encountered during parsing.
+data ParseError = LexErr String
+                | Unexpected (Token AlexPosn)
+                | Overflow AlexPosn Natural Integer 
+                deriving (Show, Eq, Generic, NFData)
+
+instance PrettyCfg ParseError where
+    prettyCfg _ (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
+    prettyCfg cfg (Unexpected t) = "Unexpected" <+> squotes (prettyCfg cfg t) <+> "at" <+> pretty (loc t)
+    prettyCfg _ (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+
+liftError :: Either String a -> Either ParseError a
+liftError(Left s) = Left $ LexErr s
+liftError(Right a) = Right $ a
+
+runAlexST :: ByteString.ByteString -> Alex a -> IdentifierState -> Either ParseError (IdentifierState, a)
+runAlexST input (Alex f) initial = liftError $ first alex_ust <$>
     f (AlexState { alex_pos = alexStartPos
                  , alex_bpos = 0
                  , alex_inp = input
                  , alex_chr = '\n'
-                 , alex_ust = alexInitUserState
+                 , alex_ust = initial
                  , alex_scd = 0
                  })
+
+runAlexST' :: forall a. ByteString.ByteString -> Alex a -> StateT IdentifierState (Except ParseError) a
+runAlexST' input al = StateT $ \is -> let
+        run :: Either ParseError (a, IdentifierState)
+        run = case runAlexST input al is of
+            Left e -> Left e
+            Right (s, a) -> Right (a, s)
+    in liftEither run
 
 }

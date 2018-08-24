@@ -197,8 +197,10 @@ encodeProgram (Program _ v t) = encodeVersion v <> encodeTerm t
 decodeProgram :: Decoder s (Program TyName Name ())
 decodeProgram = Program () <$> decodeVersion <*> decodeTerm
 
+-- | Encode a program as a 'ByteString'
 writeProgram :: Program TyName Name a -> BSL.ByteString
 writeProgram = toLazyByteString . encodeProgram
 
+-- | Attempt to deserialize a 'Program' form a 'ByteString'
 readProgram :: BSL.ByteString -> Either DeserialiseFailure (Program TyName Name ())
 readProgram = fmap snd . deserialiseFromBytes decodeProgram
