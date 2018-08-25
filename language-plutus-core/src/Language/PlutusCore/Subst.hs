@@ -6,8 +6,8 @@ module Language.PlutusCore.Subst(
                                 , ftvTy
                                 ) where
 
-import           Language.PlutusCore
-import           PlutusPrelude       hiding (empty)
+import           Language.PlutusCore.Type
+import           PlutusPrelude            hiding (empty)
 
 import           Control.Recursion
 import           Data.Set

@@ -67,15 +67,61 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
+    -- * CK Machine
+    , CkEvalResult
+    , runCk
+    -- * Template Haskell
+    , Size
+    , Value
+    , TypedBuiltinSized (..)
+    , TypeScheme (..)
+    , TypedBuiltin (..)
+    , TypedBuiltinName (..)
+    , TypedBuiltinValue (..)
+    , eraseTypedBuiltinSized
+    , toBoundsInt
+    , PrimIterApp
+    , IterApp (..)
+    , makeConstant
+    , flattenSizeEntry
+    , ConstAppResult (..)
+    , makeConstantApp
+    , applyBuiltinName
+    , typedAddInteger
+    , typedSubtractInteger
+    , typedMultiplyInteger
+    , typedResizeInteger
+    , typedConcatenate
+    , typedResizeByteString
+    , typedLessThanEqInteger
+    , typedGreaterThanEqInteger
+    , typedTakeByteString
+    , typedDropByteString
+    , typedEqByteString
+    , typedEqInteger
+    , typedDivideInteger
+    , typedRemainderInteger
+    , typedLessThanInteger
+    , typedGreaterThanInteger
+    , Quote
+    -- * Quasi-Quoters
+    , plcType
+    , plcTerm
     ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy              as BSL
-import qualified Data.IntMap                       as IM
-import qualified Data.Text                         as T
-import           Data.Text.Prettyprint.Doc         hiding (annotate)
+import qualified Data.ByteString.Lazy                 as BSL
+import qualified Data.IntMap                          as IM
+import qualified Data.Text                            as T
+import           Data.Text.Prettyprint.Doc            hiding (annotate)
 import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.CkMachine
+import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Make
+import           Language.PlutusCore.Constant.Prelude
+import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -83,7 +129,9 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.PrettyCfg
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.TH
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude

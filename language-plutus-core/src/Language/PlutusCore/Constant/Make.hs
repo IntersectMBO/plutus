@@ -8,14 +8,14 @@ module Language.PlutusCore.Constant.Make
     , makeConstant
     ) where
 
-import           PlutusPrelude
-import           Language.PlutusCore.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Type
+import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy                 as BSL
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)

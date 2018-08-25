@@ -2,23 +2,22 @@
 -- See the "Success" and "SuccessFailure" module for actual tests implemented
 -- in terms of functions defined here.
 
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs      #-}
+{-# LANGUAGE RankNTypes #-}
 module Evaluation.Constant.Apply
     ( prop_applyBuiltinName
     , prop_applyBuiltinNameSuccess
     , prop_applyBuiltinNameSuccessFailure
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
 import           Evaluation.Constant.GenTypedBuiltinSized
 import           Evaluation.Generator
+import           Language.PlutusCore
 
 import           Data.Foldable
 import           Data.List
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog hiding (Size, Var, annotate)
+import           Hedgehog                                 hiding (Size, Var, annotate)
 
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString

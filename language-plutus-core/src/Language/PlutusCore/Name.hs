@@ -36,7 +36,7 @@ data Name a = Name { nameAttribute :: a
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
-    deriving (Lift)
+    deriving (Show, Lift)
     deriving newtype (Eq, Ord, Functor, NFData, PrettyCfg)
 
 instance Eq (Name a) where
