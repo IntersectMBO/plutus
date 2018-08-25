@@ -61,11 +61,10 @@ library
     default-language: Haskell2010
     default-extensions: DeriveGeneric
     other-extensions: StandaloneDeriving GeneralizedNewtypeDeriving
-                      DeriveAnyClass
-                      TypeFamilies DeriveFunctor DeriveFoldable DeriveTraversable
-                      FlexibleContexts OverloadedStrings DerivingStrategies
-                      MonadComprehensions FlexibleInstances ConstrainedClassMethods GADTs
-                      RankNTypes
+                      DeriveAnyClass TypeFamilies DeriveFunctor DeriveFoldable
+                      DeriveTraversable FlexibleContexts OverloadedStrings
+                      DerivingStrategies MonadComprehensions FlexibleInstances
+                      ConstrainedClassMethods GADTs RankNTypes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
