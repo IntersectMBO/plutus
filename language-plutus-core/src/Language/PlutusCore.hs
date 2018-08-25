@@ -108,6 +108,7 @@ module Language.PlutusCore
     -- * Quasi-Quoters
     , plcType
     , plcTerm
+    , plcProgram
     ) where
 
 import           Control.Monad.Except

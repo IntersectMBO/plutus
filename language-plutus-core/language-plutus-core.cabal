@@ -83,7 +83,6 @@ library
         text -any,
         prettyprinter >=1.1.0.1,
         microlens -any,
-        value-supply -any,
         composition-prelude -any,
         cborg -any,
         th-lift-instances,

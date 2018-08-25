@@ -11,8 +11,6 @@
     {-# LANGUAGE FlexibleInstances     #-}
     {-# LANGUAGE MultiParamTypeClasses #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
-                                     , runAlex
-                                     , runAlexST
                                      , runAlexST'
                                      -- * Types
                                      , AlexPosn (..)

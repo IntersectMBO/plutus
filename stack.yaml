@@ -11,7 +11,6 @@ packages:
 
 extra-deps:
 - cryptonite-0.22
-- value-supply-0.6
 - recursion-1.2.0.1
 
 flags:
