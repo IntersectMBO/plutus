@@ -42072,12 +42072,8 @@ deepseq
 microlens
 mtl
 prettyprinter
-<<<<<<< HEAD
 recursion
-=======
-recursion-schemes
 template-haskell
->>>>>>> fb24418beb084713aaf58d3cfad7f25502d29302
 text
 th-lift-instances
 transformers
