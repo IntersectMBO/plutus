@@ -1,9 +1,14 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Language.PlutusCore
     ( Configuration (..)
     , defaultCfg
     , debugCfg
       -- * Parser
     , parse
+    , parseST
+    , parseTermST
+    , parseTypeST
     , parseScoped
     -- * Pretty-printing
     , prettyCfgText
@@ -64,6 +69,8 @@ module Language.PlutusCore
     , TypeF (..)
     ) where
 
+import           Control.Monad.Except
+import           Control.Monad.State
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
@@ -80,8 +87,7 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
-import           Control.Monad.Except
-import           Control.Monad.State
+
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.

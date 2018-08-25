@@ -7,6 +7,7 @@ import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.Constant.All
+import qualified Quotation.Spec as Quotation
 import           Generators
 import           Hedgehog                hiding (Var, annotate)
 import           Language.PlutusCore
@@ -83,6 +84,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsRewrite rwFiles
     , testsType typeFiles
     , test_constantApplication
+    , Quotation.tests
     ]
 
 type TestFunction a = BSL.ByteString -> Either a T.Text

@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude]}
-  - {name: error, within: [Main, Evaluation.Constant.Success, Evaluation.Generator, Language.PlutusCore.Constant.Apply]}
+  - {name: error, within: [Main, Evaluation.Constant.Success, Evaluation.Generator, Language.PlutusCore.Constant.Apply, Language.PlutusCore.TH]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}

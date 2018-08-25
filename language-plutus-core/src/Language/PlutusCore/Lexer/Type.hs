@@ -15,6 +15,7 @@ import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
 import           Data.Text.Encoding                 (decodeUtf8)
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.PrettyCfg
 import           Numeric                            (showHex)
@@ -24,7 +25,7 @@ import           PlutusPrelude
 data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals
                  | TyInteger
                  | TySize
-                 deriving (Show, Eq, Ord, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
 data BuiltinName = AddInteger
@@ -50,11 +51,11 @@ data BuiltinName = AddInteger
                  | TxHash
                  | BlockNum
                  | BlockTime
-                 deriving (Show, Eq, Ord, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
-               deriving (Show, Eq, Functor, Generic, NFData)
+               deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
 -- | A keyword in Plutus Core.
 data Keyword = KwAbs

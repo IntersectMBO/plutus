@@ -32,7 +32,7 @@ data ConstAppError
       -- constant application is supposed to be computed as soon as there are enough arguments.
     | SizedNonConstantConstAppError (Value TyName Name ())
       -- ^ An argument of a sized type is not a constant.
-    deriving (Show, Eq)
+    deriving (Eq)
 
 -- | The type of constant applications results.
 data ConstAppResult

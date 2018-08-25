@@ -48,7 +48,7 @@ data CkException = CkException
 data CkEvalResult
     = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
-    deriving (Show, Eq)
+    deriving (Eq)
 
 instance PrettyCfg CkEvalResult where
     prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value

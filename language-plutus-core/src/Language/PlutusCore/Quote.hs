@@ -6,10 +6,13 @@
 module Language.PlutusCore.Quote (
               runQuoteT
             , runQuote
+            , mapInner
             , freshUnique
             , freshName
             , freshTyName
-            , parse
+            , parseProgram
+            , parseTerm
+            , parseType
             , QuoteT
             , Quote
             ) where
@@ -20,7 +23,7 @@ import qualified Data.ByteString.Lazy       as BSL
 import           Data.Functor.Identity
 import           Language.PlutusCore.Lexer  (AlexPosn)
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Parser (ParseError, parseST)
+import           Language.PlutusCore.Parser (ParseError, parseST, parseTermST, parseTypeST)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -68,11 +71,24 @@ freshName ann str = Name ann str <$> freshUnique
 freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 
--- | Parse some PLC. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
-parse :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Program TyName Name AlexPosn)
+mapParseRun :: (MonadError ParseError m) => StateT IdentifierState (Except ParseError) a -> QuoteT m a
 -- we need to run the parser starting from our current next unique, then throw away the rest of the
 -- parser state and get back the new next unique
-parse str = mapInner (liftEither . runExcept) $ QuoteT $ StateT $ \nextU -> do
-    (p, (_, _, u)) <- runStateT (parseST str) (identifierStateFrom nextU)
+mapParseRun run = mapInner (liftEither . runExcept) $ QuoteT $ StateT $ \nextU -> do
+    (p, (_, _, u)) <- runStateT run (identifierStateFrom nextU)
     pure (p, u)
+
+-- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
+-- of handling any parse errors.
+parseProgram :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Program TyName Name AlexPosn)
+parseProgram str = mapParseRun (parseST str)
+
+-- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
+-- of handling any parse errors.
+parseTerm :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Term TyName Name AlexPosn)
+parseTerm str = mapParseRun (parseTermST str)
+
+-- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
+-- of handling any parse errors.
+parseType :: (MonadError ParseError m) => BSL.ByteString -> QuoteT m (Type TyName AlexPosn)
+parseType str = mapParseRun (parseTypeST str)

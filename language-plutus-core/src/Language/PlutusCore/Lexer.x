@@ -1,9 +1,9 @@
 {
     {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-    {-# LANGUAGE OverloadedStrings  #-}
-    {-# LANGUAGE StandaloneDeriving #-}
-    {-# LANGUAGE DeriveAnyClass        #-}
+    {-# LANGUAGE OverloadedStrings     #-}
+    {-# LANGUAGE StandaloneDeriving    #-}
     {-# LANGUAGE DeriveGeneric         #-}
+    {-# LANGUAGE DeriveAnyClass        #-}
     {-# LANGUAGE OverloadedStrings     #-}
     {-# LANGUAGE StandaloneDeriving    #-}
     {-# LANGUAGE ScopedTypeVariables   #-}
@@ -23,6 +23,7 @@
 import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
+import Language.Haskell.TH.Syntax (Lift)
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Language.PlutusCore.Lexer.Type
@@ -122,6 +123,7 @@ tokens :-
 
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
+deriving instance Lift AlexPosn
 
 instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
@@ -219,7 +221,7 @@ alexEOF = EOF . alex_pos <$> get
 -- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
-                | Overflow AlexPosn Natural Integer 
+                | Overflow AlexPosn Natural Integer
                 deriving (Show, Eq, Generic, NFData)
 
 instance PrettyCfg ParseError where

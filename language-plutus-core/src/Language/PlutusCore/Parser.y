@@ -2,6 +2,8 @@
     {-# LANGUAGE OverloadedStrings  #-}
     module Language.PlutusCore.Parser ( parse
                                       , parseST
+                                      , parseTermST
+                                      , parseTypeST
                                       , ParseError (..)
                                       ) where
 
@@ -19,7 +21,9 @@ import Language.PlutusCore.Name
 
 }
 
-%name parsePlutusCore
+%name parsePlutusCoreProgram Program
+%name parsePlutusCoreTerm Term
+%name parsePlutusCoreType Type
 %tokentype { Token AlexPosn }
 %error { parseError }
 %monad { Parse } { (>>=) } { pure }
@@ -144,7 +148,13 @@ handleInteger x sz i = if isOverflow
           k = 8 ^ sz `div` 2
 
 parseST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Program TyName Name AlexPosn)
-parseST str =  runAlexST' str (runExceptT parsePlutusCore) >>= liftEither
+parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
+
+parseTermST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Term TyName Name AlexPosn)
+parseTermST str = runAlexST' str (runExceptT parsePlutusCoreTerm) >>= liftEither
+
+parseTypeST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Type TyName AlexPosn)
+parseTypeST str = runAlexST' str (runExceptT parsePlutusCoreType) >>= liftEither
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
