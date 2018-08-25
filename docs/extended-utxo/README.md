@@ -26,8 +26,8 @@ Validator scripts receive, at a minimum, the following information from the vali
 
 1. the current block height (not including the currently validated transaction),
 2. the hash of the currently validated transaction,
-3. for every input of the validated transaction, its value and the hashes of its validator and redeemer scripts,
-4. for every output of the validated transaction, its value and the hash of its validator script, and
+3. for every input of the validated transaction, its value and the hashes of its validator, data, and redeemer scripts,
+4. for every output of the validated transaction, its value and the hash of its validator and data script, and
 5. the sum of the values of all unspent outputs (of the current blockchain without the currently validated transaction) locked by the currently executed validator script.
 
 We may want to support the validator being able to query the sum of all values of all unspent outputs locked by other script addresses, too. This may be costly, though.
