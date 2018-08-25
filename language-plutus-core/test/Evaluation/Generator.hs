@@ -4,16 +4,11 @@
 {-# LANGUAGE RankNTypes                #-}
 
 module Evaluation.Generator
-    ( maxSize
-    , hoistSupply
-    , genSizeDef
-    , typedBuiltinAsValue
+    ( typedBuiltinAsValue
     , GenPlcT
     , runPlcT
     , PrimIterAppValue(..)
-    , genTypedBuiltin
     , genPrimIterAppValue
-    , genTypedBuiltinAndItsValue
     , genConstantSized
     ) where
 

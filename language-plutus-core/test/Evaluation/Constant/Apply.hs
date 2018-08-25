@@ -5,8 +5,7 @@
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 module Evaluation.Constant.Apply
-    ( prop_applyBuiltinName
-    , prop_applyBuiltinNameSuccess
+    ( prop_applyBuiltinNameSuccess
     , prop_applyBuiltinNameSuccessFailure
     ) where
 

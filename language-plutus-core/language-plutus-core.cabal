@@ -104,9 +104,7 @@ executable language-plutus-core-run-ck
         base -any,
         language-plutus-core -any,
         bytestring -any,
-        text -any,
-        prettyprinter -any,
-        composition-prelude -any
+        text -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

@@ -113,17 +113,13 @@ module Language.PlutusCore
 
 import           Control.Monad.Except
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy                 as BSL
-import qualified Data.IntMap                          as IM
-import qualified Data.Text                            as T
-import           Data.Text.Prettyprint.Doc            hiding (annotate)
+import qualified Data.ByteString.Lazy              as BSL
+import qualified Data.IntMap                       as IM
+import qualified Data.Text                         as T
+import           Data.Text.Prettyprint.Doc         hiding (annotate)
 import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.CkMachine
-import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Prelude
-import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Constant.View
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
