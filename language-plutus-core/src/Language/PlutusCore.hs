@@ -104,6 +104,7 @@ module Language.PlutusCore
     , typedLessThanInteger
     , typedGreaterThanInteger
     , Quote
+    , runQuote
     -- * Quasi-Quoters
     , plcType
     , plcTerm
