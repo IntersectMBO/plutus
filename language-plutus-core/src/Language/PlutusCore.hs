@@ -1,5 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Language.PlutusCore
     ( Configuration (..)
     , defaultCfg
