@@ -1,9 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
-    ( CkError(..)
-    , CkException(..)
-    , CkEvalResult(..)
-    , evaluateCk
+    ( CkEvalResult
     , runCk
     ) where
 

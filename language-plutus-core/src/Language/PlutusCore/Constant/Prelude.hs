@@ -4,8 +4,6 @@
 module Language.PlutusCore.Constant.Prelude
     ( Size
     , Value
-    , getBuiltinUnit
-    , getBuiltinUnitval
     , getBuiltinBool
     , getBuiltinTrue
     , getBuiltinFalse

@@ -7,8 +7,6 @@ module Language.PlutusCore.Quote (
               runQuoteT
             , runQuote
             , mapInner
-            , freshUnique
-            , freshName
             , freshTyName
             , parseProgram
             , parseTerm

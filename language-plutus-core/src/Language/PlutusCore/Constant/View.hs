@@ -1,12 +1,8 @@
 module Language.PlutusCore.Constant.View
     ( IterApp(..)
-    , TermIterApp
     , PrimIterApp
-    , constantAsInteger
-    , constantAsBuiltinName
-    , termAsConstant
-    , termAsTermIterApp
     , termAsPrimIterApp
+    , constantAsInteger
     ) where
 
 import           Language.PlutusCore.Constant.Prelude

@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 module Language.PlutusCore.Constant.Typed
-    ( BuiltinSized(..)
+    ( BuiltinSized
     , TypedBuiltinSized(..)
     , SizeEntry(..)
     , TypedBuiltin(..)
@@ -16,7 +16,6 @@ module Language.PlutusCore.Constant.Typed
     , eraseTypedBuiltinSized
     , fmapSizeTypedBuiltin
     , typedBuiltinSizedToType
-    , typedBuiltinToType
     , typeSchemeToType
     , typedAddInteger
     , typedSubtractInteger
