@@ -85,9 +85,9 @@ iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term
 genSizeIn :: Monad m => Size -> Size -> GenT m Size
 genSizeIn = Gen.integral .* Range.linear
 
--- | Generate a size using the default range of @[2..3]@.
+-- | Generate a size using the default range of @[2..4]@.
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = genSizeIn 2 3
+genSizeDef = genSizeIn 2 4
 
 -- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
@@ -99,13 +99,16 @@ genBuiltinSized :: Monad m => GenT m BuiltinSized
 genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
 
 -- | Generate a 'Builtin'.
-genBuiltin :: Monad m => GenT m (Builtin size)
-genBuiltin =
-    BuiltinSized . SizeValue <$> genSizeDef <*> genBuiltinSized <|> return BuiltinBool
+genBuiltin :: Monad m => GenT m Size -> GenT m (Builtin size)
+genBuiltin genSize = Gen.choice
+    [ BuiltinSized . SizeValue <$> genSize <*> genBuiltinSized
+    , return BuiltinBool
+    ]
 
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
-withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
-withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
+withTypedBuiltinGen
+    :: Monad m => GenT m Size -> (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
+withTypedBuiltinGen genSize k = genBuiltin genSize >>= \b -> withTypedBuiltin b k
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
 genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
@@ -179,8 +182,11 @@ genTerm genBase = go where
             -- Generators of built-ins to feed them to 'genIterAppValue'.
             -- Note that we currently generate the same size over and over again (see 'genSizeFrom').
             -- We could also generate distinct sizes and use 'ResizeInteger'. That's a TODO probably.
-            -- Generating size variables would be nice too, but that's too complicated.
+            -- We could do unification and generate sizes for uninstantiate variables.
+            -- That would be cool, but it's not trivial.
+            -- Generating size variables would be nice too, but that's way too complicated.
             -- Note that the typed built-ins generator calls 'go' recursively.
+            genSize = genSizeFrom tb
             builtinGens = BuiltinGensT (genSizeFrom tb) (flip Gen.subterm id . go context (depth - 1))
             -- Generate arguments for functions recursively or return a variable.
             proceed (DenotationContextMember denotation) =
@@ -198,7 +204,7 @@ genTerm genBase = go where
             -- instantiate to '()' (which happens at the insertion phase, see 'insertTypedBuiltinName')
             recursive = map proceed $ lookupInContext desizedTb
             -- Generate a lambda and immediately apply it to a generated argument of a generated type.
-            lambdaApply = withTypedBuiltinGen $ \argTb -> do
+            lambdaApply = withTypedBuiltinGen genSize $ \argTb -> do
                 let argTyTb = mapSizeTypedBuiltin (\_ -> TyBuiltin () TySize) argTb
                 -- Generate a name for the name representing the argument.
                 name  <- lift $ revealUnique <$> freshName () "x"
@@ -223,4 +229,4 @@ genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
 withAnyTermLoose
     :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Fresh c) -> GenT Fresh c
 withAnyTermLoose k =
-    withTypedBuiltinGen $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)
+    withTypedBuiltinGen genSizeDef $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)
