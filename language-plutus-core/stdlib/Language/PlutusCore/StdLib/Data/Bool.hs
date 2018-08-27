@@ -6,7 +6,7 @@ module Language.PlutusCore.StdLib.Data.Bool
     , getBuiltinIf
     ) where
 
-import           PlutusPrelude
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -14,7 +14,7 @@ import           Language.PlutusCore.StdLib.Data.Unit
 -- | 'Bool' as a PLC type.
 --
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
-getBuiltinBool :: Fresh (Type TyName ())
+getBuiltinBool :: Quote (Type TyName ())
 getBuiltinBool = do
     unit <- getBuiltinUnit
     a <- freshTyName () "a"
@@ -27,7 +27,7 @@ getBuiltinBool = do
 -- | 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
-getBuiltinTrue :: Fresh (Value TyName Name ())
+getBuiltinTrue :: Quote (Value TyName Name ())
 getBuiltinTrue = do
     builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
@@ -44,7 +44,7 @@ getBuiltinTrue = do
 -- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
-getBuiltinFalse :: Fresh (Value TyName Name ())
+getBuiltinFalse :: Quote (Value TyName Name ())
 getBuiltinFalse = do
     builtinUnit    <- getBuiltinUnit
     builtinUnitval <- getBuiltinUnitval
@@ -61,7 +61,7 @@ getBuiltinFalse = do
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b x y
-getBuiltinIf :: Fresh (Value TyName Name ())
+getBuiltinIf :: Quote (Value TyName Name ())
 getBuiltinIf = do
     builtinUnit <- getBuiltinUnit
     builtinBool <- getBuiltinBool

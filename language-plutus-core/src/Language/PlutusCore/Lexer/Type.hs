@@ -1,7 +1,8 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveFunctor      #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveLift         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , Version (..)
@@ -19,12 +20,13 @@ import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Language.PlutusCore.Name
 import           Numeric                            (showHex)
 import           PlutusPrelude
+import           Language.Haskell.TH.Syntax (Lift)
 
 -- | A builtin type
 data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals
                  | TyInteger
                  | TySize
-                 deriving (Show, Eq, Ord, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
 data BuiltinName = AddInteger
@@ -50,11 +52,11 @@ data BuiltinName = AddInteger
                  | TxHash
                  | BlockNum
                  | BlockTime
-                 deriving (Show, Eq, Ord, Generic, NFData)
+                 deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
-               deriving (Show, Eq, Functor, Generic, NFData)
+               deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
 -- | A keyword in Plutus Core.
 data Keyword = KwAbs

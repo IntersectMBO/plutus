@@ -1,10 +1,11 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveFoldable    #-}
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveFoldable     #-}
+{-# LANGUAGE DeriveFunctor      #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveLift         #-}
+{-# LANGUAGE DeriveTraversable  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TypeFamilies       #-}
 
 module Language.PlutusCore.Type ( Term (..)
                                 , Value
@@ -28,6 +29,8 @@ import qualified Data.ByteString.Lazy           as BSL
 import           Control.Recursion
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
+import           Language.Haskell.TH.Syntax (Lift)
+import           Instances.TH.Lift          ()
 
 type Size = Natural
 
@@ -40,7 +43,7 @@ data Type tyname a = TyVar a (tyname a)
                    | TyInt a Natural -- ^ Type-level size
                    | TyLam a (tyname a) (Kind a) (Type tyname a)
                    | TyApp a (Type tyname a) (Type tyname a)
-                   deriving (Functor, Show, Generic, NFData) -- FIXME: this instance for Eq fails to handle universal quantifiers correctly!
+                   deriving (Functor, Show, Generic, NFData, Lift) -- FIXME: this instance for Eq fails to handle universal quantifiers correctly!
 
 data TypeF tyname a x = TyVarF a (tyname a)
                       | TyFunF a x x
@@ -122,7 +125,7 @@ data Constant a = BuiltinInt a Natural Integer
                 | BuiltinBS a Natural BSL.ByteString
                 | BuiltinSize a Natural
                 | BuiltinName a BuiltinName
-                deriving (Functor, Show, Eq, Generic, NFData)
+                deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
 -- TODO make this parametric in tyname as well
 -- | A 'Term' is a value.
@@ -135,7 +138,7 @@ data Term tyname name a = Var a (name a) -- ^ A named variable
                         | Unwrap a (Term tyname name a)
                         | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
                         | Error a (Type tyname a)
-                        deriving (Functor, Show, Eq, Generic, NFData)
+                        deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
 data TermF tyname name a x = VarF a (name a)
                            | TyAbsF a (tyname a) (Kind a) x
@@ -163,11 +166,22 @@ instance Recursive (Term tyname name a) where
     project (Wrap x tn ty t)  = WrapF x tn ty t
     project (Error x ty)      = ErrorF x ty
 
+instance Corecursive (Term tyname name a) where
+    embed (VarF x n)         = Var x n
+    embed (TyAbsF x n k t)   = TyAbs x n k t
+    embed (LamAbsF x n ty t) = LamAbs x n ty t
+    embed (ApplyF x t t')    = Apply x t t'
+    embed (ConstantF x c)    = Constant x c
+    embed (TyInstF x t ty)   = TyInst x t ty
+    embed (UnwrapF x t)      = Unwrap x t
+    embed (WrapF x tn ty t)  = Wrap x tn ty t
+    embed (ErrorF x ty)      = Error x ty
+
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
             | KindArrow a (Kind a) (Kind a)
             | Size a
-            deriving (Functor, Eq, Show, Generic, NFData)
+            deriving (Functor, Eq, Show, Generic, NFData, Lift)
 
 data KindF a x = TypeF a
                | KindArrowF a x x
@@ -187,7 +201,7 @@ instance Debug (Kind a) where
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core
 -- language.
 data Program tyname name a = Program a (Version a) (Term tyname name a)
-                 deriving (Show, Eq, Functor, Generic, NFData)
+                 deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
 instance Pretty (Kind a) where
     pretty = cata a where

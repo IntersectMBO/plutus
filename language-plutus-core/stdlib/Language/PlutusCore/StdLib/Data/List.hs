@@ -9,6 +9,7 @@ module Language.PlutusCore.StdLib.Data.List
     ) where
 
 import           PlutusPrelude
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.StdLib.Type
@@ -17,7 +18,7 @@ import           Language.PlutusCore.StdLib.Data.Function
 -- | @List@ as a PLC type.
 --
 -- > \(a :: *). fix \(list :: *) -> all (r :: *). r -> (a -> list -> r) -> r
-getBuiltinList :: Fresh (HoledType TyName ())
+getBuiltinList :: Quote (HoledType TyName ())
 getBuiltinList = do
     a    <- freshTyName () "a"
     list <- freshTyName () "list"
@@ -34,7 +35,7 @@ getBuiltinList = do
 -- |  '[]' as a PLC term.
 --
 -- >  /\(a :: *) -> wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z
-getBuiltinNil :: Fresh (Term TyName Name ())
+getBuiltinNil :: Quote (Term TyName Name ())
 getBuiltinNil = do
     list <- getBuiltinList
     a <- freshTyName () "a"
@@ -55,7 +56,7 @@ getBuiltinNil = do
 --
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
-getBuiltinCons :: Fresh (Term TyName Name ())
+getBuiltinCons :: Quote (Term TyName Name ())
 getBuiltinCons = do
     list <- getBuiltinList
     a  <- freshTyName () "a"
@@ -84,7 +85,7 @@ getBuiltinCons = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f (rec xs') x
-getBuiltinFoldrList :: Fresh (Term TyName Name ())
+getBuiltinFoldrList :: Quote (Term TyName Name ())
 getBuiltinFoldrList = do
     list <- getBuiltinList
     fix  <- getBuiltinFix
@@ -119,7 +120,7 @@ getBuiltinFoldrList = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) -> rec (f z x)
-getBuiltinFoldList :: Fresh (Term TyName Name ())
+getBuiltinFoldList :: Quote (Term TyName Name ())
 getBuiltinFoldList = do
     list <- getBuiltinList
     fix  <- getBuiltinFix
@@ -153,7 +154,7 @@ getBuiltinFoldList = do
 -- > /\(s :: *) -> foldList {integer s} {integer s} (addInteger {s}) s!0
 --
 -- TODO: once sizes are added, make the implementation match the comment (which is wrong).
-getBuiltinSum :: Natural -> Fresh (Term TyName Name ())
+getBuiltinSum :: Natural -> Quote (Term TyName Name ())
 getBuiltinSum s = do
     foldList <- getBuiltinFoldList
     let int = TyBuiltin () TyInteger
@@ -162,4 +163,3 @@ getBuiltinSum s = do
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
           , Constant () $ BuiltinInt () s 0
           ]
-

@@ -3,8 +3,9 @@ module Evaluation.CkMachine
     ( test_evaluateCk
     ) where
 
-import           PlutusPrelude
+import           PlutusPrelude hiding (hoist)
 import           Language.PlutusCore
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.TestSupport
@@ -15,7 +16,6 @@ import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Data.Foldable
-import           Control.Monad.IO.Class
 import           Control.Monad.Morph
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen as Gen
@@ -24,7 +24,7 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 -- | Convert an 'Integer' to a @nat@.
-getBuiltinIntegerToNat :: Integer -> Fresh (Term TyName Name ())
+getBuiltinIntegerToNat :: Integer -> Quote (Term TyName Name ())
 getBuiltinIntegerToNat n
     | n < 0     = error $ "getBuiltinIntegerToNat: negative argument: " ++ show n
     | otherwise = go n where
@@ -32,7 +32,7 @@ getBuiltinIntegerToNat n
           go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
 
 -- | Convert a @nat@ to an 'Integer'.
-getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Fresh (Term TyName Name ())
+getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Quote (Term TyName Name ())
 getBuiltinNatToInteger s n = do
     builtinFoldNat <- getBuiltinFoldNat
     let int = Constant () . BuiltinInt () s
@@ -52,10 +52,10 @@ test_NatRoundtrip = testProperty "NatRoundtrip" . property $ do
     let size = 1
         int1 = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     TermOf n nv <- forAllPretty . Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef int1
-    term <- liftIO . runFresh $ getBuiltinIntegerToNat nv >>= getBuiltinNatToInteger size
+    let term = runQuote $ getBuiltinIntegerToNat nv >>= getBuiltinNatToInteger size
     evaluateCk term === CkEvalSuccess n
 
-getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Fresh (Term TyName Name ())
+getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Quote (Term TyName Name ())
 getListToBuiltinList ty ts = do
     builtinNil  <- getBuiltinNil
     builtinCons <- getBuiltinCons
@@ -73,10 +73,10 @@ test_ListSum = testProperty "ListSum" . property $ do
     let intSized      = TyBuiltin () TyInteger
         typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     ps <- forAllPretty . Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
-    term <- liftIO . runFresh $ do
-        builtinSum <- getBuiltinSum size
-        list <- getListToBuiltinList intSized $ map _termOfTerm ps
-        return $ Apply () builtinSum list
+    let term = runQuote $ do
+            builtinSum <- getBuiltinSum size
+            list <- getListToBuiltinList intSized $ map _termOfTerm ps
+            return $ Apply () builtinSum list
     for_ (dupMakeConstant . TypedBuiltinValue typedIntSized . sum $ map _termOfValue ps) $ \res ->
         evaluateCk term === CkEvalSuccess res
 
@@ -87,7 +87,7 @@ test_ifIntegers :: TestTree
 test_ifIntegers = testProperty "ifIntegers" . property $ do
     size <- forAll genSizeDef
     let int = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    TermOf term value <- hoist runFresh $ do
+    TermOf term value <- hoist (return . runQuote) $ do
         TermOf b bv <- forAllPrettyT $ genTermLoose TypedBuiltinBool
         TermOf i iv <- forAllPrettyT $ genTermLoose int
         TermOf j jv <- forAllPrettyT $ genTermLoose int

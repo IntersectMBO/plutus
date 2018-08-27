@@ -22,6 +22,7 @@ module Language.PlutusCore.TestSupport.Generator
 
 import           PlutusPrelude
 import           Language.PlutusCore
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.TestSupport.Denotation
 import           Language.PlutusCore.TestSupport.TypedBuiltinGen
@@ -163,13 +164,13 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
 -- Generates first-order functions and constants including constant applications.
 -- Arguments to functions and 'BuiltinName's are generated recursively.
 genTerm
-    :: TypedBuiltinGenT Fresh  -- ^ Ground generators of built-ins. The base case of the recursion.
+    :: TypedBuiltinGenT Quote  -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
                                -- Gets extended by a variable when an applied lambda is generated.
     -> Int                     -- ^ Depth of recursion.
-    -> TypedBuiltinGenT Fresh
+    -> TypedBuiltinGenT Quote
 genTerm genBase = go where
-    go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT Fresh (TermOf r)
+    go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT Quote (TermOf r)
     go context depth tb
         | depth == 0 = choiceDef (genBase tb) variables
         | depth == 1 = choiceDef (genBase tb) $ variables ++ recursive
@@ -220,13 +221,13 @@ genTerm genBase = go where
 
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
-genTermLoose :: TypedBuiltinGenT Fresh
+genTermLoose :: TypedBuiltinGenT Quote
 genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass
 -- that to a continuation.
 withAnyTermLoose
-    :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Fresh c) -> GenT Fresh c
+    :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Quote c) -> GenT Quote c
 withAnyTermLoose k =
     withTypedBuiltinGen genSizeDef $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)

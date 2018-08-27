@@ -12,7 +12,7 @@ module Language.PlutusCore.TestSupport.Utils
     , forAllPrettyT
     ) where
 
-import           PlutusPrelude
+import           PlutusPrelude hiding (hoist)
 
 import           Control.Monad.Reader
 import           Control.Monad.Morph

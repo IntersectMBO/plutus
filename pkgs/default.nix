@@ -42053,15 +42053,18 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-golden
 , tasty-hedgehog
 , tasty-hunit
+, template-haskell
 , text
+, th-lift-instances
 , transformers
-, value-supply
 }:
 mkDerivation {
 
 pname = "language-plutus-core";
 version = "0.1.0.0";
 src = ./../language-plutus-core;
+isLibrary = true;
+isExecutable = true;
 libraryHaskellDepends = [
 array
 base
@@ -42072,14 +42075,25 @@ deepseq
 microlens
 mtl
 prettyprinter
+<<<<<<< HEAD
 recursion
+=======
+recursion-schemes
+template-haskell
+>>>>>>> bd106b7520a0ff816a23713be25f72b5d35955c9
 text
+th-lift-instances
 transformers
-value-supply
 ];
 libraryToolDepends = [
 alex
 happy
+];
+executableHaskellDepends = [
+base
+bytestring
+prettyprinter
+text
 ];
 testHaskellDepends = [
 base

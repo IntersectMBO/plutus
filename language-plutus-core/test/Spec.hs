@@ -9,6 +9,7 @@ import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.Constant.All
 import           Evaluation.CkMachine
 
+import qualified Quotation.Spec as Quotation
 import           Generators
 import           Hedgehog                hiding (Var, annotate)
 import           Language.PlutusCore
@@ -86,6 +87,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsType typeFiles
     , test_constantApplication
     , test_evaluateCk
+    , Quotation.tests
     ]
 
 type TestFunction a = BSL.ByteString -> Either a T.Text

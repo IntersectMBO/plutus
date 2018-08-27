@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import           PlutusPrelude
+import           PlutusPrelude hiding (hoist)
 import           Language.PlutusCore
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.TestSupport
@@ -19,7 +20,7 @@ generateTerm :: IO (TermOf (Value TyName Name ()))
 generateTerm
     = Gen.sample
     . Gen.just
-    . hoist (pure . unsafeRunFresh)
+    . hoist (pure . runQuote)
     $ withAnyTermLoose
     $ \(TermOf term tbv) -> pure $ do
           let expected = unsafeDupMakeConstant tbv

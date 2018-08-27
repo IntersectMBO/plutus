@@ -4,14 +4,14 @@ module Language.PlutusCore.StdLib.Data.Unit
     , getBuiltinUnitval
     ) where
 
-import           PlutusPrelude
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 
 -- | '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
-getBuiltinUnit :: Fresh (Type TyName ())
+getBuiltinUnit :: Quote (Type TyName ())
 getBuiltinUnit = do
     a <- freshTyName () "a"
     return
@@ -22,7 +22,7 @@ getBuiltinUnit = do
 -- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Fresh (Value TyName Name ())
+getBuiltinUnitval :: Quote (Value TyName Name ())
 getBuiltinUnitval = do
     a <- freshTyName () "a"
     x <- freshName () "x"
