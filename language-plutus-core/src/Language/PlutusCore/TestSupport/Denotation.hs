@@ -1,3 +1,6 @@
+-- | This module defines tools for associating PLC terms with their corresponding
+-- Haskell values.
+
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}

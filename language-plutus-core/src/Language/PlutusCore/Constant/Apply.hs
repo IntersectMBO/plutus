@@ -1,3 +1,5 @@
+-- | Computing constant application.
+
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -54,10 +56,8 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
-makeConstantApp :: TypedBuiltin Size a -> a -> ConstAppResult
-makeConstantApp builtin x = case unsafeMakeConstant builtin x of
-    Nothing -> ConstAppFailure
-    Just wc -> ConstAppSuccess wc
+makeConstantApp :: TypedBuiltinValue Size a -> ConstAppResult
+makeConstantApp = maybe ConstAppFailure ConstAppSuccess . dupMakeConstant
 
 sizeAt :: SizeVar -> SizeValues -> Size
 sizeAt (SizeVar sizeIndex) (SizeValues sizes) = sizes IntMap.! sizeIndex
@@ -111,8 +111,8 @@ applyTypedBuiltinName
     :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a r -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
-    go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result.
-        [] -> makeConstantApp (expandSizeVars sizeValues builtin) y
+    go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
+        [] -> makeConstantApp $ TypedBuiltinValue (expandSizeVars sizeValues tb) y
         _  -> ConstAppError $ ExcessArgumentsConstAppError args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> ConstAppStuck                         -- Not enough arguments to compute.

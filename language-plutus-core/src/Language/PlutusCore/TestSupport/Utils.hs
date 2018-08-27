@@ -1,3 +1,5 @@
+-- | Utilities used in modules from the @TestSupport@ folder.
+
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}

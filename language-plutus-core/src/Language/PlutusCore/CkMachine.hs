@@ -1,3 +1,5 @@
+-- | The CK machine.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
     ( CkError(..)

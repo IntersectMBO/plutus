@@ -1,3 +1,5 @@
+-- | Reexports from modules from the @Constant@ folder.
+
 module Language.PlutusCore.Constant
     ( module Export
     ) where

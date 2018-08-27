@@ -77,7 +77,7 @@ test_ListSum = testProperty "ListSum" . property $ do
         builtinSum <- getBuiltinSum size
         list <- getListToBuiltinList intSized $ map _termOfTerm ps
         return $ Apply () builtinSum list
-    for_ (unsafeMakeConstant typedIntSized . sum $ map _termOfValue ps) $ \res ->
+    for_ (dupMakeConstant . TypedBuiltinValue typedIntSized . sum $ map _termOfValue ps) $ \res ->
         evaluateCk term === CkEvalSuccess res
 
 -- | Generate a @boolean@ and two @integer@s and check whether
@@ -105,9 +105,7 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         return $ TermOf term value
     case evaluateCk term of
         CkEvalFailure     -> return ()
-        CkEvalSuccess res -> case unsafeMakeConstant int value of
-            Nothing   -> fail "ifIntegers: value out of bounds"
-            Just res' -> res === res'
+        CkEvalSuccess res -> res === unsafeDupMakeConstant (TypedBuiltinValue int value)
 
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"

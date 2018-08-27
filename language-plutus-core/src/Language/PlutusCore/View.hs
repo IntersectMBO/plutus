@@ -1,3 +1,5 @@
+-- | Various views of PLC entities.
+
 module Language.PlutusCore.View
     ( IterApp(..)
     , TermIterApp

@@ -1,3 +1,5 @@
+-- | Reexports from modules from the @TestSupport@ folder.
+
 module Language.PlutusCore.TestSupport
     ( module Export
     ) where
