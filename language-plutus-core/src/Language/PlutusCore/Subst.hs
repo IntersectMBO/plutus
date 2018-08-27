@@ -7,7 +7,6 @@ module Language.PlutusCore.Subst(
                                 ) where
 
 import           Language.PlutusCore
-import           PlutusPrelude         hiding (empty)
 
 import           Data.Functor.Foldable
 import           Data.Set
@@ -18,28 +17,28 @@ substTerm ::
   (name a -> Maybe (Term tyname name a)) ->
   Term tyname name a ->
   Term tyname name a
-substTerm tynameF nameF = hoist f
+substTerm tynameF nameF = cata f
   where
     f(VarF a bnd)         = case nameF bnd of
-      Just t  -> project t
-      Nothing -> VarF a bnd
-    f(LamAbsF a bnd ty t) = LamAbsF a bnd (substTy tynameF ty) t
-    f(TyInstF a t ty)     = TyInstF a t (substTy tynameF ty)
-    f(WrapF a bnd ty t)   = WrapF a bnd (substTy tynameF ty) t
-    f(ErrorF a ty)        = ErrorF a (substTy tynameF ty)
-    f(x)                  = x
+      Just t  -> t
+      Nothing -> Var a bnd
+    f(LamAbsF a bnd ty t) = LamAbs a bnd (substTy tynameF ty) t
+    f(TyInstF a t ty)     = TyInst a t (substTy tynameF ty)
+    f(WrapF a bnd ty t)   = Wrap a bnd (substTy tynameF ty) t
+    f(ErrorF a ty)        = Error a (substTy tynameF ty)
+    f(x)                  = embed x
 
 -- | Naively substitute names using the given function (i.e. do not account for scoping).
 substTy ::
   (tyname a -> Maybe (Type tyname a)) ->
   Type tyname a ->
   Type tyname a
-substTy tynameF = hoist f
+substTy tynameF = cata f
   where
     f(TyVarF a ty) = case tynameF ty of
-      Just t  -> project t
-      Nothing -> TyVarF a ty
-    f(x)           = x
+      Just t  -> t
+      Nothing -> TyVar a ty
+    f(x)           = embed x
 
 -- Free variables
 
