@@ -1,6 +1,6 @@
 -- | This module defines the 'TypedBuiltinGen' type and functions of this type
--- which control size-induced bounds of values generated in the 'prop_applyBuiltinName'
--- function and its derivatives defined in the "Apply" module.
+-- which control size-induced bounds of values generated.
+-- Big warning: generated terms do not satisfy the global uniqueness condition.
 
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -10,7 +10,6 @@ module Language.PlutusCore.TestSupport.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
     , TypedBuiltinGen
-    , coerceTypedBuiltin
     , genLowerBytes
     , updateTypedBuiltinGenInt
     , updateTypedBuiltinGenBS
@@ -28,21 +27,12 @@ module Language.PlutusCore.TestSupport.TypedBuiltinGen
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 
-import           Data.Maybe
 import           Data.Functor.Identity
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
-
--- | Coerce a Haskell value to a PLC value checking all constraints
--- (e.g. an 'Integer' is in appropriate bounds) along the way and
--- fail in case constraints are not satisfied.
-coerceTypedBuiltin :: TypedBuiltin Size a -> a -> Value TyName Name ()
-coerceTypedBuiltin tb x = fromMaybe err $ unsafeMakeConstant tb x where
-    sx = prettyString $ TypedBuiltinValue tb x
-    err = error $ "prop_typedAddInteger: out of bounds: " ++ sx
 
 genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString
 genLowerBytes range = BSL.fromStrict <$> Gen.utf8 range Gen.lower
@@ -65,7 +55,7 @@ instance Pretty a => Pretty (TermOf a) where
     pretty (TermOf t x) = pretty t <+> "~>" <+> pretty x
 
 attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
-attachCoercedTerm tb = fmap $ \x -> TermOf (coerceTypedBuiltin tb x) x
+attachCoercedTerm tb = fmap $ \x -> TermOf (unsafeDupMakeConstant $ TypedBuiltinValue tb x) x
 
 -- TODO: think about abstracting the pattern... or maybe not.
 updateTypedBuiltinGenInt

@@ -1,4 +1,5 @@
--- | See the 'docs/Constant application.md' article for how this module emerged.
+-- | This module assigns types to built-ins.
+-- See the @docs/Constant application.md@ article for how this emerged.
 
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE GADTs             #-}
@@ -55,8 +56,6 @@ import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
 
--- TODO: whenever we write @TypedBuiltin Size@, it probably should be @TypedBuiltin Void@.
-
 infixr 9 `TypeSchemeArrow`
 
 -- | Built-in types indexed by @size@.
@@ -73,9 +72,10 @@ data TypedBuiltinSized a where
     TypedBuiltinSizedSize :: TypedBuiltinSized Size
 
 data SizeEntry size
-    = SizeValue Size
-    | SizeBound size
+    = SizeValue Size  -- ^ A constant size.
+    | SizeBound size  -- ^ A bound size variable.
     deriving (Eq, Ord, Functor)
+-- We write @SizeEntry Size@ sometimes, so this data type is not perfect, but it works fine.
 
 data Builtin size
     = BuiltinSized (SizeEntry size) BuiltinSized

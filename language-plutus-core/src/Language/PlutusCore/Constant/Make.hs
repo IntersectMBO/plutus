@@ -1,12 +1,16 @@
+-- | Smart constructors of PLC constants.
+
 {-# LANGUAGE GADTs #-}
 module Language.PlutusCore.Constant.Make
     ( toBoundsInt
     , makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
-    , unsafeMakeBuiltinBool
+    , makeBuiltinBool
+    , dupMakeBuiltinBool
     , makeSizedConstant
-    , unsafeMakeConstant
+    , dupMakeConstant
+    , unsafeDupMakeConstant
     ) where
 
 import           PlutusPrelude
@@ -16,6 +20,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
 
+import           Data.Maybe
 import qualified Data.ByteString.Lazy as BSL
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
@@ -48,21 +53,33 @@ makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
 makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 
--- | Coerce a 'Bool' to the corresponding PLC's @boolean@.
--- Does not preserve the global uniqueness condition.
-unsafeMakeBuiltinBool :: Bool -> Value TyName Name ()
-unsafeMakeBuiltinBool b = unsafeRunFresh $ if b then getBuiltinTrue else getBuiltinFalse
+-- | Convert a 'Bool' to the corresponding PLC's @boolean@.
+makeBuiltinBool :: Bool -> Fresh (Value TyName Name ())
+makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 
--- | Coerce a Haskell value to the corresponding PLC constant indexed by size
+-- | Convert a 'Bool' to the corresponding PLC's @boolean@.
+-- Does not preserve the global uniqueness condition.
+dupMakeBuiltinBool :: Bool -> Value TyName Name ()
+dupMakeBuiltinBool = unsafeRunFresh . makeBuiltinBool
+
+-- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
 makeSizedConstant size TypedBuiltinSizedInt  int   = makeBuiltinInt  size int
 makeSizedConstant size TypedBuiltinSizedBS   bs    = makeBuiltinBS   size bs
 makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
 
--- | Coerce a Haskell value to the corresponding PLC value checking all constraints
+-- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
-unsafeMakeConstant :: TypedBuiltin Size a -> a -> Maybe (Value TyName Name ())
-unsafeMakeConstant (TypedBuiltinSized se tbs) x =
-    Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
-unsafeMakeConstant TypedBuiltinBool           b = Just $ unsafeMakeBuiltinBool b
+-- Does not preserve the global uniqueness condition.
+dupMakeConstant :: TypedBuiltinValue Size a -> Maybe (Value TyName Name ())
+dupMakeConstant (TypedBuiltinValue tb x) = case tb of
+    (TypedBuiltinSized se tbs) -> Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
+    TypedBuiltinBool           -> Just $ dupMakeBuiltinBool x
+
+-- | Convert a Haskell value to a PLC value checking all constraints
+-- (e.g. an 'Integer' is in appropriate bounds) along the way and
+-- fail in case constraints are not satisfied.
+unsafeDupMakeConstant :: TypedBuiltinValue Size a -> Value TyName Name ()
+unsafeDupMakeConstant tbv = fromMaybe err $ dupMakeConstant tbv where
+    err = error $ "unsafeDupMakeConstant: out of bounds: " ++ prettyString tbv

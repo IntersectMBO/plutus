@@ -22,11 +22,9 @@ generateTerm
     . Gen.just
     . hoist (pure . unsafeRunFresh)
     $ withAnyTermLoose
-    $ \(TermOf term (TypedBuiltinValue tb x)) -> pure $ do
+    $ \(TermOf term tbv) -> pure $ do
           _ <- ckEvalResultToMaybe $ evaluateCk term
-          case unsafeMakeConstant tb x of
-              Nothing  -> error "generateTerm: Nothing"
-              Just res -> Just $ TermOf term res
+          Just . TermOf term $! unsafeDupMakeConstant tbv
 
 main :: IO ()
 main = do

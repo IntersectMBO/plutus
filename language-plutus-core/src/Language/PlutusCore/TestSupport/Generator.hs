@@ -1,3 +1,5 @@
+-- | Generators of various PLC things: 'Builtin's, 'IterApp's, 'Term's, etc.
+
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
