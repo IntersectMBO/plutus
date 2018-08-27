@@ -44,7 +44,7 @@ runQuoteT ::  (Monad m) => QuoteT m a -> m a
 runQuoteT q = evalStateT (unQuoteT q) emptyFreshState
 
 -- | A non-transformer version of 'QuoteT'.
-type Quote a = QuoteT Identity a
+type Quote = QuoteT Identity
 
 -- | See 'runQuoteT'.
 runQuote :: Quote a -> a

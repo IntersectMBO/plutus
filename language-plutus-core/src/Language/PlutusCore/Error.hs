@@ -7,7 +7,6 @@ module Language.PlutusCore.Error ( Error (..)
 
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude

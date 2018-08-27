@@ -1,3 +1,5 @@
+-- | Computing constant application.
+
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -9,7 +11,6 @@ module Language.PlutusCore.Constant.Apply
     ) where
 
 import           Language.PlutusCore.Constant.Make
-import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
 import           Language.PlutusCore.Name
@@ -55,10 +56,8 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
-makeConstantApp :: TypedBuiltin Size a -> a -> ConstAppResult
-makeConstantApp builtin x = case makeConstant builtin x of
-    Nothing -> ConstAppFailure
-    Just wc -> ConstAppSuccess wc
+makeConstantApp :: TypedBuiltinValue Size a -> ConstAppResult
+makeConstantApp = maybe ConstAppFailure ConstAppSuccess . dupMakeConstant
 
 sizeAt :: SizeVar -> SizeValues -> Size
 sizeAt (SizeVar sizeIndex) (SizeValues sizes) = sizes IntMap.! sizeIndex
@@ -80,7 +79,7 @@ extractSizedBuiltin tbs                   _       constant                      
     Left $ IllTypedConstAppError (eraseTypedBuiltinSized tbs) constant
 
 expandSizeVars :: SizeValues -> TypedBuiltin SizeVar a -> TypedBuiltin Size a
-expandSizeVars = fmapSizeTypedBuiltin . flip sizeAt
+expandSizeVars = mapSizeTypedBuiltin . flip sizeAt
 
 extractBuiltin
     :: TypedBuiltin SizeVar a
@@ -102,17 +101,18 @@ extractBuiltin TypedBuiltinBool                            _                  _ 
 
 -- | Coerce a PLC value to a Haskell value.
 extractSchemed
-    :: TypeScheme SizeVar a -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
+    :: TypeScheme SizeVar a r -> SizeValues -> Value TyName Name () -> Either ConstAppError (a, SizeValues)
 extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
 extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
-applyTypedBuiltinName :: TypedBuiltinName a -> a -> [Value TyName Name ()] -> ConstAppResult
+applyTypedBuiltinName
+    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
-    go :: TypeScheme SizeVar a -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
-    go (TypeSchemeBuiltin builtin) _       sizeValues y args = case args of  -- Computed the result.
-        [] -> makeConstantApp (expandSizeVars sizeValues builtin) y
+    go :: TypeScheme SizeVar a r -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
+    go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
+        [] -> makeConstantApp $ TypedBuiltinValue (expandSizeVars sizeValues tb) y
         _  -> ConstAppError $ ExcessArgumentsConstAppError args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> ConstAppStuck                         -- Not enough arguments to compute.

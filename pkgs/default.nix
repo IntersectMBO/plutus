@@ -42038,13 +42038,16 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , criterion
 , deepseq
+, dependent-map
+, dependent-sum
 , happy
 , hedgehog
 , microlens
 , mmorph
 , mtl
 , prettyprinter
-, recursion-schemes
+, safe-exceptions
+, recursion
 , stdenv
 , tasty
 , tasty-golden
@@ -42072,8 +42075,12 @@ deepseq
 microlens
 mtl
 prettyprinter
+<<<<<<< HEAD
+recursion
+=======
 recursion-schemes
 template-haskell
+>>>>>>> bd106b7520a0ff816a23713be25f72b5d35955c9
 text
 th-lift-instances
 transformers
@@ -42092,10 +42099,13 @@ testHaskellDepends = [
 base
 bytestring
 containers
+dependent-map
+dependent-sum
 hedgehog
 mmorph
 mtl
 prettyprinter
+safe-exceptions
 tasty
 tasty-golden
 tasty-hedgehog
@@ -83497,4 +83507,3 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
-

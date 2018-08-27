@@ -13,6 +13,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fold
                      , throw
                      , join
+                     , (<=<)
+                     , fromRight
                      , Generic
                      , NFData
                      , Natural
@@ -49,13 +51,15 @@ import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
+import           Control.Monad                           ((<=<))
 import           Control.Monad                           (guard, join)
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
+import           Data.Either                             (fromRight)
 import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
+import           Control.Recursion                       (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
@@ -81,6 +85,10 @@ class Debug a where
 prettyText :: Pretty a => a -> T.Text
 prettyText = render . pretty
 
+-- | Render a 'Program' as 'String'.
+prettyString :: Pretty a => a -> String
+prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
+
 debugText :: Debug a => a -> T.Text
 debugText = render . debug
 
@@ -101,9 +109,6 @@ instance Functor f => Functor (PairT b f) where
 (?) :: Alternative f => Bool -> a -> f a
 (?) b x = x <$ guard b
 
-prettyString :: Pretty a => a -> String
-prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
-
 -- | Like a version of 'everywhere' for recursion schemes. In an unreleased version thereof.
 hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
 hoist f = c where c = embed . f . fmap c . project
@@ -113,4 +118,3 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
-

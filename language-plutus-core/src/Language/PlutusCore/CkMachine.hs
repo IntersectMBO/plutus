@@ -1,17 +1,19 @@
+-- | The CK machine.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
     ( CkError(..)
     , CkException(..)
     , CkEvalResult(..)
+    , ckEvalResultToMaybe
     , evaluateCk
     , runCk
     ) where
 
-import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Constant.Prelude
-import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.View
+import           Language.PlutusCore.Constant.Apply
 import           PlutusPrelude
 
 infix 4 |>, <|
@@ -98,7 +100,12 @@ instance Show CkException where
 
 instance Exception CkException
 
--- | Substitute a term for a variable in a term that can contain duplicate binders.
+-- | Map 'CkEvalSuccess' to 'Just' and 'CkEvalFailure' to 'Nothing'.
+ckEvalResultToMaybe :: CkEvalResult -> Maybe (Value TyName Name ())
+ckEvalResultToMaybe (CkEvalSuccess res) = Just res
+ckEvalResultToMaybe CkEvalFailure       = Nothing
+
+-- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
     :: Eq (name a) => name a -> Value tyname name a -> Term tyname name a -> Term tyname name a
