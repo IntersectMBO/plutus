@@ -9,7 +9,7 @@ module Language.PlutusCore.Subst(
 import           Language.PlutusCore.Type
 import           PlutusPrelude            hiding (empty)
 
-import           Control.Recursion
+import           Control.Recursion        hiding (hoist)
 import           Data.Set
 
 -- | Naively substitute names using the given functions (i.e. do not account for scoping).

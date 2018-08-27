@@ -93,7 +93,7 @@ instance Functor f => Functor (PairT b f) where
 prettyString :: Pretty a => a -> String
 prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
 
--- | Like a version of 'everywhere' for recursion schemes. In an unreleased version thereof.
+-- | Like a version of 'everywhere' for recursion schemes.
 hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
 hoist f = c where c = embed . f . fmap c . project
 

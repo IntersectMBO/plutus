@@ -39,10 +39,10 @@ data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  deriving (Generic, NFData)
 
 instance Pretty a => PrettyCfg (TypeError a) where
-    prettyCfg _ InternalError = "Internal error."
-    prettyCfg cfg (KindMismatch x ty k k') = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (prettyCfg cfg ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
+    prettyCfg _ InternalError               = "Internal error."
+    prettyCfg cfg (KindMismatch x ty k k')  = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (prettyCfg cfg ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
     prettyCfg cfg (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <+> squotes (prettyCfg cfg t) <> ". Expected type" <+> squotes (prettyCfg cfg ty) <+> ", found type" <+> squotes (prettyCfg cfg ty')
-    prettyCfg _ OutOfGas = "Type checker ran out of gas."
+    prettyCfg _ OutOfGas                    = "Type checker ran out of gas."
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -95,6 +95,7 @@ txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
 defaultTable :: MonadState Int m => m BuiltinTable
 defaultTable = do
+
     let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
                              , (TySize, Size ())
                              , (TyInteger, KindArrow () (Size ()) (Type ()))
@@ -215,7 +216,7 @@ preTypeOf (Apply x t t') = do
             typeCheckStep
             if ty' == ty'''
                 then pure ty''
-                else throwError (TypeMismatch x (void t') ty' ty''') -- FIXME: rewriteCtx should only be called "locally"?
+                else throwError (TypeMismatch x (void t') ty' ty''')
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 preTypeOf (TyInst x t ty) = do
     ty' <- typeOf t
