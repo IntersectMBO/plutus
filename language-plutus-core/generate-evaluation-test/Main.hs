@@ -25,7 +25,7 @@ generateTerm
     $ \(TermOf term tbv) -> pure $ do
           let expected = unsafeDupMakeConstant tbv
           actual <- ckEvalResultToMaybe $ evaluateCk term
-          when (actual /= expected) $ error $ concat
+          when (actual /= expected) . error $ concat
               [ "An internal error in 'generateTerm' occured while computing ", prettyString term, "\n"
               , "Expected result: ", prettyString expected , "\n"
               , "Actual result: ", prettyString actual, "\n"
