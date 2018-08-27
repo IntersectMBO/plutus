@@ -5,6 +5,7 @@ module Language.PlutusCore.CkMachine
     ( CkError(..)
     , CkException(..)
     , CkEvalResult(..)
+    , ckEvalResultToMaybe
     , evaluateCk
     , runCk
     ) where
@@ -98,6 +99,11 @@ instance Show CkException where
         ["The CK machine " , ckErrorString err, prettyString cause]
 
 instance Exception CkException
+
+-- | Map 'CkEvalSuccess' to 'Just' and 'CkEvalFailure' to 'Nothing'.
+ckEvalResultToMaybe :: CkEvalResult -> Maybe (Value TyName Name ())
+ckEvalResultToMaybe (CkEvalSuccess res) = Just res
+ckEvalResultToMaybe CkEvalFailure       = Nothing
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.

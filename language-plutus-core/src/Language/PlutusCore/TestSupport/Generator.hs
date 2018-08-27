@@ -131,9 +131,9 @@ iterAppValueToTermOf (IterAppValue term _ (TypedBuiltinValue _ x)) = TermOf term
 genSizeIn :: Monad m => Size -> Size -> GenT m Size
 genSizeIn = Gen.integral .* Range.linear
 
--- | Generate a size using the default range of @[2..3]@.
+-- | Generate a size using the default range of @[2..4]@.
 genSizeDef :: Monad m => GenT m Size
-genSizeDef = genSizeIn 2 3
+genSizeDef = genSizeIn 2 4
 
 -- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
@@ -145,13 +145,16 @@ genBuiltinSized :: Monad m => GenT m BuiltinSized
 genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
 
 -- | Generate a 'Builtin'.
-genBuiltin :: Monad m => GenT m (Builtin size)
-genBuiltin =
-    BuiltinSized . SizeValue <$> genSizeDef <*> genBuiltinSized <|> return BuiltinBool
+genBuiltin :: Monad m => GenT m Size -> GenT m (Builtin size)
+genBuiltin genSize = Gen.choice
+    [ BuiltinSized . SizeValue <$> genSize <*> genBuiltinSized
+    , return BuiltinBool
+    ]
 
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
-withTypedBuiltinGen :: Monad m => (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
-withTypedBuiltinGen k = genBuiltin >>= \b -> withTypedBuiltin b k
+withTypedBuiltinGen
+    :: Monad m => GenT m Size -> (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
+withTypedBuiltinGen genSize k = genBuiltin genSize >>= \b -> withTypedBuiltin b k
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
 genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
@@ -244,4 +247,4 @@ genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
 withAnyTermLoose
     :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Fresh c) -> GenT Fresh c
 withAnyTermLoose k =
-    withTypedBuiltinGen $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)
+    withTypedBuiltinGen genSizeDef $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)
