@@ -72,7 +72,7 @@ Copied executables to ~/.local/bin:
 
 #### The CK machine
 
-The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the `Language/PlutusCore/CkMachine.hs` module:
+The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the [`Language/PlutusCore/CkMachine.hs`](Language/PlutusCore/CkMachine.hs) module:
 
 ```haskell
 runCk :: Program TyName Name () -> CkEvalResult
@@ -96,7 +96,7 @@ echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | languag
 
 #### Tests
 
-A term generation machinery sits in the `Language/PlutusCore/TestSupport/Generator.hs` module. It allows to generate terms that contain built-ins (integers, bytestrings, sizes and booleans), constant applications and first-order functions. E.g.
+A term generation machinery sits in the [`Language/PlutusCore/TestSupport/Generator.hs`](Language/PlutusCore/TestSupport/Generator.hs) module. It allows to generate terms that contain built-ins (integers, bytestrings, sizes and booleans), constant applications and first-order functions. E.g.
 
 ```
 [ (lam x_0 [ (con integer) (con 3) ] [ (lam x_1 [ (con integer) (con 3) ] [ [ { (con remainderInteger) (con 3) } [ [ { (con multiplyInteger) (con 3) } x_1 ] x_0 ] ] [ [ { (con addInteger) (con 3) } x_0 ] x_1 ] ]) [ [ { (con divideInteger) (con 3) } [ [ { (con addInteger) (con 3) } x_0 ] x_0 ] ] [ [ { (con multiplyInteger) (con 3) } x_0 ] x_0 ] ] ]) [ [ { (con divideInteger) (con 3) } [ [ { (con subtractInteger) (con 3) } [ [ { (con addInteger) (con 3) } (con 3 ! -1053) ] (con 3 ! 269) ] ] [ [ { (con divideInteger) (con 3) } (con 3 ! -1352) ] (con 3 ! -849) ] ] ] [ [ { { (con resizeInteger) (con 3) } (con 3) } (con 3) ] [ [ { { (con resizeInteger) (con 3) } (con 3) } (con 3) ] (con 3 ! 37) ] ] ] ]
