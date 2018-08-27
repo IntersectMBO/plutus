@@ -11,6 +11,7 @@ module Language.PlutusCore.TestSupport.TypedBuiltinGen
     , TypedBuiltinGenT
     , TypedBuiltinGen
     , coerceTypedBuiltin
+    , genLowerBytes
     , updateTypedBuiltinGenInt
     , updateTypedBuiltinGenBS
     , updateTypedBuiltinGenSize
@@ -42,6 +43,9 @@ coerceTypedBuiltin :: TypedBuiltin Size a -> a -> Value TyName Name ()
 coerceTypedBuiltin tb x = fromMaybe err $ unsafeMakeConstant tb x where
     sx = prettyString $ TypedBuiltinValue tb x
     err = error $ "prop_typedAddInteger: out of bounds: " ++ sx
+
+genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString
+genLowerBytes range = BSL.fromStrict <$> Gen.utf8 range Gen.lower
 
 -- | A PLC 'Term' along with the correspoding Haskell value.
 data TermOf a = TermOf
@@ -98,7 +102,7 @@ updateTypedBuiltinGenBool genBool genTb tb = case tb of
 -- | A built-ins generator that always fails.
 genTypedBuiltinFail :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinFail tb = fail $ concat
-    [ "A generator for the following builtin is not implemented: "
+    [ "A generator for the following built-in is not implemented: "
     , prettyString tb
     ]
 
@@ -108,7 +112,7 @@ genTypedBuiltinDef
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linearFrom 0 low high)
     $ updateTypedBuiltinGenBS
-          (fmap BSL.fromStrict . Gen.bytes . Range.linear 0)
+          (genLowerBytes . Range.linear 0)
     $ updateTypedBuiltinGenSize
     $ updateTypedBuiltinGenBool Gen.bool
     $ genTypedBuiltinFail
@@ -119,7 +123,7 @@ genTypedBuiltinLoose
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.constantFrom 0 (iasqrt low `div` 2) (isqrt high `div` 2))
     $ updateTypedBuiltinGenBS
-          (fmap BSL.fromStrict . Gen.bytes . Range.constant 0 . (`div` 3) . (* 2))
+          (genLowerBytes . Range.constant 0 . (`div` 3) . (* 2))
     $ genTypedBuiltinDef
 
 -- | A sized builtins generator that produces 'Integer's in bounds narrowed by a factor of 2,
