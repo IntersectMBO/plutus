@@ -76,7 +76,7 @@ data CkEvalResult
     | CkEvalFailure
 ```
 
-There is an executable that runs programs on the CK machine. In order to install it globally, type in your terminal `stack install language-plutus-core-run-ck`. Once the build finishes, you can run `language-plutus-core-run-ck` and type a program, the program will be run and the result will be printed.
+There is an executable that runs programs on the CK machine. In order to install it globally, type in your terminal `stack install language-plutus-core`. Once the build finishes, you can run `language-plutus-core-run-ck` and type a program, the program will be run and the result will be printed.
 
 An examle of usage:
 
