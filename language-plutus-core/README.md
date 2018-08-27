@@ -88,7 +88,7 @@ data CkEvalResult
 
 There is an executable that runs programs on the CK machine: you can run `language-plutus-core-run-ck` and type a program, the program will be run and the result will be printed.
 
-An examle of usage:
+An example of usage:
 
 ```
 echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | language-plutus-core-run-ck
