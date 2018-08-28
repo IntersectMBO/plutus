@@ -13,10 +13,9 @@
 module Types
 where
 
-import "cryptonite" 
-       Crypto.Hash
+import           "cryptonite" Crypto.Hash
 
-  
+
 -- Basic types
 
 -- |Crypotocurrency value
@@ -38,11 +37,11 @@ type Address = Digest SHA256
 type Height = Int
 
 -- |Ledger and transaction state available to both the validator and redeemer scripts
--- 
+--
 data State
   = State
     { stateHeight    :: Height
     , stateTxHash    :: TxId    -- double SHA256 hash
     , stateTxPreHash :: TxId    -- single SHA256 hash
     }
-    
+
