@@ -56,10 +56,15 @@ let
     };
   };
   other = rec {
-    tests = {
-      shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
-      hlint = pkgs.callPackage ./tests/hlint.nix { src = ./.; };
-      stylishHaskell = pkgs.callPackage ./tests/stylish.nix { inherit (plutusPkgs) stylish-haskell; src = ./.; };
+    tests = let
+      src = localLib.cleanSourceTree ./.;
+    in {
+      shellcheck = pkgs.callPackage ./tests/shellcheck.nix { inherit src; };
+      hlint = pkgs.callPackage ./tests/hlint.nix { inherit src; };
+      stylishHaskell = pkgs.callPackage ./tests/stylish.nix {
+        inherit (plutusPkgs) stylish-haskell;
+        inherit src;
+      };
     };
     stack2nix = import (pkgs.fetchFromGitHub {
       owner = "avieth";

@@ -12,10 +12,8 @@ let
     );
   };
 in
-runCommand "cardano-hlint-check" { buildInputs = [ hlint ]; } ''
+runCommand "plutus-hlint-check" { buildInputs = [ hlint ]; } ''
   set +e
-  # Networking is not in here, because it has a very different codestyle (doesn't use universum).
-  # This is bad and should probably be fixed.
   projects=("language-plutus-core")
   cd ${src'}
   hlint "''${projects[@]}"
