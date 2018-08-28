@@ -1,8 +1,8 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveFunctor      #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DeriveLift         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveLift        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , Version (..)
@@ -17,10 +17,10 @@ import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
 import           Data.Text.Encoding                 (decodeUtf8)
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Name
 import           Numeric                            (showHex)
 import           PlutusPrelude
-import           Language.Haskell.TH.Syntax (Lift)
 
 -- | A builtin type
 data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals

@@ -1,9 +1,9 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE Rank2Types             #-}
+{-# LANGUAGE TypeFamilies           #-}
 
 
 
@@ -15,11 +15,11 @@
 
 module Utils.Elaborator where
 
-import Utils.ABT
-import Utils.Vars
+import           Utils.ABT
+import           Utils.Vars
 
-import Control.Lens
-import Control.Monad.State
+import           Control.Lens
+import           Control.Monad.State
 
 
 

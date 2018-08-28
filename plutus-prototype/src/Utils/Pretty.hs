@@ -1,8 +1,8 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 
 
@@ -19,23 +19,23 @@
 
 module Utils.Pretty where
 
-import Data.Bits
+import           Data.Bits
 import qualified Data.ByteString.Lazy as BS
-import Data.Word
+import           Data.Word
 
 
 
 
 
 class Parens a where
-  
+
   -- | @Loc a@ is the type of names for the recursive locations in @a@.
   type Loc a
-  
+
   -- | 'parenLoc' maps each @a@ to a list of locations that permit it to
   -- be pretty printed without enclosing parentheses.
   parenLoc :: a -> [Loc a]
-  
+
   -- | 'parenRec' pretty prints its argument without enclosing parentheses.
   parenRec :: a -> String
 
@@ -81,20 +81,20 @@ prettyByte byte =
   in prettyNybble high ++ prettyNybble low
 
 prettyNybble :: Word8 -> String
-prettyNybble 0 = "0"
-prettyNybble 1 = "1"
-prettyNybble 2 = "2"
-prettyNybble 3 = "3"
-prettyNybble 4 = "4"
-prettyNybble 5 = "5"
-prettyNybble 6 = "6"
-prettyNybble 7 = "7"
-prettyNybble 8 = "8"
-prettyNybble 9 = "9"
+prettyNybble 0  = "0"
+prettyNybble 1  = "1"
+prettyNybble 2  = "2"
+prettyNybble 3  = "3"
+prettyNybble 4  = "4"
+prettyNybble 5  = "5"
+prettyNybble 6  = "6"
+prettyNybble 7  = "7"
+prettyNybble 8  = "8"
+prettyNybble 9  = "9"
 prettyNybble 10 = "A"
 prettyNybble 11 = "B"
 prettyNybble 12 = "C"
 prettyNybble 13 = "D"
 prettyNybble 14 = "E"
 prettyNybble 15 = "F"
-prettyNybble x = error $ "The nybble " ++ show x ++ " should never be >15"
+prettyNybble x  = error $ "The nybble " ++ show x ++ " should never be >15"

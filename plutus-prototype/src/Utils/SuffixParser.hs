@@ -2,7 +2,7 @@
 
 module Utils.SuffixParser where
 
-import Text.Parsec
+import           Text.Parsec
 
 
 

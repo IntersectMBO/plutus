@@ -10,12 +10,12 @@
 
 module Interface.Prelude where
 
-import Elaboration.Contexts
-import qualified PlutusCore.Program as Core
-import Interface.Integration
+import           Elaboration.Contexts
+import           Interface.Integration
+import qualified PlutusCore.Program     as Core
 
-import System.FilePath
-import Paths_plutus_prototype
+import           Paths_plutus_prototype
+import           System.FilePath
 
 
 
@@ -25,7 +25,7 @@ prelude = do
   src <- preludeString
   case loadProgram emptyDeclContext src of
     Left err -> error ("Error while loading Plutus prelude: " ++ err)
-    Right x -> return x
+    Right x  -> return x
 
 -- | Prelude as a string, useful for compiling it into the binary
 preludeString :: IO String

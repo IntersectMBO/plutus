@@ -1,9 +1,9 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE DeriveFoldable #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DeriveFoldable       #-}
+{-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 
@@ -17,11 +17,11 @@
 
 module PlutusTypes.Type where
 
-import Utils.ABT
-import Utils.Pretty
-import Utils.Vars
+import           Utils.ABT
+import           Utils.Pretty
+import           Utils.Vars
 
-import GHC.Generics
+import           GHC.Generics
 
 
 
@@ -99,7 +99,7 @@ data TypeParenLoc = TyConArg | FunLeft | FunRight | ForallBody
 
 instance Parens Type where
   type Loc Type = TypeParenLoc
-  
+
   parenLoc (Var _) =
     [TyConArg,FunLeft,FunRight,ForallBody]
   parenLoc (In (TyCon _ [])) =
@@ -118,7 +118,7 @@ instance Parens Type where
     [TyConArg,FunLeft,FunRight,ForallBody]
   parenLoc (In PlutusByteString) =
     [TyConArg,FunLeft,FunRight,ForallBody]
-  
+
   parenRec (Var v) = name v
   parenRec (In (TyCon c [])) = c
   parenRec (In (TyCon c as)) =

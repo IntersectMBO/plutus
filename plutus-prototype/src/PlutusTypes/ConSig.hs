@@ -11,13 +11,13 @@
 
 module PlutusTypes.ConSig where
 
-import Utils.ABT
-import Utils.Pretty (pretty)
-import Utils.Vars
-import PlutusTypes.Type
+import           PlutusTypes.Type
+import           Utils.ABT
+import           Utils.Pretty     (pretty)
+import           Utils.Vars
 
-import Data.List (intercalate)
-import GHC.Generics
+import           Data.List        (intercalate)
+import           GHC.Generics
 
 
 

@@ -9,9 +9,9 @@
 
 module PlutusCore.EvaluatorTypes where
 
-import Utils.Env
-import Utils.Names
-import PlutusCore.Term
+import           PlutusCore.Term
+import           Utils.Env
+import           Utils.Names
 
 import qualified Data.ByteString.Lazy as BS
 
@@ -23,7 +23,7 @@ import qualified Data.ByteString.Lazy as BS
 
 data TransactionInfo =
   TransactionInfo
-  { txHash :: BS.ByteString
+  { txHash      :: BS.ByteString
   , txDistrHash :: BS.ByteString
   }
 

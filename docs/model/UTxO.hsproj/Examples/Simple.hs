@@ -31,9 +31,9 @@ simpleLedger = [t6, t5, t4, t3, t2, t1]
             [TxOut (vhash wit3) 999] 0 1
     
     vhash = validatorHash
-    wit1  = $$(revealPreimage "1") 
-    wit2  = $$(revealPreimage "2")
-    wit3  = $$(revealPreimage "3")
+    wit1  = $(revealPreimage "1") 
+    wit2  = $(revealPreimage "2")
+    wit3  = $(revealPreimage "3")
     
 failingLedger = [t2, t1]
   where
@@ -43,5 +43,5 @@ failingLedger = [t2, t1]
             [TxOut (vhash wit2) 800, TxOut (vhash wit1) 200] 0 0
     
     vhash = validatorHash
-    wit1  = $$(witness (revealPreimageValidator "1") (script [|| const "wrong" ||]))
-    wit2  = $$(revealPreimage "2")
+    wit1  = $(witness (revealPreimageValidator "1") (script [|| const "wrong" ||]))
+    wit2  = $(revealPreimage "2")

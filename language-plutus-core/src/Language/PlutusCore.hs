@@ -1,5 +1,5 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Language.PlutusCore
     ( Configuration (..)
@@ -66,7 +66,10 @@ module Language.PlutusCore
     , TypeF (..)
     ) where
 
+import           Control.Monad.Except
+import           Control.Monad.State
 import qualified Data.ByteString.Lazy              as BSL
+import           Data.Functor.Foldable
 import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
 import           Data.Text.Prettyprint.Doc         hiding (annotate)
@@ -80,9 +83,6 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
-import           Control.Monad.Except
-import           Control.Monad.State
-import           Data.Functor.Foldable
 
 
 newtype Configuration = Configuration Bool
@@ -136,9 +136,9 @@ discardAnnsKind :: Kind a -> Kind ()
 discardAnnsKind = cata f
     where
         f :: KindF a (Kind ()) -> Kind ()
-        f(TypeF _)     = Type ()
-        f(KindArrowF _ k k')        = KindArrow () k k'
-        f(SizeF _)     = Size ()
+        f(TypeF _)           = Type ()
+        f(KindArrowF _ k k') = KindArrow () k k'
+        f(SizeF _)           = Size ()
 
 discardAnnsTy :: forall a . Type TyName a -> Type TyName ()
 discardAnnsTy = cata f

@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveFoldable     #-}
-{-# LANGUAGE DeriveFunctor      #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DeriveLift         #-}
-{-# LANGUAGE DeriveTraversable  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveFoldable    #-}
+{-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveLift        #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Type ( Term (..)
                                 , Type (..)
@@ -23,10 +23,10 @@ module Language.PlutusCore.Type ( Term (..)
 
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
+import           Instances.TH.Lift              ()
+import           Language.Haskell.TH.Syntax     (Lift)
 import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
-import           Language.Haskell.TH.Syntax (Lift)
-import           Instances.TH.Lift          ()
 
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
@@ -72,25 +72,25 @@ instance Corecursive (Type tyname a) where
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
 -- | Substitute @a@ for @b@ in @c@.
-tyNameSubstitute :: Eq (tyname a) 
+tyNameSubstitute :: Eq (tyname a)
                  => tyname a -- ^ @a@
                  -> tyname a -- ^ @b@
-                 -> Type tyname a -- ^ @c@ 
+                 -> Type tyname a -- ^ @c@
                  -> Type tyname a
 tyNameSubstitute tn tn' = cata a where
     a (TyVarF x tn'') | tn == tn'' = TyVar x tn'
-    a x                           = embed x
+    a x               = embed x
 
 instance (Eq (tyname a), Eq a) => Eq (Type tyname a) where
-    (==) (TyVar _ tn) (TyVar _ tn')            = tn == tn'
-    (==) (TyFun _ ty ty') (TyFun _ ty'' ty''') = ty == ty'' && ty' == ty'''
-    (==) (TyFix _ tn ty) (TyFix _ tn' ty') = tyNameSubstitute tn' tn ty' == ty
+    (==) (TyVar _ tn) (TyVar _ tn')                   = tn == tn'
+    (==) (TyFun _ ty ty') (TyFun _ ty'' ty''')        = ty == ty'' && ty' == ty'''
+    (==) (TyFix _ tn ty) (TyFix _ tn' ty')            = tyNameSubstitute tn' tn ty' == ty
     (==) (TyForall _ tn k ty) (TyForall _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyBuiltin _ b) (TyBuiltin _ b') = b == b'
-    (==) (TyInt _ n) (TyInt _ n') = n == n'
-    (==) (TyLam _ tn k ty) (TyLam _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyApp _ ty ty') (TyApp _ ty'' ty''') = ty == ty'' && ty' == ty'''
-    (==) _ _ = False
+    (==) (TyBuiltin _ b) (TyBuiltin _ b')             = b == b'
+    (==) (TyInt _ n) (TyInt _ n')                     = n == n'
+    (==) (TyLam _ tn k ty) (TyLam _ tn' k' ty')       = tyNameSubstitute tn' tn ty' == ty && k == k'
+    (==) (TyApp _ ty ty') (TyApp _ ty'' ty''')        = ty == ty'' && ty' == ty'''
+    (==) _ _                                          = False
 
 
 tyLoc :: Type tyname a -> a

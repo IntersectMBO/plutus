@@ -9,15 +9,15 @@
 
 module PlutusCore.Program where
 
-import Utils.Pretty
-import Utils.Names
-import PlutusCore.Term
-import PlutusTypes.ConSig
-import PlutusTypes.Type
+import           PlutusCore.Term
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
+import           Utils.Names
+import           Utils.Pretty
 
-import Data.List (intercalate)
+import           Data.List          (intercalate)
 
-import GHC.Generics
+import           GHC.Generics
 
 
 

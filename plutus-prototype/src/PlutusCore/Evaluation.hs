@@ -1,8 +1,8 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 
 
 
@@ -13,23 +13,23 @@
 
 module PlutusCore.Evaluation where
 
-import Utils.ABT
-import Utils.Env
-import Utils.Eval
-import Utils.Names
-import Utils.Pretty (pretty)
-import qualified PlutusCore.CKMachine as CK
-import PlutusCore.BuiltinEvaluation
-import PlutusCore.EvaluatorTypes
-import PlutusCore.PatternMatching
-import PlutusCore.Term
+import           PlutusCore.BuiltinEvaluation
+import qualified PlutusCore.CKMachine         as CK
+import           PlutusCore.EvaluatorTypes
+import           PlutusCore.PatternMatching
+import           PlutusCore.Term
+import           Utils.ABT
+import           Utils.Env
+import           Utils.Eval
+import           Utils.Names
+import           Utils.Pretty                 (pretty)
 
-import Data.Either (isRight)
-import qualified Cardano.Crypto.Wallet as CC
-import Control.Monad.Except
-import Control.Monad.Reader
-import Control.Monad.State
-import qualified Data.ByteString.Lazy as BS
+import qualified Cardano.Crypto.Wallet        as CC
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Control.Monad.State
+import qualified Data.ByteString.Lazy         as BS
+import           Data.Either                  (isRight)
 
 
 
@@ -57,7 +57,7 @@ instance Eval (Env (Sourced String) Term) Term where
        ea <- eval (instantiate0 a)
        case ef of
          In (Lam sc) -> eval (instantiate sc [ea])
-         _ -> return $ appH ef ea
+         _           -> return $ appH ef ea
   eval (In (Con c as)) =
     do eas <- mapM (eval . instantiate0) as
        return $ conH c eas
@@ -74,16 +74,16 @@ instance Eval (Env (Sourced String) Term) Term where
   eval (In (Bind m sc)) =
     do em <- eval (instantiate0 m)
        case em of
-         In Failure -> return failureH
+         In Failure      -> return failureH
          In (Success m') -> eval (instantiate sc [instantiate0 m'])
-         _ -> throwError $ "Cannot bind a non-computation: " ++ pretty em
+         _               -> throwError $ "Cannot bind a non-computation: " ++ pretty em
   eval (In (PrimData x)) =
     return $ In (PrimData x)
   eval (In (Builtin n0 xs0)) =
     do xs' <- mapM (eval . instantiate0) xs0
        case builtin n0 xs' of
          Left err -> throwError err
-         Right x -> return x
+         Right x  -> return x
 
 
 
@@ -125,7 +125,7 @@ instance MEval
                                   ++ showSourced x
              Just m  -> return m
       go (In (Let m sc)) =
-        do tick 
+        do tick
            em <- meval (instantiate0 m)
            meval (instantiate sc [em])
       go (In (Lam sc)) =
@@ -161,9 +161,9 @@ instance MEval
         do tick
            em <- meval (instantiate0 m)
            case em of
-             In Failure -> return failureH
+             In Failure      -> return failureH
              In (Success m') -> meval (instantiate sc [instantiate0 m'])
-             _ -> throwError $ "Cannot bind a non-computation: " ++ pretty em
+             _               -> throwError $ "Cannot bind a non-computation: " ++ pretty em
       go (In (PrimData x)) =
         do tick
            return $ In (PrimData x)
@@ -172,8 +172,8 @@ instance MEval
            xs' <- mapM (meval . instantiate0) xs0
            case builtin n0 xs' of
              Left err -> throwError err
-             Right x -> return x
-      
+             Right x  -> return x
+
 
 
 
