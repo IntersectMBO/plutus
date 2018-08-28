@@ -31,7 +31,8 @@ type FreshState = Unique
 emptyFreshState :: FreshState
 emptyFreshState = Unique 0
 
--- | The "quotation" monad transformer. This allows creation of fresh names and parsing.
+-- | The "quotation" monad transformer. Within this monad you can do safe construction of PLC terms using quasiquotation,
+-- fresh-name generation, and parsing.
 newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
     -- the MonadState constraint is handy, but it's useless outside since we don't export the state type
     deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadState FreshState)
