@@ -21,4 +21,4 @@ steps:
   - trailing_whitespace: {}
 columns: 120
 newline: native
-language_extensions: [CPP]
+language_extensions: [FlexibleContexts, DeriveGeneric, DeriveAnyClass, DerivingStrategies, GeneralizedNewtypeDeriving]

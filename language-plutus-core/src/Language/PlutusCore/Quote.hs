@@ -1,5 +1,5 @@
-{-# LANGUAGE Rank2Types       #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Rank2Types       #-}
 
 module Language.PlutusCore.Quote (
               runQuoteT
@@ -15,14 +15,14 @@ module Language.PlutusCore.Quote (
             ) where
 
 import           Control.Monad.Except
-import           Control.Monad.State
 import           Control.Monad.Morph        as MM
+import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL
+import           Data.Functor.Identity
 import           Language.PlutusCore.Lexer  (AlexPosn)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser (ParseError, parseST, parseTermST, parseTypeST)
 import           Language.PlutusCore.Type
-import           Data.Functor.Identity
 import           PlutusPrelude
 
 -- | The state contains the "next" 'Unique' that should be used for a name
@@ -53,8 +53,8 @@ runQuote = runIdentity . runQuoteT
 freshUnique :: (Monad m) => QuoteT m Unique
 freshUnique = do
     nextU <- get
-    put $ Unique ((unUnique nextU) + 1)
-    pure $ nextU
+    put $ Unique (unUnique nextU + 1)
+    pure nextU
 
 -- | Get a fresh 'Name', given the annotation an the name.
 freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
@@ -69,7 +69,7 @@ mapParseRun :: (MonadError ParseError m) => StateT IdentifierState (Except Parse
 -- parser state and get back the new next unique
 mapParseRun run = MM.hoist (liftEither . runExcept) $ QuoteT $ StateT $ \nextU -> do
     (p, (_, _, u)) <- runStateT run (identifierStateFrom nextU)
-    pure $ (p, u)
+    pure (p, u)
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.

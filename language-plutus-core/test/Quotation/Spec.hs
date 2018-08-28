@@ -1,16 +1,12 @@
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 module Quotation.Spec (tests) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.TH
-import           Language.PlutusCore.Quote
 
-import qualified Data.ByteString.Lazy   as BSL
-import           Data.Text.Encoding     (encodeUtf8)
-import qualified PlutusPrelude          as PP
+import qualified Data.ByteString.Lazy as BSL
+import           Data.Text.Encoding   (encodeUtf8)
 
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -25,10 +21,10 @@ tests = testGroup "quasiquoter" [
   asGolden (runQuote free) "test/Quotation/free.plc"
  ]
 
-asGolden :: PP.Debug a => a -> TestName -> TestTree
+asGolden :: PrettyCfg a => a -> TestName -> TestTree
 asGolden a file = goldenVsString file (file ++ ".golden") (pure $ showTest a)
 
-showTest :: PP.Debug a => a -> BSL.ByteString
+showTest :: PrettyCfg a => a -> BSL.ByteString
 showTest = BSL.fromStrict . encodeUtf8 . debugText
 
 unit :: Quote (Type TyName ())

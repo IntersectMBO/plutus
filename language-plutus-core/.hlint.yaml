@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude]}
-  - {name: error, within: [Main, Evaluation.Constant.Success, Evaluation.Generator, Language.PlutusCore.Constant.Apply]}
+  - {name: error, within: [Main, Evaluation.Constant.Success, Evaluation.Generator, Language.PlutusCore.Constant.Apply, Language.PlutusCore.TH]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
@@ -9,7 +9,7 @@
 - error: {lhs: "hylo embed", rhs: "ana", name: "Use anamorphism"}
 - error: {lhs: "hylo f project", rhs: "cata f", name: "Use catamorphism"}
 - error: {lhs: "do { x <- y ; pure (f x) }", rhs: "f =<< y", name: "Avoid do-notation"}
-- error: {lhs: "concat", rhs: "join", name: "Generalize concat"}
+- error: {lhs: "concat", rhs: "fold", name: "Generalize concat"}
 - error: {lhs: "concatMap", rhs: "(=<<)", name: "Generalize concatMap"}
 - error: {lhs: "f >> pure ()", rhs: "void f", name: "Use void"}
 - error: {lhs: "over _1 f x", rhs: "first f x", name: "Use arrows"}
