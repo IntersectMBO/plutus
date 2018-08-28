@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
-
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)
                      , toList
