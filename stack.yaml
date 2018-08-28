@@ -8,6 +8,11 @@ packages:
     git: https://github.com/input-output-hk/cardano-crypto
     commit: 838b064d8a59286142aa2fe14434fe7601896ddb
   extra-dep: true
+# Add custom stylish-haskell while waiting for PR upstream: https://github.com/jaspervdj/stylish-haskell/pull/214
+- location:
+    git: https://github.com/input-output-hk/stylish-haskell.git
+    commit: ecfd3b307d8d13a6d12aff03055f25a39a17e182
+  extra-dep: true
 
 extra-deps:
 - cryptonite-0.22

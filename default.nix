@@ -58,6 +58,8 @@ let
   other = rec {
     tests = {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { src = ./.; };
+      hlint = pkgs.callPackage ./tests/hlint.nix { src = ./.; };
+      stylishHaskell = pkgs.callPackage ./tests/stylish.nix { inherit (plutusPkgs) stylish-haskell; src = ./.; };
     };
     stack2nix = import (pkgs.fetchFromGitHub {
       owner = "avieth";
