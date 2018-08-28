@@ -8,7 +8,7 @@ let
     name: type: let baseName = baseNameOf (toString name); in (
       (type == "regular" && hasSuffix ".hs" baseName) ||
       (type == "regular" && hasSuffix ".yaml" baseName) ||
-      (type == "directory")
+      (type == "directory" && (baseName != "docs" ))
     );
   };
 in
