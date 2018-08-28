@@ -7,10 +7,9 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinBS
     , makeBuiltinSize
     , makeBuiltinBool
-    , dupMakeBuiltinBool
     , makeSizedConstant
-    , dupMakeConstant
-    , unsafeDupMakeConstant
+    , makeBuiltin
+    , unsafeMakeBuiltin
     ) where
 
 import           PlutusPrelude
@@ -57,11 +56,6 @@ makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 makeBuiltinBool :: Bool -> Quote (Value TyName Name ())
 makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 
--- | Convert a 'Bool' to the corresponding PLC's @boolean@.
--- Does not preserve the global uniqueness condition.
-dupMakeBuiltinBool :: Bool -> Value TyName Name ()
-dupMakeBuiltinBool = runQuote . makeBuiltinBool
-
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
@@ -72,15 +66,16 @@ makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
 -- Does not preserve the global uniqueness condition.
-dupMakeConstant :: TypedBuiltinValue Size a -> Maybe (Value TyName Name ())
-dupMakeConstant (TypedBuiltinValue tb x) = case tb of
-    (TypedBuiltinSized se tbs) -> Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
-    TypedBuiltinBool           -> Just $ dupMakeBuiltinBool x
+makeBuiltin :: TypedBuiltinValue Size a -> Quote (Maybe (Value TyName Name ()))
+makeBuiltin (TypedBuiltinValue tb x) = case tb of
+    (TypedBuiltinSized se tbs) ->
+        return $ Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
+    TypedBuiltinBool           -> Just <$> makeBuiltinBool x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
 -- Does not preserve the global uniqueness condition.
-unsafeDupMakeConstant :: TypedBuiltinValue Size a -> Value TyName Name ()
-unsafeDupMakeConstant tbv = fromMaybe err $ dupMakeConstant tbv where
+unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Value TyName Name ()
+unsafeMakeBuiltin tbv = fromMaybe err . runQuote $ makeBuiltin tbv where
     err = error $ "unsafeDupMakeConstant: out of bounds: " ++ prettyString tbv

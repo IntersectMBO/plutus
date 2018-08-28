@@ -55,7 +55,7 @@ instance Pretty a => Pretty (TermOf a) where
     pretty (TermOf t x) = pretty t <+> "~>" <+> pretty x
 
 attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
-attachCoercedTerm tb = fmap $ \x -> TermOf (unsafeDupMakeConstant $ TypedBuiltinValue tb x) x
+attachCoercedTerm tb = fmap $ \x -> TermOf (unsafeMakeBuiltin $ TypedBuiltinValue tb x) x
 
 -- TODO: think about abstracting the pattern... or maybe not.
 updateTypedBuiltinGenInt

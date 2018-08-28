@@ -57,7 +57,7 @@ prop_applyBuiltinName getFinal tbn op allTbs = property $ do
 prop_applyBuiltinNameSuccess :: TypedBuiltinName a r -> a -> TypedBuiltinGen -> Property
 prop_applyBuiltinNameSuccess =
     prop_applyBuiltinName getFinal where
-        getFinal tb = return . ConstAppSuccess . unsafeDupMakeConstant . TypedBuiltinValue tb
+        getFinal tb = return . ConstAppSuccess . unsafeMakeBuiltin . TypedBuiltinValue tb
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
 -- the Haskell side may or may not fit into the default bounds (as per the spec) and hence the
@@ -66,4 +66,4 @@ prop_applyBuiltinNameSuccess =
 prop_applyBuiltinNameSuccessFailure :: TypedBuiltinName a r -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
     prop_applyBuiltinName getFinal tbn x genTypedBuiltinDef where
-        getFinal tb = return . makeConstantApp . TypedBuiltinValue tb
+        getFinal tb = return . dupMakeConstAppResult . TypedBuiltinValue tb

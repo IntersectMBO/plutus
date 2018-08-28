@@ -77,8 +77,9 @@ test_ListSum = testProperty "ListSum" . property $ do
             builtinSum <- getBuiltinSum size
             list <- getListToBuiltinList intSized $ map _termOfTerm ps
             return $ Apply () builtinSum list
-    for_ (dupMakeConstant . TypedBuiltinValue typedIntSized . sum $ map _termOfValue ps) $ \res ->
-        evaluateCk term === CkEvalSuccess res
+        haskSum   = sum $ map _termOfValue ps
+        mayPlcSum = runQuote . makeBuiltin $ TypedBuiltinValue typedIntSized haskSum
+    for_ mayPlcSum $ \plcSum -> evaluateCk term === CkEvalSuccess plcSum
 
 -- | Generate a @boolean@ and two @integer@s and check whether
 -- @if b then i1 else i2@ means the same thing in Haskell and PLC.
@@ -105,7 +106,7 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         return $ TermOf term value
     case evaluateCk term of
         CkEvalFailure     -> return ()
-        CkEvalSuccess res -> res === unsafeDupMakeConstant (TypedBuiltinValue int value)
+        CkEvalSuccess res -> res === unsafeMakeBuiltin (TypedBuiltinValue int value)
 
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"

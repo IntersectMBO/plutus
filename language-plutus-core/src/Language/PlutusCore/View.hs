@@ -50,7 +50,7 @@ termAsConstant _                     = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
 termAsTermIterApp :: Term tyname name a -> TermIterApp tyname name a
-termAsTermIterApp = go mempty where
+termAsTermIterApp = go [] where
     go args (Apply _ fun arg) = go (arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args

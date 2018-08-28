@@ -38,7 +38,7 @@ test_typedMultiplyIntegerSuccessFailure
 test_typedResizeIntegerSuccessFailure :: TestTree
 test_typedResizeIntegerSuccessFailure
     = testProperty "typedResizeInteger"
-    $ prop_applyBuiltinNameSuccessFailure typedResizeInteger (pure id)
+    $ prop_applyBuiltinNameSuccessFailure typedResizeInteger (const id)
 
 test_typedConcatenateSuccessFailure :: TestTree
 test_typedConcatenateSuccessFailure
@@ -48,4 +48,4 @@ test_typedConcatenateSuccessFailure
 test_typedResizeByteStringSuccessFailure :: TestTree
 test_typedResizeByteStringSuccessFailure
     = testProperty "typedResizeByteString"
-    $ prop_applyBuiltinNameSuccessFailure typedResizeByteString (pure id)
+    $ prop_applyBuiltinNameSuccessFailure typedResizeByteString (const id)

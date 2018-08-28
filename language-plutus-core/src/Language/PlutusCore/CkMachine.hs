@@ -55,31 +55,31 @@ instance Pretty CkEvalResult where
     pretty (CkEvalSuccess value) = pretty value
     pretty CkEvalFailure         = "Failure"
 
--- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
-constAppErrorString (SizeMismatchConstAppError seenSize arg) = join
-    [ "encoutered an unexpected size in ("
+constAppErrorString (SizeMismatchConstAppError seenSize arg) = fold
+    [ "encoutered an unexpected size in "
     , prettyString arg
-    , ") (previously seen size: "
+    , "\nPreviously seen size: "
     , prettyString seenSize
-    , ") in"
+    , " in"
     ]
-constAppErrorString (IllTypedConstAppError expType constant) = join
-    [ "encountered an ill-typed argument: ("
+constAppErrorString (IllTypedConstAppError expType constant) = fold
+    [ "encountered an ill-typed argument: "
     , prettyString constant
-    , ") (expected type: "
+    , "\nExpected type: "
     , prettyString expType
-    , ") in"
+    , " in"
     ]
-constAppErrorString (ExcessArgumentsConstAppError excessArgs) = join
-    [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
+constAppErrorString (ExcessArgumentsConstAppError excessArgs) = fold
+    [ "attempted to evaluate a constant applied to too many arguments"
+    , "\nExcess ones are: "
     , prettyString excessArgs
-    , ") in"
+    , " in"
     ]
-constAppErrorString (SizedNonConstantConstAppError arg)       = join
-    [ "encountered a non-constant argument of a sized type: ("
+constAppErrorString (SizedNonConstantConstAppError arg)       = fold
+    [ "encountered a non-constant argument of a sized type: "
     , prettyString arg
-    , ") in"
+    , " in"
     ]
 
 ckErrorString :: CkError -> String
@@ -95,7 +95,7 @@ ckErrorString (ConstAppCkError constAppError)  =
     constAppErrorString constAppError
 
 instance Show CkException where
-    show (CkException err cause) = join
+    show (CkException err cause) = fold
         ["The CK machine " , ckErrorString err, prettyString cause]
 
 instance Exception CkException

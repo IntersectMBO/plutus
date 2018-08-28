@@ -6,7 +6,7 @@
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
     , ConstAppResult(..)
-    , makeConstantApp
+    , dupMakeConstAppResult
     , applyBuiltinName
     ) where
 
@@ -15,6 +15,7 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.Quote
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy                 as BSL
@@ -56,8 +57,10 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
-makeConstantApp :: TypedBuiltinValue Size a -> ConstAppResult
-makeConstantApp = maybe ConstAppFailure ConstAppSuccess . dupMakeConstant
+-- | Same as 'makeConstant', but doesn't preserve the global uniqueness condition
+-- and returns a 'ConstAppResult'.
+dupMakeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResult
+dupMakeConstAppResult = maybe ConstAppFailure ConstAppSuccess . runQuote . makeBuiltin
 
 sizeAt :: SizeVar -> SizeValues -> Size
 sizeAt (SizeVar sizeIndex) (SizeValues sizes) = sizes IntMap.! sizeIndex
@@ -112,7 +115,7 @@ applyTypedBuiltinName
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
     go :: TypeScheme SizeVar a r -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
     go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
-        [] -> makeConstantApp $ TypedBuiltinValue (expandSizeVars sizeValues tb) y
+        [] -> dupMakeConstAppResult $ TypedBuiltinValue (expandSizeVars sizeValues tb) y
         _  -> ConstAppError $ ExcessArgumentsConstAppError args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> ConstAppStuck                         -- Not enough arguments to compute.
@@ -138,12 +141,12 @@ applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInt
 applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)
 applyBuiltinName GreaterThanEqInteger = applyTypedBuiltinName typedGreaterThanEqInteger (>=)
 applyBuiltinName EqInteger            = applyTypedBuiltinName typedEqInteger            (==)
-applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (pure id)
+applyBuiltinName ResizeInteger        = applyTypedBuiltinName typedResizeInteger        (const id)
 applyBuiltinName IntToByteString      = applyTypedBuiltinName typedIntToByteString      undefined
 applyBuiltinName Concatenate          = applyTypedBuiltinName typedConcatenate          (<>)
 applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
 applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
-applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (pure id)
+applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
 applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 undefined
 applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 undefined
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined

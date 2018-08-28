@@ -23,7 +23,7 @@ generateTerm
     . hoist (pure . runQuote)
     $ withAnyTermLoose
     $ \(TermOf term tbv) -> pure $ do
-          let expected = unsafeDupMakeConstant tbv
+          let expected = unsafeMakeBuiltin tbv
           actual <- ckEvalResultToMaybe $ evaluateCk term
           when (actual /= expected) . error $ concat
               [ "An internal error in 'generateTerm' occured while computing ", prettyString term, "\n"
