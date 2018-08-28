@@ -42072,10 +42072,15 @@ bytestring
 composition-prelude
 containers
 deepseq
+dependent-map
+dependent-sum
+hedgehog
 microlens
+mmorph
 mtl
 prettyprinter
 recursion-schemes
+safe-exceptions
 template-haskell
 text
 th-lift-instances
@@ -42088,6 +42093,8 @@ happy
 executableHaskellDepends = [
 base
 bytestring
+hedgehog
+mmorph
 prettyprinter
 text
 ];
@@ -42095,13 +42102,9 @@ testHaskellDepends = [
 base
 bytestring
 containers
-dependent-map
-dependent-sum
 hedgehog
 mmorph
-mtl
 prettyprinter
-safe-exceptions
 tasty
 tasty-golden
 tasty-hedgehog
