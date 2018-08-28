@@ -49,12 +49,12 @@ substs fvsL = let substFun n = [| $(varE (mkName (bsToStr n)))|] in listE $ fmap
 -- | Get a quotation of a map between names and Haskell variable references to terms using the
 -- name as the variable name.
 metavarMapTerm :: Set.Set (Name a) -> Q Exp
-metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
+metavarMapTerm ftvs = let ftvsL = nameString <$> toList ftvs in
     [|
         let
             subs :: [Quote (Term TyName Name ())]
             subs = $(substs ftvsL)
-            qm :: Quote (Map.Map (BSL.ByteString) (Term TyName Name ()))
+            qm :: Quote (Map.Map BSL.ByteString (Term TyName Name ()))
             qm = do
                 quoted <- sequence subs
                 pure $ Map.fromList $ zip ftvsL quoted
@@ -65,12 +65,12 @@ metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
 -- | Get a quotation of a map between type names and Haskell variable references to types using the
 -- type name as the variable name.
 metavarMapType :: Set.Set (TyName a) -> Q Exp
-metavarMapType ftvs = let ftvsL = fmap (nameString . unTyName) $ toList $ ftvs in
+metavarMapType ftvs = let ftvsL = nameString . unTyName <$> toList ftvs in
     [|
         let
           subs :: [Quote (Type TyName ())]
           subs = $(substs ftvsL)
-          qm :: Quote (Map.Map (BSL.ByteString) (Type TyName ()))
+          qm :: Quote (Map.Map BSL.ByteString (Type TyName ()))
           qm = do
               quoted <- sequence subs
               pure $ Map.fromList $ zip ftvsL quoted
@@ -97,12 +97,12 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
 eval :: QuoteT (Except ParseError) a -> Q a
-eval c = case (runExcept $ runQuoteT c) of
+eval c = case runExcept $ runQuoteT c of
     Left e  -> fail $ show e
-    Right p -> pure $ p
+    Right p -> pure p
 
 unsafeDropErrors :: Except e a -> a
-unsafeDropErrors e = case (runExcept e) of
+unsafeDropErrors e = case runExcept e of
     Right r -> r
     Left _  -> error "Impossible!"
 
@@ -165,7 +165,7 @@ compileProgram s = do
             quoted = do
                 -- See note [Parsing and TH stages]
                 (Program a v runtimeT) <- (fmap discardAnnsTerm . mapInner (Identity . unsafeDropErrors) . parseProgram . strToBs) s
-                Program a v <$> metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
+                Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
 

@@ -144,7 +144,7 @@ rename (st, _, nextU) (Program x v p) = Program x v (evalState (renameTerm (Iden
     where st' = IM.fromList (zip keys keys)
           keys = IM.keys st
           -- the next unique is one more than the maximum
-          m = (unUnique nextU)-1
+          m = unUnique nextU-1
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
 
