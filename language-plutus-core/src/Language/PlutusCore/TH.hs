@@ -53,13 +53,11 @@ metavarMapTerm :: Set.Set (Name a) -> Q Exp
 metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
     [|
         let
-            subs :: [Quote (Term TyName Name ())]
+            subs :: [(Term TyName Name ())]
             subs = $(substs ftvsL)
-            qm :: Quote (Map.Map (BSL.ByteString) (Term TyName Name ()))
-            qm = do
-                quoted <- sequence subs
-                pure $ Map.fromList $ zip ftvsL quoted
-        in qm
+            qm :: Map.Map (BSL.ByteString) (Term TyName Name ())
+            qm = Map.fromList $ zip ftvsL subs
+        in pure qm
     |]
 
 -- See note [Metavar map functions]
@@ -69,13 +67,11 @@ metavarMapType :: Set.Set (TyName a) -> Q Exp
 metavarMapType ftvs = let ftvsL = fmap (nameString . unTyName) $ toList $ ftvs in
     [|
         let
-          subs :: [Quote (Type TyName ())]
+          subs :: [(Type TyName ())]
           subs = $(substs ftvsL)
-          qm :: Quote (Map.Map (BSL.ByteString) (Type TyName ()))
-          qm = do
-              quoted <- sequence subs
-              pure $ Map.fromList $ zip ftvsL quoted
-        in qm
+          qm :: Map.Map (BSL.ByteString) (Type TyName ())
+          qm = Map.fromList $ zip ftvsL subs
+        in pure qm
     |]
 
 metavarSubstType ::
