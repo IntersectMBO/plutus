@@ -57,9 +57,10 @@ type PlcGenT m = GenT (ReaderT (BuiltinGensT m) m)
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
 data IterAppValue head arg r = IterAppValue
-    (Term TyName Name ())       -- ^ As a PLC 'Term'.
-    (IterApp head arg)          -- ^ As an 'IterApp'.
-    (TypedBuiltinValue Size r)  -- ^ As a Haskell value.
+    { _iterTerm :: Term TyName Name ()       -- ^ As a PLC 'Term'.
+    , _iterApp  :: IterApp head arg          -- ^ As an 'IterApp'.
+    , _iterTbv  :: TypedBuiltinValue Size r  -- ^ As a Haskell value.
+    }
 
 instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
     pretty (IterAppValue term pia tbv) = parens $ mconcat
