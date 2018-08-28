@@ -255,7 +255,6 @@ tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 
--- TODO: add left-instatiation etc.
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty -- TODO: use the substitution monad here
