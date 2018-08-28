@@ -84,7 +84,8 @@ library
         microlens -any,
         composition-prelude -any,
         template-haskell -any,
-        th-lift-instances -any
+        th-lift-instances -any,
+        mmorph -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
