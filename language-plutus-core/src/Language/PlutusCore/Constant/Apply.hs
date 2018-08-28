@@ -57,7 +57,7 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- | Same as 'makeConstant', but doesn't preserve the global uniqueness condition
+-- | Same as 'makeBuiltin', but doesn't preserve the global uniqueness condition
 -- and returns a 'ConstAppResult'.
 dupMakeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResult
 dupMakeConstAppResult = maybe ConstAppFailure ConstAppSuccess . runQuote . makeBuiltin
