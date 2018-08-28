@@ -7,7 +7,7 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinFoldNat
     ) where
 
-import           PlutusPrelude
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.StdLib.Type
@@ -16,7 +16,7 @@ import           Language.PlutusCore.StdLib.Data.Function
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
-getBuiltinNat :: Fresh (HoledType TyName ())
+getBuiltinNat :: Quote (HoledType TyName ())
 getBuiltinNat = do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
@@ -31,7 +31,7 @@ getBuiltinNat = do
 -- |  '0' as a PLC term.
 --
 -- > wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> z
-getBuiltinZero :: Fresh (Term TyName Name ())
+getBuiltinZero :: Quote (Term TyName Name ())
 getBuiltinZero = do
     RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
     r <- freshTyName () "r"
@@ -47,7 +47,7 @@ getBuiltinZero = do
 -- |  'succ' as a PLC term.
 --
 -- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
-getBuiltinSucc :: Fresh (Term TyName Name ())
+getBuiltinSucc :: Quote (Term TyName Name ())
 getBuiltinSucc = do
     RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
     n <- freshName () "n"
@@ -68,7 +68,7 @@ getBuiltinSucc = do
 -- > /\(r :: *) -> \(f : r -> r) (z : r) ->
 -- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
-getBuiltinFoldrNat :: Fresh (Term TyName Name ())
+getBuiltinFoldrNat :: Quote (Term TyName Name ())
 getBuiltinFoldrNat = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     fix <- getBuiltinFix
@@ -96,7 +96,7 @@ getBuiltinFoldrNat = do
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
 -- >         unwrap n {r} z (rec (f z))
-getBuiltinFoldNat :: Fresh (Term TyName Name ())
+getBuiltinFoldNat :: Quote (Term TyName Name ())
 getBuiltinFoldNat = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     fix <- getBuiltinFix
@@ -116,4 +116,3 @@ getBuiltinFoldNat = do
         . Apply () (Var () rec)
         . Apply () (Var () f)
         $ Var () z
-

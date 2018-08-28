@@ -1,7 +1,6 @@
 -- | This module assigns types to built-ins.
 -- See the @docs/Constant application.md@ article for how this emerged.
 
-{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -52,6 +51,7 @@ import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBui
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.StdLib.Data.Bool
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
@@ -169,14 +169,14 @@ typeSchemeResult (TypeSchemeBuiltin tb)   = tb
 typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK ())
 
-typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Fresh (Type TyName ())
+typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Quote (Type TyName ())
 typedBuiltinToType (TypedBuiltinSized se tbs) =
     return . TyApp () (typedBuiltinSizedToType tbs) $ case se of
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
 
-typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Fresh (Type TyName ())
+typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
 typeSchemeToType (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
 typeSchemeToType (TypeSchemeArrow schA schB) =
     TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB

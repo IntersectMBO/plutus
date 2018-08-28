@@ -28,9 +28,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (.*)
                      -- * Custom functions
                      , prettyString
-                     , freshInt
-                     , runFresh
-                     , unsafeRunFresh
                      , prettyText
                      , debugText
                      , render
@@ -105,31 +102,15 @@ newtype PairT b f a = PairT
 instance Functor f => Functor (PairT b f) where
     fmap f (PairT p) = PairT $ fmap (fmap f) p
 
-newtype Fresh a = Fresh
-    { unFresh :: Reader (Supply Int) a
-    } deriving (Functor)
-
-instance Applicative Fresh where
-    pure                = Fresh . pure
-    Fresh g <*> Fresh f = Fresh . reader $ \s ->
-        let (s1, s2) = split2 s in runReader g s1 (runReader f s2)
-
-instance Monad Fresh where
-    Fresh g >>= h = Fresh . reader $ \s ->
-        let (s1, s2) = split2 s in runReader (unFresh . h $ runReader g s1) s2
-
-freshInt :: Fresh Int
-freshInt = Fresh $ reader supplyValue
-
-runFresh :: Fresh a -> IO a
-runFresh (Fresh a) = runReader a <$> newEnumSupply
-
--- | Same as 'runFresh' but strips 'IO' using 'unsafePerformIO'.
--- This function allows to break the global uniqueness condition,
--- so do not use it in contexts where this condition must be satisfied.
-unsafeRunFresh :: Fresh a -> a
-unsafeRunFresh = unsafePerformIO . runFresh
-{-# NOINLINE unsafeRunFresh #-}
-
 (?) :: Alternative f => Bool -> a -> f a
 (?) b x = x <$ guard b
+
+-- | Like a version of 'everywhere' for recursion schemes. In an unreleased version thereof.
+hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
+hoist f = c where c = embed . f . fmap c . project
+
+strToBs :: String -> BSL.ByteString
+strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
+
+bsToStr :: BSL.ByteString -> String
+bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict

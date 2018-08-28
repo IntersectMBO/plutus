@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE FlexibleContexts    #-}
 
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf

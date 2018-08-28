@@ -6,7 +6,7 @@ module Language.PlutusCore.StdLib.Data.Function
     , getBuiltinFix
     ) where
 
-import           PlutusPrelude
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.StdLib.Type
@@ -14,7 +14,7 @@ import           Language.PlutusCore.StdLib.Type
 -- | 'const' as a PLC term.
 --
 -- > /\ (A B :: *) -> \(x : A) (y : B) -> x
-getBuiltinConst :: Fresh (Term TyName Name ())
+getBuiltinConst :: Quote (Term TyName Name ())
 getBuiltinConst = do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -30,7 +30,7 @@ getBuiltinConst = do
 -- | @Self@ as a PLC type.
 --
 -- > \(a :: *) -> fix \(self :: *) -> self -> a
-getBuiltinSelf :: Fresh (HoledType TyName ())
+getBuiltinSelf :: Quote (HoledType TyName ())
 getBuiltinSelf = do
     a    <- freshTyName () "a"
     self <- freshTyName () "self"
@@ -44,7 +44,7 @@ getBuiltinSelf = do
 -- | @unroll@ as a PLC term.
 --
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
-getBuiltinUnroll :: Fresh (Term TyName Name ())
+getBuiltinUnroll :: Quote (Term TyName Name ())
 getBuiltinUnroll = do
     builtinSelf <- getBuiltinSelf
     a <- freshTyName () "a"
@@ -61,7 +61,7 @@ getBuiltinUnroll = do
 --
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
 -- >    unroll {a -> b} (wrap \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
-getBuiltinFix :: Fresh (Term TyName Name ())
+getBuiltinFix :: Quote (Term TyName Name ())
 getBuiltinFix = do
     self   <- getBuiltinSelf
     unroll <- getBuiltinUnroll
@@ -86,4 +86,3 @@ getBuiltinFix = do
         $ [ Apply () unrollFunAB $ Var () s
           , Var () x
           ]
-

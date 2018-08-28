@@ -42076,6 +42076,7 @@ microlens
 mtl
 prettyprinter
 recursion-schemes
+template-haskell
 text
 th-lift-instances
 transformers

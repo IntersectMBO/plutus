@@ -5,14 +5,14 @@ module Language.PlutusCore.StdLib.Data.ChurchNat
     , getBuiltinChurchSucc
     ) where
 
-import           PlutusPrelude
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 
 -- | Church-encoded @Nat@ as a PLC type.
 --
 -- > all (r :: *). r -> (r -> r) -> r
-getBuiltinChurchNat :: Fresh (Type TyName ())
+getBuiltinChurchNat :: Quote (Type TyName ())
 getBuiltinChurchNat = do
     r <- freshTyName () "r"
     return
@@ -24,7 +24,7 @@ getBuiltinChurchNat = do
 -- | Church-encoded '0' as a PLC term.
 --
 -- > /\(r :: *) -> \(z : r) (f : r -> r) -> z
-getBuiltinChurchZero :: Fresh (Term TyName Name ())
+getBuiltinChurchZero :: Quote (Term TyName Name ())
 getBuiltinChurchZero = do
     r <- freshTyName () "r"
     z <- freshName () "z"
@@ -38,7 +38,7 @@ getBuiltinChurchZero = do
 -- | Church-encoded 'succ' as a PLC term.
 --
 -- > \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
-getBuiltinChurchSucc :: Fresh (Term TyName Name ())
+getBuiltinChurchSucc :: Quote (Term TyName Name ())
 getBuiltinChurchSucc = do
     nat <- getBuiltinChurchNat
     n <- freshName () "n"
@@ -55,4 +55,3 @@ getBuiltinChurchSucc = do
         $ [ Var () z
           , Var () f
           ]
-

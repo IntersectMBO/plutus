@@ -1,6 +1,4 @@
 {
-    {-# LANGUAGE DeriveAnyClass     #-}
-    {-# LANGUAGE DeriveGeneric      #-}
     {-# LANGUAGE OverloadedStrings  #-}
     module Language.PlutusCore.Parser ( parse
                                       , parseST

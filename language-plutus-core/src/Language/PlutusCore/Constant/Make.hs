@@ -17,8 +17,8 @@ import           PlutusPrelude
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.StdLib.Data.Bool
 
 import           Data.Maybe
 import qualified Data.ByteString.Lazy as BSL
@@ -54,13 +54,13 @@ makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
 makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 
 -- | Convert a 'Bool' to the corresponding PLC's @boolean@.
-makeBuiltinBool :: Bool -> Fresh (Value TyName Name ())
+makeBuiltinBool :: Bool -> Quote (Value TyName Name ())
 makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 
 -- | Convert a 'Bool' to the corresponding PLC's @boolean@.
 -- Does not preserve the global uniqueness condition.
 dupMakeBuiltinBool :: Bool -> Value TyName Name ()
-dupMakeBuiltinBool = unsafeRunFresh . makeBuiltinBool
+dupMakeBuiltinBool = runQuote . makeBuiltinBool
 
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.

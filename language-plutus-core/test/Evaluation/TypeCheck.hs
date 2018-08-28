@@ -5,6 +5,7 @@ module Evaluation.TypeCheck
 
 import           PlutusPrelude
 import           Language.PlutusCore
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
@@ -19,18 +20,18 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 -- | Assert a 'Term' is well-typed.
-assertFreshWellTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
-assertFreshWellTyped getTerm =
-    let term = unsafeRunFresh getTerm in
+assertQuoteWellTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
+assertQuoteWellTyped getTerm =
+    let term = runQuote getTerm in
         for_ (typecheckTerm term) $ \err -> assertFailure $ concat
             [ "Ill-typed: ", prettyString term, "\n"
             , "Due to: ", prettyString err
             ]
 
 -- | Assert a term is ill-typed.
-assertFreshIllTyped :: HasCallStack => Fresh (Term TyName Name ()) -> Assertion
-assertFreshIllTyped getTerm =
-    let term = unsafeRunFresh getTerm in
+assertQuoteIllTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
+assertQuoteIllTyped getTerm =
+    let term = runQuote getTerm in
         case typecheckTerm term of
             Nothing -> assertFailure $ "Well-typed: " ++ prettyString term
             Just _  -> return ()
@@ -49,7 +50,7 @@ typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
 -- | Self-application. An example of ill-typed term.
 --
 -- > /\ (A :: *) -> \(x : A) -> x x
-getBuiltinSelfApply :: Fresh (Term TyName Name ())
+getBuiltinSelfApply :: Quote (Term TyName Name ())
 getBuiltinSelfApply = do
     a <- freshTyName () "a"
     x <- freshName () "x"
@@ -60,7 +61,7 @@ getBuiltinSelfApply = do
         $ Var () x
 
 test_typecheckPrelude :: TestTree
-test_typecheckPrelude = testCase "Prelude" $ foldMap assertFreshWellTyped
+test_typecheckPrelude = testCase "Prelude" $ foldMap assertQuoteWellTyped
     [ getBuiltinConst
     , getBuiltinUnitval
     , getBuiltinTrue
@@ -69,7 +70,7 @@ test_typecheckPrelude = testCase "Prelude" $ foldMap assertFreshWellTyped
     ]
 
 test_typecheckTerms :: TestTree
-test_typecheckTerms = testCase "terms" $ foldMap assertFreshWellTyped
+test_typecheckTerms = testCase "terms" $ foldMap assertQuoteWellTyped
     [ getBuiltinUnroll
     , getBuiltinFix
     , getBuiltinChurchZero
@@ -86,7 +87,7 @@ test_typecheckTerms = testCase "terms" $ foldMap assertFreshWellTyped
     ]
 
 test_typecheckIllTyped :: TestTree
-test_typecheckIllTyped = testCase "ill-typed" $ foldMap assertFreshIllTyped
+test_typecheckIllTyped = testCase "ill-typed" $ foldMap assertQuoteIllTyped
     [ getBuiltinSelfApply
     ]
 

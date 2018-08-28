@@ -42,8 +42,6 @@ module Language.PlutusCore
     -- * Processing
     , annotate
     , annotateST
-    , freshName
-    , freshTyName
     , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
