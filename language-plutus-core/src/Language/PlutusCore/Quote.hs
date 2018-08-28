@@ -11,6 +11,8 @@ module Language.PlutusCore.Quote (
             , parseProgram
             , parseTerm
             , parseType
+            , freshUnique
+            , freshName
             , QuoteT
             , Quote
             ) where

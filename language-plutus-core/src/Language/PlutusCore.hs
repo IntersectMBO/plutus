@@ -103,6 +103,9 @@ module Language.PlutusCore
     , typedGreaterThanInteger
     , Quote
     , runQuote
+    -- * Name generation
+    , freshUnique
+    , freshName
     -- * Quasi-Quoters
     , plcType
     , plcTerm

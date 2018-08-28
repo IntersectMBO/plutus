@@ -3,15 +3,16 @@
 module Main ( main
             ) where
 
+import           Control.Monad
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.Constant.All
-import qualified Quotation.Spec as Quotation
 import           Generators
 import           Hedgehog                hiding (Var, annotate)
 import           Language.PlutusCore
 import           PlutusPrelude
+import qualified Quotation.Spec          as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -59,9 +60,8 @@ compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 propCBOR :: Property
 propCBOR = property $ do
     prog <- forAll genProgram
-    let nullPosn = fmap (pure ())
-        trip = readProgram . writeProgram
-        compared = (==) <$> trip (nullPosn prog) <*> pure (nullPosn prog)
+    let trip = readProgram . writeProgram
+        compared = (==) <$> trip (void prog) <*> pure (void prog)
     Hedgehog.assert (fromRight False compared)
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
