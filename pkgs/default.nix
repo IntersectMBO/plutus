@@ -42070,6 +42070,7 @@ composition-prelude
 containers
 deepseq
 microlens
+mmorph
 mtl
 prettyprinter
 recursion

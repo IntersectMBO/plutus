@@ -34,27 +34,35 @@ getBuiltinUnitval = [plcTerm|(abs a (type) (lam x a x))|]
 --
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
 getBuiltinBool :: Quote (Type TyName ())
-getBuiltinBool = [plcType|(all a (type)
-                         (fun
-                         (fun getBuiltinUnit a)
-                         (fun
-                         (fun getBuiltinUnit a)
-                         a)))|]
+getBuiltinBool = do
+    unit <- getBuiltinUnit
+    [plcType|(all a (type)
+              (fun
+              (fun unit a)
+              (fun
+              (fun unit a)
+              a)))|]
 
 -- | Church-encoded 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
 getBuiltinTrue :: Quote (Value TyName Name ())
-getBuiltinTrue = [plcTerm|(abs a (type)
-                         (lam x (fun getBuiltinUnit a)
-                         (lam y (fun getBuiltinUnit a)
-                         [x getBuiltinUnitval])))|]
+getBuiltinTrue = do
+    unit <- getBuiltinUnit
+    unitval <- getBuiltinUnitval
+    [plcTerm|(abs a (type)
+              (lam x (fun unit a)
+              (lam y (fun unit a)
+              [x unitval])))|]
 
 -- | Church-encoded 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
 getBuiltinFalse :: Quote (Value TyName Name ())
-getBuiltinFalse = [plcTerm|(abs a (type)
-                         (lam x (fun getBuiltinUnit a)
-                         (lam y (fun getBuiltinUnit a)
-                         [y getBuiltinUnitval])))|]
+getBuiltinFalse = do
+    unit <- getBuiltinUnit
+    unitval <- getBuiltinUnitval
+    [plcTerm|(abs a (type)
+              (lam x (fun unit a)
+              (lam y (fun unit a)
+              [y unitval])))|]

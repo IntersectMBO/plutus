@@ -1,6 +1,5 @@
 -- | See the 'docs/Constant application.md' article for how this module emerged.
 
-{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}

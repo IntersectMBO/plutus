@@ -106,6 +106,7 @@ module Language.PlutusCore
     -- * Name generation
     , freshUnique
     , freshName
+    , freshTyName
     -- * Quasi-Quoters
     , plcType
     , plcTerm

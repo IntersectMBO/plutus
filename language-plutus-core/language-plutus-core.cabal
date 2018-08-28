@@ -61,13 +61,19 @@ library
         Language.PlutusCore.TH
         Language.PlutusCore.Quote
     default-language: Haskell2010
-    default-extensions: DeriveGeneric DeriveLift
-    other-extensions: StandaloneDeriving GeneralizedNewtypeDeriving
-                      DeriveAnyClass TypeFamilies DeriveFunctor DeriveFoldable
-                      DeriveTraversable FlexibleContexts OverloadedStrings
-                      DerivingStrategies MonadComprehensions FlexibleInstances
-                      ConstrainedClassMethods TupleSections GADTs RankNTypes 
-                      TemplateHaskell QuasiQuotes
+    default-extensions:
+        -- should be in base
+        ExplicitForAll ScopedTypeVariables
+        -- extensions to deriving
+        DeriveGeneric StandaloneDeriving DeriveLift
+        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+        DeriveTraversable DerivingStrategies
+    other-extensions:
+        DeriveAnyClass
+        FlexibleContexts FlexibleInstances MultiParamTypeClasses
+        TypeFamilies OverloadedStrings MonadComprehensions
+        ConstrainedClassMethods TupleSections GADTs RankNTypes
+        TemplateHaskell QuasiQuotes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -86,7 +92,8 @@ library
         composition-prelude -any,
         cborg -any,
         th-lift-instances,
-        template-haskell
+        template-haskell,
+        mmorph -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
