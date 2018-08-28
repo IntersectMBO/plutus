@@ -20,6 +20,7 @@ tests = testGroup "quasiquoter" [
   asGolden (runQuote one) "test/Quotation/one.plc",
   asGolden (runQuote bool) "test/Quotation/bool.plc",
   asGolden (runQuote true) "test/Quotation/true.plc",
+  asGolden (runQuote false) "test/Quotation/false.plc",
   asGolden (runQuote free) "test/Quotation/free.plc"
  ]
 
@@ -42,6 +43,12 @@ bool = do
 
 true :: Quote (Term TyName Name ())
 true = do
+    u <- unit
+    o <- one
+    [plcTerm|(abs a (type) (lam x (fun u a) (lam y (fun u a) [x o])))|]
+
+false :: Quote (Term TyName Name ())
+false = do
     u <- unit
     o <- one
     [plcTerm|(abs a (type) (lam x (fun u a) (lam y (fun u a) [x o])))|]
