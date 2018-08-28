@@ -8,7 +8,8 @@ module Language.PlutusCore.Normalize ( check
                                      , NormalizationError
                                      ) where
 
-import           Control.Recursion
+import           Data.Functor.Foldable
+import           Data.Functor.Foldable.Monadic
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 

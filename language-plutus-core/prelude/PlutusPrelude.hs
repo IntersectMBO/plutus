@@ -50,13 +50,13 @@ import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
 import           Control.Monad                           (guard, join, (<=<))
-import           Control.Recursion                       (Base, Corecursive, Recursive, embed, project)
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Either                             (fromRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
+import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
@@ -102,4 +102,3 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
-

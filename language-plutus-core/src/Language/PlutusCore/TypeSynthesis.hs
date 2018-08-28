@@ -15,7 +15,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
-import           Control.Recursion
+import           Data.Functor.Foldable
 import qualified Data.Map                       as M
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name

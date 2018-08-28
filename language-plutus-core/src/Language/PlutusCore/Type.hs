@@ -17,8 +17,8 @@ module Language.PlutusCore.Type ( Term (..)
                                 , termLoc
                                 ) where
 
-import           Control.Recursion
 import qualified Data.ByteString.Lazy           as BSL
+import           Data.Functor.Foldable
 import           Instances.TH.Lift              ()
 import           Language.Haskell.TH.Syntax     (Lift)
 import           Language.PlutusCore.Lexer.Type

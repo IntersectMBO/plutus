@@ -8,8 +8,8 @@ import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.CBOR.Read
 import           Codec.CBOR.Write
-import           Control.Recursion
 import qualified Data.ByteString.Lazy           as BSL
+import           Data.Functor.Foldable          hiding (fold)
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
