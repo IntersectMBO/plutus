@@ -1,7 +1,4 @@
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DeriveLift        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)

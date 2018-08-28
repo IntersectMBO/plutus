@@ -20,6 +20,7 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Except
+import           Control.Monad.Morph        as MM
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Functor.Identity
 import qualified Data.Map                   as Map
@@ -52,13 +53,11 @@ metavarMapTerm :: Set.Set (Name a) -> Q Exp
 metavarMapTerm ftvs = let ftvsL = nameString <$> toList ftvs in
     [|
         let
-            subs :: [Quote (Term TyName Name ())]
+            subs :: [Term TyName Name ()]
             subs = $(substs ftvsL)
-            qm :: Quote (Map.Map BSL.ByteString (Term TyName Name ()))
-            qm = do
-                quoted <- sequence subs
-                pure $ Map.fromList $ zip ftvsL quoted
-        in qm
+            qm :: Map.Map BSL.ByteString (Term TyName Name ())
+            qm = Map.fromList $ zip ftvsL subs
+        in pure qm
     |]
 
 -- See note [Metavar map functions]
@@ -68,13 +67,11 @@ metavarMapType :: Set.Set (TyName a) -> Q Exp
 metavarMapType ftvs = let ftvsL = nameString . unTyName <$> toList ftvs in
     [|
         let
-          subs :: [Quote (Type TyName ())]
+          subs :: [Type TyName ()]
           subs = $(substs ftvsL)
-          qm :: Quote (Map.Map BSL.ByteString (Type TyName ()))
-          qm = do
-              quoted <- sequence subs
-              pure $ Map.fromList $ zip ftvsL quoted
-        in qm
+          qm :: Map.Map BSL.ByteString (Type TyName ())
+          qm = Map.fromList $ zip ftvsL subs
+        in pure qm
     |]
 
 metavarSubstType ::
@@ -133,7 +130,7 @@ compileTerm s = do
             quoted :: Quote (Term TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeT <- (fmap discardAnnsTerm . mapInner (Identity . unsafeDropErrors) . parseTerm . strToBs) s
+                runtimeT <- (fmap discardAnnsTerm . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
                 metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
@@ -148,7 +145,7 @@ compileType s = do
             quoted :: Quote (Type TyName ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeTy <- (fmap discardAnnsTy . mapInner (Identity . unsafeDropErrors) . parseType . strToBs) s
+                runtimeTy <- (fmap discardAnnsTy . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
                 metavarSubstType runtimeTy <$> $(tyMetavars)
           in quoted
       |]
@@ -164,7 +161,7 @@ compileProgram s = do
             quoted :: Quote (Program TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                (Program a v runtimeT) <- (fmap discardAnnsTerm . mapInner (Identity . unsafeDropErrors) . parseProgram . strToBs) s
+                (Program a v runtimeT) <- (fmap discardAnnsTerm . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
                 Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
