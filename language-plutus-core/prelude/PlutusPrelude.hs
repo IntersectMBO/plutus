@@ -34,15 +34,22 @@ module PlutusPrelude ( -- * Reëxports from base
                      , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
-                     , fillSep
+                     , vsep
+                     , flatAlt
+                     , hardline
+                     , group
                      , parens
                      , braces
                      , brackets
                      , squotes
                      , list
+                     , concatWith
+                     , line'
                      , Doc
                      , strToBs
                      , bsToStr
+                     , indent
+                     , align
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -57,7 +64,9 @@ import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Either                             (fromRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
+import           Data.Functor.Foldable                   (Base, Corecursive,
+                                                          Recursive, embed,
+                                                          project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)

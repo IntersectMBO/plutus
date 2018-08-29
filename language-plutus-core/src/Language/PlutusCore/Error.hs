@@ -1,11 +1,13 @@
 {-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE DeriveAnyClass          #-}
+{-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE FlexibleInstances       #-}
 
 module Language.PlutusCore.Error ( Error (..)
                                  , IsError (..)
                                  ) where
 
+import           Control.Monad.Except              (MonadError (..))
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.PrettyCfg
@@ -23,15 +25,15 @@ class IsError a where
 
     asError :: a -> Error
 
-    asLeft :: a -> Either Error b
-    asLeft = Left . asError
+    asExcept :: MonadError Error m => a -> m b
+    asExcept = throwError . asError
 
     convertError :: Either a b -> Either Error b
     convertError = first asError
 
     collectErrors :: (IsError b) => Either a (Either b c) -> Either Error c
-    collectErrors (Left x)          = asLeft x
-    collectErrors (Right (Left x))  = asLeft x
+    collectErrors (Left x)          = asExcept x
+    collectErrors (Right (Left x))  = asExcept x
     collectErrors (Right (Right x)) = Right x
 
 instance IsError Error where
