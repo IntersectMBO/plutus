@@ -36,6 +36,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (<+>)
                      , parens
                      , brackets
+                     , hardline
                      , squotes
                      , list
                      , Doc
