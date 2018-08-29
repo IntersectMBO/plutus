@@ -63,7 +63,7 @@ list  = (lam a (type) (fix list (all r (type) (fun r (fun (fun a (fun list r)) r
 listF = (lam a (type)           (all r (type) (fun r (fun (fun a (fun list r)) r))))
 ```
 
-This asks for a data type that has a hole inside it which we can instantiate by either `fix` or nothing. [Language.PlutusCore.StdLib.Type](stdlib/Language/PlutusCore/StdLib/Type.hs) defines such type:
+This asks for a data type that has a hole inside it which we can instantiate by either `fix` or nothing. [Language.PlutusCore.StdLib.Type](../stdlib/Language/PlutusCore/StdLib/Type.hs) defines such type:
 
 ```haskell
 data HoledType tyname a = HoledType
