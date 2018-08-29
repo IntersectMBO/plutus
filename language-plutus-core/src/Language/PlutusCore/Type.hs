@@ -25,6 +25,9 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
 
+infixr 5 </>
+infixr 5 <//>
+
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
                    | TyFun a (Type tyname a) (Type tyname a)
@@ -196,7 +199,7 @@ instance Pretty (Kind a) where
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Program f g a) where
-    prettyCfg cfg (Program _ v t) = parens' ("program" <+> pretty v <+> prettyCfg cfg t)
+    prettyCfg cfg (Program _ v t) = parens' ("program" <+> pretty v <//> prettyCfg cfg t)
 
 instance PrettyCfg (Constant a) where
     prettyCfg _ (BuiltinInt _ s i)  = pretty s <+> "!" <+> pretty i
@@ -204,8 +207,11 @@ instance PrettyCfg (Constant a) where
     prettyCfg _ (BuiltinBS _ s b)   = pretty s <+> "!" <+> prettyBytes b
     prettyCfg cfg (BuiltinName _ n) = prettyCfg cfg n
 
-maybeIndent :: Doc a -> Doc a -> Doc a
-maybeIndent d d' = group (flatAlt (d <> hardline <> indent 2 d') (d <+> d'))
+(<//>) :: Doc a -> Doc a -> Doc a
+(<//>) d d' = d <> hardline <> indent 2 d'
+
+(</>) :: Doc a -> Doc a -> Doc a
+(</>) d d' = group (flatAlt (d <//> d') (d <+> d'))
 
 vsepSquish :: [Doc a] -> Doc a
 vsepSquish = group . concatWith (\x y -> x <> line' <> y)
@@ -213,20 +219,23 @@ vsepSquish = group . concatWith (\x y -> x <> line' <> y)
 vsep' :: [Doc a] -> Doc a
 vsep' = group . vsep
 
+parens'' :: Doc a -> Doc a
+parens'' d = group (flatAlt ("(" <> hardline <> indent 2 d <> hardline <> ")") (parens d))
+
 parens' :: Doc a -> Doc a
 parens' = vsepSquish . (\d -> ["(" <> d, ")"])
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
     prettyCfg cfg = cata a where
-        a (ConstantF _ b)    = parens' (maybeIndent "con" (prettyCfg cfg b))
+        a (ConstantF _ b)    = parens' ("con" </> prettyCfg cfg b)
         a (ApplyF _ t t')    = vsep' ["[", t, t', "]"]
         a (VarF _ n)         = prettyCfg cfg n
-        a (TyAbsF _ n k t)   = parens' (maybeIndent "abs" (vsep' [prettyCfg cfg n, pretty k, t]))
+        a (TyAbsF _ n k t)   = parens' ("abs" </> vsep' [prettyCfg cfg n, pretty k, t])
         a (TyInstF _ t ty)   = braces (vsep' [t, prettyCfg cfg ty]) -- FIXME: figure out how to make braces nice
-        a (LamAbsF _ n ty t) = parens' (maybeIndent "lam" (vsep' [prettyCfg cfg n, prettyCfg cfg ty, t]))
-        a (UnwrapF _ t)      = parens' (maybeIndent "unwrap" t)
-        a (WrapF _ n ty t)   = parens' (maybeIndent "wrap" (vsep' [prettyCfg cfg n, prettyCfg cfg ty, t]))
-        a (ErrorF _ ty)      = parens' (maybeIndent "error" (prettyCfg cfg ty))
+        a (LamAbsF _ n ty t) = parens' ("lam" </> vsep' [prettyCfg cfg n, prettyCfg cfg ty, t])
+        a (UnwrapF _ t)      = parens' ("unwrap" </> t)
+        a (WrapF _ n ty t)   = parens' ("wrap" </> vsep' [prettyCfg cfg n, prettyCfg cfg ty, t])
+        a (ErrorF _ ty)      = parens' ("error" </> prettyCfg cfg ty)
 
 instance (PrettyCfg (f a)) => PrettyCfg (Type f a) where
     prettyCfg cfg = cata a where

@@ -109,8 +109,8 @@ testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCf
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
-    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
+    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
     where cfg = defaultCfg
