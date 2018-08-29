@@ -1,3 +1,5 @@
+-- | @list@ and related functions.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.StdLib.Data.List
     ( getBuiltinList

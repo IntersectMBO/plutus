@@ -1,3 +1,5 @@
+-- | @unit@ and related functions.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.StdLib.Data.Unit
     ( getBuiltinUnit

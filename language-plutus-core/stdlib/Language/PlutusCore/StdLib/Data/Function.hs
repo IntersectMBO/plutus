@@ -1,3 +1,5 @@
+-- | Combinators.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.StdLib.Data.Function
     ( getBuiltinConst

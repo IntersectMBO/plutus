@@ -1,3 +1,5 @@
+-- | This module defines Haskell data types that simplify construction of PLC types and terms.
+
 {-# LANGUAGE RankNTypes #-}
 module Language.PlutusCore.StdLib.Type
     ( HoledType(..)

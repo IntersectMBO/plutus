@@ -1,3 +1,5 @@
+-- | @nat@ and related functions.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.StdLib.Data.Nat
     ( getBuiltinNat
