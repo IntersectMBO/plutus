@@ -219,8 +219,8 @@ vsepSquish = group . concatWith (\x y -> x <> line' <> y)
 vsep' :: [Doc a] -> Doc a
 vsep' = group . vsep
 
-parens'' :: Doc a -> Doc a
-parens'' d = group (flatAlt ("(" <> hardline <> indent 2 d <> hardline <> ")") (parens d))
+brackets' :: Doc a -> Doc a
+brackets' d = group (flatAlt ("[" <> hardline <> indent 2 d <> hardline <> "]") ("[" <+> d <+> "]"))
 
 parens' :: Doc a -> Doc a
 parens' = vsepSquish . (\d -> ["(" <> d, ")"])
@@ -228,7 +228,7 @@ parens' = vsepSquish . (\d -> ["(" <> d, ")"])
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
     prettyCfg cfg = cata a where
         a (ConstantF _ b)    = parens' ("con" </> prettyCfg cfg b)
-        a (ApplyF _ t t')    = vsep' ["[", t, t', "]"]
+        a (ApplyF _ t t')    = brackets' (vsep' [t, t'])
         a (VarF _ n)         = prettyCfg cfg n
         a (TyAbsF _ n k t)   = parens' ("abs" </> vsep' [prettyCfg cfg n, pretty k, t])
         a (TyInstF _ t ty)   = braces (vsep' [t, prettyCfg cfg ty]) -- FIXME: figure out how to make braces nice
