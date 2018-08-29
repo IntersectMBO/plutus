@@ -5,16 +5,18 @@
     [
       [
         [
-          {(abs
-            b
-            (type)
-            (lam
-              x
-              (all a (type) (fun a (fun a a)))
-              (lam t b (lam f b [ [ {x b} t ] f ]))
+          {
+            (abs
+              b
+              (type)
+              (lam
+                x
+                (all a (type) (fun a (fun a a)))
+                (lam t b (lam f b [ [ { x b } t ] f ]))
+              )
             )
-          )
-          (all a (type) (fun a (fun a a)))}
+            (all a (type) (fun a (fun a a)))
+          }
           x
         ]
         (abs a (type) (lam x a (lam y a y)))
