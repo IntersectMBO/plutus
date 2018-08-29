@@ -12544,6 +12544,42 @@ description = "A Haskell client for the Cayley graph database";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"cborg" = callPackage
+({
+  mkDerivation
+, array
+, base
+, bytestring
+, containers
+, ghc-prim
+, half
+, integer-gmp
+, primitive
+, stdenv
+, text
+}:
+mkDerivation {
+
+pname = "cborg";
+version = "0.2.0.0";
+sha256 = "808cbd40a3a53e798cc34b38c400154d1209536113f5dc5fd8a17a64e6c77fb7";
+libraryHaskellDepends = [
+array
+base
+bytestring
+containers
+ghc-prim
+half
+integer-gmp
+primitive
+text
+];
+doHaddock = false;
+doCheck = false;
+description = "Concise Binary Object Representation";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "cereal" = callPackage
 ({
   mkDerivation
@@ -42034,6 +42070,7 @@ license = stdenv.lib.licenses.bsd3;
 , array
 , base
 , bytestring
+, cborg
 , composition-prelude
 , containers
 , criterion
@@ -42069,6 +42106,7 @@ libraryHaskellDepends = [
 array
 base
 bytestring
+cborg
 composition-prelude
 containers
 deepseq
@@ -75953,26 +75991,6 @@ description = "Validity instances for vector";
 license = stdenv.lib.licenses.mit;
 
 }) {};
-"value-supply" = callPackage
-({
-  mkDerivation
-, base
-, stdenv
-}:
-mkDerivation {
-
-pname = "value-supply";
-version = "0.6";
-sha256 = "6555ab70c48b28f1ca383b5198daab5ef18f87039ea7dc5c6dab3d6dc8cca639";
-libraryHaskellDepends = [
-base
-];
-doHaddock = false;
-doCheck = false;
-description = "A library for generating values without having to thread state";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
 "varying" = callPackage
 ({
   mkDerivation
@@ -83506,4 +83524,3 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
-

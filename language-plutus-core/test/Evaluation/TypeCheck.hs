@@ -3,9 +3,7 @@ module Evaluation.TypeCheck
     ( test_typecheck
     ) where
 
-import           PlutusPrelude
 import           Language.PlutusCore
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
@@ -24,8 +22,8 @@ assertQuoteWellTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
 assertQuoteWellTyped getTerm =
     let term = runQuote getTerm in
         for_ (typecheckTerm term) $ \err -> assertFailure $ concat
-            [ "Ill-typed: ", prettyString term, "\n"
-            , "Due to: ", prettyString err
+            [ "Ill-typed: ", prettyCfgString term, "\n"
+            , "Due to: ", prettyCfgString err
             ]
 
 -- | Assert a term is ill-typed.
@@ -33,7 +31,7 @@ assertQuoteIllTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
 assertQuoteIllTyped getTerm =
     let term = runQuote getTerm in
         case typecheckTerm term of
-            Nothing -> assertFailure $ "Well-typed: " ++ prettyString term
+            Nothing -> assertFailure $ "Well-typed: " ++ prettyCfgString term
             Just _  -> return ()
 
 typecheckProgram :: Program TyName Name () -> Maybe Error
@@ -42,7 +40,7 @@ typecheckProgram
     . printType
     . Bsl.fromStrict
     . Text.encodeUtf8
-    . prettyText
+    . prettyCfgText
 
 typecheckTerm :: Term TyName Name () -> Maybe Error
 typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)

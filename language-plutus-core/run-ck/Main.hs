@@ -19,7 +19,7 @@ parseRunCk = fmap (runCk . void) . parseScoped
 
 -- | Parse a program, run it and prettyprint the result.
 textRunCk :: Text -> Text
-textRunCk = either prettyText prettyText . parseRunCk . BSL.fromStrict . encodeUtf8
+textRunCk = either prettyCfgText prettyCfgText . parseRunCk . BSL.fromStrict . encodeUtf8
 
 -- | Read-eval-print loop.
 repl :: IO ()

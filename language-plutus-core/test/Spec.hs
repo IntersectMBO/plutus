@@ -3,6 +3,7 @@
 module Main ( main
             ) where
 
+import           Control.Monad
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
@@ -58,13 +59,20 @@ compareType _ _                                      = False
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
+propCBOR :: Property
+propCBOR = property $ do
+    prog <- forAll genProgram
+    let trip = readProgram . writeProgram
+        compared = (==) <$> trip (void prog) <*> pure (void prog)
+    Hedgehog.assert (fromRight False compared)
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
     let nullPosn = fmap (pure emptyPosn)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyText
+        reprint = BSL.fromStrict . encodeUtf8 . prettyCfgText
         proc = nullPosn <$> parse (reprint prog)
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
@@ -73,6 +81,7 @@ allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
+    , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -83,13 +92,13 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
 
-asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: PrettyCfg a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
-errorgen :: Pretty a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . prettyText
+errorgen :: PrettyCfg a => a -> BSL.ByteString
+errorgen = BSL.fromStrict . encodeUtf8 . prettyCfgText
 
-asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
+asGolden :: PrettyCfg a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree

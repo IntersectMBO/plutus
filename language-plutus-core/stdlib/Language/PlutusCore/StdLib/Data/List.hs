@@ -8,7 +8,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinSum
     ) where
 
-import           PlutusPrelude
+import           PlutusPrelude hiding (list)
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type

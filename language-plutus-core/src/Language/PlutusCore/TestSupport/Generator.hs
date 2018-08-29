@@ -22,7 +22,6 @@ module Language.PlutusCore.TestSupport.Generator
 
 import           PlutusPrelude
 import           Language.PlutusCore
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.TestSupport.Denotation
 import           Language.PlutusCore.TestSupport.TypedBuiltinGen
@@ -62,10 +61,10 @@ data IterAppValue head arg r = IterAppValue
     , _iterTbv  :: TypedBuiltinValue Size r  -- ^ As a Haskell value.
     }
 
-instance (Pretty head, Pretty arg) => Pretty (IterAppValue head arg r) where
-    pretty (IterAppValue term pia tbv) = parens $ mconcat
-        [ "{ ", pretty term, line
-        , "| ", pretty pia, line
+instance (PrettyCfg head, PrettyCfg arg) => PrettyCfg (IterAppValue head arg r) where
+    prettyCfg cfg (IterAppValue term pia tbv) = parens $ mconcat
+        [ "{ ", prettyCfg cfg term, line
+        , "| ", prettyCfg cfg pia, line
         , "| ", pretty tbv, line
         , "}"
         ]

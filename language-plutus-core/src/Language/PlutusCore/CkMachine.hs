@@ -14,6 +14,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
 
 infix 4 |>, <|
@@ -51,21 +52,21 @@ data CkEvalResult
     | CkEvalFailure
     deriving (Show, Eq)
 
-instance Pretty CkEvalResult where
-    pretty (CkEvalSuccess value) = pretty value
-    pretty CkEvalFailure         = "Failure"
+instance PrettyCfg CkEvalResult where
+    prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value
+    prettyCfg _   CkEvalFailure         = "Failure"
 
 constAppErrorString :: ConstAppError -> String
 constAppErrorString (SizeMismatchConstAppError seenSize arg) = fold
     [ "encoutered an unexpected size in "
-    , prettyString arg
+    , prettyCfgString arg
     , "\nPreviously seen size: "
     , prettyString seenSize
     , " in"
     ]
 constAppErrorString (IllTypedConstAppError expType constant) = fold
     [ "encountered an ill-typed argument: "
-    , prettyString constant
+    , prettyCfgString constant
     , "\nExpected type: "
     , prettyString expType
     , " in"
@@ -73,12 +74,12 @@ constAppErrorString (IllTypedConstAppError expType constant) = fold
 constAppErrorString (ExcessArgumentsConstAppError excessArgs) = fold
     [ "attempted to evaluate a constant applied to too many arguments"
     , "\nExcess ones are: "
-    , prettyString excessArgs
+    , prettyCfgString excessArgs
     , " in"
     ]
 constAppErrorString (SizedNonConstantConstAppError arg)       = fold
     [ "encountered a non-constant argument of a sized type: "
-    , prettyString arg
+    , prettyCfgString arg
     , " in"
     ]
 
@@ -96,7 +97,7 @@ ckErrorString (ConstAppCkError constAppError)  =
 
 instance Show CkException where
     show (CkException err cause) = fold
-        ["The CK machine " , ckErrorString err, prettyString cause]
+        ["The CK machine " , ckErrorString err, prettyCfgString cause]
 
 instance Exception CkException
 

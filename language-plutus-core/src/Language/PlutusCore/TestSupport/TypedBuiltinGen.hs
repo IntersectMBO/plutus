@@ -51,8 +51,8 @@ type TypedBuiltinGenT m = forall a. TypedBuiltin Size a -> GenT m (TermOf a)
 
 type TypedBuiltinGen = TypedBuiltinGenT Identity
 
-instance Pretty a => Pretty (TermOf a) where
-    pretty (TermOf t x) = pretty t <+> "~>" <+> pretty x
+instance PrettyCfg a => PrettyCfg (TermOf a) where
+    prettyCfg cfg (TermOf t x) = prettyCfg cfg t <+> "~>" <+> prettyCfg cfg x
 
 attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
 attachCoercedTerm tb = fmap $ \x -> TermOf (unsafeMakeBuiltin $ TypedBuiltinValue tb x) x

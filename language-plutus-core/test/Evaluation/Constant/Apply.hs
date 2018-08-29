@@ -41,7 +41,7 @@ prop_applyBuiltinName
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property $ do
     let getIterAppValue = runPlcT genSizeDef allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
-    IterAppValue _ iterApp tbv <- forAllPretty getIterAppValue
+    IterAppValue _ iterApp tbv <- forAllPrettyCfg getIterAppValue
     let IterApp name spine = iterApp
         TypedBuiltinValue tb y = tbv
         app = applyBuiltinName name

@@ -10,9 +10,12 @@ module Language.PlutusCore.TestSupport.Utils
     , choiceDef
     , forAllPretty
     , forAllPrettyT
+    , forAllPrettyCfg
+    , forAllPrettyCfgT
     ) where
 
 import           PlutusPrelude hiding (hoist)
+import           Language.PlutusCore
 
 import           Control.Monad.Reader
 import           Control.Monad.Morph
@@ -42,3 +45,12 @@ forAllPretty = forAllWith prettyString
 -- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyT :: (Monad m, Pretty a) => GenT m a -> PropertyT m a
 forAllPrettyT = forAllWithT prettyString
+
+-- | Generate a value using the 'PrettyCfg' class for getting its 'String' representation.
+forAllPrettyCfg :: (Monad m, PrettyCfg a) => Gen a -> PropertyT m a
+forAllPrettyCfg = forAllWith prettyCfgString
+
+-- | Generate a value using the 'PrettyCfg' class for getting its 'String' representation.
+-- A supplied generator has access to the 'Monad' the whole property has access to.
+forAllPrettyCfgT :: (Monad m, PrettyCfg a) => GenT m a -> PropertyT m a
+forAllPrettyCfgT = forAllWithT prettyCfgString

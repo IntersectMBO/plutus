@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import           PlutusPrelude hiding (hoist)
 import           Language.PlutusCore
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.TestSupport
@@ -12,7 +10,7 @@ import           Data.Foldable
 import           Control.Monad
 import           Control.Monad.Morph
 import qualified Data.Text.IO as Text
-import qualified Hedgehog.Gen   as Gen
+import qualified Hedgehog.Gen as Gen
 
 -- | Generate a test sample: a term of arbitrary type and what it computes to.
 -- Uses 'genTermLoose' under the hood.
@@ -26,9 +24,10 @@ generateTerm
           let expected = unsafeMakeBuiltin tbv
           actual <- ckEvalResultToMaybe $ evaluateCk term
           when (actual /= expected) . error $ concat
-              [ "An internal error in 'generateTerm' occured while computing ", prettyString term, "\n"
-              , "Expected result: ", prettyString expected , "\n"
-              , "Actual result: ", prettyString actual, "\n"
+              [ "An internal error in 'generateTerm' occured while computing "
+              , prettyCfgString term, "\n"
+              , "Expected result: ", prettyCfgString expected , "\n"
+              , "Actual result: ", prettyCfgString actual, "\n"
               ]
           Just $ TermOf term actual
 
@@ -36,7 +35,7 @@ main :: IO ()
 main = do
     TermOf term value <- generateTerm
     traverse_ Text.putStrLn
-        [ prettyText $ Program () (Version () 0 1 0) term
+        [ prettyCfgText $ Program () (Version () 0 1 0) term
         , ""
-        , prettyText value
+        , prettyCfgText value
         ]

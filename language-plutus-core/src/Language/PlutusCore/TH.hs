@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveLift          #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
@@ -10,7 +9,6 @@ module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 import           Language.Haskell.TH        hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
-import           Language.PlutusCore        (discardAnnsTerm, discardAnnsTy)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser (ParseError)
 import           Language.PlutusCore.Quote
@@ -50,7 +48,7 @@ substs fvsL = let substFun n = [| $(varE (mkName (bsToStr n)))|] in listE $ fmap
 -- | Get a quotation of a map between names and Haskell variable references to terms using the
 -- name as the variable name.
 metavarMapTerm :: Set.Set (Name a) -> Q Exp
-metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
+metavarMapTerm ftvs = let ftvsL = nameString <$> toList ftvs in
     [|
         let
             subs :: [(Term TyName Name ())]
@@ -64,7 +62,7 @@ metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
 -- | Get a quotation of a map between type names and Haskell variable references to types using the
 -- type name as the variable name.
 metavarMapType :: Set.Set (TyName a) -> Q Exp
-metavarMapType ftvs = let ftvsL = fmap (nameString . unTyName) $ toList $ ftvs in
+metavarMapType ftvs = let ftvsL = nameString . unTyName <$> toList ftvs in
     [|
         let
           subs :: [(Type TyName ())]
@@ -94,12 +92,12 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
 eval :: QuoteT (Except ParseError) a -> Q a
-eval c = case (runExcept $ runQuoteT c) of
+eval c = case runExcept $ runQuoteT c of
     Left e  -> fail $ show e
-    Right p -> pure $ p
+    Right p -> pure p
 
 unsafeDropErrors :: Except e a -> a
-unsafeDropErrors e = case (runExcept e) of
+unsafeDropErrors e = case runExcept e of
     Right r -> r
     Left _  -> error "Impossible!"
 
@@ -130,7 +128,7 @@ compileTerm s = do
             quoted :: Quote (Term TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeT <- (fmap discardAnnsTerm . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
+                runtimeT <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
                 metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
@@ -145,7 +143,7 @@ compileType s = do
             quoted :: Quote (Type TyName ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeTy <- (fmap discardAnnsTy . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
+                runtimeTy <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
                 metavarSubstType runtimeTy <$> $(tyMetavars)
           in quoted
       |]
@@ -161,7 +159,7 @@ compileProgram s = do
             quoted :: Quote (Program TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                (Program a v runtimeT) <- (fmap discardAnnsTerm . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
+                (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
                 Program a v <$> metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]

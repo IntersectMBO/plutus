@@ -1,11 +1,14 @@
 {
     {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+    {-# LANGUAGE OverloadedStrings     #-}
+    {-# LANGUAGE DeriveAnyClass        #-}
+    {-# LANGUAGE OverloadedStrings     #-}
+    {-# LANGUAGE FlexibleContexts      #-}
+    {-# LANGUAGE FlexibleInstances     #-}
     {-# LANGUAGE DeriveAnyClass        #-}
     {-# LANGUAGE OverloadedStrings     #-}
     {-# LANGUAGE MultiParamTypeClasses #-}
     module Language.PlutusCore.Lexer ( alexMonadScan
-                                     , runAlex
-                                     , runAlexST
                                      , runAlexST'
                                      -- * Types
                                      , AlexPosn (..)
@@ -20,6 +23,7 @@ import Language.Haskell.TH.Syntax (Lift)
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Language.PlutusCore.Lexer.Type
+import Language.PlutusCore.PrettyCfg
 import Language.PlutusCore.Name
 import Control.Monad.Except
 import Control.Monad.State
@@ -210,20 +214,19 @@ instance MonadState AlexState Alex where
 alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF . alex_pos <$> get
 
--- TODO: debug info should carry parser/lexer state
 -- | An error encountered during parsing.
 data ParseError = LexErr String
                 | Unexpected (Token AlexPosn)
                 | Overflow AlexPosn Natural Integer
                 deriving (Show, Eq, Generic, NFData)
 
-instance Pretty ParseError where
-    pretty (LexErr s) = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
-    pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+instance PrettyCfg ParseError where
+    prettyCfg _ (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
+    prettyCfg cfg (Unexpected t)   = "Unexpected" <+> squotes (prettyCfg cfg t) <+> "at" <+> pretty (loc t)
+    prettyCfg _ (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
 
 liftError :: Either String a -> Either ParseError a
-liftError(Left s) = Left $ LexErr s
+liftError(Left s)  = Left $ LexErr s
 liftError(Right a) = Right $ a
 
 runAlexST :: ByteString.ByteString -> Alex a -> IdentifierState -> Either ParseError (IdentifierState, a)

@@ -3,9 +3,8 @@ module Evaluation.CkMachine
     ( test_evaluateCk
     ) where
 
-import           PlutusPrelude hiding (hoist)
+import           PlutusPrelude hiding (hoist, list)
 import           Language.PlutusCore
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.TestSupport
@@ -51,7 +50,7 @@ test_NatRoundtrip :: TestTree
 test_NatRoundtrip = testProperty "NatRoundtrip" . property $ do
     let size = 1
         int1 = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    TermOf n nv <- forAllPretty . Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef int1
+    TermOf n nv <- forAllPrettyCfg . Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef int1
     let term = runQuote $ getBuiltinIntegerToNat nv >>= getBuiltinNatToInteger size
     evaluateCk term === CkEvalSuccess n
 
@@ -72,7 +71,7 @@ test_ListSum = testProperty "ListSum" . property $ do
     size <- forAll $ genSizeIn 1 8
     let intSized      = TyBuiltin () TyInteger
         typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    ps <- forAllPretty . Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
+    ps <- forAllPrettyCfg . Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
     let term = runQuote $ do
             builtinSum <- getBuiltinSum size
             list <- getListToBuiltinList intSized $ map _termOfTerm ps
@@ -89,9 +88,9 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
     size <- forAll genSizeDef
     let int = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     TermOf term value <- hoist (return . runQuote) $ do
-        TermOf b bv <- forAllPrettyT $ genTermLoose TypedBuiltinBool
-        TermOf i iv <- forAllPrettyT $ genTermLoose int
-        TermOf j jv <- forAllPrettyT $ genTermLoose int
+        TermOf b bv <- forAllPrettyCfgT $ genTermLoose TypedBuiltinBool
+        TermOf i iv <- forAllPrettyCfgT $ genTermLoose int
+        TermOf j jv <- forAllPrettyCfgT $ genTermLoose int
         builtinConst <- lift getBuiltinConst
         builtinUnit  <- lift getBuiltinUnit
         builtinIf    <- lift getBuiltinIf
