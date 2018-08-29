@@ -206,14 +206,14 @@ instance PrettyCfg (Constant a) where
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
     prettyCfg cfg = cata a where
-        a (ConstantF _ b)    = parens ("con" <+> prettyCfg cfg b)
+        a (ConstantF _ b)    = parens ("con" </> prettyCfg cfg b)
         a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
         a (VarF _ n)         = prettyCfg cfg n
-        a (TyAbsF _ n k t)   = parens ("abs" <+> prettyCfg cfg n <+> pretty k <+> t)
+        a (TyAbsF _ n k t)   = parens ("abs" </> prettyCfg cfg n </> pretty k </> t)
         a (TyInstF _ t ty)   = braces (t <+> prettyCfg cfg ty)
-        a (LamAbsF _ n ty t) = parens ("lam" <+> prettyCfg cfg n <+> prettyCfg cfg ty <+> t)
-        a (UnwrapF _ t)      = parens ("unwrap" <+> t)
-        a (WrapF _ n ty t)   = parens ("wrap" <+> prettyCfg cfg n <+> prettyCfg cfg ty <+> t)
+        a (LamAbsF _ n ty t) = parens ("lam" </> prettyCfg cfg n </> prettyCfg cfg ty </> t)
+        a (UnwrapF _ t)      = parens ("unwrap" </> t)
+        a (WrapF _ n ty t)   = parens ("wrap" </> prettyCfg cfg n </> prettyCfg cfg ty </> t)
         a (ErrorF _ ty)      = parens ("error" <+> prettyCfg cfg ty)
 
 instance (PrettyCfg (f a)) => PrettyCfg (Type f a) where
