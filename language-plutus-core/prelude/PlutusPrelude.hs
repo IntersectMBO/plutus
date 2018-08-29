@@ -34,6 +34,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
+                     , fillSep
                      , parens
                      , braces
                      , brackets
