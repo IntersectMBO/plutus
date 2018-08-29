@@ -196,7 +196,7 @@ instance Pretty (Kind a) where
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Program f g a) where
-    prettyCfg cfg (Program _ v t) = parens ("program" <+> pretty v <+> prettyCfg cfg t)
+    prettyCfg cfg (Program _ v t) = parens' ("program" <+> pretty v <+> prettyCfg cfg t)
 
 instance PrettyCfg (Constant a) where
     prettyCfg _ (BuiltinInt _ s i)  = pretty s <+> "!" <+> pretty i

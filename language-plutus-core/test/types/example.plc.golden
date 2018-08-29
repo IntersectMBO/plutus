@@ -1,1 +1,5 @@
-Type mismatch at 4:3 in term '(lam h a (lam t (fix x (all r (type) (fun r (fun (fun a (fun x r)) r)))) h))'. Expected type '(fun a (fun (fix x (all r (type) (fun a (fun (fun a (fun x a)) a)))) a))' , found type '(fun a (fun (fix x (all r (type) (fun r (fun (fun a (fun x r)) r)))) a))'
+Type mismatch at 4:3 in term
+  '(lam h a (lam t (fix x (all r (type) (fun r (fun (fun a (fun x r)) r)))) h)
+  )'.
+Expected type '(fun a (fun (fix x (all r (type) (fun a (fun (fun a (fun x a)) a)))) a))' , found type
+  '(fun a (fun (fix x (all r (type) (fun r (fun (fun a (fun x r)) r)))) a))'
