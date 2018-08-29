@@ -42,6 +42,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , Doc
                      , strToBs
                      , bsToStr
+                     , indent
                      -- * Custom pretty-printing functions
                      , module X
                      ) where
