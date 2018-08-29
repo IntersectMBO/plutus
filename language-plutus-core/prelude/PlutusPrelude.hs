@@ -34,22 +34,17 @@ module PlutusPrelude ( -- * Reëxports from base
                      , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
-                     , vsep
-                     , flatAlt
-                     , hardline
-                     , group
                      , parens
-                     , braces
                      , brackets
+                     , hardline
                      , squotes
                      , list
-                     , concatWith
-                     , line'
                      , Doc
                      , strToBs
                      , bsToStr
                      , indent
-                     , align
+                     -- * Custom pretty-printing functions
+                     , module X
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -74,6 +69,7 @@ import           Data.Semigroup
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Custom        as X
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)

@@ -25,9 +25,6 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
 
-infixr 5 </>
-infixr 5 <//>
-
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
                    | TyFun a (Type tyname a) (Type tyname a)
@@ -206,30 +203,6 @@ instance PrettyCfg (Constant a) where
     prettyCfg _ (BuiltinSize _ s)   = pretty s
     prettyCfg _ (BuiltinBS _ s b)   = pretty s <+> "!" <+> prettyBytes b
     prettyCfg cfg (BuiltinName _ n) = prettyCfg cfg n
-
-(<//>) :: Doc a -> Doc a -> Doc a
-(<//>) d d' = d <> hardline <> indent 2 d'
-
-(</>) :: Doc a -> Doc a -> Doc a
-(</>) d d' = group (flatAlt (d <//> d') (d <+> d'))
-
-vsepSquish :: [Doc a] -> Doc a
-vsepSquish = group . concatWith (\x y -> x <> line' <> y)
-
-vsep' :: [Doc a] -> Doc a
-vsep' = group . vsep
-
-section :: Doc a -> Doc a -> Doc a -> Doc a
-section c1 c2 d = group (flatAlt (c1 <> hardline <> indent 2 d <> hardline <> c2) (c1 <+> d <+> c2))
-
-brackets' :: Doc a -> Doc a
-brackets' = section "[" "]"
-
-braces' :: Doc a -> Doc a
-braces' = section "{" "}"
-
-parens' :: Doc a -> Doc a
-parens' = vsepSquish . (\d -> ["(" <> d, ")"])
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
     prettyCfg cfg = cata a where
