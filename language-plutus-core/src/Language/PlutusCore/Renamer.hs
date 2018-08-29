@@ -6,6 +6,7 @@
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
                                    , annotateST
+                                   , annotateTermST
                                    , NameWithType (..)
                                    , RenamedType
                                    , RenamedTerm
@@ -76,9 +77,14 @@ annotate = fmap snd . annotateST
 -- | Annotate a program with type/kind information at all bound variables,
 -- additionally returning a 'TypeState'
 annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
-annotateST (Program x v p) = do
-    (t, st) <- runStateT (annotateTerm p) mempty
-    pure (st, Program x v t)
+annotateST (Program x v p) = (fmap . fmap) (Program x v) $ annotateTermST p
+
+-- | Annotate a term with type/kind information at all bound variables,
+-- additionally returning a 'TypeState'
+annotateTermST :: Term TyName Name a -> Either (RenameError a) (TypeState a, Term TyNameWithKind NameWithType a)
+annotateTermST t = do
+    (t', st) <- runStateT (annotateTerm t) mempty
+    pure (st, t')
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert

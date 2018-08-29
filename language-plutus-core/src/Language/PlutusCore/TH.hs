@@ -9,8 +9,9 @@ module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 import           Language.Haskell.TH        hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Parser (ParseError)
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Type
@@ -91,9 +92,9 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
                         t
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
-eval :: QuoteT (Except ParseError) a -> Q a
+eval :: QuoteT (Except Error) a -> Q a
 eval c = case runExcept $ runQuoteT c of
-    Left e  -> fail $ show e
+    Left e  -> fail $ show $ prettyCfgText e
     Right p -> pure p
 
 unsafeDropErrors :: Except e a -> a
