@@ -147,13 +147,13 @@ handleInteger x sz i = if isOverflow
     where isOverflow = i < (-k) || i > (k - 1)
           k = 8 ^ sz `div` 2
 
-parseST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Program TyName Name AlexPosn)
+parseST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
 
-parseTermST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Term TyName Name AlexPosn)
+parseTermST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Term TyName Name AlexPosn)
 parseTermST str = runAlexST' str (runExceptT parsePlutusCoreTerm) >>= liftEither
 
-parseTypeST :: BSL.ByteString -> StateT IdentifierState (Except ParseError) (Type TyName AlexPosn)
+parseTypeST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Type TyName AlexPosn)
 parseTypeST str = runAlexST' str (runExceptT parsePlutusCoreType) >>= liftEither
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
@@ -161,10 +161,10 @@ parseTypeST str = runAlexST' str (runExceptT parsePlutusCoreType) >>= liftEither
 -- >>> :set -XOverloadedStrings
 -- >>> parse "(program 0.1.0 [(con addInteger) x y])"
 -- Right (Program (AlexPn 1 1 2) (Version (AlexPn 9 1 10) 0 1 0) (Apply (AlexPn 15 1 16) (Apply (AlexPn 15 1 16) (Constant (AlexPn 17 1 18) (BuiltinName (AlexPn 21 1 22) AddInteger)) (Var (AlexPn 33 1 34) (Name {nameAttribute = AlexPn 33 1 34, nameString = "x", nameUnique = Unique {unUnique = 0}}))) (Var (AlexPn 35 1 36) (Name {nameAttribute = AlexPn 35 1 36, nameString = "y", nameUnique = Unique {unUnique = 1}}))))
-parse :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
+parse :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name AlexPosn)
 parse str = fmap fst $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
-type Parse = ExceptT ParseError Alex
+type Parse = ExceptT (ParseError AlexPosn) Alex
 
 parseError :: Token AlexPosn -> Parse b
 parseError = throwError . Unexpected
