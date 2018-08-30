@@ -13,7 +13,7 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
-import           Data.Text as T
+import           Data.Text                         as T
 
 data Error a = ParseError (ParseError a)
              | RenameError (RenameError a)
@@ -57,4 +57,4 @@ instance (PrettyCfg a) => PrettyCfg (Error a) where
     prettyCfg cfg (RenameError e)        = prettyCfg cfg e
     prettyCfg cfg (TypeError e)          = prettyCfg cfg e
     prettyCfg cfg (NormalizationError e) = prettyCfg cfg e
-    prettyCfg _ (OtherError e)         = pretty e
+    prettyCfg _ (OtherError e)           = pretty e

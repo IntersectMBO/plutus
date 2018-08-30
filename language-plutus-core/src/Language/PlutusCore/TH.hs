@@ -6,7 +6,7 @@
 
 module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 
-import           Language.Haskell.TH        hiding (Name, Type)
+import           Language.Haskell.TH           hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
 import           Language.PlutusCore.Error
@@ -19,11 +19,11 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Except
-import           Control.Monad.Morph        as MM
-import qualified Data.ByteString.Lazy       as BSL
+import           Control.Monad.Morph           as MM
+import qualified Data.ByteString.Lazy          as BSL
 import           Data.Functor.Identity
-import qualified Data.Map                   as Map
-import qualified Data.Set                   as Set
+import qualified Data.Map                      as Map
+import qualified Data.Set                      as Set
 
 {-
 This uses the approach in https://www.well-typed.com/blog/2014/10/quasi-quoting-dsls/ to use free
@@ -52,9 +52,9 @@ metavarMapTerm :: Set.Set (Name a) -> Q Exp
 metavarMapTerm ftvs = let ftvsL = nameString <$> toList ftvs in
     [|
         let
-            subs :: [(Term TyName Name ())]
+            subs :: [Term TyName Name ()]
             subs = $(substs ftvsL)
-            qm :: Map.Map (BSL.ByteString) (Term TyName Name ())
+            qm :: Map.Map BSL.ByteString (Term TyName Name ())
             qm = Map.fromList $ zip ftvsL subs
         in pure qm
     |]
@@ -66,9 +66,9 @@ metavarMapType :: Set.Set (TyName a) -> Q Exp
 metavarMapType ftvs = let ftvsL = nameString . unTyName <$> toList ftvs in
     [|
         let
-          subs :: [(Type TyName ())]
+          subs :: [Type TyName ()]
           subs = $(substs ftvsL)
-          qm :: Map.Map (BSL.ByteString) (Type TyName ())
+          qm :: Map.Map BSL.ByteString (Type TyName ())
           qm = Map.fromList $ zip ftvsL subs
         in pure qm
     |]
@@ -161,7 +161,7 @@ compileProgram s = do
             quoted = do
                 -- See note [Parsing and TH stages]
                 (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
-                Program a v <$> metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
+                Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
 

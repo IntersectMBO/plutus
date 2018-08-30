@@ -196,7 +196,7 @@ instance Pretty (Kind a) where
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Program f g a) where
-    prettyCfg cfg (Program _ v t) = parens ("program" <+> pretty v <+> prettyCfg cfg t)
+    prettyCfg cfg (Program _ v t) = parens' ("program" <+> pretty v <//> prettyCfg cfg t)
 
 instance PrettyCfg (Constant a) where
     prettyCfg _ (BuiltinInt _ s i)  = pretty s <+> "!" <+> pretty i
@@ -206,15 +206,15 @@ instance PrettyCfg (Constant a) where
 
 instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
     prettyCfg cfg = cata a where
-        a (ConstantF _ b)    = parens ("con" <+> prettyCfg cfg b)
-        a (ApplyF _ t t')    = "[" <+> t <+> t' <+> "]"
+        a (ConstantF _ b)    = parens' ("con" </> prettyCfg cfg b)
+        a (ApplyF _ t t')    = brackets' (vsep' [t, t'])
         a (VarF _ n)         = prettyCfg cfg n
-        a (TyAbsF _ n k t)   = parens ("abs" <+> prettyCfg cfg n <+> pretty k <+> t)
-        a (TyInstF _ t ty)   = braces (t <+> prettyCfg cfg ty)
-        a (LamAbsF _ n ty t) = parens ("lam" <+> prettyCfg cfg n <+> prettyCfg cfg ty <+> t)
-        a (UnwrapF _ t)      = parens ("unwrap" <+> t)
-        a (WrapF _ n ty t)   = parens ("wrap" <+> prettyCfg cfg n <+> prettyCfg cfg ty <+> t)
-        a (ErrorF _ ty)      = parens ("error" <+> prettyCfg cfg ty)
+        a (TyAbsF _ n k t)   = parens' ("abs" </> vsep' [prettyCfg cfg n, pretty k, t])
+        a (TyInstF _ t ty)   = braces' (vsep' [t, prettyCfg cfg ty])
+        a (LamAbsF _ n ty t) = parens' ("lam" </> vsep' [prettyCfg cfg n, prettyCfg cfg ty, t]) -- FIXME: only do the </> thing when there's a line break in the `vsep'` part?
+        a (UnwrapF _ t)      = parens' ("unwrap" </> t)
+        a (WrapF _ n ty t)   = parens' ("wrap" </> vsep' [prettyCfg cfg n, prettyCfg cfg ty, t])
+        a (ErrorF _ ty)      = parens' ("error" </> prettyCfg cfg ty)
 
 instance (PrettyCfg (f a)) => PrettyCfg (Type f a) where
     prettyCfg cfg = cata a where
