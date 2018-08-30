@@ -68,6 +68,6 @@ termAsPrimIterApp term = do
 isValue :: Term tyname name a -> Bool
 isValue (TyAbs  _ _ _ body) = isValue body
 isValue (Wrap   _ _ _ term) = isValue term
-isValue (LamAbs _ _ _ body) = isValue body
+isValue (LamAbs _ _ _ _)    = True
 isValue (Constant _ _)      = True
 isValue  term               = isJust $ termAsPrimIterApp term
