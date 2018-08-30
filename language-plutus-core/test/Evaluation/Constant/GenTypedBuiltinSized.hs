@@ -19,16 +19,10 @@ module Evaluation.Constant.GenTypedBuiltinSized
 import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Lazy  as BSL
 import           Data.Functor.Identity
-<<<<<<< HEAD
 import           Hedgehog                     hiding (Size, Var)
 import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
-=======
-import           Hedgehog              hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen          as Gen
-import qualified Hedgehog.Range        as Range
 import           Language.PlutusCore
->>>>>>> 3e0bd6917753c5373678c92796bed5257eeaa7f6
 
 -- | A function of this type generates values of sized builtin types
 -- (see 'TypedBuiltinSized' for the list of such types).

@@ -4,15 +4,9 @@
 module Quotation.Spec (tests) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.TH
 
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Text.Encoding        (encodeUtf8)
-import qualified PlutusPrelude             as PP
-
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Text.Encoding   (encodeUtf8)
 
 import           Test.Tasty
 import           Test.Tasty.Golden

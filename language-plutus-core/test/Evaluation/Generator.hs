@@ -14,10 +14,6 @@ module Evaluation.Generator
 
 import           Evaluation.Constant.GenTypedBuiltinSized
 import           Language.PlutusCore
-<<<<<<< HEAD
-import           Language.PlutusCore.Constant
-=======
->>>>>>> 3e0bd6917753c5373678c92796bed5257eeaa7f6
 import           PlutusPrelude                            hiding (hoist)
 
 import           Control.Monad.Morph

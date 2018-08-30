@@ -21,8 +21,4 @@ steps:
   - trailing_whitespace: {}
 columns: 120
 newline: native
-<<<<<<< HEAD:.stylish-haskell.yaml
-language_extensions: [FlexibleContexts, DerivingStrategies, GeneralizedNewtypeDeriving]
-=======
 language_extensions: [FlexibleContexts, DeriveGeneric, DeriveAnyClass, DerivingStrategies, GeneralizedNewtypeDeriving]
->>>>>>> 3e0bd6917753c5373678c92796bed5257eeaa7f6:language-plutus-core/.stylish-haskell.yaml

@@ -1,9 +1,7 @@
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DeriveAnyClass #-}
 
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
@@ -78,7 +76,7 @@ annotate = fmap snd . annotateST
 -- | Annotate a program with type/kind information at all bound variables,
 -- additionally returning a 'TypeState'
 annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
-annotateST (Program x v p) = (fmap . fmap) (Program x v) $ annotateTermST p
+annotateST (Program x v p) = fmap (Program x v) <$> annotateTermST p
 
 -- | Annotate a term with type/kind information at all bound variables,
 -- additionally returning a 'TypeState'
