@@ -64,6 +64,10 @@ NB: The type checker requires terms to meet the global unqiueness property. If t
 
 You can install the executables described below via either `stack` or `nix`.
 
+##### Via `nix`
+
+Run `nix build -f default.nix language-plutus-core` being in the `plutus-prototype` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
+
 ##### Via `stack`
 
 Run `stack install language-plutus-core` in your terminal being in any subfolder of `plutus-prototype`. Once the build finishes, you'll be shown the following lines:
@@ -73,10 +77,6 @@ Copied executables to ~/.local/bin:
 - language-plutus-core-generate-evaluation-test
 - language-plutus-core-run-ck
 ```
-
-##### Via `nix`
-
-Run `nix build -f default.nix language-plutus-core` being in the `plutus-prototype` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
 
 #### The CK machine
 
