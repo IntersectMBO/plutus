@@ -23,14 +23,14 @@ module Language.PlutusCore.TestSupport.TypedBuiltinGen
     , iasqrt
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Functor.Identity
 import           Data.GADT.Compare
-import           Data.Text.Prettyprint.Doc
-import           Hedgehog                     hiding (Size, Var, annotate)
+import           Hedgehog                     hiding (Size, Var)
 import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
 
@@ -108,7 +108,7 @@ updateTypedBuiltinGenBool = updateTypedBuiltinGen TypedBuiltinBool
 
 -- | A built-ins generator that always fails.
 genTypedBuiltinFail :: Monad m => TypedBuiltinGenT m
-genTypedBuiltinFail tb = fail $ concat
+genTypedBuiltinFail tb = fail $ fold
     [ "A generator for the following built-in is not implemented: "
     , prettyString tb
     ]

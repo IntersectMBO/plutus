@@ -21,7 +21,7 @@ import           Test.Tasty.HUnit
 assertQuoteWellTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
 assertQuoteWellTyped getTerm =
     let term = runQuote getTerm in
-        for_ (typecheckTerm term) $ \err -> assertFailure $ concat
+        for_ (typecheckTerm term) $ \err -> assertFailure $ fold
             [ "Ill-typed: ", prettyCfgString term, "\n"
             , "Due to: ", prettyCfgString err
             ]
@@ -39,7 +39,7 @@ typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
 
 typecheckProgram :: Program TyName Name () -> Maybe (Error AlexPosn)
 typecheckProgram
-    = either Just (\_ -> Nothing)
+    = either Just (const Nothing)
     . printType
     . Bsl.fromStrict
     . Text.encodeUtf8

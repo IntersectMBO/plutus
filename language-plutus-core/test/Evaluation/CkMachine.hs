@@ -16,7 +16,7 @@ import           PlutusPrelude                            hiding (hoist, list)
 
 import           Control.Monad.Morph
 import           Data.Foldable
-import           Hedgehog                                 hiding (Size, Var, annotate)
+import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 import           Test.Tasty
@@ -96,11 +96,9 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         builtinConst <- lift getBuiltinConst
         builtinUnit  <- lift getBuiltinUnit
         builtinIf    <- lift getBuiltinIf
-        let builtinConstSpec k =
-                Apply ()
-                    (foldl (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit])
-                    k
-        let term = foldl (Apply ())
+        let builtinConstSpec =
+                Apply () $ foldl (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit]
+            term = foldl (Apply ())
                 (TyInst () builtinIf $ TyBuiltin () TyInteger)
                 [b, builtinConstSpec i, builtinConstSpec j]
             value = if bv then iv else jv

@@ -1,8 +1,7 @@
 -- | Utilities used in modules from the @TestSupport@ folder.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE RankNTypes #-}
 module Language.PlutusCore.TestSupport.Utils
     ( liftT
     , hoistSupply
@@ -18,7 +17,7 @@ import           PlutusPrelude              hiding (hoist)
 
 import           Control.Monad.Morph
 import           Control.Monad.Reader
-import           Hedgehog                   hiding (Size, Var, annotate)
+import           Hedgehog                   hiding (Size, Var)
 import qualified Hedgehog.Gen               as Gen
 import           Hedgehog.Internal.Property (forAllWithT)
 

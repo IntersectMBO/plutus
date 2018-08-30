@@ -33,7 +33,7 @@ import qualified Data.ByteString.Lazy.Char8                      as BSL
 import qualified Data.Dependent.Map                              as DMap
 import           Data.Functor.Compose
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                        hiding (Size, Var, annotate)
+import           Hedgehog                                        hiding (Size, Var)
 import qualified Hedgehog.Gen                                    as Gen
 import qualified Hedgehog.Range                                  as Range
 import           System.IO.Unsafe
@@ -61,7 +61,7 @@ data IterAppValue head arg r = IterAppValue
     }
 
 instance (PrettyCfg head, PrettyCfg arg) => PrettyCfg (IterAppValue head arg r) where
-    prettyCfg cfg (IterAppValue term pia tbv) = parens $ mconcat
+    prettyCfg cfg (IterAppValue term pia tbv) = parens $ fold
         [ "{ ", prettyCfg cfg term, line
         , "| ", prettyCfg cfg pia, line
         , "| ", pretty tbv, line
@@ -139,7 +139,7 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
         -> ([Term TyName Name ()] -> [Term TyName Name ()])
         -> c
         -> PlcGenT m (Maybe (IterAppValue head (Term TyName Name ()) r))
-    go (TypeSchemeBuiltin builtin) term args y = do  -- Computed the result.
+    go (TypeSchemeBuiltin builtin) term args y =     -- Computed the result.
         return $ case unsafePerformIO . tryAny $ evaluate y of
             Left _   -> Nothing
             Right y' -> do
