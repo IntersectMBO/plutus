@@ -34,6 +34,9 @@ assertQuoteIllTyped getTerm =
             Nothing -> assertFailure $ "Well-typed: " ++ prettyCfgString term
             Just _  -> return ()
 
+typecheckTerm :: Term TyName Name () -> Maybe Error
+typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
+
 typecheckProgram :: Program TyName Name () -> Maybe Error
 typecheckProgram
     = either Just (\_ -> Nothing)
@@ -41,9 +44,6 @@ typecheckProgram
     . Bsl.fromStrict
     . Text.encodeUtf8
     . prettyCfgText
-
-typecheckTerm :: Term TyName Name () -> Maybe Error
-typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
 
 -- | Self-application. An example of ill-typed term.
 --

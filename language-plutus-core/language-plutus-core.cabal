@@ -82,7 +82,6 @@ library
         DeriveGeneric StandaloneDeriving DeriveLift
         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
         DeriveTraversable
-        -- DerivingStrategies
     other-extensions:
         DeriveAnyClass
         FlexibleContexts FlexibleInstances MultiParamTypeClasses
