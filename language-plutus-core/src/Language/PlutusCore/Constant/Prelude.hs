@@ -1,21 +1,18 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Language.PlutusCore.Constant.Prelude
     ( Size
     , Value
-    , getBuiltinUnit
-    , getBuiltinUnitval
     , getBuiltinBool
     , getBuiltinTrue
     , getBuiltinFalse
     ) where
 
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.TH
+import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 type Size = Natural
 type Value = Term

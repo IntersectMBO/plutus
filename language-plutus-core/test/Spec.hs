@@ -3,15 +3,16 @@
 module Main ( main
             ) where
 
+import           Control.Monad
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.Constant.All
-import qualified Quotation.Spec as Quotation
 import           Generators
-import           Hedgehog                hiding (Var, annotate)
+import           Hedgehog                hiding (Var)
 import           Language.PlutusCore
 import           PlutusPrelude
+import qualified Quotation.Spec          as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -56,13 +57,20 @@ compareType _ _                                      = False
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
+propCBOR :: Property
+propCBOR = property $ do
+    prog <- forAll genProgram
+    let trip = readProgram . writeProgram
+        compared = (==) <$> trip (void prog) <*> pure (void prog)
+    Hedgehog.assert (fromRight False compared)
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
     let nullPosn = fmap (pure emptyPosn)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyText
+        reprint = BSL.fromStrict . encodeUtf8 . prettyCfgText
         proc = nullPosn <$> parse (reprint prog)
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
@@ -71,6 +79,7 @@ allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
+    , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -80,13 +89,13 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
 
-asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: PrettyCfg a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
-errorgen :: Pretty a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . prettyText
+errorgen :: PrettyCfg a => a -> BSL.ByteString
+errorgen = BSL.fromStrict . encodeUtf8 . prettyCfgText
 
-asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
+asGolden :: PrettyCfg a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
@@ -100,8 +109,8 @@ testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCf
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0 [ [ (con addInteger) x ] y ])"
-    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
+    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
+    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
     where cfg = defaultCfg

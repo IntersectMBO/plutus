@@ -1,17 +1,17 @@
+{-# LANGUAGE GADTs       #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE GADTs #-}
 module Examples where
 
-import Solver
-import AlgTypes
-import Scott
-import Large
-  
-import System.Random
-import Test.QuickCheck
-import System.IO
-import Control.Applicative
-import Control.Monad
+import           AlgTypes
+import           Large
+import           Scott
+import           Solver
+
+import           Control.Applicative
+import           Control.Monad
+import           System.IO
+import           System.Random
+import           Test.QuickCheck
 
 -- (use the runExample :: AlgSignature -> IO () from AlgTypes)
 
@@ -25,7 +25,7 @@ runExample sig = (putStrLn ("before: size = " ++ (show (size sig))))  >>
                  (putStrLn ("after: size = " ++ (show (size (demutualize sig))))) >>
                  (prettySignature (demutualize sig))
 
-onlySizes :: AlgSignature -> IO ()                 
+onlySizes :: AlgSignature -> IO ()
 onlySizes sig = (putStrLn ("before: size = " ++ (show (size sig)))) >>
                 (putStrLn ("after:  size = " ++ (show (size (demutualize sig)))))
 
@@ -36,7 +36,7 @@ beforeAfter sig = (size sig , size (demutualize sig))
 -- probability p of size 'size', and returns the size of each system before and after demutualization.
 randomTest :: Probability -> Int -> Int -> IO TestResult
 randomTest p size n = randomTest' p size n >>= (return . TR p size)
-                         
+
   where
   randomTest' :: Probability -> Int -> Int -> IO [(Integer,Integer)]
   randomTest' p size 0 = return []
@@ -52,9 +52,9 @@ data TestResult where
 instance Show TestResult where
   show (TR p size rs) = "number of types: " ++ (show size) ++ "\n" ++
                         "density: " ++ (show p) ++ "\n" ++
-                        "number of tests: " ++ (show (length rs)) ++ "\n" ++ 
+                        "number of tests: " ++ (show (length rs)) ++ "\n" ++
                         "results: " ++ "(size before , size after)" ++ "\n" ++
-                        let longshow [] = ""
+                        let longshow []     = ""
                             longshow (x:xs) = (show x) ++ "\n" ++ longshow xs in
                           (longshow rs)
 
@@ -78,10 +78,10 @@ writeResults :: FilePath -> [TestResult] -> IO ()
 writeResults path rs = writeDat path (concatResults rs)
 
 concatResults :: [TestResult] -> [(Integer,Integer)]
-concatResults = foldr (\(TR _ _ p) ps -> p ++ ps) [] 
+concatResults = foldr (\(TR _ _ p) ps -> p ++ ps) []
 
 -- 'writeDat "name" points' creates / overwrites a file "name" containing the list of points
--- stored in gnuplot's .dat format. 
+-- stored in gnuplot's .dat format.
 writeDat :: FilePath -> [(Integer,Integer)] -> IO ()
 writeDat path points = do
   file <- openFile path WriteMode
@@ -94,10 +94,10 @@ writePoint file (x,y) = hPutStrLn file ((show x) ++ " " ++ (show y))
 -- Examples --
 --------------
 -- parser has a bunch of shift/reduce conflicts, so these might not actually be the thing I was intending due to lack
--- of brackets. Luckily, the demutualizer only requires substitution, so it works anyway. 
+-- of brackets. Luckily, the demutualizer only requires substitution, so it works anyway.
 
 list :: Decl AlgType
-list = algDecl [declExp| list = all x . 1 + (list x) * x |]  
+list = algDecl [declExp| list = all x . 1 + (list x) * x |]
 
 binarytree :: Decl AlgType
 binarytree = algDecl [declExp| binarytree = all a . 1 + (binaryTree a) * a * (binaryTree a)|]
@@ -165,7 +165,7 @@ instantiate rows = algSignature $
                       (zip [1..] (map (simplify . (instantiateOne 1)) rows))
   where
   instantiateOne :: Int -> [Int] -> AlgType
-  instantiateOne i [] = Zero
+  instantiateOne i []     = Zero
   instantiateOne i (n:ns) = Sum (n `times` i) (instantiateOne (succ i) ns)
   times :: Int -> Int -> AlgType
   times 0 i = One
@@ -177,7 +177,7 @@ instantiate rows = algSignature $
 -- in which the nxn matrix is composed entirely of '1's.
 veryDense :: Int -> Density
 veryDense x = (replicate x (replicate x 1))
-                                  
+
 -- in which each type definition refers only to itself. (so, not properly mutually recursive)
 diagonal :: Int -> Density
 diagonal n = count 0 n

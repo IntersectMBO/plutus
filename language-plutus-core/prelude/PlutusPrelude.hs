@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
-
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)
                      , toList
@@ -13,6 +11,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fold
                      , throw
                      , join
+                     , (<=<)
+                     , fromRight
                      , Generic
                      , NFData
                      , Natural
@@ -28,20 +28,23 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (.*)
                      -- * Custom functions
                      , prettyString
-                     , prettyText
-                     , debugText
                      , render
                      , repeatM
                      , (?)
-                     , Debug (..)
                      , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
+                     , brackets
+                     , hardline
                      , squotes
+                     , list
                      , Doc
                      , strToBs
                      , bsToStr
+                     , indent
+                     -- * Custom pretty-printing functions
+                     , module X
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -49,10 +52,11 @@ import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
-import           Control.Monad                           (guard, join)
+import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
+import           Data.Either                             (fromRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
@@ -63,6 +67,7 @@ import           Data.Semigroup
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Custom        as X
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)
@@ -71,18 +76,6 @@ import           GHC.Generics                            (Generic)
 import           GHC.Natural                             (Natural)
 
 infixr 2 ?
-
--- | This is like 'Pretty', but it dumps 'Unique's for each 'Name' / 'TyName' as
--- well.
-class Debug a where
-    debug :: a -> Doc ann
-
--- | Render a 'Program' as strict 'Text'.
-prettyText :: Pretty a => a -> T.Text
-prettyText = render . pretty
-
-debugText :: Debug a => a -> T.Text
-debugText = render . debug
 
 render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions
@@ -104,7 +97,7 @@ instance Functor f => Functor (PairT b f) where
 prettyString :: Pretty a => a -> String
 prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
 
--- | Like a version of 'everywhere' for recursion schemes. In an unreleased version thereof.
+-- | Like a version of 'everywhere' for recursion schemes.
 hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
 hoist f = c where c = embed . f . fmap c . project
 
@@ -113,4 +106,3 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
-

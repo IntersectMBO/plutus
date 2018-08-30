@@ -13,7 +13,7 @@
 module Utils.Names where
 
 
-import GHC.Generics
+import           GHC.Generics
 
 
 
@@ -33,9 +33,9 @@ data Name
 
 
 showName :: Name -> String
-showName (BareLocal n) = n
+showName (BareLocal n)     = n
 showName (DottedLocal m n) = m ++ "." ++ n
-showName (Absolute m n) = "!" ++ m ++ "." ++ n
+showName (Absolute m n)    = "!" ++ m ++ "." ++ n
 
 
 
@@ -48,10 +48,10 @@ data Sourced a = User a | Generated a
   deriving (Show,Eq,Generic)
 
 unsourced :: Sourced a -> a
-unsourced (User a) = a
+unsourced (User a)      = a
 unsourced (Generated a) = a
 
 
 showSourced :: Sourced String -> String
-showSourced (User a) = a
+showSourced (User a)      = a
 showSourced (Generated a) = "generated:" ++ a

@@ -1,11 +1,11 @@
 {-# OPTIONS -Wall #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 module Utils.Eval where
 
-import Control.Monad.Except
-import Control.Monad.Reader
+import           Control.Monad.Except
+import           Control.Monad.Reader
 
 type Evaluator e = ReaderT e (Either String)
 

@@ -8,12 +8,12 @@
 
 module Elaboration.Contexts where
 
-import Utils.Env
-import Utils.Names
-import Utils.Vars
-import PlutusTypes.ConSig
-import PlutusTypes.Type
-import qualified PlutusCore.Term as Core
+import qualified PlutusCore.Term    as Core
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
+import           Utils.Env
+import           Utils.Names
+import           Utils.Vars
 
 
 
@@ -75,7 +75,7 @@ tyVarContextFromFreeVars = map (\x -> (x,()))
 data HypContext
   = HypContext
     { tyVarContext :: TyVarContext
-    , context :: Context
+    , context      :: Context
     }
 
 emptyHypContext :: HypContext
@@ -90,7 +90,7 @@ emptyHypContext = HypContext [] []
 
 data DeclContext
   = DeclContext
-    { signature :: Signature
+    { signature   :: Signature
     , definitions :: Definitions
     }
 

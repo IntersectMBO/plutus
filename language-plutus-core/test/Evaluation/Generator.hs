@@ -4,28 +4,22 @@
 {-# LANGUAGE RankNTypes                #-}
 
 module Evaluation.Generator
-    ( maxSize
-    , hoistSupply
-    , genSizeDef
-    , typedBuiltinAsValue
+    ( typedBuiltinAsValue
     , GenPlcT
     , runPlcT
     , PrimIterAppValue(..)
-    , genTypedBuiltin
     , genPrimIterAppValue
-    , genTypedBuiltinAndItsValue
     , genConstantSized
     ) where
 
 import           Evaluation.Constant.GenTypedBuiltinSized
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           PlutusPrelude hiding (hoist)
+import           PlutusPrelude                            hiding (hoist)
 
 import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                 hiding (Size, Var, annotate)
+import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
@@ -59,8 +53,8 @@ data PrimIterAppValue = forall a. PrimIterAppValue
 
 instance Pretty PrimIterAppValue where
     pretty (PrimIterAppValue term pia tbv) = parens $ fold
-        [ "As a term: ", pretty term, line
-        , "As an iterated application: ", pretty pia, line
+        [ "As a term: ", prettyCfg defaultCfg term, line
+        , "As an iterated application: ", prettyCfg defaultCfg pia, line
         , "As a value: ", pretty tbv
         ]
 

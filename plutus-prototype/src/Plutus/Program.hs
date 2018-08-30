@@ -8,15 +8,15 @@
 
 module Plutus.Program where
 
-import Utils.ABT
-import Utils.Names
-import Utils.Pretty
-import Utils.Vars
-import Plutus.Term
-import PlutusTypes.ConSig
-import PlutusTypes.Type
+import           Plutus.Term
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
+import           Utils.ABT
+import           Utils.Names
+import           Utils.Pretty
+import           Utils.Vars
 
-import Data.List (intercalate)
+import           Data.List          (intercalate)
 
 
 
@@ -94,7 +94,7 @@ instance Show TermDeclaration where
         intercalate " " (map pretty ps) ++ " = " ++ pretty b
 
 termDeclarationName :: TermDeclaration -> Sourced String
-termDeclarationName (TermDeclaration n _ _) = n
+termDeclarationName (TermDeclaration n _ _)  = n
 termDeclarationName (WhereDeclaration n _ _) = n
 
 substTypeMetasTermDecl

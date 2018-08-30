@@ -3,7 +3,7 @@ module Generators ( genProgram
                   ) where
 
 import qualified Data.ByteString.Lazy as BSL
-import           Hedgehog             hiding (Size, Var, annotate)
+import           Hedgehog             hiding (Size, Var)
 import qualified Hedgehog.Gen         as Gen
 import qualified Hedgehog.Range       as Range
 import           Language.PlutusCore

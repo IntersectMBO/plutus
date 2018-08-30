@@ -3,7 +3,7 @@ module Evaluation.Constant.SuccessFailure
     ) where
 
 import           Evaluation.Constant.Apply
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore
 
 import           Data.Semigroup
 import           Test.Tasty

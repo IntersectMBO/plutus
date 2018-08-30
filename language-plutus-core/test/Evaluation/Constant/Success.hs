@@ -4,7 +4,7 @@ module Evaluation.Constant.Success
 
 import           Evaluation.Constant.Apply
 import           Evaluation.Constant.GenTypedBuiltinSized
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore
 
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Semigroup
