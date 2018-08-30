@@ -14,10 +14,10 @@ module Language.PlutusCore.Name ( -- * Types
                                 ) where
 
 import           Control.Monad.State
-import qualified Data.IntMap                as IM
-import qualified Data.Map                   as M
-import           Data.Text.Encoding         (decodeUtf8)
 import qualified Data.ByteString.Lazy          as BSL
+import qualified Data.IntMap                   as IM
+import qualified Data.Map                      as M
+import           Data.Text.Encoding            (decodeUtf8)
 import           Instances.TH.Lift             ()
 import           Language.Haskell.TH.Syntax    (Lift)
 import           Language.PlutusCore.PrettyCfg

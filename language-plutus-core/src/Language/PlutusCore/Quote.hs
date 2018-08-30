@@ -19,12 +19,12 @@ module Language.PlutusCore.Quote (
             ) where
 
 import           Control.Monad.Except
-import           Control.Monad.Morph        as MM
+import           Control.Monad.Morph               as MM
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.ByteString.Lazy              as BSL
 import           Data.Functor.Identity
-import           Language.PlutusCore.Lexer  (AlexPosn)
 import qualified Data.IntMap                       as IM
+import           Language.PlutusCore.Lexer         (AlexPosn)
 
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name

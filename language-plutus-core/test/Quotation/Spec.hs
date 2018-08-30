@@ -5,8 +5,8 @@ module Quotation.Spec (tests) where
 
 import           Language.PlutusCore
 
-import qualified Data.ByteString.Lazy      as BSL
-import           Data.Text.Encoding        (encodeUtf8)
+import qualified Data.ByteString.Lazy as BSL
+import           Data.Text.Encoding   (encodeUtf8)
 
 import           Test.Tasty
 import           Test.Tasty.Golden
