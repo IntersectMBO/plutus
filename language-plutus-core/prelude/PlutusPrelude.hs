@@ -59,9 +59,7 @@ import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Either                             (fromRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor.Foldable                   (Base, Corecursive,
-                                                          Recursive, embed,
-                                                          project)
+import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)

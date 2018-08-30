@@ -1,6 +1,6 @@
 module Debug where
 
-import System.IO.Unsafe
+import           System.IO.Unsafe
 
 debug :: Monad m => String -> IO () -> m ()
 debug n d = unsafePerformIO (putStrLn n >> d) `seq` return ()

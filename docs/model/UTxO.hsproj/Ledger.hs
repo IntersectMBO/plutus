@@ -1,26 +1,23 @@
-{-# LANGUAGE PackageImports, RecordWildCards #-}
+{-# LANGUAGE PackageImports  #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Ledger (
 
   -- ** Ledger & transaction types
   Ledger, Tx(..), TxIn(..), TxOut(..), TxOutRef(..), txIn,
-  
+
   -- ** Ledger & transaction state for scripts
   hashTx, preHashTx, validValuesTx, state
 ) where
-  
-import "cryptonite" 
-       Crypto.Hash
-import qualified
-       Data.ByteArray         as BA
-import qualified 
-       Data.ByteString.Char8  as BS
-import Data.Set               (Set)
-import qualified
-       Data.Set               as Set
 
-import Types
-import Witness
+import           "cryptonite" Crypto.Hash
+import qualified Data.ByteArray           as BA
+import qualified Data.ByteString.Char8    as BS
+import           Data.Set                 (Set)
+import qualified Data.Set                 as Set
+
+import           Types
+import           Witness
 
 
 -- Ledger and transaction types
@@ -49,7 +46,7 @@ data TxStripped
     , feeTXS     :: Value
     }
     deriving (Show)
-    
+
 stripTx :: Tx -> TxStripped
 stripTx Tx{..}
   = TxStripped{..}
@@ -60,12 +57,12 @@ stripTx Tx{..}
     feeTXS      = feeTX
 
 -- |Hash (double) the given transaction *without* witnesses.
---    
+--
 hashTx :: Tx -> Digest SHA256
 hashTx = hash . preHashTx
 
 -- |Hash (once) the given transaction *without* witnesses.
---    
+--
 preHashTx :: Tx -> Digest SHA256
 preHashTx tx = hash (stripTx tx)
 
@@ -81,7 +78,7 @@ data TxOutRef
     , indexTOR :: Int
     }
     deriving (Show, Eq, Ord)
-    
+
 -- |A single transaction input
 --
 data TxIn
@@ -89,27 +86,27 @@ data TxIn
     { refTI     :: TxOutRef
     , witnessTI :: Witness
     }
-    deriving (Show)  
-    
+    deriving (Show)
+
 -- |Convenience constructor for inputs.
 --
 txIn :: TxId -> Int -> Witness -> TxIn
-txIn txId idx wit = TxIn (TxOutRef txId idx) wit  
-    
+txIn txId idx wit = TxIn (TxOutRef txId idx) wit
+
 ---- Equality of transaction inputs is only predicated on the output that the input
 ---- refers to, *not* on the witness. This is curcial so that two 'TxIn' values
 ---- spending the same input are considered the same.
 ----
 --instance Eq TxIn where
 --  txIn1 == txIn2 = idTI txIn1 == idTI txIn2 && indexTI txIn1 == indexTI txIn2
---  
+--
 ---- As for equality
 ----
 --instance Ord TxIn where
---  txIn1 <= txIn2 
+--  txIn1 <= txIn2
 --    = idTI txIn1 < idTI txIn2 || (idTI txIn1 == idTI txIn2 && indexTI txIn1 < indexTI txIn2)
 
--- |A single transaction output, paying a value to a script address 
+-- |A single transaction output, paying a value to a script address
 --
 data TxOut
   = TxOut
@@ -121,15 +118,15 @@ data TxOut
 instance BA.ByteArrayAccess Tx where
   length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
   withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
-        
+
 instance BA.ByteArrayAccess TxStripped where
   length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
   withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
-        
+
 instance BA.ByteArrayAccess TxIn where
   length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
   withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
-    
+
 instance BA.ByteArrayAccess TxOut where
   length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
   withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly

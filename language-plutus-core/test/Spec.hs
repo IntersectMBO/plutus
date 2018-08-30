@@ -9,7 +9,7 @@ import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.Constant.All
 import           Generators
-import           Hedgehog                hiding (Var, annotate)
+import           Hedgehog                hiding (Var)
 import           Language.PlutusCore
 import           PlutusPrelude
 import qualified Quotation.Spec          as Quotation

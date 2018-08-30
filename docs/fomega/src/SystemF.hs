@@ -24,11 +24,11 @@ data Type where
 instance Show Type where
   show (TyVar x)     = x
   show (TyFun t1 t2) = "(" ++ (show t1) ++ " -> " ++ (show t2) ++ ")"
-  show (TyAll x t) = "(" ++ "all " ++ x ++ "." ++ (show t) ++ ")"
-  show (TyAbs x t) = "(" ++ "lam " ++ x ++ "." ++ (show t) ++ ")"
+  show (TyAll x t)   = "(" ++ "all " ++ x ++ "." ++ (show t) ++ ")"
+  show (TyAbs x t)   = "(" ++ "lam " ++ x ++ "." ++ (show t) ++ ")"
   show (TyApp t1 t2) = "(" ++ (show t1) ++ " " ++ (show t2) ++ ")"
   show (TyFix t)     = "(" ++ "fix " ++ (show t) ++ ")"
-  show (TyMu  x t)     = "(" ++ "mu "  ++ x ++ "." ++ (show t) ++ ")"
+  show (TyMu  x t)   = "(" ++ "mu "  ++ x ++ "." ++ (show t) ++ ")"
 
 data Kind where
   Star  :: Kind
@@ -36,12 +36,12 @@ data Kind where
   deriving (Eq)
 
 instance Show Kind where
-  show Star = "*"
+  show Star          = "*"
   show (Arrow k1 k2) = "(" ++ (show k1) ++ " -> " ++ (show k2) ++ ")"
-  
+
 data Binding where
   TermBind :: VarName -> Type -> Binding
-  TypeBind :: VarName -> Kind -> Binding 
+  TypeBind :: VarName -> Kind -> Binding
 
 instance Show Binding where
   show (TermBind x t) = x ++ ":" ++ (show t)
@@ -84,7 +84,7 @@ kind ctx (TyFun t1 t2) = let k1 = kind ctx t1
                              k2 = kind ctx t2 in
                            if k1 == Star && k2 == Star
                              then Star
-                             else error ("for " ++ (show (TyFun t1 t2)) ++ " to be a function type, both " ++ (show t1) ++ 
+                             else error ("for " ++ (show (TyFun t1 t2)) ++ " to be a function type, both " ++ (show t1) ++
                                          " and " ++ (show t2) ++ " must have kind " ++ (show Star))
 kind ctx (TyAll x k t) = let ctx' = addBinding ctx (TypeBind x k)
                              kt   = kind ctx' t in
@@ -97,7 +97,7 @@ kind ctx (TyFix t) = let k = kind ctx t in
                        case k of
                          (Arrow k1 k2) -> if k1 == k2 then k1 else (error "can only fix types of kind k -> k")
                          Star          -> error "cannot fix types of kind *"
-                                                           
+
 
 -}
 ------------------------
@@ -112,7 +112,7 @@ reduce (TyAbs x t) = TyAbs x t
 reduce (TyFix t) = TyFix (reduce t)
 reduce (TyApp t1 t2) = case t1 of
                         (TyAbs x t) -> sub t2 x t
-                        _             -> (TyApp (reduce t1) t2)
+                        _           -> (TyApp (reduce t1) t2)
 
 -- sub a x t is t[a/x].
 sub :: Type -> VarName -> Type -> Type
@@ -121,11 +121,11 @@ sub = subExcept []
   subExcept :: [VarName] -> Type -> VarName -> Type -> Type
   subExcept bound t x t' = if x `elem` bound then t' else
                              case t' of
-                               (TyVar y) -> if x == y then t else (TyVar y) 
-                               (TyFun t1 t2)   -> TyFun (subExcept bound t x t1) (subExcept bound t x t2)
+                               (TyVar y)     -> if x == y then t else (TyVar y)
+                               (TyFun t1 t2) -> TyFun (subExcept bound t x t1) (subExcept bound t x t2)
                                (TyAll x' t') -> TyAll x' (subExcept (x:bound) t x t')
                                (TyAbs x' t') -> TyAbs x' (subExcept (x:bound) t x t')
-                               (TyFix t')      -> TyFix (subExcept (bound) t x t')
-                               (TyApp t1 t2)   -> TyApp (subExcept bound t x t1) (subExcept bound t x t2)
+                               (TyFix t')    -> TyFix (subExcept (bound) t x t')
+                               (TyApp t1 t2) -> TyApp (subExcept bound t x t1) (subExcept bound t x t2)
 
 

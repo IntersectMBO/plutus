@@ -19,7 +19,7 @@ import           PlutusPrelude                            hiding (hoist)
 import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                 hiding (Size, Var, annotate)
+import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 

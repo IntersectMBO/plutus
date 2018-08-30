@@ -10,26 +10,26 @@
 
 module Interface.Integration where
 
-import Utils.ABT
+import           Utils.ABT
 --import Utils.Elaborator
-import Utils.Env
-import Utils.Names
-import qualified Utils.ProofDeveloper as PD
-import Utils.Vars
+import           Utils.Env
+import           Utils.Names
+import qualified Utils.ProofDeveloper      as PD
+import           Utils.Vars
 --import qualified Plutus.Program as Plutus
-import qualified PlutusCore.Evaluation as Core
+import           Elaboration.Contexts
+import           Elaboration.Elaboration   ()
+import           Elaboration.Elaborator
+import           Elaboration.Judgments
+import           Plutus.Parser
+import qualified PlutusCore.Evaluation     as Core
 import qualified PlutusCore.EvaluatorTypes as Core
-import qualified PlutusCore.Term as Core
-import qualified PlutusCore.Program as Core
-import Plutus.Parser
-import Elaboration.Contexts
-import Elaboration.Elaboration ()
-import Elaboration.Elaborator
-import Elaboration.Judgments
+import qualified PlutusCore.Program        as Core
+import qualified PlutusCore.Term           as Core
 
-import Control.Monad.Except
-import Data.List
-import qualified Data.ByteString.Lazy as BS
+import           Control.Monad.Except
+import qualified Data.ByteString.Lazy      as BS
+import           Data.List
 
 
 
@@ -72,7 +72,7 @@ loadValidator dctx src =
   do prog <- loadProgram dctx src
      case lookup (User "validator") (Core.termDeclarations prog) of
        Nothing -> throwError "Validators must declare the term `validator`"
-       Just _ -> return prog
+       Just _  -> return prog
 
 
 
@@ -85,7 +85,7 @@ loadRedeemer dctx src =
   do prog <- loadProgram dctx src
      case lookup (User "redeemer") (Core.termDeclarations prog) of
        Nothing -> throwError "Redeemers must declare the term `redeemer`"
-       Just _ -> return prog
+       Just _  -> return prog
 
 
 
@@ -131,7 +131,7 @@ buildValidationScript
   where
     repeats :: Eq a => [a] -> [a]
     repeats xs = xs \\ nub xs
-    
+
     validationScript :: Core.Term
     validationScript =
       Core.bindH

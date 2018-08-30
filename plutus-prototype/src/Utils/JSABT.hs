@@ -8,7 +8,7 @@
 
 module Utils.JSABT where
 
-import Data.List (intercalate)
+import           Data.List (intercalate)
 
 
 

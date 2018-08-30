@@ -1,19 +1,19 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Utils.ProofDeveloper where
 
-import Control.Monad.Except
-import Control.Monad.Operational
-import Control.Monad.Reader
-import Control.Monad.State
+import           Control.Monad.Except
+import           Control.Monad.Operational
+import           Control.Monad.Reader
+import           Control.Monad.State
 
 
 
@@ -55,10 +55,10 @@ substituteContext :: Metas s g => s -> Context (Any g) -> Context (Any g)
 substituteContext subs = map (\(i,x) -> (i, substituteAny subs x))
 
 data ElabError s e g =
-  ElabError { elabError :: e
-            , elabState :: s
+  ElabError { elabError   :: e
+            , elabState   :: s
             , elabContext :: Context (Any g)
-            , elabGoal :: Any g
+            , elabGoal    :: Any g
             }
 
 class ShowElabError s e g where

@@ -3,6 +3,7 @@
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
+
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
                                          , runTypeCheckM

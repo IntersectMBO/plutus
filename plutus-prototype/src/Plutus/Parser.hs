@@ -1,7 +1,7 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 
 
 
@@ -21,22 +21,22 @@
 
 module Plutus.Parser where
 
-import Utils.ABT hiding (bind)
-import Utils.Names
-import Utils.SuffixParser
-import Utils.Vars
-import Plutus.Term
-import PlutusTypes.ConSig
-import PlutusTypes.Type
-import Plutus.Program
+import           Plutus.Program
+import           Plutus.Term
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
+import           Utils.ABT            hiding (bind)
+import           Utils.Names
+import           Utils.SuffixParser
+import           Utils.Vars
 
-import Control.Monad (guard)
+import           Control.Monad        (guard)
 import qualified Data.ByteString.Lazy as BS
-import Data.Char (digitToInt,toUpper)
-import Data.List (foldl')
-import Data.Word
-import Text.Parsec
-import qualified Text.Parsec.Token as Token
+import           Data.Char            (digitToInt, toUpper)
+import           Data.List            (foldl')
+import           Data.Word
+import           Text.Parsec
+import qualified Text.Parsec.Token    as Token
 
 
 
@@ -149,7 +149,7 @@ fractExponent n =
           readFloat (show n ++ fract ++ expo))
   <|> (do expo <- exponent'
           readFloat (show n ++ expo))
-  
+
   where
     readFloat s =
       case reads s of
@@ -222,7 +222,7 @@ nybble =
 --    <typeCon> ::= <decName> <tyConArg>*
 --    <funtionSuffix> ::= "->" <funRight>
 --    <forallType> ::= "forall" <typeVar> "." <forallBody>
---    
+--
 --    ; syntactic roles
 --    <funRight> ::= <datatype>
 --    <forallBody> ::= <datatype>
@@ -290,7 +290,7 @@ functionSuffix arg =
   do try $ reservedOp "->"
      ret <- funRight
      return $ funH arg ret
-    
+
 tyConArg :: Parsec String u Type
 tyConArg =
       parenType
@@ -635,7 +635,7 @@ binderDoClauseArg = term
 parseTerm :: String -> Either String Term
 parseTerm str =
   case parse (whiteSpace *> term <* eof) "(unknown)" str of
-    Left e -> Left (show e)
+    Left e  -> Left (show e)
     Right p -> Right p
 
 
@@ -724,5 +724,5 @@ typeDecl =
 parseProgram :: String -> Either String Program
 parseProgram str =
   case parse (whiteSpace *> program <* eof) "(unknown)" str of
-    Left e -> Left (show e)
+    Left e  -> Left (show e)
     Right p -> Right p

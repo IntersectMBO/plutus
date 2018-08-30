@@ -19,7 +19,7 @@ module Evaluation.Constant.GenTypedBuiltinSized
 import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Lazy  as BSL
 import           Data.Functor.Identity
-import           Hedgehog              hiding (Size, Var, annotate)
+import           Hedgehog              hiding (Size, Var)
 import qualified Hedgehog.Gen          as Gen
 import qualified Hedgehog.Range        as Range
 import           Language.PlutusCore

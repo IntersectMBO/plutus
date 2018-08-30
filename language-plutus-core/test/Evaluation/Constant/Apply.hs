@@ -16,7 +16,7 @@ import           Language.PlutusCore
 import           Data.Foldable
 import           Data.List
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                 hiding (Size, Var, annotate)
+import           Hedgehog                                 hiding (Size, Var)
 
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString

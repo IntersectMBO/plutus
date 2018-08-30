@@ -1,4 +1,3 @@
-
 {-# LANGUAGE QuasiQuotes #-}
 
 module Language.PlutusCore.Constant.Prelude

@@ -2,10 +2,10 @@
 
 module Main where
 
-import Criterion.Main.Options
-import Criterion.Main
-import Criterion.Types
-import Test.QuickCheck
+import           Criterion.Main
+import           Criterion.Main.Options
+import           Criterion.Types
+import           Test.QuickCheck
 
 --------------------
 -- Scott Encoding --
@@ -51,13 +51,13 @@ fromList = foldr (\ x xs -> cons x xs) nil
 -------------------
 
 headTail :: [a] -> a
-headTail [] = undefined
+headTail []     = undefined
 headTail (x:xs) = head xs
 
 -- 'sum' is defined for Foldable things, and is significantly slower
 -- than sumS, so a more comparable sum function is warranted.
 directSum :: [Int] -> Int
-directSum [] = 0
+directSum []     = 0
 directSum (x:xs) = x + (directSum xs)
 
 quickSort :: (Ord a) => [a] -> [a]
@@ -66,7 +66,7 @@ quickSort cl@(h:xs) = (quickSort (filter (\x -> x < h) cl)) ++
                       (filter (\x -> x == h) cl) ++
                       (quickSort (filter (\x -> h < x) cl))
 
-----------------                          
+----------------
 -- Benchmarks --
 ----------------
 
@@ -90,7 +90,7 @@ sum_ints_scott :: Benchmark
 sum_ints_scott = bgroup "scott" (map (\m -> bench ("m = " ++ (show m))
                                                   (whnf sumS (fromList [1..m] :: SList Int)))
                                      [1,10,10^2,10^3,10^4,10^5,10^6,10^7])
-   
+
 sum_ints_builtin :: Benchmark
 sum_ints_builtin = bgroup "builtin" (map (\m -> bench ("m = " ++ (show m))
                                                       (whnf directSum ([1..m] :: [Int])))

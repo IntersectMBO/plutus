@@ -1,11 +1,11 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE Rank2Types           #-}
+{-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 
 
@@ -24,15 +24,15 @@
 
 module Utils.ABT where
 
-import Utils.Vars
+import           Utils.Vars
 
-import Control.Monad.State
-import Data.Bifunctor
-import Data.Bitraversable
-import qualified Data.Foldable as F
-import Data.Functor.Classes
-import Data.List (elemIndex)
-import GHC.Generics
+import           Control.Monad.State
+import           Data.Bifunctor
+import           Data.Bitraversable
+import qualified Data.Foldable        as F
+import           Data.Functor.Classes
+import           Data.List            (elemIndex)
+import           GHC.Generics
 
 
 
@@ -54,7 +54,7 @@ import GHC.Generics
 -- but the variable parameter is fixed to be 'Variable'.
 --
 -- The particular choices for 'f' can be simple polynomial functors, such as
--- 
+--
 -- > data LC a = Pair a a | Fst a | Snd a | Lam a | App a a
 --
 -- as for the a simple lambda calculus with pairs and functions, or it can be
@@ -127,9 +127,9 @@ instance Eq Variable where
 
 data Scope f
   = Scope
-      { names :: [String]
+      { names     :: [String]
       , freeNames :: [FreeVar]
-      , body :: ABT f
+      , body      :: ABT f
       }
   deriving (Generic)
 
@@ -150,7 +150,7 @@ deriving instance Show (f (Scope f)) => Show (Scope f)
 --
 -- @
 --    data ListF a r = Nil | Cons a r
---    
+--
 --    type List a = Fix (ListF a)
 -- @
 --
@@ -163,7 +163,7 @@ translate :: Bifunctor f
           => (forall r. f a r -> f b r)
           -> ABT (f a) -> ABT (f b)
 translate _ (Var v) = Var v
-translate n (In x) = In (n (second (translateScope n) x))
+translate n (In x)  = In (n (second (translateScope n) x))
 
 
 -- | Similarly, we can translate a scope, by just propogating the translation.
@@ -224,10 +224,10 @@ freeVars = fold fvAlgV fvAlgRec fvAlgSc
   where
     fvAlgV (Free n) = [n]
     fvAlgV _        = []
-    
+
     fvAlgRec :: Foldable f => f [FreeVar] -> [FreeVar]
     fvAlgRec = foldMap id
-    
+
     fvAlgSc :: Int -> [FreeVar] -> [FreeVar]
     fvAlgSc _ ns = ns
 
@@ -294,7 +294,7 @@ data BNSString = BNSString { unBNSString :: String }
 instance BinderNameSource BNSString where
   sourceNames (BNSString x) = [x]
   replaceDummies (BNSString "_") (n:ns) = (BNSString n,ns)
-  replaceDummies x ns = (x,ns)
+  replaceDummies x ns                   = (x,ns)
 
 
 
@@ -326,7 +326,7 @@ instance (Functor f, Foldable f, Traversable f)
            return (Var (Free (FreeVar n)))
       go (Var v) = return (Var v)
       go (In x) = In <$> traverse (underF go) x
-      
+
       nextItem :: State [a] a
       nextItem = state (\(a:as) -> (a,as))
 
@@ -450,7 +450,7 @@ bind _ [] x = x
 bind l ns (Var v@(Free n)) =
   case elemIndex n ns of
     Nothing -> Var v
-    Just i -> Var (Bound (name v) (BoundVar (l + i)))
+    Just i  -> Var (Bound (name v) (BoundVar (l + i)))
 bind _ _ (Var v) = Var v
 bind l ns (In x) = In (fmap (bindScope l ns) x)
 
@@ -551,7 +551,7 @@ subst :: (Functor f, Foldable f) => Int -> [(FreeVar, ABT f)] -> ABT f -> ABT f
 subst l subs (Var (Free n)) =
   case lookup n subs of
     Nothing -> Var (Free n)
-    Just x -> shift 0 l x
+    Just x  -> shift 0 l x
 subst _ _ (Var v) = Var v
 subst l subs (In x) = In (fmap (substScope l subs) x)
 
@@ -636,8 +636,8 @@ helperFold c xs n = foldr c n xs
 freeToDefined :: (Functor f, Foldable f)
               => (String -> ABT f) -> ABT f -> ABT f
 freeToDefined d (Var (Free (FreeVar n))) = d n
-freeToDefined _ (Var v) = Var v
-freeToDefined d (In x) = In (fmap (freeToDefinedScope d) x)
+freeToDefined _ (Var v)                  = Var v
+freeToDefined d (In x)                   = In (fmap (freeToDefinedScope d) x)
 
 
 -- | Similarly, we can swap out the free variables in scopes.
@@ -666,7 +666,7 @@ substMetas [] x = x
 substMetas subs (Var (Meta m)) =
   case lookup m subs of
     Nothing -> Var (Meta m)
-    Just x -> x
+    Just x  -> x
 substMetas _ (Var v) =
   Var v
 substMetas subs (In x) =
@@ -687,11 +687,11 @@ occurs m x = fold ocAlgV ocAlgRec ocAlgSc x
   where
     ocAlgV :: Variable -> Bool
     ocAlgV (Meta m') = m == m'
-    ocAlgV _ = False
-    
+    ocAlgV _         = False
+
     ocAlgRec :: Foldable f => f Bool -> Bool
     ocAlgRec = F.foldl' (||) False
-    
+
     ocAlgSc :: Int -> Bool -> Bool
     ocAlgSc _ b = b
 
@@ -703,10 +703,10 @@ metaVars = fold mvAlgV mvAlgRec mvAlgSc
   where
     mvAlgV (Meta n) = [n]
     mvAlgV _        = []
-    
+
     mvAlgRec :: Foldable f => f [MetaVar] -> [MetaVar]
     mvAlgRec = foldMap id
-    
+
     mvAlgSc :: Int -> [MetaVar] -> [MetaVar]
     mvAlgSc _ ns = ns
 
@@ -777,7 +777,7 @@ zipScopeF (Scope ns _ x) (Scope ns' _ y)
 bisequenceABTF :: (Applicative f, Bitraversable g)
                => ABT (g (f a)) -> f (ABT (g a))
 bisequenceABTF (Var v) = pure (Var v)
-bisequenceABTF (In x) = In <$> bitraverse id bisequenceScopeF x
+bisequenceABTF (In x)  = In <$> bitraverse id bisequenceScopeF x
 
 
 bisequenceScopeF :: (Applicative f, Bitraversable g)

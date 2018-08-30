@@ -21,13 +21,12 @@ module Language.PlutusCore.Quote (
 import           Control.Monad.Except
 import           Control.Monad.Morph               as MM
 import           Control.Monad.State
-
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Functor.Identity
 import qualified Data.IntMap                       as IM
+import           Language.PlutusCore.Lexer         (AlexPosn)
 
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer         (AlexPosn)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser        (ParseError, parseST, parseTermST, parseTypeST)
 import           Language.PlutusCore.Renamer
