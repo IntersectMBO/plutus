@@ -1,0 +1,5 @@
+steps:
+  - label: 'release.nix'
+    command: 'nix-shell --run ./check-hydra.sh'
+    agents:
+      system: x86_64-linux
