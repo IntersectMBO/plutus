@@ -5,20 +5,26 @@
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 module Evaluation.Constant.Apply
-    ( prop_applyBuiltinName
-    , prop_applyBuiltinNameSuccess
+    ( prop_applyBuiltinNameSuccess
     , prop_applyBuiltinNameSuccessFailure
     ) where
 
 import           Evaluation.Constant.GenTypedBuiltinSized
 import           Evaluation.Generator
 import           Language.PlutusCore
+<<<<<<< HEAD
 import           Language.PlutusCore.Constant
+=======
+>>>>>>> 3e0bd6917753c5373678c92796bed5257eeaa7f6
 
 import           Data.Foldable
 import           Data.List
 import           Data.Text.Prettyprint.Doc
+<<<<<<< HEAD
 import           Hedgehog                                 hiding (Size, Var)
+=======
+import           Hedgehog                                 hiding (Size, Var, annotate)
+>>>>>>> 3e0bd6917753c5373678c92796bed5257eeaa7f6
 
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
 forAllPretty = forAllWith prettyString

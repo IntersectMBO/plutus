@@ -1,10 +1,6 @@
 {-# LANGUAGE GADTs #-}
 module Language.PlutusCore.Constant.Make
     ( toBoundsInt
-    , makeBuiltinInt
-    , makeBuiltinBS
-    , makeBuiltinSize
-    , makeDupBuiltinBool
     , makeConstant
     ) where
 

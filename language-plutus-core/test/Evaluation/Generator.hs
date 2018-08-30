@@ -4,22 +4,20 @@
 {-# LANGUAGE RankNTypes                #-}
 
 module Evaluation.Generator
-    ( maxSize
-    , hoistSupply
-    , genSizeDef
-    , typedBuiltinAsValue
+    ( typedBuiltinAsValue
     , GenPlcT
     , runPlcT
     , PrimIterAppValue(..)
-    , genTypedBuiltin
     , genPrimIterAppValue
-    , genTypedBuiltinAndItsValue
     , genConstantSized
     ) where
 
 import           Evaluation.Constant.GenTypedBuiltinSized
 import           Language.PlutusCore
+<<<<<<< HEAD
 import           Language.PlutusCore.Constant
+=======
+>>>>>>> 3e0bd6917753c5373678c92796bed5257eeaa7f6
 import           PlutusPrelude                            hiding (hoist)
 
 import           Control.Monad.Morph
@@ -59,8 +57,8 @@ data PrimIterAppValue = forall a. PrimIterAppValue
 
 instance Pretty PrimIterAppValue where
     pretty (PrimIterAppValue term pia tbv) = parens $ fold
-        [ "As a term: ", pretty term, line
-        , "As an iterated application: ", pretty pia, line
+        [ "As a term: ", prettyCfg defaultCfg term, line
+        , "As an iterated application: ", prettyCfg defaultCfg pia, line
         , "As a value: ", pretty tbv
         ]
 

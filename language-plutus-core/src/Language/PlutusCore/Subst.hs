@@ -6,8 +6,8 @@ module Language.PlutusCore.Subst(
                                 , ftvTy
                                 ) where
 
-import           Language.PlutusCore
-import           PlutusPrelude         hiding (empty)
+import           Language.PlutusCore.Type
+import           PlutusPrelude            hiding (empty)
 
 import           Data.Functor.Foldable
 import           Data.Set
@@ -37,8 +37,8 @@ substTy ::
 substTy tynameF = hoist f
   where
     f (TyVarF a ty) = case tynameF ty of
-      Just t  -> project t
-      Nothing -> TyVarF a ty
+       Just t  -> project t
+       Nothing -> TyVarF a ty
     f x           = x
 
 -- Free variables

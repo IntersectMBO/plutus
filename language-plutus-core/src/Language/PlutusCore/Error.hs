@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstrainedClassMethods #-}
+{-# LANGUAGE DeriveAnyClass          #-}
 {-# LANGUAGE FlexibleInstances       #-}
 
 module Language.PlutusCore.Error ( Error (..)
@@ -7,27 +8,31 @@ module Language.PlutusCore.Error ( Error (..)
 
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.Parser
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TypeSynthesis
 import           PlutusPrelude
 
-data Error = ParseError ParseError
-           | RenameError (RenameError AlexPosn)
-           | TypeError (TypeError AlexPosn)
-           | NormalizationError (NormalizationError AlexPosn)
+import           Data.Text as T
 
-class IsError a where
+data Error a = ParseError (ParseError a)
+             | RenameError (RenameError a)
+             | TypeError (TypeError a)
+             | NormalizationError (NormalizationError a)
+             | OtherError T.Text
+             deriving (Generic, NFData)
 
-    asError :: a -> Error
+class IsError f where
 
-    asLeft :: a -> Either Error b
+    asError :: f a -> Error a
+
+    asLeft :: f a -> Either (Error a) b
     asLeft = Left . asError
 
-    convertError :: Either a b -> Either Error b
+    convertError :: Either (f a) b -> Either (Error a) b
     convertError = first asError
 
-    collectErrors :: (IsError b) => Either a (Either b c) -> Either Error c
+    collectErrors :: (IsError g) => Either (f a) (Either (g a) b) -> Either (Error a) b
     collectErrors (Left x)          = asLeft x
     collectErrors (Right (Left x))  = asLeft x
     collectErrors (Right (Right x)) = Right x
@@ -38,23 +43,18 @@ instance IsError Error where
 instance IsError ParseError where
     asError = ParseError
 
-instance IsError (RenameError AlexPosn) where
+instance IsError RenameError where
     asError = RenameError
 
-instance IsError (TypeError AlexPosn) where
+instance IsError TypeError where
     asError = TypeError
 
-instance IsError (NormalizationError AlexPosn) where
+instance IsError NormalizationError where
     asError = NormalizationError
 
-instance Pretty Error where
-    pretty (ParseError e)         = pretty e
-    pretty (RenameError e)        = pretty e
-    pretty (TypeError e)          = pretty e
-    pretty (NormalizationError e) = pretty e
-
-instance Debug Error where
-    debug (ParseError e)         = pretty e
-    debug (RenameError e)        = debug e
-    debug (TypeError e)          = debug e
-    debug (NormalizationError e) = pretty e
+instance (PrettyCfg a) => PrettyCfg (Error a) where
+    prettyCfg cfg (ParseError e)         = prettyCfg cfg e
+    prettyCfg cfg (RenameError e)        = prettyCfg cfg e
+    prettyCfg cfg (TypeError e)          = prettyCfg cfg e
+    prettyCfg cfg (NormalizationError e) = prettyCfg cfg e
+    prettyCfg _ (OtherError e)         = pretty e

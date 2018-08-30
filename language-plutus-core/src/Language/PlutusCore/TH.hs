@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveLift          #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
@@ -10,9 +9,9 @@ module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 import           Language.Haskell.TH        hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
-import           Language.PlutusCore        (discardAnnsTerm, discardAnnsTy)
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Parser (ParseError)
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Type
@@ -93,9 +92,9 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
                         t
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
-eval :: QuoteT (Except ParseError) a -> Q a
+eval :: (PrettyCfg b) => QuoteT (Except (Error b)) a -> Q a
 eval c = case runExcept $ runQuoteT c of
-    Left e  -> fail $ show e
+    Left e  -> fail $ show $ prettyCfgText e
     Right p -> pure p
 
 unsafeDropErrors :: Except e a -> a
@@ -130,7 +129,7 @@ compileTerm s = do
             quoted :: Quote (Term TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeT <- (fmap discardAnnsTerm . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
+                runtimeT <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
                 metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
@@ -145,7 +144,7 @@ compileType s = do
             quoted :: Quote (Type TyName ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeTy <- (fmap discardAnnsTy . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
+                runtimeTy <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
                 metavarSubstType runtimeTy <$> $(tyMetavars)
           in quoted
       |]
@@ -161,7 +160,7 @@ compileProgram s = do
             quoted :: Quote (Program TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                (Program a v runtimeT) <- (fmap discardAnnsTerm . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
+                (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
                 Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
