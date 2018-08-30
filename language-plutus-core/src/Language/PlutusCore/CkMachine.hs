@@ -28,6 +28,7 @@ data Frame
 
 type Context = [Frame]
 
+-- | Errors which can occur during a run of the CK machine.
 data CkError
     = NonPrimitiveInstantiationCkError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.

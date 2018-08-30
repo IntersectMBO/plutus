@@ -2,7 +2,6 @@
 -- which control size-induced bounds of values generated.
 -- Big warning: generated terms do not satisfy the global uniqueness condition.
 
-{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -30,10 +29,12 @@ import           Language.PlutusCore.Constant
 import           Data.Functor.Identity
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Text.Prettyprint.Doc
+import           Data.GADT.Compare
 import           Hedgehog hiding (Size, Var, annotate)
 import qualified Hedgehog.Gen   as Gen
 import qualified Hedgehog.Range as Range
 
+-- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString
 genLowerBytes range = BSL.fromStrict <$> Gen.utf8 range Gen.lower
 
@@ -49,6 +50,7 @@ data TermOf a = TermOf
 -- Bounds induced (as per the spec) by the 'Size' values must be met, but can be narrowed.
 type TypedBuiltinGenT m = forall a. TypedBuiltin Size a -> GenT m (TermOf a)
 
+-- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen = TypedBuiltinGenT Identity
 
 instance PrettyCfg a => PrettyCfg (TermOf a) where
@@ -57,37 +59,52 @@ instance PrettyCfg a => PrettyCfg (TermOf a) where
 attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
 attachCoercedTerm tb = fmap $ \x -> TermOf (unsafeMakeBuiltin $ TypedBuiltinValue tb x) x
 
--- TODO: think about abstracting the pattern... or maybe not.
+-- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
+updateTypedBuiltinGen
+    :: Functor f
+    => TypedBuiltin Size a  -- ^ A generator of which built-in to overwrite.
+    -> GenT f a             -- ^ A new generator.
+    -> TypedBuiltinGenT f   -- ^ An old typed built-ins generator.
+    -> TypedBuiltinGenT f   -- ^ The updated typed built-ins generator.
+updateTypedBuiltinGen tbNew genX genTb tbOld
+    | Just Refl <- tbNew `geq` tbOld = attachCoercedTerm tbOld genX
+    | otherwise                      = genTb tbOld
+
+-- | Update a sized typed built-ins generator by overwriting the generator for a certain built-in.
+updateTypedBuiltinGenSized
+    :: Functor f
+    => TypedBuiltinSized a  -- ^ A generator of which sized built-in to overwrite.
+    -> (Size -> GenT f a)   -- ^ A function that computes new generator from a 'Size'.
+    -> TypedBuiltinGenT f   -- ^ An old typed built-ins generator.
+    -> TypedBuiltinGenT f   -- ^ The updated typed built-ins generator.
+updateTypedBuiltinGenSized tbsNew genX genTb tbOld = case tbOld of
+    TypedBuiltinSized se tbsOld | Just Refl <- tbsNew `geq` tbsOld ->
+        attachCoercedTerm tbOld . genX $ flattenSizeEntry se
+    _                                                              -> genTb tbOld
+
+-- | Update a typed built-ins generator by overwriting the @integer@s generator.
 updateTypedBuiltinGenInt
     :: Functor m => (Integer -> Integer -> GenT m Integer) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenInt genInteger genTb tb = case tb of
-    TypedBuiltinSized sizeEntry TypedBuiltinSizedInt ->
-        let size = flattenSizeEntry sizeEntry
-            (low, high) = toBoundsInt size in
-            attachCoercedTerm tb $ genInteger low (high - 1)
-    _                                                -> genTb tb
+updateTypedBuiltinGenInt genInteger =
+    updateTypedBuiltinGenSized TypedBuiltinSizedInt $ \size ->
+        let (low, high) = toBoundsInt size in
+            genInteger low (high - 1)
 
+-- | Update a typed built-ins generator by overwriting the @bytestring@s generator.
 updateTypedBuiltinGenBS
     :: Monad m => (Int -> GenT m BSL.ByteString) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenBS genBytes genTb tb = case tb of
-    TypedBuiltinSized sizeEntry TypedBuiltinSizedBS ->
-        let size = flattenSizeEntry sizeEntry in
-            attachCoercedTerm tb . genBytes $ fromIntegral size
-    _                                               -> genTb tb
+updateTypedBuiltinGenBS genBytes =
+    updateTypedBuiltinGenSized TypedBuiltinSizedBS $ genBytes . fromIntegral
 
+-- | Update a typed built-ins generator by overwriting the @size@s generator.
 updateTypedBuiltinGenSize
     :: Monad m => TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenSize genTb tb = case tb of
-    TypedBuiltinSized sizeEntry TypedBuiltinSizedSize ->
-        let size = flattenSizeEntry sizeEntry in
-            attachCoercedTerm tb $ return size
-    _                                                 -> genTb tb
+updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize return
 
+-- | Update a typed built-ins generator by overwriting the @boolean@s generator.
 updateTypedBuiltinGenBool
     :: Monad m => GenT m Bool -> TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenBool genBool genTb tb = case tb of
-    TypedBuiltinBool -> attachCoercedTerm tb $ genBool
-    _                -> genTb tb
+updateTypedBuiltinGenBool = updateTypedBuiltinGen TypedBuiltinBool
 
 -- | A built-ins generator that always fails.
 genTypedBuiltinFail :: Monad m => TypedBuiltinGenT m
@@ -133,6 +150,7 @@ genTypedBuiltinDiv
     $ genTypedBuiltinDef
 
 -- | The integer square root.
+-- Throws an 'error' on negative input.
 isqrt :: Integer -> Integer
 isqrt n
     | n < 0     = error "isqrt: negative number"
@@ -146,5 +164,9 @@ isqrt n
         iters = iterate newtonStep $ isqrt (n `div` lowerN) * lowerRoot
         isRoot r = sqr r <= n && n < sqr (r + 1)
 
+-- | The integer square root that acts on negative numbers like this:
+--
+-- >>> iasqrt (-4)
+-- -2
 iasqrt :: Integer -> Integer
 iasqrt n = signum n * isqrt (abs n)

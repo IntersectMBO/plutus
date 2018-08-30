@@ -63,6 +63,8 @@ getBuiltinUnroll = do
 --
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
 -- >    unroll {a -> b} (wrap \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
+--
+-- See @plutus-prototype/docs/fomega/z-combinator-benchmarks@ for details.
 getBuiltinFix :: Quote (Term TyName Name ())
 getBuiltinFix = do
     self   <- getBuiltinSelf

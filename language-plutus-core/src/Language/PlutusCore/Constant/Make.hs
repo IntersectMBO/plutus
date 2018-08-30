@@ -65,7 +65,6 @@ makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
 
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
--- Does not preserve the global uniqueness condition.
 makeBuiltin :: TypedBuiltinValue Size a -> Quote (Maybe (Value TyName Name ()))
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
     (TypedBuiltinSized se tbs) ->

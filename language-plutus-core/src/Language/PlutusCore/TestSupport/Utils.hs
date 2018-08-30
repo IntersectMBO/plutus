@@ -1,9 +1,8 @@
 -- | Utilities used in modules from the @TestSupport@ folder.
 
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.TestSupport.Utils
     ( liftT
     , hoistSupply

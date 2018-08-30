@@ -22,6 +22,8 @@ import qualified Hedgehog.Range as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
+-- TODO: also type check the terms.
+
 -- | Convert an 'Integer' to a @nat@.
 getBuiltinIntegerToNat :: Integer -> Quote (Term TyName Name ())
 getBuiltinIntegerToNat n

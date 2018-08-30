@@ -20,9 +20,7 @@ import           Language.PlutusCore.Constant
 
 import           Data.Semigroup
 import           Data.Functor.Compose
-import           Control.Monad
 import qualified Data.ByteString.Lazy as BSL
-import           Data.GADT.Compare
 import           Data.Dependent.Map (DMap)
 import qualified Data.Dependent.Map as DMap
 
@@ -64,46 +62,6 @@ denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin t
 denoteTypedBuiltinName :: TypedBuiltinName a r -> a -> Denotation BuiltinName size r
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
     Denotation name (Constant () . BuiltinName ()) meta scheme
-
-liftOrdering :: Ordering -> GOrdering a a
-liftOrdering LT = GLT
-liftOrdering EQ = GEQ
-liftOrdering GT = GGT
-
--- I tried using the 'dependent-sum-template' package,
--- but see https://stackoverflow.com/q/50048842/3237465
--- I tried to abstract the pattern of @case (tbs1, tbs2) of@
--- without a performance penalty, but it's not that straightforward.
--- I do not want to spend any more time on this, so here are dumb and straightforward instances.
-instance Eq size => GEq (TypedBuiltin size) where
-    geq (TypedBuiltinSized size1 tbs1) (TypedBuiltinSized size2 tbs2) = do
-        guard $ size1 == size2
-        case (tbs1, tbs2) of
-            (TypedBuiltinSizedInt , TypedBuiltinSizedInt ) -> Just Refl
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedBS  ) -> Just Refl
-            (TypedBuiltinSizedSize, TypedBuiltinSizedSize) -> Just Refl
-            (_                    , _                    ) -> Nothing
-    geq TypedBuiltinBool               TypedBuiltinBool               = Just Refl
-    geq _                              _                              = Nothing
-
-instance Ord size => GCompare (TypedBuiltin size) where
-    gcompare (TypedBuiltinSized size1 tbs1) (TypedBuiltinSized size2 tbs2) =
-        case (tbs1, tbs2) of
-            (TypedBuiltinSizedInt , TypedBuiltinSizedInt ) -> mono
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedBS  ) -> mono
-            (TypedBuiltinSizedSize, TypedBuiltinSizedSize) -> mono
-
-            (TypedBuiltinSizedInt , _                    ) -> GLT
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
-            (TypedBuiltinSizedBS  , _                    ) -> GLT
-            (TypedBuiltinSizedSize, _                    ) -> GGT
-        where
-            mono :: GOrdering a a
-            mono = liftOrdering $ size1 `compare` size2
-    gcompare TypedBuiltinBool               TypedBuiltinBool               = GEQ
-
-    gcompare (TypedBuiltinSized _ _)        TypedBuiltinBool               = GLT
-    gcompare TypedBuiltinBool               (TypedBuiltinSized _ _)        = GGT
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation :: TypedBuiltin () r -> Denotation object Size r -> DenotationContext -> DenotationContext
