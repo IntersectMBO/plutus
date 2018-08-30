@@ -14,7 +14,7 @@ import qualified Data.Text.IO as Text
 import           Data.Text.Encoding (encodeUtf8)
 
 -- | Parse a program and run it using the CK machine.
-parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
+parseRunCk :: BSL.ByteString -> Either (ParseError AlexPosn) CkEvalResult
 parseRunCk = fmap (runCk . void) . parseScoped
 
 -- | Parse a program, run it and prettyprint the result.

@@ -48,7 +48,7 @@ false :: Quote (Term TyName Name ())
 false = do
     u <- unit
     o <- one
-    [plcTerm|(abs a (type) (lam x (fun u a) (lam y (fun u a) [x o])))|]
+    [plcTerm|(abs a (type) (lam x (fun u a) (lam y (fun u a) [y o])))|]
 
 free :: Quote (Term TyName Name ())
 free = do

@@ -8,10 +8,10 @@
 
 module PlutusCore.PatternMatching where
 
-import PlutusCore.Term
-import Utils.ABT
+import           PlutusCore.Term
+import           Utils.ABT
 
-import Control.Monad
+import           Control.Monad
 
 
 

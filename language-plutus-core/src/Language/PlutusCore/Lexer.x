@@ -124,6 +124,9 @@ deriving instance Lift AlexPosn
 instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
 
+instance PrettyCfg (AlexPosn) where
+    prettyCfg _ = pretty
+
 handleChar :: Word8 -> Word8
 handleChar x
     | x >= 48 && x <= 57 = x - 48 -- hexits 0-9
@@ -215,21 +218,21 @@ alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF . alex_pos <$> get
 
 -- | An error encountered during parsing.
-data ParseError = LexErr String
-                | Unexpected (Token AlexPosn)
-                | Overflow AlexPosn Natural Integer
-                deriving (Show, Eq, Generic, NFData)
+data ParseError a = LexErr String
+                  | Unexpected (Token a)
+                  | Overflow a Natural Integer
+                  deriving (Show, Eq, Generic, NFData)
 
-instance PrettyCfg ParseError where
+instance (PrettyCfg a) => PrettyCfg (ParseError a) where
     prettyCfg _ (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
-    prettyCfg cfg (Unexpected t)   = "Unexpected" <+> squotes (prettyCfg cfg t) <+> "at" <+> pretty (loc t)
-    prettyCfg _ (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+    prettyCfg cfg (Unexpected t)   = "Unexpected" <+> squotes (prettyCfg cfg t) <+> "at" <+> prettyCfg cfg (loc t)
+    prettyCfg cfg (Overflow pos _ _) = "Integer overflow at" <+> prettyCfg cfg pos <> "."
 
-liftError :: Either String a -> Either ParseError a
+liftError :: Either String a -> Either (ParseError b) a
 liftError(Left s)  = Left $ LexErr s
 liftError(Right a) = Right $ a
 
-runAlexST :: ByteString.ByteString -> Alex a -> IdentifierState -> Either ParseError (IdentifierState, a)
+runAlexST :: ByteString.ByteString -> Alex a -> IdentifierState -> Either (ParseError AlexPosn) (IdentifierState, a)
 runAlexST input (Alex f) initial = liftError $ first alex_ust <$>
     f (AlexState { alex_pos = alexStartPos
                  , alex_bpos = 0
@@ -239,9 +242,9 @@ runAlexST input (Alex f) initial = liftError $ first alex_ust <$>
                  , alex_scd = 0
                  })
 
-runAlexST' :: forall a. ByteString.ByteString -> Alex a -> StateT IdentifierState (Except ParseError) a
+runAlexST' :: forall a. ByteString.ByteString -> Alex a -> StateT IdentifierState (Except (ParseError AlexPosn)) a
 runAlexST' input al = StateT $ \is -> let
-        run :: Either ParseError (a, IdentifierState)
+        run :: Either (ParseError AlexPosn) (a, IdentifierState)
         run = case runAlexST input al is of
             Left e -> Left e
             Right (s, a) -> Right (a, s)

@@ -8,16 +8,16 @@
 
 module PlutusCore.BuiltinEvaluation where
 
-import PlutusCore.Term
-import Utils.ABT
-import Utils.Pretty
+import           PlutusCore.Term
+import           Utils.ABT
+import           Utils.Pretty
 
-import Crypto.Hash
-import qualified Crypto.Sign.Ed25519 as Ed25519 ()
-import qualified Data.Binary as B
-import qualified Data.ByteArray as BA
+import           Crypto.Hash
+import qualified Crypto.Sign.Ed25519  as Ed25519 ()
+import qualified Data.Binary          as B
+import qualified Data.ByteArray       as BA
 import qualified Data.ByteString.Lazy as BS
-import Data.List (intercalate)
+import           Data.List            (intercalate)
 
 
 
@@ -105,7 +105,7 @@ builtin "subtractFloat" xs =
       Right $ In (PrimData (PrimFloat (x - y)))
     _ ->
       Left $ "Incorrect arguments for builtin subtractFloat: "
-                ++ intercalate "," (map pretty xs)  
+                ++ intercalate "," (map pretty xs)
 builtin "multiplyFloat" xs =
   case xs of
     [In (PrimData (PrimFloat x)), In (PrimData (PrimFloat y))] ->
@@ -210,6 +210,6 @@ builtin "equalsByteString" xs =
       Right $ if x == y then conH "True" [] else conH "False" []
     _ ->
       Left $ "Incorrect arguments for builtin equalsByteString: "
-                ++ intercalate "," (map pretty xs)     
+                ++ intercalate "," (map pretty xs)
 builtin n _ =
   Left $ "No builtin named " ++ n

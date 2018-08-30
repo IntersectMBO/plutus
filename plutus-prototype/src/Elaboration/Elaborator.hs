@@ -1,9 +1,9 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 
 
@@ -15,24 +15,24 @@
 
 module Elaboration.Elaborator where
 
-import Utils.ABT
+import           Utils.ABT
 --import Utils.Env
-import Utils.Names
-import Utils.Pretty
-import qualified Utils.ProofDeveloper as PD
+import           Utils.Names
+import           Utils.Pretty
+import qualified Utils.ProofDeveloper  as PD
 --import Utils.Unifier
-import Utils.Vars
-import Plutus.Program
-import Plutus.Term
-import PlutusTypes.ConSig
-import PlutusTypes.Type
+import           Plutus.Program
+import           Plutus.Term
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
+import           Utils.Vars
 --import qualified PlutusCore.Term as Core
 --import Elaboration.Contexts
-import Elaboration.ElabState
-import Elaboration.Judgments
+import           Elaboration.ElabState
+import           Elaboration.Judgments
 
 --import qualified Control.Lens as L
-import Control.Monad.State
+import           Control.Monad.State
 
 
 
@@ -101,7 +101,7 @@ instance PD.ShowElabError ElabState ElabError Judgment where
       go ((i,PD.Any g):gs) =
         "\n\n  Which is subproblem " ++ show i ++ " of "
           ++ prettyJudgment g ++ go gs
-      
+
       prettyJudgment :: Judgment r -> String
       prettyJudgment (ElabProgram _ _) =
         "<program>"

@@ -7,6 +7,7 @@
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
                                    , annotateST
+                                   , annotateTermST
                                    , NameWithType (..)
                                    , RenamedType
                                    , RenamedTerm
@@ -18,7 +19,6 @@ module Language.PlutusCore.Renamer ( rename
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap                   as IM
-import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
@@ -65,9 +65,9 @@ data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
                    deriving (Generic, NFData)
 
-instance PrettyCfg (RenameError AlexPosn) where
-    prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
-    prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
+instance (PrettyCfg a) => PrettyCfg (RenameError a) where
+    prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> prettyCfg cfg loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
+    prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> prettyCfg cfg loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
@@ -77,9 +77,14 @@ annotate = fmap snd . annotateST
 -- | Annotate a program with type/kind information at all bound variables,
 -- additionally returning a 'TypeState'
 annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
-annotateST (Program x v p) = do
-    (t, st) <- runStateT (annotateTerm p) mempty
-    pure (st, Program x v t)
+annotateST (Program x v p) = fmap (Program x v) <$> annotateTermST p
+
+-- | Annotate a term with type/kind information at all bound variables,
+-- additionally returning a 'TypeState'
+annotateTermST :: Term TyName Name a -> Either (RenameError a) (TypeState a, Term TyNameWithKind NameWithType a)
+annotateTermST t = do
+    (t', st) <- runStateT (annotateTerm t) mempty
+    pure (st, t')
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert

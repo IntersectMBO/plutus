@@ -1,7 +1,7 @@
 module Solver where
 
-import AlgTypes
-import qualified Data.Set as S 
+import           AlgTypes
+import qualified Data.Set as S
 
 -----------------------------------------------------
 -- Identifying Systems of Mutually Recursive Types --
@@ -34,7 +34,7 @@ mutuallyRecursive :: AlgSignature -> Decl AlgType -> Decl AlgType -> Bool
 mutuallyRecursive sig d1 d2 = S.member d1 (references sig d2) && S.member d2 (references sig d1)
 
 -- splitting a signature up into its component mutually recursive bits.
-partitionMRec :: AlgSignature -> [[Decl AlgType]] 
+partitionMRec :: AlgSignature -> [[Decl AlgType]]
 partitionMRec sig =
   if S.null sig then []
     else (S.toList mrec) : (partitionMRec rest)
@@ -45,7 +45,7 @@ partitionMRec sig =
 -------------------------------------------------
 -- Solving Systems of Mutually Recursive Types --
 -------------------------------------------------
-                
+
 -- the type of fixed point equations.
 type FPEquation = (String,[AlgType] -> AlgType)
 
@@ -57,7 +57,7 @@ fpEquations  ds = let allDeclNames :: [String]
                       map (fpEquation allDeclNames) ds
 
 fpEquation :: [String] -> Decl AlgType -> FPEquation
-fpEquation names (Decl x t) = 
+fpEquation names (Decl x t) =
   (x , (\subs -> foldr (\(x,y) a -> sub y x a) t (zip names subs)))
 
 
@@ -97,7 +97,7 @@ solve es = map (uncurry solveOne) (zip [0..] es)
         bigTi' = snd (fixArg i (Var ti) (ti,bigTi))
     in
       Decl ti (Mu ti (bigTi' subs))
-                        
+
   exclude :: String -> [FPEquation]
   exclude ti = filter (\(x,xT) -> x /= ti) es
 

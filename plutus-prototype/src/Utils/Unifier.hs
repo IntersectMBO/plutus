@@ -1,8 +1,8 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE Rank2Types             #-}
 
 
 
@@ -14,15 +14,15 @@
 
 module Utils.Unifier where
 
-import Utils.ABT
-import Utils.Elaborator
-import Utils.Pretty
-import Utils.Vars
+import           Utils.ABT
+import           Utils.Elaborator
+import           Utils.Pretty
+import           Utils.Vars
 
-import Control.Lens
-import Control.Monad.Except
-import Control.Monad.State
-import Data.List (nubBy)
+import           Control.Lens
+import           Control.Monad.Except
+import           Control.Monad.State
+import           Data.List            (nubBy)
 
 
 
@@ -131,7 +131,7 @@ updateSubstitutionJ :: ( Eq a, Functor f, Foldable f
 updateSubstitutionJ subsl ctxl subs =
   do completeSubstitution subsl subs
      substituteContextJ subsl ctxl
-    
+
 
 
 
@@ -178,14 +178,14 @@ solve :: ( Functor f, Foldable f, Pretty (ABT f)
       => [Equation (ABT f)] -> m (Substitution f)
 solve eqs0 = go eqs0 []
   where
-    
+
     go :: ( Functor f, Foldable f, Pretty (ABT f)
           , MonadUnify f m, MonadError String m
           )
        => [Equation (ABT f)] -> Substitution f -> m (Substitution f)
-    
+
     go [] subs = return subs
-    
+
     go (Equation (Var (Meta x)) (Var (Meta y)):eqs) subs
       | x == y = go eqs subs
       | otherwise = go eqs' subs'
@@ -193,7 +193,7 @@ solve eqs0 = go eqs0 []
         newSubs = [(x, Var (Meta y))]
         eqs' = map (substMetasEquation newSubs) eqs
         subs' = substMetasSubs newSubs (newSubs ++ subs)
-    
+
     go (Equation v1@(Var (Meta x)) r:eqs) subs =
       do unless (not (occurs x r))
            $ throwError $ "Cannot unify because " ++ pretty v1
@@ -203,7 +203,7 @@ solve eqs0 = go eqs0 []
         newSubs = [(x,r)]
         eqs' = map (substMetasEquation newSubs) eqs
         subs' = substMetasSubs newSubs (newSubs ++ subs)
-    
+
     go (Equation l v2@(Var (Meta y)):eqs) subs =
       do unless (not (occurs y l))
            $ throwError $ "Cannot unify because " ++ pretty v2
@@ -213,16 +213,16 @@ solve eqs0 = go eqs0 []
         newSubs = [(y,l)]
         eqs' = map (substMetasEquation newSubs) eqs
         subs' = substMetasSubs newSubs (newSubs ++ subs)
-    
+
     go (Equation v1@(Var x) v2@(Var y):eqs) subs
       | x == y = go eqs subs
       | otherwise = throwError $ "Cannot unify variables " ++ pretty v1
                               ++ " and " ++ pretty v2
-    
+
     go (Equation (In l) (In r):eqs) subs =
       do newEqs <- equate l r
          go (newEqs ++ eqs) subs
-    
+
     go (Equation l r:_) _ =
       throwError $ "Cannot unify " ++ pretty l ++ " and " ++ pretty r
 

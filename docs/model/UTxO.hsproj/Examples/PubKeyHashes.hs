@@ -1,26 +1,23 @@
-{-# LANGUAGE PackageImports, TemplateHaskell #-}
+{-# LANGUAGE PackageImports  #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Examples.PubKeyHashes
 where
-  
-import "cryptonite" 
-       Crypto.PubKey.ECC.ECDSA
-import Crypto.PubKey.ECC.Generate
-import Crypto.PubKey.ECC.Types
-import "cryptonite" 
-       Crypto.Random
 
-import Data.Map   (Map)
-import qualified
-       Data.Map   as Map
-import Data.Set   (Set)
-import qualified
-       Data.Set   as Set
+import           "cryptonite" Crypto.PubKey.ECC.ECDSA
+import           Crypto.PubKey.ECC.Generate
+import           Crypto.PubKey.ECC.Types
+import           "cryptonite" Crypto.Random
 
-import Ledger
-import UTxO
-import Witness
-import Examples.Keys
+import           Data.Map                             (Map)
+import qualified Data.Map                             as Map
+import           Data.Set                             (Set)
+import qualified Data.Set                             as Set
+
+import           Examples.Keys
+import           Ledger
+import           UTxO
+import           Witness
 
 
 -- Template Haskell splices can't use local definitions, but only imported ones (stage restriction);
@@ -28,7 +25,7 @@ import Examples.Keys
 -- This is very sad!
 
 t1Hash = hashTx $
-           Tx [] 
+           Tx []
               [TxOut val1Hash 1000] 1000 0
   where
     val1Hash = scriptHash $$(lockWithPublicKeyValidator (toPublicKey myKeyPair1))

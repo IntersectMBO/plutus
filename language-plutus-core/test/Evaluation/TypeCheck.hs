@@ -34,10 +34,10 @@ assertQuoteIllTyped getTerm =
             Nothing -> assertFailure $ "Well-typed: " ++ prettyCfgString term
             Just _  -> return ()
 
-typecheckTerm :: Term TyName Name () -> Maybe Error
+typecheckTerm :: Term TyName Name () -> Maybe (Error AlexPosn)
 typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
 
-typecheckProgram :: Program TyName Name () -> Maybe Error
+typecheckProgram :: Program TyName Name () -> Maybe (Error AlexPosn)
 typecheckProgram
     = either Just (\_ -> Nothing)
     . printType

@@ -1,9 +1,9 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 
 
@@ -15,14 +15,14 @@
 
 module Elaboration.Unification where
 
-import Utils.ABT
+import           Utils.ABT
 -- import Utils.Elaborator
-import Utils.Pretty
-import Utils.Unifier
-import PlutusTypes.Type
-import Elaboration.Elaborator
+import           Elaboration.Elaborator
+import           PlutusTypes.Type
+import           Utils.Pretty
+import           Utils.Unifier
 
-import Control.Monad.Except
+import           Control.Monad.Except
 
 
 
@@ -63,5 +63,5 @@ instance MonadUnify TypeF Elaborator where
     return []
   equate l r =
     throwError $ "Cannot unify " ++ pretty (In l) ++ " with " ++ pretty (In r)
-    
+
 -}

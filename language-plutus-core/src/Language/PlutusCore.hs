@@ -107,7 +107,6 @@ import           Language.PlutusCore.TypeSynthesis
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
@@ -120,7 +119,7 @@ fileTypeCfg :: Configuration -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printType) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
-printType :: BSL.ByteString -> Either Error T.Text
+printType :: BSL.ByteString -> Either (Error AlexPosn) T.Text
 printType = collectErrors . fmap (convertError . typeErr <=< convertError . annotateST) . parseScoped
 
 typeErr :: (TypeState a, Program TyNameWithKind NameWithType a) -> Either (TypeError a) T.Text
@@ -128,7 +127,7 @@ typeErr = fmap prettyCfgText . uncurry (programType 10000)
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: BSL.ByteString -> Either ParseError (Program TyName Name AlexPosn)
+parseScoped :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name AlexPosn)
 parseScoped str = fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
 programType :: Natural -- ^ Gas provided to typechecker
@@ -138,8 +137,8 @@ programType :: Natural -- ^ Gas provided to typechecker
 programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
     where i = maybe 0 (fst . fst) (IM.maxViewWithKey tys)
 
-formatDoc :: BSL.ByteString -> Either ParseError (Doc a)
+formatDoc :: BSL.ByteString -> Either (ParseError AlexPosn) (Doc a)
 formatDoc = fmap (prettyCfg defaultCfg) . parse
 
-format :: Configuration -> BSL.ByteString -> Either ParseError T.Text
+format :: Configuration -> BSL.ByteString -> Either (ParseError AlexPosn) T.Text
 format cfg = fmap (render . prettyCfg cfg) . parseScoped
