@@ -38,10 +38,10 @@ data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | OutOfGas
                  deriving (Generic, NFData)
 
-instance Pretty a => PrettyCfg (TypeError a) where
+instance (PrettyCfg a) => PrettyCfg (TypeError a) where
     prettyCfg _ InternalError               = "Internal error."
-    prettyCfg cfg (KindMismatch x ty k k')  = "Kind mismatch at" <+> pretty x <+> "in type" <+> squotes (prettyCfg cfg ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
     prettyCfg cfg (TypeMismatch x t ty ty') = "Type mismatch at" <+> pretty x <+> "in term" <> hardline <> indent 2 (squotes (prettyCfg cfg t)) <> "." <> hardline <> "Expected type" <> hardline <> indent 2 (squotes (prettyCfg cfg ty)) <> "," <> hardline <> "found type" <> hardline <> indent 2 (squotes (prettyCfg cfg ty'))
+    prettyCfg cfg (TypeMismatch x t ty ty') = "Type mismatch at" <+> prettyCfg cfg x <+> "in term" <+> squotes (prettyCfg cfg t) <> ". Expected type" <+> squotes (prettyCfg cfg ty) <+> ", found type" <+> squotes (prettyCfg cfg ty')
     prettyCfg _ OutOfGas                    = "Type checker ran out of gas."
 
 isType :: Kind a -> Bool

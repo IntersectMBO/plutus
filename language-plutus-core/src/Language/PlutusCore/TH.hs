@@ -92,7 +92,7 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
                         t
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
-eval :: QuoteT (Except Error) a -> Q a
+eval :: (PrettyCfg b) => QuoteT (Except (Error b)) a -> Q a
 eval c = case runExcept $ runQuoteT c of
     Left e  -> fail $ show $ prettyCfgText e
     Right p -> pure p

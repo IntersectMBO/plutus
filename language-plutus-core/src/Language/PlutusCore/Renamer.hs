@@ -65,9 +65,9 @@ data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
                    deriving (Generic, NFData)
 
-instance PrettyCfg (RenameError AlexPosn) where
-    prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
-    prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
+instance (PrettyCfg a) => PrettyCfg (RenameError a) where
+    prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> prettyCfg cfg loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
+    prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> prettyCfg cfg loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
