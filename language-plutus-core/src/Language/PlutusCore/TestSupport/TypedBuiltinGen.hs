@@ -23,9 +23,9 @@ module Language.PlutusCore.TestSupport.TypedBuiltinGen
     , iasqrt
     ) where
 
-import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Functor.Identity
