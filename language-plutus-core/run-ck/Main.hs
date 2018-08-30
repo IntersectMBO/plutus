@@ -9,7 +9,7 @@ import           Data.Text.Encoding   (encodeUtf8)
 import qualified Data.Text.IO         as Text
 
 -- | Parse a program and run it using the CK machine.
-parseRunCk :: BSL.ByteString -> Either ParseError CkEvalResult
+parseRunCk :: BSL.ByteString -> Either (ParseError AlexPosn) CkEvalResult
 parseRunCk = fmap (runCk . void) . parseScoped
 
 -- | Parse a program, run it and prettyprint the result.

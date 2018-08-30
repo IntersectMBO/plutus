@@ -10,6 +10,7 @@ module Language.PlutusCore.Normalize ( check
 
 import           Data.Functor.Foldable
 import           Data.Functor.Foldable.Monadic
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -17,9 +18,9 @@ data NormalizationError a = BadType a
                           | BadTerm a
                           deriving (Generic, NFData)
 
-instance Pretty a => Pretty (NormalizationError a) where
-    pretty (BadType l) = "Malformed type at" <+> pretty l
-    pretty (BadTerm l) = "Malformed term at" <+> pretty l
+instance PrettyCfg a => PrettyCfg (NormalizationError a) where
+    prettyCfg cfg (BadType l) = "Malformed type at" <+> prettyCfg cfg l
+    prettyCfg cfg (BadTerm l) = "Malformed term at" <+> prettyCfg cfg l
 
 check :: Program tyname name a -> Maybe (NormalizationError a)
 check = go . preCheck where
