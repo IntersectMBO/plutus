@@ -18,11 +18,11 @@ module Language.PlutusCore.TestSupport.Denotation
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 
-import           Data.Semigroup
+import qualified Data.ByteString.Lazy         as BSL
+import           Data.Dependent.Map           (DMap)
+import qualified Data.Dependent.Map           as DMap
 import           Data.Functor.Compose
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Dependent.Map (DMap)
-import qualified Data.Dependent.Map as DMap
+import           Data.Semigroup
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
 data Denotation object size r = forall a. Denotation

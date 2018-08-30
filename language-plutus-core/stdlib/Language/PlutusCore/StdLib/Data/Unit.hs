@@ -6,8 +6,8 @@ module Language.PlutusCore.StdLib.Data.Unit
     , getBuiltinUnitval
     ) where
 
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 -- | '()' as a PLC type.

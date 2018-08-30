@@ -11,9 +11,9 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 
+import qualified Data.ByteString.Lazy                      as Bsl
 import           Data.Foldable
-import qualified Data.Text.Encoding as Text
-import qualified Data.ByteString.Lazy as Bsl
+import qualified Data.Text.Encoding                        as Text
 import           Test.Tasty
 import           Test.Tasty.HUnit
 

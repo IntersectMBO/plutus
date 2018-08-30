@@ -12,15 +12,15 @@ module Language.PlutusCore.Constant.Apply
 
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type     (BuiltinName (..))
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy                 as BSL
-import           Data.IntMap.Strict                   (IntMap)
-import qualified Data.IntMap.Strict                   as IntMap
+import qualified Data.ByteString.Lazy               as BSL
+import           Data.IntMap.Strict                 (IntMap)
+import qualified Data.IntMap.Strict                 as IntMap
 
 -- | The type of constant applications errors.
 data ConstAppError

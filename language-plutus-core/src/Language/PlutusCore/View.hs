@@ -11,7 +11,7 @@ module Language.PlutusCore.View
     , termAsPrimIterApp
     ) where
 
-import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type (BuiltinName (..))
 import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude

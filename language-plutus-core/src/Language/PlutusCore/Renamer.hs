@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Language.PlutusCore.Renamer ( rename
                                    , annotate

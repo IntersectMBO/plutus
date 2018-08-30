@@ -2,8 +2,8 @@
 -- See the "Success" and "SuccessFailure" module for actual tests implemented
 -- in terms of functions defined here.
 
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs      #-}
+{-# LANGUAGE RankNTypes #-}
 module Evaluation.Constant.Apply
     ( prop_applyBuiltinName
     , prop_applyBuiltinNameSuccess
@@ -16,7 +16,7 @@ import           Language.PlutusCore.TestSupport
 
 import           Data.Foldable
 import           Data.List
-import           Hedgehog hiding (Size, Var, annotate)
+import           Hedgehog                        hiding (Size, Var, annotate)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)

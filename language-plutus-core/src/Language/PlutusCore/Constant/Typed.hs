@@ -50,9 +50,9 @@ module Language.PlutusCore.Constant.Typed
 
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL

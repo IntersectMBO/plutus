@@ -8,10 +8,10 @@ module Language.PlutusCore.StdLib.Data.Bool
     , getBuiltinIf
     ) where
 
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.Type
 
 -- | 'Bool' as a PLC type.
 --

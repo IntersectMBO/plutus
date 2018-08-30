@@ -2,15 +2,15 @@
 module Main where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.TestSupport
 
-import           Data.Foldable
 import           Control.Monad
 import           Control.Monad.Morph
-import qualified Data.Text.IO as Text
-import qualified Hedgehog.Gen as Gen
+import           Data.Foldable
+import qualified Data.Text.IO                    as Text
+import qualified Hedgehog.Gen                    as Gen
 
 -- | Generate a test sample: a term of arbitrary type and what it computes to.
 -- Uses 'genTermLoose' under the hood.

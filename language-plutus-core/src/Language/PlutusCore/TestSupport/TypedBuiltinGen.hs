@@ -2,9 +2,9 @@
 -- which control size-induced bounds of values generated.
 -- Big warning: generated terms do not satisfy the global uniqueness condition.
 
-{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 module Language.PlutusCore.TestSupport.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
@@ -26,13 +26,13 @@ module Language.PlutusCore.TestSupport.TypedBuiltinGen
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 
+import qualified Data.ByteString.Lazy         as BSL
 import           Data.Functor.Identity
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Text.Prettyprint.Doc
 import           Data.GADT.Compare
-import           Hedgehog hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen   as Gen
-import qualified Hedgehog.Range as Range
+import           Data.Text.Prettyprint.Doc
+import           Hedgehog                     hiding (Size, Var, annotate)
+import qualified Hedgehog.Gen                 as Gen
+import qualified Hedgehog.Range               as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString

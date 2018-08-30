@@ -8,10 +8,10 @@ module Language.PlutusCore.StdLib.Data.Function
     , getBuiltinFix
     ) where
 
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Type
+import           Language.PlutusCore.Type
 
 -- | 'const' as a PLC term.
 --

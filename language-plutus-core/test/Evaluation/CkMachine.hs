@@ -3,22 +3,22 @@ module Evaluation.CkMachine
     ( test_evaluateCk
     ) where
 
-import           PlutusPrelude hiding (hoist, list)
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.CkMachine
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.TestSupport
+import           PlutusPrelude                            hiding (hoist, list)
 
-import           Data.Foldable
 import           Control.Monad.Morph
-import           Hedgehog hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen as Gen
-import qualified Hedgehog.Range as Range
+import           Data.Foldable
+import           Hedgehog                                 hiding (Size, Var, annotate)
+import qualified Hedgehog.Gen                             as Gen
+import qualified Hedgehog.Range                           as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

@@ -2,14 +2,14 @@ module Evaluation.Constant.Success
     ( test_applyBuiltinNameSuccess
     ) where
 
+import           Evaluation.Constant.Apply
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.TestSupport
-import           Evaluation.Constant.Apply
 
+import qualified Data.ByteString.Lazy            as BSL
 import           Data.Semigroup
-import qualified Data.ByteString.Lazy as BSL
-import qualified Hedgehog.Gen   as Gen
-import qualified Hedgehog.Range as Range
+import qualified Hedgehog.Gen                    as Gen
+import qualified Hedgehog.Range                  as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

@@ -7,8 +7,8 @@ module Language.PlutusCore.StdLib.Data.ChurchNat
     , getBuiltinChurchSucc
     ) where
 
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 -- | Church-encoded @Nat@ as a PLC type.
