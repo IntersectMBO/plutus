@@ -125,7 +125,7 @@ instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
 
 instance PrettyCfg (AlexPosn) where
-    prettyCfg _ (AlexPn _ line col) = pretty line <> ":" <> pretty col
+    prettyCfg _ = pretty
 
 handleChar :: Word8 -> Word8
 handleChar x

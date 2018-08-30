@@ -6,7 +6,7 @@
 
 module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 
-import           Language.Haskell.TH        hiding (Name, Type)
+import           Language.Haskell.TH           hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
 import           Language.PlutusCore.Error
@@ -19,11 +19,11 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Except
-import           Control.Monad.Morph        as MM
-import qualified Data.ByteString.Lazy       as BSL
+import           Control.Monad.Morph           as MM
+import qualified Data.ByteString.Lazy          as BSL
 import           Data.Functor.Identity
-import qualified Data.Map                   as Map
-import qualified Data.Set                   as Set
+import qualified Data.Map                      as Map
+import qualified Data.Set                      as Set
 
 {-
 This uses the approach in https://www.well-typed.com/blog/2014/10/quasi-quoting-dsls/ to use free
