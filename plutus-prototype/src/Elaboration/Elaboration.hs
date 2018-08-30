@@ -1,5 +1,5 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 
@@ -16,30 +16,30 @@
 
 module Elaboration.Elaboration where
 
-import Utils.ABT
-import Utils.Elaborator
-import Utils.Names
-import Utils.Pretty
-import Utils.ProofDeveloper hiding (Decomposer,ElabError)
+import           Utils.ABT
+import           Utils.Elaborator
+import           Utils.Names
+import           Utils.Pretty
+import           Utils.ProofDeveloper   hiding (Decomposer, ElabError)
 --import Utils.Unifier
-import Utils.Vars
-import Plutus.Term
-import PlutusTypes.ConSig
-import PlutusTypes.Type
-import Plutus.Program
-import qualified PlutusCore.Term as Core
+import           Plutus.Program
+import           Plutus.Term
+import qualified PlutusCore.Term        as Core
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
+import           Utils.Vars
 --import qualified PlutusCore.Program as Core
-import Elaboration.Contexts
-import Elaboration.Elaborator
-import Elaboration.ElabState
-import Elaboration.Judgments
+import           Elaboration.Contexts
+import           Elaboration.Elaborator
+import           Elaboration.ElabState
+import           Elaboration.Judgments
 --import Elaboration.Unification ()
 
-import Control.Monad.Except
-import Control.Monad.State
-import Data.Functor.Identity
-import Data.List
-import Data.Maybe (isJust)
+import           Control.Monad.Except
+import           Control.Monad.State
+import           Data.Functor.Identity
+import           Data.List
+import           Data.Maybe             (isJust)
 
 
 
@@ -53,7 +53,7 @@ import Data.Maybe (isJust)
 
 
 
-  
+
 
 
 
@@ -68,22 +68,22 @@ import Data.Maybe (isJust)
 
 
 instance Decomposable ElabState ElabError Judgment where
-  decompose (ElabProgram dctx prog) = elabProgram dctx prog
-  decompose (ElabTermDecl dctx tmdecl) = elabTermDecl dctx tmdecl
-  decompose (ElabAlt dctx n consig) = elabAlt dctx n consig
-  decompose (ElabTypeDecl dctx tydecl) = elabTypeDecl dctx tydecl
+  decompose (ElabProgram dctx prog)       = elabProgram dctx prog
+  decompose (ElabTermDecl dctx tmdecl)    = elabTermDecl dctx tmdecl
+  decompose (ElabAlt dctx n consig)       = elabAlt dctx n consig
+  decompose (ElabTypeDecl dctx tydecl)    = elabTypeDecl dctx tydecl
   -- decompose (TyVarExists hctx x) = tyVarExists hctx x
   -- decompose (TyConExists dctx n) = tyconExists dctx n
   -- decompose (TypeInContext hctx x) = typeInContext hctx x
-  decompose (IsType dctx hctx a) = isType dctx hctx a
-  decompose (Synth dctx hctx m) = synthify dctx hctx m
+  decompose (IsType dctx hctx a)          = isType dctx hctx a
+  decompose (Synth dctx hctx m)           = synthify dctx hctx m
   decompose (SynthClause dctx hctx as cl) = synthifyClause dctx hctx as cl
-  decompose (Check dctx hctx a m) = checkify dctx hctx a m
-  decompose (CheckPattern dctx a p) = checkifyPattern dctx a p
-  decompose (CheckConSig dctx consig) = checkifyConSig dctx consig
-  decompose (Unify a b) = unify a b
-  decompose (UnifyAll as) = unifyAll as
-  decompose (Subtype hctx a b) = subtype hctx a b
+  decompose (Check dctx hctx a m)         = checkify dctx hctx a m
+  decompose (CheckPattern dctx a p)       = checkifyPattern dctx a p
+  decompose (CheckConSig dctx consig)     = checkifyConSig dctx consig
+  decompose (Unify a b)                   = unify a b
+  decompose (UnifyAll as)                 = unifyAll as
+  decompose (Subtype hctx a b)            = subtype hctx a b
 
 
 
@@ -160,7 +160,7 @@ elabTermDecl dctx (TermDeclaration n ty m) =
              : definitions dctx
          dctxTemp = dctx { definitions = definitions' }
      (def',dctx') <- goal (Check dctxTemp emptyHypContext ty def)
-     let newDefs = 
+     let newDefs =
            (n,(def',ty))
              : filter (\(n',_) -> n' /= n)
                       (definitions dctx')
@@ -194,7 +194,7 @@ elabTermDecl dctx (WhereDeclaration n ty preclauses) =
   where
     isVarPat :: Pattern -> Bool
     isVarPat (Var _) = True
-    isVarPat _ = False
+    isVarPat _       = False
 
 
 
@@ -289,7 +289,7 @@ elabProgram dctx0 (Program stmts0) =
     elabStatements dctx (stmt:stmts) =
       do dctx' <- elabStatement dctx stmt
          elabStatements dctx' stmts
-    
+
     elabStatement :: DeclContext -> Statement -> Decomposer DeclContext
     elabStatement dctx (TyDecl tyd) = goal (ElabTypeDecl dctx tyd)
     elabStatement dctx (TmDecl tmd) = goal (ElabTermDecl dctx tmd)
@@ -321,7 +321,7 @@ elabProgram dctx0 (Program stmts0) =
 tyconExists :: DeclContext -> String -> Decomposer TyConSig
 tyconExists dctx n =
   case lookup n (typeConstructors (signature dctx)) of
-    Nothing -> failure (ElabError ("Unknown type constructor: " ++ n))
+    Nothing  -> failure (ElabError ("Unknown type constructor: " ++ n))
     Just sig -> return sig
 
 
@@ -428,7 +428,7 @@ tyVarExists hctx x =
 --   Γ ∋ α type
 --   ----------
 --   Γ ⊢ α type
---  
+--
 --   A type   B type
 --   ---------------
 --     A → B type
@@ -858,7 +858,7 @@ findOverlappingClauses :: [Clause] -> [Clause]
 findOverlappingClauses [] = []
 findOverlappingClauses (cl:cls) =
   case filter (overlappingClauses cl) cls of
-    [] -> findOverlappingClauses cls
+    []   -> findOverlappingClauses cls
     cls' -> cl:cls'
 
 
@@ -876,7 +876,7 @@ desugarCase hctx ms0 cls0 =
   -- if there is such a position, then we collect the clauses and split
   -- along them and recurse.
   goDesugar initialNames ms0 protoclauses
-  
+
   where
     goDesugar :: [String]
               -> [Core.Term]
@@ -885,7 +885,7 @@ desugarCase hctx ms0 cls0 =
     goDesugar _ [] [(_,_,b)] =
       b
     goDesugar _ [] _ =
-      error "There should always at the end be exactly one case to desugar."  
+      error "There should always at the end be exactly one case to desugar."
     goDesugar ctx ms cls =
       case findSplittable cls of
         Nothing ->
@@ -916,7 +916,7 @@ desugarCase hctx ms0 cls0 =
                            ++ map (Var . Free . FreeVar) newNames
                            ++ after)
                          cls'))
-    
+
     -- splittable positions are positions that are all constructor-headed
     findSplittable :: [([String],[Pattern],Core.Term)]
                    -> Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
@@ -927,7 +927,7 @@ desugarCase hctx ms0 cls0 =
           sequence [ Just (ns, [], p, ps, b)
                    | (ns, p:ps, b) <- cls1
                    ]
-        
+
         go :: [([String], [Pattern], Pattern, [Pattern], Core.Term)]
            -> Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
         go cls
@@ -935,31 +935,31 @@ desugarCase hctx ms0 cls0 =
               = Just cls
           | otherwise
               = move cls >>= go
-        
+
         isConPat :: Pattern -> Bool
         isConPat (In (ConPat _ _)) = True
-        isConPat _ = False
-        
+        isConPat _                 = False
+
         move :: [([String], [Pattern], Pattern, [Pattern], Core.Term)]
              -> Maybe [([String], [Pattern], Pattern, [Pattern], Core.Term)]
-        move [] = Nothing
+        move []  = Nothing
         move cls = sequence (map moveOne cls)
-        
+
         moveOne :: ([String], [Pattern], Pattern, [Pattern], Core.Term)
                 -> Maybe ([String], [Pattern], Pattern, [Pattern], Core.Term)
-        moveOne (_, _, _, [], _) = Nothing
+        moveOne (_, _, _, [], _)     = Nothing
         moveOne (ns, ls, p, r:rs, b) = Just (ns, p:ls, r, rs, b)
-    
+
     protoclauses :: [([String],[Pattern],Core.Term)]
     protoclauses =
       do (pscs, bsc) <- cls0
          let (xs,ns,b) = openScope (context hctx) bsc
              ps = [ instantiate psc (map (Var . Free) xs) | psc <- pscs ]
          return (ns ++ initialNames, ps, b)
-    
+
     initialNames :: [String]
     initialNames = [ n | (FreeVar n, _) <- context hctx ]
-    
+
     splitIntoCases :: [([String], [Pattern], Pattern, [Pattern], Core.Term)]
                    -> [((String, Int), [([String], [Pattern], Core.Term)])]
     splitIntoCases cls =
@@ -971,7 +971,7 @@ desugarCase hctx ms0 cls0 =
         grouped =
           groupOn (\(_,_,In (ConPat c ps),_,_) -> (c, length ps))
                   cls
-        
+
         decomposePattern
           :: ([String], [Pattern], Pattern, [Pattern], Core.Term)
           -> ([String], [Pattern], Core.Term)
@@ -979,7 +979,7 @@ desugarCase hctx ms0 cls0 =
           (ns, reverse ls ++ map body ps ++ rs, b)
         decomposePattern _ =
           error "We should never try to decmopose non-constructor patterns."
-    
+
     groupOn :: Eq b => (a -> b) -> [a] -> [(b,[a])]
     groupOn f xs = collapsedTag
       where
@@ -1002,7 +1002,7 @@ desugarCase hctx ms0 cls0 =
          let (xs,_,b) = openScope (context hctx) bsc
              ps = [ instantiate psc (map (Var . Free) xs) | psc <- pscs ]
          return (ps, b)
-    
+
     go :: [Core.Term]
        -> [([String], [Pattern], Core.Term)]
        -> Core.Term
@@ -1029,7 +1029,7 @@ desugarCase hctx ms0 cls0 =
           n = freshenName ctxs "x"
           ms' = Var (Free (FreeVar n)) : ms
       in Core.letH m n (go ms' cls)
-    
+
     enrichIfNecessary :: [([String], [Pattern], Core.Term)]
                       -> [([String], [Pattern], Core.Term)]
     enrichIfNecessary cls =
@@ -1038,15 +1038,15 @@ desugarCase hctx ms0 cls0 =
       else let enrichTargets =
                  nub (catMaybes (map (\(_,p:_,_) -> enrichTarget p) cls))
            in cls >>= splitIfNecessary enrichTargets
-    
+
     isVarPat :: Pattern -> Bool
     isVarPat (Var _) = True
     isVarPat (In _) = False
-    
+
     enrichTarget :: Pattern -> Maybe (String,Int)
     enrichTarget (Var _) = Nothing
     enrichTarget (In (ConPat n ps)) = Just (n, length ps)
-    
+
     splitIfNecessary :: [(String,Int)]
                      -> ([String], [Pattern], Core.Term)
                      -> [([String], [Pattern], Core.Term)]
@@ -1064,7 +1064,7 @@ desugarCase hctx ms0 cls0 =
                 , newPattern:ps
                 , newBody
                 )
-    
+
     groupOn :: Eq b => (a -> b) -> [a] -> [(b,[a])]
     groupOn f xs = collapsedTag
       where
@@ -1072,7 +1072,7 @@ desugarCase hctx ms0 cls0 =
         grouped = groupBy (\(b,_) (b',_) -> b == b') tagged
         unzipped = map unzip grouped
         collapsedTag = map (\(b:_,as) -> (b,as)) unzipped
-    
+
     makeClauses :: [Core.Term]
                 -> [([String], [Pattern], Core.Term)]
                 -> [Core.Clause]
@@ -1095,7 +1095,7 @@ desugarCase hctx ms0 cls0 =
                        ns
                        (go (xs ++ ms) cls')
   -}
-    
+
 
 
 

@@ -1,21 +1,18 @@
-{-# LANGUAGE PackageImports, TemplateHaskell #-}
+{-# LANGUAGE PackageImports  #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Examples.Keys
 where
-  
-import "cryptonite" 
-       Crypto.PubKey.ECC.ECDSA
-import Crypto.PubKey.ECC.Generate
-import Crypto.PubKey.ECC.Types
-import "cryptonite" 
-       Crypto.Random
 
-import Data.Map   (Map)
-import qualified
-       Data.Map   as Map
-import Data.Set   (Set)
-import qualified
-       Data.Set   as Set
+import           "cryptonite" Crypto.PubKey.ECC.ECDSA
+import           Crypto.PubKey.ECC.Generate
+import           Crypto.PubKey.ECC.Types
+import           "cryptonite" Crypto.Random
+
+import           Data.Map                             (Map)
+import qualified Data.Map                             as Map
+import           Data.Set                             (Set)
+import qualified Data.Set                             as Set
 
 
 myKeyPair1 :: KeyPair
@@ -23,5 +20,5 @@ myKeyPair1 = KeyPair (private_curve . snd $ keys) (public_q . fst $ keys) (priva
   where
     curve     = getCurveByName SEC_p112r1
     drg       = drgNewSeed (seedFromInteger 42)
-    (keys, _) = withDRG drg $ 
+    (keys, _) = withDRG drg $
                   generate curve

@@ -1,11 +1,10 @@
 -- | See the 'docs/Constant application.md' article for how this module emerged.
 
-{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 module Language.PlutusCore.Constant.Typed
-    ( BuiltinSized(..)
+    ( BuiltinSized
     , TypedBuiltinSized(..)
     , SizeEntry(..)
     , TypedBuiltin(..)
@@ -16,7 +15,6 @@ module Language.PlutusCore.Constant.Typed
     , eraseTypedBuiltinSized
     , fmapSizeTypedBuiltin
     , typedBuiltinSizedToType
-    , typedBuiltinToType
     , typeSchemeToType
     , typedAddInteger
     , typedSubtractInteger
@@ -44,8 +42,8 @@ module Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL

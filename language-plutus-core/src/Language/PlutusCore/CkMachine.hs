@@ -1,9 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
-    ( CkError(..)
-    , CkException(..)
-    , CkEvalResult(..)
-    , evaluateCk
+    ( CkEvalResult
     , runCk
     ) where
 
@@ -11,6 +8,7 @@ import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Constant.Prelude
 import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -47,36 +45,36 @@ data CkException = CkException
 data CkEvalResult
     = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
-    deriving (Show, Eq)
+    deriving (Eq)
 
-instance Pretty CkEvalResult where
-    pretty (CkEvalSuccess value) = pretty value
-    pretty CkEvalFailure         = "Failure"
+instance PrettyCfg CkEvalResult where
+    prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value
+    prettyCfg _ CkEvalFailure           = "Failure"
 
 -- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
 constAppErrorString (SizeMismatchConstAppError seenSize arg) = join
     [ "encoutered an unexpected size in ("
-    , prettyString arg
+    , prettyCfgString arg
     , ") (previously seen size: "
     , prettyString seenSize
     , ") in"
     ]
 constAppErrorString (IllTypedConstAppError expType constant) = join
     [ "encountered an ill-typed argument: ("
-    , prettyString constant
+    , prettyCfgString constant
     , ") (expected type: "
     , prettyString expType
     , ") in"
     ]
 constAppErrorString (ExcessArgumentsConstAppError excessArgs) = join
     [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
-    , prettyString excessArgs
+    , prettyCfgString excessArgs -- TODO: allow user configuration here
     , ") in"
     ]
 constAppErrorString (SizedNonConstantConstAppError arg)       = join
     [ "encountered a non-constant argument of a sized type: ("
-    , prettyString arg
+    , prettyCfgString arg
     , ") in"
     ]
 
@@ -94,7 +92,7 @@ ckErrorString (ConstAppCkError constAppError)  =
 
 instance Show CkException where
     show (CkException err cause) = join
-        ["The CK machine " , ckErrorString err, prettyString cause]
+        ["The CK machine " , ckErrorString err, prettyCfgString cause]
 
 instance Exception CkException
 

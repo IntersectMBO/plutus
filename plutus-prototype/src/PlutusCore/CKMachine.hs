@@ -7,14 +7,14 @@
 
 module PlutusCore.CKMachine where
 
-import PlutusCore.BuiltinEvaluation
-import PlutusCore.EvaluatorTypes
-import PlutusCore.PatternMatching
-import PlutusCore.Term
-import Utils.ABT
-import Utils.Env
-import Utils.Names
-import Utils.Pretty
+import           PlutusCore.BuiltinEvaluation
+import           PlutusCore.EvaluatorTypes
+import           PlutusCore.PatternMatching
+import           PlutusCore.Term
+import           Utils.ABT
+import           Utils.Env
+import           Utils.Names
+import           Utils.Pretty
 
 
 
@@ -99,7 +99,7 @@ ret petrol txinfo denv (InAppRight f : stk) x =
       ret (petrol - 1) txinfo denv stk (appH f x)
 ret petrol txinfo denv (InCon c revls rs : stk) m =
   case rs of
-    [] -> ret (petrol - 1) txinfo denv stk (conH c (reverse (m:revls)))
+    []     -> ret (petrol - 1) txinfo denv stk (conH c (reverse (m:revls)))
     m':rs' -> rec (petrol - 1) txinfo denv (InCon c (m:revls) rs' : stk) m'
 ret petrol txinfo denv (InCase cs : stk) m =
   case matchClauses cs m of

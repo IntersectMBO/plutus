@@ -1,4 +1,6 @@
-{-# LANGUAGE PackageImports, BangPatterns, TemplateHaskell #-}
+{-# LANGUAGE BangPatterns    #-}
+{-# LANGUAGE PackageImports  #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- This code models a UTxO-style ledger using the approach from
 --
@@ -17,23 +19,20 @@
 --
 -- UTxO model definition
 
-module UTxO 
+module UTxO
 where
 
-import "cryptonite" 
-       Crypto.Hash
-import Data.List  
-import Data.Set       (Set)
-import qualified
-       Data.Set       as Set
-import Data.Map       (Map)
-import qualified
-       Data.Map       as Map
-import Data.Maybe
+import           "cryptonite" Crypto.Hash
+import           Data.List
+import           Data.Map                 (Map)
+import qualified Data.Map                 as Map
+import           Data.Maybe
+import           Data.Set                 (Set)
+import qualified Data.Set                 as Set
 
-import Ledger
-import Types
-import Witness
+import           Ledger
+import           Types
+import           Witness
 
 
 -- |Determine the transaction that an input refers to.
@@ -43,9 +42,9 @@ import Witness
 tx :: Ledger -> TxOutRef -> Maybe Tx
 tx ledger txOutRef
   = case [t | t <- ledger, hashTx t == idTOR txOutRef] of
-      []     -> Nothing
+      []    -> Nothing
       (t:_) -> Just t
-  
+
 -- |Determine the unspent output that an input refers to.
 --
 -- NB: Arguments swapped wrt to the paper.
@@ -58,9 +57,9 @@ out ledger txOutRef
         then fail ""
         else return $ outputsTX t !! indexTOR txOutRef
     }
-  
+
 -- |Determine the unspent value that an input refers to.
---  
+--
 -- NB: Arguments swapped wrt to the paper.
 --
 value :: Ledger -> TxOutRef -> Maybe Value
@@ -69,8 +68,8 @@ value ledger txOutRef
     { outTx <- out ledger txOutRef
     ; return $ valueTO outTx
     }
-    
--- 
+
+--
 
 -- |The unspent outputs of a transaction.
 --
@@ -78,14 +77,14 @@ value ledger txOutRef
 -- traversals in 'valid'.
 --
 unspentOutputsTx :: Tx -> Map TxOutRef Address
-unspentOutputsTx tx 
-  = Map.fromList $ 
+unspentOutputsTx tx
+  = Map.fromList $
       [ (TxOutRef{ idTOR = hashTx tx, indexTOR = ix }, addressTO txOut)
-      | (txOut, ix) <- zip (outputsTX tx) [0..] 
+      | (txOut, ix) <- zip (outputsTX tx) [0..]
       ]
 
 -- |The outputs spent by a transaction (represented as inputs).
--- 
+--
 spentOutputsTx :: Tx -> Set TxOutRef
 spentOutputsTx = Set.fromList . map refTI . inputsTX
 
@@ -97,9 +96,9 @@ spentOutputsTx = Set.fromList . map refTI . inputsTX
 -- traversals in 'valid'.
 --
 unspentOutputs :: Ledger -> Map TxOutRef Address
-unspentOutputs 
-  = foldr 
-      (\t unspent -> (unspent `Map.difference` lift (spentOutputsTx t)) `Map.union` unspentOutputsTx t) 
+unspentOutputs
+  = foldr
+      (\t unspent -> (unspent `Map.difference` lift (spentOutputsTx t)) `Map.union` unspentOutputsTx t)
       Map.empty
   where
     lift = Map.fromSet (const ())
@@ -120,7 +119,7 @@ validTx t ledger = inputsAreValid && valueIsPreserved && validValuesTx t
                         == feeTX t + sum (map valueTO (outputsTX t))
                            -- NB: the 'fromMaybe' is safe as 'inputsAreUnspent' holds if we get here
 
-    txIn `validatesIn` txOuts 
+    txIn `validatesIn` txOuts
       = case refTI txIn `Map.lookup` txOuts of
           Just addr -> validate addr (state t ledger) (witnessTI txIn)
           _         -> False
@@ -134,15 +133,15 @@ valid (t:ledger) = validTx t ledger && valid ledger
 -- |The UTxO balance of a given address in a valid transaction for the given ledger.
 --
 balanceTx :: Address -> Tx -> Ledger -> Value
-balanceTx addr t ledger 
+balanceTx addr t ledger
   | not (t `validTx` ledger)
   = error "transaction not valid in ledger"
   | otherwise = received - spent
   where
     received = sum [ valueTO txOut | txOut <- outputsTX t, addressTO txOut == addr ]
-    spent    = sum [ valueTO txOut 
+    spent    = sum [ valueTO txOut
                    | txOut <- catMaybes . map (out ledger . refTI) $ inputsTX t
-                   , addressTO txOut == addr 
+                   , addressTO txOut == addr
                    ]
 
 -- |The UTxO balance of a given address in a ledger.

@@ -16,14 +16,13 @@ module Evaluation.Constant.GenTypedBuiltinSized
     , genTypedBuiltinSizedDiv
     ) where
 
-import           Language.PlutusCore.Constant
-
-import qualified Data.ByteString              as BS
-import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Lazy  as BSL
 import           Data.Functor.Identity
-import           Hedgehog                     hiding (Size, Var, annotate)
-import qualified Hedgehog.Gen                 as Gen
-import qualified Hedgehog.Range               as Range
+import           Hedgehog              hiding (Size, Var)
+import qualified Hedgehog.Gen          as Gen
+import qualified Hedgehog.Range        as Range
+import           Language.PlutusCore
 
 -- | A function of this type generates values of sized builtin types
 -- (see 'TypedBuiltinSized' for the list of such types).

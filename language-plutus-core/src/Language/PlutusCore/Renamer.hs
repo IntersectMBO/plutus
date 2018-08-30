@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Renamer ( rename
                                    , annotate
                                    , annotateST
+                                   , annotateTermST
                                    , NameWithType (..)
                                    , RenamedType
                                    , RenamedTerm
@@ -17,9 +17,9 @@ module Language.PlutusCore.Renamer ( rename
 
 import           Control.Monad.Except
 import           Control.Monad.State.Lazy
-import qualified Data.IntMap               as IM
-import           Language.PlutusCore.Lexer
+import qualified Data.IntMap                   as IM
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
@@ -43,23 +43,30 @@ type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Functor, Pretty, Debug)
+    deriving (Functor, Generic)
+    deriving newtype NFData
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Eq, Functor, Pretty, Debug)
+    deriving (Eq, Functor, Generic)
+    deriving newtype NFData
+
+instance PrettyCfg (TyNameWithKind a) where
+    prettyCfg cfg@(Configuration _ True) (TyNameWithKind (TyName tn@(Name (_, k) _ _))) = parens (prettyCfg cfg tn <+> ":" <+> pretty k)
+    prettyCfg cfg@(Configuration _ False) (TyNameWithKind tn) = prettyCfg cfg tn
+
+instance PrettyCfg (NameWithType a) where
+    prettyCfg cfg@(Configuration _ True) (NameWithType n@(Name (_, ty) _ _)) = parens (prettyCfg cfg n <+> ":" <+> prettyCfg cfg ty)
+    prettyCfg cfg@(Configuration _ False) (NameWithType n) = prettyCfg cfg n
 
 -- | A 'RenameError' is thrown when a free variable is encountered during
 -- rewriting.
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
+                   deriving (Generic, NFData)
 
-instance Pretty (RenameError AlexPosn) where
-    pretty (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> pretty n <+> "is not in scope."
-    pretty (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> pretty n <+> "is not in scope."
-
-instance Debug (RenameError AlexPosn) where
-    debug (UnboundVar n@(Name loc _ _)) = "Error at" <+> pretty loc <> ". Variable" <+> debug n <+> "is not in scope."
-    debug (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> pretty loc <> ". Type variable" <+> debug n <+> "is not in scope."
+instance (PrettyCfg a) => PrettyCfg (RenameError a) where
+    prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> prettyCfg cfg loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
+    prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> prettyCfg cfg loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
 
 -- | Annotate a program with type/kind information at all bound variables,
 -- failing if we encounter a free variable.
@@ -69,9 +76,14 @@ annotate = fmap snd . annotateST
 -- | Annotate a program with type/kind information at all bound variables,
 -- additionally returning a 'TypeState'
 annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
-annotateST (Program x v p) = do
-    (t, st) <- runStateT (annotateTerm p) mempty
-    pure (st, Program x v t)
+annotateST (Program x v p) = fmap (Program x v) <$> annotateTermST p
+
+-- | Annotate a term with type/kind information at all bound variables,
+-- additionally returning a 'TypeState'
+annotateTermST :: Term TyName Name a -> Either (RenameError a) (TypeState a, Term TyNameWithKind NameWithType a)
+annotateTermST t = do
+    (t', st) <- runStateT (annotateTerm t) mempty
+    pure (st, t')
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert
@@ -144,7 +156,7 @@ rename (st, _, nextU) (Program x v p) = Program x v (evalState (renameTerm (Iden
     where st' = IM.fromList (zip keys keys)
           keys = IM.keys st
           -- the next unique is one more than the maximum
-          m = (unUnique nextU)-1
+          m = unUnique nextU-1
 
 newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
 

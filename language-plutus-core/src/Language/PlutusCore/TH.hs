@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveLift          #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
@@ -7,12 +6,12 @@
 
 module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 
-import           Language.Haskell.TH        hiding (Name, Type)
+import           Language.Haskell.TH           hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
-import           Language.PlutusCore        (discardAnnsTerm, discardAnnsTy)
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Parser (ParseError)
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Type
@@ -20,10 +19,11 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy       as BSL
+import           Control.Monad.Morph           as MM
+import qualified Data.ByteString.Lazy          as BSL
 import           Data.Functor.Identity
-import qualified Data.Map                   as Map
-import qualified Data.Set                   as Set
+import qualified Data.Map                      as Map
+import qualified Data.Set                      as Set
 
 {-
 This uses the approach in https://www.well-typed.com/blog/2014/10/quasi-quoting-dsls/ to use free
@@ -49,32 +49,28 @@ substs fvsL = let substFun n = [| $(varE (mkName (bsToStr n)))|] in listE $ fmap
 -- | Get a quotation of a map between names and Haskell variable references to terms using the
 -- name as the variable name.
 metavarMapTerm :: Set.Set (Name a) -> Q Exp
-metavarMapTerm ftvs = let ftvsL = fmap nameString $ toList $ ftvs in
+metavarMapTerm ftvs = let ftvsL = nameString <$> toList ftvs in
     [|
         let
-            subs :: [Quote (Term TyName Name ())]
+            subs :: [Term TyName Name ()]
             subs = $(substs ftvsL)
-            qm :: Quote (Map.Map (BSL.ByteString) (Term TyName Name ()))
-            qm = do
-                quoted <- sequence subs
-                pure $ Map.fromList $ zip ftvsL quoted
-        in qm
+            qm :: Map.Map BSL.ByteString (Term TyName Name ())
+            qm = Map.fromList $ zip ftvsL subs
+        in pure qm
     |]
 
 -- See note [Metavar map functions]
 -- | Get a quotation of a map between type names and Haskell variable references to types using the
 -- type name as the variable name.
 metavarMapType :: Set.Set (TyName a) -> Q Exp
-metavarMapType ftvs = let ftvsL = fmap (nameString . unTyName) $ toList $ ftvs in
+metavarMapType ftvs = let ftvsL = nameString . unTyName <$> toList ftvs in
     [|
         let
-          subs :: [Quote (Type TyName ())]
+          subs :: [Type TyName ()]
           subs = $(substs ftvsL)
-          qm :: Quote (Map.Map (BSL.ByteString) (Type TyName ()))
-          qm = do
-              quoted <- sequence subs
-              pure $ Map.fromList $ zip ftvsL quoted
-        in qm
+          qm :: Map.Map BSL.ByteString (Type TyName ())
+          qm = Map.fromList $ zip ftvsL subs
+        in pure qm
     |]
 
 metavarSubstType ::
@@ -96,13 +92,13 @@ metavarSubstTerm t tyMetavars termMetavars = substTerm
                         t
 
 -- | Runs a 'QuoteT' in the 'Q' context. Note that this uses 'runQuoteT', so does note preserve freshness.
-eval :: QuoteT (Except ParseError) a -> Q a
-eval c = case (runExcept $ runQuoteT c) of
-    Left e  -> fail $ show e
-    Right p -> pure $ p
+eval :: (PrettyCfg b) => QuoteT (Except (Error b)) a -> Q a
+eval c = case runExcept $ runQuoteT c of
+    Left e  -> fail $ show $ prettyCfgText e
+    Right p -> pure p
 
 unsafeDropErrors :: Except e a -> a
-unsafeDropErrors e = case (runExcept e) of
+unsafeDropErrors e = case runExcept e of
     Right r -> r
     Left _  -> error "Impossible!"
 
@@ -133,7 +129,7 @@ compileTerm s = do
             quoted :: Quote (Term TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeT <- (fmap discardAnnsTerm . mapInner (Identity . unsafeDropErrors) . parseTerm . strToBs) s
+                runtimeT <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
                 metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
@@ -148,7 +144,7 @@ compileType s = do
             quoted :: Quote (Type TyName ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeTy <- (fmap discardAnnsTy . mapInner (Identity . unsafeDropErrors) . parseType . strToBs) s
+                runtimeTy <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
                 metavarSubstType runtimeTy <$> $(tyMetavars)
           in quoted
       |]
@@ -164,8 +160,8 @@ compileProgram s = do
             quoted :: Quote (Program TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                (Program a v runtimeT) <- (fmap discardAnnsTerm . mapInner (Identity . unsafeDropErrors) . parseProgram . strToBs) s
-                Program a v <$> metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
+                (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
+                Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
 

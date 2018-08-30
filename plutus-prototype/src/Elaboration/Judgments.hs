@@ -1,5 +1,5 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 
@@ -10,16 +10,16 @@
 
 module Elaboration.Judgments where
 
-import Utils.ABT
-import qualified Utils.ProofDeveloper as PD
+import           Utils.ABT
+import qualified Utils.ProofDeveloper  as PD
 --import Utils.Vars
-import Elaboration.Contexts
-import Elaboration.ElabState
-import PlutusTypes.ConSig
-import PlutusTypes.Type
-import Plutus.Program
-import Plutus.Term
-import qualified PlutusCore.Term as Core
+import           Elaboration.Contexts
+import           Elaboration.ElabState
+import           Plutus.Program
+import           Plutus.Term
+import qualified PlutusCore.Term       as Core
+import           PlutusTypes.ConSig
+import           PlutusTypes.Type
 
 
 
@@ -32,65 +32,65 @@ data Judgment r where
   ElabProgram :: DeclContext
               -> Program
               -> Judgment DeclContext
-  
+
   -- DECL ⊢ term n type A def M ⊣ DECL
   ElabTermDecl :: DeclContext
                -> TermDeclaration
                -> Judgment DeclContext
-  
+
   -- DECL ⊢ c A* alt n α* ⊣ DECL
   ElabAlt :: DeclContext
           -> String
           -> ConSig
           -> Judgment DeclContext
-  
+
   -- DECL ⊢ type n α* alts C0 | ... | Cj ⊣ DECL
   ElabTypeDecl :: DeclContext
                -> TypeDeclaration
                -> Judgment DeclContext
-  
+
   -- DECL ; CTX ⊢ A type
   IsType :: DeclContext
          -> HypContext
          -> Type
          -> Judgment ()
-  
+
   -- DECL ; CTX ⊢ M ▹ M' ∈ A ⊣ DECL
   Synth :: DeclContext
         -> HypContext
         -> Term
         -> Judgment (Core.Term, Type, DeclContext)
-  
+
   -- DECL ; CTX ⊢ P* → M ▹ P'* → M' from A* to B ⊣ DECL
   SynthClause :: DeclContext
               -> HypContext
               -> [Type]
               -> Clause
               -> Judgment (Scope Core.TermF, Type, DeclContext)
-  
+
   -- DECL ; CTX ⊢ A ∋ M ▹ M' ⊣ DECL
   Check :: DeclContext
         -> HypContext
         -> Type
         -> Term
         -> Judgment (Core.Term, DeclContext)
-  
+
   -- DECL ; CTX ⊢ A pattern P ▹ P'
   CheckPattern :: DeclContext
                -> Type
                -> Pattern
                -> Judgment [Type]
-  
+
   -- DECL ⊢ [α*](A0,...,An)B consig
   CheckConSig :: DeclContext
               -> ConSig
               -> Judgment ()
-  
+
   -- A =!= B
   Unify :: Type -> Type -> Judgment ()
-  
+
   UnifyAll :: [Type] -> Judgment Type
-  
+
   -- A ⊑ B
   Subtype :: HypContext -> Type -> Type -> Judgment ()
 
@@ -107,7 +107,7 @@ substituteHypContext s hctx =
           | (x,t) <- context hctx
           ]
     }
-  
+
 
 instance PD.Metas ElabState Judgment where
   substitute s (ElabProgram dctx prog) =

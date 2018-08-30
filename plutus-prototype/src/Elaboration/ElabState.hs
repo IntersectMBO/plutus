@@ -8,9 +8,9 @@
 
 module Elaboration.ElabState where
 
-import Utils.Unifier
-import Utils.Vars
-import PlutusTypes.Type
+import           PlutusTypes.Type
+import           Utils.Unifier
+import           Utils.Vars
 
 
 
@@ -24,9 +24,9 @@ import PlutusTypes.Type
 
 data ElabState
   = ElabState
-    { substitution :: Substitution TypeF
-    , nextMeta :: MetaVar
-    , nextGeneratedNameIndex :: Int
+    { substitution             :: Substitution TypeF
+    , nextMeta                 :: MetaVar
+    , nextGeneratedNameIndex   :: Int
     , currentNameBeingDeclared :: String
     }
 

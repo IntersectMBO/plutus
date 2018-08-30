@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 
 
@@ -14,7 +14,7 @@ module Utils.Vars where
 
 
 
-import GHC.Generics
+import           GHC.Generics
 
 
 

@@ -1,10 +1,10 @@
-{-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes      #-}
 module Main where
 
-import Criterion.Main.Options
-import Criterion.Main
-import Criterion.Types
+import           Criterion.Main
+import           Criterion.Main.Options
+import           Criterion.Types
 
 fix' :: ((a -> b) -> a -> b) -> a -> b
 fix' f x = (f $! fix' f) $! x

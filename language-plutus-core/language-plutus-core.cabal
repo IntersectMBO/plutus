@@ -20,6 +20,12 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus-prototype
 
+flag eventlog
+    description:
+        Pass `-eventlog` flag to GHC
+    default: False
+    manual: True
+
 flag development
     description:
         Enable `-Werror`
@@ -29,13 +35,9 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
-        Language.PlutusCore.CkMachine
-        Language.PlutusCore.Constant
-        Language.PlutusCore.TH
-        Language.PlutusCore.Quote
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude recursion
+    hs-source-dirs: src prelude
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Name
@@ -51,15 +53,29 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
+        Language.PlutusCore.CBOR
+        Language.PlutusCore.PrettyCfg
         Language.PlutusCore.Subst
+        Language.PlutusCore.CkMachine
+        Language.PlutusCore.Constant
+        Language.PlutusCore.TH
+        Language.PlutusCore.Quote
         Data.Functor.Foldable.Monadic
+        Data.Text.Prettyprint.Doc.Custom
     default-language: Haskell2010
-    other-extensions: DeriveGeneric DeriveAnyClass StandaloneDeriving
-                      GeneralizedNewtypeDeriving TypeFamilies DeriveFunctor
-                      DeriveFoldable DeriveTraversable FlexibleContexts OverloadedStrings
-                      DerivingStrategies MonadComprehensions FlexibleInstances
-                      ConstrainedClassMethods TupleSections GADTs RankNTypes 
-                      DeriveLift TemplateHaskell QuasiQuotes
+    default-extensions:
+        -- should be in base
+        ExplicitForAll ScopedTypeVariables
+        -- extensions to deriving
+        DeriveGeneric StandaloneDeriving DeriveLift
+        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+        DeriveTraversable DerivingStrategies
+    other-extensions:
+        DeriveAnyClass
+        FlexibleContexts FlexibleInstances MultiParamTypeClasses
+        TypeFamilies OverloadedStrings MonadComprehensions
+        ConstrainedClassMethods TupleSections GADTs RankNTypes
+        TemplateHaskell QuasiQuotes
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -71,13 +87,33 @@ library
         mtl -any,
         transformers -any,
         deepseq -any,
-        recursion-schemes >=5.0.1,
+        recursion-schemes,
         text -any,
-        prettyprinter -any,
+        prettyprinter >=1.1.0.1,
         microlens -any,
         composition-prelude -any,
-        template-haskell -any,
-        th-lift-instances -any
+        cborg -any,
+        th-lift-instances,
+        template-haskell,
+        mmorph -any
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
+
+executable language-plutus-core-run-ck
+    main-is: Main.hs
+    hs-source-dirs: run-ck
+    default-language: Haskell2010
+    ghc-options: -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        language-plutus-core -any,
+        bytestring -any,
+        text -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -118,6 +154,9 @@ test-suite language-plutus-core-test
         mtl -any,
         mmorph -any
 
+    if flag(eventlog)
+        ghc-options: -eventlog
+
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
 
@@ -131,33 +170,17 @@ benchmark language-plutus-core-bench
     default-language: Haskell2010
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
+                 -rtsopts
     build-depends:
         base -any,
         language-plutus-core -any,
         criterion -any,
         bytestring -any
 
+    if flag(eventlog)
+        ghc-options: -eventlog
+
     if flag(development)
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
-executable language-plutus-core-run-ck
-    main-is: Main.hs
-    hs-source-dirs: run-ck
-    default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-    build-depends:
-        base -any,
-        language-plutus-core -any,
-        bytestring -any,
-        text -any,
-        prettyprinter -any
-
-    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
 
     if impl(ghc >=8.4)

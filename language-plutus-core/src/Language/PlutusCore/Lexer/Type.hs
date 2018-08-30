@@ -1,8 +1,5 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveFunctor      #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DeriveLift         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , Version (..)
@@ -17,10 +14,11 @@ import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
 import           Data.Text.Encoding                 (decodeUtf8)
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.PrettyCfg
 import           Numeric                            (showHex)
 import           PlutusPrelude
-import           Language.Haskell.TH.Syntax (Lift)
 
 -- | A builtin type
 data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals
@@ -133,40 +131,40 @@ instance Pretty Keyword where
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"
 
-instance Pretty (Token a) where
-    pretty (LexName _ n _)   = pretty (decodeUtf8 (BSL.toStrict n))
-    pretty (LexInt _ i)      = pretty i
-    pretty (LexNat _ n)      = pretty n
-    pretty (LexBS _ bs)      = prettyBytes bs
-    pretty (LexBuiltin _ bn) = pretty bn
-    pretty (LexKeyword _ kw) = pretty kw
-    pretty (LexSpecial _ s)  = pretty s
-    pretty EOF{}             = mempty
+instance PrettyCfg (Token a) where
+    prettyCfg _  (LexName _ n _)    = pretty (decodeUtf8 (BSL.toStrict n))
+    prettyCfg _  (LexInt _ i)       = pretty i
+    prettyCfg _  (LexNat _ n)       = pretty n
+    prettyCfg _  (LexBS _ bs)       = prettyBytes bs
+    prettyCfg cfg (LexBuiltin _ bn) = prettyCfg cfg bn
+    prettyCfg _  (LexKeyword _ kw)  = pretty kw
+    prettyCfg _  (LexSpecial _ s)   = pretty s
+    prettyCfg _  EOF{}              = mempty
 
-instance Pretty BuiltinName where
-    pretty AddInteger           = "addInteger"
-    pretty SubtractInteger      = "subtractInteger"
-    pretty MultiplyInteger      = "multiplyInteger"
-    pretty DivideInteger        = "divideInteger"
-    pretty RemainderInteger     = "remainderInteger"
-    pretty LessThanInteger      = "lessThanInteger"
-    pretty LessThanEqInteger    = "lessThanEqualsInteger"
-    pretty GreaterThanInteger   = "greaterThanInteger"
-    pretty GreaterThanEqInteger = "greaterThanEqualsInteger"
-    pretty EqInteger            = "equalsInteger"
-    pretty ResizeInteger        = "resizeInteger"
-    pretty IntToByteString      = "intToByteString"
-    pretty Concatenate          = "concatenate"
-    pretty TakeByteString       = "takeByteString"
-    pretty DropByteString       = "dropByteString"
-    pretty ResizeByteString     = "resizeByteString"
-    pretty EqByteString         = "equalsByteString"
-    pretty SHA2                 = "sha2_256"
-    pretty SHA3                 = "sha3_256"
-    pretty VerifySignature      = "verifySignature"
-    pretty TxHash               = "txhash"
-    pretty BlockNum             = "blocknum"
-    pretty BlockTime            = "blocktime"
+instance PrettyCfg BuiltinName where
+    prettyCfg _ AddInteger           = "addInteger"
+    prettyCfg _ SubtractInteger      = "subtractInteger"
+    prettyCfg _ MultiplyInteger      = "multiplyInteger"
+    prettyCfg _ DivideInteger        = "divideInteger"
+    prettyCfg _ RemainderInteger     = "remainderInteger"
+    prettyCfg _ LessThanInteger      = "lessThanInteger"
+    prettyCfg _ LessThanEqInteger    = "lessThanEqualsInteger"
+    prettyCfg _ GreaterThanInteger   = "greaterThanInteger"
+    prettyCfg _ GreaterThanEqInteger = "greaterThanEqualsInteger"
+    prettyCfg _ EqInteger            = "equalsInteger"
+    prettyCfg _ ResizeInteger        = "resizeInteger"
+    prettyCfg _ IntToByteString      = "intToByteString"
+    prettyCfg _ Concatenate          = "concatenate"
+    prettyCfg _ TakeByteString       = "takeByteString"
+    prettyCfg _ DropByteString       = "dropByteString"
+    prettyCfg _ ResizeByteString     = "resizeByteString"
+    prettyCfg _ EqByteString         = "equalsByteString"
+    prettyCfg _ SHA2                 = "sha2_256"
+    prettyCfg _ SHA3                 = "sha3_256"
+    prettyCfg _ VerifySignature      = "verifySignature"
+    prettyCfg _ TxHash               = "txhash"
+    prettyCfg _ BlockNum             = "blocknum"
+    prettyCfg _ BlockTime            = "blocktime"
 
 instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
