@@ -132,14 +132,14 @@ instance Pretty Keyword where
     pretty KwError      = "error"
 
 instance PrettyCfg (Token a) where
-    prettyCfg _  (LexName _ n _)     = pretty (decodeUtf8 (BSL.toStrict n))
-    prettyCfg _  (LexInt _ i)        = pretty i
-    prettyCfg _  (LexNat _ n)        = pretty n
-    prettyCfg _  (LexBS _ bs)        = prettyBytes bs
-    prettyCfg cfg  (LexBuiltin _ bn) = prettyCfg cfg bn
-    prettyCfg _  (LexKeyword _ kw)   = pretty kw
-    prettyCfg _  (LexSpecial _ s)    = pretty s
-    prettyCfg _  EOF{}               = mempty
+    prettyCfg _  (LexName _ n _)    = pretty (decodeUtf8 (BSL.toStrict n))
+    prettyCfg _  (LexInt _ i)       = pretty i
+    prettyCfg _  (LexNat _ n)       = pretty n
+    prettyCfg _  (LexBS _ bs)       = prettyBytes bs
+    prettyCfg cfg (LexBuiltin _ bn) = prettyCfg cfg bn
+    prettyCfg _  (LexKeyword _ kw)  = pretty kw
+    prettyCfg _  (LexSpecial _ s)   = pretty s
+    prettyCfg _  EOF{}              = mempty
 
 instance PrettyCfg BuiltinName where
     prettyCfg _ AddInteger           = "addInteger"
