@@ -53,7 +53,7 @@ getBuiltinChurchSucc = do
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
         . Apply () (Var () f)
-        . foldl (Apply ()) (TyInst () (Var () n) $ TyVar () r)
+        . foldl' (Apply ()) (TyInst () (Var () n) $ TyVar () r)
         $ [ Var () z
           , Var () f
           ]

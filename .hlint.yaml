@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.TestSupport.Generator]}
-  - {name: error, within: [Main, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.CkMachine, Language.PlutusCore.TestSupport.Generator, Language.PlutusCore.TH]}
+  - {name: error, within: [Main, Evaluation.CkMachine, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.CkMachine, Language.PlutusCore.TestSupport.Generator, Language.PlutusCore.Constant.Make, Language.PlutusCore.TestSupport.TypedBuiltinGen, Language.PlutusCore.TH]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}

@@ -38,7 +38,7 @@ getBuiltinNatToInteger s n = do
     builtinFoldNat <- getBuiltinFoldNat
     let int = Constant () . BuiltinInt () s
     return
-        . foldl (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
+        . foldl' (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
         $ [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
           , int 0
           , n
@@ -61,7 +61,7 @@ getListToBuiltinList ty ts = do
     builtinNil  <- getBuiltinNil
     builtinCons <- getBuiltinCons
     return $ foldr
-        (\x xs -> foldl (Apply ()) (TyInst () builtinCons ty) [x, xs])
+        (\x xs -> foldl' (Apply ()) (TyInst () builtinCons ty) [x, xs])
         (TyInst () builtinNil ty)
         ts
 
@@ -97,8 +97,8 @@ test_ifIntegers = testProperty "ifIntegers" . property $ do
         builtinUnit  <- lift getBuiltinUnit
         builtinIf    <- lift getBuiltinIf
         let builtinConstSpec =
-                Apply () $ foldl (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit]
-            term = foldl (Apply ())
+                Apply () $ foldl' (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit]
+            term = foldl' (Apply ())
                 (TyInst () builtinIf $ TyBuiltin () TyInteger)
                 [b, builtinConstSpec i, builtinConstSpec j]
             value = if bv then iv else jv

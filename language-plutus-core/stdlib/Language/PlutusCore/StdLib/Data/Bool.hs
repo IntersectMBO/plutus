@@ -77,6 +77,6 @@ getBuiltinIf = do
        . LamAbs () b builtinBool
        . LamAbs () x unitFunA
        . LamAbs () y unitFunA
-       $ foldl (Apply ())
+       $ foldl' (Apply ())
            (TyInst () (Var () b) (TyVar () a))
            [Var () x, Var () y]

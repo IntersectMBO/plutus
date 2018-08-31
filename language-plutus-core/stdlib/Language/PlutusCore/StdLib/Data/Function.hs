@@ -86,7 +86,7 @@ getBuiltinFix = do
         . wrapSelfFunAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
-        . foldl (Apply ()) (Var () f)
+        . foldl' (Apply ()) (Var () f)
         $ [ Apply () unrollFunAB $ Var () s
           , Var () x
           ]
