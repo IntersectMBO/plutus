@@ -9,6 +9,8 @@ import           Language.PlutusCore.TestSupport
 import           Control.Monad
 import           Control.Monad.Morph
 import           Data.Foldable
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
 import qualified Data.Text.IO                    as Text
 import qualified Hedgehog.Gen                    as Gen
 
@@ -31,11 +33,14 @@ generateTerm
               ]
           Just $ TermOf term actual
 
+oneline :: Text -> Text
+oneline = Text.unwords . Text.words
+
 main :: IO ()
 main = do
     TermOf term value <- generateTerm
     traverse_ Text.putStrLn
-        [ prettyCfgText $ Program () (Version () 0 1 0) term
+        [ oneline . prettyCfgText $ Program () (Version () 0 1 0) term
         , ""
-        , prettyCfgText value
+        , oneline $ prettyCfgText value
         ]

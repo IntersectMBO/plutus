@@ -6,7 +6,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinNil
     , getBuiltinCons
     , getBuiltinFoldrList
-    , getBuiltinFoldl'ist
+    , getBuiltinFoldList
     , getBuiltinSum
     ) where
 
@@ -122,8 +122,8 @@ getBuiltinFoldrList = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) -> rec (f z x)
-getBuiltinFoldl'ist :: Quote (Term TyName Name ())
-getBuiltinFoldl'ist = do
+getBuiltinFoldList :: Quote (Term TyName Name ())
+getBuiltinFoldList = do
     list <- getBuiltinList
     fix  <- getBuiltinFix
     a   <- freshTyName () "a"
@@ -158,10 +158,10 @@ getBuiltinFoldl'ist = do
 -- TODO: once sizes are added, make the implementation match the comment (which is wrong).
 getBuiltinSum :: Natural -> Quote (Term TyName Name ())
 getBuiltinSum s = do
-    foldl'ist <- getBuiltinFoldl'ist
+    foldList <- getBuiltinFoldList
     let int = TyBuiltin () TyInteger
     return
-        . foldl' (Apply ()) (foldl' (TyInst ()) foldl'ist [int, int])
+        . foldl' (Apply ()) (foldl' (TyInst ()) foldList [int, int])
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
           , Constant () $ BuiltinInt () s 0
           ]

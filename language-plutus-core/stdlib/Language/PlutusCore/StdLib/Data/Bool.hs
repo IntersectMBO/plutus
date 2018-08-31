@@ -8,6 +8,7 @@ module Language.PlutusCore.StdLib.Data.Bool
     , getBuiltinIf
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Unit

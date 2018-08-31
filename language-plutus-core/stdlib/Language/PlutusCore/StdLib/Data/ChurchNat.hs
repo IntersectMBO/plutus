@@ -7,6 +7,7 @@ module Language.PlutusCore.StdLib.Data.ChurchNat
     , getBuiltinChurchSucc
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type

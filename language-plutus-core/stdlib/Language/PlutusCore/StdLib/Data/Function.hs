@@ -8,6 +8,7 @@ module Language.PlutusCore.StdLib.Data.Function
     , getBuiltinFix
     ) where
 
+import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Type
