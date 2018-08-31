@@ -42075,6 +42075,8 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , criterion
 , deepseq
+, dependent-map
+, dependent-sum
 , happy
 , hedgehog
 , microlens
@@ -42082,6 +42084,7 @@ license = stdenv.lib.licenses.bsd3;
 , mtl
 , prettyprinter
 , recursion-schemes
+, safe-exceptions
 , stdenv
 , tasty
 , tasty-golden
@@ -42107,11 +42110,15 @@ cborg
 composition-prelude
 containers
 deepseq
+dependent-map
+dependent-sum
+hedgehog
 microlens
 mmorph
 mtl
 prettyprinter
 recursion-schemes
+safe-exceptions
 template-haskell
 text
 th-lift-instances
@@ -42124,6 +42131,9 @@ happy
 executableHaskellDepends = [
 base
 bytestring
+hedgehog
+mmorph
+prettyprinter
 text
 ];
 testHaskellDepends = [
@@ -42132,7 +42142,6 @@ bytestring
 containers
 hedgehog
 mmorph
-mtl
 prettyprinter
 tasty
 tasty-golden
@@ -83584,4 +83593,3 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
-

@@ -1,6 +1,7 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState

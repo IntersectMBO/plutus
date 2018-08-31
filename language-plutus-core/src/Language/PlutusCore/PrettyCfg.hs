@@ -1,6 +1,7 @@
 -- | This module contains the 'PrettyCfg' typeclass, a more sophisticated
 -- typeclass for pretty-printing that allows us to dump debug information only
 -- when wanted.
+{-# LANGUAGE DefaultSignatures #-}
 module Language.PlutusCore.PrettyCfg ( PrettyCfg (..)
                                      , Configuration (..)
                                      -- * Helper functions
@@ -21,6 +22,11 @@ data Configuration = Configuration { _debug :: Bool, _annotation :: Bool }
 
 class PrettyCfg a where
     prettyCfg :: Configuration -> a -> Doc b
+    default prettyCfg :: Pretty a => Configuration -> a -> Doc b
+    prettyCfg _ = pretty
+
+instance PrettyCfg Bool
+instance PrettyCfg Integer
 
 instance PrettyCfg a => PrettyCfg [a] where
     prettyCfg cfg = list . fmap (prettyCfg cfg)

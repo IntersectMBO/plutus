@@ -35,7 +35,20 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
+        Language.PlutusCore.CkMachine
+        Language.PlutusCore.Constant
+        Language.PlutusCore.TestSupport
+        Language.PlutusCore.View
+        Language.PlutusCore.StdLib.Data.Bool
+        Language.PlutusCore.StdLib.Data.ChurchNat
+        Language.PlutusCore.StdLib.Data.Function
+        Language.PlutusCore.StdLib.Data.List
+        Language.PlutusCore.StdLib.Data.Nat
+        Language.PlutusCore.StdLib.Data.Unit
+        Language.PlutusCore.StdLib.Type
         PlutusPrelude
+    build-tools: alex -any, happy >=1.17.1
+    hs-source-dirs: src prelude stdlib
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src prelude
     other-modules:
@@ -44,20 +57,20 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
-        Language.PlutusCore.Constant.Prelude
         Language.PlutusCore.Constant.Make
-        Language.PlutusCore.Constant.View
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
+        Language.PlutusCore.TestSupport.Denotation
+        Language.PlutusCore.TestSupport.Generator
+        Language.PlutusCore.TestSupport.TypedBuiltinGen
+        Language.PlutusCore.TestSupport.Utils
         Language.PlutusCore.CBOR
         Language.PlutusCore.PrettyCfg
         Language.PlutusCore.Subst
-        Language.PlutusCore.CkMachine
-        Language.PlutusCore.Constant
         Language.PlutusCore.TH
         Language.PlutusCore.Quote
         Data.Functor.Foldable.Monadic
@@ -69,7 +82,7 @@ library
         -- extensions to deriving
         DeriveGeneric StandaloneDeriving DeriveLift
         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-        DeriveTraversable DerivingStrategies
+        DeriveTraversable
     other-extensions:
         DeriveAnyClass
         FlexibleContexts FlexibleInstances MultiParamTypeClasses
@@ -92,10 +105,14 @@ library
         prettyprinter >=1.1.0.1,
         microlens -any,
         composition-prelude -any,
+        template-haskell -any,
+        th-lift-instances -any,
+        mmorph -any,
         cborg -any,
-        th-lift-instances,
-        template-haskell,
-        mmorph -any
+        safe-exceptions -any,
+        dependent-sum -any,
+        dependent-map -any,
+        hedgehog
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -126,13 +143,13 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Generators
-        Evaluation.Constant.GenTypedBuiltinSized
+        Evaluation.CkMachine
+        Evaluation.Constant.All
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
-        Evaluation.Constant.All
-        Evaluation.Generator
+        Evaluation.TypeCheck
+        Generators
         Quotation.Spec
     default-language: Haskell2010
     other-extensions: OverloadedStrings
@@ -151,7 +168,6 @@ test-suite language-plutus-core-test
         text -any,
         prettyprinter -any,
         containers -any,
-        mtl -any,
         mmorph -any
 
     if flag(eventlog)
@@ -181,6 +197,28 @@ benchmark language-plutus-core-bench
         ghc-options: -eventlog
 
     if flag(development)
+        ghc-options: -Werror
+
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
+
+executable language-plutus-core-generate-evaluation-test
+    main-is: Main.hs
+    hs-source-dirs: generate-evaluation-test
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        language-plutus-core -any,
+        bytestring -any,
+        text -any,
+        prettyprinter -any,
+        mmorph -any,
+        hedgehog -any
+
+    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
 
     if impl(ghc >=8.4)

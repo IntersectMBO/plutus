@@ -7,7 +7,9 @@ import           Control.Monad
 import qualified Data.ByteString.Lazy    as BSL
 import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
+import           Evaluation.CkMachine
 import           Evaluation.Constant.All
+
 import           Generators
 import           Hedgehog                hiding (Var)
 import           Language.PlutusCore
@@ -84,6 +86,7 @@ allTests plcFiles rwFiles typeFiles = testGroup "all tests"
     , testsRewrite rwFiles
     , testsType typeFiles
     , test_constantApplication
+    , test_evaluateCk
     , Quotation.tests
     ]
 
