@@ -75,7 +75,7 @@ convertErrors :: forall a b m o .
   => (a -> b)
   -> ExceptT a Quote o
   -> m o
-convertErrors convert act = (liftEither . first convert) =<< (liftQuote $ runExceptT $ act)
+convertErrors convert act = (liftEither . first convert) =<< (liftQuote $ runExceptT act)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
 -- be safely combined with other terms - that should happen inside 'QuoteT'.
