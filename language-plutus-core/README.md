@@ -60,9 +60,27 @@ NB: The type checker requires terms to meet the global unqiueness property. If t
 
 ### Evaluation
 
+#### Installation
+
+You can install the executables described below via either `stack` or `nix`.
+
+##### Via `nix`
+
+Run `nix build -f default.nix language-plutus-core` being in the `plutus-prototype` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
+
+##### Via `stack`
+
+Run `stack install language-plutus-core` in your terminal being in any subfolder of `plutus-prototype`. Once the build finishes, you'll be shown the following lines:
+
+```
+Copied executables to ~/.local/bin:
+- language-plutus-core-generate-evaluation-test
+- language-plutus-core-run-ck
+```
+
 #### The CK machine
 
-The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the `Language.PlutusCore.CkMachine` module:
+The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the [`Language.PlutusCore.CkMachine`](src/Language/PlutusCore/CkMachine.hs) module:
 
 ```haskell
 runCk :: Program TyName Name () -> CkEvalResult
@@ -76,10 +94,30 @@ data CkEvalResult
     | CkEvalFailure
 ```
 
-There is an executable that runs programs on the CK machine. In order to install it globally, type in your terminal `stack install language-plutus-core`. Once the build finishes, you can feed a program to the `language-plutus-core-run-ck` executable, the program will be run and the result will be printed.
+There is an executable that runs programs on the CK machine: you can feed a program to `language-plutus-core-run-ck`, the program will be run and the result will be printed.
 
-An examle of usage:
+An example of usage:
 
 ```
 echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | language-plutus-core-run-ck
 ```
+
+#### Tests
+
+A term generation machinery sits in the [`Language.PlutusCore.TestSupport.Generator`](src/Language/PlutusCore/TestSupport/Generator.hs) module. It allows to generate terms that contain built-ins (integers, bytestrings, sizes and booleans), constant applications and first-order functions. E.g.
+
+```
+[ (lam x_0 [ (con integer) (con 3) ] [ (lam x_1 [ (con integer) (con 3) ] [ [ { (con remainderInteger) (con 3) } [ [ { (con multiplyInteger) (con 3) } x_1 ] x_0 ] ] [ [ { (con addInteger) (con 3) } x_0 ] x_1 ] ]) [ [ { (con divideInteger) (con 3) } [ [ { (con addInteger) (con 3) } x_0 ] x_0 ] ] [ [ { (con multiplyInteger) (con 3) } x_0 ] x_0 ] ] ]) [ [ { (con divideInteger) (con 3) } [ [ { (con subtractInteger) (con 3) } [ [ { (con addInteger) (con 3) } (con 3 ! -1053) ] (con 3 ! 269) ] ] [ [ { (con divideInteger) (con 3) } (con 3 ! -1352) ] (con 3 ! -849) ] ] ] [ [ { { (con resizeInteger) (con 3) } (con 3) } (con 3) ] [ [ { { (con resizeInteger) (con 3) } (con 3) } (con 3) ] (con 3 ! 37) ] ] ] ]
+```
+
+The generator makes sure a term is well-typed and keeps track of what it's supposed to evaluate to.
+
+There is an executable that prints a term and the expected result of evaluation. Run it as `language-plutus-core-generate-evaluation-test` and you'll be shown something like
+
+```
+(program 0.1.0 [ (lam x_0 [ (con integer) (con 2) ] [ [ { (con lessThanInteger) (con 2) } [ [ { (con divideInteger) (con 2) } x_0 ] [ [ { (con divideInteger) (con 2) } x_0 ] x_0 ] ] ] [ [ { (con remainderInteger) (con 2) } x_0 ] x_0 ] ]) [ [ { (con addInteger) (con 2) } [ [ { { (con resizeInteger) (con 2) } (con 2) } (con 2) ] [ [ { (con subtractInteger) (con 2) } (con 2 ! 26) ] (con 2 ! 63) ] ] ] [ [ { (con multiplyInteger) (con 2) } [ [ { (con divideInteger) (con 2) } (con 2 ! 61) ] (con 2 ! -7) ] ] [ [ { (con subtractInteger) (con 2) } (con 2 ! 16) ] (con 2 ! 74) ] ] ] ])
+
+(abs a (type) (lam x (fun (all a (type) (fun a a)) a) (lam y (fun (all a (type) (fun a a)) a) [ y (abs a (type) (lam x a x)) ])))
+```
+
+where the first line is a program, the second line is empty and the third line is the result of evaluation of the program (this is how we represent `False` in PLC). Output is always structured this way: three lines with the second one being empty.

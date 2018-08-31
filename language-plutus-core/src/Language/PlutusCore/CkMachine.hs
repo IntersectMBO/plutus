@@ -1,15 +1,20 @@
+-- | The CK machine.
+
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
-    ( CkEvalResult
+    ( CkError(..)
+    , CkException(..)
+    , CkEvalResult(..)
+    , ckEvalResultToMaybe
+    , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
-import           Language.PlutusCore.Constant.Prelude
-import           Language.PlutusCore.Constant.View
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.View
 import           PlutusPrelude
 
 infix 4 |>, <|
@@ -23,6 +28,7 @@ data Frame
 
 type Context = [Frame]
 
+-- | Errors which can occur during a run of the CK machine.
 data CkError
     = NonPrimitiveInstantiationCkError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
@@ -45,37 +51,37 @@ data CkException = CkException
 data CkEvalResult
     = CkEvalSuccess (Value TyName Name ())
     | CkEvalFailure
-    deriving (Eq)
+    deriving (Show, Eq)
 
 instance PrettyCfg CkEvalResult where
     prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value
-    prettyCfg _ CkEvalFailure           = "Failure"
+    prettyCfg _   CkEvalFailure         = "Failure"
 
--- TODO: do we really need all those parens?
 constAppErrorString :: ConstAppError -> String
-constAppErrorString (SizeMismatchConstAppError seenSize arg) = join
-    [ "encoutered an unexpected size in ("
+constAppErrorString (SizeMismatchConstAppError seenSize arg) = fold
+    [ "encoutered an unexpected size in "
     , prettyCfgString arg
-    , ") (previously seen size: "
+    , "\nPreviously seen size: "
     , prettyString seenSize
-    , ") in"
+    , " in"
     ]
-constAppErrorString (IllTypedConstAppError expType constant) = join
-    [ "encountered an ill-typed argument: ("
+constAppErrorString (IllTypedConstAppError expType constant) = fold
+    [ "encountered an ill-typed argument: "
     , prettyCfgString constant
-    , ") (expected type: "
+    , "\nExpected type: "
     , prettyString expType
-    , ") in"
+    , " in"
     ]
-constAppErrorString (ExcessArgumentsConstAppError excessArgs) = join
-    [ "attempted to evaluate a constant applied to too many arguments (excess ones are: "
-    , prettyCfgString excessArgs -- TODO: allow user configuration here
-    , ") in"
+constAppErrorString (ExcessArgumentsConstAppError excessArgs) = fold
+    [ "attempted to evaluate a constant applied to too many arguments"
+    , "\nExcess ones are: "
+    , prettyCfgString excessArgs
+    , " in"
     ]
-constAppErrorString (SizedNonConstantConstAppError arg)       = join
-    [ "encountered a non-constant argument of a sized type: ("
+constAppErrorString (SizedNonConstantConstAppError arg)       = fold
+    [ "encountered a non-constant argument of a sized type: "
     , prettyCfgString arg
-    , ") in"
+    , " in"
     ]
 
 ckErrorString :: CkError -> String
@@ -91,12 +97,17 @@ ckErrorString (ConstAppCkError constAppError)  =
     constAppErrorString constAppError
 
 instance Show CkException where
-    show (CkException err cause) = join
+    show (CkException err cause) = fold
         ["The CK machine " , ckErrorString err, prettyCfgString cause]
 
 instance Exception CkException
 
--- | Substitute a term for a variable in a term that can contain duplicate binders.
+-- | Map 'CkEvalSuccess' to 'Just' and 'CkEvalFailure' to 'Nothing'.
+ckEvalResultToMaybe :: CkEvalResult -> Maybe (Value TyName Name ())
+ckEvalResultToMaybe (CkEvalSuccess res) = Just res
+ckEvalResultToMaybe CkEvalFailure       = Nothing
+
+-- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
     :: Eq (name a) => name a -> Value tyname name a -> Term tyname name a -> Term tyname name a

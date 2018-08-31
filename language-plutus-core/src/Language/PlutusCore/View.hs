@@ -1,12 +1,17 @@
-module Language.PlutusCore.Constant.View
+-- | Various views of PLC entities.
+
+module Language.PlutusCore.View
     ( IterApp(..)
+    , TermIterApp
     , PrimIterApp
-    , termAsPrimIterApp
     , constantAsInteger
+    , constantAsBuiltinName
+    , termAsConstant
+    , termAsTermIterApp
+    , termAsPrimIterApp
     ) where
 
-import           Language.PlutusCore.Constant.Prelude
-import           Language.PlutusCore.Lexer.Type       (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type (BuiltinName (..))
 import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -46,7 +51,7 @@ termAsConstant _                     = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
 termAsTermIterApp :: Term tyname name a -> TermIterApp tyname name a
-termAsTermIterApp = go mempty where
+termAsTermIterApp = go [] where
     go args (Apply _ fun arg) = go (arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args
@@ -63,6 +68,6 @@ termAsPrimIterApp term = do
 isValue :: Term tyname name a -> Bool
 isValue (TyAbs  _ _ _ body) = isValue body
 isValue (Wrap   _ _ _ term) = isValue term
-isValue (LamAbs _ _ _ body) = isValue body
-isValue (Constant _ _)      = True
+isValue LamAbs{}            = True
+isValue Constant{}          = True
 isValue  term               = isJust $ termAsPrimIterApp term

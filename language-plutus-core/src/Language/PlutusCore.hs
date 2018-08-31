@@ -10,6 +10,7 @@ module Language.PlutusCore
     , parseScoped
     -- * Pretty-printing
     , prettyCfgText
+    , prettyCfgString
     , debugText
     , prettyString
     -- * AST
@@ -23,10 +24,16 @@ module Language.PlutusCore
     , Name (..)
     , TyName (..)
     , Unique (..)
+    , Size
+    , Value
     , BuiltinName (..)
     , TypeBuiltin (..)
     -- * Lexer
     , AlexPosn (..)
+    -- * Views
+    , IterApp (..)
+    , TermIterApp
+    , PrimIterApp
     -- * Formatting
     , format
     , formatDoc
@@ -65,42 +72,7 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
-    -- * CK Machine
-    , CkEvalResult
-    , runCk
     -- * Template Haskell
-    , Size
-    , Value
-    , TypedBuiltinSized (..)
-    , TypeScheme (..)
-    , TypedBuiltin (..)
-    , TypedBuiltinName (..)
-    , TypedBuiltinValue (..)
-    , eraseTypedBuiltinSized
-    , toBoundsInt
-    , PrimIterApp
-    , IterApp (..)
-    , makeConstant
-    , flattenSizeEntry
-    , ConstAppResult (..)
-    , makeConstantApp
-    , applyBuiltinName
-    , typedAddInteger
-    , typedSubtractInteger
-    , typedMultiplyInteger
-    , typedResizeInteger
-    , typedConcatenate
-    , typedResizeByteString
-    , typedLessThanEqInteger
-    , typedGreaterThanEqInteger
-    , typedTakeByteString
-    , typedDropByteString
-    , typedEqByteString
-    , typedEqInteger
-    , typedDivideInteger
-    , typedRemainderInteger
-    , typedLessThanInteger
-    , typedGreaterThanInteger
     , Quote
     , runQuote
     -- * Name generation
@@ -120,8 +92,6 @@ import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
 import           Data.Text.Prettyprint.Doc         hiding (annotate)
 import           Language.PlutusCore.CBOR
-import           Language.PlutusCore.CkMachine
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -134,6 +104,7 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TH
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis
+import           Language.PlutusCore.View
 import           PlutusPrelude
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display

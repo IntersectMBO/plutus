@@ -4,10 +4,14 @@
 {-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Type ( Term (..)
+                                , Value
                                 , Type (..)
                                 , Kind (..)
                                 , Program (..)
                                 , Constant (..)
+                                , BuiltinName (..)
+                                , TypeBuiltin (..)
+                                , Size
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
@@ -24,6 +28,8 @@ import           Language.Haskell.TH.Syntax     (Lift)
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
+
+type Size = Natural
 
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
@@ -143,6 +149,8 @@ data TermF tyname name a x = VarF a (name a)
                            deriving (Functor)
 
 type instance Base (Term tyname name a) = TermF tyname name a
+
+type Value = Term
 
 instance Recursive (Term tyname name a) where
     project (Var x n)         = VarF x n
