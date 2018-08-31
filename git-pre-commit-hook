@@ -9,6 +9,10 @@
 #
 #    > stack install hlint stylish-haskell
 #
+# or
+#   
+#    > cabal new-install hlint stylish-haskell
+#
 # in the cardano-sl tree (to ensure the correct version of stylish-haskell is
 # retrieved). The install command will copy them to  ~/.local/bin/ which should
 # be on your $PATH variable.
