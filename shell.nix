@@ -25,7 +25,7 @@ let
     buildInputs = with pkgs; [ plutusPkgs.stylish-haskell git ];
     shellHook = ''
       git diff > pre-stylish.diff
-      find . -type f -name "*hs" -not -path '.git' -not -path '*.stack-work*' -not -name 'HLint.hs' -exec stylish-haskell -i {} \;
+      find . -type f -name "*hs" -not -path '.git' -not -path '*.stack-work*' -not -path '*/dist/*' -not -path '*/docs/*' -not -name 'HLint.hs' -exec stylish-haskell -i {} \;
       git diff > post-stylish.diff
       diff pre-stylish.diff post-stylish.diff > /dev/null
       if [ $? != 0 ]
