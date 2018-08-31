@@ -3,7 +3,6 @@ module Main (main) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.CkMachine
-import           PlutusPrelude
 
 import           Control.Monad
 import qualified Data.ByteString.Lazy          as BSL
