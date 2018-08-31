@@ -1,4 +1,3 @@
-{-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DefaultSignatures #-}
@@ -70,12 +69,12 @@ instance MonadQuote m => MonadQuote (ExceptT e m)
 instance MonadQuote m => MonadQuote (ReaderT r m)
 
 -- | Map the errors in a 'MonadError' and 'MonadQuote' context according to the given function.
-convertErrors :: forall a b n o .
-  (MonadError b n, MonadQuote n)
+-- This can be used on the functions exported from this module to change the error type.
+convertErrors :: forall a b m o .
+  (MonadError b m, MonadQuote m)
   => (a -> b)
-  -- this needs to have the forall so *we* can choose what to instantiate it to (i.e. ExceptT a Quote)
-  -> (forall m . (MonadError a m, MonadQuote m) => m o)
-  -> n o
+  -> ExceptT a Quote o
+  -> m o
 convertErrors convert act = (liftEither . first convert) =<< (liftQuote $ runExceptT $ act)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
