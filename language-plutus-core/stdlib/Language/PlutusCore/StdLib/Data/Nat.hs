@@ -9,12 +9,12 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinFoldNat
     ) where
 
-import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
+import           PlutusPrelude
 
 -- | @Nat@ as a PLC type.
 --
