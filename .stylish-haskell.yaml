@@ -21,4 +21,10 @@ steps:
   - trailing_whitespace: {}
 columns: 120
 newline: native
-language_extensions: [ScopedTypeVariables, FlexibleContexts, DeriveGeneric, DeriveAnyClass, DerivingStrategies, GeneralizedNewtypeDeriving]
+language_extensions: 
+  - ScopedTypeVariables
+  - FlexibleContexts
+  - DeriveGeneric
+  - DeriveAnyClass
+  - DerivingStrategies
+  - GeneralizedNewtypeDeriving
