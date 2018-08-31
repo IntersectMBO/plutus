@@ -18,6 +18,8 @@
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
 - ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude]}
+# this is rarely an improvement, also ignored in cardano
+- ignore: {name: Move brackets to avoid $}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***
