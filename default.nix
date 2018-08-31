@@ -41,6 +41,7 @@ let
       lib.hasSuffix "~" baseName ||
       builtins.match "^\\.sw[a-z]$" baseName != null ||
       builtins.match "^\\..*\\.sw[a-z]$" baseName != null ||
+      builtins.match "^\\.ghc\\.environment\\..*$" baseName != null ||
       baseName == "dist" || baseName == "dist-newstyle" ||
       baseName == "cabal.project.local" ||
       lib.hasSuffix ".nix" baseName ||
