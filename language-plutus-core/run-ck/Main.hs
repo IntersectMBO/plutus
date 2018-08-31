@@ -17,7 +17,7 @@ textRunCk :: Text -> Text
 textRunCk = either prettyCfgText prettyCfgText . parseRunCk . BSL.fromStrict . encodeUtf8
 
 nonInteractive :: IO ()
-nonInteractive = Text.getLine >>= Text.putStrLn . textRunCk
+nonInteractive = Text.getContents >>= Text.putStrLn . textRunCk
 
 main :: IO ()
 main = nonInteractive
