@@ -94,7 +94,7 @@ data CkEvalResult
     | CkEvalFailure
 ```
 
-There is an executable that runs programs on the CK machine: you can run `language-plutus-core-run-ck` and type a program, the program will be run and the result will be printed.
+There is an executable that runs programs on the CK machine: you can feed a program to `language-plutus-core-run-ck`, the program will be run and the result will be printed.
 
 An example of usage:
 
