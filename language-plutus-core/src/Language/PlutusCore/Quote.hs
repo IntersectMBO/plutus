@@ -1,6 +1,6 @@
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DefaultSignatures #-}
 -- just for the type equality constraint
 {-# LANGUAGE GADTs             #-}
 
@@ -25,8 +25,8 @@ module Language.PlutusCore.Quote (
             ) where
 
 import           Control.Monad.Except
-import           Control.Monad.Reader
 import           Control.Monad.Morph               as MM
+import           Control.Monad.Reader
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy              as BSL
 import           Data.Functor.Identity
