@@ -48,9 +48,7 @@ library
         Language.PlutusCore.StdLib.Type
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude stdlib
-    build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude
+    hs-source-dirs: src prelude stdlib src
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Name
@@ -76,19 +74,15 @@ library
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
     default-language: Haskell2010
-    default-extensions:
-        -- should be in base
-        ExplicitForAll ScopedTypeVariables
-        -- extensions to deriving
-        DeriveGeneric StandaloneDeriving DeriveLift
-        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-        DeriveTraversable
-    other-extensions:
-        DeriveAnyClass
-        FlexibleContexts FlexibleInstances MultiParamTypeClasses
-        TypeFamilies OverloadedStrings MonadComprehensions
-        ConstrainedClassMethods TupleSections GADTs RankNTypes
-        TemplateHaskell QuasiQuotes
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -100,7 +94,7 @@ library
         mtl -any,
         transformers -any,
         deepseq -any,
-        recursion-schemes,
+        recursion-schemes -any,
         text -any,
         prettyprinter >=1.1.0.1,
         microlens -any,
@@ -112,7 +106,7 @@ library
         safe-exceptions -any,
         dependent-sum -any,
         dependent-map -any,
-        hedgehog
+        hedgehog -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -131,6 +125,28 @@ executable language-plutus-core-run-ck
         language-plutus-core -any,
         bytestring -any,
         text -any
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
+
+executable language-plutus-core-generate-evaluation-test
+    main-is: Main.hs
+    hs-source-dirs: generate-evaluation-test
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        language-plutus-core -any,
+        bytestring -any,
+        text -any,
+        prettyprinter -any,
+        mmorph -any,
+        hedgehog -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -197,28 +213,6 @@ benchmark language-plutus-core-bench
         ghc-options: -eventlog
 
     if flag(development)
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
-executable language-plutus-core-generate-evaluation-test
-    main-is: Main.hs
-    hs-source-dirs: generate-evaluation-test
-    default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-    build-depends:
-        base -any,
-        language-plutus-core -any,
-        bytestring -any,
-        text -any,
-        prettyprinter -any,
-        mmorph -any,
-        hedgehog -any
-
-    if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
 
     if impl(ghc >=8.4)
