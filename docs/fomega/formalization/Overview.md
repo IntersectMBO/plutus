@@ -45,7 +45,7 @@ De Bruijnified version of it looks like this:
 
 `bigLam $ lam (var here) $ ...`
 
-In `...` the `x` variable is written as `var here` (points to the term context) which type is `var here` (points to the type context). But if we add another big lambda
+In `...` the `x` variable is written as `var here` (points to the term context) which type is `var here` (points to the type context) -- this is what `lam` receives: the type of the variable it binds. But if we add another big lambda
 
 `/\(A :: *) -> \(x : A) -> /\(B :: *) -> ...`
 
@@ -60,4 +60,12 @@ I believe the latter results in simpler proofs and should be preferred over the 
 
 ### `fix`
 
-The higher-kinded `fix` we have can either receive a spine of arguments like it's done in [6] or be of the kind `((k -> *) -> k -> *) -> k -> *`. The latter is *much* simpler for formalization, especially in a setting without hereditary substitutions, so I'm in favor of this option. We will also need a proof that these approaches are isomorphic.
+There are several approaches for dealing with higher-kinded type-level recursion:
+
+1. `fix` can receive a spine of arguments like it's done in [6]
+2. `fix` can be of kind `((k -> *) -> k -> *) -> k -> *`
+3. eliminations contexts can be used like it's in the specification
+
+2 is *much* simpler for formalization than 1, especially in a setting without hereditary substitutions. However 2 also requires a proof that it's as strong as the approaches.
+
+3 is currently unexplored (this is a TODO).
