@@ -63,6 +63,7 @@ typeValue = cataM aM where
     isTyValue TyFixF{}     = True
     isTyValue TyLamF{}     = True
     isTyValue TyBuiltinF{} = True
+    isTyValue TyIntF{}     = True
     isTyValue _            = False
 
 -- ensure a type is a neutral type
