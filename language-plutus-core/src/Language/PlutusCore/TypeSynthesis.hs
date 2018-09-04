@@ -194,22 +194,19 @@ dummyType = TyVar () dummyTyName
 
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
-typeOf = preTypeOf
-
-preTypeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
-preTypeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
-preTypeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> preTypeOf t
-preTypeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
-preTypeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> preTypeOf t
-preTypeOf (Constant _ (BuiltinName _ n)) = do
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
+typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
+typeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
+typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> typeOf t
+typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
         Just k -> pure k
         _      -> throwError InternalError
-preTypeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
-preTypeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
-preTypeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
-preTypeOf (Apply x t t') = do
+typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
+typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
+typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
+typeOf (Apply x t t') = do
     ty <- typeOf t
     case ty of
         TyFun _ ty' ty'' -> do
@@ -219,7 +216,7 @@ preTypeOf (Apply x t t') = do
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''')
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
-preTypeOf (TyInst x t ty) = do
+typeOf (TyInst x t ty) = do
     ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
@@ -229,14 +226,14 @@ preTypeOf (TyInst x t ty) = do
                 then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
-preTypeOf (Unwrap x t) = do
-    ty <- preTypeOf t
+typeOf (Unwrap x t) = do
+    ty <- typeOf t
     case ty of
         TyFix _ n ty' -> do
             let subst = tySubstitute (extractUnique n) ty ty'
             pure (tyReduce subst)
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
-preTypeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
+typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
     let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
     typeCheckStep
