@@ -71,10 +71,11 @@ unit =
 boolean :: MonadState Int m => m (Type TyNameWithKind ())
 boolean = do
     nam <- newTyName (Type ())
-    u <- unit
+    (u, u') <- (,) <$> unit <*> unit
     let var = TyVar () nam
         unitVar = TyFun () u var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar var))
+        unitVar' = TyFun () u' var
+    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
 
 -- | Create a new 'Type' for an integer relation
 intRel :: MonadState Int m => m (Type TyNameWithKind ())
