@@ -8,6 +8,9 @@ module Language.PlutusCore
     , parseTermST
     , parseTypeST
     , parseScoped
+    , parseProgramQ
+    , parseTermQ
+    , parseTypeQ
     -- * Pretty-printing
     , prettyCfgText
     , prettyCfgString
@@ -40,6 +43,8 @@ module Language.PlutusCore
     -- * Processing
     , annotate
     , annotateST
+    , annotateProgramQ
+    , annotateTermQ
     , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
@@ -52,6 +57,8 @@ module Language.PlutusCore
     -- * Type synthesis
     , typeOf
     , kindOf
+    , typecheckProgramQ
+    , typecheckTermQ
     , runTypeCheckM
     , programType
     , fileType

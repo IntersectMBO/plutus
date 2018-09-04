@@ -64,9 +64,9 @@ parseRunCk = fmap (CK.runCk . void) . PC.parseScoped
 -- | Parse a program and typecheck it.
 parseTypecheck :: BSL.ByteString -> Either (PC.Error PC.AlexPosn) (PC.Type PC.TyNameWithKind ())
 parseTypecheck bs = runExcept $ PC.runQuoteT $ do
-    parsed <- PC.parseProgram bs
-    annotated <- PC.annotateProgram parsed
-    PC.typecheckProgram 1000 annotated
+    parsed <- PC.parseProgramQ bs
+    annotated <- PC.annotateProgramQ parsed
+    PC.typecheckProgramQ 1000 annotated
 
 main :: IO ()
 main = do
