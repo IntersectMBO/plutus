@@ -196,7 +196,11 @@ dummyType = TyVar () dummyTyName
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
 typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
-typeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
+typeOf (Error x ty)                              = do
+    k <- kindOf ty
+    case k of
+        Type{} -> pure (void ty)
+        _      -> throwError (KindMismatch x (void ty) (Type ()) k)
 typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> typeOf t
 typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
