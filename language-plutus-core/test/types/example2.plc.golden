@@ -1,0 +1,6 @@
+Type mismatch at 1:179 in term
+  'ds_3'.
+Expected type
+  '(all * (type) *)',
+found type
+  '[(con integer) (con 64)]'

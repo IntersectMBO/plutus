@@ -54,7 +54,7 @@ newTyName :: (MonadState Int m) => Kind () -> m (TyNameWithKind ())
 newTyName k = do
     i <- get
     modify (+1)
-    pure $ TyNameWithKind (TyName (Name ((), k) "" (Unique $ i+1)))
+    pure $ TyNameWithKind (TyName (Name ((), k) "a" (Unique $ i+1)))
 
 -- | Create a new 'Type' for an integer operation.
 intop :: MonadState Int m => m (Type TyNameWithKind ())
