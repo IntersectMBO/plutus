@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
-
 module Language.PlutusCore.TypeSynthesis ( kindOf
                                          , typeOf
                                          , runTypeCheckM
-                                         , TypeError (..)
+                                         , typecheckProgramQ
+                                         , typecheckTermQ
                                          , TypeCheckM
                                          , BuiltinTable (..)
+                                         , TypeError (..)
                                          ) where
 
 import           Control.Monad.Except
@@ -18,10 +18,10 @@ import           Control.Monad.State.Class
 import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
 import qualified Data.Map                         as M
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.PrettyCfg
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -32,18 +32,6 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
 type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (Either (TypeError a)))
-
-data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
-                 | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
-                 | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
-                 | OutOfGas
-                 deriving (Generic, NFData)
-
-instance (PrettyCfg a) => PrettyCfg (TypeError a) where
-    prettyCfg _ InternalError               = "Internal error."
-    prettyCfg cfg (KindMismatch x ty k k')  = "Kind mismatch at" <+> prettyCfg cfg x <+> "in type" <+> squotes (prettyCfg cfg ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
-    prettyCfg cfg (TypeMismatch x t ty ty') = "Type mismatch at" <+> prettyCfg cfg x <+> "in term" <> hardline <> indent 2 (squotes (prettyCfg cfg t)) <> "." <> hardline <> "Expected type" <> hardline <> indent 2 (squotes (prettyCfg cfg ty)) <> "," <> hardline <> "found type" <> hardline <> indent 2 (squotes (prettyCfg cfg ty'))
-    prettyCfg _ OutOfGas                    = "Type checker ran out of gas."
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -113,6 +101,17 @@ defaultTable = do
         termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString] [txHash, bsRelType]
 
     pure $ BuiltinTable tyTable termTable
+
+-- | Typecheck a PLC program.
+typecheckProgramQ :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (Type TyNameWithKind ())
+typecheckProgramQ n (Program _ _ t) = typecheckTermQ n t
+
+-- | Typecheck a PLC term.
+typecheckTermQ :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (Type TyNameWithKind ())
+typecheckTermQ n t = convertErrors asError $ do
+    nextU <- liftQuote get
+    let maxU = unUnique nextU - 1
+    liftEither $ runTypeCheckM maxU n (typeOf t)
 
 -- | Run the type checker with a default context.
 runTypeCheckM :: Int -- ^ Largest @Unique@ in scope so far. This is used to allow us to generate globally unique names during type checking.
