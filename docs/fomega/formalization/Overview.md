@@ -33,7 +33,7 @@ Since we have type-level lambdas, type normalization is required. There are two 
 1. [readback](https://github.com/effectfully/random-stuff/blob/master/Normalization/Readback.agda)
 2. [the fully eta-expanding reify/reflect machinery](https://github.com/effectfully/random-stuff/blob/master/Normalization/SystemT.agda)
 
-I'd start from 1 and see if it works.
+I'd start from 1 and see if it works. And I think we shouldn't discard hereditary substitution right now.
 
 ### Shifting
 
