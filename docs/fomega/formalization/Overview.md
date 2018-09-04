@@ -8,7 +8,7 @@
 
 [2] [No type-level lambdas + isorecursive `mu` + shifting at big lambdas + raw terms + small-step and big-step evlauation + Agda](https://github.com/sstucki/system-f-agda), Sandro Stucki.
 
-[3] [No type-level lambdas + shifting at big lambdas + lots of proof automation via Descriptions + Agda] (https://github.com/gergoerdi/system-f-agda/blob/master/src/SystemF.agda), Dr. Gergő Érdi.
+[3] [No type-level lambdas + shifting at big lambdas + lots of proof automation via Descriptions + Agda](https://github.com/gergoerdi/system-f-agda/blob/master/src/SystemF.agda), Dr. Gergő Érdi.
 
 [4] [No ω + shifting at variables + Agda](https://plfa.github.io/SystemF), Philip Wadler.
 
