@@ -41,7 +41,7 @@ instance (PrettyCfg a) => PrettyCfg (TypeError a) where
 data Error a = ParseError (ParseError a)
              | RenameError (RenameError a)
              | TypeError (TypeError a)
-             | NormalizationError (NormalizationError a)
+             | NormalizationError (NormalizationError TyName Name a)
              deriving (Generic, NFData)
 
 class IsError f where
@@ -71,7 +71,7 @@ instance IsError RenameError where
 instance IsError TypeError where
     asError = TypeError
 
-instance IsError NormalizationError where
+instance IsError (NormalizationError TyName Name) where
     asError = NormalizationError
 
 instance (PrettyCfg a) => PrettyCfg (Error a) where

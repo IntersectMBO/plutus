@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE RankNTypes            #-}
 
 -- | This module makes sure terms and types are well-formed according to Fig. 2
 module Language.PlutusCore.Normalize ( check
@@ -10,29 +10,30 @@ module Language.PlutusCore.Normalize ( check
 
 import           Data.Functor.Foldable
 import           Data.Functor.Foldable.Monadic
+import qualified Data.Text                     as T
 import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-data NormalizationError a = BadType a
-                          | BadTerm a
-                          deriving (Generic, NFData)
+data NormalizationError tyname name a = BadType a (Type tyname a) T.Text
+                                      | BadTerm a (Term tyname name a) T.Text
+                                      deriving (Generic, NFData)
 
-instance PrettyCfg a => PrettyCfg (NormalizationError a) where
-    prettyCfg cfg (BadType l) = "Malformed type at" <+> prettyCfg cfg l
-    prettyCfg cfg (BadTerm l) = "Malformed term at" <+> prettyCfg cfg l
+instance (PrettyCfg (tyname a), PrettyCfg (name a), PrettyCfg a) => PrettyCfg (NormalizationError tyname name a) where
+    prettyCfg cfg (BadType l ty expct) = "Malformed type at" <+> prettyCfg cfg l <> ". Type" <+> prettyCfg cfg ty <+> "is not a" <+> pretty expct <> "."
+    prettyCfg cfg (BadTerm l t expct) = "Malformed term at" <+> prettyCfg cfg l <> ". Term" <+> prettyCfg cfg t <+> "is not a" <+> pretty expct <> "."
 
-check :: Program tyname name a -> Maybe (NormalizationError a)
+check :: Program tyname name a -> Maybe (NormalizationError tyname name a)
 check = go . preCheck where
     go Right{}  = Nothing
     go (Left x) = Just x
 
 -- | Ensure that all terms and types are well-formed accoring to Fig. 2
-preCheck :: Program tyname name a -> Either (NormalizationError a) (Program tyname name a)
+preCheck :: Program tyname name a -> Either (NormalizationError tyname name a) (Program tyname name a)
 preCheck (Program l v t) = Program l v <$> checkTerm t
 
 -- this basically ensures all type instatiations, etc. occur only with type *values*
-checkTerm :: Term tyname name a -> Either (NormalizationError a) (Term tyname name a)
+checkTerm :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
 checkTerm (Error l ty)      = Error l <$> typeValue ty
 checkTerm (TyInst l t ty)   = TyInst l <$> checkTerm t <*> typeValue ty
 checkTerm (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> checkTerm t
@@ -44,20 +45,20 @@ checkTerm t@Var{}           = pure t
 checkTerm t@Constant{}      = pure t
 
 -- ensure a term is a value
-termValue :: Term tyname name a -> Either (NormalizationError a) (Term tyname name a)
+termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
 termValue (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkTerm t
 termValue (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> termValue t
 termValue (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
 termValue t                 = builtinValue t
 
-builtinValue :: Term tyname name a -> Either (NormalizationError a) (Term tyname name a)
+builtinValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
 builtinValue t@Constant{}    = pure t
 builtinValue (TyInst l t ty) = TyInst l <$> builtinValue t <*> pure ty
 builtinValue (Apply l t t')  = Apply l <$> builtinValue t <*> termValue t'
-builtinValue t               = Left $ BadTerm (termLoc t)
+builtinValue t               = Left $ BadTerm (termLoc t) t "builtin value"
 
 -- ensure that a type is a type value
-typeValue :: Type tyname a -> Either (NormalizationError a) (Type tyname a)
+typeValue :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
 typeValue = cataM aM where
 
     aM ty | isTyValue ty = pure (embed ty)
@@ -72,11 +73,11 @@ typeValue = cataM aM where
     isTyValue _            = False
 
 -- ensure a type is a neutral type
-neutralType :: Type tyname a -> Either (NormalizationError a) (Type tyname a)
+neutralType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
 neutralType = cataM aM where
 
     aM ty | isNeutralType ty = pure (embed ty)
-          | otherwise        = Left (BadType (tyLocF ty))
+          | otherwise        = Left (BadType (tyLocF ty) (embed ty) "neutral type")
 
     isNeutralType TyVarF{} = True
     isNeutralType TyAppF{} = True
