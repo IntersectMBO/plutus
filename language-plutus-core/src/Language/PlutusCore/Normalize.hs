@@ -6,6 +6,7 @@
 -- | This module makes sure terms and types are well-formed according to Fig. 2
 module Language.PlutusCore.Normalize ( check
                                      , NormalizationError
+                                     , isTypeValue
                                      ) where
 
 import           Data.Functor.Foldable
@@ -56,6 +57,9 @@ builtinValue t@Constant{}    = pure t
 builtinValue (TyInst l t ty) = TyInst l <$> builtinValue t <*> pure ty
 builtinValue (Apply l t t')  = Apply l <$> builtinValue t <*> termValue t'
 builtinValue t               = Left $ BadTerm (termLoc t) t "builtin value"
+
+isTypeValue :: Type tyname a -> Bool
+isTypeValue = isRight . typeValue
 
 -- ensure that a type is a type value
 typeValue :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)

@@ -21,6 +21,7 @@ import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -259,9 +260,11 @@ tySubstitute u ty = cata a where
 
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty -- TODO: use the substitution monad here
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here
 tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
-tyReduce (TyFun x ty ty')                                                    = TyFun x (tyReduce ty) (tyReduce ty')
+tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x (tyReduce ty) (tyReduce ty')
+                          | otherwise                                        = TyFun x (tyReduce ty) ty'
 tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
-tyReduce (TyApp x ty ty')                                                    = TyApp x (tyReduce ty) (tyReduce ty')
+tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x (tyReduce ty) (tyReduce ty')
+                          | otherwise                                        = TyApp x (tyReduce ty) ty'
 tyReduce x                                                                   = x
