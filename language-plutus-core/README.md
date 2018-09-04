@@ -75,7 +75,7 @@ Run `stack install language-plutus-core` in your terminal being in any subfolder
 ```
 Copied executables to ~/.local/bin:
 - language-plutus-core-generate-evaluation-test
-- language-plutus-core-run-ck
+- plutus
 ```
 
 #### The CK machine
@@ -94,12 +94,12 @@ data CkEvalResult
     | CkEvalFailure
 ```
 
-There is an executable that runs programs on the CK machine: you can feed a program to `language-plutus-core-run-ck`, the program will be run and the result will be printed.
+There is an executable that runs programs on the CK machine: you can feed a program to `plutus evaluate`, the program will be run and the result will be printed.
 
 An example of usage:
 
 ```
-echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | language-plutus-core-run-ck
+echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | plutus evaluate --stdin
 ```
 
 #### Tests
