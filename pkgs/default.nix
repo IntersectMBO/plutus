@@ -42082,6 +42082,7 @@ license = stdenv.lib.licenses.bsd3;
 , microlens
 , mmorph
 , mtl
+, optparse-applicative
 , prettyprinter
 , recursion-schemes
 , safe-exceptions
@@ -42133,6 +42134,8 @@ base
 bytestring
 hedgehog
 mmorph
+mtl
+optparse-applicative
 prettyprinter
 text
 ];
@@ -83593,3 +83596,4 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
+
