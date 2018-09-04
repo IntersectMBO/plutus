@@ -38,8 +38,8 @@ stdInput = flag' StdInput
   (  long "stdin"
   <> help "Read from stdin" )
 
-data TypecheckOptions = TypecheckOptions Input
-data EvalOptions = EvalOptions Input
+newtype TypecheckOptions = TypecheckOptions Input
+newtype EvalOptions = EvalOptions Input
 data Command = Typecheck TypecheckOptions | Eval EvalOptions
 
 plutus :: ParserInfo Command
