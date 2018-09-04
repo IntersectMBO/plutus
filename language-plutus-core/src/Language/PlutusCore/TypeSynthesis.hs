@@ -66,7 +66,7 @@ intop = do
 
 unit :: MonadState Int m => m (Type TyNameWithKind ())
 unit =
-    [ TyForall () nam (Type ()) (TyVar () nam) | nam <- newTyName (Type ()) ]
+    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
 
 boolean :: MonadState Int m => m (Type TyNameWithKind ())
 boolean = do
