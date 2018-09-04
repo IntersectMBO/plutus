@@ -1,1 +1,0 @@
-(program 1.0.0 (lam ds_3 [[(lam a_0 (type) (lam b_1 (type) (all tuple_2 (type) (fun (fun a_0 (fun b_1 tuple_2)) tuple_2)))) [(con integer) (con 64)]] [(con integer) (con 64)]] [ {ds_3 [(con integer) (con 64)]} (lam a_4 [(con integer) (con 64)] (lam b_5 [(con integer) (con 64)] a_4)) ]))
