@@ -15,9 +15,9 @@ module Language.PlutusCore.TypeSynthesis ( kindOf
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State      hiding (get, modify)
+import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
-import qualified Data.Map                       as M
+import qualified Data.Map                         as M
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.PrettyCfg
@@ -105,8 +105,8 @@ defaultTable = do
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
 
-    is <- repeatM intop
-    irs <- repeatM intRel
+    is <- repeatM (length intTypes) intop
+    irs <- repeatM (length intRelTypes) intRel
     bsRelType <- bsRel
 
     let f = M.fromList .* zip

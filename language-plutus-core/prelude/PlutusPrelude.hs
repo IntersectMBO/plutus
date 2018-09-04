@@ -90,8 +90,9 @@ render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions
 
 -- | Make sure your 'Applicative' is sufficiently lazy!
-repeatM :: Applicative f => f a -> f [a]
-repeatM x = (:) <$> x <*> repeatM x
+repeatM :: Applicative f => Int -> f a -> f [a]
+repeatM 0 _ = pure []
+repeatM n x = (:) <$> x <*> repeatM (n-1) x
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
