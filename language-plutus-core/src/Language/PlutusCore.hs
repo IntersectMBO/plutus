@@ -53,6 +53,8 @@ module Language.PlutusCore
     , RenamedTerm
     -- * Normalization
     , check
+    , checkProgram
+    , checkTerm
     , NormalizationError
     , checkFile
     -- * Type synthesis
