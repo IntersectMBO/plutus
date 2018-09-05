@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings       #-}
 
 module Language.PlutusCore.Error ( Error (..)
+                                 , NormalizationError (..)
                                  , RenameError (..)
                                  , TypeError (..)
                                  , IsError (..)
@@ -11,10 +12,20 @@ module Language.PlutusCore.Error ( Error (..)
 
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import qualified Data.Text                     as T
+
+data NormalizationError tyname name a = BadType a (Type tyname a) T.Text
+                                      | BadTerm a (Term tyname name a) T.Text
+                                      deriving (Generic, NFData)
+
+instance (PrettyCfg (tyname a), PrettyCfg (name a), PrettyCfg a) => PrettyCfg (NormalizationError tyname name a) where
+    prettyCfg cfg (BadType l ty expct) = "Malformed type at" <+> prettyCfg cfg l <> ". Type" <+> prettyCfg cfg ty <+> "is not a" <+> pretty expct <> "."
+    prettyCfg cfg (BadTerm l t expct) = "Malformed term at" <+> prettyCfg cfg l <> ". Term" <+> prettyCfg cfg t <+> "is not a" <+> pretty expct <> "."
+
 
 -- | A 'RenameError' is thrown when a free variable is encountered during
 -- rewriting.

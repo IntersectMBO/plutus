@@ -1,28 +1,33 @@
-{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 
 -- | This module makes sure terms and types are well-formed according to Fig. 2
 module Language.PlutusCore.Normalize ( check
+                                     , checkProgram
+                                     , checkTerm
                                      , NormalizationError
                                      , isTypeValue
                                      ) where
 
+import           Control.Monad.Except
+
 import           Data.Functor.Foldable
 import           Data.Functor.Foldable.Monadic
-import qualified Data.Text                     as T
-import           Language.PlutusCore.PrettyCfg
+
+import           Language.PlutusCore.Error
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-data NormalizationError tyname name a = BadType a (Type tyname a) T.Text
-                                      | BadTerm a (Term tyname name a) T.Text
-                                      deriving (Generic, NFData)
+-- | Ensure that all terms and types are well-formed accoring to Fig. 2
+checkProgram :: (MonadError (Error a) m) => Program TyName Name a -> m ()
+checkProgram p = void $ liftEither $ convertError $ preCheck p
 
-instance (PrettyCfg (tyname a), PrettyCfg (name a), PrettyCfg a) => PrettyCfg (NormalizationError tyname name a) where
-    prettyCfg cfg (BadType l ty expct) = "Malformed type at" <+> prettyCfg cfg l <> ". Type" <+> prettyCfg cfg ty <+> "is not a" <+> pretty expct <> "."
-    prettyCfg cfg (BadTerm l t expct) = "Malformed term at" <+> prettyCfg cfg l <> ". Term" <+> prettyCfg cfg t <+> "is not a" <+> pretty expct <> "."
+-- | Ensure that all terms and types are well-formed accoring to Fig. 2
+checkTerm :: (MonadError (Error a) m) => Term TyName Name a -> m ()
+checkTerm p = void $ liftEither $ convertError $ checkTerm p
 
 check :: Program tyname name a -> Maybe (NormalizationError tyname name a)
 check = go . preCheck where
@@ -31,23 +36,23 @@ check = go . preCheck where
 
 -- | Ensure that all terms and types are well-formed accoring to Fig. 2
 preCheck :: Program tyname name a -> Either (NormalizationError tyname name a) (Program tyname name a)
-preCheck (Program l v t) = Program l v <$> checkTerm t
+preCheck (Program l v t) = Program l v <$> checkT t
 
 -- this basically ensures all type instatiations, etc. occur only with type *values*
-checkTerm :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-checkTerm (Error l ty)      = Error l <$> typeValue ty
-checkTerm (TyInst l t ty)   = TyInst l <$> checkTerm t <*> typeValue ty
-checkTerm (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> checkTerm t
-checkTerm (Unwrap l t)      = Unwrap l <$> checkTerm t
-checkTerm (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkTerm t
-checkTerm (Apply l t t')    = Apply l <$> checkTerm t <*> checkTerm t'
-checkTerm (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
-checkTerm t@Var{}           = pure t
-checkTerm t@Constant{}      = pure t
+checkT :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
+checkT (Error l ty)      = Error l <$> typeValue ty
+checkT (TyInst l t ty)   = TyInst l <$> checkT t <*> typeValue ty
+checkT (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> checkT t
+checkT (Unwrap l t)      = Unwrap l <$> checkT t
+checkT (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkT t
+checkT (Apply l t t')    = Apply l <$> checkT t <*> checkT t'
+checkT (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
+checkT t@Var{}           = pure t
+checkT t@Constant{}      = pure t
 
 -- ensure a term is a value
 termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-termValue (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkTerm t
+termValue (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkT t
 termValue (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> termValue t
 termValue (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
 termValue t                 = builtinValue t
