@@ -15,12 +15,13 @@ module Language.PlutusCore.TypeSynthesis ( kindOf
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State      hiding (get, modify)
+import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
-import qualified Data.Map                       as M
+import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -42,7 +43,7 @@ newTyName :: (MonadState Int m) => Kind () -> m (TyNameWithKind ())
 newTyName k = do
     i <- get
     modify (+1)
-    pure $ TyNameWithKind (TyName (Name ((), k) "" (Unique $ i+1)))
+    pure $ TyNameWithKind (TyName (Name ((), k) "a" (Unique $ i+1)))
 
 -- | Create a new 'Type' for an integer operation.
 intop :: MonadState Int m => m (Type TyNameWithKind ())
@@ -54,15 +55,16 @@ intop = do
 
 unit :: MonadState Int m => m (Type TyNameWithKind ())
 unit =
-    [ TyForall () nam (Type ()) (TyVar () nam) | nam <- newTyName (Type ()) ]
+    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
 
 boolean :: MonadState Int m => m (Type TyNameWithKind ())
 boolean = do
     nam <- newTyName (Type ())
-    u <- unit
+    (u, u') <- (,) <$> unit <*> unit
     let var = TyVar () nam
         unitVar = TyFun () u var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar var))
+        unitVar' = TyFun () u' var
+    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
 
 -- | Create a new 'Type' for an integer relation
 intRel :: MonadState Int m => m (Type TyNameWithKind ())
@@ -92,8 +94,8 @@ defaultTable = do
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
 
-    is <- repeatM intop
-    irs <- repeatM intRel
+    is <- repeatM (length intTypes) intop
+    irs <- repeatM (length intRelTypes) intRel
     bsRelType <- bsRel
 
     let f = M.fromList .* zip
@@ -193,22 +195,23 @@ dummyType = TyVar () dummyTyName
 
 -- | Extract type of a term.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
-typeOf = preTypeOf
-
-preTypeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (Type TyNameWithKind ())
-preTypeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
-preTypeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> preTypeOf t
-preTypeOf (Error _ ty)                              = pure (void ty) -- FIXME should check that it has appropriate kind?
-preTypeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> preTypeOf t
-preTypeOf (Constant _ (BuiltinName _ n)) = do
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void ty)
+typeOf (LamAbs _ _ ty t)                         = TyFun () (void ty) <$> typeOf t
+typeOf (Error x ty)                              = do
+    k <- kindOf ty
+    case k of
+        Type{} -> pure (void ty)
+        _      -> throwError (KindMismatch x (void ty) (Type ()) k)
+typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <$> typeOf t
+typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
         Just k -> pure k
         _      -> throwError InternalError
-preTypeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
-preTypeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
-preTypeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
-preTypeOf (Apply x t t') = do
+typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
+typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
+typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
+typeOf (Apply x t t') = do
     ty <- typeOf t
     case ty of
         TyFun _ ty' ty'' -> do
@@ -218,7 +221,7 @@ preTypeOf (Apply x t t') = do
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''')
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
-preTypeOf (TyInst x t ty) = do
+typeOf (TyInst x t ty) = do
     ty' <- typeOf t
     case ty' of
         TyForall _ n k ty'' -> do
@@ -228,14 +231,14 @@ preTypeOf (TyInst x t ty) = do
                 then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
-preTypeOf (Unwrap x t) = do
-    ty <- preTypeOf t
+typeOf (Unwrap x t) = do
+    ty <- typeOf t
     case ty of
         TyFix _ n ty' -> do
             let subst = tySubstitute (extractUnique n) ty ty'
             pure (tyReduce subst)
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
-preTypeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
+typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
     let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
     typeCheckStep
@@ -257,9 +260,11 @@ tySubstitute u ty = cata a where
 
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' ty -- TODO: use the substitution monad here
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here
 tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
-tyReduce (TyFun x ty ty')                                                    = TyFun x (tyReduce ty) (tyReduce ty')
+tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x (tyReduce ty) (tyReduce ty')
+                          | otherwise                                        = TyFun x (tyReduce ty) ty'
 tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
-tyReduce (TyApp x ty ty')                                                    = TyApp x (tyReduce ty) (tyReduce ty')
+tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x (tyReduce ty) (tyReduce ty')
+                          | otherwise                                        = TyApp x (tyReduce ty) ty'
 tyReduce x                                                                   = x

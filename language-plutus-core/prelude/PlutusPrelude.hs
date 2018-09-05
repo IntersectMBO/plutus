@@ -13,6 +13,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , join
                      , (<=<)
                      , fromRight
+                     , isRight
                      , Generic
                      , NFData
                      , Natural
@@ -57,7 +58,7 @@ import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
-import           Data.Either                             (fromRight)
+import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
@@ -90,8 +91,9 @@ render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions
 
 -- | Make sure your 'Applicative' is sufficiently lazy!
-repeatM :: Applicative f => f a -> f [a]
-repeatM x = (:) <$> x <*> repeatM x
+repeatM :: Applicative f => Int -> f a -> f [a]
+repeatM 0 _ = pure []
+repeatM n x = (:) <$> x <*> repeatM (n-1) x
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)

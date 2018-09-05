@@ -54,6 +54,7 @@ module Language.PlutusCore
     -- * Normalization
     , check
     , NormalizationError
+    , checkFile
     -- * Type synthesis
     , typeOf
     , kindOf
@@ -124,6 +125,9 @@ fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
 -- information.
 fileTypeCfg :: Configuration -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printType) . BSL.readFile
+
+checkFile :: FilePath -> IO (Maybe T.Text)
+checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . check) . parse) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: BSL.ByteString -> Either (Error AlexPosn) T.Text
