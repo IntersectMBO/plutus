@@ -24,6 +24,7 @@ import Language.PlutusCore.Lexer
 import Language.PlutusCore.Quote
 import Language.PlutusCore.Type
 import Language.PlutusCore.Name
+import Language.PlutusCore.Constant.Make
 
 }
 
@@ -146,12 +147,9 @@ app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
-handleInteger x sz i = if isOverflow
-    then throwError (Overflow x sz i)
-    else pure (BuiltinInt x sz i)
-
-    where isOverflow = i < (-k) || i > (k - 1)
-          k = 8 ^ sz `div` 2
+handleInteger x sz i = case makeBuiltinInt sz i of
+    Nothing -> throwError (Overflow x sz i)
+    Just bi -> pure $ x <$ bi
 
 parseST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
