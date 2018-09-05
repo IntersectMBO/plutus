@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Main (main) where
 
 import qualified Language.PlutusCore           as PC
@@ -58,16 +59,16 @@ evalOpts :: Parser EvalOptions
 evalOpts = EvalOptions <$> input
 
 -- | Parse a program and run it using the CK machine.
-parseRunCk :: BSL.ByteString -> Either (PC.ParseError PC.AlexPosn) CK.CkEvalResult
+parseRunCk :: (MonadError (PC.Error PC.AlexPosn) m) => BSL.ByteString -> m CK.CkEvalResult
 parseRunCk = fmap (CK.runCk . void) . PC.parseScoped
 
 -- | Parse a program and typecheck it.
-parseTypecheck :: BSL.ByteString -> Either (PC.Error PC.AlexPosn) (PC.Type PC.TyNameWithKind ())
-parseTypecheck bs = runExcept $ PC.runQuoteT $ do
-    parsed <- PC.parseProgramQ bs
+parseTypecheck :: (MonadError (PC.Error PC.AlexPosn) m, PC.MonadQuote m) => BSL.ByteString -> m (PC.Type PC.TyNameWithKind ())
+parseTypecheck bs = do
+    parsed <- PC.parseProgram bs
     PC.checkProgram parsed
-    annotated <- PC.annotateProgramQ parsed
-    PC.typecheckProgramQ 1000 annotated
+    annotated <- PC.annotateProgram parsed
+    PC.typecheckProgram 1000 annotated
 
 main :: IO ()
 main = do
@@ -75,7 +76,7 @@ main = do
     case options of
         Typecheck (TypecheckOptions inp) -> do
             contents <- getInput inp
-            case (parseTypecheck . BSL.fromStrict . encodeUtf8 . T.pack) contents of
+            case (PC.runQuoteT . parseTypecheck . BSL.fromStrict . encodeUtf8 . T.pack) contents of
                 Left e -> do
                     T.putStrLn $ PC.prettyCfgText e
                     exitFailure

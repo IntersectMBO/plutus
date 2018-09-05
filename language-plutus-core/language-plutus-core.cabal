@@ -186,6 +186,7 @@ test-suite language-plutus-core-test
         text -any,
         prettyprinter -any,
         containers -any,
+        mtl -any,
         mmorph -any
 
     if flag(eventlog)

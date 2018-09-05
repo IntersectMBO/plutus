@@ -3,11 +3,9 @@
 {-# LANGUAGE FlexibleInstances  #-}
 
 module Language.PlutusCore.Renamer ( rename
-                                   , annotate
-                                   , annotateST
-                                   , annotateTermST
-                                   , annotateProgramQ
-                                   , annotateTermQ
+                                   , annotateProgram
+                                   , annotateTerm
+                                   , annotateType
                                    , TypeState (..)
                                    , RenameError (..)
                                    ) where
@@ -17,7 +15,6 @@ import           Control.Monad.State.Lazy
 import qualified Data.IntMap               as IM
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
@@ -40,38 +37,20 @@ instance Monoid (TypeState a) where
 type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 -- | Annotate a PLC program, so that all names are annotated with their types/kinds.
-annotateProgramQ :: (MonadError (Error a) m, MonadQuote m) => Program TyName Name a -> m (Program TyNameWithKind NameWithType a)
-annotateProgramQ (Program a v t) = Program a v <$> annotateTermQ t
+annotateProgram :: (MonadError (Error a) m) => Program TyName Name a -> m (Program TyNameWithKind NameWithType a)
+annotateProgram (Program a v t) = Program a v <$> annotateTerm t
 
 -- | Annotate a PLC term, so that all names are annotated with their types/kinds.
-annotateTermQ :: forall m a . (MonadError (Error a) m, MonadQuote m) => Term TyName Name a -> m (Term TyNameWithKind NameWithType a)
-annotateTermQ t = convertErrors asError $ do
-    (ts, t') <- liftEither $ annotateTermST t
-    updateMaxU ts
+annotateTerm :: (MonadError (Error a) m) => Term TyName Name a -> m (Term TyNameWithKind NameWithType a)
+annotateTerm t = do
+    (t', _) <- liftEither $ convertError $ runStateT (annotateT t) mempty
     pure t'
-        where
-            updateMaxU (TypeState _ tys) = do
-                nextU <- liftQuote get
-                let tsMaxU = maybe 0 (fst . fst) (IM.maxViewWithKey tys)
-                let maxU = unUnique nextU - 1
-                liftQuote $ put $ Unique $ max maxU tsMaxU
 
--- | Annotate a program with type/kind information at all bound variables,
--- failing if we encounter a free variable.
-annotate :: Program TyName Name a -> Either (RenameError a) (Program TyNameWithKind NameWithType a)
-annotate = fmap snd . annotateST
-
--- | Annotate a program with type/kind information at all bound variables,
--- additionally returning a 'TypeState'
-annotateST :: Program TyName Name a -> Either (RenameError a) (TypeState a, Program TyNameWithKind NameWithType a)
-annotateST (Program x v p) = fmap (Program x v) <$> annotateTermST p
-
--- | Annotate a term with type/kind information at all bound variables,
--- additionally returning a 'TypeState'
-annotateTermST :: Term TyName Name a -> Either (RenameError a) (TypeState a, Term TyNameWithKind NameWithType a)
-annotateTermST t = do
-    (t', st) <- runStateT (annotateTerm t) mempty
-    pure (st, t')
+-- | Annotate a PLC type, so that all names are annotated with their types/kinds.
+annotateType :: (MonadError (Error a) m) => Type TyName a -> m (Type TyNameWithKind a)
+annotateType t = do
+    (t', _) <- liftEither $ convertError $ runStateT (annotateTy t) mempty
+    pure t'
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert
@@ -79,63 +58,63 @@ insertType = modify .* over terms .* IM.insert
 insertKind :: Int -> Kind a -> TypeM a ()
 insertKind = modify .* over types .* IM.insert
 
-annotateTerm :: Term TyName Name a -> TypeM a (RenamedTerm a)
-annotateTerm (Var x (Name x' b (Unique u))) = do
+annotateT :: Term TyName Name a -> TypeM a (RenamedTerm a)
+annotateT (Var x (Name x' b (Unique u))) = do
     st <- gets _terms
     case IM.lookup u st of
         Just ty -> pure $ Var x (NameWithType (Name (x', ty) b (Unique u)))
         Nothing -> throwError $ UnboundVar (Name x' b (Unique u))
-annotateTerm (LamAbs x (Name x' s u@(Unique i)) ty t) = do
-    aty <- annotateType ty
+annotateT (LamAbs x (Name x' s u@(Unique i)) ty t) = do
+    aty <- annotateTy ty
     let nwt = NameWithType (Name (x', aty) s u)
     insertType i aty
-    LamAbs x nwt aty <$> annotateTerm t
-annotateTerm (TyAbs x (TyName (Name x' b u@(Unique i))) k t) = do
+    LamAbs x nwt aty <$> annotateT t
+annotateT (TyAbs x (TyName (Name x' b u@(Unique i))) k t) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
-    TyAbs x nwty k <$> annotateTerm t
-annotateTerm (Unwrap x t) =
-    Unwrap x <$> annotateTerm t
-annotateTerm (Error x ty) =
-    Error x <$> annotateType ty
-annotateTerm (Apply x t t') =
-    Apply x <$> annotateTerm t <*> annotateTerm t'
-annotateTerm (Constant x c) =
+    TyAbs x nwty k <$> annotateT t
+annotateT (Unwrap x t) =
+    Unwrap x <$> annotateT t
+annotateT (Error x ty) =
+    Error x <$> annotateTy ty
+annotateT (Apply x t t') =
+    Apply x <$> annotateT t <*> annotateT t'
+annotateT (Constant x c) =
     pure (Constant x c)
-annotateTerm (TyInst x t ty) =
-    TyInst x <$> annotateTerm t <*> annotateType ty
-annotateTerm (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
-    aty <- annotateType ty
+annotateT (TyInst x t ty) =
+    TyInst x <$> annotateT t <*> annotateTy ty
+annotateT (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
+    aty <- annotateTy ty
     let k = Type x'
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
-    Wrap x nwty aty <$> annotateTerm t
+    Wrap x nwty aty <$> annotateT t
 
-annotateType :: Type TyName a -> TypeM a (RenamedType a)
-annotateType (TyVar x (TyName (Name x' b (Unique u)))) = do
+annotateTy :: Type TyName a -> TypeM a (RenamedType a)
+annotateTy (TyVar x (TyName (Name x' b (Unique u)))) = do
     st <- gets _types
     case IM.lookup u st of
         Just ty -> pure $ TyVar x (TyNameWithKind (TyName (Name (x', ty) b (Unique u))))
         Nothing -> throwError $ UnboundVar (Name x' b (Unique u))
-annotateType (TyLam x (TyName (Name x' s u@(Unique i))) k ty) = do
+annotateTy (TyLam x (TyName (Name x' s u@(Unique i))) k ty) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
-    TyLam x nwty k <$> annotateType ty
-annotateType (TyForall x (TyName (Name x' s u@(Unique i))) k ty) = do
+    TyLam x nwty k <$> annotateTy ty
+annotateTy (TyForall x (TyName (Name x' s u@(Unique i))) k ty) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
-    TyForall x nwty k <$> annotateType ty
-annotateType (TyFix x (TyName (Name x' s u@(Unique i))) ty) = do
+    TyForall x nwty k <$> annotateTy ty
+annotateTy (TyFix x (TyName (Name x' s u@(Unique i))) ty) = do
     let k = Type x'
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
-    TyFix x nwty <$> annotateType ty
-annotateType (TyFun x ty ty') =
-    TyFun x <$> annotateType ty <*> annotateType ty'
-annotateType (TyApp x ty ty') =
-    TyApp x <$> annotateType ty <*> annotateType ty'
-annotateType (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
-annotateType (TyInt x n) = pure (TyInt x n)
+    TyFix x nwty <$> annotateTy ty
+annotateTy (TyFun x ty ty') =
+    TyFun x <$> annotateTy ty <*> annotateTy ty'
+annotateTy (TyApp x ty ty') =
+    TyApp x <$> annotateTy ty <*> annotateTy ty'
+annotateTy (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
+annotateTy (TyInt x n) = pure (TyInt x n)
 
 -- This renames terms so that they have a unique identifier. This is useful
 -- because of scoping.

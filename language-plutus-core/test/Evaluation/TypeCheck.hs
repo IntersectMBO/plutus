@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts  #-}
 module Evaluation.TypeCheck
     ( test_typecheck
     ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
@@ -11,39 +13,31 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import qualified Data.ByteString.Lazy                      as Bsl
+import Control.Monad.Except
+
 import           Data.Foldable
-import qualified Data.Text.Encoding                        as Text
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
 -- | Assert a 'Term' is well-typed.
 assertQuoteWellTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
-assertQuoteWellTyped getTerm =
-    let term = runQuote getTerm in
-        for_ (typecheckTerm term) $ \err -> assertFailure $ fold
-            [ "Ill-typed: ", prettyCfgString term, "\n"
-            , "Due to: ", prettyCfgString err
-            ]
+assertQuoteWellTyped getTerm = case runExcept $ runQuoteT $ typecheck getTerm of
+    Left e -> assertFailure $ fold
+            [ "Type error : ", prettyCfgString e ]
+    Right _ -> return ()
 
 -- | Assert a term is ill-typed.
 assertQuoteIllTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
-assertQuoteIllTyped getTerm =
-    let term = runQuote getTerm in
-        case typecheckTerm term of
-            Nothing -> assertFailure $ "Well-typed: " ++ prettyCfgString term
-            Just _  -> return ()
+assertQuoteIllTyped getTerm = case runExcept $ runQuoteT $ typecheck getTerm of
+    Right term -> assertFailure $ "Well-typed: " ++ prettyCfgString term
+    Left _ -> return ()
 
-typecheckTerm :: Term TyName Name () -> Maybe (Error AlexPosn)
-typecheckTerm = typecheckProgram . Program () (Version () 0 1 0)
-
-typecheckProgram :: Program TyName Name () -> Maybe (Error AlexPosn)
-typecheckProgram
-    = either Just (const Nothing)
-    . printType
-    . Bsl.fromStrict
-    . Text.encodeUtf8
-    . prettyCfgText
+typecheck :: (MonadError (Error ()) m, MonadQuote m) => Quote (Term TyName Name ()) -> m ()
+typecheck getTerm = do
+    t <- liftQuote getTerm
+    annotated <- annotateTerm t
+    _ <- typecheckTerm 1000 annotated
+    pure ()
 
 -- | Self-application. An example of ill-typed term.
 --

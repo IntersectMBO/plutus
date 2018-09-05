@@ -5,9 +5,9 @@
                                       , parseST
                                       , parseTermST
                                       , parseTypeST
-                                      , parseProgramQ
-                                      , parseTermQ
-                                      , parseTypeQ
+                                      , parseProgram
+                                      , parseTerm
+                                      , parseType
                                       , ParseError (..)
                                       ) where
 
@@ -171,18 +171,18 @@ mapParseRun run = convertErrors asError $ do
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgramQ :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
-parseProgramQ str = mapParseRun (parseST str)
+parseProgram :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
+parseProgram str = mapParseRun (parseST str)
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTermQ :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name AlexPosn)
-parseTermQ str = mapParseRun (parseTermST str)
+parseTerm :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name AlexPosn)
+parseTerm str = mapParseRun (parseTermST str)
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTypeQ :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Type TyName AlexPosn)
-parseTypeQ str = mapParseRun (parseTypeST str)
+parseType :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Type TyName AlexPosn)
+parseType str = mapParseRun (parseTypeST str)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --

@@ -2,11 +2,9 @@
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
-module Language.PlutusCore.TypeSynthesis ( kindOf
-                                         , typeOf
-                                         , runTypeCheckM
-                                         , typecheckProgramQ
-                                         , typecheckTermQ
+module Language.PlutusCore.TypeSynthesis ( typecheckProgram
+                                         , typecheckTerm
+                                         , kindCheck
                                          , TypeCheckM
                                          , BuiltinTable (..)
                                          , TypeError (..)
@@ -15,14 +13,16 @@ module Language.PlutusCore.TypeSynthesis ( kindOf
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State.Strict hiding (get, modify)
+import           Control.Monad.Trans.State.Strict     hiding (get, modify)
 import           Data.Functor.Foldable
-import qualified Data.Map                         as M
+import qualified Data.Map                             as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
+import qualified Language.PlutusCore.StdLib.Data.Bool as Std
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -38,53 +38,35 @@ isType :: Kind a -> Bool
 isType Type{} = True
 isType _      = False
 
--- | Create a dummy 'TyName'
-newTyName :: (MonadState Int m) => Kind () -> m (TyNameWithKind ())
-newTyName k = do
-    i <- get
-    modify (+1)
-    pure $ TyNameWithKind (TyName (Name ((), k) "a" (Unique $ i+1)))
-
 -- | Create a new 'Type' for an integer operation.
-intop :: MonadState Int m => m (Type TyNameWithKind ())
+intop :: MonadQuote m => m (Type TyNameWithKind ())
 intop = do
-    nam <- newTyName (Size ())
+    nam <- liftQuote $ freshTyName () ""
     let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity ity)
-    pure $ TyForall () nam (Size ()) fty
-
-unit :: MonadState Int m => m (Type TyNameWithKind ())
-unit =
-    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
-
-boolean :: MonadState Int m => m (Type TyNameWithKind ())
-boolean = do
-    nam <- newTyName (Type ())
-    (u, u') <- (,) <$> unit <*> unit
-    let var = TyVar () nam
-        unitVar = TyFun () u var
-        unitVar' = TyFun () u' var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
+    Right t <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
+    pure t
 
 -- | Create a new 'Type' for an integer relation
-intRel :: MonadState Int m => m (Type TyNameWithKind ())
+intRel :: MonadQuote m  => m (Type TyNameWithKind ())
 intRel = builtinRel TyInteger
 
-bsRel :: MonadState Int m => m (Type TyNameWithKind ())
+bsRel :: MonadQuote m => m (Type TyNameWithKind ())
 bsRel = builtinRel TyByteString
 
-builtinRel :: MonadState Int m => TypeBuiltin -> m (Type TyNameWithKind ())
+builtinRel :: MonadQuote m => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
-    nam <- newTyName (Size ())
-    b <- boolean
+    nam <- liftQuote $ freshTyName () ""
+    b <- liftQuote Std.getBuiltinBool
     let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity b)
-    pure $ TyForall () nam (Size ()) fty
+    Right t <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
+    pure t
 
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
-defaultTable :: MonadState Int m => m BuiltinTable
+defaultTable :: MonadQuote m => m BuiltinTable
 defaultTable = do
 
     let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
@@ -103,23 +85,26 @@ defaultTable = do
 
     pure $ BuiltinTable tyTable termTable
 
--- | Typecheck a PLC program.
-typecheckProgramQ :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (Type TyNameWithKind ())
-typecheckProgramQ n (Program _ _ t) = typecheckTermQ n t
+-- | Type-check a PLC program.
+typecheckProgram :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (Type TyNameWithKind ())
+typecheckProgram n (Program _ _ t) = typecheckTerm n t
 
--- | Typecheck a PLC term.
-typecheckTermQ :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (Type TyNameWithKind ())
-typecheckTermQ n t = convertErrors asError $ do
-    nextU <- liftQuote get
-    let maxU = unUnique nextU - 1
-    liftEither $ runTypeCheckM maxU n (typeOf t)
+-- | Type-check a PLC term.
+typecheckTerm :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (Type TyNameWithKind ())
+typecheckTerm n t = convertErrors asError $ runTypeCheckM n (typeOf t)
+
+-- | Kind-check a PLC term.
+kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWithKind a -> m (Kind ())
+kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: Int -- ^ Largest @Unique@ in scope so far. This is used to allow us to generate globally unique names during type checking.
-              -> Natural -- ^ Amount of gas to provide typechecker
+runTypeCheckM :: (MonadError (TypeError a) m, MonadQuote m)
+              => Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
-              -> Either (TypeError a) b
-runTypeCheckM i = flip runReaderT (evalState defaultTable i) .* flip evalStateT
+              -> m b
+runTypeCheckM i tc = do
+    table <- defaultTable
+    liftEither $ fst <$> runReaderT (runStateT tc i) table
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
