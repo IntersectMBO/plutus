@@ -244,12 +244,12 @@ instance (PrettyCfg (f a)) => PrettyCfg (Type f a) where
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Functor, Generic)
+    deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Eq, Functor, Generic)
+    deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 
 instance PrettyCfg (TyNameWithKind a) where

@@ -1,17 +1,13 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Main (main) where
 
-import qualified Language.PlutusCore           as PC
-import qualified Language.PlutusCore.CkMachine as CK
-import qualified Language.PlutusCore.Quote     as PC
+import qualified Language.PlutusCore  as PC
 
-import           Control.Monad
-import           Control.Monad.Except
-
-import qualified Data.ByteString.Lazy          as BSL
+import qualified Data.ByteString.Lazy as BSL
 import           Data.Semigroup
-import qualified Data.Text                     as T
-import           Data.Text.Encoding            (encodeUtf8)
-import qualified Data.Text.IO                  as T
+import qualified Data.Text            as T
+import           Data.Text.Encoding   (encodeUtf8)
+import qualified Data.Text.IO         as T
 
 import           System.Exit
 
@@ -57,25 +53,13 @@ typecheckOpts = TypecheckOptions <$> input
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOptions <$> input
 
--- | Parse a program and run it using the CK machine.
-parseRunCk :: BSL.ByteString -> Either (PC.ParseError PC.AlexPosn) CK.CkEvalResult
-parseRunCk = fmap (CK.runCk . void) . PC.parseScoped
-
--- | Parse a program and typecheck it.
-parseTypecheck :: BSL.ByteString -> Either (PC.Error PC.AlexPosn) (PC.Type PC.TyNameWithKind ())
-parseTypecheck bs = runExcept $ PC.runQuoteT $ do
-    parsed <- PC.parseProgramQ bs
-    PC.checkProgram parsed
-    annotated <- PC.annotateProgramQ parsed
-    PC.typecheckProgramQ 1000 annotated
-
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plutus
     case options of
         Typecheck (TypecheckOptions inp) -> do
             contents <- getInput inp
-            case (parseTypecheck . BSL.fromStrict . encodeUtf8 . T.pack) contents of
+            case (PC.runQuoteT . PC.parseTypecheck 1000 . BSL.fromStrict . encodeUtf8 . T.pack) contents of
                 Left e -> do
                     T.putStrLn $ PC.prettyCfgText e
                     exitFailure
@@ -84,7 +68,7 @@ main = do
                     exitSuccess
         Eval (EvalOptions inp) -> do
             contents <- getInput inp
-            case (parseRunCk . BSL.fromStrict . encodeUtf8 . T.pack) contents of
+            case (PC.parseRunCk . BSL.fromStrict . encodeUtf8 . T.pack) contents of
                 Left e -> do
                     T.putStrLn $ PC.prettyCfgText e
                     exitFailure

@@ -20,7 +20,7 @@ import qualified Data.Text                     as T
 
 data NormalizationError tyname name a = BadType a (Type tyname a) T.Text
                                       | BadTerm a (Term tyname name a) T.Text
-                                      deriving (Generic, NFData)
+                                      deriving (Show, Eq, Generic, NFData)
 
 instance (PrettyCfg (tyname a), PrettyCfg (name a), PrettyCfg a) => PrettyCfg (NormalizationError tyname name a) where
     prettyCfg cfg (BadType l ty expct) = "Malformed type at" <+> prettyCfg cfg l <> ". Type" <+> prettyCfg cfg ty <+> "is not a" <+> pretty expct <> "."
@@ -31,7 +31,7 @@ instance (PrettyCfg (tyname a), PrettyCfg (name a), PrettyCfg a) => PrettyCfg (N
 -- rewriting.
 data RenameError a = UnboundVar (Name a)
                    | UnboundTyVar (TyName a)
-                   deriving (Generic, NFData)
+                   deriving (Show, Eq, Generic, NFData)
 
 instance (PrettyCfg a) => PrettyCfg (RenameError a) where
     prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> prettyCfg cfg loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
@@ -41,7 +41,7 @@ data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
                  | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
                  | OutOfGas
-                 deriving (Generic, NFData)
+                 deriving (Show, Eq, Generic, NFData)
 
 instance (PrettyCfg a) => PrettyCfg (TypeError a) where
     prettyCfg _ InternalError               = "Internal error."
@@ -53,7 +53,7 @@ data Error a = ParseError (ParseError a)
              | RenameError (RenameError a)
              | TypeError (TypeError a)
              | NormalizationError (NormalizationError TyName Name a)
-             deriving (Generic, NFData)
+             deriving (Show, Eq, Generic, NFData)
 
 class IsError f where
 

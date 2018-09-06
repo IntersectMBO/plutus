@@ -27,6 +27,7 @@ class PrettyCfg a where
 
 instance PrettyCfg Bool
 instance PrettyCfg Integer
+instance PrettyCfg ()
 
 instance PrettyCfg a => PrettyCfg [a] where
     prettyCfg cfg = list . fmap (prettyCfg cfg)
