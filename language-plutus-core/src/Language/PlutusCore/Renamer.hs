@@ -42,15 +42,11 @@ annotateProgram (Program a v t) = Program a v <$> annotateTerm t
 
 -- | Annotate a PLC term, so that all names are annotated with their types/kinds.
 annotateTerm :: (MonadError (Error a) m) => Term TyName Name a -> m (Term TyNameWithKind NameWithType a)
-annotateTerm t = do
-    (t', _) <- liftEither $ convertError $ runStateT (annotateT t) mempty
-    pure t'
+annotateTerm t = fmap fst $ liftEither $ convertError $ runStateT (annotateT t) mempty
 
 -- | Annotate a PLC type, so that all names are annotated with their types/kinds.
 annotateType :: (MonadError (Error a) m) => Type TyName a -> m (Type TyNameWithKind a)
-annotateType t = do
-    (t', _) <- liftEither $ convertError $ runStateT (annotateTy t) mempty
-    pure t'
+annotateType t = fmap fst $ liftEither $ convertError $ runStateT (annotateTy t) mempty
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert

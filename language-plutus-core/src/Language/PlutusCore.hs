@@ -1,10 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Language.PlutusCore
-    ( Configuration (..)
-    , defaultCfg
-    , debugCfg
+    (
       -- * Parser
-    , parse
+      parse
     , parseST
     , parseTermST
     , parseTypeST
@@ -13,6 +11,9 @@ module Language.PlutusCore
     , parseTerm
     , parseType
     -- * Pretty-printing
+    , Configuration (..)
+    , defaultCfg
+    , debugCfg
     , prettyCfgText
     , prettyCfgString
     , debugText
@@ -67,6 +68,7 @@ module Language.PlutusCore
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
+    , parseTypecheck
     -- * Serialization
     , encodeProgram
     , decodeProgram
@@ -79,9 +81,14 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
-    -- * Template Haskell
+    -- * Quotation and term construction
     , Quote
     , runQuote
+    , QuoteT
+    , runQuoteT
+    , MonadQuote
+    , liftQuote
+    , convertErrors
     -- * Name generation
     , freshUnique
     , freshName
@@ -90,14 +97,18 @@ module Language.PlutusCore
     , plcType
     , plcTerm
     , plcProgram
+    -- * Evaluation
+    , parseRunCk
+    , CkEvalResult (..)
     ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.Text                         as T
-import           Data.Text.Prettyprint.Doc         hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -135,6 +146,18 @@ printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 <=< annotate
 -- their scope.
 parseScoped :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
 parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
+
+-- | Parse a program and typecheck it.
+parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (Type TyNameWithKind ())
+parseTypecheck gas bs = do
+    parsed <- parseProgram bs
+    checkProgram parsed
+    annotated <- annotateProgram parsed
+    typecheckProgram gas annotated
+
+-- | Parse a program and run it using the CK machine.
+parseRunCk :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m CkEvalResult
+parseRunCk = fmap (runCk . void) . parseScoped
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs

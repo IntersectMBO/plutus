@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Evaluation.TypeCheck
     ( test_typecheck
     ) where
@@ -13,7 +13,7 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import Control.Monad.Except
+import           Control.Monad.Except
 
 import           Data.Foldable
 import           Test.Tasty
@@ -30,7 +30,7 @@ assertQuoteWellTyped getTerm = case runExcept $ runQuoteT $ typecheck getTerm of
 assertQuoteIllTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
 assertQuoteIllTyped getTerm = case runExcept $ runQuoteT $ typecheck getTerm of
     Right term -> assertFailure $ "Well-typed: " ++ prettyCfgString term
-    Left _ -> return ()
+    Left _     -> return ()
 
 typecheck :: (MonadError (Error ()) m, MonadQuote m) => Quote (Term TyName Name ()) -> m ()
 typecheck getTerm = do
