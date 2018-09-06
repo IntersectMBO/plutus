@@ -4,7 +4,7 @@ This repository contains the various components and some documentation for the P
 
 ## Building
 
-`default.nix` defines a package set containing all the packages in this repository. These can be built directly. 
+`default.nix` defines a package set containing all the packages in this repository. These can be built directly.
 For example:
 ```
 nix build -f default.nix language-plutus-core
@@ -21,7 +21,7 @@ nix-shell default.nix -A language-plutus-core.env
 
 `pkgs/default.nix` contains a generated package set with all the dependencies for this projet.
 
-You should regenerate this if you change any dependencies in cabal files. To do this, use the 
+You should regenerate this if you change any dependencies in cabal files. To do this, use the
 environment defined in `shell.nix`, and run `pkgs/generate.sh`.
 
 ## CI
@@ -40,3 +40,4 @@ You can also build the docs yourself locally. For example:
 ```
 nix build -f default.nix language-plutus-core.doc
 ```
+fake stuff to see what happens with hydra-notify
