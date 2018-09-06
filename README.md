@@ -41,3 +41,5 @@ You can also build the docs yourself locally. For example:
 nix build -f default.nix language-plutus-core.doc
 ```
 fake stuff to see what happens with hydra-notify
+
+more fake stuff.
