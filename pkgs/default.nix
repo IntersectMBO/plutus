@@ -55670,6 +55670,50 @@ description = "TH frontend to the Plutus compiler";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"plutus-use-cases" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, core-to-plc
+, language-plutus-core
+, mtl
+, plutus-th
+, stdenv
+, tasty
+, tasty-golden
+, template-haskell
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-use-cases";
+version = "0.1.0.0";
+src = ./../plutus-use-cases;
+libraryHaskellDepends = [
+base
+core-to-plc
+language-plutus-core
+mtl
+plutus-th
+template-haskell
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+core-to-plc
+language-plutus-core
+tasty
+tasty-golden
+text
+];
+doHaddock = false;
+description = "Collection of smart contracts to develop the plutus/wallet interface";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "pointed" = callPackage
 ({
   mkDerivation
