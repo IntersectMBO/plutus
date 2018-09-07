@@ -227,7 +227,7 @@ typeOf (Unwrap x body) = do
     reducedBodyTy <- tyReduce bodyTy
     case reducedBodyTy of
         TyFix _ n fixArg -> tySubstitute (extractUnique n) reducedBodyTy fixArg
-        _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) (void bodyTy))
+        _                -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) (void bodyTy))
 typeOf t@(Wrap x n ty body) = do
     bodyTy <- typeOf body
     reducedBodyTy <- tyReduce bodyTy
