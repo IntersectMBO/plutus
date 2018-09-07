@@ -3,7 +3,7 @@ resolver: lts-11.11
 packages:
 - plutus-prototype
 - language-plutus-core
-- plutus-core-vm
+- plutus-core-interpreter
 
 - location:
     git: https://github.com/input-output-hk/cardano-crypto

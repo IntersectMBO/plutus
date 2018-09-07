@@ -1,4 +1,4 @@
-module PlutusCoreVm.CekMachine where
+module PlutusCoreInterpreter.CekMachine where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant

@@ -12,7 +12,7 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.TestSupport
-import           PlutusCoreVm.CekMachine
+import           PlutusCoreInterpreter.CekMachine
 import           PlutusPrelude                            hiding (hoist, list)
 
 import           Control.Monad.Morph
