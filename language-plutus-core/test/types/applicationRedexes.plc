@@ -1,0 +1,7 @@
+(program 1.0.0 
+  (lam f [(lam t (type) t) (fun [(con integer) (con 64)] [(con integer) (con 64)])]
+    (lam a [(lam t (type) t) [(con integer) (con 64)]]
+      [ f a ]
+    )
+  )
+)

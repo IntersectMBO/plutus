@@ -80,9 +80,9 @@ annotateT (Constant x c) =
 annotateT (TyInst x t ty) =
     TyInst x <$> annotateT t <*> annotateTy ty
 annotateT (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
-    aty <- annotateTy ty
     let k = Type x'
     insertKind i k
+    aty <- annotateTy ty
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
     Wrap x nwty aty <$> annotateT t
 
@@ -91,7 +91,7 @@ annotateTy (TyVar x (TyName (Name x' b (Unique u)))) = do
     st <- gets _types
     case IM.lookup u st of
         Just ty -> pure $ TyVar x (TyNameWithKind (TyName (Name (x', ty) b (Unique u))))
-        Nothing -> throwError $ UnboundVar (Name x' b (Unique u))
+        Nothing -> throwError $ UnboundTyVar (TyName (Name x' b (Unique u)))
 annotateTy (TyLam x (TyName (Name x' s u@(Unique i))) k ty) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))

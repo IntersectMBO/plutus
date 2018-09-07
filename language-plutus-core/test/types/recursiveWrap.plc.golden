@@ -1,0 +1,18 @@
+Type mismatch at 3:6 in term
+  '(abs
+    r
+    (type)
+    (lam
+      z
+      r
+      (lam
+        f
+        (fun a (fun (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))) r))
+        z
+      )
+    )
+  )'.
+Expected type
+  '(all r (type) (fun r (fun (fun a (fun (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))) r)) r)))',
+found type
+  '(all r (type) (fun r (fun (fun a (fun (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))) r)) r)))'

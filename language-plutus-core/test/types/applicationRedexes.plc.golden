@@ -1,0 +1,1 @@
+(fun [(lam t (type) t) (fun [(con integer) (con 64)] [(con integer) (con 64)])] (fun [(lam t (type) t) [(con integer) (con 64)]] [(con integer) (con 64)]))

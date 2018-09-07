@@ -1,0 +1,5 @@
+(program 1.0.0 
+  (lam a [(lam t (type) t) (all t (type) t)]
+    { a [(lam t (type) t) [(con integer) (con 64)]] }
+  )
+)
