@@ -2,10 +2,12 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusCore.CkMachine
-    ( CkError(..)
+    ( -- * Outcome
+      CkError(..)
     , CkException(..)
     , CkEvalResult(..)
     , ckEvalResultToMaybe
+      -- * Runners
     , evaluateCk
     , runCk
     ) where

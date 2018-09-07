@@ -61,7 +61,7 @@ library
 
 test-suite plutus-core-vm-test
     type: exitcode-stdio-1.0
-    main-is: Spec.hs
+    main-is: Main.hs
     hs-source-dirs: test
     other-modules:
         CekMachine
