@@ -215,7 +215,7 @@ typeOf (TyInst x t ty) = do
             if k == k'
                 then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
                 else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
+        _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
