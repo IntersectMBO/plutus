@@ -215,16 +215,14 @@ typeOf (TyInst x t ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then tySubstitute (extractUnique n) (void ty) ty'' >>= tyReduce
+                then tySubstitute (extractUnique n) (void ty) ty''
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     reduced <- tyReduce ty
     case reduced of
-        TyFix _ n ty' -> do
-            subst <- tySubstitute (extractUnique n) ty ty'
-            tyReduce subst
+        TyFix _ n ty' -> tySubstitute (extractUnique n) ty ty'
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
