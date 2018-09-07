@@ -13,13 +13,13 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
+import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.State.Strict     hiding (get, modify)
 import           Data.Functor.Foldable
 import qualified Data.Map                             as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import qualified Language.PlutusCore.StdLib.Data.Bool as Std
@@ -248,13 +248,19 @@ tySubstitute u ty t = typeCheckStep >> (pure $ cata a t) where
 
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> TypeCheckM b (Type TyNameWithKind a)
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
-    reduced <- tyReduce ty
-    tySubstitute u ty' reduced -- TODO: use the substitution monad here
-tyReduce (TyForall x tn k ty)                                                = TyForall x tn k <$> tyReduce ty
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x <$> tyReduce ty <*> tyReduce ty'
-                          | otherwise                                        = TyFun x <$> tyReduce ty <*> pure ty'
-tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k <$> tyReduce ty
-tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x <$> tyReduce ty <*> tyReduce ty'
-                          | otherwise                                        = TyApp x <$> tyReduce ty <*> pure ty'
-tyReduce x                                                                   = pure x
+tyReduce (TyForall x tn k ty) = tyReduceFrame =<< TyForall x tn k <$> tyReduce ty
+tyReduce (TyFun x ty ty')     = tyReduceFrame =<< TyFun x <$> tyReduce ty <*> tyReduce ty'
+tyReduce (TyLam x tn k ty)    = tyReduceFrame =<< TyLam x tn k <$> tyReduce ty
+tyReduce (TyApp x ty ty')     = tyReduceFrame =<<TyApp x <$> tyReduce ty <*> tyReduce ty'
+tyReduce x                    = tyReduceFrame x
+
+tyReduceFrame :: Type TyNameWithKind a -> TypeCheckM b (Type TyNameWithKind a)
+tyReduceFrame ty = do
+    reduced <- runMaybeT $ tyReduceStep ty
+    case reduced of
+        Nothing -> pure ty
+        Just t  -> tyReduceFrame t
+
+tyReduceStep :: Type TyNameWithKind a -> MaybeT (TypeCheckM b) (Type TyNameWithKind a)
+tyReduceStep (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = lift $ tySubstitute u ty' ty -- TODO: use the substitution monad here
+tyReduceStep _                                                                   = empty
