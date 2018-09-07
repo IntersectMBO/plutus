@@ -80,9 +80,9 @@ annotateT (Constant x c) =
 annotateT (TyInst x t ty) =
     TyInst x <$> annotateT t <*> annotateTy ty
 annotateT (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
-    aty <- annotateTy ty
     let k = Type x'
     insertKind i k
+    aty <- annotateTy ty
     let nwty = TyNameWithKind (TyName (Name (x', k) b u))
     Wrap x nwty aty <$> annotateT t
 
