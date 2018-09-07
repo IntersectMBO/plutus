@@ -15,9 +15,10 @@ You should regenerate this if you change any dependencies in cabal files. To do 
 
 ## Code style
 
-We use `stylish-haskell` and `hlint`.
+We use `stylish-haskell` and `hlint`, and enable a large number of GHC warnings.
 - These are run by the CI, so if you don’t use them your PR will not go green. To avoid annoyance, set up your editor to run them automatically.
 - It’s fine to be aggressive about disabling `hlint` rules that don’t provide value, but check with the team before doing this. Err on the side of disabling them globally rather than for specific files, so we stay consistent.
+- Try and make sure that you do not have any compiler warnings - this is not currently checked by the CI, but may be in future.
 
 # Issues
 
