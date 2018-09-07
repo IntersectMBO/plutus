@@ -198,7 +198,8 @@ typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
 typeOf (Apply x t t') = do
     ty <- typeOf t
-    case ty of
+    reduced <- tyReduce ty
+    case reduced of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
             typeCheckStep
@@ -208,7 +209,8 @@ typeOf (Apply x t t') = do
         _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) ty)
 typeOf (TyInst x t ty) = do
     ty' <- typeOf t
-    case ty' of
+    reduced <- tyReduce ty'
+    case reduced of
         TyForall _ n k ty'' -> do
             k' <- kindOf ty
             typeCheckStep
@@ -218,7 +220,8 @@ typeOf (TyInst x t ty) = do
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
-    case ty of
+    reduced <- tyReduce ty
+    case reduced of
         TyFix _ n ty' -> do
             subst <- tySubstitute (extractUnique n) ty ty'
             tyReduce subst
