@@ -228,7 +228,7 @@ typeOf (Unwrap x body) = do
     case reducedBodyTy of
         TyFix _ n fixArg -> tySubstitute (extractUnique n) reducedBodyTy fixArg
         _                -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) (void bodyTy))
-typeOf t@(Wrap x n ty body) = do
+typeOf (Wrap x n ty body) = do
     bodyTy <- typeOf body
     reducedBodyTy <- tyReduce bodyTy
     fixed <- tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
@@ -237,7 +237,7 @@ typeOf t@(Wrap x n ty body) = do
     typeCheckStep
     if reducedBodyTy == reducedF
         then pure (TyFix () (void n) (void ty))
-        else throwError (TypeMismatch x (void t) (void bodyTy) fixed)
+        else throwError (TypeMismatch x (void body) fixed (void bodyTy))
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
