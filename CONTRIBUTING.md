@@ -22,6 +22,10 @@ We use `stylish-haskell` and `hlint`, and enable a large number of GHC warnings.
 
 # Issues
 
+General issues can be opened on the GitHub Issue tracker: https://github.com/input-output-hk/plutus-prototype/issues
+
+## IOHK developers
+
 We track our issues on the IOHK YouTrack instance: https://iohk.myjetbrains.com/youtrack/issues/CGP
 
 # Submitting changes
@@ -31,7 +35,8 @@ We track our issues on the IOHK YouTrack instance: https://iohk.myjetbrains.com/
 All code changes go through pull requests.
 - Make your PR from the main repository if possible, this is necessary for the Buildkite CI to trust you.
 - PRs exist to be reviewed - design them with a reader in mind!
-    - Write a helpful PR description that explains what’s in the PR and why, and draws attention to anything of particular note.
+    - Include the ticket name in the PR title where possible.
+    - Write a helpful PR description that explains what’s in the PR and why, and draws attention to anything of particular note, references related tickets etc.
     - Consider rebasing your PRs before submitting to structure them into a few logical commits that can be reviewed separately.
 Keep PRs to a single topic.
     - If you find yourself making unrelated changes, pull those commits out into another PR and submit them separately (i.e. do not include them in the original PR)
@@ -46,7 +51,6 @@ Keep PRs to a single topic.
         - Documentation-only PRs can be merged without a review
         - In some cases very small PRs like trivial bug fixes can also be merged without a review
     - PRs with changes to code that another team member is currently working on should always request a review from the affected team member.
-- Include the ticket name in the PR title where possible.
 - Force-pushing PRs is okay, this will mostly do the right thing in Github. Do this if you’re applying fixups, or you’ve done a series of additional commits that you want to squash down before merging.
     - Alternatively, request a squash merge.
 - Comment if you want attention from someone (e.g. a re-review after changes). Github does not make it easy to signal this state otherwise, and people may not be notified if you just push commits.
