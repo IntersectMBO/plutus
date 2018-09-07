@@ -5,7 +5,6 @@ module Evaluation.TypeCheck
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
