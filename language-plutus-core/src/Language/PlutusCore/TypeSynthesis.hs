@@ -213,21 +213,21 @@ typeOf (TyInst x t ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
+                then tySubstitute (extractUnique n) (void ty) ty'' >>= tyReduce
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
         TyFix _ n ty' -> do
-            let subst = tySubstitute (extractUnique n) ty ty'
-            pure (tyReduce subst)
+            subst <- tySubstitute (extractUnique n) ty ty'
+            tyReduce subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
-    let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
-    typeCheckStep
-    if tyReduce fixed == ty'
+    fixed <- tySubstitute u (TyFix () (void n) (void ty)) (void ty)
+    reduced <- tyReduce fixed
+    if reduced == ty'
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) (void ty') fixed)
 
@@ -238,18 +238,20 @@ extractUnique = nameUnique . unTyName . unTyNameWithKind
 tySubstitute :: Unique -- ^ Unique associated with type variable
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
              -> Type TyNameWithKind a -- ^ Type we are substituting in
-             -> Type TyNameWithKind a
-tySubstitute u ty = cata a where
+             -> TypeCheckM b (Type TyNameWithKind a)
+tySubstitute u ty t = typeCheckStep >> (pure $ cata a t) where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 
 -- also this should involve contexts
-tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here
-tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x (tyReduce ty) (tyReduce ty')
-                          | otherwise                                        = TyFun x (tyReduce ty) ty'
-tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
-tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x (tyReduce ty) (tyReduce ty')
-                          | otherwise                                        = TyApp x (tyReduce ty) ty'
-tyReduce x                                                                   = x
+tyReduce :: Type TyNameWithKind a -> TypeCheckM b (Type TyNameWithKind a)
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
+    reduced <- tyReduce ty
+    tySubstitute u ty' reduced -- TODO: use the substitution monad here
+tyReduce (TyForall x tn k ty)                                                = TyForall x tn k <$> tyReduce ty
+tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x <$> tyReduce ty <*> tyReduce ty'
+                          | otherwise                                        = TyFun x <$> tyReduce ty <*> pure ty'
+tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k <$> tyReduce ty
+tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x <$> tyReduce ty <*> tyReduce ty'
+                          | otherwise                                        = TyApp x <$> tyReduce ty <*> pure ty'
+tyReduce x                                                                   = pure x
