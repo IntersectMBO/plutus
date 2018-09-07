@@ -210,7 +210,8 @@ benchmark language-plutus-core-bench
         base -any,
         language-plutus-core -any,
         criterion -any,
-        bytestring -any
+        bytestring -any,
+        text -any
 
     if flag(eventlog)
         ghc-options: -eventlog
