@@ -204,6 +204,7 @@ typeOf (Apply x fun arg) = do
             reducedInTy <- tyReduce i
             argTy <- typeOf arg
             reducedArgTy <- tyReduce argTy
+            -- for the equality check
             typeCheckStep
             if reducedInTy == reducedArgTy
                 then pure o
@@ -215,6 +216,7 @@ typeOf (TyInst x instBody instArgTy) = do
     case reducedBodyTy of
         TyForall _ n k tyBody -> do
             k' <- kindOf instArgTy
+            -- for the equality check
             typeCheckStep
             if k == k'
                 then tySubstitute (extractUnique n) (void instArgTy) tyBody
@@ -231,6 +233,8 @@ typeOf t@(Wrap x n ty body) = do
     reducedBodyTy <- tyReduce bodyTy
     fixed <- tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
     reducedF <- tyReduce fixed
+    -- for the equality check
+    typeCheckStep
     if reducedBodyTy == reducedF
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) (void bodyTy) fixed)
