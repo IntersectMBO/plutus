@@ -219,9 +219,9 @@ typeOf (TyInst x t ty) = do
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
-        TyFix _ n ty' -> do
-            let subst = tySubstitute (extractUnique n) ty ty'
-            pure (tyReduce subst)
+        ty''@(TyFix _ n ty') -> do
+            let subst = tySubstitute (extractUnique n) ty'' ty'
+            pure subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     ty' <- typeOf t'
