@@ -228,10 +228,11 @@ typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     case k of
         Type{} -> pure ()
         _      -> throwError (KindMismatch x (void ty') (Type ()) k)
-    let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
+    let tyFix = TyFix () (void n) (void ty)
+        fixed = tySubstitute u tyFix (void ty)
     typeCheckStep
     if fixed == ty'
-        then pure (TyFix () (void n) (void ty))
+        then pure tyFix
         else throwError (TypeMismatch x (void t) (void ty') fixed)
 
 extractUnique :: TyNameWithKind a -> Unique
