@@ -4,7 +4,7 @@ module Evaluation.Constant.Success
 
 import           Evaluation.Constant.Apply
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 
 import qualified Data.ByteString.Lazy            as BSL
 import           Data.Semigroup
@@ -99,8 +99,7 @@ test_typedConcatenateSuccess
     = testProperty "typedConcatenate"
     $ prop_applyBuiltinNameSuccess typedConcatenate (<>)
     $ updateTypedBuiltinGenBS
-          -- TODO 'Gen.bytes' is probably inappropriate.
-          (\high -> fmap BSL.fromStrict . Gen.bytes $ Range.linear 0 (high `div` 2))
+          (\high -> genLowerBytes $ Range.linear 0 (high `div` 2))
     $ genTypedBuiltinDef
 
 test_typedTakeByteStringSuccess :: TestTree

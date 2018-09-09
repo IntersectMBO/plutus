@@ -11,7 +11,7 @@ import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 import           PlutusPrelude                            hiding (hoist, list)
 
 import           Control.Monad.Morph

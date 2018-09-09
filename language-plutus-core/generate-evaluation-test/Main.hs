@@ -4,7 +4,7 @@ module Main (main) where
 import           Language.PlutusCore
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 
 import           Control.Monad
 import           Control.Monad.Morph

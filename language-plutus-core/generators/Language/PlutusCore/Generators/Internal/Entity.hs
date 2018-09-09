@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-module Language.PlutusCore.TestSupport.Generator
+module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
     , IterAppValue(..)
     , runPlcT
@@ -21,9 +21,9 @@ module Language.PlutusCore.TestSupport.Generator
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport.Denotation
-import           Language.PlutusCore.TestSupport.TypedBuiltinGen
-import           Language.PlutusCore.TestSupport.Utils
+import           Language.PlutusCore.Generators.Internal.Denotation
+import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import           Language.PlutusCore.Generators.Internal.Utils
 import           PlutusPrelude
 
 import           Control.Exception                               (evaluate)

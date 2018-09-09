@@ -12,7 +12,7 @@ module Evaluation.Constant.Apply
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 
 import           Data.Foldable
 import           Data.List
