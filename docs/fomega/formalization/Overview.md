@@ -66,6 +66,6 @@ There are several approaches for dealing with higher-kinded type-level recursion
 2. `fix` can be of kind `((k -> *) -> k -> *) -> k -> *`
 3. eliminations contexts can be used like it's in the specification
 
-2 is *much* simpler for formalization than 1, especially in a setting without hereditary substitutions. However 2 also requires a proof that it's as strong as the approaches.
+2 is *much* simpler for formalization than 1, especially in a setting without hereditary substitutions. However 2 also requires a proof that it's as strong as the other approaches.
 
 3 is currently unexplored (this is a TODO).
