@@ -4,12 +4,12 @@ module Evaluation.Constant.Success
 
 import           Evaluation.Constant.Apply
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 
-import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.Semigroup
-import qualified Hedgehog.Gen                    as Gen
-import qualified Hedgehog.Range                  as Range
+import qualified Hedgehog.Gen                   as Gen
+import qualified Hedgehog.Range                 as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -99,8 +99,7 @@ test_typedConcatenateSuccess
     = testProperty "typedConcatenate"
     $ prop_applyBuiltinNameSuccess typedConcatenate (<>)
     $ updateTypedBuiltinGenBS
-          -- TODO 'Gen.bytes' is probably inappropriate.
-          (\high -> fmap BSL.fromStrict . Gen.bytes $ Range.linear 0 (high `div` 2))
+          (\high -> genLowerBytes $ Range.linear 0 (high `div` 2))
     $ genTypedBuiltinDef
 
 test_typedTakeByteStringSuccess :: TestTree
