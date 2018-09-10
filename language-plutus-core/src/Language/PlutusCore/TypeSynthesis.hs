@@ -229,7 +229,7 @@ typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
     typeCheckStep
     if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
-        else throwError (TypeMismatch x (void t) (void ty') fixed)
+        else throwError (TypeMismatch x (void t) fixed (void ty'))
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
