@@ -310,7 +310,9 @@ convConstructor dc = let
             -- See Note [Scott encoding of datatypes]
             resultType <- safeFreshTyName $ tcName ++ "_matchOut"
             dcs <- getDataCons tc
-            let Just index = elemIndex dc dcs
+            index <- case elemIndex dc dcs of
+                Just i  -> pure i
+                Nothing -> conversionFail "Data constructor not in the type constructor's list of constructors!"
             caseTypes <- mapM (dataConCaseType (PC.TyVar () resultType)) dcs
             caseArgNames <- mapM (convNameFresh . GHC.dataConName) dcs
             argTypes <- mapM convType $ GHC.dataConRepArgTys dc
@@ -641,7 +643,9 @@ convExpr e = do
         GHC.Case scrutinee b t alts -> do
             let scrutineeType = GHC.varType b
             -- must be a TC app
-            let Just (tc, _) = GHC.splitTyConApp_maybe scrutineeType
+            tc <- case GHC.splitTyConApp_maybe scrutineeType of
+                Just (tc, _) -> pure tc
+                Nothing      -> conversionFail "Scrutinee's type was not a type constructor application"
             dcs <- getDataCons tc
             -- See Note [Scott encoding of datatypes]
             -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type

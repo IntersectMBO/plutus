@@ -3,6 +3,9 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
+-- See Note [Deserializing the AST]
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC
@@ -26,8 +29,12 @@ newtype PlcCode = PlcCode { unPlc :: [Word] }
 getSerializedCode :: PlcCode -> BSL.ByteString
 getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
 
+{- Note [Deserializing the AST]
+The types suggest that we can fail to deserialize the AST that we embedded in the program.
+However, we just did it ourselves, so this should be impossible. Possibly we should surface
+the error somehow, but passing it on to the user seems like quite an annoying UI.
+-}
 getAst :: PlcCode -> PC.Program PC.TyName PC.Name ()
--- TODO: this failure *should* be impossible, but should we surface it anyway?
 getAst wrapper = let Right p = PC.readProgram $ getSerializedCode wrapper in p
 
 -- | Marks the given expression for conversion to PLC.
@@ -115,15 +122,15 @@ convertExpr origE tpe = do
     let result =
           do
               converted <- convExpr origE
-              -- temporarily don't do typechecking due to typechecker bug
+              -- temporarily don't do typechecking due to lack of support for redexes
               --annotated <- convertErrors PCError $ PC.annotateTermQ converted
               --inferredType <- convertErrors PCError $ PC.typecheckTermQ 1000 annotated
-              pure  (converted, undefined)
+              pure (converted, undefined)
     case runExcept $ runReaderT (runQuoteT result) (initialScopeStack, flags) of
         Left s -> do
             GHC.fatalErrorMsg $ "Failed to convert expression:" GHC.$+$ (GHC.text $ T.unpack $ errorText s)
             pure origE
-        Right (term, inferredType) -> do
+        Right (term, _) -> do
             let termRep = T.unpack $ PC.debugText term
             --let typeRep = T.unpack $ PC.debugText inferredType
             GHC.debugTraceMsg $ "Successfully produced PLC expression:" GHC.$+$ GHC.text termRep --GHC.$+$ "With type:" GHC.$+$ GHC.text typeRep
