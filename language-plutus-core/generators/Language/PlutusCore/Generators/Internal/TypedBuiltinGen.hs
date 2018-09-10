@@ -27,7 +27,6 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           PlutusPrelude
 
-import           Control.Monad.Trans
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Functor.Identity
 import           Data.GADT.Compare
@@ -60,7 +59,7 @@ instance PrettyCfg a => PrettyCfg (TermOf a) where
 attachCoercedTerm :: MonadQuote m => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
 attachCoercedTerm tb genX = do
     x <- genX
-    term <- lift . liftQuote . unsafeMakeBuiltin $ TypedBuiltinValue tb x
+    term <- liftQuote . unsafeMakeBuiltin $ TypedBuiltinValue tb x
     return $ TermOf term x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.

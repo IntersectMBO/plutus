@@ -1,3 +1,4 @@
+-- | Sample generators used for tests.
 module Language.PlutusCore.Generators.Interesting
     ( genNatRoundtrip
     , genListSum
@@ -12,7 +13,7 @@ import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
-import           PlutusPrelude                            hiding (hoist, list)
+import           PlutusPrelude                            hiding (list)
 
 import           Control.Monad.Morph
 import           Hedgehog                                 hiding (Size, Var)
