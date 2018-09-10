@@ -1,3 +1,4 @@
+
 \begin{code}
 module SystemF where
 \end{code}
@@ -1032,4 +1033,48 @@ eval (gas (suc n)) M with progress M
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (continue p ps) q
 eval (gas (suc n)) M | done vM = steps done (done vM)
+\end{code}
+
+## Examples
+
+From http://lucacardelli.name/Papers/Notes/scott2.pdf
+
+M = μ X . G X
+G X = ∀ R. R → (X → R) → R)
+μ X . G X = ∀ X . (G X → X) → X -- what is the status of this?
+N = G M
+in  : N → M
+out : M → N
+
+0    = Λ R . λ x : R . λ y : M → R . x
+     : N
+succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
+     : N → N
+case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+     : N → ∀ R . R → (N → R) → R
+
+
+--
+
+\begin{code}
+G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
+G = Π ` Z ⇒ (` (S Z) ⇒ (` Z)) ⇒ (` Z)
+
+M : ∀{Γ} → Γ ⊢⋆ *
+M = μ G
+
+N : ∀{Γ} → Γ ⊢⋆ *
+N  =  G [ M ]⋆
+
+Zero : ∅ ⊢ N
+Zero = Λ (ƛ (ƛ (` (S (Z )))))
+
+Succ : ∅ ⊢ N ⇒ N
+Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
+
+One : ∅ ⊢ N
+One = Succ · Zero
+
+Two : ∅ ⊢ N
+Two = Succ · (Succ · Zero)
 \end{code}
