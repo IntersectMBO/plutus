@@ -11,6 +11,8 @@ import           Language.Plutus.TH
 
 import           Language.PlutusCore
 
+import           TestTH
+
 import           Test.Tasty
 import           Test.Tasty.Golden
 
@@ -27,7 +29,12 @@ golden name value = (goldenVsString name ("test/" ++ name ++ ".plc.golden") . pu
 tests :: TestTree
 tests = testGroup "Plutus TH frontend" [
     golden "simple" simple
+    , golden "power" powerPlc
   ]
 
 simple :: PlcCode
 simple = $$(plutusT [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
+
+-- similar to the power example for Feldspar - should be completely unrolled at compile time
+powerPlc :: PlcCode
+powerPlc = $$(plutusT [|| $$(power (4::Int)) ||])

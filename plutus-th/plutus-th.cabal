@@ -44,11 +44,13 @@ test-suite plutus-th-frontend
     hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    other-modules: TestTH
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
         core-to-plc -any,
         plutus-th -any,
+        template-haskell -any,
         bytestring -any,
         text -any,
         tasty -any,
