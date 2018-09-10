@@ -35,7 +35,7 @@ Improved SECD machine. Importance is unclear.
 ## [Compiling With CPS](https://jozefg.bitbucket.io/posts/2015-04-30-cps.html)
 Seems like something that should be studied. This applies to the topic in general.
 
-## [From Krivine’s machine to the Caml implementations](https://xavierleroy.org/talks/zam-kazam05.pdf)
+## [From Krivine’s machine to the Caml implementations (Xavier Leroy)](https://xavierleroy.org/talks/zam-kazam05.pdf)
 This is a must read.
 
 > An illustration of the strengths and limitations of abstract machines for the purpose of efficient execution of strict functional language.
@@ -54,6 +54,30 @@ Makes some strong claims (refers to GHC and the standard OCaml compiler):
 
 > As a cheap implementation device: bytecode interpreters offer 1 / 4 of the performance of optimizing native-code compilers, at 1 / 20 of the implementation cost.
 
+A lot of this is about the OCaml bytecode interpreter (ZAM/ZAM2), so
+it's probably worth having a look at the 
+[Zinc Report](https://xavierleroy.org/bibrefs/Leroy-ZINC.html), Leroy's
+description of his initial implementation of the OCaml system.  It's
+from 1990, but still quite relevant. In particular there's a
+description of the architecture of the bytecode interpreter, which is highly efficient (partly because it's implemented in C); I don't think
+the design's changed too much in the interim.
+
 ## [B. Accattoli, B. Barras. Environments and the Complexity of Abstract Machines, 2017](https://sites.google.com/site/beniaminoaccattoli/Accattoli%2C%20Barras%20-%20Environments%20and%20the%20Complexity%20of%20Abstract%20Machines.pdf?attredirects=0)
 Analyses efficiency of various machines. Call-by-name and call-by-need, but the paper claims that results also apply to call-by-value.
 
+## Olivier Danvy's work
+
+[Olivier Danvy](https://www.yale-nus.edu.sg/about/faculty/olivier-danvy/) 
+and his collaborators have done some very interesting work on abstract machines.  In particular,
+he has a technique for automatically deriving abstract machines from
+evaluators (essentially the CPS transformation followed by defunctionalisation),and he's able to use this to obtain things like the SECD and CEK machines in a 
+principled way, rather than just producing them out of thin air.  I don't know if this is directly relevant to what we're doing, but it's 
+very instructive.  
+
+See Chapter 3 of 
+[Danvy's habilitation thesis](http://www.brics.dk/~danvy/DSc/00_dissertation.pdf)
+and the following reports in particular:
+
+* [A Functional Correspondence between Evaluators and Abstract Machines](http://www.brics.dk/RS/03/13/index.html)
+* [From Interpreter to Compiler and Virtual Machine: A Functional Derivation](http://www.brics.dk/RS/03/14/index.html)
+* [A Rational Deconstruction of Landin’s SECD Machine](http://www.brics.dk/RS/03/33/)
