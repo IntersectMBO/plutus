@@ -25,7 +25,8 @@ main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
     typeFiles <- findByExtension [".plc"] "test/types"
-    defaultMain (allTests plcFiles rwFiles typeFiles)
+    typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
+    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -77,14 +78,15 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
+    , testsType typeErrorFiles
     , test_constantApplication
     , test_evaluateCk
     , Quotation.tests
