@@ -1,7 +1,8 @@
 -- | Computing constant application.
 
-{-# LANGUAGE GADTs      #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
@@ -58,9 +59,31 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- TODO: define me.
+instance PrettyCfg ConstAppError where
+    prettyCfg cfg (SizeMismatchConstAppError expSize con) = fold
+        [ "Size mismatch error:", "\n"
+        , "expected size: ", pretty expSize, "\n"
+        , "actual constant: ", prettyCfg cfg con
+        ]
+    prettyCfg cfg (IllTypedConstAppError expType con)     = fold
+        [ "Ill-typed constant application:", "\n"
+        , "expected type: ", pretty expType, "\n"
+        , "actual constant: ", prettyCfg cfg con
+        ]
+    prettyCfg cfg (ExcessArgumentsConstAppError args)     = fold
+        [ "A constant applied to too many arguments:", "\n"
+        , "Excess ones are: ", prettyCfg cfg args
+        ]
+    prettyCfg cfg (SizedNonConstantConstAppError arg)     = fold
+        [ "A non-constant argument of a sized type: "
+        , prettyCfg cfg arg
+        ]
+
 instance PrettyCfg ConstAppResult where
-    prettyCfg = undefined
+    prettyCfg cfg (ConstAppSuccess res) = prettyCfg cfg res
+    prettyCfg _   ConstAppFailure       = "Constant application failure"
+    prettyCfg _   ConstAppStuck         = "Stuck constant applcation"
+    prettyCfg cfg (ConstAppError err)   = prettyCfg cfg err
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> Quote ConstAppResult
