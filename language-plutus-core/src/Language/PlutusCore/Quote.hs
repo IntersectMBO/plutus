@@ -24,6 +24,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Identity
+import           Hedgehog                 (GenT)
 
 import           Language.PlutusCore.Name
 import           PlutusPrelude
@@ -53,6 +54,7 @@ instance (Monad m) => MonadQuote (QuoteT m) where
 instance MonadQuote m => MonadQuote (StateT s m)
 instance MonadQuote m => MonadQuote (ExceptT e m)
 instance MonadQuote m => MonadQuote (ReaderT r m)
+instance MonadQuote m => MonadQuote (GenT m)
 
 -- | Map the errors in a 'MonadError' and 'MonadQuote' context according to the given function.
 -- This can be used on the functions exported from this module to change the error type.
