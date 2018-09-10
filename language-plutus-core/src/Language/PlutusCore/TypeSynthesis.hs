@@ -215,7 +215,7 @@ typeOf (TyInst x t ty) = do
             if k == k'
                 then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
                 else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty))
+        _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
@@ -223,13 +223,13 @@ typeOf (Unwrap x t) = do
             let subst = tySubstitute (extractUnique n) ty ty'
             pure (tyReduce subst)
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
-typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
-    ty' <- typeOf t'
-    let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
+typeOf (Wrap x n ty t) = do
+    ty' <- typeOf t
+    let fixed = tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
     typeCheckStep
     if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
-        else throwError (TypeMismatch x (void t) (void ty') fixed)
+        else throwError (TypeMismatch x (void t) fixed (void ty'))
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
