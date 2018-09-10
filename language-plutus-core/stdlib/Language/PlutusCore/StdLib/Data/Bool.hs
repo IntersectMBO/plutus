@@ -19,12 +19,13 @@ import           PlutusPrelude
 -- > all (A :: *). (() -> A) -> (() -> A) -> A
 getBuiltinBool :: Quote (Type TyName ())
 getBuiltinBool = do
-    unit <- getBuiltinUnit
+    unit1 <- getBuiltinUnit
+    unit2 <- getBuiltinUnit
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
-        . TyFun () (TyFun () unit (TyVar () a))
-        . TyFun () (TyFun () unit (TyVar () a))
+        . TyFun () (TyFun () unit1 (TyVar () a))
+        . TyFun () (TyFun () unit2 (TyVar () a))
         $ TyVar () a
 
 -- | 'True' as a PLC term.
@@ -32,52 +33,54 @@ getBuiltinBool = do
 -- > /\(A :: *) -> \(x y : () -> A) -> x ()
 getBuiltinTrue :: Quote (Value TyName Name ())
 getBuiltinTrue = do
-    builtinUnit    <- getBuiltinUnit
-    builtinUnitval <- getBuiltinUnitval
+    unit1   <- getBuiltinUnit
+    unit2   <- getBuiltinUnit
+    unitval <- getBuiltinUnitval
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
-    let unitFunA = TyFun () builtinUnit (TyVar () a)
+    let unitFunA u = TyFun () u (TyVar () a)
     return
        . TyAbs () a (Type ())
-       . LamAbs () x unitFunA
-       . LamAbs () y unitFunA
-       $ Apply () (Var () x) builtinUnitval
+       . LamAbs () x (unitFunA unit1)
+       . LamAbs () y (unitFunA unit2)
+       $ Apply () (Var () x) unitval
 
 -- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : () -> A) -> y ()
 getBuiltinFalse :: Quote (Value TyName Name ())
 getBuiltinFalse = do
-    builtinUnit    <- getBuiltinUnit
-    builtinUnitval <- getBuiltinUnitval
+    unit    <- getBuiltinUnit
+    unitval <- getBuiltinUnitval
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
-    let unitFunA = TyFun () builtinUnit (TyVar () a)
+    let unitFunA = TyFun () unit (TyVar () a)
     return
        . TyAbs () a (Type ())
        . LamAbs () x unitFunA
        . LamAbs () y unitFunA
-       $ Apply () (Var () y) builtinUnitval
+       $ Apply () (Var () y) unitval
 
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b x y
 getBuiltinIf :: Quote (Value TyName Name ())
 getBuiltinIf = do
-    builtinUnit <- getBuiltinUnit
+    unit1 <- getBuiltinUnit
+    unit2 <- getBuiltinUnit
     builtinBool <- getBuiltinBool
     a <- freshTyName () "a"
     b <- freshName () "b"
     x <- freshName () "x"
     y <- freshName () "y"
-    let unitFunA = TyFun () builtinUnit (TyVar () a)
+    let unitFunA u = TyFun () u (TyVar () a)
     return
        . TyAbs () a (Type ())
        . LamAbs () b builtinBool
-       . LamAbs () x unitFunA
-       . LamAbs () y unitFunA
+       . LamAbs () x (unitFunA unit1)
+       . LamAbs () y (unitFunA unit2)
        $ foldl' (Apply ())
            (TyInst () (Var () b) (TyVar () a))
            [Var () x, Var () y]
