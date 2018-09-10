@@ -74,7 +74,6 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
--- Does not preserve the global uniqueness condition.
-unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Value TyName Name ()
-unsafeMakeBuiltin tbv = fromMaybe err . runQuote $ makeBuiltin tbv where
+unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
     err = error $ "unsafeDupMakeConstant: out of bounds: " ++ prettyString tbv
