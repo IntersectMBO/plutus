@@ -361,7 +361,7 @@ convLiteral l = case l of
     GHC.MachInt64 i    -> pure $ PC.BuiltinInt () haskellIntSize i
     GHC.MachInt i      -> pure $ PC.BuiltinInt () haskellIntSize i
     GHC.MachStr bs     -> pure $ PC.BuiltinBS () haskellBSSize (BSL.fromStrict bs)
-    GHC.LitInteger i _ -> pure $ PC.BuiltinInt () haskellIntSize i
+    GHC.LitInteger _ _ -> unsupported "Literal (unbounded) integer"
     GHC.MachWord _     -> unsupported "Literal word"
     GHC.MachWord64 _   -> unsupported "Literal word64"
     GHC.MachChar _     -> unsupported "Literal char"
