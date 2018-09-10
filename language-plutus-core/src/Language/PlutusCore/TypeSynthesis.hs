@@ -13,16 +13,14 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State.Strict     hiding (get, modify)
+import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
-import qualified Data.Map                             as M
+import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
-import qualified Language.PlutusCore.StdLib.Data.Bool as Std
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -39,34 +37,51 @@ isType Type{} = True
 isType _      = False
 
 -- | Create a new 'Type' for an integer operation.
-intop :: MonadQuote m => m (Type TyNameWithKind ())
+intop :: (MonadQuote m) => m (Type TyNameWithKind ())
 intop = do
-    nam <- liftQuote $ freshTyName () ""
+    nam <- newTyName (Size ())
     let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity ity)
-    Right t <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
-    pure t
+    pure $ TyForall () nam (Size ()) fty
 
 -- | Create a new 'Type' for an integer relation
-intRel :: MonadQuote m  => m (Type TyNameWithKind ())
+intRel :: (MonadQuote m)  => m (Type TyNameWithKind ())
 intRel = builtinRel TyInteger
 
-bsRel :: MonadQuote m => m (Type TyNameWithKind ())
+bsRel :: (MonadQuote m) => m (Type TyNameWithKind ())
 bsRel = builtinRel TyByteString
 
-builtinRel :: MonadQuote m => TypeBuiltin -> m (Type TyNameWithKind ())
+-- | Create a dummy 'TyName'
+newTyName :: (MonadQuote m) => Kind () -> m (TyNameWithKind ())
+newTyName k = do
+    u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
+    pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
+
+unit :: MonadQuote m => m (Type TyNameWithKind ())
+unit =
+    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
+
+boolean :: MonadQuote m => m (Type TyNameWithKind ())
+boolean = do
+    nam <- newTyName (Type ())
+    (u, u') <- (,) <$> unit <*> unit
+    let var = TyVar () nam
+        unitVar = TyFun () u var
+        unitVar' = TyFun () u' var
+    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
+
+builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
-    nam <- liftQuote $ freshTyName () ""
-    b <- liftQuote Std.getBuiltinBool
+    nam <- newTyName (Size ())
+    b <- boolean
     let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity b)
-    Right t <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
-    pure t
+    pure $ TyForall () nam (Size ()) fty
 
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
-defaultTable :: MonadQuote m => m BuiltinTable
+defaultTable :: (MonadQuote m) => m BuiltinTable
 defaultTable = do
 
     let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
