@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-module Language.PlutusCore.TestSupport.Generator
+module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
     , IterAppValue(..)
     , runPlcT
@@ -21,21 +21,21 @@ module Language.PlutusCore.TestSupport.Generator
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport.Denotation
-import           Language.PlutusCore.TestSupport.TypedBuiltinGen
-import           Language.PlutusCore.TestSupport.Utils
+import           Language.PlutusCore.Generators.Internal.Denotation
+import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import           Language.PlutusCore.Generators.Internal.Utils
 import           PlutusPrelude
 
-import           Control.Exception                               (evaluate)
-import           Control.Exception.Safe                          (tryAny)
+import           Control.Exception                                       (evaluate)
+import           Control.Exception.Safe                                  (tryAny)
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy.Char8                      as BSL
-import qualified Data.Dependent.Map                              as DMap
+import qualified Data.ByteString.Lazy.Char8                              as BSL
+import qualified Data.Dependent.Map                                      as DMap
 import           Data.Functor.Compose
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                        hiding (Size, Var)
-import qualified Hedgehog.Gen                                    as Gen
-import qualified Hedgehog.Range                                  as Range
+import           Hedgehog                                                hiding (Size, Var)
+import qualified Hedgehog.Gen                                            as Gen
+import qualified Hedgehog.Range                                          as Range
 import           System.IO.Unsafe
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
