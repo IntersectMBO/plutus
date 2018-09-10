@@ -13,6 +13,7 @@ module Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.PrettyCfg
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
@@ -189,7 +190,7 @@ applyEvaluate stack fun                    arg =
             Nothing                       ->
                 throw $ CkException NonPrimitiveApplicationCkError term
             Just (IterApp headName spine) ->
-                case applyBuiltinName headName spine of
+                case runQuote $ applyBuiltinName headName spine of
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> CkEvalFailure
                     ConstAppStuck         -> stack <| term

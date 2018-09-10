@@ -6,10 +6,10 @@ import           Evaluation.Constant.Apply
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators
 
-import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.Semigroup
-import qualified Hedgehog.Gen                    as Gen
-import qualified Hedgehog.Range                  as Range
+import qualified Hedgehog.Gen                   as Gen
+import qualified Hedgehog.Range                 as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

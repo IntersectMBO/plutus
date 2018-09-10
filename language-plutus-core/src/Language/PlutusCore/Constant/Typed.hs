@@ -50,6 +50,7 @@ module Language.PlutusCore.Constant.Typed
 
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
@@ -162,6 +163,8 @@ instance size ~ Size => Pretty (TypedBuiltinValue size a) where
             TypedBuiltinSizedBS   -> prettyBytes x
             TypedBuiltinSizedSize -> pretty      x
     pretty (TypedBuiltinValue TypedBuiltinBool             b) = pretty b
+
+instance size ~ Size => PrettyCfg (TypedBuiltinValue size a)
 
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
 eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt

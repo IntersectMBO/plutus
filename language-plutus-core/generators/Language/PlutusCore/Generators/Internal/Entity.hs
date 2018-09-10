@@ -26,16 +26,16 @@ import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 import           PlutusPrelude
 
-import           Control.Exception                               (evaluate)
-import           Control.Exception.Safe                          (tryAny)
+import           Control.Exception                                       (evaluate)
+import           Control.Exception.Safe                                  (tryAny)
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy.Char8                      as BSL
-import qualified Data.Dependent.Map                              as DMap
+import qualified Data.ByteString.Lazy.Char8                              as BSL
+import qualified Data.Dependent.Map                                      as DMap
 import           Data.Functor.Compose
 import           Data.Text.Prettyprint.Doc
-import           Hedgehog                                        hiding (Size, Var)
-import qualified Hedgehog.Gen                                    as Gen
-import qualified Hedgehog.Range                                  as Range
+import           Hedgehog                                                hiding (Size, Var)
+import qualified Hedgehog.Gen                                            as Gen
+import qualified Hedgehog.Range                                          as Range
 import           System.IO.Unsafe
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.

@@ -6,7 +6,7 @@
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
     , ConstAppResult(..)
-    , dupMakeConstAppResult
+    , makeConstAppResult
     , applyBuiltinName
     ) where
 
@@ -14,6 +14,7 @@ import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type     (BuiltinName (..))
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -57,10 +58,13 @@ instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
--- | Same as 'makeBuiltin', but doesn't preserve the global uniqueness condition
--- and returns a 'ConstAppResult'.
-dupMakeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResult
-dupMakeConstAppResult = maybe ConstAppFailure ConstAppSuccess . runQuote . makeBuiltin
+-- TODO: define me.
+instance PrettyCfg ConstAppResult where
+    prettyCfg = undefined
+
+-- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
+makeConstAppResult :: TypedBuiltinValue Size a -> Quote ConstAppResult
+makeConstAppResult = fmap (maybe ConstAppFailure ConstAppSuccess) . makeBuiltin
 
 sizeAt :: SizeVar -> SizeValues -> Size
 sizeAt (SizeVar sizeIndex) (SizeValues sizes) = sizes IntMap.! sizeIndex
@@ -111,17 +115,23 @@ extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 applyTypedBuiltinName
-    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> ConstAppResult
+    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> Quote ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
-    go :: TypeScheme SizeVar a r -> SizeVar -> SizeValues -> a -> [Value TyName Name ()] -> ConstAppResult
+    go
+        :: TypeScheme SizeVar a r
+        -> SizeVar -> SizeValues
+        -> a
+        -> [Value TyName Name ()]
+        -> Quote ConstAppResult
     go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
-        [] -> dupMakeConstAppResult $ TypedBuiltinValue (expandSizeVars sizeValues tb) y
-        _  -> ConstAppError $ ExcessArgumentsConstAppError args
+        [] -> makeConstAppResult $ TypedBuiltinValue (expandSizeVars sizeValues tb) y
+        _  -> return . ConstAppError $ ExcessArgumentsConstAppError args
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
-        []          -> ConstAppStuck                         -- Not enough arguments to compute.
+        []          -> return ConstAppStuck                  -- Not enough arguments to compute.
         arg : args' ->                                       -- Peel off one argument.
             case extractSchemed schA sizeValues arg of       -- Coerce the argument to a Haskell value.
-                Left err               -> ConstAppError err  -- The coercion resulted in an error.
+                Left err               ->
+                    return $ ConstAppError err               -- The coercion resulted in an error.
                 Right (x, sizeValues') ->
                     go schB sizeVar sizeValues' (f x) args'  -- Apply the function to the coerced argument
                                                              -- and proceed recursively.
@@ -130,7 +140,7 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
                                                             -- and proceed recursively.
 
 -- | Apply a 'BuiltinName' to a list of 'Value's.
-applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
+applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> Quote ConstAppResult
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
 applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)
