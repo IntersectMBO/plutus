@@ -22,15 +22,22 @@ library
         Language.Plutus.TH
     other-modules:
     hs-source-dirs: src
-    default-extensions: 
-        -- should be in base
-        ScopedTypeVariables ExplicitForAll
-    default-language: Haskell2010
-    ghc-options: -Wall
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
-        template-haskell,
-        core-to-plc
+        template-haskell -any,
+        core-to-plc -any
 
 test-suite plutus-th-frontend
     default-language: Haskell2010
@@ -39,11 +46,11 @@ test-suite plutus-th-frontend
     main-is: Spec.hs
     build-depends:
         base >=4.9 && <5,
-        language-plutus-core,
-        core-to-plc,
-        plutus-th,
-        bytestring,
-        text,
-        tasty,
-        tasty-hunit,
-        tasty-golden
+        language-plutus-core -any,
+        core-to-plc -any,
+        plutus-th -any,
+        bytestring -any,
+        text -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-golden -any

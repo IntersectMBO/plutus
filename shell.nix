@@ -15,6 +15,7 @@ let
     plutusPkgs.plutus-prototype
     plutusPkgs.language-plutus-core
     plutusPkgs.core-to-plc
+    plutusPkgs.plutus-th
     plutusPkgs.tasty-hedgehog
     plutusPkgs.tasty
     plutusPkgs.tasty-golden
