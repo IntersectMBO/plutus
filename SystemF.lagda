@@ -1077,4 +1077,7 @@ One = Succ · Zero
 
 Two : ∅ ⊢ N
 Two = Succ · (Succ · Zero)
+
+case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ (` Z)) ⇒ (` Z))
+case = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ (` Z)) · (` (S Z))) · (ƛ ` (S Z) · unwrap (` Z)))))
 \end{code}
