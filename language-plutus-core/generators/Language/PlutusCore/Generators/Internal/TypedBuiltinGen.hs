@@ -25,7 +25,6 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Quote
 import           PlutusPrelude
 
 import           Control.Monad.Trans

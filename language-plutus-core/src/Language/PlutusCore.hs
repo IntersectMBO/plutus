@@ -1,17 +1,19 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Language.PlutusCore
-    ( Configuration (..)
-    , defaultCfg
-    , debugCfg
+    (
       -- * Parser
-    , parse
+      parse
     , parseST
     , parseTermST
     , parseTypeST
     , parseScoped
-    , parseProgramQ
-    , parseTermQ
-    , parseTypeQ
+    , parseProgram
+    , parseTerm
+    , parseType
     -- * Pretty-printing
+    , Configuration (..)
+    , defaultCfg
+    , debugCfg
     , prettyCfgText
     , prettyCfgString
     , debugText
@@ -41,10 +43,9 @@ module Language.PlutusCore
     , format
     , formatDoc
     -- * Processing
-    , annotate
-    , annotateST
-    , annotateProgramQ
-    , annotateTermQ
+    , annotateProgram
+    , annotateTerm
+    , annotateType
     , RenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
@@ -53,21 +54,21 @@ module Language.PlutusCore
     , RenamedTerm
     -- * Normalization
     , check
+    , checkProgram
+    , checkTerm
     , NormalizationError
     , checkFile
     -- * Type synthesis
-    , typeOf
-    , kindOf
-    , typecheckProgramQ
-    , typecheckTermQ
-    , runTypeCheckM
-    , programType
+    , typecheckProgram
+    , typecheckTerm
+    , kindCheck
     , fileType
     , fileTypeCfg
     , printType
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
+    , parseTypecheck
     -- * Serialization
     , encodeProgram
     , decodeProgram
@@ -80,9 +81,14 @@ module Language.PlutusCore
     -- * Base functors
     , TermF (..)
     , TypeF (..)
-    -- * Template Haskell
+    -- * Quotation and term construction
     , Quote
     , runQuote
+    , QuoteT
+    , runQuoteT
+    , MonadQuote
+    , liftQuote
+    , convertErrors
     -- * Name generation
     , freshUnique
     , freshName
@@ -91,15 +97,18 @@ module Language.PlutusCore
     , plcType
     , plcTerm
     , plcProgram
+    -- * Evaluation
+    , parseRunCk
+    , CkEvalResult (..)
     ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy              as BSL
-import qualified Data.IntMap                       as IM
 import qualified Data.Text                         as T
-import           Data.Text.Prettyprint.Doc         hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
@@ -130,26 +139,28 @@ checkFile :: FilePath -> IO (Maybe T.Text)
 checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . check) . parse) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
-printType :: BSL.ByteString -> Either (Error AlexPosn) T.Text
-printType = collectErrors . fmap (convertError . typeErr <=< convertError . annotateST) . parseScoped
-
-typeErr :: (TypeState a, Program TyNameWithKind NameWithType a) -> Either (TypeError a) T.Text
-typeErr = fmap prettyCfgText . uncurry (programType 10000)
+printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
+printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name AlexPosn)
-parseScoped str = fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
+parseScoped :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
+parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
-programType :: Natural -- ^ Gas provided to typechecker
-            -> TypeState a
-            -> Program TyNameWithKind NameWithType a
-            -> Either (TypeError a) (RenamedType ())
-programType n (TypeState _ tys) (Program _ _ t) = runTypeCheckM i n $ typeOf t
-    where i = maybe 0 (fst . fst) (IM.maxViewWithKey tys)
+-- | Parse a program and typecheck it.
+parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (Type TyNameWithKind ())
+parseTypecheck gas bs = do
+    parsed <- parseProgram bs
+    checkProgram parsed
+    annotated <- annotateProgram parsed
+    typecheckProgram gas annotated
 
-formatDoc :: BSL.ByteString -> Either (ParseError AlexPosn) (Doc a)
-formatDoc = fmap (prettyCfg defaultCfg) . parse
+-- | Parse a program and run it using the CK machine.
+parseRunCk :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m CkEvalResult
+parseRunCk = fmap (runCk . void) . parseScoped
 
-format :: Configuration -> BSL.ByteString -> Either (ParseError AlexPosn) T.Text
+formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
+formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs
+
+format :: (MonadError (Error AlexPosn) m) => Configuration -> BSL.ByteString -> m T.Text
 format cfg = fmap (render . prettyCfg cfg) . parseScoped
