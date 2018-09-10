@@ -19,7 +19,6 @@ import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -228,22 +227,27 @@ typeOf (TyInst x t ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
+                then pure (tySubstitute (extractUnique n) (void ty) ty'')
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
-        TyFix _ n ty' -> do
-            let subst = tySubstitute (extractUnique n) ty ty'
-            pure (tyReduce subst)
+        ty''@(TyFix _ n ty') -> do
+            let subst = tySubstitute (extractUnique n) ty'' ty'
+            pure subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf (Wrap x n ty t) = do
     ty' <- typeOf t
-    let fixed = tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
+    k <- kindOf ty
+    case k of
+        Type{} -> pure ()
+        _      -> throwError (KindMismatch x (void ty') (Type ()) k)
+    let tyFix = TyFix () (void n) (void ty)
+        fixed = tySubstitute (extractUnique n) tyFix (void ty)
     typeCheckStep
-    if tyReduce fixed == ty'
-        then pure (TyFix () (void n) (void ty))
+    if fixed == ty'
+        then pure tyFix
         else throwError (TypeMismatch x (void t) fixed (void ty'))
 
 extractUnique :: TyNameWithKind a -> Unique
@@ -257,14 +261,3 @@ tySubstitute :: Unique -- ^ Unique associated with type variable
 tySubstitute u ty = cata a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
-
--- also this should involve contexts
-tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here
-tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x (tyReduce ty) (tyReduce ty')
-                          | otherwise                                        = TyFun x (tyReduce ty) ty'
-tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
-tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x (tyReduce ty) (tyReduce ty')
-                          | otherwise                                        = TyApp x (tyReduce ty) ty'
-tyReduce x                                                                   = x
