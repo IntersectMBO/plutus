@@ -223,9 +223,9 @@ typeOf (Unwrap x t) = do
             let subst = tySubstitute (extractUnique n) ty ty'
             pure (tyReduce subst)
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
-typeOf t@(Wrap x n@(TyNameWithKind (TyName (Name _ _ u))) ty t') = do
+typeOf t@(Wrap x n ty t') = do
     ty' <- typeOf t'
-    let fixed = tySubstitute u (TyFix () (void n) (void ty)) (void ty)
+    let fixed = tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
     typeCheckStep
     if tyReduce fixed == ty'
         then pure (TyFix () (void n) (void ty))
