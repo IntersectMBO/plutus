@@ -6,12 +6,12 @@ module Evaluation.CkMachine
 import           Language.PlutusCore
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Generators
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.TestSupport
 import           PlutusPrelude                            hiding (hoist, list)
 
 import           Control.Monad.Morph

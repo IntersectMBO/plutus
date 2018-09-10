@@ -4,7 +4,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Language.PlutusCore.TestSupport.Denotation
+module Language.PlutusCore.Generators.Internal.Denotation
     ( Denotation(..)
     , DenotationContextMember(..)
     , DenotationContext(..)

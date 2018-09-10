@@ -12,11 +12,11 @@ module Evaluation.Constant.Apply
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 
 import           Data.Foldable
 import           Data.List
-import           Hedgehog                        hiding (Size, Var)
+import           Hedgehog                       hiding (Size, Var)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
