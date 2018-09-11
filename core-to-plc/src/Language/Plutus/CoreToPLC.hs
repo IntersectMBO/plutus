@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 module Language.Plutus.CoreToPLC where
@@ -19,6 +20,8 @@ import qualified Language.PlutusCore                      as PC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function as Function
 import qualified Language.PlutusCore.StdLib.Data.Unit     as Unit
+
+import qualified Language.Haskell.TH.Syntax               as TH
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
@@ -439,6 +442,34 @@ convNumMethod name = do
                 | GHC.getOccString n == "+" = pure PC.AddInteger
                 | GHC.getOccString n == "*" = pure PC.MultiplyInteger
                 | otherwise = unsupported $ "Num method:" GHC.<+> GHC.ppr n
+
+-- Plutus primitives
+
+{- Note [Mapping primitives]
+We want the user to be able to call the Plutus primitives as normal Haskell functions.
+
+To do this, we provide a library of such functions, and then make a map from their TH names (which we can
+derive from the real function declarations, to be sure they match up), to the implementations. We then
+need to do some work in the GHC Core monad to translate those mappings into mappings from Core names.
+-}
+
+primitiveTermAssociations :: [(TH.Name, PC.Term PC.TyName PC.Name ())]
+primitiveTermAssociations = [
+    ('concatenate, instSize haskellIntSize $ mkConstant PC.Concatenate)
+    , ('takeByteString, instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.TakeByteString)
+    , ('dropByteString, instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.DropByteString)
+    , ('sha2_256, instSize haskellBSSize $ mkConstant PC.SHA2)
+    , ('sha3_256, instSize haskellBSSize $ mkConstant PC.SHA3)
+    , ('verifySignature, instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PC.VerifySignature)
+    , ('equalsByteString, instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PC.EqByteString)
+    , ('txhash, mkConstant PC.TxHash)
+    , ('blocknum, instSize haskellIntSize $ mkConstant PC.BlockNum)
+    ]
+
+primitiveTypeAssociations :: [(TH.Name, PC.Type PC.TyName ())]
+primitiveTypeAssociations = [
+    (''ByteString, appSize haskellBSSize $ PC.TyBuiltin () PC.TyByteString)
+    ]
 
 -- Binder helpers
 
