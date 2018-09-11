@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 -- the simplfiier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
@@ -54,6 +55,7 @@ primitives = testGroup "Primitive types and operations" [
   , golden "intCompare" intCompare
   , golden "intEq" intEq
   , golden "intPlus" intPlus
+  , golden "error" errorPlc
   , golden "blocknum" blocknumPlc
   , golden "bytestring" bytestring
   , golden "verify" verify
@@ -82,6 +84,9 @@ intEq = plc (\(x::Int) (y::Int) -> x == y)
 
 intPlus :: PlcCode
 intPlus = plc (\(x::Int) (y::Int) -> x + y)
+
+errorPlc :: PlcCode
+errorPlc = plc (Prims.error @Int)
 
 blocknumPlc :: PlcCode
 blocknumPlc = plc Prims.blocknum

@@ -8,7 +8,7 @@
 module Language.Plutus.CoreToPLC where
 
 import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Primitives
+import           Language.Plutus.CoreToPLC.Primitives     as Prims
 
 import qualified Class                                    as GHC
 import qualified GhcPlugins                               as GHC
@@ -66,8 +66,8 @@ variable *last* (so it is on the outside, so will be first when applying).
 type PCExpr = PC.Term PC.TyName PC.Name ()
 type PCType = PC.Type PC.TyName ()
 
-type PrimTerms = Map.Map GHC.Name PCExpr
-type PrimTypes = Map.Map GHC.Name PCType
+type PrimTerms = Map.Map GHC.Name (Quote PCExpr)
+type PrimTypes = Map.Map GHC.Name (Quote PCType)
 
 type ConvertingState = (GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
 -- See Note [Scopes]
@@ -207,7 +207,7 @@ convTyCon tc = do
     (_, _, prims, _) <- ask
     -- could be a Plutus primitive type
     case Map.lookup (GHC.tyConName tc) prims of
-        Just ty -> pure ty
+        Just ty -> liftQuote ty
         Nothing -> do
             dcs <- getDataCons tc
             convDataCons tc dcs
@@ -453,22 +453,24 @@ derive from the real function declarations, to be sure they match up), to the im
 need to do some work in the GHC Core monad to translate those mappings into mappings from Core names.
 -}
 
-primitiveTermAssociations :: [(TH.Name, PC.Term PC.TyName PC.Name ())]
+primitiveTermAssociations :: [(TH.Name, Quote (PC.Term PC.TyName PC.Name ()))]
 primitiveTermAssociations = [
-    ('concatenate, instSize haskellIntSize $ mkConstant PC.Concatenate)
-    , ('takeByteString, instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.TakeByteString)
-    , ('dropByteString, instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.DropByteString)
-    , ('sha2_256, instSize haskellBSSize $ mkConstant PC.SHA2)
-    , ('sha3_256, instSize haskellBSSize $ mkConstant PC.SHA3)
-    , ('verifySignature, instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PC.VerifySignature)
-    , ('equalsByteString, instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PC.EqByteString)
-    , ('txhash, mkConstant PC.TxHash)
-    , ('blocknum, instSize haskellIntSize $ mkConstant PC.BlockNum)
+    ('Prims.concatenate, pure $ instSize haskellIntSize $ mkConstant PC.Concatenate)
+    , ('Prims.takeByteString, pure $ instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.TakeByteString)
+    , ('Prims.dropByteString, pure $ instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.DropByteString)
+    , ('Prims.sha2_256, pure $ instSize haskellBSSize $ mkConstant PC.SHA2)
+    , ('Prims.sha3_256, pure $ instSize haskellBSSize $ mkConstant PC.SHA3)
+    , ('Prims.verifySignature, pure $ instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PC.VerifySignature)
+    , ('Prims.equalsByteString, pure $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PC.EqByteString)
+    , ('Prims.txhash, pure $ mkConstant PC.TxHash)
+    , ('Prims.blocknum, pure $ instSize haskellIntSize $ mkConstant PC.BlockNum)
+    -- we're representing error at the haskell level as a polymorphic function, so do the same here
+    , ('Prims.error, freshTyName () "e" >>= \n -> pure $ PC.TyAbs () n (PC.Type ()) $ PC.Error () (PC.TyVar () n))
     ]
 
-primitiveTypeAssociations :: [(TH.Name, PC.Type PC.TyName ())]
+primitiveTypeAssociations :: [(TH.Name, Quote (PC.Type PC.TyName ()))]
 primitiveTypeAssociations = [
-    (''ByteString, appSize haskellBSSize $ PC.TyBuiltin () PC.TyByteString)
+    (''Prims.ByteString, pure $ appSize haskellBSSize $ PC.TyBuiltin () PC.TyByteString)
     ]
 
 -- Binder helpers
@@ -644,7 +646,7 @@ convExpr e = do
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> convConstructor dc
-        GHC.Var (flip Map.lookup prims . GHC.varName -> Just term) -> pure term
+        GHC.Var (flip Map.lookup prims . GHC.varName -> Just term) -> liftQuote term
         -- the term we get must be closed - we don't resolve most references
         -- TODO: possibly relax this?
         GHC.Var n@(GHC.idDetails -> GHC.VanillaId) -> freeVariable $ "Variable:" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
