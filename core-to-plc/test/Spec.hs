@@ -6,6 +6,7 @@
 module Main (main) where
 
 import           Language.Plutus.CoreToPLC.Plugin
+import           Language.Plutus.CoreToPLC.Primitives
 
 import           Language.PlutusCore
 
@@ -52,6 +53,7 @@ primitives = testGroup "Primitive types and operations" [
   , golden "intCompare" intCompare
   , golden "intEq" intEq
   , golden "intPlus" intPlus
+  , golden "blocknum" blocknumPlc
   ]
 
 string :: PlcCode
@@ -77,6 +79,9 @@ intEq = plc (\(x::Int) (y::Int) -> x == y)
 
 intPlus :: PlcCode
 intPlus = plc (\(x::Int) (y::Int) -> x + y)
+
+blocknumPlc :: PlcCode
+blocknumPlc = plc blocknum
 
 structure :: TestTree
 structure = testGroup "Structures" [

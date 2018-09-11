@@ -1,20 +1,19 @@
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
-{-# LANGUAGE LambdaCase        #-}
 
 module Language.Plutus.CoreToPLC where
 
 import           Language.Plutus.CoreToPLC.Error
+import           Language.Plutus.CoreToPLC.Primitives
 
 import qualified Class                                    as GHC
 import qualified GhcPlugins                               as GHC
 import qualified Kind                                     as GHC
 import qualified PrelNames                                as GHC
 import qualified PrimOp                                   as GHC
-
-import           GHC.Natural
 
 import qualified Language.PlutusCore                      as PC
 import           Language.PlutusCore.Quote
@@ -63,8 +62,12 @@ variable *last* (so it is on the outside, so will be first when applying).
 
 type PCExpr = PC.Term PC.TyName PC.Name ()
 type PCType = PC.Type PC.TyName ()
+
+type PrimMap = Map.Map GHC.Name PCExpr
+
+type ConvertingState = (GHC.DynFlags, PrimMap, ScopeStack)
 -- See Note [Scopes]
-type Converting m = (Monad m, MonadError (Error ()) m, MonadQuote m, MonadReader (ScopeStack, GHC.DynFlags) m)
+type Converting m = (Monad m, MonadError (Error ()) m, MonadQuote m, MonadReader ConvertingState m)
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
@@ -72,18 +75,18 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
-sdToTxt :: (MonadReader (ScopeStack, GHC.DynFlags) m) => GHC.SDoc -> m T.Text
+sdToTxt :: (MonadReader ConvertingState m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do
-  (_, flags) <- ask
+  (flags, _, _) <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
-conversionFail :: (MonadError (Error ()) m, MonadReader (ScopeStack, GHC.DynFlags) m) => GHC.SDoc -> m a
+conversionFail :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
 conversionFail = (throwError . ConversionError) <=< sdToTxt
 
-unsupported :: (MonadError (Error ()) m, MonadReader (ScopeStack, GHC.DynFlags) m) => GHC.SDoc -> m a
+unsupported :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
 unsupported = (throwError . UnsupportedError) <=< sdToTxt
 
-freeVariable :: (MonadError (Error ()) m, MonadReader (ScopeStack, GHC.DynFlags) m) => GHC.SDoc -> m a
+freeVariable :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
 freeVariable = (throwError . FreeVariableError) <=< sdToTxt
 
 -- Names and scopes
@@ -160,12 +163,6 @@ pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.
 
 -- Types and kinds
 
-haskellIntSize :: Natural
-haskellIntSize = 64
-
-haskellBSSize :: Natural
-haskellBSSize = 64
-
 convKind :: Converting m => GHC.Kind -> m (PC.Kind ())
 convKind k = case k of
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
@@ -176,7 +173,7 @@ convKind k = case k of
 convType :: Converting m => GHC.Type -> m PCType
 convType t = do
     -- See Note [Scopes]
-    (stack, _) <- ask
+    (_, _, stack) <- ask
     let top = NE.head stack
     case t of
         (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.varName -> Just name)) -> pure $ PC.TyVar () name
@@ -191,9 +188,9 @@ convType t = do
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PCType
 convTyConApp tc ts
     -- this is Int
-    | tc == GHC.intTyCon = pure $ PC.TyApp () (PC.TyBuiltin () PC.TyInteger) (PC.TyInt () haskellIntSize)
+    | tc == GHC.intTyCon = pure $ appSize haskellIntSize (PC.TyBuiltin () PC.TyInteger)
     -- this is Int#, can we do this nicer?
-    | (GHC.getOccString $ GHC.tyConName tc) == "Int#" = pure $ PC.TyApp () (PC.TyBuiltin () PC.TyInteger) (PC.TyInt () haskellIntSize)
+    | (GHC.getOccString $ GHC.tyConName tc) == "Int#" = pure $ appSize haskellIntSize (PC.TyBuiltin () PC.TyInteger)
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
@@ -398,42 +395,42 @@ convPrimitiveOp po = do
         GHC.IntLeOp   -> pure PC.LessThanEqInteger
         GHC.IntEqOp   -> pure PC.EqInteger
         _             -> unsupported $ "Primitive operation:" GHC.<+> GHC.ppr po
-    pure $ PC.TyInst () (PC.Constant () $ PC.BuiltinName () name) (PC.TyInt () haskellIntSize)
+    pure $ instSize haskellIntSize (mkConstant name)
 
 -- Typeclasses
 
 convEqMethod :: (Converting m) => GHC.Name -> m PCExpr
 convEqMethod name = do
     m <- method name
-    pure $ PC.TyInst () m (PC.TyInt () haskellIntSize)
+    pure $ instSize haskellIntSize $ mkConstant m
         where
             method n
-              | n == GHC.eqName = pure $ PC.Constant () $ PC.BuiltinName () PC.EqInteger
+              | n == GHC.eqName = pure PC.EqInteger
               | otherwise = unsupported $ "Eq method:" GHC.<+> GHC.ppr n
 
 convOrdMethod :: (Converting m) => GHC.Name -> m PCExpr
 convOrdMethod name = do
     m <- method name
-    pure $ PC.TyInst () m (PC.TyInt () haskellIntSize)
+    pure $ instSize haskellIntSize $ mkConstant m
         where
             method n
                 -- only this one has a name defined in the lib??
-                | n == GHC.geName = pure $ PC.Constant () $ PC.BuiltinName () PC.GreaterThanEqInteger
-                | GHC.getOccString n == ">" = pure $ PC.Constant () $ PC.BuiltinName () PC.GreaterThanInteger
-                | GHC.getOccString n == "<=" = pure $ PC.Constant () $ PC.BuiltinName () PC.LessThanEqInteger
-                | GHC.getOccString n == "<" = pure $ PC.Constant () $ PC.BuiltinName () PC.LessThanInteger
+                | n == GHC.geName = pure PC.GreaterThanEqInteger
+                | GHC.getOccString n == ">" = pure PC.GreaterThanInteger
+                | GHC.getOccString n == "<=" = pure PC.LessThanEqInteger
+                | GHC.getOccString n == "<" = pure PC.LessThanInteger
                 | otherwise = unsupported $ "Ord method:" GHC.<+> GHC.ppr n
 
 convNumMethod :: (Converting m) => GHC.Name -> m PCExpr
 convNumMethod name = do
     m <- method name
-    pure $ PC.TyInst () m (PC.TyInt () haskellIntSize)
+    pure $ instSize haskellIntSize $ mkConstant m
         where
             method n
                 -- only this one has a name defined in the lib??
-                | n == GHC.minusName = pure $ PC.Constant () $ PC.BuiltinName () PC.SubtractInteger
-                | GHC.getOccString n == "+" = pure $ PC.Constant () $ PC.BuiltinName () PC.AddInteger
-                | GHC.getOccString n == "*" = pure $ PC.Constant () $ PC.BuiltinName () PC.MultiplyInteger
+                | n == GHC.minusName = pure PC.SubtractInteger
+                | GHC.getOccString n == "+" = pure PC.AddInteger
+                | GHC.getOccString n == "*" = pure PC.MultiplyInteger
                 | otherwise = unsupported $ "Num method:" GHC.<+> GHC.ppr n
 
 -- Binder helpers
@@ -444,7 +441,7 @@ mkLambda :: Converting m => GHC.Var -> m PCExpr -> m PCExpr
 mkLambda v body = do
     let ghcName = GHC.varName v
     (t', n') <- convVarFresh v
-    body' <- local (first $ pushName ghcName n') body
+    body' <- local (second $ pushName ghcName n') body
     pure $ PC.LamAbs () n' t' body'
 
 -- | Builds a type abstraction, binding the given variable to a name that
@@ -453,7 +450,7 @@ mkTyAbs :: Converting m => GHC.Var -> m PCExpr -> m PCExpr
 mkTyAbs v body = do
     let ghcName = GHC.tyVarName v
     (k', t') <- convTyVarFresh v
-    body' <- local (first $ pushTyName ghcName t') body
+    body' <- local (second $ pushTyName ghcName t') body
     pure $ PC.TyAbs () t' k' body'
 
 -- | Builds a forall, binding the given variable to a name that
@@ -462,7 +459,7 @@ mkTyForall :: Converting m => GHC.Var -> m PCType -> m PCType
 mkTyForall v body = do
     let ghcName = GHC.tyVarName v
     (k', t') <- convTyVarFresh v
-    body' <- local (first $ pushTyName ghcName t') body
+    body' <- local (second $ pushTyName ghcName t') body
     pure $ PC.TyForall () t' k' body'
 
 -- | Builds a type lambda, binding the given variable to a name that
@@ -471,7 +468,7 @@ mkTyLam :: Converting m => GHC.Var -> m PCType -> m PCType
 mkTyLam v body = do
     let ghcName = GHC.tyVarName v
     (k', t') <- convTyVarFresh v
-    body' <- local (first $ pushTyName ghcName t') body
+    body' <- local (second $ pushTyName ghcName t') body
     pure $ PC.TyLam () t' k' body'
 
 -- Simulating laziness
@@ -577,7 +574,7 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 convExpr :: Converting m => GHC.CoreExpr -> m PCExpr
 convExpr e = do
     -- See Note [Scopes]
-    (stack, _) <- ask
+    (_, prims, stack) <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]
@@ -609,6 +606,7 @@ convExpr e = do
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> convConstructor dc
+        GHC.Var (flip Map.lookup prims . GHC.varName -> Just term) -> pure term
         -- the term we get must be closed - we don't resolve most references
         -- TODO: possibly relax this?
         GHC.Var n@(GHC.idDetails -> GHC.VanillaId) -> freeVariable $ "Variable:" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)

@@ -21,6 +21,7 @@ library
     exposed-modules:
         Language.Plutus.CoreToPLC.Plugin
         Language.Plutus.CoreToPLC.Error
+        Language.Plutus.CoreToPLC.Primitives
     other-modules:
         Language.Plutus.CoreToPLC
     hs-source-dirs: src
