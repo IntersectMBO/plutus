@@ -49,18 +49,86 @@ module Scott where
   Zero : ∅ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
   
-  Succ : ∅ ⊢ N ⇒ N
+  Succ : ∀{Γ} → Γ ⊢ N ⇒ N
   Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
   
   One : ∅ ⊢ N
   One = Succ · Zero
   
   Two : ∅ ⊢ N
-  Two = Succ · (Succ · Zero)
+  Two = Succ · One
+
+  Three : ∅ ⊢ N
+  Three = Succ · Two
+
+  Four : ∅ ⊢ N
+  Four = Succ · Three
   
   case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ (` Z)) ⇒ (` Z))
   case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ ` (S Z) · unwrap (` Z)))))
+
+  TwoPlusTwo : ∅ ⊢ N
+  TwoPlusTwo = Two ·⋆ N · Two · (ƛ Succ · unwrap (` Z))
 \end{code}
+
+eval (gas 10000000) Scott.Four
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+     (Λ
+      (ƛ
+       (ƛ
+        ((` Z) ·
+         wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+         (Λ
+          (ƛ
+           (ƛ
+            ((` Z) ·
+             wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+             (Λ
+              (ƛ
+               (ƛ
+                ((` Z) ·
+                 wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+                 (Λ (ƛ (ƛ (` (S Z)))))))))))))))))))))
+ .Term.Reduction.Value.V-Λ_)
+
+eval (gas 10000000) Scott.TwoPlusTwo
+
+FAILED: this is two not four
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+     (Λ
+      (ƛ
+       (ƛ
+        ((` Z) ·
+         wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+         (Λ (ƛ (ƛ (` (S Z)))))))))))))
+ .Term.Reduction.Value.V-Λ_)
+
+eval (gas 10000000) Scott.Two
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+     (Λ
+      (ƛ
+       (ƛ
+        ((` Z) ·
+         wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+         (Λ (ƛ (ƛ (` (S Z)))))))))))))
+ .Term.Reduction.Value.V-Λ_)
 
 ### Church Numerals
 
@@ -96,7 +164,10 @@ module Church where
 
   TwoPlusTwo = Plus Two Two
 
-open Church public
+  TwoPlusTwo' : ∅ ⊢ N
+  TwoPlusTwo' = Two ·⋆ N · Two · Succ
+
+--open Church public
 \end{code}
 
 -- Church "4"
