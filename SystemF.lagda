@@ -998,14 +998,14 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
-data Finished {Γ J}{A : ∥ Γ ∥ ⊢⋆ J} (N : Γ ⊢ A) : Set where
+data Finished {Γ J}{A : ∥ Γ ∥ ⊢⋆ J} :  (N : Γ ⊢ A) →  Set where
 
-   done :
+   done : ∀ N → 
        Value N
        ----------
      → Finished N
 
-   out-of-gas :
+   out-of-gas : ∀{N} → 
        ----------
        Finished N
 \end{code}
@@ -1032,10 +1032,12 @@ eval (gas zero) M = steps done out-of-gas
 eval (gas (suc n)) M with progress M
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (continue p ps) q
-eval (gas (suc n)) M | done vM = steps done (done vM)
+eval (gas (suc n)) M | done vM = steps done (done _ vM)
 \end{code}
 
 ## Examples
+
+### Scott Numerals
 
 From http://lucacardelli.name/Papers/Notes/scott2.pdf
 
@@ -1057,27 +1059,126 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 --
 
 \begin{code}
-G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-G = Π ` Z ⇒ (` (S Z) ⇒ (` Z)) ⇒ (` Z)
-
-M : ∀{Γ} → Γ ⊢⋆ *
-M = μ G
-
-N : ∀{Γ} → Γ ⊢⋆ *
-N  =  G [ M ]⋆
-
-Zero : ∅ ⊢ N
-Zero = Λ (ƛ (ƛ (` (S (Z )))))
-
-Succ : ∅ ⊢ N ⇒ N
-Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
-
-One : ∅ ⊢ N
-One = Succ · Zero
-
-Two : ∅ ⊢ N
-Two = Succ · (Succ · Zero)
-
-case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ (` Z)) ⇒ (` Z))
-case = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ (` Z)) · (` (S Z))) · (ƛ ` (S Z) · unwrap (` Z)))))
+module Scott where
+  G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
+  G = Π ` Z ⇒ (` (S Z) ⇒ (` Z)) ⇒ (` Z)
+  
+  M : ∀{Γ} → Γ ⊢⋆ *
+  M = μ G
+  
+  N : ∀{Γ} → Γ ⊢⋆ *
+  N  =  G [ M ]⋆
+  
+  Zero : ∅ ⊢ N
+  Zero = Λ (ƛ (ƛ (` (S (Z )))))
+  
+  Succ : ∅ ⊢ N ⇒ N
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
+  
+  One : ∅ ⊢ N
+  One = Succ · Zero
+  
+  Two : ∅ ⊢ N
+  Two = Succ · (Succ · Zero)
+  
+  case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ (` Z)) ⇒ (` Z))
+  case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ ` (S Z) · unwrap (` Z)))))
 \end{code}
+
+### Church Numerals
+
+\begin{code}
+module Church where
+  N : ∀{Γ} → Γ ⊢⋆ *
+  N = Π (` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z)
+
+  Zero : ∅ ⊢ N
+  Zero = Λ (ƛ (ƛ (` (S Z))))
+
+  Succ : ∅ ⊢ N ⇒ N
+  Succ = ƛ (Λ (ƛ (ƛ ` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z)))))
+  
+  Iter : ∅ ⊢ Π ` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)
+  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
+
+  -- two plus two
+  One : ∅ ⊢ N
+  One = Succ · Zero
+
+  Two : ∅ ⊢ N
+  Two = Succ · One
+
+  Three : ∅ ⊢ N
+  Three = Succ · Two
+
+  Four : ∅ ⊢ N
+  Four = Succ · Three
+
+  Plus : ∅ ⊢ N → ∅ ⊢ N → ∅ ⊢ N
+  Plus x y = Iter ·⋆ N · x · Succ · y -- by induction on the second y
+
+  TwoPlusTwo = Plus Two Two
+
+open Church public
+\end{code}
+
+-- Church "4"
+eval (gas 100000000) Four
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    (` Z) ·
+    (((Λ
+       (ƛ
+        (ƛ
+         (` Z) ·
+         (((Λ
+            (ƛ
+             (ƛ
+              (` Z) ·
+              (((Λ
+                 (ƛ
+                  (ƛ
+                   (` Z) · (((Λ (ƛ (ƛ (` (S Z))))) ·⋆ (` Z)) · (` (S Z)) · (` Z)))))
+                ·⋆ (` Z))
+               · (` (S Z))
+               · (` Z)))))
+           ·⋆ (` Z))
+          · (` (S Z))
+          · (` Z)))))
+      ·⋆ (` Z))
+     · (` (S Z))
+     · (` Z)))))
+ V-Λ_)
+
+-- Church "2 + 2"
+eval (gas 100000000) (Plus Two Two)
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    (` Z) ·
+    (((Λ
+       (ƛ
+        (ƛ
+         (` Z) ·
+         (((Λ
+            (ƛ
+             (ƛ
+              (` Z) ·
+              (((Λ
+                 (ƛ
+                  (ƛ
+                   (` Z) · (((Λ (ƛ (ƛ (` (S Z))))) ·⋆ (` Z)) · (` (S Z)) · (` Z)))))
+                ·⋆ (` Z))
+               · (` (S Z))
+               · (` Z)))))
+           ·⋆ (` Z))
+          · (` (S Z))
+          · (` Z)))))
+      ·⋆ (` Z))
+     · (` (S Z))
+     · (` Z)))))
+ V-Λ_)
