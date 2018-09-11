@@ -13,6 +13,8 @@ import           Language.PlutusCore
 
 import           TestTH
 
+import           Language.Haskell.TH.Syntax
+
 import           Test.Tasty
 import           Test.Tasty.Golden
 
@@ -30,6 +32,7 @@ tests :: TestTree
 tests = testGroup "Plutus TH frontend" [
     golden "simple" simple
     , golden "power" powerPlc
+    , golden "and" andPlc
   ]
 
 simple :: PlcCode
@@ -38,3 +41,6 @@ simple = $$(plutusT [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
 powerPlc :: PlcCode
 powerPlc = $$(plutusT [|| $$(power (4::Int)) ||])
+
+andPlc :: PlcCode
+andPlc = $$(plutusT [|| $$(andTH) True False ||])
