@@ -53,7 +53,7 @@ let
     overrides = self: super: {
       plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
-      language-plutus-core = doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)));
+      language-plutus-core = appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
     };
   };
   other = rec {
