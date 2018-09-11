@@ -39,34 +39,40 @@ isType Type{} = True
 isType _      = False
 
 -- | Create a new 'Type' for an integer operation.
-intop :: MonadQuote m => m (Type TyNameWithKind ())
+intop :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
 intop = do
     nam <- liftQuote $ freshTyName () ""
     let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity ity)
-    Right t <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
-    pure t
+    annotated <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
+    case annotated of
+        Right t -> pure t
+        -- should be impossible, no scope errors in the stdlib type
+        Left _  -> throwError InternalError
 
 -- | Create a new 'Type' for an integer relation
-intRel :: MonadQuote m  => m (Type TyNameWithKind ())
+intRel :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
 intRel = builtinRel TyInteger
 
-bsRel :: MonadQuote m => m (Type TyNameWithKind ())
+bsRel :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
 bsRel = builtinRel TyByteString
 
-builtinRel :: MonadQuote m => TypeBuiltin -> m (Type TyNameWithKind ())
+builtinRel :: (MonadError (TypeError a) m, MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
     nam <- liftQuote $ freshTyName () ""
     b <- liftQuote Std.getBuiltinBool
     let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity b)
-    Right t <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
-    pure t
+    annotated <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
+    case annotated of
+        Right t -> pure t
+        -- should be impossible, no scope errors in the stdlib type
+        Left _  -> throwError InternalError
 
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
-defaultTable :: MonadQuote m => m BuiltinTable
+defaultTable :: (MonadError (TypeError a) m, MonadQuote m) => m BuiltinTable
 defaultTable = do
 
     let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
