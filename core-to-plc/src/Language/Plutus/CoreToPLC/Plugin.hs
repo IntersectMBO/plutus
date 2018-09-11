@@ -10,17 +10,18 @@ module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plu
 
 import           Language.Plutus.CoreToPLC
 import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Primitives (makePrimitivesMap)
+import           Language.Plutus.CoreToPLC.Primitives (makePrimitiveMap, primitiveTermAssociations,
+                                                       primitiveTypeAssociations)
 
-import qualified GhcPlugins                      as GHC
+import qualified GhcPlugins                           as GHC
 
-import qualified Language.PlutusCore             as PC
+import qualified Language.PlutusCore                  as PC
 import           Language.PlutusCore.Quote
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy            as BSL
-import           Data.Text                       as T
+import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Text                            as T
 
 -- Note: we construct this by coercing, so this *must* remain representationally equivalent to '[Word]'
 -- unless we change how conversion works, and *must* be abstract.
@@ -120,7 +121,8 @@ convertExpr origE tpe = do
     -- Note: tests run with --verbose, so these will appear
     GHC.debugTraceMsg $ "Converting GHC Core expression:" GHC.$+$ GHC.ppr origE
     flags <- GHC.getDynFlags
-    prims <- makePrimitivesMap
+    primTerms <- makePrimitiveMap primitiveTermAssociations
+    primTys <- makePrimitiveMap primitiveTypeAssociations
     let result =
           do
               converted <- convExpr origE
@@ -128,7 +130,7 @@ convertExpr origE tpe = do
               --annotated <- convertErrors PCError $ PC.annotateTermQ converted
               --inferredType <- convertErrors PCError $ PC.typecheckTermQ 1000 annotated
               pure (converted, undefined)
-    case runExcept $ runReaderT (runQuoteT result) (flags, prims, initialScopeStack) of
+    case runExcept $ runReaderT (runQuoteT result) (flags, primTerms, primTys, initialScopeStack) of
         Left s -> do
             GHC.fatalErrorMsg $ "Failed to convert expression:" GHC.$+$ (GHC.text $ T.unpack $ errorText s)
             pure origE

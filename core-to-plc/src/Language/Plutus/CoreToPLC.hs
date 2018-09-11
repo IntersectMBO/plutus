@@ -63,9 +63,10 @@ variable *last* (so it is on the outside, so will be first when applying).
 type PCExpr = PC.Term PC.TyName PC.Name ()
 type PCType = PC.Type PC.TyName ()
 
-type PrimMap = Map.Map GHC.Name PCExpr
+type PrimTerms = Map.Map GHC.Name PCExpr
+type PrimTypes = Map.Map GHC.Name PCType
 
-type ConvertingState = (GHC.DynFlags, PrimMap, ScopeStack)
+type ConvertingState = (GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
 -- See Note [Scopes]
 type Converting m = (Monad m, MonadError (Error ()) m, MonadQuote m, MonadReader ConvertingState m)
 
@@ -77,7 +78,7 @@ bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 sdToTxt :: (MonadReader ConvertingState m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do
-  (flags, _, _) <- ask
+  (flags, _, _, _) <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
 conversionFail :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
@@ -173,9 +174,10 @@ convKind k = case k of
 convType :: Converting m => GHC.Type -> m PCType
 convType t = do
     -- See Note [Scopes]
-    (_, _, stack) <- ask
+    (_, _, _, stack) <- ask
     let top = NE.head stack
     case t of
+        -- in scope type name
         (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.varName -> Just name)) -> pure $ PC.TyVar () name
         (GHC.getTyVar_maybe -> Just v) -> freeVariable $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PC.TyFun () <$> convType i <*> convType o
@@ -199,8 +201,13 @@ convTyConApp tc ts
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PCType
 convTyCon tc = do
-    dcs <- getDataCons tc
-    convDataCons tc dcs
+    (_, _, prims, _) <- ask
+    -- could be a Plutus primitive type
+    case Map.lookup (GHC.tyConName tc) prims of
+        Just ty -> pure ty
+        Nothing -> do
+            dcs <- getDataCons tc
+            convDataCons tc dcs
 
 -- Data
 
@@ -574,7 +581,7 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 convExpr :: Converting m => GHC.CoreExpr -> m PCExpr
 convExpr e = do
     -- See Note [Scopes]
-    (_, prims, stack) <- ask
+    (_, prims, _, stack) <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]

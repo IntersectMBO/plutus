@@ -14,6 +14,7 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 
 import qualified Data.ByteString.Lazy             as BSL
+import qualified Data.ByteString                  as BS
 import           Data.Text.Encoding               (encodeUtf8)
 
 main :: IO ()
@@ -54,6 +55,8 @@ primitives = testGroup "Primitive types and operations" [
   , golden "intEq" intEq
   , golden "intPlus" intPlus
   , golden "blocknum" blocknumPlc
+  , golden "bytestring" bytestring
+  , golden "verify" verify
   ]
 
 string :: PlcCode
@@ -82,6 +85,12 @@ intPlus = plc (\(x::Int) (y::Int) -> x + y)
 
 blocknumPlc :: PlcCode
 blocknumPlc = plc blocknum
+
+bytestring :: PlcCode
+bytestring = plc (\(x::BS.ByteString) -> x)
+
+verify :: PlcCode
+verify = plc (\(x::BS.ByteString) (y::BS.ByteString) (z::BS.ByteString) -> verifySignature x y z)
 
 structure :: TestTree
 structure = testGroup "Structures" [

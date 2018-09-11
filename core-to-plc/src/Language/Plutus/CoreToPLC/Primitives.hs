@@ -58,8 +58,23 @@ txhash = mustBeReplaced
 blocknum :: Int
 blocknum = mustBeReplaced
 
-primitiveAssociations :: [(TH.Name, (PC.Term PC.TyName PC.Name ()))]
-primitiveAssociations = [
+{- Note [Mapping primitives]
+We want the user to be able to call the Plutus primitives as normal Haskell functions.
+
+To do this, we provide a library of such functions, and then make a map from their TH names (which we can
+derive from the real function declarations, to be sure they match up), to the implementations. We then
+need to do some work in the GHC Core monad to translate those mappings into mappings from Core names.
+-}
+
+makePrimitiveMap :: [(TH.Name, a)] -> GHC.CoreM (Map.Map GHC.Name a)
+makePrimitiveMap associations = do
+    mapped <- forM associations $ \(name, term) -> do
+        ghcNameMaybe <- GHC.thNameToGhcName name
+        pure $ fmap (\ghcName -> (ghcName, term)) ghcNameMaybe
+    pure $ Map.fromList (catMaybes mapped)
+
+primitiveTermAssociations :: [(TH.Name, PC.Term PC.TyName PC.Name ())]
+primitiveTermAssociations = [
     ('concatenate, instSize haskellIntSize $ mkConstant PC.Concatenate)
     , ('takeByteString, instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.TakeByteString)
     , ('dropByteString, instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PC.DropByteString)
@@ -71,9 +86,8 @@ primitiveAssociations = [
     , ('blocknum, instSize haskellIntSize $ mkConstant PC.BlockNum)
     ]
 
-makePrimitivesMap :: GHC.CoreM (Map.Map GHC.Name (PC.Term PC.TyName PC.Name ()))
-makePrimitivesMap = do
-    mapped <- forM primitiveAssociations $ \(name, term) -> do
-        ghcNameMaybe <- GHC.thNameToGhcName name
-        pure $ fmap (\ghcName -> (ghcName, term)) ghcNameMaybe
-    pure $ Map.fromList (catMaybes mapped)
+-- TODO: possibly we should use our own abstract Bytestring type instead of this?
+primitiveTypeAssociations :: [(TH.Name, PC.Type PC.TyName ())]
+primitiveTypeAssociations = [
+    (''ByteString, appSize haskellBSSize $ PC.TyBuiltin () PC.TyByteString)
+    ]
