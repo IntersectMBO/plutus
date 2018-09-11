@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE LambdaCase        #-}
 
 module Language.Plutus.CoreToPLC where
 
@@ -626,6 +627,9 @@ convExpr e = do
             pure $ PC.Apply () l' a'
         GHC.Let (GHC.Rec bs) body -> do
             tys <- mapM convType (fmap (GHC.varType . fst) bs)
+            forM_ tys $ \case
+                PC.TyFun {} -> pure ()
+                _ -> conversionFail "Recursive values must be of function type. You may need to manually add unit arguments."
             tupleTy <- mkTupleType tys
 
             bsLam <- flip (foldr (\b acc -> mkLambda b acc)) (fmap fst bs) $ do
