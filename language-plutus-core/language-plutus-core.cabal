@@ -46,6 +46,7 @@ library
         Language.PlutusCore.StdLib.Data.Unit
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Generators
+        Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.TH
         Language.PlutusCore.Quote
         PlutusPrelude

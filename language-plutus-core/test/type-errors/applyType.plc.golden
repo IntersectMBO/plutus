@@ -1,0 +1,6 @@
+Type mismatch at 2:3 in term
+  '(con 64 ! 0)'.
+Expected type
+  '(fun * *)',
+found type
+  '[(con integer) (con 64)]'
