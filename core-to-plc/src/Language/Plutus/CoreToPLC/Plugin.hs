@@ -41,7 +41,7 @@ getAst wrapper = let Right p = PC.readProgram $ getSerializedCode wrapper in p
 -- | Marks the given expression for conversion to PLC.
 plc :: a -> PlcCode
 -- this constructor is only really there to get rid of the unused warning
-plc _ = PlcCode undefined
+plc _ = PlcCode mustBeReplaced
 
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }

@@ -1,20 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- | Primitive names that correspond to Plutus Core primitives.
 module Language.Plutus.CoreToPLC.Primitives where
 
-import qualified GhcPlugins                 as GHC
-
-import qualified Language.PlutusCore        as PC
-
-import qualified Language.Haskell.TH.Syntax as TH
-
-import           GHC.Natural
+import           Language.Plutus.CoreToPLC.Error
 
 import           Control.Monad
-
 import           Data.ByteString
-import qualified Data.Map                   as Map
-import           Data.Maybe                 (catMaybes)
+import qualified Data.Map                        as Map
+import           Data.Maybe                      (catMaybes)
+import           GHC.Natural
+import qualified GhcPlugins                      as GHC
+import qualified Language.Haskell.TH.Syntax      as TH
+import qualified Language.PlutusCore             as PC
 
 haskellIntSize :: Natural
 haskellIntSize = 64
@@ -34,31 +32,31 @@ mkConstant n = PC.Constant () $ PC.BuiltinName () n
 -- TODO: resizing primitives? better handling of sizes?
 
 concatenate :: ByteString -> ByteString -> ByteString
-concatenate = undefined
+concatenate = mustBeReplaced
 
 takeByteString :: Int -> ByteString -> ByteString
-takeByteString = undefined
+takeByteString = mustBeReplaced
 
 dropByteString :: Int -> ByteString -> ByteString
-dropByteString = undefined
+dropByteString = mustBeReplaced
 
 sha2_256 :: ByteString -> ByteString
-sha2_256 = undefined
+sha2_256 = mustBeReplaced
 
 sha3_256 :: ByteString -> ByteString
-sha3_256 = undefined
+sha3_256 = mustBeReplaced
 
 verifySignature :: ByteString -> ByteString -> ByteString -> Bool
-verifySignature = undefined
+verifySignature = mustBeReplaced
 
 equalsByteString :: ByteString -> ByteString -> Bool
-equalsByteString = undefined
+equalsByteString = mustBeReplaced
 
 txhash :: ByteString
-txhash = undefined
+txhash = mustBeReplaced
 
 blocknum :: Int
-blocknum = undefined
+blocknum = mustBeReplaced
 
 primitiveAssociations :: [(TH.Name, (PC.Term PC.TyName PC.Name ()))]
 primitiveAssociations = [
