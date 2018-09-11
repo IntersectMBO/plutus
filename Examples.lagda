@@ -46,16 +46,16 @@ module Scott where
   N : ∀{Γ} → Γ ⊢⋆ *
   N  =  G ⋆.[ M ]
   
-  Zero : ∅ ⊢ N
+  Zero : ∀{Γ} → Γ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
   
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
   Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
   
-  One : ∅ ⊢ N
+  One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
   
-  Two : ∅ ⊢ N
+  Two : ∀{Γ} → Γ ⊢ N
   Two = Succ · One
 
   Three : ∅ ⊢ N
@@ -64,14 +64,19 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
   
-  case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ ` Z) ⇒ ` Z)
+  case : ∀{Γ} → Γ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ ` Z) ⇒ ` Z)
   case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ ` (S Z) · unwrap (` Z)))))
 
-  fix : ∅ ⊢ Π (` Z ⇒ ` Z) ⇒ ` Z
+  fix : ∀{Γ} → Γ ⊢ Π (` Z ⇒ ` Z) ⇒ ` Z
   fix = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
 
+  TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
+  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ Succ · (` (S (S Z)) · (` Z)))))
+
   TwoPlusTwo : ∅ ⊢ N
-  TwoPlusTwo = Two ·⋆ N · Two · (ƛ Succ · unwrap (` Z))
+  TwoPlusTwo = fix ·⋆ (N ⇒ N) · TwoPlus · Two
+
+
 \end{code}
 
 eval (gas 10000000) Scott.Four
@@ -98,24 +103,6 @@ eval (gas 10000000) Scott.Four
                 ((` Z) ·
                  wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
                  (Λ (ƛ (ƛ (` (S Z)))))))))))))))))))))
- .Term.Reduction.Value.V-Λ_)
-
-eval (gas 10000000) Scott.TwoPlusTwo
-
-FAILED: this is two not four
-
-(done
- (Λ
-  (ƛ
-   (ƛ
-    ((` Z) ·
-     wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
-     (Λ
-      (ƛ
-       (ƛ
-        ((` Z) ·
-         wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
-         (Λ (ƛ (ƛ (` (S Z)))))))))))))
  .Term.Reduction.Value.V-Λ_)
 
 eval (gas 10000000) Scott.Two
