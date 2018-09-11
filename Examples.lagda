@@ -38,7 +38,7 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 \begin{code}
 module Scott where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-  G = Π ` Z ⇒ (` (S Z) ⇒ (` Z)) ⇒ (` Z)
+  G = Π ` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z
   
   M : ∀{Γ} → Γ ⊢⋆ *
   M = μ G
@@ -64,8 +64,11 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
   
-  case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ (` Z)) ⇒ (` Z))
+  case : ∅ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ ` Z) ⇒ ` Z)
   case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ ` (S Z) · unwrap (` Z)))))
+
+  fix : ∅ ⊢ Π (` Z ⇒ ` Z) ⇒ ` Z
+  fix = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = Two ·⋆ N · Two · (ƛ Succ · unwrap (` Z))
