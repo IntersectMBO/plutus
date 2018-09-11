@@ -6,13 +6,15 @@ module Language.Plutus.CoreToPLC.Primitives where
 import           Language.Plutus.CoreToPLC.Error
 
 import           Control.Monad
-import           Data.ByteString
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
 import           GHC.Natural
 import qualified GhcPlugins                      as GHC
 import qualified Language.Haskell.TH.Syntax      as TH
 import qualified Language.PlutusCore             as PC
+
+-- | An abstract data type representing bytestrings in Plutus Core.
+data ByteString
 
 haskellIntSize :: Natural
 haskellIntSize = 64
@@ -86,7 +88,6 @@ primitiveTermAssociations = [
     , ('blocknum, instSize haskellIntSize $ mkConstant PC.BlockNum)
     ]
 
--- TODO: possibly we should use our own abstract Bytestring type instead of this?
 primitiveTypeAssociations :: [(TH.Name, PC.Type PC.TyName ())]
 primitiveTypeAssociations = [
     (''ByteString, appSize haskellBSSize $ PC.TyBuiltin () PC.TyByteString)

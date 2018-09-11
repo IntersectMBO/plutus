@@ -6,7 +6,7 @@
 module Main (main) where
 
 import           Language.Plutus.CoreToPLC.Plugin
-import           Language.Plutus.CoreToPLC.Primitives
+import           Language.Plutus.CoreToPLC.Primitives as Prims
 
 import           Language.PlutusCore
 
@@ -84,13 +84,13 @@ intPlus :: PlcCode
 intPlus = plc (\(x::Int) (y::Int) -> x + y)
 
 blocknumPlc :: PlcCode
-blocknumPlc = plc blocknum
+blocknumPlc = plc Prims.blocknum
 
 bytestring :: PlcCode
-bytestring = plc (\(x::BS.ByteString) -> x)
+bytestring = plc (\(x::Prims.ByteString) -> x)
 
 verify :: PlcCode
-verify = plc (\(x::BS.ByteString) (y::BS.ByteString) (z::BS.ByteString) -> verifySignature x y z)
+verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
 
 structure :: TestTree
 structure = testGroup "Structures" [
