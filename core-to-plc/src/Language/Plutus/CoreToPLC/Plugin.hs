@@ -141,9 +141,10 @@ convertExpr origE tpe = do
     let result =
           do
               converted <- convExpr origE
-              annotated <- convertErrors PCError $ PC.annotateTerm converted
-              inferredType <- convertErrors PCError $ PC.typecheckTerm 1000 annotated
-              pure (converted, inferredType)
+              -- temporarily don't do typechecking due to lack of support for redexes
+              --annotated <- convertErrors PCError $ PC.annotateTerm converted
+              --inferredType <- convertErrors PCError $ PC.typecheckTerm 1000 annotated
+              pure (converted, undefined)
     case runExcept $ runReaderT (runQuoteT result) (flags, primTerms, primTys, initialScopeStack) of
         Left s -> do
             GHC.fatalErrorMsg $
@@ -153,17 +154,15 @@ convertExpr origE tpe = do
                 (GHC.text $ T.unpack $ errorText s)
             -- this will actually terminate compilation
             liftIO $ throwIO CoreToPlcFailure
-        Right (term, inferredType) -> do
+        Right (term, _) -> do
             let termRep = T.unpack $ PC.debugText term
-            let typeRep = T.unpack $ PC.debugText inferredType
+            --let typeRep = T.unpack $ PC.debugText inferredType
             -- Note: tests run with --verbose, so these will appear
             GHC.debugTraceMsg $
                 "Successfully converted GHC core expression:" GHC.$+$
                 GHC.ppr origE GHC.$+$
                 "Resulting PLC term is:" GHC.$+$
-                GHC.text termRep GHC.$+$
-                "With type:" GHC.$+$
-                GHC.text typeRep
+                GHC.text termRep --GHC.$+$ "With type:" GHC.$+$ GHC.text typeRep
             let program = PC.Program () (PC.defaultVersion ()) term
             let serialized = PC.writeProgram program
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
