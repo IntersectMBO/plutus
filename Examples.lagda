@@ -129,7 +129,7 @@ eval (gas 100000000) Four
      · (` Z)))))
  V-Λ_)
 
--- Church "2 + 2"
+-- Church "2 + 2" using iterator
 eval (gas 100000000) (Plus Two Two)
 
 (done
@@ -158,4 +158,36 @@ eval (gas 100000000) (Plus Two Two)
       ·⋆ (` Z))
      · (` (S Z))
      · (` Z)))))
+ V-Λ_)
+
+-- Church "2 + 2" using the numerals directly
+eval (gas 10000000) (Two ·⋆ N · Two · Succ)
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     ((((Λ
+         (ƛ
+          (ƛ
+           ((` Z) ·
+            ((((Λ
+                (ƛ
+                 (ƛ
+                  ((` Z) ·
+                   ((((Λ
+                       (ƛ
+                        (ƛ
+                         ((` Z) ·
+                          ((((Λ (ƛ (ƛ (` (S Z))))) ·⋆ (` Z)) · (` (S Z))) · (` Z))))))
+                      ·⋆ (` Z))
+                     · (` (S Z)))
+                    · (` Z))))))
+               ·⋆ (` Z))
+              · (` (S Z)))
+             · (` Z))))))
+        ·⋆ (` Z))
+       · (` (S Z)))
+      · (` Z))))))
  V-Λ_)
