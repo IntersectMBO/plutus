@@ -514,6 +514,8 @@ mkTupleConstructor argTys = do
 -- Functions
 
 {- Note [Recursion with Z]
+XXX: THIS IS VERY WRONG, REVISIT LATER
+
 How do we handle fixpoints of functions `a -> a` when we only have the Z combinator?
 
 We translate the value as a function `() -> a` instead, and force it immediately in the
