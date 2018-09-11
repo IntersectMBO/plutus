@@ -14,9 +14,9 @@ import           Language.PlutusCore
 import           Test.Tasty
 import           Test.Tasty.Golden
 
-import qualified Data.ByteString.Lazy             as BSL
-import qualified Data.ByteString                  as BS
-import           Data.Text.Encoding               (encodeUtf8)
+import qualified Data.ByteString                      as BS
+import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Text.Encoding                   (encodeUtf8)
 
 main :: IO ()
 main = defaultMain tests
