@@ -5,7 +5,6 @@ module Term.RenamingSubstitution where
 ## Imports
 
 \begin{code}
-open import Data.Product using (Σ)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
