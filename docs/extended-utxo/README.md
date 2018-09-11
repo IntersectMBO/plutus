@@ -9,7 +9,7 @@ In the classic UTxO model (Cardano SL in Byron and Shelley), a transaction outpu
 1. it’s value and
 2. (the hash of) a validator script.
 
-We extend this to include a second (hash of a) script, which we call the *data script*. This second script is a Plutus Core expression, just like the validator script. However, the requirements on its type are different. The type of the data script can be any monomorphic type.
+We extend this to include a second script, which we call the *data script*. This second script is a Plutus Core expression, just like the validator script. However, the requirements on its type are different. The type of the data script can be any monomorphic type.
 
 ## Extension to validator scripts
 An extended validator script expects four arguments:
@@ -32,6 +32,22 @@ Validator scripts receive, at a minimum, the following information from the vali
 
 We may want to support the validator being able to query the sum of all values of all unspent outputs locked by other script addresses, too. This may be costly, though.
 
+## Scripts and signatures
+
+For each of the three script types (data, validator, redeemer) there are two artifacts on the blockchain: The script itself, and its hash. Each artifact can be provided either as part of the producing transaction's output, or as part of the consuming transaction's input. We can organise the three types by according to who provides the script, and who provides the hash, resulting in the following matrix.
+
+|| Signed by Producer | Signed by Consumer |
+|-|-|-|
+|**Provided by Producer**| Data script | *N/A\** |
+|**Provided by Consumer**| Validator script | Redeemer script |
+
+The validator script must be submitted as part of the consuming transaction's input, but its content is determined by the producing transaction. Both hash and content of the data script are provided by the producing transaction, and hash and content of the redeemer are provided by the consumer. 
+
+When a transaction is validated, the validator script receives data and redeemer scripts and either terminates successfully or in the Plutus `error` state. This means that the producing transaction effectively determines the type of the redeemer script, even though the script itself (ie. a value of that type) is not known at that time. (One has to be careful not to lock a transaction output permanently by specifying a type that has no values other than `error`)
+
+**(*)** It is possible that the top right quadrant (provided by producer, signed by consumer) can be filled with a meaningful fourth type of script, perhaps to enable interactions with third parties. 
+
+
 ## Script support for UTxO wallets
 Off-chain script coordination code necessarily needs to execute in the context of a wallet. At a minimum, off-chain code needs to be able to submit transactions, which need to include transaction fees, which in turn need to be covered from the funds of a wallet. Moreover, transaction submission is dependent on wallet functionality like coin selection.
 
@@ -49,6 +65,8 @@ On Page 9 of the wallet spec, the precondition for `newPending` needs to be adap
 * It also affects prefiltering, as we are interested in a range of script addresses in addition to the addresses we own.
 
 ### Rollbacks
+#plutus/extended-utxo/rollbacks
+
 Given that blockchain events, such as the confirmation of a transaction, can trigger the execution of off-chain coordination code, we need to carefully consider the implications of needing to rollback any action that depends on a rolled back transaction.
 
 In order to avoid rollbacks, we would need to wait for 2160 blocks (the security parameter k in the specification) before acting on a confirmation (with 20s per block, it would be a 12 hour delay). However, we can distinguish different kinds of actions that might be triggered by events and many of them don’t need that level of assurance. Generally, we distinguish between three kinds of actions that can occur in response to an event: 
@@ -70,4 +88,14 @@ I think, it would be reasonable, for the change computation, to simply disregard
 TTL support (Section 10.4 of the specification) appears rather desirable in the presence of scripts as script codes will generally want to work with timeouts given the highly asynchronous nature of transaction propagation and confirmation in a blockchain.
 
 ## Wallet API for scripts
-TBD (at a minimum, we need to be able to submit transaction templates, which are then completed by coin selection and similar)
+
+Plutus Core (PLC) scripts end up on the blockchain as part of transactions, which are created by wallets. The Plutus coordinating code interacts with a wallet through the wallet API. This API needs to be extended to support
+
+1. Creating transactions based on *transaction templates* 
+2. Registering to be notified on events related to the state of the blockchain (consider [Rollbacks](#plutus/extended-utxo/rollbacks) as well)
+3. (Potentially) Performing operations that require a private key, such as signing the redeemer script. Plutus coordinating code should not have to handle private keys.
+
+Transaction templates differ from normal transactions in two ways:
+
+1. Some of their output value is not matched by transaction inputs. The wallet is expected to add the missing inputs (coin selection)
+2. They do not include transaction fees. The wallet is expected to compute the fees and either add them to the inputs, or subtract them to the outputs if possible. The exact behaviour should be configurable by the user. (Note that changing the inputs and outputs affects the transaction fees
