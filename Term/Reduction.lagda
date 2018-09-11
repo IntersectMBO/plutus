@@ -11,7 +11,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
 
 open import Type
-open import Type.RenamingSubstitution
+import Type.RenamingSubstitution as ⋆
 open import Term
 open import Term.RenamingSubstitution
 \end{code}
@@ -32,7 +32,7 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 
   V-wrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M : Γ ⊢ S [ μ S ]⋆}
+    → {M : Γ ⊢ S ⋆.[ μ S ]}
       ----------------
     → Value (wrap S M)
 \end{code}
@@ -67,7 +67,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
 
   β-Λ : ∀ {Γ}{B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}{N : Γ ,⋆ * ⊢ B}{W}
       -------------------
-    → (Λ N) ·⋆ W —→ N [ W ]⋆⋆
+    → (Λ N) ·⋆ W —→ N [ W ]⋆
 
   ξ-unwrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
@@ -77,7 +77,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
 
   β-wrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M : Γ ⊢ S [ μ S ]⋆}    
+    → {M : Γ ⊢ S ⋆.[ μ S ]}    
     → unwrap (wrap S M) —→ M
 \end{code}
 

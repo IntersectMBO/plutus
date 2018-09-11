@@ -11,7 +11,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
 
 open import Type
-open import Type.RenamingSubstitution
+import Type.RenamingSubstitution as ⋆
 open import Term
 open import Term.RenamingSubstitution
 open import Evaluation
@@ -49,7 +49,7 @@ module Scott where
   M = μ G
   
   N : ∀{Γ} → Γ ⊢⋆ *
-  N  =  G [ M ]⋆
+  N  =  G ⋆.[ M ]
   
   Zero : ∅ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))

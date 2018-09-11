@@ -57,7 +57,7 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
   β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
     → Value⋆ W
       -------------------
-    → (ƛ N) · W —→⋆ N [ W ]⋆
+    → (ƛ N) · W —→⋆ N [ W ]
 \end{code}
 
 \begin{code}

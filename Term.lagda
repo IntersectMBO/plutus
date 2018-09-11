@@ -71,7 +71,7 @@ data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
   T_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J}
     → Γ ∋ A
       -------------------
-    → Γ ,⋆ K ∋ weaken⋆ A
+    → Γ ,⋆ K ∋ weaken A
 \end{code}
 Let `x`, `y` range over variables.
 
@@ -108,15 +108,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
     → Γ ⊢ Π B
     → (A : ∥ Γ ∥ ⊢⋆ *)
       ---------------
-    → Γ ⊢ B [ A ]⋆
+    → Γ ⊢ B [ A ]
 
   wrap : ∀{Γ}
     → (S : ∥ Γ ∥ ,⋆ * ⊢⋆ *)
-    → (M : Γ ⊢ S [ μ S ]⋆)
+    → (M : Γ ⊢ S [ μ S ])
     → Γ ⊢ μ S
 
   unwrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
     → (M : Γ ⊢ μ S)
-    → Γ ⊢ S [ μ S ]⋆
+    → Γ ⊢ S [ μ S ]
 \end{code}
