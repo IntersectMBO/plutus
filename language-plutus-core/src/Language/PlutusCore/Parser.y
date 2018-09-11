@@ -5,9 +5,9 @@
                                       , parseST
                                       , parseTermST
                                       , parseTypeST
-                                      , parseProgramQ
-                                      , parseTermQ
-                                      , parseTypeQ
+                                      , parseProgram
+                                      , parseTerm
+                                      , parseType
                                       , ParseError (..)
                                       ) where
 
@@ -24,6 +24,7 @@ import Language.PlutusCore.Lexer
 import Language.PlutusCore.Quote
 import Language.PlutusCore.Type
 import Language.PlutusCore.Name
+import Language.PlutusCore.Constant.Make
 
 }
 
@@ -146,12 +147,9 @@ app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 handleInteger :: AlexPosn -> Natural -> Integer -> Parse (Constant AlexPosn)
-handleInteger x sz i = if isOverflow
-    then throwError (Overflow x sz i)
-    else pure (BuiltinInt x sz i)
-
-    where isOverflow = i < (-k) || i > (k - 1)
-          k = 8 ^ sz `div` 2
+handleInteger x sz i = case makeBuiltinInt sz i of
+    Nothing -> throwError (Overflow x sz i)
+    Just bi -> pure $ x <$ bi
 
 parseST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
@@ -173,18 +171,18 @@ mapParseRun run = convertErrors asError $ do
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgramQ :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
-parseProgramQ str = mapParseRun (parseST str)
+parseProgram :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
+parseProgram str = mapParseRun (parseST str)
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTermQ :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name AlexPosn)
-parseTermQ str = mapParseRun (parseTermST str)
+parseTerm :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name AlexPosn)
+parseTerm str = mapParseRun (parseTermST str)
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTypeQ :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Type TyName AlexPosn)
-parseTypeQ str = mapParseRun (parseTypeST str)
+parseType :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Type TyName AlexPosn)
+parseType str = mapParseRun (parseTypeST str)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --

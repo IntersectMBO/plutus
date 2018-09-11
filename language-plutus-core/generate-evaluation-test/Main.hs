@@ -4,15 +4,15 @@ module Main (main) where
 import           Language.PlutusCore
 import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.TestSupport
+import           Language.PlutusCore.Generators
 
 import           Control.Monad
 import           Control.Monad.Morph
 import           Data.Foldable
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import qualified Data.Text.IO                    as Text
-import qualified Hedgehog.Gen                    as Gen
+import           Data.Text                      (Text)
+import qualified Data.Text                      as Text
+import qualified Data.Text.IO                   as Text
+import qualified Hedgehog.Gen                   as Gen
 
 -- | Generate a test sample: a term of arbitrary type and what it computes to.
 -- Uses 'genTermLoose' under the hood.
@@ -23,7 +23,7 @@ generateTerm
     . hoist (pure . runQuote)
     $ withAnyTermLoose
     $ \(TermOf term tbv) -> pure $ do
-          let expected = unsafeMakeBuiltin tbv
+          let expected = runQuote $ unsafeMakeBuiltin tbv
           actual <- ckEvalResultToMaybe $ evaluateCk term
           when (actual /= expected) . error $ fold
               [ "An internal error in 'generateTerm' occured while computing "

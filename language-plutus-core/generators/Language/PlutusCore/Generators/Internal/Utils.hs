@@ -2,7 +2,7 @@
 
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
-module Language.PlutusCore.TestSupport.Utils
+module Language.PlutusCore.Generators.Internal.Utils
     ( liftT
     , hoistSupply
     , choiceDef

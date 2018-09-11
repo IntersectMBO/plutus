@@ -121,7 +121,7 @@ Finally, we need to drop the lexer position annotations, since they're not terri
 
 compileTerm :: String -> Q Exp
 compileTerm s = do
-    compileTimeT <- eval $ parseTermQ $ strToBs s
+    compileTimeT <- eval $ parseTerm $ strToBs s
     let
         tyMetavars = metavarMapType (ftvTerm compileTimeT)
         termMetavars = metavarMapTerm (fvTerm compileTimeT)
@@ -130,14 +130,14 @@ compileTerm s = do
             quoted :: Quote (Term TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeT <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTermQ . strToBs) s
+                runtimeT <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
                 metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
 
 compileType :: String -> Q Exp
 compileType s = do
-    compileTimeTy <- eval $ parseTypeQ $ strToBs s
+    compileTimeTy <- eval $ parseType $ strToBs s
     let
         tyMetavars = metavarMapType (ftvTy compileTimeTy)
     [|
@@ -145,14 +145,14 @@ compileType s = do
             quoted :: Quote (Type TyName ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                runtimeTy <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTypeQ . strToBs) s
+                runtimeTy <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
                 metavarSubstType runtimeTy <$> $(tyMetavars)
           in quoted
       |]
 
 compileProgram :: String -> Q Exp
 compileProgram s = do
-    (Program _ _ compileTimeT) <- eval $ parseProgramQ $ strToBs s
+    (Program _ _ compileTimeT) <- eval $ parseProgram $ strToBs s
     let
         tyMetavars = metavarMapType (ftvTerm compileTimeT)
         termMetavars= metavarMapTerm (fvTerm compileTimeT)
@@ -161,7 +161,7 @@ compileProgram s = do
             quoted :: Quote (Program TyName Name ())
             quoted = do
                 -- See note [Parsing and TH stages]
-                (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgramQ . strToBs) s
+                (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
                 Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]

@@ -5,7 +5,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-module Language.PlutusCore.TestSupport.TypedBuiltinGen
+module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
     , TypedBuiltinGen
@@ -56,27 +56,30 @@ type TypedBuiltinGen = TypedBuiltinGenT Identity
 instance PrettyCfg a => PrettyCfg (TermOf a) where
     prettyCfg cfg (TermOf t x) = prettyCfg cfg t <+> "~>" <+> prettyCfg cfg x
 
-attachCoercedTerm :: Functor f => TypedBuiltin Size a -> GenT f a -> GenT f (TermOf a)
-attachCoercedTerm tb = fmap $ \x -> TermOf (unsafeMakeBuiltin $ TypedBuiltinValue tb x) x
+attachCoercedTerm :: MonadQuote m => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
+attachCoercedTerm tb genX = do
+    x <- genX
+    term <- liftQuote . unsafeMakeBuiltin $ TypedBuiltinValue tb x
+    return $ TermOf term x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
-    :: Functor f
+    :: MonadQuote m
     => TypedBuiltin Size a  -- ^ A generator of which built-in to overwrite.
-    -> GenT f a             -- ^ A new generator.
-    -> TypedBuiltinGenT f   -- ^ An old typed built-ins generator.
-    -> TypedBuiltinGenT f   -- ^ The updated typed built-ins generator.
+    -> GenT m a             -- ^ A new generator.
+    -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.
+    -> TypedBuiltinGenT m   -- ^ The updated typed built-ins generator.
 updateTypedBuiltinGen tbNew genX genTb tbOld
     | Just Refl <- tbNew `geq` tbOld = attachCoercedTerm tbOld genX
     | otherwise                      = genTb tbOld
 
 -- | Update a sized typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGenSized
-    :: Functor f
+    :: MonadQuote m
     => TypedBuiltinSized a  -- ^ A generator of which sized built-in to overwrite.
-    -> (Size -> GenT f a)   -- ^ A function that computes new generator from a 'Size'.
-    -> TypedBuiltinGenT f   -- ^ An old typed built-ins generator.
-    -> TypedBuiltinGenT f   -- ^ The updated typed built-ins generator.
+    -> (Size -> GenT m a)   -- ^ A function that computes new generator from a 'Size'.
+    -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.
+    -> TypedBuiltinGenT m   -- ^ The updated typed built-ins generator.
 updateTypedBuiltinGenSized tbsNew genX genTb tbOld = case tbOld of
     TypedBuiltinSized se tbsOld | Just Refl <- tbsNew `geq` tbsOld ->
         attachCoercedTerm tbOld . genX $ flattenSizeEntry se
@@ -84,7 +87,8 @@ updateTypedBuiltinGenSized tbsNew genX genTb tbOld = case tbOld of
 
 -- | Update a typed built-ins generator by overwriting the @integer@s generator.
 updateTypedBuiltinGenInt
-    :: Functor m => (Integer -> Integer -> GenT m Integer) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
+    :: MonadQuote m
+    => (Integer -> Integer -> GenT m Integer) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenInt genInteger =
     updateTypedBuiltinGenSized TypedBuiltinSizedInt $ \size ->
         let (low, high) = toBoundsInt size in
@@ -92,18 +96,21 @@ updateTypedBuiltinGenInt genInteger =
 
 -- | Update a typed built-ins generator by overwriting the @bytestring@s generator.
 updateTypedBuiltinGenBS
-    :: Monad m => (Int -> GenT m BSL.ByteString) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
+    :: MonadQuote m
+    => (Int -> GenT m BSL.ByteString) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenBS genBytes =
     updateTypedBuiltinGenSized TypedBuiltinSizedBS $ genBytes . fromIntegral
 
 -- | Update a typed built-ins generator by overwriting the @size@s generator.
 updateTypedBuiltinGenSize
-    :: Monad m => TypedBuiltinGenT m -> TypedBuiltinGenT m
+    :: MonadQuote m
+    => TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize return
 
 -- | Update a typed built-ins generator by overwriting the @boolean@s generator.
 updateTypedBuiltinGenBool
-    :: Monad m => GenT m Bool -> TypedBuiltinGenT m -> TypedBuiltinGenT m
+    :: MonadQuote m
+    => GenT m Bool -> TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenBool = updateTypedBuiltinGen TypedBuiltinBool
 
 -- | A built-ins generator that always fails.
@@ -114,7 +121,7 @@ genTypedBuiltinFail tb = fail $ fold
     ]
 
 -- | A default sized builtins generator that produces values in bounds seen in the spec.
-genTypedBuiltinDef :: Monad m => TypedBuiltinGenT m
+genTypedBuiltinDef :: MonadQuote m => TypedBuiltinGenT m
 genTypedBuiltinDef
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linearFrom 0 low high)
@@ -125,7 +132,7 @@ genTypedBuiltinDef
     $ genTypedBuiltinFail
 
 -- | A default sized builtins generator that produces values in bounds seen in the spec.
-genTypedBuiltinLoose :: Monad m => TypedBuiltinGenT m
+genTypedBuiltinLoose :: MonadQuote m => TypedBuiltinGenT m
 genTypedBuiltinLoose
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.constantFrom 0 (iasqrt low `div` 2) (isqrt high `div` 2))
@@ -135,7 +142,7 @@ genTypedBuiltinLoose
 
 -- | A sized builtins generator that produces 'Integer's in bounds narrowed by a factor of 2,
 -- so one can use '(+)' or '(-)' over such integers without the risk of getting an overflow.
-genTypedBuiltinSum :: Monad m => TypedBuiltinGenT m
+genTypedBuiltinSum :: MonadQuote m => TypedBuiltinGenT m
 genTypedBuiltinSum
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linear (low `div` 2) (high `div` 2))
@@ -143,7 +150,7 @@ genTypedBuiltinSum
 
 -- | A sized builtins generator that doesn't produce @0 :: Integer@,
 -- so one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-genTypedBuiltinDiv :: Monad m => TypedBuiltinGenT m
+genTypedBuiltinDiv :: MonadQuote m => TypedBuiltinGenT m
 genTypedBuiltinDiv
     = updateTypedBuiltinGenInt
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)

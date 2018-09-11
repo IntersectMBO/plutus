@@ -15,6 +15,7 @@ module Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Constant.Apply
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.PrettyCfg
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
@@ -59,48 +60,23 @@ instance PrettyCfg CkEvalResult where
     prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value
     prettyCfg _   CkEvalFailure         = "Failure"
 
-constAppErrorString :: ConstAppError -> String
-constAppErrorString (SizeMismatchConstAppError seenSize arg) = fold
-    [ "encoutered an unexpected size in "
-    , prettyCfgString arg
-    , "\nPreviously seen size: "
-    , prettyString seenSize
-    , " in"
-    ]
-constAppErrorString (IllTypedConstAppError expType constant) = fold
-    [ "encountered an ill-typed argument: "
-    , prettyCfgString constant
-    , "\nExpected type: "
-    , prettyString expType
-    , " in"
-    ]
-constAppErrorString (ExcessArgumentsConstAppError excessArgs) = fold
-    [ "attempted to evaluate a constant applied to too many arguments"
-    , "\nExcess ones are: "
-    , prettyCfgString excessArgs
-    , " in"
-    ]
-constAppErrorString (SizedNonConstantConstAppError arg)       = fold
-    [ "encountered a non-constant argument of a sized type: "
-    , prettyCfgString arg
-    , " in"
-    ]
-
-ckErrorString :: CkError -> String
-ckErrorString NonPrimitiveInstantiationCkError =
-    "attempted to reduce a not immediately reducible type instantiation: "
-ckErrorString NonWrapUnwrappedCkError          =
-    "attempted to unwrap a not wrapped term: "
-ckErrorString NonPrimitiveApplicationCkError   =
-    "attempted to reduce a not immediately reducible application: "
-ckErrorString OpenTermEvaluatedCkError         =
-    "attempted to evaluate an open term: "
-ckErrorString (ConstAppCkError constAppError)  =
-    constAppErrorString constAppError
+instance PrettyCfg CkError where
+    prettyCfg _   NonPrimitiveInstantiationCkError =
+        "Cannot reduce a not immediately reducible type instantiation."
+    prettyCfg _   NonWrapUnwrappedCkError          =
+        "Cannot unwrap a not wrapped term."
+    prettyCfg _   NonPrimitiveApplicationCkError   =
+        "Cannot reduce a not immediately reducible application."
+    prettyCfg _   OpenTermEvaluatedCkError         =
+        "Cannot evaluate an open term."
+    prettyCfg cfg (ConstAppCkError constAppError)  =
+        prettyCfg cfg constAppError
 
 instance Show CkException where
     show (CkException err cause) = fold
-        ["The CK machine " , ckErrorString err, prettyCfgString cause]
+        [ "The CK machine failed: " , prettyCfgString err, "\n"
+        , "Caused by: ", prettyCfgString cause
+        ]
 
 instance Exception CkException
 
@@ -191,7 +167,7 @@ applyEvaluate stack fun                    arg =
             Nothing                       ->
                 throw $ CkException NonPrimitiveApplicationCkError term
             Just (IterApp headName spine) ->
-                case applyBuiltinName headName spine of
+                case runQuote $ applyBuiltinName headName spine of
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> CkEvalFailure
                     ConstAppStuck         -> stack <| term

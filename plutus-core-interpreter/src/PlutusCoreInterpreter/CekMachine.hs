@@ -1,13 +1,13 @@
 module PlutusCoreInterpreter.CekMachine where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.CkMachine (CkError (..), CkEvalResult (..), CkException (..))
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.CkMachine (CkError(..), CkException(..), CkEvalResult(..))
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import           Data.IntMap (IntMap)
-import qualified Data.IntMap as IntMap
+import           Data.IntMap                   (IntMap)
+import qualified Data.IntMap                   as IntMap
 
 type Plain f = f TyName Name ()
 
@@ -79,7 +79,7 @@ applyEvaluate funEnv _      con fun                    arg =
             Nothing                       ->
                 throw $ CkException NonPrimitiveApplicationCkError term
             Just (IterApp headName spine) ->
-                case applyBuiltinName headName spine of
+                case runQuote $ applyBuiltinName headName spine of
                     ConstAppSuccess term' -> returnCek funEnv con term'
                     ConstAppFailure       -> CkEvalFailure
                     ConstAppStuck         -> returnCek funEnv con term

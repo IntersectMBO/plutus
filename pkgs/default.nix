@@ -42145,6 +42145,7 @@ bytestring
 containers
 hedgehog
 mmorph
+mtl
 prettyprinter
 tasty
 tasty-golden

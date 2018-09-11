@@ -6,8 +6,8 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
-    , makeBuiltinBool
     , makeSizedConstant
+    , makeBuiltinBool
     , makeBuiltin
     , unsafeMakeBuiltin
     ) where
@@ -52,16 +52,16 @@ makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
 makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
 
--- | Convert a 'Bool' to the corresponding PLC's @boolean@.
-makeBuiltinBool :: Bool -> Quote (Value TyName Name ())
-makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
-
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
 makeSizedConstant size TypedBuiltinSizedInt  int   = makeBuiltinInt  size int
 makeSizedConstant size TypedBuiltinSizedBS   bs    = makeBuiltinBS   size bs
 makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
+
+-- | Convert a 'Bool' to the corresponding PLC's @boolean@.
+makeBuiltinBool :: Bool -> Quote (Value TyName Name ())
+makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
@@ -74,7 +74,6 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
--- Does not preserve the global uniqueness condition.
-unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Value TyName Name ()
-unsafeMakeBuiltin tbv = fromMaybe err . runQuote $ makeBuiltin tbv where
+unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
     err = error $ "unsafeDupMakeConstant: out of bounds: " ++ prettyString tbv

@@ -25,7 +25,8 @@ main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
     typeFiles <- findByExtension [".plc"] "test/types"
-    defaultMain (allTests plcFiles rwFiles typeFiles)
+    typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
+    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -77,14 +78,15 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
+    , testsType typeErrorFiles
     , test_constantApplication
     , test_evaluateCk
     , Quotation.tests
@@ -114,6 +116,6 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , format cfg "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
+    , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     ]
     where cfg = defaultCfg
