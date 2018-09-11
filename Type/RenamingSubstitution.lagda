@@ -405,4 +405,24 @@ subst-subst-cons σ⋆ M (S x) =
         (subst-id (σ⋆ x))
 \end{code}
 
+## Renaming for proofs of type equality
 
+\begin{code}
+rename≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → A ≡β B
+    ----------------------------
+  → rename ρ A ≡β rename ρ B
+rename≡β ρ (refl A) = refl (rename ρ A)
+\end{code}
+
+## Substitution for proofs of type equality
+
+\begin{code}
+subst≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
+  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+  → A ≡β B
+    ----------------------------
+  → subst σ A ≡β subst σ B
+subst≡β σ (refl A) = refl (subst σ A)
+\end{code}

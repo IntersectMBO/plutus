@@ -97,3 +97,10 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → φ ⊢⋆ *
 
 \end{code}
+
+## Beta equality relation for types
+
+\begin{code}
+data _≡β_ {Γ J} : Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
+  refl : (A : Γ ⊢⋆ J) → A ≡β A
+\end{code}

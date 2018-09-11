@@ -74,6 +74,15 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
     → {M : Γ ⊢ S ⋆.[ μ S ]}    
     → unwrap (wrap S M) —→ M
+
+  -- this is a temporary hack as currently the type eq relation only has
+  -- reflexivity in it.
+  ξ-conv₁ : ∀{Γ J}{A : ∥ Γ ∥ ⊢⋆ J}{L : Γ ⊢ A}
+    → conv (refl A) L —→ L
+
+  ξ-conv₂ : ∀{Γ J}{A B : ∥ Γ ∥ ⊢⋆ J}{L L' : Γ ⊢ A}{p : A ≡β B}
+    → L —→ L'
+    → conv p L —→ conv p L'
 \end{code}
 
 
@@ -106,4 +115,5 @@ progress (wrap A M) = done V-wrap
 progress (unwrap M) with progress M
 progress (unwrap M) | step p = step (ξ-unwrap p)
 progress (unwrap .(wrap _ _)) | done V-wrap = step β-wrap
+progress (conv (refl A) t) = step ξ-conv₁
 \end{code}

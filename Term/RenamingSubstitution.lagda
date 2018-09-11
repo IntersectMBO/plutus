@@ -81,6 +81,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = S} M) =
                  (trans (⋆.subst-cong _ _ (⋆.rename-subst-cons _ _) S)
                         (⋆.rename-subst _ _ S)))
           (unwrap (rename ρ⋆ ρ M))
+rename ρ⋆ ρ (conv p t) = conv (⋆.rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 \end{code}
 
 \begin{code}
@@ -175,6 +176,7 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {S = S} M) =
                         (⋆.subst-cong _ _ (⋆.subst-subst-cons _ _) S))
                  (⋆.subst-comp _ _ S))
           (unwrap (subst σ⋆ σ M))
+subst σ⋆ σ (conv p t) = conv (⋆.subst≡β σ⋆ p) (subst σ⋆ σ t)
 \end{code}
 
 \begin{code}
