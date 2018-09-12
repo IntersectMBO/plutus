@@ -1,3 +1,5 @@
+-- | The CEK machine tests.
+
 {-# LANGUAGE OverloadedStrings #-}
 module CekMachine
     ( test_evaluateCek

@@ -1,4 +1,19 @@
-module PlutusCoreInterpreter.CekMachine where
+-- | The CEK machine.
+-- Rules are the same as for the CK machine from "Language.PlutusCore.Evaluation.CkMachine",
+-- except we do not use substitution and use environments instead.
+-- The CEK machine relies on variables having
+-- 1. equal 'Unique's whenever they have equal string names
+-- 2. non-equal 'Unique's whenever they have non-equal string names
+-- I.e. 'Unique's are used instead of string names, so a renamer pass is required.
+-- This is for efficiency reasons.
+-- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
+-- This is not a problem as the CEK machines handles name capture by design.
+
+module PlutusCoreInterpreter.CekMachine
+    ( EvaluationResult (..)
+    , evaluateCek
+    , runCek
+    ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
@@ -12,9 +27,10 @@ import qualified Data.IntMap                                     as IntMap
 
 type Plain f = f TyName Name ()
 
-newtype Environment = Environment
-    { unEnvironment :: IntMap (Plain Value, Environment)
-    }
+-- | Environments used by the CEK machine.
+-- Each row is a mapping from the 'Unique' representing a variable to the 'Value' the
+-- variable stands for and the environment the value was defined in.
+newtype Environment = Environment (IntMap (Plain Value, Environment))
 
 data Frame
     = FrameApplyFun Environment (Plain Value)    -- ^ @[V _]@
@@ -25,13 +41,17 @@ data Frame
 
 type Context = [Frame]
 
+-- | Extend an environment with a variable name, the value the variable stands for
+-- and the environment the value is defined in.
 extendEnvironment :: Name () -> Plain Value -> Environment -> Environment -> Environment
 extendEnvironment argName arg argEnv (Environment oldEnv) =
     Environment $ IntMap.insert (unUnique $ nameUnique argName) (arg, argEnv) oldEnv
 
+-- | Look up a name in an environment.
 lookupName :: Name () -> Environment -> Maybe (Plain Value, Environment)
 lookupName name (Environment env) = IntMap.lookup (unUnique $ nameUnique name) env
 
+-- | The computing part of the CEK machine.
 computeCek :: Environment -> Context -> Plain Term -> EvaluationResult
 computeCek env con (TyInst _ fun ty)      = computeCek env (FrameTyInstArg ty : con) fun
 computeCek env con (Apply _ fun arg)      = computeCek env (FrameApplyArg env arg : con) fun
@@ -45,6 +65,7 @@ computeCek env con var@(Var _ name)       = case lookupName name env of
     Nothing           -> throw $ MachineException OpenTermEvaluatedMachineError var
     Just (term, env') -> returnCek env' con term
 
+-- | The returning part of the CEK machine.
 returnCek :: Environment -> Context -> Plain Value -> EvaluationResult
 returnCek _   []                             res = EvaluationSuccess res
 returnCek env (FrameTyInstArg ty      : con) fun = instantiateEvaluate env con ty fun
@@ -67,6 +88,7 @@ instantiateEvaluate env con ty fun
     | otherwise                      = throw $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
+-- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
@@ -91,6 +113,6 @@ evaluateCek :: Term TyName Name () -> EvaluationResult
 evaluateCek = computeCek (Environment IntMap.empty) []
 
 -- | Run a program using the CK machine. May throw a 'MachineException'.
--- Calls 'evaluateMachine' under the hood, so the same caveats apply.
+-- Calls 'evaluateCek' under the hood, so the same caveats apply.
 runCek :: Program TyName Name () -> EvaluationResult
 runCek (Program _ _ term) = evaluateCek term
