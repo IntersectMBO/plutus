@@ -10,7 +10,7 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Result      (evaluationResultToMaybe)
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.Interesting
-import           PlutusCoreInterpreter.CekMachine
+import           Language.PlutusCore.Interpreter.CekMachine
 
 import           Control.Monad.Morph
 import           Data.Foldable

@@ -9,7 +9,7 @@
 -- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
 
-module PlutusCoreInterpreter.CekMachine
+module Language.PlutusCore.Interpreter.CekMachine
     ( EvaluationResult (..)
     , evaluateCek
     , runCek
@@ -112,7 +112,7 @@ applyEvaluate funEnv _      con fun                    arg =
 evaluateCek :: Term TyName Name () -> EvaluationResult
 evaluateCek = computeCek (Environment IntMap.empty) []
 
--- | Run a program using the CK machine. May throw a 'MachineException'.
+-- | Run a program using the CEK machine. May throw a 'MachineException'.
 -- Calls 'evaluateCek' under the hood, so the same caveats apply.
 runCek :: Program TyName Name () -> EvaluationResult
 runCek (Program _ _ term) = evaluateCek term
