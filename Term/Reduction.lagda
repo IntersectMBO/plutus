@@ -97,26 +97,29 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
+  unhandled-conversion : Progress M 
 \end{code}
 
 \begin{code}
-{-
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progress (` ())
 progress (ƛ M)    = done V-ƛ
 progress (L · M)  with progress L
+...                   | unhandled-conversion = unhandled-conversion
 ...                   | step p  = step (ξ-·₁ p)
 ...                   | done vL with progress M
+...                              | unhandled-conversion = unhandled-conversion
 ...                              | step p  = step (ξ-·₂ vL p)
 progress (.(ƛ _) · M) | done V-ƛ | done vM = step (β-ƛ vM)
 progress (Λ M)    = done V-Λ_
 progress (M ·⋆ A) with progress M
-progress (M ·⋆ A)      | step p  = step (ξ-·⋆ p)
+...                    | unhandled-conversion = unhandled-conversion
+...                    | step p  = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (wrap A M) = done V-wrap
 progress (unwrap M) with progress M
-progress (unwrap M) | step p = step (ξ-unwrap p)
+...                           | unhandled-conversion = unhandled-conversion
+...                           | step p = step (ξ-unwrap p)
 progress (unwrap .(wrap _ _)) | done V-wrap = step β-wrap
-progress (conv (refl≡β A) t) = step ξ-conv₁
--}
+progress (conv p t) = unhandled-conversion
 \end{code}
