@@ -1,0 +1,40 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    \centering
+    \[\hspace{-0.75cm}\begin{array}{lrclr}
+        \textrm{Tm}    & m   & ::= & \variable{x}                 & \textrm{variable}\\
+                       &     &     & \name{n}                     & \textrm{declared name}\\
+                       &     &     & \slann{m}{t}                 & \textrm{type annotation}\\
+                       &     &     & \sllet{tmd^*}{m}             & \textrm{local declarations}\\
+                       &     &     & \sllam{x}{m}                 & \textrm{$\lambda$ abstraction}\\
+                       &     &     & \slapp{m}{m}                 & \textrm{function application}\\
+                       &     &     & \slcon{n}{m^*}               & \textrm{constructed data}\\
+                       &     &     & \slcase{m^*}{c^*}            & \textrm{case}\\
+                       &     &     & \slsuccess{m}                & \textrm{success}\\
+                       &     &     & \slfailure                   & \textrm{failure}\\
+                       &     &     & \slbind{x}{m}{m}             & \textrm{do notation}\\
+                       &     &     & v                            & \textrm{primitive value}\\
+                       &     &     & \slbuiltin{n}{m^*}           & \textrm{built-in function}\\
+        \textrm{Cl}    & c   & ::= & \slcl{p^*}{m}                & \textrm{case clause}\\
+        \textrm{Pat}   & p   & ::= & \variable{x}                 & \textrm{variable pattern}\\
+                       &     &     & \slcon{n}{p^*}               & \textrm{constructor pattern}\\
+                       &     &     & v                            & \textrm{primitive value pattern}\\
+        \textrm{Prg}   & g   & ::= & d^*                          & \textrm{programs}\\
+        \textrm{Dec}   & d   & ::= & tyd                          & \textrm{type declaration}\\
+                       &     &     & tmd                          & \textrm{term declaration}\\
+        \textrm{TyDec} & tyd & ::= & \sltydec{
+                                        \sltycon{n}
+                                         {\variable{\alpha}^*}
+                                     }{tyc^*}                     & \textrm{type declaration}\\
+        \textrm{TyCl}  & tyc & ::= & \slcon{n}{t^*}               & \textrm{type alternative clause}\\
+        \textrm{TmDec} & tmd & ::= & \sltmdec{n}{t}{tmc^*}       & \textrm{term declaration}\\
+        \textrm{TmCl}  & tmc & ::= & \sltmcl{n}{p^*}{m}           & \textrm{term clause}\\
+    \end{array}\]
+    \caption{Grammar of Plutus}
+    \label{fig:Plutus_grammar}
+\end{figure}
+
+\end{document}
