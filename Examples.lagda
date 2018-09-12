@@ -71,7 +71,7 @@ module Scott where
   fix = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
 
   TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ Succ · (` (S (S Z)) · (` Z)))))
+  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ Succ · (` (S (S Z)) · (` (S Z))))))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = fix ·⋆ (N ⇒ N) · TwoPlus · Two

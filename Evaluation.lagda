@@ -53,6 +53,7 @@ data Steps : ∀ {J}{A : ∅ ⊢⋆ J} → ∅ ⊢ A → Set where
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.
 \begin{code}
+{-
 eval : ∀ {A : ∅ ⊢⋆ *}
   → Gas
   → (M : ∅ ⊢ A)
@@ -63,4 +64,5 @@ eval (gas (suc n)) M with progress M
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (continue p ps) q
 eval (gas (suc n)) M | done vM = steps done (done _ vM)
+-}
 \end{code}

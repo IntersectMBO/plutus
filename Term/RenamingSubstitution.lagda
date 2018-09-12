@@ -11,6 +11,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import Type
 import Type.RenamingSubstitution as ⋆
+open import Type.Equality
 open import Term
 \end{code}
 
@@ -73,7 +74,10 @@ rename {Γ}{Δ} ρ⋆ ρ (wrap M N) =
                                  (λ x → sym (⋆.rename-subst-cons _ _ x)) M)
                               (⋆.subst-rename
                                 (⋆.ext ρ⋆)
-                                (⋆.subst-cons `_ (μ (⋆.rename (⋆.ext ρ⋆) M))) M)))
+                                (⋆.subst-cons `_
+                                              (μ (⋆.rename (⋆.ext ρ⋆)
+                                              M)))
+                                M)))
                 (rename ρ⋆ ρ N))
 rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = S} M) =
   substEq (λ A → Δ ⊢ A)
@@ -81,7 +85,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = S} M) =
                  (trans (⋆.subst-cong _ _ (⋆.rename-subst-cons _ _) S)
                         (⋆.rename-subst _ _ S)))
           (unwrap (rename ρ⋆ ρ M))
-rename ρ⋆ ρ (conv p t) = conv (⋆.rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
+rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 \end{code}
 
 \begin{code}
@@ -130,7 +134,8 @@ exts⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
 exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T_ {A = A} x) =
   substEq (λ x → Δ ,⋆ K ⊢ x)
-          (trans (sym (⋆.rename-subst σ⋆ S_ A)) (⋆.subst-rename S_ (⋆.exts σ⋆) A))
+          (trans (sym (⋆.rename-subst σ⋆ S_ A))
+                 (⋆.subst-rename S_ (⋆.exts σ⋆) A))
           (weaken⋆ (σ x))
 
 \end{code}
@@ -147,7 +152,9 @@ subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
 subst σ⋆ σ (Λ N)                     = Λ subst (⋆.exts σ⋆) (exts⋆ σ⋆ σ) N
 subst {Γ}{Δ} σ⋆ σ (_·⋆_ {B = B} L M) =
   substEq (λ A → Δ ⊢ A)
-          (trans (sym (⋆.subst-comp (⋆.exts σ⋆) (⋆.subst-cons `_ (⋆.subst σ⋆ M)) B))
+          (trans (sym (⋆.subst-comp (⋆.exts σ⋆)
+                                    (⋆.subst-cons `_ (⋆.subst σ⋆ M))
+                                    B))
                  (trans (⋆.subst-cong (⋆.subst (⋆.subst-cons `_ (⋆.subst σ⋆ M))
                                      ∘
                                      ⋆.exts σ⋆)
@@ -176,7 +183,7 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {S = S} M) =
                         (⋆.subst-cong _ _ (⋆.subst-subst-cons _ _) S))
                  (⋆.subst-comp _ _ S))
           (unwrap (subst σ⋆ σ M))
-subst σ⋆ σ (conv p t) = conv (⋆.subst≡β σ⋆ p) (subst σ⋆ σ t)
+subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 \end{code}
 
 \begin{code}

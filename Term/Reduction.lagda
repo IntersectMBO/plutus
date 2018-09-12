@@ -9,6 +9,7 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Term
 open import Term.RenamingSubstitution
+open import Type.Equality
 \end{code}
 
 ## Values
@@ -78,7 +79,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
   -- this is a temporary hack as currently the type eq relation only has
   -- reflexivity in it.
   ξ-conv₁ : ∀{Γ J}{A : ∥ Γ ∥ ⊢⋆ J}{L : Γ ⊢ A}
-    → conv (refl A) L —→ L
+    → conv (refl≡β A) L —→ L
 
   ξ-conv₂ : ∀{Γ J}{A B : ∥ Γ ∥ ⊢⋆ J}{L L' : Γ ⊢ A}{p : A ≡β B}
     → L —→ L'
@@ -99,6 +100,7 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
 \end{code}
 
 \begin{code}
+{-
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progress (` ())
 progress (ƛ M)    = done V-ƛ
@@ -115,5 +117,6 @@ progress (wrap A M) = done V-wrap
 progress (unwrap M) with progress M
 progress (unwrap M) | step p = step (ξ-unwrap p)
 progress (unwrap .(wrap _ _)) | done V-wrap = step β-wrap
-progress (conv (refl A) t) = step ξ-conv₁
+progress (conv (refl≡β A) t) = step ξ-conv₁
+-}
 \end{code}

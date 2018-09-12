@@ -7,6 +7,7 @@ module Term where
 \begin{code}
 open import Type
 open import Type.RenamingSubstitution
+open import Type.Equality
 \end{code}
 
 ## Fixity declarations

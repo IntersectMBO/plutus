@@ -379,10 +379,10 @@ subst-comp g f (μ A)   =
 
 Commuting substcons and rename
 \begin{code}
-rename-subst-cons : ∀{Γ Δ}{J} 
+rename-subst-cons : ∀{Γ Δ}{J K} 
   (ρ⋆ : ∀{K} → Γ ∋⋆ K → Δ ∋⋆ K )
-  → (A : Γ ⊢⋆ *)
-  → (x : Γ ,⋆ * ∋⋆ J)
+  → (A : Γ ⊢⋆ K)
+  → (x : Γ ,⋆ K ∋⋆ J)
     -------------------------------------------------------------------------
   → subst-cons `_ (rename ρ⋆ A) (ext ρ⋆ x) ≡ rename ρ⋆ (subst-cons `_ A x)
 rename-subst-cons ρ⋆ A Z     = refl
@@ -391,10 +391,10 @@ rename-subst-cons ρ⋆ A (S x) = refl
 
 Commuting substcons and subst
 \begin{code}
-subst-subst-cons : ∀{Γ Δ}{J} 
+subst-subst-cons : ∀{Γ Δ}{J K} 
   (σ⋆ : ∀{K} → Γ ∋⋆ K → Δ ⊢⋆ K )
-  → (M : Γ ⊢⋆ *)
-  → (x : Γ ,⋆ * ∋⋆ J)
+  → (M : Γ ⊢⋆ K)
+  → (x : Γ ,⋆ K ∋⋆ J)
     -------------------------------------------------
   → subst (subst-cons `_ (subst σ⋆ M)) (exts σ⋆ x)
     ≡
@@ -403,26 +403,4 @@ subst-subst-cons σ⋆ M Z     = refl
 subst-subst-cons σ⋆ M (S x) =
   trans (sym (subst-rename S_ (subst-cons `_ (subst σ⋆ M)) (σ⋆ x)))
         (subst-id (σ⋆ x))
-\end{code}
-
-## Renaming for proofs of type equality
-
-\begin{code}
-rename≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-  → A ≡β B
-    ----------------------------
-  → rename ρ A ≡β rename ρ B
-rename≡β ρ (refl A) = refl (rename ρ A)
-\end{code}
-
-## Substitution for proofs of type equality
-
-\begin{code}
-subst≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-  → A ≡β B
-    ----------------------------
-  → subst σ A ≡β subst σ B
-subst≡β σ (refl A) = refl (subst σ A)
 \end{code}
