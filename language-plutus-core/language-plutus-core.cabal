@@ -10,7 +10,7 @@ tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Language library for Plutus Core
 description:
     Pretty-printer, parser, and typechecker for Plutus Core.
-category: Language
+category: Language, Plutus
 build-type: Simple
 extra-source-files:
     cabal.project
