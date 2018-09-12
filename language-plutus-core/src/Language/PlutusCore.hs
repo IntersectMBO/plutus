@@ -99,17 +99,17 @@ module Language.PlutusCore
     , plcProgram
     -- * Evaluation
     , parseRunCk
-    , CkEvalResult (..)
+    , EvaluationResult (..)
     ) where
 
 import           Control.Monad.Except
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy              as BSL
-import qualified Data.Text                         as T
+import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR
-import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Error
+import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
@@ -156,7 +156,7 @@ parseTypecheck gas bs = do
     typecheckProgram gas annotated
 
 -- | Parse a program and run it using the CK machine.
-parseRunCk :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m CkEvalResult
+parseRunCk :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m EvaluationResult
 parseRunCk = fmap (runCk . void) . parseScoped
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
