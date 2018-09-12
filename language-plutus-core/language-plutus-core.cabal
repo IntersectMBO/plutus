@@ -36,7 +36,9 @@ library
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Quote
-        Language.PlutusCore.CkMachine
+        Language.PlutusCore.Evaluation.CkMachine
+        Language.PlutusCore.Evaluation.MachineException
+        Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Constant
         Language.PlutusCore.View
         Language.PlutusCore.StdLib.Data.Bool
