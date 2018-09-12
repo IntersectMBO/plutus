@@ -50,6 +50,9 @@ getBuiltinZero = do
 -- |  'succ' as a PLC term.
 --
 -- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
+--
+-- @nat@ appears several times in types in the term,
+-- so this is not really a definition with unique names.
 getBuiltinSucc :: Quote (Term TyName Name ())
 getBuiltinSucc = do
     RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
@@ -71,6 +74,9 @@ getBuiltinSucc = do
 -- > /\(r :: *) -> \(f : r -> r) (z : r) ->
 -- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
+--
+-- @nat@ appears several times in types in the term,
+-- so this is not really a definition with unique names.
 getBuiltinFoldrNat :: Quote (Term TyName Name ())
 getBuiltinFoldrNat = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
@@ -99,6 +105,9 @@ getBuiltinFoldrNat = do
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
 -- >         unwrap n {r} z (rec (f z))
+--
+-- @nat@ appears several times in types in the term,
+-- so this is not really a definition with unique names.
 getBuiltinFoldNat :: Quote (Term TyName Name ())
 getBuiltinFoldNat = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
