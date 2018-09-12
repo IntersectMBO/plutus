@@ -1,0 +1,828 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}
+    Progress for Types: if \(\hypJ{}{\istypeJ{A}{K}}\) then either $A$ is a type value, or there is some $A'$ such that $\typeStep{A}{A'}$\\
+    
+    Preservation for Types: if \(\hypJ{}{\istypeJ{A}{K}}\) and \(\typeStep{A}{A'}\) then \(\hypJ{}{\istypeJ{A'}{K}}\)\\
+    
+    Progress for Terms: if \(\hypJ{}{\istermJ{M}{A}}\) then either $M$ is a value, or there is some $M'$ such that $\step{M}{M'}$\\
+    
+    Preservation for Terms: if \(\hypJ{}{\istermJ{M}{A}}\) and \(\step{M}{M'}\) then \(\hypJ{}{\istermJ{M'}{A}}\)\\
+
+    \caption{Plutus Core Statements of Progress and Preservation}
+    \label{fig:Plutus_core_statements_pnp}
+\end{figure*}
+
+\begin{figure*}
+    Proof of Progress for Types, by case on the derivation $\mathcal{D}$ of \(\hypJ{}{\istypeJ{A}{K}}\).\\
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{\(\mathcal{E}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyall}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{E}$, either $A$ is a type value, or \(\typeStep{A}{A'}\). In the latter case, then \(\typeStep{\allT{\alpha}{K}{A}}{\allT{\alpha}{K}{A'}}\). In the former, then \(\allT{\alpha}{K}{A}\) is a type value. $\qed{}$\\
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{\(\mathcal{E}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyfix}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{E}$, either $A$ is a type value, or \(\typeStep{A}{A'}\). In the latter case, then \(\typeStep{\fixT{\alpha}{A}}{\fixT{\alpha}{A'}}\). In the former, then \(\fixT{\alpha}{A}\) is a type value. $\qed{}$\\
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyfun}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\funT{A}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{E}$, either $A$ is a type value, or \(\typeStep{A}{A'}\). In the later case, then \(\typeStep{\funT{A}{B}}{\funT{A'}{B}}\). In the former, then by induction on $\mathcal{F}$, either $B$ is a type value, or \(\typeStep{B}{B'}\). In the latter case, then \(\typeStep{\funT{A}{B}}{\funT{A}{B'}}\). In the former, $\funT{A}{B}$ is a value. $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\beta}{J}}{\istypeJ{A}{K}}\)}
+        \alwaysSingleLine
+        \RightLabel{tylam}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\lamT{\beta}{J}{A}}{\funK{J}{K}}}\)}
+    \end{prooftree}
+    
+    then \(\lamT{\beta}{J}{A}\) is a type value. $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{$bt$ has kind K in Fig. ...}
+        \RightLabel{tybuiltin}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\conT{bt}}{K}}\)}
+    \end{prooftree}
+    
+    then \(\conT{bt}\) is a type value. $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\funK{J}{K}}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{J}}\)}
+        \alwaysSingleLine
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\appT{A}{B}}{K}}\)}
+    \end{prooftree}
+    
+    then either $A$ is a value $\lamT{\beta}{J}{A'}$, or \(\typeStep{A}{A'}\). In the latter case, then \(\typeStep{\appT{A}{B}}{\appT{A'}{B}}\). In the former case, either $B$ is a value, or \(\typeStep{B}{B'}\). In the latter case, \(\typeStep{\appT{A}{B}}{\appT{A}{B'}}\). In the former, \(\typeStep{\appT{A}{B} = \appT{\lamT{\beta}{J}{A'}}{B}}{\subst{B}{\beta}{A'}}\). $\qed$\\
+    
+    
+    \caption{Proof of Progress for Types}
+    \label{fig:Plutus_core_progress_for_types}
+\end{figure*}
+
+
+
+\begin{figure*}
+    
+    Proof of Preservation for Types, by case on the derivation $\mathcal{D}$ of \(\hypJ{}{\istypeJ{A}{K}}\) and $\mathcal{E}$ of \(\typeStep{A}{A'}\).\\
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\typeStep{\appT{\lamT{\beta}{J}{A}}{B}}{\subst{B}{\beta}{A}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\beta}{J}}{\istypeJ{A}{K}}\)}
+        \alwaysSingleLine
+        \RightLabel{tylam}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\lamT{\beta}{J}{A}}{\funK{J}{K}}}\)}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{J}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyapp}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\appT{\lamT{\beta}{J}{A}}{B}}{\funK{J}{K}}}\)}
+    \end{prooftree}
+    
+    then we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{J}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\beta}{J}}{\istypeJ{A}{K}}\)}
+        \alwaysSingleLine
+        \RightLabel{subst}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\subst{B}{\beta}{A}}{K}}\)}
+    \end{prooftree}
+    
+    else case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{A}{A'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\typeStep{\funT{A}{B}}{\funT{A'}{B}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyfun}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\funT{A}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction we have \(\mathcal{IH(F,G)}\) proves \(\hypJ{}{\istypeJ{A'}{\typeK{}}}\) and we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{IH(F,G)}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A'}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyfun}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\funT{A'}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    else case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{B}{B'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\typeStep{\funT{A}{B}}{\funT{A}{B'}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyfun}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\funT{A}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction we have \(\mathcal{IH(F,H)}\) proves \(\hypJ{}{\istypeJ{B'}{\typeK{}}}\) and we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{IH(F,H)}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B'}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyfun}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\funT{A}{B'}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    
+    \caption{Proof of Preservation for Types}
+    \label{fig:Plutus_core_preservation_for_types}
+\end{figure*}
+
+
+
+\begin{figure*}
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{B}{B'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\typeStep{\allT{\alpha}{K}{B}}{\allT{\alpha}{K}{B'}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{K}}{\istypeJ{B}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyall}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\allT{\alpha}{K}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction we have $\mathcal{IH(F,G)}$ proves \(\hypJ{\typeJ{\alpha}{K}}{\istypeJ{B'}{\typeK{}}}\) and we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{IH(F,G)}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{K}}{\istypeJ{B'}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyall}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\allT{\alpha}{K}{B'}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{B}{B'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\typeStep{\fixT{\alpha}{B}}{\fixT{\alpha}{B'}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{\typeK{}}}{\istypeJ{B}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyall}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\fixT{\alpha}{B}}{\typeK{}}}\)}
+    \end{prooftree}
+    
+    then by induction we have $\mathcal{IH(F,G)}$ proves \(\hypJ{\typeJ{\alpha}{K}}{\istypeJ{B'}{\typeK{}}}\) and we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{IH(F,G)}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{\typeK{}}}{\istypeJ{B'}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyall}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{\fixT{\alpha}{B'}}}{\typeK{}}\)}
+    \end{prooftree}
+    
+    
+    
+    
+    Case \(\mathcal{E} = \)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{A}{A'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\typeStep{\appT{A}{B}}{\appT{A'}{B}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\funK{J}{K}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{J}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyapp}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\appT{A}{B}}}{K}\)}
+    \end{prooftree}
+    
+    then by induction we have $\mathcal{IH(F,G)}$ proves \(\hypJ{}{\istypeJ{A'}{\funK{J}{K}}}\) and we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{IH(F,G)}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A'}{\funK{J}{K}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{J}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyapp}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\appT{A'}{B}}}{K}\)}
+    \end{prooftree}
+    
+    
+    
+    \caption{Proof of Preservation for Types (cont.)}
+    \label{fig:Plutus_core_preservation_for_types_cont}
+\end{figure*}
+
+
+
+\begin{figure*}
+
+Case \(\mathcal{E} = \)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{B}{B'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\typeStep{\appT{A}{B'}}{\appT{A}{B'}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\funK{J}{K}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B}{J}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyapp}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\appT{A}{B}}}{K}\)}
+    \end{prooftree}
+    
+    then by induction we have $\mathcal{IH(F,H)}$ proves \(\hypJ{}{\istypeJ{B'}{J}}\) and we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\funK{J}{K}}}\)}
+        \AxiomC{\(\mathcal{IH(F,H)}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{B'}{J}}\)}
+        \alwaysSingleLine
+        \RightLabel{tyapp}
+        \BinaryInfC{\(\hypJ{}{\istypeJ{\appT{A}{B'}}}{K}\)}
+    \end{prooftree}
+    
+    
+    
+    \caption{Proof of Preservation for Types (cont. 2)}
+    \label{fig:Plutus_core_preservation_for_types_cont_2}
+\end{figure*}
+
+
+
+
+
+\begin{figure*}
+    Proof of Progress for Terms, by case on the derivation $\mathcal{D}$ of \(\hypJ{}{\istermJ{M}{A}}\).\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{M}{A}}\)}
+        \alwaysSingleLine
+        \RightLabel{fix}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\fix{x}{A}{M}}{A}}\)}
+    \end{prooftree}
+    
+    then \(\step{\fix{x}{A}{M}}{\subst{\fix{x}{A}{M}}{x}{M}}\). $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{K}}{\istermJ{M}{B}}\)}
+        \alwaysSingleLine
+        \RightLabel{abs}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{B}}}\)}
+    \end{prooftree}
+    
+    then $\abs{\alpha}{K}{M}$ is a value. $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{L}{\allT{\alpha}{K}{B}}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{K}}\)}
+        \alwaysSingleLine
+        \RightLabel{inst}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{E}$, either $L$ is a value $\abs{\alpha}{K}{M}$, or \(\step{L}{L'}\). In the former case then \(\step{\inst{L}{A} = \inst{\abs{\alpha}{K}{M}}{A}}{\subst{A}{\alpha}{M}}\). In the latter case, then \(\step{\inst{L}{A}}{\inst{L'}{A}}\). $\qed$\\
+    
+    
+    
+    \caption{Proof of Progress for Terms}
+    \label{fig:Plutus_core_progress_for_terms}
+\end{figure*}
+
+
+
+
+
+\begin{figure*}
+
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{M}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\)}
+        \alwaysSingleLine
+        \RightLabel{wrap}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\wrap{\alpha}{A}{M}}{\fixT{\alpha}{A}}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{F}$, either $M$, or \(\step{M}{M'}\). In the former case, then $\wrap{\alpha}{A}{M}$ is a value. In the latter case, then \(\step{\wrap{\alpha}{A}{M}}{\wrap{\alpha}{A}{M'}}\). $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{M}{\fixT{\alpha}{A}}}\)}
+        \alwaysSingleLine
+        \RightLabel{unwrap}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\unwrap{M}}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{E}$, either $M$ is a value $\wrap{\alpha}{A}{V}$, or \(\step{M}{M'}\). In the former case, \(\step{\unwrap{M} = \unwrap{\wrap{\alpha}{A}{V}}}{V}\). In the latter case, \(\step{\unwrap{M}}{\unwrap{M'}}\). $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{M}{B}}\)}
+        \alwaysSingleLine
+        \RightLabel{lam}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\lam{x}{A}{M}}{\funT{A}{B}}}\)}
+    \end{prooftree}
+    
+    then $\lam{x}{A}{M}$ is a value. $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{L}{\funT{A}{B}}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{M}{A}}\)}
+        \alwaysSingleLine
+        \RightLabel{app}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\app{L}{M}}{B}}\)}
+    \end{prooftree}
+    
+    then by induction on $\mathcal{E}$, either $L$ is a value $\lam{x}{A}{N}$, or \(\step{L}{L'}\). In the latter case, then \(\step{\app{L}{M}}{\app{L'}{M}}\). In the former case, then by induction on $\mathcal{F}$, either $M$ is a value or \(\step{M}{M'}\). In the latter case, then \(\step{\app{L}{M}}{\app{L}{M'}}\). In the former case, then \(\step{\app{L}{M} = \app{\lam{x}{A}{N}}{M}}{\subst{M}{x}{N}}\).$\qed$\\
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{$bi$ has type $A$ in Figure ...}
+        \RightLabel{builtin}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\con{bi}}{A}}\)}
+    \end{prooftree}
+    
+    then $\con{bi}$ is a value. $\qed$\\
+    
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{E}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{error}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\error{A}}{A}}\)}
+    \end{prooftree}
+    
+    then $\error{A}$ is a value. $\qed$\\
+    
+    
+    
+    \caption{Proof of Progress for Terms (cont.)}
+    \label{fig:Plutus_core_progress_for_terms_cont}
+\end{figure*}
+
+
+
+
+
+\begin{figure*}
+    Proof of Preservation for Terms by case on the derivation $\mathcal{D}$ of \(\hypJ{}{\istermJ{M}{A}}\) and $\mathcal{E}$ of \(\step{M}{M'}\).
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{M}}{S}}{\subst{S}{\alpha}{M}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{K}}{\istermJ{N}{B}}\)}
+        \alwaysSingleLine
+        \RightLabel{abs}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\abs{\alpha}{K}{N}}{\allT{\alpha}{K}{B}}}\)}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{S}{K}}\)}
+        \alwaysSingleLine
+        \RightLabel{inst}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\inst{\abs{\alpha}{K}{N}}{S}}{\subst{S}{\alpha}{B}}}\)}
+    \end{prooftree}
+    
+    then we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{S}{K}}\)}
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{K}}{\istermJ{N}{B}}\)}
+        \alwaysSingleLine
+        \RightLabel{subst}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\subst{S}{\alpha}{N}}{\subst{S}{\alpha}{B}}}\)}
+    \end{prooftree}
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\unwrap{\wrap{\alpha}{A}{V}}}{V}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{\typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\mathcal{H}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{V}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\)}
+        \alwaysSingleLine
+        \RightLabel{wrap}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\wrap{\alpha}{A}{V}}{\fixT{\alpha}{A}}}\)}
+        \RightLabel{unwrap}
+        \UnaryInfC{\(\istermJ{\unwrap{\wrap{\alpha}{A}{V}}}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}\)}
+    \end{prooftree}
+    
+    then we have $\mathcal{H}$ as a proof of \(\hypJ{}{\istermJ{V}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\).\\
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\app{\lam{x}{A}{N}}{V}}{\subst{V}{x}{N}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{N}{B}}\)}
+        \alwaysSingleLine
+        \RightLabel{lam}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\lam{x}{A}{N}}{\funT{A}{B}}}\)}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{V}{A}}\)}
+        \alwaysSingleLine
+        \RightLabel{app}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\app{\lam{x}{A}{N}}{V}}{B}}\)}
+    \end{prooftree}
+    
+    then we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{V}{A}}\)}
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{N}{B}}\)}
+        \alwaysSingleLine
+        \RightLabel{subst}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\subst{V}{x}{N}}{B}}\)}
+    \end{prooftree}\
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\fix{x}{A}{M}}{\subst{\fix{x}{A}{M}}{x}{M}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{M}{A}}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\hypJ{}{\istermJ{\fix{x}{A}{M}}{A}}\)}
+    \end{prooftree}
+    
+    then we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{M}{A}}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\hypJ{}{\istermJ{\fix{x}{A}{M}}{A}}\)}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\hypJ{\termJ{x}{A}}{\istermJ{M}{A}}\)}
+        \alwaysSingleLine
+        \RightLabel{subst}
+        \BinaryInfC{\(\hypJ{}{\istermJ{\subst{\fix{x}{A}{M}}{x}{M}}{A}}\)}
+    \end{prooftree}
+    
+    
+    
+    
+    \caption{Proof of Preservation for Terms}
+    \label{fig:Plutus_core_preservation_for_terms}
+\end{figure*}
+
+
+
+
+\begin{figure*}
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$M$ is a fully saturated constant}
+        \UnaryInfC{$M$ computes to $V$ according to Fig \ref{fig:Plutus_core_builtins}}
+        \alwaysSingleLine
+        \UnaryInfC{\(\step{M}{V}\)}
+    \end{prooftree}
+    
+    then case $V$ has the same type according to Figure ...\\
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\typeStep{B}{B'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\step{\ctxsubst{f}{B}}{\ctxsubst{f}{B'}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\hypJ{}{\istermJ{\ctxsubst{f}{B}}{A}}\)}
+    \end{prooftree}
+    
+    then by type preservation we have that $\mathcal{PRES(G,F)}$ is a proof that \(\hypJ{}{\istypeJ{B'}{K}}\), and by context substitution we have that \(\hypJ{}{\istermJ{\ctxsubst{f}{B'}}{A}}\).\\
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\step{M}{M'}\)}
+        \alwaysSingleLine
+        \AxiomC{\(M' = \error{B}\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
+    \end{prooftree}
+    
+    then we can build
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istypeJ{A}{\typeK{}}}\)}
+        \alwaysSingleLine
+        \RightLabel{error}
+        \UnaryInfC{\(\hypJ{}{\istermJ{\error{A}}{A}}\)}
+    \end{prooftree}
+    
+    where $\mathcal{G}$ is the presupposed proof of \(\hypJ{}{\istypeJ{A}{\typeK{}}}\) required by the well-formedness of the judgment \(\hypJ{}{\istermJ{M}{A}}\).\\
+    
+    
+    
+    
+    Case \(\mathcal{E} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{F}\)}
+        \UnaryInfC{\(\step{M}{M'}\)}
+        \AxiomC{\(M' \not= \error{B}\)}
+        \alwaysSingleLine
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+    \end{prooftree}
+    
+    then case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\mathcal{G}\)}
+        \UnaryInfC{\(\hypJ{}{\istermJ{M}{B}}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\hypJ{}{\istermJ{\ctxsubst{f}{M}}{A}}\)}
+    \end{prooftree}
+    
+    then by induction we have that $\mathcal{IH(G,F)}$ is a proof of \(\hypJ{}{\istermJ{M'}{B}}\), and by context substitution have that \(\hypJ{}{\istermJ{\ctxsubst{f}{M'}}{A}}\).\\
+    
+    
+    \caption{Proof of Preservation for Terms (cont.)}
+    \label{fig:Plutus_core_preservation_for_terms_cont}
+\end{figure*}
+
+
+\end{document}

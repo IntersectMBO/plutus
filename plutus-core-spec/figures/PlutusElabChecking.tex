@@ -1,0 +1,70 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    
+    \judgmentdef{\(\chkfull{\Sigma}{\Delta}{\Gamma}{A}{M}{M'}\)}{
+        Type $A$ contains term $M$ which elaborates to $M'$ in signature $\Sigma$,
+        declarations $\Delta$, and context $\Gamma$
+    }
+    
+    \centering
+    
+    \begin{prooftree}
+        \AxiomC{\(\chktypartial{\Gamma}{B}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\chkpartial{\Gamma}{B}{M}{M'}\)}
+        \UnaryInfC{\(\chkpartial{\Gamma,\variable{x} : B}{A}{N}{N'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\chkpartial{\Gamma}{A}{\sllet{\slletdec{x}{B}{M}}{N}}{\lett{M'}{x}{N'}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\chkpartial{\Gamma, \variable{x} : A}{B}{M}{M'}\)}
+        \UnaryInfC{\(\chkpartial{\Gamma}{\slarr{A}{B}}{\sllam{x}{M}}{\lam{x}{M'}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\signi{\Sigma}{n}{\consig{\vec{\alpha}}{\listarg{A_0}{A_n}}{B}}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\substmulti{\sigma}{B} = B'\)}
+        \UnaryInfC{\(\chkpartial{\Sigma}{\substmulti{\sigma}{A_i}}{M_i}{M'_i}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\chkpartial{\Sigma}{B'}{\slcon{n}{M_0\ \ldots\ M_n}}{\con{n}{\multiplearg{M'_0}{M'_n}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\chk{A}{M}{M'}\)}
+        \UnaryInfC{\(\chk{\slcomp{A}}{\slsuccess{M}}{\success{M'}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\chk{\slcomp{A}}{\slfailure}{\failure}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\synpartial{\Gamma}{M}{M'}{\slcomp{A}}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\chkpartial{\Gamma, \variable{x} : A}{\slcomp{B}}{N}{N'}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\chkpartial{\Gamma}{\slcomp{B}}{\slbind{x}{M}{N}}{\bind{M'}{x}{N'}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\chkpartial{\Gamma, \isty{\variable{\alpha}}}{A}{M}{M'}\)}
+        \UnaryInfC{\(\chkpartial{\Gamma}{\slforall{\alpha}{A}}{M}{M'}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\syn{M}{M'}{A}\)}
+        \AxiomC{\(\subtype{A}{B}\)}
+        \BinaryInfC{\(\chk{B}{M}{M'}\)}
+    \end{prooftree}
+    
+    \caption{Checking Judgment}
+    \label{fig:Plutus_elab_checking}
+\end{figure}
+
+\end{document}

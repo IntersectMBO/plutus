@@ -1,0 +1,302 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\newcommand{\sequent}[2]{#1 \Rightarrow #2}
+\newcommand{\sequentclause}[4]{#1 ; #2 \Rightarrow #3 : #4}
+
+
+\begin{figure*}[t]
+
+    \judgmentdef{\(\sequent{\Theta}{\termJ{M}{T}}\)}{In context $\Theta$, term $M$ has type $T$}
+    
+    \begin{prooftree}
+        \AxiomC{\(\ctxni{\Theta.\Gamma}{\termJ{x}{T}}\)}
+        \RightLabel{var}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{x}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\permits{\Theta}{\metaqualname{}}{T}\)}
+        \RightLabel{name}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\metaqualname{}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Theta}{\termJ{M}{T}}\)}
+        \RightLabel{isa}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\ann{M}{T}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+      \AxiomC{\(\sequent{\Theta, \typeJ{\alpha}{K}}{\termJ{M}{T}}\)}
+      \RightLabel{abs (forall-R)}
+      \UnaryInfC{\(\sequent{\Theta}{\termJ{\abs{\alpha}{M}}{\forallT{\alpha}{K}{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\hypJ{\Theta}{\istypeJ{S}{K}}\)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\forallT{\alpha}{K}{R}}, \termJ{x}{\subst{S}{\alpha}{R}}}{\termJ{M}{T}}\)}
+        \alwaysSingleLine
+        \RightLabel{inst (forall-L)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\forallT{\alpha}{K}{R}}}{\termJ{\subst{\inst{f}{S}}{x}{M}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta, \termJ{x}{S}}{\termJ{M}{T}}\)}
+        \RightLabel{lam (fun-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\lam{x}{M}}{\funT{S}{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}}{\termJ{M}{R}}\)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}, \termJ{y}{S}}{\termJ{N}{T}}\)}
+        \alwaysSingleLine
+        \RightLabel{app (fun-L)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}}{\termJ{\subst{\app{f}{M}}{y}{N}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\permitscon{\Theta}{\metaqualcon{}}{\repetition{\alpha}}{\repetition{K}}{\repetition{S}}{\metaqualtycon{}}\)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{M_i}{\normalform{\subst{\repetition{T}}{\repetition{\alpha}}{S_i}}}}\)}
+        \alwaysSingleLine
+        \RightLabel{con (con-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\con{\metaqualcon{}}{\repetition{M}}}{\conT{\metaqualtycon{}}{\repetition{T}}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$\repetition{C}$ has no repeated constructors and covers all $S'$ constructors}
+        \UnaryInfC{\(\sequentclause{\Theta,\termJ{x}{\conT{\metaqualtycon{}}{\repetition{S}}}}{\normalform{S}}{\repetition{C}}{T}\)}
+        \alwaysSingleLine
+        \RightLabel{case (con-L)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{x}{\conT{\metaqualtycon{}}{\repetition{S}}}}{\termJ{\case{x}{\repetition{C}}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta}{\termJ{M}{T}}\)}
+        \RightLabel{success (comp-R-1)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\success{M}}{\compT{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{failure (comp-R-2)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\failure{}}{\compT{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\compbuiltinSig{cbi}{T}\)}
+        \RightLabel{compbuiltin (comp-R-3)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\compbuiltin{cbi}}{\compT{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta, \termJ{x}{\compT{S}}, \termJ{y}{S}}{\termJ{N}{\compT{T}}}\)}
+        \RightLabel{bind (comp-L)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{x}{\compT{S}}}{\termJ{\bind{x}{y}{N}}{\compT{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{intval (integer-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{i}{\integerT{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{floatval (float-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{f}{\floatT{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{bytestringval (bytestring-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{b}{\bytestringT{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\builtinSig{bi}{\repetition{S}}{T}\)}
+        \UnaryInfC{\(|\repetition{S}| = |\repetition{M}|\)}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\repetition{M}}{\repetition{S}}}\)}
+        \alwaysSingleLine
+        \RightLabel{builtin}
+        \UnaryInfC{\(\sequent{\Theta}{\termJ{\builtin{bi}{\repetition{M}}}{T}}\)}
+    \end{prooftree}
+    
+    
+    \caption{Sequent Calculus}
+    \label{fig:Plutus_core_sequent_calculus}
+\end{figure*}
+
+
+\begin{figure*}[t]
+
+    \judgmentdef{\(\sequent{\Theta}{\checkJ{T}{M}}\)}{In context $\Theta$, type $T$ contains term $M$}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta}{\synthJ{M}{S}}\)}
+        \AxiomC{\(T = S\)}
+        \RightLabel{dir-change}
+        \BinaryInfC{\(\sequent{\Theta}{\checkJ{T}{M}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+      \AxiomC{\(\sequent{\Theta, \typeJ{\alpha}{K}}{\checkJ{T}{M}}\)}
+      \RightLabel{abs (forall-R)}
+      \UnaryInfC{\(\sequent{\Theta}{\checkJ{\forallT{\alpha}{K}{T}}{\abs{\alpha}{M}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\hypJ{\Theta}{\istypeJ{S}{K}}\)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\forallT{\alpha}{K}{R}}, \termJ{x}{\subst{S}{\alpha}{R}}}{\checkJ{T}{M}}\)}
+        \alwaysSingleLine
+        \RightLabel{inst (forall-L-check)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\forallT{\alpha}{K}{R}}}{\checkJ{T}{\subst{\inst{f}{S}}{x}{M}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta, \termJ{x}{S}}{\checkJ{T}{M}}\)}
+        \RightLabel{lam (fun-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\checkJ{\funT{S}{T}}{\lam{x}{M}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}}{\checkJ{R}{M}}\)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}, \termJ{y}{S}}{\checkJ{T}{N}}\)}
+        \alwaysSingleLine
+        \RightLabel{app (fun-L-check)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}}{\checkJ{T}{\subst{\app{f}{M}}{y}{N}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\permitscon{\Theta}{\metaqualcon{}}{\repetition{\alpha}}{\repetition{K}}{\repetition{S}}{\metaqualtycon{}}\)}
+        \UnaryInfC{\(\sequent{\Theta}{\checkJ{\normalform{\subst{\repetition{T}}{\repetition{\alpha}}{S_i}}}{M_i}}\)}
+        \alwaysSingleLine
+        \RightLabel{con (con-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\checkJ{\conT{\metaqualtycon{}}{\repetition{T}}}{\con{\metaqualcon{}}{\repetition{M}}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$\repetition{C}$ has no repeated constructors and covers all $S'$ constructors}
+        \UnaryInfC{\(\sequentclause{\Theta,\termJ{x}{\conT{\metaqualtycon{}}{\repetition{S}}}}{\normalform{S}}{T}{\repetition{C}}\)}
+        \alwaysSingleLine
+        \RightLabel{case (con-L)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{x}{\conT{\metaqualtycon{}}{\repetition{S}}}}{\checkJ{T}{\case{x}{\repetition{C}}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta}{\checkJ{T}{M}}\)}
+        \RightLabel{success (comp-R-1)}
+        \UnaryInfC{\(\sequent{\Theta}{\checkJ{\compT{T}}{\success{M}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{failure (comp-R-2)}
+        \UnaryInfC{\(\sequent{\Theta}{\checkJ{\compT{T}}{\failure{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\sequent{\Theta, \termJ{x}{\compT{S}}, \termJ{y}{S}}{\checkJ{\compT{T}}{N}}\)}
+        \RightLabel{bind (comp-L)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{x}{\compT{S}}}{\checkJ{\compT{T}}{\bind{x}{y}{N}}}\)}
+    \end{prooftree}
+    
+    
+    
+    
+    
+    \judgmentdef{\(\sequent{\Theta}{\synthJ{M}{T}}\)}{In context $\Theta$, term $M$ synthesizes type $T$}
+    
+    \begin{prooftree}
+        \AxiomC{\(\ctxni{\Theta.\Gamma}{\termJ{x}{T}}\)}
+        \RightLabel{var}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{x}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\permits{\Theta}{\metaqualname{}}{T}\)}
+        \RightLabel{name}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{\metaqualname{}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Theta}{\checkJ{T}{M}}\)}
+        \RightLabel{isa}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{\ann{M}{T}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\hypJ{\Theta}{\istypeJ{S}{K}}\)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\forallT{\alpha}{K}{R}}, \termJ{x}{\subst{S}{\alpha}{R}}}{\synthJ{M}{T}}\)}
+        \alwaysSingleLine
+        \RightLabel{inst (forall-L-synth)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\forallT{\alpha}{K}{R}}}{\synthJ{\subst{\inst{f}{S}}{x}{M}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}}{\checkJ{R}{M}}\)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}, \termJ{y}{S}}{\synthJ{N}{T}}\)}
+        \alwaysSingleLine
+        \RightLabel{app (fun-L-synth)}
+        \UnaryInfC{\(\sequent{\Theta, \termJ{f}{\funT{R}{S}}}{\synthJ{\subst{\app{f}{M}}{y}{N}}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\compbuiltinSig{cbi}{T}\)}
+        \RightLabel{compbuiltin (comp-R-3)}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{\compbuiltin{cbi}}{\compT{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{intval (integer-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{i}{\integerT{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{floatval (float-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{f}{\floatT{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{bytestringval (bytestring-R)}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{b}{\bytestringT{}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{\(\builtinSig{bi}{\repetition{S}}{T}\)}
+        \UnaryInfC{\(|\repetition{S}| = |\repetition{M}|\)}
+        \UnaryInfC{\(\sequent{\Theta}{\checkJ{\repetition{S}}{\repetition{M}}}\)}
+        \alwaysSingleLine
+        \RightLabel{builtin}
+        \UnaryInfC{\(\sequent{\Theta}{\synthJ{\builtin{bi}{\repetition{M}}}{T}}\)}
+    \end{prooftree}
+    
+    
+    \caption{Bidirectional Sequent Calculus}
+    \label{fig:Plutus_core_bidi_sequent_calculus}
+\end{figure*}
+
+
+
+
+
+
+
+
+\end{document}

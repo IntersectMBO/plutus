@@ -1,0 +1,49 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}[t]
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Term}             & L,M,N  &::= & x                          & \textrm{variable}\\
+                                  &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
+                                  &        &     & \inst{M}{S}                & \textrm{type instantiation}\\
+                                  &        &     & \wrap{\alpha}{S}{M}        & \textrm{fix type's wrap}\\
+                                  &        &     & \unwrap{M}                 & \textrm{fix type's unwrap}\\
+                                  &        &     & \lam{x}{S}{M}              & \textrm{$\lambda$ abstraction}\\
+                                  &        &     & \app{M}{N}                 & \textrm{function application}\\
+                                  &        &     & \con{cn}                   & \textrm{builtin}\\
+                                  &        &     & \error{S}                  & \textrm{error}\\
+        \textrm{Value}            &U, V    & ::= & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
+                                  &        &     & \wrap{\alpha}{S}{V}        & \textrm{fix type's wrap}\\
+                                  &        &     & \lam{x}{S}{M}              & \textrm{$\lambda$ abstraction}\\
+                                  &        &     & BV                         & \textrm{builtin value}\\
+        \textrm{Builtin Value}    & BV     & ::= & \con{cn}                   & \textrm{builtin}\\
+                                  &        &     & \app{BV}{V}                & \textrm{function application}\\
+                                  &        &     & \inst{BV}{A}               & \textrm{type instantiation}\\
+        \textrm{Type}             & A,B,C  & ::= & \alpha                     & \textrm{type variable}\\
+                                  &        &     & \funT{A}{B}                & \textrm{function type}\\
+                                  &        &     & \allT{\alpha}{K}{A}        & \textrm{polymorphic type}\\
+                                  &        &     & \fixT{\alpha}{A}           & \textrm{fixed point type}\\
+                                  &        &     & \lamT{\alpha}{K}{A}        & \textrm{$\lambda$ abstraction}\\
+                                  &        &     & \appT{A}{B}                & \textrm{function application}\\
+                                  &        &     & \conT{tcn}                 & \textrm{builtin type}\\
+        \textrm{Type Value}       & R,S,T  & ::= & \funT{S}{T}                & \textrm{function type}\\
+                                  &        &     & \allT{\alpha}{K}{S}        & \textrm{polymorphic type}\\
+                                  &        &     & \fixT{\alpha}{S}           & \textrm{fixed point type}\\
+                                  &        &     & \lamT{\alpha}{K}{S}        & \textrm{$\lambda$ abstraction}\\
+                                  &        &     & \conT{tcn}                 & \textrm{builtin type}\\
+                                  &        &     & W                          & \textrm{neutral type}\\
+        \textrm{Neutral Type}     & W      &     & \alpha                     & \textrm{type variable}\\
+                                  &        &     & \appT{W}{S}                & \textrm{function application}\\
+        \textrm{Kind}             & J,K    & ::= & \typeK{}                   & \textrm{type kind}\\
+                                  &        &     & \funK{J}{K}                & \textrm{arrow kind}\\
+                                  &        &     & \sizeK{}                   & \textrm{size kind}\\
+        \textrm{Program}          & P      & ::= & \version{v}{M}             & \textrm{versioned program}\\
+
+    \end{array}\]
+    \caption{Grammar of Plutus Core}
+    \label{fig:Plutus_core_grammar}
+\end{figure*}
+
+\end{document}

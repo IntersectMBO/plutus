@@ -1,0 +1,27 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    
+    \judgmentdef{\(\elabtmdec{\Sigma}{\Delta}{n}{A}{M}{\Delta'}\)}{
+        Term declaration for $\decname{n}$ with type $A$ and definition $M$
+        elaborates by using signature $\Sigma$ to transform declarations
+        $\Delta$ into new declarations $\Delta'$ 
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{\(\chktypartial{\Sigma}{A}\)}
+            \AxiomC{\(\chkfull{\Sigma}{\Delta}{\name{n} : A}{A}{M}{M'}\)}
+            \BinaryInfC{\(\elabtmdec{\Sigma}{\Delta}{n}{A}{M}{\Delta,\name{n} : A \mapsto M'}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    \caption{Elaboration of Term Declarations in Plutus}
+    \label{fig:Plutus_elab_term_decl}
+\end{figure}
+
+\end{document}
