@@ -10,6 +10,8 @@ For example:
 nix build -f default.nix language-plutus-core
 ```
 
+The Plutus Core specification is also built this way, as the attribute `plutus-core-spec`.
+
 ## Docs
 
 Docs are built by hydra. The latest docs for plutus core master branch can be found at
