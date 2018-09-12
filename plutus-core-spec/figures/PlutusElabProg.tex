@@ -1,0 +1,42 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    \judgmentdef{\(\elabprog{\Sigma}{\Delta}{P}{\Sigma'}{\Delta'}\)}{
+        Program $P$ elaborates by transforming signature $\Sigma$ and declarations
+        $\Delta$ into new signature $\Sigma'$ and new declarations $\Delta'$
+    }
+    
+    \centering
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\elabprog{\Sigma}{\Delta}{\emptylist}{\Sigma}{\Delta}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\elabtydec{\Sigma}{\sltycon{n}{\variable{\vec{\alpha}}}}{\vec{C}}{\Sigma'}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\elabprog{\Sigma'}{\Delta}{P}{\Sigma''}{\Delta''}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\elabprog{\Sigma}{\Delta}
+                              {\sltydec{\sltycon{n}{\variable{\vec{\alpha}}}}{\vec{C}};\ P}
+                              {\Sigma''}{\Delta''}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\elabtmdec{\Sigma}{\Delta}{n}{A}{M}{\Delta'}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\elabprog{\Sigma}{\Delta'}{P}{\Sigma''}{\Delta''}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\elabprog{\Sigma}{\Delta}
+                              {\sltmdec{n}{A}{M};\ P}
+                              {\Sigma''}{\Delta''}\)}
+    \end{prooftree}
+    
+    \caption{Elaboration of Programs in Plutus}
+    \label{fig:Plutus_elab_prog}
+\end{figure}
+
+\end{document}

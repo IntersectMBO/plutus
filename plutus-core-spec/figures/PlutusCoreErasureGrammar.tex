@@ -1,0 +1,23 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}[t]
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Term}             & L,M,N  &     & x                        & \textrm{variable}\\
+                                  &        &     & \fixE{x}{M}              & \textrm{fixed point term}\\
+                                  &        &     & \lamE{x}{M}              & \textrm{$\lambda$ abstraction}\\
+                                  &        &     & \appE{M}{N^+}            & \textrm{function application}\\
+                                  &        &     & \conE{bi}                & \textrm{builtin}\\
+                                  &        &     & \errorE{}                & \textrm{error}\\
+        \textrm{Value}            & V,W    & ::= & \lamE{x}{M}              & \textrm{$\lambda$ abstraction}\\
+                                  &        &     & \conE{bi}                & \textrm{builtin}\\
+                                  &        &     & \errorE{}                & \textrm{error}\\
+
+    \end{array}\]
+    \caption{Grammar of Plutus Core Erasure}
+    \label{fig:Plutus_core_erasure_grammar}
+\end{figure*}
+
+\end{document}

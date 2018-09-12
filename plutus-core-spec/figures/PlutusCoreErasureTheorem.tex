@@ -1,0 +1,179 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}
+    \begin{align*}
+        \erase{x} &= x\\
+        \erase{\fix{x}{A}{M}} &= \fixE{x}{\erase{M}}\\
+        \erase{\abs{\alpha}{K}{M}} &= \erase{M}\\
+        \erase{\inst{M}{A}} &= \erase{M}\\
+        \erase{\wrap{\alpha}{A}{M}} &= \erase{M}\\
+        \erase{\unwrap{M}} &= \erase{M}\\
+        \erase{\lam{x}{A}{M}} &= \lamE{x}{\erase{M}}\\
+        \erase{\app{M}{N}} &= \appE{\erase{M}}{\erase{N}}\\
+        \erase{\con{bi}} &= \conE{bi}\\
+        \erase{\error{A}} &= \errorE{}\\
+    \end{align*}
+
+    \caption{Plutus Core Erase Definition}
+    \label{fig:Plutus_core_erase_definition}
+\end{figure*}      
+
+\begin{figure*}
+
+    Theorem: if \(\step{M}{M'}\) then \(\multistep{\erase{M}}{\erase{M'}}\)\\
+    
+    Proof: Induction on the proof $\mathcal{D}$ of \(\step{M}{M'}\)\\
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{M}}{S}}{\subst{S}{\alpha}{M}}\)}
+    \end{prooftree}\vspace{1em}
+    
+    Proof:
+    
+    \begin{align*}
+        &\qquad\multistep{\erase{\inst{\abs{\alpha}{K}{M}}{S}}}{\erase{\subst{S}{\alpha}{M}}}\\
+        &\iffbecause{definition of $\erase{\_}$ twice}\\
+        &\qquad\multistep{\erase{M}}{\subst{S}{\alpha}{M}}\\
+        &\qedbecause{type substitution lemma}
+    \end{align*}
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\unwrap{\wrap{\alpha}{A}{M}}}{M}\)}
+    \end{prooftree}\vspace{1em}
+    
+    Proof:
+    
+    \begin{align*}
+        &\qquad\multistep{\erase{\unwrap{\wrap{\alpha}{A}{M}}}}{\erase{M}}\\
+        &\iffbecause{definition of $\erase{\_}$ twice}\\
+        &\qquad{\multistep{\erase{M}}{\erase{M}}}\\
+        &\qed{}
+    \end{align*}
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\app{\lam{x}{A}{M}}{V}}{\subst{V}{x}{M}}\)}
+    \end{prooftree}
+    
+    Proof:
+    
+    \begin{align*}
+        &\qquad\multistep{\erase{\app{\lam{x}{A}{M}}{V}}}{\erase{\subst{V}{x}{M}}}\\
+        &\iffbecause{definition of $\erase{\_}$ twice}\\
+        &\qquad\multistep{\appE{\lamE{x}{\erase{M}}}{\erase{V}}}{\erase{\subst{V}}{x}{M}}\\
+        &\iffbecause{$\beta$ reduction}\\
+        &\qquad\multistep{\subst{\erase{V}}{x}{\erase{M}}}{\erase{\subst{V}{x}{M}}}\\
+        &\iffbecause{term substitution lemma}\\
+        &\qquad\multistep{\subst{\erase{V}}{x}{\erase{M}}}{\subst{\erase{V}}{x}{\erase{M}}}\\
+        &\qed{}
+    \end{align*}
+    
+    
+    
+    
+    
+    \caption{Plutus Core Erasure Theorem}
+    \label{fig:Plutus_core_erasure_theorem}
+\end{figure*}
+
+
+
+\begin{figure*}
+
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\fix{x}{A}{M}}{\subst{\fix{x}{A}{M}}{x}{M}}\)}
+    \end{prooftree}\vspace{1em}
+    
+    Proof:
+    
+    \begin{align*}
+        &\qquad\multistep{\erase{\fix{x}{A}{M}}}{\erase{\subst{\fix{x}{A}{M}}{x}{M}}}\\
+        &\iffbecause{term substitution lemma}\\
+        &\qquad\multistep{\erase{\fix{x}{A}{M}}}{\subst{\erase{\fix{x}{A}{M}}}{x}{\erase{M}}}\\
+        &\iffbecause{definition of $\erase{\_}$ twice}\\
+        &\qquad\multistep{\fixE{x}{\erase{M}}}{\subst{\fixE{x}{\erase{M}}}{x}{\erase{M}}}\\
+        &\iffbecause{$\beta$ reduction}\\
+        &\qquad\multistep{\subst{\fixE{x}{\erase{M}}}{x}{\erase{M}}}{\subst{\fixE{x}{\erase{M}}}{x}{\erase{M}}}\\
+        &\qed{}
+    \end{align*}
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{\(\typeStep{A}{A'}\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
+    \end{prooftree}\vspace{1em}
+    
+    Show: \(\multistep{\erase{\ctxsubst{f}{A}}}{\erase{\ctxsubst{f}{A'}}}\)
+    
+    Proof (omitted): Cases on $f$, then definition of $\erase{\_}$.
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{\(\step{M}{M'}\)}
+        \AxiomC{\(M' = \error{A}\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
+    \end{prooftree}
+    
+    Show: \(\multistep{\erase{\ctxsubst{f}{M}}}{\erase{\error{A}}}\)
+    
+    Proof (omitted): Cases on $f$, then definition of $\erase{\_}$, $\step{\_\!\!\!}{\!\!\!\_}$, and inductive hypotheses.
+    
+    
+    
+    Case \(\mathcal{D} =\)
+    
+    \begin{prooftree}
+        \AxiomC{\(\step{M}{M'}\)}
+        \AxiomC{\(M' \not= \error{A}\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+    \end{prooftree}
+    
+    Show: \(\multistep{\erase{\ctxsubst{f}{M}}}{\erase{\error{A}}}\)
+    
+    Proof (omitted): Cases on $f$, then definition of $\erase{\_}$, $\step{\_\!\!\!}{\!\!\!\_}$, and inductive hypotheses.
+    
+    \vspace{2em}
+    
+    Type Substitution Lemma: \(\erase{\subst{A}{\alpha}{M}} = \erase{M}\)
+    
+    Proof (omitted): Cases on $M$, then definition of $\erase{\_}$
+    
+    \vspace{2em}
+    
+    Term Substitution Lemma: \(\erase{\subst{M}{x}{N}} = \subst{\erase{M}}{x}{\erase{N}}\)
+    
+    Proof (omitted): Cases on $N$, then definition of $\erase{\_}$
+    
+    
+    \caption{Plutus Core Erasure Theorem (cont.)}
+    \label{fig:Plutus_core_erasure_theorem_cont}
+\end{figure*}
+
+
+
+\end{document}

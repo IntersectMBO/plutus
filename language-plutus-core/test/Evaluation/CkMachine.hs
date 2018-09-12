@@ -4,8 +4,9 @@ module Evaluation.CkMachine
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.CkMachine
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.CkMachine
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.Interesting
 
@@ -20,7 +21,7 @@ propTermOfTypedBuiltinValue :: GenT Quote (TermOf (TypedBuiltinValue Size a)) ->
 propTermOfTypedBuiltinValue genTermOfTbv = property . hoist (return . runQuote) $ do
     TermOf term tbv <- forAllPrettyCfgT genTermOfTbv
     resExpected <- lift $ unsafeMakeBuiltin tbv
-    for_ (ckEvalResultToMaybe $ evaluateCk term) $ \resActual ->
+    for_ (evaluationResultToMaybe $ evaluateCk term) $ \resActual ->
         resActual === resExpected
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),

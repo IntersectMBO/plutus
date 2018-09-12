@@ -1,20 +1,15 @@
 -- | The CK machine.
 
-{-# LANGUAGE OverloadedStrings #-}
-module Language.PlutusCore.CkMachine
-    ( -- * Outcome
-      CkError(..)
-    , CkException(..)
-    , CkEvalResult(..)
-    , ckEvalResultToMaybe
-      -- * Runners
+module Language.PlutusCore.Evaluation.CkMachine
+    ( EvaluationResult(..)
     , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
@@ -30,60 +25,6 @@ data Frame
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
 
 type Context = [Frame]
-
--- | Errors which can occur during a run of the CK machine.
-data CkError
-    = NonPrimitiveInstantiationCkError
-      -- ^ An attempt to reduce a not immediately reducible type instantiation.
-    | NonWrapUnwrappedCkError
-      -- ^ An attempt to unwrap a not wrapped term.
-    | NonPrimitiveApplicationCkError
-      -- ^ An attempt to reduce a not immediately reducible application.
-    | OpenTermEvaluatedCkError
-      -- ^ An attempt to evaluate an open term.
-    | ConstAppCkError ConstAppError
-      -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
-
--- | The type of exceptions the CK machine can throw.
-data CkException = CkException
-    { _ckExceptionError :: CkError              -- ^ An error.
-    , _ckExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
-    }
-
--- | The type of results the CK machine returns.
-data CkEvalResult
-    = CkEvalSuccess (Value TyName Name ())
-    | CkEvalFailure
-    deriving (Show, Eq)
-
-instance PrettyCfg CkEvalResult where
-    prettyCfg cfg (CkEvalSuccess value) = prettyCfg cfg value
-    prettyCfg _   CkEvalFailure         = "Failure"
-
-instance PrettyCfg CkError where
-    prettyCfg _   NonPrimitiveInstantiationCkError =
-        "Cannot reduce a not immediately reducible type instantiation."
-    prettyCfg _   NonWrapUnwrappedCkError          =
-        "Cannot unwrap a not wrapped term."
-    prettyCfg _   NonPrimitiveApplicationCkError   =
-        "Cannot reduce a not immediately reducible application."
-    prettyCfg _   OpenTermEvaluatedCkError         =
-        "Cannot evaluate an open term."
-    prettyCfg cfg (ConstAppCkError constAppError)  =
-        prettyCfg cfg constAppError
-
-instance Show CkException where
-    show (CkException err cause) = fold
-        [ "The CK machine failed: " , prettyCfgString err, "\n"
-        , "Caused by: ", prettyCfgString cause
-        ]
-
-instance Exception CkException
-
--- | Map 'CkEvalSuccess' to 'Just' and 'CkEvalFailure' to 'Nothing'.
-ckEvalResultToMaybe :: CkEvalResult -> Maybe (Value TyName Name ())
-ckEvalResultToMaybe (CkEvalSuccess res) = Just res
-ckEvalResultToMaybe CkEvalFailure       = Nothing
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
@@ -112,7 +53,7 @@ substituteDb varFor new = go where
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
-(|>) :: Context -> Term TyName Name () -> CkEvalResult
+(|>) :: Context -> Term TyName Name () -> EvaluationResult
 stack |> TyInst _ fun ty      = FrameTyInstArg ty : stack |> fun
 stack |> Apply _ fun arg      = FrameApplyArg arg : stack |> fun
 stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
@@ -120,8 +61,8 @@ stack |> Unwrap _ term        = FrameUnwrap : stack |> term
 stack |> tyAbs@TyAbs{}        = stack <| tyAbs
 stack |> lamAbs@LamAbs{}      = stack <| lamAbs
 stack |> constant@Constant{}  = stack <| constant
-_     |> Error{}              = CkEvalFailure
-_     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
+_     |> Error{}              = EvaluationFailure
+_     |> var@Var{}            = throw $ MachineException OpenTermEvaluatedMachineError var
 
 -- | The returning part of the CK machine. Rules are as follows:
 --
@@ -133,48 +74,48 @@ _     |> var@Var{}            = throw $ CkException OpenTermEvaluatedCkError var
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
-(<|) :: Context -> Value TyName Name () -> CkEvalResult
-[]                           <| term      = CkEvalSuccess term
+(<|) :: Context -> Value TyName Name () -> EvaluationResult
+[]                           <| term      = EvaluationSuccess term
 FrameTyInstArg ty    : stack <| fun       = instantiateEvaluate stack ty fun
 FrameApplyArg arg    : stack <| fun       = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun    : stack <| arg       = applyEvaluate stack fun arg
 FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value
 FrameUnwrap          : stack <| wrapped   = case wrapped of
     Wrap _ _ _ term -> stack <| term
-    term            -> throw $ CkException NonWrapUnwrappedCkError term
+    term            -> throw $ MachineException NonWrapUnwrappedMachineError term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> CkEvalResult
+instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> EvaluationResult
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
     | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
     | otherwise                      =
-          throw $ CkException NonPrimitiveInstantiationCkError fun
+          throw $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> CkEvalResult
+applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> EvaluationResult
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
             Nothing                       ->
-                throw $ CkException NonPrimitiveApplicationCkError term
+                throw $ MachineException NonPrimitiveApplicationMachineError term
             Just (IterApp headName spine) ->
                 case runQuote $ applyBuiltinName headName spine of
                     ConstAppSuccess term' -> stack <| term'
-                    ConstAppFailure       -> CkEvalFailure
+                    ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->
-                        throw $ CkException (ConstAppCkError err) term
+                        throw $ MachineException (ConstAppMachineError err) term
 
--- | Evaluate a term using the CK machine. May throw a 'CkException'.
+-- | Evaluate a term using the CK machine. May throw a 'MachineException'.
 -- This differs from the spec version: we do not have the following rule:
 --
 -- > s , {_ A} ◁ F ↦ s ◁ W  -- Fully saturated constant, {F A} ~> W.
@@ -182,10 +123,10 @@ applyEvaluate stack fun                    arg =
 -- The reason for that is that the operational semantics of constant applications is
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
-evaluateCk :: Term TyName Name () -> CkEvalResult
+evaluateCk :: Term TyName Name () -> EvaluationResult
 evaluateCk = ([] |>)
 
--- | Run a program using the CK machine. May throw a 'CkException'.
+-- | Run a program using the CK machine. May throw a 'MachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
-runCk :: Program TyName Name () -> CkEvalResult
+runCk :: Program TyName Name () -> EvaluationResult
 runCk (Program _ _ term) = evaluateCk term

@@ -1,0 +1,23 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    
+    \begin{align*}
+        & \declenv{\epsilon{}}                                             & = && \epsilon{} \\
+        & \declenv{\Delta,\modJ{l}}                                        & = && \declenv{\Delta} \\
+        & \declenv{\Delta,\exportedtypeJ{l}{(nm|cn)}}                        & = && \declenv{\Delta} \\
+        & \declenv{\Delta,\exportedtermJ{l}{(nm|cn)}}                        & = && \declenv{\Delta} \\
+        & \declenv{\Delta,\termnameJ{l}{nm}{U}}                             & = && \declenv{\Delta} \\
+        & \declenv{\Delta,\defJ{l}{nm}{V}}                                  & = && \declenv{\Delta}, n \mapsto V \\
+        & \declenv{\Delta,\conJ{l}{cn}{\repetition{\alpha}}{\repetition{T}}{cn'}} & = && \declenv{\Delta} \\
+        & \declenv{\Delta,\tyconJ{l}{cn}{\repetition{K}}}                   & = && \declenv{\Delta} \\
+        & \declenv{\Delta,\typenameJ{l}{nm}{U}{K}}                          & = && \declenv{\Delta} \\
+    \end{align*}
+    
+    \caption{Declaration Environment Generation}
+    \label{fig:Plutus_core_decl_env}
+\end{figure}
+
+\end{document}

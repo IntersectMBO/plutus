@@ -1,0 +1,39 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}[t]
+    \centering
+    \begin{align*}
+        &\prg{\\
+            &\qquad\datadecl{\name{Nat}}{}{\altNullary{\name{Zero}} ~ \alt{\name{Suc}}{\conTNullary{\name{Nat}}}}\\
+            &\qquad\datadecl{\name{List}}{\kindsig{\variable{a}}{\typeK{}}}{\altNullary{\name{Nil}} ~ \alt{\name{Cons}}{\name{a} ~ \conT{\name{List}}{\variable{a}}}}\\
+            &\qquad\termdecl{\name{fibonacci}}{\funT{\conTNullary{\name{Nat}}}{\conTNullary{\name{Nat}}}}\\
+            &\qquad\defdecl{\name{fibonacci}}{\\
+                &\qquad\quad\lam{\variable{n}}{\\
+                    &\qquad\qquad\case{\builtin{\name{equalsInteger}}{\variable{n}\ \primInt{0}}}{\\
+                        &\qquad\qquad\quad\cl{\name{True}}{}{\primInt{1}}\\
+                        &\qquad\qquad\quad\cl{\name{False}}{}{\\
+                            &\qquad\qquad\qquad\builtin{\name{multiplyInteger}}{\\
+                                &\qquad\qquad\qquad\quad\variable{n}\\
+                                &\qquad\qquad\qquad\quad\app{\decname{fibonacci}}{\\
+                                    &\qquad\qquad\qquad\qquad\builtin{\name{subtractInteger}}{\variable{n}\ \primInt{1}}}}}}}}\\
+            &\qquad\termdecl{\name{map}}{\\
+                &\qquad\quad\forallT{\variable{a}}{\typeK{}}{\forallT{\variable{b}}{\typeK{}}{\\
+                    &\qquad\qquad\funT{\funT{\variable{a}}{\variable{b}}}{\funT{\conT{\name{List}}{\variable{a}}}{\conT{\name{List}}{\variable{b}}}}}}}\\
+            &\qquad\defdecl{\name{map}}{\\
+                &\qquad\quad\abs{\variable{a}}{\abs{\variable{b}}{\\
+                    &\qquad\qquad\lam{\variable{f}}{\\
+                        &\qquad\qquad\quad\lam{\variable{xs}}{\\
+                            &\qquad\qquad\qquad\case{\variable{xs}}{\\
+                                &\qquad\qquad\qquad\quad\cl{\name{Nil}}{}{\conNullary{Nil}}\\
+                                &\qquad\qquad\qquad\quad\cl{\name{Cons}}{\variable{x}\ \variable{xs'}}{\\
+                                    &\qquad\qquad\qquad\qquad\con{\name{Cons}}{\\
+                                        &\qquad\qquad\qquad\qquad\quad\app{\variable{f}}{\variable{x}}\\
+                                        &\qquad\qquad\qquad\qquad\quad\app{\inst{\inst{\decname{map}}{\variable{a}}}{\variable{b}}}{\variable{f}~\variable{xs'}}}}}}}}}}}
+    \end{align*}
+    \caption{Example with Fibonacci and Map}
+    \label{fig:Plutus_core_example}
+\end{figure*}
+
+\end{document}
