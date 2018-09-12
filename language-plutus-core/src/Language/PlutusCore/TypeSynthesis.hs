@@ -20,6 +20,7 @@ import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import qualified Language.PlutusCore.StdLib.Data.Bool as Std
@@ -48,7 +49,7 @@ intop = do
     case annotated of
         Right t -> pure t
         -- should be impossible, no scope errors in the stdlib type
-        Left _  -> throwError InternalError
+        Left _  -> throwError $ InternalError "Scoping error in stdlib type"
 
 -- | Create a new 'Type' for an integer relation
 intRel :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
@@ -67,7 +68,7 @@ builtinRel bi = do
     case annotated of
         Right t -> pure t
         -- should be impossible, no scope errors in the stdlib type
-        Left _  -> throwError InternalError
+        Left _  -> throwError $ InternalError "Scoping error in stdlib type"
 
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
@@ -143,7 +144,7 @@ kindOf (TyBuiltin _ b) = do
     (BuiltinTable tyst _) <- ask
     case M.lookup b tyst of
         Just k -> pure k
-        _      -> throwError InternalError
+        _      -> throwError $ InternalError $ "Builtin lookup failed for: " <> prettyText b
 kindOf (TyFix x _ ty) = do
     k <- kindOf ty
     if isType k
@@ -197,8 +198,8 @@ typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k)
 typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
-        Just k -> pure k
-        _      -> throwError InternalError
+        Just k  -> pure k
+        Nothing -> throwError $ InternalError $ "Builtin lookup failed for: " <> prettyCfgText n
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
