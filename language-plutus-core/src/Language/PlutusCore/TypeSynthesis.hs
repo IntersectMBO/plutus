@@ -146,10 +146,10 @@ defaultTable = do
         bsModTypes = [ DropByteString, TakeByteString ]
         shaTypes = [ SHA2, SHA3 ]
 
-    is <- repeatM (length intTypes) intop
-    irs <- repeatM (length intRelTypes) intRel
-    bms <- repeatM (length bsModTypes) modByteString
-    shas <- repeatM (length shaTypes) shaType
+    is <- replicateM (length intTypes) intop
+    irs <- replicateM (length intRelTypes) intRel
+    bms <- replicateM (length bsModTypes) modByteString
+    shas <- replicateM (length shaTypes) shaType
     bsRelType <- bsRel
     bn <- blocknum
     cb <- concatenateType

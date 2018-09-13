@@ -11,6 +11,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fold
                      , throw
                      , join
+                     , replicateM
                      , (<=<)
                      , fromRight
                      , isRight
@@ -31,7 +32,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , prettyText
                      , prettyString
                      , render
-                     , repeatM
                      , (?)
                      , hoist
                      -- Reëxports from "Data.Text.Prettyprint.Doc"
@@ -54,7 +54,7 @@ import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
-import           Control.Monad                           (guard, join, (<=<))
+import           Control.Monad                           (guard, join, replicateM, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
@@ -89,11 +89,6 @@ prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
 
 render :: Doc a -> T.Text
 render = renderStrict . layoutSmart defaultLayoutOptions
-
--- | Make sure your 'Applicative' is sufficiently lazy!
-repeatM :: Applicative f => Int -> f a -> f [a]
-repeatM 0 _ = pure []
-repeatM n x = (:) <$> x <*> repeatM (n-1) x
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
