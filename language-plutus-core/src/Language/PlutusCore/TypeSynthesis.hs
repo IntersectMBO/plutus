@@ -112,6 +112,13 @@ resizeIntType = do
         fty = TyFun () sty (TyFun () sty (TyFun () ity ity'))
     pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
 
+shaType :: MonadQuote m => m (Type TyNameWithKind ())
+shaType = do
+    nam <- newTyName (Size ())
+    let sty = TyApp () (TyBuiltin () TySize) (TyVar () nam)
+        fty = TyFun () sty txHash
+    pure $ TyForall () nam (Size ()) (TyFun () sty fty)
+
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
@@ -125,17 +132,19 @@ defaultTable = do
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
         bsModTypes = [ DropByteString, TakeByteString ]
+        shaTypes = [ SHA2, SHA3 ]
 
     is <- repeatM (length intTypes) intop
     irs <- repeatM (length intRelTypes) intRel
     bms <- repeatM (length bsModTypes) modByteString
+    shas <- repeatM (length shaTypes) shaType
     bsRelType <- bsRel
     bn <- blocknum
     cb <- concatenateType
     ri <- resizeIntType
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f bsModTypes bms <> f [TxHash, EqByteString, BlockNum, Concatenate, ResizeInteger] [txHash, bsRelType, bn, cb, ri]
+        termTable = f intTypes is <> f intRelTypes irs <> f bsModTypes bms <> f shaTypes shas <> f [TxHash, EqByteString, BlockNum, Concatenate, ResizeInteger] [txHash, bsRelType, bn, cb, ri]
 
     pure $ BuiltinTable tyTable termTable
 
@@ -299,7 +308,7 @@ tySubstitute u ty = cata a where
 
 -- also this should involve contexts
 tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here FIXME: this is wrong
 tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
 tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x (tyReduce ty) (tyReduce ty')
                           | otherwise                                        = TyFun x (tyReduce ty) ty'
