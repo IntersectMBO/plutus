@@ -93,6 +93,25 @@ concatenateType = do
         fty = TyFun () bty (TyFun () bty bty)
     pure $ TyForall () nam (Size ()) fty
 
+modByteString :: MonadQuote m => m (Type TyNameWithKind ())
+modByteString = do
+    nam <- newTyName (Size ())
+    nam' <- newTyName (Size ())
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
+        bty = TyApp () (TyBuiltin () TyByteString) (TyVar () nam')
+        fty = TyFun () ity (TyFun () bty bty)
+    pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
+
+resizeIntType :: MonadQuote m => m (Type TyNameWithKind ())
+resizeIntType = do
+    nam <- newTyName (Size ())
+    nam' <- newTyName (Size ())
+    let sty = TyApp () (TyBuiltin () TySize) (TyVar () nam')
+        ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
+        ity' = TyApp () (TyBuiltin () TyInteger) (TyVar () nam')
+        fty = TyFun () sty (TyFun () sty (TyFun () ity ity'))
+    pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
+
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
@@ -105,15 +124,18 @@ defaultTable = do
                              ]
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
+        bsModTypes = [ DropByteString, TakeByteString ]
 
     is <- repeatM (length intTypes) intop
     irs <- repeatM (length intRelTypes) intRel
+    bms <- repeatM (length bsModTypes) modByteString
     bsRelType <- bsRel
     bn <- blocknum
     cb <- concatenateType
+    ri <- resizeIntType
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString, BlockNum, Concatenate] [txHash, bsRelType, bn, cb]
+        termTable = f intTypes is <> f intRelTypes irs <> f bsModTypes bms <> f [TxHash, EqByteString, BlockNum, Concatenate, ResizeInteger] [txHash, bsRelType, bn, cb, ri]
 
     pure $ BuiltinTable tyTable termTable
 
