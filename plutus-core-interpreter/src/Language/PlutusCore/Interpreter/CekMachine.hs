@@ -1,11 +1,11 @@
 -- | The CEK machine.
 -- Rules are the same as for the CK machine from "Language.PlutusCore.Evaluation.CkMachine",
 -- except we do not use substitution and use environments instead.
--- The CEK machine relies on variables having
--- 1. equal 'Unique's whenever they have equal string names
--- 2. non-equal 'Unique's whenever they have non-equal string names
--- I.e. 'Unique's are used instead of string names, so a renamer pass is required.
+-- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
+-- string names. I.e. 'Unique's are used instead of string names, so the renamer pass is required.
 -- This is for efficiency reasons.
+-- The type checker pass is required as well (and in our case it subsumes the renamer pass).
+-- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
 -- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
 
@@ -52,6 +52,11 @@ lookupName :: Name () -> Environment -> Maybe (Plain Value, Environment)
 lookupName name (Environment env) = IntMap.lookup (unUnique $ nameUnique name) env
 
 -- | The computing part of the CEK machine.
+-- Either
+-- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'Wrap', 'Unwrap')
+-- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
+-- 3. returns 'EvaluationFailure' ('Error')
+-- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 computeCek :: Environment -> Context -> Plain Term -> EvaluationResult
 computeCek env con (TyInst _ fun ty)      = computeCek env (FrameTyInstArg ty : con) fun
 computeCek env con (Apply _ fun arg)      = computeCek env (FrameApplyArg env arg : con) fun
@@ -66,6 +71,12 @@ computeCek env con var@(Var _ name)       = case lookupName name env of
     Just (term, env') -> returnCek env' con term
 
 -- | The returning part of the CEK machine.
+-- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
+-- from the context and either
+-- 1. performs reduction and calls 'computeCek' ('FrameTyInstArg', 'FrameApplyFun', 'FrameUnwrap')
+-- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
+-- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
+-- 4. grows the resulting term ('FrameWrap')
 returnCek :: Environment -> Context -> Plain Value -> EvaluationResult
 returnCek _   []                             res = EvaluationSuccess res
 returnCek env (FrameTyInstArg ty      : con) fun = instantiateEvaluate env con ty fun
