@@ -98,7 +98,6 @@ module Language.PlutusCore
     , plcTerm
     , plcProgram
     -- * Evaluation
-    , parseRunCk
     , EvaluationResult (..)
     ) where
 
@@ -154,10 +153,6 @@ parseTypecheck gas bs = do
     checkProgram parsed
     annotated <- annotateProgram parsed
     typecheckProgram gas annotated
-
--- | Parse a program and run it using the CK machine.
-parseRunCk :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m EvaluationResult
-parseRunCk = fmap (runCk . void) . parseScoped
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs

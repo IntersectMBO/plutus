@@ -118,26 +118,6 @@ library
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
-executable plc
-    main-is: Main.hs
-    hs-source-dirs: plutus-exe
-    default-language: Haskell2010
-    ghc-options: -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
-    build-depends:
-        base -any,
-        language-plutus-core -any,
-        bytestring -any,
-        text -any,
-        mtl -any,
-        optparse-applicative -any
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
-
 executable language-plutus-core-generate-evaluation-test
     main-is: Main.hs
     hs-source-dirs: generate-evaluation-test
