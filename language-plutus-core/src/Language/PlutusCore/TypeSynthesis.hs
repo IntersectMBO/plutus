@@ -54,7 +54,7 @@ bsRel = builtinRel TyByteString
 -- | Create a dummy 'TyName'
 newTyName :: (MonadQuote m) => Kind () -> m (TyNameWithKind ())
 newTyName k = do
-    u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
+    u <- liftQuote freshUnique
     pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
 
 unit :: MonadQuote m => m (Type TyNameWithKind ())
@@ -78,6 +78,14 @@ builtinRel bi = do
         fty = TyFun () ity (TyFun () ity b)
     pure $ TyForall () nam (Size ()) fty
 
+blocknum :: MonadQuote m => m (Type TyNameWithKind ())
+blocknum = do
+    nam <- newTyName (Size ())
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
+        sty = TyApp () (TyBuiltin () TySize) (TyVar () nam)
+        fty = TyFun () sty ity
+    pure $ TyForall () nam (Size ()) fty
+
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
@@ -94,9 +102,10 @@ defaultTable = do
     is <- repeatM (length intTypes) intop
     irs <- repeatM (length intRelTypes) intRel
     bsRelType <- bsRel
+    bn <- blocknum
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString] [txHash, bsRelType]
+        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString, BlockNum] [txHash, bsRelType, bn]
 
     pure $ BuiltinTable tyTable termTable
 
