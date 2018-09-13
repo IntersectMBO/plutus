@@ -65,6 +65,7 @@ module Language.PlutusCore
     , fileType
     , fileTypeCfg
     , printType
+    , debugType
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
@@ -126,13 +127,13 @@ import           PlutusPrelude
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
+fileType = fileTypeCfg defaultCfg
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
 -- information.
 fileTypeCfg :: Configuration -> FilePath -> IO T.Text
-fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printType) . BSL.readFile
+fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printTypeCfg cfg) . BSL.readFile
 
 checkFile :: FilePath -> IO (Maybe T.Text)
 checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . check) . parse) . BSL.readFile
@@ -140,6 +141,9 @@ checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
 printType = printTypeCfg defaultCfg
+
+debugType :: MonadError (Error AlexPosn) m => BSL.ByteString -> m T.Text
+debugType = printTypeCfg debugCfg
 
 printTypeCfg :: (MonadError (Error AlexPosn) m) => Configuration -> BSL.ByteString -> m T.Text
 printTypeCfg cfg bs = runQuoteT $ renderCfg cfg <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
