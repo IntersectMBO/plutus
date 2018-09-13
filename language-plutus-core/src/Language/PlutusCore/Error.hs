@@ -37,14 +37,14 @@ instance (PrettyCfg a) => PrettyCfg (RenameError a) where
     prettyCfg cfg (UnboundVar n@(Name loc _ _)) = "Error at" <+> prettyCfg cfg loc <> ". Variable" <+> prettyCfg cfg n <+> "is not in scope."
     prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> prettyCfg cfg loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
 
-data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
+data TypeError a = InternalError T.Text -- ^ This is thrown if builtin lookup fails or there is some other kind of programmer error
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
                  | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
                  | OutOfGas
                  deriving (Show, Eq, Generic, NFData)
 
 instance (PrettyCfg a) => PrettyCfg (TypeError a) where
-    prettyCfg _ InternalError               = "Internal error."
+    prettyCfg _ (InternalError t)           = pretty t
     prettyCfg cfg (KindMismatch x ty k k')  = "Kind mismatch at" <+> prettyCfg cfg x <+> "in type" <+> squotes (prettyCfg cfg ty) <> ". Expected kind" <+> squotes (pretty k) <+> ", found kind" <+> squotes (pretty k')
     prettyCfg cfg (TypeMismatch x t ty ty') = "Type mismatch at" <+> prettyCfg cfg x <+> "in term" <> hardline <> indent 2 (squotes (prettyCfg cfg t)) <> "." <> hardline <> "Expected type" <> hardline <> indent 2 (squotes (prettyCfg cfg ty)) <> "," <> hardline <> "found type" <> hardline <> indent 2 (squotes (prettyCfg cfg ty'))
     prettyCfg _ OutOfGas                    = "Type checker ran out of gas."

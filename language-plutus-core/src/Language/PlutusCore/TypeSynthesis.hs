@@ -13,14 +13,17 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State.Strict hiding (get, modify)
+import           Control.Monad.Trans.State.Strict     hiding (get, modify)
 import           Data.Functor.Foldable
-import qualified Data.Map                         as M
+import qualified Data.Map                             as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
+import qualified Language.PlutusCore.StdLib.Data.Bool as Std
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -37,51 +40,40 @@ isType Type{} = True
 isType _      = False
 
 -- | Create a new 'Type' for an integer operation.
-intop :: (MonadQuote m) => m (Type TyNameWithKind ())
+intop :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
 intop = do
-    nam <- newTyName (Size ())
+    nam <- liftQuote $ freshTyName () ""
     let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity ity)
-    pure $ TyForall () nam (Size ()) fty
+    annotated <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
+    case annotated of
+        Right t -> pure t
+        -- should be impossible, no scope errors in the stdlib type
+        Left _  -> throwError $ InternalError "Scoping error in stdlib type"
 
 -- | Create a new 'Type' for an integer relation
-intRel :: (MonadQuote m)  => m (Type TyNameWithKind ())
+intRel :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
 intRel = builtinRel TyInteger
 
-bsRel :: (MonadQuote m) => m (Type TyNameWithKind ())
+bsRel :: (MonadError (TypeError a) m, MonadQuote m) => m (Type TyNameWithKind ())
 bsRel = builtinRel TyByteString
 
--- | Create a dummy 'TyName'
-newTyName :: (MonadQuote m) => Kind () -> m (TyNameWithKind ())
-newTyName k = do
-    u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
-    pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
-
-unit :: MonadQuote m => m (Type TyNameWithKind ())
-unit =
-    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
-
-boolean :: MonadQuote m => m (Type TyNameWithKind ())
-boolean = do
-    nam <- newTyName (Type ())
-    (u, u') <- (,) <$> unit <*> unit
-    let var = TyVar () nam
-        unitVar = TyFun () u var
-        unitVar' = TyFun () u' var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
-
-builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
+builtinRel :: (MonadError (TypeError a) m, MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
-    nam <- newTyName (Size ())
-    b <- boolean
+    nam <- liftQuote $ freshTyName () ""
+    b <- liftQuote Std.getBuiltinBool
     let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
         fty = TyFun () ity (TyFun () ity b)
-    pure $ TyForall () nam (Size ()) fty
+    annotated <- runExceptT $ annotateType $ TyForall () nam (Size ()) fty
+    case annotated of
+        Right t -> pure t
+        -- should be impossible, no scope errors in the stdlib type
+        Left _  -> throwError $ InternalError "Scoping error in stdlib type"
 
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
-defaultTable :: (MonadQuote m) => m BuiltinTable
+defaultTable :: (MonadError (TypeError a) m, MonadQuote m) => m BuiltinTable
 defaultTable = do
 
     let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
@@ -152,7 +144,7 @@ kindOf (TyBuiltin _ b) = do
     (BuiltinTable tyst _) <- ask
     case M.lookup b tyst of
         Just k -> pure k
-        _      -> throwError InternalError
+        _      -> throwError $ InternalError $ "Builtin lookup failed for: " <> prettyText b
 kindOf (TyFix x _ ty) = do
     k <- kindOf ty
     if isType k
@@ -206,8 +198,8 @@ typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k)
 typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
-        Just k -> pure k
-        _      -> throwError InternalError
+        Just k  -> pure k
+        Nothing -> throwError $ InternalError $ "Builtin lookup failed for: " <> prettyCfgText n
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
