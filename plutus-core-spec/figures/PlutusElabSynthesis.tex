@@ -1,0 +1,66 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    
+    \judgmentdef{\(\synfull{\Sigma}{\Delta}{\Gamma}{M}{M'}{A}\)}{
+        Term $M$ elaborates to $M'$ synthesizing type $A$ in signature $\Sigma$,
+        declarations $\Delta$, and context $\Gamma$
+    }
+    
+    \centering
+    
+    \begin{prooftree}
+        \AxiomC{\(\ctxni{\Gamma}{x}{A}\)}
+        \UnaryInfC{\(\synpartial{\Gamma}{\variable{x}}{\variable{x}}{A}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\declni{\Delta}{n}{A}\)}
+        \UnaryInfC{\(\synpartial{\Delta}{\sldecname{n}}{\decname{n}}{A}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\isty{A}\)}
+        \AxiomC{\(\chk{A}{M}{M'}\)}
+        \BinaryInfC{\(\syn{\slann{M}{A}}{M'}{A}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\syn{M}{M'}{\slarr{A}{B}}\)}
+        \AxiomC{\(\chk{A}{N}{N'}\)}
+        \BinaryInfC{\(\syn{\slapp{M}{N}}{\app{M'}{N'}}{B}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\syn{M_i}{M'_i}{A_i}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\chkclause{\vec{P_j}}{N_j}{\vec{P'_j}}{N'_j}{\listarg{A_0}{A_m}}{B}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\synsplit{\slcase{\altarg{M_0}{M_m}}
+                                      {\multiplearg{\slcl{\vec{P_0}}{N_0}}{\slcl{\vec{P_n}}{N_n}}}}
+                              {\case{\listarg{M'_0}{M'_m}}
+                                    {\listarg{\cl{\vec{P'_0}}{N'_0}}{\cl{\vec{P'_n}}{N'_n}}}}
+                              {B}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\signi{\Sigma}{n}{\consig{\vec{\alpha}}{\listarg{A_0}{A_k}}{B}}\)}
+        \alwaysNoLine
+        \UnaryInfC{\(\substmulti{\sigma}{B} = B'\)}
+        \UnaryInfC{\(\chkpartial{\Sigma}{\substmulti{\sigma}{A_i}}{M_i}{M'_i}\)}
+        \alwaysSingleLine
+        \UnaryInfC{\(\synpartial{\Sigma}{\slbuiltin{n}{M_0\ \ldots\ M_k}}{\builtin{n}{\multiplearg{M'_0}{M'_k}}}{B'}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\textit{primitive value } V \textit{ has type } A\)}
+        \UnaryInfC{\(\syn{V}{\prim{V}}{A}\)}
+    \end{prooftree}
+    
+    \caption{Synthesis Judgment}
+    \label{fig:Plutus_elab_synthesis}
+\end{figure}
+
+\end{document}

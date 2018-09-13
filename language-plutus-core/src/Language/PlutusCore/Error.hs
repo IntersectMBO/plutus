@@ -23,8 +23,8 @@ data NormalizationError tyname name a = BadType a (Type tyname a) T.Text
                                       deriving (Show, Eq, Generic, NFData)
 
 instance (PrettyCfg (tyname a), PrettyCfg (name a), PrettyCfg a) => PrettyCfg (NormalizationError tyname name a) where
-    prettyCfg cfg (BadType l ty expct) = "Malformed type at" <+> prettyCfg cfg l <> ". Type" <+> prettyCfg cfg ty <+> "is not a" <+> pretty expct <> "."
-    prettyCfg cfg (BadTerm l t expct) = "Malformed term at" <+> prettyCfg cfg l <> ". Term" <+> prettyCfg cfg t <+> "is not a" <+> pretty expct <> "."
+    prettyCfg cfg (BadType l ty expct) = "Malformed type at" <+> prettyCfg cfg l <> ". Type" <+> squotes (prettyCfg cfg ty) <+> "is not a" <+> pretty expct <> "."
+    prettyCfg cfg (BadTerm l t expct) = "Malformed term at" <+> prettyCfg cfg l <> ". Term" <+> squotes (prettyCfg cfg t) <+> "is not a" <+> pretty expct <> "."
 
 
 -- | A 'RenameError' is thrown when a free variable is encountered during

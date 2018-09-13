@@ -1,0 +1,125 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    
+    \judgmentdef{\(\chktyfull{\Sigma}{\Gamma}{A}\)}{
+        $A$ is a type using signature $\Sigma$ and context $\Gamma$
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{}
+            \UnaryInfC{\(\chktypartial{\Gamma, \isty{\variable{\alpha}}}{\variable{\alpha}}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\isty{A}\)}
+            \AxiomC{\(\isty{B}\)}
+            \BinaryInfC{\(\isty{\slarr{A}{B}}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\signi{\Sigma}{n}{\tyconsig{k}}\)}
+            \AxiomC{\(\chktypartial{\Sigma}{A_i}\)}
+            \BinaryInfC{\(\chktypartial{\Sigma}{\sltycon{n}{A_0\ \ldots A_k}}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\chktypartial{\Gamma, \isty{\variable{\alpha}}}{A}\)}
+            \UnaryInfC{\(\chktypartial{\Gamma}{\slforall{\alpha}{A}}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    
+    
+    \vspace{1em}
+    
+    \judgmentdef{\(\subtype{A}{B}\)}{
+        $A$ is a subtype of $B$
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{\(\subtype{A}{B}\)}
+            \UnaryInfC{\(\subtype{A}{\slforall{\alpha}{B}}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\subtype{\subst{T}{\alpha}{A}}{B}\)}
+            \UnaryInfC{\(\subtype{\slforall{\alpha}{A}}{B}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\subtype{A'}{A}\)}
+            \AxiomC{\(\subtype{B}{B'}\)}
+            \BinaryInfC{\(\subtype{\slarr{A}{B}}{\slarr{A'}{B'}}\)}
+        \end{prooftree}
+       
+        \begin{prooftree}
+            \AxiomC{}
+            \UnaryInfC{\(\subtype{A}{A}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    
+    
+    \vspace{1em}
+    
+    \judgmentdef{\(\chkclausefull{\Sigma}{\Delta}{\Gamma}{\vec{P}}{M}{\vec{P'}}{M'}{\vec{A}}{B}\)}{
+        \(\slcl{\vec{P}}{M}\) is a clause that elaborates to \(\slcl{\vec{P'}}{M'}\) with pattern types $\vec{A}$ and body type $B$, using signature $\Sigma$, declarations $\Delta$, and context $\Gamma$
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{\(\chkpatfull{\Sigma}{A_i}{P_i}{P'_i}{\Gamma'_i}\)}
+            \alwaysNoLine
+            \UnaryInfC{\(\chkfull{\Sigma}{\Delta}{\Gamma,\Gamma'_0,\ldots,\Gamma'_k}{B}{M}{M'}\)}
+            \alwaysSingleLine
+            \UnaryInfC{\(\chkclausefullsplit{\Sigma}{\Delta}{\Gamma}{\altarg{P_0}{P_k}}{M}{\altarg{P'_0}{P'_k}}{M'}{\listarg{A_0}{A_k}}{B}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    
+    
+    \vspace{1em}
+    
+    \judgmentdef{\(\chkpatfull{\Sigma}{A}{P}{P'}{\Gamma'}\)}{
+        Type $A$ has pattern $P$ which elaborates to $P'$ using signature $\Sigma$ yielding context $\Gamma'$
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{}
+            \UnaryInfC{\(\chkpatfull{\Sigma}{A}{\variable{x}}{\variable{x}}{\variable{x} : A}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\signi{\Sigma}{n}{\consig{\vec{\alpha}}{\listarg{A_0}{A_n}}{B}}\)}
+            \alwaysNoLine
+            \UnaryInfC{\(\substmulti{\sigma}{B} = B'\)}
+            \UnaryInfC{\(\chkpatfull{\Sigma}{A_i}{P_i}{P'_i}{\Gamma'_i}\)}
+            \alwaysSingleLine
+            \UnaryInfC{\(\chkpatfullsplit{\Sigma}{B'}{\slcon{n}{P_0\ \ldots\ P_k}}{\con{n}{P'_0\ \ldots\ P'_k}}{\Gamma'_0,\ldots,\Gamma'_k}\)}
+        \end{prooftree}
+        
+        \begin{prooftree}
+            \AxiomC{\(\textit{primitive value } V \textit{ has type } A\)}
+            \UnaryInfC{\(\chkpatfull{\Sigma}{A}{V}{V}{\epsilon}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    \caption{Auxuliary Elaboration Judgments of Plutus}
+    \label{fig:Plutus_elab_aux}
+\end{figure}
+
+\end{document}

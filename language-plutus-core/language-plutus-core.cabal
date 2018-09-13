@@ -10,7 +10,7 @@ tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Language library for Plutus Core
 description:
     Pretty-printer, parser, and typechecker for Plutus Core.
-category: Language
+category: Language, Plutus
 build-type: Simple
 extra-source-files:
     cabal.project
@@ -35,7 +35,12 @@ flag development
 library
     exposed-modules:
         Language.PlutusCore
+        Language.PlutusCore.Quote
+        Language.PlutusCore.TH
         Language.PlutusCore.CkMachine
+        Language.PlutusCore.Evaluation.CkMachine
+        Language.PlutusCore.Evaluation.MachineException
+        Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Constant
         Language.PlutusCore.View
         Language.PlutusCore.StdLib.Data.Bool
@@ -47,8 +52,7 @@ library
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting
-        Language.PlutusCore.TH
-        Language.PlutusCore.Quote
+        Language.PlutusCore.Generators.Test
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src prelude stdlib generators

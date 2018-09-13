@@ -1,0 +1,92 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+
+
+
+
+\begin{figure*}[t]
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Frame} & f & ::= & \inAppELeftFrame{M}                      & \textrm{left app}\\
+                       &   &     & \inAppERightFrame{V}                     & \textrm{right app}\\
+    \end{array}\]
+    \caption{Grammar of Erasure Reduction Frames}
+    \label{fig:Plutus_core_erasure_reduction_frames}
+\end{figure*}
+
+
+
+
+\begin{figure*}[t]
+    \judgmentdef{\(\step{M}{M'}\)}{Term $M$ reduces in one step to term $M'$}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\app{\lamE{x}{M}}{V}}{\subst{V}{x}{M}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\step{\fixE{x}{M}}{\subst{\fixE{x}{M}}{x}{M}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\step{M}{M'}\)}
+        \AxiomC{\(M' = \errorE{}\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\errorE{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\step{M}{M'}\)}
+        \AxiomC{\(M' \not= \errorE{}\)}
+        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+    \end{prooftree}
+    
+    
+    
+    
+    
+    
+    \caption{Erasure Reduction via Contextual Dynamics}
+    \label{fig:Plutus_core_erasure_reduction}
+\end{figure*}
+
+
+
+
+
+\begin{figure*}
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Stack} & s      & ::= & f^*                               & \textrm{stacks}\\
+        \textrm{State} & \sigma & ::= & \ckforward{s}{M}                  & \textrm{computing a term}\\
+                       &        &     & \ckbackward{s}{V}                 & \textrm{returning a term value}\\
+    \end{array}\]
+    
+    \caption{Grammar of Erasure CK Machine States}
+    \label{fig:Plutus_core_erasure_ck_frames}
+\end{figure*}
+
+
+
+\begin{figure*}[t]
+    \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine state $\sigma$ transitions in one step to machine state $\sigma'$}
+    
+    \begin{align*}
+        &\cksteps{\ckforward{s}{\lamE{x}{M}}}{\ckbackward{s}{\lamE{x}{M}}}\\
+        &\cksteps{\ckforward{s}{\appE{M}{N}}}{\ckforward{s, \inAppELeftFrame{N}}{M}}\\
+        &\cksteps{\ckforward{s}{\errorE{}}}{\ckbackward{s}{\errorE{}}}\\
+        &\cksteps{\ckbackward{s, \inAppELeftFrame{N}}{V}}{\ckforward{s, \inAppERightFrame{V}}{N}}\\
+        &\cksteps{\ckbackward{s, \inAppERightFrame{\lamE{x}{M}}}{V}}{\ckforward{s}{\subst{V}{x}{M}}}\\
+        &\cksteps{\ckbackward{s, f}{\errorE{}}}{\ckbackward{s}{\errorE{}}}\\
+    \end{align*}
+    
+    \caption{Erasure CK Machine}
+    \label{fig:Plutus_core_erasure_ck_machine}
+\end{figure*}
+
+
+
+\end{document}

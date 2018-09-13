@@ -54,6 +54,7 @@ let
       plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
       language-plutus-core = appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
+      plutus-core-interpreter = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter));
       core-to-plc = addRealTimeTestLogs (filterSource super.core-to-plc);
       plutus-th = addRealTimeTestLogs (filterSource super.plutus-th);
     };
@@ -75,5 +76,6 @@ let
       rev = "c51db2d31892f7c4e7ff6acebe4504f788c56dca";
       sha256 = "10jcj33sxpq18gxf3zcck5i09b2y4jm6qjggqdlwd9ss86wg3ksb";
     }) { inherit pkgs; };
+    plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
   };
 in plutusPkgs // other

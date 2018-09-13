@@ -49,14 +49,14 @@ getBuiltinSelf = do
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
 getBuiltinUnroll :: Quote (Term TyName Name ())
 getBuiltinUnroll = do
-    builtinSelf <- getBuiltinSelf
+    self <- getBuiltinSelf
     a <- freshTyName () "a"
     s <- freshName () "s"
-    let RecursiveType _ builtinSelfA =
-            holedToRecursive . holedTyApp builtinSelf $ TyVar () a
+    let RecursiveType _ selfA =
+            holedToRecursive . holedTyApp self $ TyVar () a
     return
         . TyAbs () a (Type ())
-        . LamAbs () s builtinSelfA
+        . LamAbs () s selfA
         . Apply () (Unwrap () $ Var () s)
         $ Var () s
 
@@ -68,26 +68,27 @@ getBuiltinUnroll = do
 -- See @plutus-prototype/docs/fomega/z-combinator-benchmarks@ for details.
 getBuiltinFix :: Quote (Term TyName Name ())
 getBuiltinFix = do
-    self   <- getBuiltinSelf
-    unroll <- getBuiltinUnroll
+    self    <- getBuiltinSelf
+    unroll1 <- getBuiltinUnroll
+    unroll2 <- getBuiltinUnroll
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     f <- freshName () "f"
     s <- freshName () "s"
     x <- freshName () "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
-        unrollFunAB = TyInst () unroll funAB
+        unrollFunAB u = TyInst () u funAB
         RecursiveType wrapSelfFunAB selfFunAB =
             holedToRecursive $ holedTyApp self funAB
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
-        . Apply () unrollFunAB
+        . Apply () (unrollFunAB unroll1)
         . wrapSelfFunAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
         . foldl' (Apply ()) (Var () f)
-        $ [ Apply () unrollFunAB $ Var () s
+        $ [ Apply () (unrollFunAB unroll2) $ Var () s
           , Var () x
           ]

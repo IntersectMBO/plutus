@@ -1,0 +1,30 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    \judgmentdef{\(\matches{M}{P}{\sigma}\)}{$M$ matches pattern $P$ yielding substitutions $\sigma$}
+    
+    \centering
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\matches{M}{x}{M/x}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(|\vec{M}| = |\vec{P}|\)}
+        \AxiomC{\(\every{i}{\matches{M_i}{P_i}{\sigma_i}}\)}
+        \BinaryInfC{\(\matches{\con{n}{\vec{M}}}{\con{n}{\vec{P}}}{\listarg{\sigma_0}{\sigma_n}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(V = V'\)}
+        \UnaryInfC{\(\matches{\prim{V}}{\prim{V'}}{\emptylist}\)}
+    \end{prooftree}
+    
+    \caption{Pattern Matching in Plutus Core}
+    \label{fig:Plutus_core_pattern_matching}
+\end{figure}
+
+\end{document}

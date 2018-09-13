@@ -1,0 +1,49 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    \judgmentdef{\(\elabtydec{\Sigma}{\sltycon{n}{\variable{\vec{\alpha}}}}{\vec{C}}{\Sigma'}\)}{
+        Type declaration for $\name{n}$ with parameters \(\variable{\vec{\alpha}}\)
+        and alternatives \(\vec{C}\) elaborates by transforming signature $\Sigma$
+        into new signature $\Sigma'$
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{\(\elabalt{\Sigma, \name{n} : \tyconsig{k}}{C_0}{\sltycon{n}{\variable{\vec{\alpha}}}}{\Sigma'_0}\)}
+            \alwaysNoLine
+            \UnaryInfC{\(\elabalt{\Sigma'_0}{C_1}{\sltycon{n}{\variable{\vec{\alpha}}}}{\Sigma'_1}\)}
+            \UnaryInfC{\(\ldots\)}
+            \UnaryInfC{\(\elabalt{\Sigma'_{j-1}}{C_j}{\sltycon{n}{\variable{\vec{\alpha}}}}{\Sigma'_j}\)}
+            \alwaysSingleLine
+            \UnaryInfC{\(\elabtydec{\Sigma}{\sltycon{n}{\variable{\vec{\alpha}}}}{\altarg{C_0}{C_j}}{\Sigma'_j}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    \vspace{1em}
+    
+    \judgmentdef{\(\elabalt{\Sigma}
+                           {\slcon{c}{\vec{A}}}{\sltycon{n}{\variable{\vec{\alpha}}}}
+                           {\Sigma'}\)}{
+        Constructor $\name{c}$ with arg types $\vec{A}$ elaborates for type constructor $\name{n}$ with parameters \(\variable{\vec{\alpha}}\) by transforming signature $\Sigma$ into new signature $\Sigma'$
+    }
+    
+    \begin{center}
+        
+        \begin{prooftree}
+            \AxiomC{\(\chktyfull{\Sigma}{\isty{\variable{\vec{\alpha}}}}{A_i}\)}
+            \UnaryInfC{\(\elabalt{\Sigma}
+                                      {\slcon{c}{A_0\ \ldots\ A_k}}{\sltycon{n}{\variable{\vec{\alpha}}}}
+                                      {\Sigma, \name{c} : \consig{\vec{\alpha}}{\listarg{A_0}{A_k}}{(\sltycon{n}{\variable{\vec{\alpha}}})}}\)}
+        \end{prooftree}
+        
+    \end{center}
+    
+    \caption{Elaboration of Type Declarations in Plutus}
+    \label{fig:Plutus_elab_type_decl}
+\end{figure}
+
+\end{document}

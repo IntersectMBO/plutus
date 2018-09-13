@@ -58,6 +58,9 @@ getBuiltinNil = do
 --
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
+--
+-- @listA@ appears twice in types in the term,
+-- so this is not really a definition with unique names.
 getBuiltinCons :: Quote (Term TyName Name ())
 getBuiltinCons = do
     list <- getBuiltinList
@@ -87,6 +90,9 @@ getBuiltinCons = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f (rec xs') x
+--
+-- @listA@ appears several times in types in the term,
+-- so this is not really a definition with unique names.
 getBuiltinFoldrList :: Quote (Term TyName Name ())
 getBuiltinFoldrList = do
     list <- getBuiltinList
@@ -122,6 +128,9 @@ getBuiltinFoldrList = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) -> rec (f z x)
+--
+-- @listA@ appears several times in types in the term,
+-- so this is not really a definition with unique names.
 getBuiltinFoldList :: Quote (Term TyName Name ())
 getBuiltinFoldList = do
     list <- getBuiltinList

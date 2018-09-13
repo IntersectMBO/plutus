@@ -1,0 +1,115 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    \judgmentdef{\(\tyvalJ{T}\)}{Type $T$ is a type value}
+    
+    \begin{prooftree}
+        \AxiomC{\(\tyvalJ{S}\)}
+        \AxiomC{\(\tyvalJ{T}\)}
+        \BinaryInfC{\(\tyvalJ{\funT{S}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\tyvalJ{T_i}\)}
+        \UnaryInfC{\(\tyvalJ{\conT{\kappa}{\repetition{T}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\tyvalJ{T}\)}
+        \UnaryInfC{\(\tyvalJ{\compT{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\tyvalJ{\lamT{\alpha}{K}{T}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\tyvalJ{\integerT{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\tyvalJ{\floatT{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\tyvalJ{\bytestringT{}}\)}
+    \end{prooftree}
+    
+    
+    
+    \caption{Type Values}
+    \label{fig:Plutus_core_type_values}
+\end{figure}
+
+
+
+\begin{figure}[t]
+    \judgmentdef{\(\valJ{M}\)}{Term $M$ is a value}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\lam{x}{M}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\valJ{M_i}\)}
+        \UnaryInfC{\(\valJ{\con{c}{\repetition{M}}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{\(\valJ{M}\)}
+        \UnaryInfC{\(\valJ{\success{M}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\failure{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\txhash{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\blocknum{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\blocktime{}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\primint{i}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\primfloat{f}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+        \AxiomC{}
+        \UnaryInfC{\(\valJ{\primbytestring{b}}\)}
+    \end{prooftree}
+    
+    
+    
+    \caption{Term Values}
+    \label{fig:Plutus_core_term_values}
+\end{figure}
+
+
+
+
+
+\end{document}

@@ -1,0 +1,31 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[t]
+    \centering
+    \[\begin{array}{l}
+        \sltydec{\sltyconnullary{Nat}}{\slconnullary{Zero} ~|~ \slcon{Suc}{\sltyconnullary{Nat}}}\\\\
+        
+        \sltmdecclauses{plus}{\slarr{\sltyconnullary{Nat}}{\slarr{\sltyconnullary{Nat}}{\sltyconnullary{Nat}}}}{\\
+          \sltmcl{plus}{\slcon{Zero}{} \ n}{n}\\
+          \sltmcl{plus}{(\slcon{Suc}{m}) \ n}{\slcon{Suc}{(\slapp{\slapp{\sldecname{plus}}{m}}{n})}}
+        }\\\\
+        
+        \sltmdecclauses{times}{\slarr{\sltyconnullary{Nat}}{\slarr{\sltyconnullary{Nat}}{\sltyconnullary{Nat}}}}{\\
+          \sltmcl{times}{\slcon{Zero}{} \ n}{Zero}\\
+          \sltmcl{times}{(\slcon{Suc}{m}) \ n}{
+            \slapp{\slapp{\sldecname{plus}}{n}}{(\slapp{\slapp{\sldecname{times}}{m}}{n})}
+          }
+        }\\\\
+        
+        \sltmdecclauses{fac}{\slarr{\sltyconnullary{Nat}}{\sltyconnullary{Nat}}}{\\
+          \sltmcl{fac}{\slcon{Zero}{}}{\slcon{Suc}{\slcon{Zero}{}}}\\
+          \sltmcl{fac}{(\slcon{Suc}{n})}{\slapp{\slapp{\sldecname{times}}{(\slcon{Suc}{n})}}{(\slapp{\sldecname{fac}}{n})}}
+        }\\\\
+    \end{array}\]
+    \caption{Fibonacci in Plutus}
+    \label{fig:Plutus_fibonacci}
+\end{figure}
+
+\end{document}
