@@ -37,7 +37,6 @@ library
         Language.PlutusCore
         Language.PlutusCore.Quote
         Language.PlutusCore.TH
-        Language.PlutusCore.CkMachine
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
