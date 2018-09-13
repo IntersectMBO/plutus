@@ -1,0 +1,46 @@
+(program 1.0.0
+  [
+    (lam
+      ds_1
+      (all bool_matchOut_0 (type) (fun bool_matchOut_0 (fun bool_matchOut_0 bool_matchOut_0)))
+      [
+        [
+          [
+            {
+              ds_1
+              (fun (all a_3 (type) (fun a_3 a_3)) (all bool_matchOut_2 (type) (fun bool_matchOut_2 (fun bool_matchOut_2 bool_matchOut_2))))
+            }
+            (lam
+              thunk_7
+              (all a_8 (type) (fun a_8 a_8))
+              (abs
+                bool_matchOut_4
+                (type)
+                (lam
+                  false_5 bool_matchOut_4 (lam true_6 bool_matchOut_4 false_5)
+                )
+              )
+            )
+          ]
+          (lam
+            thunk_12
+            (all a_13 (type) (fun a_13 a_13))
+            (abs
+              bool_matchOut_9
+              (type)
+              (lam
+                false_10 bool_matchOut_9 (lam true_11 bool_matchOut_9 true_11)
+              )
+            )
+          )
+        ]
+        (abs a_14 (type) (lam x_15 a_14 x_15))
+      ]
+    )
+    (abs
+      bool_matchOut_16
+      (type)
+      (lam false_17 bool_matchOut_16 (lam true_18 bool_matchOut_16 false_17))
+    )
+  ]
+)
