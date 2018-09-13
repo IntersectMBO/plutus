@@ -13,6 +13,19 @@ There are also `shell.nix` files in the package subdirectories.
 
 You should regenerate this if you change any dependencies in cabal files. To do this, use the environment defined in `shell.nix`, and run `pkgs/generate.sh`.
 
+## Adding a new package
+
+You need to do a few things when adding a new package, in the following order:
+- Add the cabal file.
+- Add the package to `stack.yml`.
+- Update the generated package set (see above).
+- Add an appropriate override to `default.nix` for that package.
+    - These do things like "enable building Haddock on Hydra". You can just copy the line for another package and change the package name.
+- (If you want the package to be built by CI) Add the package to `release.nix`.
+    - You should just copy exactly what is there for other packages.
+
+You should at least be able to run `nix build -f default.nix <package name>` successfully at the root. You can use `nix log -f default.nix <package name>` if you want to check the build output.
+
 ## Code style
 
 We use `stylish-haskell` and `hlint`, and enable a large number of GHC warnings.
