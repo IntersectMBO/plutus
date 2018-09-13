@@ -140,7 +140,10 @@ checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printType = printTypeCfg defaultCfg
+
+printTypeCfg :: (MonadError (Error AlexPosn) m) => Configuration -> BSL.ByteString -> m T.Text
+printTypeCfg cfg bs = runQuoteT $ renderCfg cfg <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -149,11 +152,7 @@ parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ run
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (Type TyNameWithKind ())
-parseTypecheck gas bs = do
-    parsed <- parseProgram bs
-    checkProgram parsed
-    annotated <- annotateProgram parsed
-    typecheckProgram gas annotated
+parseTypecheck gas = typecheckProgram gas <=< annotateProgram <=< parseProgram
 
 -- | Parse a program and run it using the CK machine.
 parseRunCk :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m EvaluationResult
