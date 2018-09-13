@@ -17,7 +17,8 @@ let
     plutus-prototype = supportedSystems;
     language-plutus-core = supportedSystems;
     plutus-core-interpreter = supportedSystems;
-    plutus-core-spec = supportedSystems;
+    # don't need to build the spec on anything other than one platform
+    plutus-core-spec = [ "x86_64-linux" ];
   };
   mapped = mapTestOn platforms;
 in mapped // {
