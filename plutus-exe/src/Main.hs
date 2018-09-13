@@ -1,8 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Main (main) where
 
-import qualified Language.PlutusCore                        as PC
-import qualified Language.PlutusCore.Interpreter.CekMachine as PC
+import qualified Language.PlutusCore                        as PLC
+import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC
+import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
 
 import           Control.Monad
 
@@ -73,23 +74,23 @@ main = do
         Typecheck (TypecheckOptions inp) -> do
             contents <- getInput inp
             let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-            case (PC.runQuoteT . PC.parseTypecheck 1000) bsContents of
+            case (PLC.runQuoteT . PLC.parseTypecheck 1000) bsContents of
                 Left e -> do
-                    T.putStrLn $ PC.prettyCfgText e
+                    T.putStrLn $ PLC.prettyCfgText e
                     exitFailure
                 Right ty -> do
-                    T.putStrLn $ PC.prettyCfgText ty
+                    T.putStrLn $ PLC.prettyCfgText ty
                     exitSuccess
         Eval (EvalOptions inp mode) -> do
             contents <- getInput inp
             let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
             let evalFn = case mode of
-                    CK  -> PC.runCk
-                    CEK -> PC.runCek
-            case evalFn .void <$> PC.parseScoped bsContents of
+                    CK  -> PLC.runCk
+                    CEK -> PLC.runCek
+            case evalFn .void <$> PLC.parseScoped bsContents of
                 Left e -> do
-                    T.putStrLn $ PC.prettyCfgText e
+                    T.putStrLn $ PLC.prettyCfgText e
                     exitFailure
                 Right v -> do
-                    T.putStrLn $ PC.prettyCfgText v
+                    T.putStrLn $ PLC.prettyCfgText v
                     exitSuccess
