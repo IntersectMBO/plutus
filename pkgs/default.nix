@@ -55660,6 +55660,7 @@ language-plutus-core
 tasty
 tasty-golden
 tasty-hunit
+template-haskell
 text
 ];
 doHaddock = false;
