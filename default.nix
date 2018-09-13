@@ -55,6 +55,7 @@ let
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
       language-plutus-core = appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
       plutus-core-interpreter = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter));
+      plutus-exe = addRealTimeTestLogs (filterSource super.plutus-exe);
     };
   };
   other = rec {

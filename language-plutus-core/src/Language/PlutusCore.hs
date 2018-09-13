@@ -99,6 +99,8 @@ module Language.PlutusCore
     , plcProgram
     -- * Evaluation
     , parseRunCk
+    , runCk
+    , evaluateCk
     , EvaluationResult (..)
     ) where
 
