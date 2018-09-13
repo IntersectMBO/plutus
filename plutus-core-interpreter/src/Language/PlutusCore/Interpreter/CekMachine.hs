@@ -27,10 +27,15 @@ import qualified Data.IntMap                                     as IntMap
 
 type Plain f = f TyName Name ()
 
+-- | A 'Value' packed together with the environment it's defined in.
+data Closure = Closure
+    { _closureEnvironment :: Environment
+    , _closureValue       :: Plain Value
+    }
+
 -- | Environments used by the CEK machine.
--- Each row is a mapping from the 'Unique' representing a variable to the 'Value' the
--- variable stands for and the environment the value was defined in.
-newtype Environment = Environment (IntMap (Plain Value, Environment))
+-- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
+newtype Environment = Environment (IntMap Closure)
 
 data Frame
     = FrameApplyFun Environment (Plain Value)    -- ^ @[V _]@
@@ -45,10 +50,10 @@ type Context = [Frame]
 -- and the environment the value is defined in.
 extendEnvironment :: Name () -> Plain Value -> Environment -> Environment -> Environment
 extendEnvironment argName arg argEnv (Environment oldEnv) =
-    Environment $ IntMap.insert (unUnique $ nameUnique argName) (arg, argEnv) oldEnv
+    Environment $ IntMap.insert (unUnique $ nameUnique argName) (Closure argEnv arg) oldEnv
 
 -- | Look up a name in an environment.
-lookupName :: Name () -> Environment -> Maybe (Plain Value, Environment)
+lookupName :: Name () -> Environment -> Maybe Closure
 lookupName name (Environment env) = IntMap.lookup (unUnique $ nameUnique name) env
 
 -- | The computing part of the CEK machine.
@@ -67,8 +72,8 @@ computeCek env con lamAbs@LamAbs{}        = returnCek env con lamAbs
 computeCek env con constant@Constant{}    = returnCek env con constant
 computeCek _   _   Error{}                = EvaluationFailure
 computeCek env con var@(Var _ name)       = case lookupName name env of
-    Nothing           -> throw $ MachineException OpenTermEvaluatedMachineError var
-    Just (term, env') -> returnCek env' con term
+    Nothing                  -> throw $ MachineException OpenTermEvaluatedMachineError var
+    Just (Closure env' term) -> returnCek env' con term
 
 -- | The returning part of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
