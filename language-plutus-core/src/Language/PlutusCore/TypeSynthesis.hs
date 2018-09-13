@@ -228,33 +228,35 @@ typeOf (TyInst x body ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) (void bodyTy) absTy))
+                then pure (tyReduce (tySubstitute (extractUnique n) nBodyTy (NormalizedType absTy)))
                 else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) (void nBodyTy))
+        _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
         TyFix _ n fixTy -> do
-            let subst = tySubstitute (extractUnique n) bodyTy fixTy
+            let subst = tySubstitute (extractUnique n) nBodyTy (NormalizedType fixTy)
             pure (tyReduce subst)
-        _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) (void nBodyTy))
+        _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty body) = do
     nBodyTy <- typeOf body
-    let fixed = tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
+    let fixed = tySubstitute (extractUnique n) (NormalizedType $ TyFix () (void n) (void ty)) (void $ NormalizedType ty)
     typeCheckStep
     if tyReduce fixed == nBodyTy
         then pure $ NormalizedType (TyFix () (void n) (void ty)) -- type annotations on terms must be normalized
-        else throwError (TypeMismatch x (void body) fixed (void nBodyTy))
+        else throwError (TypeMismatch x (void body) fixed nBodyTy)
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
 -- TODO: make type substitutions occur in a state monad + benchmark
+-- | Substitute the given type into another type. The input types must be normalized - this prevents us creating redundant work. The
+-- output type is not normalized, since we may introduce new redexes.
 tySubstitute :: Unique -- ^ Unique associated with type variable
-             -> Type TyNameWithKind a -- ^ Type we are binding to free variable
-             -> Type TyNameWithKind a -- ^ Type we are substituting in
+             -> NormalizedType TyNameWithKind a -- ^ Type we are binding to free variable
+             -> NormalizedType TyNameWithKind a -- ^ Type we are substituting in
              -> Type TyNameWithKind a
-tySubstitute u ty = cata a where
+tySubstitute u (NormalizedType ty) = cata a . getNormalizedType where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 
@@ -262,7 +264,7 @@ tySubstitute u ty = cata a where
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind a -> NormalizedType TyNameWithKind a
 -- TODO: is this case actually safe? Don't we need to reduce again after substituting?
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = NormalizedType $ tySubstitute u ty' (getNormalizedType $ tyReduce ty) -- TODO: use the substitution monad here
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = NormalizedType $ tySubstitute u (NormalizedType ty') (tyReduce ty) -- TODO: use the substitution monad here
 tyReduce (TyForall x tn k ty)                                                = NormalizedType $ TyForall x tn k (getNormalizedType $ tyReduce ty)
 tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType $ TyFun x (getNormalizedType $ tyReduce ty) (getNormalizedType $ tyReduce ty')
                           | otherwise                                        = NormalizedType $ TyFun x (getNormalizedType $ tyReduce ty) ty'
