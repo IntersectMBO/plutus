@@ -228,7 +228,7 @@ typeOf (TyInst x body ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) nBodyTy (NormalizedType absTy)))
+                then pure (tyReduce (tySubstitute (extractUnique n) (void $ NormalizedType ty) (NormalizedType absTy)))
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
