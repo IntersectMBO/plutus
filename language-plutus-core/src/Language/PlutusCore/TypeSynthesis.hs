@@ -78,6 +78,15 @@ builtinRel bi = do
         fty = TyFun () ity (TyFun () ity b)
     pure $ TyForall () nam (Size ()) fty
 
+modByteString :: MonadQuote m => m (Type TyNameWithKind ())
+modByteString = do
+    nam <- newTyName (Size ())
+    nam' <- newTyName (Size ())
+    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
+        bty = TyApp () (TyBuiltin () TyByteString) (TyVar () nam')
+        fty = TyFun () ity (TyFun () bty bty)
+    pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
+
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
@@ -90,13 +99,15 @@ defaultTable = do
                              ]
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
+        bsModTypes = [ TakeByteString, DropByteString ]
 
     is <- repeatM (length intTypes) intop
     irs <- repeatM (length intRelTypes) intRel
+    bms <- repeatM (length bsModTypes) modByteString
     bsRelType <- bsRel
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString] [txHash, bsRelType]
+        termTable = f intTypes is <> f intRelTypes irs <> f bsModTypes bms <> f [TxHash, EqByteString] [txHash, bsRelType]
 
     pure $ BuiltinTable tyTable termTable
 
