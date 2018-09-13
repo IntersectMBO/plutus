@@ -17,7 +17,7 @@ You should regenerate this if you change any dependencies in cabal files. To do 
 
 You need to do a few things when adding a new package, in the following order:
 - Add the cabal file.
-- Add the package to `stack.yml`.
+- Add the package to `stack.yaml`.
 - Update the generated package set (see above).
 - Add an appropriate override to `default.nix` for that package.
     - These do things like "enable building Haddock on Hydra". You can just copy the line for another package and change the package name.

@@ -42133,7 +42133,6 @@ license = stdenv.lib.licenses.bsd3;
 , microlens
 , mmorph
 , mtl
-, optparse-applicative
 , prettyprinter
 , recursion-schemes
 , safe-exceptions
@@ -42185,8 +42184,6 @@ base
 bytestring
 hedgehog
 mmorph
-mtl
-optparse-applicative
 prettyprinter
 text
 ];
@@ -55546,6 +55543,39 @@ text
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"plutus-exe" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, language-plutus-core
+, mtl
+, optparse-applicative
+, plutus-core-interpreter
+, stdenv
+, text
+}:
+mkDerivation {
+
+pname = "plutus-exe";
+version = "0.1.0.0";
+src = ./../plutus-exe;
+isLibrary = false;
+isExecutable = true;
+executableHaskellDepends = [
+base
+bytestring
+language-plutus-core
+mtl
+optparse-applicative
+plutus-core-interpreter
+text
+];
+doHaddock = false;
+description = "Executable for Plutus Core tools";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};

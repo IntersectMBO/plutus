@@ -4,6 +4,7 @@ packages:
 - plutus-prototype
 - language-plutus-core
 - plutus-core-interpreter
+- plutus-exe
 - core-to-plc
 - plutus-th
 
