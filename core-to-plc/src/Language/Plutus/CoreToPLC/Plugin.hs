@@ -13,14 +13,14 @@ import           Language.Plutus.CoreToPLC.Error
 
 import qualified GhcPlugins                      as GHC
 
-import qualified Language.PlutusCore             as PC
+import qualified Language.PlutusCore             as PLC
 import           Language.PlutusCore.Quote
 
 import           Language.Haskell.TH.Syntax      as TH
 
+import           Control.Exception
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Exception
 import qualified Data.ByteString.Lazy            as BSL
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
@@ -39,8 +39,8 @@ The types suggest that we can fail to deserialize the AST that we embedded in th
 However, we just did it ourselves, so this should be impossible. Possibly we should surface
 the error somehow, but passing it on to the user seems like quite an annoying UI.
 -}
-getAst :: PlcCode -> PC.Program PC.TyName PC.Name ()
-getAst wrapper = let Right p = PC.readProgram $ getSerializedCode wrapper in p
+getAst :: PlcCode -> PLC.Program PLC.TyName PLC.Name ()
+getAst wrapper = let Right p = PLC.readProgram $ getSerializedCode wrapper in p
 
 -- | Marks the given expression for conversion to PLC.
 plc :: a -> PlcCode
@@ -142,8 +142,8 @@ convertExpr origE tpe = do
           do
               converted <- convExpr origE
               -- temporarily don't do typechecking due to lack of support for redexes
-              --annotated <- convertErrors PCError $ PC.annotateTerm converted
-              --inferredType <- convertErrors PCError $ PC.typecheckTerm 1000 annotated
+              --annotated <- convertErrors PLCError $ PLC.annotateTerm converted
+              --inferredType <- convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
               pure (converted, undefined)
     case runExcept $ runReaderT (runQuoteT result) (flags, primTerms, primTys, initialScopeStack) of
         Left s -> do
@@ -155,16 +155,16 @@ convertExpr origE tpe = do
             -- this will actually terminate compilation
             liftIO $ throwIO CoreToPlcFailure
         Right (term, _) -> do
-            let termRep = T.unpack $ PC.debugText term
-            --let typeRep = T.unpack $ PC.debugText inferredType
+            let termRep = T.unpack $ PLC.debugText term
+            --let typeRep = T.unpack $ PLC.debugText inferredType
             -- Note: tests run with --verbose, so these will appear
             GHC.debugTraceMsg $
                 "Successfully converted GHC core expression:" GHC.$+$
                 GHC.ppr origE GHC.$+$
                 "Resulting PLC term is:" GHC.$+$
                 GHC.text termRep --GHC.$+$ "With type:" GHC.$+$ GHC.text typeRep
-            let program = PC.Program () (PC.defaultVersion ()) term
-            let serialized = PC.writeProgram program
+            let program = PLC.Program () (PLC.defaultVersion ()) term
+            let serialized = PLC.writeProgram program
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
             let (word8s :: [Word]) = fromIntegral <$> BSL.unpack serialized
             -- The flags here are so GHC can check whether the word is in range for the current platform.

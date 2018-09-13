@@ -4,7 +4,7 @@ module Language.Plutus.CoreToPLC.Primitives where
 import           Language.Plutus.CoreToPLC.Error
 
 import           GHC.Natural
-import qualified Language.PlutusCore             as PC
+import qualified Language.PlutusCore             as PLC
 
 -- | An abstract data type representing bytestrings in Plutus Core.
 data ByteString
@@ -15,14 +15,14 @@ haskellIntSize = 64
 haskellBSSize :: Natural
 haskellBSSize = 64
 
-instSize :: Natural -> PC.Term tyname name () -> PC.Term tyname name ()
-instSize n t = PC.TyInst () t (PC.TyInt () n)
+instSize :: Natural -> PLC.Term tyname name () -> PLC.Term tyname name ()
+instSize n t = PLC.TyInst () t (PLC.TyInt () n)
 
-appSize :: Natural -> PC.Type tyname () -> PC.Type tyname ()
-appSize n t = PC.TyApp () t (PC.TyInt () n)
+appSize :: Natural -> PLC.Type tyname () -> PLC.Type tyname ()
+appSize n t = PLC.TyApp () t (PLC.TyInt () n)
 
-mkConstant :: PC.BuiltinName -> PC.Term tyname name ()
-mkConstant n = PC.Constant () $ PC.BuiltinName () n
+mkConstant :: PLC.BuiltinName -> PLC.Term tyname name ()
+mkConstant n = PLC.Constant () $ PLC.BuiltinName () n
 
 -- TODO: resizing primitives? better handling of sizes?
 
