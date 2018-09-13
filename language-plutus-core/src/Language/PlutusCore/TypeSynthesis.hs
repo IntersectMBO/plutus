@@ -86,6 +86,13 @@ blocknum = do
         fty = TyFun () sty ity
     pure $ TyForall () nam (Size ()) fty
 
+concatenateType :: MonadQuote m => m (Type TyNameWithKind ())
+concatenateType = do
+    nam <- newTyName (Size ())
+    let bty = TyApp () (TyBuiltin () TyByteString) (TyVar () nam)
+        fty = TyFun () bty (TyFun () bty bty)
+    pure $ TyForall () nam (Size ()) fty
+
 txHash :: Type TyNameWithKind ()
 txHash = TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
 
@@ -103,9 +110,10 @@ defaultTable = do
     irs <- repeatM (length intRelTypes) intRel
     bsRelType <- bsRel
     bn <- blocknum
+    cb <- concatenateType
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString, BlockNum] [txHash, bsRelType, bn]
+        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString, BlockNum, Concatenate] [txHash, bsRelType, bn, cb]
 
     pure $ BuiltinTable tyTable termTable
 
