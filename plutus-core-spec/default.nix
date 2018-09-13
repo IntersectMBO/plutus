@@ -1,4 +1,4 @@
-{ pkgs ? (import <nixpkgs> {}), stdenv ? pkgs.stdenv, texlive ? pkgs.texlive }:
+{ stdenv, lib, texlive }:
 
 let
   tex = texlive.combine { 
@@ -15,4 +15,10 @@ stdenv.mkDerivation {
   src = ./.;
   buildPhase = "latexmk -view=pdf main.tex";
   installPhase = "install -D main.pdf $out/main.pdf";
+  
+  meta = with lib; {
+    description = "Plutus Core specification";
+    license = licenses.bsd3;
+    platforms = platforms.linux;
+  };
 }
