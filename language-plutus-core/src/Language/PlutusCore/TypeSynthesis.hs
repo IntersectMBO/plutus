@@ -249,12 +249,16 @@ typeOf (Wrap x n ty t) = do
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
+-- fixUniversals :: Type TyNameWithKind a -> m (Type TyNameWithKind a)
+-- fixUniversals = cataM where
+    -- a (TyForallF x tn k ty) =
+
 -- TODO: make type substitutions occur in a state monad + benchmark
 tySubstitute :: Unique -- ^ Unique associated with type variable
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
              -> Type TyNameWithKind a -- ^ Type we are substituting in
              -> Type TyNameWithKind a
-tySubstitute u ty = cata a where
+tySubstitute u ty = cata a where -- FIXME: subtituting a Forall type can then require rewriting
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
     a x                                                  = embed x
 

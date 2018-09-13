@@ -63,6 +63,7 @@ module Language.PlutusCore
     , typecheckTerm
     , kindCheck
     , fileType
+    , debugType
     , fileTypeCfg
     , printType
     , debugType
@@ -70,6 +71,9 @@ module Language.PlutusCore
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
+    -- * REPL use
+    , fileTypePrint
+    , debugTypePrint
     -- * Serialization
     , encodeProgram
     , decodeProgram
@@ -106,6 +110,7 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
+import qualified Data.Text.IO                             as TIO
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.Error
@@ -128,6 +133,15 @@ import           PlutusPrelude
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
 fileType = fileTypeCfg defaultCfg
+
+fileTypePrint :: FilePath -> IO ()
+fileTypePrint = TIO.putStrLn <=< fileType
+
+debugTypePrint :: FilePath -> IO ()
+debugTypePrint = TIO.putStrLn <=< fileTypeDebug
+
+fileTypeDebug :: FilePath -> IO T.Text
+fileTypeDebug = fileTypeCfg debugCfg
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
