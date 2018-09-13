@@ -16,6 +16,7 @@ let
   platforms = {
     plutus-prototype = supportedSystems;
     language-plutus-core = supportedSystems;
+    plutus-core-spec = supportedSystems;
   };
   mapped = mapTestOn platforms;
 in mapped // {
