@@ -50,6 +50,7 @@ library
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting
+        Language.PlutusCore.Generators.Test
         PlutusPrelude
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src prelude stdlib generators

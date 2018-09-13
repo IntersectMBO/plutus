@@ -1,0 +1,95 @@
+cabal-version: 2.0
+name: plutus-core-interpreter
+version: 0.1.0.0
+license: BSD3
+license-file: LICENSE
+copyright: Copyright: (c) 2018 Input Output
+maintainer: Plutus team
+author: Plutus team
+tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
+synopsis: Virtual machine for Plutus Core
+category: Language
+build-type: Simple
+extra-doc-files: README.md
+
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus-prototype
+
+flag eventlog
+    description:
+        Pass `-eventlog` flag to GHC
+    default: False
+    manual: True
+
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
+
+library
+    exposed-modules:
+        Language.PlutusCore.Interpreter.CekMachine
+    hs-source-dirs: src
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        text -any,
+        prettyprinter >=1.1.0.1,
+        language-plutus-core -any
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
+
+test-suite plutus-core-interpreter-test
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test
+    other-modules:
+        CekMachine
+    default-language: Haskell2010
+    other-extensions: OverloadedStrings
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        language-plutus-core -any,
+        plutus-core-interpreter -any,
+        tasty -any,
+        hedgehog -any,
+        tasty-hunit -any,
+        tasty-hedgehog -any,
+        bytestring -any,
+        tasty-golden -any,
+        text -any,
+        prettyprinter -any,
+        containers -any,
+        mmorph -any
+
+    if flag(eventlog)
+        ghc-options: -eventlog
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
+    if impl(ghc >=8.4)
+        ghc-options: -Wmissing-export-lists
