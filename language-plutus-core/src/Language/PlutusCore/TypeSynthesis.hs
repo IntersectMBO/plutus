@@ -74,22 +74,22 @@ builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
     nam <- newTyName (Size ())
     b <- boolean
-    let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
+    let ity = builtinType bi nam
         fty = TyFun () ity (TyFun () ity b)
     pure $ TyForall () nam (Size ()) fty
 
 blocknum :: MonadQuote m => m (Type TyNameWithKind ())
 blocknum = do
     nam <- newTyName (Size ())
-    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
-        sty = TyApp () (TyBuiltin () TySize) (TyVar () nam)
+    let ity = integer nam
+        sty = size nam
         fty = TyFun () sty ity
     pure $ TyForall () nam (Size ()) fty
 
 concatenateType :: MonadQuote m => m (Type TyNameWithKind ())
 concatenateType = do
     nam <- newTyName (Size ())
-    let bty = TyApp () (TyBuiltin () TyByteString) (TyVar () nam)
+    let bty = bytes nam
         fty = TyFun () bty (TyFun () bty bty)
     pure $ TyForall () nam (Size ()) fty
 
@@ -97,18 +97,30 @@ modByteString :: MonadQuote m => m (Type TyNameWithKind ())
 modByteString = do
     nam <- newTyName (Size ())
     nam' <- newTyName (Size ())
-    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
-        bty = TyApp () (TyBuiltin () TyByteString) (TyVar () nam')
+    let ity = integer nam
+        bty = bytes nam'
         fty = TyFun () ity (TyFun () bty bty)
     pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
+
+builtinType :: TypeBuiltin -> TyNameWithKind () -> Type TyNameWithKind ()
+builtinType bi nam = TyApp () (TyBuiltin () bi) (TyVar () nam)
+
+size :: TyNameWithKind () -> Type TyNameWithKind ()
+size = builtinType TySize
+
+integer :: TyNameWithKind () -> Type TyNameWithKind ()
+integer = builtinType TyInteger
+
+bytes :: TyNameWithKind () -> Type TyNameWithKind ()
+bytes = builtinType TyByteString
 
 resizeIntType :: MonadQuote m => m (Type TyNameWithKind ())
 resizeIntType = do
     nam <- newTyName (Size ())
     nam' <- newTyName (Size ())
-    let sty = TyApp () (TyBuiltin () TySize) (TyVar () nam')
-        ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
-        ity' = TyApp () (TyBuiltin () TyInteger) (TyVar () nam')
+    let sty = size nam'
+        ity = integer nam
+        ity' = integer nam'
         fty = TyFun () sty (TyFun () sty (TyFun () ity ity'))
     pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
 
