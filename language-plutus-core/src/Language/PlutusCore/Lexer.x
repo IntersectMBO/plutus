@@ -44,7 +44,7 @@ $upper = [A-Z]
 @float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
 @size = $digit+
 
-@identifier = $lower [$lower $upper $digit \_ \']*
+@identifier = [$lower $upper][$lower $upper $digit \_ \']*
 
 @special = \\\\ | \\\"
 
