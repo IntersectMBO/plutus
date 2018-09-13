@@ -48,4 +48,5 @@ braces' = section "{" "}"
 -- | This prints a document enclosed by parentheses, aligning the opening and
 -- closing parentheses.
 parens' :: Doc a -> Doc a
-parens' = vsepSquish . (\d -> ["(" <> d, ")"])
+parens' d = vsepSquish ["(" <> d, ")"]
+
