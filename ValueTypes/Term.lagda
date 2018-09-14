@@ -96,32 +96,31 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-
-  Λ_ : ∀ {Γ K Δ}
-    → {B : ∥ Δ ∥ ,⋆ K ⊢⋆ *}
-    → {vs : Env⋆ ∥ Γ ∥ ∥ Δ ∥}
-    → Γ ,⋆ K ⊢ eval B (extEnv vs)
+  Λ_ : ∀ {Γ K}
+    → {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
+    → Γ ,⋆ K ⊢ eval B idEnv
       ----------
-    → Γ ⊢ Π B vs
+    → Γ ⊢ Π B idEnv
 
-
-  _·⋆_ : ∀ {Γ Δ K}
-    → {B : Δ ,⋆ K ⊢⋆ *}
-    → {vs : Env⋆ ∥ Γ ∥ Δ}
-    → Γ ⊢ Π B vs
+  _·⋆_ : ∀ {Γ K}
+    → {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
+    → Γ ⊢ Π B idEnv
     → (A : ∥ Γ ∥ ⊢V⋆ K)
       ---------------
-    → Γ ⊢ eval B (vcons vs A)
+    → Γ ⊢ B ⟦ A ⟧
 
-  wrap : ∀{Γ Δ}
-    → {B : Δ ,⋆ * ⊢⋆ *}
-    → {vs : Env⋆ ∥ Γ ∥ Δ}
-    → (M : Γ ⊢ eval B (vcons vs (μ B vs)))
-    → Γ ⊢ μ B vs
+  wrap : ∀{Γ}
+    → {B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
+    → (M : Γ ⊢ B ⟦ μ B idEnv ⟧)
+    → Γ ⊢ μ B idEnv
 
-  unwrap : ∀{Γ Δ}
-    → {B : Δ ,⋆ * ⊢⋆ *}
-    → {vs : Env⋆ ∥ Γ ∥ Δ}
-    → (M : Γ ⊢ μ B vs)
-    → Γ ⊢ eval B (vcons vs (μ B vs))
+  unwrap : ∀{Γ}
+    → {B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
+    → (M : Γ ⊢ μ B idEnv)
+    → Γ ⊢ B ⟦ μ B idEnv ⟧
+
+  conv : ∀{Γ}{A A' : ∥ Γ ∥ ⊢V⋆ *}
+    → A V≡ A'
+    → Γ ⊢ A
+    → Γ ⊢ A'
 \end{code}

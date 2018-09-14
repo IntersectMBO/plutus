@@ -13,8 +13,11 @@ infix  4 _⊢V⋆_
 ## Imports
 
 \begin{code}
+open import Function
+
 open import Type
 open import Type.RenamingSubstitution
+open import Type.Equality
 \end{code}
 
 ## Type Values
@@ -78,11 +81,6 @@ data _⊢V⋆_ where
 \end{code}
 
 \begin{code}
-{-
-lookup⋆ : ∀{Δ Γ} → Env⋆ Δ Γ → ∀ {J} → Γ ∋⋆ J → Δ ⊢V⋆ J
-lookup⋆ (σ ,⋆ A) Z = A
-lookup⋆ (σ ,⋆ A) (S x) = lookup⋆ σ x
--}
 vcons : ∀{Γ Δ} → (σ : Env⋆ Δ Γ) → ∀{K}(A : Δ ⊢V⋆ K) → Env⋆ Δ (Γ ,⋆ K)
 vcons σ A Z     = A
 vcons σ A (S x) = σ x
@@ -101,6 +99,16 @@ eval (ƛ t)   vs = ƛ t vs
 
 ƛ t vs ·V v = eval t (vcons vs v) 
 ne n   ·V v = ne (n · v)
+\end{code}
+
+\begin{code}
+idEnv : ∀{Γ K} → Γ ∋⋆ K → Γ ⊢V⋆ K
+idEnv = λ x → ne (` x)
+\end{code}
+
+\begin{code}
+_⟦_⟧ : ∀{ϕ J K} → ϕ ,⋆ K ⊢⋆ J → ϕ ⊢V⋆ K → ϕ ⊢V⋆ J
+t ⟦ v ⟧ = eval t (vcons idEnv v )
 \end{code}
 
 \begin{code}
@@ -152,4 +160,31 @@ extEnv : ∀ {Φ Ψ} → (∀ {J} → Φ ∋⋆ J → Ψ ⊢V⋆ J)
   → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢V⋆ J)
 extEnv ρ Z      =  ne (` Z)
 extEnv ρ (S α)  =  renameV S_ (ρ α)
+\end{code}
+
+A weak head equality for type values, a bit like values for equations
+
+\begin{code}
+data _V≡_ {Γ} : ∀{J} → Γ ⊢V⋆ J → Γ ⊢V⋆ J → Set where
+  ⇒V≡ : {A A' B B' : Γ ⊢V⋆ *}
+    -- the others rules are like closures, this one isn't...
+    → A V≡ A'
+    → B V≡ B'
+      --------------------
+    → (A ⇒ B) V≡ (A' ⇒ B')
+  ΠV≡ : ∀{J Δ}{B B' : Δ ,⋆ J ⊢⋆ *}{vs vs' : Env⋆ Γ Δ}
+    → (∀{J}(x : Δ ∋⋆ J) → vs x V≡ vs' x)
+    → B ≡β B'
+      ---------------
+    → (Π B vs) V≡ (Π B' vs')
+  ƛV≡ : ∀{J Δ}{B B' : Δ ,⋆ J ⊢⋆ *}{vs vs' : Env⋆ Γ Δ}
+    → (∀{J}(x : Δ ∋⋆ J) → vs x V≡ vs' x)
+    → B ≡β B'
+      ---------------
+    → (ƛ B vs) V≡ (ƛ B' vs')
+  μV≡ : ∀{J Δ}{B B' : Δ ,⋆ J ⊢⋆ *}{vs vs' : Env⋆ Γ Δ}
+    → (∀{J}(x : Δ ∋⋆ J) → vs x V≡ vs' x)
+    → B ≡β B'
+      ---------------
+    → (μ B vs) V≡ (μ B' vs')
 \end{code}

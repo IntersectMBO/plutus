@@ -85,27 +85,3 @@ subst≡β σ (β≡β {B = B}{A = A}) =
           (subst-comp (subst-cons `_ A) σ B))
           β≡β
 \end{code}
-
-A weak head equality for type values, a bit like values for equations
-
-\begin{code}
-data _V≡_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
-  ⇒V≡ : {A A' B B' : Γ ⊢⋆ *}
-    -- the others rules are like closures, this one isn't...
-    → A ≡β A'
-    → B ≡β B'
-      --------------------
-    → (A ⇒ B) V≡ (A' ⇒ B')
-  ΠV≡ : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}
-    → B ≡β B'
-      ---------------
-    → (Π B) V≡ (Π B')
-  ƛV≡ : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}
-    → B ≡β B'
-      ---------------
-    → (ƛ B) V≡ (ƛ B')
-  μV≡ : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}
-    → B ≡β B'
-      ---------------
-    → (μ B) V≡ (μ B')
-\end{code}
