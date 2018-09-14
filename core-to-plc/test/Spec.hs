@@ -109,6 +109,7 @@ datat :: TestTree
 datat = testGroup "Data" [
     monoData
   , polyData
+  , newtypes
   ]
 
 monoData :: TestTree
@@ -156,6 +157,22 @@ polyDataType = plc (\(x:: MyPolyData Int Int) -> x)
 
 polyConstructed :: PlcCode
 polyConstructed = plc (Poly1 (1::Int) (2::Int))
+
+newtypes :: TestTree
+newtypes = testGroup "Newtypes" [
+    golden "basicNewtype" basicNewtype
+   --, golden "newtypeMatch" newtypeMatch
+   ]
+
+newtype MyNewtype = MyNewtype Int
+
+basicNewtype :: PlcCode
+basicNewtype = plc (\(x::MyNewtype) -> x)
+
+{- CGP-286, this creates a coercion
+newtypeMatch :: PlcCode
+newtypeMatch = plc (\(MyNewtype x) -> x)
+-}
 
 recursion :: TestTree
 recursion = testGroup "Recursive functions" [
