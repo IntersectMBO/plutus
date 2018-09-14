@@ -10,21 +10,21 @@
               b_1
               (type)
               (lam
-                poly1_arg0_5
+                Poly1_arg0_5
                 a_0
                 (lam
-                  poly1_arg1_6
+                  Poly1_arg1_6
                   b_1
                   (abs
-                    myPolyData_matchOut_2
+                    MyPolyData_matchOut_2
                     (type)
                     (lam
-                      poly1_3
-                      (fun a_0 (fun b_1 myPolyData_matchOut_2))
+                      Poly1_3
+                      (fun a_0 (fun b_1 MyPolyData_matchOut_2))
                       (lam
-                        poly2_4
-                        (fun a_0 myPolyData_matchOut_2)
-                        [ [ poly1_3 poly1_arg0_5 ] poly1_arg1_6 ]
+                        Poly2_4
+                        (fun a_0 MyPolyData_matchOut_2)
+                        [ [ Poly1_3 Poly1_arg0_5 ] Poly1_arg1_6 ]
                       )
                     )
                   )

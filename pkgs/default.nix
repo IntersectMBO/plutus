@@ -15647,6 +15647,7 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , base
 , bytestring
+, cborg
 , containers
 , ghc
 , language-plutus-core
@@ -15669,6 +15670,7 @@ src = ./../core-to-plc;
 libraryHaskellDepends = [
 base
 bytestring
+cborg
 containers
 ghc
 language-plutus-core

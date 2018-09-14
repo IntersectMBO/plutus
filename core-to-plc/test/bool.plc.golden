@@ -1,7 +1,7 @@
 (program 1.0.0
   (abs
-    bool_matchOut_0
+    Bool_matchOut_0
     (type)
-    (lam false_1 bool_matchOut_0 (lam true_2 bool_matchOut_0 true_2))
+    (lam False_1 Bool_matchOut_0 (lam True_2 Bool_matchOut_0 True_2))
   )
 )

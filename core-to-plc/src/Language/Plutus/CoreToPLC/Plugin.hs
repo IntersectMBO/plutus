@@ -3,9 +3,6 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
--- See Note [Deserializing the AST]
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC
@@ -18,6 +15,7 @@ import           Language.PlutusCore.Quote
 
 import           Language.Haskell.TH.Syntax      as TH
 
+import           Codec.CBOR.Read                 (DeserialiseFailure)
 import           Control.Exception
 import           Control.Monad.Except
 import           Control.Monad.Reader
@@ -26,8 +24,19 @@ import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
 import           Data.Text                       as T
 
--- Note: we construct this by coercing, so this *must* remain representationally equivalent to '[Word]'
--- unless we change how conversion works, and *must* be abstract.
+{- Note [Constructing the final program]
+Our final type is a simple newtype wrapper. However, constructing *anything* in Core
+is a pain - we have to go off and find the right constructor, ensure we've applied it
+correctly etc. But since it *is* just a wrapper... we can just put in a coercion!
+
+Very nice and easy, but we need to make sure we don't stop being a simple newtype
+without revisiting this.
+
+We also obviously don't want to break anyone by changing the internals, so the type
+should be abstract.
+-}
+
+-- See Note [Constructing the final program]
 -- | A PLC program.
 newtype PlcCode = PlcCode { unPlc :: [Word] }
 
@@ -36,11 +45,18 @@ getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
-However, we just did it ourselves, so this should be impossible. Possibly we should surface
-the error somehow, but passing it on to the user seems like quite an annoying UI.
+However, we just did it ourselves, so this should be impossible, and we signal this with an
+exception.
 -}
+data ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DeserialiseFailure
+instance Show ImpossibleDeserialisationFailure where
+    show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ (show e)
+instance Exception ImpossibleDeserialisationFailure
+
 getAst :: PlcCode -> PLC.Program PLC.TyName PLC.Name ()
-getAst wrapper = let Right p = PLC.readProgram $ getSerializedCode wrapper in p
+getAst wrapper = case PLC.readProgram $ getSerializedCode wrapper of
+    Left e  -> throw $ ImpossibleDeserialisationFailure e
+    Right p -> p
 
 -- | Marks the given expression for conversion to PLC.
 plc :: a -> PlcCode
@@ -61,15 +77,14 @@ pluginPass guts = qqMarkerName >>= \case
 
 {- Note [Hooking in the plugin]
 Working out what to process and where to put it is tricky. We are going to turn the result in
-to a String, or maybe a Bytestring or an AST, either way, not the Haskell expression we started with!
+to a 'PlcCode', not the Haskell expression we started with!
 
-Currently we look for calls to the 'plc :: a -> PLC' function, and we replace the whole application with the
-string, which will still be well-typed.
+Currently we look for calls to the 'plc :: a -> PlcCode' function, and we replace the whole application with the
+generated code object, which will still be well-typed.
 
-However, if we do this within a single expression, we have problems where GHC gives unconstrained
-type variables the type `Any` rather than leaving them abstracted as we require (see
-note [System FC and system FW]). I think we can do better but I need to figure out how to actually
-look up a name.
+However, if we do this with a polymorphic expression as the argument to 'plc', we have problems
+where GHC gives unconstrained type variables the type `Any` rather than leaving them abstracted as we require (see
+note [System FC and system FW]). I don't currently know how to resolve this.
 -}
 
 qqMarkerName :: GHC.CoreM (Maybe GHC.Name)
@@ -96,7 +111,8 @@ convertMarkedExprsBind markerName = \case
 
 -- | Converts all the marked expressions in the given expression into PLC literals.
 convertMarkedExprs :: GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
-convertMarkedExprs markerName = let
+convertMarkedExprs markerName =
+    let
         conv = convertMarkedExprs markerName
         convB = convertMarkedExprsBind markerName
     in \case
@@ -120,10 +136,10 @@ convertMarkedExprs markerName = let
             pure $ GHC.Case e' b t alts'
       GHC.Cast e c -> flip GHC.Cast c <$> conv e
       GHC.Tick t e -> GHC.Tick t <$> conv e
-      e@(GHC.Coercion _) -> return e
-      e@(GHC.Lit _) -> return e
-      e@(GHC.Var _) -> return e
-      e@(GHC.Type _) -> return e
+      e@(GHC.Coercion _) -> pure e
+      e@(GHC.Lit _) -> pure e
+      e@(GHC.Var _) -> pure e
+      e@(GHC.Type _) -> pure e
 
 data CoreToPlcFailure = CoreToPlcFailure
 
@@ -172,6 +188,5 @@ convertExpr origE tpe = do
             -- doesn't know that.
             let (wordExprs :: [GHC.CoreExpr]) = fmap (GHC.mkWordExprWord flags) word8s
             let listExpr = GHC.mkListExpr GHC.wordTy wordExprs
-            -- Our result type is representationally equivalent to [Word],
-            -- so we can insert a simple coercion here
+            -- See Note [Constructing the final program]
             pure $ GHC.Cast listExpr $ GHC.mkRepReflCo tpe

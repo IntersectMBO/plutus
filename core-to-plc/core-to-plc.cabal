@@ -44,6 +44,7 @@ library
         template-haskell -any,
         language-plutus-core -any,
         containers -any,
+        cborg -any,
         mtl -any,
         transformers -any,
         bytestring -any,

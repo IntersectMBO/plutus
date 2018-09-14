@@ -121,19 +121,20 @@ support unicode identifiers as well.
 -}
 
 safeFreshName :: MonadQuote m => String -> m (PLC.Name ())
-safeFreshName s = let
-            -- See Note [PLC names]
-            -- first strip out disallowed characters
-            stripped = filter (\c -> isLetter c || isDigit c || c == '_' || c == '`') s
-            -- now fix up some other bits
-            fixed = case stripped of
-              -- empty name, just put something to mark that
-              []      -> "bad_name"
-              -- can't start with these
-              ('`':_) -> "p" ++ stripped
-              ('_':_) -> "p" ++ stripped
-              (c:cs)  -> toLower c : cs
-      in liftQuote $ freshName () $ strToBs fixed
+safeFreshName s =
+    let
+        -- See Note [PLC names]
+        -- first strip out disallowed characters
+        stripped = filter (\c -> isLetter c || isDigit c || c == '_' || c == '`') s
+        -- now fix up some other bits
+        fixed = case stripped of
+          -- empty name, just put something to mark that
+          []      -> "bad_name"
+          -- can't start with these
+          ('`':_) -> "p" ++ stripped
+          ('_':_) -> "p" ++ stripped
+          n       -> n
+    in liftQuote $ freshName () $ strToBs fixed
 
 convNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
 convNameFresh n = safeFreshName $ GHC.getOccString n
@@ -286,7 +287,8 @@ convDataCons tc dcs =
         pure $ mkScottTyBody resultType cases
 
 mkScottTyBody :: PLC.TyName () -> [PLCType] -> PLCType
-mkScottTyBody resultTypeName cases = let
+mkScottTyBody resultTypeName cases =
+    let
         -- we can only match into kind Type
         resultKind = PLC.Type ()
         -- See Note [Iterated abstraction and application]
@@ -294,8 +296,7 @@ mkScottTyBody resultTypeName cases = let
         funcs = foldr (\t acc -> PLC.TyFun () t acc) (PLC.TyVar () resultTypeName) cases
         -- forall resultType . funcs
         resultAbstracted = PLC.TyForall () resultTypeName resultKind funcs
-    in
-        resultAbstracted
+    in resultAbstracted
 
 dataConCaseType :: Converting m => PLCType -> GHC.DataCon -> m PLCType
 dataConCaseType resultType dc = if not (GHC.isVanillaDataCon dc) then unsupported $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc else
@@ -308,7 +309,8 @@ dataConCaseType resultType dc = if not (GHC.isVanillaDataCon dc) then unsupporte
 
 -- This is the creation of the Scott-encoded constructor value.
 convConstructor :: Converting m => GHC.DataCon -> m PLCExpr
-convConstructor dc = let
+convConstructor dc =
+    let
         tc = GHC.dataConTyCon dc
         tcName = GHC.getOccString $ GHC.tyConName tc
         dcName = GHC.getOccString $ GHC.dataConName dc
@@ -328,7 +330,8 @@ convConstructor dc = let
             pure $ mkScottConstructorBody resultType (zip caseArgNames caseTypes) (zip argNames argTypes) index
 
 mkScottConstructorBody :: PLC.TyName () -> [(PLC.Name (), PLCType)] -> [(PLC.Name (), PLCType)] -> Int -> PLCExpr
-mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index = let
+mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
+    let
         -- data types are always in kind Type
         resultKind = PLC.Type ()
         thisConstructor = fst $ caseNamesAndTypes !! index
@@ -341,8 +344,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
         resAbstracted = PLC.TyAbs () resultTypeName resultKind cfuncs
         -- \a_1 .. a_m . abstracted
         afuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) resAbstracted argNamesAndTypes
-    in
-        afuncs
+    in afuncs
 
 convAlt :: Converting m => GHC.CoreAlt -> m PLCExpr
 convAlt (alt, vars, body) = case alt of
@@ -512,8 +514,17 @@ mkTyLam v body = do
     pure $ PLC.TyLam () t' k' body'
 
 -- Simulating laziness
--- TODO: These could all be actual language values rather than metalanguage things, perhaps that would be neater?
--- the downside would be that without simplification it would make the generated terms more complex
+{- Note [Object- vs meta-language combinators]
+Many of the things we define as *meta*-langugage combinators (i.e. operations on terms) could be defined
+as combinators in the object language (i.e. terms). For example, we can define 'delay' as taking a term
+and returning a lambda that takes unit and returns the term, or we could define a 'delay' term
+
+\t : a . \u : unit . t
+
+We generally prefer the metalanguage approach despite the fact that we could share combinators
+with the standard library because it makes the generated terms simpler without the need for
+a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
+-}
 
 delay :: MonadQuote m => PLCExpr -> m PLCExpr
 delay body = PLC.LamAbs () <$> safeFreshName "thunk" <*> liftQuote Unit.getBuiltinUnit <*> pure body

@@ -1,7 +1,7 @@
 (program 1.0.0
   (abs
-    myEnum_matchOut_0
+    MyEnum_matchOut_0
     (type)
-    (lam enum1_1 myEnum_matchOut_0 (lam enum2_2 myEnum_matchOut_0 enum1_1))
+    (lam Enum1_1 MyEnum_matchOut_0 (lam Enum2_2 MyEnum_matchOut_0 Enum1_1))
   )
 )
