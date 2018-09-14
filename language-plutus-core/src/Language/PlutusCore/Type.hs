@@ -25,6 +25,8 @@ module Language.PlutusCore.Type ( Term (..)
                                 , RenamedType
                                 , RenamedTerm
                                 , TyNameWithKind (..)
+                                -- * Normalized types
+                                , NormalizedType (..)
                                 ) where
 
 import qualified Data.ByteString.Lazy           as BSL
@@ -259,3 +261,10 @@ instance PrettyCfg (TyNameWithKind a) where
 instance PrettyCfg (NameWithType a) where
     prettyCfg cfg@(Configuration _ True) (NameWithType n@(Name (_, ty) _ _)) = parens (prettyCfg cfg n <+> ":" <+> prettyCfg cfg ty)
     prettyCfg cfg@(Configuration _ False) (NameWithType n) = prettyCfg cfg n
+
+newtype NormalizedType tyname a = NormalizedType { getNormalizedType :: Type tyname a }
+    deriving (Show, Eq, Functor, Generic)
+    deriving newtype NFData
+
+instance PrettyCfg (tyname a) => PrettyCfg (NormalizedType tyname a) where
+    prettyCfg cfg (NormalizedType ty) = prettyCfg cfg ty

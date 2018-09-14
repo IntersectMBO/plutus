@@ -39,7 +39,7 @@ instance (PrettyCfg a) => PrettyCfg (RenameError a) where
 
 data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
                  | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
-                 | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (Type TyNameWithKind ())
+                 | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (NormalizedType TyNameWithKind ())
                  | OutOfGas
                  deriving (Show, Eq, Generic, NFData)
 
