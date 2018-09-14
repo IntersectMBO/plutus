@@ -1,6 +1,8 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE MonadComprehensions #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE MonadComprehensions  #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , typecheckTerm
@@ -31,7 +33,9 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (Either (TypeError a)))
+type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (ExceptT (TypeError a) Quote))
+
+instance MonadQuote (TypeCheckM a) where
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -114,13 +118,12 @@ kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWit
 kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: (MonadError (TypeError a) m, MonadQuote m)
-              => Natural -- ^ Amount of gas to provide typechecker
+runTypeCheckM :: Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
-              -> m b
+              -> ExceptT (TypeError a) Quote b
 runTypeCheckM i tc = do
     table <- defaultTable
-    liftEither $ runReaderT (evalStateT tc i) table
+    runReaderT (evalStateT tc i) table
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
@@ -228,22 +231,23 @@ typeOf (TyInst x t ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) (void ty) ty''))
+                then tyReduce =<< tySubstitute (extractUnique n) (void ty) ty''
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void ty'))
 typeOf (Unwrap x t) = do
     ty <- typeOf t
     case ty of
         TyFix _ n ty' -> do
-            let subst = tySubstitute (extractUnique n) ty ty'
+            subst <- tySubstitute (extractUnique n) ty ty'
             typeCheckStep
-            pure (tyReduce subst)
+            tyReduce subst
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf (Wrap x n ty t) = do
     ty' <- typeOf t
-    let fixed = tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
+    fixed <- tySubstitute (extractUnique n) (TyFix () (void n) (void ty)) (void ty)
     typeCheckStep
-    if tyReduce fixed == ty'
+    red <- tyReduce fixed
+    if red == ty'
         then pure (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void t) fixed (void ty'))
 
@@ -255,25 +259,26 @@ fixUniversals = cataM a where
     a (TyForallF x tn@(TyNameWithKind (TyName (Name x' s _))) k ty) = do
         u <- liftQuote freshUnique
         let tn' = TyNameWithKind (TyName (Name x' s u))
-        pure $ TyForall x tn' k (tySubstitute (extractUnique tn) (TyVar (fst x') tn') ty)
+        TyForall x tn' k <$> tySubstitute (extractUnique tn) (TyVar (fst x') tn') ty
     a x = pure (embed x)
 
 -- TODO: make type substitutions occur in a state monad + benchmark
-tySubstitute :: Unique -- ^ Unique associated with type variable
+tySubstitute :: MonadQuote m
+             => Unique -- ^ Unique associated with type variable
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
              -> Type TyNameWithKind a -- ^ Type we are substituting in
-             -> Type TyNameWithKind a
-tySubstitute u ty = cata a where -- FIXME: subtituting a Forall type can then require rewriting
-    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
-    a x                                                  = embed x
+             -> m (Type TyNameWithKind a)
+tySubstitute u ty = cataM a where -- FIXME: subtituting a Forall type can then require rewriting
+    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = fixUniversals ty
+    a x                                                  = pure (embed x)
 
 -- also this should involve contexts
-tyReduce :: Type TyNameWithKind a -> Type TyNameWithKind a
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' (tyReduce ty) -- TODO: use the substitution monad here
-tyReduce (TyForall x tn k ty)                                                = TyForall x tn k (tyReduce ty)
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x (tyReduce ty) (tyReduce ty')
-                          | otherwise                                        = TyFun x (tyReduce ty) ty'
-tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k (tyReduce ty)
-tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x (tyReduce ty) (tyReduce ty')
-                          | otherwise                                        = TyApp x (tyReduce ty) ty'
-tyReduce x                                                                   = x
+tyReduce :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = tySubstitute u ty' =<< tyReduce ty -- TODO: use the substitution monad here
+tyReduce (TyForall x tn k ty)                                                = TyForall x tn k <$> tyReduce ty
+tyReduce (TyFun x ty ty') | isTypeValue ty                                   = TyFun x <$> tyReduce ty <*> tyReduce ty'
+                          | otherwise                                        = TyFun x <$> tyReduce ty <*> pure ty'
+tyReduce (TyLam x tn k ty)                                                   = TyLam x tn k <$> tyReduce ty
+tyReduce (TyApp x ty ty') | isTypeValue ty                                   = TyApp x <$> tyReduce ty <*> tyReduce ty'
+                          | otherwise                                        = TyApp x <$> tyReduce ty <*> pure ty'
+tyReduce x                                                                   = pure x
