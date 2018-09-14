@@ -167,7 +167,7 @@ convertExpr origE tpe = do
                 "Failed to convert GHC core expression:" GHC.$+$
                 GHC.ppr origE GHC.$+$
                 "Error is:" GHC.$+$
-                (GHC.text $ T.unpack $ errorText s)
+                (GHC.text $ T.unpack $ PLC.debugText s)
             -- this will actually terminate compilation
             liftIO $ throwIO CoreToPlcFailure
         Right (term, _) -> do
