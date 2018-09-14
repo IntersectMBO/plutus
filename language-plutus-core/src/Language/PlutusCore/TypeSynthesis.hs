@@ -120,7 +120,7 @@ runTypeCheckM :: (MonadError (TypeError a) m, MonadQuote m)
               -> m b
 runTypeCheckM i tc = do
     table <- defaultTable
-    liftEither $ fst <$> runReaderT (runStateT tc i) table
+    liftEither $ runReaderT (evalStateT tc i) table
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
