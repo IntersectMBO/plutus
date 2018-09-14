@@ -12,6 +12,8 @@ module Language.PlutusCore.Name ( -- * Types
                                 , newIdentifier
                                 , emptyIdentifierState
                                 , identifierStateFrom
+                                , mapNameString
+                                , mapTyNameString
                                 ) where
 
 import           Control.Monad.State
@@ -36,6 +38,14 @@ data Name a = Name { nameAttribute :: a
 newtype TyName a = TyName { unTyName :: Name a }
     deriving (Show, Lift)
     deriving newtype (Eq, Ord, Functor, NFData, PrettyCfg)
+
+-- | Apply a function to the string representation of a 'Name'.
+mapNameString :: (BSL.ByteString -> BSL.ByteString) -> Name a -> Name a
+mapNameString f name = name { nameString = f $ nameString name }
+
+-- | Apply a function to the string representation of a 'TyName'.
+mapTyNameString :: (BSL.ByteString -> BSL.ByteString) -> TyName a -> TyName a
+mapTyNameString f (TyName name) = TyName $ mapNameString f name
 
 instance Eq (Name a) where
     (==) = (==) `on` nameUnique

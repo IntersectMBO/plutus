@@ -1,0 +1,7 @@
+(program 1.0.0
+  (abs
+    MyEnum_matchOut_0
+    (type)
+    (lam Enum1_1 MyEnum_matchOut_0 (lam Enum2_2 MyEnum_matchOut_0 Enum1_1))
+  )
+)
