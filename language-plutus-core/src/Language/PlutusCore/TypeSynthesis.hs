@@ -61,35 +61,35 @@ unit :: MonadQuote m => m (Type TyNameWithKind ())
 unit =
     [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
 
-boolean :: MonadQuote m => m (NormalizedType TyNameWithKind ())
+boolean :: MonadQuote m => m (Type TyNameWithKind ())
 boolean = do
     nam <- newTyName (Type ())
     (u, u') <- (,) <$> unit <*> unit
     let var = TyVar () nam
         unitVar = TyFun () u var
         unitVar' = TyFun () u' var
-    pure $ NormalizedType $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
+    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
 
 builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
     nam <- newTyName (Size ())
-    b <- getNormalizedType <$> boolean
-    let ity = getNormalizedType (builtinType bi nam)
+    b <- boolean
+    let ity = builtinType bi nam
         fty = TyFun () ity (TyFun () ity b)
     pure $ TyForall () nam (Size ()) fty
 
 blocknum :: MonadQuote m => m (NormalizedType TyNameWithKind ())
 blocknum = do
     nam <- newTyName (Size ())
-    let ity = getNormalizedType (integer nam)
-        sty = getNormalizedType (size nam)
+    let ity = integer nam
+        sty = size nam
         fty = TyFun () sty ity
     pure $ NormalizedType $ TyForall () nam (Size ()) fty
 
 concatenateType :: MonadQuote m => m (NormalizedType TyNameWithKind ())
 concatenateType = do
     nam <- newTyName (Size ())
-    let bty = getNormalizedType (bytestring nam)
+    let bty = bytestring nam
         fty = TyFun () bty (TyFun () bty bty)
     pure $ NormalizedType $ TyForall () nam (Size ()) fty
 
@@ -97,30 +97,30 @@ modByteString :: MonadQuote m => m (NormalizedType TyNameWithKind ())
 modByteString = do
     nam <- newTyName (Size ())
     nam' <- newTyName (Size ())
-    let ity = getNormalizedType (integer nam)
-        bty = getNormalizedType (bytestring nam')
+    let ity = integer nam
+        bty = bytestring nam'
         fty = TyFun () ity (TyFun () bty bty)
     pure $ NormalizedType $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
 
-builtinType :: TypeBuiltin -> TyNameWithKind () -> NormalizedType TyNameWithKind ()
-builtinType bi nam = NormalizedType $ TyApp () (TyBuiltin () bi) (TyVar () nam)
+builtinType :: TypeBuiltin -> TyNameWithKind () -> Type TyNameWithKind ()
+builtinType bi nam = TyApp () (TyBuiltin () bi) (TyVar () nam)
 
-size :: TyNameWithKind () -> NormalizedType TyNameWithKind ()
+size :: TyNameWithKind () -> Type TyNameWithKind ()
 size = builtinType TySize
 
-integer :: TyNameWithKind () -> NormalizedType TyNameWithKind ()
+integer :: TyNameWithKind () -> Type TyNameWithKind ()
 integer = builtinType TyInteger
 
-bytestring :: TyNameWithKind () -> NormalizedType TyNameWithKind ()
+bytestring :: TyNameWithKind () -> Type TyNameWithKind ()
 bytestring = builtinType TyByteString
 
 resizeIntType :: MonadQuote m => m (NormalizedType TyNameWithKind ())
 resizeIntType = do
     nam <- newTyName (Size ())
     nam' <- newTyName (Size ())
-    let sty = getNormalizedType (size nam')
-        ity = getNormalizedType (integer nam)
-        ity' = getNormalizedType (integer nam')
+    let sty = size nam'
+        ity = integer nam
+        ity' = integer nam'
         fty = TyFun () sty (TyFun () sty (TyFun () ity ity'))
     pure $ NormalizedType $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
 
