@@ -13,6 +13,7 @@ import           Language.Plutus.CoreToPLC.Primitives     as Prims
 import qualified Class                                    as GHC
 import qualified GhcPlugins                               as GHC
 import qualified Kind                                     as GHC
+import qualified Pair                                     as GHC
 import qualified PrelNames                                as GHC
 import qualified PrimOp                                   as GHC
 
@@ -222,6 +223,17 @@ convTyCon tc = do
         Nothing -> do
             dcs <- getDataCons tc
             convDataCons tc dcs
+
+-- | Wrapper for a pair of types with a direction of wrapping or unwrapping.
+data NewtypeCoercion = Wrap GHC.Type GHC.Type
+                     | Unwrap GHC.Type GHC.Type
+
+-- | View a 'GHC.Coercion' as possibly a newtype coercion.
+splitNewtypeCoercion :: GHC.Coercion -> Maybe NewtypeCoercion
+splitNewtypeCoercion coerce = case GHC.coercionKind coerce of
+    (GHC.Pair lhs@(GHC.splitTyConApp_maybe -> Just (GHC.unwrapNewTyCon_maybe -> Just (_, inner, _), _)) rhs) | GHC.eqType rhs inner -> Just $ Unwrap lhs rhs
+    (GHC.Pair lhs rhs@(GHC.splitTyConApp_maybe -> Just (GHC.unwrapNewTyCon_maybe -> Just (_, inner, _), _))) | GHC.eqType lhs inner -> Just $ Wrap lhs rhs
+    _ -> Nothing
 
 -- Data
 
@@ -734,8 +746,24 @@ convExpr e = do
             force $ foldl' (\acc alt -> PLC.Apply () acc alt) instantiated branches
         -- ignore annotation
         GHC.Tick _ body -> convExpr body
-        -- just go straight to the body, we don't care about the nominal types
-        GHC.Cast _ coerce -> unsupported $ "Coercion" GHC.$+$ GHC.ppr coerce
+        GHC.Cast body coerce -> do
+            body' <- convExpr body
+            case splitNewtypeCoercion coerce of
+                Just (Unwrap _ inner) -> do
+                    -- unwrap by doing a "trivial match" - instantiate to the inner type and apply the identity
+                    inner' <- convType inner
+                    let instantiated = PLC.TyInst () body' inner'
+                    name <- safeFreshName "inner"
+                    let identity = PLC.LamAbs () name inner' (PLC.Var () name)
+                    pure $ PLC.Apply () instantiated identity
+                Just (Wrap inner _) -> do
+                    -- wrap by creating a matcher
+                    -- could treat this like a unary tuple, but I think it's clearer to do it on its own
+                    inner' <- convType inner
+                    tyName <- safeFreshTyName "match_out"
+                    name <- safeFreshName "c"
+                    pure $ PLC.TyAbs () tyName (PLC.Type ()) $ PLC.LamAbs () name (PLC.TyFun () inner' (PLC.TyVar () tyName)) $ PLC.Apply () (PLC.Var () name) body'
+                _ -> unsupported $ "Coercion" GHC.$+$ GHC.ppr coerce
         GHC.Type _ -> conversionFail "Cannot convert types directly, only as arguments to applications"
         GHC.Coercion _ -> conversionFail "Coercions should not be converted"
     `catchError` (context $ "While converting expr:" GHC.<+> GHC.ppr e)

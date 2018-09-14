@@ -161,18 +161,26 @@ polyConstructed = plc (Poly1 (1::Int) (2::Int))
 newtypes :: TestTree
 newtypes = testGroup "Newtypes" [
     golden "basicNewtype" basicNewtype
-   --, golden "newtypeMatch" newtypeMatch
+   , golden "newtypeMatch" newtypeMatch
+   , golden "newtypeCreate" newtypeCreate
+   , golden "nestedNewtypeMatch" nestedNewtypeMatch
    ]
 
 newtype MyNewtype = MyNewtype Int
 
+newtype MyNewtype2 = MyNewtype2 MyNewtype
+
 basicNewtype :: PlcCode
 basicNewtype = plc (\(x::MyNewtype) -> x)
 
-{- CGP-286, this creates a coercion
 newtypeMatch :: PlcCode
 newtypeMatch = plc (\(MyNewtype x) -> x)
--}
+
+newtypeCreate :: PlcCode
+newtypeCreate = plc (\(x::Int) -> MyNewtype x)
+
+nestedNewtypeMatch :: PlcCode
+nestedNewtypeMatch = plc (\(MyNewtype2 (MyNewtype x)) -> x)
 
 recursion :: TestTree
 recursion = testGroup "Recursive functions" [
