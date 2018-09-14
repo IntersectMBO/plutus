@@ -273,8 +273,8 @@ getDataCons tc
         GHC.AbstractTyCon                -> unsupported $ "Abstract type:" GHC.<+> GHC.ppr tc
         GHC.DataTyCon{GHC.data_cons=dcs} -> pure dcs
         GHC.TupleTyCon{GHC.data_con=dc}  -> pure [dc]
-        GHC.SumTyCon{}                   -> unsupported $ "Sum type:" GHC.<+> GHC.ppr tc
-        GHC.NewTyCon{}                   -> unsupported $ "Newtype:" GHC.<+> GHC.ppr tc
+        GHC.SumTyCon{GHC.data_cons=dcs}  -> pure dcs
+        GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
     | otherwise = unsupported $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 -- This is the creation of the Scott-encoded datatype type. See Note [Scott encoding of datatypes]
