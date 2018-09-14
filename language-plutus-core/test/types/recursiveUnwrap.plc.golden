@@ -1,0 +1,14 @@
+Type mismatch at 4:5 in term
+  '(lam
+    head
+    [(con integer) (con 64)]
+    (lam
+      tail
+      (fix list (all r (type) (fun [(con integer) (con 64)] (fun (fun [(con integer) (con 64)] (fun list [(con integer) (con 64)])) [(con integer) (con 64)]))))
+      head
+    )
+  )'.
+Expected type
+  '(fun [(con integer) (con 64)] (fun (fix list (all r (type) (fun r (fun (fun [(con integer) (con 64)] (fun list r)) r)))) [(con integer) (con 64)]))',
+found type
+  '(fun [(con integer) (con 64)] (fun (fix list (all r (type) (fun [(con integer) (con 64)] (fun (fun [(con integer) (con 64)] (fun list [(con integer) (con 64)])) [(con integer) (con 64)])))) [(con integer) (con 64)]))'
