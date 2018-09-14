@@ -1,1 +1,0 @@
-(all a (type) (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))))
