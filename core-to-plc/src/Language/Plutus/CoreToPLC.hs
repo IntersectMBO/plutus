@@ -723,6 +723,6 @@ convExpr e = do
         -- ignore annotation
         GHC.Tick _ body -> convExpr body
         -- just go straight to the body, we don't care about the nominal types
-        GHC.Cast body _ -> convExpr body
+        GHC.Cast _ coerce -> unsupported $ "Unsupported: coercion" GHC.$+$ GHC.ppr coerce
         GHC.Type _ -> conversionFail "Cannot convert types directly, only as arguments to applications"
         GHC.Coercion _ -> conversionFail "Coercions should not be converted"
