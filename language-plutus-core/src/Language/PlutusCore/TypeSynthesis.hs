@@ -15,6 +15,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
+import           Data.Functor.Foldable.Monadic
 import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
@@ -54,7 +55,7 @@ bsRel = builtinRel TyByteString
 -- | Create a dummy 'TyName'
 newTyName :: (MonadQuote m) => Kind () -> m (TyNameWithKind ())
 newTyName k = do
-    u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
+    u <- liftQuote freshUnique
     pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
 
 unit :: MonadQuote m => m (Type TyNameWithKind ())
@@ -249,9 +250,13 @@ typeOf (Wrap x n ty t) = do
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
--- fixUniversals :: Type TyNameWithKind a -> m (Type TyNameWithKind a)
--- fixUniversals = cataM where
-    -- a (TyForallF x tn k ty) =
+fixUniversals :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
+fixUniversals = cataM a where
+    a (TyForallF x tn@(TyNameWithKind (TyName (Name x' s _))) k ty) = do
+        u <- liftQuote freshUnique
+        let tn' = TyNameWithKind (TyName (Name x' s u))
+        pure $ TyForall x tn' k (tySubstitute (extractUnique tn) (TyVar (fst x') tn') ty)
+    a x = pure (embed x)
 
 -- TODO: make type substitutions occur in a state monad + benchmark
 tySubstitute :: Unique -- ^ Unique associated with type variable
