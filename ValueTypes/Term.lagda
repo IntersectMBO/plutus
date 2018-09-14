@@ -7,7 +7,8 @@ module Term where
 \begin{code}
 open import Type
 open import Type.RenamingSubstitution
-open import Type.Reduction
+open import Type.Normal
+open import Type.Value
 \end{code}
 
 ## Fixity declarations
@@ -36,7 +37,7 @@ by a variable of a given type.
 data Ctx where
   ∅ : Ctx
   _,⋆_ : Ctx → Kind → Ctx
-  _,_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Ctx
+  _,_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Ctx
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -53,21 +54,21 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
-data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
+data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
 
-  Z : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+  Z : ∀ {Γ J} {A : ∥ Γ ∥ ⊢V⋆ J}
       ----------
     → Γ , A ∋ A
 
-  S_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
+  S_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢V⋆ J} {B : ∥ Γ ∥ ⊢V⋆ K}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J}
+  T_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢V⋆ J}
     → Γ ∋ A
       -------------------
-    → Γ ,⋆ K ∋ weaken A
+    → Γ ,⋆ K ∋ weakenV A
 \end{code}
 Let `x`, `y` range over variables.
 
@@ -77,9 +78,9 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
-data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
+data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
 
-  `_ : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+  `_ : ∀ {Γ J} {A : ∥ Γ ∥ ⊢V⋆ J}
     → Γ ∋ A
       ------
     → Γ ⊢ A
@@ -95,31 +96,32 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ_ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
-    → Γ ,⋆ K ⊢ B
+
+  Λ_ : ∀ {Γ K Δ}
+    → {B : ∥ Δ ∥ ,⋆ K ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ ∥ Δ ∥}
+    → Γ ,⋆ K ⊢ eval B (extEnv vs)
       ----------
-    → Γ ⊢ Π B
+    → Γ ⊢ Π B vs
 
-  _·⋆_ : ∀ {Γ B}
-    → Γ ⊢ Π B
-    → (A : ∥ Γ ∥ ⊢⋆ *)
+
+  _·⋆_ : ∀ {Γ Δ K}
+    → {B : Δ ,⋆ K ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → Γ ⊢ Π B vs
+    → (A : ∥ Γ ∥ ⊢V⋆ K)
       ---------------
-    → Γ ⊢ B [ A ]
+    → Γ ⊢ eval B (vcons vs A)
 
-  wrap : ∀{Γ}
-    → (S : ∥ Γ ∥ ,⋆ * ⊢⋆ *)
-    → (M : Γ ⊢ S [ μ S ])
-    → Γ ⊢ μ S
+  wrap : ∀{Γ Δ}
+    → {B : Δ ,⋆ * ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → (M : Γ ⊢ eval B (vcons vs (μ B vs)))
+    → Γ ⊢ μ B vs
 
-  unwrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → (M : Γ ⊢ μ S)
-    → Γ ⊢ S [ μ S ]
-
-  conv : ∀{Γ J}
-    → {A B : ∥ Γ ∥ ⊢⋆ J}
-    → B —→⋆ A
-    → Γ ⊢ A
-      -----
-    → Γ ⊢ B
+  unwrap : ∀{Γ Δ}
+    → {B : Δ ,⋆ * ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → (M : Γ ⊢ μ B vs)
+    → Γ ⊢ eval B (vcons vs (μ B vs))
 \end{code}
