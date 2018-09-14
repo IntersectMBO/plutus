@@ -101,7 +101,7 @@ defaultTable = do
     bsRelType <- bsRel
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString ] [txHash, bsRelType ]
+        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString ] [txHash, bsRelType]
 
     pure $ BuiltinTable tyTable termTable
 
