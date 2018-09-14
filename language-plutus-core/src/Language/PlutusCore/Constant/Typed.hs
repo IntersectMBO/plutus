@@ -25,6 +25,9 @@ module Language.PlutusCore.Constant.Typed
     , typeSchemeResult
     , typedBuiltinToType
     , typeSchemeToType
+    , withTypedBuiltinName
+    , typeOfTypedBuiltinName
+    , typeOfBuiltinName
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -58,6 +61,7 @@ import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
 import           Data.GADT.Compare
+import qualified Data.Text.Encoding                   as Text
 
 infixr 9 `TypeSchemeArrow`
 
@@ -214,11 +218,46 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
 
 typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
-typeSchemeToType (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
-typeSchemeToType (TypeSchemeArrow schA schB) =
-    TyFun () <$> typeSchemeToType schA <*> typeSchemeToType schB
-typeSchemeToType (TypeSchemeAllSize schK)    =
-    freshTyName () "s" >>= typeSchemeToType . schK . TyVar ()
+typeSchemeToType = go 0 where
+    go :: Int -> TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
+    go _ (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
+    go i (TypeSchemeArrow schA schB) =
+        TyFun () <$> go i schA <*> go i schB
+    go i (TypeSchemeAllSize schK)    = do
+        s <- mapTyNameString (<> BSL.fromStrict (Text.encodeUtf8 $ prettyText i)) <$>
+                 freshTyName () "s"
+        a <- go (succ i) . schK $ TyVar () s
+        return $ TyForall () s (Size ()) a
+
+withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
+withTypedBuiltinName AddInteger           k = k typedAddInteger
+withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
+withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
+withTypedBuiltinName DivideInteger        k = k typedDivideInteger
+withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
+withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
+withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
+withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
+withTypedBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
+withTypedBuiltinName EqInteger            k = k typedEqInteger
+withTypedBuiltinName ResizeInteger        k = k typedResizeInteger
+withTypedBuiltinName IntToByteString      k = k typedIntToByteString
+withTypedBuiltinName Concatenate          k = k typedConcatenate
+withTypedBuiltinName TakeByteString       k = k typedTakeByteString
+withTypedBuiltinName DropByteString       k = k typedDropByteString
+withTypedBuiltinName SHA2                 k = k typedSHA2
+withTypedBuiltinName SHA3                 k = k typedSHA3
+withTypedBuiltinName VerifySignature      k = k typedVerifySignature
+withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
+withTypedBuiltinName EqByteString         k = k typedEqByteString
+withTypedBuiltinName TxHash               k = k typedTxHash
+withTypedBuiltinName _                    _ = error "Outdated"
+
+typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
+typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
+
+typeOfBuiltinName :: BuiltinName -> Quote (Type TyName ())
+typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
 
 sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer) Integer
 sizeIntIntInt =
