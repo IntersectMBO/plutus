@@ -260,6 +260,14 @@ fixUniversals = cataM a where
         u <- liftQuote freshUnique
         let tn' = TyNameWithKind (TyName (Name x' s u))
         TyForall x tn' k <$> tySubstitute (extractUnique tn) (TyVar (fst x') tn') ty
+    a (TyLamF x tn@(TyNameWithKind (TyName (Name x' s _))) k ty) = do
+        u <- liftQuote freshUnique
+        let tn' = TyNameWithKind (TyName (Name x' s u))
+        TyLam x tn' k <$> tySubstitute (extractUnique tn) (TyVar (fst x') tn') ty
+    a (TyFixF x tn@(TyNameWithKind (TyName (Name x' s _))) ty) = do
+        u <- liftQuote freshUnique
+        let tn' = TyNameWithKind (TyName (Name x' s u))
+        TyFix x tn' <$> tySubstitute (extractUnique tn) (TyVar (fst x') tn') ty
     a x = pure (embed x)
 
 -- TODO: make type substitutions occur in a state monad + benchmark
