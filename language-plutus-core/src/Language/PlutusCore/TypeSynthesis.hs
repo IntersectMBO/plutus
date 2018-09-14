@@ -268,7 +268,7 @@ tySubstitute :: MonadQuote m
              -> Type TyNameWithKind a -- ^ Type we are binding to free variable
              -> Type TyNameWithKind a -- ^ Type we are substituting in
              -> m (Type TyNameWithKind a)
-tySubstitute u ty = cataM a where -- FIXME: subtituting a Forall type can then require rewriting
+tySubstitute u ty = cataM a where
     a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = fixUniversals ty
     a x                                                  = pure (embed x)
 
