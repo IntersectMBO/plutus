@@ -93,13 +93,13 @@ parens(p)
 
 Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
-Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (nat $1) (nat $3) (nat $5) }
+Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (tkNat $1) (tkNat $3) (tkNat $5) }
 
-Builtin : builtinVar { BuiltinName (loc $1) (builtin $1) }
-        | naturalLit exclamation integerLit {% handleInteger (loc $1) (nat $1) (int $3) }
-        | naturalLit exclamation naturalLit {% handleInteger (loc $1) (nat $1) (fromIntegral (nat $3)) }
-        | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (nat $1) (bytestring $3) } -- this is kinda broken but I'm waiting for a new spec
-        | naturalLit { BuiltinSize (loc $1) (nat $1) }
+Builtin : builtinVar { BuiltinName (loc $1) (tkBuiltin $1) }
+        | naturalLit exclamation integerLit {% handleInteger (loc $1) (tkNat $1) (tkInt $3) }
+        | naturalLit exclamation naturalLit {% handleInteger (loc $1) (tkNat $1) (fromIntegral (tkNat $3)) }
+        | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (tkNat $1) (tkBytestring $3) } -- this is kinda broken but I'm waiting for a new spec
+        | naturalLit { BuiltinSize (loc $1) (tkNat $1) }
 
 Name : var { Name (loc $1) (name $1) (identifier $1) }
 
@@ -118,7 +118,7 @@ Term : Name { Var (nameAttribute $1) $1 }
 BuiltinType : size { TyBuiltin $1 TySize }
             | integer { TyBuiltin $1 TyInteger }
             | bytestring { TyBuiltin $1 TyByteString }
-            | naturalLit { TyInt (loc $1) (nat $1) }
+            | naturalLit { TyInt (loc $1) (tkNat $1) }
 
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
