@@ -168,8 +168,11 @@ parseScoped :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Program T
 parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
 -- | Parse a program and typecheck it.
-parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (Type TyNameWithKind ())
-parseTypecheck gas = typecheckProgram gas <=< annotateProgram <=< parseProgram
+parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+parseTypecheck gas bs = do
+    parsed <- parseProgram bs
+    checkProgram parsed
+    (typecheckProgram gas <=< annotateProgram) parsed
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs
