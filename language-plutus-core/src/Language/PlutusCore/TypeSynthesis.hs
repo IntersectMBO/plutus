@@ -17,7 +17,7 @@ import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
 import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Lexer.Type   hiding (bytestring)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
@@ -89,7 +89,7 @@ blocknum = do
 concatenateType :: MonadQuote m => m (Type TyNameWithKind ())
 concatenateType = do
     nam <- newTyName (Size ())
-    let bty = bytes nam
+    let bty = bytestring nam
         fty = TyFun () bty (TyFun () bty bty)
     pure $ TyForall () nam (Size ()) fty
 
@@ -98,7 +98,7 @@ modByteString = do
     nam <- newTyName (Size ())
     nam' <- newTyName (Size ())
     let ity = integer nam
-        bty = bytes nam'
+        bty = bytestring nam'
         fty = TyFun () ity (TyFun () bty bty)
     pure $ TyForall () nam (Size ()) (TyForall () nam' (Size ()) fty)
 
@@ -111,8 +111,8 @@ size = builtinType TySize
 integer :: TyNameWithKind () -> Type TyNameWithKind ()
 integer = builtinType TyInteger
 
-bytes :: TyNameWithKind () -> Type TyNameWithKind ()
-bytes = builtinType TyByteString
+bytestring :: TyNameWithKind () -> Type TyNameWithKind ()
+bytestring = builtinType TyByteString
 
 resizeIntType :: MonadQuote m => m (Type TyNameWithKind ())
 resizeIntType = do
