@@ -216,7 +216,6 @@ typeOf (Apply x t t') = do
     case ty of
         TyFun _ ty' ty'' -> do
             ty''' <- typeOf t'
-            typeCheckStep
             if ty' == ty'''
                 then pure ty''
                 else throwError (TypeMismatch x (void t') ty' ty''')
@@ -236,6 +235,7 @@ typeOf (Unwrap x t) = do
     case ty of
         TyFix _ n ty' -> do
             let subst = tySubstitute (extractUnique n) ty ty'
+            typeCheckStep
             pure (tyReduce subst)
         _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void ty))
 typeOf (Wrap x n ty t) = do

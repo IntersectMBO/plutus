@@ -66,7 +66,6 @@ module Language.PlutusCore
     , debugType
     , fileTypeCfg
     , printType
-    , debugType
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
