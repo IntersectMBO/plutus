@@ -1,7 +1,7 @@
 (program 1.0.0
   (lam
     ds_1
-    (all bool_matchOut_0 (type) (fun bool_matchOut_0 (fun bool_matchOut_0 bool_matchOut_0)))
+    (all Bool_matchOut_0 (type) (fun Bool_matchOut_0 (fun Bool_matchOut_0 Bool_matchOut_0)))
     [
       [
         [

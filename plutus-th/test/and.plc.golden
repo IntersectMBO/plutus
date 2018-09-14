@@ -2,22 +2,22 @@
   [
     (lam
       ds_1
-      (all bool_matchOut_0 (type) (fun bool_matchOut_0 (fun bool_matchOut_0 bool_matchOut_0)))
+      (all Bool_matchOut_0 (type) (fun Bool_matchOut_0 (fun Bool_matchOut_0 Bool_matchOut_0)))
       [
         [
           [
             {
               ds_1
-              (fun (all a_3 (type) (fun a_3 a_3)) (all bool_matchOut_2 (type) (fun bool_matchOut_2 (fun bool_matchOut_2 bool_matchOut_2))))
+              (fun (all a_3 (type) (fun a_3 a_3)) (all Bool_matchOut_2 (type) (fun Bool_matchOut_2 (fun Bool_matchOut_2 Bool_matchOut_2))))
             }
             (lam
               thunk_7
               (all a_8 (type) (fun a_8 a_8))
               (abs
-                bool_matchOut_4
+                Bool_matchOut_4
                 (type)
                 (lam
-                  false_5 bool_matchOut_4 (lam true_6 bool_matchOut_4 false_5)
+                  False_5 Bool_matchOut_4 (lam True_6 Bool_matchOut_4 False_5)
                 )
               )
             )
@@ -26,10 +26,10 @@
             thunk_12
             (all a_13 (type) (fun a_13 a_13))
             (abs
-              bool_matchOut_9
+              Bool_matchOut_9
               (type)
               (lam
-                false_10 bool_matchOut_9 (lam true_11 bool_matchOut_9 true_11)
+                False_10 Bool_matchOut_9 (lam True_11 Bool_matchOut_9 True_11)
               )
             )
           )
@@ -38,9 +38,9 @@
       ]
     )
     (abs
-      bool_matchOut_16
+      Bool_matchOut_16
       (type)
-      (lam false_17 bool_matchOut_16 (lam true_18 bool_matchOut_16 false_17))
+      (lam False_17 Bool_matchOut_16 (lam True_18 Bool_matchOut_16 False_17))
     )
   ]
 )
