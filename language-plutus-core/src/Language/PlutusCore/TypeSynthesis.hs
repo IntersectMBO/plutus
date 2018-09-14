@@ -254,8 +254,8 @@ typeOf (Wrap x n ty t) = do
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
-fixUniversals :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
-fixUniversals = cataM a where
+freshenBoundVars :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
+freshenBoundVars = cataM a where
     a (TyForallF x tn@(TyNameWithKind (TyName (Name x' s _))) k ty) = do
         u <- liftQuote freshUnique
         let tn' = TyNameWithKind (TyName (Name x' s u))
@@ -277,7 +277,7 @@ tySubstitute :: MonadQuote m
              -> Type TyNameWithKind a -- ^ Type we are substituting in
              -> m (Type TyNameWithKind a)
 tySubstitute u ty = cataM a where
-    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = fixUniversals ty
+    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = freshenBoundVars ty
     a x                                                  = pure (embed x)
 
 -- also this should involve contexts
