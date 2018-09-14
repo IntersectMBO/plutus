@@ -90,6 +90,11 @@ conversionFail = (throwError . ConversionError) <=< sdToTxt
 unsupported :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
 unsupported = (throwError . UnsupportedError) <=< sdToTxt
 
+context :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> (Error ()) -> m a
+context sd err = do
+    txt <- sdToTxt sd
+    throwError $ Context txt err
+
 freeVariable :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
 freeVariable = (throwError . FreeVariableError) <=< sdToTxt
 
@@ -169,11 +174,13 @@ pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.
 -- Types and kinds
 
 convKind :: Converting m => GHC.Kind -> m (PLC.Kind ())
-convKind k = case k of
-    -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
-    (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
-    (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
-    _                                     -> unsupported $ "Kind:" GHC.<+> GHC.ppr k
+convKind k =
+    case k of
+        -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
+        (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
+        (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
+        _                                     -> unsupported $ "Kind:" GHC.<+> GHC.ppr k
+    `catchError` (context $ "While converting kind:" GHC.<+> GHC.ppr k)
 
 convType :: Converting m => GHC.Type -> m PLCType
 convType t = do
@@ -190,6 +197,7 @@ convType t = do
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
         _ -> unsupported $ "Type" GHC.<+> GHC.ppr t
+    `catchError` (context $ "While converting type:" GHC.<+> GHC.ppr t)
 
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PLCType
 convTyConApp tc ts
@@ -197,6 +205,8 @@ convTyConApp tc ts
     | tc == GHC.intTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
     -- this is Int#, can we do this nicer?
     | (GHC.getOccString $ GHC.tyConName tc) == "Int#" = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
+    -- we don't support Integer
+    | GHC.tyConName tc == GHC.integerTyConName = unsupported "Integer: use Int instead"
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
@@ -299,13 +309,15 @@ mkScottTyBody resultTypeName cases =
     in resultAbstracted
 
 dataConCaseType :: Converting m => PLCType -> GHC.DataCon -> m PLCType
-dataConCaseType resultType dc = if not (GHC.isVanillaDataCon dc) then unsupported $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc else
-    do
+dataConCaseType resultType dc =
+    if not (GHC.isVanillaDataCon dc) then unsupported $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc
+    else do
         let argTys = GHC.dataConRepArgTys dc
         args <- mapM convType argTys
         -- See Note [Iterated abstraction and application]
         -- t_1 -> ... -> t_m -> resultType
         pure $ foldr (\t acc -> PLC.TyFun () t acc) resultType args
+    `catchError` (context $ "While converting data constructor:" GHC.<+> GHC.ppr dc)
 
 -- This is the creation of the Scott-encoded constructor value.
 convConstructor :: Converting m => GHC.DataCon -> m PLCExpr
@@ -723,6 +735,7 @@ convExpr e = do
         -- ignore annotation
         GHC.Tick _ body -> convExpr body
         -- just go straight to the body, we don't care about the nominal types
-        GHC.Cast _ coerce -> unsupported $ "Unsupported: coercion" GHC.$+$ GHC.ppr coerce
+        GHC.Cast _ coerce -> unsupported $ "Coercion" GHC.$+$ GHC.ppr coerce
         GHC.Type _ -> conversionFail "Cannot convert types directly, only as arguments to applications"
         GHC.Coercion _ -> conversionFail "Coercions should not be converted"
+    `catchError` (context $ "While converting expr:" GHC.<+> GHC.ppr e)
