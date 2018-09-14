@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity]}
-  - {name: error, within: [Main, Language.PlutusCore.Generators.Interesting, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Make, Language.PlutusCore.Generators.Internal.TypedBuiltinGen, Language.PlutusCore.TH]}
+  - {name: error, within: [Main, Language.PlutusCore.Generators.Interesting, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Constant.Typed, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Make, Language.PlutusCore.Generators.Internal.TypedBuiltinGen, Language.PlutusCore.TH]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply]}
   - {name: fromJust, within: []}
   - {name: foldl, within: []}
@@ -21,6 +21,8 @@
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}
+# this aids clarity since you can name the parameters
+- ignore: {name: Avoid lambda}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***

@@ -36,6 +36,7 @@ library
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Quote
+        Language.PlutusCore.TH
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
@@ -70,7 +71,6 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.PrettyCfg
         Language.PlutusCore.Subst
-        Language.PlutusCore.TH
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypedBuiltinGen
