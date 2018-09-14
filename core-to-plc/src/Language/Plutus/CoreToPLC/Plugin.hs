@@ -141,13 +141,6 @@ convertMarkedExprs markerName =
       e@(GHC.Var _) -> pure e
       e@(GHC.Type _) -> pure e
 
-data CoreToPlcFailure = CoreToPlcFailure
-
-instance Show CoreToPlcFailure where
-    show _ = "Core to PLC plugin failure"
-
-instance Exception CoreToPlcFailure
-
 -- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
 convertExpr :: GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
 convertExpr origE tpe = do
@@ -162,14 +155,8 @@ convertExpr origE tpe = do
               --inferredType <- convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
               pure (converted, undefined)
     case runExcept $ runReaderT (runQuoteT result) (flags, primTerms, primTys, initialScopeStack) of
-        Left s -> do
-            GHC.fatalErrorMsg $
-                "Failed to convert GHC core expression:" GHC.$+$
-                GHC.ppr origE GHC.$+$
-                "Error is:" GHC.$+$
-                (GHC.text $ T.unpack $ PLC.debugText s)
-            -- this will actually terminate compilation
-            liftIO $ throwIO CoreToPlcFailure
+        -- TODO: should be a way to just register a compilation error with GHC
+        Left s -> liftIO $ throwIO s -- this will actually terminate compilation
         Right (term, _) -> do
             let termRep = T.unpack $ PLC.debugText term
             --let typeRep = T.unpack $ PLC.debugText inferredType

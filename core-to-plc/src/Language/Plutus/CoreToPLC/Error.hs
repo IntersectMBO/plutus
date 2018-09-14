@@ -6,12 +6,20 @@ import qualified Language.PlutusCore       as PLC
 
 import qualified Data.Text                 as T
 import qualified Data.Text.Prettyprint.Doc as PP
+import           Data.Typeable
+import           GHC.Exception
 
 data Error a = PLCError (PLC.Error a)
              | ConversionError T.Text
              | UnsupportedError T.Text
              | FreeVariableError T.Text
              | Context T.Text (Error a)
+             deriving Typeable
+
+instance (PLC.PrettyCfg a) => Show (Error a) where
+    show e = T.unpack $ PLC.debugText e
+
+instance (Typeable a, PLC.PrettyCfg a) => Exception (Error a)
 
 instance (PLC.PrettyCfg a) => PLC.PrettyCfg (Error a) where
     prettyCfg cfg = \case
