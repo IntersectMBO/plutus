@@ -205,6 +205,8 @@ convTyConApp tc ts
     | tc == GHC.intTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
     -- this is Int#, can we do this nicer?
     | (GHC.getOccString $ GHC.tyConName tc) == "Int#" = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
+    -- we don't support Integer
+    | GHC.tyConName tc == GHC.integerTyConName = unsupported "Integer: use Int instead"
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
