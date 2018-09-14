@@ -21,6 +21,8 @@
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}
+# this aids clarity since you can name the parameters
+- ignore: {name: Avoid lambda}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***

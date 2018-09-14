@@ -15642,6 +15642,59 @@ description = "HTTP cookie parsing and rendering";
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"core-to-plc" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, cborg
+, containers
+, ghc
+, language-plutus-core
+, mmorph
+, mtl
+, prettyprinter
+, stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
+, template-haskell
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "core-to-plc";
+version = "0.1.0.0";
+src = ./../core-to-plc;
+libraryHaskellDepends = [
+base
+bytestring
+cborg
+containers
+ghc
+language-plutus-core
+mmorph
+mtl
+prettyprinter
+template-haskell
+text
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+language-plutus-core
+tasty
+tasty-golden
+tasty-hunit
+text
+];
+doHaddock = false;
+description = "GHC Core to Plutus Core compiler";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "countable" = callPackage
 ({
   mkDerivation
@@ -55575,6 +55628,46 @@ doHaddock = false;
 homepage = "iohk.io";
 description = "Prototype of the Plutus language";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"plutus-th" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, core-to-plc
+, language-plutus-core
+, stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
+, template-haskell
+, text
+}:
+mkDerivation {
+
+pname = "plutus-th";
+version = "0.1.0.0";
+src = ./../plutus-th;
+libraryHaskellDepends = [
+base
+core-to-plc
+template-haskell
+];
+testHaskellDepends = [
+base
+bytestring
+core-to-plc
+language-plutus-core
+tasty
+tasty-golden
+tasty-hunit
+template-haskell
+text
+];
+doHaddock = false;
+description = "TH frontend to the Plutus compiler";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "pointed" = callPackage

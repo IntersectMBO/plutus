@@ -1,0 +1,7 @@
+(program 1.0.0
+  (abs
+    Bool_matchOut_0
+    (type)
+    (lam False_1 Bool_matchOut_0 (lam True_2 Bool_matchOut_0 True_2))
+  )
+)

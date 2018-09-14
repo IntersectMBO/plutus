@@ -1,0 +1,18 @@
+(program 1.0.0
+  (lam
+    ds_0
+    [(con integer) (con 64)]
+    (lam
+      ds_1
+      [(con integer) (con 64)]
+      [
+        (lam
+          z_2
+          [(con integer) (con 64)]
+          [ [ { (con equalsInteger) (con 64) } ds_0 ] z_2 ]
+        )
+        ds_1
+      ]
+    )
+  )
+)

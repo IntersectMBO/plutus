@@ -18,6 +18,8 @@ let
     language-plutus-core = supportedSystems;
     plutus-core-interpreter = supportedSystems;
     plutus-exe = supportedSystems;
+    core-to-plc = supportedSystems;
+    plutus-th = supportedSystems;
     # don't need to build the spec on anything other than one platform
     plutus-core-spec = [ "x86_64-linux" ];
   };
