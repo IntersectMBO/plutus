@@ -90,12 +90,12 @@ data Token a = LexName { loc        :: a
                        , name       :: BSL.ByteString
                        , identifier :: Unique -- ^ A 'Unique' assigned to the identifier during lexing.
                        }
-             | LexInt { loc :: a, int :: Integer }
-             | LexBS { loc :: a, bytestring :: BSL.ByteString }
-             | LexBuiltin { loc :: a, builtin :: BuiltinName }
-             | LexNat { loc :: a, nat :: Natural }
-             | LexKeyword { loc :: a, keyword :: Keyword }
-             | LexSpecial { loc :: a, special :: Special }
+             | LexInt { loc :: a, tkInt :: Integer }
+             | LexBS { loc :: a, tkBytestring :: BSL.ByteString }
+             | LexBuiltin { loc :: a, tkBuiltin :: BuiltinName }
+             | LexNat { loc :: a, tkNat :: Natural }
+             | LexKeyword { loc :: a, tkKeyword :: Keyword }
+             | LexSpecial { loc :: a, tkSpecial :: Special }
              | EOF { loc :: a }
              deriving (Show, Eq, Generic, NFData)
 
