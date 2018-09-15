@@ -157,9 +157,10 @@ extEnv ρ = weakenEnv ρ ,⋆ ne (` Z)
 A weak head equality for type values, a bit like values for equations
 
 \begin{code}
-data _E≡_ {Γ} : ∀{Δ} → Env⋆ Γ Δ → Env⋆ Γ Δ → Set
+--data _E≡_ {Γ} : ∀{Δ} → Env⋆ Γ Δ → Env⋆ Γ Δ → Set
 
 data _V≡_ {Γ} : ∀{J} → Γ ⊢V⋆ J → Γ ⊢V⋆ J → Set
+{-
 data _Ne≡_ {Γ} : ∀{J} → Γ ⊢Ne⋆ J → Γ ⊢Ne⋆ J → Set where
   `Ne≡ : ∀ {J}
     → {x : Γ ∋⋆ J}
@@ -173,7 +174,7 @@ data _Ne≡_ {Γ} : ∀{J} → Γ ⊢Ne⋆ J → Γ ⊢Ne⋆ J → Set where
     → v V≡ v'
     ------
     → (n · v) Ne≡ (n' · v')
-
+-}
 data _V≡_ {Γ} where
   ⇒V≡ : {A A' B B' : Γ ⊢V⋆ *}
     -- the others rules are like closures, this one isn't...
@@ -182,27 +183,28 @@ data _V≡_ {Γ} where
       --------------------
     → (A ⇒ B) V≡ (A' ⇒ B')
   ΠV≡ : ∀{J Δ}{B B' : Δ ,⋆ J ⊢⋆ *}{vs vs' : Env⋆ Γ Δ}
-    → vs E≡ vs'
-    → B ≡β B'
+--    → vs E≡ vs'
+--    → B ≡β B'
       ---------------
     → (Π B vs) V≡ (Π B' vs')
   ƛV≡ : ∀{J K Δ}{B B' : Δ ,⋆ J ⊢⋆ K}{vs vs' : Env⋆ Γ Δ}
-    → vs E≡ vs'
-    → B ≡β B'
+--    → vs E≡ vs'
+--    → B ≡β B'
       ---------------
     → (ƛ B vs) V≡ (ƛ B' vs')
   μV≡ : ∀{J Δ}{B B' : Δ ,⋆ J ⊢⋆ *}{vs vs' : Env⋆ Γ Δ}
-    → vs E≡ vs'
-    → B ≡β B'
+--    → vs E≡ vs'
+--    → B ≡β B'
       ---------------
     → (μ B vs) V≡ (μ B' vs')
-
+{-
   neV≡ : ∀{K}
     → {A A' : Γ  ⊢Ne⋆ K}
     → A Ne≡ A'
       -----------
     → ne A V≡ ne A'
-
+-}
+{-
 data _E≡_ {Γ} where
   e≡ : e E≡ e
   ,⋆≡ : ∀{Δ J}{vs vs' : Env⋆ Γ Δ}
@@ -210,10 +212,12 @@ data _E≡_ {Γ} where
     → {v v' : Γ ⊢V⋆ J}
     → v V≡ v'
     → (vs ,⋆ v) E≡ (vs' ,⋆ v)
+-}
 \end{code}
 
 ## Proofs
 \begin{code}
+{-
 renameE≡ : ∀{Φ Ψ Γ}{A B : Env⋆ Φ Γ}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
   → A E≡ B
@@ -243,7 +247,7 @@ renameNe≡ ρ (·Ne≡ p q) = ·Ne≡ (renameNe≡ ρ p) (renameV≡ ρ q)
 
 renameE≡ ρ e≡ = e≡
 renameE≡ ρ (,⋆≡ p q) = ,⋆≡ (renameE≡ ρ p) (renameV≡ ρ q)
-
+-}
 \end{code}
 
 

@@ -14,35 +14,36 @@ import Type.RenamingSubstitution as ⋆
 open import Term
 open import Term.RenamingSubstitution
 open import Type.Reduction
-\end{code}
-
-## Term has Type Value
-
-\begin{code}
-data ValueTyped : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
-  -- variable is type valued if its type is a value
-  -- lambda is type valued if it's body has a value type
+open import Type.Value
 \end{code}
 
 ## Values
 
 \begin{code}
-data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
+data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢V⋆ J} → Γ ⊢ A → Set where
 
   V-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B}
       ---------------------------
     → Value (ƛ N)
 
-  V-Λ_ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
-    → {N : Γ ,⋆ K ⊢ B}
+  V-Λ_ : ∀ {Γ Δ K} {B : Δ ,⋆ K ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → {N : Γ ,⋆ K ⊢ eval B (extEnv vs)}
       ----------------
-    → Value (Λ N)
+    → Value (Λ {B = B} N)
 
-  V-wrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M : Γ ⊢ S ⋆.[ μ S ]}
+  V-wrap : ∀{Γ Δ}
+    → {A : Δ ,⋆ * ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → {M : Γ ⊢ eval A (vs ,⋆ μ A vs )}
       ----------------
-    → Value (wrap S M)
+    → Value (wrap {B = A} M)
+
+  -- it would be better to push conversions into values somehow
+  V-conv : ∀{Γ}{A B : ∥ Γ ∥ ⊢V⋆ *}{L : Γ ⊢ A}(p : A V≡ B)
+    → Value L
+    → Value (conv p L)
+
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -50,7 +51,7 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 \begin{code}
 infix 2 _—→_
 
-data _—→_ : ∀ {J Γ} {A A' : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
+data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢V⋆ J} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
 
   ξ-·₁ : ∀ {Γ A B} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → L —→ L′
@@ -63,54 +64,55 @@ data _—→_ : ∀ {J Γ} {A A' : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ �
       --------------
     → V · M —→ V · M′
     
-  ξ-·₃ : ∀ {Γ A A' B} {V : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
-    → A —→⋆ A'
-      --------------
-    → V · M —→ V · M
-
-
-  ξ-·⋆ : ∀ {Γ B}{L L′ : Γ ⊢ Π B}{A}
+  ξ-·⋆ : ∀ {Γ Δ K}{B : Δ ,⋆ K ⊢⋆ *}{vs : Env⋆ ∥ Γ ∥ Δ}{L L′ : Γ ⊢ Π B vs}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
-    
+
+{-
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
       -------------------
     → (ƛ N) · W —→ N [ W ]
-
+-}
+{-
   β-Λ : ∀ {Γ}{B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}{N : Γ ,⋆ * ⊢ B}{W}
       -------------------
     → (Λ N) ·⋆ W —→ N [ W ]⋆
+-}
 
-  ξ-unwrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M M' : Γ ⊢ μ S}
+  ξ-unwrap : ∀{Γ Δ}
+    → {A : Δ ,⋆ * ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → {M M' : Γ ⊢ μ A vs}
     → M —→ M'
     → unwrap M —→ unwrap M'
-
+{-
   β-wrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
     → {M : Γ ⊢ S ⋆.[ μ S ]}    
     → unwrap (wrap S M) —→ M
+-}
 
-  ξ-conv₁ : ∀{Γ J}{A B C : ∥ Γ ∥ ⊢⋆ J}{L : Γ ⊢ A}
+{-
+  ξ-conv₁ : ∀{Γ J}{A B C : ∥ Γ ∥ ⊢V⋆ J}{L : Γ ⊢ A}
     → (p : B —→⋆ A)
     → conv p L —→ L
+-}
 
-  ξ-conv₂ : ∀{Γ J}{A B : ∥ Γ ∥ ⊢⋆ J}{L L' : Γ ⊢ A}{p : B —→⋆ A}
+  ξ-conv₂ : ∀{Γ}{A B : ∥ Γ ∥ ⊢V⋆ *}{L L' : Γ ⊢ A}{p : A V≡ B}
     → L —→ L'
     → conv p L —→ conv p L'
 \end{code}
 
 \begin{code}
-data _—↠_ {J Γ} : {A : ∥ Γ ∥ ⊢⋆ J}{A' : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
+data _—↠_ {J Γ} : {A : ∥ Γ ∥ ⊢V⋆ J}{A' : ∥ Γ ∥ ⊢V⋆ J} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
 
   refl—↠ : ∀{A}{M : Γ ⊢ A}
       --------
     → M —↠ M
 
-  trans—↠ : {A : ∥ Γ ∥ ⊢⋆ J}{A' : ∥ Γ ∥ ⊢⋆ J}{A'' : ∥ Γ ∥ ⊢⋆ J}
+  trans—↠ : {A : ∥ Γ ∥ ⊢V⋆ J}{A' : ∥ Γ ∥ ⊢V⋆ J}{A'' : ∥ Γ ∥ ⊢V⋆ J}
     {M : Γ ⊢ A}{M' : Γ ⊢ A}{M'' : Γ ⊢ A''}
     → M —→ M'
     → M' —↠ M''
@@ -119,8 +121,8 @@ data _—↠_ {J Γ} : {A : ∥ Γ ∥ ⊢⋆ J}{A' : ∥ Γ ∥ ⊢⋆ J} → (
 \end{code}
 
 \begin{code}
-data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
-  step : ∀ {A'}{N : ∅ ⊢ A'}
+data Progress {A : ∅ ⊢V⋆ *} (M : ∅ ⊢ A) : Set where
+  step : ∀{N}
     → M —→ N
       -------------
     → Progress M
@@ -128,12 +130,30 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  unhandled-conversion : Progress M 
 \end{code}
 
 \begin{code}
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
+
+progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
+progress (` ())
+progress (ƛ M) = done V-ƛ
+progress (M · N) with progress M
+progress (M · N) | step p = step (ξ-·₁ p)
+progress (M · N) | done VM with progress N
+progress (M · N) | done VM | step q = step (ξ-·₂ VM q)
+progress (.(ƛ _) · N) | done V-ƛ | done VN = step {!!}
+progress (.(conv (⇒V≡ _ _) _) · N) | done (V-conv (⇒V≡ p q) VM) | done VN =
+  {!!}
+progress (Λ M) = done V-Λ_
+progress (M ·⋆ A) with progress M
+progress (M ·⋆ A) | step p  = step (ξ-·⋆ p)
+progress (.(Λ _) ·⋆ A) | done V-Λ_ = {!!}
+progress (.(conv ΠV≡ _) ·⋆ A) | done (V-conv ΠV≡ VM) = {!!}
+progress (wrap M) = done V-wrap
+progress (unwrap M) = {!!}
+progress (conv p M) = {!!}
 
 {-
 progress : ∀ (A : ∅ ⊢⋆ *) → (M : ∅ ⊢ A) →

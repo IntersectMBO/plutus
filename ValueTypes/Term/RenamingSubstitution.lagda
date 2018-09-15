@@ -49,7 +49,7 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 \end{code}
 
 \begin{code}
-
+{-
 rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
   → (∀ {J} {A : ∥ Γ ∥ ⊢V⋆ J} → Γ ∋ A → Δ ∋ renameV ρ⋆ A)
@@ -74,7 +74,8 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B}{vs = vs} M) =
   substEq (Δ ⊢_)
           (rename-eval B (vs ,⋆ μ B vs) ρ⋆)
           (unwrap (rename ρ⋆ ρ M))
-rename ρ⋆ ρ (conv p t) = conv (renameV≡ ρ⋆ p) (rename ρ⋆ ρ t)
+rename ρ⋆ ρ (conv p t) = {!!} -- conv (renameV≡ ρ⋆ p) (rename ρ⋆ ρ t)
+-}
 \end{code}
 
 \begin{code}
@@ -89,18 +90,22 @@ weaken {Φ}{J}{A}{K}{B} x = substEq (Φ , B  ⊢_) {!!} (rename id {!!} x)
           (rename id
                   (λ x → substEq (λ A → Φ , B ∋ A) (sym (⋆.rename-id _)) (S x))
                   x) -}
+-}
 \end{code}
 
 \begin{code}
+{-
 weaken⋆ : ∀ {Φ J}{A : ∥ Φ ∥ ⊢⋆ J}{K}
   → Φ ⊢ A
     ------------------
   → Φ ,⋆ K ⊢ ⋆.weaken A
 weaken⋆ x = rename _∋⋆_.S _∋_.T x
+-}
 \end{code}
 
 ## Substitution
 \begin{code}
+{-
 exts : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -111,9 +116,11 @@ exts : ∀ {Γ Δ}
      → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
 exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
+-}
 \end{code}
 
 \begin{code}
+{-
 exts⋆ : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -127,10 +134,11 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
           (trans (sym (⋆.rename-subst σ⋆ S A))
                  (⋆.subst-rename S (⋆.exts σ⋆) A))
           (weaken⋆ (σ x))
-
+-}
 \end{code}
 
 \begin{code}
+{-
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -174,9 +182,11 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {S = S} M) =
                  (⋆.subst-comp _ _ S))
           (unwrap (subst σ⋆ σ M))
 subst σ⋆ σ (conv p t) = conv (subst—→⋆ σ⋆ p) (subst σ⋆ σ t)
+-}
 \end{code}
 
 \begin{code}
+{-
 substcons : ∀{Γ Δ} →
   (σ⋆ : ∀{K} → ∥ Γ ∥  ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J}{A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -186,9 +196,11 @@ substcons : ∀{Γ Δ} →
   → (∀ {J} {B : ∥ Γ ∥ ⊢⋆ J} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
 substcons σ⋆ σ t Z     = t
 substcons σ⋆ σ t (S x) = σ x
+-}
 \end{code}
 
 \begin{code}
+{-
 _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢⋆ J}
         → Γ , B ⊢ A
         → Γ ⊢ B 
@@ -204,9 +216,11 @@ _[_]  {J} {Γ}{A}{B} t s =
                                            (` x))
                             (substEq (λ A → Γ ⊢ A) (sym (⋆.subst-id B)) s))
                  t) 
+-}
 \end{code}
 
 \begin{code}
+{-
 _[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢⋆ J}
         → Γ ,⋆ K ⊢ B
         → (A : ∥ Γ ∥ ⊢⋆ K)
