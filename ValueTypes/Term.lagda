@@ -60,12 +60,12 @@ data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
       ----------
     → Γ , A ∋ A
 
-  S_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢V⋆ J} {B : ∥ Γ ∥ ⊢V⋆ K}
+  S : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢V⋆ J} {B : ∥ Γ ∥ ⊢V⋆ K}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢V⋆ J}
+  T : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢V⋆ J}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weakenV A
@@ -80,12 +80,12 @@ application.
 \begin{code}
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
 
-  `_ : ∀ {Γ J} {A : ∥ Γ ∥ ⊢V⋆ J}
+  ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢V⋆ J}
     → Γ ∋ A
       ------
     → Γ ⊢ A
 
-  ƛ_ : ∀ {Γ A B}
+  ƛ : ∀ {Γ A B}
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
@@ -96,28 +96,32 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ_ : ∀ {Γ K}
-    → {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
-    → Γ ,⋆ K ⊢ eval B idEnv
+  Λ : ∀ {Γ K Δ}
+    → {B : Δ ,⋆ K ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → Γ ,⋆ K ⊢ eval B (extEnv vs)
       ----------
-    → Γ ⊢ Π B idEnv
+    → Γ ⊢ Π B vs
 
-  _·⋆_ : ∀ {Γ K}
-    → {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
-    → Γ ⊢ Π B idEnv
+  _·⋆_ : ∀ {Γ K Δ}
+    → {B : Δ ,⋆ K ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → Γ ⊢ Π B vs
     → (A : ∥ Γ ∥ ⊢V⋆ K)
       ---------------
-    → Γ ⊢ B ⟦ A ⟧
+    → Γ ⊢ eval B (vs ,⋆ A)
 
-  wrap : ∀{Γ}
-    → {B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → (M : Γ ⊢ B ⟦ μ B idEnv ⟧)
-    → Γ ⊢ μ B idEnv
+  wrap : ∀{Γ Δ}
+    → {B : Δ ,⋆ * ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → (M : Γ ⊢ eval B (vs ,⋆ μ B vs ))
+    → Γ ⊢ μ B vs
 
-  unwrap : ∀{Γ}
-    → {B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → (M : Γ ⊢ μ B idEnv)
-    → Γ ⊢ B ⟦ μ B idEnv ⟧
+  unwrap : ∀{Γ Δ}
+    → {B : Δ ,⋆ * ⊢⋆ *}
+    → {vs : Env⋆ ∥ Γ ∥ Δ}
+    → (M : Γ ⊢ μ B vs)
+    → Γ ⊢ eval B (vs ,⋆ μ B vs)
 
   conv : ∀{Γ}{A A' : ∥ Γ ∥ ⊢V⋆ *}
     → A V≡ A'

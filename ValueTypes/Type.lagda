@@ -16,7 +16,7 @@ infixr 7 _⇒_
 
 infix  5 ƛ
 infixl 7 _·_
-infix  9 S_
+infix  9 S
 \end{code}
 
 ## Kinds
@@ -50,7 +50,7 @@ data _∋⋆_ : Ctx⋆ → Kind → Set where
       -------------
     → Φ ,⋆ J ∋⋆ J
 
-  S_ : ∀ {Φ J K} -- S_ permits things like 'S f x' as well as 'S (f x)'...
+  S : ∀ {Φ J K} -- S_ permits things like 'S f x' as well as 'S (f x)'...
     → Φ ∋⋆ J
       -------------
     → Φ ,⋆ K ∋⋆ J
@@ -64,7 +64,7 @@ variable, a pi type, or a function type.
 \begin{code}
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
 
-  `_ : ∀ {Φ J}
+  ` : ∀ {Φ J}
     → Φ ∋⋆ J
       --------
     → Φ ⊢⋆ J

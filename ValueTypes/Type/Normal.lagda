@@ -24,7 +24,7 @@ open import Type.Value
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set
 
 data _⊢NeN⋆_ : Ctx⋆ → Kind → Set where
-  `_ : ∀ {Φ J}
+  ` : ∀ {Φ J}
     → Φ ∋⋆ J
       --------
     → Φ ⊢NeN⋆ J

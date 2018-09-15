@@ -47,7 +47,7 @@ weaken : ∀ {Φ J K}
   → Φ ⊢⋆ J
     -------------
   → Φ ,⋆ K ⊢⋆ J
-weaken = rename S_
+weaken = rename S
 \end{code}
 
 ## Renaming proofs
@@ -72,7 +72,7 @@ ext-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     -------------------
   → ext f x ≡ ext g x
 ext-cong f g p Z     = refl
-ext-cong f g p (S x) = cong S_ (p x)
+ext-cong f g p (S x) = cong S (p x)
 \end{code}
 Congruence lemma for renaming⋆
 \begin{code}
@@ -81,7 +81,7 @@ rename-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
   → ∀{K}(A : Φ ⊢⋆ K)
     -------------------------
   → rename f A ≡ rename g A
-rename-cong f g p (` x)   = cong `_ (p x)
+rename-cong f g p (` x)   = cong ` (p x)
 rename-cong f g p (Π A)   =
   cong Π (rename-cong (ext f) (ext g) (ext-cong f g p) A)
 rename-cong f g p (A ⇒ B) =
@@ -186,7 +186,7 @@ _[_] : ∀ {Φ J K}
         → Φ ⊢⋆ K 
           ------
         → Φ ⊢⋆ J
-_[_] {Φ} {J} {K} B A =  subst (subst-cons `_ A) B
+_[_] {Φ} {J} {K} B A =  subst (subst-cons ` A) B
 \end{code}
 
 ## Type Substitution Proofs
@@ -195,7 +195,7 @@ Extending the identity substitution yields the identity substitution
 \begin{code}
 exts-id : ∀ {Φ J K}(x : Φ ,⋆ K ∋⋆ J)
     ----------------
-  → exts `_ x ≡ ` x 
+  → exts ` x ≡ ` x 
 exts-id Z     = refl
 exts-id (S x) = refl
 \end{code}
@@ -232,16 +232,16 @@ subst-cong f g p (μ A)   =
 First monad law for subst
 \begin{code}
 subst-id : ∀ {Φ J}(t : Φ ⊢⋆ J)
-  → subst `_ t ≡ t
+  → subst ` t ≡ t
 subst-id (` x)   = refl
 subst-id (Π A)   =
-  cong Π (trans (subst-cong (exts `_) `_ exts-id A) (subst-id A))
+  cong Π (trans (subst-cong (exts `) ` exts-id A) (subst-id A))
 subst-id (A ⇒ B) = cong₂ _⇒_ (subst-id A) (subst-id B)
 subst-id (ƛ A)    =
-  cong ƛ (trans (subst-cong (exts `_) `_ exts-id A) (subst-id A))
+  cong ƛ (trans (subst-cong (exts `) ` exts-id A) (subst-id A))
 subst-id (A · B) = cong₂ _·_ (subst-id A) (subst-id B)
 subst-id (μ A)   =
-  cong μ (trans (subst-cong (exts `_) `_ exts-id A) (subst-id A))
+  cong μ (trans (subst-cong (exts `) ` exts-id A) (subst-id A))
 \end{code}
 
 Fusion of exts and ext
@@ -292,8 +292,8 @@ rename-ext-exts : ∀{Φ Ψ Θ}
   exts (rename f ∘ g) x ≡ rename (ext f) (exts g x)
 rename-ext-exts g f Z = refl
 rename-ext-exts g f (S x) =
-  trans (sym (rename-comp f S_ (g x)))
-        (rename-comp S_ (ext f) (g x))
+  trans (sym (rename-comp f S (g x)))
+        (rename-comp S (ext f) (g x))
 \end{code}
 
 Fusion for rename and subst
@@ -342,8 +342,8 @@ extscomp : ∀{Φ Ψ Θ}
   → exts (subst f ∘ g) x ≡ subst (exts f) (exts g x)
 extscomp g f Z = refl
 extscomp g f (S x) =
-  trans (sym (rename-subst f S_ (g x)))
-        (subst-rename S_ (exts f) (g x))
+  trans (sym (rename-subst f S (g x)))
+        (subst-rename S (exts f) (g x))
 \end{code}
 
 Fusion of substitutions
@@ -384,7 +384,7 @@ rename-subst-cons : ∀{Γ Δ}{J K}
   → (A : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
     -------------------------------------------------------------------------
-  → subst-cons `_ (rename ρ⋆ A) (ext ρ⋆ x) ≡ rename ρ⋆ (subst-cons `_ A x)
+  → subst-cons ` (rename ρ⋆ A) (ext ρ⋆ x) ≡ rename ρ⋆ (subst-cons ` A x)
 rename-subst-cons ρ⋆ A Z     = refl
 rename-subst-cons ρ⋆ A (S x) = refl
 \end{code}
@@ -396,11 +396,11 @@ subst-subst-cons : ∀{Γ Δ}{J K}
   → (M : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
     -------------------------------------------------
-  → subst (subst-cons `_ (subst σ⋆ M)) (exts σ⋆ x)
+  → subst (subst-cons ` (subst σ⋆ M)) (exts σ⋆ x)
     ≡
-    subst σ⋆ (subst-cons `_ M x)
+    subst σ⋆ (subst-cons ` M x)
 subst-subst-cons σ⋆ M Z     = refl
 subst-subst-cons σ⋆ M (S x) =
-  trans (sym (subst-rename S_ (subst-cons `_ (subst σ⋆ M)) (σ⋆ x)))
+  trans (sym (subst-rename S (subst-cons ` (subst σ⋆ M)) (σ⋆ x)))
         (subst-id (σ⋆ x))
 \end{code}
