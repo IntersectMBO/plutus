@@ -112,8 +112,6 @@ renameEnv : ∀{Φ Ψ Θ}
   (g : Env⋆ Ψ Φ )
   → Env⋆  Θ Φ
 
-
-
 renameV : ∀ {Φ Ψ}
   → (∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     ----------------------------
@@ -129,6 +127,15 @@ renameNe ρ (n · v) = renameNe ρ n · renameV ρ v
 
 renameEnv g e = e
 renameEnv g (f ,⋆ A) = (renameEnv g f) ,⋆ (renameV g A)
+\end{code}
+
+\begin{code}
+envRename : ∀{Φ Ψ Θ}
+  (f : ∀ {J} → Φ ∋⋆ J → Θ ∋⋆ J)
+  (g : Env⋆ Ψ Θ )
+  → Env⋆  Ψ Φ
+envRename {∅} {Ψ} {Θ} f g = e
+envRename {Φ ,⋆ x} {Ψ} {Θ} f g = (envRename (f ∘ S) g) ,⋆ lookup⋆ g (f Z)
 \end{code}
 
 \begin{code}
@@ -176,7 +183,6 @@ mutual
   renameV-comp g f (ƛ B vs) = cong (ƛ B) (renameE-comp g f vs)
   renameV-comp g f (μ B vs) = cong (μ B) (renameE-comp g f vs)
   renameV-comp g f (ne n) = cong ne (renameNe-comp g f n)
-
   renameNe-comp : ∀{Φ Ψ Θ}
     (g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)(f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J)
     → ∀{J}(A : Φ ⊢Ne⋆ J)
@@ -199,26 +205,42 @@ t ⟦ v ⟧ = eval t (idEnv ,⋆ v )
 
 \begin{code}
 {-# TERMINATING #-}
-rename-·V : ∀{Γ Δ K J}
+renameV-·V : ∀{Γ Δ K J}
   → (A  : Γ ⊢V⋆ K ⇒ J)
   → (B  : Γ ⊢V⋆ K)
   → (ρ : ∀{J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → renameV ρ A ·V renameV ρ B ≡ renameV ρ (A ·V B)
 
-rename-eval : ∀{ϕ Γ Δ J}
+renameV-eval : ∀{ϕ Γ Δ J}
   → (B : ϕ ⊢⋆ J)
   → (vs : Env⋆ Γ ϕ)
   → (ρ : ∀{J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → eval B (renameEnv ρ vs) ≡ renameV ρ (eval B vs)
-rename-eval (` Z)     (vs ,⋆ A) ρ = refl
-rename-eval (` (S x)) (vs ,⋆ A) ρ = rename-eval (` x) vs ρ
-rename-eval (Π B)     vs ρ = refl
-rename-eval (A ⇒ B)   vs ρ =
-  cong₂ _⇒_ (rename-eval A vs ρ) (rename-eval B vs ρ)
-rename-eval (ƛ B)      vs ρ = refl
-rename-eval (A · B)   vs ρ = trans (cong₂ _·V_ (rename-eval A vs ρ) (rename-eval B vs ρ)) (rename-·V (eval A vs) (eval B vs) ρ)
-rename-eval (μ B)     vs ρ = refl
+renameV-eval (` Z)     (vs ,⋆ A) ρ = refl
+renameV-eval (` (S x)) (vs ,⋆ A) ρ = renameV-eval (` x) vs ρ
+renameV-eval (Π B)     vs ρ = refl
+renameV-eval (A ⇒ B)   vs ρ =
+  cong₂ _⇒_ (renameV-eval A vs ρ) (renameV-eval B vs ρ)
+renameV-eval (ƛ B)      vs ρ = refl
+renameV-eval (A · B)   vs ρ = trans (cong₂ _·V_ (renameV-eval A vs ρ) (renameV-eval B vs ρ)) (renameV-·V (eval A vs) (eval B vs) ρ)
+renameV-eval (μ B)     vs ρ = refl
 
-rename-·V (ƛ A vs) B ρ = rename-eval A (vs ,⋆ B) ρ
-rename-·V (ne x) B ρ = refl
+renameV-·V (ƛ A vs) B ρ = renameV-eval A (vs ,⋆ B) ρ
+renameV-·V (ne x) B ρ = refl
+\end{code}
+
+\begin{code}
+{-
+rename-eval : ∀{ϕ Γ Δ J}
+  → (B : ϕ ⊢⋆ J)
+  → (vs : Env⋆ Δ Γ)
+  → (ρ : ∀{J} → ϕ ∋⋆ J → Γ ∋⋆ J)
+  → eval B (envRename ρ vs) ≡ (eval (rename ρ B) vs)
+rename-eval (` x) vs ρ = {!!}
+rename-eval (Π B) vs ρ = {!rename-eval B (extEnv vs) (ext ρ) !}
+rename-eval (B ⇒ B₁) vs ρ = {!!}
+rename-eval (ƛ B) vs ρ = {!!}
+rename-eval (B · B₁) vs ρ = {!!}
+rename-eval (μ B) vs ρ = {!!}
+-}
 \end{code}

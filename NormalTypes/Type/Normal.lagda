@@ -199,3 +199,51 @@ mutual
   renameNeN-comp g f (A · x) =
     cong₂ _·_ (renameNeN-comp g f A) (renameNf-comp g f x)
 \end{code}
+
+\begin{code}
+{-# TERMINATING #-}
+rename-readbackNf : ∀ {Φ Ψ}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → ∀{K}(v : Φ ⊢V⋆ K)
+  → readbackNf (renameV ρ v) ≡ renameNf ρ (readbackNf v)
+
+rename-readbackNeN : ∀ {Φ Ψ}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → ∀{K}(n : Φ ⊢Ne⋆ K)
+  → readbackNeN (renameNe ρ n) ≡ renameNeN ρ (readbackNeN n)
+
+rename-readbackNf ρ (Π B vs) =
+  cong Π
+       (trans (cong readbackNf
+                    (trans (cong (eval B)
+                                 (cong (_,⋆ ne (` Z))
+                                       (trans (sym (renameE-comp ρ S vs))
+                                              (renameE-comp S (ext ρ) vs))))
+                           (renameV-eval B (extEnv vs) (ext ρ))))
+              (rename-readbackNf (ext ρ) (eval B (extEnv vs))))
+rename-readbackNf ρ (A ⇒ B)  =
+ cong₂ _⇒_ (rename-readbackNf ρ A) (rename-readbackNf ρ B)
+rename-readbackNf ρ (ƛ B vs) = 
+  cong ƛ
+       (trans (cong readbackNf
+                    (trans (cong (eval B)
+                                 (cong (_,⋆ ne (` Z))
+                                       (trans (sym (renameE-comp ρ S vs))
+                                              (renameE-comp S (ext ρ) vs))))
+                           (renameV-eval B (extEnv vs) (ext ρ))))
+              (rename-readbackNf (ext ρ) (eval B (extEnv vs))))
+rename-readbackNf ρ (μ B vs) =
+  cong μ
+       (trans (cong readbackNf
+                    (trans (cong (eval B)
+                                 (cong (_,⋆ ne (` Z))
+                                       (trans (sym (renameE-comp ρ S vs))
+                                              (renameE-comp S (ext ρ) vs))))
+                           (renameV-eval B (extEnv vs) (ext ρ))))
+              (rename-readbackNf (ext ρ) (eval B (extEnv vs))))
+rename-readbackNf ρ (ne A)   = cong ne (rename-readbackNeN ρ A)
+
+rename-readbackNeN ρ (` x) = refl
+rename-readbackNeN ρ (n · n') =
+  cong₂ _·_ (rename-readbackNeN ρ n) (rename-readbackNf ρ n')
+\end{code}

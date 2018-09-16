@@ -51,18 +51,20 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 
 \begin{code}
 
-rename : ∀ {Γ Δ}
+postulate
+ rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
     ------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ renameNf ρ⋆ A )
+{-
 rename ρ⋆ ρ (` x)    = ` (ρ x)
 rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
-          {!!} {- (rename-eval B (vs ,⋆ A) ρ⋆) -}
+          {!!} -- (trans {!!} (rename-readbackNf ρ⋆ (eval (embNf B ⋆.[ embNf A ]) idEnv))) {- (rename-eval B (vs ,⋆ A) ρ⋆) -}
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
   wrap (substEq (Δ ⊢_)
@@ -72,6 +74,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B} M) =
   substEq (Δ ⊢_)
           {!!} -- (rename-eval B (vs ,⋆ μ B vs) ρ⋆)
           (unwrap (rename ρ⋆ ρ M))
+-}
 \end{code}
 
 \begin{code}
@@ -196,12 +199,13 @@ substcons σ⋆ σ t (S x) = σ x
 \end{code}
 
 \begin{code}
-{-
-_[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢⋆ J}
+postulate
+  _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
         → Γ , B ⊢ A
         → Γ ⊢ B 
           ---------
         → Γ ⊢ A
+{-
 _[_]  {J} {Γ}{A}{B} t s =
   substEq (λ A → Γ ⊢ A)
           (⋆.subst-id A)
@@ -216,12 +220,13 @@ _[_]  {J} {Γ}{A}{B} t s =
 \end{code}
 
 \begin{code}
-{-
-_[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢⋆ J}
+postulate
+  _[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
         → Γ ,⋆ K ⊢ B
-        → (A : ∥ Γ ∥ ⊢⋆ K)
+        → (A : ∥ Γ ∥ ⊢Nf⋆ K)
           ---------
-        → Γ ⊢ B ⋆.[ A ]
+        → Γ ⊢ B [ A ]Nf
+{-
 _[_]⋆ {J}{Γ}{K}{B} t A =
   subst (⋆.subst-cons ` A)
         (λ{(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
