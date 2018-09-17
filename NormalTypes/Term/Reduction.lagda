@@ -1,5 +1,5 @@
 \begin{code}
-module Term.Reduction where
+module NormalTypes.Term.Reduction where
 \end{code}
 
 ## Imports
@@ -11,8 +11,8 @@ open import Relation.Binary.PropositionalEquality
 
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Term
-open import Term.RenamingSubstitution
+open import NormalTypes.Term
+open import NormalTypes.Term.RenamingSubstitution
 open import Type.Reduction
 open import Type.BSN
 open import Type.Normal

@@ -1,5 +1,5 @@
 \begin{code}
-module Term where
+module NormalTypes.Term where
 \end{code}
 
 ## Imports

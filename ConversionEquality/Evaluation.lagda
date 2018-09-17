@@ -1,13 +1,13 @@
 \begin{code}
-module Evaluation where
+module ConversionEquality.Evaluation where
 \end{code}
 
 ## Imports
 
 \begin{code}
 open import Type
-open import Term
-open import Term.Reduction
+open import ConversionEquality.Term
+open import ConversionEquality.Term.Reduction
 \end{code}
 
 ## Evaluation

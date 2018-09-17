@@ -1,5 +1,5 @@
 \begin{code}
-module Examples where
+module NormalTypes.Examples where
 \end{code}
 
 ## Imports
@@ -7,9 +7,9 @@ module Examples where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Term
-open import Term.RenamingSubstitution
-open import Evaluation
+open import NormalTypes.Term
+open import NormalTypes.Term.RenamingSubstitution
+open import NormalTypes.Evaluation
 \end{code}
 
 ## Examples
@@ -37,8 +37,9 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 
 \begin{code}
 module Scott where
+{-
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-  G = Π ` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z
+  G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
   M : ∀{Γ} → Γ ⊢⋆ *
   M = μ G
@@ -75,8 +76,7 @@ module Scott where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = fix ·⋆ (N ⇒ N) · TwoPlus · Two
-
-
+-}
 \end{code}
 
 eval (gas 10000000) Scott.Four
@@ -124,6 +124,7 @@ eval (gas 10000000) Scott.Two
 
 \begin{code}
 module Church where
+{-
   N : ∀{Γ} → Γ ⊢⋆ *
   N = Π (` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z)
 
@@ -156,7 +157,7 @@ module Church where
 
   TwoPlusTwo' : ∅ ⊢ N
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
-
+-}
 --open Church public
 \end{code}
 

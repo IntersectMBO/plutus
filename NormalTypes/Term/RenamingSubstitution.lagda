@@ -1,5 +1,5 @@
 \begin{code}
-module Term.RenamingSubstitution where
+module NormalTypes.Term.RenamingSubstitution where
 \end{code}
 
 ## Imports
@@ -14,7 +14,7 @@ import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
 open import Type.Normal
 open import Type.BSN
-open import Term
+open import NormalTypes.Term
 \end{code}
 
 

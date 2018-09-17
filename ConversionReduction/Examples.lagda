@@ -1,5 +1,5 @@
 \begin{code}
-module Examples where
+module ConversionReduction.Examples where
 \end{code}
 
 ## Imports
@@ -7,9 +7,9 @@ module Examples where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Term
-open import Term.RenamingSubstitution
-open import Evaluation
+open import ConversionReduction.Term
+open import ConversionReduction.Term.RenamingSubstitution
+open import ConversionReduction.Evaluation
 \end{code}
 
 ## Examples
@@ -38,7 +38,7 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 \begin{code}
 module Scott where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-  G = Π ` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z
+  G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
   M : ∀{Γ} → Γ ⊢⋆ *
   M = μ G
@@ -64,14 +64,14 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
   
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ ` Z) ⇒ ` Z)
-  case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ ` (S Z) · unwrap (` Z)))))
+  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap (` Z)))))))
 
-  fix : ∀{Γ} → Γ ⊢ Π (` Z ⇒ ` Z) ⇒ ` Z
+  fix : ∀{Γ} → Γ ⊢ Π ((` Z ⇒ ` Z) ⇒ ` Z)
   fix = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
 
   TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ Succ · (` (S (S Z)) · (` (S Z))))))
+  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ (Succ · (` (S (S Z)) · (` (S Z)))))))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = fix ·⋆ (N ⇒ N) · TwoPlus · Two
@@ -125,15 +125,15 @@ eval (gas 10000000) Scott.Two
 \begin{code}
 module Church where
   N : ∀{Γ} → Γ ⊢⋆ *
-  N = Π (` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z)
+  N = Π ((` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z))
 
   Zero : ∅ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S Z))))
 
   Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ ` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z)))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z))))))
   
-  Iter : ∅ ⊢ Π ` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)
+  Iter : ∅ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
   Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
   -- two plus two

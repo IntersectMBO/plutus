@@ -1,5 +1,5 @@
 \begin{code}
-module Term.Reduction where
+module ConversionReduction.Term.Reduction where
 \end{code}
 
 ## Imports
@@ -11,8 +11,8 @@ open import Relation.Binary.PropositionalEquality
 
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Term
-open import Term.RenamingSubstitution
+open import ConversionReduction.Term
+open import ConversionReduction.Term.RenamingSubstitution
 open import Type.Reduction
 \end{code}
 

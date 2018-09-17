@@ -1,13 +1,14 @@
 \begin{code}
-module Evaluation where
+module NormalTypes.Evaluation where
 \end{code}
 
 ## Imports
 
 \begin{code}
 open import Type
-open import Term
-open import Term.Reduction
+open import Type.Normal
+open import NormalTypes.Term
+open import NormalTypes.Term.Reduction
 \end{code}
 
 ## Evaluation
@@ -21,7 +22,7 @@ data Gas : Set where
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
 \begin{code}
-data Finished {Γ J}{A : ∥ Γ ∥ ⊢⋆ J} :  (N : Γ ⊢ A) →  Set where
+data Finished {Γ J}{A : ∥ Γ ∥ ⊢Nf⋆ J} :  (N : Γ ⊢ A) →  Set where
 
    done : ∀ N → 
        Value N
@@ -36,15 +37,15 @@ Given a term `L` of type `A`, the evaluator will, for some `N`, return
 a reduction sequence from `L` to `N` and an indication of whether
 reduction finished.
 \begin{code}
-data Steps : ∀ {J}{A : ∅ ⊢⋆ J} → ∅ ⊢ A → Set where
+data Steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} → ∅ ⊢ A → Set where
 
-  steps : ∀ {J}{A : ∅ ⊢⋆ J} {L N : ∅ ⊢ A}
+  steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} {L N : ∅ ⊢ A}
     → L —↠ N
     → Finished N
       ----------
     → Steps L
 
-  unhandled-conversion :  ∀ {J}{A : ∅ ⊢⋆ J} {L : ∅ ⊢ A} → Steps L
+  unhandled-conversion :  ∀ {J}{A : ∅ ⊢Nf⋆ J} {L : ∅ ⊢ A} → Steps L
 
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.

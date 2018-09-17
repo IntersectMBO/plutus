@@ -1,5 +1,5 @@
 \begin{code}
-module Term where
+module ConversionReduction.Term where
 \end{code}
 
 ## Imports
@@ -59,12 +59,12 @@ data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       ----------
     → Γ , A ∋ A
 
-  S_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
+  S : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T_ : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J}
+  T : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weaken A
@@ -79,12 +79,12 @@ application.
 \begin{code}
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
-  `_ : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+  ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
     → Γ ∋ A
       ------
     → Γ ⊢ A
 
-  ƛ_ : ∀ {Γ A B}
+  ƛ : ∀ {Γ A B}
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
@@ -95,7 +95,7 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ_ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
+  Λ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
     → Γ ⊢ Π B
