@@ -64,17 +64,23 @@ plc :: a -> PlcCode
 -- this constructor is only really there to get rid of the unused warning
 plc _ = PlcCode mustBeReplaced
 
+data PluginOptions = PluginOptions { poDoTypecheck :: Bool }
+
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }
 
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
-install _ todo = pure (GHC.CoreDoPluginPass "C2C" pluginPass : todo)
+install args todo =
+    let
+        opts = PluginOptions { poDoTypecheck = notElem "dont-typecheck" args }
+    in
+        pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
 
-pluginPass :: GHC.ModGuts -> GHC.CoreM GHC.ModGuts
-pluginPass guts = qqMarkerName >>= \case
+pluginPass :: PluginOptions -> GHC.ModGuts -> GHC.CoreM GHC.ModGuts
+pluginPass opts guts = qqMarkerName >>= \case
     -- nothing to do
     Nothing -> pure guts
-    Just name -> GHC.bindsOnlyPass (mapM $ convertMarkedExprsBind name) guts
+    Just name -> GHC.bindsOnlyPass (mapM $ convertMarkedExprsBind opts name) guts
 
 {- Note [Hooking in the plugin]
 Working out what to process and where to put it is tricky. We are going to turn the result in
@@ -105,22 +111,22 @@ makePrimitiveMap associations = do
     pure $ Map.fromList (catMaybes mapped)
 
 -- | Converts all the marked expressions in the given binder into PLC literals.
-convertMarkedExprsBind :: GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
-convertMarkedExprsBind markerName = \case
-    GHC.NonRec b e -> GHC.NonRec b <$> convertMarkedExprs markerName e
-    GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> convertMarkedExprs markerName e) bs
+convertMarkedExprsBind :: PluginOptions -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
+convertMarkedExprsBind opts markerName = \case
+    GHC.NonRec b e -> GHC.NonRec b <$> convertMarkedExprs opts markerName e
+    GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> convertMarkedExprs opts markerName e) bs
 
 -- | Converts all the marked expressions in the given expression into PLC literals.
-convertMarkedExprs :: GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
-convertMarkedExprs markerName =
+convertMarkedExprs :: PluginOptions -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+convertMarkedExprs opts markerName =
     let
-        conv = convertMarkedExprs markerName
-        convB = convertMarkedExprsBind markerName
+        conv = convertMarkedExprs opts markerName
+        convB = convertMarkedExprsBind opts markerName
     in \case
       -- the ignored argument is the type for the polymorphic 'plc'
       e@(GHC.App(GHC.App (GHC.Var fid) _) inner) | markerName == GHC.idName fid -> let vtype = GHC.varType fid in
           case qqMarkerType vtype of
-              Just t -> convertExpr inner t
+              Just t -> convertExpr opts inner t
               Nothing -> do
                   GHC.errorMsg $ "plc Plugin: found invalid marker, could not decode type:" GHC.$+$ GHC.ppr vtype
                   pure e
@@ -143,30 +149,29 @@ convertMarkedExprs markerName =
       e@(GHC.Type _) -> pure e
 
 -- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
-convertExpr :: GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
-convertExpr origE tpe = do
+convertExpr :: PluginOptions -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
+convertExpr opts origE tpe = do
     flags <- GHC.getDynFlags
     primTerms <- makePrimitiveMap primitiveTermAssociations
     primTys <- makePrimitiveMap primitiveTypeAssociations
     let result =
           do
               converted <- convExpr origE
-              -- temporarily don't do typechecking due to lack of support for redexes
-              --annotated <- convertErrors PLCError $ PLC.annotateTerm converted
-              --inferredType <- convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
-              pure (converted, undefined)
+              when (poDoTypecheck opts) $ do
+                  annotated <- convertErrors PLCError $ PLC.annotateTerm converted
+                  void $ convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
+              pure converted
     case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
         -- TODO: should be a way to just register a compilation error with GHC
         Left s -> liftIO $ throwIO s -- this will actually terminate compilation
-        Right (term, _) -> do
+        Right term -> do
             let termRep = T.unpack $ PLC.debugText term
-            --let typeRep = T.unpack $ PLC.debugText inferredType
             -- Note: tests run with --verbose, so these will appear
             GHC.debugTraceMsg $
                 "Successfully converted GHC core expression:" GHC.$+$
                 GHC.ppr origE GHC.$+$
                 "Resulting PLC term is:" GHC.$+$
-                GHC.text termRep --GHC.$+$ "With type:" GHC.$+$ GHC.text typeRep
+                GHC.text termRep
             let program = PLC.Program () (PLC.defaultVersion ()) term
             let serialized = PLC.writeProgram program
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
