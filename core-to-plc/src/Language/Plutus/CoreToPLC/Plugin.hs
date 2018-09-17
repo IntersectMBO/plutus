@@ -25,6 +25,7 @@ import qualified Data.ByteString.Lazy            as BSL
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
 import           Data.Text                       as T
+import qualified Data.Text.Prettyprint.Doc       as PP
 
 {- Note [Constructing the final program]
 Our final type is a simple newtype wrapper. However, constructing *anything* in Core
@@ -159,11 +160,11 @@ convertExpr opts origE tpe = do
           do
               converted <- convExpr origE
               when (poDoTypecheck opts) $ do
-                  annotated <- convertErrors PLCError $ PLC.annotateTerm converted
-                  void $ convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
+                  annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
+                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
               pure converted
     case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
-        Left s -> liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError (show s)) -- this will actually terminate compilation
+        Left s -> liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError (show $ PP.pretty s)) -- this will actually terminate compilation
         Right term -> do
             let termRep = T.unpack $ PLC.debugText term
             -- Note: tests run with --verbose, so these will appear
