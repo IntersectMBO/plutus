@@ -1,10 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
+{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin #-}
 -- the simplfiier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 
 module Main (main) where
+
+import IllTyped
 
 import           Language.Plutus.CoreToPLC.Plugin
 import           Language.Plutus.CoreToPLC.Primitives as Prims
@@ -72,9 +74,6 @@ bool = plc True
 tuple :: PlcCode
 tuple = plc ((1::Int), (2::Int))
 
-tupleMatch :: PlcCode
-tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
-
 intCompare :: PlcCode
 intCompare = plc (\(x::Int) (y::Int) -> x < y)
 
@@ -86,15 +85,6 @@ intPlus = plc (\(x::Int) (y::Int) -> x + y)
 
 errorPlc :: PlcCode
 errorPlc = plc (Prims.error @Int)
-
-blocknumPlc :: PlcCode
-blocknumPlc = plc Prims.blocknum
-
-bytestring :: PlcCode
-bytestring = plc (\(x::Prims.ByteString) -> x)
-
-verify :: PlcCode
-verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
 
 structure :: TestTree
 structure = testGroup "Structures" [

@@ -57,6 +57,7 @@ test-suite core-to-plc-plugin
     hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    other-modules: IllTyped
     build-depends:
         base >=4.9 && <5,
         core-to-plc -any,
