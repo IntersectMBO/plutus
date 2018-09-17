@@ -19,6 +19,7 @@ import           Codec.CBOR.Read                 (DeserialiseFailure)
 import           Control.Exception
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 import qualified Data.ByteString.Lazy            as BSL
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
@@ -154,7 +155,7 @@ convertExpr origE tpe = do
               --annotated <- convertErrors PLCError $ PLC.annotateTerm converted
               --inferredType <- convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
               pure (converted, undefined)
-    case runExcept $ runReaderT (runQuoteT result) (flags, primTerms, primTys, initialScopeStack) of
+    case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
         -- TODO: should be a way to just register a compilation error with GHC
         Left s -> liftIO $ throwIO s -- this will actually terminate compilation
         Right (term, _) -> do
