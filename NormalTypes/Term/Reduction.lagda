@@ -5,16 +5,10 @@ module NormalTypes.Term.Reduction where
 ## Imports
 
 \begin{code}
-open import Function using (id; _∘_)
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-
 open import Type
-import Type.RenamingSubstitution as ⋆
 open import NormalTypes.Term
 open import NormalTypes.Term.RenamingSubstitution
-open import Type.Reduction
-open import Type.BSN
+open import Type.NBE
 open import Type.Normal
 \end{code}
 

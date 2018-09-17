@@ -13,7 +13,7 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
 open import Type.Normal
-open import Type.BSN
+open import Type.NBE
 open import NormalTypes.Term
 \end{code}
 

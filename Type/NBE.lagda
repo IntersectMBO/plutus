@@ -7,6 +7,7 @@ module Type.NBE where
 \begin{code}
 open import Type
 open import Type.Normal
+open import Type.RenamingSubstitution
 
 open import Function
 \end{code}
@@ -18,6 +19,11 @@ Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
 Val : Ctx⋆ → Kind → Set
 Val Γ * = Γ ⊢Nf⋆ *
 Val Γ (K ⇒ J) = ∀{Δ} → Ren Γ Δ → Val Δ K → Val Δ J
+\end{code}
+
+\begin{code}
+Env : Ctx⋆ → Ctx⋆ → Set
+Env Δ Γ = ∀{J} → Δ ∋⋆ J → Val Γ J
 \end{code}
 
 \begin{code}
@@ -48,4 +54,25 @@ val (μ B)    ρ = μ (val B (λ { Z → reflect _ (` Z) ; (S x) → renval _ S 
 
 renval * ρ v = renameNf ρ v
 renval (K ⇒ J) ρ f = λ ρ' v → f (ρ' ∘ ρ) v
+\end{code}
+
+\begin{code}
+idEnv : ∀ Γ → Env Γ Γ
+idEnv ∅ ()
+idEnv (Γ ,⋆ K) Z = reflect K (` Z)
+idEnv (Γ ,⋆ K) (S x) = renval _ S (idEnv Γ x)
+\end{code}
+
+\begin{code}
+nf : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K
+nf t = reify _ (val t (idEnv _))
+\end{code}
+
+\begin{code}
+_[_]Nf : ∀ {Φ J K}
+        → Φ ,⋆ K ⊢Nf⋆ J
+        → Φ ⊢Nf⋆ K 
+          ------
+        → Φ ⊢Nf⋆ J
+A [ B ]Nf = nf (embNf A [ embNf B ])
 \end{code}

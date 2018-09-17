@@ -6,9 +6,8 @@ module NormalTypes.Term where
 
 \begin{code}
 open import Type
-open import Type.RenamingSubstitution
 open import Type.Normal
-open import Type.BSN
+open import Type.NBE renaming (_[_]Nf to _[_])
 \end{code}
 
 ## Fixity declarations
@@ -107,15 +106,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → Γ ⊢ Π B
     → (A : ∥ Γ ∥ ⊢Nf⋆ K)
       ---------------
-    → Γ ⊢ B [ A ]Nf
+    → Γ ⊢ B [ A ]
 
   wrap : ∀{Γ}
     → {B : ∥ Γ ∥ ,⋆ * ⊢Nf⋆ *}
-    → (M : Γ ⊢ (B [ μ B ]Nf))
+    → (M : Γ ⊢ B [ μ B ])
     → Γ ⊢ μ B
 
   unwrap : ∀{Γ}
     → {B : ∥ Γ ∥ ,⋆ * ⊢Nf⋆ *}
     → (M : Γ ⊢ μ B)
-    → Γ ⊢ B [ μ B ]Nf
+    → Γ ⊢ B [ μ B ]
 \end{code}

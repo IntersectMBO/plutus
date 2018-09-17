@@ -186,20 +186,6 @@ nf t = readbackNf (eval t idEnv)
 \end{code}
 
 \begin{code}
-embNf : ∀{Γ K} → Γ ⊢Nf⋆ K → Γ ⊢⋆ K
-embNeN : ∀{Γ K} → Γ ⊢NeN⋆ K → Γ ⊢⋆ K
-
-embNf (Π B)   = Π (embNf B)
-embNf (A ⇒ B) = embNf A ⇒ embNf B
-embNf (ƛ B)   = ƛ (embNf B)
-embNf (μ B)   = μ (embNf B)
-embNf (ne B)  = embNeN B
-
-embNeN (` x) = ` x
-embNeN (A · B) = embNeN A · embNf B
-\end{code}
-
-\begin{code}
 _[_]Nf : ∀ {Φ J K}
         → Φ ,⋆ K ⊢Nf⋆ J
         → Φ ⊢Nf⋆ K 

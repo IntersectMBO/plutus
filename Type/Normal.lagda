@@ -156,3 +156,17 @@ mutual
   renameNeN-comp g f (A · x) =
     cong₂ _·_ (renameNeN-comp g f A) (renameNf-comp g f x)
 \end{code}
+
+\begin{code}
+embNf : ∀{Γ K} → Γ ⊢Nf⋆ K → Γ ⊢⋆ K
+embNeN : ∀{Γ K} → Γ ⊢NeN⋆ K → Γ ⊢⋆ K
+
+embNf (Π B)   = Π (embNf B)
+embNf (A ⇒ B) = embNf A ⇒ embNf B
+embNf (ƛ B)   = ƛ (embNf B)
+embNf (μ B)   = μ (embNf B)
+embNf (ne B)  = embNeN B
+
+embNeN (` x) = ` x
+embNeN (A · B) = embNeN A · embNf B
+\end{code}
