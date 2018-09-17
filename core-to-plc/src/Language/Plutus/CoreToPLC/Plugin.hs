@@ -9,6 +9,7 @@ import           Language.Plutus.CoreToPLC
 import           Language.Plutus.CoreToPLC.Error
 
 import qualified GhcPlugins                      as GHC
+import qualified Panic                           as GHC
 
 import qualified Language.PlutusCore             as PLC
 import           Language.PlutusCore.Quote
@@ -162,8 +163,7 @@ convertExpr opts origE tpe = do
                   void $ convertErrors PLCError $ PLC.typecheckTerm 1000 annotated
               pure converted
     case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
-        -- TODO: should be a way to just register a compilation error with GHC
-        Left s -> liftIO $ throwIO s -- this will actually terminate compilation
+        Left s -> liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError (show s)) -- this will actually terminate compilation
         Right term -> do
             let termRep = T.unpack $ PLC.debugText term
             -- Note: tests run with --verbose, so these will appear
