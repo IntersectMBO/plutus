@@ -1,0 +1,20 @@
+(program 0.1.0
+  (abs a (type)
+  (lam x
+    (fix list (all r (type) (fun r (fun (fun a (fun list r)) r))))
+    [
+      [
+        { (unwrap x) a }
+        (error a)
+      ]
+      (lam head
+        a
+        (lam tail
+          (fix list (all r (type) (fun a (fun (fun a (fun list a)) a))))
+          head
+        )
+      )
+    ]
+  )
+  )
+)

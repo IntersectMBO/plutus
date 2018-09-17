@@ -1,0 +1,12 @@
+Type mismatch at 5:5 in term
+  '(lam
+    head
+    a
+    (lam
+      tail (fix list (all r (type) (fun a (fun (fun a (fun list a)) a)))) head
+    )
+  )'.
+Expected type
+  '(fun a (fun (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))) a))',
+found type
+  '(fun a (fun (fix list (all r (type) (fun a (fun (fun a (fun list a)) a)))) a))'
