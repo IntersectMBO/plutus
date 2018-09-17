@@ -24,10 +24,10 @@ Val Γ (K ⇒ J) = ∀{Δ} → Ren Γ Δ → Val Δ K → Val Δ J
 reflect : ∀{Γ} K → Γ ⊢NeN⋆ K → Val Γ K
 
 reify : ∀{Γ} K → Val Γ K → Γ ⊢Nf⋆ K
-reify * (Π x) = Π x
-reify * (x ⇒ x₁) = x ⇒ x₁
-reify * (μ x) = μ x
-reify * (ne x) = ne x
+reify * (Π B) = Π B
+reify * (A ⇒ B) = A ⇒ B
+reify * (μ B) = μ B
+reify * (ne A) = ne A
 reify (K ⇒ J) f = ƛ (reify J (f S (reflect K (` Z)))) 
 
 reflect * n = ne n

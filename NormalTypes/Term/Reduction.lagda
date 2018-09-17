@@ -14,7 +14,7 @@ import Type.RenamingSubstitution as ⋆
 open import Term
 open import Term.RenamingSubstitution
 open import Type.Reduction
-open import Type.Value
+open import Type.BSN
 open import Type.Normal
 \end{code}
 

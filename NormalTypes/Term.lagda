@@ -8,6 +8,7 @@ module Term where
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Normal
+open import Type.BSN
 \end{code}
 
 ## Fixity declarations
