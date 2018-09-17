@@ -5,11 +5,11 @@ module Main ( main
 
 import           Control.Monad
 import qualified Data.ByteString.Lazy    as BSL
+import           Data.Either             (fromRight, isLeft)
 import qualified Data.Text               as T
 import           Data.Text.Encoding      (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
-
 import           Generators
 import           Hedgehog                hiding (Var)
 import           Language.PlutusCore
@@ -81,6 +81,7 @@ propParser = property $ do
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
     [ tests
+    , testShadowing
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
@@ -111,6 +112,25 @@ testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCfg))
+
+testShadowing :: TestTree
+testShadowing =
+    let tyVar = TyNameWithKind (TyName (Name ((), Type ()) "a" (Unique 0)))
+        tyKind = Type ()
+        tyVarType = TyVar () tyVar
+        termVar = NameWithType (Name ((), tyVarType) "arg" (Unique 1))
+        funTy = TyFun () tyVarType tyVarType
+        funVar = NameWithType (Name ((), funTy) "f" (Unique 2))
+        shadowedTree =
+            TyAbs () tyVar tyKind
+                (LamAbs () termVar tyVarType
+                    (TyAbs () tyVar tyKind
+                        (LamAbs () funVar funTy
+                            (Apply () (Var () funVar) (Var () termVar)))))
+
+        result = runQuoteT $ typecheckTerm 1000 shadowedTree
+    in
+        testCase "shadowing example" (assertBool (fromRight "Internal error in test suite" $ fmap prettyCfgString result) $ isLeft result)
 
 tests :: TestTree
 tests = testCase "example programs" $ fold

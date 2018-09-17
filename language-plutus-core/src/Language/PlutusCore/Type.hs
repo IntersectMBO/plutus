@@ -264,7 +264,4 @@ instance PrettyCfg (NameWithType a) where
 
 newtype NormalizedType tyname a = NormalizedType { getNormalizedType :: Type tyname a }
     deriving (Show, Eq, Functor, Generic)
-    deriving newtype NFData
-
-instance PrettyCfg (tyname a) => PrettyCfg (NormalizedType tyname a) where
-    prettyCfg cfg (NormalizedType ty) = prettyCfg cfg ty
+    deriving newtype (NFData, PrettyCfg)
