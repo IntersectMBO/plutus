@@ -66,7 +66,10 @@ plc :: a -> PlcCode
 -- this constructor is only really there to get rid of the unused warning
 plc _ = PlcCode mustBeReplaced
 
-data PluginOptions = PluginOptions { poDoTypecheck :: Bool }
+data PluginOptions = PluginOptions {
+    poDoTypecheck   :: Bool
+    , poDeferErrors :: Bool
+    }
 
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }
@@ -74,7 +77,10 @@ plugin = GHC.defaultPlugin { GHC.installCoreToDos = install }
 install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
 install args todo =
     let
-        opts = PluginOptions { poDoTypecheck = notElem "dont-typecheck" args }
+        opts = PluginOptions {
+            poDoTypecheck = notElem "dont-typecheck" args
+            , poDeferErrors = elem "defer-errors" args
+            }
     in
         pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
 
@@ -164,7 +170,12 @@ convertExpr opts origE tpe = do
                   void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
               pure converted
     case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
-        Left s -> liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError (show $ PP.pretty s)) -- this will actually terminate compilation
+        Left s ->
+            let shown = show $ PP.pretty s in
+            if poDeferErrors opts
+            -- TODO: is this the right way to do either of these things?
+            then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID tpe shown -- this will blow up at runtime
+            else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
         Right term -> do
             let termRep = T.unpack $ PLC.debugText term
             -- Note: tests run with --verbose, so these will appear

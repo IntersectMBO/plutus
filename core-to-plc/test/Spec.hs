@@ -1,12 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin #-}
+{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
 -- the simplfiier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 
 module Main (main) where
 
-import IllTyped
+import           IllTyped
 
 import           Language.Plutus.CoreToPLC.Plugin
 import           Language.Plutus.CoreToPLC.Primitives as Prims
@@ -16,14 +16,22 @@ import           Language.PlutusCore
 import           Test.Tasty
 import           Test.Tasty.Golden
 
+import           Control.Exception
 import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Text                            as T
 import           Data.Text.Encoding                   (encodeUtf8)
 
 main :: IO ()
 main = defaultMain tests
 
 golden :: String -> PlcCode -> TestTree
-golden name value = (goldenVsString name ("test/" ++ name ++ ".plc.golden") . pure . BSL.fromStrict . encodeUtf8 . debugText . getAst) value
+golden name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either (strToBs . show) (txtToBs . debugText . getAst) <$> try @SomeException (evaluate value)
+
+strToBs :: String -> BSL.ByteString
+strToBs = BSL.fromStrict . encodeUtf8 . T.pack
+
+txtToBs :: T.Text -> BSL.ByteString
+txtToBs = BSL.fromStrict . encodeUtf8
 
 tests :: TestTree
 tests = testGroup "GHC Core to PLC conversion" [
@@ -50,6 +58,7 @@ primitives :: TestTree
 primitives = testGroup "Primitive types and operations" [
     golden "string" string
   , golden "int" int
+  , golden "integer" integer
   , golden "bool" bool
   , golden "tuple" tuple
   , golden "tupleMatch" tupleMatch
@@ -67,6 +76,9 @@ string = plc "test"
 
 int :: PlcCode
 int = plc (1::Int)
+
+integer :: PlcCode
+integer = plc (1::Integer)
 
 bool :: PlcCode
 bool = plc True
