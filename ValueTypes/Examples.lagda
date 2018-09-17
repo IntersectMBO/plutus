@@ -1,5 +1,5 @@
 \begin{code}
-module Examples where
+module ValueTypes.Examples where
 \end{code}
 
 ## Imports
@@ -7,9 +7,10 @@ module Examples where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Term
-open import Term.RenamingSubstitution
-open import Evaluation
+open import ValueTypes.Term
+open import ValueTypes.Term.RenamingSubstitution
+open import ValueTypes.Evaluation
+open import Type.BSN
 \end{code}
 
 ## Examples
@@ -38,20 +39,20 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 \begin{code}
 module Scott where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-  G = Π ` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z
+  G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
-  M : ∀{Γ} → Γ ⊢⋆ *
-  M = μ G
+  M : ∀{Γ} → Γ ⊢V⋆ *
+  M = μ G idEnv
   
-  N : ∀{Γ} → Γ ⊢⋆ *
-  N  =  G ⋆.[ M ]
+  N : ∀{Γ} → Γ ⊢V⋆ *
+  N  =  G ⟦ M ⟧
   
   Zero : ∀{Γ} → Γ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
-  
+{-
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
-  
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap (` (S (S (T Z))))))))
+
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
   
@@ -75,7 +76,7 @@ module Scott where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = fix ·⋆ (N ⇒ N) · TwoPlus · Two
-
+-}
 
 \end{code}
 
@@ -124,16 +125,17 @@ eval (gas 10000000) Scott.Two
 
 \begin{code}
 module Church where
+{-
   N : ∀{Γ} → Γ ⊢⋆ *
-  N = Π (` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z)
+  N = Π ((` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z))
 
   Zero : ∅ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S Z))))
 
   Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ ` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z)))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
   
-  Iter : ∅ ⊢ Π ` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)
+  Iter : ∅ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)) idEnv
   Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
   -- two plus two
@@ -156,6 +158,7 @@ module Church where
 
   TwoPlusTwo' : ∅ ⊢ N
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
+-}
 
 --open Church public
 \end{code}

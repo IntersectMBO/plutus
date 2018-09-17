@@ -51,30 +51,29 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 
 \begin{code}
 
-postulate
- rename : ∀ {Γ Δ}
+rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
     ------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ renameNf ρ⋆ A )
-{-
 rename ρ⋆ ρ (` x)    = ` (ρ x)
 rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
-          {!!} -- (trans {!!} (rename-readbackNf ρ⋆ (eval (embNf B ⋆.[ embNf A ]) idEnv))) {- (rename-eval B (vs ,⋆ A) ρ⋆) -}
+          {!!} -- (trans {!!} (rename-reify ρ⋆ * (eval (⋆.subst (⋆.subst-cons ` (embNf A)) (embNf B))
+               --      (idEnv ∥ Γ ∥))))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
   wrap (substEq (Δ ⊢_)
-                {!!} -- (sym (rename-eval B (vs ,⋆ μ B vs) ρ⋆))
+                {!!}
                 (rename ρ⋆ ρ M))
 rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B} M) =
   substEq (Δ ⊢_)
-          {!!} -- (rename-eval B (vs ,⋆ μ B vs) ρ⋆)
+          {!!}
           (unwrap (rename ρ⋆ ρ M))
--}
+
 \end{code}
 
 \begin{code}
@@ -205,18 +204,6 @@ postulate
         → Γ ⊢ B 
           ---------
         → Γ ⊢ A
-{-
-_[_]  {J} {Γ}{A}{B} t s =
-  substEq (λ A → Γ ⊢ A)
-          (⋆.subst-id A)
-          (subst `
-                 (substcons `
-                            (λ x → substEq (λ A → Γ ⊢ A)
-                                           (sym (⋆.subst-id _))
-                                           (` x))
-                            (substEq (λ A → Γ ⊢ A) (sym (⋆.subst-id B)) s))
-                 t) 
--}
 \end{code}
 
 \begin{code}
@@ -226,13 +213,4 @@ postulate
         → (A : ∥ Γ ∥ ⊢Nf⋆ K)
           ---------
         → Γ ⊢ B [ A ]Nf
-{-
-_[_]⋆ {J}{Γ}{K}{B} t A =
-  subst (⋆.subst-cons ` A)
-        (λ{(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
-                                     (trans (sym (⋆.subst-id A'))
-                                     (⋆.subst-rename S (⋆.subst-cons ` A) A'))
-                                     (` x)})
-          t
--}
 \end{code}

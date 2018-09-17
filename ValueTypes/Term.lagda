@@ -1,5 +1,5 @@
 \begin{code}
-module Term where
+module ValueTypes.Term where
 \end{code}
 
 ## Imports
@@ -8,7 +8,7 @@ module Term where
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Normal
-open import Type.Value
+open import Type.BSN
 \end{code}
 
 ## Fixity declarations
@@ -109,22 +109,22 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢V⋆ J → Set where
     → Γ ⊢ Π B vs
     → (A : ∥ Γ ∥ ⊢V⋆ K)
       ---------------
-    → Γ ⊢ eval B (vs ,⋆ A)
+    → Γ ⊢ eval B (vs ,,⋆ A)
 
   wrap : ∀{Γ Δ}
     → {B : Δ ,⋆ * ⊢⋆ *}
     → {vs : Env⋆ ∥ Γ ∥ Δ}
-    → (M : Γ ⊢ eval B (vs ,⋆ μ B vs ))
+    → (M : Γ ⊢ eval B (vs ,,⋆ μ B vs ))
     → Γ ⊢ μ B vs
 
   unwrap : ∀{Γ Δ}
     → {B : Δ ,⋆ * ⊢⋆ *}
     → {vs : Env⋆ ∥ Γ ∥ Δ}
     → (M : Γ ⊢ μ B vs)
-    → Γ ⊢ eval B (vs ,⋆ μ B vs)
-
+    → Γ ⊢ eval B (vs ,,⋆ μ B vs)
+{-
   conv : ∀{Γ}{A A' : ∥ Γ ∥ ⊢V⋆ *}
     → A V≡ A'
     → Γ ⊢ A
-    → Γ ⊢ A'
+    → Γ ⊢ A' -}
 \end{code}

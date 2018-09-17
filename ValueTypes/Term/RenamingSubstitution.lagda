@@ -1,5 +1,5 @@
 \begin{code}
-module Term.RenamingSubstitution where
+module ValueTypes.Term.RenamingSubstitution where
 \end{code}
 
 ## Imports
@@ -12,8 +12,8 @@ open import Relation.Binary.PropositionalEquality
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
-open import Type.Value
-open import Term
+open import Type.BSN
+open import ValueTypes.Term
 \end{code}
 
 
@@ -33,7 +33,7 @@ ext ρ⋆ ρ (S x) = S (ρ x)
 \end{code}
 
 \begin{code}
-
+{-
 ext⋆ : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ∋⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢V⋆ J} → Γ ∋ A → Δ ∋ renameV ρ⋆ A)
@@ -46,6 +46,7 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
           (trans (sym (renameV-comp ρ⋆ S _)) (renameV-comp S (⋆.ext ρ⋆) _))
           (T (ρ x))
+-}
 \end{code}
 
 \begin{code}

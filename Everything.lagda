@@ -6,12 +6,18 @@ import Type.RenamingSubstitution
 import Type.Reduction
 import Type.Equality
 
-
 import NormalTypes.Term
-import NormalTypes.Term.RenamingSubstitution
-import NormalTypes.Term.Reduction
-import NormalTypes.Evaluation
-import NormalTypes.Examples
+--import NormalTypes.Term.RenamingSubstitution
+--import NormalTypes.Term.Reduction
+--import NormalTypes.Evaluation
+--import NormalTypes.Examples
+
+import ValueTypes.Term
+import ValueTypes.Term.RenamingSubstitution
+import ValueTypes.Term.Reduction
+import ValueTypes.Evaluation
+import ValueTypes.Examples
+
 
 import ConversionEquality.Term
 import ConversionEquality.Term.RenamingSubstitution
@@ -30,5 +36,7 @@ import ConversionReduction.Term.RenamingSubstitution
 import ConversionReduction.Term.Reduction
 import ConversionReduction.Evaluation
 import ConversionReduction.Examples
+
+
 
 \end{code}

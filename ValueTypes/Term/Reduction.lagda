@@ -1,5 +1,5 @@
 \begin{code}
-module Term.Reduction where
+module ValueTypes.Term.Reduction where
 \end{code}
 
 ## Imports
@@ -11,10 +11,10 @@ open import Relation.Binary.PropositionalEquality
 
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Term
-open import Term.RenamingSubstitution
+open import ValueTypes.Term
+open import ValueTypes.Term.RenamingSubstitution
 open import Type.Reduction
-open import Type.Value
+open import Type.BSN
 \end{code}
 
 ## Values
@@ -35,15 +35,16 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢V⋆ J} → Γ ⊢ A → Set where
   V-wrap : ∀{Γ Δ}
     → {A : Δ ,⋆ * ⊢⋆ *}
     → {vs : Env⋆ ∥ Γ ∥ Δ}
-    → {M : Γ ⊢ eval A (vs ,⋆ μ A vs )}
+    → {M : Γ ⊢ eval A (vs ,,⋆ μ A vs )}
       ----------------
     → Value (wrap {B = A} M)
 
+{-
   -- it would be better to push conversions into values somehow
   V-conv : ∀{Γ}{A B : ∥ Γ ∥ ⊢V⋆ *}{L : Γ ⊢ A}(p : A V≡ B)
     → Value L
     → Value (conv p L)
-
+-}
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -99,10 +100,11 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢V⋆ J} → (Γ ⊢ A) → (Γ ⊢
     → (p : B —→⋆ A)
     → conv p L —→ L
 -}
-
+{-
   ξ-conv₂ : ∀{Γ}{A B : ∥ Γ ∥ ⊢V⋆ *}{L L' : Γ ⊢ A}{p : A V≡ B}
     → L —→ L'
     → conv p L —→ conv p L'
+-}
 \end{code}
 
 \begin{code}
@@ -135,7 +137,7 @@ data Progress {A : ∅ ⊢V⋆ *} (M : ∅ ⊢ A) : Set where
 \begin{code}
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
-
+{-
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progress (` ())
 progress (ƛ M) = done V-ƛ
@@ -144,16 +146,13 @@ progress (M · N) | step p = step (ξ-·₁ p)
 progress (M · N) | done VM with progress N
 progress (M · N) | done VM | step q = step (ξ-·₂ VM q)
 progress (.(ƛ _) · N) | done V-ƛ | done VN = step {!!}
-progress (.(conv (⇒V≡ _ _) _) · N) | done (V-conv (⇒V≡ p q) VM) | done VN =
-  {!!}
 progress (Λ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
 progress (M ·⋆ A) | step p  = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = {!!}
-progress (.(conv ΠV≡ _) ·⋆ A) | done (V-conv ΠV≡ VM) = {!!}
 progress (wrap M) = done V-wrap
 progress (unwrap M) = {!!}
-progress (conv p M) = {!!}
+-}
 
 {-
 progress : ∀ (A : ∅ ⊢⋆ *) → (M : ∅ ⊢ A) →
