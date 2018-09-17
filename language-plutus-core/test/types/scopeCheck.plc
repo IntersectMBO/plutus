@@ -1,0 +1,17 @@
+(program 0.1.0
+(abs a (type)
+  -- the outer `a` is used here
+  (lam arg a
+    -- the vey same `a`! this should be fine if we're allowing shadowing
+    (abs a (type)
+      -- the inner `a` is used here
+      (lam f (fun a a)
+        -- Should be a type error: `f : innerA -> innerA`, `arg : outerA`.
+        -- But we're representing the inner and the outer `a` with the same name,
+        -- so we'll just have `f : a -> a`, `arg : a` which looks fine.
+        [ f arg ]
+      )
+    )
+  )
+)
+)

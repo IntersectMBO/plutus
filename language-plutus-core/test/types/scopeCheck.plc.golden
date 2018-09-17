@@ -1,0 +1,6 @@
+Type mismatch at 12:9 in term
+  'arg'.
+Expected type
+  'a',
+found type
+  'a'
