@@ -690,9 +690,10 @@
 \newcommand{\chkpatfull}[5]{#1 ~\vdash~ #2  ~ \textit{pattern} ~ #3 ~\triangleright~ #4 ~\dashv~ #5}
 \newcommand{\chkpatfullsplit}[5]{\begin{array}{c}#1 ~\vdash~ #2  ~ \textit{pattern} ~ #3 ~\triangleright\\ #4 ~\dashv~ #5\end{array}}
 
-
-
-
+%% kwxm: macro for notes
+\usepackage{xcolor}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
 
 \begin{document}
 %
@@ -813,12 +814,20 @@ Integer and Bytestring, are indexed by their size, which allows the
 cost (in gas) of operations such as addition to be determined at
 compile time. In contrast, IELE uses unbounded integers, which never
 overflow, but require that the gas used is calculated at run time. We
-use \Fomega{} (as opposed to F) because it supports types indexed by
+use \Fomega{} (as opposed to F)%
+%%%
+\redfootnote{F$^{\omega}$ or F$_{\omega}$?}
+%%%
+because it supports types indexed by
 size and parameterised types (such as ``List of A'').
 
-Plutus Core also notable lacks obvious built-in support for recursion,
+Plutus Core also notably lacks obvious built-in support for recursion,
 either general or otherwise. The reason for this is simply that in
-the presence of type left fixed points, it's possible to give a valid
+the presence of type left %
+%%%
+\red{[Eh?]} 
+%%%
+fixed points, it's possible to give a valid
 type to recursion combinators. This is analogous to the fact that in
 Haskell, you can define the Y combinator but you need to use a newtype
 declaration to do. Precisely which combinators one defines is up to
@@ -833,7 +842,7 @@ gain access to recursion.
 
 \section{Syntax}
 
-The grammar of Plutus Core is given in \ref{fig:Plutus_core_grammar} and 
+The grammar of Plutus Core is given in Figures \ref{fig:Plutus_core_grammar} and 
 \ref{fig:Plutus_core_lexical_grammar}. This grammar describes the abstract
 syntax trees of Plutus Core, in a convenient notation, and also describes
 the string syntax to be used when referring to those ASTs. The string
@@ -862,7 +871,11 @@ is sugar for
   [[[M_0 ~ M_1] ~ M_2] ~ M_3]
 \]
 All subsequent definitions assume iterated application and instantiation
-has been expanded out, and use only the binary form. To the extent that
+has been expanded out, and use only the binary form.%
+%%%
+\redfootnote{``Binary'' made me think of 0101011010.  ``Single-argument form''?}
+%%%
+To the extent that
 a standard utility parser for Plutus Core might be made, for debugging
 purposes and other such things, iterated application and instantiation
 ought to be included as sugar.
@@ -875,6 +888,18 @@ ought to be included as sugar.
 
 \subfile{figures/PlutusCoreGrammar}
 
+%%%%%%%
+\red{
+Some comments on the syntax...
+\begin{itemize}
+\item Are Values also Terms?  If not, then I don't think $\wrap{\alpha}{S}{V}$ is a term, for example (perhaps this is correct).
+%
+\item Under Term (and maybe also under Value), should $\abs{\alpha}{K}{V}$ be $\abs{\alpha}{K}{M}$?  
+\item I don't think $L$, $U$, $C$ and $R$ are ever used.  That's unimportant though.
+ \end{itemize}
+}
+[Sorry, I couldn't get this to appear closer to the actual grammar.]
+%%%%%%%
 
 
 
@@ -898,7 +923,7 @@ ought to be included as sugar.
 
 We define for Plutus Core a number of typing judgments which explain ways that a program can be well-formed. First, in Figure \ref{fig:Plutus_core_contexts}, we define the grammar of variable contexts that these judgments hold under. Variable contexts contain information about the nature of variables --- type variables with their kind, and term variables with their type.
 
-Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what it means for a type synthesize a kind. Plutus Core is a higher-kinded version of System F, so we have a number of standard System F rules together with some obvious extensions. In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type synthesis judgment, which explains how a term synthesizes a type.
+Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what it means for a type to synthesize a kind. Plutus Core is a higher-kinded version of System F, so we have a number of standard System F rules together with some obvious extensions. In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type synthesis judgment, which explains how a term synthesizes a type.
 
 Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}$) is given in tabular form rather than in inference rule form, in Figure \ref{fig:Plutus_core_builtins}, which also gives the reduction semantics. This table also specifies what conditions trigger an error.
 

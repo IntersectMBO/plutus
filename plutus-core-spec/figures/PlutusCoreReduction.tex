@@ -134,6 +134,10 @@
                        %&        &     & \ckbackward{s}{S}                 & \textrm{returning a type value}\\
                        &        &     & \ckerror{}                        & \textrm{throwing an error}
     \end{array}\]
+
+\red{In Figure 6, $f$ is defined to be a Type Frame.  I think we actually want plain
+Frames here, which are defined in Figure 8 without any name.  Note that $f$ reappears later,
+in Figure 16 where it's got something to do with erasure.}
     
     \caption{Grammar of CK Machine States}
     \label{fig:Plutus_core_ck_frames}
@@ -166,6 +170,26 @@
     
     \caption{CK Machine}
     \label{fig:Plutus_core_ck_machine}
+%%%%%%%%%%%%%
+\vskip5mm
+\red{The machine has states of the form $s \triangleright M$ and $s \triangleleft V$
+where $M$ is a term and $V$ is a value, but there are a number of inconsistencies with the grammar.
+For example:
+\begin{itemize}
+\item There's a transition for the state $s \triangleright \{M A\}$, but according to Figure 3 
+ $\{M A\}$ isn't a term; there is a term $\{M S\}$, but this requires a type value (normalised type?)
+$S$, and $A$ denotes a type.  In fact, all of the transitions listed above involve $A$s, but terms 
+in the grammar all contain $S$s.
+%
+\item If $x$ is a variable name then $x$ is a term, but there's no transition for this.
+%
+\item There's a state $s, [M \_] \triangleleft N$.  We're supposed to have a $V$ on the right of the
+$\triangleleft$, but I think $N$ is a term instead.
+Similarly, I don't think $[M N]$ on the right of the last transition is a $V$.
+%
+\end{itemize}
+}
+%%%%%%%%%%%%%
 \end{figure*}
 
 

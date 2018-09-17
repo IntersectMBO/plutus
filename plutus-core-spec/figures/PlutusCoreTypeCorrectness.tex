@@ -66,8 +66,14 @@
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \TrinaryInfC{\(\Gamma, \termJ{x}{A}\)}
     \end{prooftree}
-    
-    
+
+%%%%%%%%%%
+\vskip2mm
+\red{Should the last two judgments above mention ``valid'' in their conclusions?}
+
+\red{Also, validity is never referred to elsewhere.  Is there a
+  blanket assumption that all contexts are valid?}
+%%%%%%%%%%    
     \caption{Contexts}
     \label{fig:Plutus_core_contexts}
 \end{figure*}
@@ -90,7 +96,8 @@
         \RightLabel{tyrec}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\recT{A}}{\typeK{}}}\)}
     \end{prooftree}
-    
+    \red{rec is never defined.  Is this something that's left over from an old version of the document?}
+
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{tyall}
@@ -103,6 +110,7 @@
         \RightLabel{tyfix}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
     \end{prooftree}
+    \red{Why $K = \texttt{(type)}$ rather than putting $A::\texttt{(type)}$ after the $\vdash$?}
     
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
@@ -129,6 +137,13 @@
         \RightLabel{tybuiltin}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{K}}\)}
     \end{prooftree}
+%%%%%%%%%%
+\vskip2mm
+\red{In the last rule, I think the idea is that we have to look up
+$bt$ and $tcn$ in Figure 13. I'm a little confused here since in Figure 1
+$bt$ is one form of $tcn$. Is there a typo here?}
+%%%%%%%%%%    
+    \caption{Contexts}
     
     \caption{Kind Synthesis}
     \label{fig:Plutus_core_kind_synthesis}
@@ -140,7 +155,9 @@
 
 \begin{figure*}[t]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
-    
+
+\red{``Normal type'' is never defined. Is this what's called a Type Value in the grammar?}    
+
     \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{S}}\)}
         \RightLabel{var}
