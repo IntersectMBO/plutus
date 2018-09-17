@@ -260,7 +260,7 @@ tySubstitute u nty@(NormalizedType ty) = go . getNormalizedType where
     -- substitute for the type variable in question
     go (TyVar _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
 
-    -- don't substitute if name is bound more tightly by something else
+    -- we stop substitution if the same name is bound again
     go ty'@(TyLam _ (TyNameWithKind (TyName (Name _ _ u'))) _ _) | u == u' = ty'
     go ty'@(TyForall _ (TyNameWithKind (TyName (Name _ _ u'))) _ _) | u == u' = ty'
     go ty'@(TyFix _ (TyNameWithKind (TyName (Name _ _ u'))) _) | u == u' = ty'
