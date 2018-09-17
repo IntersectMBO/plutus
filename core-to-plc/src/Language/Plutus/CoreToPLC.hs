@@ -25,6 +25,7 @@ import qualified Language.Haskell.TH.Syntax               as TH
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 
 import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                     as BSL
@@ -69,9 +70,14 @@ type PLCType = PLC.Type PLC.TyName ()
 type PrimTerms = Map.Map GHC.Name (Quote PLCExpr)
 type PrimTypes = Map.Map GHC.Name (Quote PLCType)
 
-type ConvertingState = (GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
+type ConvertingContext = (GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
+
+data EvalState a = Done a | Blackhole
+type TypeDefs = Map.Map GHC.Name (EvalState ())
+type ConvertingState = TypeDefs
+
 -- See Note [Scopes]
-type Converting m = (Monad m, MonadError (Error ()) m, MonadQuote m, MonadReader ConvertingState m)
+type Converting m = (Monad m, MonadError (Error ()) m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
@@ -79,23 +85,23 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
-sdToTxt :: (MonadReader ConvertingState m) => GHC.SDoc -> m T.Text
+sdToTxt :: (MonadReader ConvertingContext m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do
   (flags, _, _, _) <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
-conversionFail :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
+conversionFail :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
 conversionFail = (throwError . ConversionError) <=< sdToTxt
 
-unsupported :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
+unsupported :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
 unsupported = (throwError . UnsupportedError) <=< sdToTxt
 
-context :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> (Error ()) -> m a
+context :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> (Error ()) -> m a
 context sd err = do
     txt <- sdToTxt sd
     throwError $ Context txt err
 
-freeVariable :: (MonadError (Error ()) m, MonadReader ConvertingState m) => GHC.SDoc -> m a
+freeVariable :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
 freeVariable = (throwError . FreeVariableError) <=< sdToTxt
 
 -- Names and scopes
@@ -182,6 +188,22 @@ convKind k =
         _                                     -> unsupported $ "Kind:" GHC.<+> GHC.ppr k
     `catchError` (context $ "While converting kind:" GHC.<+> GHC.ppr k)
 
+-- | Try to convert a type, using the given action to convert it, and throwing an error if we have recursive evaluation.
+tryConvType :: (Converting m) => GHC.Name -> m PLCType -> m PLCType
+tryConvType n act = do
+    tds <- get
+    case Map.lookup n tds of
+        Just Blackhole -> conversionFail "Recursion while converting types"
+        -- Either already seen and done or not seen.
+        -- Ideally we would store the finished type, but we actually need to
+        -- store a version in Quote so we can recreate it safely in multiple
+        -- contexts, which is non-trivial
+        _ -> do
+            put (Map.insert n Blackhole tds)
+            converted <- act
+            put (Map.insert n (Done ()) tds)
+            pure converted
+
 convType :: Converting m => GHC.Type -> m PLCType
 convType t = do
     -- See Note [Scopes]
@@ -214,7 +236,7 @@ convTyConApp tc ts
         pure $ foldl' (\acc t -> PLC.TyApp () acc t) tc' args'
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
-convTyCon tc = do
+convTyCon tc = tryConvType (GHC.tyConName tc) $ do
     (_, _, prims, _) <- ask
     -- could be a Plutus primitive type
     case Map.lookup (GHC.tyConName tc) prims of
