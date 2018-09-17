@@ -67,6 +67,8 @@ variable *last* (so it is on the outside, so will be first when applying).
 type PLCExpr = PLC.Term PLC.TyName PLC.Name ()
 type PLCType = PLC.Type PLC.TyName ()
 
+type ConvError = WithContext T.Text (Error ())
+
 type PrimTerms = Map.Map GHC.Name (Quote PLCExpr)
 type PrimTypes = Map.Map GHC.Name (Quote PLCType)
 
@@ -77,7 +79,7 @@ type TypeDefs = Map.Map GHC.Name (EvalState ())
 type ConvertingState = TypeDefs
 
 -- See Note [Scopes]
-type Converting m = (Monad m, MonadError (Error ()) m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)
+type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
@@ -90,19 +92,14 @@ sdToTxt sd = do
   (flags, _, _, _) <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
-conversionFail :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-conversionFail = (throwError . ConversionError) <=< sdToTxt
+conversionFail :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
+conversionFail = (throwError . NoContext . ConversionError) <=< sdToTxt
 
-unsupported :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-unsupported = (throwError . UnsupportedError) <=< sdToTxt
+unsupported :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
+unsupported = (throwError . NoContext . UnsupportedError) <=< sdToTxt
 
-context :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> (Error ()) -> m a
-context sd err = do
-    txt <- sdToTxt sd
-    throwError $ Context txt err
-
-freeVariable :: (MonadError (Error ()) m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-freeVariable = (throwError . FreeVariableError) <=< sdToTxt
+freeVariable :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
+freeVariable = (throwError . NoContext . FreeVariableError) <=< sdToTxt
 
 -- Names and scopes
 
@@ -180,13 +177,11 @@ pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.
 -- Types and kinds
 
 convKind :: Converting m => GHC.Kind -> m (PLC.Kind ())
-convKind k =
-    case k of
-        -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
-        (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
-        (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
-        _                                     -> unsupported $ "Kind:" GHC.<+> GHC.ppr k
-    `catchError` (context $ "While converting kind:" GHC.<+> GHC.ppr k)
+convKind k = withContextM (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ case k of
+    -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
+    (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
+    (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
+    _                                     -> unsupported $ "Kind:" GHC.<+> GHC.ppr k
 
 -- | Try to convert a type, using the given action to convert it, and throwing an error if we have recursive evaluation.
 tryConvType :: (Converting m) => GHC.Name -> m PLCType -> m PLCType
@@ -205,7 +200,7 @@ tryConvType n act = do
             pure converted
 
 convType :: Converting m => GHC.Type -> m PLCType
-convType t = do
+convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
     (_, _, _, stack) <- ask
     let top = NE.head stack
@@ -219,7 +214,6 @@ convType t = do
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
         _ -> unsupported $ "Type" GHC.<+> GHC.ppr t
-    `catchError` (context $ "While converting type:" GHC.<+> GHC.ppr t)
 
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PLCType
 convTyConApp tc ts
@@ -331,7 +325,7 @@ mkScottTyBody resultTypeName cases =
     in resultAbstracted
 
 dataConCaseType :: Converting m => PLCType -> GHC.DataCon -> m PLCType
-dataConCaseType resultType dc =
+dataConCaseType resultType dc = withContextM (sdToTxt $ "Converting data constructor:" GHC.<+> GHC.ppr dc) $
     if not (GHC.isVanillaDataCon dc) then unsupported $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc
     else do
         let argTys = GHC.dataConRepArgTys dc
@@ -339,7 +333,6 @@ dataConCaseType resultType dc =
         -- See Note [Iterated abstraction and application]
         -- t_1 -> ... -> t_m -> resultType
         pure $ foldr (\t acc -> PLC.TyFun () t acc) resultType args
-    `catchError` (context $ "While converting data constructor:" GHC.<+> GHC.ppr dc)
 
 -- This is the creation of the Scott-encoded constructor value.
 convConstructor :: Converting m => GHC.DataCon -> m PLCExpr
@@ -657,7 +650,7 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 -- The main function
 
 convExpr :: Converting m => GHC.CoreExpr -> m PLCExpr
-convExpr e = do
+convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
     (_, prims, _, stack) <- ask
     let top = NE.head stack
@@ -666,24 +659,24 @@ convExpr e = do
         GHC.App (GHC.Var (isPrimitiveWrapper -> True)) arg -> convExpr arg
         -- special typeclass method calls
         GHC.App (GHC.App
-                 -- eq class method
-                 (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.eqClassName . GHC.className -> True)))
-                 -- we only support applying to int
-                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
+                -- eq class method
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.eqClassName . GHC.className -> True)))
+                -- we only support applying to int
+                (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
             _ -> convEqMethod (GHC.varName n)
         GHC.App (GHC.App
-                 -- ord class method
-                 (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.ordClassName . GHC.className -> True)))
-                 -- we only support applying to int
-                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
+                -- ord class method
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.ordClassName . GHC.className -> True)))
+                -- we only support applying to int
+                (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
             _ -> convOrdMethod (GHC.varName n)
         GHC.App (GHC.App
-                 -- num class method
-                 (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.numClassName . GHC.className -> True)))
-                 -- we only support applying to int
-                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
+                -- num class method
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.numClassName . GHC.className -> True)))
+                -- we only support applying to int
+                (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
             _ -> convNumMethod (GHC.varName n)
         -- locally bound vars
@@ -760,4 +753,3 @@ convExpr e = do
         GHC.Cast _ coerce -> unsupported $ "Coercion" GHC.$+$ GHC.ppr coerce
         GHC.Type _ -> conversionFail "Cannot convert types directly, only as arguments to applications"
         GHC.Coercion _ -> conversionFail "Coercions should not be converted"
-    `catchError` (context $ "While converting expr:" GHC.<+> GHC.ppr e)
