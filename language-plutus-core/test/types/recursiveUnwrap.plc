@@ -10,7 +10,7 @@
       (lam head
         a
         (lam tail
-          (fix list (all r (type) (fun a (fun (fun a (fun list a)) a))))
+          (fix list (all r (type) (fun r (fun (fun a (fun list r)) r))))
           head
         )
       )
