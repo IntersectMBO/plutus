@@ -1,0 +1,1 @@
+(fix x (all r (type) (fun r (fun (fun x r) r))))
