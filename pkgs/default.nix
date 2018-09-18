@@ -78276,6 +78276,51 @@ description = "Provide a bridge between WAI and the websockets package";
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"wallet-api" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, free
+, ghc
+, language-plutus-core
+, mmorph
+, mtl
+, operational
+, plutus-th
+, prettyprinter
+, stdenv
+, template-haskell
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "wallet-api";
+version = "0.1.0.0";
+src = ./../wallet-api;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+free
+ghc
+language-plutus-core
+mmorph
+mtl
+operational
+plutus-th
+prettyprinter
+template-haskell
+text
+transformers
+];
+doHaddock = false;
+description = "Wallet API";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "warp" = callPackage
 ({
   mkDerivation
