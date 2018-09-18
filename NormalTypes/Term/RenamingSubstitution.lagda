@@ -6,14 +6,14 @@ module NormalTypes.Term.RenamingSubstitution where
 
 \begin{code}
 open import Function using (id; _∘_)
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
+open import Relation.Binary.HeterogeneousEquality
+  renaming (subst to substEq)
 
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
 open import Type.Normal
-open import Type.NBE
+open import Type.NBEWithProofs
 open import NormalTypes.Term
 \end{code}
 
@@ -45,7 +45,7 @@ ext⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ∋ renameNf (⋆.ext ρ⋆) A )
 ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (renameNf-comp ρ⋆ S _)) (renameNf-comp S (⋆.ext ρ⋆) _))
+          (trans (sym (≡-to-≅ (renameNf-comp ρ⋆ S _))) (≡-to-≅ (renameNf-comp S (⋆.ext ρ⋆) _)))
           (T (ρ x))
 \end{code}
 
@@ -62,8 +62,8 @@ rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
-          {!!} -- (trans {!!} (rename-reify ρ⋆ * (eval (⋆.subst (⋆.subst-cons ` (embNf A)) (embNf B))
-               --      (idEnv ∥ Γ ∥))))
+          (trans (trans {!!} (cong (reify *) (sym (rename-eval (idEnv ∥ Γ ∥) ρ⋆ (⋆.subst (⋆.subst-cons ` (embNf A)) (embNf B)))))) (sym (rename-reify * ρ⋆ (eval (⋆.subst (⋆.subst-cons ` (embNf A)) (embNf B))
+        (idEnv ∥ Γ ∥)))))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
   wrap (substEq (Δ ⊢_)

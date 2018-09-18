@@ -183,3 +183,7 @@ _[_]Nf : ∀ {Φ J K}
 A [ B ]Nf = nf (embNf A [ embNf B ])
 \end{code}
 
+\begin{code}
+postulate eval-rename : ∀{Γ Δ E σ}(α : Ren Γ Δ)(β : Env Δ E)(t : Γ ⊢⋆ σ) → eval t (β ∘ α) ≅ eval (rename α t) β
+-- eval-rename α β t = {!!}
+\end{code}
