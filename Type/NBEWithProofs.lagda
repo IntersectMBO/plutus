@@ -48,6 +48,8 @@ mutual
   renval * ρ v = renameNf ρ v
   renval (K ⇒ J) ρ (f , p) = (λ ρ' v → f (ρ' ∘ ρ) v) , λ ρ' ρ'' v → p (ρ' ∘ ρ) ρ'' v
 
+renvalcomp : ∀{Γ Δ E K} → (ρ : Ren Γ Δ) → (ρ' : Ren Δ E) → (v : Val Γ K) → renval K ρ' (renval K ρ v) ≅ renval K (ρ' ∘ ρ) v 
+renvalcomp = {!!}
 mutual
   reify : ∀{Γ} K → Val Γ K → Γ ⊢Nf⋆ K
   reify * (Π B) = Π B
@@ -133,12 +135,17 @@ mutual
   eval (Π B)    ρ = Π (eval B ((renval _ S ∘ ρ) ,,⋆ reflect _ (` Z)))
   eval (A ⇒ B) ρ = eval A ρ ⇒ eval B ρ
   eval (ƛ B)    ρ = (λ ρ' v → eval B ((renval _ ρ' ∘ ρ) ,,⋆ v)) ,
-    λ ρ' ρ'' v → trans (rename-eval ((renval _ ρ' ∘ ρ) ,,⋆ v) ρ'' B) (cong (λ (γ : Env _ _) → eval B γ) (funiext (λ J → funext (λ a → {!!}))))
+    λ ρ' ρ'' v → trans (rename-eval ((renval _ ρ' ∘ ρ) ,,⋆ v) ρ'' B) (cong (λ (γ : Env _ _) → eval B γ) (funiext (λ J → funext (λ { Z → refl ; (S a) → renvalcomp ρ' ρ'' (ρ a)}))))
   eval (A · B) ρ = proj₁ (eval A ρ) id (eval B ρ)
   eval (μ B)    ρ = μ (eval B ((renval _ S ∘ ρ) ,,⋆ reflect _ (` Z)))
   
   rename-eval : ∀{Γ Δ Δ₁ σ} → (γ : Env Γ Δ)(ρ : Ren Δ Δ₁)(t : Γ ⊢⋆ σ) → renval σ ρ (eval t γ) ≅ eval t (renval _ ρ ∘ γ)
-  rename-eval γ ρ t = {!!}
+  rename-eval γ ρ (` x) = refl
+  rename-eval γ ρ (Π t) = cong Π (trans (rename-eval ((renval _ S ∘ γ) ,,⋆ reflect _ (` Z)) (ext ρ) t) (cong (eval t) (funiext (λ a → funext (λ { Z → rename-reflect _ (ext ρ) (` Z) ; (S a₁) → trans (renvalcomp S (ext ρ) (γ a₁)) (sym (renvalcomp ρ S (γ a₁)))}))))) 
+  rename-eval γ ρ (A ⇒ B) = cong₂ _⇒_ (rename-eval γ ρ A ) (rename-eval γ ρ B)
+  rename-eval γ ρ (ƛ t) = Σeq ? ?
+  rename-eval γ ρ (A · B) = {!rename-eval γ ρ A!}
+  rename-eval γ ρ (μ t) = cong μ (trans (rename-eval ((renval _ S ∘ γ) ,,⋆ reflect _ (` Z)) (ext ρ) t) (cong (eval t) (funiext (λ a → funext (λ { Z → rename-reflect _ (ext ρ) (` Z) ; (S a₁) → trans (renvalcomp S (ext ρ) (γ a₁)) (sym (renvalcomp ρ S (γ a₁)))}))))) 
   \end{code}
 
 \begin{code}
