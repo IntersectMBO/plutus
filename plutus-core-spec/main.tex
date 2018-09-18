@@ -797,35 +797,11 @@
 
 \section{Plutus Core}
 
-Plutus Core is the target for compilation of Plutus TX, the smart
-contract language to validate transactions on Cardano. Plutus Core is
-designed to be simple and easy to reason about using proof assistants
-and automated theorem provers.
+Plutus Core is typed, eagerly evaluated $\lambda$-calculus designed for use as a transaction validation language in blockchain systems. More precisely, it is a higher-kinded variant of system F with iso-recursive types. Plutus Core is meant to be a compilation target, and this is reflected in the design of the language: while writing large Plutus Core programs by hand is difficult, the language is relatively straightforward to formalize with a proof assistant.
 
-Plutus Core has a strong formal basis. For those familiar with
-programming language theory, it can be described in one line: higher
-kinded System F with isorecursive types, and suitable
-primitive types and values. There are no constructs for data types,
-which are represented using Scott encodings---we do not use Church
-encodings since they may require linear rather than constant time to
-access the components of a data structure. Primitive types, such as
-Integer and Bytestring, are indexed by their size, which allows the
-cost (in gas) of operations such as addition to be determined at
-compile time. In contrast, IELE uses unbounded integers, which never
-overflow, but require that the gas used is calculated at run time. We
-use \Fomega{} (as opposed to F) because it supports types indexed by
-size and parameterised types (such as ``List of A'').
+Plutus Core includes support for \emph{sized types} and \emph{size kinds} to facilitate reasoning about running time and memory usage of programs. This is important for blockchain applications, in which programs consume \emph{gas} during execution according to their computational resource consumption.
 
-Plutus Core also notable lacks obvious built-in support for recursion,
-either general or otherwise. The reason for this is simply that in
-the presence of type left fixed points, it's possible to give a valid
-type to recursion combinators. This is analogous to the fact that in
-Haskell, you can define the Y combinator but you need to use a newtype
-declaration to do. Precisely which combinators one defines is up to
-the user, but as Plutus itself is eagerly reduced, some of them will
-lead to looping behavior, including Y. Libraries can of course
-be defined with various combinators provided as a convenient way to
-gain access to recursion.
+We have tried keep the Plutus Core language small. There is no explicit support for algebraic datatypes, but they are representable through, for example, the Scott encoding. Similarly, there is no explicit support for recursive definitions, but the presence of type-level fixed points allows us to form term-level fixed points, and thus to write recursive functions in Plutus Core. 
 
 %Plutus Core is a typed, strict, eagerly-reduced $\lambda$-calculus design to run as a transaction validation scripting language on blockchain systems. It's designed to be simple and easy to reason about using mechanized proof assistants and automated theorem provers. The grammar of the language is given in Figures \ref{fig:Plutus_core_grammar} and \ref{fig:Plutus_core_lexical_grammar}, using a modified s-expression format. The language can be described as a higher-kinded Church-style/intrinsically-typed System F variant with fixedpoint terms, equirecursive fixedpoint types, constant terms, constant types, and size-indexed types. As such, we have the following syntactic constructs at the term level: variables, type annotation, type abstraction, type instantiation, $\lambda$ abstraction, application, term-level fixed points, and term constants. At the type level, we have the following syntactic constructs: variables, polymorphic types, function types, fixedpoint types, $\lambda$ abstraction, application, and constant types. Additionally we have the following kind-level constructs: type kind, function kind, and size kind. The language also explicitly tracks versions for tracking which version of the normalizer is to be run.
 
