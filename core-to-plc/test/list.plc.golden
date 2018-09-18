@@ -1,0 +1,9 @@
+Error: Error during conversion: Recursion while converting types
+Context: Converting type: [a]
+Context: Converting data constructor: :
+Context: Converting type: [a]
+Context: Converting data constructor: :
+Context: Converting expr: :
+Context: Converting expr: : @ Int
+Context: Converting expr: : @ Int (I# 1#)
+Context: Converting expr: : @ Int (I# 1#) ([] @ Int)

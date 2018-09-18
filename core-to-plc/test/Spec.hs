@@ -189,6 +189,7 @@ errors :: TestTree
 errors = testGroup "Errors" [
     golden "integer" integer
     , golden "free" free
+    , golden "list" list
   ]
 
 integer :: PlcCode
@@ -196,3 +197,6 @@ integer = plc (1::Integer)
 
 free :: PlcCode
 free = plc (True && False)
+
+list :: PlcCode
+list = plc ([(1::Int)])
