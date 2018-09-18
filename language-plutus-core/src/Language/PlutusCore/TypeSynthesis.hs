@@ -101,15 +101,15 @@ defaultTable = do
     pure $ BuiltinTable tyTable termTable
 
 -- | Type-check a PLC program, returning the inferred normalized type.
-typecheckProgram :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind ())
+typecheckProgram :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind a)
 typecheckProgram n (Program _ _ t) = typecheckTerm n t
 
 -- | Type-check a PLC term, returning the inferred normalized type.
-typecheckTerm :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind ())
+typecheckTerm :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind a)
 typecheckTerm n t = convertErrors asError $ runTypeCheckM n (typeOf t)
 
 -- | Kind-check a PLC term.
-kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWithKind a -> m (Kind ())
+kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWithKind a -> m (Kind a)
 kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
 
 -- | Run the type checker with a default context.
@@ -129,45 +129,45 @@ typeCheckStep = do
         else modify (subtract 1)
 
 -- | Extract kind information from a type.
-kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
-kindOf TyInt{} = pure (Size ())
+kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind a)
+kindOf (TyInt x _) = pure (Size x)
 kindOf (TyFun x ty' ty'') = do
     k <- kindOf ty'
     k' <- kindOf ty''
     if isType k && isType k'
-        then pure (Type ())
+        then pure (Type x)
         else
             if isType k
-                then throwError (KindMismatch x (void ty'') k' (Type ()))
-                else throwError (KindMismatch x (void ty') k (Type ()))
+                then throwError (KindMismatch x ty'' k' (Type x))
+                else throwError (KindMismatch x ty' k (Type x))
 kindOf (TyForall x _ _ ty) = do
     k <- kindOf ty
     if isType k
-        then pure (Type ())
-        else throwError (KindMismatch x (void ty) (Type ()) k)
-kindOf (TyLam _ _ k ty) =
-    [ KindArrow () (void k) k' | k' <- kindOf ty ]
-kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
-kindOf (TyBuiltin _ b) = do
+        then pure (Type x)
+        else throwError (KindMismatch x ty (Type x) k)
+kindOf (TyLam x _ k ty) =
+    [ KindArrow x k k' | k' <- kindOf ty ]
+kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure k
+kindOf (TyBuiltin x b) = do
     (BuiltinTable tyst _) <- ask
     case M.lookup b tyst of
-        Just k -> pure k
+        Just k -> pure $ x <$ k
         _      -> throwError InternalError
 kindOf (TyFix x _ ty) = do
     k <- kindOf ty
     if isType k
-        then pure (Type ())
-        else throwError (KindMismatch x (void ty) (Type ()) k)
+        then pure (Type x)
+        else throwError (KindMismatch x ty (Type x) k)
 kindOf (TyApp x ty ty') = do
     k <- kindOf ty
     case k of
         KindArrow _ k' k'' -> do
             k''' <- kindOf ty'
             typeCheckStep
-            if k' == k'''
+            if void k' == void k'''
                 then pure k''
-                else throwError (KindMismatch x (void ty') k'' k''') -- this is the branch that fails!
-        _ -> throwError (KindMismatch x (void ty') (KindArrow () (Type ()) (Type ())) k)
+                else throwError (KindMismatch x ty' k'' k''') -- this is the branch that fails!
+        _ -> throwError (KindMismatch x ty' (KindArrow x (Type x) (Type x)) k)
 
 intApp :: Type a () -> Natural -> Type a ()
 intApp ty n = TyApp () ty (TyInt () n)
@@ -194,57 +194,57 @@ dummyType :: Type TyNameWithKind ()
 dummyType = TyVar () dummyTyName
 
 -- | Extract type of a term. The resulting type is normalized.
-typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
-typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void $ NormalizedType ty) -- annotations on types must be normalized
-typeOf (LamAbs _ _ ty t)                         = NormalizedType <$> (TyFun () (void ty) <$> (getNormalizedType <$> typeOf t))
+typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind a)
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (NormalizedType ty) -- annotations on types must be normalized
+typeOf (LamAbs x _ ty t)                         = NormalizedType <$> (TyFun x ty <$> (getNormalizedType <$> typeOf t))
 typeOf (Error x ty)                              = do
     k <- kindOf ty
     case k of
-        Type{} -> pure (void $ NormalizedType ty) -- annotations on types must be normalized
-        _      -> throwError (KindMismatch x (void ty) (Type ()) k)
-typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (getNormalizedType <$> typeOf t))
-typeOf (Constant _ (BuiltinName _ n)) = do
+        Type{} -> pure (NormalizedType ty) -- annotations on types must be normalized
+        _      -> throwError (KindMismatch x ty (Type x) k)
+typeOf (TyAbs x n k t)                           = NormalizedType <$> (TyForall x n k <$> (getNormalizedType <$> typeOf t))
+typeOf (Constant x (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
-        Just k -> pure k
+        Just k -> pure $ x <$ k
         _      -> throwError InternalError
-typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
-typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
-typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
+typeOf (Constant x (BuiltinInt _ n _))           = pure (x <$ integerType n)
+typeOf (Constant x (BuiltinBS _ n _))            = pure (x <$ bsType n)
+typeOf (Constant x (BuiltinSize _ n))            = pure (x <$ sizeType n)
 typeOf (Apply x fun arg) = do
     nFunTy@(NormalizedType funTy) <- typeOf fun
     case funTy of
         TyFun _ inTy outTy -> do
             nArgTy@(NormalizedType argTy) <- typeOf arg
             typeCheckStep
-            if inTy == argTy
+            if void inTy == void argTy
                 then pure $ NormalizedType outTy -- subpart of a normalized type, so normalized
-                else throwError (TypeMismatch x (void arg) inTy nArgTy)
-        _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) nFunTy)
+                else throwError (TypeMismatch x arg inTy nArgTy)
+        _ -> throwError (TypeMismatch x fun (TyFun x (x <$ dummyType) (x <$ dummyType)) nFunTy)
 typeOf (TyInst x body ty) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
         TyForall _ n k absTy -> do
             k' <- kindOf ty
             typeCheckStep
-            if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) (void $ NormalizedType ty) (NormalizedType absTy)))
-                else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
+            if void k == void k'
+                then pure (tyReduce (tySubstitute (extractUnique n) (NormalizedType ty) (NormalizedType absTy)))
+                else throwError (KindMismatch x ty k k')
+        _ -> throwError (TypeMismatch x body (TyForall x (x <$ dummyTyName) (x <$ dummyKind) (x <$ dummyType)) nBodyTy)
 typeOf (Unwrap x body) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
         TyFix _ n fixTy -> do
             let subst = tySubstitute (extractUnique n) nBodyTy (NormalizedType fixTy)
             pure (tyReduce subst)
-        _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
+        _             -> throwError (TypeMismatch x body (TyFix x (x <$ dummyTyName) (x <$ dummyType)) nBodyTy)
 typeOf (Wrap x n ty body) = do
     nBodyTy <- typeOf body
-    let fixed = tySubstitute (extractUnique n) (NormalizedType $ TyFix () (void n) (void ty)) (void $ NormalizedType ty)
+    let fixed = tySubstitute (extractUnique n) (NormalizedType $ TyFix x n ty) (NormalizedType ty)
     typeCheckStep
-    if tyReduce fixed == nBodyTy
-        then pure $ NormalizedType (TyFix () (void n) (void ty)) -- type annotations on terms must be normalized
-        else throwError (TypeMismatch x (void body) fixed nBodyTy)
+    if void (tyReduce fixed) == void nBodyTy
+        then pure $ NormalizedType (TyFix x n ty) -- type annotations on terms must be normalized
+        else throwError (TypeMismatch x body fixed nBodyTy)
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind

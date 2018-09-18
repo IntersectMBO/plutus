@@ -38,8 +38,8 @@ instance (PrettyCfg a) => PrettyCfg (RenameError a) where
     prettyCfg cfg (UnboundTyVar n@(TyName (Name loc _ _))) = "Error at" <+> prettyCfg cfg loc <> ". Type variable" <+> prettyCfg cfg n <+> "is not in scope."
 
 data TypeError a = InternalError -- ^ This is thrown if builtin lookup fails
-                 | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
-                 | TypeMismatch a (Term TyNameWithKind NameWithType ()) (Type TyNameWithKind ()) (NormalizedType TyNameWithKind ())
+                 | KindMismatch a (Type TyNameWithKind a) (Kind a) (Kind a)
+                 | TypeMismatch a (Term TyNameWithKind NameWithType a) (Type TyNameWithKind a) (NormalizedType TyNameWithKind a)
                  | OutOfGas
                  deriving (Show, Eq, Generic, NFData)
 
