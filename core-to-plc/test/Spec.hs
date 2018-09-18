@@ -119,6 +119,7 @@ monoData = testGroup "Monomorphic data" [
   , golden "monoConstructed" monoConstructed
   , golden "monoCase" monoCase
   , golden "defaultCase" defaultCase
+  , golden "synonym" synonym
   ]
 
 data MyEnum = Enum1 | Enum2
@@ -142,6 +143,11 @@ monoCase = plc (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a;
 
 defaultCase :: PlcCode
 defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono2 a -> a ; _ -> 1; })
+
+type Synonym = Int
+
+synonym :: PlcCode
+synonym = plc (1::Synonym)
 
 polyData :: TestTree
 polyData = testGroup "Polymorphic data" [
