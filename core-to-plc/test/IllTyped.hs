@@ -21,3 +21,7 @@ verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString)
 
 tupleMatch :: PlcCode
 tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
+
+-- Has a Void in it
+void :: PlcCode
+void = plc (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))

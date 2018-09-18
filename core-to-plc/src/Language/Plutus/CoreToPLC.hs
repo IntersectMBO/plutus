@@ -13,9 +13,11 @@ import           Language.Plutus.CoreToPLC.Primitives     as Prims
 import qualified Class                                    as GHC
 import qualified GhcPlugins                               as GHC
 import qualified Kind                                     as GHC
+import qualified MkId                                     as GHC
 import qualified Pair                                     as GHC
 import qualified PrelNames                                as GHC
 import qualified PrimOp                                   as GHC
+import qualified TysPrim                                  as GHC
 
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.Quote
@@ -220,10 +222,12 @@ convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PLCType
 convTyConApp tc ts
     -- this is Int
     | tc == GHC.intTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
-    -- this is Int#, can we do this nicer?
-    | (GHC.getOccString $ GHC.tyConName tc) == "Int#" = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
+    -- this is Int#
+    | tc == GHC.intPrimTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
     -- we don't support Integer
     | GHC.tyConName tc == GHC.integerTyConName = unsupported "Integer: use Int instead"
+    -- this is Void#, goes to 'forall a. a'
+    | tc == GHC.voidPrimTyCon = safeFreshTyName "any" >>= \n -> pure $ PLC.TyForall () n (PLC.Type ()) (PLC.TyVar () n)
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
@@ -506,13 +510,16 @@ primitiveTermAssociations = [
     , ('Prims.txhash, pure $ mkConstant PLC.TxHash)
     , ('Prims.blocknum, pure $ instSize haskellIntSize $ mkConstant PLC.BlockNum)
     -- we're representing error at the haskell level as a polymorphic function, so do the same here
-    , ('Prims.error, freshTyName () "e" >>= \n -> pure $ PLC.TyAbs () n (PLC.Type ()) $ PLC.Error () (PLC.TyVar () n))
+    , ('Prims.error, errorFunc)
     ]
 
 primitiveTypeAssociations :: [(TH.Name, Quote (PLC.Type PLC.TyName ()))]
 primitiveTypeAssociations = [
     (''Prims.ByteString, pure $ appSize haskellBSSize $ PLC.TyBuiltin () PLC.TyByteString)
     ]
+
+errorFunc :: Quote (PLC.Term PLC.TyName PLC.Name ())
+errorFunc = freshTyName () "e" >>= \n -> pure $ PLC.TyAbs () n (PLC.Type ()) $ PLC.Error () (PLC.TyVar () n)
 
 -- Binder helpers
 
@@ -691,6 +698,8 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
             _ -> convNumMethod (GHC.varName n)
+        -- void# - values of type void get represented as error, since they should be unreachable
+        GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> liftQuote errorFunc
         -- locally bound vars
         GHC.Var (lookupName top . GHC.varName -> Just name) -> pure $ PLC.Var () name
         -- Special kinds of id
