@@ -49,7 +49,7 @@ instance (PLC.PrettyCfg a) => PLC.PrettyCfg (Error a) where
         PLCError e -> PLC.prettyCfg cfg e
         ConversionError e -> "Error during conversion:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported:" PP.<+> PP.pretty e
-        FreeVariableError e -> "Free variable:" PP.<+> PP.pretty e
+        FreeVariableError e -> "Used but not defined in the current conversion:" PP.<+> PP.pretty e
 
 mustBeReplaced :: a
 mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"

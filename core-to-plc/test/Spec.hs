@@ -40,6 +40,7 @@ tests = testGroup "GHC Core to PLC conversion" [
   , structure
   , datat
   , recursion
+  , errors
   ]
 
 basic :: TestTree
@@ -58,7 +59,6 @@ primitives :: TestTree
 primitives = testGroup "Primitive types and operations" [
     golden "string" string
   , golden "int" int
-  , golden "integer" integer
   , golden "bool" bool
   , golden "tuple" tuple
   , golden "tupleMatch" tupleMatch
@@ -76,9 +76,6 @@ string = plc "test"
 
 int :: PlcCode
 int = plc (1::Int)
-
-integer :: PlcCode
-integer = plc (1::Integer)
 
 bool :: PlcCode
 bool = plc True
@@ -187,3 +184,15 @@ fib :: PlcCode
 fib = plc (let fib :: Int -> Int
                fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
            in fib 4)
+
+errors :: TestTree
+errors = testGroup "Errors" [
+    golden "integer" integer
+    , golden "free" free
+  ]
+
+integer :: PlcCode
+integer = plc (1::Integer)
+
+free :: PlcCode
+free = plc (True && False)
