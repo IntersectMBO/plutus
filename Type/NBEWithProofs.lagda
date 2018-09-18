@@ -21,11 +21,21 @@ postulate funiext : {A : Set}{B : A → Set}{f : ∀{a} → B a}{g : ∀{a} → 
                (∀ a → f {a} ≅ g {a}) → 
                _≅_ {_}{ {a : A} → B a} f { {a : A} → B a} g
 
+ir : ∀{A A' : Set} → {a : A} → {a' : A'} → {p q : a ≅ a'} → p ≅ q
+ir {p = refl} {q = refl} = refl
+
 Σeq : {A : Set} {B : A → Set} → {a : A} → {a' : A}(p : a ≅ a') → {b : B a} → {b' : B a'} → substEq B p b ≅ b' → _,_ {B = B} a b ≅ _,_ {B = B} a' b'
 Σeq refl refl = refl
 
-fixedtypes : ∀{A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''} → {p : a ≅ a'} → {q : a'' ≅ a'''} → a' ≅ a'' → p ≅ q
-fixedtypes {p = refl} {q = refl} refl = refl
+fixtypes : ∀{A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''} → {p : a ≅ a'} → {q : a'' ≅ a'''} → a' ≅ a'' → p ≅ q
+fixtypes {p = refl} {q = refl} refl = refl
+
+ifcong : {A : Set}{B : A → Set}{f f' : {a : A} → B a} → _≅_ {_}{ {a : A} → B a } f { {a : A} → B a } f' → (a : A) → f {a} ≅ f' {a}
+ifcong refl a = refl
+
+
+fcong : ∀{A B : Set} → {f f' : A → B} → f ≅ f' → (a : A) → f a ≅ f' a
+fcong refl a = refl
 \end{code}
 
 
@@ -49,7 +59,11 @@ mutual
   renval (K ⇒ J) ρ (f , p) = (λ ρ' v → f (ρ' ∘ ρ) v) , λ ρ' ρ'' v → p (ρ' ∘ ρ) ρ'' v
 
 renvalcomp : ∀{Γ Δ E K} → (ρ : Ren Γ Δ) → (ρ' : Ren Δ E) → (v : Val Γ K) → renval K ρ' (renval K ρ v) ≅ renval K (ρ' ∘ ρ) v 
-renvalcomp = {!!}
+renvalcomp {K = *} ρ ρ' v = sym (≡-to-≅ (renameNf-comp ρ ρ' v))
+renvalcomp {K = K ⇒ J} ρ ρ' v =
+  Σeq refl
+      (funiext (λ Δ → funiext (λ Δ' → funext (λ ρ'' → funext (λ ρ''' → funext (λ v' → ir))))))
+
 mutual
   reify : ∀{Γ} K → Val Γ K → Γ ⊢Nf⋆ K
   reify * (Π B) = Π B
@@ -78,7 +92,7 @@ mutual
 
   rename-reflect : ∀{Γ Δ} K (ρ : Ren Γ Δ)(n : Γ ⊢NeN⋆ K) → renval K ρ (reflect K n) ≅ reflect K (renameNeN ρ n)
   rename-reflect * ρ n = refl
-  rename-reflect (K ⇒ J) ρ n = Σeq (funiext (λ Γ → funext (λ (ρ' : Ren _ _) → funext (λ v → cong (λ f → reflect J (f · reify K v)) (≡-to-≅ (renameNeN-comp ρ ρ' n)))))) (funiext (λ Δ → funiext (λ Δ → funext (λ ρ' → funext (λ ρ'' → funext (λ v → fixedtypes (trans (cong₂ (λ n₁ v₁ → reflect J (n₁ · v₁)) (≡-to-≅ (renameNeN-comp ρ' ρ'' (renameNeN ρ n))) (sym (rename-reify K ρ'' v))) (sym (rename-reflect J ρ'' (renameNeN ρ' (renameNeN ρ n) · reify K v))))))))))
+  rename-reflect (K ⇒ J) ρ n = Σeq (funiext (λ Γ → funext (λ (ρ' : Ren _ _) → funext (λ v → cong (λ f → reflect J (f · reify K v)) (≡-to-≅ (renameNeN-comp ρ ρ' n)))))) (funiext (λ Δ → funiext (λ Δ → funext (λ ρ' → funext (λ ρ'' → funext (λ v → fixtypes (trans (cong₂ (λ n₁ v₁ → reflect J (n₁ · v₁)) (≡-to-≅ (renameNeN-comp ρ' ρ'' (renameNeN ρ n))) (sym (rename-reify K ρ'' v))) (sym (rename-reflect J ρ'' (renameNeN ρ' (renameNeN ρ n) · reify K v))))))))))
 
 {-
 -- A Partial equivalence relation on values: 'equality on values'
@@ -143,8 +157,8 @@ mutual
   rename-eval γ ρ (` x) = refl
   rename-eval γ ρ (Π t) = cong Π (trans (rename-eval ((renval _ S ∘ γ) ,,⋆ reflect _ (` Z)) (ext ρ) t) (cong (eval t) (funiext (λ a → funext (λ { Z → rename-reflect _ (ext ρ) (` Z) ; (S a₁) → trans (renvalcomp S (ext ρ) (γ a₁)) (sym (renvalcomp ρ S (γ a₁)))}))))) 
   rename-eval γ ρ (A ⇒ B) = cong₂ _⇒_ (rename-eval γ ρ A ) (rename-eval γ ρ B)
-  rename-eval γ ρ (ƛ t) = Σeq ? ?
-  rename-eval γ ρ (A · B) = {!rename-eval γ ρ A!}
+  rename-eval γ ρ (ƛ t) = Σeq (funiext (λ a → funext (λ (a₁ : Ren _ _) → funext (λ a₂ → cong (eval t) (funiext (λ a₃ → funext (λ { Z → refl ; (S a₄) → sym (renvalcomp ρ a₁ (γ a₄)) }))))))) (funiext (λ a → funiext (λ a₁ → funext (λ a₂ → funext (λ a₃ → funext (λ a₄ → fixtypes (trans (cong (eval t) (funiext (λ a₅ → funext (λ { Z → refl ; (S a₆) → sym (renvalcomp a₂ a₃ (renval _ ρ (γ a₆)))})))) (sym (rename-eval ((renval _ a₂ ∘ renval _ ρ ∘ γ) ,,⋆ a₄) a₃ t)) )))))))
+  rename-eval γ ρ (A · B) = trans (proj₂ (eval A γ) id ρ (eval B γ)) (trans (cong (proj₁ (eval A γ) ρ) (rename-eval γ ρ B)) (cong (λ f → f (eval B (renval _ ρ ∘ γ))) ((fcong (ifcong (cong proj₁ (rename-eval γ ρ A)) _) id)) ))
   rename-eval γ ρ (μ t) = cong μ (trans (rename-eval ((renval _ S ∘ γ) ,,⋆ reflect _ (` Z)) (ext ρ) t) (cong (eval t) (funiext (λ a → funext (λ { Z → rename-reflect _ (ext ρ) (` Z) ; (S a₁) → trans (renvalcomp S (ext ρ) (γ a₁)) (sym (renvalcomp ρ S (γ a₁)))}))))) 
   \end{code}
 
