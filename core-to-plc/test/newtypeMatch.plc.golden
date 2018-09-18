@@ -1,0 +1,10 @@
+(program 1.0.0
+  (lam
+    ds_1
+    (all MyNewtype_matchOut_0 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_0) MyNewtype_matchOut_0))
+    [
+      { ds_1 [(con integer) (con 64)] }
+      (lam inner_2 [(con integer) (con 64)] inner_2)
+    ]
+  )
+)

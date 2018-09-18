@@ -1,10 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
+{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
 -- the simplfiier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 
 module Main (main) where
+
+import           IllTyped
 
 import           Language.Plutus.CoreToPLC.Plugin
 import           Language.Plutus.CoreToPLC.Primitives as Prims
@@ -14,14 +16,22 @@ import           Language.PlutusCore
 import           Test.Tasty
 import           Test.Tasty.Golden
 
+import           Control.Exception
 import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Text                            as T
 import           Data.Text.Encoding                   (encodeUtf8)
 
 main :: IO ()
 main = defaultMain tests
 
 golden :: String -> PlcCode -> TestTree
-golden name value = (goldenVsString name ("test/" ++ name ++ ".plc.golden") . pure . BSL.fromStrict . encodeUtf8 . debugText . getAst) value
+golden name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either (strToBs . show) (txtToBs . debugText . getAst) <$> try @SomeException (evaluate value)
+
+strToBs :: String -> BSL.ByteString
+strToBs = BSL.fromStrict . encodeUtf8 . T.pack
+
+txtToBs :: T.Text -> BSL.ByteString
+txtToBs = BSL.fromStrict . encodeUtf8
 
 tests :: TestTree
 tests = testGroup "GHC Core to PLC conversion" [
@@ -30,6 +40,7 @@ tests = testGroup "GHC Core to PLC conversion" [
   , structure
   , datat
   , recursion
+  , errors
   ]
 
 basic :: TestTree
@@ -72,9 +83,6 @@ bool = plc True
 tuple :: PlcCode
 tuple = plc ((1::Int), (2::Int))
 
-tupleMatch :: PlcCode
-tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
-
 intCompare :: PlcCode
 intCompare = plc (\(x::Int) (y::Int) -> x < y)
 
@@ -86,15 +94,6 @@ intPlus = plc (\(x::Int) (y::Int) -> x + y)
 
 errorPlc :: PlcCode
 errorPlc = plc (Prims.error @Int)
-
-blocknumPlc :: PlcCode
-blocknumPlc = plc Prims.blocknum
-
-bytestring :: PlcCode
-bytestring = plc (\(x::Prims.ByteString) -> x)
-
-verify :: PlcCode
-verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
 
 structure :: TestTree
 structure = testGroup "Structures" [
@@ -120,6 +119,7 @@ monoData = testGroup "Monomorphic data" [
   , golden "monoConstructed" monoConstructed
   , golden "monoCase" monoCase
   , golden "defaultCase" defaultCase
+  , golden "synonym" synonym
   ]
 
 data MyEnum = Enum1 | Enum2
@@ -144,6 +144,11 @@ monoCase = plc (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a;
 defaultCase :: PlcCode
 defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono2 a -> a ; _ -> 1; })
 
+type Synonym = Int
+
+synonym :: PlcCode
+synonym = plc (1::Synonym)
+
 polyData :: TestTree
 polyData = testGroup "Polymorphic data" [
     golden "polyDataType" polyDataType
@@ -161,18 +166,26 @@ polyConstructed = plc (Poly1 (1::Int) (2::Int))
 newtypes :: TestTree
 newtypes = testGroup "Newtypes" [
     golden "basicNewtype" basicNewtype
-   --, golden "newtypeMatch" newtypeMatch
+   , golden "newtypeMatch" newtypeMatch
+   , golden "newtypeCreate" newtypeCreate
+   , golden "nestedNewtypeMatch" nestedNewtypeMatch
    ]
 
 newtype MyNewtype = MyNewtype Int
 
+newtype MyNewtype2 = MyNewtype2 MyNewtype
+
 basicNewtype :: PlcCode
 basicNewtype = plc (\(x::MyNewtype) -> x)
 
-{- CGP-286, this creates a coercion
 newtypeMatch :: PlcCode
 newtypeMatch = plc (\(MyNewtype x) -> x)
--}
+
+newtypeCreate :: PlcCode
+newtypeCreate = plc (\(x::Int) -> MyNewtype x)
+
+nestedNewtypeMatch :: PlcCode
+nestedNewtypeMatch = plc (\(MyNewtype2 (MyNewtype x)) -> x)
 
 recursion :: TestTree
 recursion = testGroup "Recursive functions" [
@@ -185,3 +198,19 @@ fib :: PlcCode
 fib = plc (let fib :: Int -> Int
                fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
            in fib 4)
+
+errors :: TestTree
+errors = testGroup "Errors" [
+    golden "integer" integer
+    , golden "free" free
+    , golden "list" list
+  ]
+
+integer :: PlcCode
+integer = plc (1::Integer)
+
+free :: PlcCode
+free = plc (True && False)
+
+list :: PlcCode
+list = plc ([(1::Int)])
