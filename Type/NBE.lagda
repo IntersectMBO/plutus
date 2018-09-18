@@ -9,10 +9,7 @@ open import Type
 open import Type.Normal
 open import Type.RenamingSubstitution
 
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
 open import Function
-open import Data.Product
 \end{code}
 
 \begin{code}
@@ -40,42 +37,6 @@ mutual
   reflect : ∀{Γ} K → Γ ⊢NeN⋆ K → Val Γ K
   reflect * n = ne n
   reflect (K ⇒ J) f = (λ ρ x → reflect J (renameNeN ρ f · (reify K x)))
-
--- A Partial equivalence relation on values: 'equality on values'
-PER : ∀{Γ} K → Val Γ K → Val Γ K → Set
-PER *       v v' = reify * v ≡ reify * v'
-PER (K ⇒ J) f f' = ∀{Δ}
- → (ρ : Ren _ Δ)
- → {v v' : Val Δ K}
- → PER K v v'
- → PER J (f ρ v) (f' ρ v')  
-
-
-symPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v' v
-symPER *       p = sym p
-symPER (K ⇒ J) p = λ ρ q → symPER J (p ρ (symPER K q))
-
-transPER : ∀{Γ} K {v v' v'' : Val Γ K} → PER K v v' → PER K v' v'' → PER K v v''
-transPER * p q = trans p q
-transPER (K ⇒ J) p q = λ ρ r
-  → transPER J (p ρ r) (q ρ (transPER K (symPER K r) r))
-
-reflPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v v
-reflPER K p = transPER K p (symPER K p)
-
-mutual
-  reifyPER : ∀{Γ} K {v v' : Val Γ K}
-    → PER K v v'
-    → reify K v ≡ reify K v'
-  reifyPER *       p = p
-  reifyPER (K ⇒ J) p = cong ƛ (reifyPER J (p S (reflectPER K (refl {x = ` Z})))) 
-  
-  reflectPER  : ∀{Γ} K {n n' : Γ ⊢NeN⋆ K}
-    → n ≡ n'
-    → PER K (reflect K n) (reflect K n')
-  reflectPER *       p = cong ne p
-  reflectPER (K ⇒ J) p =
-   λ ρ q → reflectPER J (cong₂ _·_ (cong (renameNeN ρ) p) (reifyPER K q))
 \end{code}
   
 \begin{code}
