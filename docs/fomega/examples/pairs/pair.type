@@ -1,0 +1,2 @@
+(lam a (type) (lam b (type) (all r (type) (fun (fun a (fun b r)) r))))
+

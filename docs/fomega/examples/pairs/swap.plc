@@ -1,0 +1,7 @@
+(program 0.1.0
+
+(abs a (type) (abs b (type) (lam p (all r (type) (fun (fun a (fun b r)) r))
+  [ {p (all r (type) (fun (fun b (fun a r)) r)) }
+    (lam x a (lam y b (abs r (type) (lam f (fun b (fun a r)) [f y x])))) ])))
+
+)
