@@ -64,12 +64,16 @@ module Language.PlutusCore
     , typecheckTerm
     , kindCheck
     , fileType
+    , debugType
     , fileTypeCfg
     , printType
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
+    -- * REPL use
+    , fileTypePrint
+    , debugTypePrint
     -- * Serialization
     , encodeProgram
     , decodeProgram
@@ -106,6 +110,7 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
+import qualified Data.Text.IO                             as TIO
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.Error
@@ -127,20 +132,35 @@ import           PlutusPrelude
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
+fileType = fileTypeCfg defaultCfg
+
+fileTypePrint :: FilePath -> IO ()
+fileTypePrint = TIO.putStrLn <=< fileType
+
+debugTypePrint :: FilePath -> IO ()
+debugTypePrint = TIO.putStrLn <=< fileTypeDebug
+
+fileTypeDebug :: FilePath -> IO T.Text
+fileTypeDebug = fileTypeCfg debugCfg
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
 -- information.
 fileTypeCfg :: Configuration -> FilePath -> IO T.Text
-fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printType) . BSL.readFile
+fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printTypeCfg cfg) . BSL.readFile
 
 checkFile :: FilePath -> IO (Maybe T.Text)
 checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . check) . parse) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printType = printTypeCfg defaultCfg
+
+debugType :: MonadError (Error AlexPosn) m => BSL.ByteString -> m T.Text
+debugType = printTypeCfg debugCfg
+
+printTypeCfg :: (MonadError (Error AlexPosn) m) => Configuration -> BSL.ByteString -> m T.Text
+printTypeCfg cfg bs = runQuoteT $ renderCfg cfg <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -152,8 +172,7 @@ parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BS
 parseTypecheck gas bs = do
     parsed <- parseProgram bs
     checkProgram parsed
-    annotated <- annotateProgram parsed
-    typecheckProgram gas annotated
+    (typecheckProgram gas <=< annotateProgram) parsed
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs

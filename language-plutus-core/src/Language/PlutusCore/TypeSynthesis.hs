@@ -1,6 +1,8 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE MonadComprehensions #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE MonadComprehensions  #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , typecheckTerm
@@ -15,6 +17,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State.Strict hiding (get, modify)
 import           Data.Functor.Foldable
+import           Data.Functor.Foldable.Monadic
 import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
@@ -30,7 +33,9 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (Either (TypeError a)))
+type TypeCheckM a = StateT Natural (ReaderT BuiltinTable (ExceptT (TypeError a) Quote))
+
+instance MonadQuote (TypeCheckM a) where
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -54,7 +59,7 @@ bsRel = NormalizedType <$> builtinRel TyByteString
 -- | Create a dummy 'TyName'
 newTyName :: (MonadQuote m) => Kind () -> m (TyNameWithKind ())
 newTyName k = do
-    u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
+    u <- liftQuote freshUnique
     pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
 
 unit :: MonadQuote m => m (Type TyNameWithKind ())
@@ -96,7 +101,7 @@ defaultTable = do
     bsRelType <- bsRel
 
     let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString] [txHash, bsRelType]
+        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString ] [txHash, bsRelType]
 
     pure $ BuiltinTable tyTable termTable
 
@@ -113,13 +118,12 @@ kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWit
 kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: (MonadError (TypeError a) m, MonadQuote m)
-              => Natural -- ^ Amount of gas to provide typechecker
+runTypeCheckM :: Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
-              -> m b
+              -> ExceptT (TypeError a) Quote b
 runTypeCheckM i tc = do
     table <- defaultTable
-    liftEither $ fst <$> runReaderT (runStateT tc i) table
+    runReaderT (evalStateT tc i) table
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
@@ -211,64 +215,81 @@ typeOf (Constant _ (BuiltinName _ n)) = do
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
-typeOf (Apply x fun arg) = do
-    nFunTy@(NormalizedType funTy) <- typeOf fun
-    case funTy of
-        TyFun _ inTy outTy -> do
-            nArgTy@(NormalizedType argTy) <- typeOf arg
-            typeCheckStep
-            if inTy == argTy
-                then pure $ NormalizedType outTy -- subpart of a normalized type, so normalized
-                else throwError (TypeMismatch x (void arg) inTy nArgTy)
-        _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) nFunTy)
-typeOf (TyInst x body ty) = do
-    nBodyTy@(NormalizedType bodyTy) <- typeOf body
-    case bodyTy of
-        TyForall _ n k absTy -> do
+typeOf (Apply x t t') = do
+    nty@(NormalizedType ty) <- typeOf t
+    case ty of
+        TyFun _ ty' ty'' -> do
+            nty'''@(NormalizedType ty''') <- typeOf t'
+            if ty' == ty'''
+                then pure (NormalizedType ty'')
+                else throwError (TypeMismatch x (void t') ty' nty''')
+        _ -> throwError (TypeMismatch x (void t) (TyFun () dummyType dummyType) nty)
+typeOf (TyInst x t ty) = do
+    (NormalizedType ty') <- typeOf t
+    case ty' of
+        TyForall _ n k ty'' -> do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then pure (tyReduce (tySubstitute (extractUnique n) (void $ NormalizedType ty) (NormalizedType absTy)))
+                then tyReduce =<< tySubstitute (extractUnique n) (void (NormalizedType ty)) (NormalizedType ty'')
                 else throwError (KindMismatch x (void ty) k k')
-        _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
-typeOf (Unwrap x body) = do
-    nBodyTy@(NormalizedType bodyTy) <- typeOf body
-    case bodyTy of
-        TyFix _ n fixTy -> do
-            let subst = tySubstitute (extractUnique n) nBodyTy (NormalizedType fixTy)
-            pure (tyReduce subst)
-        _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
-typeOf (Wrap x n ty body) = do
-    nBodyTy <- typeOf body
-    let fixed = tySubstitute (extractUnique n) (NormalizedType $ TyFix () (void n) (void ty)) (void $ NormalizedType ty)
+        _ -> throwError (TypeMismatch x (void t) (TyForall () dummyTyName dummyKind dummyType) (void (NormalizedType ty')))
+typeOf (Unwrap x t) = do
+    nty@(NormalizedType ty) <- typeOf t
+    case ty of
+        TyFix _ n ty' -> do
+            subst <- tySubstitute (extractUnique n) nty (NormalizedType ty')
+            typeCheckStep
+            tyReduce subst
+        _             -> throwError (TypeMismatch x (void t) (TyFix () dummyTyName dummyType) (void (NormalizedType ty)))
+typeOf (Wrap x n ty t) = do
+    nty'@(NormalizedType ty') <- typeOf t
+    fixed <- tySubstitute (extractUnique n) (NormalizedType (TyFix () (void n) (void ty))) (NormalizedType (void ty))
     typeCheckStep
-    if tyReduce fixed == nBodyTy
-        then pure $ NormalizedType (TyFix () (void n) (void ty)) -- type annotations on terms must be normalized
-        else throwError (TypeMismatch x (void body) fixed nBodyTy)
+    red <- tyReduce fixed
+    if red == nty'
+        then pure (NormalizedType (TyFix () (void n) (void ty)))
+        else throwError (TypeMismatch x (void t) fixed (NormalizedType (void ty')))
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
+-- This function rewrites types with bound variables so as to be locally unique.
+-- It is necessary when substituting types.
+freshenBoundVars :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
+freshenBoundVars = cataM a where
+    a (TyForallF x tn@(TyNameWithKind (TyName (Name x' s _))) k ty) = do
+        u <- liftQuote freshUnique
+        let tn' = TyNameWithKind (TyName (Name x' s u))
+        TyForall x tn' k <$> tySubstitute (extractUnique tn) (NormalizedType (TyVar (fst x') tn')) (NormalizedType ty)
+    a (TyLamF x tn@(TyNameWithKind (TyName (Name x' s _))) k ty) = do
+        u <- liftQuote freshUnique
+        let tn' = TyNameWithKind (TyName (Name x' s u))
+        TyLam x tn' k <$> tySubstitute (extractUnique tn) (NormalizedType (TyVar (fst x') tn')) (NormalizedType ty)
+    a (TyFixF x tn@(TyNameWithKind (TyName (Name x' s _))) ty) = do
+        u <- liftQuote freshUnique
+        let tn' = TyNameWithKind (TyName (Name x' s u))
+        TyFix x tn' <$> tySubstitute (extractUnique tn) (NormalizedType (TyVar (fst x') tn')) (NormalizedType ty)
+    a x = pure (embed x)
+
 -- TODO: make type substitutions occur in a state monad + benchmark
--- | Substitute the given type into another type. The input types must be normalized - this prevents us creating redundant work. The
--- output type is not normalized, since we may introduce new redexes.
-tySubstitute :: Unique -- ^ Unique associated with type variable
+tySubstitute :: MonadQuote m
+             => Unique -- ^ Unique associated with type variable
              -> NormalizedType TyNameWithKind a -- ^ Type we are binding to free variable
              -> NormalizedType TyNameWithKind a -- ^ Type we are substituting in
-             -> Type TyNameWithKind a
-tySubstitute u (NormalizedType ty) = cata a . getNormalizedType where
-    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
-    a x                                                  = embed x
+             -> m (Type TyNameWithKind a)
+tySubstitute u (NormalizedType ty) = cataM a . getNormalizedType where
+    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = freshenBoundVars ty
+    a x                                                  = pure (embed x)
 
 -- also this should involve contexts
--- | Reduce any redexes inside a type.
-tyReduce :: Type TyNameWithKind a -> NormalizedType TyNameWithKind a
+tyReduce :: MonadQuote m => Type TyNameWithKind a -> m (NormalizedType TyNameWithKind a)
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = NormalizedType <$> (tySubstitute u (NormalizedType ty') =<< tyReduce ty) -- TODO: use the substitution monad here
 -- TODO: is this case actually safe? Don't we need to reduce again after substituting?
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = NormalizedType $ tySubstitute u (NormalizedType ty') (tyReduce ty) -- TODO: use the substitution monad here
-tyReduce (TyForall x tn k ty)                                                = NormalizedType $ TyForall x tn k (getNormalizedType $ tyReduce ty)
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType $ TyFun x (getNormalizedType $ tyReduce ty) (getNormalizedType $ tyReduce ty')
-                          | otherwise                                        = NormalizedType $ TyFun x (getNormalizedType $ tyReduce ty) ty'
-tyReduce (TyLam x tn k ty)                                                   = NormalizedType $ TyLam x tn k (getNormalizedType $ tyReduce ty)
-tyReduce (TyApp x ty ty') | isTypeValue ty                                   = NormalizedType $ TyApp x (getNormalizedType $ tyReduce ty) (getNormalizedType $ tyReduce ty')
-                          | otherwise                                        = NormalizedType $ TyApp x (getNormalizedType $ tyReduce ty) ty'
-tyReduce x                                                                   = NormalizedType x
+tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k . getNormalizedType <$> tyReduce ty)
+tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> fmap getNormalizedType (tyReduce ty) <*> fmap getNormalizedType (tyReduce ty'))
+                          | otherwise                                        = NormalizedType <$> (TyFun x . getNormalizedType <$> tyReduce ty <*> pure ty')
+tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k . getNormalizedType <$> tyReduce ty)
+tyReduce (TyApp x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyApp x <$> fmap getNormalizedType (tyReduce ty) <*> fmap getNormalizedType (tyReduce ty'))
+                          | otherwise                                        = NormalizedType <$> (TyApp x <$> fmap getNormalizedType (tyReduce ty) <*> pure ty')
+tyReduce x                                                                   = pure (NormalizedType x)
