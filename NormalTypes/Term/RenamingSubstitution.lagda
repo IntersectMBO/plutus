@@ -111,21 +111,19 @@ exts σ⋆ σ (S x) = weaken (σ x)
 \end{code}
 
 \begin{code}
-{-
 exts⋆ : ∀ {Γ Δ}
-  → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
+  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J K}{A : ∥ Γ ,⋆ K ∥ ⊢⋆ J}
+  → (∀ {J K}{A : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
      → Γ ,⋆ K ∋ A 
        -------------------------------
-     → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
+     → Δ ,⋆ K ⊢ substNf (extsNf σ⋆) A )
 exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
   substEq (λ x → Δ ,⋆ K ⊢ x)
-          (trans (sym (⋆.rename-subst σ⋆ S A))
-                 (⋆.subst-rename S (⋆.exts σ⋆) A))
+          (trans (sym (renameNf-substNf σ⋆ S A))
+                 (substNf-renameNf S (extsNf σ⋆) A))
           (weaken⋆ (σ x))
--}
 \end{code}
 
 \begin{code}

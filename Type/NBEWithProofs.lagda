@@ -172,6 +172,17 @@ nf : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K
 nf t = reify _ (eval t idEnv)
 \end{code}
 
+# substitution
+
+\begin{code}
+extsNf : ∀ {Φ Ψ}
+  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    -------------------------------------
+  → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢Nf⋆ J)
+extsNf σ Z      =  ne (` Z)
+extsNf σ (S α)  =  weakenNf (σ α)
+\end{code}
+
 \begin{code}
 substNf : ∀ {Φ Ψ}
   → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
@@ -189,6 +200,7 @@ _[_]Nf : ∀ {Φ J K}
 B [ A ]Nf = nf (embNf B [ embNf A ])
 \end{code}
 
+## this may well rely on stability
 \begin{code}
 postulate
  rename[]Nf : ∀{Γ Δ K J}
@@ -201,4 +213,24 @@ postulate
 
 \begin{code}
 postulate eval-rename : ∀{Γ Δ E σ}(α : Ren Γ Δ)(β : Env Δ E)(t : Γ ⊢⋆ σ) → eval t (β ∘ α) ≅ eval (rename α t) β
+\end{code}
+
+\begin{code}
+postulate
+ substNf-renameNf : ∀{Φ Ψ Θ}
+  (g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  (f : ∀ {J} → Ψ ∋⋆ J → Θ ⊢Nf⋆ J)
+  → ∀{J}(A : Φ ⊢Nf⋆ J)
+    -----------------------------------------
+  → substNf (f ∘ g) A ≅ substNf f (renameNf g A)
+\end{code}
+
+\begin{code}
+postulate
+ renameNf-substNf : ∀{Φ Ψ Θ}
+  (g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+  (f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J)
+  → ∀{J}(A : Φ ⊢Nf⋆ J)
+    -------------------------------------------------
+  → substNf (renameNf f ∘ g) A ≅ renameNf f (substNf g A)
 \end{code}
