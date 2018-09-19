@@ -28,10 +28,7 @@ renval (K ⇒ J) ρ f = λ ρ' v → f (ρ' ∘ ρ) v
 
 mutual
   reify : ∀{Γ} K → Val Γ K → Γ ⊢Nf⋆ K
-  reify * (Π B) = Π B
-  reify * (A ⇒ B) = A ⇒ B
-  reify * (μ B) = μ B
-  reify * (ne A) = ne A
+  reify * n = n
   reify (K ⇒ J) f = ƛ (reify J (f S (reflect K (` Z)))) 
   
   reflect : ∀{Γ} K → Γ ⊢NeN⋆ K → Val Γ K
@@ -50,12 +47,12 @@ _,,⋆_ : ∀{Δ Γ} → (σ : Env Γ Δ) → ∀{K}(A : Val Δ K) → Env (Γ ,
 
 \begin{code}
 eval : ∀{Γ Δ K} → Δ ⊢⋆ K → (∀{J} → Δ ∋⋆ J → Val Γ J)  → Val Γ K
-eval (` x)    ρ = ρ x
-eval (Π B)    ρ = Π (eval B ((renval _ S ∘ ρ) ,,⋆ reflect _ (` Z)))
+eval (` x)   ρ = ρ x
+eval (Π B)   ρ = Π (eval B ((renval _ S ∘ ρ) ,,⋆ reflect _ (` Z)))
 eval (A ⇒ B) ρ = eval A ρ ⇒ eval B ρ
-eval (ƛ B)    ρ = λ ρ' v → eval B ((renval _ ρ' ∘ ρ) ,,⋆ v)
+eval (ƛ B)   ρ = λ ρ' v → eval B ((renval _ ρ' ∘ ρ) ,,⋆ v)
 eval (A · B) ρ = eval A ρ id (eval B ρ)
-eval (μ B)    ρ = μ (eval B ((renval _ S ∘ ρ) ,,⋆ reflect _ (` Z)))
+eval (μ B)   ρ = μ (eval B ((renval _ S ∘ ρ) ,,⋆ reflect _ (` Z)))
 \end{code}
 
 \begin{code}
