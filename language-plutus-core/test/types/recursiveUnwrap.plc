@@ -1,18 +1,20 @@
-(program 1.0.0
-  (lam x 
-    (fix list (all r (type) (fun r (fun (fun [(con integer) (con 64)] (fun list r)) r))))
-    [ 
+(program 0.1.0
+  (abs a (type)
+  (lam x
+    (fix list (all r (type) (fun r (fun (fun a (fun list r)) r))))
+    [
       [
-        { (unwrap x) [(con integer) (con 64)] } 
-        (con 64 ! 0) 
+        { (unwrap x) a }
+        (error a)
       ]
       (lam head
-        [(con integer) (con 64)] 
+        a
         (lam tail
-          (fix list (all r (type) (fun [(con integer) (con 64)] (fun (fun [(con integer) (con 64)] (fun list [(con integer) (con 64)])) [(con integer) (con 64)]))))
+          (fix list (all r (type) (fun r (fun (fun a (fun list r)) r))))
           head
         )
-      ) 
+      )
     ]
+  )
   )
 )

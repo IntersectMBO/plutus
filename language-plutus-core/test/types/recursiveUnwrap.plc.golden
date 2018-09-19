@@ -1,1 +1,1 @@
-(fun (fix list (all r (type) (fun r (fun (fun [(con integer) (con 64)] (fun list r)) r)))) [(con integer) (con 64)])
+(all a (type) (fun (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))) a))

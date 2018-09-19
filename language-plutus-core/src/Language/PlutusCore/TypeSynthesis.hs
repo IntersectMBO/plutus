@@ -14,7 +14,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State.Strict hiding (get, modify)
-import           Data.Functor.Foldable
 import qualified Data.Map                         as M
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
@@ -256,9 +255,27 @@ tySubstitute :: Unique -- ^ Unique associated with type variable
              -> NormalizedType TyNameWithKind a -- ^ Type we are binding to free variable
              -> NormalizedType TyNameWithKind a -- ^ Type we are substituting in
              -> Type TyNameWithKind a
-tySubstitute u (NormalizedType ty) = cata a . getNormalizedType where
-    a (TyVarF _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
-    a x                                                  = embed x
+tySubstitute u nty@(NormalizedType ty) = go . getNormalizedType where
+
+    -- substitute for the type variable in question
+    go (TyVar _ (TyNameWithKind (TyName (Name _ _ u')))) | u == u' = ty
+
+    -- we stop substitution if the same name is bound again
+    go ty'@(TyLam _ (TyNameWithKind (TyName (Name _ _ u'))) _ _) | u == u' = ty'
+    go ty'@(TyForall _ (TyNameWithKind (TyName (Name _ _ u'))) _ _) | u == u' = ty'
+    go ty'@(TyFix _ (TyNameWithKind (TyName (Name _ _ u'))) _) | u == u' = ty'
+
+    -- otherwise, recurse top-down
+    go (TyApp x ty' ty'') = TyApp x (tySubstitute u nty (NormalizedType ty')) (tySubstitute u nty (NormalizedType ty''))
+    go (TyFun x ty' ty'') = TyFun x (tySubstitute u nty (NormalizedType ty')) (tySubstitute u nty (NormalizedType ty''))
+    go (TyLam x n k ty') = TyLam x n k (tySubstitute u nty (NormalizedType ty'))
+    go (TyForall x n k ty') = TyForall x n k (tySubstitute u nty (NormalizedType ty'))
+    go (TyFix x n ty') = TyFix x n (tySubstitute u nty (NormalizedType ty'))
+
+    -- non-recursive constructors
+    go ty'@TyBuiltin{} = ty'
+    go ty'@TyInt{} = ty'
+    go ty'@TyVar{} = ty'
 
 -- also this should involve contexts
 -- | Reduce any redexes inside a type.
