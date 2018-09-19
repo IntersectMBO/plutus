@@ -66,10 +66,7 @@ renvalcomp {K = K ⇒ J} ρ ρ' v =
 
 mutual
   reify : ∀{Γ} K → Val Γ K → Γ ⊢Nf⋆ K
-  reify * (Π B) = Π B
-  reify * (A ⇒ B) = A ⇒ B
-  reify * (μ B) = μ B
-  reify * (ne A) = ne A
+  reify * n = n
   reify (K ⇒ J) (f , p) = ƛ (reify J (f S (reflect K (` Z)))) 
   
   reflect : ∀{Γ} K → Γ ⊢NeN⋆ K → Val Γ K
@@ -175,6 +172,11 @@ nf t = reify _ (eval t idEnv)
 # substitution
 
 \begin{code}
+Sub : Ctx⋆ → Ctx⋆ → Set
+Sub Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J
+\end{code}
+
+\begin{code}
 extsNf : ∀ {Φ Ψ}
   → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
     -------------------------------------
@@ -200,6 +202,16 @@ _[_]Nf : ∀ {Φ J K}
 B [ A ]Nf = nf (embNf B [ embNf A ])
 \end{code}
 
+\begin{code}
+postulate
+ subst[]Nf : ∀{Γ Δ K J}
+  (ρ : ∀{K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
+  → (A : Γ ⊢Nf⋆ K)
+  → (B : Γ ,⋆ K ⊢Nf⋆ J)
+  → substNf ρ (B [ A ]Nf) ≅ reify _ (eval (subst (exts (embNf ∘ ρ)) (embNf B)) ((renval _ S ∘ reflect _ ∘ `) ,,⋆ reflect _ (` Z))) [ substNf ρ A ]Nf
+  -- substNf (extsNf ρ) B [ substNf ρ A ]Nf 
+\end{code}
+
 ## this may well rely on stability
 \begin{code}
 postulate
@@ -210,9 +222,14 @@ postulate
   → renameNf ρ (B [ A ]Nf) ≅ renameNf (ext ρ) B [ renameNf ρ A ]Nf 
 \end{code}
 
-
 \begin{code}
 postulate eval-rename : ∀{Γ Δ E σ}(α : Ren Γ Δ)(β : Env Δ E)(t : Γ ⊢⋆ σ) → eval t (β ∘ α) ≅ eval (rename α t) β
+\end{code}
+
+\begin{code}
+postulate
+ substNf-id : ∀ {Φ J}(n : Φ ⊢Nf⋆ J)
+  → substNf (ne ∘ `) n ≅ n
 \end{code}
 
 \begin{code}
@@ -234,3 +251,11 @@ postulate
     -------------------------------------------------
   → substNf (renameNf f ∘ g) A ≅ renameNf f (substNf g A)
 \end{code}
+
+\begin{code}
+substNf-cons : ∀{Φ Ψ} → (∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K) → ∀{J}(A : Ψ ⊢Nf⋆ J) →
+             (∀{K} → Φ ,⋆ J ∋⋆ K → Ψ ⊢Nf⋆ K)
+substNf-cons f A Z = A
+substNf-cons f A (S x) = f x
+\end{code}
+

@@ -127,81 +127,83 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
-{-
+
 subst : ∀ {Γ Δ}
-  → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
+  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
-subst σ⋆ σ (Λ N)                     = Λ subst (⋆.exts σ⋆) (exts⋆ σ⋆ σ) N
-subst {Γ}{Δ} σ⋆ σ (_·⋆_ {B = B} L M) =
+subst {Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     =
+  Λ (substEq (λ A → Δ ,⋆ _ ⊢ A)
+             -- this is the property needed in subst[]Nf...
+             (cong₂
+                (λ (σ₁ : ∀ {K'} → (∥ Γ ∥ ,⋆ K) ∋⋆ K' → ∥ Δ ∥ ,⋆ K ⊢⋆ K')
+                   (γ : ∀ {K'} → ∥ Δ ∥ ,⋆ K ∋⋆ K' → Val (∥ Δ ∥ ,⋆ K) K') →
+                   eval (⋆.subst σ₁ (embNf B)) γ)
+                (funiext (λ a → funext (λ { Z → refl ; (S x) → ≡-to-≅ (rename-embNf S (σ⋆ x))}))) (funiext (λ a → funext (λ { Z → refl ; (S x) → sym (rename-reflect a S (` x))}))))
+             (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
+subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) =
   substEq (λ A → Δ ⊢ A)
-          (trans (sym (⋆.subst-comp (⋆.exts σ⋆)
-                                    (⋆.subst-cons ` (⋆.subst σ⋆ M))
-                                    B))
-                 (trans (⋆.subst-cong (⋆.subst (⋆.subst-cons ` (⋆.subst σ⋆ M))
-                                     ∘
-                                     ⋆.exts σ⋆)
-                                    (⋆.subst σ⋆ ∘ ⋆.subst-cons ` M)
-                                    (⋆.subst-subst-cons σ⋆ M)
-                                    B)
-                        (⋆.subst-comp (⋆.subst-cons ` M) σ⋆ B)))
-          (subst σ⋆ σ L ·⋆ ⋆.subst σ⋆ M)
-subst {Γ}{Δ} σ⋆ σ (wrap M N) =
-  wrap (⋆.subst (⋆.exts σ⋆) M)
+          (sym (subst[]Nf σ⋆ M B))
+          (subst σ⋆ σ L ·⋆ substNf σ⋆ M) 
+subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) =
+  wrap 
        (substEq (λ A → Δ ⊢ A)
-                (trans (sym (⋆.subst-comp (⋆.subst-cons ` (μ M)) σ⋆ M))
-                       (trans (⋆.subst-cong
-                                _
-                                _
-                                (λ x → sym (⋆.subst-subst-cons _ _ x))
-                                M)
-                              (⋆.subst-comp
-                                (⋆.exts σ⋆)
-                                (⋆.subst-cons ` (μ (⋆.subst (⋆.exts σ⋆) M)))
-                                M)))
+                (subst[]Nf σ⋆ (μ B) B)
                 (subst σ⋆ σ N))
-subst {Γ}{Δ} σ⋆ σ (unwrap {S = S} M) =
+subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) =
   substEq (λ A → Δ ⊢ A)
-          (trans (trans (sym (⋆.subst-comp _ _ S))
-                        (⋆.subst-cong _ _ (⋆.subst-subst-cons _ _) S))
-                 (⋆.subst-comp _ _ S))
+          (sym (subst[]Nf σ⋆ (μ B) B))
           (unwrap (subst σ⋆ σ M))
-subst σ⋆ σ (conv p t) = conv (subst—→⋆ σ⋆ p) (subst σ⋆ σ t)
--}
 \end{code}
 
 \begin{code}
-{-
 substcons : ∀{Γ Δ} →
-  (σ⋆ : ∀{K} → ∥ Γ ∥  ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
-  → (∀ {J}{A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
-  → ∀{J}{A : ∥ Γ ∥ ⊢⋆ J}
-  → (t : Δ ⊢ ⋆.subst σ⋆ A)
+  (σ⋆ : ∀{K} → ∥ Γ ∥  ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
+  → (∀ {J}{A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
+  → ∀{J}{A : ∥ Γ ∥ ⊢Nf⋆ J}
+  → (t : Δ ⊢ substNf σ⋆ A)
     ---------------------
-  → (∀ {J} {B : ∥ Γ ∥ ⊢⋆ J} → Γ , A ∋ B → Δ ⊢ ⋆.subst σ⋆ B)
+  → (∀ {J} {B : ∥ Γ ∥ ⊢Nf⋆ J} → Γ , A ∋ B → Δ ⊢ substNf σ⋆ B)
 substcons σ⋆ σ t Z     = t
 substcons σ⋆ σ t (S x) = σ x
--}
 \end{code}
 
 \begin{code}
-postulate
-  _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
+_[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
         → Γ , B ⊢ A
         → Γ ⊢ B 
           ---------
         → Γ ⊢ A
+_[_] {J}{Γ}{A}{B} b a =
+  substEq (λ A → Γ ⊢ A)
+          (substNf-id A)
+          (subst  (ne ∘ `)
+                  (substcons (ne ∘ `)
+                             (λ x → substEq (λ A → Γ ⊢ A)
+                                            (sym (substNf-id _))
+                                            (` x))
+                             (substEq (λ A → Γ ⊢ A) (sym (substNf-id B)) a))
+                  b)
 \end{code}
 
 \begin{code}
-postulate
-  _[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
+_[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
         → Γ ,⋆ K ⊢ B
         → (A : ∥ Γ ∥ ⊢Nf⋆ K)
           ---------
         → Γ ⊢ B [ A ]Nf
+_[_]⋆ {J}{Γ}{K}{B} b A =
+  substEq (λ A → Γ ⊢ A)
+          (cong
+             (λ (σ : ∀ {J} → _ ∋⋆ J → _ ⊢⋆ J) → 
+                reify J (eval (⋆.subst σ (embNf B)) idEnv))
+             (funiext (λ K → funext λ { Z → refl ; (S A') → refl})))
+          (subst (substNf-cons (ne ∘ `) A)
+                 (λ {(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
+                                     (trans (sym (substNf-id A')) (substNf-renameNf S (substNf-cons (ne ∘ `) A) A'))
+                                     (` x)}) b)
 \end{code}
