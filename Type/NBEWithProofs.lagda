@@ -14,6 +14,7 @@ open import Relation.Binary.HeterogeneousEquality
 open import Function
 open import Data.Product
 
+-- functional extensionality
 postulate funext : {A : Set}{B : A → Set}{f : ∀ a → B a}{g : ∀ a → B a} →
                 (∀ a → f a ≅ g a) → f ≅ g
 
