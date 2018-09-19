@@ -173,6 +173,14 @@ nf t = reify _ (eval t idEnv)
 \end{code}
 
 \begin{code}
+substNf : ∀ {Φ Ψ}
+  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    -------------------------
+  → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
+substNf ρ n = nf (subst (embNf ∘ ρ) (embNf n))
+\end{code}
+
+\begin{code}
 _[_]Nf : ∀ {Φ J K}
         → Φ ,⋆ K ⊢Nf⋆ J
         → Φ ⊢Nf⋆ K 

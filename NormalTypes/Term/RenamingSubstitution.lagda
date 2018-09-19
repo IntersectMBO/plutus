@@ -98,18 +98,16 @@ weaken⋆ x = rename _∋⋆_.S _∋_.T x
 
 ## Substitution
 \begin{code}
-{-
 exts : ∀ {Γ Δ}
-  → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
+  → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
+  → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
-  → (∀ {J} {K} {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
+  → (∀ {J} {K} {A : ∥ Γ ∥ ⊢Nf⋆ J} {B : ∥ Γ ∥ ⊢Nf⋆ K}
      → Γ , B ∋ A
      -------------------------------
-     → Δ , ⋆.subst σ⋆ B ⊢ ⋆.subst σ⋆ A)
+     → Δ , substNf σ⋆ B ⊢ substNf σ⋆ A)
 exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
--}
 \end{code}
 
 \begin{code}
