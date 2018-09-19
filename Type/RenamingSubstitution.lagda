@@ -404,3 +404,12 @@ subst-subst-cons σ⋆ M (S x) =
   trans (sym (subst-rename S (subst-cons ` (subst σ⋆ M)) (σ⋆ x)))
         (subst-id (σ⋆ x))
 \end{code}
+
+\begin{code}
+postulate
+ rename[] : ∀{Γ Δ K J}
+  (ρ : ∀{K} → Γ ∋⋆ K → Δ ∋⋆ K)
+  → (A : Γ ⊢⋆ K)
+  → (B : Γ ,⋆ K ⊢⋆ J)
+  → rename ρ (B [ A ]) ≡ rename (ext ρ) B [ rename ρ A ] 
+\end{code}

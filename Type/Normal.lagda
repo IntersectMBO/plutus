@@ -129,6 +129,28 @@ renameNeN-cong f g p (A · B) =
 
 \begin{code}
 mutual
+  renameNf-id : ∀ {Φ}
+      ----------------------------
+    → ∀ {J}
+    → (n : Φ ⊢Nf⋆ J)
+    → renameNf id n ≡ n
+  renameNf-id (Π n) = cong Π (trans (renameNf-cong _ _ ext-id n) (renameNf-id n))
+  renameNf-id (n ⇒ n') = cong₂ _⇒_ (renameNf-id n) (renameNf-id n')
+  renameNf-id (ƛ n) = cong ƛ (trans (renameNf-cong _ _ ext-id n) (renameNf-id n))
+  renameNf-id (μ n) = cong μ (trans (renameNf-cong _ _ ext-id n) (renameNf-id n))
+  renameNf-id (ne x) = cong ne (renameNeN-id x)
+  
+  renameNeN-id : ∀ {Φ}
+      ----------------------------
+    → ∀ {J}
+    → (n : Φ ⊢NeN⋆ J)
+    → renameNeN id n ≡ n
+  renameNeN-id (` x) = refl
+  renameNeN-id (n · n') = cong₂ _·_ (renameNeN-id n) (renameNf-id n')
+\end{code}
+
+\begin{code}
+mutual
   renameNf-comp : ∀{Φ Ψ Θ}
     (g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)(f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J)
     → ∀{J}(A : Φ ⊢Nf⋆ J)
@@ -169,4 +191,15 @@ embNf (ne B)  = embNeN B
 
 embNeN (` x) = ` x
 embNeN (A · B) = embNeN A · embNf B
+\end{code}
+
+\begin{code}
+postulate
+ rename-embNf : ∀ {Φ Ψ}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+    ----------------------------
+  → ∀ {J}
+  → (n : Φ ⊢Nf⋆ J)
+  → embNf (renameNf ρ n) ≡ rename ρ (embNf n)
+  
 \end{code}

@@ -10,7 +10,7 @@ open import Type.Normal
 open import Type.RenamingSubstitution
 
 open import Relation.Binary.HeterogeneousEquality
-  renaming (subst to substEq) hiding ([_]) --  using (_≅_; refl; cong; cong₂; trans; sym)
+  renaming (subst to substEq;  [_] to [_]≅)
 open import Function
 open import Data.Product
 
@@ -163,15 +163,13 @@ mutual
   \end{code}
 
 \begin{code}
-idEnv : ∀ Γ → Env Γ Γ
-idEnv ∅ ()
-idEnv (Γ ,⋆ K) Z = reflect K (` Z)
-idEnv (Γ ,⋆ K) (S x) = renval _ S (idEnv Γ x)
+idEnv : ∀ {Γ} → Env Γ Γ
+idEnv x = reflect _ (` x)
 \end{code}
 
 \begin{code}
 nf : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K
-nf t = reify _ (eval t (idEnv _))
+nf t = reify _ (eval t idEnv)
 \end{code}
 
 \begin{code}
@@ -180,10 +178,19 @@ _[_]Nf : ∀ {Φ J K}
         → Φ ⊢Nf⋆ K 
           ------
         → Φ ⊢Nf⋆ J
-A [ B ]Nf = nf (embNf A [ embNf B ])
+B [ A ]Nf = nf (embNf B [ embNf A ])
 \end{code}
 
 \begin{code}
+postulate
+ rename[]Nf : ∀{Γ Δ K J}
+  (ρ : ∀{K} → Γ ∋⋆ K → Δ ∋⋆ K)
+  → (A : Γ ⊢Nf⋆ K)
+  → (B : Γ ,⋆ K ⊢Nf⋆ J)
+  → renameNf ρ (B [ A ]Nf) ≅ renameNf (ext ρ) B [ renameNf ρ A ]Nf 
+\end{code}
+
+
+\begin{code}
 postulate eval-rename : ∀{Γ Δ E σ}(α : Ren Γ Δ)(β : Env Δ E)(t : Γ ⊢⋆ σ) → eval t (β ∘ α) ≅ eval (rename α t) β
--- eval-rename α β t = {!!}
 \end{code}

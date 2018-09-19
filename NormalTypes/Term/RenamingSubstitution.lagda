@@ -7,7 +7,7 @@ module NormalTypes.Term.RenamingSubstitution where
 \begin{code}
 open import Function using (id; _∘_)
 open import Relation.Binary.HeterogeneousEquality
-  renaming (subst to substEq)
+  renaming (subst to substEq; [_] to [_]≅)
 
 open import Type
 import Type.RenamingSubstitution as ⋆
@@ -62,43 +62,38 @@ rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
-          (trans (trans {!!} (cong (reify *) (sym (rename-eval (idEnv ∥ Γ ∥) ρ⋆ (⋆.subst (⋆.subst-cons ` (embNf A)) (embNf B)))))) (sym (rename-reify * ρ⋆ (eval (⋆.subst (⋆.subst-cons ` (embNf A)) (embNf B))
-        (idEnv ∥ Γ ∥)))))
+    (sym (rename[]Nf ρ⋆ A B))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
   wrap (substEq (Δ ⊢_)
-                {!!}
+                (rename[]Nf ρ⋆ (μ B) B)
                 (rename ρ⋆ ρ M))
 rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B} M) =
   substEq (Δ ⊢_)
-          {!!}
+          (sym (rename[]Nf ρ⋆ (μ B) B))
           (unwrap (rename ρ⋆ ρ M))
 
 \end{code}
 
 \begin{code}
-{-
-weaken : ∀ {Φ J}{A : ∥ Φ ∥ ⊢V⋆ J}{K}{B : ∥ Φ ∥ ⊢V⋆ K}
+weaken : ∀ {Φ J}{A : ∥ Φ ∥ ⊢Nf⋆ J}{K}{B : ∥ Φ ∥ ⊢Nf⋆ K}
   → Φ ⊢ A
     -------------
   → Φ , B ⊢ A
-weaken {Φ}{J}{A}{K}{B} x = substEq (Φ , B  ⊢_) {!!} (rename id {!!} x)
-{-  substEq (λ x → Φ , B ⊢ x)
-          (⋆.rename-id A)
+weaken {Φ}{J}{A}{K}{B} x = 
+  substEq (λ x → Φ , B ⊢ x)
+          (≡-to-≅ (renameNf-id A))
           (rename id
-                  (λ x → substEq (λ A → Φ , B ∋ A) (sym (⋆.rename-id _)) (S x))
-                  x) -}
--}
+                  (λ x → substEq (λ A → Φ , B ∋ A) (sym (≡-to-≅ (renameNf-id _))) (S x))
+                  x)
 \end{code}
 
 \begin{code}
-{-
-weaken⋆ : ∀ {Φ J}{A : ∥ Φ ∥ ⊢⋆ J}{K}
+weaken⋆ : ∀ {Φ J}{A : ∥ Φ ∥ ⊢Nf⋆ J}{K}
   → Φ ⊢ A
     ------------------
-  → Φ ,⋆ K ⊢ ⋆.weaken A
+  → Φ ,⋆ K ⊢ weakenNf A
 weaken⋆ x = rename _∋⋆_.S _∋_.T x
--}
 \end{code}
 
 ## Substitution
