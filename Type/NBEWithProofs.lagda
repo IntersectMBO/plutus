@@ -184,6 +184,25 @@ nf : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K
 nf t = reify _ (eval t idEnv)
 \end{code}
 
+# stability
+
+\begin{code}
+mutual
+  stability : ∀{Γ K}(n : Γ ⊢Nf⋆ K) → nf (embNf n) ≅ n
+  stability (Π B) = cong Π (trans (eval-cong _ _ (λ { Z → refl ; (S x) → rename-reflect _ S (` x)}) (embNf B)) (stability B))
+  stability (A ⇒ B) = cong₂ _⇒_ (stability A) (stability B)
+  stability (ƛ B) = cong _⊢Nf⋆_.ƛ (trans (cong (reify _) ( (eval-cong _ _ (λ { Z → refl ; (S x) → rename-reflect _ S (` x)}) (embNf B)))) (stability B))
+  stability (μ B) = cong μ (trans (eval-cong _ _ (λ { Z → refl ; (S x) → rename-reflect _ S (` x)}) (embNf B)) (stability B))
+  stability (ne n) = stabilityNeN n
+  
+  stabilityNeN : ∀{Γ K}(n : Γ ⊢NeN⋆ K) → eval (embNeN n) idEnv ≅ reflect _ n
+  stabilityNeN (` x) = refl
+  stabilityNeN (n · n') = trans
+                            (fcong (fcong (ifcong (cong proj₁ (stabilityNeN n)) _) id)
+                             (eval (embNf n') idEnv))
+                            (cong₂ (λ n n' → reflect _ (n · n')) (≡-to-≅ (renameNeN-id n)) (stability n'))
+\end{code}
+
 # substitution
 
 \begin{code}
@@ -196,7 +215,7 @@ extsNf : ∀ {Φ Ψ}
   → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
     -------------------------------------
   → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢Nf⋆ J)
-extsNf σ Z      =  ne (` Z)
+extsNf σ Z      =  reify _ (reflect _ (` Z)) --  (` Z)
 extsNf σ (S α)  =  weakenNf (σ α)
 \end{code}
 
@@ -241,6 +260,9 @@ eval-rename α β (μ A) =
 
 \end{code}
 
+The below definitions are needed for the using normal forms as types
+of terms, they are not needed for an ordinary nomalisation proof.
+
 \begin{code}
 rename[]Nf : ∀{Γ Δ K J}
   (ρ : ∀{K} → Γ ∋⋆ K → Δ ∋⋆ K)
@@ -255,6 +277,7 @@ rename[]Nf {Γ}{Δ}{K}{J} ρ A B =
                             (cong (λ (t : Δ ⊢⋆ J) → eval t (idEnv {Δ})) (trans (trans (trans (sym (≡-to-≅ (rename-subst (subst-cons ` (embNf A)) ρ (embNf B)))) (sym (≡-to-≅ (subst-cong _ _ (rename-subst-cons ρ (embNf A) ) (embNf B))))) (≡-to-≅ (subst-rename (ext ρ) (subst-cons ` (rename ρ (embNf A))) (embNf B)))) (cong₂ (λ (A : Δ ⊢⋆ K)(B : Δ ,⋆ K ⊢⋆ J) → subst (subst-cons ` A) B) (sym (≡-to-≅ (rename-embNf ρ A))) (sym (≡-to-≅ (rename-embNf (ext ρ) B)))) )) )))
 \end{code}
 
+{-
 \begin{code}
 postulate
  subst[]Nf : ∀{Γ Δ K J}
@@ -265,10 +288,17 @@ postulate
   -- substNf (extsNf ρ) B [ substNf ρ A ]Nf 
 \end{code}
 
+## substNf-id: 
+* I think this is needed to define _[_] for terms and it relies on stability.
+* Stability doesn't hold if you have an eta expanding reify and don't enforce eta expansion in normal forms.
+* Stability does hold if you enforce eta expansion in normal forms (by only embedding neutrals at base type) and I think substNf-id should hold too.
+* However, I don't think the approach to reasoning about 'equal' values in this file is extensional enough to prove it.
+
 \begin{code}
 postulate
- substNf-id : ∀ {Φ J}(n : Φ ⊢Nf⋆ J)
-  → substNf (ne ∘ `) n ≅ n
+  substNf-id : ∀ {Φ J}
+    → (n : Φ ⊢Nf⋆ J)
+    → substNf (nf ∘ `) n ≅ n
 \end{code}
 
 \begin{code}
@@ -290,7 +320,7 @@ postulate
     -------------------------------------------------
   → substNf (renameNf f ∘ g) A ≅ renameNf f (substNf g A)
 \end{code}
-
+-}
 \begin{code}
 substNf-cons : ∀{Φ Ψ} → (∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K) → ∀{J}(A : Ψ ⊢Nf⋆ J) →
              (∀{K} → Φ ,⋆ J ∋⋆ K → Ψ ⊢Nf⋆ K)

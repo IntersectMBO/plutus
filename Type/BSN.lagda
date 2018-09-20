@@ -166,15 +166,16 @@ open import Data.Unit
 open import Data.Product
 \end{code}
 \begin{code}
+
 {-# TERMINATING #-}
 readbackNf  : ∀{φ K} → φ ⊢V⋆ K → φ ⊢Nf⋆ K
 readbackNeN : ∀{φ K} → φ ⊢Ne⋆ K → φ ⊢NeN⋆ K
 
-readbackNf (Π t vs) = Π (readbackNf (eval t (extEnv vs)))
-readbackNf (A ⇒ B)  = readbackNf A ⇒ readbackNf B
-readbackNf (ƛ t vs) = ƛ (readbackNf (eval t (extEnv vs)))
-readbackNf (μ t vs) = μ (readbackNf (eval t (extEnv vs)))
-readbackNf (ne n)   = ne (readbackNeN n)
+readbackNf {K = *} (Π t vs) = Π (readbackNf (eval t (extEnv vs)))
+readbackNf {K = *} (A ⇒ B) = readbackNf A ⇒ readbackNf B
+readbackNf {K = *} (μ t vs) =  μ (readbackNf (eval t (extEnv vs)))
+readbackNf {K = *} (ne n) = ne (readbackNeN n)
+readbackNf {K = K ⇒ K₁} f = ƛ (readbackNf (weakenV f ·V ne (` Z)))
 
 readbackNeN (` x)    = ` x
 readbackNeN (n · n') = readbackNeN n · readbackNf n'

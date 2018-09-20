@@ -66,10 +66,10 @@ data _⊢Nf⋆_ where
       -----------
     → φ ⊢Nf⋆ *
 
-  ne : ∀{φ K} -- if it was at kind * it would be βη-normal forms
-    → φ ⊢NeN⋆ K
+  ne : ∀{φ} -- if it was at kind * it would be βη-normal forms
+    → φ ⊢NeN⋆ *
       --------
-    → φ ⊢Nf⋆ K
+    → φ ⊢Nf⋆ *
 \end{code}
 
 \begin{code}

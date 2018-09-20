@@ -5,12 +5,15 @@ import Type
 import Type.RenamingSubstitution
 import Type.Reduction
 import Type.Equality
+import Type.BSN
+import Type.NBE
+import Type.NBEWithProofs
 
 import NormalTypes.Term
---import NormalTypes.Term.RenamingSubstitution
---import NormalTypes.Term.Reduction
---import NormalTypes.Evaluation
---import NormalTypes.Examples
+import NormalTypes.Term.RenamingSubstitution
+import NormalTypes.Term.Reduction
+import NormalTypes.Evaluation
+import NormalTypes.Examples
 
 import ValueTypes.Term
 import ValueTypes.Term.RenamingSubstitution

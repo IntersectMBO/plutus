@@ -119,7 +119,7 @@ exts⋆ : ∀ {Γ Δ}
      → Γ ,⋆ K ∋ A 
        -------------------------------
      → Δ ,⋆ K ⊢ substNf (extsNf σ⋆) A )
-exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
+exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) = 
   substEq (λ x → Δ ,⋆ K ⊢ x)
           (trans (sym (renameNf-substNf σ⋆ S A))
                  (substNf-renameNf S (extsNf σ⋆) A))
@@ -127,24 +127,25 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
-
-subst : ∀ {Γ Δ}
+postulate
+ subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
+{-
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
-subst {Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     =
-  Λ (substEq (λ A → Δ ,⋆ _ ⊢ A)
+subst {Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     = {!!}
+{-  Λ (substEq (λ A → Δ ,⋆ _ ⊢ A)
              -- this is the property needed in subst[]Nf...
              (cong₂
                 (λ (σ₁ : ∀ {K'} → (∥ Γ ∥ ,⋆ K) ∋⋆ K' → ∥ Δ ∥ ,⋆ K ⊢⋆ K')
                    (γ : ∀ {K'} → ∥ Δ ∥ ,⋆ K ∋⋆ K' → Val (∥ Δ ∥ ,⋆ K) K') →
                    eval (⋆.subst σ₁ (embNf B)) γ)
-                (funiext (λ a → funext (λ { Z → refl ; (S x) → ≡-to-≅ (rename-embNf S (σ⋆ x))}))) (funiext (λ a → funext (λ { Z → refl ; (S x) → sym (rename-reflect a S (` x))}))))
-             (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
+                {!σ⋆!} {!!}) -- (funiext (λ a → funext (λ { Z → {!stability!} ; (S x) → ≡-to-≅ (rename-embNf S (σ⋆ x))}))) (funiext (λ a → funext (λ { Z → refl ; (S x) → sym (rename-reflect a S (` x))}))))
+             (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N)) -}
 subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) =
   substEq (λ A → Δ ⊢ A)
           (sym (subst[]Nf σ⋆ M B))
@@ -158,6 +159,7 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) =
   substEq (λ A → Δ ⊢ A)
           (sym (subst[]Nf σ⋆ (μ B) B))
           (unwrap (subst σ⋆ σ M))
+-}
 \end{code}
 
 \begin{code}
@@ -181,8 +183,8 @@ _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
 _[_] {J}{Γ}{A}{B} b a =
   substEq (λ A → Γ ⊢ A)
           (substNf-id A)
-          (subst  (ne ∘ `)
-                  (substcons (ne ∘ `)
+          (subst  (nf ∘ `)
+                  (substcons (nf ∘ `)
                              (λ x → substEq (λ A → Γ ⊢ A)
                                             (sym (substNf-id _))
                                             (` x))
@@ -191,19 +193,23 @@ _[_] {J}{Γ}{A}{B} b a =
 \end{code}
 
 \begin{code}
-_[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
+postulate
+ _[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
         → Γ ,⋆ K ⊢ B
         → (A : ∥ Γ ∥ ⊢Nf⋆ K)
           ---------
         → Γ ⊢ B [ A ]Nf
+{-
 _[_]⋆ {J}{Γ}{K}{B} b A =
   substEq (λ A → Γ ⊢ A)
           (cong
              (λ (σ : ∀ {J} → _ ∋⋆ J → _ ⊢⋆ J) → 
                 reify J (eval (⋆.subst σ (embNf B)) idEnv))
-             (funiext (λ K → funext λ { Z → refl ; (S A') → refl})))
-          (subst (substNf-cons (ne ∘ `) A)
-                 (λ {(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
-                                     (trans (sym (substNf-id A')) (substNf-renameNf S (substNf-cons (ne ∘ `) A) A'))
-                                     (` x)}) b)
+             (funiext (λ K → funext λ { Z → refl ; (S x) → {!!}}))) -- this goal is uninhabited: embNf (nf (` x)) ≠ ` x
+          (subst (substNf-cons (nf ∘ `) A)
+                 ( (λ {(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
+                                     (trans (sym (substNf-id A')) (substNf-renameNf S (substNf-cons (nf ∘ `) A) A'))
+                                     (` x)}) )
+                 b)
+-}
 \end{code}
