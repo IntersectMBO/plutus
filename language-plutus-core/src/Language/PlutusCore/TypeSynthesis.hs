@@ -14,6 +14,8 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
+import           Data.Functor.Foldable
+import           Data.Functor.Foldable.Monadic
 import qualified Data.IntMap                    as IM
 import qualified Data.Map                       as M
 import           Language.PlutusCore.Clone
@@ -258,6 +260,15 @@ tyEnvAssign :: Unique
             -> NormalizedType TyNameWithKind ()
             -> TypeCheckM a ()
 tyEnvAssign (Unique i) ty = modify (first (IM.insert i ty))
+
+rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
+rewriteCtx = cataM aM where
+    aM ty@(TyVarF _ (TyNameWithKind (TyName (Name _ _ u)))) = do
+        (st, _) <- get
+        case IM.lookup (unUnique u) st of
+            Just ty' -> cloneType (unNormalizedType ty')
+            Nothing  -> pure $ embed ty
+    aM x = pure (embed x)
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
