@@ -57,6 +57,7 @@ library
     hs-source-dirs: src prelude stdlib generators
     other-modules:
         Language.PlutusCore.Type
+        Language.PlutusCore.Clone
         Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
