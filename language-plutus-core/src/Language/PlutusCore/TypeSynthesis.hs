@@ -34,7 +34,7 @@ type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT BuiltinTable (Either (TypeError a)))
+type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT BuiltinTable (ExceptT (TypeError a) Quote))
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -117,13 +117,12 @@ kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWit
 kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: (MonadError (TypeError a) m, MonadQuote m)
-              => Natural -- ^ Amount of gas to provide typechecker
+runTypeCheckM :: Natural -- ^ Amount of gas to provide typechecker
               -> TypeCheckM a b
-              -> m b
+              -> ExceptT (TypeError a) Quote b
 runTypeCheckM i tc = do
     table <- defaultTable
-    liftEither $ runReaderT (evalStateT tc (mempty, i)) table
+    runReaderT (evalStateT tc (mempty, i)) table
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
@@ -273,7 +272,7 @@ tySubstitute u (NormalizedType ty) = cata a . getNormalizedType where
     a x                                                  = embed x
 
 -- | Reduce any redexes inside a type.
-tyReduce :: Type TyNameWithKind a -> TypeCheckM a (NormalizedType TyNameWithKind ())
+tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 -- TODO: is this case actually safe? Don't we need to reduce again after substituting?
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
     tyEnvAssign u (NormalizedType (void ty))
@@ -284,9 +283,9 @@ tyReduce (TyFun x ty ty') | isTypeValue ty                                   = N
 tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyApp x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyApp x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
                           | otherwise                                        = NormalizedType <$> (TyApp x <$> (getNormalizedType <$> tyReduce ty) <*> pure ty')
-tyReduce ty@(TyVar x tn@(TyNameWithKind (TyName (Name _ _ u)))) = do
+tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (st, _) <- get
     case IM.lookup (unUnique u) st of
-        Just ty' -> pure ty'
+        Just ty' -> NormalizedType <$> cloneType (getNormalizedType ty')
         Nothing  -> pure $ NormalizedType ty
 tyReduce x                                                                   = pure $ NormalizedType x
