@@ -199,7 +199,7 @@ dummyType = TyVar () dummyTyName
 
 -- | Extract type of a term. The resulting type is normalized.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
-typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void $ NormalizedType ty) -- annotations on types must be normalized
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void $ NormalizedType ty)
 typeOf (LamAbs _ _ ty t)                         = NormalizedType <$> (TyFun () (void ty) <$> (unNormalizedType <$> typeOf t))
 typeOf (Error x ty)                              = do
     k <- kindOf ty
