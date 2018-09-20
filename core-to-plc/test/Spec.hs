@@ -64,6 +64,7 @@ primitives = testGroup "Primitive types and operations" [
   , golden "tupleMatch" tupleMatch
   , golden "intCompare" intCompare
   , golden "intEq" intEq
+  , golden "void" void
   , golden "intPlus" intPlus
   , golden "error" errorPlc
   , golden "blocknum" blocknumPlc

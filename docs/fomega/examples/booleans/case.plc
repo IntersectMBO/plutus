@@ -1,0 +1,9 @@
+(program 0.1.0
+
+(abs b (type)
+(lam x (all a (type) (fun a (fun a a)))
+(lam t b
+(lam f b
+[{x b} t f]))))
+
+)
