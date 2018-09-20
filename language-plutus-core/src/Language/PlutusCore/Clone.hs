@@ -1,5 +1,3 @@
-{-# LANGUAGE MonadComprehensions #-}
-
 module Language.PlutusCore.Clone ( cloneType
                                  ) where
 
@@ -9,9 +7,15 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 cloneType :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
-cloneType (TyFix l (TyNameWithKind (TyName (Name l' n u))) ty) = [ TyFix l (TyNameWithKind (TyName (Name l' n u'))) (tyRewrite u u' ty) | u' <- liftQuote freshUnique ]
-cloneType (TyForall l (TyNameWithKind (TyName (Name l' n u))) k ty) = [ TyForall l (TyNameWithKind (TyName (Name l' n u'))) k (tyRewrite u u' ty) | u' <- liftQuote freshUnique ]
-cloneType (TyLam l (TyNameWithKind (TyName (Name l' n u))) k ty) = [ TyLam l (TyNameWithKind (TyName (Name l' n u'))) k (tyRewrite u u' ty) | u' <- liftQuote freshUnique ]
+cloneType (TyFix l (TyNameWithKind (TyName (Name l' n u))) ty) = do
+    u' <- liftQuote freshUnique
+    TyFix l (TyNameWithKind (TyName (Name l' n u'))) <$> cloneType (tyRewrite u u' ty)
+cloneType (TyForall l (TyNameWithKind (TyName (Name l' n u))) k ty) = do
+    u' <- liftQuote freshUnique
+    TyForall l (TyNameWithKind (TyName (Name l' n u'))) k <$> cloneType (tyRewrite u u' ty)
+cloneType (TyLam l (TyNameWithKind (TyName (Name l' n u))) k ty) = do
+    u' <- liftQuote freshUnique
+    TyLam l (TyNameWithKind (TyName (Name l' n u'))) k <$> cloneType (tyRewrite u u' ty)
 cloneType (TyApp l ty ty') = TyApp l <$> cloneType ty <*> cloneType ty'
 cloneType (TyFun l ty ty') = TyFun l <$> cloneType ty <*> cloneType ty'
 cloneType x@TyVar{}        = pure x
