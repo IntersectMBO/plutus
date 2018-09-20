@@ -1,0 +1,26 @@
+(program 1.0.0
+  {
+    (abs
+      a_0
+      (type)
+      (wrap
+        list_7
+        (lam a_8 (type) (all p_matchOut_9 (type) (fun p_matchOut_9 (fun (fun a_8 (fun [list_7 a_8] p_matchOut_9)) p_matchOut_9))))
+        (abs
+          p_matchOut_1
+          (type)
+          (lam
+            list_5
+            p_matchOut_1
+            (lam
+              cons_6
+              (fun a_0 (fun [(fix list_2 (lam a_3 (type) (all p_matchOut_4 (type) (fun p_matchOut_4 (fun (fun a_3 (fun [list_2 a_3] p_matchOut_4)) p_matchOut_4))))) a_0] p_matchOut_1))
+              list_5
+            )
+          )
+        )
+      )
+    )
+    [(con integer) (con 64)]
+  }
+)

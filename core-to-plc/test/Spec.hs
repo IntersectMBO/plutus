@@ -56,6 +56,7 @@ tests = testGroup "GHC Core to PLC conversion" [
   , primitives
   , structure
   , datat
+  , recursiveTypes
   , recursion
   , errors
   ]
@@ -233,6 +234,18 @@ newtypeCreate2 = plc (MyNewtype 1)
 nestedNewtypeMatch :: PlcCode
 nestedNewtypeMatch = plc (\(MyNewtype2 (MyNewtype x)) -> x)
 
+recursiveTypes :: TestTree
+recursiveTypes = testGroup "Recursive types" [
+    golden "listConstruct" listConstruct
+    , golden "listConstruct2" listConstruct2
+    , golden "listMatch" listMatch
+    , goldenEvalApp "listConstDest" [ listMatch, listConstruct ]
+    , goldenEvalApp "listConstDest2" [ listMatch, listConstruct2 ]
+    , golden "ptreeConstruct" ptreeConstruct
+    , golden "ptreeMatch" ptreeMatch
+    , goldenEvalApp "ptreeConstDest" [ ptreeMatch, ptreeConstruct ]
+  ]
+
 recursion :: TestTree
 recursion = testGroup "Recursive functions" [
     -- currently broken, will come back to this later
@@ -249,7 +262,6 @@ errors :: TestTree
 errors = testGroup "Errors" [
     golden "integer" integer
     , golden "free" free
-    , golden "list" list
     , golden "valueRestriction" valueRestriction
   ]
 
@@ -258,9 +270,6 @@ integer = plc (1::Integer)
 
 free :: PlcCode
 free = plc (True && False)
-
-list :: PlcCode
-list = plc ([(1::Int)])
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.

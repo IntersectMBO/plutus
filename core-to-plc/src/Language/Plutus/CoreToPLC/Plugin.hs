@@ -7,6 +7,7 @@ module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plu
 
 import           Language.Plutus.CoreToPLC
 import           Language.Plutus.CoreToPLC.Error
+import           Language.Plutus.CoreToPLC.Types
 
 import qualified GhcPlugins                      as GHC
 import qualified Panic                           as GHC
@@ -170,7 +171,7 @@ convertExpr opts origE tpe = do
                   void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
               pure converted
         context = (ConversionOptions { coCheckValueRestriction=poDoTypecheck opts }, flags, primTerms, primTys, initialScopeStack)
-        initialState = Map.empty
+        initialState = ConvertingState Map.empty
     case runExcept $ runQuoteT $ evalStateT (runReaderT result context) initialState of
         Left s ->
             let shown = show $ PP.pretty s in
