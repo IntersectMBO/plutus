@@ -204,7 +204,7 @@ typeOf (LamAbs _ _ ty t)                         = NormalizedType <$> (TyFun () 
 typeOf (Error x ty)                              = do
     k <- kindOf ty
     case k of
-        Type{} -> pure (void $ NormalizedType ty) -- annotations on types must be normalized
+        Type{} -> pure (void $ NormalizedType ty)
         _      -> throwError (KindMismatch x (void ty) (Type ()) k)
 typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (unNormalizedType <$> typeOf t))
 typeOf (Constant _ (BuiltinName _ n)) = do
@@ -250,7 +250,7 @@ typeOf (Wrap x n ty body) = do
     typeCheckStep
     red <- tyReduce (void ty)
     if red == nBodyTy
-        then pure $ NormalizedType (TyFix () (void n) (void ty)) -- type annotations on terms must be normalized
+        then pure $ NormalizedType (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void body) (unNormalizedType red) nBodyTy)
 
 extractUnique :: TyNameWithKind a -> Unique
@@ -272,7 +272,6 @@ rewriteCtx = cataM aM where
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
--- TODO: is this case actually safe? Don't we need to reduce again after substituting?
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
     tyEnvAssign u (NormalizedType (void ty))
     tyReduce ty'
