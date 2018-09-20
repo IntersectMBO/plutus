@@ -126,7 +126,7 @@ Cons:
 - Built-in support is bad. You need to roll out your own class, because `pretty` from `Pretty` returns `Doc ann` for any universally quantified `ann`.
 - `Doc` is an intermediate representation between a data type and `Text`/`String` which means that you still need to pass in an additional argument to communicate how exactly you want to pretty-print data. E.g. a function that pretty-prints a data type somewhere inside has to receive a `Proxy ann`.
 - Boilerplate-y constraints as usual.
-- Examples render `Doc`s [manually](http://hackage.haskell.org/package/prettyprinter-1.2.1/docs/src/Data.Text.Prettyprint.Doc.Render.Tutorials.TreeRenderingTutorial.html#render) which requires knowledge on the internals of the library. I think this is irrelevant for us, though.
+- Examples render `Doc`s [manually](http://hackage.haskell.org/package/prettyprinter-1.2.1/docs/src/Data.Text.Prettyprint.Doc.Render.Tutorials.TreeRenderingTutorial.html#render) which requires knowledge of the internals of the library. I think this is irrelevant for us, though.
 
 ## Current plan.
 
