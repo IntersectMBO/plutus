@@ -170,7 +170,7 @@ kindOf (TyApp x ty ty') = do
             typeCheckStep
             if k' == k'''
                 then pure k''
-                else throwError (KindMismatch x (void ty') k'' k''') -- this is the branch that fails!
+                else throwError (KindMismatch x (void ty') k'' k''')
         _ -> throwError (KindMismatch x (void ty') (KindArrow () (Type ()) (Type ())) k)
 
 intApp :: Type a () -> Natural -> Type a ()
