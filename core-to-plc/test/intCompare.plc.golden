@@ -5,7 +5,44 @@
     (lam
       ds_1
       [(con integer) (con 64)]
-      [ [ { (con lessThanInteger) (con 64) } ds_0 ] ds_1 ]
+      [
+        [
+          (lam
+            arg1_2
+            [(con integer) (con 64)]
+            (lam
+              arg2_3
+              [(con integer) (con 64)]
+              (abs
+                Bool_match_out_4
+                (type)
+                (lam
+                  arg1_5
+                  Bool_match_out_4
+                  (lam
+                    arg2_6
+                    Bool_match_out_4
+                    [
+                      [
+                        {
+                          [
+                            [ { (con lessThanInteger) (con 64) } arg1_2 ] arg2_3
+                          ]
+                          Bool_match_out_4
+                        }
+                        (lam thunk_7 (all a_8 (type) (fun a_8 a_8)) arg1_5)
+                      ]
+                      (lam thunk_9 (all a_10 (type) (fun a_10 a_10)) arg1_5)
+                    ]
+                  )
+                )
+              )
+            )
+          )
+          ds_0
+        ]
+        ds_1
+      ]
     )
   )
 )
