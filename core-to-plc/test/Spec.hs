@@ -205,6 +205,7 @@ errors = testGroup "Errors" [
     golden "integer" integer
     , golden "free" free
     , golden "list" list
+    , golden "valueRestriction" valueRestriction
   ]
 
 integer :: PlcCode
@@ -215,3 +216,8 @@ free = plc (True && False)
 
 list :: PlcCode
 list = plc ([(1::Int)])
+
+-- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
+-- at different types to prevent the obvious specialization.
+valueRestriction :: PlcCode
+valueRestriction = plc (let { f :: forall a . a; f = Prims.error (); } in (f @Bool, f @Int))

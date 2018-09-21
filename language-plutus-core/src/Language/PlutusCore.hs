@@ -59,6 +59,8 @@ module Language.PlutusCore
     , checkTerm
     , NormalizationError
     , checkFile
+    , isTypeValue
+    , isTermValue
     -- * Type synthesis
     , typecheckProgram
     , typecheckTerm

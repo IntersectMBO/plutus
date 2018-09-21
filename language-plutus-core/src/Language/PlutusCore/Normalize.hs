@@ -9,6 +9,7 @@ module Language.PlutusCore.Normalize ( check
                                      , checkTerm
                                      , NormalizationError
                                      , isTypeValue
+                                     , isTermValue
                                      ) where
 
 import           Control.Monad.Except
@@ -49,6 +50,9 @@ checkT (Apply l t t')    = Apply l <$> checkT t <*> checkT t'
 checkT (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
 checkT t@Var{}           = pure t
 checkT t@Constant{}      = pure t
+
+isTermValue :: Term tyname name a -> Bool
+isTermValue = isRight . termValue
 
 -- ensure a term is a value
 termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)

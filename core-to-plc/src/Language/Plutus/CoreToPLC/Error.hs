@@ -6,6 +6,7 @@ module Language.Plutus.CoreToPLC.Error (
     , WithContext (..)
     , withContext
     , withContextM
+    , throwPlain
     , mustBeReplaced) where
 
 import qualified Language.PlutusCore       as PLC
@@ -27,6 +28,9 @@ withContextM mc act = do
     c <- mc
     catchError act $ \err -> throwError (WithContext c err)
 
+throwPlain :: MonadError (WithContext c e) m => e -> m a
+throwPlain = throwError . NoContext
+
 instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
     pretty = \case
         NoContext e     -> "Error:" PP.<+> (PP.align $ PP.pretty e)
@@ -39,6 +43,7 @@ data Error a = PLCError (PLC.Error a)
              | ConversionError T.Text
              | UnsupportedError T.Text
              | FreeVariableError T.Text
+             | ValueRestrictionError T.Text
              deriving Typeable
 
 instance (PLC.PrettyCfg a) => PP.Pretty (Error a) where
@@ -50,6 +55,7 @@ instance (PLC.PrettyCfg a) => PLC.PrettyCfg (Error a) where
         ConversionError e -> "Error during conversion:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported:" PP.<+> PP.pretty e
         FreeVariableError e -> "Used but not defined in the current conversion:" PP.<+> PP.pretty e
+        ValueRestrictionError e -> "Violation of the value restriction:" PP.<+> PP.pretty e
 
 mustBeReplaced :: a
 mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"
