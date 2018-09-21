@@ -78281,10 +78281,14 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , base
 , bytestring
+, cborg
 , containers
+, core-to-plc
+, cryptonite
 , free
 , ghc
 , language-plutus-core
+, memory
 , mmorph
 , mtl
 , operational
@@ -78303,10 +78307,14 @@ src = ./../wallet-api;
 libraryHaskellDepends = [
 base
 bytestring
+cborg
 containers
+core-to-plc
+cryptonite
 free
 ghc
 language-plutus-core
+memory
 mmorph
 mtl
 operational
