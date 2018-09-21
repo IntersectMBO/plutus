@@ -8,8 +8,8 @@ module NormalTypes.Term.Reduction where
 open import Type
 open import NormalTypes.Term
 open import NormalTypes.Term.RenamingSubstitution
-open import Type.NBEWithProofs
-open import Type.Normal
+open import Type.BetaEtaNBEWithProofs
+open import Type.BetaEtaNormal
 \end{code}
 
 ## Values

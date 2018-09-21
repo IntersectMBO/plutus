@@ -1,5 +1,5 @@
 \begin{code}
-module Type.Normal where
+module Type.BetaEtaNormal where
 \end{code}
 
 ## Fixity declarations
@@ -66,7 +66,7 @@ data _⊢Nf⋆_ where
       -----------
     → φ ⊢Nf⋆ *
 
-  ne : ∀{φ} -- if it was at kind * it would be βη-normal forms
+  ne : ∀{φ}
     → φ ⊢NeN⋆ *
       --------
     → φ ⊢Nf⋆ *

@@ -6,7 +6,7 @@ module NormalTypes.Evaluation where
 
 \begin{code}
 open import Type
-open import Type.Normal
+open import Type.BetaEtaNormal
 open import NormalTypes.Term
 open import NormalTypes.Term.Reduction
 \end{code}

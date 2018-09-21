@@ -5,9 +5,11 @@ import Type
 import Type.RenamingSubstitution
 import Type.Reduction
 import Type.Equality
+import Type.BetaEtaNormal
+import Type.BetaNormal
 import Type.BSN
-import Type.NBE
-import Type.NBEWithProofs
+import Type.BetaEtaNBE
+import Type.BetaEtaNBEWithProofs
 
 import NormalTypes.Term
 import NormalTypes.Term.RenamingSubstitution

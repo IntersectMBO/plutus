@@ -160,7 +160,7 @@ t ⟦ v ⟧ = eval t (idEnv ,,⋆ v)
 \end{code}
 
 \begin{code}
-open import Type.Normal
+open import Type.BetaEtaNormal
 
 open import Data.Unit
 open import Data.Product

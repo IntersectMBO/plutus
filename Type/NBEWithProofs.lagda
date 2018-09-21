@@ -1,12 +1,12 @@
 \begin{code}
-module Type.NBEWithProofs where
+module Type.BetaEtaNBEWithProofs where
 \end{code} where
 
 ## Imports
 
 \begin{code}
 open import Type
-open import Type.Normal
+open import Type.BetaEtaNormal
 open import Type.RenamingSubstitution
 
 open import Relation.Binary.HeterogeneousEquality
