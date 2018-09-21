@@ -10,6 +10,7 @@ import Type.BetaNormal
 import Type.BSN
 import Type.BetaEtaNBE
 import Type.BetaEtaNBEWithProofs
+import Type.BetaNBE
 
 import NormalTypes.Term
 import NormalTypes.Term.RenamingSubstitution

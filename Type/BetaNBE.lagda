@@ -20,26 +20,26 @@ Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
 \end{code}
 
 \begin{code}
-mutual
-  Val : Ctx⋆ -> Kind -> Set
-  Val Γ σ = Γ ⊢NeN⋆ σ ⊎ Kripke Γ σ
+Val : Ctx⋆ -> Kind -> Set
+Val Γ  *      = Γ ⊢Nf⋆ *
+Val Γ (σ ⇒ τ) = Γ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Δ} -> Ren Γ Δ -> Val Δ σ -> Val Δ τ
 
-  Kripke : Ctx⋆ -> Kind -> Set
-  Kripke Γ  *      = Γ ⊢Nf⋆ *
-  Kripke Γ (σ ⇒ τ) = ∀ {Δ} -> Ren Γ Δ -> Val Δ σ -> Val Δ τ
+neV : ∀{Γ σ} → Γ ⊢NeN⋆ σ → Val Γ σ
+neV {σ = *}     n = ne n
+neV {σ = σ ⇒ τ} n = inj₁ n
 
-var : ∀ {Γ σ} -> Γ ∋⋆ σ -> Val Γ σ
-var = inj₁ ∘ `
+fresh : ∀ {Γ σ} -> Val (Γ ,⋆ σ) σ
+fresh = neV (` Z)
 
 renval : ∀ {σ Γ Δ} -> Ren Γ Δ -> Val Γ σ -> Val Δ σ
-renval         ψ (inj₁ t)  = inj₁ (renameNeN ψ t)
-renval {*}     ψ (inj₂ n)  = inj₂ (renameNf ψ n)
-renval {σ ⇒ τ} ψ (inj₂ k)  = inj₂ (λ ρ' →  k (ρ' ∘ ψ))
+renval {*}     ψ n         = renameNf ψ n
+renval {σ ⇒ τ} ψ (inj₁ n)  = inj₁ (renameNeN ψ n)
+renval {σ ⇒ τ} ψ (inj₂ f)  = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
 
 readback : ∀ {σ Γ} -> Val Γ σ -> Γ ⊢Nf⋆ σ
-readback         (inj₁ t)  = ne t
-readback {*}     (inj₂ t)  = t
-readback {σ ⇒ τ} (inj₂ k)  = ƛ (readback (k S (var Z)))
+readback {*}     n         = n
+readback {σ ⇒ τ} (inj₁ n)  = ne n
+readback {σ ⇒ τ} (inj₂ f)  = ƛ (readback (f S fresh))
 \end{code}
 
 \begin{code}
@@ -54,19 +54,19 @@ _,,⋆_ : ∀{Δ Γ} → (σ : Env Γ Δ) → ∀{K}(A : Val Δ K) → Env (Γ ,
 \begin{code}
 eval : ∀{Γ Δ K} → Δ ⊢⋆ K → (∀{J} → Δ ∋⋆ J → Val Γ J)  → Val Γ K
 eval (` x)   ρ = ρ x
-eval (Π B)   ρ = inj₂ (Π (readback (eval B ((renval S ∘ ρ) ,,⋆ var Z))))
-eval (A ⇒ B) ρ = inj₂ (readback (eval A ρ) ⇒ readback (eval B ρ))
+eval (Π B)   ρ = Π (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
+eval (A ⇒ B) ρ = readback (eval A ρ) ⇒ readback (eval B ρ)
 eval (ƛ B)   ρ = inj₂ λ ρ' v → eval B ((renval ρ' ∘ ρ) ,,⋆ v)
 eval (A · B) ρ with eval A ρ
-eval (A · B) ρ | inj₁ n = inj₁ (n · readback (eval B ρ))
+eval (A · B) ρ | inj₁ n = neV (n · readback (eval B ρ))
 eval (A · B) ρ | inj₂ f = f id (eval B ρ) 
-eval (μ B)   ρ = inj₂ (μ (readback (eval B ((renval S ∘ ρ) ,,⋆ var Z))))
+eval (μ B)   ρ = μ (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
 \end{code}
 
 \begin{code}
 idEnv : ∀ Γ → Env Γ Γ
 idEnv ∅ ()
-idEnv (Γ ,⋆ K) Z     = var Z
+idEnv (Γ ,⋆ K) Z     = fresh
 idEnv (Γ ,⋆ K) (S x) = renval S (idEnv Γ x)
 \end{code}
 
