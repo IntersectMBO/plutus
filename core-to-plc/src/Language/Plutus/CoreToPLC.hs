@@ -221,9 +221,7 @@ convTyConApp tc ts
     -- we don't support Integer
     | GHC.tyConName tc == GHC.integerTyConName = throwPlain $ UnsupportedError "Integer: use Int instead"
     -- this is Void#, see Note [Value restriction]
-    | tc == GHC.voidPrimTyCon = do
-          tyname <- safeFreshTyName "a"
-          mangleTyForall $ PLC.TyForall () tyname (PLC.Type ()) (PLC.TyVar () tyname)
+    | tc == GHC.voidPrimTyCon = liftQuote errorTy
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
@@ -522,6 +520,12 @@ errorFunc = do
     n <- freshTyName () "e"
     -- see Note [Value restriction]
     mangleTyAbs $ PLC.TyAbs () n (PLC.Type ()) (PLC.Error () (PLC.TyVar () n))
+
+-- | The type 'forall a. () -> a'.
+errorTy :: Quote (PLC.Type PLC.TyName ())
+errorTy = do
+    tyname <- safeFreshTyName "a"
+    mangleTyForall $ PLC.TyForall () tyname (PLC.Type ()) (PLC.TyVar () tyname)
 
 -- Value restriction
 
