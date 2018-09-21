@@ -81,16 +81,16 @@ contributionScript _ _  = PlutusTx inner where
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
             signedBy :: TxIn -> PubKey -> Bool
-            signedBy = Prim.error
+            signedBy = Prim.error ()
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = Prim.error
+            (&&) = Prim.error ()
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx -> PubKey -> Bool
-            signedByT = Prim.error
+            signedByT = Prim.error ()
 
             PendingTx pendingTxBlockHeight _ pendingTxTransaction = p
 
@@ -119,7 +119,7 @@ contributionScript _ _  = PlutusTx inner where
                         -- were committed by this contributor
                     in refundable
         in
-        if isValid then () else Prim.error) ||])
+        if isValid then () else Prim.error ()) ||])
 
 -- | Given the campaign data and the output from the contributing transaction,
 --   make a trigger that fires when the transaction can be refunded.

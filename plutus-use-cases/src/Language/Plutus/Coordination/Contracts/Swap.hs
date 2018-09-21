@@ -46,7 +46,7 @@ swapValidator _ = PlutusTx result where
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = Prim.error
+            (&&) = Prim.error ()
 
             mn :: Int -> Int -> Int
             mn a b = if a < b then a else b
@@ -55,24 +55,24 @@ swapValidator _ = PlutusTx result where
             mx a b = if a > b then a else b
 
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Int -> BlockHeight -> Ratio Int
-            extractVerifyAt = Prim.error
+            extractVerifyAt = Prim.error ()
 
             round :: Ratio Int -> Int
-            round = Prim.error
+            round = Prim.error ()
 
             -- | Convert an [[Int]] to a [[Ratio Int]]
             fromInt :: Int -> Ratio Int
-            fromInt = Prim.error
+            fromInt = Prim.error ()
 
             signedBy :: TxIn -> PubKey -> Bool
-            signedBy = Prim.error
+            signedBy = Prim.error ()
 
             infixr 3 ||
             (||) :: Bool -> Bool -> Bool
-            (||) = Prim.error
+            (||) = Prim.error ()
 
             isPubKeyOutput :: TxOut a -> PubKey -> Bool
-            isPubKeyOutput = Prim.error
+            isPubKeyOutput = Prim.error ()
 
             -- Verify the authenticity of the oracle value and compute
             -- the payments.
@@ -144,7 +144,7 @@ swapValidator _ = PlutusTx result where
 
 
         in
-        if inConditions && outConditions then () else Prim.error
+        if inConditions && outConditions then () else Prim.error ()
         )
 
 {- Note [Swap Transactions]

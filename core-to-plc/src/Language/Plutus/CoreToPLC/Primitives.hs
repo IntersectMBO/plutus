@@ -53,5 +53,5 @@ txhash = mustBeReplaced
 blocknum :: Int
 blocknum = mustBeReplaced
 
-error :: a
+error :: () -> a
 error = mustBeReplaced

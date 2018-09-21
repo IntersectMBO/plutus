@@ -101,6 +101,9 @@ conversionFail = (throwError . NoContext . ConversionError) <=< sdToTxt
 unsupported :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
 unsupported = (throwError . NoContext . UnsupportedError) <=< sdToTxt
 
+valueRestriction :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
+valueRestriction = (throwError . NoContext . ValueRestrictionError) <=< sdToTxt
+
 freeVariable :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
 freeVariable = (throwError . NoContext . FreeVariableError) <=< sdToTxt
 
@@ -226,8 +229,10 @@ convTyConApp tc ts
     | tc == GHC.intPrimTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
     -- we don't support Integer
     | GHC.tyConName tc == GHC.integerTyConName = unsupported "Integer: use Int instead"
-    -- this is Void#, goes to 'forall a. a'
-    | tc == GHC.voidPrimTyCon = safeFreshTyName "any" >>= \n -> pure $ PLC.TyForall () n (PLC.Type ()) (PLC.TyVar () n)
+    -- this is Void#, see Note [Value restriction]
+    | tc == GHC.voidPrimTyCon = do
+          tyname <- safeFreshTyName "a"
+          mangleTyForall $ PLC.TyForall () tyname (PLC.Type ()) (PLC.TyVar () tyname)
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
@@ -358,6 +363,7 @@ convConstructor dc =
         tcName = GHC.getOccString $ GHC.tyConName tc
         dcName = GHC.getOccString $ GHC.dataConName dc
     in
+        -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- /\ tv_1 .. tv_n . body
         flip (foldr (\tv acc -> mkTyAbs tv acc)) (GHC.tyConTyVars tc) $ do
             -- See Note [Scott encoding of datatypes]
@@ -383,6 +389,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
         applied = foldl' (\acc a -> PLC.Apply () acc (PLC.Var () a)) (PLC.Var () thisConstructor) (fmap fst argNamesAndTypes)
         -- \c_1 .. c_n . applied
         cfuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) applied caseNamesAndTypes
+        -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall r . cfuncs
         resAbstracted = PLC.TyAbs () resultTypeName resultKind cfuncs
         -- \a_1 .. a_m . abstracted
@@ -518,8 +525,87 @@ primitiveTypeAssociations = [
     (''Prims.ByteString, pure $ appSize haskellBSSize $ PLC.TyBuiltin () PLC.TyByteString)
     ]
 
+-- | The function 'error :: forall a . () -> a'.
 errorFunc :: Quote (PLC.Term PLC.TyName PLC.Name ())
-errorFunc = freshTyName () "e" >>= \n -> pure $ PLC.TyAbs () n (PLC.Type ()) $ PLC.Error () (PLC.TyVar () n)
+errorFunc = do
+    n <- freshTyName () "e"
+    -- see Note [Value restriction]
+    mangleTyAbs $ PLC.TyAbs () n (PLC.Type ()) (PLC.Error () (PLC.TyVar () n))
+
+-- Value restriction
+
+{- Note [Value restriction]
+Plutus Core has the traditional *value restriction* on type abstractions - namely, the
+body of a type abstraction must be a value.
+
+This causes problems for us because *Haskell* has no such thing.
+
+There are two approaches to solving this problem. Currently we use "passing on the value restriction",
+but I include a description of mangling to illustrate why the current solution is preferable.
+
+-- Mangling
+
+We can get around this by delaying the body of all our abstractions, thus making them lambdas, which are values.
+This then means that we need to change the *types* of all foralls to include the unit argument,
+and all instantiations to force the value.
+
+We need to do this everywhere so that the translation of the users' program remains
+well-typed. Consider
+
+runST :: (forall s. ST s a) -> a
+
+myCalc :: Int
+myCalc = runST $ pure 1
+
+Converting `pure 1`, we would normally turn it into something of type
+
+(all s (type) [ST s Int])
+
+After mangling, this becomes
+
+(all s (type) (fun unit [ST s Int]))
+
+This means we had better convert `runST` into something that expects things of that type instead of
+the original type! And we need to add forces to the instantiations inside `runST` otherwise its
+body won't be well-typed too.
+
+Note that it's no good to convert some other abstraction where the body is already a value without the delay -
+if we did that, then `runST` would be in an impossible place, since it would need to take
+either mangled or non-mangled abstractions. The only way we can get away with this without doing complicated
+accounting is to do it uniformly: i.e. absolutely everywhere whether we need it in that
+case or not.
+
+We need to do this even for the abstractions in our generated matchers for Scott-encoding,
+because constructors are user-visible and so can be passed to functions, which might expect them to be
+mangled.
+
+-- Passing on the value restriction
+
+An alternative approach would be to pass on the value restriction to the client Haskell code.
+This has the advantage of much simpler codegen. However, it has a few annoying cases:
+
+- We can't provide `error :: forall a. a` any more.
+- We can't handle `void# :: forall a. a` well any more.
+
+The first is easy: we just make the primitive be mangled `error :: forall a. () -> a`.
+
+The second is a pain. GHC *does* use the polymorphic void. So we take the ad-hoc
+expedient of mangling *just* the 'Void#' type. Since nothing can use this "for real",
+there are no uses to go wrong so long as we change the type uniformly. This is a
+bit of a hack, though.
+-}
+
+-- See Note [Value restriction]
+mangleTyForall :: (MonadQuote m) => PLCType -> m PLCType
+mangleTyForall = \case
+    PLC.TyForall a t k body -> PLC.TyForall a t k <$> delayType body
+    x -> pure x
+
+-- See Note [Value restriction]
+mangleTyAbs :: (MonadQuote m) => PLCExpr -> m PLCExpr
+mangleTyAbs = \case
+    PLC.TyAbs a t k body -> PLC.TyAbs a t k <$> delay body
+    x -> pure x
 
 -- Binder helpers
 
@@ -539,6 +625,7 @@ mkTyAbs v body = do
     let ghcName = GHC.tyVarName v
     (k', t') <- convTyVarFresh v
     body' <- local (second $ pushTyName ghcName t') body
+    unless (PLC.isTermValue body') $ valueRestriction "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
 
 -- | Builds a forall, binding the given variable to a name that
@@ -786,6 +873,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                     inner' <- convType inner
                     tyName <- safeFreshTyName "match_out"
                     name <- safeFreshName "c"
+                    -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
                     pure $ PLC.TyAbs () tyName (PLC.Type ()) $ PLC.LamAbs () name (PLC.TyFun () inner' (PLC.TyVar () tyName)) $ PLC.Apply () (PLC.Var () name) body'
                 _ -> unsupported $ "Coercion" GHC.$+$ GHC.ppr coerce
         GHC.Type _ -> conversionFail "Cannot convert types directly, only as arguments to applications"
