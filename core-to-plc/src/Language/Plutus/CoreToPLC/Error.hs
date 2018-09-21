@@ -6,6 +6,7 @@ module Language.Plutus.CoreToPLC.Error (
     , WithContext (..)
     , withContext
     , withContextM
+    , throwPlain
     , mustBeReplaced) where
 
 import qualified Language.PlutusCore       as PLC
@@ -26,6 +27,9 @@ withContextM :: (MonadError (WithContext c e) m) => m c -> m a -> m a
 withContextM mc act = do
     c <- mc
     catchError act $ \err -> throwError (WithContext c err)
+
+throwPlain :: MonadError (WithContext c e) m => e -> m a
+throwPlain = throwError . NoContext
 
 instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
     pretty = \case

@@ -95,17 +95,8 @@ sdToTxt sd = do
   (flags, _, _, _) <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
-conversionFail :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-conversionFail = (throwError . NoContext . ConversionError) <=< sdToTxt
-
-unsupported :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-unsupported = (throwError . NoContext . UnsupportedError) <=< sdToTxt
-
-valueRestriction :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-valueRestriction = (throwError . NoContext . ValueRestrictionError) <=< sdToTxt
-
-freeVariable :: (MonadError ConvError m, MonadReader ConvertingContext m) => GHC.SDoc -> m a
-freeVariable = (throwError . NoContext . FreeVariableError) <=< sdToTxt
+throwSd :: (MonadError ConvError m, MonadReader ConvertingContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
+throwSd constr = (throwPlain . constr) <=< sdToTxt
 
 -- Names and scopes
 
@@ -187,14 +178,14 @@ convKind k = withContextM (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ cas
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isStarKind -> True)              -> pure $ PLC.Type ()
     (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
-    _                                     -> unsupported $ "Kind:" GHC.<+> GHC.ppr k
+    _                                     -> throwSd UnsupportedError $ "Kind:" GHC.<+> GHC.ppr k
 
 -- | Try to convert a type, using the given action to convert it, and throwing an error if we have recursive evaluation.
 tryConvType :: (Converting m) => GHC.Name -> m PLCType -> m PLCType
 tryConvType n act = do
     tds <- get
     case Map.lookup n tds of
-        Just Blackhole -> conversionFail "Recursion while converting types"
+        Just Blackhole -> throwPlain $ ConversionError "Recursion while converting types"
         -- Either already seen and done or not seen.
         -- Ideally we would store the finished type, but we actually need to
         -- store a version in Quote so we can recreate it safely in multiple
@@ -213,13 +204,13 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     case t of
         -- in scope type name
         (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.varName -> Just name)) -> pure $ PLC.TyVar () name
-        (GHC.getTyVar_maybe -> Just v) -> freeVariable $ "Type variable:" GHC.<+> GHC.ppr v
+        (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.TyFun () <$> convType i <*> convType o
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForall tv (convType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
-        _ -> unsupported $ "Type" GHC.<+> GHC.ppr t
+        _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
 
 convTyConApp :: (Converting m) => GHC.TyCon -> [GHC.Type] -> m PLCType
 convTyConApp tc ts
@@ -228,7 +219,7 @@ convTyConApp tc ts
     -- this is Int#
     | tc == GHC.intPrimTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
     -- we don't support Integer
-    | GHC.tyConName tc == GHC.integerTyConName = unsupported "Integer: use Int instead"
+    | GHC.tyConName tc == GHC.integerTyConName = throwPlain $ UnsupportedError "Integer: use Int instead"
     -- this is Void#, see Note [Value restriction]
     | tc == GHC.voidPrimTyCon = do
           tyname <- safeFreshTyName "a"
@@ -317,12 +308,12 @@ a unit argument and apply it at the end.
 getDataCons :: (Converting m) =>  GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc
     | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
-        GHC.AbstractTyCon                -> unsupported $ "Abstract type:" GHC.<+> GHC.ppr tc
+        GHC.AbstractTyCon                -> throwSd UnsupportedError $ "Abstract type:" GHC.<+> GHC.ppr tc
         GHC.DataTyCon{GHC.data_cons=dcs} -> pure dcs
         GHC.TupleTyCon{GHC.data_con=dc}  -> pure [dc]
         GHC.SumTyCon{GHC.data_cons=dcs}  -> pure dcs
         GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
-    | otherwise = unsupported $ "Type constructor:" GHC.<+> GHC.ppr tc
+    | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 -- This is the creation of the Scott-encoded datatype type. See Note [Scott encoding of datatypes]
 convDataCons :: forall m. Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCType
@@ -347,7 +338,7 @@ mkScottTyBody resultTypeName cases =
 
 dataConCaseType :: Converting m => PLCType -> GHC.DataCon -> m PLCType
 dataConCaseType resultType dc = withContextM (sdToTxt $ "Converting data constructor:" GHC.<+> GHC.ppr dc) $
-    if not (GHC.isVanillaDataCon dc) then unsupported $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc
+    if not (GHC.isVanillaDataCon dc) then throwSd UnsupportedError $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc
     else do
         let argTys = GHC.dataConRepArgTys dc
         args <- mapM convType argTys
@@ -371,7 +362,7 @@ convConstructor dc =
             dcs <- getDataCons tc
             index <- case elemIndex dc dcs of
                 Just i  -> pure i
-                Nothing -> conversionFail "Data constructor not in the type constructor's list of constructors!"
+                Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
             caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
             caseArgNames <- mapM (convNameFresh . GHC.dataConName) dcs
             argTypes <- mapM convType $ GHC.dataConRepArgTys dc
@@ -398,7 +389,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
 
 convAlt :: Converting m => GHC.CoreAlt -> m PLCExpr
 convAlt (alt, vars, body) = case alt of
-    GHC.LitAlt _  -> unsupported "Literal case"
+    GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
         caseBody <- convExpr body
         delay caseBody
@@ -423,14 +414,14 @@ convLiteral l = case l of
     GHC.MachInt64 i    -> pure $ PLC.BuiltinInt () haskellIntSize i
     GHC.MachInt i      -> pure $ PLC.BuiltinInt () haskellIntSize i
     GHC.MachStr bs     -> pure $ PLC.BuiltinBS () haskellBSSize (BSL.fromStrict bs)
-    GHC.LitInteger _ _ -> unsupported "Literal (unbounded) integer"
-    GHC.MachWord _     -> unsupported "Literal word"
-    GHC.MachWord64 _   -> unsupported "Literal word64"
-    GHC.MachChar _     -> unsupported "Literal char"
-    GHC.MachFloat _    -> unsupported "Literal float"
-    GHC.MachDouble _   -> unsupported "Literal double"
-    GHC.MachLabel {}   -> unsupported "Literal label"
-    GHC.MachNullAddr   -> unsupported "Literal null"
+    GHC.LitInteger _ _ -> throwPlain $ UnsupportedError "Literal (unbounded) integer"
+    GHC.MachWord _     -> throwPlain $ UnsupportedError "Literal word"
+    GHC.MachWord64 _   -> throwPlain $ UnsupportedError "Literal word64"
+    GHC.MachChar _     -> throwPlain $ UnsupportedError "Literal char"
+    GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
+    GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
+    GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"
+    GHC.MachNullAddr   -> throwPlain $ UnsupportedError "Literal null"
 
 isPrimitiveWrapper :: GHC.Id -> Bool
 isPrimitiveWrapper i = case GHC.idDetails i of
@@ -456,7 +447,7 @@ convPrimitiveOp po = do
         GHC.IntLtOp   -> pure PLC.LessThanInteger
         GHC.IntLeOp   -> pure PLC.LessThanEqInteger
         GHC.IntEqOp   -> pure PLC.EqInteger
-        _             -> unsupported $ "Primitive operation:" GHC.<+> GHC.ppr po
+        _             -> throwSd UnsupportedError $ "Primitive operation:" GHC.<+> GHC.ppr po
     pure $ instSize haskellIntSize (mkConstant name)
 
 -- Typeclasses
@@ -468,7 +459,7 @@ convEqMethod name = do
         where
             method n
               | n == GHC.eqName = pure PLC.EqInteger
-              | otherwise = unsupported $ "Eq method:" GHC.<+> GHC.ppr n
+              | otherwise = throwSd UnsupportedError $ "Eq method:" GHC.<+> GHC.ppr n
 
 convOrdMethod :: (Converting m) => GHC.Name -> m PLCExpr
 convOrdMethod name = do
@@ -481,7 +472,7 @@ convOrdMethod name = do
                 | GHC.getOccString n == ">" = pure PLC.GreaterThanInteger
                 | GHC.getOccString n == "<=" = pure PLC.LessThanEqInteger
                 | GHC.getOccString n == "<" = pure PLC.LessThanInteger
-                | otherwise = unsupported $ "Ord method:" GHC.<+> GHC.ppr n
+                | otherwise = throwSd UnsupportedError $ "Ord method:" GHC.<+> GHC.ppr n
 
 convNumMethod :: (Converting m) => GHC.Name -> m PLCExpr
 convNumMethod name = do
@@ -493,7 +484,7 @@ convNumMethod name = do
                 | n == GHC.minusName = pure PLC.SubtractInteger
                 | GHC.getOccString n == "+" = pure PLC.AddInteger
                 | GHC.getOccString n == "*" = pure PLC.MultiplyInteger
-                | otherwise = unsupported $ "Num method:" GHC.<+> GHC.ppr n
+                | otherwise = throwSd UnsupportedError $ "Num method:" GHC.<+> GHC.ppr n
 
 -- Plutus primitives
 
@@ -625,7 +616,7 @@ mkTyAbs v body = do
     let ghcName = GHC.tyVarName v
     (k', t') <- convTyVarFresh v
     body' <- local (second $ pushTyName ghcName t') body
-    unless (PLC.isTermValue body') $ valueRestriction "Type abstraction body is not a value"
+    unless (PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
 
 -- | Builds a forall, binding the given variable to a name that
@@ -795,8 +786,8 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         GHC.Var (flip Map.lookup prims . GHC.varName -> Just term) -> liftQuote term
         -- the term we get must be closed - we don't resolve most references
         -- TODO: possibly relax this?
-        GHC.Var n@(GHC.idDetails -> GHC.VanillaId) -> freeVariable $ "Variable:" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
-        GHC.Var n -> unsupported $ "Variable" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+        GHC.Var n@(GHC.idDetails -> GHC.VanillaId) -> throwSd FreeVariableError $ "Variable:" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+        GHC.Var n -> throwSd UnsupportedError $ "Variable" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
         GHC.Lit lit -> PLC.Constant () <$> convLiteral lit
         -- arg can be a type here, in which case it's a type instantiation
         GHC.App l (GHC.Type t) -> PLC.TyInst () <$> convExpr l <*> convType t
@@ -815,7 +806,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             tys <- mapM convType (fmap (GHC.varType . fst) bs)
             forM_ tys $ \case
                 PLC.TyFun {} -> pure ()
-                _ -> conversionFail "Recursive values must be of function type. You may need to manually add unit arguments."
+                _ -> throwPlain $ ConversionError "Recursive values must be of function type. You may need to manually add unit arguments."
             tupleTy <- mkTupleType tys
 
             bsLam <- flip (foldr (\b acc -> mkLambda b acc)) (fmap fst bs) $ do
@@ -835,7 +826,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             -- must be a TC app
             tc <- case GHC.splitTyConApp_maybe scrutineeType of
                 Just (tc, _) -> pure tc
-                Nothing      -> conversionFail "Scrutinee's type was not a type constructor application"
+                Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
             dcs <- getDataCons tc
             -- See Note [Scott encoding of datatypes]
             -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
@@ -851,7 +842,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                         pure $ foldr (\(n', t') acc -> PLC.LamAbs () n' t' acc) alt' (zip argNames argTypes)
                     else
                         pure alt'
-                Nothing -> conversionFail "No case matched and no default case"
+                Nothing -> throwPlain $ ConversionError "No case matched and no default case"
             -- See Note [Iterated abstraction and application]
             -- See Note [Case expressions and laziness]
             force $ foldl' (\acc alt -> PLC.Apply () acc alt) instantiated branches
@@ -875,6 +866,6 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                     name <- safeFreshName "c"
                     -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
                     pure $ PLC.TyAbs () tyName (PLC.Type ()) $ PLC.LamAbs () name (PLC.TyFun () inner' (PLC.TyVar () tyName)) $ PLC.Apply () (PLC.Var () name) body'
-                _ -> unsupported $ "Coercion" GHC.$+$ GHC.ppr coerce
-        GHC.Type _ -> conversionFail "Cannot convert types directly, only as arguments to applications"
-        GHC.Coercion _ -> conversionFail "Coercions should not be converted"
+                _ -> throwSd UnsupportedError $ "Coercion" GHC.$+$ GHC.ppr coerce
+        GHC.Type _ -> throwPlain $ ConversionError "Cannot convert types directly, only as arguments to applications"
+        GHC.Coercion _ -> throwPlain $ ConversionError "Coercions should not be converted"
