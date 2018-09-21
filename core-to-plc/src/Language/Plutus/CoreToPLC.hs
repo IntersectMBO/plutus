@@ -533,7 +533,8 @@ errorTy = do
 Plutus Core has the traditional *value restriction* on type abstractions - namely, the
 body of a type abstraction must be a value.
 
-This causes problems for us because *Haskell* has no such thing.
+This causes problems for us because *Haskell* has no such thing. (There is the monomorphism
+restriciton, which is similar, but not as restrictive, so it doesn't help us.)
 
 There are two approaches to solving this problem. Currently we use "passing on the value restriction",
 but I include a description of mangling to illustrate why the current solution is preferable.
