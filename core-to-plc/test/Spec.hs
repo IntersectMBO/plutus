@@ -128,6 +128,7 @@ monoData = testGroup "Monomorphic data" [
   , golden "monoConstructed" monoConstructed
   , golden "monoCase" monoCase
   , golden "defaultCase" defaultCase
+  , golden "nonValueCase" nonValueCase
   , golden "synonym" synonym
   ]
 
@@ -152,6 +153,10 @@ monoCase = plc (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a;
 
 defaultCase :: PlcCode
 defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono2 a -> a ; _ -> 1; })
+
+-- must be compiled with a lazy case
+nonValueCase :: PlcCode
+nonValueCase = plc (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Prims.error (); })
 
 type Synonym = Int
 

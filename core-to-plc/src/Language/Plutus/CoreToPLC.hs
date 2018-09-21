@@ -301,8 +301,20 @@ PLC is strict, but users *do* expect that, e.g. they can write an if expression 
 lazy. This only *matters* because we have 'error', so it's important that 'if false error else ...'
 does not evaluate to 'error'!
 
-More generally, we compile case expressions (of which an if expression is one) lazily, i.e. we add
+More generally, we can compile case expressions (of which an if expression is one) lazily, i.e. we add
 a unit argument and apply it at the end.
+
+However, we apply an important optimization: we only need to do this if it is not the case that
+all the case expressions are branches. In the common case they *will* be, so this gives us
+significantly better codegen a lot of the time.
+
+The check we do is:
+- Alternatives with arguments will be turned into lambdas by us, so will be values.
+- Otherwise, we convert the expression (we can do this easily since it doesn't need any variables in scope),
+  and check whether it is a value.
+
+This is somewhat wasteful, since we may convert the expression twice, but it's difficult to avoid, and
+it's hard to tell if a GHC core expression will be a PLC value or not. Easiest to just try it.
 -}
 
 getDataCons :: (Converting m) =>  GHC.TyCon -> m [GHC.DataCon]
@@ -387,17 +399,21 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
         afuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) resAbstracted argNamesAndTypes
     in afuncs
 
-convAlt :: Converting m => GHC.CoreAlt -> m PLCExpr
-convAlt (alt, vars, body) = case alt of
+convAlt :: Converting m => Bool -> GHC.DataCon -> GHC.CoreAlt -> m PLCExpr
+convAlt mustDelay dc (alt, vars, body) = case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
-        caseBody <- convExpr body
-        delay caseBody
+        body' <- convExpr body >>= maybeDelay mustDelay
+        -- need to consume the args
+        argTypes <- mapM convType $ GHC.dataConRepArgTys dc
+        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" ++ show i)
+        -- See Note [Iterated abstraction and application]
+        pure $ foldr (\(n', t') acc -> PLC.LamAbs () n' t' acc) body' (zip argNames argTypes)
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> foldr (\v acc -> mkLambda v acc) (convExpr body >>= delay) vars
+    GHC.DataAlt _ -> foldr (\v acc -> mkLambda v acc) (convExpr body >>= maybeDelay mustDelay) vars
 
 -- Literals and primitives
 
@@ -799,25 +815,22 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             tc <- case GHC.splitTyConApp_maybe scrutineeType of
                 Just (tc, _) -> pure tc
                 Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
+
+            -- See Note [Case expressions and laziness]
+            isValueAlt <- mapM (\(_, vars, body) -> if null vars then PLC.isTermValue <$> convExpr body else pure True) alts
+            let lazyCase = not $ and isValueAlt
+
             dcs <- getDataCons tc
             -- See Note [Scott encoding of datatypes]
-            -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-            instantiated <- PLC.TyInst () <$> convExpr scrutinee <*> (delayType =<< convType t)
+            -- If we're going to delay the body, the scrutinee needs to be instantiated the delayed type
+            instantiated <- PLC.TyInst () <$> convExpr scrutinee <*> (convType t >>= maybeDelayType lazyCase)
             branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
-                Just alt -> do
-                    alt' <- convAlt alt
-                    if GHC.isDefaultAlt alt then do
-                        -- need to consume the args
-                        argTypes <- mapM convType $ GHC.dataConRepArgTys dc
-                        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" ++ show i)
-                        -- See Note [Iterated abstraction and application]
-                        pure $ foldr (\(n', t') acc -> PLC.LamAbs () n' t' acc) alt' (zip argNames argTypes)
-                    else
-                        pure alt'
-                Nothing -> throwPlain $ ConversionError "No case matched and no default case"
+                Just alt -> convAlt lazyCase dc alt
+                Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
             -- See Note [Iterated abstraction and application]
+            let applied = foldl' (\acc alt -> PLC.Apply () acc alt) instantiated branches
             -- See Note [Case expressions and laziness]
-            force $ foldl' (\acc alt -> PLC.Apply () acc alt) instantiated branches
+            maybeForce lazyCase applied
         -- ignore annotation
         GHC.Tick _ body -> convExpr body
         GHC.Cast body coerce -> do

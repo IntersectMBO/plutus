@@ -1,0 +1,32 @@
+(program 1.0.0
+  (lam
+    ds_1
+    (all MyEnum_matchOut_0 (type) (fun MyEnum_matchOut_0 (fun MyEnum_matchOut_0 MyEnum_matchOut_0)))
+    [
+      [
+        [
+          { ds_1 (fun (all a_7 (type) (fun a_7 a_7)) [(con integer) (con 64)]) }
+          (lam thunk_8 (all a_9 (type) (fun a_9 a_9)) (con 64 ! 1))
+        ]
+        (lam
+          thunk_15
+          (all a_16 (type) (fun a_16 a_16))
+          [
+            {
+              (abs
+                e_10
+                (type)
+                (lam thunk_11 (all a_12 (type) (fun a_12 a_12)) (error e_10))
+              )
+              [(con integer) (con 64)]
+            }
+            (abs
+              p_matchOut_13 (type) (lam bad_name_14 p_matchOut_13 bad_name_14)
+            )
+          ]
+        )
+      ]
+      (abs a_17 (type) (lam x_18 a_17 x_18))
+    ]
+  )
+)
