@@ -7,8 +7,10 @@
 
 module Language.Plutus.CoreToPLC where
 
+import           Language.Plutus.CoreToPLC.Builtins
 import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Primitives     as Prims
+import           Language.Plutus.CoreToPLC.Laziness
+import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
 
 import qualified Class                                    as GHC
 import qualified GhcPlugins                               as GHC
@@ -432,57 +434,43 @@ isPrimitiveDataCon dc = dc == GHC.intDataCon
 
 -- These never seem to come up, rather we get the typeclass operations. Not sure if we need them.
 convPrimitiveOp :: (Converting m) => GHC.PrimOp -> m PLCExpr
-convPrimitiveOp po = do
-    name <- case po of
-        GHC.IntAddOp  -> pure PLC.AddInteger
-        GHC.IntSubOp  -> pure PLC.SubtractInteger
-        GHC.IntMulOp  -> pure PLC.MultiplyInteger
-        -- check this one
-        GHC.IntQuotOp -> pure PLC.DivideInteger
-        GHC.IntRemOp  -> pure PLC.RemainderInteger
-        GHC.IntGtOp   -> pure PLC.GreaterThanInteger
-        GHC.IntGeOp   -> pure PLC.GreaterThanEqInteger
-        GHC.IntLtOp   -> pure PLC.LessThanInteger
-        GHC.IntLeOp   -> pure PLC.LessThanEqInteger
-        GHC.IntEqOp   -> pure PLC.EqInteger
-        _             -> throwSd UnsupportedError $ "Primitive operation:" GHC.<+> GHC.ppr po
-    pure $ instSize haskellIntSize (mkConstant name)
+convPrimitiveOp = \case
+    GHC.IntAddOp  -> mkIntFun PLC.AddInteger
+    GHC.IntSubOp  -> mkIntFun PLC.SubtractInteger
+    GHC.IntMulOp  -> mkIntFun PLC.MultiplyInteger
+    -- check this one
+    GHC.IntQuotOp -> mkIntFun PLC.DivideInteger
+    GHC.IntRemOp  -> mkIntFun PLC.RemainderInteger
+    GHC.IntGtOp   -> mkIntRel PLC.GreaterThanInteger
+    GHC.IntGeOp   -> mkIntRel PLC.GreaterThanEqInteger
+    GHC.IntLtOp   -> mkIntRel PLC.LessThanInteger
+    GHC.IntLeOp   -> mkIntRel PLC.LessThanEqInteger
+    GHC.IntEqOp   -> mkIntRel PLC.EqInteger
+    po            -> throwSd UnsupportedError $ "Primitive operation:" GHC.<+> GHC.ppr po
 
 -- Typeclasses
 
 convEqMethod :: (Converting m) => GHC.Name -> m PLCExpr
-convEqMethod name = do
-    m <- method name
-    pure $ instSize haskellIntSize $ mkConstant m
-        where
-            method n
-              | n == GHC.eqName = pure PLC.EqInteger
-              | otherwise = throwSd UnsupportedError $ "Eq method:" GHC.<+> GHC.ppr n
+convEqMethod name
+    | name == GHC.eqName = mkIntRel PLC.EqInteger
+    | otherwise = throwSd UnsupportedError $ "Eq method:" GHC.<+> GHC.ppr name
 
 convOrdMethod :: (Converting m) => GHC.Name -> m PLCExpr
-convOrdMethod name = do
-    m <- method name
-    pure $ instSize haskellIntSize $ mkConstant m
-        where
-            method n
-                -- only this one has a name defined in the lib??
-                | n == GHC.geName = pure PLC.GreaterThanEqInteger
-                | GHC.getOccString n == ">" = pure PLC.GreaterThanInteger
-                | GHC.getOccString n == "<=" = pure PLC.LessThanEqInteger
-                | GHC.getOccString n == "<" = pure PLC.LessThanInteger
-                | otherwise = throwSd UnsupportedError $ "Ord method:" GHC.<+> GHC.ppr n
+convOrdMethod name
+    -- only this one has a name defined in the lib??
+    | name == GHC.geName = mkIntRel PLC.GreaterThanEqInteger
+    | GHC.getOccString name == ">" = mkIntRel PLC.GreaterThanInteger
+    | GHC.getOccString name == "<=" = mkIntRel PLC.LessThanEqInteger
+    | GHC.getOccString name == "<" = mkIntRel PLC.LessThanInteger
+    | otherwise = throwSd UnsupportedError $ "Ord method:" GHC.<+> GHC.ppr name
 
 convNumMethod :: (Converting m) => GHC.Name -> m PLCExpr
-convNumMethod name = do
-    m <- method name
-    pure $ instSize haskellIntSize $ mkConstant m
-        where
-            method n
-                -- only this one has a name defined in the lib??
-                | n == GHC.minusName = pure PLC.SubtractInteger
-                | GHC.getOccString n == "+" = pure PLC.AddInteger
-                | GHC.getOccString n == "*" = pure PLC.MultiplyInteger
-                | otherwise = throwSd UnsupportedError $ "Num method:" GHC.<+> GHC.ppr n
+convNumMethod name
+    -- only this one has a name defined in the lib??
+    | name == GHC.minusName = mkIntFun PLC.SubtractInteger
+    | GHC.getOccString name == "+" = mkIntFun PLC.AddInteger
+    | GHC.getOccString name == "*" = mkIntFun PLC.MultiplyInteger
+    | otherwise = throwSd UnsupportedError $ "Num method:" GHC.<+> GHC.ppr name
 
 -- Plutus primitives
 
@@ -502,7 +490,7 @@ primitiveTermAssociations = [
     , ('Prims.sha2_256, pure $ instSize haskellBSSize $ mkConstant PLC.SHA2)
     , ('Prims.sha3_256, pure $ instSize haskellBSSize $ mkConstant PLC.SHA3)
     , ('Prims.verifySignature, pure $ instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PLC.VerifySignature)
-    , ('Prims.equalsByteString, pure $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PLC.EqByteString)
+    , ('Prims.equalsByteString, mkBsRel PLC.EqByteString)
     , ('Prims.txhash, pure $ mkConstant PLC.TxHash)
     , ('Prims.blocknum, pure $ instSize haskellIntSize $ mkConstant PLC.BlockNum)
     -- we're representing error at the haskell level as a polymorphic function, so do the same here
@@ -642,27 +630,6 @@ mkTyLam v body = do
     body' <- local (second $ pushTyName ghcName t') body
     pure $ PLC.TyLam () t' k' body'
 
--- Simulating laziness
-{- Note [Object- vs meta-language combinators]
-Many of the things we define as *meta*-langugage combinators (i.e. operations on terms) could be defined
-as combinators in the object language (i.e. terms). For example, we can define 'delay' as taking a term
-and returning a lambda that takes unit and returns the term, or we could define a 'delay' term
-
-\t : a . \u : unit . t
-
-We generally prefer the metalanguage approach despite the fact that we could share combinators
-with the standard library because it makes the generated terms simpler without the need for
-a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
--}
-
-delay :: MonadQuote m => PLCExpr -> m PLCExpr
-delay body = PLC.LamAbs () <$> safeFreshName "thunk" <*> liftQuote Unit.getBuiltinUnit <*> pure body
-
-delayType :: MonadQuote m => PLCType -> m PLCType
-delayType orig = PLC.TyFun () <$> liftQuote Unit.getBuiltinUnit <*> pure orig
-
-force :: MonadQuote m => PLCExpr -> m PLCExpr
-force thunk = PLC.Apply () thunk <$> liftQuote Unit.getBuiltinUnitval
 
 -- See Note [Recursion with Z]
 delayFunction :: MonadQuote m => PLCType -> PLCExpr -> m PLCExpr
