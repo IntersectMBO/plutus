@@ -29,8 +29,6 @@ import           PlutusPrelude
 -- builtin names.
 data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (NormalizedType TyNameWithKind ()))
 
-type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
-
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
 type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT BuiltinTable (ExceptT (TypeError a) Quote))
@@ -254,12 +252,6 @@ typeOf (Wrap x n ty body) = do
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
-tyEnvAssign :: Unique
-            -> NormalizedType TyNameWithKind ()
-            -> TypeCheckM a ()
-tyEnvAssign (Unique i) ty = modify (first (IM.insert i ty))
-
--- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
     tyEnvAssign u (NormalizedType (void ty))
