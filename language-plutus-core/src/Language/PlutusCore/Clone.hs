@@ -4,12 +4,12 @@ module Language.PlutusCore.Clone ( cloneType
                                  ) where
 
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State      hiding (get, modify)
+import           Control.Monad.Trans.State hiding (get, modify)
 import qualified Data.IntMap               as IM
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
-import PlutusPrelude
+import           PlutusPrelude
 
 type CloneSt = IM.IntMap (TyNameWithKind ())
 
@@ -45,7 +45,7 @@ cloneTypeM (TyFun _ ty ty') = TyFun () <$> cloneTypeM ty <*> cloneTypeM ty'
 cloneTypeM x@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     cloneSt <- get
     case IM.lookup (unUnique u) cloneSt of
-        Just n -> pure (TyVar () n)
+        Just n  -> pure (TyVar () n)
         Nothing -> pure (void x)
 cloneTypeM x@TyBuiltin{}    = pure (void x)
 cloneTypeM x@TyInt{}        = pure (void x)
