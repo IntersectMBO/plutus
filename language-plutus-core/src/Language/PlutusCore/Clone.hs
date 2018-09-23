@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Language.PlutusCore.Clone ( cloneType
-                                 , tyEnvAssign
-                                 , TypeSt
                                  ) where
 
 import           Control.Monad.State.Class
@@ -11,17 +9,15 @@ import qualified Data.IntMap               as IM
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
-type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
+type CloneSt = IM.IntMap (TyNameWithKind ())
 
-tyEnvAssign :: MonadState (TypeSt, Natural) m
-            => Unique
-            -> NormalizedType TyNameWithKind ()
-            -> m ()
-tyEnvAssign (Unique i) ty = modify (first (IM.insert i ty))
+cloneEnvAssign :: MonadState CloneSt m
+               => Unique
+               -> TyNameWithKind ()
+               -> m ()
+cloneEnvAssign (Unique i) ty = modify (IM.insert i ty)
 
--- | Reduce any redexes inside a type.
 cloneType :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind a)
 cloneType (TyFix l (TyNameWithKind (TyName (Name l' n u))) ty) = do
     u' <- liftQuote freshUnique
