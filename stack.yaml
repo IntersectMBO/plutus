@@ -7,6 +7,8 @@ packages:
 - plutus-exe
 - core-to-plc
 - plutus-th
+- plutus-use-cases
+- wallet-api
 
 - location:
     git: https://github.com/input-output-hk/cardano-crypto

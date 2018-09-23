@@ -1,0 +1,45 @@
+cabal-version: 2.0
+name: plutus-use-cases
+version: 0.1.0.0
+license: BSD3
+license-file: LICENSE
+build-type: Simple
+copyright: Copyright: (c) 2018 Input Output
+maintainer: jann.mueller@iohk.io
+stability: experimental
+author: Manuel M T Chakravarty, Jann Müller
+synopsis: 
+  Collection of smart contracts to develop the plutus/wallet interface
+description: 
+  Collection of smart contracts to develop the plutus/wallet interface.
+category: Language
+extra-doc-files: README.md
+
+source-repository head
+  type: git
+  location: https://github.com/input-output-hk/plutus-prototype
+
+library
+  hs-source-dirs: src
+  build-depends:
+    base -any,
+    mtl -any,
+    template-haskell -any,
+    transformers -any,
+    plutus-th -any,
+    language-plutus-core -any,
+    core-to-plc -any
+  default-language: Haskell2010
+  default-extensions: ExplicitForAll ScopedTypeVariables
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                      DeriveTraversable
+  exposed-modules:
+    Language.Plutus.Coordination.Plutus
+    Language.Plutus.Coordination.Contracts
+    Language.Plutus.Coordination.Contracts.CrowdFunding
+    Language.Plutus.Coordination.Contracts.Swap
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances
+    -Wincomplete-uni-patterns -Wincomplete-record-updates
+    -Wredundant-constraints -Widentities

@@ -55670,6 +55670,37 @@ description = "TH frontend to the Plutus compiler";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"plutus-use-cases" = callPackage
+({
+  mkDerivation
+, base
+, core-to-plc
+, language-plutus-core
+, mtl
+, plutus-th
+, stdenv
+, template-haskell
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-use-cases";
+version = "0.1.0.0";
+src = ./../plutus-use-cases;
+libraryHaskellDepends = [
+base
+core-to-plc
+language-plutus-core
+mtl
+plutus-th
+template-haskell
+transformers
+];
+doHaddock = false;
+description = "Collection of smart contracts to develop the plutus/wallet interface";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "pointed" = callPackage
 ({
   mkDerivation
@@ -78243,6 +78274,51 @@ doCheck = false;
 homepage = "http://github.com/yesodweb/wai";
 description = "Provide a bridge between WAI and the websockets package";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"wallet-api" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, free
+, ghc
+, language-plutus-core
+, mmorph
+, mtl
+, operational
+, plutus-th
+, prettyprinter
+, stdenv
+, template-haskell
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "wallet-api";
+version = "0.1.0.0";
+src = ./../wallet-api;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+free
+ghc
+language-plutus-core
+mmorph
+mtl
+operational
+plutus-th
+prettyprinter
+template-haskell
+text
+transformers
+];
+doHaddock = false;
+description = "Wallet API";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "warp" = callPackage

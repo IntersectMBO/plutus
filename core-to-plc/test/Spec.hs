@@ -67,6 +67,7 @@ primitives = testGroup "Primitive types and operations" [
   , golden "void" void
   , golden "intPlus" intPlus
   , golden "error" errorPlc
+  , golden "ifThenElse" ifThenElse
   , golden "blocknum" blocknumPlc
   , golden "bytestring" bytestring
   , golden "verify" verify
@@ -90,11 +91,18 @@ intCompare = plc (\(x::Int) (y::Int) -> x < y)
 intEq :: PlcCode
 intEq = plc (\(x::Int) (y::Int) -> x == y)
 
+-- Has a Void in it
+void :: PlcCode
+void = plc (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))
+
 intPlus :: PlcCode
 intPlus = plc (\(x::Int) (y::Int) -> x + y)
 
 errorPlc :: PlcCode
 errorPlc = plc (Prims.error @Int)
+
+ifThenElse :: PlcCode
+ifThenElse = plc (\(x::Int) (y::Int) -> if x == y then x else y)
 
 structure :: TestTree
 structure = testGroup "Structures" [
@@ -205,6 +213,7 @@ errors = testGroup "Errors" [
     golden "integer" integer
     , golden "free" free
     , golden "list" list
+    , golden "valueRestriction" valueRestriction
   ]
 
 integer :: PlcCode
@@ -215,3 +224,8 @@ free = plc (True && False)
 
 list :: PlcCode
 list = plc ([(1::Int)])
+
+-- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
+-- at different types to prevent the obvious specialization.
+valueRestriction :: PlcCode
+valueRestriction = plc (let { f :: forall a . a; f = Prims.error (); } in (f @Bool, f @Int))

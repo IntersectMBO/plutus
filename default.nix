@@ -58,6 +58,8 @@ let
       plutus-exe = addRealTimeTestLogs (filterSource super.plutus-exe);
       core-to-plc = doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc));
       plutus-th = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th));
+      plutus-use-cases = addRealTimeTestLogs (filterSource super.plutus-use-cases);
+      wallet-api = doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api));
     };
   };
   other = rec {

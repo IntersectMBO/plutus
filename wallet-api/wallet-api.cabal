@@ -1,14 +1,14 @@
 cabal-version: 1.18
-name: core-to-plc
+name: wallet-api
 version: 0.1.0.0
 license: BSD3
 license-file: LICENSE
 copyright: Copyright: (c) 2018 Input Output
 maintainer: michael.peyton-jones@iohk.io
-author: Michael Peyton Jones
-synopsis: GHC Core to Plutus Core compiler
+author: Michael Peyton Jones, Jann Mueller
+synopsis: Wallet API
 description:
-    Complier that converts GHC Core to Plutus Core
+    Wallet API and emulator
 category: Language
 build-type: Simple
 extra-doc-files: README.md
@@ -19,13 +19,8 @@ source-repository head
 
 library
     exposed-modules:
-        Language.Plutus.CoreToPLC.Plugin
-        Language.Plutus.CoreToPLC.Error
-        Language.Plutus.CoreToPLC.Primitives
+        Wallet.Emulator.Types
     other-modules:
-        Language.Plutus.CoreToPLC
-        Language.Plutus.CoreToPLC.Builtins
-        Language.Plutus.CoreToPLC.Laziness
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -45,27 +40,13 @@ library
         ghc -any,
         template-haskell -any,
         language-plutus-core -any,
+        plutus-th -any,
         containers -any,
-        cborg -any,
+        free -any,
+        operational -any,
         mtl -any,
         transformers -any,
         bytestring -any,
         text -any,
         prettyprinter -any,
         mmorph -any
-
-test-suite core-to-plc-plugin
-    default-language: Haskell2010
-    hs-source-dirs: test
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    other-modules: IllTyped
-    build-depends:
-        base >=4.9 && <5,
-        core-to-plc -any,
-        language-plutus-core -any,
-        bytestring -any,
-        text -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-golden -any
