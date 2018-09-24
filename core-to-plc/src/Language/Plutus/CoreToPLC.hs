@@ -77,7 +77,9 @@ type ConvError = WithContext T.Text (Error ())
 type PrimTerms = Map.Map GHC.Name (Quote PLCExpr)
 type PrimTypes = Map.Map GHC.Name (Quote PLCType)
 
-type ConvertingContext = (GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
+data ConversionOptions = ConversionOptions { coCheckValueRestriction :: Bool }
+
+type ConvertingContext = (ConversionOptions, GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
 
 data EvalState a = Done a | Blackhole
 type TypeDefs = Map.Map GHC.Name (EvalState ())
@@ -94,7 +96,7 @@ bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 sdToTxt :: (MonadReader ConvertingContext m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do
-  (flags, _, _, _) <- ask
+  (_, flags, _, _, _) <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
 throwSd :: (MonadError ConvError m, MonadReader ConvertingContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
@@ -201,7 +203,7 @@ tryConvType n act = do
 convType :: Converting m => GHC.Type -> m PLCType
 convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
-    (_, _, _, stack) <- ask
+    (_, _, _, _, stack) <- ask
     let top = NE.head stack
     case t of
         -- in scope type name
@@ -232,7 +234,7 @@ convTyConApp tc ts
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
 convTyCon tc = tryConvType (GHC.getName tc) $ do
-    (_, _, prims, _) <- ask
+    (_, _, _, prims, _) <- ask
     -- could be a Plutus primitive type
     case Map.lookup (GHC.getName tc) prims of
         Just ty -> liftQuote ty
@@ -625,7 +627,9 @@ mkTyAbs v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
     body' <- local (second $ pushTyName ghcName t') body
-    unless (PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
+    (opts, _, _, _, _) <- ask
+    -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
+    unless (not (coCheckValueRestriction opts) || PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
 
 -- | Builds a forall, binding the given variable to a name that
@@ -737,7 +741,7 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 convExpr :: Converting m => GHC.CoreExpr -> m PLCExpr
 convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    (_, prims, _, stack) <- ask
+    (_, _, prims, _, stack) <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]

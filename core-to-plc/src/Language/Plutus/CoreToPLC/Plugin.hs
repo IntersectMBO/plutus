@@ -169,7 +169,9 @@ convertExpr opts origE tpe = do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
                   void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
               pure converted
-    case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
+        context = (ConversionOptions { coCheckValueRestriction=poDoTypecheck opts }, flags, primTerms, primTys, initialScopeStack)
+        initialState = Map.empty
+    case runExcept $ runQuoteT $ evalStateT (runReaderT result context) initialState of
         Left s ->
             let shown = show $ PP.pretty s in
             if poDeferErrors opts
