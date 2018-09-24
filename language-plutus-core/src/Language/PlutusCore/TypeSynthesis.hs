@@ -5,6 +5,8 @@
 module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , typecheckTerm
                                          , kindCheck
+                                         , tyReduce
+                                         , runTypeCheckM
                                          , TypeCheckM
                                          , BuiltinTable (..)
                                          , TypeError (..)
@@ -103,15 +105,15 @@ defaultTable = do
 
     pure $ BuiltinTable tyTable termTable
 
--- | Type-check a PLC program, returning the inferred normalized type.
+-- | Type-check a PLC program, returning a normalized type.
 typecheckProgram :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind ())
 typecheckProgram n (Program _ _ t) = typecheckTerm n t
 
--- | Type-check a PLC term, returning the inferred normalized type.
+-- | Type-check a PLC term, returning a normalized type.
 typecheckTerm :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind ())
 typecheckTerm n t = convertErrors asError $ runTypeCheckM n (typeOf t)
 
--- | Kind-check a PLC term.
+-- | Kind-check a PLC type.
 kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWithKind a -> m (Kind ())
 kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
 
@@ -198,13 +200,13 @@ dummyType = TyVar () dummyTyName
 -- | Extract type of a term. The resulting type is normalized.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void $ NormalizedType ty)
-typeOf (LamAbs _ _ ty t)                         = NormalizedType <$> (TyFun () (void ty) <$> (unNormalizedType <$> typeOf t))
+typeOf (LamAbs _ _ ty t)                         = NormalizedType <$> (TyFun () (void ty) <$> (getNormalizedType <$> typeOf t))
 typeOf (Error x ty)                              = do
     k <- kindOf ty
     case k of
         Type{} -> pure (void $ NormalizedType ty)
         _      -> throwError (KindMismatch x (void ty) (Type ()) k)
-typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (unNormalizedType <$> typeOf t))
+typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (getNormalizedType <$> typeOf t))
 typeOf (Constant _ (BuiltinName _ n)) = do
     (BuiltinTable _ st) <- ask
     case M.lookup n st of
@@ -249,7 +251,7 @@ typeOf (Wrap x n ty body) = do
     red <- tyReduce (void ty)
     if red == nBodyTy
         then pure $ NormalizedType (TyFix () (void n) (void ty))
-        else throwError (TypeMismatch x (void body) (unNormalizedType red) nBodyTy)
+        else throwError (TypeMismatch x (void body) (getNormalizedType red) nBodyTy)
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
@@ -265,15 +267,15 @@ tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKin
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
     tyEnvAssign u (NormalizedType (void ty))
     tyReduce ty'
-tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (unNormalizedType <$> tyReduce ty))
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> (unNormalizedType <$> tyReduce ty) <*> (unNormalizedType <$> tyReduce ty'))
-                          | otherwise                                        = NormalizedType <$> (TyFun x <$> (unNormalizedType <$> tyReduce ty) <*> pure ty')
-tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (unNormalizedType <$> tyReduce ty))
-tyReduce (TyApp x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyApp x <$> (unNormalizedType <$> tyReduce ty) <*> (unNormalizedType <$> tyReduce ty'))
-                          | otherwise                                        = NormalizedType <$> (TyApp x <$> (unNormalizedType <$> tyReduce ty) <*> pure ty')
+tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
+tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
+                          | otherwise                                        = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> pure ty')
+tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
+tyReduce (TyApp x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyApp x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
+                          | otherwise                                        = NormalizedType <$> (TyApp x <$> (getNormalizedType <$> tyReduce ty) <*> pure ty')
 tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (st, _) <- get
     case IM.lookup (unUnique u) st of
-        Just ty' -> NormalizedType <$> cloneType (unNormalizedType ty')
+        Just ty' -> NormalizedType <$> cloneType (getNormalizedType ty')
         Nothing  -> pure $ NormalizedType ty
 tyReduce x                                                                   = pure $ NormalizedType x

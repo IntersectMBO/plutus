@@ -72,6 +72,9 @@ module Language.PlutusCore
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
+    -- for testing
+    , tyReduce
+    , runTypeCheckM
     -- * Serialization
     , encodeProgram
     , decodeProgram

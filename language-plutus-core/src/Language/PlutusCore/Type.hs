@@ -262,7 +262,7 @@ instance PrettyCfg (NameWithType a) where
     prettyCfg cfg@(Configuration _ True) (NameWithType n@(Name (_, ty) _ _)) = parens (prettyCfg cfg n <+> ":" <+> prettyCfg cfg ty)
     prettyCfg cfg@(Configuration _ False) (NameWithType n) = prettyCfg cfg n
 
-newtype NormalizedType tyname a = NormalizedType { unNormalizedType :: Type tyname a }
+newtype NormalizedType tyname a = NormalizedType { getNormalizedType :: Type tyname a }
     deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 

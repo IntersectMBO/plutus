@@ -166,6 +166,7 @@ test-suite language-plutus-core-test
         hedgehog -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
+        transformers,
         bytestring -any,
         tasty-golden -any,
         text -any,

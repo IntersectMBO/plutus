@@ -4,17 +4,18 @@ module Main ( main
             ) where
 
 import           Control.Monad
-import qualified Data.ByteString.Lazy    as BSL
-import qualified Data.Text               as T
-import           Data.Text.Encoding      (encodeUtf8)
+import           Control.Monad.Trans.Except (runExceptT)
+import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.Text                  as T
+import           Data.Text.Encoding         (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
 
 import           Generators
-import           Hedgehog                hiding (Var)
+import           Hedgehog                   hiding (Var)
 import           Language.PlutusCore
 import           PlutusPrelude
-import qualified Quotation.Spec          as Quotation
+import qualified Quotation.Spec             as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -112,10 +113,26 @@ testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCfg))
 
+appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
+appAppLamLam = do
+    x <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "x")
+    y <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "y")
+    return $
+        TyApp ()
+            (TyApp ()
+                 (TyLam () x (Type ()) . TyLam () y (Type ()) $ TyVar () y)
+                 (TyBuiltin () TyInteger))
+            (TyBuiltin () TyInteger)
+
+testLam :: Either (TypeError ()) String
+testLam = fmap prettyCfgString . runQuote . runExceptT $ runTypeCheckM 100 $
+    tyReduce =<< appAppLamLam
+
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
+    , testLam @?= Right "[(con integer) (con integer)]"
     ]
     where cfg = defaultCfg
