@@ -102,6 +102,8 @@ module Language.PlutusCore
     , plcProgram
     -- * Evaluation
     , EvaluationResult (..)
+    -- * Combining programs
+    , applyProgram
     ) where
 
 import           Control.Monad.Except
@@ -166,3 +168,8 @@ format cfg = fmap (render . prettyCfg cfg) . parseScoped
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: a -> Version a
 defaultVersion a = Version a 1 0 0
+
+-- | Take one PLC program and apply it to another.
+applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
+-- TODO: some kind of version checking
+applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)
