@@ -269,20 +269,24 @@ isTyLam _       = False
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') =
-    tyEnvAssign u (NormalizedType (void ty)) *>
-    tyReduce ty'
+    tyEnvAssign u (NormalizedType (void ty')) *>
+    tyReduce ty -- ty'
 tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
                           | otherwise                                        = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> pure ty')
 tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyApp x ty ty') | isTypeValue ty = do
     tyRed <- getNormalizedType <$> tyReduce ty
-    let preTy = (TyApp x tyRed <$> (getNormalizedType <$> tyReduce ty'))
-    if isTyLam tyRed then tyReduce =<< preTy else NormalizedType <$> preTy
+    let preTy = (TyApp x tyRed <$> (getNormalizedType <$> tyReduce ty')) -- FIXME: shouldn't such reductions happen one-at-a-time?
+    if isTyLam tyRed
+        then tyReduce =<< preTy
+        else NormalizedType <$> preTy
                           | otherwise = do
     tyRed <- getNormalizedType <$> tyReduce ty
     let preTy = TyApp x tyRed ty'
-    if isTyLam tyRed then tyReduce preTy else pure (NormalizedType preTy)
+    if isTyLam tyRed
+        then tyReduce preTy
+        else pure (NormalizedType preTy)
 tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (st, _) <- get
     case IM.lookup (unUnique u) st of
