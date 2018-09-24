@@ -35,7 +35,7 @@ genMockchain :: MonadGen m
 genMockchain = do
     (txn, ot) <- genInitialTransaction
     let txId = hashTx txn
-    pure $ Mockchain {
+    pure Mockchain {
         mockchainBlockchain = [[txn]],
         mockchainUtxo = Map.singleton (TxOutRef txId 0) ot
         }
@@ -68,13 +68,13 @@ genValidTransaction bc ops = do
              else Gen.int (Range.linear 1 (Map.size ops))
     let inputs = fmap simpleInput
             $ take nUtxo
-            $ fmap fst
-            $ Map.toList ops
+            $ fst
+            <$> Map.toList ops
         totalVal = sum (map (fromMaybe 0 . value bc . txInRef) inputs)
         minFee = 1
     fee <- Gen.integral (Range.linear minFee totalVal)
     if fee < totalVal
-        then pure $ Tx {
+        then pure Tx {
                 txInputs = inputs,
                 txOutputs = [simpleOutput $ totalVal - fee],
                 txForge = 0,

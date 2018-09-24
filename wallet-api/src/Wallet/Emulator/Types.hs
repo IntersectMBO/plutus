@@ -74,7 +74,7 @@ class WalletAPI m where
 -- Emulator code
 
 type Assertion = EmulatorState -> Maybe AssertionError
-data AssertionError = AssertionError T.Text
+newtype AssertionError = AssertionError T.Text
     deriving Show
 
 isValidated :: Tx -> Assertion
@@ -113,9 +113,7 @@ type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 validateEm :: (MonadEmulator m) => Tx -> m (Maybe Tx)
 validateEm txn = do
     bc <- gets emChain
-    pure $ case validTx txn bc of
-        True  -> Just txn
-        False -> Nothing
+    pure $ if validTx txn bc then Just txn else Nothing
 
 liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], a)
 liftEmulatedWallet wallet act = do
