@@ -23,6 +23,7 @@ You need to do a few things when adding a new package, in the following order:
     - These do things like "enable building Haddock on Hydra". You can just copy the line for another package and change the package name.
 - (If you want the package to be built by CI) Add the package to `release.nix`.
     - You should just copy exactly what is there for other packages.
+- (If you want the package to be hlinted by CI) Add the project to `tests/hlint.nix`.
 
 You should at least be able to run `nix build -f default.nix <package name>` successfully at the root. You can use `nix log -f default.nix <package name>` if you want to check the build output.
 

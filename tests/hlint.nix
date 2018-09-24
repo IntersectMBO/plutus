@@ -12,9 +12,10 @@ let
     );
   };
 in
+# we don't include plutus-prototype since it's old and nobody is interested in fixing all the hints
 runCommand "plutus-hlint-check" { buildInputs = [ hlint ]; } ''
   set +e
-  projects=("language-plutus-core")
+  projects=("core-to-plc" "language-plutus-core" "plutus-core-interpreter" "plutus-exe" "plutus-th" "plutus-use-cases" "wallet-api")
   cd ${src'}
   hlint "''${projects[@]}"
   EXIT_CODE=$?

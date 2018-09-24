@@ -78281,16 +78281,23 @@ license = stdenv.lib.licenses.mit;
   mkDerivation
 , base
 , bytestring
+, cborg
 , containers
+, core-to-plc
+, cryptonite
 , free
 , ghc
+, hedgehog
 , language-plutus-core
+, memory
 , mmorph
 , mtl
 , operational
 , plutus-th
 , prettyprinter
 , stdenv
+, tasty
+, tasty-hedgehog
 , template-haskell
 , text
 , transformers
@@ -78303,16 +78310,35 @@ src = ./../wallet-api;
 libraryHaskellDepends = [
 base
 bytestring
+cborg
 containers
+core-to-plc
+cryptonite
 free
 ghc
 language-plutus-core
+memory
 mmorph
 mtl
 operational
 plutus-th
 prettyprinter
 template-haskell
+text
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+containers
+core-to-plc
+cryptonite
+hedgehog
+mtl
+operational
+plutus-th
+tasty
+tasty-hedgehog
 text
 transformers
 ];

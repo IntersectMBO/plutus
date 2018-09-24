@@ -149,7 +149,7 @@ convNameFresh n = safeFreshName $ GHC.getOccString n
 convVarFresh :: Converting m => GHC.Var -> m (PLCType, PLC.Name ())
 convVarFresh v = do
     t' <- convType $ GHC.varType v
-    n' <- convNameFresh $ GHC.varName v
+    n' <- convNameFresh $ GHC.getName v
     pure (t', n')
 
 lookupTyName :: Scope -> GHC.Name -> Maybe (PLC.TyName ())
@@ -164,7 +164,7 @@ convTyNameFresh n = PLC.TyName <$> convNameFresh n
 convTyVarFresh :: Converting m => GHC.TyVar -> m (PLC.Kind () , PLC.TyName ())
 convTyVarFresh v = do
     k' <- convKind $ GHC.tyVarKind v
-    t' <- convTyNameFresh $ GHC.varName v
+    t' <- convTyNameFresh $ GHC.getName v
     pure (k', t')
 
 pushName :: GHC.Name -> PLC.Name () -> ScopeStack -> ScopeStack
@@ -205,7 +205,7 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     let top = NE.head stack
     case t of
         -- in scope type name
-        (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.varName -> Just name)) -> pure $ PLC.TyVar () name
+        (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.getName -> Just name)) -> pure $ PLC.TyVar () name
         (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.TyFun () <$> convType i <*> convType o
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts
@@ -221,7 +221,7 @@ convTyConApp tc ts
     -- this is Int#
     | tc == GHC.intPrimTyCon = pure $ appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
     -- we don't support Integer
-    | GHC.tyConName tc == GHC.integerTyConName = throwPlain $ UnsupportedError "Integer: use Int instead"
+    | GHC.getName tc == GHC.integerTyConName = throwPlain $ UnsupportedError "Integer: use Int instead"
     -- this is Void#, see Note [Value restriction]
     | tc == GHC.voidPrimTyCon = liftQuote errorTy
     | otherwise = do
@@ -231,10 +231,10 @@ convTyConApp tc ts
         pure $ foldl' (\acc t -> PLC.TyApp () acc t) tc' args'
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
-convTyCon tc = tryConvType (GHC.tyConName tc) $ do
+convTyCon tc = tryConvType (GHC.getName tc) $ do
     (_, _, prims, _) <- ask
     -- could be a Plutus primitive type
-    case Map.lookup (GHC.tyConName tc) prims of
+    case Map.lookup (GHC.getName tc) prims of
         Just ty -> liftQuote ty
         Nothing -> do
             dcs <- getDataCons tc
@@ -320,7 +320,7 @@ convDataCons :: forall m. Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCTyp
 convDataCons tc dcs =
     -- \tv_1 .. tv_k . body
     flip (foldr (\tv acc -> mkTyLam tv acc)) (GHC.tyConTyVars tc) $ do
-        resultType <- safeFreshTyName $ (GHC.getOccString $ GHC.tyConName tc) ++ "_matchOut"
+        resultType <- safeFreshTyName $ (GHC.getOccString $ GHC.getName tc) ++ "_matchOut"
         cases <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
         pure $ mkScottTyBody resultType cases
 
@@ -351,8 +351,8 @@ convConstructor :: Converting m => GHC.DataCon -> m PLCExpr
 convConstructor dc =
     let
         tc = GHC.dataConTyCon dc
-        tcName = GHC.getOccString $ GHC.tyConName tc
-        dcName = GHC.getOccString $ GHC.dataConName dc
+        tcName = GHC.getOccString $ GHC.getName tc
+        dcName = GHC.getOccString $ GHC.getName dc
     in
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- /\ tv_1 .. tv_n . body
@@ -364,7 +364,7 @@ convConstructor dc =
                 Just i  -> pure i
                 Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
             caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
-            caseArgNames <- mapM (convNameFresh . GHC.dataConName) dcs
+            caseArgNames <- mapM (convNameFresh . GHC.getName) dcs
             argTypes <- mapM convType $ GHC.dataConRepArgTys dc
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ dcName ++ "_arg" ++ show i)
             pure $ mkScottConstructorBody resultType (zip caseArgNames caseTypes) (zip argNames argTypes) index
@@ -426,7 +426,7 @@ convLiteral l = case l of
 isPrimitiveWrapper :: GHC.Id -> Bool
 isPrimitiveWrapper i = case GHC.idDetails i of
     GHC.DataConWorkId dc -> isPrimitiveDataCon dc
-    GHC.VanillaId        -> GHC.varName i == GHC.unpackCStringName
+    GHC.VanillaId        -> GHC.getName i == GHC.unpackCStringName
     _                    -> False
 
 isPrimitiveDataCon :: GHC.DataCon -> Bool
@@ -597,7 +597,7 @@ mangleTyAbs = \case
 -- will be in scope when running the second argument.
 mkLambda :: Converting m => GHC.Var -> m PLCExpr -> m PLCExpr
 mkLambda v body = do
-    let ghcName = GHC.varName v
+    let ghcName = GHC.getName v
     (t', n') <- convVarFresh v
     body' <- local (second $ pushName ghcName n') body
     pure $ PLC.LamAbs () n' t' body'
@@ -606,7 +606,7 @@ mkLambda v body = do
 -- will be in scope when running the second argument.
 mkTyAbs :: Converting m => GHC.Var -> m PLCExpr -> m PLCExpr
 mkTyAbs v body = do
-    let ghcName = GHC.tyVarName v
+    let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
     body' <- local (second $ pushTyName ghcName t') body
     unless (PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
@@ -616,7 +616,7 @@ mkTyAbs v body = do
 -- will be in scope when running the second argument.
 mkTyForall :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyForall v body = do
-    let ghcName = GHC.tyVarName v
+    let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
     body' <- local (second $ pushTyName ghcName t') body
     pure $ PLC.TyForall () t' k' body'
@@ -625,7 +625,7 @@ mkTyForall v body = do
 -- will be in scope when running the second argument.
 mkTyLam :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyLam v body = do
-    let ghcName = GHC.tyVarName v
+    let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
     body' <- local (second $ pushTyName ghcName t') body
     pure $ PLC.TyLam () t' k' body'
@@ -729,33 +729,33 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- special typeclass method calls
         GHC.App (GHC.App
                 -- eq class method
-                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.eqClassName . GHC.className -> True)))
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.eqClassName . GHC.getName -> True)))
                 -- we only support applying to int
                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
-            _ -> convEqMethod (GHC.varName n)
+            _ -> convEqMethod (GHC.getName n)
         GHC.App (GHC.App
                 -- ord class method
-                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.ordClassName . GHC.className -> True)))
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.ordClassName . GHC.getName -> True)))
                 -- we only support applying to int
                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
-            _ -> convOrdMethod (GHC.varName n)
+            _ -> convOrdMethod (GHC.getName n)
         GHC.App (GHC.App
                 -- num class method
-                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.numClassName . GHC.className -> True)))
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.numClassName . GHC.getName -> True)))
                 -- we only support applying to int
                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
-            _ -> convNumMethod (GHC.varName n)
+            _ -> convNumMethod (GHC.getName n)
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> liftQuote errorFunc
         -- locally bound vars
-        GHC.Var (lookupName top . GHC.varName -> Just name) -> pure $ PLC.Var () name
+        GHC.Var (lookupName top . GHC.getName -> Just name) -> pure $ PLC.Var () name
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> convConstructor dc
-        GHC.Var (flip Map.lookup prims . GHC.varName -> Just term) -> liftQuote term
+        GHC.Var (flip Map.lookup prims . GHC.getName -> Just term) -> liftQuote term
         -- the term we get must be closed - we don't resolve most references
         -- TODO: possibly relax this?
         GHC.Var n@(GHC.idDetails -> GHC.VanillaId) -> throwSd FreeVariableError $ "Variable:" GHC.<+> GHC.ppr n GHC.$+$ (GHC.ppr $ GHC.idDetails n)
