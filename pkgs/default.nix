@@ -78287,6 +78287,7 @@ license = stdenv.lib.licenses.mit;
 , cryptonite
 , free
 , ghc
+, hedgehog
 , language-plutus-core
 , memory
 , mmorph
@@ -78295,6 +78296,8 @@ license = stdenv.lib.licenses.mit;
 , plutus-th
 , prettyprinter
 , stdenv
+, tasty
+, tasty-hedgehog
 , template-haskell
 , text
 , transformers
@@ -78321,6 +78324,21 @@ operational
 plutus-th
 prettyprinter
 template-haskell
+text
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+containers
+core-to-plc
+cryptonite
+hedgehog
+mtl
+operational
+plutus-th
+tasty
+tasty-hedgehog
 text
 transformers
 ];

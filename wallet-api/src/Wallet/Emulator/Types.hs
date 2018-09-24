@@ -21,13 +21,12 @@ module Wallet.Emulator.Types(
     Trace,
     EmulatorState(..),
     emptyEmulatorState,
+    emulatorState,
     MonadEmulator,
     validateEm,
     liftEmulatedWallet,
     eval,
-    process,
-    -- * Examples
-    trace
+    process
     ) where
 
 import           Control.Monad.Except
@@ -63,7 +62,7 @@ newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: StateT
     deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx])
 
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
-handleNotifications = undefined -- TODO
+handleNotifications _ = return () -- TODO: Actually handle notifications
 
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
@@ -104,6 +103,10 @@ data EmulatorState = EmulatorState { emChain :: Blockchain, emTxPool :: TxPool, 
 emptyEmulatorState :: EmulatorState
 emptyEmulatorState = EmulatorState { emChain = [], emTxPool = [], emWalletState = Map.empty }
 
+-- | Initialise the emulator state with a blockchain
+emulatorState :: Blockchain -> EmulatorState
+emulatorState bc = emptyEmulatorState { emChain = bc }
+
 type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
 -- | Validate a transaction in the current emulator state
@@ -135,7 +138,8 @@ eval = \case
         let validated = catMaybes processed
         let block = validated
         put emState {
-            emChain = block : emChain emState
+            emChain = block : emChain emState,
+            emTxPool = []
             }
         pure block
     Assertion assertion -> do
@@ -146,12 +150,3 @@ eval = \case
 
 process :: (MonadState EmulatorState m, MonadError AssertionError m) => Trace a -> m a
 process = interpretWithMonad eval
-
--- Example
-
-trace :: Trace ()
-trace = do
-    let txn = Tx [] [] 5 5
-    [txn'] <- Op.singleton $ WalletAction (Wallet 1) $ submitTxn txn
-    _ <- Op.singleton BlockchainActions
-    Op.singleton $ Assertion $ isValidated txn'

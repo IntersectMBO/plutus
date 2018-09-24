@@ -1,5 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Wallet.UTXO(
     -- * Basic types
     Value(..),
@@ -22,6 +24,8 @@ module Wallet.UTXO(
     TxIn(..),
     TxOut(..),
     TxOutRef(..),
+    simpleInput,
+    simpleOutput,
     -- * Blockchain & UTxO model
     Block,
     Blockchain,
@@ -36,6 +40,9 @@ module Wallet.UTXO(
     validTx,
     -- * Scripts
     validate,
+    emptyValidator,
+    unitRedeemer,
+    unitData,
     -- * Encodings
     encodeValue,
     encodeValidator,
@@ -66,6 +73,7 @@ import           Data.Maybe                       (fromMaybe, listToMaybe)
 import           Data.Semigroup                   (Semigroup (..))
 
 import           Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode)
+import           Language.Plutus.TH               (plutusT)
 
 {- Note [Serialisation and hashing]
 
@@ -93,7 +101,7 @@ especially because we only need one direction (to binary).
 -- | Cryptocurrency value
 --
 newtype Value = Value { getValue :: Integer }
-    deriving (Eq, Ord, Show, Num)
+    deriving (Eq, Ord, Show, Num, Integral, Real, Enum)
 
 encodeValue :: Value -> Encoding
 encodeValue = Enc.encodeInteger . getValue
@@ -128,6 +136,12 @@ instance Ord Validator where
     compare (Validator l) (Validator r) = -- TODO: Deriving via
         getSerializedCode l `compare` getSerializedCode r
 
+instance BA.ByteArrayAccess Validator where
+    length =
+        BA.length . Write.toStrictByteString . encodeValidator
+    withByteArray =
+        BA.withByteArray . Write.toStrictByteString . encodeValidator
+
 encPlc :: PlcCode -> Encoding
 encPlc = Enc.encodeBytes . BSL.toStrict  . getSerializedCode
 
@@ -136,7 +150,7 @@ encodeValidator = encPlc . getValidator
 
 -- | Hash a validator script to get an address
 hashValidator :: Validator -> Address
-hashValidator = Address . hash . Write.toStrictByteString . encodeValidator
+hashValidator = Address . hash
 
 -- | Data script (supplied by producer of the transaction output)
 newtype DataScript = DataScript { getDataScript :: PlcCode  }
@@ -152,12 +166,18 @@ instance Ord DataScript where
     compare (DataScript l) (DataScript r) = -- TODO: Deriving via
         getSerializedCode l `compare` getSerializedCode r
 
+instance BA.ByteArrayAccess DataScript where
+    length =
+        BA.length . Write.toStrictByteString . encodeDataScript
+    withByteArray =
+        BA.withByteArray . Write.toStrictByteString . encodeDataScript
+
 encodeDataScript :: DataScript -> Encoding
 encodeDataScript = encPlc . getDataScript
 
 -- | Hash a data script to get an address
 hashDataScript :: DataScript -> Address
-hashDataScript = Address . hash . Write.toStrictByteString . encodeDataScript
+hashDataScript = Address . hash
 
 -- | Redeemer (supplied by consumer of the transaction output)
 newtype Redeemer = Redeemer { getRedeemer :: PlcCode }
@@ -371,3 +391,24 @@ validate bs (TxIn _ v r) (TxOut h _ d)
 -- | Evaluate a validator script with the given inputs
 runScript :: BlockchainState -> Validator -> Redeemer -> DataScript -> Bool
 runScript _ _ _ _ = True -- TODO: PLC Evaluation
+
+-- | () as a data script
+unitData :: DataScript
+unitData = DataScript $$(plutusT [|| () ||])
+
+-- | \() () -> () as a validator
+emptyValidator :: Validator
+emptyValidator = Validator $$(plutusT [|| \() () -> () ||])
+
+-- | () as a redeemer
+unitRedeemer :: Redeemer
+unitRedeemer = Redeemer $$(plutusT [|| () ||])
+
+-- | Transaction output locked by the empty validator and unit data scripts.
+simpleOutput :: Value -> TxOut
+simpleOutput vl = TxOut (hashValidator emptyValidator) vl unitData
+
+-- | Transaction input that spends an output using the empty validator and
+--   unit redeemer scripts.
+simpleInput :: TxOutRef -> TxIn
+simpleInput ref = TxIn ref emptyValidator unitRedeemer
