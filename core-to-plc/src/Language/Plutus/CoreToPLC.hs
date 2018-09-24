@@ -305,7 +305,7 @@ More generally, we can compile case expressions (of which an if expression is on
 a unit argument and apply it at the end.
 
 However, we apply an important optimization: we only need to do this if it is not the case that
-all the case expressions are branches. In the common case they *will* be, so this gives us
+all the case expressions are values. In the common case they *will* be, so this gives us
 significantly better codegen a lot of the time.
 
 The check we do is:
