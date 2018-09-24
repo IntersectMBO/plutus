@@ -21,6 +21,9 @@ import qualified Data.ByteString.Lazy                 as BSL
 import           Data.Text                            as T
 import           Data.Text.Encoding                   (encodeUtf8)
 
+-- this module does lots of weird stuff deliberately
+{-# ANN module "HLint: ignore" #-}
+
 main :: IO ()
 main = defaultMain tests
 

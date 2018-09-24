@@ -51,9 +51,9 @@ The types suggest that we can fail to deserialize the AST that we embedded in th
 However, we just did it ourselves, so this should be impossible, and we signal this with an
 exception.
 -}
-data ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DeserialiseFailure
+newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DeserialiseFailure
 instance Show ImpossibleDeserialisationFailure where
-    show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ (show e)
+    show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 instance Exception ImpossibleDeserialisationFailure
 
 getAst :: PlcCode -> PLC.Program PLC.TyName PLC.Name ()
