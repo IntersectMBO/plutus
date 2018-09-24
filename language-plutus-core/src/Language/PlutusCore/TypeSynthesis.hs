@@ -276,14 +276,18 @@ tyReduce (TyFun x ty ty') | isTypeValue ty                                   = N
                           | otherwise                                        = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> pure ty')
 tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyApp x ty ty') = do
+
     let modTy = if isTypeValue ty
         then fmap getNormalizedType . tyReduce
         else pure
+
     tyRed <- getNormalizedType <$> tyReduce ty
-    let preTy = TyApp x tyRed <$> (modTy ty') -- FIXME: shouldn't such reductions happen one-at-a-time?
+    let preTy = TyApp x tyRed <$> modTy ty' -- FIXME: shouldn't such reductions happen one-at-a-time?
+
     if isTyLam tyRed
         then tyReduce =<< preTy
         else NormalizedType <$> preTy
+
 tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (st, _) <- get
     case IM.lookup (unUnique u) st of
