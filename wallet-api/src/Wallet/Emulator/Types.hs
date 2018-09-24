@@ -3,7 +3,31 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Wallet.Emulator.Types where
+module Wallet.Emulator.Types(
+    -- * Wallet API
+    WalletAPI(..),
+    Wallet(..),
+    TxPool,
+    Notification(..),
+    -- * Emulator
+    WalletState(..),
+    emptyWalletState,
+    EmulatedWalletApi(..),
+    handleNotifications,
+    Assertion,
+    isValidated,
+    AssertionError,
+    Event(..),
+    Trace,
+    EmulatorState(..),
+    emptyEmulatorState,
+    emulatorState,
+    MonadEmulator,
+    validateEm,
+    liftEmulatedWallet,
+    eval,
+    process
+    ) where
 
 import           Control.Monad.Except
 import           Control.Monad.Operational as Op
@@ -13,17 +37,12 @@ import           Data.Map                  as Map
 import           Data.Maybe
 import           Data.Text                 as T
 
--- Basic types (should be replaced by "real" types later)
+import           Wallet.UTXO               (Block, Blockchain, Tx (..), validTx)
 
--- don’t care what these are, some data to allow typeclasses
-data Tx = Tx Int
-    deriving (Show, Eq, Ord)
 -- agents/wallets
-data Wallet = Wallet Int
+newtype Wallet = Wallet Int
     deriving (Show, Eq, Ord)
 
-type Block = [Tx]
-type Chain = [Block]
 type TxPool = [Tx]
 
 data Notification = BlockValidated Block
@@ -43,7 +62,7 @@ newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: StateT
     deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx])
 
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
-handleNotifications = undefined -- TODO
+handleNotifications _ = return () -- TODO: Actually handle notifications
 
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
@@ -78,17 +97,25 @@ data Event n a where
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
 type Trace = Op.Program (Event EmulatedWalletApi)
 
-data EmulatorState = EmulatorState { emChain :: Chain, emTxPool :: TxPool, emWalletState :: Map Wallet WalletState }
+data EmulatorState = EmulatorState { emChain :: Blockchain, emTxPool :: TxPool, emWalletState :: Map Wallet WalletState }
     deriving (Show, Eq, Ord)
 
 emptyEmulatorState :: EmulatorState
 emptyEmulatorState = EmulatorState { emChain = [], emTxPool = [], emWalletState = Map.empty }
 
+-- | Initialise the emulator state with a blockchain
+emulatorState :: Blockchain -> EmulatorState
+emulatorState bc = emptyEmulatorState { emChain = bc }
+
 type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
--- TODO: actual validation
-validate :: (MonadEmulator m) => Tx -> m (Maybe Tx)
-validate txn = pure $ Just txn
+-- | Validate a transaction in the current emulator state
+validateEm :: (MonadEmulator m) => Tx -> m (Maybe Tx)
+validateEm txn = do
+    bc <- gets emChain
+    pure $ case validTx txn bc of
+        True  -> Just txn
+        False -> Nothing
 
 liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], a)
 liftEmulatedWallet wallet act = do
@@ -107,11 +134,12 @@ eval = \case
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
     BlockchainActions -> do
         emState <- get
-        processed <- forM (emTxPool emState) validate
+        processed <- forM (emTxPool emState) validateEm
         let validated = catMaybes processed
         let block = validated
         put emState {
-            emChain = block : emChain emState
+            emChain = block : emChain emState,
+            emTxPool = []
             }
         pure block
     Assertion assertion -> do
@@ -122,11 +150,3 @@ eval = \case
 
 process :: (MonadState EmulatorState m, MonadError AssertionError m) => Trace a -> m a
 process = interpretWithMonad eval
-
--- Example
-
-trace :: Trace ()
-trace = do
-    [txn] <- Op.singleton $ WalletAction (Wallet 1) $ submitTxn (Tx 1)
-    _ <- Op.singleton $ BlockchainActions
-    Op.singleton $ Assertion $ isValidated txn
