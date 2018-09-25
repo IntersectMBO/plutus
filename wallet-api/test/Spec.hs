@@ -8,6 +8,8 @@ import           Generators                 (Mockchain (..))
 import qualified Generators                 as Gen
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
+import qualified Hedgehog.Gen               as Gen
+import qualified Hedgehog.Range             as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
 
@@ -26,13 +28,16 @@ tests = testGroup "all tests" [
     testGroup "traces" [
         testProperty "accept valid txn" validTrace,
         testProperty "reject invalid txn" invalidTrace
+        ],
+    testGroup "Etc." [
+        testProperty "splitVal" splitVal
         ]
     ]
 
 initialTxnValid :: Property
 initialTxnValid = property $ do
-    (i, _) <- forAll Gen.genInitialTransaction
-    Hedgehog.assert (validTx i [])
+    (i, _) <- forAll $ Gen.genInitialTransaction Gen.generatorModel
+    Gen.assertValid i Gen.emptyChain
 
 utxo :: Property
 utxo = property $ do
@@ -41,11 +46,12 @@ utxo = property $ do
 
 txnValid :: Property
 txnValid = property $ do
-    Mockchain chain o <- forAll Gen.genMockchain
-    txn <- forAll $ Gen.genValidTransaction chain o
-    Hedgehog.assert (validTx txn chain)
+    m <- forAll Gen.genMockchain
+    txn <- forAll $ Gen.genValidTransaction m
+    Gen.assertValid txn m
 
--- | Submit a transaction to the blockchain and assert that it has been valided
+-- | Submit a transaction to the blockchain and assert that it has been 
+--   validated
 simpleTrace :: Tx -> Trace ()
 simpleTrace txn = do
     [txn'] <- Op.singleton $ WalletAction (Wallet 1) $ submitTxn txn
@@ -54,22 +60,25 @@ simpleTrace txn = do
 
 validTrace :: Property
 validTrace = property $ do
-    Mockchain chain o <- forAll Gen.genMockchain
-    txn <- forAll $ Gen.genValidTransaction chain o
-    let trace = simpleTrace txn
-        emState = emulatorState chain
-        (result, st) = runState (runExceptT $ process trace) emState
+    m <- forAll Gen.genMockchain
+    txn <- forAll $ Gen.genValidTransaction m
+    let (result, st) = Gen.runTrace m $ simpleTrace txn
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == emTxPool st)
 
 invalidTrace :: Property
 invalidTrace = property $ do
-    Mockchain chain o <- forAll Gen.genMockchain
-    txn <- forAll $ Gen.genValidTransaction chain o
+    m <- forAll Gen.genMockchain
+    txn <- forAll $ Gen.genValidTransaction m
     let invalidTxn = txn { txFee = 0 }
-        trace = simpleTrace invalidTxn
-        emState = emulatorState chain
-        (result, st) = runState (runExceptT $ process trace) emState
+        (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
     Hedgehog.assert ([] == emTxPool st)
 
+splitVal :: Property
+splitVal = property $ do
+    i <- forAll $ Gen.int $ Range.linear 1 (100000 :: Int)
+    n <- forAll $ Gen.int $ Range.linear 1 100
+    vs <- forAll $ Gen.splitVal n i 
+    Hedgehog.assert $ sum vs == i
+    Hedgehog.assert $ length vs <= n
