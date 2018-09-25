@@ -167,7 +167,7 @@ convertExpr opts origE tpe = do
               converted <- convExpr origE
               when (poDoTypecheck opts) $ do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
-                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
+                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 True annotated
               pure converted
     case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
         Left s ->

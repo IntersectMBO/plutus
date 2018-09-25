@@ -212,8 +212,13 @@ dummyType = TyVar () dummyTyName
 
 -- | Extract type of a term. The resulting type is normalized.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
-typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = pure (void $ NormalizedType ty)
-typeOf (LamAbs _ _ ty t)                         = NormalizedType <$> (TyFun () (void ty) <$> (getNormalizedType <$> typeOf t))
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = do
+    (norm, _) <- ask
+    maybeRed norm (void ty)
+typeOf (LamAbs _ _ ty t)                         = do
+    (norm, _) <- ask
+    (NormalizedType ty') <- maybeRed norm (void ty)
+    NormalizedType <$> (TyFun () ty' <$> (getNormalizedType <$> typeOf t))
 typeOf (Error x ty)                              = do
     k <- kindOf ty
     case k of
@@ -278,6 +283,10 @@ tyEnvAssign (Unique i) ty = modify (first (IM.insert i ty))
 isTyLam :: Type TyNameWithKind () -> Bool
 isTyLam TyLam{} = True
 isTyLam _       = False
+
+maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
+maybeRed True  = tyReduce
+maybeRed False = pure . NormalizedType
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
