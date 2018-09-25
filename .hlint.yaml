@@ -17,7 +17,7 @@
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
-- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Nat, Language.Plutus.CoreToPLC]}
+- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Clone, Language.PlutusCore.CoreToPLC]}
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}

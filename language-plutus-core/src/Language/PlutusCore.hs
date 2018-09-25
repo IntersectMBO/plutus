@@ -72,6 +72,9 @@ module Language.PlutusCore
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
+    -- for testing
+    , tyReduce
+    , runTypeCheckM
     -- * Serialization
     , encodeProgram
     , decodeProgram
@@ -142,7 +145,7 @@ checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 False <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -154,8 +157,7 @@ parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BS
 parseTypecheck gas bs = do
     parsed <- parseProgram bs
     checkProgram parsed
-    annotated <- annotateProgram parsed
-    typecheckProgram gas annotated
+    (typecheckProgram gas False <=< annotateProgram) parsed
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs

@@ -57,6 +57,7 @@ library
     hs-source-dirs: src prelude stdlib generators
     other-modules:
         Language.PlutusCore.Type
+        Language.PlutusCore.Clone
         Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
@@ -165,6 +166,7 @@ test-suite language-plutus-core-test
         hedgehog -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
+        transformers,
         bytestring -any,
         tasty-golden -any,
         text -any,

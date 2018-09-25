@@ -1,6 +1,0 @@
-Type mismatch at 2:4 in term
-  '(con 64 ! 0)'.
-Expected type
-  '(all r (type) (fun r (fun (fun [(con integer) (con 64)] (fun (fix list (all r (type) (fun r (fun (fun [(con integer) (con 64)] (fun list r)) r)))) r)) r)))',
-found type
-  '[(con integer) (con 64)]'

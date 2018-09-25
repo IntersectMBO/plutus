@@ -14,6 +14,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (<=<)
                      , fromRight
                      , isRight
+                     , void
                      , Generic
                      , NFData
                      , Natural
@@ -49,6 +50,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , module X
                      ) where
 
+import Data.Functor (void)
 import           Control.Applicative                     (Alternative (..))
 import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
