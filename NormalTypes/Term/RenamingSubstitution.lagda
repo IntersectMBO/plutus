@@ -12,8 +12,8 @@ open import Relation.Binary.HeterogeneousEquality
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
-open import Type.BetaEtaNormal
-open import Type.BetaEtaNBEWithProofs
+open import Type.BetaNormal
+open import Type.BetaNBE
 open import NormalTypes.Term
 \end{code}
 
@@ -62,15 +62,15 @@ rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
-    (sym (rename[]Nf ρ⋆ A B))
+          {!!} -- (sym (rename[]Nf ρ⋆ A B))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
   wrap (substEq (Δ ⊢_)
-                (rename[]Nf ρ⋆ (μ B) B)
+                {!!} -- (rename[]Nf ρ⋆ (μ B) B)
                 (rename ρ⋆ ρ M))
 rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B} M) =
   substEq (Δ ⊢_)
-          (sym (rename[]Nf ρ⋆ (μ B) B))
+          {!!} -- (sym (rename[]Nf ρ⋆ (μ B) B))
           (unwrap (rename ρ⋆ ρ M))
 
 \end{code}
@@ -98,6 +98,7 @@ weaken⋆ x = rename _∋⋆_.S _∋_.T x
 
 ## Substitution
 \begin{code}
+{-
 exts : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -211,5 +212,6 @@ _[_]⋆ {J}{Γ}{K}{B} b A =
                                      (trans (sym (substNf-id A')) (substNf-renameNf S (substNf-cons (nf ∘ `) A) A'))
                                      (` x)}) )
                  b)
+-}
 -}
 \end{code}

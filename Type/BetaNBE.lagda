@@ -12,6 +12,8 @@ open import Type.RenamingSubstitution
 open import Function
 open import Data.Sum
 open import Data.Empty
+
+open import Relation.Binary.PropositionalEquality hiding ([_])
 \end{code}
 
 \begin{code}
@@ -52,6 +54,12 @@ _,,⋆_ : ∀{Δ Γ} → (σ : Env Γ Δ) → ∀{K}(A : Val Δ K) → Env (Γ ,
 \end{code}
 
 \begin{code}
+_·V_ : ∀{Γ K J} → Val Γ (K ⇒ J) → Val Γ K → Val Γ J
+inj₁ n ·V v = neV (n · readback v)
+inj₂ f ·V v = f id v
+\end{code}
+
+\begin{code}
 eval : ∀{Γ Δ K} → Δ ⊢⋆ K → (∀{J} → Δ ∋⋆ J → Val Γ J)  → Val Γ K
 eval (` x)   ρ = ρ x
 eval (Π B)   ρ = Π (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
@@ -84,3 +92,65 @@ _[_]Nf : ∀ {Φ J K}
 A [ B ]Nf = nf (embNf A [ embNf B ])
 \end{code}
 
+## Proofs
+
+\begin{code}
+-- A Partial equivalence relation on values: 'equality on values'
+PER : ∀{Γ} K → Val Γ K → Val Γ K → Set
+PER *       v v' = readback v ≡ readback v'
+PER (K ⇒ J) f f' = ∀{Δ}
+ → (ρ : Ren _ Δ)
+ → {v v' : Val Δ K}
+ → PER K v v'
+ → PER J (renval ρ f ·V v) (renval ρ f' ·V v')
+
+symPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v' v
+symPER *       p = sym p
+symPER (K ⇒ J) p = λ ρ q → symPER J (p ρ (symPER K q))
+
+transPER : ∀{Γ} K {v v' v'' : Val Γ K} → PER K v v' → PER K v' v'' → PER K v v''
+transPER * p q = trans p q
+transPER (K ⇒ J) p q = λ ρ r
+  → transPER J (p ρ r) (q ρ (transPER K (symPER K r) r))
+
+reflPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v v
+reflPER K p = transPER K p (symPER K p)
+
+{-
+mutual
+  reifyPER : ∀{Γ} K {v v' : Val Γ K}
+    → PER K v v'
+    → readback v ≡ readback v'
+  reifyPER *       p = p
+  reifyPER (K ⇒ J) p = {!!} --cong ƛ (reifyPER J (p S (reflectPER K (refl {x = ` Z})))) 
+-}
+\end{code}
+
+\begin{code}
+{-
+rename-eval : ∀{Γ Δ Θ K}
+  (t : Δ ⊢⋆ K)
+  (η : ∀{J} → Δ ∋⋆ J → Val Γ J)
+  (ρ : Ren Γ Θ) →
+  renval ρ (eval t η) ≡ eval t (renval ρ ∘ η)
+rename-eval = {!!}
+-}
+\end{code}
+
+rename-eval : 
+
+\begin{code}
+{-
+rename[]Nf : ∀ {Φ Θ J K}
+        → (ρ : Ren Φ Θ)
+        → (t : Φ ,⋆ K ⊢Nf⋆ J)
+        → (u : Φ ⊢Nf⋆ K )
+          ------
+        → renameNf ρ (t [ u ]Nf) ≡ renameNf (ext ρ) t [ renameNf ρ u ]Nf
+rename[]Nf ρ (Π B)   u = cong Π {!!}
+rename[]Nf ρ (A ⇒ B) u = {!!}
+rename[]Nf ρ (ƛ B)   u = {!!}
+rename[]Nf ρ (μ B)   u = {!!}
+rename[]Nf ρ (ne xn) u = {!!}
+-}
+\end{code}
