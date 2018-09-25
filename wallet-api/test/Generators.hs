@@ -10,6 +10,7 @@ module Generators(
 import           Data.Map              (Map)
 import qualified Data.Map              as Map
 import           Data.Maybe            (fromMaybe)
+import qualified Data.Set              as Set
 import           Hedgehog
 import qualified Hedgehog.Gen          as Gen
 import qualified Hedgehog.Range        as Range
@@ -48,7 +49,7 @@ genInitialTransaction = do
     vl <- Value <$> Gen.integral (Range.linear 1 1000000)
     let o = simpleOutput vl
     pure (Tx {
-        txInputs = [],
+        txInputs = Set.empty,
         txOutputs = [o],
         txForge = vl,
         txFee = 0
@@ -75,7 +76,7 @@ genValidTransaction bc ops = do
     fee <- Gen.integral (Range.linear minFee totalVal)
     if fee < totalVal
         then pure Tx {
-                txInputs = inputs,
+                txInputs = Set.fromList inputs,
                 txOutputs = [simpleOutput $ totalVal - fee],
                 txForge = 0,
                 txFee = fee

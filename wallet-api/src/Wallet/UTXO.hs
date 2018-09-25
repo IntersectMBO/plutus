@@ -67,10 +67,14 @@ import           Crypto.Hash                      (Digest, SHA256, hash)
 import qualified Data.ByteArray                   as BA
 import qualified Data.ByteString.Char8            as BS
 import qualified Data.ByteString.Lazy             as BSL
+import           Data.Foldable                    (foldMap)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
 import           Data.Maybe                       (fromMaybe, listToMaybe)
+import           Data.Monoid                      (Sum(..))
 import           Data.Semigroup                   (Semigroup (..))
+import           Data.Set                         (Set)
+import qualified Data.Set as Set
 
 import           Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode)
 import           Language.Plutus.TH               (plutusT)
@@ -213,7 +217,7 @@ height = Height . fromIntegral . length . join
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
-    txInputs  :: [TxIn],
+    txInputs  :: Set TxIn,
     txOutputs :: [TxOut],
     txForge   :: !Value,
     txFee     :: !Value
@@ -238,7 +242,7 @@ validValuesTx Tx{..}
 
 -- | Transaction without witnesses for its inputs
 data TxStripped = TxStripped {
-    txStrippedInputs  :: [TxOutRef],
+    txStrippedInputs  :: Set TxOutRef,
     txStrippedOutputs :: [TxOut],
     txStrippedForge   :: !Value,
     txStrippedFee     :: !Value
@@ -250,7 +254,7 @@ instance BA.ByteArrayAccess TxStripped where
 
 strip :: Tx -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txForge txFee where
-    i = txInRef <$> txInputs
+    i = Set.map txInRef txInputs
 
 -- | Hash a stripped transaction once
 preHash :: TxStripped -> Digest SHA256
@@ -336,14 +340,14 @@ unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
     f (idx, o) = (TxOutRef (hashTx t) idx, o)
 
 -- | The outputs consumed by a transaction
-spentOutputs :: Tx -> [TxOutRef]
-spentOutputs = fmap txInRef . txInputs
+spentOutputs :: Tx -> Set TxOutRef
+spentOutputs = Set.map txInRef . txInputs
 
 -- | Unspent outputs of a ledger.
 unspentOutputs :: Blockchain -> Map TxOutRef TxOut
 unspentOutputs = foldr ins Map.empty . join where
     ins t unspent = (unspent `Map.difference` lift (spentOutputs t)) `Map.union` unspentOutputsTx t
-    lift = Map.fromList . fmap (,())
+    lift = Map.fromSet (const ())
 
 -- | Ledger and transaction state available to both the validator and redeemer
 --   scripts
@@ -370,7 +374,7 @@ validTx t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
     inputsAreValid = all (`validatesIn` unspentOutputs bc) (txInputs t)
     valueIsPreserved = inVal == outVal
     inVal =
-        txForge t + sum (map (fromMaybe 0 . value bc . txInRef) (txInputs t))
+        txForge t + getSum (foldMap (Sum . fromMaybe 0 . value bc . txInRef) (txInputs t))
     outVal =
         txFee t + sum (map txOutValue (txOutputs t))
     txIn `validatesIn` allOutputs =
