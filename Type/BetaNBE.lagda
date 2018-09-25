@@ -66,9 +66,7 @@ eval (` x)   ρ = ρ x
 eval (Π B)   ρ = Π (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
 eval (A ⇒ B) ρ = readback (eval A ρ) ⇒ readback (eval B ρ)
 eval (ƛ B)   ρ = inj₂ λ ρ' v → eval B ((renval ρ' ∘ ρ) ,,⋆ v)
-eval (A · B) ρ with eval A ρ
-eval (A · B) ρ | inj₁ n = neV (n · readback (eval B ρ))
-eval (A · B) ρ | inj₂ f = f id (eval B ρ) 
+eval (A · B) ρ = eval A ρ ·V eval B ρ
 eval (μ B)   ρ = μ (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
 \end{code}
 
@@ -131,26 +129,28 @@ reflPER K p = transPER K p (symPER K p)
 \end{code}
 
 \begin{code}
-{-
-mutual
-  reify : ∀{Γ} K → {v v' : Val Γ K}
-    → PER K v v' → readback v ≡ readback v'
-  reify *       p = p
-  reify (K ⇒ J) {inj₁ x} {inj₁ x₁} p = {!!}
-  reify (K ⇒ J) {inj₁ x} {inj₂ y} p  = {!cong _⊢Nf⋆_.ƛ (reify J (p S (reflect K (refl {x = ` Z}))))!}
-  reify (K ⇒ J) {inj₂ y} {v'} p = {!!}
-  -- reify J (p S (reflect K (refl {x = ` Z})))
-  reflect : ∀{Γ} K → {n n' : Γ ⊢NeN⋆ K}
-    → n ≡ n' → PER K (neV n) (neV n')
-  reflect * p = cong ne p
-  reflect (K ⇒ J) p = λ ρ q → reflect J {!reify K q!}
-\end{code}
+reflect : ∀{Γ} K → {n n' : Γ ⊢NeN⋆ K}
+  → n ≡ n' → PER K (neV n) (neV n')
+reflect * p = cong ne p
+reflect (K ⇒ J) p = cong ne p
 
+
+reify : ∀{Γ} K → {v v' : Val Γ K}
+  → PER K v v' → readback v ≡ readback v'
+reify *       p = p
+reify (K ⇒ J) {inj₁ n} {inj₁ n'} p = p
+reify (K ⇒ J) {inj₁ n} {inj₂ f'} ()
+reify (K ⇒ J) {inj₂ f} {inj₁ n'} ()
+reify (K ⇒ J) {inj₂ f} {inj₂ f'} p =
+  cong ƛ (reify J (p S (reflect K (refl {x = ` Z}))))  
+\end{code}
 
 \begin{code}
 PEREnv : ∀ {Γ Δ} → (η η' : Env Γ Δ) →  Set
 PEREnv {Γ}{Δ} η η' = ∀{K} (x : Γ ∋⋆ K) → PER K (η x) (η' x) 
 \end{code}
+
+PERApp : PER (K => J) f f' → PER K v v' → PER J (f `vapp` v) (f' `vapp` v')
 
 -- completeness
 \begin{code}
@@ -160,14 +160,15 @@ idext : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PER K (eval t η) (eval t η')
 idext p (` x)   = p x
 idext p (Π B)   = cong Π (idext {!!} B)
-idext p (A ⇒ B) = {!!}
+idext p (A ⇒ B) = cong₂ _⇒_ (idext p A) (idext p B)
 idext p (ƛ B)   = {!!}
-idext p (A · B) = {!!}
+idext {η = η}{η' = η'} p (A · B) = {!idext p A!}
 idext p (μ B)   = {!!}
 
 \end{code}
 
 \begin{code}
+{-
 fund : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PEREnv η η'
   → {t t' : Γ ⊢⋆ K}
