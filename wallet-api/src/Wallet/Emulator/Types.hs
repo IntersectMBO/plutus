@@ -10,15 +10,22 @@ module Wallet.Emulator.Types(
     TxPool,
     Notification(..),
     -- * Emulator
-    WalletState(..),
-    emptyWalletState,
-    EmulatedWalletApi(..),
-    handleNotifications,
     Assertion,
     isValidated,
     AssertionError,
     Event(..),
+    WalletState(..),
+    -- ** Traces
     Trace,
+    runTrace,
+    walletAction,
+    walletRecvNotifications,
+    blockchainActions,
+    assertion,
+    -- * Emulator internals
+    emptyWalletState,
+    EmulatedWalletApi(..),
+    handleNotifications,
     EmulatorState(..),
     emptyEmulatorState,
     emulatorState,
@@ -140,11 +147,32 @@ eval = \case
             emTxPool = []
             }
         pure block
-    Assertion assertion -> do
+    Assertion at -> do
         s <- get
-        case assertion s of
+        case at s of
             Just err -> throwError err
             Nothing  -> pure ()
 
 process :: (MonadState EmulatorState m, MonadError AssertionError m) => Trace a -> m a
 process = interpretWithMonad eval
+
+-- | Interact with a wallet
+walletAction :: Wallet -> EmulatedWalletApi () -> Trace [Tx]
+walletAction w = Op.singleton . WalletAction w
+
+-- | Notify a wallet of blockchain events
+walletRecvNotifications :: Wallet -> [Notification] -> Trace [Tx]
+walletRecvNotifications w = Op.singleton . WalletRecvNotification w
+
+-- | Validate all pending transactions
+blockchainActions :: Trace Block
+blockchainActions = Op.singleton BlockchainActions
+
+-- | Make an assertion about the emulator state
+assertion :: Assertion -> Trace ()
+assertion = Op.singleton . Assertion
+
+-- | Run an emulator trace on a blockchain
+runTrace :: Blockchain -> Trace a -> (Either AssertionError a, EmulatorState)
+runTrace chain t = runState (runExceptT $ process t) emState where
+    emState = emulatorState chain
