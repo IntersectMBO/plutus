@@ -1,17 +1,14 @@
 module Main(main) where
 
-import           Control.Monad.Operational  as Op
-import           Control.Monad.State        (runState)
-import           Control.Monad.Trans.Except (runExceptT)
-import           Data.Either                (isLeft, isRight)
-import           Generators                 (Mockchain (..))
-import qualified Generators                 as Gen
-import           Hedgehog                   (Property, forAll, property)
+import           Data.Either         (isLeft, isRight)
+import           Generators          (Mockchain (..))
+import qualified Generators          as Gen
+import           Hedgehog            (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen               as Gen
-import qualified Hedgehog.Range             as Range
+import qualified Hedgehog.Gen        as Gen
+import qualified Hedgehog.Range      as Range
 import           Test.Tasty
-import           Test.Tasty.Hedgehog        (testProperty)
+import           Test.Tasty.Hedgehog (testProperty)
 
 import           Wallet.Emulator
 
@@ -50,13 +47,13 @@ txnValid = property $ do
     txn <- forAll $ Gen.genValidTransaction m
     Gen.assertValid txn m
 
--- | Submit a transaction to the blockchain and assert that it has been 
+-- | Submit a transaction to the blockchain and assert that it has been
 --   validated
 simpleTrace :: Tx -> Trace ()
 simpleTrace txn = do
-    [txn'] <- Op.singleton $ WalletAction (Wallet 1) $ submitTxn txn
-    block <- Op.singleton BlockchainActions
-    Op.singleton $ Assertion $ isValidated txn'
+    [txn'] <- walletAction (Wallet 1) $ submitTxn txn
+    block <- blockchainActions
+    assertion $ isValidated txn'
 
 validTrace :: Property
 validTrace = property $ do
@@ -79,6 +76,6 @@ splitVal :: Property
 splitVal = property $ do
     i <- forAll $ Gen.int $ Range.linear 1 (100000 :: Int)
     n <- forAll $ Gen.int $ Range.linear 1 100
-    vs <- forAll $ Gen.splitVal n i 
+    vs <- forAll $ Gen.splitVal n i
     Hedgehog.assert $ sum vs == i
     Hedgehog.assert $ length vs <= n

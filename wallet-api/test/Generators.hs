@@ -16,29 +16,26 @@ module Generators(
     -- * Assertions
     assertValid,
     -- * Etc.
-    runTrace,
+    Generators.runTrace,
     splitVal
     ) where
 
-import           Control.Monad.State        (runState)
-import           Control.Monad.Trans.Except (runExceptT)
-import           Data.Bifunctor             (Bifunctor(..))
-import           Data.Map                   (Map)
-import qualified Data.Map                   as Map
-import           Data.Maybe                 (fromMaybe)
-import           Data.Set                   (Set)
-import qualified Data.Set                   as Set
-import           GHC.Stack                  (HasCallStack)
+import           Data.Bifunctor  (Bifunctor (..))
+import           Data.Map        (Map)
+import qualified Data.Map        as Map
+import           Data.Maybe      (fromMaybe)
+import           Data.Set        (Set)
+import qualified Data.Set        as Set
+import           GHC.Stack       (HasCallStack)
 import           Hedgehog
-import qualified Hedgehog.Gen               as Gen
-import qualified Hedgehog.Range             as Range
+import qualified Hedgehog.Gen    as Gen
+import qualified Hedgehog.Range  as Range
 
-import           Wallet.Emulator.Types
-import           Wallet.UTXO
+import           Wallet.Emulator as Emulator
 
 data GeneratorModel = GeneratorModel {
     -- | Max. number of outputs for the initial transaction
-    gmNumOutputs      :: Int,
+    gmNumOutputs     :: Int,
     -- | Value created at the beginning of the blockchain
     gmInitialBalance :: Value
     } deriving Show
@@ -150,8 +147,7 @@ runTrace ::
     Mockchain
     -> Trace a
     -> (Either AssertionError a, EmulatorState)
-runTrace (Mockchain chain _) t = runState (runExceptT $ process t) emState where
-    emState = emulatorState chain
+runTrace (Mockchain chain _) = Emulator.runTrace chain
 
 -- | Split a value into max. n positive-valued parts such that the sum of the
 --   parts equals the original value.

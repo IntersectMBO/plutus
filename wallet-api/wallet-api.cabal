@@ -66,13 +66,9 @@ test-suite wallet-api
     other-modules: Generators
     build-depends:
         base >=4.9 && <5,
-        bytestring -any,
         containers -any,
         hedgehog -any,
-        mtl -any,
-        operational -any,
         tasty -any,
         tasty-hedgehog -any,
         text -any,
-        transformers -any,
         wallet-api -any
