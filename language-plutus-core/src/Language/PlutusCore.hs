@@ -68,6 +68,7 @@ module Language.PlutusCore
     , fileType
     , fileTypeCfg
     , printType
+    , printNormalizeType
     , TypeError (..)
     , TypeCheckM
     , BuiltinTable (..)
@@ -145,7 +146,11 @@ checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 False <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printType = printNormalizeType True
+
+-- | Print the type of a program contained in a 'ByteString'
+printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
+printNormalizeType norm bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 norm <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.

@@ -26,8 +26,9 @@ main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
     typeFiles <- findByExtension [".plc"] "test/types"
+    typeNormalizeFiles <- findByExtension [".plc"] "test/normalize-types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
+    defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -79,14 +80,15 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
+    , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
     , test_constantApplication
     , test_evaluateCk
@@ -106,6 +108,9 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
+
+testsNormalizeType :: [FilePath] -> TestTree
+testsNormalizeType = testGroup "golden type synthesis tests" . fmap (asGolden (printNormalizeType True))
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
