@@ -1,4 +1,8 @@
-packages: ./
+packages: language-plutus-core
+          plutus-core-interpreter
+          core-to-plc
+          plutus-exe
+          plutus-th
 optimization: 2
 constraints: language-plutus-core +development
 tests: true

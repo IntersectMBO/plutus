@@ -35,7 +35,7 @@ type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT BuiltinTable (ExceptT (TypeError a) Quote))
+type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT (Bool, BuiltinTable) (ExceptT (TypeError a) Quote))
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -106,24 +106,37 @@ defaultTable = do
     pure $ BuiltinTable tyTable termTable
 
 -- | Type-check a PLC program, returning a normalized type.
-typecheckProgram :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind ())
-typecheckProgram n (Program _ _ t) = typecheckTerm n t
+typecheckProgram :: (MonadError (Error a) m, MonadQuote m)
+                 => Natural
+                 -> Bool
+                 -> Program TyNameWithKind NameWithType a
+                 -> m (NormalizedType TyNameWithKind ())
+typecheckProgram n norm (Program _ _ t) = typecheckTerm n norm t
 
 -- | Type-check a PLC term, returning a normalized type.
-typecheckTerm :: (MonadError (Error a) m, MonadQuote m) => Natural -> Term TyNameWithKind NameWithType a -> m (NormalizedType TyNameWithKind ())
-typecheckTerm n t = convertErrors asError $ runTypeCheckM n (typeOf t)
+typecheckTerm :: (MonadError (Error a) m, MonadQuote m)
+              => Natural
+              -> Bool
+              -> Term TyNameWithKind NameWithType a
+              -> m (NormalizedType TyNameWithKind ())
+typecheckTerm n norm t = convertErrors asError $ runTypeCheckM n norm (typeOf t)
 
 -- | Kind-check a PLC type.
-kindCheck :: (MonadError (Error a) m, MonadQuote m) => Natural -> Type TyNameWithKind a -> m (Kind ())
-kindCheck n t = convertErrors asError $ runTypeCheckM n (kindOf t)
+kindCheck :: (MonadError (Error a) m, MonadQuote m)
+          => Natural
+          -> Bool
+          -> Type TyNameWithKind a
+          -> m (Kind ())
+kindCheck n norm t = convertErrors asError $ runTypeCheckM n norm (kindOf t)
 
 -- | Run the type checker with a default context.
 runTypeCheckM :: Natural -- ^ Amount of gas to provide typechecker
+              -> Bool -- ^ Whether to normalize types
               -> TypeCheckM a b
               -> ExceptT (TypeError a) Quote b
-runTypeCheckM i tc = do
+runTypeCheckM i n tc = do
     table <- defaultTable
-    runReaderT (evalStateT tc (mempty, i)) table
+    runReaderT (evalStateT tc (mempty, i)) (n, table)
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
@@ -153,7 +166,7 @@ kindOf (TyLam _ _ k ty) =
     [ KindArrow () (void k) k' | k' <- kindOf ty ]
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = do
-    (BuiltinTable tyst _) <- ask
+    (_, BuiltinTable tyst _) <- ask
     case M.lookup b tyst of
         Just k -> pure k
         _      -> throwError InternalError
@@ -208,7 +221,7 @@ typeOf (Error x ty)                              = do
         _      -> throwError (KindMismatch x (void ty) (Type ()) k)
 typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (getNormalizedType <$> typeOf t))
 typeOf (Constant _ (BuiltinName _ n)) = do
-    (BuiltinTable _ st) <- ask
+    (_, BuiltinTable _ st) <- ask
     case M.lookup n st of
         Just k -> pure k
         _      -> throwError InternalError

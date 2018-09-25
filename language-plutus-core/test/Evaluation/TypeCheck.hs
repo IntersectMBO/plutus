@@ -35,7 +35,7 @@ typecheck :: (MonadError (Error ()) m, MonadQuote m) => Quote (Term TyName Name 
 typecheck getTerm = do
     t <- liftQuote getTerm
     annotated <- annotateTerm t
-    _ <- typecheckTerm 1000 annotated
+    _ <- typecheckTerm 1000 False annotated
     pure ()
 
 -- | Self-application. An example of ill-typed term.

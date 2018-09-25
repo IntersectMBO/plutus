@@ -125,7 +125,7 @@ appAppLamLam = do
             (TyBuiltin () TyInteger)
 
 testLam :: Either (TypeError ()) String
-testLam = fmap prettyCfgString . runQuote . runExceptT $ runTypeCheckM 100 $
+testLam = fmap prettyCfgString . runQuote . runExceptT $ runTypeCheckM 100 False $
     tyReduce =<< appAppLamLam
 
 tests :: TestTree
