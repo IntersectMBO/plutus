@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns    #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Wallet.UTXO(
     -- * Basic types
@@ -63,6 +64,7 @@ import           Codec.CBOR.Encoding              (Encoding)
 import qualified Codec.CBOR.Encoding              as Enc
 import qualified Codec.CBOR.Write                 as Write
 import           Control.Monad                    (join)
+import           Control.Monad.Except
 import           Crypto.Hash                      (Digest, SHA256, hash)
 import qualified Data.ByteArray                   as BA
 import qualified Data.ByteString.Char8            as BS
@@ -70,14 +72,18 @@ import qualified Data.ByteString.Lazy             as BSL
 import           Data.Foldable                    (foldMap)
 import           Data.Map                         (Map)
 import qualified Data.Map                         as Map
-import           Data.Maybe                       (fromMaybe, listToMaybe)
+import           Data.Maybe                       (fromMaybe, listToMaybe, isJust)
 import           Data.Monoid                      (Sum(..))
 import           Data.Semigroup                   (Semigroup (..))
 import           Data.Set                         (Set)
 import qualified Data.Set as Set
 
-import           Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode)
+import           Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst)
 import           Language.Plutus.TH               (plutusT)
+import           Language.PlutusCore              (applyProgram, typecheckPipeline)
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Evaluation.CkMachine  (runCk)
+import           Language.PlutusCore.Evaluation.Result
 
 {- Note [Serialisation and hashing]
 
@@ -394,7 +400,14 @@ validate bs (TxIn _ v r) (TxOut h _ d)
 
 -- | Evaluate a validator script with the given inputs
 runScript :: BlockchainState -> Validator -> Redeemer -> DataScript -> Bool
-runScript _ _ _ _ = True -- TODO: PLC Evaluation
+runScript _ (Validator (getAst -> validator)) (Redeemer (getAst -> redeemer)) (DataScript (getAst -> dataScript)) =
+    let
+        applied = (validator `applyProgram` redeemer) `applyProgram` dataScript
+        -- TODO: do something with the error
+        inferred = either (const Nothing) Just $ runExcept $ runQuoteT $ void $ typecheckPipeline 1000 applied
+    in isJust $ do
+        void inferred
+        evaluationResultToMaybe $ runCk applied
 
 -- | () as a data script
 unitData :: DataScript
