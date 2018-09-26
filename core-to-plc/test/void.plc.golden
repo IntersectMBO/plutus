@@ -7,202 +7,125 @@
       [(con integer) (con 64)]
       [
         (lam
-          eta_13
-          (all Bool_matchOut_12 (type) (fun Bool_matchOut_12 (fun Bool_matchOut_12 Bool_matchOut_12)))
+          eta_4
+          (all Bool_matchOut_3 (type) (fun Bool_matchOut_3 (fun Bool_matchOut_3 Bool_matchOut_3)))
           [
             (lam
-              eta_25
-              (all Bool_matchOut_24 (type) (fun Bool_matchOut_24 (fun Bool_matchOut_24 Bool_matchOut_24)))
+              eta_7
+              (all Bool_matchOut_6 (type) (fun Bool_matchOut_6 (fun Bool_matchOut_6 Bool_matchOut_6)))
               [
                 [
                   (lam
-                    x_28
-                    (all Bool_matchOut_27 (type) (fun Bool_matchOut_27 (fun Bool_matchOut_27 Bool_matchOut_27)))
+                    x_10
+                    (all Bool_matchOut_9 (type) (fun Bool_matchOut_9 (fun Bool_matchOut_9 Bool_matchOut_9)))
                     (lam
-                      y_31
-                      (all Bool_matchOut_30 (type) (fun Bool_matchOut_30 (fun Bool_matchOut_30 Bool_matchOut_30)))
+                      y_13
+                      (all Bool_matchOut_12 (type) (fun Bool_matchOut_12 (fun Bool_matchOut_12 Bool_matchOut_12)))
                       [
                         (lam
-                          fail_42
-                          (fun (all a_38 (type) (fun (all a_39 (type) (fun a_39 a_39)) a_38)) (all Bool_matchOut_41 (type) (fun Bool_matchOut_41 (fun Bool_matchOut_41 Bool_matchOut_41))))
+                          fail_24
+                          (fun (all a_20 (type) (fun (all a_21 (type) (fun a_21 a_21)) a_20)) (all Bool_matchOut_23 (type) (fun Bool_matchOut_23 (fun Bool_matchOut_23 Bool_matchOut_23))))
                           [
                             [
                               [
                                 {
-                                  x_28
-                                  (fun (all a_69 (type) (fun a_69 a_69)) (all Bool_matchOut_68 (type) (fun Bool_matchOut_68 (fun Bool_matchOut_68 Bool_matchOut_68))))
+                                  x_10
+                                  (fun (all a_51 (type) (fun a_51 a_51)) (all Bool_matchOut_50 (type) (fun Bool_matchOut_50 (fun Bool_matchOut_50 Bool_matchOut_50))))
                                 }
                                 (lam
                                   thunk_73
                                   (all a_74 (type) (fun a_74 a_74))
                                   [
-                                    fail_42
-                                    (abs
-                                      e_70
-                                      (type)
-                                      (lam
-                                        thunk_71
-                                        (all a_72 (type) (fun a_72 a_72))
-                                        (error e_70)
-                                      )
-                                    )
-                                  ]
-                                )
-                              ]
-                              (lam
-                                thunk_96
-                                (all a_97 (type) (fun a_97 a_97))
-                                [
-                                  [
                                     [
-                                      {
-                                        y_31
-                                        (fun (all a_83 (type) (fun a_83 a_83)) (all Bool_matchOut_82 (type) (fun Bool_matchOut_82 (fun Bool_matchOut_82 Bool_matchOut_82))))
-                                      }
-                                      (lam
-                                        thunk_87
-                                        (all a_88 (type) (fun a_88 a_88))
-                                        [
-                                          fail_42
+                                      [
+                                        {
+                                          y_13
+                                          (fun (all a_60 (type) (fun a_60 a_60)) (all Bool_matchOut_59 (type) (fun Bool_matchOut_59 (fun Bool_matchOut_59 Bool_matchOut_59))))
+                                        }
+                                        (lam
+                                          thunk_64
+                                          (all a_65 (type) (fun a_65 a_65))
                                           (abs
-                                            e_84
+                                            Bool_matchOut_61
                                             (type)
                                             (lam
-                                              thunk_85
-                                              (all a_86 (type) (fun a_86 a_86))
-                                              (error e_84)
+                                              True_62
+                                              Bool_matchOut_61
+                                              (lam
+                                                False_63
+                                                Bool_matchOut_61
+                                                True_62
+                                              )
+                                            )
+                                          )
+                                        )
+                                      ]
+                                      (lam
+                                        thunk_69
+                                        (all a_70 (type) (fun a_70 a_70))
+                                        [
+                                          fail_24
+                                          (abs
+                                            e_66
+                                            (type)
+                                            (lam
+                                              thunk_67
+                                              (all a_68 (type) (fun a_68 a_68))
+                                              (error e_66)
                                             )
                                           )
                                         ]
                                       )
                                     ]
-                                    (lam
-                                      thunk_92
-                                      (all a_93 (type) (fun a_93 a_93))
-                                      (abs
-                                        Bool_matchOut_89
-                                        (type)
-                                        (lam
-                                          False_90
-                                          Bool_matchOut_89
-                                          (lam True_91 Bool_matchOut_89 True_91)
-                                        )
-                                      )
-                                    )
+                                    (abs a_71 (type) (lam x_72 a_71 x_72))
                                   ]
-                                  (abs a_94 (type) (lam x_95 a_94 x_95))
+                                )
+                              ]
+                              (lam
+                                thunk_78
+                                (all a_79 (type) (fun a_79 a_79))
+                                [
+                                  fail_24
+                                  (abs
+                                    e_75
+                                    (type)
+                                    (lam
+                                      thunk_76
+                                      (all a_77 (type) (fun a_77 a_77))
+                                      (error e_75)
+                                    )
+                                  )
                                 ]
                               )
                             ]
-                            (abs a_98 (type) (lam x_99 a_98 x_99))
+                            (abs a_80 (type) (lam x_81 a_80 x_81))
                           ]
                         )
                         (lam
-                          ds_34
-                          (all a_32 (type) (fun (all a_33 (type) (fun a_33 a_33)) a_32))
+                          ds_16
+                          (all a_14 (type) (fun (all a_15 (type) (fun a_15 a_15)) a_14))
                           (abs
-                            Bool_matchOut_35
+                            Bool_matchOut_17
                             (type)
                             (lam
-                              False_36
-                              Bool_matchOut_35
-                              (lam True_37 Bool_matchOut_35 False_36)
+                              True_18
+                              Bool_matchOut_17
+                              (lam False_19 Bool_matchOut_17 False_19)
                             )
                           )
                         )
                       ]
                     )
                   )
-                  eta_13
+                  eta_4
                 ]
-                eta_25
+                eta_7
               ]
             )
-            [
-              [
-                (lam
-                  arg1_14
-                  [(con integer) (con 64)]
-                  (lam
-                    arg2_15
-                    [(con integer) (con 64)]
-                    (abs
-                      Bool_match_out_16
-                      (type)
-                      (lam
-                        arg1_17
-                        Bool_match_out_16
-                        (lam
-                          arg2_18
-                          Bool_match_out_16
-                          [
-                            [
-                              {
-                                [
-                                  [ { (con equalsInteger) (con 64) } arg1_14 ]
-                                  arg2_15
-                                ]
-                                Bool_match_out_16
-                              }
-                              (lam
-                                thunk_19
-                                (all a_20 (type) (fun a_20 a_20))
-                                arg1_17
-                              )
-                            ]
-                            (lam
-                              thunk_21 (all a_22 (type) (fun a_22 a_22)) arg1_17
-                            )
-                          ]
-                        )
-                      )
-                    )
-                  )
-                )
-                ds_1
-              ]
-              ds_0
-            ]
+            [ [ { (con equalsInteger) (con 64) } ds_1 ] ds_0 ]
           ]
         )
-        [
-          [
-            (lam
-              arg1_2
-              [(con integer) (con 64)]
-              (lam
-                arg2_3
-                [(con integer) (con 64)]
-                (abs
-                  Bool_match_out_4
-                  (type)
-                  (lam
-                    arg1_5
-                    Bool_match_out_4
-                    (lam
-                      arg2_6
-                      Bool_match_out_4
-                      [
-                        [
-                          {
-                            [
-                              [ { (con equalsInteger) (con 64) } arg1_2 ] arg2_3
-                            ]
-                            Bool_match_out_4
-                          }
-                          (lam thunk_7 (all a_8 (type) (fun a_8 a_8)) arg1_5)
-                        ]
-                        (lam thunk_9 (all a_10 (type) (fun a_10 a_10)) arg1_5)
-                      ]
-                    )
-                  )
-                )
-              )
-            )
-            ds_0
-          ]
-          ds_1
-        ]
+        [ [ { (con equalsInteger) (con 64) } ds_0 ] ds_1 ]
       ]
     )
   )

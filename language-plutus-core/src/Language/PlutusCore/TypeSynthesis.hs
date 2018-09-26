@@ -64,11 +64,8 @@ unit =
 boolean :: MonadQuote m => m (Type TyNameWithKind ())
 boolean = do
     nam <- newTyName (Type ())
-    (u, u') <- (,) <$> unit <*> unit
     let var = TyVar () nam
-        unitVar = TyFun () u var
-        unitVar' = TyFun () u' var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
+    pure $ TyForall () nam (Type ()) (TyFun () var (TyFun () var var))
 
 builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do

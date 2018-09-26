@@ -9,56 +9,14 @@
         [
           [
             {
-              [
-                [
-                  (lam
-                    arg1_2
-                    [(con integer) (con 64)]
-                    (lam
-                      arg2_3
-                      [(con integer) (con 64)]
-                      (abs
-                        Bool_match_out_4
-                        (type)
-                        (lam
-                          arg1_5
-                          Bool_match_out_4
-                          (lam
-                            arg2_6
-                            Bool_match_out_4
-                            [
-                              [
-                                {
-                                  [
-                                    [ { (con equalsInteger) (con 64) } arg1_2 ]
-                                    arg2_3
-                                  ]
-                                  Bool_match_out_4
-                                }
-                                (lam
-                                  thunk_7 (all a_8 (type) (fun a_8 a_8)) arg1_5
-                                )
-                              ]
-                              (lam
-                                thunk_9 (all a_10 (type) (fun a_10 a_10)) arg1_5
-                              )
-                            ]
-                          )
-                        )
-                      )
-                    )
-                  )
-                  ds_0
-                ]
-                ds_1
-              ]
-              (fun (all a_11 (type) (fun a_11 a_11)) [(con integer) (con 64)])
+              [ [ { (con equalsInteger) (con 64) } ds_0 ] ds_1 ]
+              (fun (all a_2 (type) (fun a_2 a_2)) [(con integer) (con 64)])
             }
-            (lam thunk_12 (all a_13 (type) (fun a_13 a_13)) ds_1)
+            (lam thunk_3 (all a_4 (type) (fun a_4 a_4)) ds_0)
           ]
-          (lam thunk_14 (all a_15 (type) (fun a_15 a_15)) ds_0)
+          (lam thunk_5 (all a_6 (type) (fun a_6 a_6)) ds_1)
         ]
-        (abs a_16 (type) (lam x_17 a_16 x_17))
+        (abs a_7 (type) (lam x_8 a_7 x_8))
       ]
     )
   )
