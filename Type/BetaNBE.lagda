@@ -150,6 +150,8 @@ PEREnv : ∀ {Γ Δ} → (η η' : Env Γ Δ) →  Set
 PEREnv {Γ}{Δ} η η' = ∀{K} (x : Γ ∋⋆ K) → PER K (η x) (η' x) 
 \end{code}
 
+
+Closure under applicatoin
 \begin{code}
 PERApp : ∀{Γ K J}
   → {f f' : Val Γ (K ⇒ J)}
@@ -163,6 +165,7 @@ PERApp {f = inj₂ f} {inj₁ n} () q
 PERApp {f = inj₂ f} {inj₂ f'} p q = p id q
 \end{code}
 
+Closure under environment extension
 \begin{code}
 PER,,⋆ : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PEREnv η η'
@@ -173,6 +176,7 @@ PER,,⋆ p q Z = q
 PER,,⋆ p q (S x) = p x
 \end{code}
 
+Closure under renaming
 \begin{code}
 renPER : ∀{Γ Δ K}{v v' : Val Γ K}
   → (ρ : Ren Γ Δ)
@@ -186,6 +190,8 @@ renPER {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ p = λ ρ' q → p (ρ' ∘ ρ
 \end{code}
 
 -- completeness
+
+identity extension lemma/a congruence for eval
 \begin{code}
 idext : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PEREnv η η'
@@ -199,37 +205,60 @@ idext p (A · B) = PERApp (idext p A) (idext p B)
 idext p (μ  B)   = cong μ (idext (PER,,⋆ (renPER S ∘ p) refl) B)
 \end{code}
 
+Renaming lemma
+\begin{code}
+rename-eval : ∀{Γ Δ Θ K}
+  (t : Θ ⊢⋆ K)
+  {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
+  (p : PEREnv η η')
+  (ρ : Ren Θ Δ) →
+  PER K (eval (rename ρ t) η) (eval t (η' ∘ ρ))
+rename-eval (` x) p ρ = p (ρ x)
+rename-eval (Π B) p ρ =
+  cong Π (trans (rename-eval
+                  B
+                  (PER,,⋆ (renPER S ∘ p)
+                          (reflect _ (refl {x = ` Z}))) (ext ρ))
+       (idext (λ{ Z     → reflect _ refl
+                ; (S x) → (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (ρ x)}) B))
+rename-eval (A ⇒ B) p ρ = cong₂ _⇒_ (rename-eval A p ρ) (rename-eval B p ρ) 
+rename-eval (ƛ B) p ρ = λ ρ' p' →
+  transPER _
+           (rename-eval B (PER,,⋆ (renPER ρ' ∘ p) p') (ext ρ))
+           (idext (λ{ Z    → reflPER _ (symPER _ p')
+                    ; (S x) → renPER ρ' ((reflPER _ ∘ symPER _ ∘ p) (ρ x))}) B)
+rename-eval (A · B) p ρ = PERApp (rename-eval A p ρ) (rename-eval B p ρ)
+rename-eval (μ B) p ρ =
+  cong μ
+       (trans (rename-eval
+                B
+                (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (ext ρ))
+              (idext (λ{ Z     → reflect * refl
+                       ; (S x) → (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (ρ x)})
+                     B))
+\end{code}
+
+Subsitution lemma
+\begin{code}
+
+\end{code}
+
+
 \begin{code}
 fund : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PEREnv η η'
   → {t t' : Γ ⊢⋆ K}
   → t ≡β t' → PER K (eval t η) (eval t' η')
-fund η (refl≡β A) = idext η A
-fund η (sym≡β p) = symPER _ (fund (symPER _ ∘ η) p)
-fund η (trans≡β p q) = transPER _ (fund (reflPER _ ∘ η) p) (fund η q)
-fund η `≡β = η _
-fund η (⇒≡β p q) = cong₂ _⇒_ (fund η p) (fund η q)
-fund η (Π≡β p) = cong Π (fund (PER,,⋆ (renPER S ∘ η) (reflect _ refl)) p)
-fund η (ƛ≡β p) = λ ρ q → fund (PER,,⋆ (renPER ρ ∘ η) q) p
-fund η (·≡β p q) = PERApp (fund η p) (fund η q)
-fund η (μ≡β p) = cong μ (fund (PER,,⋆ (renPER S ∘ η) (reflect * refl)) p)
-fund η β≡β = {!!}
-\end{code}
-
-\begin{code}
-{-
-rename-eval : ∀{Γ Δ Θ K}
-  (t : Δ ⊢⋆ K)
-  (η : ∀{J} → Δ ∋⋆ J → Val Γ J)
-  (ρ : Ren Γ Θ) →
-  PER K (renval ρ (eval t η)) (eval t (renval ρ ∘ η))
-rename-eval (` x) η ρ = {!reflPER!}
-rename-eval (Π B) η ρ = {!!}
-rename-eval (A ⇒ B) η ρ = {!eval!}
-rename-eval (ƛ B) η ρ = {!!}
-rename-eval (A · B) η ρ = {!!}
-rename-eval (μ B) η ρ = {!!}
--}
+fund p (refl≡β A) = idext p A
+fund p (sym≡β q) = symPER _ (fund (symPER _ ∘ p) q)
+fund p (trans≡β q r) = transPER _ (fund (reflPER _ ∘ p) q) (fund p r)
+fund p `≡β = p _
+fund p (⇒≡β q r) = cong₂ _⇒_ (fund p q) (fund p r)
+fund p (Π≡β q) = cong Π (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) q)
+fund p (ƛ≡β q) = λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
+fund p (·≡β q r) = PERApp (fund p q) (fund p r)
+fund p (μ≡β q) = cong μ (fund (PER,,⋆ (renPER S ∘ p) (reflect * refl)) q)
+fund p β≡β = {!!}
 \end{code}
 
 \begin{code}
