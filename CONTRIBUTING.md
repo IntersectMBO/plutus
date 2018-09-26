@@ -50,9 +50,9 @@ All code changes go through pull requests.
 - Make your PR from the main repository if possible, this is necessary for the Buildkite CI to trust you.
     - Making a PR from a fork is acceptable, you will need to do this if you don't have write access to the main repository.
 - Try to name branches systematically.
-    - if you're the only person working on the branch, prefix the branch name with your GitHub ID followed by a slash.
+    - If you're the only person working on the branch, prefix the branch name with your GitHub ID followed by a slash.
     - If the PR is in response to a YouTrack ticket, include the ticket name.
-    - Eg `some_user/CGP-994/add-linear-types`.
+    - Eg. `some_user/CGP-994/add-linear-types`.
 - PRs exist to be reviewed - design them with a reader in mind!
     - Include the ticket name in the PR title where possible.
     - Write a helpful PR description that explains what’s in the PR and why, and draws attention to anything of particular note, references related tickets etc.
