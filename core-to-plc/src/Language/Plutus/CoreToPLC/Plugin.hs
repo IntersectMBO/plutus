@@ -19,9 +19,8 @@ import           Language.Haskell.TH.Syntax      as TH
 
 import           Codec.CBOR.Read                 (DeserialiseFailure)
 import           Control.Exception
+import           Control.Monad
 import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.State
 import qualified Data.ByteString.Lazy            as BSL
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
@@ -170,9 +169,15 @@ convertExpr opts origE tpe = do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
                   void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
               pure converted
-        context = (ConversionOptions { coCheckValueRestriction=poDoTypecheck opts }, flags, primTerms, primTys, initialScopeStack)
+        context = ConvertingContext {
+            ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
+            ccFlags=flags,
+            ccPrimTerms=primTerms,
+            ccPrimTypes=primTys,
+            ccScopes=initialScopeStack
+            }
         initialState = ConvertingState Map.empty
-    case runExcept $ runQuoteT $ evalStateT (runReaderT result context) initialState of
+    case runConverting context initialState result of
         Left s ->
             let shown = show $ PP.pretty s in
             if poDeferErrors opts

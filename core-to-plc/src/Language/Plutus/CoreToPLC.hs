@@ -77,7 +77,7 @@ bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 sdToTxt :: (MonadReader ConvertingContext m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do
-  (_, flags, _, _, _) <- ask
+  ConvertingContext { ccFlags=flags } <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
 throwSd :: (MonadError ConvError m, MonadReader ConvertingContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
@@ -158,7 +158,7 @@ convKind k = withContextM (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ cas
 convType :: Converting m => GHC.Type -> m PLCType
 convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
-    (_, _, _, _, stack) <- ask
+    ConvertingContext {ccScopes=stack} <- ask
     let top = NE.head stack
     case t of
         -- in scope type name
@@ -189,7 +189,7 @@ convTyConApp tc ts
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
 convTyCon tc = handleMaybeRecType (GHC.getName tc) $ do
-    (_, _, _, prims, _) <- ask
+    ConvertingContext {ccPrimTypes=prims} <- ask
     -- could be a Plutus primitive type
     case Map.lookup (GHC.getName tc) prims of
         Just ty -> liftQuote ty
@@ -666,7 +666,7 @@ mkLambda :: Converting m => GHC.Var -> m PLCExpr -> m PLCExpr
 mkLambda v body = do
     let ghcName = GHC.getName v
     (t', n') <- convVarFresh v
-    body' <- local (second $ pushName ghcName n') body
+    body' <- local (\c -> c {ccScopes=pushName ghcName n' (ccScopes c)}) body
     pure $ PLC.LamAbs () n' t' body'
 
 -- | Builds a type abstraction, binding the given variable to a name that
@@ -675,8 +675,8 @@ mkTyAbs :: Converting m => GHC.Var -> m PLCExpr -> m PLCExpr
 mkTyAbs v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
-    body' <- local (second $ pushTyName ghcName t') body
-    (opts, _, _, _, _) <- ask
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
+    ConvertingContext {ccOpts=opts} <- ask
     -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
     unless (not (coCheckValueRestriction opts) || PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
@@ -687,7 +687,7 @@ mkTyForall :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyForall v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
-    body' <- local (second $ pushTyName ghcName t') body
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyForall () t' k' body'
 
 -- | Builds a type lambda, binding the given variable to a name that
@@ -696,7 +696,7 @@ mkTyLam :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyLam v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
-    body' <- local (second $ pushTyName ghcName t') body
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyLam () t' k' body'
 
 
@@ -790,7 +790,7 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 convExpr :: Converting m => GHC.CoreExpr -> m PLCExpr
 convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    (_, _, prims, _, stack) <- ask
+    ConvertingContext {ccPrimTerms=prims, ccScopes=stack} <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]

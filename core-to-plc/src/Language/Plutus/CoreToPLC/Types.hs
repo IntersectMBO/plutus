@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Rank2Types       #-}
 
 module Language.Plutus.CoreToPLC.Types where
 
@@ -28,7 +29,7 @@ type PrimTypes = Map.Map GHC.Name (Quote PLCType)
 
 newtype ConversionOptions = ConversionOptions { coCheckValueRestriction :: Bool }
 
-type ConvertingContext = (ConversionOptions, GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
+data ConvertingContext = ConvertingContext { ccOpts :: ConversionOptions, ccFlags :: GHC.DynFlags, ccPrimTerms :: PrimTerms, ccPrimTypes :: PrimTypes, ccScopes :: ScopeStack }
 
 data EvalState a = Done | InProgress a
 type TypeDefs = Map.Map GHC.Name (EvalState (PLC.TyName ()))
@@ -36,6 +37,9 @@ newtype ConvertingState = ConvertingState { csTypeDefs :: TypeDefs }
 
 -- See Note [Scopes]
 type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)
+
+runConverting :: ConvertingContext -> ConvertingState -> ReaderT ConvertingContext (StateT ConvertingState (QuoteT (Except ConvError))) a -> Either ConvError a
+runConverting context initialState = runExcept . runQuoteT . flip evalStateT initialState . flip runReaderT context
 
 {- Note [Scopes]
 We need a notion of scope, because we have to make sure that if we convert a GHC
