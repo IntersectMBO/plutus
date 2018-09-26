@@ -19,8 +19,8 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     ) where
 
 import           Language.Plutus.Coordination.Plutus
-import           Language.Plutus.TH (plutusT)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
+import           Language.Plutus.TH                   (plutus)
 
 import           Prelude                              (Bool (..), Either (..), Num (..), Ord (..), succ, sum, ($))
 
@@ -76,7 +76,7 @@ contributionScript _ _  = PlutusTx inner where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = $$(plutusT [|| (\() () p Campaign{..} contribPubKey ->
+    inner = $(plutus [| (\() () p Campaign{..} contribPubKey ->
         let
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
@@ -119,7 +119,7 @@ contributionScript _ _  = PlutusTx inner where
                         -- were committed by this contributor
                     in refundable
         in
-        if isValid then () else Prim.error ()) ||])
+        if isValid then () else Prim.error ()) |])
 
 -- | Given the campaign data and the output from the contributing transaction,
 --   make a trigger that fires when the transaction can be refunded.
@@ -141,7 +141,7 @@ refund c ref = do
     let scr = contributionScript c (pubKey kp)
         o = TxOutPubKey value (pubKey kp)
         i = txInSign ref scr unitPLC unitPLC kp
-    submitTransaction $ Tx {
+    submitTransaction Tx {
       txInputs = Left i,
       txOutputs = Left o
     } where
