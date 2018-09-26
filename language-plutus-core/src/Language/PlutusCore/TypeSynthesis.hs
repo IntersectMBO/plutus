@@ -266,6 +266,23 @@ isTyLam :: Type TyNameWithKind () -> Bool
 isTyLam TyLam{} = True
 isTyLam _       = False
 
+-- This function is necessary because type reductions do *not* traverse 'TyFix'
+-- but context rewrites must traverse *all* constructors.
+rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
+rewriteCtx (TyApp x ty ty')     = TyApp x <$> rewriteCtx ty <*> rewriteCtx ty'
+rewriteCtx (TyFun x ty ty')     = TyFun x <$> rewriteCtx ty <*> rewriteCtx ty'
+rewriteCtx (TyFix x tn ty')     = TyFix x tn <$> rewriteCtx ty'
+rewriteCtx (TyLam x tn k ty)    = TyLam x tn k <$> rewriteCtx ty
+rewriteCtx (TyForall x tn k ty) = TyForall x tn k <$> rewriteCtx ty -- FIXME: what happens when we have more than one traversal/binding/etc?
+rewriteCtx ty@TyInt{}           = pure ty
+rewriteCtx ty@TyBuiltin{}       = pure ty
+rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
+    (st, _) <- get
+    case IM.lookup (unUnique u) st of
+        Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty') -- cloneType (getNormalizedType ty')
+        Just ty'                          -> cloneType (getNormalizedType ty')
+        Nothing                           -> pure ty
+
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') =
@@ -288,9 +305,4 @@ tyReduce (TyApp x ty ty') = do
         then tyReduce =<< preTy
         else NormalizedType <$> preTy
 
-tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
-    (st, _) <- get
-    case IM.lookup (unUnique u) st of
-        Just ty' -> NormalizedType <$> cloneType (getNormalizedType ty')
-        Nothing  -> pure $ NormalizedType ty
-tyReduce x                                                                   = pure $ NormalizedType x
+tyReduce x                                                                   = NormalizedType <$> rewriteCtx x
