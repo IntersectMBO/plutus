@@ -14,7 +14,7 @@ open import Function
 open import Data.Sum
 open import Data.Empty
 
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 \end{code}
 
 \begin{code}
@@ -146,11 +146,48 @@ reify (K ⇒ J) {inj₂ f} {inj₂ f'} p =
 \end{code}
 
 \begin{code}
+rename-readback : ∀{K Γ Δ}(v : Val Γ K)(ρ : Ren Γ Δ) → renameNf ρ (readback v) ≡ readback (renval ρ v)
+rename-readback {*} v ρ = refl
+rename-readback {K ⇒ J} (inj₁ n) ρ = refl
+rename-readback {K ⇒ J} (inj₂ f) ρ = cong ƛ (trans (rename-readback (f S (neV (` Z))) (ext ρ)) (reify J {!!})) -- uniformity again
+\end{code}
+
+
+\begin{code}
 PEREnv : ∀ {Γ Δ} → (η η' : Env Γ Δ) →  Set
 PEREnv {Γ}{Δ} η η' = ∀{K} (x : Γ ∋⋆ K) → PER K (η x) (η' x) 
 \end{code}
 
+\begin{code}
+renval-id : ∀ {K Γ}{v v' : Val Γ K} →
+  PER K v v' → 
+  PER K (renval id v) v'
+renval-id {*} {v} {v'} refl = renameNf-id _
+renval-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = cong ne (renameNeN-id _)
+renval-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
+renval-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
+renval-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p = λ ρ q → p ρ q
 
+\end{code}
+
+\begin{code}
+renval-comp : ∀ {K Γ Δ Θ}(ρ : Ren Γ Δ)(ρ' : Ren Δ Θ){v v' : Val Γ K} →
+  PER K v v' → 
+  PER K (renval (ρ' ∘ ρ) v) (renval ρ' (renval ρ v'))
+renval-comp {*} ρ ρ' refl = renameNf-comp ρ ρ' _
+renval-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl =
+  cong ne (renameNeN-comp ρ ρ' _)
+renval-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
+renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
+renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} p =
+  λ ρ'' p' → p (ρ'' ∘ ρ' ∘ ρ) p'
+\end{code}
+
+\begin{code}
+renval-ext : ∀{K Γ Δ}(ρ : Ren Γ Δ) → PER K (renval (ext ρ) (neV (` Z))) (neV (` Z))
+renval-ext {*} ρ = refl
+renval-ext {K ⇒ J} ρ = refl
+\end{code}
 Closure under applicatoin
 \begin{code}
 PERApp : ∀{Γ K J}
@@ -238,9 +275,54 @@ rename-eval (μ B) p ρ =
                      B))
 \end{code}
 
+The other renaming lemma...
+\begin{code}
+renval·V : ∀{K J Γ Δ}
+  (ρ : Ren Γ Δ)
+  {f f' : Val Γ (K ⇒ J)}
+  → PER (K ⇒ J) f f'
+  → {v v' : Val Γ K}
+  → PER K v v'
+  → PER J (renval ρ (f ·V v)) (renval ρ f' ·V renval ρ v')
+renval·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans (rename-readback v ρ) (reify _ (renPER ρ q)))
+renval·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans (rename-readback v ρ) (reify _ (renPER ρ q)))
+renval·V ρ {inj₁ n} {inj₂ f} () q
+renval·V ρ {inj₂ f} {inj₁ n'} () q
+renval·V ρ {inj₂ f} {inj₂ f'} p q = {!!} -- need uniformity, which has to be built in somewhere
+
+renval-eval : ∀{Γ Δ Θ K}
+  (t : Δ ⊢⋆ K)
+  {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
+  (p : PEREnv η η')
+  (ρ : Ren Γ Θ ) →
+  PER K (renval ρ (eval t η)) (eval t (renval ρ ∘ η'))
+renval-eval (` x) p ρ = renPER ρ (p x)
+renval-eval (Π B) p ρ = cong Π (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-ext ρ ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
+renval-eval (A ⇒ B) p ρ = cong₂ _⇒_ (renval-eval A p ρ) (renval-eval B p ρ)
+renval-eval (ƛ B) p ρ = λ ρ' p' → idext (λ { Z → p' ; (S x) → renval-comp ρ ρ' (p x)}) B
+renval-eval (A · B) p ρ = transPER _ (renval·V ρ (idext (reflPER _ ∘ p) A) (idext (reflPER _ ∘ p) B)) (PERApp (renval-eval A p ρ) (renval-eval B p ρ))
+
+renval-eval (μ B) p ρ = cong μ (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-ext {*} ρ ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
+\end{code}
+
+
 Subsitution lemma
 \begin{code}
+Sub : Ctx⋆ → Ctx⋆ → Set
+Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
 
+subst-eval : ∀{Γ Δ Θ K}
+  (t : Θ ⊢⋆ K)
+  {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
+  (p : PEREnv η η')
+  (σ : Sub Θ Δ) →
+  PER K (eval (subst σ t) η) (eval t (λ x → eval (σ x) η'))
+subst-eval (` x) p σ = idext p (σ x)
+subst-eval (Π B) p σ = cong Π (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflect _ (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect _ (refl {x = ` Z}))) S) (symPER _ (renval-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
+subst-eval (A ⇒ B) p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
+subst-eval (ƛ B) p σ = λ ρ q → transPER _ (subst-eval B (PER,,⋆ (renPER ρ ∘ p) q) (exts σ)) (idext (λ { Z → reflPER _ (symPER _ q) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER ρ ∘ symPER _ ∘ p) (symPER _ q)) S) (symPER _ (renval-eval (σ x) (symPER _ ∘ p) ρ))}) B)
+subst-eval (A · B) p σ = PERApp (subst-eval A p σ) (subst-eval B p σ)
+subst-eval (μ B) p σ = cong μ (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflect * (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect * (refl {x = ` Z}))) S) (symPER _ (renval-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
 \end{code}
 
 
@@ -258,7 +340,7 @@ fund p (Π≡β q) = cong Π (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) 
 fund p (ƛ≡β q) = λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
 fund p (·≡β q r) = PERApp (fund p q) (fund p r)
 fund p (μ≡β q) = cong μ (fund (PER,,⋆ (renPER S ∘ p) (reflect * refl)) q)
-fund p β≡β = {!!}
+fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
 \end{code}
 
 \begin{code}
