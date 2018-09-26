@@ -1,0 +1,17 @@
+(program 1.0.0
+  (lam
+    ds_7
+    [(fix B_0 (lam a_1 (type) (all B_matchOut_2 (type) (fun (fun a_1 B_matchOut_2) (fun (fun [B_0 [[(lam a_4 (type) (lam b_5 (type) (all p_matchOut_6 (type) (fun (fun a_4 (fun b_5 p_matchOut_6)) p_matchOut_6)))) a_1] a_1]] B_matchOut_2) B_matchOut_2))))) [(con integer) (con 64)]]
+    [
+      [
+        { (unwrap ds_7) [(con integer) (con 64)] }
+        (lam a_8 [(con integer) (con 64)] a_8)
+      ]
+      (lam
+        ds_20
+        [(fix B_9 (lam a_10 (type) (all B_matchOut_11 (type) (fun (fun a_10 B_matchOut_11) (fun (fun [B_9 [[(lam a_13 (type) (lam b_14 (type) (all p_matchOut_15 (type) (fun (fun a_13 (fun b_14 p_matchOut_15)) p_matchOut_15)))) a_10] a_10]] B_matchOut_11) B_matchOut_11))))) [[(lam a_17 (type) (lam b_18 (type) (all p_matchOut_19 (type) (fun (fun a_17 (fun b_18 p_matchOut_19)) p_matchOut_19)))) [(con integer) (con 64)]] [(con integer) (con 64)]]]
+        (con 64 ! 2)
+      )
+    ]
+  )
+)

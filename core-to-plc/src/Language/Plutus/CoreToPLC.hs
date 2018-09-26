@@ -11,8 +11,8 @@ import           Language.Plutus.CoreToPLC.Builtins
 import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.Laziness
 import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
+import           Language.Plutus.CoreToPLC.Types
 
-import qualified Class                                    as GHC
 import qualified GhcPlugins                               as GHC
 import qualified Kind                                     as GHC
 import qualified MkId                                     as GHC
@@ -43,6 +43,8 @@ import qualified Data.Text.Encoding                       as TE
 
 import           Data.List                                (elemIndex)
 
+import           Debug.Trace
+
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
 
@@ -67,25 +69,6 @@ first.
 variable *last* (so it is on the outside, so will be first when applying).
 -}
 
--- Useful synonyms and functions
-
-type PLCExpr = PLC.Term PLC.TyName PLC.Name ()
-type PLCType = PLC.Type PLC.TyName ()
-
-type ConvError = WithContext T.Text (Error ())
-
-type PrimTerms = Map.Map GHC.Name (Quote PLCExpr)
-type PrimTypes = Map.Map GHC.Name (Quote PLCType)
-
-type ConvertingContext = (GHC.DynFlags, PrimTerms, PrimTypes, ScopeStack)
-
-data EvalState a = Done a | Blackhole
-type TypeDefs = Map.Map GHC.Name (EvalState ())
-type ConvertingState = TypeDefs
-
--- See Note [Scopes]
-type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)
-
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
@@ -94,28 +77,13 @@ bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 sdToTxt :: (MonadReader ConvertingContext m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do
-  (flags, _, _, _) <- ask
+  ConvertingContext { ccFlags=flags } <- ask
   pure $ T.pack $ GHC.showSDoc flags sd
 
 throwSd :: (MonadError ConvError m, MonadReader ConvertingContext m) => (T.Text -> Error ()) -> GHC.SDoc -> m a
 throwSd constr = (throwPlain . constr) <=< sdToTxt
 
 -- Names and scopes
-
-{- Note [Scopes]
-We need a notion of scope, because we have to make sure that if we convert a GHC
-Var into a variable, then we always convert it into the same variable, while also making
-sure that if we encounter multiple things with the same name we produce fresh variables
-appropriately.
-
-So we have the usual mechanism of carrying around a stack of scopes.
--}
-
-data Scope = Scope (Map.Map GHC.Name (PLC.Name ())) (Map.Map GHC.Name (PLC.TyName ()))
-type ScopeStack = NE.NonEmpty Scope
-
-initialScopeStack :: ScopeStack
-initialScopeStack = pure $ Scope Map.empty Map.empty
 
 lookupName :: Scope -> GHC.Name -> Maybe (PLC.Name ())
 lookupName (Scope ns _) n = Map.lookup n ns
@@ -128,20 +96,24 @@ support unicode identifiers as well.
 -}
 
 safeFreshName :: MonadQuote m => String -> m (PLC.Name ())
-safeFreshName s =
-    let
-        -- See Note [PLC names]
-        -- first strip out disallowed characters
-        stripped = filter (\c -> isLetter c || isDigit c || c == '_' || c == '`') s
-        -- now fix up some other bits
-        fixed = case stripped of
-          -- empty name, just put something to mark that
-          []      -> "bad_name"
-          -- can't start with these
-          ('`':_) -> "p" ++ stripped
-          ('_':_) -> "p" ++ stripped
-          n       -> n
-    in liftQuote $ freshName () $ strToBs fixed
+safeFreshName s
+    -- some special cases
+    | s == ":" = safeFreshName "cons"
+    | s == "[]" = safeFreshName "list"
+    | otherwise =
+          let
+              -- See Note [PLC names]
+              -- first strip out disallowed characters
+              stripped = filter (\c -> isLetter c || isDigit c || c == '_' || c == '`') s
+              -- now fix up some other bits
+              fixed = case stripped of
+                -- empty name, just put something to mark that
+                []      -> trace ("Bad name: " ++ s) "bad_name"
+                -- can't start with these
+                ('`':_) -> "p" ++ stripped
+                ('_':_) -> "p" ++ stripped
+                n       -> n
+          in liftQuote $ freshName () $ strToBs fixed
 
 convNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
 convNameFresh n = safeFreshName $ GHC.getOccString n
@@ -182,26 +154,11 @@ convKind k = withContextM (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ cas
     (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.KindArrow () <$> convKind i <*> convKind o
     _                                     -> throwSd UnsupportedError $ "Kind:" GHC.<+> GHC.ppr k
 
--- | Try to convert a type, using the given action to convert it, and throwing an error if we have recursive evaluation.
-tryConvType :: (Converting m) => GHC.Name -> m PLCType -> m PLCType
-tryConvType n act = do
-    tds <- get
-    case Map.lookup n tds of
-        Just Blackhole -> throwPlain $ ConversionError "Recursion while converting types"
-        -- Either already seen and done or not seen.
-        -- Ideally we would store the finished type, but we actually need to
-        -- store a version in Quote so we can recreate it safely in multiple
-        -- contexts, which is non-trivial
-        _ -> do
-            put (Map.insert n Blackhole tds)
-            converted <- act
-            put (Map.insert n (Done ()) tds)
-            pure converted
 
 convType :: Converting m => GHC.Type -> m PLCType
 convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
-    (_, _, _, stack) <- ask
+    ConvertingContext {ccScopes=stack} <- ask
     let top = NE.head stack
     case t of
         -- in scope type name
@@ -231,14 +188,16 @@ convTyConApp tc ts
         pure $ foldl' (\acc t -> PLC.TyApp () acc t) tc' args'
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
-convTyCon tc = tryConvType (GHC.getName tc) $ do
-    (_, _, prims, _) <- ask
+convTyCon tc = handleMaybeRecType (GHC.getName tc) $ do
+    ConvertingContext {ccPrimTypes=prims} <- ask
     -- could be a Plutus primitive type
     case Map.lookup (GHC.getName tc) prims of
         Just ty -> liftQuote ty
         Nothing -> do
             dcs <- getDataCons tc
             convDataCons tc dcs
+
+-- Newtypes
 
 -- | Wrapper for a pair of types with a direction of wrapping or unwrapping.
 data NewtypeCoercion = Wrap GHC.Type GHC.Type
@@ -250,6 +209,68 @@ splitNewtypeCoercion coerce = case GHC.coercionKind coerce of
     (GHC.Pair lhs@(GHC.splitTyConApp_maybe -> Just (GHC.unwrapNewTyCon_maybe -> Just (_, inner, _), _)) rhs) | GHC.eqType rhs inner -> Just $ Unwrap lhs rhs
     (GHC.Pair lhs rhs@(GHC.splitTyConApp_maybe -> Just (GHC.unwrapNewTyCon_maybe -> Just (_, inner, _), _))) | GHC.eqType lhs inner -> Just $ Wrap lhs rhs
     _ -> Nothing
+
+-- Recursive types
+
+-- | Try to convert a type, using the given action to convert it.
+handleMaybeRecType :: (Converting m) => GHC.Name -> m PLCType -> m PLCType
+handleMaybeRecType n act = do
+    tds <- gets csTypeDefs
+    case Map.lookup n tds of
+        Just (InProgress tyname) -> pure $ PLC.TyVar () tyname
+        -- Either already seen and done or not seen.
+        -- Ideally we would store the finished type, but we actually need to
+        -- store a version in Quote so we can recreate it safely in multiple
+        _ -> do
+            tyname <- convTyNameFresh n
+            modify $ \cs -> cs { csTypeDefs = Map.insert n (InProgress tyname) (csTypeDefs cs)}
+            converted <- act
+            modify $ \cs -> cs { csTypeDefs = Map.insert n Done (csTypeDefs cs)}
+            pure converted
+
+{- Note [Detecting recursive types in GHC]
+This seems to be surprisingly difficult, and as far as I can tell there is nothing built in to
+do this.
+
+We can handle the self-recursive case easily enough, since we just look for the very name of
+the type constructor we're converting.
+
+For mutually recursive types we'll need to do a SCC analysis on the type dependency graph. We
+can do this as we go, but we'll want to cache it. At the moment getting the information to
+do this out of GHC seems hard.
+-}
+
+isSelfRecursiveTyCon :: (Converting m) => GHC.TyCon -> m Bool
+isSelfRecursiveTyCon tc = do
+    -- See Note [Detecting recursive types in GHC]
+    dcs <- getDataCons tc
+    let usedTcs = GHC.unionManyUniqSets $ (\dc -> GHC.unionManyUniqSets $ GHC.tyConsOfType <$> GHC.dataConRepArgTys dc) <$> dcs
+    pure $ GHC.elementOfUniqSet tc usedTcs
+
+isSelfRecursiveType :: (Converting m) => GHC.Type -> m Bool
+isSelfRecursiveType t = case t of
+    -- the only way it can be *self* recursive is if it's type constructor
+    (GHC.splitTyConApp_maybe -> Just (tc, _)) -> isSelfRecursiveTyCon tc
+    _                                         -> pure False
+
+-- | Split out a recursive type (constructed by us) into its pattern functor and the name of the variable.
+-- This is a bit of a hack, since it relies on us knowing that the structure will be some number of applications
+-- surrounding a fix.
+splitPatternFunctor :: PLC.Type PLC.TyName () -> Maybe (PLC.Type PLC.TyName(), PLC.TyName ())
+splitPatternFunctor ty =
+    let
+        (ty', tas) = stripTyApps ty
+    in do
+    (noFix, fixVar) <- case ty' of
+        PLC.TyFix _ fixVar inner -> Just (inner, fixVar)
+        _                        -> Nothing
+    let withApps = foldl' (\acc arg -> PLC.TyApp () acc arg) noFix tas
+    pure (withApps, fixVar)
+
+stripTyApps :: PLC.Type PLC.TyName () -> (PLC.Type PLC.TyName(), [PLC.Type PLC.TyName ()])
+stripTyApps = \case
+    PLC.TyApp _ ty1 ty2 -> let (ty', tas) = stripTyApps ty1 in (ty', ty2:tas)
+    x -> (x, [])
 
 -- Data
 
@@ -327,14 +348,22 @@ getDataCons tc
         GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
     | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
--- This is the creation of the Scott-encoded datatype type. See Note [Scott encoding of datatypes]
+-- This is the creation of the Scott-encoded datatype type.
+-- See Note [Scott encoding of datatypes]
 convDataCons :: forall m. Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCType
-convDataCons tc dcs =
-    -- \tv_1 .. tv_k . body
-    flip (foldr (\tv acc -> mkTyLam tv acc)) (GHC.tyConTyVars tc) $ do
+convDataCons tc dcs = do
+    abstracted <- flip (foldr (\tv acc -> mkTyLam tv acc)) (GHC.tyConTyVars tc) $ do
         resultType <- safeFreshTyName $ (GHC.getOccString $ GHC.getName tc) ++ "_matchOut"
         cases <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
         pure $ mkScottTyBody resultType cases
+
+    tds <- gets csTypeDefs
+    isSelfRecursive <- isSelfRecursiveTyCon tc
+    if isSelfRecursive
+    then case Map.lookup (GHC.getName tc) tds of
+        Just (InProgress tyname) -> pure $ PLC.TyFix () tyname abstracted
+        _                        -> throwPlain $ ConversionError "Could not find var to fix over"
+    else pure abstracted
 
 mkScottTyBody :: PLC.TyName () -> [PLCType] -> PLCType
 mkScottTyBody resultTypeName cases =
@@ -363,12 +392,13 @@ convConstructor :: Converting m => GHC.DataCon -> m PLCExpr
 convConstructor dc =
     let
         tc = GHC.dataConTyCon dc
+        tcTyVars = GHC.tyConTyVars tc
         tcName = GHC.getOccString $ GHC.getName tc
         dcName = GHC.getOccString $ GHC.getName dc
     in
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- /\ tv_1 .. tv_n . body
-        flip (foldr (\tv acc -> mkTyAbs tv acc)) (GHC.tyConTyVars tc) $ do
+        flip (foldr (\tv acc -> mkTyAbs tv acc)) tcTyVars $ do
             -- See Note [Scott encoding of datatypes]
             resultType <- safeFreshTyName $ tcName ++ "_matchOut"
             dcs <- getDataCons tc
@@ -379,10 +409,27 @@ convConstructor dc =
             caseArgNames <- mapM (convNameFresh . GHC.getName) dcs
             argTypes <- mapM convType $ GHC.dataConRepArgTys dc
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ dcName ++ "_arg" ++ show i)
-            pure $ mkScottConstructorBody resultType (zip caseArgNames caseTypes) (zip argNames argTypes) index
 
-mkScottConstructorBody :: PLC.TyName () -> [(PLC.Name (), PLCType)] -> [(PLC.Name (), PLCType)] -> Int -> PLCExpr
-mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
+            isSelfRecursive <- isSelfRecursiveTyCon tc
+            maybePf <- if isSelfRecursive
+                       then do
+                           tc' <- convTyCon tc
+                           case splitPatternFunctor tc' of
+                                Just (pf, n) -> pure $ Just (pf, n)
+                                Nothing -> throwPlain $ ConversionError "Could not compute pattern functor for recursive type"
+                       else pure Nothing
+
+            let scottBody = mkScottConstructorBody resultType (zip caseArgNames caseTypes) (zip argNames argTypes) index maybePf
+            pure scottBody
+
+mkScottConstructorBody
+    :: PLC.TyName () -- ^ Name of the result type
+    -> [(PLC.Name (), PLCType)] -- ^ Names of the case arguments and their types
+    -> [(PLC.Name (), PLCType)] -- ^ Names of the constructor arguments and their types
+    -> Int -- ^ Index of this constructor in the list of constructors
+    -> Maybe (PLCType, PLC.TyName ()) -- ^ A pattern functor and bound type name if this is constructing a recursive type
+    -> PLCExpr
+mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index maybePf =
     let
         -- data types are always in kind Type
         resultKind = PLC.Type ()
@@ -395,8 +442,12 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index =
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall r . cfuncs
         resAbstracted = PLC.TyAbs () resultTypeName resultKind cfuncs
-        -- \a_1 .. a_m . abstracted
-        afuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) resAbstracted argNamesAndTypes
+        -- wrap resAbstracted
+        fixed = case maybePf of
+            Just (pf, n) -> PLC.Wrap () n pf resAbstracted
+            Nothing      -> resAbstracted
+        -- \a_1 .. a_m . fixed
+        afuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) fixed argNamesAndTypes
     in afuncs
 
 convAlt :: Converting m => Bool -> GHC.DataCon -> GHC.CoreAlt -> m PLCExpr
@@ -615,7 +666,7 @@ mkLambda :: Converting m => GHC.Var -> m PLCExpr -> m PLCExpr
 mkLambda v body = do
     let ghcName = GHC.getName v
     (t', n') <- convVarFresh v
-    body' <- local (second $ pushName ghcName n') body
+    body' <- local (\c -> c {ccScopes=pushName ghcName n' (ccScopes c)}) body
     pure $ PLC.LamAbs () n' t' body'
 
 -- | Builds a type abstraction, binding the given variable to a name that
@@ -624,8 +675,10 @@ mkTyAbs :: Converting m => GHC.Var -> m PLCExpr -> m PLCExpr
 mkTyAbs v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
-    body' <- local (second $ pushTyName ghcName t') body
-    unless (PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
+    ConvertingContext {ccOpts=opts} <- ask
+    -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
+    unless (not (coCheckValueRestriction opts) || PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
 
 -- | Builds a forall, binding the given variable to a name that
@@ -634,7 +687,7 @@ mkTyForall :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyForall v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
-    body' <- local (second $ pushTyName ghcName t') body
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyForall () t' k' body'
 
 -- | Builds a type lambda, binding the given variable to a name that
@@ -643,7 +696,7 @@ mkTyLam :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyLam v body = do
     let ghcName = GHC.getName v
     (k', t') <- convTyVarFresh v
-    body' <- local (second $ pushTyName ghcName t') body
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyLam () t' k' body'
 
 
@@ -669,7 +722,7 @@ mkTupleConstructor argTys = do
     caseName <- safeFreshName "c"
     let caseNamesAndTypes = [(caseName, foldr (\v acc -> PLC.TyFun () v acc) (PLC.TyVar () resultType) argTys)]
     argNames <- forM [0..(length argTys -1)] (\i -> safeFreshName $ "tuple_arg" ++ show i)
-    pure $ mkScottConstructorBody resultType caseNamesAndTypes (zip argNames argTys) 0
+    pure $ mkScottConstructorBody resultType caseNamesAndTypes (zip argNames argTys) 0 Nothing
 
 -- Functions
 
@@ -737,7 +790,7 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 convExpr :: Converting m => GHC.CoreExpr -> m PLCExpr
 convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    (_, prims, _, stack) <- ask
+    ConvertingContext {ccPrimTerms=prims, ccScopes=stack} <- ask
     let top = NE.head stack
     case e of
         -- See Note [Literals]
@@ -820,10 +873,15 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             isValueAlt <- mapM (\(_, vars, body) -> if null vars then PLC.isTermValue <$> convExpr body else pure True) alts
             let lazyCase = not $ and isValueAlt
 
-            dcs <- getDataCons tc
+            scrutinee' <- convExpr scrutinee
+            -- unwrap the fixpoint if necessary
+            isSelfRecursive <- isSelfRecursiveType scrutineeType
+            let unwrapped = if isSelfRecursive then PLC.Unwrap () scrutinee' else scrutinee'
             -- See Note [Scott encoding of datatypes]
-            -- If we're going to delay the body, the scrutinee needs to be instantiated the delayed type
-            instantiated <- PLC.TyInst () <$> convExpr scrutinee <*> (convType t >>= maybeDelayType lazyCase)
+            -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
+            instantiated <- PLC.TyInst () unwrapped <$> (convType t >>= maybeDelayType lazyCase)
+
+            dcs <- getDataCons tc
             branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
                 Just alt -> convAlt lazyCase dc alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"

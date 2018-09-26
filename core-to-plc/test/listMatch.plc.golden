@@ -1,0 +1,20 @@
+(program 1.0.0
+  (lam
+    ds_3
+    [(fix list_0 (lam a_1 (type) (all p_matchOut_2 (type) (fun p_matchOut_2 (fun (fun a_1 (fun [list_0 a_1] p_matchOut_2)) p_matchOut_2))))) [(con integer) (con 64)]]
+    [
+      [
+        { (unwrap ds_3) [(con integer) (con 64)] } (con 64 ! 0)
+      ]
+      (lam
+        x_4
+        [(con integer) (con 64)]
+        (lam
+          ds_8
+          [(fix list_5 (lam a_6 (type) (all p_matchOut_7 (type) (fun p_matchOut_7 (fun (fun a_6 (fun [list_5 a_6] p_matchOut_7)) p_matchOut_7))))) [(con integer) (con 64)]]
+          x_4
+        )
+      )
+    ]
+  )
+)
