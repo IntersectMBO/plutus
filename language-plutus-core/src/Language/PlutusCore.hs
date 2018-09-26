@@ -72,6 +72,8 @@ module Language.PlutusCore
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
+    , typecheckPipeline
+    , defaultTypecheckerGas
     -- * Serialization
     , encodeProgram
     , decodeProgram
@@ -153,10 +155,13 @@ parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ run
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
-parseTypecheck gas bs = do
-    parsed <- parseProgram bs
-    checkProgram parsed
-    annotated <- annotateProgram parsed
+parseTypecheck gas = typecheckPipeline gas <=< parseProgram
+
+-- | Typecheck a program.
+typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
+typecheckPipeline gas program = do
+    checkProgram program
+    annotated <- annotateProgram program
     typecheckProgram gas annotated
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
@@ -168,6 +173,10 @@ format cfg = fmap (render . prettyCfg cfg) . parseScoped
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: a -> Version a
 defaultVersion a = Version a 1 0 0
+
+-- | The default amount of gas to run the typechecker with.
+defaultTypecheckerGas :: Natural
+defaultTypecheckerGas = 1000
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
