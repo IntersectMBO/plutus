@@ -15685,6 +15685,7 @@ testHaskellDepends = [
 base
 bytestring
 language-plutus-core
+mtl
 tasty
 tasty-golden
 tasty-hunit
