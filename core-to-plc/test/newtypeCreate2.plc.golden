@@ -1,0 +1,7 @@
+(program 1.0.0
+  (abs
+    match_out_0
+    (type)
+    (lam c_1 (fun [(con integer) (con 64)] match_out_0) [ c_1 (con 64 ! 1) ])
+  )
+)
