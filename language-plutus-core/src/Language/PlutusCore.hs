@@ -66,6 +66,7 @@ module Language.PlutusCore
     , typecheckTerm
     , kindCheck
     , fileType
+    , fileNormalizeType
     , fileTypeCfg
     , printType
     , printNormalizeType
@@ -133,7 +134,10 @@ import           PlutusPrelude
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
+fileType = fileNormalizeType False
+
+fileNormalizeType :: Bool -> FilePath -> IO T.Text
+fileNormalizeType norm = fmap (either prettyCfgText id . printNormalizeType norm) . BSL.readFile
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
@@ -146,7 +150,7 @@ checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType = printNormalizeType True
+printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
