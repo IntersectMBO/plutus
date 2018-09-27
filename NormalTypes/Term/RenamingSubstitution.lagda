@@ -6,7 +6,7 @@ module NormalTypes.Term.RenamingSubstitution where
 
 \begin{code}
 open import Function using (id; _∘_)
-open import Relation.Binary.HeterogeneousEquality
+open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq; [_] to [_]≅)
 
 open import Type
@@ -45,7 +45,7 @@ ext⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ∋ renameNf (⋆.ext ρ⋆) A )
 ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (≡-to-≅ (renameNf-comp ρ⋆ S _))) (≡-to-≅ (renameNf-comp S (⋆.ext ρ⋆) _)))
+          (trans (sym (renameNf-comp ρ⋆ S _)) (renameNf-comp S (⋆.ext ρ⋆) _))
           (T (ρ x))
 \end{code}
 
@@ -62,15 +62,15 @@ rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
-          {!!} -- (sym (rename[]Nf ρ⋆ A B))
+          (sym (rename[]Nf ρ⋆ B A))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
   wrap (substEq (Δ ⊢_)
-                {!!} -- (rename[]Nf ρ⋆ (μ B) B)
+                (rename[]Nf ρ⋆ B (μ B))
                 (rename ρ⋆ ρ M))
 rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B} M) =
   substEq (Δ ⊢_)
-          {!!} -- (sym (rename[]Nf ρ⋆ (μ B) B))
+          (sym (rename[]Nf ρ⋆ B (μ B)))
           (unwrap (rename ρ⋆ ρ M))
 
 \end{code}
@@ -82,9 +82,9 @@ weaken : ∀ {Φ J}{A : ∥ Φ ∥ ⊢Nf⋆ J}{K}{B : ∥ Φ ∥ ⊢Nf⋆ K}
   → Φ , B ⊢ A
 weaken {Φ}{J}{A}{K}{B} x = 
   substEq (λ x → Φ , B ⊢ x)
-          (≡-to-≅ (renameNf-id A))
+          (renameNf-id A)
           (rename id
-                  (λ x → substEq (λ A → Φ , B ∋ A) (sym (≡-to-≅ (renameNf-id _))) (S x))
+                  (λ x → substEq (λ A → Φ , B ∋ A) (sym (renameNf-id _)) (S x))
                   x)
 \end{code}
 

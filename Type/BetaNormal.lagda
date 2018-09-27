@@ -201,5 +201,13 @@ postulate
   → ∀ {J}
   → (n : Φ ⊢Nf⋆ J)
   → embNf (renameNf ρ n) ≡ rename ρ (embNf n)
-  
+
+postulate
+ rename-embNeN : ∀ {Φ Ψ}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+    ----------------------------
+  → ∀ {J}
+  → (n : Φ ⊢NeN⋆ J)
+  → embNeN (renameNeN ρ n) ≡ rename ρ (embNeN n)
+
 \end{code}
