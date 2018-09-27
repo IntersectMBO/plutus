@@ -314,7 +314,6 @@ idext p (μ  B)   = cong μ (idext (PER,,⋆ (renPER S ∘ p) refl) B)
 
 Renaming lemma
 \begin{code}
-{-
 rename-eval : ∀{Γ Δ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
@@ -330,11 +329,19 @@ rename-eval (Π B) p ρ =
        (idext (λ{ Z     → reflect _ refl
                 ; (S x) → (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (ρ x)}) B))
 rename-eval (A ⇒ B) p ρ = cong₂ _⇒_ (rename-eval A p ρ) (rename-eval B p ρ) 
-rename-eval (ƛ B) p ρ = λ ρ' p' →
-  transPER _
-           (rename-eval B (PER,,⋆ (renPER ρ' ∘ p) p') (ext ρ))
-           (idext (λ{ Z    → reflPER _ (symPER _ p')
-                    ; (S x) → renPER ρ' ((reflPER _ ∘ symPER _ ∘ p) (ρ x))}) B)
+rename-eval (ƛ B) p ρ =
+  (λ ρ' ρ'' v v' q → transPER _
+                       (renval-eval (rename (ext ρ) B)
+                        (PER,,⋆ (renPER ρ' ∘ reflPER _ ∘ p) q) ρ'')
+                       (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q))
+                                 ; (S x) → symPER _ (renval-comp ρ' ρ'' (reflPER _ (p x)))}) (rename (ext ρ) B)))
+  ,
+  (λ ρ' ρ'' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ' ∘ reflPER _ ∘ symPER _ ∘ p ∘ ρ) q) ρ'')
+                                (idext (λ { Z →  renPER ρ'' (reflPER _ (symPER _ q))
+                                          ; (S x) → symPER _ (renval-comp ρ' ρ'' (reflPER _ (symPER _ (p (ρ x)))))}) B))
+  ,
+  λ ρ' q → transPER _ (rename-eval B (PER,,⋆ (renPER ρ' ∘ p) q) (ext ρ))
+                      (idext (λ { Z → reflPER _ (symPER _ q) ; (S x) → renPER ρ' (reflPER _ (symPER _ (p (ρ x)))) }) B)
 rename-eval (A · B) p ρ = PERApp (rename-eval A p ρ) (rename-eval B p ρ)
 rename-eval (μ B) p ρ =
   cong μ
@@ -344,18 +351,13 @@ rename-eval (μ B) p ρ =
               (idext (λ{ Z     → reflect * refl
                        ; (S x) → (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (ρ x)})
                      B))
-\end{code}
-
-The other renaming lemma...
-\begin{code}
-
-
+                     
 \end{code}
 
 
 Subsitution lemma
 \begin{code}
-
+{-
 Sub : Ctx⋆ → Ctx⋆ → Set
 Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
 
