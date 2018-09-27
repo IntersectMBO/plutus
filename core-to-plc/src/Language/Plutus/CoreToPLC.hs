@@ -194,6 +194,8 @@ convTyCon tc = handleMaybeRecType (GHC.getName tc) $ do
     case Map.lookup (GHC.getName tc) prims of
         Just ty -> liftQuote ty
         Nothing -> do
+            -- See note [Spec booleans and Haskell booleans]
+            -- we don't have to do anything here because it's symmetrical, but morally we should
             dcs <- getDataCons tc
             convDataCons tc dcs
 
@@ -402,11 +404,13 @@ convConstructor dc =
             -- See Note [Scott encoding of datatypes]
             resultType <- safeFreshTyName $ tcName ++ "_matchOut"
             dcs <- getDataCons tc
-            index <- case elemIndex dc dcs of
+            -- See Note [Spec booleans and Haskell booleans]
+            let maybeSwapped = if tc == GHC.boolTyCon then reverse dcs else dcs
+            index <- case elemIndex dc maybeSwapped of
                 Just i  -> pure i
                 Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
-            caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
-            caseArgNames <- mapM (convNameFresh . GHC.getName) dcs
+            caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) maybeSwapped
+            caseArgNames <- mapM (convNameFresh . GHC.getName) maybeSwapped
             argTypes <- mapM convType $ GHC.dataConRepArgTys dc
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ dcName ++ "_arg" ++ show i)
 
@@ -502,41 +506,41 @@ isPrimitiveDataCon dc = dc == GHC.intDataCon
 -- These never seem to come up, rather we get the typeclass operations. Not sure if we need them.
 convPrimitiveOp :: (Converting m) => GHC.PrimOp -> m PLCExpr
 convPrimitiveOp = \case
-    GHC.IntAddOp  -> mkIntFun PLC.AddInteger
-    GHC.IntSubOp  -> mkIntFun PLC.SubtractInteger
-    GHC.IntMulOp  -> mkIntFun PLC.MultiplyInteger
+    GHC.IntAddOp  -> pure $ mkIntFun PLC.AddInteger
+    GHC.IntSubOp  -> pure $ mkIntFun PLC.SubtractInteger
+    GHC.IntMulOp  -> pure $ mkIntFun PLC.MultiplyInteger
     -- check this one
-    GHC.IntQuotOp -> mkIntFun PLC.DivideInteger
-    GHC.IntRemOp  -> mkIntFun PLC.RemainderInteger
-    GHC.IntGtOp   -> mkIntRel PLC.GreaterThanInteger
-    GHC.IntGeOp   -> mkIntRel PLC.GreaterThanEqInteger
-    GHC.IntLtOp   -> mkIntRel PLC.LessThanInteger
-    GHC.IntLeOp   -> mkIntRel PLC.LessThanEqInteger
-    GHC.IntEqOp   -> mkIntRel PLC.EqInteger
+    GHC.IntQuotOp -> pure $ mkIntFun PLC.DivideInteger
+    GHC.IntRemOp  -> pure $ mkIntFun PLC.RemainderInteger
+    GHC.IntGtOp   -> pure $ mkIntRel PLC.GreaterThanInteger
+    GHC.IntGeOp   -> pure $ mkIntRel PLC.GreaterThanEqInteger
+    GHC.IntLtOp   -> pure $ mkIntRel PLC.LessThanInteger
+    GHC.IntLeOp   -> pure $ mkIntRel PLC.LessThanEqInteger
+    GHC.IntEqOp   -> pure $ mkIntRel PLC.EqInteger
     po            -> throwSd UnsupportedError $ "Primitive operation:" GHC.<+> GHC.ppr po
 
 -- Typeclasses
 
 convEqMethod :: (Converting m) => GHC.Name -> m PLCExpr
 convEqMethod name
-    | name == GHC.eqName = mkIntRel PLC.EqInteger
+    | name == GHC.eqName = pure $ mkIntRel PLC.EqInteger
     | otherwise = throwSd UnsupportedError $ "Eq method:" GHC.<+> GHC.ppr name
 
 convOrdMethod :: (Converting m) => GHC.Name -> m PLCExpr
 convOrdMethod name
     -- only this one has a name defined in the lib??
-    | name == GHC.geName = mkIntRel PLC.GreaterThanEqInteger
-    | GHC.getOccString name == ">" = mkIntRel PLC.GreaterThanInteger
-    | GHC.getOccString name == "<=" = mkIntRel PLC.LessThanEqInteger
-    | GHC.getOccString name == "<" = mkIntRel PLC.LessThanInteger
+    | name == GHC.geName = pure $ mkIntRel PLC.GreaterThanEqInteger
+    | GHC.getOccString name == ">" = pure $ mkIntRel PLC.GreaterThanInteger
+    | GHC.getOccString name == "<=" = pure $ mkIntRel PLC.LessThanEqInteger
+    | GHC.getOccString name == "<" = pure $ mkIntRel PLC.LessThanInteger
     | otherwise = throwSd UnsupportedError $ "Ord method:" GHC.<+> GHC.ppr name
 
 convNumMethod :: (Converting m) => GHC.Name -> m PLCExpr
 convNumMethod name
     -- only this one has a name defined in the lib??
-    | name == GHC.minusName = mkIntFun PLC.SubtractInteger
-    | GHC.getOccString name == "+" = mkIntFun PLC.AddInteger
-    | GHC.getOccString name == "*" = mkIntFun PLC.MultiplyInteger
+    | name == GHC.minusName = pure $ mkIntFun PLC.SubtractInteger
+    | GHC.getOccString name == "+" = pure $ mkIntFun PLC.AddInteger
+    | GHC.getOccString name == "*" = pure $ mkIntFun PLC.MultiplyInteger
     | otherwise = throwSd UnsupportedError $ "Num method:" GHC.<+> GHC.ppr name
 
 -- Plutus primitives
@@ -557,7 +561,7 @@ primitiveTermAssociations = [
     , ('Prims.sha2_256, pure $ instSize haskellBSSize $ mkConstant PLC.SHA2)
     , ('Prims.sha3_256, pure $ instSize haskellBSSize $ mkConstant PLC.SHA3)
     , ('Prims.verifySignature, pure $ instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PLC.VerifySignature)
-    , ('Prims.equalsByteString, mkBsRel PLC.EqByteString)
+    , ('Prims.equalsByteString, pure $ mkBsRel PLC.EqByteString)
     , ('Prims.txhash, pure $ mkConstant PLC.TxHash)
     , ('Prims.blocknum, pure $ instSize haskellIntSize $ mkConstant PLC.BlockNum)
     -- we're representing error at the haskell level as a polymorphic function, so do the same here
@@ -785,6 +789,22 @@ into this (with a lot of noise due to our let-bindings becoming lambdas):
 )
 -}
 
+{- Note [Spec booleans and Haskell booleans]
+Haskell's Bool has its constructors ordered with False before True, which results in the
+normal case expression having the oppposite sense to the one in the spec, where
+the true branch comes first (which is more logical).
+
+Our options are:
+- Reverse the branches in the spec.
+    - This is ugly, the plugin details shouldn't influence the spec.
+- Rewrite the primitive functions that produce booleans to produce spec booleans.
+    - This is pretty bad codegen.
+- Special case Bool to swap the order of the cases.
+
+We take the least bad option, option 3.
+-}
+
+
 -- The main function
 
 convExpr :: Converting m => GHC.CoreExpr -> m PLCExpr
@@ -882,9 +902,13 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             instantiated <- PLC.TyInst () unwrapped <$> (convType t >>= maybeDelayType lazyCase)
 
             dcs <- getDataCons tc
-            branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
+            -- See Note [Spec booleans and Haskell booleans]
+            let maybeSwapped = if tc == GHC.boolTyCon then reverse dcs else dcs
+
+            branches <- forM maybeSwapped $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
                 Just alt -> convAlt lazyCase dc alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
+
             -- See Note [Iterated abstraction and application]
             let applied = foldl' (\acc alt -> PLC.Apply () acc alt) instantiated branches
             -- See Note [Case expressions and laziness]

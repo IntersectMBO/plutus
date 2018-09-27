@@ -79,6 +79,8 @@ primitives = testGroup "Primitive types and operations" [
   , golden "int" int
   , golden "int2" int
   , golden "bool" bool
+  , golden "and" andPlc
+  , goldenEvalApp "andApply" [ andPlc, plc True, plc False ]
   , golden "tuple" tuple
   , golden "tupleMatch" tupleMatch
   , goldenEvalApp "tupleConstDest" [ tupleMatch, tuple ]
@@ -107,6 +109,9 @@ int2 = plc (2::Int)
 
 bool :: PlcCode
 bool = plc True
+
+andPlc :: PlcCode
+andPlc = plc (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)
 
 tuple :: PlcCode
 tuple = plc ((1::Int), (2::Int))

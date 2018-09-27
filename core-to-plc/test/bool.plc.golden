@@ -2,6 +2,6 @@
   (abs
     Bool_matchOut_0
     (type)
-    (lam False_1 Bool_matchOut_0 (lam True_2 Bool_matchOut_0 True_2))
+    (lam True_1 Bool_matchOut_0 (lam False_2 Bool_matchOut_0 True_1))
   )
 )

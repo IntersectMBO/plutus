@@ -2,6 +2,6 @@
   (lam
     ds_2
     (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
-    [ [ { ds_2 [(con integer) (con 64)] } (con 64 ! 2) ] (con 64 ! 1) ]
+    [ [ { ds_2 [(con integer) (con 64)] } (con 64 ! 1) ] (con 64 ! 2) ]
   )
 )
