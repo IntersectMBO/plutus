@@ -357,7 +357,6 @@ rename-eval (μ B) p ρ =
 
 Subsitution lemma
 \begin{code}
-{-
 Sub : Ctx⋆ → Ctx⋆ → Set
 Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
 
@@ -370,7 +369,27 @@ subst-eval : ∀{Γ Δ Θ K}
 subst-eval (` x) p σ = idext p (σ x)
 subst-eval (Π B) p σ = cong Π (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflect _ (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect _ (refl {x = ` Z}))) S) (symPER _ (renval-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
 subst-eval (A ⇒ B) p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (ƛ B) p σ = λ ρ q → transPER _ (subst-eval B (PER,,⋆ (renPER ρ ∘ p) q) (exts σ)) (idext (λ { Z → reflPER _ (symPER _ q) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER ρ ∘ symPER _ ∘ p) (symPER _ q)) S) (symPER _ (renval-eval (σ x) (symPER _ ∘ p) ρ))}) B)
+subst-eval (ƛ B) p σ =
+  (λ ρ ρ' v v' q → transPER _
+                     (renval-eval (subst (exts σ) B)
+                      (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) q) ρ')
+                     (idext (λ { Z    → renPER ρ' (reflPER _ (symPER _ q))
+                               ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (p x)))})
+                            (subst (exts σ) B)))
+  ,
+  (λ ρ ρ' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ ∘ idext (reflPER _ ∘ symPER _ ∘ p) ∘ σ) q) ρ')
+     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ q))
+               ; (S x) → symPER _ (renval-comp ρ ρ' (idext (reflPER _ ∘ symPER _ ∘ p) (σ x)))}) B))
+  ,
+  λ ρ q → transPER _ (subst-eval B (PER,,⋆ (renPER ρ ∘ p) q) (exts σ))
+    (idext (λ { Z → reflPER _ (symPER _ q)
+              ; (S x) → transPER _
+                          (rename-eval (σ x)
+                           (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p)
+                            (reflPER _ (symPER _ q)))
+                           S)
+                          (symPER _ (renval-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) ρ))})
+           B)
 subst-eval (A · B) p σ = PERApp (subst-eval A p σ) (subst-eval B p σ)
 subst-eval (μ B) p σ = cong μ (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflect * (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect * (refl {x = ` Z}))) S) (symPER _ (renval-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
 \end{code}
@@ -387,11 +406,11 @@ fund p (trans≡β q r) = transPER _ (fund (reflPER _ ∘ p) q) (fund p r)
 fund p `≡β = p _
 fund p (⇒≡β q r) = cong₂ _⇒_ (fund p q) (fund p r)
 fund p (Π≡β q) = cong Π (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) q)
-fund p (ƛ≡β q) = λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
+fund p (ƛ≡β q) = ? -- λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
 fund p (·≡β q r) = PERApp (fund p q) (fund p r)
 fund p (μ≡β q) = cong μ (fund (PER,,⋆ (renPER S ∘ p) (reflect * refl)) q)
 fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
--}
+
 \end{code}
 
 \begin{code}
