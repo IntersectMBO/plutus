@@ -7,6 +7,8 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinSucc
     , getBuiltinFoldrNat
     , getBuiltinFoldNat
+    , getBuiltinIntegerToNat
+    , getBuiltinNatToInteger
     ) where
 
 import           Language.PlutusCore.MkPlc
@@ -129,3 +131,23 @@ getBuiltinFoldNat = do
         . Apply () (Var () rec)
         . Apply () (Var () f)
         $ Var () z
+
+-- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
+getBuiltinIntegerToNat :: Integer -> Quote (Term TyName Name ())
+getBuiltinIntegerToNat n
+    | n < 0     = error $ "getBuiltinIntegerToNat: negative argument: " ++ show n
+    | otherwise = go n where
+          go 0 = getBuiltinZero
+          go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
+
+-- | Convert a @nat@ to an 'Integer'. TODO: this should be just @Quote (Term TyName Name ())@.
+getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Quote (Term TyName Name ())
+getBuiltinNatToInteger s n = do
+    builtinFoldNat <- getBuiltinFoldNat
+    let int = Constant () . BuiltinInt () s
+    return
+        . foldl' (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
+        $ [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+          , int 0
+          , n
+          ]

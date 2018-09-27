@@ -1,0 +1,169 @@
+(wrap
+  list_99
+  [(lam a_98 (type) (all r_100 (type) (fun r_100 (fun (fun a_98 (fun list_99 r_100)) r_100)))) a_101]
+  (abs
+    r_104
+    (type)
+    (lam
+      z_105
+      r_104
+      (lam
+        f_106
+        (fun a_101 (fun [(lam a_98 (type) (fix list_99 (all r_100 (type) (fun r_100 (fun (fun a_98 (fun list_99 r_100)) r_100))))) a_101] r_104))
+        [
+          [
+            f_106
+            (wrap
+              nat_210
+              (all r_211 (type) (fun r_211 (fun (fun nat_210 r_211) r_211)))
+              (abs
+                r_213
+                (type)
+                (lam
+                  z_214
+                  r_213
+                  (lam
+                    f_215
+                    (fun (fix nat_210 (all r_211 (type) (fun r_211 (fun (fun nat_210 r_211) r_211)))) r_213)
+                    [
+                      f_215
+                      (wrap
+                        nat_216
+                        (all r_217 (type) (fun r_217 (fun (fun nat_216 r_217) r_217)))
+                        (abs
+                          r_218
+                          (type)
+                          (lam
+                            z_219
+                            r_218
+                            (lam
+                              f_220
+                              (fun (fix nat_216 (all r_217 (type) (fun r_217 (fun (fun nat_216 r_217) r_217)))) r_218)
+                              z_219
+                            )
+                          )
+                        )
+                      )
+                    ]
+                  )
+                )
+              )
+            )
+          ]
+          (wrap
+            list_99
+            [(lam a_98 (type) (all r_100 (type) (fun r_100 (fun (fun a_98 (fun list_99 r_100)) r_100)))) a_101]
+            (abs
+              r_104
+              (type)
+              (lam
+                z_105
+                r_104
+                (lam
+                  f_106
+                  (fun a_101 (fun [(lam a_98 (type) (fix list_99 (all r_100 (type) (fun r_100 (fun (fun a_98 (fun list_99 r_100)) r_100))))) a_101] r_104))
+                  [
+                    [
+                      f_106
+                      (wrap
+                        nat_238
+                        (all r_239 (type) (fun r_239 (fun (fun nat_238 r_239) r_239)))
+                        (abs
+                          r_241
+                          (type)
+                          (lam
+                            z_242
+                            r_241
+                            (lam
+                              f_243
+                              (fun (fix nat_238 (all r_239 (type) (fun r_239 (fun (fun nat_238 r_239) r_239)))) r_241)
+                              [
+                                f_243
+                                (wrap
+                                  nat_244
+                                  (all r_245 (type) (fun r_245 (fun (fun nat_244 r_245) r_245)))
+                                  (abs
+                                    r_247
+                                    (type)
+                                    (lam
+                                      z_248
+                                      r_247
+                                      (lam
+                                        f_249
+                                        (fun (fix nat_244 (all r_245 (type) (fun r_245 (fun (fun nat_244 r_245) r_245)))) r_247)
+                                        [
+                                          f_249
+                                          (wrap
+                                            nat_250
+                                            (all r_251 (type) (fun r_251 (fun (fun nat_250 r_251) r_251)))
+                                            (abs
+                                              r_253
+                                              (type)
+                                              (lam
+                                                z_254
+                                                r_253
+                                                (lam
+                                                  f_255
+                                                  (fun (fix nat_250 (all r_251 (type) (fun r_251 (fun (fun nat_250 r_251) r_251)))) r_253)
+                                                  [
+                                                    f_255
+                                                    (wrap
+                                                      nat_256
+                                                      (all r_257 (type) (fun r_257 (fun (fun nat_256 r_257) r_257)))
+                                                      (abs
+                                                        r_258
+                                                        (type)
+                                                        (lam
+                                                          z_259
+                                                          r_258
+                                                          (lam
+                                                            f_260
+                                                            (fun (fix nat_256 (all r_257 (type) (fun r_257 (fun (fun nat_256 r_257) r_257)))) r_258)
+                                                            z_259
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  ]
+                                                )
+                                              )
+                                            )
+                                          )
+                                        ]
+                                      )
+                                    )
+                                  )
+                                )
+                              ]
+                            )
+                          )
+                        )
+                      )
+                    ]
+                    (wrap
+                      list_150
+                      [(lam a_149 (type) (all r_151 (type) (fun r_151 (fun (fun a_149 (fun list_150 r_151)) r_151)))) a_152]
+                      (abs
+                        r_153
+                        (type)
+                        (lam
+                          z_154
+                          r_153
+                          (lam
+                            f_155
+                            (fun a_152 (fun [(lam a_149 (type) (fix list_150 (all r_151 (type) (fun r_151 (fun (fun a_149 (fun list_150 r_151)) r_151))))) a_152] r_153))
+                            z_154
+                          )
+                        )
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+          )
+        ]
+      )
+    )
+  )
+)

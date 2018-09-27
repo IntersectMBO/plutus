@@ -8,6 +8,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinFoldrList
     , getBuiltinFoldList
     , getBuiltinSum
+    , getListToBuiltinList
     ) where
 
 import           Language.PlutusCore.MkPlc
@@ -175,3 +176,13 @@ getBuiltinSum s = do
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
           , Constant () $ BuiltinInt () s 0
           ]
+
+-- | Convert a Haskell list of 'Term's to a PLC @list@.
+getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Quote (Term TyName Name ())
+getListToBuiltinList ty ts = do
+    builtinNil  <- getBuiltinNil
+    builtinCons <- getBuiltinCons
+    return $ foldr
+        (\x xs -> foldl' (Apply ()) (TyInst () builtinCons ty) [x, xs])
+        (TyInst () builtinNil ty)
+        ts
