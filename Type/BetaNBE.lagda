@@ -425,6 +425,17 @@ fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _
 \end{code}
 
 \begin{code}
+idPER : ∀{Γ K} → (x : Γ ∋⋆ K) → PER K (idEnv Γ x) (idEnv Γ x)
+idPER Z = reflect _ refl
+idPER (S x) = renPER S (idPER x)
+\end{code}
+
+\begin{code}
+completeness : ∀ {K Γ} {s t : Γ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
+completeness p = reify _ (fund idPER p)
+\end{code}
+
+\begin{code}
 {-
 rename[]Nf : ∀ {Φ Θ J K}
         → (ρ : Ren Φ Θ)
