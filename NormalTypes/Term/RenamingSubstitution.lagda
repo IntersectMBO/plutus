@@ -98,25 +98,6 @@ weaken⋆ x = rename _∋⋆_.S _∋_.T x
 
 ## Substitution
 
--- is this funciton helpful?
-\begin{code}
-substNf : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
-    -------------------------
-  → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
-substNf ρ n = nf (⋆.subst (embNf ∘ ρ) (embNf n))
-\end{code}
-
-\begin{code}
-extsNf : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
-    -------------------------------------
-  → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢Nf⋆ J)
-extsNf σ Z      =  ne (` Z)
-extsNf σ (S α)  =  weakenNf (σ α)
-\end{code}
-
-
 \begin{code}
 exts : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
@@ -147,14 +128,11 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
-{-
-postulate
- subst : ∀ {Γ Δ}
+subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
-{-
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
@@ -167,23 +145,23 @@ subst {Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     = {!!}
                    eval (⋆.subst σ₁ (embNf B)) γ)
                 {!σ⋆!} {!!}) -- (funiext (λ a → funext (λ { Z → {!stability!} ; (S x) → ≡-to-≅ (rename-embNf S (σ⋆ x))}))) (funiext (λ a → funext (λ { Z → refl ; (S x) → sym (rename-reflect a S (` x))}))))
              (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N)) -}
-subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) =
-  substEq (λ A → Δ ⊢ A)
+subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) = {!subst σ⋆ σ L ·⋆ substNf σ⋆ M!}
+{-  substEq (λ A → Δ ⊢ A)
           (sym (subst[]Nf σ⋆ M B))
-          (subst σ⋆ σ L ·⋆ substNf σ⋆ M) 
-subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) =
-  wrap 
+          (subst σ⋆ σ L ·⋆ substNf σ⋆ M)  -}
+subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) = {!!}
+{-  wrap 
        (substEq (λ A → Δ ⊢ A)
                 (subst[]Nf σ⋆ (μ B) B)
-                (subst σ⋆ σ N))
-subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) =
-  substEq (λ A → Δ ⊢ A)
+                (subst σ⋆ σ N)) -}
+subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) = {!!}
+{-  substEq (λ A → Δ ⊢ A)
           (sym (subst[]Nf σ⋆ (μ B) B))
-          (unwrap (subst σ⋆ σ M))
--}
+          (unwrap (subst σ⋆ σ M)) -}
 \end{code}
 
 \begin{code}
+{-
 substcons : ∀{Γ Δ} →
   (σ⋆ : ∀{K} → ∥ Γ ∥  ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J}{A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)

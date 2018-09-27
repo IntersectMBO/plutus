@@ -494,5 +494,51 @@ rename[]Nf ρ (μ B)   u = cong μ
                               (sym (evalSubst (rename-embNf (ext (ext ρ)) B))))
                        (sym (subst-eval (embNf (renameNf (ext (ext ρ)) B)) (PER,,⋆ (renPER S ∘ idPER) (reflect * refl)) (exts (subst-cons ` (embNf (renameNf ρ u)))))))))
 rename[]Nf ρ (ne n) u = trans (rename-readback (idext idPER (embNeN n [ embNf u ])) ρ) (reify _ (transPER _ (renval-eval (embNeN n [ embNf u ]) idPER ρ) (transPER _ (subst-eval (embNeN n) (renPER ρ ∘ idPER) (subst-cons ` (embNf u))) (transPER _ (transPER _ (idext (λ { Z → transPER _ (idext (renval-neV ρ ∘ `) (embNf u)) (symPER _ (rename-eval (embNf u) idPER ρ)) ; (S x) → renval-neV ρ (` x)}) (embNeN n)) (symPER _ (subst-eval (embNeN n) idPER (subst-cons ` (rename ρ (embNf u)) ∘ ext ρ)))) (symPER _ (evalPERSubst idPER (trans (cong₂ (λ f u → f [ u ]) (rename-embNeN (ext ρ) n) (rename-embNf ρ u)) (sym (subst-rename (ext ρ) (subst-cons ` (rename ρ (embNf u))) (embNeN n))))))))))
+\end{code}
 
+-- is this funciton helpful?
+\begin{code}
+substNf : ∀ {Φ Ψ}
+  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    -------------------------
+  → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
+substNf ρ n = nf (subst (embNf ∘ ρ) (embNf n))
+\end{code}
+
+\begin{code}
+extsNf : ∀ {Φ Ψ}
+  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    -------------------------------------
+  → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢Nf⋆ J)
+extsNf σ Z      =  ne (` Z)
+extsNf σ (S α)  =  weakenNf (σ α)
+\end{code}
+
+\begin{code}
+mutual
+  stability : ∀{Γ K}(n : Γ ⊢Nf⋆ K) → nf (embNf n) ≡ n
+  stability (Π B) = cong Π (trans (idext (λ { Z → reflect _ refl ; (S x) → renval-neV S (` x)}) (embNf B)) (stability B))
+  stability (A ⇒ B) = cong₂ _⇒_ (stability A) (stability B)
+  stability (ƛ B) = cong ƛ (trans (reify _ (idext (λ { Z → reflect _ refl ; (S x) → renval-neV S (` x)}) (embNf B))) (stability B))
+  stability (μ B) = cong μ (trans (idext (λ { Z → reflect * refl ; (S x) → renval-neV S (` x)}) (embNf B)) (stability B))
+  stability {K = *} (ne n) = stabilityNeN n
+  stability {K = K ⇒ J} (ne n) = cong (λ v → readback v) (stabilityNeN n)
+
+  stabilityNeN : ∀{Γ K}(n : Γ ⊢NeN⋆ K) → eval (embNeN n) (idEnv _)  ≡ neV n
+  stabilityNeN {K = *} (` x) = refl
+  stabilityNeN {K = K ⇒ K₁} (` x) = refl
+  stabilityNeN (n · n') = trans (cong (_·V (eval (embNf n') (idEnv _))) (stabilityNeN n)) (cong (λ n'' → neV (n · n'')) (stability n'))
+\end{code}
+
+\begin{code}
+subst[]Nf : ∀{Γ Δ K J}
+  (ρ : ∀{K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
+  → (A : Γ ⊢Nf⋆ K)
+  → (B : Γ ,⋆ K ⊢Nf⋆ J)
+  → substNf ρ (B [ A ]Nf) ≡ substNf (extsNf ρ) B [ substNf ρ A ]Nf 
+subst[]Nf ρ A (Π B)   = cong Π (trans (subst-eval (embNf (eval (subst (exts (subst-cons ` (embNf A))) (embNf B)) ((renval S ∘ idEnv _) ,,⋆ neV (` Z)))) (PER,,⋆ (renPER S ∘ idPER) (reflect _ refl)) (exts (embNf ∘ ρ))) {!!})
+subst[]Nf ρ A (B ⇒ C) = cong₂ _⇒_ (subst[]Nf ρ A B) (subst[]Nf ρ A C)
+subst[]Nf ρ A (ƛ B)   = {!!}
+subst[]Nf ρ A (μ B)   = {!!}
+subst[]Nf ρ A (ne n)  = {!!}
 \end{code}
