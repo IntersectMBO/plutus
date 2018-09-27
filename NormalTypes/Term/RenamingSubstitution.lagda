@@ -97,8 +97,27 @@ weaken⋆ x = rename _∋⋆_.S _∋_.T x
 \end{code}
 
 ## Substitution
+
+-- is this funciton helpful?
 \begin{code}
-{-
+substNf : ∀ {Φ Ψ}
+  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    -------------------------
+  → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
+substNf ρ n = nf (⋆.subst (embNf ∘ ρ) (embNf n))
+\end{code}
+
+\begin{code}
+extsNf : ∀ {Φ Ψ}
+  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    -------------------------------------
+  → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢Nf⋆ J)
+extsNf σ Z      =  ne (` Z)
+extsNf σ (S α)  =  weakenNf (σ α)
+\end{code}
+
+
+\begin{code}
 exts : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -122,12 +141,13 @@ exts⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ⊢ substNf (extsNf σ⋆) A )
 exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) = 
   substEq (λ x → Δ ,⋆ K ⊢ x)
-          (trans (sym (renameNf-substNf σ⋆ S A))
-                 (substNf-renameNf S (extsNf σ⋆) A))
+          (trans (rename-readback (idext idPER (⋆.subst (embNf ∘ σ⋆) (embNf A))) S) (reify _ (transPER _ (renval-eval (⋆.subst (embNf ∘ σ⋆) (embNf A)) idPER S)
+                                                                                                (transPER _ (transPER _ (subst-eval  (embNf A) (renPER S ∘ idPER) (embNf ∘ σ⋆)) (transPER _ (idext (λ {x → transPER _ (transPER _ (idext (λ x → renval-neV S (` x)) (embNf (σ⋆ x))) (symPER _ (rename-eval (embNf (σ⋆ x)) idPER S))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))}) (embNf A)) (symPER _ (subst-eval (embNf A) idPER (embNf ∘ renameNf S ∘ σ⋆))))) (evalPERSubst idPER (trans (⋆.subst-rename S (embNf ∘ extsNf σ⋆) (embNf A)) (cong (λ x → ⋆.subst (embNf ∘ extsNf σ⋆) x) (sym (rename-embNf S A)))))))))
           (weaken⋆ (σ x))
 \end{code}
 
 \begin{code}
+{-
 postulate
  subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
@@ -191,6 +211,7 @@ _[_] {J}{Γ}{A}{B} b a =
                                             (` x))
                              (substEq (λ A → Γ ⊢ A) (sym (substNf-id B)) a))
                   b)
+-}
 \end{code}
 
 \begin{code}
@@ -213,5 +234,5 @@ _[_]⋆ {J}{Γ}{K}{B} b A =
                                      (` x)}) )
                  b)
 -}
--}
+
 \end{code}
