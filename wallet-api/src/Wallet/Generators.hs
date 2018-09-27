@@ -60,7 +60,7 @@ constantFee = FeeEstimator . const . const
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
     mockchainBlockchain :: Blockchain,
-    mockchainUtxo       :: Map TxOutRef TxOut
+    mockchainUtxo       :: Map TxOutRef' TxOut'
     } deriving Show
 
 -- | The empty mockchain
@@ -90,7 +90,7 @@ genMockchain = genMockchain' generatorModel
 --   beginning of a blockchain)
 genInitialTransaction :: MonadGen m
     => GeneratorModel
-    -> m (Tx, [TxOut])
+    -> m (Tx, [TxOut'])
 genInitialTransaction GeneratorModel{..} = do
     vls <- splitVal gmNumOutputs gmInitialBalance
     let o = simpleOutput <$> vls

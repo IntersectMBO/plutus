@@ -1,13 +1,16 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TupleSections   #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Wallet.UTXO(
     -- * Basic types
     Value(..),
     TxId(..),
+    TxId',
     Address(..),
+    Address',
     Height(..),
     height,
     -- * Script types
@@ -23,8 +26,11 @@ module Wallet.UTXO(
     hashTx,
     dataTxo,
     TxIn(..),
+    TxIn',
     TxOut(..),
+    TxOut',
     TxOutRef(..),
+    TxOutRef',
     simpleInput,
     simpleOutput,
     -- * Blockchain & UTxO model
@@ -116,19 +122,23 @@ encodeValue :: Value -> Encoding
 encodeValue = Enc.encodeInteger . getValue
 
 -- | Transaction ID (double SHA256 hash of the transaction)
-newtype TxId = TxId { getTxId :: Digest SHA256 }
+newtype TxId h = TxId { getTxId :: h }
     deriving (Eq, Ord, Show)
 
-encodeTxId :: TxId -> Encoding
+type TxId' = TxId (Digest SHA256)
+
+encodeTxId :: TxId' -> Encoding
 encodeTxId = Enc.encodeBytes . BA.convert . getTxId
 
 -- | A payment address is a double SHA256 of a
 --   UTxO output's validator script (and presumably its data script).
 --   This corresponds to a Bitcoing pay-to-witness-script-hash
-newtype Address = Address { getAddress :: Digest SHA256 }
+newtype Address h = Address { getAddress :: h }
     deriving (Eq, Ord, Show)
 
-encodeAddress :: Address -> Encoding
+type Address' = Address (Digest SHA256)
+
+encodeAddress :: Address' -> Encoding
 encodeAddress = Enc.encodeBytes . BA.convert . getAddress
 
 -- | A validator is a PLC script.
@@ -158,7 +168,7 @@ encodeValidator :: Validator -> Encoding
 encodeValidator = encPlc . getValidator
 
 -- | Hash a validator script to get an address
-hashValidator :: Validator -> Address
+hashValidator :: Validator -> Address'
 hashValidator = Address . hash
 
 -- | Data script (supplied by producer of the transaction output)
@@ -185,7 +195,7 @@ encodeDataScript :: DataScript -> Encoding
 encodeDataScript = encPlc . getDataScript
 
 -- | Hash a data script to get an address
-hashDataScript :: DataScript -> Address
+hashDataScript :: DataScript -> Address'
 hashDataScript = Address . hash
 
 -- | Redeemer (supplied by consumer of the transaction output)
@@ -206,7 +216,7 @@ encodeRedeemer :: Redeemer -> Encoding
 encodeRedeemer = encPlc . getRedeemer
 
 -- | Hash a redeemer script to get an address
-hashRedeemer :: Redeemer -> Address
+hashRedeemer :: Redeemer -> Address'
 hashRedeemer = Address . hash . Write.toStrictByteString . encodeRedeemer
 
 -- | Block height
@@ -222,8 +232,8 @@ height = Height . fromIntegral . length . join
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
-    txInputs  :: Set.Set TxIn,
-    txOutputs :: [TxOut],
+    txInputs  :: Set.Set TxIn',
+    txOutputs :: [TxOut'],
     txForge   :: !Value,
     txFee     :: !Value
     } deriving (Show, Eq, Ord)
@@ -247,8 +257,8 @@ validValuesTx Tx{..}
 
 -- | Transaction without witnesses for its inputs
 data TxStripped = TxStripped {
-    txStrippedInputs  :: Set.Set TxOutRef,
-    txStrippedOutputs :: [TxOut],
+    txStrippedInputs  :: Set.Set TxOutRef',
+    txStrippedOutputs :: [TxOut'],
     txStrippedForge   :: !Value,
     txStrippedFee     :: !Value
     } deriving (Show, Eq, Ord)
@@ -266,51 +276,57 @@ preHash :: TxStripped -> Digest SHA256
 preHash = hash
 
 -- | Double hash of a transaction, excluding its witnesses
-hashTx :: Tx -> TxId
+hashTx :: Tx -> TxId'
 hashTx = TxId . hash . preHash . strip
 
 -- | Reference to a transaction output
-data TxOutRef = TxOutRef {
-    txOutRefId  :: !TxId,
+data TxOutRef h = TxOutRef {
+    txOutRefId  :: !(TxId h),
     txOutRefIdx :: !Int -- ^ Index into the referenced transaction's outputs
     } deriving (Show, Eq, Ord)
 
-encodeTxOutRef :: TxOutRef -> Encoding
+type TxOutRef' = TxOutRef (Digest SHA256)
+
+encodeTxOutRef :: TxOutRef' -> Encoding
 encodeTxOutRef TxOutRef{..} =
     encodeTxId txOutRefId
     <> Enc.encodeInt txOutRefIdx
 
 -- | Transaction input
-data TxIn = TxIn {
-    txInRef       :: !TxOutRef,
+data TxIn h = TxIn {
+    txInRef       :: !(TxOutRef h),
     txInValidator :: !Validator,
     txInRedeemer  :: !Redeemer
     } deriving (Show, Eq, Ord)
 
-encodeTxIn :: TxIn -> Encoding
+type TxIn' = TxIn (Digest SHA256)
+
+encodeTxIn :: TxIn' -> Encoding
 encodeTxIn TxIn{..} =
     encodeTxOutRef txInRef
     <> encodeValidator txInValidator
     <> encodeRedeemer txInRedeemer
 
-instance BA.ByteArrayAccess TxIn where
+instance BA.ByteArrayAccess TxIn' where
     length        = BA.length . Write.toStrictByteString . encodeTxIn
     withByteArray = BA.withByteArray . Write.toStrictByteString . encodeTxIn
 
 -- Transaction output
-data TxOut = TxOut {
-    txOutAddress :: !Address,
+data TxOut h = TxOut {
+    txOutAddress :: !(Address h),
     txOutValue   :: !Value,
     txOutData    :: !DataScript
     } deriving (Show, Eq, Ord)
 
-encodeTxOut :: TxOut -> Encoding
+type TxOut' = TxOut (Digest SHA256)
+
+encodeTxOut :: TxOut' -> Encoding
 encodeTxOut TxOut{..} =
     encodeAddress txOutAddress
     <> encodeValue txOutValue
     <> encodeDataScript txOutData
 
-instance BA.ByteArrayAccess TxOut where
+instance BA.ByteArrayAccess TxOut' where
     length        = BA.length . Write.toStrictByteString . encodeTxOut
     withByteArray = BA.withByteArray . Write.toStrictByteString . encodeTxOut
 
@@ -318,12 +334,12 @@ type Block = [Tx]
 type Blockchain = [Block]
 
 -- | Lookup a transaction by its hash
-transaction :: Blockchain -> TxOutRef -> Maybe Tx
+transaction :: Blockchain -> TxOutRef' -> Maybe Tx
 transaction bc o = listToMaybe $ filter p  $ join bc where
     p = (txOutRefId o ==) . hashTx
 
 -- | Determine the unspent output that an input refers to
-out :: Blockchain -> TxOutRef -> Maybe TxOut
+out :: Blockchain -> TxOutRef' -> Maybe TxOut'
 out bc o = do
     t <- transaction bc o
     let i = txOutRefIdx o
@@ -332,24 +348,24 @@ out bc o = do
         else Just $ txOutputs t !! i
 
 -- | Determine the unspent value that an input refers to
-value :: Blockchain -> TxOutRef -> Maybe Value
+value :: Blockchain -> TxOutRef' -> Maybe Value
 value bc o = txOutValue <$> out bc o
 
 -- | Determine the data script that an input refers to
-dataTxo :: Blockchain -> TxOutRef -> Maybe DataScript
+dataTxo :: Blockchain -> TxOutRef' -> Maybe DataScript
 dataTxo bc o = txOutData <$> out bc o
 
 -- | The unspent outputs of a transaction
-unspentOutputsTx :: Tx -> Map TxOutRef TxOut
+unspentOutputsTx :: Tx -> Map TxOutRef' TxOut'
 unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
     f (idx, o) = (TxOutRef (hashTx t) idx, o)
 
 -- | The outputs consumed by a transaction
-spentOutputs :: Tx -> Set.Set TxOutRef
+spentOutputs :: Tx -> Set.Set TxOutRef'
 spentOutputs = Set.map txInRef . txInputs
 
 -- | Unspent outputs of a ledger.
-unspentOutputs :: Blockchain -> Map TxOutRef TxOut
+unspentOutputs :: Blockchain -> Map TxOutRef' TxOut'
 unspentOutputs = foldr ins Map.empty . join where
     ins t unspent = (unspent `Map.difference` lift (spentOutputs t)) `Map.union` unspentOutputsTx t
     lift = Map.fromSet (const ())
@@ -359,7 +375,7 @@ unspentOutputs = foldr ins Map.empty . join where
 --
 data BlockchainState = BlockchainState {
     blockchainStateHeight :: Height,
-    blockchainStateTxHash :: TxId
+    blockchainStateTxHash :: TxId'
     }
 
 -- | Get blockchain state for a transaction
@@ -392,7 +408,7 @@ validTx t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
 --   * Verifying the hash of the validator script
 --   * Evaluating the validator script with the redeemer and data script
 --
-validate :: BlockchainState -> TxIn -> TxOut -> Bool
+validate :: BlockchainState -> TxIn' -> TxOut' -> Bool
 validate bs (TxIn _ v r) (TxOut h _ d)
     | h /= hashValidator v = False
     | otherwise            = runScript bs v r d
@@ -421,10 +437,10 @@ unitRedeemer :: Redeemer
 unitRedeemer = Redeemer $(plutus [| () |])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
-simpleOutput :: Value -> TxOut
+simpleOutput :: Value -> TxOut'
 simpleOutput vl = TxOut (hashValidator emptyValidator) vl unitData
 
 -- | Transaction input that spends an output using the empty validator and
 --   unit redeemer scripts.
-simpleInput :: TxOutRef -> TxIn
+simpleInput :: TxOutRef a -> TxIn a
 simpleInput ref = TxIn ref emptyValidator unitRedeemer

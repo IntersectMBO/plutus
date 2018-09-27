@@ -4,11 +4,9 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Wallet.Emulator.Types(
-    -- * Wallet API
-    WalletAPI(..),
+    -- * Wallets
     Wallet(..),
     TxPool,
-    Notification(..),
     -- * Emulator
     Assertion,
     isValidated,
@@ -44,6 +42,7 @@ import           Data.Map                  as Map
 import           Data.Maybe
 import           Data.Text                 as T
 
+import           Wallet.API                (WalletAPI (..))
 import           Wallet.UTXO               (Block, Blockchain, Tx (..), validTx)
 
 -- agents/wallets
@@ -74,9 +73,6 @@ handleNotifications _ = return () -- TODO: Actually handle notifications
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
 
--- TODO: richer interface
-class WalletAPI m where
-    submitTxn :: Tx -> m ()
 
 -- Emulator code
 

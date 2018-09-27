@@ -19,6 +19,7 @@ source-repository head
 
 library
     exposed-modules:
+        Wallet.API,
         Wallet.Emulator,
         Wallet.Emulator.Types,
         Wallet.Generators,
