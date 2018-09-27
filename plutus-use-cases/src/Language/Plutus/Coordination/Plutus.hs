@@ -1,52 +1,73 @@
--- | This is a mock of (parts of) the Plutus API
-{-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE LambdaCase     #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
--- | A model of the types involved in transactions, and of the wallet API.
+-- | A model of the types involved in transactions. These types are intented to
+--   be used in PLC scripts.
 module Language.Plutus.Coordination.Plutus (-- * Transactions and related types
-                Address
-              , PubKey(..)
-              , KeyPair
-              , pubKey
+                PubKey(..)
               , Value
-              , Tx(..)
+              , Height
               , TxIn(..)
               , TxOut(..)
-              , mkAddress
               , TxOutRef(..)
-              , standardTxFee
-              , txOutValue
-              , txOutDataScript
-              , txOutValidatorScriptHash
-              -- * API operations
-              , TxM
-              , Hash
-              , hash
-              , Redeemer
-              , Validator
-              , DataScript
-              , PlutusTx(..)
-              , unitPLC
-              , BlockHeight
+              , TxId
+              -- * Pending transactions
               , PendingTx(..)
-              , submitTransaction
-              , assert
-              , lookupMyKeyPair
-              , lookupMyPubKey
-              , createPayment
-              , txInSign
-              , Range(..)
-              , EventTrigger(..)
+              , PendingTxOut(..)
+              , PendingTxIn(..)
+              -- * Oracles
               , Signed(..)
               , OracleValue(..)
               ) where
 
-import           Control.Applicative              (Alternative (..))
-import           Control.Monad.State              (State)
-import           Control.Monad.Trans.Maybe        (MaybeT (..))
-import           Language.Plutus.CoreToPLC.Plugin (PlcCode, plc)
+import           Wallet.API  (PubKey (..))
+import           Wallet.UTXO (TxId, TxIn (..), TxOut (..), TxOutRef (..))
 
-newtype Signed a = Signed (PubKey, a)
+-- | Output of a pending transaction.
+data PendingTxOut d = PendingTxOut {
+    pendingTxOutValue :: !Value,
+    pendingTxOutData  :: !d -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    }
+
+-- | Input of a pending transaction.
+data PendingTxIn r = PendingTxIn {
+    pendingTxInRef         :: !(TxOutRef Hash),
+    pendingTxInRefRedeemer :: !r -- ^ The redeemer of the pending transaction input (see note [Script types in pending transactions])
+    }
+
+-- | A pending transaction as seen by validator scripts.
+data PendingTx r d = PendingTx {
+    pendingTxCurrentInput :: (PendingTxIn r, Value), -- ^ The input we are validating
+    pendingTxOtherInputs  :: [(PendingTxIn r, Value)], -- ^ Other transaction inputs (they will be validated separately but we can look at their redeemer data and coin value)
+    pendingTxOutputs      :: [PendingTxOut d],
+    pendingTxForge        :: !Value,
+    pendingTxFee          :: !Value,
+    pendingTxBlockHeight  :: !Height
+    }
+
+{- Note [Script types in pending transactions]
+
+To validate a transaction, we have to evaluate the validation script of each of
+the transaction's inputs. The validation script sees the data of the
+transaction output it validates, and the redeemer of the transaction input of
+the transaction that consumes it.
+
+In addition, the validation script also needs information on the transaction as
+a whole (not just the output-input pair it is concerned with). This information
+is provided by the `PendingTx` type. A `PendingTx` contains the redeemer and
+data scripts of all of its inputs and outputs, with types `r` and `d`
+respectively. The reason why we are using `r` and `d` instead of `PlcCode` is
+that `PendingTx` is intended to be used in PLC scripts only, so we won't create
+any values of that type in Haskell (in the coordination code).
+
+This is only a preliminary design and we will have to revisit it later. For
+example, it might be desirable to allow a transaction to consume inputs whose
+redeemer scripts have different types (in PLC). If that's the case, and we still
+want validator scripts to be able to look at all the redeemers, then we would
+have to change `pendingTxOtherInputs` to a heterogenous list. (Same for
+`pendingTxOutputs`). (This would also affect the "set vs list" question for
+transaction inputs -- cf. discussion on
+https://github.com/input-output-hk/plutus-prototype/pull/139)
+
+-}
 
 {- Note [Oracles]
 
@@ -67,172 +88,21 @@ Language.Plutus.Coordination.Contracts.Swap.swapValidator script.
 
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle.
-newtype OracleValue a = OracleValue (Signed (BlockHeight, a))
+newtype OracleValue a = OracleValue (Signed (Height, a))
 
--- | Cardano address
---
-newtype Address = Address Int
-    deriving (Eq, Ord, Show, Read)
+newtype Signed a = Signed (PubKey, a)
 
 -- | Ada value
 --
+-- TODO: Use [[Wallet.UTXO.Value]] when Integer is supported
 type Value = Int
 
 newtype Hash = Hash Int
     deriving (Eq, Ord, Show, Read)
 
-hash :: a -> Hash
-hash _ = Hash 10
-
--- | Public key
---
-data PubKey = PubKey
-
--- | Public key pair (no lift instance, because we never ought to put it into a
---   transaction)
---
-data KeyPair
-
-data TxState
-
--- | Transaction monad for coordination layer computations; provides access to
--- the blockchain
---
-type TxM a = MaybeT (State TxState) a
-
--- | Submit the given transaction to the blockchain
-submitTransaction :: Tx -> TxM [TxOutRef]
-submitTransaction = const empty
-
--- | Verify that a condition is true.
-assert :: Bool -> TxM ()
-assert = const empty
-
--- | Get the users's public key. Part of the wallet interface
-lookupMyPubKey :: TxM PubKey
-lookupMyPubKey = pubKey <$> lookupMyKeyPair
-
--- | Extract the public key from a key pair.
-pubKey :: KeyPair -> PubKey
-pubKey = const PubKey
-
--- | Part of the wallet interface
-lookupMyKeyPair :: TxM KeyPair
-lookupMyKeyPair = empty
-
--- | Create an input that spends the given value (part of the wallet interface)
---
-createPayment :: Value -> TxM TxIn
-createPayment = const empty
-
--- | A UTxO transaction specification
---
---   In this model the number of inputs and outputs of a transaction is
---   limited to a maximum of 2. This will change when we can translate recursive
---   types in the core-to-plc plugin.
-data Tx = Tx
-          { txInputs  :: Either TxIn (TxIn, TxIn) -- TODO: Change to [TxIn]
-          , txOutputs :: Either (TxOut Int) (TxOut Int, TxOut Int) -- TODO: Change to [TxOut Int]
-          }
-
--- | UTxO input
---
-data TxIn = TxIn
-            { txInOutRef     :: !TxOutRef -- ^ Output consumed by this transaction
-            , txInValidator  :: !Hash -- ^ Validator script of the transaction output (TODO: This should be the actual script, not the hash; Change to Validator when recursive types are supported - same for redeemer and data scripts.)
-            , txInRedeemer   :: !Hash -- ^ Redeemer
-            , txInDataScript :: !Hash -- ^ Data script (TODO: Not sure if we should have 1 data script per transaction or 1 data script per transaction input)
-            }
-
--- | Construct an input that can spend the given output (assuming it was payed
---   to an address in our wallet.) Part of the wallet interface
---
-txInSign :: TxOutRef -> Validator -> Redeemer -> DataScript -> KeyPair -> TxIn
-txInSign to v r d _ = TxIn to (hash v) (hash r) (hash d)
-
--- | Reference to an unspent output
---   See https://github.com/input-output-hk/plutus-prototype/tree/master/docs/extended-utxo#extension-to-transaction-outputs
---
-data TxOutRef =
-  TxOutRef
-  {
-     txOutRefValue          :: !Value -- We assume this is added by the library. TODO: In cardano-sl this is a "ValueDistribution" (map of keys to values)
-   , txOutRefValidatorHash  :: !Hash -- Hash of validator script. The validator script has to be submitted by the consumer of the outputs referenced by this TxOutRef.
-   , txOutRefDataScriptHash :: !Hash -- Hash of data script used by the creator of the transaction.
-  }
-
-type BlockHeight = Int
-
--- | Information about a pending transaction used by validator scripts.
---   See https://github.com/input-output-hk/plutus-prototype/tree/master/docs/extended-utxo#blockchain-state-available-to-validator-scripts
-data PendingTx = PendingTx {
-      pendingTxBlockHeight :: !BlockHeight -- ^ Block height exl. current transaction
-    , pendingTxHash        :: !Hash -- ^ Hash of the transaction that is being validated
-    , pendingTxTransaction :: !Tx
-    }
-
--- | UTxO output
---
-data TxOut a = TxOutPubKey  !Value !PubKey
-           | TxOutScript  !Value !Hash !a
-
--- | An address in cardano is a hash of the information in `TxOut`
-mkAddress :: TxOut a -> Address
-mkAddress = const (Address 5)
-
-txOutValue :: TxOut a -> Value
-txOutValue = \case
-    TxOutPubKey v _ -> v
-    TxOutScript v _ _ -> v
-
-txOutDataScript :: TxOut a -> Maybe a
-txOutDataScript = \case
-    TxOutScript _ _ r -> Just r
-    _ -> Nothing
-
-txOutValidatorScriptHash :: TxOut a -> Maybe Hash
-txOutValidatorScriptHash = \case
-    TxOutScript _ h _ -> Just h
-    _ -> Nothing
-
--- | PlutusTx code
---
-newtype PlutusTx = PlutusTx { getPlutusTx :: PlcCode }
-
--- | A PLC script containing the `()` value, to be used as a placeholder for
---   data and redeemer scripts where we don't need them.
-unitPLC :: PlutusTx
-unitPLC = PlutusTx $ plc ()
-
--- | Some sort of transaction fee (we need to determine that more dynamically)
---
-standardTxFee :: Value
-standardTxFee = 1
-
-data Range a =
-    Interval a a -- inclusive-exclusive
-    | GEQ a
-    | LT a
-
--- | Event triggers the Plutus client can register with the wallet.
-data EventTrigger =
-    BlockHeightRange !(Range BlockHeight) -- ^ True when the block height is within the range
-    | FundsAtAddress [Address] !(Range Value) -- ^ True when the (unspent) funds at a list of addresses are within the range
-    | And EventTrigger EventTrigger -- ^ True when both triggers are true
-    | Or EventTrigger EventTrigger -- ^ True when at least one trigger is true
-    | PAlways -- ^ Always true
-    | PNever -- ^ Never true
-
--- | Validator scripts expect two scripts and information about the current
---   txn. In the future this will be written in Plutus (with the help of TH)
---   and its return type will be `a` instead of `Maybe a`.
---   See https://github.com/input-output-hk/plutus-prototype/tree/master/docs/extended-utxo#extension-to-validator-scripts
---
-type Validator = PlutusTx
-
-type Redeemer = PlutusTx
-
-type DataScript = PlutusTx
+-- | Blockchain height
+--   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported
+type Height = Int
 
 {- Note [Transaction Templates]
 

@@ -13,6 +13,7 @@ module Wallet.Emulator.Types(
     AssertionError,
     Event(..),
     WalletState(..),
+    Notification(..),
     -- ** Traces
     Trace,
     runTrace,
@@ -42,7 +43,7 @@ import           Data.Map                  as Map
 import           Data.Maybe
 import           Data.Text                 as T
 
-import           Wallet.API                (WalletAPI (..))
+import           Wallet.API                (KeyPair (..), WalletAPI (..))
 import           Wallet.UTXO               (Block, Blockchain, Tx (..), validTx)
 
 -- agents/wallets
@@ -72,6 +73,7 @@ handleNotifications _ = return () -- TODO: Actually handle notifications
 
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
+    myKeyPair = pure KeyPair
 
 
 -- Emulator code

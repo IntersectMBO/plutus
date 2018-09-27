@@ -59,7 +59,8 @@ library
         memory -any,
         core-to-plc -any,
         cborg -any,
-        hedgehog -any
+        hedgehog -any,
+        microlens -any
 
 test-suite wallet-api-test
     default-language: Haskell2010

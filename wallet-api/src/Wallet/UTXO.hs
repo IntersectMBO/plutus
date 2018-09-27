@@ -50,6 +50,15 @@ module Wallet.UTXO(
     emptyValidator,
     unitRedeemer,
     unitData,
+    -- * Lenses
+    inputs,
+    outputs,
+    outAddress,
+    outValue,
+    outData,
+    inRef,
+    inValidator,
+    inRedeemer,
     -- * Encodings
     encodeValue,
     encodeValidator,
@@ -82,6 +91,7 @@ import           Data.Maybe                               (fromMaybe, isJust, li
 import           Data.Monoid                              (Sum (..))
 import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
+import           Lens.Micro
 
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getAst, getSerializedCode)
 import           Language.Plutus.TH                       (plutus)
@@ -221,7 +231,7 @@ hashRedeemer = Address . hash . Write.toStrictByteString . encodeRedeemer
 
 -- | Block height
 newtype Height = Height { getHeight :: Integer }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Enum, Num, Real, Integral)
 
 encodeHeight :: Height -> Encoding
 encodeHeight = Enc.encodeInteger . getHeight
@@ -237,6 +247,17 @@ data Tx = Tx {
     txForge   :: !Value,
     txFee     :: !Value
     } deriving (Show, Eq, Ord)
+
+-- | The inputs of a transaction
+inputs :: Lens' Tx (Set.Set TxIn')
+inputs = lens g s where
+    g = txInputs
+    s tx i = tx { txInputs = i }
+
+outputs :: Lens' Tx [TxOut']
+outputs = lens g s where
+    g = txOutputs
+    s tx o = tx { txOutputs = o }
 
 encodeTx :: Tx -> Encoding
 encodeTx Tx{..} =
@@ -299,6 +320,21 @@ data TxIn h = TxIn {
     txInRedeemer  :: !Redeemer
     } deriving (Show, Eq, Ord)
 
+-- | The `TxOutRef` spent by a transaction input
+inRef :: Lens (TxIn h) (TxIn g) (TxOutRef h) (TxOutRef g)
+inRef = lens txInRef s where
+    s txi r = txi { txInRef = r }
+
+-- | The validator script that locks this input's output
+inValidator :: Lens' (TxIn h) Validator
+inValidator = lens txInValidator s where
+    s txi v = txi { txInValidator = v }
+
+-- | The redeemer script for this input
+inRedeemer :: Lens' (TxIn h) Redeemer
+inRedeemer = lens txInRedeemer s where
+    s txi r = txi { txInRedeemer = r }
+
 type TxIn' = TxIn (Digest SHA256)
 
 encodeTxIn :: TxIn' -> Encoding
@@ -317,6 +353,21 @@ data TxOut h = TxOut {
     txOutValue   :: !Value,
     txOutData    :: !DataScript
     } deriving (Show, Eq, Ord)
+
+-- | The address of a transaction output
+outAddress :: Lens (TxOut h) (TxOut g) (Address h) (Address g)
+outAddress = lens txOutAddress s where
+    s tx a = tx { txOutAddress = a }
+
+-- | The value of a transaction output
+outValue :: Lens' (TxOut h) Value
+outValue = lens txOutValue s where
+    s tx v = tx { txOutValue = v }
+
+-- | The data script of a transaction output
+outData :: Lens' (TxOut h) DataScript
+outData = lens txOutData s where
+    s tx d = tx { txOutData = d }
 
 type TxOut' = TxOut (Digest SHA256)
 
@@ -444,3 +495,4 @@ simpleOutput vl = TxOut (hashValidator emptyValidator) vl unitData
 --   unit redeemer scripts.
 simpleInput :: TxOutRef a -> TxIn a
 simpleInput ref = TxIn ref emptyValidator unitRedeemer
+

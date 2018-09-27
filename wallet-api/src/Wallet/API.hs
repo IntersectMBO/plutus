@@ -8,7 +8,7 @@ module Wallet.API(
     pubKey
     ) where
 
-import           Wallet.UTXO               (Address', Height, Tx (..), TxIn', TxOut', Value)
+import           Wallet.UTXO (Address', Height, Tx (..), TxIn', TxOut', Value)
 
 -- Dummy types for wallet API
 data PubKey = PubKey
@@ -39,4 +39,4 @@ class WalletAPI m where
     createPayment :: Value -> m TxIn' -- ^ Create a payment that spends the specified value. Fails if we don't have enough funds
     register :: EventTrigger -> m () -> m ()
     payToPublicKey :: Value -> m TxOut' -- ^ Generate a transaction output that pays a value to a public key owned by us
-  
+

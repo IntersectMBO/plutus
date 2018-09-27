@@ -7,13 +7,14 @@ module Language.Plutus.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
-import           Language.Plutus.Coordination.Plutus
+import           Language.Plutus.Coordination.Plutus  (OracleValue (..), PendingTx (..), PendingTxIn (..),
+                                                       PendingTxOut (..), PubKey, Value)
 import           Language.Plutus.CoreToPLC.Plugin     (plc)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
+import           Wallet.UTXO                          (Height, Validator (..))
 
 import           Data.Ratio                           (Ratio)
--- Ord, Num and Eq are recognised by core-to-plc
-import           Prelude                              (Bool, Either (..), Eq (..), Int, Num (..), Ord (..))
+import           Prelude                              (Bool, Eq (..), Int, Num (..), Ord (..))
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -27,22 +28,33 @@ import           Prelude                              (Bool, Either (..), Eq (..
 --
 data Swap = Swap
     { swapNotionalAmt     :: !Value
-    , swapObservationTime :: !BlockHeight
+    , swapObservationTime :: !Height
     , swapFixedRate       :: !(Ratio Int) -- ^ Interest rate fixed at the beginning of the contract
-    , swapFloatingRate    :: !Int -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
-    , swapFixedLeg        :: !PubKey
-    , swapFloatingLeg     :: !PubKey
+    , swapFloatingRate    :: !(Ratio Int) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Value -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
     , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.Plutus.Coordination.Plutus]])
     }
+
+-- | Identities of the parties involved in the swap. This will be the data
+--   script which allows us to change the identities during the lifetime of
+--   the contract (ie. if one of the parties sells their part of the contract)
+--
+--   In the future we could also put the `swapMargin` value in here to implement
+--   a variable margin.
+data SwapOwners = SwapOwners {
+    swapOwnersFixedLeg :: !PubKey,
+    swapOwnersFloating :: !PubKey
+    }
+
+type SwapOracle = OracleValue (Ratio Int)
 
 -- | Validator script for the two transactions that initialise the swap.
 --   See note [Swap Transactions]
 --   See note [Contracts and Validator Scripts] in
 --       Language.Plutus.Coordination.Contracts
-swapValidator :: Swap -> PlutusTx
-swapValidator _ = PlutusTx result where
-    result = plc (\(redeemer :: OracleValue (Ratio Int)) () PendingTx{..} Swap{..} ->
+swapValidator :: Swap -> Validator
+swapValidator _ = Validator result where
+    result = plc (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx SwapOracle SwapOwners) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
@@ -54,7 +66,7 @@ swapValidator _ = PlutusTx result where
             mx :: Int -> Int -> Int
             mx a b = if a > b then a else b
 
-            extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Int -> BlockHeight -> Ratio Int
+            extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
             extractVerifyAt = Prim.error ()
 
             round :: Ratio Int -> Int
@@ -64,14 +76,14 @@ swapValidator _ = PlutusTx result where
             fromInt :: Int -> Ratio Int
             fromInt = Prim.error ()
 
-            signedBy :: TxIn -> PubKey -> Bool
+            signedBy :: PendingTxIn a -> PubKey -> Bool
             signedBy = Prim.error ()
 
             infixr 3 ||
             (||) :: Bool -> Bool -> Bool
             (||) = Prim.error ()
 
-            isPubKeyOutput :: TxOut a -> PubKey -> Bool
+            isPubKeyOutput :: PendingTxOut a -> PubKey -> Bool
             isPubKeyOutput = Prim.error ()
 
             -- Verify the authenticity of the oracle value and compute
@@ -104,23 +116,25 @@ swapValidator _ = PlutusTx result where
 
             -- The transaction must have one input from each of the
             -- participants.
-            -- NOTE: Partial match until we have lists
-            Tx (Right (t1, t2)) (Right (o1, o2)) = pendingTxTransaction
+            -- NOTE: Partial match is OK because if it fails then the PLC script
+            --       terminates with `error` and the validation fails (which is
+            --       what we want when the number of inputs and outputs is /= 2)
+            PendingTx t1 [t2] [o1, o2] _ _ _ = p
 
-            -- Each participant must deposit the margin. But we don't know the
-            -- order in which the participant's deposits are included in the
-            -- inputs. So we use the two predicates iP1 and iP2 to check
-            -- for the two possible orderings (in `inConditions`)
+            -- Each participant must deposit the margin. But we don't know
+            -- which of the two participant's deposit we are currently
+            -- evaluating (this script runs on both). So we use the two
+            -- predicates iP1 and iP2 to cover both cases
 
             -- True if the transaction input is the margin payment of the
             -- fixed leg
-            iP1 :: TxIn -> Bool
-            iP1 t = signedBy t swapFixedLeg && txOutRefValue (txInOutRef t) == swapMargin
+            iP1 :: (PendingTxIn a, Value) -> Bool
+            iP1 (t, v) = signedBy t swapOwnersFixedLeg && v == swapMargin
 
             -- True if the transaction input is the margin payment of the
             -- floating leg
-            iP2 :: TxIn -> Bool
-            iP2 t = signedBy t swapFloatingLeg && txOutRefValue (txInOutRef t) == swapMargin
+            iP2 :: (PendingTxIn a, Value) -> Bool
+            iP2 (t, v) = signedBy t swapOwnersFloating && v == swapMargin
 
             inConditions = (iP1 t1  && iP2 t2) || (iP1 t2 && iP2 t1)
 
@@ -129,12 +143,12 @@ swapValidator _ = PlutusTx result where
             -- between fixed and floating payment
 
             -- True if the output is the payment of the fixed leg.
-            ol1 :: TxOut a -> Bool
-            ol1 o = isPubKeyOutput o swapFixedLeg && txOutValue o <= fixedRemainder
+            ol1 :: PendingTxOut a -> Bool
+            ol1 o = isPubKeyOutput o swapOwnersFixedLeg && pendingTxOutValue o <= fixedRemainder
 
             -- True if the output is the payment of the floating leg.
-            ol2 :: TxOut a -> Bool
-            ol2 o = isPubKeyOutput o swapFloatingLeg && txOutValue o <= floatRemainder
+            ol2 :: PendingTxOut a -> Bool
+            ol2 o = isPubKeyOutput o swapOwnersFloating && pendingTxOutValue o <= floatRemainder
 
             -- NOTE: I didn't include a check that the chain height is greater
             -- than the observation time. This is because the chain height is
