@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE ViewPatterns    #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Wallet.UTXO(
@@ -60,29 +60,29 @@ module Wallet.UTXO(
     encodeTxOut
     ) where
 
-import           Codec.CBOR.Encoding                       (Encoding)
-import qualified Codec.CBOR.Encoding                       as Enc
-import qualified Codec.CBOR.Write                          as Write
-import           Control.Monad                             (join)
+import           Codec.CBOR.Encoding                      (Encoding)
+import qualified Codec.CBOR.Encoding                      as Enc
+import qualified Codec.CBOR.Write                         as Write
+import           Control.Monad                            (join)
 import           Control.Monad.Except
-import           Crypto.Hash                               (Digest, SHA256, hash)
-import qualified Data.ByteArray                            as BA
-import qualified Data.ByteString.Char8                     as BS
-import qualified Data.ByteString.Lazy                      as BSL
-import           Data.Foldable                             (foldMap)
-import           Data.Map                                  (Map)
-import qualified Data.Map                                  as Map
-import           Data.Maybe                                (fromMaybe, listToMaybe, isJust)
-import           Data.Monoid                               (Sum(..))
-import           Data.Semigroup                            (Semigroup (..))
-import qualified Data.Set                                  as Set
+import           Crypto.Hash                              (Digest, SHA256, hash)
+import qualified Data.ByteArray                           as BA
+import qualified Data.ByteString.Char8                    as BS
+import qualified Data.ByteString.Lazy                     as BSL
+import           Data.Foldable                            (foldMap)
+import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
+import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
+import           Data.Monoid                              (Sum (..))
+import           Data.Semigroup                           (Semigroup (..))
+import qualified Data.Set                                 as Set
 
-import           Language.Plutus.CoreToPLC.Plugin          (PlcCode, getSerializedCode, getAst)
-import           Language.Plutus.TH                        (plutusT)
-import           Language.PlutusCore                       (applyProgram, typecheckPipeline)
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Evaluation.CkMachine  (runCk)
+import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getAst, getSerializedCode)
+import           Language.Plutus.TH                       (plutus)
+import           Language.PlutusCore                      (applyProgram, typecheckPipeline)
+import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Quote
 
 {- Note [Serialisation and hashing]
 
@@ -410,15 +410,15 @@ runScript _ (Validator (getAst -> validator)) (Redeemer (getAst -> redeemer)) (D
 
 -- | () as a data script
 unitData :: DataScript
-unitData = DataScript $$(plutusT [|| () ||])
+unitData = DataScript $(plutus [| () |])
 
 -- | \() () -> () as a validator
 emptyValidator :: Validator
-emptyValidator = Validator $$(plutusT [|| \() () -> () ||])
+emptyValidator = Validator $(plutus [| \() () -> () |])
 
 -- | () as a redeemer
 unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $$(plutusT [|| () ||])
+unitRedeemer = Redeemer $(plutus [| () |])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut

@@ -62,18 +62,11 @@ newTyName k = do
     u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
     pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
 
-unit :: MonadQuote m => m (Type TyNameWithKind ())
-unit =
-    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
-
 boolean :: MonadQuote m => m (Type TyNameWithKind ())
 boolean = do
     nam <- newTyName (Type ())
-    (u, u') <- (,) <$> unit <*> unit
     let var = TyVar () nam
-        unitVar = TyFun () u var
-        unitVar' = TyFun () u' var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
+    pure $ TyForall () nam (Type ()) (TyFun () var (TyFun () var var))
 
 builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do
@@ -250,16 +243,16 @@ typeOf (TyInst x body ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then do
-                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty)
+                then
+                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty) *>
                     tyReduce absTy
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
-        TyFix _ n fixTy -> do
-            tyEnvAssign (extractUnique n) nBodyTy
+        TyFix _ n fixTy ->
+            tyEnvAssign (extractUnique n) nBodyTy *>
             tyReduce fixTy
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty body) = do
@@ -301,7 +294,7 @@ rewriteCtx ty@TyBuiltin{}       = pure ty
 rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (st, _) <- get
     case IM.lookup (unUnique u) st of
-        Just ty'@(NormalizedType TyVar{}) -> cloneType =<< rewriteCtx (getNormalizedType ty')
+        Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty') -- doesn't need to be cloned because rewriteCtx handles that already
         Just ty'                          -> cloneType (getNormalizedType ty')
         Nothing                           -> pure ty
 
@@ -321,7 +314,7 @@ tyReduce (TyApp x ty ty') = do
         else rewriteCtx
 
     tyRed <- getNormalizedType <$> tyReduce ty
-    let preTy = TyApp x tyRed <$> modTy ty' -- FIXME: should such reductions happen one-at-a-time?
+    let preTy = TyApp x tyRed <$> modTy ty'
 
     if isTyLam tyRed
         then tyReduce =<< preTy
