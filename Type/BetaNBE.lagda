@@ -406,11 +406,22 @@ fund p (trans≡β q r) = transPER _ (fund (reflPER _ ∘ p) q) (fund p r)
 fund p `≡β = p _
 fund p (⇒≡β q r) = cong₂ _⇒_ (fund p q) (fund p r)
 fund p (Π≡β q) = cong Π (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) q)
-fund p (ƛ≡β q) = ? -- λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
+fund p (ƛ≡β {B = B}{B' = B'} q) =
+  (λ ρ ρ' v v' r → transPER _ (renval-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) r) ρ')
+                     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ r))
+                               ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (p x)))})
+                            B))
+  ,
+  (λ ρ ρ' v v' r → transPER _
+                     (renval-eval B' (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) r)
+                      ρ')
+                     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ r))
+                            ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (symPER _ (p x))))}) B'))
+  ,
+  λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
 fund p (·≡β q r) = PERApp (fund p q) (fund p r)
 fund p (μ≡β q) = cong μ (fund (PER,,⋆ (renPER S ∘ p) (reflect * refl)) q)
 fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
-
 \end{code}
 
 \begin{code}
