@@ -21,3 +21,21 @@ verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString)
 
 tupleMatch :: PlcCode
 tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
+
+listConstruct :: PlcCode
+listConstruct = plc ([]::[Int])
+
+listConstruct2 :: PlcCode
+listConstruct2 = plc ([1]::[Int])
+
+listMatch :: PlcCode
+listMatch = plc (\(l::[Int]) -> case l of { (x:_) -> x ; [] -> 0; })
+
+data B a = One a | Two (B (a, a))
+
+ptreeConstruct :: PlcCode
+ptreeConstruct = plc (Two (Two (One ((1,2),(3,4)))) :: B Int)
+
+-- TODO: replace this with 'first' when we have working recursive functions
+ptreeMatch :: PlcCode
+ptreeMatch = plc (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })

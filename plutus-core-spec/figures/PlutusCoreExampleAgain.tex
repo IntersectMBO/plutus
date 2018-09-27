@@ -15,41 +15,41 @@ We proceed by defining the booleans. Like $unit$, the type $boolean$ below is an
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 true : $boolean$
 true = (abs $a$ (type)
-       (lam $x$ (fun $unit$ $a$)
-       (lam $y$ (fun $unit$ $a$)
-         [$x$ one])))
+       (lam $x$ $a$
+       (lam $y$ $a$
+         $x$ )))
 \end{lstlisting}
 and similarly
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 false : $boolean$
 false = (abs $a$ (type) 
-        (lam $x$ (fun $unit$ $a$)
-        (lam $y$ (fun $unit$ $a$)
-          [$y$ one])))
+        (lam $x$ $a$
+        (lam $y$ $a$
+          $y$ )))
 \end{lstlisting}
 
 Next, we define the ``case'' function for the type $boolean$ as follows:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 case : (all $a$ (type)
        (fun $boolean$
-       (fun $a$  (fun $a$ $a$))))
+       (fun (fun $unit$ $a$) (fun (fun $unit$ $a$) $a$))))
 case = (abs $a$ (type)
        (lam $b$ $boolean$
-       (lam $t$ $a$
-       (lam $f$ $a$ 
-         [ {$b$ $a$} 
-           (lam $x$ $unit$ $t$)
-           (lam $x$ $unit$ $f$)
-         ]
+       (lam $t$ (fun $unit$ $a$)
+       (lam $f$ (fun $unit$ $a$)
+         [
+           [ {$b$ (fun $unit$ $a$)} t f ]
+           $one$
+         ] 
        ))))
 \end{lstlisting}
 The reader is encouraged to verify that
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-[{case a} true x y] $\stackrel{*}{\rightarrow}$ x
+[{case a} true (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ x
 \end{lstlisting}  
 and
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-[{case a} false x y] $\stackrel{*}{\rightarrow}$ y
+[{case a} false (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ y
 \end{lstlisting}  
 
 We can use \texttt{case} to define the following function:
@@ -67,8 +67,8 @@ verifyIdentity =
                $txhash$
                $pubkey$
            ]
-      one
-      (error $unit$)
+      (lam $unit$ u one)
+      (lam $unit$ (error $unit$))
     ]))
 \end{lstlisting}
 the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) 256]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
@@ -106,8 +106,8 @@ Notice that we must supply $blocknum$ with the size we wish to use to store the 
         (lam $pubkey$ [(con bytestring) 2048]
         (lam $signed$ [(con bytestring) 256]
           [$case$ [{verifySignature 256 256 2048} $signed$ $txhash$ $pubkey$]
-                $one$
-                (error $unit$)]))))))))
+                (lam $unit$ u $one$)
+                (lam $unit$ u (error $unit$))]))))))))
   ]
 \end{lstlisting}
 \caption{Example of Section VII written out in full}

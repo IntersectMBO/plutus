@@ -1,7 +1,7 @@
 (program 1.0.0
   (lam
-    ds_1
-    (all MyNewtype_matchOut_0 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_0) MyNewtype_matchOut_0))
-    ds_1
+    ds_2
+    (all MyNewtype_matchOut_1 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_1) MyNewtype_matchOut_1))
+    ds_2
   )
 )

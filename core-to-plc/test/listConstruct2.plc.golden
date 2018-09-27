@@ -1,0 +1,63 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          a_0
+          (type)
+          (lam
+            p_arg0_10
+            a_0
+            (lam
+              p_arg1_11
+              [(fix list_7 (lam a_8 (type) (all p_matchOut_9 (type) (fun p_matchOut_9 (fun (fun a_8 (fun [list_7 a_8] p_matchOut_9)) p_matchOut_9))))) a_0]
+              (wrap
+                list_12
+                (lam a_13 (type) (all p_matchOut_14 (type) (fun p_matchOut_14 (fun (fun a_13 (fun [list_12 a_13] p_matchOut_14)) p_matchOut_14))))
+                (abs
+                  p_matchOut_1
+                  (type)
+                  (lam
+                    list_5
+                    p_matchOut_1
+                    (lam
+                      cons_6
+                      (fun a_0 (fun [(fix list_2 (lam a_3 (type) (all p_matchOut_4 (type) (fun p_matchOut_4 (fun (fun a_3 (fun [list_2 a_3] p_matchOut_4)) p_matchOut_4))))) a_0] p_matchOut_1))
+                      [ [ cons_6 p_arg0_10 ] p_arg1_11 ]
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+        [(con integer) (con 64)]
+      }
+      (con 64 ! 1)
+    ]
+    {
+      (abs
+        a_15
+        (type)
+        (wrap
+          list_22
+          (lam a_23 (type) (all p_matchOut_24 (type) (fun p_matchOut_24 (fun (fun a_23 (fun [list_22 a_23] p_matchOut_24)) p_matchOut_24))))
+          (abs
+            p_matchOut_16
+            (type)
+            (lam
+              list_20
+              p_matchOut_16
+              (lam
+                cons_21
+                (fun a_15 (fun [(fix list_17 (lam a_18 (type) (all p_matchOut_19 (type) (fun p_matchOut_19 (fun (fun a_18 (fun [list_17 a_18] p_matchOut_19)) p_matchOut_19))))) a_15] p_matchOut_16))
+                list_20
+              )
+            )
+          )
+        )
+      )
+      [(con integer) (con 64)]
+    }
+  ]
+)
