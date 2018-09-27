@@ -279,7 +279,7 @@ rewriteCtx ty@TyBuiltin{}       = pure ty
 rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (st, _) <- get
     case IM.lookup (unUnique u) st of
-        Just ty'@(NormalizedType TyVar{}) -> cloneType =<< rewriteCtx (getNormalizedType ty')
+        Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty') -- doesn't need to be cloned because rewriteCtx handles that already
         Just ty'                          -> cloneType (getNormalizedType ty')
         Nothing                           -> pure ty
 
