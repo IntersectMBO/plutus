@@ -50,15 +50,17 @@ ptreeMatch = plc (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
 
 fib :: PlcCode
 -- not using case to avoid literal cases
-fib = plc (let fib :: Int -> Int
-               fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
-           in fib)
+fib = plc (
+    let fib :: Int -> Int
+        fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
+    in fib)
 
 sumDirect :: PlcCode
-sumDirect = plc (let sum :: [Int] -> Int
-                     sum []     = 0
-                     sum (x:xs) = x + sum xs
-                 in sum)
+sumDirect = plc (
+    let sum :: [Int] -> Int
+        sum []     = 0
+        sum (x:xs) = x + sum xs
+    in sum)
 
 -- This doesn't work: we can't handle things that aren't of plain function type, and fold
 -- is a universally quantified function type
@@ -72,3 +74,11 @@ sumViaFold = plc (let fold :: (a -> b -> a) -> a -> [b] -> a
                       sum = fold (+) 0
                   in sum)
 -}
+
+evenMutual :: PlcCode
+evenMutual = plc (
+    let even :: Int -> Bool
+        even n = if n == 0 then True else odd (n-1)
+        odd :: Int -> Bool
+        odd n = if n == 0 then False else even (n-1)
+    in even)

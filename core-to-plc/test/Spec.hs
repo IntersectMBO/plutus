@@ -261,6 +261,9 @@ recursion = testGroup "Recursive functions" [
     , goldenEvalApp "sumList" [ sumDirect, listConstruct3 ]
     --, golden "sumFold" sumViaFold
     --, goldenEvalApp "sumFoldList" [ sumViaFold, listConstruct3 ]
+    , golden "even" evenMutual
+    , goldenEvalApp "even3" [ evenMutual, plc (3::Int) ]
+    , goldenEvalApp "even4" [ evenMutual, plc (4::Int) ]
   ]
 
 errors :: TestTree
