@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
@@ -13,6 +14,7 @@ import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.CkMachine
+import qualified Language.PlutusCore.Pretty               as PLC
 
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -33,8 +35,8 @@ main = defaultMain tests
 getPlc :: PlcCode -> ExceptT BSL.ByteString IO (Program TyName Name ())
 getPlc value = withExceptT (strToBs . show) $ getAst <$> (ExceptT $ try @SomeException (evaluate value))
 
-goldenVsPretty :: PrettyCfg a => String -> ExceptT BSL.ByteString IO a -> TestTree
-goldenVsPretty name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either id (txtToBs . debugText) <$> runExceptT value
+goldenVsPretty :: PLC.PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
+goldenVsPretty name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either id (txtToBs . PLC.docText . PLC.prettyPlcClassicDebug) <$> runExceptT value
 
 golden :: String -> PlcCode -> TestTree
 golden name value = goldenVsPretty name (getPlc value)

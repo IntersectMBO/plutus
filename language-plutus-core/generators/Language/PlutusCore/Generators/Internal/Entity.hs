@@ -1,8 +1,12 @@
 -- | Generators of various PLC things: 'Builtin's, 'IterApp's, 'Term's, etc.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE UndecidableInstances  #-}
+
 module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
     , IterAppValue(..)
@@ -61,10 +65,12 @@ data IterAppValue head arg r = IterAppValue
     , _iterTbv  :: TypedBuiltinValue Size r  -- ^ As a Haskell value.
     }
 
-instance (PrettyCfg head, PrettyCfg arg) => PrettyCfg (IterAppValue head arg r) where
-    prettyCfg cfg (IterAppValue term pia tbv) = parens $ fold
-        [ "{ ", prettyCfg cfg term, line
-        , "| ", prettyCfg cfg pia, line
+instance ( PrettyBy config (Term TyName Name ())
+         , PrettyBy config head, PrettyBy config arg
+         ) => PrettyBy config (IterAppValue head arg r) where
+    prettyBy config (IterAppValue term pia tbv) = parens $ fold
+        [ "{ ", prettyBy config term, line
+        , "| ", prettyBy config pia, line
         , "| ", pretty tbv, line
         , "}"
         ]

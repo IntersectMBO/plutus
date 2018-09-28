@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Data.Functor.Foldable.Monadic (cataM) where
 
 import           Data.Functor.Foldable

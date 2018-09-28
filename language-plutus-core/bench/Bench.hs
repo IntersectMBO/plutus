@@ -1,15 +1,16 @@
 module Main (main) where
 
 import           Criterion.Main
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text            as T
+import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.Text                  as T
 import           Language.PlutusCore
+import           Language.PlutusCore.Pretty (defPrettyConfigPlcClassic)
 
 main :: IO ()
 main =
     defaultMain [ env envFile $ \ f ->
                   bgroup "format"
-                      [ bench "format" $ nf (format defaultCfg :: BSL.ByteString -> Either (Error AlexPosn) T.Text) f ]
+                      [ bench "format" $ nf (format defPrettyConfigPlcClassic :: BSL.ByteString -> Either (Error AlexPosn) T.Text) f ]
                 , env files $ \ ~(f, g) ->
                   bgroup "parse"
                       [ bench "parse (addInteger)" $ nf parse f

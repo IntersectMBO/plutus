@@ -10,11 +10,12 @@ import qualified Data.Text                  as T
 import           Data.Text.Encoding         (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
-
 import           Generators
 import           Hedgehog                   hiding (Var)
 import           Language.PlutusCore
+import           Language.PlutusCore.Pretty
 import           PlutusPrelude
+import           Pretty.Readable
 import qualified Quotation.Spec             as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -74,7 +75,7 @@ propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
     let nullPosn = fmap (pure emptyPosn)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyCfgText
+        reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
         proc = nullPosn <$> parse (reprint prog)
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
@@ -88,6 +89,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
     , testsRewrite rwFiles
     , testsType typeFiles
     , testsType typeErrorFiles
+    , test_PrettyReadable
     , test_constantApplication
     , test_evaluateCk
     , Quotation.tests
@@ -95,23 +97,23 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
 
 type TestFunction a = BSL.ByteString -> Either a T.Text
 
-asIO :: PrettyCfg a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: PrettyPlc a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
-errorgen :: PrettyCfg a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . prettyCfgText
+errorgen :: PrettyPlc a => a -> BSL.ByteString
+errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
 
-asGolden :: PrettyCfg a => TestFunction a -> TestName -> TestTree
+asGolden :: PrettyPlc a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
 testsGolden :: [FilePath] -> TestTree
-testsGolden = testGroup "golden tests" . fmap (asGolden (format defaultCfg))
+testsGolden = testGroup "golden tests" . fmap (asGolden (format defPrettyConfigPlcClassic))
 
 testsRewrite :: [FilePath] -> TestTree
-testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugCfg))
+testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugPrettyConfigPlcClassic))
 
 appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
 appAppLamLam = do
@@ -125,7 +127,7 @@ appAppLamLam = do
             (TyBuiltin () TyInteger)
 
 testLam :: Either (TypeError ()) String
-testLam = fmap prettyCfgString . runQuote . runExceptT $ runTypeCheckM 100 $
+testLam = fmap (prettyStringBy defPrettyConfigPlcClassic) . runQuote . runExceptT $ runTypeCheckM 100 $
     tyReduce =<< appAppLamLam
 
 tests :: TestTree
@@ -135,4 +137,4 @@ tests = testCase "example programs" $ fold
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
     ]
-    where cfg = defaultCfg
+    where cfg = defPrettyConfigPlcClassic

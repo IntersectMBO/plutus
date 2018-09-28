@@ -1,6 +1,5 @@
 {
     {-# LANGUAGE OverloadedStrings  #-}
-    {-# LANGUAGE FlexibleContexts   #-}
     module Language.PlutusCore.Parser ( parse
                                       , parseST
                                       , parseTermST

@@ -53,7 +53,6 @@ module Language.PlutusCore.Constant.Typed
 
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
@@ -112,38 +111,6 @@ data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeSchem
 -- I attempted to unify various typed things, but sometimes type variables must be universally
 -- quantified, sometimes they must be existentially quatified. And those are distinct type variables.
 
--- I tried using the 'dependent-sum-template' package,
--- but see https://stackoverflow.com/q/50048842/3237465
-instance GEq TypedBuiltinSized where
-    TypedBuiltinSizedInt  `geq` TypedBuiltinSizedInt  = Just Refl
-    TypedBuiltinSizedBS   `geq` TypedBuiltinSizedBS   = Just Refl
-    TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
-    _                     `geq` _                     = Nothing
-
-instance Eq size => GEq (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
-        guard $ size1 == size2
-        tbs1 `geq` tbs2
-    TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
-    _                            `geq` _                            = Nothing
-
-liftOrdering :: Ordering -> GOrdering a a
-liftOrdering LT = GLT
-liftOrdering EQ = GEQ
-liftOrdering GT = GGT
-
-instance Ord size => GCompare (TypedBuiltin size) where
-    TypedBuiltinSized size1 tbs1 `gcompare` TypedBuiltinSized size2 tbs2
-        | Just Refl <- tbs1 `geq` tbs2 = liftOrdering $ size1 `compare` size2
-        | otherwise                    = case (tbs1, tbs2) of
-            (TypedBuiltinSizedInt , _                    ) -> GLT
-            (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
-            (TypedBuiltinSizedBS  , _                    ) -> GLT
-            (TypedBuiltinSizedSize, _                    ) -> GGT
-    TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
-    TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
-    TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
-
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
     pretty BuiltinSizedBS   = "bytestring"
@@ -166,9 +133,39 @@ instance size ~ Size => Pretty (TypedBuiltinValue size a) where
             TypedBuiltinSizedInt  -> pretty      x
             TypedBuiltinSizedBS   -> prettyBytes x
             TypedBuiltinSizedSize -> pretty      x
-    pretty (TypedBuiltinValue TypedBuiltinBool             b) = pretty b
+    pretty (TypedBuiltinValue TypedBuiltinBool           b) = pretty b
 
-instance size ~ Size => PrettyCfg (TypedBuiltinValue size a)
+liftOrdering :: Ordering -> GOrdering a a
+liftOrdering LT = GLT
+liftOrdering EQ = GEQ
+liftOrdering GT = GGT
+
+-- I tried using the 'dependent-sum-template' package,
+-- but see https://stackoverflow.com/q/50048842/3237465
+instance GEq TypedBuiltinSized where
+    TypedBuiltinSizedInt  `geq` TypedBuiltinSizedInt  = Just Refl
+    TypedBuiltinSizedBS   `geq` TypedBuiltinSizedBS   = Just Refl
+    TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
+    _                     `geq` _                     = Nothing
+
+instance Eq size => GEq (TypedBuiltin size) where
+    TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
+        guard $ size1 == size2
+        tbs1 `geq` tbs2
+    TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
+    _                            `geq` _                            = Nothing
+
+instance Ord size => GCompare (TypedBuiltin size) where
+    TypedBuiltinSized size1 tbs1 `gcompare` TypedBuiltinSized size2 tbs2
+        | Just Refl <- tbs1 `geq` tbs2 = liftOrdering $ size1 `compare` size2
+        | otherwise                    = case (tbs1, tbs2) of
+            (TypedBuiltinSizedInt , _                    ) -> GLT
+            (TypedBuiltinSizedBS  , TypedBuiltinSizedInt ) -> GGT
+            (TypedBuiltinSizedBS  , _                    ) -> GLT
+            (TypedBuiltinSizedSize, _                    ) -> GGT
+    TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
+    TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
+    TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
 
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
 eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt

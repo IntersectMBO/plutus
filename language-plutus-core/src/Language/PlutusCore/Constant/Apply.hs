@@ -1,8 +1,11 @@
 -- | Computing constant application.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
@@ -15,7 +18,6 @@ import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type     (BuiltinName (..))
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -55,35 +57,39 @@ newtype SizeVar = SizeVar Int
 -- | An 'IntMap' from size variables to sizes.
 newtype SizeValues = SizeValues (IntMap Size)
 
+instance ( PrettyBy config (Constant ())
+         , PrettyBy config (Value TyName Name ())
+         ) => PrettyBy config ConstAppError where
+    prettyBy config (SizeMismatchConstAppError expSize con) = fold
+        [ "Size mismatch error:", "\n"
+        , "expected size: ", pretty expSize, "\n"
+        , "actual constant: ", prettyBy config con
+        ]
+    prettyBy config (IllTypedConstAppError expType con)     = fold
+        [ "Ill-typed constant application:", "\n"
+        , "expected type: ", pretty expType, "\n"
+        , "actual constant: ", prettyBy config con
+        ]
+    prettyBy config (ExcessArgumentsConstAppError args)     = fold
+        [ "A constant applied to too many arguments:", "\n"
+        , "Excess ones are: ", prettyBy config args
+        ]
+    prettyBy config (SizedNonConstantConstAppError arg)     = fold
+        [ "A non-constant argument of a sized type: "
+        , prettyBy config arg
+        ]
+
+instance ( PrettyBy config (Constant ())
+         , PrettyBy config (Value TyName Name ())
+         ) => PrettyBy config ConstAppResult where
+    prettyBy config (ConstAppSuccess res) = prettyBy config res
+    prettyBy _      ConstAppFailure       = "Constant application failure"
+    prettyBy _      ConstAppStuck         = "Stuck constant applcation"
+    prettyBy config (ConstAppError err)   = prettyBy config err
+
 instance Enum SizeVar where
     toEnum = SizeVar
     fromEnum (SizeVar sizeIndex) = sizeIndex
-
-instance PrettyCfg ConstAppError where
-    prettyCfg cfg (SizeMismatchConstAppError expSize con) = fold
-        [ "Size mismatch error:", "\n"
-        , "expected size: ", pretty expSize, "\n"
-        , "actual constant: ", prettyCfg cfg con
-        ]
-    prettyCfg cfg (IllTypedConstAppError expType con)     = fold
-        [ "Ill-typed constant application:", "\n"
-        , "expected type: ", pretty expType, "\n"
-        , "actual constant: ", prettyCfg cfg con
-        ]
-    prettyCfg cfg (ExcessArgumentsConstAppError args)     = fold
-        [ "A constant applied to too many arguments:", "\n"
-        , "Excess ones are: ", prettyCfg cfg args
-        ]
-    prettyCfg cfg (SizedNonConstantConstAppError arg)     = fold
-        [ "A non-constant argument of a sized type: "
-        , prettyCfg cfg arg
-        ]
-
-instance PrettyCfg ConstAppResult where
-    prettyCfg cfg (ConstAppSuccess res) = prettyCfg cfg res
-    prettyCfg _   ConstAppFailure       = "Constant application failure"
-    prettyCfg _   ConstAppStuck         = "Stuck constant applcation"
-    prettyCfg cfg (ConstAppError err)   = prettyCfg cfg err
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
 makeConstAppResult :: TypedBuiltinValue Size a -> Quote ConstAppResult
@@ -124,7 +130,7 @@ extractBuiltin (TypedBuiltinSized sizeEntry tbs) (SizeValues sizes) value = case
             unPairT . fmap SizeValues $ IntMap.alterF upd sizeIndex sizes where
                 upd maySize = fmap Just . PairT $ extractSizedBuiltin tbs maySize constant
     _                    -> Left $ SizedNonConstantConstAppError value
-extractBuiltin TypedBuiltinBool                            _                  _     =
+extractBuiltin TypedBuiltinBool                  _                  _     =
     -- Plan: evaluate the 'value' to a dynamically typed Church-encoded 'Bool'
     -- specialized to 'Bool' and coerce it to an actual 'Bool'.
     error "Not implemented."

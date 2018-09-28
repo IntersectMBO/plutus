@@ -8,11 +8,11 @@ module Language.PlutusCore.StdLib.Data.Bool
     , getBuiltinIf
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 -- | 'Bool' as a PLC type.
 --
@@ -22,8 +22,7 @@ getBuiltinBool = do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
-        . TyFun () (TyVar () a)
-        . TyFun () (TyVar () a)
+        $ mkIterTyFun [ TyVar () a, TyVar () a ]
         $ TyVar () a
 
 -- | 'True' as a PLC term.
@@ -36,8 +35,10 @@ getBuiltinTrue = do
     y <- freshName () "y"
     return
        . TyAbs () a (Type ())
-       . LamAbs () x (TyVar () a)
-       . LamAbs () y (TyVar () a)
+       $ mkIterLamAbs [
+          (x, TyVar () a),
+          (y, TyVar () a)
+          ]
        $ Var () x
 
 -- | 'False' as a PLC term.
@@ -50,8 +51,10 @@ getBuiltinFalse = do
     y <- freshName () "y"
     return
        . TyAbs () a (Type ())
-       . LamAbs () x (TyVar () a)
-       . LamAbs () y (TyVar () a)
+       $ mkIterLamAbs [
+          (x, TyVar () a),
+          (y, TyVar () a)
+          ]
        $ Var () y
 
 -- | @if_then_else_@ as a PLC term.
@@ -71,9 +74,11 @@ getBuiltinIf = do
     let unitFunA u = TyFun () u (TyVar () a)
     return
        . TyAbs () a (Type ())
-       . LamAbs () b builtinBool
-       . LamAbs () x (unitFunA unit1)
-       . LamAbs () y (unitFunA unit2)
-       $ foldl' (Apply ())
-           (TyInst () (Var () b) (TyFun () unit3 (TyVar () a)))
-           [Var () x, Var () y, unitval]
+      $ mkIterLamAbs [
+          (b, builtinBool),
+          (x, unitFunA unit1),
+          (y, unitFunA unit2)
+          ]
+      $ mkIterApp
+          (TyInst () (Var () b) (TyFun () unit3 (TyVar () a)))
+          [Var () x, Var () y, unitval]

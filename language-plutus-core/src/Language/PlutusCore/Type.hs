@@ -1,8 +1,10 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Type ( Term (..)
                                 , Value
@@ -29,14 +31,15 @@ module Language.PlutusCore.Type ( Term (..)
                                 , NormalizedType (..)
                                 ) where
 
-import qualified Data.ByteString.Lazy           as BSL
-import           Data.Functor.Foldable
-import           Instances.TH.Lift              ()
-import           Language.Haskell.TH.Syntax     (Lift)
-import           Language.PlutusCore.Lexer.Type
+import           Language.Haskell.TH.Syntax         (Lift)
+import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.PrettyCfg
 import           PlutusPrelude
+
+import qualified Data.ByteString.Lazy               as BSL
+import           Data.Functor.Foldable
+import           Data.Text.Prettyprint.Doc.Internal (enclose)
+import           Instances.TH.Lift                  ()
 
 type Size = Natural
 
@@ -206,44 +209,6 @@ instance Recursive (Kind a) where
 data Program tyname name a = Program a (Version a) (Term tyname name a)
                  deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
-instance Pretty (Kind a) where
-    pretty = cata a where
-        a TypeF{}             = "(type)"
-        a SizeF{}             = "(size)"
-        a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
-
-instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Program f g a) where
-    prettyCfg cfg (Program _ v t) = parens' ("program" <+> pretty v <//> prettyCfg cfg t)
-
-instance PrettyCfg (Constant a) where
-    prettyCfg _ (BuiltinInt _ s i)  = pretty s <+> "!" <+> pretty i
-    prettyCfg _ (BuiltinSize _ s)   = pretty s
-    prettyCfg _ (BuiltinBS _ s b)   = pretty s <+> "!" <+> prettyBytes b
-    prettyCfg cfg (BuiltinName _ n) = prettyCfg cfg n
-
-instance (PrettyCfg (f a), PrettyCfg (g a)) => PrettyCfg (Term f g a) where
-    prettyCfg cfg = cata a where
-        a (ConstantF _ b)    = parens' ("con" </> prettyCfg cfg b)
-        a (ApplyF _ t t')    = brackets' (vsep' [t, t'])
-        a (VarF _ n)         = prettyCfg cfg n
-        a (TyAbsF _ n k t)   = parens' ("abs" </> vsep' [prettyCfg cfg n, pretty k, t])
-        a (TyInstF _ t ty)   = braces' (vsep' [t, prettyCfg cfg ty])
-        a (LamAbsF _ n ty t) = parens' ("lam" </> vsep' [prettyCfg cfg n, prettyCfg cfg ty, t]) -- FIXME: only do the </> thing when there's a line break in the `vsep'` part?
-        a (UnwrapF _ t)      = parens' ("unwrap" </> t)
-        a (WrapF _ n ty t)   = parens' ("wrap" </> vsep' [prettyCfg cfg n, prettyCfg cfg ty, t])
-        a (ErrorF _ ty)      = parens' ("error" </> prettyCfg cfg ty)
-
-instance (PrettyCfg (f a)) => PrettyCfg (Type f a) where
-    prettyCfg cfg = cata a where
-        a (TyAppF _ t t')     = brackets (t <+> t')
-        a (TyVarF _ n)        = prettyCfg cfg n
-        a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n t)      = parens ("fix" <+> prettyCfg cfg n <+> t)
-        a (TyForallF _ n k t) = parens ("all" <+> prettyCfg cfg n <+> pretty k <+> t)
-        a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
-        a (TyIntF _ n)        = parens ("con" <+> pretty n)
-        a (TyLamF _ n k t)    = parens ("lam" <+> prettyCfg cfg n <+> pretty k <+> t)
-
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Show, Eq, Functor, Generic)
@@ -254,17 +219,27 @@ newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind 
     deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 
-instance PrettyCfg (TyNameWithKind a) where
-    prettyCfg cfg@(Configuration _ True) (TyNameWithKind (TyName tn@(Name (_, k) _ _))) = parens (prettyCfg cfg tn <+> ":" <+> pretty k)
-    prettyCfg cfg@(Configuration _ False) (TyNameWithKind tn) = prettyCfg cfg tn
-
-instance PrettyCfg (NameWithType a) where
-    prettyCfg cfg@(Configuration _ True) (NameWithType n@(Name (_, ty) _ _)) = parens (prettyCfg cfg n <+> ":" <+> prettyCfg cfg ty)
-    prettyCfg cfg@(Configuration _ False) (NameWithType n) = prettyCfg cfg n
-
 newtype NormalizedType tyname a = NormalizedType { getNormalizedType :: Type tyname a }
     deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 
-instance PrettyCfg (tyname a) => PrettyCfg (NormalizedType tyname a) where
-    prettyCfg cfg (NormalizedType ty) = prettyCfg cfg ty
+instance PrettyBy config (Type tyname a) => PrettyBy config (NormalizedType tyname a) where
+    prettyBy config (NormalizedType ty) = prettyBy config ty
+
+instance ( HasPrettyConfigName config
+         , PrettyBy config (Kind a)
+         , PrettyBy config (TyName (a, Kind a))
+         ) => PrettyBy config (TyNameWithKind a) where
+    prettyBy config (TyNameWithKind tyname@(TyName (Name (_, kind) _ _)))
+        | showsAttached = enclose "<" ">" $ prettyBy config tyname <+> "::" <+> prettyBy config kind
+        | otherwise     = prettyBy config tyname
+        where PrettyConfigName _ showsAttached = toPrettyConfigName config
+
+instance ( HasPrettyConfigName config
+         , PrettyBy config (RenamedType a)
+         , PrettyBy config (Name (a, RenamedType a))
+         ) => PrettyBy config (NameWithType a) where
+    prettyBy config (NameWithType name@(Name (_, ty) _ _))
+        | showsAttached = enclose "<" ">" $ prettyBy config name <+> ":" <+> prettyBy config ty
+        | otherwise     = prettyBy config name
+        where PrettyConfigName _ showsAttached = toPrettyConfigName config
