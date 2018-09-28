@@ -11,6 +11,10 @@ module Language.PlutusCore.Quote (
             , freshUnique
             , freshName
             , freshTyName
+            , freshenName
+            , freshenTyName
+            , withTerm
+            , withType
             , QuoteT
             , Quote
             , MonadQuote
@@ -20,15 +24,17 @@ module Language.PlutusCore.Quote (
             ) where
 
 import           Control.Monad.Except
-import           Control.Monad.Morph      as MM
+import           Control.Monad.Morph       as MM
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.ByteString.Lazy      as BSL
 import           Data.Functor.Identity
-import           Hedgehog                 (GenT)
+import           Hedgehog                  (GenT)
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | The state contains the "next" 'Unique' that should be used for a name
@@ -90,6 +96,26 @@ freshUnique = do
 freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
 freshName ann str = Name ann str <$> freshUnique
 
+-- | Make a copy of the given 'Name' that is distinct from the old one.
+freshenName :: (Monad m) =>  Name a -> QuoteT m (Name a)
+freshenName (Name ann str _) = Name ann str <$> freshUnique
+
 -- | Get a fresh 'TyName', given the annotation an the name.
 freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
+
+-- | Make a copy of the given 'TyName' that is distinct from the old one.
+freshenTyName :: (Monad m) =>  TyName a -> QuoteT m (TyName a)
+freshenTyName (TyName name) = TyName <$> freshenName name
+
+-- | Make a term available under a given name inside a computation.
+withTerm :: (MonadQuote m) => m (Term TyName Name ()) -> m (Type TyName ()) -> m (Name ()) -> (Name () -> m (Term TyName Name ())) -> m (Term TyName Name ())
+withTerm bindM tyM n f = do
+    name <- n
+    mkTermLet name <$> bindM <*> tyM <*> f name
+
+-- | Make a type available under a given name inside a computation. Note: the result of the computation must be a value.
+withType :: (MonadQuote m) => m (Type TyName ()) -> m (Kind ()) -> m (TyName ()) -> (TyName () -> m (Term TyName Name ())) -> m (Term TyName Name ())
+withType bindM kM n f = do
+    name <- n
+    mkTypeLet name <$> bindM <*> kM <*> f name

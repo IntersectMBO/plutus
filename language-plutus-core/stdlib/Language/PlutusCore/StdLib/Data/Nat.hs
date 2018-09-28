@@ -9,6 +9,7 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinFoldNat
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Function
@@ -91,7 +92,7 @@ getBuiltinFoldrNat = do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
         . LamAbs () z (TyVar () r)
-        . Apply () (foldl' (TyInst ()) fix [nat, TyVar () r])
+        . Apply () (mkIterInst fix [nat, TyVar () r])
         . LamAbs () rec (TyFun () nat $ TyVar () r)
         . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
@@ -120,7 +121,7 @@ getBuiltinFoldNat = do
     return
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
-        . Apply () (foldl' (TyInst ()) fix [TyVar () r, TyFun () nat $ TyVar () r])
+        . Apply () (mkIterInst fix [TyVar () r, TyFun () nat $ TyVar () r])
         . LamAbs () rec (TyFun () (TyVar () r) . TyFun () nat $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . LamAbs () n nat

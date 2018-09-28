@@ -8,6 +8,7 @@ module Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
@@ -33,9 +34,9 @@ getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Quote (Term TyName N
 getBuiltinNatToInteger s n = do
     builtinFoldNat <- getBuiltinFoldNat
     let int = Constant () . BuiltinInt () s
-    return
-        . foldl' (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
-        $ [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+    return $
+         mkIterApp (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
+         [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
           , int 0
           , n
           ]
@@ -90,8 +91,8 @@ genIfIntegers = do
     builtinUnit  <- lift getBuiltinUnit
     builtinIf    <- lift getBuiltinIf
     let builtinConstSpec =
-            Apply () $ foldl' (TyInst ()) builtinConst [TyBuiltin () TyInteger, builtinUnit]
-        term = foldl' (Apply ())
+            Apply () $ mkIterInst builtinConst [TyBuiltin () TyInteger, builtinUnit]
+        term = mkIterApp
             (TyInst () builtinIf $ TyBuiltin () TyInteger)
             [b, builtinConstSpec i, builtinConstSpec j]
         value = if bv then iv else jv

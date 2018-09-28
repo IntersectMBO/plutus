@@ -10,6 +10,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinSum
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Function
@@ -80,8 +81,8 @@ getBuiltinCons = do
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        . foldl' (Apply ()) (Var () f)
-        $ [ Var () x
+        $ mkIterApp (Var () f)
+          [ Var () x
           , Var () xs
           ]
 
@@ -112,14 +113,14 @@ getBuiltinFoldrList = do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
         . LamAbs () z (TyVar () r)
-        . Apply () (foldl' (TyInst ()) fix [listA, TyVar () r])
+        . Apply () (mkIterInst fix [listA, TyVar () r])
         . LamAbs () rec (TyFun () listA $ TyVar () r)
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . LamAbs () xs' listA
-        . foldl' (Apply ()) (Var () f)
-        $ [ Apply () (Var () rec) $ Var () xs'
+        $ mkIterApp (Var () f)
+          [ Apply () (Var () rec) $ Var () xs'
           , Var () x
           ]
 
@@ -148,15 +149,15 @@ getBuiltinFoldList = do
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
-        . Apply () (foldl' (TyInst ()) fix [TyVar () r, TyFun () listA $ TyVar () r])
+        . Apply () (mkIterInst fix [TyVar () r, TyFun () listA $ TyVar () r])
         . LamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . Apply () (Var () rec)
-        . foldl' (Apply ()) (Var () f)
-        $ [ Var () z
+        $ mkIterApp (Var () f)
+          [ Var () z
           , Var () x
           ]
 
@@ -170,7 +171,7 @@ getBuiltinSum s = do
     foldList <- getBuiltinFoldList
     let int = TyBuiltin () TyInteger
     return
-        . foldl' (Apply ()) (foldl' (TyInst ()) foldList [int, int])
+        . mkIterApp (mkIterInst foldList [int, int])
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
           , Constant () $ BuiltinInt () s 0
           ]
