@@ -78317,6 +78317,7 @@ core-to-plc
 cryptonite
 free
 ghc
+hedgehog
 language-plutus-core
 memory
 mmorph

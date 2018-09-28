@@ -1,8 +1,6 @@
 module Main(main) where
 
 import           Data.Either         (isLeft, isRight)
-import           Generators          (Mockchain (..))
-import qualified Generators          as Gen
 import           Hedgehog            (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen        as Gen
@@ -11,6 +9,8 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
 import           Wallet.Emulator
+import           Wallet.Generators   (Mockchain (..))
+import qualified Wallet.Generators   as Gen
 
 main :: IO ()
 main = defaultMain tests
