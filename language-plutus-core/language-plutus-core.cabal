@@ -88,7 +88,7 @@ library
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
-    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+    other-extensions: DeriveAnyClass FlexibleInstances
                       MultiParamTypeClasses TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
                       RankNTypes TemplateHaskell QuasiQuotes TypeApplications
