@@ -199,8 +199,10 @@ getBuiltinFixN n = do
         b <- freshTyName () "b"
         pure (a, b)
 
+    let abFuns = fmap (\(a, b) -> TyFun () (TyVar () a) (TyVar () b)) asbs
+
     -- funTysTo X = (A1 -> B1) -> ... -> (An -> Bn) -> X
-    let funTysTo out = foldr (\(a, b) acc -> TyFun () (TyFun () (TyVar () a) (TyVar () b)) acc) out asbs
+    let funTysTo = mkIterTyFun abFuns
 
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
@@ -232,18 +234,20 @@ getBuiltinFixN n = do
             pure $
                 LamAbs () x (TyVar () a) $
                 Apply () (TyInst () (Var () k) (TyVar () b)) $
-                flip (foldr (\(f, fty) acc -> LamAbs () f fty acc)) fs $
+                mkIterLamAbs fs $
                 -- this is an ugly but straightforward way of getting the right fi
                 Apply() (Var () (fst (fs !! i))) (Var () x)
 
     -- a list of all the branches
     branches <- forM (zip asbs [0..]) $ uncurry branch
 
+    -- [A1, B1, ..., An, Bn]
+    let allAsBs = foldMap (\(a, b) -> [a, b]) asbs
     pure $
         -- abstract out all the As and Bs
-        flip (foldr (\(a, b) acc -> TyAbs () a (Type ()) $ TyAbs () b (Type()) acc)) asbs $
+        mkIterTyAbs (zip allAsBs (repeat (Type ()))) $
         Apply () instantiatedFix $
         LamAbs () k kTy $
         TyAbs () s (Type ()) $
         LamAbs () h hTy $
-        foldl' (\acc b -> Apply () acc b) (Var () h) branches
+        mkIterApp (Var () h) branches

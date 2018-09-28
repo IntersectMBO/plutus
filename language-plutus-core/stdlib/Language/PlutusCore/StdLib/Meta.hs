@@ -8,6 +8,7 @@ module Language.PlutusCore.StdLib.Meta
     )
 
 where
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.List
@@ -36,8 +37,8 @@ getBuiltinNatSum s = do
     n <- freshName () "n"
     RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
     return
-        . foldl' (Apply ()) (foldl' (TyInst ()) foldList [nat1, int])
-        $ [ LamAbs () acc int $
+        $ mkIterApp (mkIterInst foldList [nat1, int])
+          [ LamAbs () acc int $
             LamAbs () n nat2 $
             Apply () (Apply () add (Var () acc)) (Apply() nti (Var () n))
           , Constant () $ BuiltinInt () s 0
