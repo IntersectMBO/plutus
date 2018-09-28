@@ -30,7 +30,7 @@ genNatRoundtrip = do
     let size = 1
         typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     TermOf _ nv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntSized
-    term <- lift $ getBuiltinIntegerToNat nv >>= getBuiltinNatToInteger size
+    term <- lift $ getBuiltinIntegerToNat nv >>= (\t -> Apply() <$> getBuiltinNatToInteger size <*> pure t)
     return . TermOf term $ TypedBuiltinValue typedIntSized nv
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),

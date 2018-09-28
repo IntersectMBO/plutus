@@ -141,13 +141,16 @@ getBuiltinIntegerToNat n
           go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
 
 -- | Convert a @nat@ to an 'Integer'. TODO: this should be just @Quote (Term TyName Name ())@.
-getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Quote (Term TyName Name ())
-getBuiltinNatToInteger s n = do
+getBuiltinNatToInteger :: Natural -> Quote (Term TyName Name ())
+getBuiltinNatToInteger s = do
     builtinFoldNat <- getBuiltinFoldNat
     let int = Constant () . BuiltinInt () s
+    n <- freshName () "n"
+    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     return
+        . LamAbs () n nat
         . foldl' (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
         $ [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
           , int 0
-          , n
+          , (Var () n)
           ]
