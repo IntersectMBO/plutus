@@ -1,5 +1,8 @@
 -- | Various views of PLC entities.
 
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Language.PlutusCore.View
     ( IterApp(..)
     , TermIterApp
@@ -12,7 +15,6 @@ module Language.PlutusCore.View
     ) where
 
 import           Language.PlutusCore.Lexer.Type (BuiltinName (..))
-import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -30,9 +32,9 @@ type TermIterApp tyname name a =
 type PrimIterApp tyname name a =
     IterApp BuiltinName (Value tyname name a)
 
-instance (PrettyCfg head, PrettyCfg arg) => PrettyCfg (IterApp head arg) where
-    prettyCfg cfg (IterApp appHead appSpine) =
-        parens $ foldl' (\fun arg -> fun <+> prettyCfg cfg arg) (prettyCfg cfg appHead) appSpine
+instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp head arg) where
+    prettyBy config (IterApp appHead appSpine) =
+        parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | View a 'Constant' as an 'Integer'.
 constantAsInteger :: Constant a -> Maybe Integer
@@ -70,4 +72,4 @@ isValue (TyAbs  _ _ _ body) = isValue body
 isValue (Wrap   _ _ _ term) = isValue term
 isValue LamAbs{}            = True
 isValue Constant{}          = True
-isValue  term               = isJust $ termAsPrimIterApp term
+isValue term                = isJust $ termAsPrimIterApp term

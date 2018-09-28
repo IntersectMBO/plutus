@@ -8,11 +8,11 @@ module Language.PlutusCore.Generators.Internal.Utils
     , choiceDef
     , forAllPretty
     , forAllPrettyT
-    , forAllPrettyCfg
-    , forAllPrettyCfgT
+    , forAllPrettyPlc
+    , forAllPrettyPlcT
     ) where
 
-import           Language.PlutusCore
+import           Language.PlutusCore.Pretty (PrettyPlc, prettyPlcDefString)
 import           PlutusPrelude              hiding (hoist)
 
 import           Control.Monad.Morph
@@ -44,11 +44,11 @@ forAllPretty = forAllWith prettyString
 forAllPrettyT :: (Monad m, Pretty a) => GenT m a -> PropertyT m a
 forAllPrettyT = forAllWithT prettyString
 
--- | Generate a value using the 'PrettyCfg' class for getting its 'String' representation.
-forAllPrettyCfg :: (Monad m, PrettyCfg a) => Gen a -> PropertyT m a
-forAllPrettyCfg = forAllWith prettyCfgString
+-- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
+forAllPrettyPlc :: (Monad m, PrettyPlc a) => Gen a -> PropertyT m a
+forAllPrettyPlc = forAllWith prettyPlcDefString
 
--- | Generate a value using the 'PrettyCfg' class for getting its 'String' representation.
+-- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
 -- A supplied generator has access to the 'Monad' the whole property has access to.
-forAllPrettyCfgT :: (Monad m, PrettyCfg a) => GenT m a -> PropertyT m a
-forAllPrettyCfgT = forAllWithT prettyCfgString
+forAllPrettyPlcT :: (Monad m, PrettyPlc a) => GenT m a -> PropertyT m a
+forAllPrettyPlcT = forAllWithT prettyPlcDefString

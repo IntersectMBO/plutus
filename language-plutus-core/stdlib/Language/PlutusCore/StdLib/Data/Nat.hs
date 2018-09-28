@@ -7,8 +7,10 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinSucc
     , getBuiltinFoldrNat
     , getBuiltinFoldNat
+    , getBuiltinNatToInteger
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Function
@@ -91,7 +93,7 @@ getBuiltinFoldrNat = do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
         . LamAbs () z (TyVar () r)
-        . Apply () (foldl' (TyInst ()) fix [nat, TyVar () r])
+        . Apply () (mkIterInst fix [nat, TyVar () r])
         . LamAbs () rec (TyFun () nat $ TyVar () r)
         . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
@@ -120,7 +122,7 @@ getBuiltinFoldNat = do
     return
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
-        . Apply () (foldl' (TyInst ()) fix [TyVar () r, TyFun () nat $ TyVar () r])
+        . Apply () (mkIterInst fix [TyVar () r, TyFun () nat $ TyVar () r])
         . LamAbs () rec (TyFun () (TyVar () r) . TyFun () nat $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . LamAbs () n nat
@@ -128,3 +130,18 @@ getBuiltinFoldNat = do
         . Apply () (Var () rec)
         . Apply () (Var () f)
         $ Var () z
+
+-- | Convert a @nat@ to an 'Integer'.
+getBuiltinNatToInteger :: Natural -> Quote (Term TyName Name ())
+getBuiltinNatToInteger s = do
+    builtinFoldNat <- getBuiltinFoldNat
+    let int = Constant () . BuiltinInt () s
+    n <- freshName () "n"
+    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+    return
+        . LamAbs () n nat
+        $ mkIterApp (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
+          [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+          , int 0
+          , Var () n
+          ]

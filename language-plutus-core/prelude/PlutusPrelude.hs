@@ -1,3 +1,7 @@
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)
                      , toList
@@ -19,7 +23,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , NFData
                      , Natural
                      , NonEmpty (..)
-                     , Pretty (..)
                      , Word8
                      , Semigroup (..)
                      , Alternative (..)
@@ -32,13 +35,10 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Reëxports from "Control.Composition"
                      , (.*)
                      -- * Custom functions
-                     , prettyText
-                     , prettyString
-                     , render
                      , repeatM
                      , (?)
                      , hoist
-                     -- Reëxports from "Data.Text.Prettyprint.Doc"
+                     -- * Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
                      , brackets
@@ -49,6 +49,18 @@ module PlutusPrelude ( -- * Reëxports from base
                      , strToBs
                      , bsToStr
                      , indent
+                     -- * Pretty-printing
+                     , Pretty (..)
+                     , DefaultPrettyBy (..)
+                     , PrettyBy (..)
+                     , PrettyConfigIgnore (..)
+                     , PrettyConfigAttach (..)
+                     , docString
+                     , docText
+                     , prettyString
+                     , prettyText
+                     , prettyStringBy
+                     , prettyTextBy
                      -- * Custom pretty-printing functions
                      , module X
                      ) where
@@ -85,16 +97,78 @@ import           GHC.Natural                             (Natural)
 
 infixr 2 ?
 
--- | Render a 'Program' as strict 'Text'.
-prettyText :: Pretty a => a -> T.Text
-prettyText = render . pretty
+-- | This class is used in order to provide default implementations of 'PrettyBy' for
+-- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
+-- we can define a single 'DefaultPrettyBy' instance and then derive @PrettyBy Config a@ for each
+-- @a@ provided the @a@ implements the @PrettyBy Subconfig1@, @PrettyBy Subconfig2@, etc instances.
+--
+-- Example:
+--
+-- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
+-- >
+-- > instance (PrettyBy Subconfig1 a, PrettyBy Subconfig2 a) => DefaultPrettyBy Config a where
+-- >     defaultPrettyBy (Subconfig1 subconfig1) = prettyBy subconfig1
+-- >     defaultPrettyBy (Subconfig2 subconfig2) = prettyBy subconfig2
+--
+-- Now having in scope  @PrettyBy Subconfig1 A@ and @PrettyBy Subconfig2 A@
+-- and the same instances for @B@ we can write
+--
+-- > instance PrettyBy Config A
+-- > instance PrettyBy Config B
+--
+-- and the instances will be derived for us.
+class DefaultPrettyBy config a where
+    defaultPrettyBy :: config -> a -> Doc ann
 
--- | Render a 'Program' as 'String'.
+-- | Overloaded configurable conversion to 'Doc'. I.e. like 'Pretty', but parameterized by a @config@.
+-- This class is interoperable with the 'Pretty' class via 'PrettyConfigIgnore' and 'PrettyConfigAttatch'.
+class PrettyBy config a where
+    prettyBy :: config -> a -> Doc ann
+    default prettyBy :: DefaultPrettyBy config a => config -> a -> Doc ann
+    prettyBy = defaultPrettyBy
+
+-- | A newtype wrapper around @a@ which point is to provide a 'PrettyBy config' instance
+-- for anything that has a 'Pretty' instance.
+newtype PrettyConfigIgnore a = PrettyConfigIgnore
+    { unPrettyConfigIgnore :: a
+    }
+
+-- | A config together with some value. The point is to provide a 'Pretty' instance
+-- for anything that has a 'PrettyBy config' instance.
+data PrettyConfigAttach config a = PrettyConfigAttach config a
+
+instance PrettyBy config a => PrettyBy config [a] where
+    prettyBy config = list . fmap (prettyBy config)
+
+instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where
+    prettyBy _ (PrettyConfigIgnore x) = pretty x
+
+instance PrettyBy config a => Pretty (PrettyConfigAttach config a) where
+    pretty (PrettyConfigAttach config x) = prettyBy config x
+
+-- | Render a 'Doc' as 'String'.
+docString :: Doc a -> String
+docString = renderString . layoutSmart defaultLayoutOptions
+
+-- | Render a 'Doc' as 'Text'.
+docText :: Doc a -> T.Text
+docText = renderStrict . layoutSmart defaultLayoutOptions
+
+-- | Render a value as 'String'.
 prettyString :: Pretty a => a -> String
-prettyString = renderString . layoutPretty defaultLayoutOptions . pretty
+prettyString = docString . pretty
 
-render :: Doc a -> T.Text
-render = renderStrict . layoutSmart defaultLayoutOptions
+-- | Render a value as strict 'Text'.
+prettyText :: Pretty a => a -> T.Text
+prettyText = docText . pretty
+
+-- | Render a value as 'String'.
+prettyStringBy :: PrettyBy config a => config -> a -> String
+prettyStringBy = docString .* prettyBy
+
+-- | Render a value as strict 'Text'.
+prettyTextBy :: PrettyBy config a => config -> a -> T.Text
+prettyTextBy = docText .* prettyBy
 
 -- | Make sure your 'Applicative' is sufficiently lazy!
 repeatM :: Applicative f => Int -> f a -> f [a]

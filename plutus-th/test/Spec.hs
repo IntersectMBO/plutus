@@ -10,6 +10,7 @@ module Main (main) where
 import           Language.Plutus.TH
 
 import           Language.PlutusCore
+import qualified Language.PlutusCore.Pretty as PLC
 
 import           TestTH
 
@@ -25,7 +26,7 @@ main :: IO ()
 main = defaultMain tests
 
 golden :: String -> PlcCode -> TestTree
-golden name value = (goldenVsString name ("test/" ++ name ++ ".plc.golden") . pure . BSL.fromStrict . encodeUtf8 . debugText . getAst) value
+golden name value = (goldenVsString name ("test/" ++ name ++ ".plc.golden") . pure . BSL.fromStrict . encodeUtf8 . PLC.docText . PLC.prettyPlcClassicDebug . getAst) value
 
 
 tests :: TestTree

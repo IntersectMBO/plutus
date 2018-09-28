@@ -1,14 +1,18 @@
 -- | The exceptions that an abstract machine can throw.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE UndecidableInstances  #-}
+
 module Language.PlutusCore.Evaluation.MachineException
-    ( MachineError(..)
-    , MachineException(..)
+    ( MachineError (..)
+    , MachineException (..)
     ) where
 
-import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.PrettyCfg
+import           Language.PlutusCore.Pretty.Plc
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -31,22 +35,24 @@ data MachineException = MachineException
     , _machineExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
     }
 
-instance PrettyCfg MachineError where
-    prettyCfg _   NonPrimitiveInstantiationMachineError =
+instance ( PrettyBy config (Constant ())
+         , PrettyBy config (Value TyName Name ())
+         ) => PrettyBy config MachineError where
+    prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
-    prettyCfg _   NonWrapUnwrappedMachineError          =
+    prettyBy _      NonWrapUnwrappedMachineError          =
         "Cannot unwrap a not wrapped term."
-    prettyCfg _   NonPrimitiveApplicationMachineError   =
+    prettyBy _      NonPrimitiveApplicationMachineError   =
         "Cannot reduce a not immediately reducible application."
-    prettyCfg _   OpenTermEvaluatedMachineError         =
+    prettyBy _      OpenTermEvaluatedMachineError         =
         "Cannot evaluate an open term."
-    prettyCfg cfg (ConstAppMachineError constAppError)  =
-        prettyCfg cfg constAppError
+    prettyBy config (ConstAppMachineError constAppError)  =
+        prettyBy config constAppError
 
 instance Show MachineException where
     show (MachineException err cause) = fold
-        [ "An abstract machine failed: " , prettyCfgString err, "\n"
-        , "Caused by: ", prettyCfgString cause
+        [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
+        , "Caused by: ", docString $ prettyPlcReadableDebug cause
         ]
 
 instance Exception MachineException

@@ -1,6 +1,7 @@
 -- | Smart constructors of PLC constants.
 
 {-# LANGUAGE GADTs #-}
+
 module Language.PlutusCore.Constant.Make
     ( toBoundsInt
     , makeBuiltinInt
