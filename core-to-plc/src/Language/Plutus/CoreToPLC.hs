@@ -22,6 +22,7 @@ import qualified PrimOp                                   as GHC
 import qualified TysPrim                                  as GHC
 
 import qualified Language.PlutusCore                      as PLC
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function as Function
 import qualified Language.PlutusCore.StdLib.Data.Unit     as Unit
@@ -184,8 +185,7 @@ convTyConApp tc ts
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
-        -- See Note [Iterated abstraction and application]
-        pure $ foldl' (\acc t -> PLC.TyApp () acc t) tc' args'
+        pure $ mkIterTyApp tc' args'
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
 convTyCon tc = handleMaybeRecType (GHC.getName tc) $ do
@@ -266,7 +266,7 @@ splitPatternFunctor ty =
     (noFix, fixVar) <- case ty' of
         PLC.TyFix _ fixVar inner -> Just (inner, fixVar)
         _                        -> Nothing
-    let withApps = foldl' (\acc arg -> PLC.TyApp () acc arg) noFix tas
+    let withApps = mkIterTyApp noFix tas
     pure (withApps, fixVar)
 
 stripTyApps :: PLC.Type PLC.TyName () -> (PLC.Type PLC.TyName(), [PLC.Type PLC.TyName ()])
@@ -372,9 +372,8 @@ mkScottTyBody resultTypeName cases =
     let
         -- we can only match into kind Type
         resultKind = PLC.Type ()
-        -- See Note [Iterated abstraction and application]
         -- case_1 -> ... -> case_n -> resultType
-        funcs = foldr (\t acc -> PLC.TyFun () t acc) (PLC.TyVar () resultTypeName) cases
+        funcs = mkIterTyFun cases (PLC.TyVar () resultTypeName)
         -- forall resultType . funcs
         resultAbstracted = PLC.TyForall () resultTypeName resultKind funcs
     in resultAbstracted
@@ -385,9 +384,8 @@ dataConCaseType resultType dc = withContextM (sdToTxt $ "Converting data constru
     else do
         let argTys = GHC.dataConRepArgTys dc
         args <- mapM convType argTys
-        -- See Note [Iterated abstraction and application]
         -- t_1 -> ... -> t_m -> resultType
-        pure $ foldr (\t acc -> PLC.TyFun () t acc) resultType args
+        pure $ mkIterTyFun args resultType
 
 -- This is the creation of the Scott-encoded constructor value.
 convConstructor :: Converting m => GHC.DataCon -> m PLCExpr
@@ -442,7 +440,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index m
         -- c_i a_1 .. a_m
         applied = foldl' (\acc a -> PLC.Apply () acc (PLC.Var () a)) (PLC.Var () thisConstructor) (fmap fst argNamesAndTypes)
         -- \c_1 .. c_n . applied
-        cfuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) applied caseNamesAndTypes
+        cfuncs = mkIterLamAbs caseNamesAndTypes applied
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall r . cfuncs
         resAbstracted = PLC.TyAbs () resultTypeName resultKind cfuncs
@@ -451,7 +449,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index m
             Just (pf, n) -> PLC.Wrap () n pf resAbstracted
             Nothing      -> resAbstracted
         -- \a_1 .. a_m . fixed
-        afuncs = foldr (\(name, t) acc -> PLC.LamAbs () name t acc) fixed argNamesAndTypes
+        afuncs = mkIterLamAbs argNamesAndTypes fixed
     in afuncs
 
 convAlt :: Converting m => Bool -> GHC.DataCon -> GHC.CoreAlt -> m PLCExpr
@@ -462,8 +460,7 @@ convAlt mustDelay dc (alt, vars, body) = case alt of
         -- need to consume the args
         argTypes <- mapM convType $ GHC.dataConRepArgTys dc
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" ++ show i)
-        -- See Note [Iterated abstraction and application]
-        pure $ foldr (\(n', t') acc -> PLC.LamAbs () n' t' acc) body' (zip argNames argTypes)
+        pure $ mkIterLamAbs (zip argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
@@ -717,14 +714,14 @@ delayFunction ty f = do
 mkTupleType :: MonadQuote m => [PLCType] -> m PLCType
 mkTupleType tys = do
     resultType <- safeFreshTyName "tuple_matchOut"
-    let cases = [foldr (\v acc -> PLC.TyFun () v acc) (PLC.TyVar () resultType) tys]
+    let cases = [mkIterTyFun tys (PLC.TyVar () resultType)]
     pure $ mkScottTyBody resultType cases
 
 mkTupleConstructor :: MonadQuote m => [PLCType] -> m PLCExpr
 mkTupleConstructor argTys = do
     resultType <- safeFreshTyName "tuple_matchOut"
     caseName <- safeFreshName "c"
-    let caseNamesAndTypes = [(caseName, foldr (\v acc -> PLC.TyFun () v acc) (PLC.TyVar () resultType) argTys)]
+    let caseNamesAndTypes = [(caseName, mkIterTyFun argTys (PLC.TyVar () resultType) )]
     argNames <- forM [0..(length argTys -1)] (\i -> safeFreshName $ "tuple_arg" ++ show i)
     pure $ mkScottConstructorBody resultType caseNamesAndTypes (zip argNames argTys) 0 Nothing
 
@@ -873,7 +870,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             bsLam <- flip (foldr (\b acc -> mkLambda b acc)) (fmap fst bs) $ do
                 rhss <- mapM convExpr (fmap snd bs)
                 tupleConstructor <- mkTupleConstructor tys
-                let tuple = foldl' (\acc rhs -> PLC.Apply () acc rhs) tupleConstructor rhss
+                let tuple = mkIterApp tupleConstructor rhss
                 pure tuple
 
             tupleArg <- safeFreshName "tuple"
@@ -909,8 +906,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 Just alt -> convAlt lazyCase dc alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
 
-            -- See Note [Iterated abstraction and application]
-            let applied = foldl' (\acc alt -> PLC.Apply () acc alt) instantiated branches
+            let applied = mkIterApp instantiated branches
             -- See Note [Case expressions and laziness]
             maybeForce lazyCase applied
         -- ignore annotation

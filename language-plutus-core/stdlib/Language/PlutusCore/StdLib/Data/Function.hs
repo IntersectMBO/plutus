@@ -8,11 +8,11 @@ module Language.PlutusCore.StdLib.Data.Function
     , getBuiltinFix
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 -- | 'const' as a PLC term.
 --
@@ -88,7 +88,7 @@ getBuiltinFix = do
         . wrapSelfFunAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
-        . foldl' (Apply ()) (Var () f)
-        $ [ Apply () (unrollFunAB unroll2) $ Var () s
+        $ mkIterApp (Var () f)
+          [ Apply () (unrollFunAB unroll2) $ Var () s
           , Var () x
           ]

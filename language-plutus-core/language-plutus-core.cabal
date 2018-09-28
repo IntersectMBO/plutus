@@ -36,6 +36,7 @@ library
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Quote
+        Language.PlutusCore.MkPlc
         Language.PlutusCore.TH
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
