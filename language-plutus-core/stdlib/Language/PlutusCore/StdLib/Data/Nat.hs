@@ -7,7 +7,6 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinSucc
     , getBuiltinFoldrNat
     , getBuiltinFoldNat
-    , getBuiltinIntegerToNat
     , getBuiltinNatToInteger
     ) where
 
@@ -132,15 +131,7 @@ getBuiltinFoldNat = do
         . Apply () (Var () f)
         $ Var () z
 
--- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
-getBuiltinIntegerToNat :: Integer -> Quote (Term TyName Name ())
-getBuiltinIntegerToNat n
-    | n < 0     = error $ "getBuiltinIntegerToNat: negative argument: " ++ show n
-    | otherwise = go n where
-          go 0 = getBuiltinZero
-          go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
-
--- | Convert a @nat@ to an 'Integer'. TODO: this should be just @Quote (Term TyName Name ())@.
+-- | Convert a @nat@ to an 'Integer'.
 getBuiltinNatToInteger :: Natural -> Quote (Term TyName Name ())
 getBuiltinNatToInteger s = do
     builtinFoldNat <- getBuiltinFoldNat

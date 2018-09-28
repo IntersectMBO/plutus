@@ -8,15 +8,12 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinFoldrList
     , getBuiltinFoldList
     , getBuiltinSum
-    , getBuiltinNatSum
-    , getListToBuiltinList
     ) where
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
 import           PlutusPrelude                            hiding (list)
@@ -178,32 +175,3 @@ getBuiltinSum s = do
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
           , Constant () $ BuiltinInt () s 0
           ]
-
--- |  'sumNat' as a PLC term.
-getBuiltinNatSum :: Natural -> Quote (Term TyName Name ())
-getBuiltinNatSum s = do
-    foldList <- getBuiltinFoldList
-    let int = TyBuiltin () TyInteger
-    let add = TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
-    RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
-    nti <- getBuiltinNatToInteger s
-    acc <- freshName () "acc"
-    n <- freshName () "n"
-    RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
-    return
-        . foldl' (Apply ()) (foldl' (TyInst ()) foldList [nat1, int])
-        $ [ LamAbs () acc int $
-            LamAbs () n nat2 $
-            Apply () (Apply () add (Var () acc)) (Apply() nti (Var () n))
-          , Constant () $ BuiltinInt () s 0
-          ]
-
--- | Convert a Haskell list of 'Term's to a PLC @list@.
-getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Quote (Term TyName Name ())
-getListToBuiltinList ty ts = do
-    builtinNil  <- getBuiltinNil
-    builtinCons <- getBuiltinCons
-    return $ foldr
-        (\x xs -> foldl' (Apply ()) (TyInst () builtinCons ty) [x, xs])
-        (TyInst () builtinNil ty)
-        ts

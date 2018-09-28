@@ -14,6 +14,7 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
+import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Type
 
 import           Control.Monad.Except
