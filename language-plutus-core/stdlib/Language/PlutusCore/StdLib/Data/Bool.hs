@@ -61,22 +61,24 @@ getBuiltinFalse = do
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b {() -> A} x y ()
 getBuiltinIf :: Quote (Value TyName Name ())
-getBuiltinIf =
-    withType getBuiltinUnit (pure (Type ())) (freshTyName () "unit") $ \unit ->
-    withType getBuiltinBool (pure (Type ())) (freshTyName () "bool") $ \boolT ->
-    withTerm getBuiltinUnitval (pure (TyVar () unit)) (freshName () "unitVal") $ \unitval -> do
+getBuiltinIf = do
+    unit1 <- getBuiltinUnit
+    unit2 <- getBuiltinUnit
+    unit3 <- getBuiltinUnit
+    unitval <- getBuiltinUnitval
+    builtinBool <- getBuiltinBool
     a <- freshTyName () "a"
     b <- freshName () "b"
     x <- freshName () "x"
     y <- freshName () "y"
     let unitFunA u = TyFun () u (TyVar () a)
     return
-      . TyAbs () a (Type ())
+       . TyAbs () a (Type ())
       $ mkIterLamAbs [
-          (b, TyVar () boolT),
-          (x, unitFunA (TyVar () unit)),
-          (y, unitFunA (TyVar () unit))
+          (b, builtinBool),
+          (x, unitFunA unit1),
+          (y, unitFunA unit2)
           ]
       $ mkIterApp
-          (TyInst () (Var () b) (TyFun () (TyVar () unit) (TyVar () a)))
-          [Var () x, Var () y, Var () unitval]
+          (TyInst () (Var () b) (TyFun () unit3 (TyVar () a)))
+          [Var () x, Var () y, unitval]
