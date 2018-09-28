@@ -743,8 +743,8 @@ in
 
 into this:
 
-($fixN n$ (\choose f1 ... fn . choose b_1 ... b_i))
-(\f1 ... fn . result)
+($fixN i$ (\choose f1 ... fi . choose b_1 ... b_i))
+(\f1 ... fi . result)
 -}
 
 {- Note [Spec booleans and Haskell booleans]
