@@ -112,7 +112,7 @@ testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
 testsNormalizeType :: [FilePath] -> TestTree
-testsNormalizeType = testGroup "golden type synthesis tests" . fmap (asGolden (printNormalizeType True))
+testsNormalizeType = testGroup "golden type synthesis + normalization tests" . fmap (asGolden (printNormalizeType True))
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden = testGroup "golden tests" . fmap (asGolden (format defPrettyConfigPlcClassic))
