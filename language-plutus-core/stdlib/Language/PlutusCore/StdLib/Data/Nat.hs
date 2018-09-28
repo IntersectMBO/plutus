@@ -7,6 +7,7 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinSucc
     , getBuiltinFoldrNat
     , getBuiltinFoldNat
+    , getBuiltinNatToInteger
     ) where
 
 import           Language.PlutusCore.MkPlc
@@ -129,3 +130,18 @@ getBuiltinFoldNat = do
         . Apply () (Var () rec)
         . Apply () (Var () f)
         $ Var () z
+
+-- | Convert a @nat@ to an 'Integer'.
+getBuiltinNatToInteger :: Natural -> Quote (Term TyName Name ())
+getBuiltinNatToInteger s = do
+    builtinFoldNat <- getBuiltinFoldNat
+    let int = Constant () . BuiltinInt () s
+    n <- freshName () "n"
+    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+    return
+        . LamAbs () n nat
+        $ mkIterApp (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
+          [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+          , int 0
+          , Var () n
+          ]

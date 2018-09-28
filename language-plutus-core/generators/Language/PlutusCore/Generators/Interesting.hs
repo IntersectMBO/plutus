@@ -14,42 +14,13 @@ import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.StdLib.Meta
 import           PlutusPrelude                            hiding (list)
 
 import           Control.Monad.Morph
 import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
-
--- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
-getBuiltinIntegerToNat :: Integer -> Quote (Term TyName Name ())
-getBuiltinIntegerToNat n
-    | n < 0     = error $ "getBuiltinIntegerToNat: negative argument: " ++ show n
-    | otherwise = go n where
-          go 0 = getBuiltinZero
-          go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
-
--- | Convert a @nat@ to an 'Integer'. TODO: this should be just @Quote (Term TyName Name ())@.
-getBuiltinNatToInteger :: Natural -> Term TyName Name () -> Quote (Term TyName Name ())
-getBuiltinNatToInteger s n = do
-    builtinFoldNat <- getBuiltinFoldNat
-    let int = Constant () . BuiltinInt () s
-    return $
-         mkIterApp (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
-         [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
-          , int 0
-          , n
-          ]
-
--- | Convert a Haskell list of 'Term's to a PLC @list@.
-getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Quote (Term TyName Name ())
-getListToBuiltinList ty ts = do
-    builtinNil  <- getBuiltinNil
-    builtinCons <- getBuiltinCons
-    return $ foldr
-        (\x xs -> foldl' (Apply ()) (TyInst () builtinCons ty) [x, xs])
-        (TyInst () builtinNil ty)
-        ts
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'getBuiltinFoldNat')
@@ -60,7 +31,7 @@ genNatRoundtrip = do
     let size = 1
         typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     TermOf _ nv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntSized
-    term <- lift $ getBuiltinIntegerToNat nv >>= getBuiltinNatToInteger size
+    term <- lift $ getBuiltinIntegerToNat nv >>= (\t -> Apply() <$> getBuiltinNatToInteger size <*> pure t)
     return . TermOf term $ TypedBuiltinValue typedIntSized nv
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
