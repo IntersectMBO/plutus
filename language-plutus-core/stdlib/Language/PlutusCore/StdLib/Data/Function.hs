@@ -163,7 +163,7 @@ getBuiltinFixBy = do
     fq <- freshName () "fq"
     let fqTy = TyApp () (TyVar () f) (TyVar () q)
 
-    -- inner = (/\ Q :: * -> \ q : F Q -> rec h {Q} (h {Q} q))
+    -- inner = (/\ (Q :: *) -> \ q : F Q -> rec h {Q} (h {Q} q))
     let inner =
             Apply () (Var () by) $
                 TyAbs () q (Type ()) $
