@@ -23,7 +23,6 @@ import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -220,35 +219,40 @@ typeOf (Apply x fun arg) = do
                 else throwError (TypeMismatch x (void arg) inTy nArgTy)
         _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) nFunTy)
 typeOf (TyInst x body ty) = do
-    nBodyTy@(NormalizedType bodyTy) <- typeOf (debugTrace body) -- why is this being called two times??
+    nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
         TyForall _ n k absTy -> do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then
-                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty) *> -- FIXME: this is going awry
-                    tyReduce absTy
+                then do
+                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty)
+                    tyReduce (absTy) <* tyEnvDelete (extractUnique n)
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
-        TyFix _ n fixTy ->
-            tyEnvAssign (extractUnique n) nBodyTy *>
-            tyReduce fixTy
+        TyFix _ n fixTy -> do
+            tyEnvAssign (extractUnique n) nBodyTy
+            tyReduce fixTy <* tyEnvDelete (extractUnique n)
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty body) = do
     nBodyTy <- typeOf body
     tyEnvAssign (extractUnique n) (NormalizedType $ TyFix () (void n) (void ty))
     typeCheckStep
-    red <- tyReduce (void ty)
+    red <- tyReduce (void ty) <* tyEnvDelete (extractUnique n)
     if red == nBodyTy
         then pure $ NormalizedType (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void body) (getNormalizedType red) nBodyTy)
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
+
+tyEnvDelete :: MonadState (TypeSt, Natural) m
+            => Unique
+            -> m ()
+tyEnvDelete (Unique i) = modify (first (IM.delete i))
 
 tyEnvAssign :: MonadState (TypeSt, Natural) m
             => Unique
@@ -279,9 +283,9 @@ rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') =
-    tyEnvAssign u (NormalizedType (void ty')) *>
-    tyReduce ty
+tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
+    tyEnvAssign u (NormalizedType (void ty'))
+    tyReduce ty <* tyEnvDelete u
 tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
                           | otherwise                                        = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> rewriteCtx ty')
