@@ -96,13 +96,13 @@ getBuiltinFix = do
           , Var () x
           ]
 
--- | A type that looks a bit transformation.
+-- | A type that looks like a transformation.
 --
 -- > trans F G Q : F Q -> G Q
 trans :: Type TyName () -> Type TyName () -> Type TyName () -> Quote (Type TyName ())
 trans f g q = pure $ TyFun () (TyApp () f q) (TyApp () g q)
 
--- | A type that looks like a natural transformation.
+-- | A type that looks like a natural transformation, sometimes written 'F ~> G'.
 --
 -- > natTrans F G : forall Q :: * . F Q -> G Q
 natTrans :: Type TyName () -> Type TyName () -> Quote (Type TyName ())
@@ -119,40 +119,57 @@ natTransId f = do
 -- | The 'fixBy' combinator.
 --
 -- fixBy :
---     forall F :: (* -> *) .
---     ((forall Q :: * . F Q -> Q) -> (forall Q :: * . F Q -> Q)) ->
---     ((forall Q :: * . F Q -> F Q) -> (forall Q :: * . F Q -> Q))
+--     forall (F :: * -> *) .
+--     ((F ~> Id) -> (F ~> Id)) ->
+--     ((F ~> F) -> (F ~> Id))
 getBuiltinFixBy :: Quote (Term TyName Name ())
 getBuiltinFixBy = do
     f <- freshTyName () "F"
+
+    -- by : (F ~> Id) -> (F ~> Id)
     by <- freshName () "by"
     byTy <- do
         nt1 <- natTransId (TyVar () f)
         nt2 <- natTransId (TyVar () f)
         pure $ TyFun () nt1 nt2
 
+    -- instantiatedFix = fix {F ~> F} {F ~> Id}
     instantiatedFix <- do
         fix <- getBuiltinFix
         nt1 <- natTrans (TyVar () f) (TyVar () f)
         nt2 <- natTransId (TyVar () f)
         pure $ TyInst () (TyInst () fix nt1) nt2
 
+    -- rec : (F ~> F) -> (F ~> Id)
     recc <- freshName () "rec"
     reccTy <- do
       nt <- natTrans (TyVar () f) (TyVar () f)
       nt2 <- natTransId (TyVar () f)
       pure $ TyFun () nt nt2
 
+    -- h : F ~> F
     h <- freshName () "h"
     hty <- natTrans (TyVar () f) (TyVar () f)
 
+    -- R :: *
+    -- fr : F R
     r <- freshTyName () "R"
     fr <- freshName () "fr"
     let frTy = TyApp () (TyVar () f) (TyVar () r)
 
+    -- Q :: *
+    -- fq : F Q
     q <- freshTyName () "Q"
     fq <- freshName () "fq"
     let fqTy = TyApp () (TyVar () f) (TyVar () q)
+
+    -- inner = (/\ Q :: * -> \ q : F Q -> rec h {Q} (h {Q} q))
+    let inner =
+            Apply () (Var () by) $
+                TyAbs () q (Type ()) $
+                LamAbs () fq fqTy $
+                Apply () (TyInst () (Apply () (Var () recc) (Var () h)) (TyVar () q)) $
+                Apply () (TyInst () (Var () h) (TyVar () q)) (Var () fq)
     pure $
         TyAbs () f (KindArrow () (Type ()) (Type ())) $
         LamAbs () by byTy $
@@ -161,66 +178,72 @@ getBuiltinFixBy = do
         LamAbs () h hty $
         TyAbs () r (Type ()) $
         LamAbs () fr frTy $
-        Apply () (TyInst () (
-                         Apply () (Var () by) $
-                          TyAbs () q (Type ()) $
-                          LamAbs () fq fqTy $
-                          Apply () (TyInst () (Apply () (Var () recc) (Var () h)) (TyVar () q)) $
-                          Apply () (TyInst () (Var () h) (TyVar () q)) (Var () fq))
-                     (TyVar () r))
-        (Var () fr)
+        Apply () (TyInst () inner (TyVar () r)) (Var () fr)
 
 -- | Make a @n@-ary fixpoint combinator.
 --
 -- > getBuiltinFixN n :
 --       forall A1 B1 ... An Bn :: * .
---       forall Q :: * .
+--       (forall Q :: * .
 --           ((A1 -> B1) -> ... -> (An -> Bn) -> Q) ->
 --           (A1 -> B1) ->
 --           ... ->
 --           (An -> Bn) ->
---           Q
---       forall R :: * . (A1 -> B1) -> ... (An -> Bn) -> R
+--           Q) ->
+--       (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
 getBuiltinFixN :: Int -> Quote (Term TyName Name ())
 getBuiltinFixN n = do
+    -- the list of pairs of A and B types
     asbs <- replicateM n $ do
         a <- freshTyName () "a"
         b <- freshTyName () "b"
         pure (a, b)
 
+    -- funTysTo X = (A1 -> B1) -> ... -> (An -> Bn) -> X
     let funTysTo out = foldr (\(a, b) acc -> TyFun () (TyFun () (TyVar () a) (TyVar () b)) acc) out asbs
 
-    fixBy <- getBuiltinFixBy
+    -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
+    instantiatedFix <- do
+        fixBy <- getBuiltinFixBy
+        x <- freshTyName () "X"
+        pure $ TyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))
 
-    x <- freshTyName () "X"
     s <- freshTyName () "S"
 
+    -- k : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> Q)
     k <- freshName () "k"
     kTy <- do
         q <- freshTyName () "Q"
         pure $ TyForall () q (Type ()) $ TyFun () (funTysTo (TyVar () q)) (TyVar () q)
 
+    -- h : (A1 -> B1) -> ... -> (An -> Bn) -> S
     h <- freshName () "h"
+    let hTy = funTysTo (TyVar () s)
 
+    -- branch (ai, bi) i = \x : ai -> k { bi } \(f1 : A1 -> B1) ... (fn : An -> Bn) . fi x
     let branch (a, b) i = do
+            -- names and types for the f arguments
             fs <- forM asbs $ \(a',b') -> do
                 f <- freshName () "f"
                 pure (f, TyFun () (TyVar () a') (TyVar () b'))
 
-            x2 <- freshName () "x"
+            x <- freshName () "x"
 
             pure $
-                LamAbs () x2 (TyVar () a) $
+                LamAbs () x (TyVar () a) $
                 Apply () (TyInst () (Var () k) (TyVar () b)) $
                 flip (foldr (\(f, fty) acc -> LamAbs () f fty acc)) fs $
-                Apply() (Var () (fst (fs !! i))) (Var () x2)
+                -- this is an ugly but straightforward way of getting the right fi
+                Apply() (Var () (fst (fs !! i))) (Var () x)
 
+    -- a list of all the branches
     branches <- forM (zip asbs [0..]) $ uncurry branch
 
     pure $
+        -- abstract out all the As and Bs
         flip (foldr (\(a, b) acc -> TyAbs () a (Type ()) $ TyAbs () b (Type()) acc)) asbs $
-        Apply () (TyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))) $
+        Apply () instantiatedFix $
         LamAbs () k kTy $
         TyAbs () s (Type ()) $
-        LamAbs () h (funTysTo (TyVar () s)) $
+        LamAbs () h hTy $
         foldl' (\acc b -> Apply () acc b) (Var () h) branches
