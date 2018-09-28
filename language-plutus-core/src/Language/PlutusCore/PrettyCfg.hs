@@ -6,6 +6,7 @@ module Language.PlutusCore.PrettyCfg ( PrettyCfg (..)
                                      , Configuration (..)
                                      -- * Helper functions
                                      , prettyCfgString
+                                     , debugCfgString
                                      , prettyCfgText
                                      , debugText
                                      , defaultCfg
@@ -48,5 +49,11 @@ debugCfg = Configuration True False
 debugText :: PrettyCfg a => a -> T.Text
 debugText = render . prettyCfg debugCfg
 
+cfgString :: PrettyCfg a => Configuration -> a -> String
+cfgString = renderString .* layoutPretty defaultLayoutOptions .* prettyCfg
+
+debugCfgString :: PrettyCfg a => a -> String
+debugCfgString = cfgString debugCfg
+
 prettyCfgString :: PrettyCfg a => a -> String
-prettyCfgString = renderString . layoutPretty defaultLayoutOptions . prettyCfg defaultCfg
+prettyCfgString = cfgString defaultCfg

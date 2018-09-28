@@ -23,6 +23,7 @@ import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.PrettyCfg
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -32,6 +33,10 @@ import           PlutusPrelude
 data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (NormalizedType TyNameWithKind ()))
 
 type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
+
+printTypeSt :: TypeSt -> String
+printTypeSt is = let is' = IM.toAscList is in
+    unlines . fmap (\(i, key) -> "(" ++ show i ++ "," ++ debugCfgString key ++ ")") $ is'
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
@@ -270,9 +275,9 @@ rewriteCtx (TyForall x tn k ty) = TyForall x tn k <$> rewriteCtx ty
 rewriteCtx ty@TyInt{}           = pure ty
 rewriteCtx ty@TyBuiltin{}       = pure ty
 rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
-    (st, _) <- get
+    (st, _) <- (\a -> trace (printTypeSt (fst a)) a) <$> get
     case IM.lookup (unUnique u) st of
-        Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty') -- doesn't need to be cloned because rewriteCtx handles that already
+        Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty')
         Just ty'                          -> cloneType (getNormalizedType ty')
         Nothing                           -> pure ty
 
