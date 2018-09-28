@@ -15685,6 +15685,7 @@ testHaskellDepends = [
 base
 bytestring
 language-plutus-core
+mtl
 tasty
 tasty-golden
 tasty-hunit
@@ -78329,18 +78330,11 @@ transformers
 ];
 testHaskellDepends = [
 base
-bytestring
 containers
-core-to-plc
-cryptonite
 hedgehog
-mtl
-operational
-plutus-th
 tasty
 tasty-hedgehog
 text
-transformers
 ];
 doHaddock = false;
 description = "Wallet API";

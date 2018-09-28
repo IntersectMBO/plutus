@@ -1,23 +1,23 @@
 (program 1.0.0
   (lam
-    ds_2
-    (all MyNewtype2_matchOut_0 (type) (fun (fun (all MyNewtype_matchOut_1 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_1) MyNewtype_matchOut_1)) MyNewtype2_matchOut_0) MyNewtype2_matchOut_0))
+    ds_4
+    (all MyNewtype2_matchOut_1 (type) (fun (fun (all MyNewtype_matchOut_3 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_3) MyNewtype_matchOut_3)) MyNewtype2_matchOut_1) MyNewtype2_matchOut_1))
     [
       {
         [
           {
-            ds_2
-            (all MyNewtype_matchOut_3 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_3) MyNewtype_matchOut_3))
+            ds_4
+            (all MyNewtype_matchOut_6 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_6) MyNewtype_matchOut_6))
           }
           (lam
-            inner_4
-            (all MyNewtype_matchOut_3 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_3) MyNewtype_matchOut_3))
-            inner_4
+            inner_7
+            (all MyNewtype_matchOut_6 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_6) MyNewtype_matchOut_6))
+            inner_7
           )
         ]
         [(con integer) (con 64)]
       }
-      (lam inner_5 [(con integer) (con 64)] inner_5)
+      (lam inner_8 [(con integer) (con 64)] inner_8)
     ]
   )
 )

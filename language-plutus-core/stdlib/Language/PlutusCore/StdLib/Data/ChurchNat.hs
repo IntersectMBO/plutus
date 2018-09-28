@@ -7,10 +7,10 @@ module Language.PlutusCore.StdLib.Data.ChurchNat
     , getBuiltinChurchSucc
     ) where
 
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 -- | Church-encoded @Nat@ as a PLC type.
 --
@@ -54,7 +54,7 @@ getBuiltinChurchSucc = do
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
         . Apply () (Var () f)
-        . foldl' (Apply ()) (TyInst () (Var () n) $ TyVar () r)
-        $ [ Var () z
+        $ mkIterApp (TyInst () (Var () n) $ TyVar () r)
+          [ Var () z
           , Var () f
           ]

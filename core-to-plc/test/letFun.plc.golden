@@ -9,46 +9,7 @@
         (lam
           z_2
           [(con integer) (con 64)]
-          [
-            [
-              (lam
-                arg1_3
-                [(con integer) (con 64)]
-                (lam
-                  arg2_4
-                  [(con integer) (con 64)]
-                  (abs
-                    Bool_match_out_5
-                    (type)
-                    (lam
-                      arg1_6
-                      Bool_match_out_5
-                      (lam
-                        arg2_7
-                        Bool_match_out_5
-                        [
-                          [
-                            {
-                              [
-                                [ { (con equalsInteger) (con 64) } arg1_3 ]
-                                arg2_4
-                              ]
-                              Bool_match_out_5
-                            }
-                            (lam thunk_8 (all a_9 (type) (fun a_9 a_9)) arg1_6)
-                          ]
-                          (lam thunk_10 (all a_11 (type) (fun a_11 a_11)) arg1_6
-                          )
-                        ]
-                      )
-                    )
-                  )
-                )
-              )
-              ds_0
-            ]
-            z_2
-          ]
+          [ [ { (con equalsInteger) (con 64) } ds_0 ] z_2 ]
         )
         ds_1
       ]

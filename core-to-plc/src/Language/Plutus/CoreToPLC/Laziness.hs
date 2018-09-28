@@ -26,3 +26,12 @@ delayType orig = PLC.TyFun () <$> liftQuote Unit.getBuiltinUnit <*> pure orig
 
 force :: MonadQuote m => PLC.Term PLC.TyName PLC.Name () -> m (PLC.Term PLC.TyName PLC.Name ())
 force thunk = PLC.Apply () thunk <$> liftQuote Unit.getBuiltinUnitval
+
+maybeDelay :: MonadQuote m => Bool -> PLC.Term PLC.TyName PLC.Name () -> m (PLC.Term PLC.TyName PLC.Name ())
+maybeDelay yes t = if yes then delay t else pure t
+
+maybeDelayType :: MonadQuote m => Bool -> PLC.Type PLC.TyName () -> m (PLC.Type PLC.TyName ())
+maybeDelayType yes t = if yes then delayType t else pure t
+
+maybeForce :: MonadQuote m => Bool -> PLC.Term PLC.TyName PLC.Name () -> m (PLC.Term PLC.TyName PLC.Name ())
+maybeForce yes t = if yes then force t else pure t

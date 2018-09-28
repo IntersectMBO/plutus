@@ -36,6 +36,7 @@ library
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Quote
+        Language.PlutusCore.MkPlc
         Language.PlutusCore.TH
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
@@ -49,6 +50,7 @@ library
         Language.PlutusCore.StdLib.Data.List
         Language.PlutusCore.StdLib.Data.Nat
         Language.PlutusCore.StdLib.Data.Unit
+        Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting

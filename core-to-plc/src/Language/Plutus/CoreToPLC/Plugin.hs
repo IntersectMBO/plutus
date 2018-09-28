@@ -7,6 +7,7 @@ module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plu
 
 import           Language.Plutus.CoreToPLC
 import           Language.Plutus.CoreToPLC.Error
+import           Language.Plutus.CoreToPLC.Types
 
 import qualified GhcPlugins                      as GHC
 import qualified Panic                           as GHC
@@ -19,9 +20,8 @@ import           Language.Haskell.TH.Syntax      as TH
 
 import           Codec.CBOR.Read                 (DeserialiseFailure)
 import           Control.Exception
+import           Control.Monad
 import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Control.Monad.State
 import qualified Data.ByteString.Lazy            as BSL
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
@@ -170,7 +170,15 @@ convertExpr opts origE tpe = do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
                   void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 annotated
               pure converted
-    case runExcept $ runQuoteT $ evalStateT (runReaderT result (flags, primTerms, primTys, initialScopeStack)) Map.empty of
+        context = ConvertingContext {
+            ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
+            ccFlags=flags,
+            ccPrimTerms=primTerms,
+            ccPrimTypes=primTys,
+            ccScopes=initialScopeStack
+            }
+        initialState = ConvertingState Map.empty
+    case runConverting context initialState result of
         Left s ->
             let shown = show $ PP.pretty s in
             if poDeferErrors opts

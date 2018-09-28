@@ -65,6 +65,7 @@ test_typecheckTerms :: TestTree
 test_typecheckTerms = testCase "terms" $ foldMap assertQuoteWellTyped
     [ getBuiltinUnroll
     , getBuiltinFix
+    , getBuiltinFixN 2
     , getBuiltinChurchZero
     , getBuiltinChurchSucc
     , getBuiltinZero

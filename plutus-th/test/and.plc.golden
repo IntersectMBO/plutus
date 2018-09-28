@@ -1,46 +1,34 @@
 (program 1.0.0
   [
     (lam
-      ds_1
-      (all Bool_matchOut_0 (type) (fun Bool_matchOut_0 (fun Bool_matchOut_0 Bool_matchOut_0)))
+      ds_2
+      (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
       [
         [
-          [
-            {
-              ds_1
-              (fun (all a_3 (type) (fun a_3 a_3)) (all Bool_matchOut_2 (type) (fun Bool_matchOut_2 (fun Bool_matchOut_2 Bool_matchOut_2))))
-            }
+          {
+            ds_2
+            (all Bool_matchOut_10 (type) (fun Bool_matchOut_10 (fun Bool_matchOut_10 Bool_matchOut_10)))
+          }
+          (abs
+            Bool_matchOut_11
+            (type)
             (lam
-              thunk_7
-              (all a_8 (type) (fun a_8 a_8))
-              (abs
-                Bool_matchOut_4
-                (type)
-                (lam
-                  False_5 Bool_matchOut_4 (lam True_6 Bool_matchOut_4 False_5)
-                )
-              )
-            )
-          ]
-          (lam
-            thunk_12
-            (all a_13 (type) (fun a_13 a_13))
-            (abs
-              Bool_matchOut_9
-              (type)
-              (lam
-                False_10 Bool_matchOut_9 (lam True_11 Bool_matchOut_9 True_11)
-              )
+              True_12 Bool_matchOut_11 (lam False_13 Bool_matchOut_11 True_12)
             )
           )
         ]
-        (abs a_14 (type) (lam x_15 a_14 x_15))
+        (abs
+          Bool_matchOut_14
+          (type)
+          (lam True_15 Bool_matchOut_14 (lam False_16 Bool_matchOut_14 False_16)
+          )
+        )
       ]
     )
     (abs
-      Bool_matchOut_16
+      Bool_matchOut_17
       (type)
-      (lam False_17 Bool_matchOut_16 (lam True_18 Bool_matchOut_16 False_17))
+      (lam True_18 Bool_matchOut_17 (lam False_19 Bool_matchOut_17 False_19))
     )
   ]
 )

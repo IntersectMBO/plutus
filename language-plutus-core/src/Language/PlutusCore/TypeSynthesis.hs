@@ -56,18 +56,11 @@ newTyName k = do
     u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
     pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
 
-unit :: MonadQuote m => m (Type TyNameWithKind ())
-unit =
-    [ TyForall () nam (Type ()) (TyFun () (TyVar () nam) (TyVar () nam)) | nam <- newTyName (Type ()) ]
-
 boolean :: MonadQuote m => m (Type TyNameWithKind ())
 boolean = do
     nam <- newTyName (Type ())
-    (u, u') <- (,) <$> unit <*> unit
     let var = TyVar () nam
-        unitVar = TyFun () u var
-        unitVar' = TyFun () u' var
-    pure $ TyForall () nam (Type ()) (TyFun () unitVar (TyFun () unitVar' var))
+    pure $ TyForall () nam (Type ()) (TyFun () var (TyFun () var var))
 
 builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
 builtinRel bi = do

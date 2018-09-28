@@ -1,37 +1,18 @@
 (program 1.0.0
   (lam
-    ds_1
-    (all MyMonoData_matchOut_0 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoData_matchOut_0)) (fun (fun [(con integer) (con 64)] MyMonoData_matchOut_0) (fun (fun [(con integer) (con 64)] MyMonoData_matchOut_0) MyMonoData_matchOut_0))))
+    ds_2
+    (all MyMonoData_matchOut_1 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoData_matchOut_1)) (fun (fun [(con integer) (con 64)] MyMonoData_matchOut_1) (fun (fun [(con integer) (con 64)] MyMonoData_matchOut_1) MyMonoData_matchOut_1))))
     [
       [
         [
-          [
-            {
-              ds_1 (fun (all a_2 (type) (fun a_2 a_2)) [(con integer) (con 64)])
-            }
-            (lam
-              a_3
-              [(con integer) (con 64)]
-              (lam
-                b_4
-                [(con integer) (con 64)]
-                (lam thunk_5 (all a_6 (type) (fun a_6 a_6)) b_4)
-              )
-            )
-          ]
+          { ds_2 [(con integer) (con 64)] }
           (lam
-            a_7
-            [(con integer) (con 64)]
-            (lam thunk_8 (all a_9 (type) (fun a_9 a_9)) a_7)
+            a_3 [(con integer) (con 64)] (lam b_4 [(con integer) (con 64)] b_4)
           )
         ]
-        (lam
-          a_10
-          [(con integer) (con 64)]
-          (lam thunk_11 (all a_12 (type) (fun a_12 a_12)) a_10)
-        )
+        (lam a_5 [(con integer) (con 64)] a_5)
       ]
-      (abs a_13 (type) (lam x_14 a_13 x_14))
+      (lam a_6 [(con integer) (con 64)] a_6)
     ]
   )
 )

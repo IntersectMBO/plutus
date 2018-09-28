@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
@@ -9,18 +10,21 @@ module Main (main) where
 import           IllTyped
 
 import           Language.Plutus.CoreToPLC.Plugin
-import           Language.Plutus.CoreToPLC.Primitives as Prims
+import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
 
 import           Language.PlutusCore
-import qualified Language.PlutusCore.Pretty           as PLC
+import           Language.PlutusCore.Evaluation.CkMachine
+import qualified Language.PlutusCore.Pretty               as PLC
 
 import           Test.Tasty
 import           Test.Tasty.Golden
 
 import           Control.Exception
-import qualified Data.ByteString.Lazy                 as BSL
-import           Data.Text                            as T
-import           Data.Text.Encoding                   (encodeUtf8)
+import           Control.Monad.Except                     hiding (void)
+
+import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.Text                                as T
+import           Data.Text.Encoding                       (encodeUtf8)
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}
@@ -28,8 +32,19 @@ import           Data.Text.Encoding                   (encodeUtf8)
 main :: IO ()
 main = defaultMain tests
 
+getPlc :: PlcCode -> ExceptT BSL.ByteString IO (Program TyName Name ())
+getPlc value = withExceptT (strToBs . show) $ getAst <$> (ExceptT $ try @SomeException (evaluate value))
+
+goldenVsPretty :: PLC.PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
+goldenVsPretty name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either id (txtToBs . PLC.docText . PLC.prettyPlcClassicDebug) <$> runExceptT value
+
 golden :: String -> PlcCode -> TestTree
-golden name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either (strToBs . show) (txtToBs . PLC.docText . PLC.prettyPlcClassicDebug . getAst) <$> try @SomeException (evaluate value)
+golden name value = goldenVsPretty name (getPlc value)
+
+goldenEvalApp :: String -> [PlcCode] -> TestTree
+goldenEvalApp name values = goldenVsPretty name $ runCk <$> do
+    ps <- mapM getPlc values
+    pure $ foldl1 (\acc p -> applyProgram acc p) ps
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . encodeUtf8 . T.pack
@@ -43,6 +58,7 @@ tests = testGroup "GHC Core to PLC conversion" [
   , primitives
   , structure
   , datat
+  , recursiveTypes
   , recursion
   , errors
   ]
@@ -63,15 +79,22 @@ primitives :: TestTree
 primitives = testGroup "Primitive types and operations" [
     golden "string" string
   , golden "int" int
+  , golden "int2" int
   , golden "bool" bool
+  , golden "and" andPlc
+  , goldenEvalApp "andApply" [ andPlc, plc True, plc False ]
   , golden "tuple" tuple
   , golden "tupleMatch" tupleMatch
+  , goldenEvalApp "tupleConstDest" [ tupleMatch, tuple ]
   , golden "intCompare" intCompare
   , golden "intEq" intEq
+  , goldenEvalApp "intEqApply" [ intEq, int, int ]
   , golden "void" void
   , golden "intPlus" intPlus
+  , goldenEvalApp "intPlusApply" [ intPlus, int, int2 ]
   , golden "error" errorPlc
   , golden "ifThenElse" ifThenElse
+  , goldenEvalApp "ifThenElseApply" [ ifThenElse, int, int2 ]
   , golden "blocknum" blocknumPlc
   , golden "bytestring" bytestring
   , golden "verify" verify
@@ -83,8 +106,14 @@ string = plc "test"
 int :: PlcCode
 int = plc (1::Int)
 
+int2 :: PlcCode
+int2 = plc (2::Int)
+
 bool :: PlcCode
 bool = plc True
+
+andPlc :: PlcCode
+andPlc = plc (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)
 
 tuple :: PlcCode
 tuple = plc ((1::Int), (2::Int))
@@ -131,7 +160,10 @@ monoData = testGroup "Monomorphic data" [
   , golden "monoConstructor" monoConstructor
   , golden "monoConstructed" monoConstructed
   , golden "monoCase" monoCase
+  , goldenEvalApp "monoConstDest" [ monoCase, monoConstructed ]
   , golden "defaultCase" defaultCase
+  , goldenEvalApp "monoConstDestDefault" [ monoCase, monoConstructed ]
+  , golden "nonValueCase" nonValueCase
   , golden "synonym" synonym
   ]
 
@@ -155,7 +187,11 @@ monoCase :: PlcCode
 monoCase = plc (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a; Mono3 a -> a })
 
 defaultCase :: PlcCode
-defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono2 a -> a ; _ -> 1; })
+defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
+
+-- must be compiled with a lazy case
+nonValueCase :: PlcCode
+nonValueCase = plc (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Prims.error (); })
 
 type Synonym = Int
 
@@ -181,7 +217,9 @@ newtypes = testGroup "Newtypes" [
     golden "basicNewtype" basicNewtype
    , golden "newtypeMatch" newtypeMatch
    , golden "newtypeCreate" newtypeCreate
+   , golden "newtypeCreate2" newtypeCreate2
    , golden "nestedNewtypeMatch" nestedNewtypeMatch
+   , goldenEvalApp "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
 
 newtype MyNewtype = MyNewtype Int
@@ -197,8 +235,23 @@ newtypeMatch = plc (\(MyNewtype x) -> x)
 newtypeCreate :: PlcCode
 newtypeCreate = plc (\(x::Int) -> MyNewtype x)
 
+newtypeCreate2 :: PlcCode
+newtypeCreate2 = plc (MyNewtype 1)
+
 nestedNewtypeMatch :: PlcCode
 nestedNewtypeMatch = plc (\(MyNewtype2 (MyNewtype x)) -> x)
+
+recursiveTypes :: TestTree
+recursiveTypes = testGroup "Recursive types" [
+    golden "listConstruct" listConstruct
+    , golden "listConstruct2" listConstruct2
+    , golden "listMatch" listMatch
+    , goldenEvalApp "listConstDest" [ listMatch, listConstruct ]
+    , goldenEvalApp "listConstDest2" [ listMatch, listConstruct2 ]
+    , golden "ptreeConstruct" ptreeConstruct
+    , golden "ptreeMatch" ptreeMatch
+    , goldenEvalApp "ptreeConstDest" [ ptreeMatch, ptreeConstruct ]
+  ]
 
 recursion :: TestTree
 recursion = testGroup "Recursive functions" [
@@ -216,7 +269,6 @@ errors :: TestTree
 errors = testGroup "Errors" [
     golden "integer" integer
     , golden "free" free
-    , golden "list" list
     , golden "valueRestriction" valueRestriction
   ]
 
@@ -225,9 +277,6 @@ integer = plc (1::Integer)
 
 free :: PlcCode
 free = plc (True && False)
-
-list :: PlcCode
-list = plc ([(1::Int)])
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.

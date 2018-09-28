@@ -30,11 +30,11 @@
         
         $unitval$ & \(\abs{\alpha}{\typeK{}}{\lam{x}{\alpha}{x}}\)\\\\
         
-        $boolean$ & \(\forall \alpha :: \star.\ (unit \to \alpha) \to (unit \to \alpha) \to \alpha\)\\\\
+        $boolean$ & \(\forall \alpha :: \star.\ \alpha \to \alpha \to \alpha\)\\\\
         
-        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{(unit \to \alpha)}{\lam{f}{(unit \to \alpha)}{\app{t}{unitval}}}}\)\\\\
+        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{t}{unitval}}}}\)\\\\
         
-        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{(unit \to \alpha)}{\lam{f}{(unit \to \alpha)}{\app{f}{unitval}}}}\)\\\\
+        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{f}{unitval}}}}\)\\\\
         
     \end{tabular}
     
@@ -105,7 +105,7 @@
         %&&\\
         
         \texttt{takeByteString}    &   \forall s_0, s_1 :: size.\ integer_{s_0} \to bytestring_{s_1} \to bytestring_{s_1}   &   s_0!i, s_1!b     & s_1!(take \ i \  b)\\
-        \texttt{dropByteString}    &   \forall s_0, s_1 :: size.\ integer_{s_0} \to bytestring_{s_1} \to bytestring_{s_1}   &   s_01i, s_1!b     & s_1!(drop \ i \  b)\\
+        \texttt{dropByteString}    &   \forall s_0, s_1 :: size.\ integer_{s_0} \to bytestring_{s_1} \to bytestring_{s_1}   &   s_0!i, s_1!b     & s_1!(drop \ i \  b)\\
         %&&\\
         
         \texttt{sha2\_256}         &  \forall s :: size.\ bytestring_s \to bytestring_{\conT{256}}  &   s!b           & 256!(sha2\_256 \  b)\\
