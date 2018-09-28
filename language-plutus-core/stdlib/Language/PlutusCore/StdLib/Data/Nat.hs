@@ -152,5 +152,5 @@ getBuiltinNatToInteger s = do
         . foldl' (Apply ()) (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
         $ [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
           , int 0
-          , (Var () n)
+          , Var () n
           ]

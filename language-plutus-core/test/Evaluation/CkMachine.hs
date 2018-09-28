@@ -147,7 +147,7 @@ evenAndOddList = do
               LamAbs () l li1 $
               Apply () (
                   Apply () (TyInst () (Unwrap () (Var () l)) li2)
-                  (TyInst() nil nat)) $
+                  (TyInst() nil nat))
               recc
 
     evenF <- do
@@ -215,5 +215,5 @@ test_evaluateCk = testGroup "evaluateCk"
     , goldenVsPretty "even3" (pure $ evaluateCk (runQuote $
                                                  Apply () <$> getEven <*> getBuiltinIntegerToNat 3))
     , goldenVsPretty "evenList" (pure $ evaluateCk (runQuote $
-                                                 Apply () <$> (getBuiltinNatSum 64) <*> (Apply () <$> getEvenList <*> smallNatList)))
+                                                 Apply () <$> getBuiltinNatSum 64 <*> (Apply () <$> getEvenList <*> smallNatList)))
     ]
