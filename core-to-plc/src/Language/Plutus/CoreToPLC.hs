@@ -13,6 +13,7 @@ import           Language.Plutus.CoreToPLC.Laziness
 import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
 import           Language.Plutus.CoreToPLC.Types
 
+import qualified CoreUtils                                as GHC
 import qualified GhcPlugins                               as GHC
 import qualified Kind                                     as GHC
 import qualified MkId                                     as GHC
@@ -33,7 +34,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import           Data.Bifunctor
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Char
 import           Data.Foldable
@@ -725,31 +725,6 @@ mkTupleConstructor argTys = do
     argNames <- forM [0..(length argTys -1)] (\i -> safeFreshName $ "tuple_arg" ++ show i)
     pure $ mkScottConstructorBody resultType caseNamesAndTypes (zip argNames argTys) 0 Nothing
 
--- Functions
-
-{- Note [Recursion with Z]
-XXX: THIS IS VERY WRONG, REVISIT LATER
-
-How do we handle fixpoints of functions `a -> a` when we only have the Z combinator?
-
-We translate the value as a function `() -> a` instead, and force it immediately in the
-body. This way the semantics are still strict.
-
-Translating `f :: a -> a` to a function `(() -> a) -> () -> a)` is easy, you just do
-`delay . f . force`.
--}
-
--- | A fixpoint combinator on functions of type @a -> a@.
-fixY :: MonadQuote m => PLCType -> PLCExpr -> m PLCExpr
-fixY ty f = do
-    unitTy <- liftQuote Unit.getBuiltinUnit
-    z <- liftQuote Function.getBuiltinFix
-    let instantiated = PLC.TyInst () (PLC.TyInst () z unitTy) ty
-    -- See Note [Recursion with Z]
-    zFunction <- delayFunction ty f
-    pure $ PLC.Apply () instantiated zFunction
-
-
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values
 already (see Note [Recursion with Z]).
@@ -760,30 +735,16 @@ The answer is simple - we pass them through as a tuple.
 Overall, the translation looks like this. We convert this:
 
 let rec
-  a_1 = b_1
-  ..
-  a_i = b_i
+  f_1 = b_1
+  ...
+  f_i = b_i
 in
   result
 
-into this (with a lot of noise due to our let-bindings becoming lambdas):
+into this:
 
-(\tuple ->
-  tuple
-  (\a_1 ->
-    ..
-    result
-  )
-)
-(fixY
-  (\tuple ->
-    tuple
-    (\a_1 ->
-      ..
-      tuple_i b_1 .. b_i
-    )
-  )
-)
+($fixN n$ (\choose f1 ... fn . choose b_1 ... b_i))
+(\f1 ... fn . result)
 -}
 
 {- Note [Spec booleans and Haskell booleans]
@@ -861,24 +822,40 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             l' <- mkLambda b $ convExpr body
             pure $ PLC.Apply () l' a'
         GHC.Let (GHC.Rec bs) body -> do
+            -- See note [Recursive lets]
+            -- TODO: we're technically using these twice, which is bad and maybe we need to duplicate
             tys <- mapM convType (fmap (GHC.varType . fst) bs)
-            forM_ tys $ \case
-                PLC.TyFun {} -> pure ()
+            -- The pairs of types we'll need for fixN
+            asbs <- forM tys $ \case
+                PLC.TyFun () i o -> pure (i, o)
                 _ -> throwPlain $ ConversionError "Recursive values must be of function type. You may need to manually add unit arguments."
-            tupleTy <- mkTupleType tys
 
+            -- We need this so we can use the tuple of recursive functions in the end - it
+            -- expects an output type.
+            outTy <- convType (GHC.exprType body)
+
+            q <- safeFreshTyName "Q"
+            choose <- safeFreshName "choose"
+            let chooseTy = mkIterTyFun tys (PLC.TyVar () q)
+
+            -- \f1 ... fn -> choose b1 ... bn
             bsLam <- flip (foldr (\b acc -> mkLambda b acc)) (fmap fst bs) $ do
                 rhss <- mapM convExpr (fmap snd bs)
-                tupleConstructor <- mkTupleConstructor tys
-                let tuple = mkIterApp tupleConstructor rhss
-                pure tuple
+                pure $ mkIterApp (PLC.Var() choose) rhss
 
-            tupleArg <- safeFreshName "tuple"
-            let tupleFun = PLC.LamAbs () tupleArg tupleTy $ PLC.Apply () (PLC.Var () tupleArg) bsLam
-            fixed <- fixY tupleTy tupleFun
+            -- abstract out Q and choose
+            let cLam = PLC.TyAbs () q (PLC.Type ()) $ PLC.LamAbs () choose chooseTy bsLam
 
+            -- fixN {A1 B1 ... An Bn}
+            instantiatedFix <- do
+                fixN <- liftQuote $ Function.getBuiltinFixN (length bs)
+                pure $ mkIterInst fixN $ foldMap (\(a, b) -> [a, b]) asbs
+
+            let fixed = PLC.Apply () instantiatedFix cLam
+
+            -- the consumer of the recursive functions
             bodyLam <- foldr (\b acc -> mkLambda b acc) (convExpr body) (fmap fst bs)
-            pure $ PLC.Apply () bodyLam fixed
+            pure $ PLC.Apply () (PLC.TyInst () fixed outTy) bodyLam
         GHC.Case scrutinee b t alts -> do
             let scrutineeType = GHC.varType b
             -- must be a TC app

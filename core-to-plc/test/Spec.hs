@@ -243,6 +243,7 @@ recursiveTypes :: TestTree
 recursiveTypes = testGroup "Recursive types" [
     golden "listConstruct" listConstruct
     , golden "listConstruct2" listConstruct2
+    , golden "listConstruct3" listConstruct3
     , golden "listMatch" listMatch
     , goldenEvalApp "listConstDest" [ listMatch, listConstruct ]
     , goldenEvalApp "listConstDest2" [ listMatch, listConstruct2 ]
@@ -254,14 +255,13 @@ recursiveTypes = testGroup "Recursive types" [
 recursion :: TestTree
 recursion = testGroup "Recursive functions" [
     -- currently broken, will come back to this later
-    --golden "fib" fib
+    golden "fib" fib
+    , goldenEvalApp "fib4" [ fib, plc (4::Int) ]
+    , golden "sum" sumDirect
+    , goldenEvalApp "sumList" [ sumDirect, listConstruct3 ]
+    --, golden "sumFold" sumViaFold
+    --, goldenEvalApp "sumFoldList" [ sumViaFold, listConstruct3 ]
   ]
-
-fib :: PlcCode
--- not using case to avoid literal cases
-fib = plc (let fib :: Int -> Int
-               fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
-           in fib 4)
 
 errors :: TestTree
 errors = testGroup "Errors" [
