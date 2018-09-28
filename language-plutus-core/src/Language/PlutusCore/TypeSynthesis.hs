@@ -244,7 +244,7 @@ typeOf (TyInst x body ty) = do
             if k == k'
                 then do
                     tyEnvAssign (extractUnique n) (void $ NormalizedType ty)
-                    tyReduce (absTy) <* tyEnvDelete (extractUnique n)
+                    tyReduce absTy <* tyEnvDelete (extractUnique n)
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
