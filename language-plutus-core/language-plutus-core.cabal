@@ -42,6 +42,7 @@ library
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Constant
+        Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
@@ -63,15 +64,17 @@ library
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
+        Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Typed
-        Language.PlutusCore.Constant.Apply
+        Language.PlutusCore.Pretty.Classic
+        Language.PlutusCore.Pretty.Plc
+        Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
-        Language.PlutusCore.PrettyCfg
         Language.PlutusCore.Subst
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
@@ -80,7 +83,7 @@ library
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
     default-language: Haskell2010
-    default-extensions: ExplicitForAll ScopedTypeVariables
+    default-extensions: ExplicitForAll ScopedTypeVariables FlexibleContexts
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
@@ -154,8 +157,10 @@ test-suite language-plutus-core-test
         Evaluation.Constant.SuccessFailure
         Evaluation.TypeCheck
         Generators
+        Pretty.Readable
         Quotation.Spec
     default-language: Haskell2010
+    default-extensions: FlexibleContexts
     other-extensions: OverloadedStrings
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -168,6 +173,7 @@ test-suite language-plutus-core-test
         tasty-hunit -any,
         tasty-hedgehog -any,
         bytestring -any,
+        filepath -any,
         tasty-golden -any,
         text -any,
         prettyprinter -any,

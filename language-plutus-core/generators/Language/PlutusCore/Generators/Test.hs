@@ -6,6 +6,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators
+import           PlutusPrelude                         (PrettyConfigIgnore (..))
 
 import           Control.Monad.Morph
 import           Data.Foldable
@@ -20,7 +21,8 @@ propEvaluate
     -> GenT Quote (TermOf (TypedBuiltinValue Size a))  -- ^ A term/value generator.
     -> Property
 propEvaluate eval genTermOfTbv = property . hoist (return . runQuote) $ do
-    TermOf term tbv <- forAllPrettyCfgT genTermOfTbv
+    TermOf term (PrettyConfigIgnore tbv) <-
+        forAllPrettyPlcT $ fmap PrettyConfigIgnore <$> genTermOfTbv
     resExpected <- lift $ unsafeMakeBuiltin tbv
     for_ (evaluationResultToMaybe $ eval term) $ \resActual ->
         resActual === resExpected

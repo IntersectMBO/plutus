@@ -1,6 +1,7 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 module Language.Plutus.CoreToPLC.Error (
     Error (..)
     , WithContext (..)
@@ -9,11 +10,13 @@ module Language.Plutus.CoreToPLC.Error (
     , throwPlain
     , mustBeReplaced) where
 
-import qualified Language.PlutusCore       as PLC
+import qualified Language.PlutusCore        as PLC
+import qualified Language.PlutusCore.Pretty as PLC
+import qualified PlutusPrelude              as PLC
 
 import           Control.Monad.Except
-import qualified Data.Text                 as T
-import qualified Data.Text.Prettyprint.Doc as PP
+import qualified Data.Text                  as T
+import qualified Data.Text.Prettyprint.Doc  as PP
 import           Data.Typeable
 
 -- | An error with some (nested) context.
@@ -46,12 +49,12 @@ data Error a = PLCError (PLC.Error a)
              | ValueRestrictionError T.Text
              deriving Typeable
 
-instance (PLC.PrettyCfg a) => PP.Pretty (Error a) where
-    pretty = PLC.prettyCfg PLC.debugCfg
+instance (PP.Pretty a) => PP.Pretty (Error a) where
+    pretty = PLC.prettyPlcClassicDebug
 
-instance (PLC.PrettyCfg a) => PLC.PrettyCfg (Error a) where
-    prettyCfg cfg = \case
-        PLCError e -> PLC.prettyCfg cfg e
+instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
+    prettyBy config = \case
+        PLCError e -> PLC.prettyBy config e
         ConversionError e -> "Error during conversion:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported:" PP.<+> PP.pretty e
         FreeVariableError e -> "Used but not defined in the current conversion:" PP.<+> PP.pretty e

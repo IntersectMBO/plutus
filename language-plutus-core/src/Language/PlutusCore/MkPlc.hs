@@ -1,7 +1,6 @@
 
 module Language.PlutusCore.MkPlc where
 
-import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 
 import           Data.List                (foldl')
@@ -36,7 +35,7 @@ mkIterInst
     :: Term tyname name ()
     -> [Type tyname ()]
     -> Term tyname name ()
-mkIterInst abs args = foldl' (TyInst ()) abs args
+mkIterInst abstr args = foldl' (TyInst ()) abstr args
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs

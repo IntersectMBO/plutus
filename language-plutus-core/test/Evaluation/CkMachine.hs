@@ -9,6 +9,7 @@ import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
+import           Language.PlutusCore.Pretty
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
@@ -203,8 +204,8 @@ smallNatList = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     getListToBuiltinList nat nats
 
-goldenVsPretty :: PrettyCfg a => String -> ExceptT BSL.ByteString IO a -> TestTree
-goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . debugText) <$> runExceptT value
+goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
+goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"

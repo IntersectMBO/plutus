@@ -13,6 +13,7 @@ import qualified GhcPlugins                      as GHC
 import qualified Panic                           as GHC
 
 import qualified Language.PlutusCore             as PLC
+import qualified Language.PlutusCore.Pretty      as PLC
 import           Language.PlutusCore.Quote
 
 import           Language.Haskell.TH.Syntax      as TH
@@ -185,7 +186,7 @@ convertExpr opts origE tpe = do
             then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID tpe shown -- this will blow up at runtime
             else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
         Right term -> do
-            let termRep = T.unpack $ PLC.debugText term
+            let termRep = T.unpack $ PLC.docText $ PLC.prettyPlcClassicDebug term
             -- Note: tests run with --verbose, so these will appear
             GHC.debugTraceMsg $
                 "Successfully converted GHC core expression:" GHC.$+$

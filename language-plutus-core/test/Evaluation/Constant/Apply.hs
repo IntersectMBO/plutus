@@ -42,11 +42,11 @@ prop_applyBuiltinName
     -> Property
 prop_applyBuiltinName getFinal tbn op allTbs = property . hoist (pure . runQuote) $ do
     let getIterAppValue = runPlcT genSizeDef allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
-    IterAppValue _ iterApp tbv <- forAllPrettyCfgT getIterAppValue
+    IterAppValue _ iterApp tbv <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
         TypedBuiltinValue tb y = tbv
         app = runQuote . applyBuiltinName name
-    final <- forAllPrettyCfgT $ getFinal tb y
+    final <- forAllPrettyPlcT $ getFinal tb y
     traverse_ (\prefix -> app prefix === ConstAppStuck) . init $ inits spine
     app spine === final
 

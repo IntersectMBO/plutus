@@ -5,6 +5,7 @@ module Evaluation.TypeCheck
     ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
@@ -14,29 +15,29 @@ import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Control.Monad.Except
 
-import           Data.Foldable
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
 -- | Assert a 'Term' is well-typed.
 assertQuoteWellTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
-assertQuoteWellTyped getTerm = case runExcept $ runQuoteT $ typecheck getTerm of
-    Left e -> assertFailure $ fold
-            [ "Type error : ", prettyCfgString e ]
-    Right _ -> return ()
+assertQuoteWellTyped getTerm = case runExcept . runQuoteT $ typecheck getTerm of
+    Left  err -> assertFailure $ " Type error: " ++ prettyPlcDefString err
+    Right _   -> return ()
 
 -- | Assert a term is ill-typed.
 assertQuoteIllTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
-assertQuoteIllTyped getTerm = case runExcept $ runQuoteT $ typecheck getTerm of
-    Right term -> assertFailure $ "Well-typed: " ++ prettyCfgString term
-    Left _     -> return ()
+assertQuoteIllTyped getTerm = case runExcept . runQuoteT $ typecheck getTerm of
+    Right term -> assertFailure $ "Well-typed: " ++ prettyPlcDefString term
+    Left  _    -> return ()
 
-typecheck :: (MonadError (Error ()) m, MonadQuote m) => Quote (Term TyName Name ()) -> m ()
+typecheck
+    :: (MonadError (Error ()) m, MonadQuote m)
+    => Quote (Term TyName Name ()) -> m (Term TyName Name ())
 typecheck getTerm = do
-    t <- liftQuote getTerm
-    annotated <- annotateTerm t
+    term <- liftQuote getTerm
+    annotated <- annotateTerm term
     _ <- typecheckTerm 1000 annotated
-    pure ()
+    return term
 
 -- | Self-application. An example of ill-typed term.
 --

@@ -3,27 +3,26 @@
     {-# LANGUAGE OverloadedStrings     #-}
     {-# LANGUAGE DeriveAnyClass        #-}
     {-# LANGUAGE OverloadedStrings     #-}
-    {-# LANGUAGE FlexibleContexts      #-}
     {-# LANGUAGE FlexibleInstances     #-}
     {-# LANGUAGE DeriveAnyClass        #-}
     {-# LANGUAGE OverloadedStrings     #-}
     {-# LANGUAGE MultiParamTypeClasses #-}
+
     module Language.PlutusCore.Lexer ( alexMonadScan
                                      , runAlexST'
                                      -- * Types
                                      , AlexPosn (..)
                                      , Alex (..)
-                                     , ParseError (..)
                                      ) where
 
 import PlutusPrelude
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.Char8 as ASCII
+import Language.PlutusCore.Error
 import Language.Haskell.TH.Syntax (Lift)
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Language.PlutusCore.Lexer.Type
-import Language.PlutusCore.PrettyCfg
 import Language.PlutusCore.Name
 import Control.Monad.Except
 import Control.Monad.State
@@ -125,9 +124,6 @@ deriving instance Lift AlexPosn
 instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
 
-instance PrettyCfg (AlexPosn) where
-    prettyCfg _ = pretty
-
 handleChar :: Word8 -> Word8
 handleChar x
     | x >= 48 && x <= 57 = x - 48 -- hexits 0-9
@@ -217,17 +213,6 @@ instance MonadState AlexState Alex where
 
 alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF . alex_pos <$> get
-
--- | An error encountered during parsing.
-data ParseError a = LexErr String
-                  | Unexpected (Token a)
-                  | Overflow a Natural Integer
-                  deriving (Show, Eq, Generic, NFData)
-
-instance (PrettyCfg a) => PrettyCfg (ParseError a) where
-    prettyCfg _ (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
-    prettyCfg cfg (Unexpected t)   = "Unexpected" <+> squotes (prettyCfg cfg t) <+> "at" <+> prettyCfg cfg (loc t)
-    prettyCfg cfg (Overflow pos _ _) = "Integer overflow at" <+> prettyCfg cfg pos <> "."
 
 liftError :: Either String a -> Either (ParseError b) a
 liftError(Left s)  = Left $ LexErr s
