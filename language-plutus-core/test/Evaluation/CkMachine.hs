@@ -215,5 +215,5 @@ test_evaluateCk = testGroup "evaluateCk"
     , goldenVsPretty "even3" (pure $ evaluateCk (runQuote $
                                                  Apply () <$> getEven <*> getBuiltinIntegerToNat 3))
     , goldenVsPretty "evenList" (pure $ evaluateCk (runQuote $
-                                                 Apply () <$> getEvenList <*> smallNatList))
+                                                 Apply () <$> (getBuiltinNatSum 64) <*> (Apply () <$> getEvenList <*> smallNatList)))
     ]
