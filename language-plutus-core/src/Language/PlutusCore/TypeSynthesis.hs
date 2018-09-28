@@ -34,10 +34,6 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 
 type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
 
-printTypeSt :: TypeSt -> String
-printTypeSt is = let is' = IM.toAscList is in
-    unlines . fmap (\(i, key) -> "(" ++ show i ++ "," ++ debugCfgString key ++ ")") $ is'
-
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
 type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT BuiltinTable (ExceptT (TypeError a) Quote))
@@ -224,14 +220,14 @@ typeOf (Apply x fun arg) = do
                 else throwError (TypeMismatch x (void arg) inTy nArgTy)
         _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) nFunTy)
 typeOf (TyInst x body ty) = do
-    nBodyTy@(NormalizedType bodyTy) <- typeOf body
+    nBodyTy@(NormalizedType bodyTy) <- typeOf (debugTrace body) -- why is this being called two times??
     case bodyTy of
         TyForall _ n k absTy -> do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
                 then
-                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty) *>
+                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty) *> -- FIXME: this is going awry
                     tyReduce absTy
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
@@ -275,7 +271,7 @@ rewriteCtx (TyForall x tn k ty) = TyForall x tn k <$> rewriteCtx ty
 rewriteCtx ty@TyInt{}           = pure ty
 rewriteCtx ty@TyBuiltin{}       = pure ty
 rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
-    (st, _) <- (\a -> trace (printTypeSt (fst a)) a) <$> get
+    (st, _) <- get
     case IM.lookup (unUnique u) st of
         Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty')
         Just ty'                          -> cloneType (getNormalizedType ty')

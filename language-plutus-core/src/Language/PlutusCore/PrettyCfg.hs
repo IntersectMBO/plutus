@@ -12,6 +12,8 @@ module Language.PlutusCore.PrettyCfg ( PrettyCfg (..)
                                      , defaultCfg
                                      , debugCfg
                                      , renderCfg
+                                     -- * Trace/debug functions
+                                     , debugTrace
                                      ) where
 
 import qualified Data.Text                               as T
@@ -32,6 +34,9 @@ instance PrettyCfg ()
 
 instance PrettyCfg a => PrettyCfg [a] where
     prettyCfg cfg = list . fmap (prettyCfg cfg)
+
+debugTrace :: PrettyCfg a => a -> a
+debugTrace x = trace (debugCfgString x) x
 
 renderCfg :: PrettyCfg a => Configuration -> a -> T.Text
 renderCfg = render .* prettyCfg
