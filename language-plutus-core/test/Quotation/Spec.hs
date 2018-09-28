@@ -4,9 +4,10 @@
 module Quotation.Spec (tests) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Pretty
 
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Text.Encoding   (encodeUtf8)
+import qualified Data.ByteString.Lazy       as BSL
+import           Data.Text.Encoding         (encodeUtf8)
 
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -21,11 +22,11 @@ tests = testGroup "quasiquoter" [
   asGolden (runQuote free) "test/Quotation/free.plc"
  ]
 
-asGolden :: PrettyCfg a => a -> TestName -> TestTree
+asGolden :: PrettyPlc a => a -> TestName -> TestTree
 asGolden a file = goldenVsString file (file ++ ".golden") (pure $ showTest a)
 
-showTest :: PrettyCfg a => a -> BSL.ByteString
-showTest = BSL.fromStrict . encodeUtf8 . debugText
+showTest :: PrettyPlc a => a -> BSL.ByteString
+showTest = BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug
 
 unit :: Quote (Type TyName ())
 unit = [plcType|(all a (type) (fun a a))|]

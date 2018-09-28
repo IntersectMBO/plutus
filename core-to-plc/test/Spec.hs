@@ -12,6 +12,7 @@ import           Language.Plutus.CoreToPLC.Plugin
 import           Language.Plutus.CoreToPLC.Primitives as Prims
 
 import           Language.PlutusCore
+import qualified Language.PlutusCore.Pretty           as PLC
 
 import           Test.Tasty
 import           Test.Tasty.Golden
@@ -28,7 +29,7 @@ main :: IO ()
 main = defaultMain tests
 
 golden :: String -> PlcCode -> TestTree
-golden name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either (strToBs . show) (txtToBs . debugText . getAst) <$> try @SomeException (evaluate value)
+golden name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either (strToBs . show) (txtToBs . PLC.docText . PLC.prettyPlcClassicDebug . getAst) <$> try @SomeException (evaluate value)
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . encodeUtf8 . T.pack

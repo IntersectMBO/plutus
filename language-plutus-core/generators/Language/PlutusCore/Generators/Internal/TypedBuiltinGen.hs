@@ -1,10 +1,13 @@
 -- | This module defines the 'TypedBuiltinGen' type and functions of this type
 -- which control size-induced bounds of values generated.
--- Big warning: generated terms do not satisfy the global uniqueness condition.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE UndecidableInstances  #-}
+
 module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
@@ -53,8 +56,9 @@ type TypedBuiltinGenT m = forall a. TypedBuiltin Size a -> GenT m (TermOf a)
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen = TypedBuiltinGenT Identity
 
-instance PrettyCfg a => PrettyCfg (TermOf a) where
-    prettyCfg cfg (TermOf t x) = prettyCfg cfg t <+> "~>" <+> prettyCfg cfg x
+instance (PrettyBy config a, PrettyBy config (Term TyName Name ())) =>
+        PrettyBy config (TermOf a) where
+    prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
 attachCoercedTerm :: MonadQuote m => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
 attachCoercedTerm tb genX = do

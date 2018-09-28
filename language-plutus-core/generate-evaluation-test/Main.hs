@@ -6,6 +6,8 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators
+import           Language.PlutusCore.Pretty
+import           PlutusPrelude                            hiding (hoist)
 
 import           Control.Monad
 import           Control.Monad.Morph
@@ -28,9 +30,9 @@ generateTerm
           actual <- evaluationResultToMaybe $ evaluateCk term
           when (actual /= expected) . error $ fold
               [ "An internal error in 'generateTerm' occured while computing "
-              , prettyCfgString term, "\n"
-              , "Expected result: ", prettyCfgString expected , "\n"
-              , "Actual result: ", prettyCfgString actual, "\n"
+              , prettyPlcDefString term, "\n"
+              , "Expected result: ", prettyPlcDefString expected , "\n"
+              , "Actual result: ", prettyPlcDefString actual, "\n"
               ]
           Just $ TermOf term actual
 
@@ -41,7 +43,7 @@ main :: IO ()
 main = do
     TermOf term value <- generateTerm
     traverse_ Text.putStrLn
-        [ oneline . prettyCfgText $ Program () (Version () 0 1 0) term
+        [ oneline . prettyPlcDefText $ Program () (Version () 0 1 0) term
         , ""
-        , oneline $ prettyCfgText value
+        , oneline . prettyPlcDefText $ value
         ]

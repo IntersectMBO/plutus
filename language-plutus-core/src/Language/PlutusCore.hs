@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Language.PlutusCore
     (
       -- * Parser
@@ -10,14 +9,6 @@ module Language.PlutusCore
     , parseProgram
     , parseTerm
     , parseType
-    -- * Pretty-printing
-    , Configuration (..)
-    , defaultCfg
-    , debugCfg
-    , prettyCfgText
-    , prettyCfgString
-    , debugText
-    , prettyString
     -- * AST
     , Term (..)
     , Type (..)
@@ -78,7 +69,6 @@ module Language.PlutusCore
     , readProgram
     , writeProgram
     -- * Errors
-    , PrettyCfg (..)
     , Error (..)
     , IsError (..)
     -- * Base functors
@@ -117,7 +107,7 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
-import           Language.PlutusCore.PrettyCfg
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TH
@@ -129,20 +119,20 @@ import           PlutusPrelude
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fmap (either prettyCfgText id . printType) . BSL.readFile
+fileType = fmap (either prettyPlcDefText id . printType) . BSL.readFile
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
 -- information.
-fileTypeCfg :: Configuration -> FilePath -> IO T.Text
-fileTypeCfg cfg = fmap (either (renderCfg cfg) id . printType) . BSL.readFile
+fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
+fileTypeCfg cfg = fmap (either (prettyTextBy cfg) id . printType) . BSL.readFile
 
 checkFile :: FilePath -> IO (Maybe T.Text)
-checkFile = fmap (either (pure . prettyCfgText) id . fmap (fmap prettyCfgText . check) . parse) . BSL.readFile
+checkFile = fmap (either (pure . prettyText) id . fmap (fmap prettyPlcDefText . check) . parse) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType bs = runQuoteT $ prettyCfgText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printType bs = runQuoteT $ prettyPlcDefText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -158,10 +148,10 @@ parseTypecheck gas bs = do
     typecheckProgram gas annotated
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
-formatDoc bs = runQuoteT $ prettyCfg defaultCfg <$> parseProgram bs
+formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs
 
-format :: (MonadError (Error AlexPosn) m) => Configuration -> BSL.ByteString -> m T.Text
-format cfg = fmap (render . prettyCfg cfg) . parseScoped
+format :: (MonadError (Error AlexPosn) m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+format cfg = fmap (prettyTextBy cfg) . parseScoped
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: a -> Version a
