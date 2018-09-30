@@ -148,8 +148,7 @@ subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) =
                  (sym (subst[]Nf' σ⋆ M B)) )
           (subst σ⋆ σ L ·⋆ substNf σ⋆ M)
 subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) =
-  wrap 
-       (substEq (λ A → Δ ⊢ A)
+  wrap (substEq (λ A → Δ ⊢ A)
                 (subst[]Nf' σ⋆ (μ B) B)
                 (subst σ⋆ σ N))
 subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) =
@@ -171,7 +170,6 @@ substcons σ⋆ σ t (S x) = σ x
 \end{code}
 
 \begin{code}
-{-
 _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
         → Γ , B ⊢ A
         → Γ ⊢ B 
@@ -180,35 +178,25 @@ _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
 _[_] {J}{Γ}{A}{B} b a =
   substEq (λ A → Γ ⊢ A)
           (substNf-id A)
-          (subst  (nf ∘ `)
-                  (substcons (nf ∘ `)
+          (subst  (ne ∘ `)
+                  (substcons (ne ∘ `)
                              (λ x → substEq (λ A → Γ ⊢ A)
                                             (sym (substNf-id _))
                                             (` x))
                              (substEq (λ A → Γ ⊢ A) (sym (substNf-id B)) a))
                   b)
--}
 \end{code}
 
 \begin{code}
-postulate
- _[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
+_[_]⋆ : ∀ {J Γ K} {B : ∥ Γ ,⋆ K ∥ ⊢Nf⋆ J}
         → Γ ,⋆ K ⊢ B
         → (A : ∥ Γ ∥ ⊢Nf⋆ K)
           ---------
         → Γ ⊢ B [ A ]Nf
-{-
 _[_]⋆ {J}{Γ}{K}{B} b A =
-  substEq (λ A → Γ ⊢ A)
-          (cong
-             (λ (σ : ∀ {J} → _ ∋⋆ J → _ ⊢⋆ J) → 
-                reify J (eval (⋆.subst σ (embNf B)) idEnv))
-             (funiext (λ K → funext λ { Z → refl ; (S x) → {!!}}))) -- this goal is uninhabited: embNf (nf (` x)) ≠ ` x
-          (subst (substNf-cons (nf ∘ `) A)
+          subst (substNf-cons (ne ∘ `) A)
                  ( (λ {(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
-                                     (trans (sym (substNf-id A')) (substNf-renameNf S (substNf-cons (nf ∘ `) A) A'))
-                                     (` x)}) )
-                 b)
--}
-
+                                     (trans (trans (trans (sym (stability A')) (sym (reify _ (rename-eval (embNf A') (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) A x))) S)))) (sym (reify _ (evalPERSubst (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) A x))) (rename-embNf S A'))))) (reify _ (symPER _ (subst-eval (embNf (renameNf S A')) idPER (embNf ∘ (substNf-cons (ne ∘ `) A))))))
+                                     (` x)}))
+                 b
 \end{code}
