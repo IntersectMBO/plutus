@@ -116,6 +116,7 @@ subst[]Nf : ∀{Γ Δ K J}
   → (A : Γ ⊢Nf⋆ K)
   → (B : Γ ,⋆ K ⊢Nf⋆ J)
   → substNf ρ (B [ A ]Nf) ≡ substNf (extsNf ρ) B [ substNf ρ A ]Nf
+
 subst[]Nf ρ A B =
   trans (sym (substNf-comp (substNf-cons (ne ∘ `) A) ρ B))
         (trans (reify _ (subst-eval (embNf B) idPER (embNf ∘ substNf ρ ∘ (substNf-cons (ne ∘ `) A))))
@@ -127,3 +128,32 @@ subst[]Nf ρ A B =
                              (sym (reify _ (fund (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (nf (subst (embNf ∘ ρ) (embNf A))) x))) (soundness (subst (embNf ∘ extsNf ρ) (embNf B)))))))
                       (sym (reify _ (subst-eval (embNf (substNf (extsNf ρ) B)) idPER (λ x → embNf (substNf-cons (ne ∘ `) (nf (subst (embNf ∘ ρ) (embNf A))) x))))))) 
 \end{code}
+
+-- this stuff is just to make things when defining subsitution for terms
+\begin{code}
+substNf-lemma : ∀{Γ Δ K J}
+  (ρ : ∀{K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
+  → (t : Γ ,⋆ K ⊢⋆ J)
+  → subst (exts (embNf ∘ ρ)) t ≡ subst (embNf ∘ extsNf ρ) t
+substNf-lemma ρ t = subst-cong _ _ (λ { Z → refl ; (S x) → sym (rename-embNf S (ρ x))}) t
+\end{code}
+
+\begin{code}
+substNf-lemma' : ∀{Γ K J}
+  → (B : Γ ,⋆ K ⊢⋆ J)
+  → nf B ≡ readback (eval B ((renval S ∘ idEnv _) ,,⋆ fresh))
+substNf-lemma' B = reify _ (idext (λ { Z → reflect _ refl ; (S x) → symPER _ (renval-neV S (` x))}) B)
+\end{code}
+
+\begin{code}
+subst[]Nf' : ∀{Γ Δ K J}
+  (ρ : ∀{K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
+  → (A : Γ ⊢Nf⋆ K)
+  → (B : Γ ,⋆ K ⊢Nf⋆ J)
+  → substNf ρ (B [ A ]Nf) ≡ (readback (eval (subst (exts (embNf ∘ ρ)) (embNf B)) ((renval S ∘ idEnv _) ,,⋆ fresh))) [ substNf ρ A ]Nf
+subst[]Nf' ρ A B =
+  trans (subst[]Nf ρ A B)
+        (trans (cong (λ t → nf t [ substNf ρ A ]Nf) (sym (substNf-lemma ρ (embNf B))))
+               (cong (λ n → n [ substNf ρ A ]Nf) (substNf-lemma' (subst (exts (embNf ∘ ρ)) (embNf B)))))
+\end{code}
+

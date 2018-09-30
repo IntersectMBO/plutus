@@ -14,6 +14,7 @@ import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
 open import Type.BetaNormal
 open import Type.BetaNBE
+open import Type.BetaNBERenamingSubstitution
 open import NormalTypes.Term
 \end{code}
 
@@ -136,32 +137,28 @@ subst : ∀ {Γ Δ}
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
-subst {Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     = {!!}
-{-  Λ (substEq (λ A → Δ ,⋆ _ ⊢ A)
-             -- this is the property needed in subst[]Nf...
-             (cong₂
-                (λ (σ₁ : ∀ {K'} → (∥ Γ ∥ ,⋆ K) ∋⋆ K' → ∥ Δ ∥ ,⋆ K ⊢⋆ K')
-                   (γ : ∀ {K'} → ∥ Δ ∥ ,⋆ K ∋⋆ K' → Val (∥ Δ ∥ ,⋆ K) K') →
-                   eval (⋆.subst σ₁ (embNf B)) γ)
-                {!σ⋆!} {!!}) -- (funiext (λ a → funext (λ { Z → {!stability!} ; (S x) → ≡-to-≅ (rename-embNf S (σ⋆ x))}))) (funiext (λ a → funext (λ { Z → refl ; (S x) → sym (rename-reflect a S (` x))}))))
-             (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N)) -}
-subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) = {!subst σ⋆ σ L ·⋆ substNf σ⋆ M!}
-{-  substEq (λ A → Δ ⊢ A)
-          (sym (subst[]Nf σ⋆ M B))
-          (subst σ⋆ σ L ·⋆ substNf σ⋆ M)  -}
-subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) = {!!}
-{-  wrap 
+subst {Γ}{Δ} σ⋆ σ {J} (Λ {K = K}{B = B} N)                     =
+  Λ (substEq (λ A → Δ ,⋆ K ⊢ A)
+             (trans (sym (evalPERSubst idPER (substNf-lemma σ⋆ (embNf B))))
+                    (substNf-lemma' (⋆.subst (⋆.exts (embNf ∘ σ⋆)) (embNf B))))
+             (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
+subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) =
+  substEq (λ A → Δ ⊢ A)
+          (trans refl
+                 (sym (subst[]Nf' σ⋆ M B)) )
+          (subst σ⋆ σ L ·⋆ substNf σ⋆ M)
+subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) =
+  wrap 
        (substEq (λ A → Δ ⊢ A)
-                (subst[]Nf σ⋆ (μ B) B)
-                (subst σ⋆ σ N)) -}
-subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) = {!!}
-{-  substEq (λ A → Δ ⊢ A)
-          (sym (subst[]Nf σ⋆ (μ B) B))
-          (unwrap (subst σ⋆ σ M)) -}
+                (subst[]Nf' σ⋆ (μ B) B)
+                (subst σ⋆ σ N))
+subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) =
+  substEq (λ A → Δ ⊢ A)
+          (sym (subst[]Nf' σ⋆ (μ B) B))
+          (unwrap (subst σ⋆ σ M))
 \end{code}
 
 \begin{code}
-{-
 substcons : ∀{Γ Δ} →
   (σ⋆ : ∀{K} → ∥ Γ ∥  ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J}{A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -174,6 +171,7 @@ substcons σ⋆ σ t (S x) = σ x
 \end{code}
 
 \begin{code}
+{-
 _[_] : ∀ {J Γ} {A B : ∥ Γ ∥ ⊢Nf⋆ J}
         → Γ , B ⊢ A
         → Γ ⊢ B 
