@@ -97,16 +97,18 @@ tyNameSubstitute tn tn' = cata a where
     a x               = embed x
 
 instance (Eq (tyname a), Eq a) => Eq (Type tyname a) where
-    (==) (TyVar _ tn) (TyVar _ tn')                   = tn == tn'
-    (==) (TyFun _ ty ty') (TyFun _ ty'' ty''')        = ty == ty'' && ty' == ty'''
-    (==) (TyFix _ tn ty) (TyFix _ tn' ty')            = tyNameSubstitute tn' tn ty' == ty
-    (==) (TyForall _ tn k ty) (TyForall _ tn' k' ty') = tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyBuiltin _ b) (TyBuiltin _ b')             = b == b'
-    (==) (TyInt _ n) (TyInt _ n')                     = n == n'
-    (==) (TyLam _ tn k ty) (TyLam _ tn' k' ty')       = tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyApp _ ty ty') (TyApp _ ty'' ty''')        = ty == ty'' && ty' == ty'''
-    (==) _ _                                          = False
-
+    (==) (TyVar a1 tn) (TyVar a2 tn')                   = a1 == a2 && tn == tn'
+    (==) (TyFun a1 ty ty') (TyFun a2 ty'' ty''')        = a1 == a2 && ty == ty'' && ty' == ty'''
+    (==) (TyFix a1 tn ty) (TyFix a2 tn' ty')            =
+        a1 == a2 && tyNameSubstitute tn' tn ty' == ty
+    (==) (TyForall a1 tn k ty) (TyForall a2 tn' k' ty') =
+        a1 == a2 && tyNameSubstitute tn' tn ty' == ty && k == k'
+    (==) (TyBuiltin a1 b) (TyBuiltin a2 b')             = a1 == a2 && b == b'
+    (==) (TyInt a1 n) (TyInt a2 n')                     = a1 == a2 && n == n'
+    (==) (TyLam a1 tn k ty) (TyLam a2 tn' k' ty')       =
+        a1 == a2 && tyNameSubstitute tn' tn ty' == ty && k == k'
+    (==) (TyApp a1 ty ty') (TyApp a2 ty'' ty''')        = a1 == a2 && ty == ty'' && ty' == ty'''
+    (==) _ _                                            = False
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
