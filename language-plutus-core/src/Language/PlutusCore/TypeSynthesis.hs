@@ -24,6 +24,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
+import           Lens.Micro
 import           PlutusPrelude
 
 -- | A builtin table contains the kinds of builtin types and the types of
@@ -32,9 +33,23 @@ data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinNam
 
 type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
 
+data TypeConfig = TypeConfig { _reduce   :: Bool -- ^ Whether we reduce type annotations
+                             , _builtins :: BuiltinTable -- ^ Builtin types
+                             }
+
+data TypeCheckSt = TypeCheckSt { _uniqueLookup :: TypeSt
+                               , _gas          :: Natural
+                               }
+
+uniqueLookup :: Lens' TypeCheckSt TypeSt
+uniqueLookup f s = fmap (\x -> s { _uniqueLookup = x }) (f (_uniqueLookup s))
+
+gas :: Lens' TypeCheckSt Natural
+gas f s = fmap (\x -> s { _gas = x }) (f (_gas s))
+
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT (TypeSt, Natural) (ReaderT (Bool, BuiltinTable) (ExceptT (TypeError a) Quote))
+type TypeCheckM a = StateT TypeCheckSt (ReaderT TypeConfig (ExceptT (TypeError a) Quote))
 
 isType :: Kind a -> Bool
 isType Type{} = True
@@ -128,14 +143,14 @@ runTypeCheckM :: Natural -- ^ Amount of gas to provide typechecker
               -> ExceptT (TypeError a) Quote b
 runTypeCheckM i n tc = do
     table <- defaultTable
-    runReaderT (evalStateT tc (mempty, i)) (n, table)
+    runReaderT (evalStateT tc (TypeCheckSt mempty i)) (TypeConfig n table)
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
-    (_, i) <- get
+    (TypeCheckSt _ i) <- get
     if i == 0
         then throwError OutOfGas
-        else modify (second (subtract 1))
+        else modify (over gas (subtract 1))
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
@@ -158,7 +173,7 @@ kindOf (TyLam _ _ k ty) =
     [ KindArrow () (void k) k' | k' <- kindOf ty ]
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = do
-    (_, BuiltinTable tyst _) <- ask
+    (TypeConfig _ (BuiltinTable tyst _)) <- ask
     case M.lookup b tyst of
         Just k -> pure k
         _      -> throwError InternalError
@@ -205,10 +220,10 @@ dummyType = TyVar () dummyTyName
 -- | Extract type of a term. The resulting type is normalized.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = do
-    (norm, _) <- ask
+    (TypeConfig norm _) <- ask
     maybeRed norm (void ty)
 typeOf (LamAbs _ _ ty t)                         = do
-    (norm, _) <- ask
+    (TypeConfig norm _) <- ask
     (NormalizedType ty') <- maybeRed norm (void ty)
     NormalizedType <$> (TyFun () ty' <$> (getNormalizedType <$> typeOf t))
 typeOf (Error x ty)                              = do
@@ -218,7 +233,7 @@ typeOf (Error x ty)                              = do
         _      -> throwError (KindMismatch x (void ty) (Type ()) k)
 typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (getNormalizedType <$> typeOf t))
 typeOf (Constant _ (BuiltinName _ n)) = do
-    (_, BuiltinTable _ st) <- ask
+    (TypeConfig _ (BuiltinTable _ st)) <- ask
     case M.lookup n st of
         Just k -> pure k
         _      -> throwError InternalError
@@ -266,21 +281,23 @@ typeOf (Wrap x n ty body) = do
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
-tyEnvDelete :: MonadState (TypeSt, Natural) m
+tyEnvDelete :: MonadState TypeCheckSt m
             => Unique
             -> m ()
-tyEnvDelete (Unique i) = modify (first (IM.delete i))
+tyEnvDelete (Unique i) = modify (over uniqueLookup (IM.delete i))
 
-tyEnvAssign :: MonadState (TypeSt, Natural) m
+tyEnvAssign :: MonadState TypeCheckSt m
             => Unique
             -> NormalizedType TyNameWithKind ()
             -> m ()
-tyEnvAssign (Unique i) ty = modify (first (IM.insert i ty))
+tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 
 isTyLam :: Type TyNameWithKind () -> Bool
 isTyLam TyLam{} = True
 isTyLam _       = False
 
+-- this will reduce a type, or simply wrap it in a 'NormalizedType' constructor
+-- if we are working with normalized type annotations
 maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
@@ -296,7 +313,7 @@ rewriteCtx (TyForall x tn k ty) = TyForall x tn k <$> rewriteCtx ty
 rewriteCtx ty@TyInt{}           = pure ty
 rewriteCtx ty@TyBuiltin{}       = pure ty
 rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
-    (st, _) <- get
+    (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
         Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty')
         Just ty'                          -> cloneType (getNormalizedType ty')

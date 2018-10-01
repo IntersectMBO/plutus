@@ -13,8 +13,6 @@ import           PlutusPrelude
 
 type CloneSt = IM.IntMap (TyNameWithKind ())
 
-type CloneM = StateT CloneSt
-
 cloneEnvAssign :: MonadState CloneSt m
                => Unique
                -> TyNameWithKind ()
@@ -24,7 +22,7 @@ cloneEnvAssign (Unique i) ty = modify (IM.insert i ty)
 cloneType :: MonadQuote m => Type TyNameWithKind a -> m (Type TyNameWithKind ())
 cloneType = flip evalStateT mempty . cloneTypeM
 
-cloneTypeM :: (MonadQuote m) => Type TyNameWithKind a -> CloneM m (Type TyNameWithKind ())
+cloneTypeM :: (MonadQuote m, MonadState CloneSt m) => Type TyNameWithKind a -> m (Type TyNameWithKind ())
 cloneTypeM (TyFix _ (TyNameWithKind (TyName (Name l' n u))) ty) = do
     u' <- liftQuote freshUnique
     let tn = void $ TyNameWithKind (TyName (Name l' n u')) -- TODO use lenses
