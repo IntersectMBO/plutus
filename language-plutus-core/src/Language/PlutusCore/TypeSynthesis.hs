@@ -335,6 +335,13 @@ tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = d
     tyEnvAssign u (NormalizedType (void ty'))
     tyReduce ty <* tyEnvDelete u
 tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
+
+-- The guards here are necessary for spec compliance.
+--
+-- In particular, \\( (\mathtt{fun} S _) )\\ is a valid type reduction frame if and only if
+-- \\(S\\) is a type value.
+--
+-- This is detailed in Fig. 6. of the spec.
 tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
                           | otherwise                                        = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> rewriteCtx ty')
 tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
