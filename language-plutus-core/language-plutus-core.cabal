@@ -150,6 +150,7 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Common
         Evaluation.CkMachine
         Evaluation.Constant.All
         Evaluation.Constant.Apply
