@@ -62,6 +62,7 @@ module Language.PlutusCore
     , printType
     , printNormalizeType
     , TypeError (..)
+    , TypeCheckCfg (..)
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
@@ -148,7 +149,8 @@ printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
-printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> (typecheckProgram 1000 norm <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$>
+    (typecheckProgram (TypeCheckCfg 1000 norm) <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -161,10 +163,9 @@ parseTypecheck gas = typecheckPipeline gas <=< parseProgram
 
 -- | Typecheck a program.
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
-typecheckPipeline gas program = do
-    checkProgram program
-    annotated <- annotateProgram program
-    typecheckProgram gas False annotated
+typecheckPipeline gas p = do
+    checkProgram p
+    typecheckProgram (TypeCheckCfg gas False) =<< annotateProgram p
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs

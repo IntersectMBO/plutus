@@ -36,7 +36,7 @@ typecheck
 typecheck getTerm = do
     t <- liftQuote getTerm
     annotated <- annotateTerm t
-    _ <- typecheckTerm 1000 False annotated
+    _ <- typecheckTerm (TypeCheckCfg 1000 False) annotated
     pure t
 
 -- | Self-application. An example of ill-typed term.

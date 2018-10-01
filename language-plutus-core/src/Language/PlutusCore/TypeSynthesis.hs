@@ -9,6 +9,7 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , TypeCheckM
                                          , BuiltinTable (..)
                                          , TypeError (..)
+                                         , TypeCheckCfg (..)
                                          ) where
 
 import           Control.Monad.Except
@@ -40,6 +41,10 @@ data TypeConfig = TypeConfig { _reduce   :: Bool -- ^ Whether we reduce type ann
 data TypeCheckSt = TypeCheckSt { _uniqueLookup :: TypeSt
                                , _gas          :: Natural
                                }
+
+data TypeCheckCfg = TypeCheckCfg { _cfgGas       :: Natural -- ^ Gas to be provided to the typechecker
+                                 , _cfgNormalize :: Bool -- ^ Whether we should reduce type annotations
+                                 }
 
 uniqueLookup :: Lens' TypeCheckSt TypeSt
 uniqueLookup f s = fmap (\x -> s { _uniqueLookup = x }) (f (_uniqueLookup s))
@@ -112,36 +117,32 @@ defaultTable = do
 
     pure $ BuiltinTable tyTable termTable
 
--- | Type-check a PLC program, returning a normalized type.
+-- | Type-check a program, returning a normalized type.
 typecheckProgram :: (MonadError (Error a) m, MonadQuote m)
-                 => Natural
-                 -> Bool
+                 => TypeCheckCfg
                  -> Program TyNameWithKind NameWithType a
                  -> m (NormalizedType TyNameWithKind ())
-typecheckProgram n norm (Program _ _ t) = typecheckTerm n norm t
+typecheckProgram cfg (Program _ _ t) = typecheckTerm cfg t
 
--- | Type-check a PLC term, returning a normalized type.
+-- | Type-check a term, returning a normalized type.
 typecheckTerm :: (MonadError (Error a) m, MonadQuote m)
-              => Natural
-              -> Bool
+              => TypeCheckCfg
               -> Term TyNameWithKind NameWithType a
               -> m (NormalizedType TyNameWithKind ())
-typecheckTerm n norm t = convertErrors asError $ runTypeCheckM n norm (typeOf t)
+typecheckTerm cfg t = convertErrors asError $ runTypeCheckM cfg (typeOf t)
 
 -- | Kind-check a PLC type.
 kindCheck :: (MonadError (Error a) m, MonadQuote m)
-          => Natural
-          -> Bool
+          => TypeCheckCfg
           -> Type TyNameWithKind a
           -> m (Kind ())
-kindCheck n norm t = convertErrors asError $ runTypeCheckM n norm (kindOf t)
+kindCheck cfg t = convertErrors asError $ runTypeCheckM cfg (kindOf t)
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: Natural -- ^ Amount of gas to provide typechecker
-              -> Bool -- ^ Whether to normalize types
+runTypeCheckM :: TypeCheckCfg
               -> TypeCheckM a b
               -> ExceptT (TypeError a) Quote b
-runTypeCheckM i n tc = do
+runTypeCheckM (TypeCheckCfg i n) tc = do
     table <- defaultTable
     runReaderT (evalStateT tc (TypeCheckSt mempty i)) (TypeConfig n table)
 
