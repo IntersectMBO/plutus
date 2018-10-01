@@ -1,11 +1,13 @@
 \begin{code}
-module Type.BetaNBERenamingSubstitution where
+module Type.BetaNBE.RenamingSubstitution where
 
 open import Type
 open import Type.Equality
+open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
-open import Type.RenamingSubstitution
+open import Type.BetaNBE.Completeness
+open import Type.BetaNBE.Stability
 
 open import Relation.Binary.PropositionalEquality hiding (subst; [_])
 open import Function

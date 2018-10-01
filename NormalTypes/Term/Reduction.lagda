@@ -9,7 +9,7 @@ open import Type
 open import NormalTypes.Term
 open import NormalTypes.Term.RenamingSubstitution
 open import Type.BetaNBE
-open import Type.BetaNBERenamingSubstitution
+open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
 \end{code}
 

@@ -14,7 +14,9 @@ import Type.RenamingSubstitution as ⋆
 open import Type.Reduction
 open import Type.BetaNormal
 open import Type.BetaNBE
-open import Type.BetaNBERenamingSubstitution
+open import Type.BetaNBE.Completeness
+open import Type.BetaNBE.Stability
+open import Type.BetaNBE.RenamingSubstitution
 open import NormalTypes.Term
 \end{code}
 

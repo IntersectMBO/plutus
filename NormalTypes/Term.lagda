@@ -8,7 +8,7 @@ module NormalTypes.Term where
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE
-open import Type.BetaNBERenamingSubstitution renaming (_[_]Nf to _[_])
+open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 \end{code}
 
 ## Fixity declarations
