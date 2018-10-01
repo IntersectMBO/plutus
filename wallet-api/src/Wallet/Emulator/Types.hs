@@ -43,7 +43,7 @@ import           Data.Map                  as Map
 import           Data.Maybe
 import           Data.Text                 as T
 
-import           Wallet.API                (KeyPair (..), WalletAPI (..))
+import           Wallet.API                (KeyPair (..), WalletAPI (..), keyPair)
 import           Wallet.UTXO               (Block, Blockchain, Tx (..), validTx)
 
 -- agents/wallets
@@ -58,11 +58,13 @@ data Notification = BlockValidated Block
 
 -- Wallet code
 
-data WalletState = WalletState
+data WalletState = WalletState {
+    walletStateKeyPair :: KeyPair
+    }
     deriving (Show, Eq, Ord)
 
 emptyWalletState :: WalletState
-emptyWalletState = WalletState
+emptyWalletState = WalletState $ keyPair 0
 
 -- manually records the list of transactions to be submitted
 newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: StateT WalletState (Writer [Tx]) a }
@@ -73,7 +75,7 @@ handleNotifications _ = return () -- TODO: Actually handle notifications
 
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
-    myKeyPair = pure KeyPair
+    myKeyPair = gets walletStateKeyPair
 
 
 -- Emulator code

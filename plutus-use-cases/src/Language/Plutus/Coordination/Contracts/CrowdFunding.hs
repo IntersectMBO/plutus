@@ -26,8 +26,8 @@ import           Language.Plutus.Coordination.Plutus  (Height, PendingTx (..), P
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.TH                   (plutus)
 import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), pubKey)
-import           Wallet.UTXO                          (Address', DataScript (..), Tx (..), TxIn (..), TxOut (..),
-                                                       TxOutRef', Validator (..), hashValidator)
+import           Wallet.UTXO                          (Address', DataScript (..), Tx (..), TxOutRef', Validator (..),
+                                                       scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
 import           Prelude                              (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($),
@@ -53,11 +53,8 @@ contribute c value = do
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
     myPayment <- createPayment v'
-    let o = TxOut {
-                txOutAddress = hashValidator $ contributionScript c contributorPubKey,
-                txOutValue = v',
-                txOutData  = DataScript $(plutus [| (CampaignActor PubKey) |])
-            }
+    let o = scriptTxOut v' (contributionScript c contributorPubKey) d
+        d = DataScript $(plutus [| (CampaignActor contributorPubKey) |])
 
     submitTxn Tx
       { txInputs  = Set.singleton myPayment
@@ -156,7 +153,7 @@ refund c ref val = do
     contributorPubKey <- pubKey <$> myKeyPair
     oo <- payToPublicKey val
     let scr = contributionScript c contributorPubKey
-        i = TxIn ref scr UTXO.unitRedeemer
+        i   = scriptTxIn ref scr UTXO.unitRedeemer
     submitTxn Tx
         { txInputs = Set.singleton i
         , txOutputs = [oo]
@@ -171,9 +168,9 @@ collect :: (Monad m, WalletAPI m) => Campaign -> [(TxOutRef', PubKey, UTXO.Value
 collect cmp contributions = do
     oo <- payToPublicKey value
     contributorPubKey <- pubKey <$> myKeyPair
-    let scr = contributionScript cmp contributorPubKey
-        con (r, _, _) = TxIn r scr UTXO.unitRedeemer
-        ins = con <$> contributions
+    let scr           = contributionScript cmp contributorPubKey
+        con (r, _, _) = scriptTxIn r scr UTXO.unitRedeemer
+        ins           = con <$> contributions
     submitTxn Tx
         { txInputs  = Set.fromList ins
         , txOutputs = [oo]

@@ -5,17 +5,31 @@ module Wallet.API(
     Range(..),
     KeyPair(..),
     PubKey(..),
-    pubKey
+    pubKey,
+    keyPair,
+    signature
     ) where
 
-import           Wallet.UTXO (Address', Height, Tx (..), TxIn', TxOut', Value)
+import           Wallet.UTXO (Address', Height, Tx (..), TxIn', TxOut', Value, PubKey(..), Signature(..))
 
--- Dummy types for wallet API
-data PubKey = PubKey
-data KeyPair = KeyPair
+newtype PrivateKey = PrivateKey { getPrivateKey :: Int }
+    deriving (Eq, Ord, Show)
 
+newtype KeyPair = KeyPair { getKeyPair :: (PrivateKey, PubKey) }
+    deriving (Eq, Ord, Show)
+
+-- | Get the public key of a [[KeyPair]]
 pubKey :: KeyPair -> PubKey
-pubKey = const PubKey
+pubKey = snd . getKeyPair
+
+-- | Create a [[KeyPair]] given a "private key"
+keyPair :: Int -> KeyPair
+keyPair i = KeyPair (PrivateKey i, PubKey i)
+
+-- | Create a [[Signature]] signed by the private key of a
+--   [[KeyPair]]
+signature :: KeyPair -> Signature
+signature = Signature . getPrivateKey . fst . getKeyPair
 
 data Range a =
     Interval a a -- ^ inclusive-exclusive
