@@ -41,11 +41,6 @@ fcong refl a = refl
 
 
 \begin{code}
-Ren : Ctx⋆ → Ctx⋆ → Set
-Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
-\end{code}
-
-\begin{code}
 mutual
   Val : Ctx⋆ → Kind → Set
   Val Γ * = Γ ⊢Nf⋆ *
@@ -204,11 +199,6 @@ mutual
 \end{code}
 
 # substitution
-
-\begin{code}
-Sub : Ctx⋆ → Ctx⋆ → Set
-Sub Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J
-\end{code}
 
 \begin{code}
 extsNf : ∀ {Φ Ψ}

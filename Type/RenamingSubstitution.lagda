@@ -12,6 +12,14 @@ open import Relation.Binary.PropositionalEquality
 open import Type
 \end{code}
 
+\begin{code}
+Ren : Ctx⋆ → Ctx⋆ → Set
+Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
+
+Sub : Ctx⋆ → Ctx⋆ → Set
+Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
+\end{code}
+
 Let `A`, `B`, `C` range over types.
 
 ## Type renaming

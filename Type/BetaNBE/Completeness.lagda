@@ -285,9 +285,6 @@ rename-eval (μ B) p ρ =
 
 Subsitution lemma
 \begin{code}
-Sub : Ctx⋆ → Ctx⋆ → Set
-Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
-
 subst-eval : ∀{Γ Δ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}

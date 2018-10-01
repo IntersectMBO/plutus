@@ -20,11 +20,6 @@ open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 \end{code}
 
 \begin{code}
-Ren : Ctx⋆ → Ctx⋆ → Set
-Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
-\end{code}
-
-\begin{code}
 Val : Ctx⋆ -> Kind -> Set
 Val Γ  *      = Γ ⊢Nf⋆ *
 Val Γ (σ ⇒ τ) = Γ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Δ} -> Ren Γ Δ -> Val Δ σ -> Val Δ τ

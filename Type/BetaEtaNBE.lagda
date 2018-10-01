@@ -13,11 +13,6 @@ open import Function
 \end{code}
 
 \begin{code}
-Ren : Ctx⋆ → Ctx⋆ → Set
-Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
-\end{code}
-
-\begin{code}
 Val : Ctx⋆ → Kind → Set
 Val Γ * = Γ ⊢Nf⋆ *
 Val Γ (K ⇒ J) = ∀{Δ} → Ren Γ Δ → Val Δ K → Val Δ J

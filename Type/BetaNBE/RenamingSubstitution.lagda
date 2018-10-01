@@ -47,8 +47,8 @@ lemma1 : ∀ {Φ Ψ}
   → nf (subst σ t) ≡ substNf (nf ∘ σ) (nf t)
 lemma1 σ t =
   trans (reify _ (subst-eval t idPER σ))
-        (trans (trans (reify _ (fund (idext idPER ∘ σ) (sym≡β (soundness t))))
-                      (reify _ (idext (λ x → fund idPER (sym≡β (soundness (σ x)))) (embNf (nf t)))))
+        (trans (trans (reify _ (fund (idext idPER ∘ σ) (soundness t)))
+                      (reify _ (idext (λ x → fund idPER (soundness (σ x))) (embNf (nf t)))))
                (reify _ (symPER _ (subst-eval (embNf (nf t)) idPER (embNf ∘ nf ∘ σ)))))
 \end{code}
 
@@ -59,7 +59,7 @@ lemma2 : ∀ {Φ Ψ}
   → ∀ {J}
   → (t : Φ ⊢⋆ J)
   → nf (subst (embNf ∘ σ) t) ≡ substNf σ (nf t)
-lemma2 σ t = trans (reify _ (subst-eval t idPER (embNf ∘ σ))) (trans (sym (reify _ (fund (λ x → idext idPER (embNf (σ x))) (soundness t)))) (sym (reify _ (subst-eval (embNf (nf t)) idPER (embNf ∘ σ)))))
+lemma2 σ t = trans (reify _ (subst-eval t idPER (embNf ∘ σ))) (trans (sym (reify _ (fund (λ x → idext idPER (embNf (σ x))) (sym≡β (soundness t))))) (sym (reify _ (subst-eval (embNf (nf t)) idPER (embNf ∘ σ)))))
 \end{code}
 
 monad law for substnf
@@ -70,7 +70,7 @@ substNf-comp : ∀{Φ Ψ Θ}
   → ∀{J}(A : Φ ⊢Nf⋆ J)
     -----------------------------------------------
   → substNf (substNf f ∘ g) A ≡ substNf f (substNf g A)
-substNf-comp g f A = trans (trans (trans (reify _ (subst-eval (embNf A) idPER (embNf ∘ nf ∘ subst (embNf ∘ f) ∘ embNf ∘ g))) (trans (reify _ (idext (λ x → fund idPER (soundness (subst (embNf ∘ f) (embNf (g x))))) (embNf A))) (sym (reify _ (subst-eval (embNf A) idPER (subst (embNf ∘ f) ∘ embNf ∘ g)))))) (cong nf (subst-comp (embNf ∘ g) (embNf ∘ f) (embNf A)))) (lemma2 f (subst (embNf ∘ g) (embNf A)))
+substNf-comp g f A = trans (trans (trans (reify _ (subst-eval (embNf A) idPER (embNf ∘ nf ∘ subst (embNf ∘ f) ∘ embNf ∘ g))) (trans (reify _ (idext (λ x → fund idPER (sym≡β (soundness (subst (embNf ∘ f) (embNf (g x)))))) (embNf A))) (sym (reify _ (subst-eval (embNf A) idPER (subst (embNf ∘ f) ∘ embNf ∘ g)))))) (cong nf (subst-comp (embNf ∘ g) (embNf ∘ f) (embNf A)))) (lemma2 f (subst (embNf ∘ g) (embNf A)))
 \end{code}
 
 
@@ -119,12 +119,12 @@ subst[]Nf : ∀{Γ Δ K J}
 subst[]Nf ρ A B =
   trans (sym (substNf-comp (substNf-cons (ne ∘ `) A) ρ B))
         (trans (reify _ (subst-eval (embNf B) idPER (embNf ∘ substNf ρ ∘ (substNf-cons (ne ∘ `) A))))
-               (trans (trans (trans (reify _ (idext (λ x → fund idPER (soundness (subst (embNf ∘ ρ) (embNf (substNf-cons (ne ∘ `) A x))))) (embNf B)))
-                                    (trans (reify _ (idext (λ { Z → symPER _ (fund idPER (soundness (subst (embNf ∘ ρ) (embNf A))))
+               (trans (trans (trans (reify _ (idext (λ x → fund idPER (sym≡β (soundness (subst (embNf ∘ ρ) (embNf (substNf-cons (ne ∘ `) A x)))))) (embNf B)))
+                                    (trans (reify _ (idext (λ { Z → symPER _ (fund idPER (sym≡β (soundness (subst (embNf ∘ ρ) (embNf A)))))
                                                               ; (S x) → transPER _ (symPER _ (rename-eval (embNf (ρ x)) (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (substNf ρ A) x))) S))
                                                                                    (symPER _ (evalPERSubst (λ y → idext idPER (embNf (substNf-cons (ne ∘ `) (substNf ρ A) y))) (rename-embNf S (ρ x))))}) (embNf B)))
                                            (sym (reify _ (subst-eval (embNf B) (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (substNf ρ A) x))) (embNf ∘ extsNf ρ))))))
-                             (sym (reify _ (fund (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (nf (subst (embNf ∘ ρ) (embNf A))) x))) (soundness (subst (embNf ∘ extsNf ρ) (embNf B)))))))
+                             (sym (reify _ (fund (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (nf (subst (embNf ∘ ρ) (embNf A))) x))) (sym≡β (soundness (subst (embNf ∘ extsNf ρ) (embNf B))))))))
                       (sym (reify _ (subst-eval (embNf (substNf (extsNf ρ) B)) idPER (λ x → embNf (substNf-cons (ne ∘ `) (nf (subst (embNf ∘ ρ) (embNf A))) x))))))) 
 \end{code}
 
