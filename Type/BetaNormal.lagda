@@ -194,20 +194,25 @@ embNeN (A · B) = embNeN A · embNf B
 \end{code}
 
 \begin{code}
-postulate
- rename-embNf : ∀ {Φ Ψ}
-  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ----------------------------
-  → ∀ {J}
-  → (n : Φ ⊢Nf⋆ J)
-  → embNf (renameNf ρ n) ≡ rename ρ (embNf n)
-
-postulate
- rename-embNeN : ∀ {Φ Ψ}
+rename-embNeN : ∀ {Φ Ψ}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     ----------------------------
   → ∀ {J}
   → (n : Φ ⊢NeN⋆ J)
   → embNeN (renameNeN ρ n) ≡ rename ρ (embNeN n)
 
+rename-embNf : ∀ {Φ Ψ}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+    ----------------------------
+  → ∀ {J}
+  → (n : Φ ⊢Nf⋆ J)
+  → embNf (renameNf ρ n) ≡ rename ρ (embNf n)
+rename-embNf ρ (Π B) = cong Π (rename-embNf (ext ρ) B)
+rename-embNf ρ (A ⇒ B) = cong₂ _⇒_ (rename-embNf ρ A) (rename-embNf ρ B)
+rename-embNf ρ (ƛ B) = cong ƛ (rename-embNf (ext ρ) B)
+rename-embNf ρ (μ B) = cong μ (rename-embNf (ext ρ) B)
+rename-embNf ρ (ne n) = rename-embNeN ρ n
+
+rename-embNeN ρ (` x) = refl
+rename-embNeN ρ (n · n') = cong₂ _·_ (rename-embNeN ρ n) (rename-embNf ρ n')
 \end{code}
