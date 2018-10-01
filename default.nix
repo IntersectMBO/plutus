@@ -12,6 +12,7 @@ in
 { system ? builtins.currentSystem
 , pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; overlays = [ jemallocOverlay ]; })
 , config ? {}
+, isGhcjs ? false
 }:
 
 with pkgs.lib;
@@ -23,10 +24,13 @@ let
     postInstall = ''
       ${attrs.postInstall or ""}
       mkdir -pv $doc/nix-support
-      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc/html .
+      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc .
       echo "file binary-dist $doc/${attrs.pname}-docs.tar.gz" >> $doc/nix-support/hydra-build-products
       echo "report ${attrs.pname}-docs.html $doc/share/doc/html index.html" >> $doc/nix-support/hydra-build-products
     '';
+  });
+  addPatches = drv: patches: overrideCabal drv (attrs: {
+    inherit patches;
   });
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
@@ -49,8 +53,13 @@ let
       (type == "symlink" && lib.hasPrefix "result" baseName) ||
       (type == "directory" && baseName == ".stack-work")
     );
-  plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
-    overrides = self: super: {
+  plutusPkgs = (import ./pkgs {
+    inherit pkgs;
+    compiler = if isGhcjs
+                 then pkgs.haskell.packages.ghcjs
+                 else pkgs.haskell.packages.ghc843;
+  }).override {
+    overrides = self: super: ({
       plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
       language-plutus-core = appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
@@ -60,7 +69,27 @@ let
       plutus-th = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th));
       plutus-use-cases = addRealTimeTestLogs (filterSource super.plutus-use-cases);
       wallet-api = doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api));
-    };
+    } // (if !isGhcjs then {} else {
+      cborg = addPatches super.cborg [ pkgs/cborg.patch ];
+      stm_2_4_5_1 = self.callPackage
+        ({
+          mkDerivation
+        , array
+        , base
+        , stdenv
+        }:
+        self.mkDerivation {
+          pname = "stm";
+          version = "2.4.5.1";
+          sha256 = "6cf0c280062736c9980ba1c2316587648b8e9d4e4ecc5aed16a41979c0a3a3f4";
+          libraryHaskellDepends = [ array base ];
+          doHaddock = false;
+          doCheck = false;
+          homepage = "https://wiki.haskell.org/Software_transactional_memory";
+          description = "Software Transactional Memory";
+          license = stdenv.lib.licenses.bsd3;
+        }) {};
+    }));
   };
   other = rec {
     tests = let
