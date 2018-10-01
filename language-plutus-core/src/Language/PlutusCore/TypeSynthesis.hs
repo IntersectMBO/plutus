@@ -257,17 +257,14 @@ typeOf (TyInst x body ty) = do
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then do
-                    tyEnvAssign (extractUnique n) (void $ NormalizedType ty)
-                    tyReduce absTy <* tyEnvDelete (extractUnique n)
+                then tyReduceBinder n (void $ NormalizedType ty) absTy
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
-        TyFix _ n fixTy -> do
-            tyEnvAssign (extractUnique n) nBodyTy
-            tyReduce fixTy <* tyEnvDelete (extractUnique n)
+        TyFix _ n fixTy ->
+            tyReduceBinder n nBodyTy fixTy
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty body) = do
     nBodyTy <- typeOf body
@@ -278,9 +275,16 @@ typeOf (Wrap x n ty body) = do
         then pure $ NormalizedType (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void body) (getNormalizedType red) nBodyTy)
 
+tyReduceBinder :: TyNameWithKind () -> NormalizedType TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
+tyReduceBinder n ty ty' = do
+    let u = extractUnique n
+    tyEnvAssign u ty
+    tyReduce ty' <* tyEnvDelete u
+
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
 
+-- This works because names are globally unique
 tyEnvDelete :: MonadState TypeCheckSt m
             => Unique
             -> m ()
@@ -303,7 +307,8 @@ maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
 
 -- This function is necessary because type reductions do *not* traverse 'TyFix'
--- but context rewrites must traverse *all* constructors.
+-- as of the current spec, but context rewrites must traverse *all*
+-- constructors.
 rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
 rewriteCtx (TyApp x ty ty')     = TyApp x <$> rewriteCtx ty <*> rewriteCtx ty'
 rewriteCtx (TyFun x ty ty')     = TyFun x <$> rewriteCtx ty <*> rewriteCtx ty'
@@ -315,6 +320,11 @@ rewriteCtx ty@TyBuiltin{}       = pure ty
 rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
+
+        -- we must use recursive lookups because we can have an assignment
+        -- a -> b and an assignment b -> c which is locally valid but in
+        -- a smaller scope than a -> b. Thus, we cannot handle this in
+        -- 'tyEnvAssign'.
         Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty')
         Just ty'                          -> cloneType (getNormalizedType ty')
         Nothing                           -> pure ty

@@ -132,7 +132,7 @@ appAppLamLam = do
             (TyBuiltin () TyInteger)
 
 testLam :: Either (TypeError ()) String
-testLam = fmap (prettyStringBy defPrettyConfigPlcClassic) . runQuote . runExceptT $ runTypeCheckM 100 False $
+testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM 100 False $
     tyReduce =<< appAppLamLam
 
 tests :: TestTree
