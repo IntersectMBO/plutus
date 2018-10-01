@@ -331,9 +331,13 @@ rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
+
+-- First, reduce if it is a lambda applied to a type. See Figure 7 of the spec.
 tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
     tyEnvAssign u (NormalizedType (void ty'))
     tyReduce ty <* tyEnvDelete u
+
+-- The remaining clauses deal with type reduction frames.
 tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
 
 -- The guards here are necessary for spec compliance.
