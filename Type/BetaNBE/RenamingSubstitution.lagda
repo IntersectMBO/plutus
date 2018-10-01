@@ -6,6 +6,7 @@ open import Type.Equality
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 open import Type.BetaNBE
+open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 
@@ -35,10 +36,6 @@ substNf-id : ∀ {Φ J}
   → (n : Φ ⊢Nf⋆ J)
   → substNf (ne ∘ `) n ≡ n
 substNf-id n = trans (cong nf (subst-id (embNf n))) (stability n)
-\end{code}
-
-\begin{code}
-postulate soundness : ∀ {Φ J} → (t : Φ ⊢⋆ J) → embNf (nf t) ≡β t
 \end{code}
 
 \begin{code}

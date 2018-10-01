@@ -14,6 +14,7 @@ import Type.BetaNormal
 -- renormalising
 
 import Type.BetaNBE
+import Type.BetaNBE.Soundness
 import Type.BetaNBE.Completeness
 import Type.BetaNBE.Stability
 import Type.BetaNBE.RenamingSubstitution
@@ -65,7 +66,7 @@ import ConversionRTCReduction.Term.Reduction
 import ConversionRTCReduction.Evaluation
 import ConversionRTCReduction.Examples
 
--- a partial attempt to index terms by syntacit types
+-- a partial attempt to index terms by syntactic types
 -- where conversion takes a single step of reduction
 -- as an argument
 import ConversionReduction.Term
