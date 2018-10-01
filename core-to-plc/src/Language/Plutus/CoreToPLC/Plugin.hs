@@ -168,7 +168,7 @@ convertExpr opts origE tpe = do
               converted <- convExpr origE
               when (poDoTypecheck opts) $ do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
-                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm 1000 True annotated
+                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm (TypeCheckCfg 1000 True) annotated
               pure converted
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

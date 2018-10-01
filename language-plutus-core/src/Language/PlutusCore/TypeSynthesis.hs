@@ -324,8 +324,7 @@ rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
 
         -- we must use recursive lookups because we can have an assignment
         -- a -> b and an assignment b -> c which is locally valid but in
-        -- a smaller scope than a -> b. Thus, we cannot handle this in
-        -- 'tyEnvAssign'.
+        -- a smaller scope than a -> b.
         Just ty'@(NormalizedType TyVar{}) -> rewriteCtx (getNormalizedType ty')
         Just ty'                          -> cloneType (getNormalizedType ty')
         Nothing                           -> pure ty
