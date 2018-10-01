@@ -1,0 +1,148 @@
+diff --git a/cborg.cabal b/cborg.cabal
+index ffdee90..9c0609f 100644
+--- a/cborg.cabal
++++ b/cborg.cabal
+@@ -85,7 +85,7 @@ library
+   if flag(optimize-gmp)
+     cpp-options:            -DFLAG_OPTIMIZE_GMP
+     build-depends:
+-      integer-gmp
++      integer
+ 
+   if impl(ghc >= 8.0)
+     ghc-options: -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+diff --git a/src/Codec/CBOR/Magic.hs b/src/Codec/CBOR/Magic.hs
+index 5b59528..61b2b13 100644
+--- a/src/Codec/CBOR/Magic.hs
++++ b/src/Codec/CBOR/Magic.hs
+@@ -64,7 +64,7 @@ import           GHC.Word
+ import           Foreign.Ptr
+ 
+ #if defined(OPTIMIZE_GMP)
+-import qualified GHC.Integer.GMP.Internals      as Gmp
++import qualified GHC.Integer.BigInteger.Internals      as Gmp
+ #endif
+ 
+ import           Data.ByteString (ByteString)
+diff --git a/src/Codec/CBOR/Read.hs b/src/Codec/CBOR/Read.hs
+index e604a29..783a1ee 100644
+--- a/src/Codec/CBOR/Read.hs
++++ b/src/Codec/CBOR/Read.hs
+@@ -369,10 +369,12 @@ go_fast !bs da@(ConsumeWord32Canonical k) =
+           0# | isWordCanonical sz w# -> k w# >>= go_fast (BS.unsafeDrop sz bs)
+           _                          -> go_fast_end bs da
+   where
+-    w_out_of_range _w# =
+ #if defined(ARCH_32bit)
++    w_out_of_range :: Word# -> Int#
++    w_out_of_range _w# =
+       0#
+ #else
++    w_out_of_range _w# =
+       gtWord# _w# 0xffffffff##
+ #endif
+ 
+@@ -414,10 +416,12 @@ go_fast !bs da@(ConsumeInt32Canonical k) =
+           0# | isIntCanonical sz n# -> k n# >>= go_fast (BS.unsafeDrop sz bs)
+           _                         -> go_fast_end bs da
+   where
+-    n_out_of_range _n# =
+ #if defined(ARCH_32bit)
++    n_out_of_range :: Int# -> Int#
++    n_out_of_range _n# =
+       0#
+ #else
++    n_out_of_range _n# =
+       (_n# ># 0x7fffffff#) `orI#` (_n# <# -0x80000000#)
+ #endif
+ 
+@@ -479,7 +483,7 @@ go_fast !bs da@(ConsumeWord64Canonical k) =
+   case tryConsumeWord64 (BS.unsafeHead bs) bs of
+     DecodeFailure             -> go_fast_end bs da
+     DecodedToken sz (W64# w#)
+-      | isWord64Canonical -> k w# >>= go_fast (BS.unsafeDrop sz bs)
++      | isWord64Canonical sz w# -> k w# >>= go_fast (BS.unsafeDrop sz bs)
+       | otherwise         -> go_fast_end bs da
+ 
+ go_fast !bs da@(ConsumeNegWord64Canonical k) =
+@@ -501,7 +505,7 @@ go_fast !bs da@(ConsumeListLen64Canonical k) =
+     DecodeFailure             -> go_fast_end bs da
+     DecodedToken sz (I64# i#)
+         -- List length can't be negative, cast it to Word64#.
+-      | isWord64Canonical sz (int64ToWord64 i#) -> k i# >>= go_fast (BS.unsafeDrop sz bs)
++      | isWord64Canonical sz (int64ToWord64# i#) -> k i# >>= go_fast (BS.unsafeDrop sz bs)
+       | otherwise                               -> go_fast_end bs da
+ 
+ go_fast !bs da@(ConsumeMapLen64Canonical k) =
+@@ -509,7 +513,7 @@ go_fast !bs da@(ConsumeMapLen64Canonical k) =
+     DecodeFailure             -> go_fast_end bs da
+     DecodedToken sz (I64# i#)
+         -- Map length can't be negative, cast it to Word64#.
+-      | isWord64Canonical sz (int64ToWord64 i#) -> k i# >>= go_fast (BS.unsafeDrop sz bs)
++      | isWord64Canonical sz (int64ToWord64# i#) -> k i# >>= go_fast (BS.unsafeDrop sz bs)
+       | otherwise                               -> go_fast_end bs da
+ 
+ go_fast !bs da@(ConsumeTag64Canonical k) =
+@@ -808,10 +812,12 @@ go_fast_end !bs (ConsumeWord32Canonical k) =
+            | otherwise             -> return $! SlowFail bs "non-canonical word32"
+         _                          -> return $! SlowFail bs "expected word32"
+   where
+-    w_out_of_range _w# =
+ #if defined(ARCH_32bit)
++    w_out_of_range :: Word# -> Int#
++    w_out_of_range _w# =
+       0#
+ #else
++    w_out_of_range _w# =
+       gtWord# _w# 0xffffffff##
+ #endif
+ 
+@@ -856,10 +862,12 @@ go_fast_end !bs (ConsumeInt32Canonical k) =
+              | otherwise            -> return $! SlowFail bs "non-canonical int32"
+           _                         -> return $! SlowFail bs "expected int32"
+   where
+-    n_out_of_range _n# =
+ #if defined(ARCH_32bit)
++    n_out_of_range :: Int# -> Int#
++    n_out_of_range _n# =
+       0#
+ #else
++    n_out_of_range _n# =
+       (_n# ># 0x7fffffff#) `orI#` (_n# <# -0x80000000#)
+ #endif
+ 
+@@ -1358,16 +1366,16 @@ isIntCanonical sz i#
+ {-# INLINE isWord64Canonical #-}
+ isWord64Canonical :: Int -> Word64# -> Bool
+ isWord64Canonical sz w#
+-  | sz == 2 && isTrue# (w# `leWord64#` 0x17##)       = False
+-  | sz == 3 && isTrue# (w# `leWord64#` 0xff##)       = False
+-  | sz == 5 && isTrue# (w# `leWord64#` 0xffff##)     = False
+-  | sz == 9 && isTrue# (w# `leWord64#` 0xffffffff##) = False
++  | sz == 2 && isTrue# (w# `leWord64#` (wordToWord64# 0x17##))       = False
++  | sz == 3 && isTrue# (w# `leWord64#` (wordToWord64# 0xff##))       = False
++  | sz == 5 && isTrue# (w# `leWord64#` (wordToWord64# 0xffff##))     = False
++  | sz == 9 && isTrue# (w# `leWord64#` (wordToWord64# 0xffffffff##)) = False
+   | otherwise                                        = True
+ 
+ {-# INLINE isInt64Canonical #-}
+ isInt64Canonical :: Int -> Int64# -> Bool
+ isInt64Canonical sz i#
+-  | isTrue# (i# <# 0#) = isWord64Canonical sz (not64# w#)
++  | isTrue# ((int64ToInt# i#) <# 0#) = isWord64Canonical sz (not64# w#)
+   | otherwise          = isWord64Canonical sz         w#
+   where
+     w# = int64ToWord64# i#
+diff --git a/src/Codec/CBOR/Write.hs b/src/Codec/CBOR/Write.hs
+index 89ad8c5..61b38b4 100644
+--- a/src/Codec/CBOR/Write.hs
++++ b/src/Codec/CBOR/Write.hs
+@@ -44,7 +44,7 @@ import qualified Data.Text.Encoding                    as T
+ #if defined(OPTIMIZE_GMP)
+ import           Control.Exception.Base                (assert)
+ import           GHC.Exts
+-import qualified GHC.Integer.GMP.Internals             as Gmp
++import qualified GHC.Integer.BigInteger.Internals             as Gmp
+ #if __GLASGOW_HASKELL__ < 710
+ import           GHC.Word
+ #endif

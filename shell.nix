@@ -11,7 +11,7 @@ in
 
 let
   plutusPkgs = import ./. {};
-  ghc = pkgs.haskell.packages.ghc822.ghcWithPackages (ps: [
+  ghc = pkgs.haskell.packages.ghc843.ghcWithPackages (ps: [
     plutusPkgs.plutus-prototype
     plutusPkgs.language-plutus-core
     plutusPkgs.core-to-plc
