@@ -57,6 +57,8 @@ module Wallet.UTXO(
     spentOutputs,
     unspentOutputs,
     validTx,
+    txOutPubKey,
+    pubKeyTxo,
     -- * Scripts
     validate,
     emptyValidator,
@@ -419,6 +421,12 @@ txOutData TxOut{txOutType = t} = case  t of
     PayToScript s -> Just s
     PayToPubKey _ -> Nothing
 
+-- | The public key that a [[TxOut]] refers to
+txOutPubKey :: TxOut h -> Maybe PubKey
+txOutPubKey TxOut{txOutType = t} = case  t of
+    PayToPubKey k -> Just k
+    _ -> Nothing
+
 -- | The address of a transaction output
 outAddress :: Lens (TxOut h) (TxOut g) (Address h) (Address g)
 outAddress = lens txOutAddress s where
@@ -494,6 +502,10 @@ value bc o = txOutValue <$> out bc o
 -- | Determine the data script that an input refers to
 dataTxo :: Blockchain -> TxOutRef' -> Maybe DataScript
 dataTxo bc o = txOutData =<< out bc o
+
+-- | Determine the public key that locks the txo
+pubKeyTxo :: Blockchain -> TxOutRef' -> Maybe PubKey
+pubKeyTxo bc o = out bc o >>= txOutPubKey
 
 -- | The unspent outputs of a transaction
 unspentOutputsTx :: Tx -> Map TxOutRef' TxOut'

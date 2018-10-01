@@ -2,9 +2,11 @@
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.CrowdFunding (
     Campaign(..)
@@ -19,13 +21,15 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     , collectFundsTrigger
     ) where
 
-import           Control.Applicative                  (Alternative)
+import           Control.Applicative                  (Applicative(..), Alternative(..))
 import           Control.Monad                        (Monad (..), guard)
+import           Control.Monad.Error.Class            (MonadError (..))
 import qualified Data.Set                             as Set
 import           Language.Plutus.Coordination.Plutus  (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.TH                   (plutus)
-import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), pubKey)
+import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
+                                                       otherError, pubKey)
 import           Wallet.UTXO                          (Address', DataScript (..), Tx (..), TxOutRef', Validator (..),
                                                        scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
@@ -41,23 +45,26 @@ data Campaign = Campaign
     , campaignOwner              :: !CampaignActor
     }
 
-newtype CampaignActor = CampaignActor { campaignActor :: PubKey }
+type CampaignActor = PubKey
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: (Alternative m, WalletAPI m, Monad m) => Campaign -> Value -> m ()
+contribute :: (MonadError WalletAPIError m, WalletAPI m, Monad m) => Campaign -> Value -> m ()
 contribute c value = do
-    guard (value > 0)
-    contributorPubKey <- pubKey <$> myKeyPair
+    _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
+    -- TODO: Uncomment when we can translate values to PLC. Until then, we use
+    --       a constant `PubKey 1`
+    -- contributorPubKey <- pubKey <$> myKeyPair
+    let contributorPubKey = PubKey 1
     -- TODO: Remove duplicate definition of Value
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
     myPayment <- createPayment v'
     let o = scriptTxOut v' (contributionScript c contributorPubKey) d
-        d = DataScript $(plutus [| (CampaignActor contributorPubKey) |])
+        d = DataScript $(plutus [| PubKey 1 |])
 
     submitTxn Tx
-      { txInputs  = Set.singleton myPayment
+      { txInputs  = myPayment
       , txOutputs = [o]
       , txForge = 0
       , txFee = 0

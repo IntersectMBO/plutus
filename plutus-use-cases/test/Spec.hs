@@ -14,8 +14,8 @@ import           Wallet.Emulator                                     hiding (Val
 import           Wallet.Generators                                   (Mockchain (..))
 import qualified Wallet.Generators                                   as Gen
 
-import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor (..),
-                                                                      contributionScript)
+import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor,
+                                                                      contribute)
 import           Language.Plutus.Coordination.Plutus                 (Value)
 
 main :: IO ()
@@ -30,12 +30,8 @@ tests = testGroup "use cases" [
 
 -- | Lock a transaction's outputs with the crowdfunding validator
 --   script.
-lock :: Wallet -> Tx -> Campaign -> Trace [Tx]
-lock w t c = do
-    let s  = contributionScript c PubKey
-        a' = hashValidator s
-        t' = t & over (outputs . mapped) (set outAddress a')
-    walletAction w $ submitTxn t'
+contrib :: Campaign -> Trace [Tx]
+contrib c = let w = Wallet 1 in walletAction w $ contribute c 1000
 
 -- | Generate a transaction that contributes some funds to a campaign.
 --   NOTE: This doesn't actually run the validation script. The script
@@ -48,9 +44,9 @@ makeContribution = property $ do
         campaignDeadline = 10,
         campaignTarget   = 1000,
         campaignCollectionDeadline = 15,
-        campaignOwner = CampaignActor PubKey
+        campaignOwner = PubKey 1
         }
-        (result, st) = Gen.runTrace m $ lock (Wallet 1) txn cmp >> blockchainActions
+        (result, st) = Gen.runTrace m $ contrib cmp >> blockchainActions
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == emTxPool st)
 

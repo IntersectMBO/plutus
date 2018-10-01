@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -39,12 +40,18 @@ import           Control.Monad.Except
 import           Control.Monad.Operational as Op
 import           Control.Monad.State
 import           Control.Monad.Writer
+import           Data.Bifunctor            (Bifunctor (..))
+import           Data.List                 (uncons)
 import           Data.Map                  as Map
 import           Data.Maybe
-import           Data.Text                 as T
+import qualified Data.Set                  as Set
+import qualified Data.Text                 as T
+import           Prelude                   as P
 
-import           Wallet.API                (KeyPair (..), WalletAPI (..), keyPair)
-import           Wallet.UTXO               (Block, Blockchain, Tx (..), validTx)
+import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
+                                            signature)
+import           Wallet.UTXO               (Block, Blockchain, Tx (..), TxOutRef', Value, pubKeyTxIn, pubKeyTxOut,
+                                            validTx)
 
 -- agents/wallets
 newtype Wallet = Wallet Int
@@ -59,23 +66,44 @@ data Notification = BlockValidated Block
 -- Wallet code
 
 data WalletState = WalletState {
-    walletStateKeyPair :: KeyPair
+    walletStateKeyPair      :: KeyPair,
+    walletStateOwnAddresses :: Map TxOutRef' Value -- ^ Addresses locked by the public key of our key pair
     }
     deriving (Show, Eq, Ord)
 
 emptyWalletState :: WalletState
-emptyWalletState = WalletState $ keyPair 0
+emptyWalletState = WalletState (keyPair 0) Map.empty
 
 -- manually records the list of transactions to be submitted
-newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: StateT WalletState (Writer [Tx]) a }
-    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx])
+newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer [Tx] ))) a }
+    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx], MonadError WalletAPIError)
 
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
 handleNotifications _ = return () -- TODO: Actually handle notifications
 
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
+
     myKeyPair = gets walletStateKeyPair
+
+    createPayment vl = do
+        WalletState{..} <- get
+        let total = getSum $ foldMap Sum walletStateOwnAddresses
+            sig   = signature walletStateKeyPair
+        if total < vl || Map.null walletStateOwnAddresses
+        then throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
+        else return $ Set.fromList
+                $ fmap (flip pubKeyTxIn sig . fst)
+                -- This is the coin selection algorithm
+                -- TODO: Should be customisable
+                $ P.takeWhile ((>) vl . snd)
+                $ maybe [] (uncurry (P.scanl (\t v -> second (+ snd v) t)))
+                $ uncons
+                $ Map.toList walletStateOwnAddresses
+
+    register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
+
+    payToPublicKey v = pubKeyTxOut v . pubKey <$> myKeyPair
 
 
 -- Emulator code
@@ -122,11 +150,11 @@ validateEm txn = do
     bc <- gets emChain
     pure $ if validTx txn bc then Just txn else Nothing
 
-liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], a)
+liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
     emState <- get
     let walletState = fromMaybe emptyWalletState $ Map.lookup wallet $ emWalletState emState
-    let ((out, newState), txns) = runWriter $ runStateT (runEmulatedWalletApi act) walletState
+    let ((out, newState), txns) = runWriter $ runStateT (runExceptT (runEmulatedWalletApi act)) walletState
     put emState {
         emTxPool = txns ++ emTxPool emState,
         emWalletState = Map.insert wallet newState $ emWalletState emState
