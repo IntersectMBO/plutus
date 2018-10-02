@@ -22,7 +22,6 @@ import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Lens.Micro
@@ -303,48 +302,18 @@ maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNam
 maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
 
--- This performs rewrites with the appropriate environment. It is necessary in
--- the cases when we are not allowed to perform type reductions.
-rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
-rewriteCtx (TyApp x ty ty')     = TyApp x <$> rewriteCtx ty <*> rewriteCtx ty'
-rewriteCtx (TyFun x ty ty')     = TyFun x <$> rewriteCtx ty <*> rewriteCtx ty'
-rewriteCtx (TyFix x tn ty')     = TyFix x tn <$> rewriteCtx ty'
-rewriteCtx (TyLam x tn k ty)    = TyLam x tn k <$> rewriteCtx ty
-rewriteCtx (TyForall x tn k ty) = TyForall x tn k <$> rewriteCtx ty
-rewriteCtx ty@TyInt{}           = pure ty
-rewriteCtx ty@TyBuiltin{}       = pure ty
-rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
-    (TypeCheckSt st _) <- get
-    case IM.lookup (unUnique u) st of
-
-        -- we must use recursive lookups because we can have an assignment
-        -- a -> b and an assignment b -> c which is locally valid but in
-        -- a smaller scope than a -> b.
-        Just ty'@TyVar{} -> rewriteCtx ty'
-        Just ty'         -> cloneType ty'
-        Nothing          -> pure ty
-
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduce (TyForall x tn k ty) = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyFix x tn ty) = NormalizedType <$> (TyFix x tn <$> (getNormalizedType <$> tyReduce ty))
+tyReduce (TyFun x ty ty') = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
+tyReduce (TyLam x tn k ty) = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
 
--- The guards here are necessary for spec compliance.
---
--- In particular, \\( (\mathtt{fun} S _) )\\ is a valid type reduction frame if and only if
--- \\(S\\) is a type value.
---
--- This is detailed in Fig. 6. of the spec.
-tyReduce (TyFun x ty ty') | isTypeValue ty                                   = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
-                          | otherwise                                        = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> rewriteCtx ty')
-tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyApp x ty ty') = do
 
-    let modTy = if isTypeValue ty -- FIXME: does this recurse right?
-        then fmap getNormalizedType . tyReduce
-        else rewriteCtx
-
-    arg <- modTy ty'
+    -- Once again, @fun@ will always be a type value once reduced so we can do
+    -- reduction here
+    arg <- getNormalizedType <$> tyReduce ty'
     fun <- getNormalizedType <$> tyReduce ty
     case fun of
         (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty'') -> do
@@ -352,4 +321,16 @@ tyReduce (TyApp x ty ty') = do
             tyReduce ty'' <* tyEnvDelete u
         _ -> pure $ NormalizedType $ TyApp x fun arg
 
-tyReduce x                                                                   = NormalizedType <$> rewriteCtx x
+tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
+    (TypeCheckSt st _) <- get
+    case IM.lookup (unUnique u) st of
+
+        -- we must use recursive lookups because we can have an assignment
+        -- a -> b and an assignment b -> c which is locally valid but in
+        -- a smaller scope than a -> b.
+        Just ty'@TyVar{} -> tyReduce ty'
+        Just ty'         -> NormalizedType <$> cloneType ty'
+        Nothing          -> pure $ NormalizedType ty
+
+tyReduce x@TyInt{} = pure $ NormalizedType x
+tyReduce x@TyBuiltin{} = pure $ NormalizedType x
