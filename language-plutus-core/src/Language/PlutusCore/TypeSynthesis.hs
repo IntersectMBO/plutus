@@ -229,7 +229,7 @@ typeOf (LamAbs _ _ ty t)                         = do
 typeOf (Error x ty)                              = do
     k <- kindOf ty
     case k of
-        Type{} -> pure (void $ NormalizedType ty)
+        Type{} -> tyReduce (void ty)
         _      -> throwError (KindMismatch x (void ty) (Type ()) k)
 typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (getNormalizedType <$> typeOf t))
 typeOf (Constant _ (BuiltinName _ n)) = do

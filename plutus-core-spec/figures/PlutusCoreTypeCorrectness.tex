@@ -175,9 +175,10 @@
     \end{prooftree}
     
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{S}{\typeK{}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\typeMultistep{A}{S}\)}
         \RightLabel{error}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{S}}{S}}\)}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{S}}\)}
     \end{prooftree}
 
     \begin{prooftree}
