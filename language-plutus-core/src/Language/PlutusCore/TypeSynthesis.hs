@@ -350,6 +350,6 @@ tyReduce (TyApp x ty ty') = do
         (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty'') -> do
             tyEnvAssign u (getNormalizedType $ void arg)
             tyReduce ty'' <* tyEnvDelete u
-        _ -> pure $ NormalizedType $ TyApp x (getNormalizedType arg) fun
+        _ -> pure $ NormalizedType $ TyApp x fun (getNormalizedType arg)
 
 tyReduce x                                                                   = NormalizedType <$> rewriteCtx x
