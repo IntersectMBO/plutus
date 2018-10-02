@@ -6,6 +6,7 @@ module NormalTypes.Examples where
 
 \begin{code}
 open import Type
+open import Type.BetaNormal
 import Type.RenamingSubstitution as ⋆
 open import NormalTypes.Term
 open import NormalTypes.Term.RenamingSubstitution
@@ -124,18 +125,18 @@ eval (gas 10000000) Scott.Two
 
 \begin{code}
 module Church where
-{-
-  N : ∀{Γ} → Γ ⊢⋆ *
-  N = Π (` Z) ⇒ (` Z ⇒ ` Z) ⇒ (` Z)
+
+  N : ∀{Γ} → Γ ⊢Nf⋆ *
+  N = Π ((ne (` Z)) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ (ne (` Z)))
 
   Zero : ∅ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S Z))))
 
   Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ ` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z)))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
   
-  Iter : ∅ ⊢ Π ` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)
-  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
+  Iter : ∅ ⊢ Π (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
+  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ ne (` Z) · (` (S (S Z))) · (` (S Z))))))
 
   -- two plus two
   One : ∅ ⊢ N
@@ -157,8 +158,8 @@ module Church where
 
   TwoPlusTwo' : ∅ ⊢ N
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
--}
---open Church public
+
+open Church public
 \end{code}
 
 -- Church "4"

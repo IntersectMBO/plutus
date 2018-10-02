@@ -45,23 +45,17 @@ data Steps : ∀ {J}{A : ∅ ⊢Nf⋆ J} → ∅ ⊢ A → Set where
       ----------
     → Steps L
 
-  unhandled-conversion :  ∀ {J}{A : ∅ ⊢Nf⋆ J} {L : ∅ ⊢ A} → Steps L
-
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.
 \begin{code}
-{-
-eval : ∀ {A : ∅ ⊢⋆ *}
+eval : ∀ {A : ∅ ⊢Nf⋆ *}
   → Gas
   → (M : ∅ ⊢ A)
     -----------
   → Steps M
-eval (gas zero) M = steps done out-of-gas
+eval (gas zero) M = steps refl—↠ out-of-gas
 eval (gas (suc n)) M with progress M
-...                  | unhandled-conversion = unhandled-conversion
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
-...                               | unhandled-conversion = unhandled-conversion
-eval (gas (suc n)) M | step {N} p | steps ps q = steps (continue p ps) q
-eval (gas (suc n)) M | done vM = steps done (done _ vM)
--}
+eval (gas (suc n)) M | step {N} p | steps ps q = steps (trans—↠ p ps) q
+eval (gas (suc n)) M | done vM = steps refl—↠ (done _ vM)
 \end{code}

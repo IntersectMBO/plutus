@@ -23,12 +23,12 @@ mutual
   PER : ∀{Γ} K → Val Γ K → Val Γ K → Set
   PER *       n n' = n ≡ n' -- the same as readback n ≡ readback n'
   PER (K ⇒ J) (inj₁ n) (inj₁ n') = readback (inj₁ n) ≡ readback (inj₁ n')
-  PER (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥ -- A semantic function (that started life as a lambda) cannot be beta-equal to a neutral
-  PER (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥ -- A semantic function (that started life as a lambda) cannot be beta-equal to a neutral
+  PER (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥ -- A semantic function cannot be beta-equal to a neutral
+  PER (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥ -- A semantic function cannot be beta-equal to a neutral
   PER (K ⇒ J) (inj₂ f) (inj₂ f') =
-   Unif (K ⇒ J) (inj₂ f)
+   Unif (inj₂ f)
    ×
-   Unif (K ⇒ J) (inj₂ f')
+   Unif (inj₂ f')
    ×
    ∀ {Δ}
      → (ρ : Ren _ Δ)
@@ -36,9 +36,8 @@ mutual
      → PER K v v'
      → PER J (renval ρ (inj₂ f) ·V v) (renval ρ (inj₂ f') ·V v')
 
-  Unif : ∀{Γ} K → Val Γ K → Set
-  Unif * n = ⊤
-  Unif {Γ} (K ⇒ J) f = ∀{Δ Δ'}(ρ : Ren Γ Δ)(ρ' : Ren Δ Δ')(v v' : Val Δ K) → PER K v v'
+  Unif : ∀{Γ K J} → Val Γ (K ⇒ J) → Set
+  Unif {Γ}{K}{J} f = ∀{Δ Δ'}(ρ : Ren Γ Δ)(ρ' : Ren Δ Δ')(v v' : Val Δ K) → PER K v v'
     → PER J  (renval ρ' (renval ρ f ·V v)) (renval (ρ' ∘ ρ) f ·V renval ρ' v')
 
 transPER : ∀{Γ} K {v v' v'' : Val Γ K} → PER K v v' → PER K v' v'' → PER K v v''
@@ -222,7 +221,6 @@ renval-eval (ƛ B) {η}{η'} p ρ =
   ,
   λ ρ' q → idext (λ { Z → q ; (S x) → renval-comp ρ ρ' (p x) }) B
 renval-eval (A · B) p ρ = transPER _ (renval·V ρ (idext (reflPER _ ∘ p) A) (idext (reflPER _ ∘ p) B)) (PERApp (renval-eval A p ρ) (renval-eval B p ρ))
-
 renval-eval (μ B) p ρ = cong μ (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-ext {*} ρ ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
 
 idext p (` x)   = p x
@@ -353,10 +351,6 @@ fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _
 idPER : ∀{Γ K} → (x : Γ ∋⋆ K) → PER K (idEnv Γ x) (idEnv Γ x)
 idPER {K = *}     x = refl
 idPER {K = K ⇒ J} x = refl
-{-
-idPER Z = reflect _ refl
-idPER (S x) = renPER S (idPER x)
--}
 \end{code}
 
 \begin{code}
