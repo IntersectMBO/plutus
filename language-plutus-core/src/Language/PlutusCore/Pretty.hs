@@ -1,7 +1,8 @@
 module Language.PlutusCore.Pretty
     (
     -- * Basic types and functions
-      Pretty (..)
+      Doc
+    , Pretty (..)
     , PrettyBy (..)
     , PrettyConfigIgnore (..)
     , PrettyConfigAttach (..)

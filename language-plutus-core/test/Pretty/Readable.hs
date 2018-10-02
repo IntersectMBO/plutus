@@ -9,70 +9,52 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           Control.Monad.Reader                      (Reader)
-import qualified Control.Monad.Reader                      as Reader
-import qualified Data.ByteString.Lazy                      as BSL
-import           Data.Text                                 (Text)
-import           Data.Text.Encoding                        (encodeUtf8)
-import           System.FilePath                           ((</>))
+import           Common
+
 import           Test.Tasty
-import           Test.Tasty.Golden
 
-goldenVsText :: TestName -> FilePath -> Text -> TestTree
-goldenVsText name ref = goldenVsString name ref . pure . BSL.fromStrict . encodeUtf8
-
-type TestFolder = Reader (String -> FilePath) TestTree
-
-checkPlcReadable :: PrettyPlc a => TestName -> a -> TestFolder
-checkPlcReadable name x = do
-    toFolder <- Reader.ask
-    return
-       . goldenVsText name (toFolder "" </> name ++ ".plc.golden")
-       $ docText (prettyPlcReadableBy (botPrettyConfigReadable defPrettyConfigName) x)
-
-testFolder :: String -> [TestFolder] -> TestFolder
-testFolder folderName = Reader.local ((</> folderName ) .) . fmap (testGroup folderName) . sequence
-
-runTestFolderIn :: FilePath -> TestFolder -> TestTree
-runTestFolderIn folder test = Reader.runReader test (</> folder)
+testReadable :: PrettyPlc a => TestName -> a -> TestNestedGolden
+testReadable name
+    = nestedGoldenVsDoc name
+    . prettyPlcReadableBy (botPrettyConfigReadable defPrettyConfigName)
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable =
-    runTestFolderIn "test/Pretty/Golden/Readable" $
-        testFolder "StdLib"
-            [ testFolder "Bool"
-                  [ checkPlcReadable "Bool"  $ runQuote getBuiltinBool
-                  , checkPlcReadable "True"  $ runQuote getBuiltinTrue
-                  , checkPlcReadable "False" $ runQuote getBuiltinFalse
-                  , checkPlcReadable "If"    $ runQuote getBuiltinIf
+    runTestNestedGoldenIn "test/Pretty/Golden/Readable" $
+        testNestedGolden "StdLib"
+            [ testNestedGolden "Bool"
+                  [ testReadable "Bool"  $ runQuote getBuiltinBool
+                  , testReadable "True"  $ runQuote getBuiltinTrue
+                  , testReadable "False" $ runQuote getBuiltinFalse
+                  , testReadable "If"    $ runQuote getBuiltinIf
                   ]
-            , testFolder "ChurchNat"
-                  [ checkPlcReadable "ChurchNat"  $ runQuote getBuiltinChurchNat
-                  , checkPlcReadable "ChurchZero" $ runQuote getBuiltinChurchZero
-                  , checkPlcReadable "ChurchSucc" $ runQuote getBuiltinChurchSucc
+            , testNestedGolden "ChurchNat"
+                  [ testReadable "ChurchNat"  $ runQuote getBuiltinChurchNat
+                  , testReadable "ChurchZero" $ runQuote getBuiltinChurchZero
+                  , testReadable "ChurchSucc" $ runQuote getBuiltinChurchSucc
                   ]
-            , testFolder "Function"
-                  [ checkPlcReadable "Const"  $ runQuote getBuiltinConst
-                  -- , checkPlcReadable "Self"   $ runQuote getBuiltinSelf
-                  , checkPlcReadable "Unroll" $ runQuote getBuiltinUnroll
-                  , checkPlcReadable "Fix"    $ runQuote getBuiltinFix
+            , testNestedGolden "Function"
+                  [ testReadable "Const"  $ runQuote getBuiltinConst
+                  -- , testReadable "Self"   $ runQuote getBuiltinSelf
+                  , testReadable "Unroll" $ runQuote getBuiltinUnroll
+                  , testReadable "Fix"    $ runQuote getBuiltinFix
                   ]
-            , testFolder "List"
-                  [ -- checkPlcReadable "List"      $ runQuote getBuiltinList
-                    checkPlcReadable "Nil"       $ runQuote getBuiltinNil
-                  , checkPlcReadable "Cons"      $ runQuote getBuiltinCons
-                  , checkPlcReadable "FoldrList" $ runQuote getBuiltinFoldrList
-                  , checkPlcReadable "FoldList"  $ runQuote getBuiltinFoldList
+            , testNestedGolden "List"
+                  [ -- testReadable "List"      $ runQuote getBuiltinList
+                    testReadable "Nil"       $ runQuote getBuiltinNil
+                  , testReadable "Cons"      $ runQuote getBuiltinCons
+                  , testReadable "FoldrList" $ runQuote getBuiltinFoldrList
+                  , testReadable "FoldList"  $ runQuote getBuiltinFoldList
                   ]
-            , testFolder "Nat"
-                  [ -- checkPlcReadable "Nat"      $ runQuote getBuiltinNat
-                    checkPlcReadable "Zero"     $ runQuote getBuiltinZero
-                  , checkPlcReadable "Succ"     $ runQuote getBuiltinSucc
-                  , checkPlcReadable "FoldrNat" $ runQuote getBuiltinFoldrNat
-                  , checkPlcReadable "FoldNat"  $ runQuote getBuiltinFoldNat
+            , testNestedGolden "Nat"
+                  [ -- testReadable "Nat"      $ runQuote getBuiltinNat
+                    testReadable "Zero"     $ runQuote getBuiltinZero
+                  , testReadable "Succ"     $ runQuote getBuiltinSucc
+                  , testReadable "FoldrNat" $ runQuote getBuiltinFoldrNat
+                  , testReadable "FoldNat"  $ runQuote getBuiltinFoldNat
                   ]
-            , testFolder "Unit"
-                  [ checkPlcReadable "Unit"    $ runQuote getBuiltinUnit
-                  , checkPlcReadable "Unitval" $ runQuote getBuiltinUnitval
+            , testNestedGolden "Unit"
+                  [ testReadable "Unit"    $ runQuote getBuiltinUnit
+                  , testReadable "Unitval" $ runQuote getBuiltinUnitval
                   ]
             ]
