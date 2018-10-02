@@ -1,10 +1,14 @@
 module Main(main) where
 
 import           Data.Either         (isLeft, isRight)
+import qualified Data.Map            as Map
+import           Data.Monoid         (Sum (..))
 import           Hedgehog            (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
+import           Lens.Micro
+import           Lens.Micro.Extras   (view)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
@@ -24,7 +28,8 @@ tests = testGroup "all tests" [
         ],
     testGroup "traces" [
         testProperty "accept valid txn" validTrace,
-        testProperty "reject invalid txn" invalidTrace
+        testProperty "reject invalid txn" invalidTrace,
+        testProperty "notify wallet" notifyWallet
         ],
     testGroup "Etc." [
         testProperty "splitVal" splitVal
@@ -38,8 +43,8 @@ initialTxnValid = property $ do
 
 utxo :: Property
 utxo = property $ do
-    Mockchain chain o <- forAll Gen.genMockchain
-    Hedgehog.assert (unspentOutputs chain == o)
+    Mockchain block o <- forAll Gen.genMockchain
+    Hedgehog.assert (unspentOutputs [block] == o)
 
 txnValid :: Property
 txnValid = property $ do
@@ -59,7 +64,7 @@ validTrace :: Property
 validTrace = property $ do
     m <- forAll Gen.genMockchain
     txn <- forAll $ Gen.genValidTransaction m
-    let (result, st) = Gen.runTrace m $ simpleTrace txn
+    let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == emTxPool st)
 
@@ -79,3 +84,12 @@ splitVal = property $ do
     vs <- forAll $ Gen.splitVal n i
     Hedgehog.assert $ sum vs == i
     Hedgehog.assert $ length vs <= n
+
+notifyWallet :: Property
+notifyWallet = property $ do
+    let w = Wallet 1
+    (e, EmulatorState{ emWalletState = st }) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ blockchainActions >>= walletNotifyBlock w
+    let ttl = Map.lookup w st
+    Hedgehog.assert $ (getSum . foldMap Sum . view ownAddresses <$> ttl) == Just 100000

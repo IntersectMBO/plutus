@@ -74,4 +74,5 @@ test-suite wallet-api-test
         tasty -any,
         tasty-hedgehog -any,
         text -any,
-        wallet-api -any
+        wallet-api -any,
+        microlens -any

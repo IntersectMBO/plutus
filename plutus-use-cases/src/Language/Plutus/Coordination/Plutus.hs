@@ -5,10 +5,9 @@ module Language.Plutus.Coordination.Plutus (-- * Transactions and related types
                 PubKey(..)
               , Value
               , Height
-              , TxIn(..)
-              , TxOut(..)
-              , TxOutRef(..)
+              , PendingTxOutRef(..)
               , TxId
+              , Hash(..)
               -- * Pending transactions
               , PendingTx(..)
               , PendingTxOut(..)
@@ -19,18 +18,23 @@ module Language.Plutus.Coordination.Plutus (-- * Transactions and related types
               ) where
 
 import           Wallet.API  (PubKey (..))
-import           Wallet.UTXO (TxId, TxIn (..), TxOut (..), TxOutRef (..))
+import           Wallet.UTXO (TxId)
 
 -- | Output of a pending transaction.
 data PendingTxOut d = PendingTxOut {
-    pendingTxOutValue :: !Value,
-    pendingTxOutData  :: !d -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    pendingTxOutValue :: Value,
+    pendingTxOutData  :: d -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    }
+
+data PendingTxOutRef = PendingTxOutRef {
+    pendingTxOutRefId  :: Hash,
+    pendingTxOutRefIdx :: Int
     }
 
 -- | Input of a pending transaction.
 data PendingTxIn r = PendingTxIn {
-    pendingTxInRef         :: !(TxOutRef Hash),
-    pendingTxInRefRedeemer :: !r -- ^ The redeemer of the pending transaction input (see note [Script types in pending transactions])
+    pendingTxInRef         :: PendingTxOutRef,
+    pendingTxInRefRedeemer :: r -- ^ The redeemer of the pending transaction input (see note [Script types in pending transactions])
     }
 
 -- | A pending transaction as seen by validator scripts.
@@ -38,9 +42,9 @@ data PendingTx r d = PendingTx {
     pendingTxCurrentInput :: (PendingTxIn r, Value), -- ^ The input we are validating
     pendingTxOtherInputs  :: [(PendingTxIn r, Value)], -- ^ Other transaction inputs (they will be validated separately but we can look at their redeemer data and coin value)
     pendingTxOutputs      :: [PendingTxOut d],
-    pendingTxForge        :: !Value,
-    pendingTxFee          :: !Value,
-    pendingTxBlockHeight  :: !Height
+    pendingTxForge        :: Value,
+    pendingTxFee          :: Value,
+    pendingTxBlockHeight  :: Height
     }
 
 {- Note [Script types in pending transactions]
@@ -97,8 +101,7 @@ newtype Signed a = Signed (PubKey, a)
 -- TODO: Use [[Wallet.UTXO.Value]] when Integer is supported
 type Value = Int
 
-newtype Hash = Hash Int
-    deriving (Eq, Ord, Show, Read)
+type Hash = Int
 
 -- | Blockchain height
 --   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported

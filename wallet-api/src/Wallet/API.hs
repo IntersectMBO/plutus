@@ -9,6 +9,7 @@ module Wallet.API(
     pubKey,
     keyPair,
     signature,
+    createPayment,
     -- * Error handling
     WalletAPIError(..),
     insufficientFundsError,
@@ -64,7 +65,9 @@ data WalletAPIError =
 class WalletAPI m where
     submitTxn :: Tx -> m ()
     myKeyPair :: m KeyPair
-    createPayment :: Value -> m (Set.Set TxIn') -- ^ Create a payment that spends the specified value. Fails if we don't have enough funds
+    createPaymentWithChange :: Value -> m (Set.Set TxIn', TxOut')
+    -- ^ Create a payment that spends the specified value and returns any
+    --   leftover funds as change. Fails if we don't have enough funds.
     register :: EventTrigger -> m () -> m ()
     payToPublicKey :: Value -> m TxOut' -- ^ Generate a transaction output that pays a value to a public key owned by us
 
@@ -73,3 +76,6 @@ insufficientFundsError = throwError . InsufficientFunds
 
 otherError :: MonadError WalletAPIError m => Text -> m a
 otherError = throwError . OtherError
+
+createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
+createPayment vl = fst <$> createPaymentWithChange vl

@@ -45,10 +45,14 @@ module Wallet.UTXO(
     scriptTxIn,
     pubKeyTxOut,
     scriptTxOut,
+    isPubKeyOut,
+    isPayToScriptOut,
+    txOutRefs,
     -- * Blockchain & UTxO model
     Block,
     Blockchain,
     BlockchainState(..),
+    ValidationData(..),
     state,
     transaction,
     out,
@@ -64,6 +68,7 @@ module Wallet.UTXO(
     emptyValidator,
     unitRedeemer,
     unitData,
+    unitValidationData,
     -- * Lenses
     inputs,
     outputs,
@@ -108,6 +113,7 @@ import           Data.Maybe                               (fromMaybe, isJust, li
 import           Data.Monoid                              (Sum (..))
 import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
+import qualified Debug.Trace                              as Trace
 import           Lens.Micro
 
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getAst, getSerializedCode)
@@ -324,8 +330,8 @@ hashTx = TxId . hash . preHash . strip
 
 -- | Reference to a transaction output
 data TxOutRef h = TxOutRef {
-    txOutRefId  :: !(TxId h),
-    txOutRefIdx :: !Int -- ^ Index into the referenced transaction's outputs
+    txOutRefId  :: TxId h,
+    txOutRefIdx :: Int -- ^ Index into the referenced transaction's outputs
     } deriving (Show, Eq, Ord)
 
 type TxOutRef' = TxOutRef (Digest SHA256)
@@ -334,6 +340,12 @@ encodeTxOutRef :: TxOutRef' -> Encoding
 encodeTxOutRef TxOutRef{..} =
     encodeTxId txOutRefId
     <> Enc.encodeInt txOutRefIdx
+
+-- | A list of a transaction's outputs paired with their [[TxOutRef']]s
+txOutRefs :: Tx -> [(TxOut', TxOutRef')]
+txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
+    mkOut (i, o) = (o, TxOutRef txId i)
+    txId = hashTx t
 
 -- | Type of transaction input.
 data TxInType =
@@ -376,8 +388,8 @@ inScripts TxIn{ txInType = t } = case t of
 --
 inSignature :: TxIn h -> Maybe Signature
 inSignature TxIn{ txInType = t } = case t of
-    ConsumeScriptAddress _ _ -> Nothing
-    ConsumePublicKeyAddress s   -> Just s
+    ConsumeScriptAddress _ _  -> Nothing
+    ConsumePublicKeyAddress s -> Just s
 
 pubKeyTxIn :: TxOutRef h -> Signature -> TxIn h
 pubKeyTxIn r = TxIn r . ConsumePublicKeyAddress
@@ -425,7 +437,7 @@ txOutData TxOut{txOutType = t} = case  t of
 txOutPubKey :: TxOut h -> Maybe PubKey
 txOutPubKey TxOut{txOutType = t} = case  t of
     PayToPubKey k -> Just k
-    _ -> Nothing
+    _             -> Nothing
 
 -- | The address of a transaction output
 outAddress :: Lens (TxOut h) (TxOut g) (Address h) (Address g)
@@ -443,6 +455,14 @@ outValue = lens txOutValue s where
 outType :: Lens' (TxOut h) TxOutType
 outType = lens txOutType s where
     s tx d = tx { txOutType = d }
+
+-- | Returns true if the output is a pay-to-pubkey output
+isPubKeyOut :: TxOut h -> Bool
+isPubKeyOut = isJust . txOutPubKey
+
+-- | Returns true if the output is a pay-to-script output
+isPayToScriptOut :: TxOut h -> Bool
+isPayToScriptOut = isJust . txOutData
 
 -- | The address of a transaction output locked by public key
 pubKeyAddress :: Value -> PubKey -> Address (Digest SHA256)
@@ -530,6 +550,17 @@ data BlockchainState = BlockchainState {
     blockchainStateTxHash :: TxId'
     }
 
+-- | Information about the state of the blockchain and about the transaction
+--   that is currently being validated, represented as a value in PLC.
+--
+--   In the future we will generate this at transaction validation time, but
+--   for now we have to construct it at compilation time (in the test suite)
+--   and pass it to the validator.
+newtype ValidationData = ValidationData PlcCode
+
+instance Show ValidationData where
+    show = const "ValidationData { <script> }"
+
 -- | Get blockchain state for a transaction
 state :: Tx -> Blockchain -> BlockchainState
 state tx bc = BlockchainState (height bc) (hashTx tx)
@@ -542,8 +573,8 @@ state tx bc = BlockchainState (height bc) (hashTx tx)
 --
 -- * All values in the transaction are non-negative.
 --
-validTx :: Tx -> Blockchain -> Bool
-validTx t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
+validTx :: ValidationData -> Tx -> Blockchain -> Bool
+validTx v t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
     inputsAreValid = all (`validatesIn` unspentOutputs bc) (txInputs t)
     valueIsPreserved = inVal == outVal
     inVal =
@@ -551,13 +582,13 @@ validTx t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
     outVal =
         txFee t + sum (map txOutValue (txOutputs t))
     txIn `validatesIn` allOutputs =
-        maybe False (validate (state t bc) txIn)
+        maybe False (validate v txIn)
         $ txInRef txIn `Map.lookup` allOutputs
 
 -- | Check whether a transaction output can be spent by the given
 --   transaction input. This involves
 --
---   * Checking that pay-to-script (P2S) output is spent by a P2S input, and a 
+--   * Checking that pay-to-script (P2S) output is spent by a P2S input, and a
 --     pay-to-public key (P2PK) output is spend by a P2PK input
 --   * If it is a P2S input:
 --     * Verifying the hash of the validator script
@@ -565,8 +596,8 @@ validTx t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
 --   * If it is a P2PK input:
 --     * Verifying that the signature matches the public key
 --
-validate :: BlockchainState -> TxIn' -> TxOut' -> Bool
-validate bs TxIn{ txInType = ti } TxOut{..} = 
+validate :: ValidationData -> TxIn' -> TxOut' -> Bool
+validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
         (ConsumeScriptAddress v r, PayToScript d)
             | txOutAddress /= scriptAddress txOutValue v d -> False
@@ -575,27 +606,41 @@ validate bs TxIn{ txInType = ti } TxOut{..} =
         _ -> False
 
 -- | Evaluate a validator script with the given inputs
-runScript :: BlockchainState -> Validator -> Redeemer -> DataScript -> Bool
-runScript _ (Validator (getAst -> validator)) (Redeemer (getAst -> redeemer)) (DataScript (getAst -> dataScript)) =
+runScript :: ValidationData -> Validator -> Redeemer -> DataScript -> Bool
+runScript (ValidationData (getAst -> valData)) (Validator (getAst -> validator)) (Redeemer (getAst -> redeemer)) (DataScript (getAst -> dataScript)) =
     let
-        applied = (validator `applyProgram` redeemer) `applyProgram` dataScript
+        applied = ((validator `applyProgram` redeemer) `applyProgram` dataScript) `applyProgram` valData
         -- TODO: do something with the error
-        inferred = either (const Nothing) Just $ runExcept $ runQuoteT $ void $ typecheckPipeline 1000 applied
-    in isJust $ do
-        void inferred
-        evaluationResultToMaybe $ runCk applied
+        typecheck = either (const Nothing) Just $ runExcept $ runQuoteT $ void $ typecheckPipeline 1000 applied
+    in isJust $ evaluationResultToMaybe $ runCk applied
+        -- TODO: Enable type checking of the program
+        -- void typecheck
+
 
 -- | () as a data script
 unitData :: DataScript
 unitData = DataScript $(plutus [| () |])
 
--- | \() () -> () as a validator
+-- | \() () () -> () as a validator
+--
+--   NB. The signature of a validator script is *d -> r -> v -> ()*
+--       where *d*, *r* and *v* are the (PLC) types of data script, redeemer
+--       script, and validation data. *d*, *r* and *v* are
+--       determined by the validator script itself (because applying it to
+--       values of different types will cause the script to be ill-typed).
+--       As a result, if you lock a transaction output with `emptyValidator`,
+--       you need to provide `unitData`, `unitRedeemer` and
+--       `unitValidationData` to consume it.
 emptyValidator :: Validator
-emptyValidator = Validator $(plutus [| \() () -> () |])
+emptyValidator = Validator $(plutus [| \() () () -> () |])
 
 -- | () as a redeemer
 unitRedeemer :: Redeemer
 unitRedeemer = Redeemer $(plutus [| () |])
+
+-- | () as validation data
+unitValidationData :: ValidationData
+unitValidationData = ValidationData $(plutus [| () |])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut'

@@ -52,6 +52,8 @@ test-suite plutus-use-cases-test
     hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    other-modules:
+      Spec.Crowdfunding
     build-depends:
         base >=4.9 && <5,
         containers -any,

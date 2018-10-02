@@ -24,23 +24,22 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     , collectFundsTrigger
     ) where
 
-import           Control.Applicative                  (Alternative (..), Applicative (..))
-import           Control.Monad                        (Monad (..), guard)
+import           Control.Applicative                  (Applicative (..))
+import           Control.Monad                        (Monad (..))
 import           Control.Monad.Error.Class            (MonadError (..))
 import qualified Data.Set                             as Set
 
 import           Language.Plutus.Coordination.Plutus  (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
-import           Language.PlutusCore                  (applyProgram)
 import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
                                                        otherError, pubKey)
 import           Wallet.UTXO                          (Address', DataScript (..), Tx (..), TxOutRef', Validator (..),
                                                        scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
-import           Prelude                              (Bool (..), Num (..), Ord (..), Word, fromIntegral, succ, sum,
-                                                       ($), (<$>))
+import           Prelude                              (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($),
+                                                       (<$>))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -57,7 +56,7 @@ newtype CampaignPLC = CampaignPLC PlcCode
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: (MonadError WalletAPIError m, WalletAPI m, Monad m) => CampaignPLC -> Value -> m ()
+contribute :: (MonadError WalletAPIError m, WalletAPI m) => CampaignPLC -> Value -> m ()
 contribute c value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
     -- TODO: Uncomment when we can translate values to PLC. Until then, we use
@@ -67,13 +66,13 @@ contribute c value = do
     -- TODO: Remove duplicate definition of Value
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
-    myPayment <- createPayment v'
+    (payment, change) <- createPaymentWithChange v'
     let o = scriptTxOut v' (contributionScript c) d
         d = DataScript $(plutus [| PubKey 1 |])
 
     submitTxn Tx
-      { txInputs  = myPayment
-      , txOutputs = [o]
+      { txInputs  = payment
+      , txOutputs = [o, change]
       , txForge = 0
       , txFee = 0
       }
@@ -108,15 +107,18 @@ contributionScript (CampaignPLC c)  = Validator val where
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
             signedBy :: PendingTxIn a -> CampaignActor -> Bool
-            signedBy = Prim.error ()
+            signedBy _ _ = True -- TODO: Actually check signature
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = Prim.error ()
+            (&&) l r = case (l, r) of
+                (True, True) -> True
+                _            -> False
+
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx a b -> CampaignActor -> Bool
-            signedByT = Prim.error ()
+            signedByT _ _ = True -- TODO: Actually check signature
 
             PendingTx _ _ _ _ _ h = p
 
