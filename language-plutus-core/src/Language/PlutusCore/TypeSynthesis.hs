@@ -348,8 +348,8 @@ tyReduce (TyApp x ty ty') = do
     fun <- modTy ty
     case fun of
         (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty'') -> do
-            tyEnvAssign u (void ty'')
-            tyReduce (getNormalizedType arg) <* tyEnvDelete u
+            tyEnvAssign u (getNormalizedType $ void arg)
+            tyReduce ty'' <* tyEnvDelete u
         _ -> pure $ NormalizedType $ TyApp x (getNormalizedType arg) fun
 
 tyReduce x                                                                   = NormalizedType <$> rewriteCtx x
