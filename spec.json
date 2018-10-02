@@ -1,0 +1,24 @@
+{
+  "enabled": 1,
+  "hidden": false,
+  "description": "Jobsets",
+  "nixexprinput": "declInput",
+  "nixexprpath": "hydra.nix",
+  "checkinterval": 300,
+  "schedulingshares": 20,
+  "enableemail": true,
+  "emailoverride": "",
+  "keepnr": 3,
+  "inputs": {
+    "nixpkgs": {
+      "type": "git",
+      "value": "https://github.com/NixOS/nixpkgs-channels.git nixos-18.09",
+      "emailresponsible": false
+    },
+    "plutusPrsJSON": {
+      "type": "githubpulls",
+      "value": "input-output-hk plutus",
+      "emailresponsible": false
+    }
+  }
+}
