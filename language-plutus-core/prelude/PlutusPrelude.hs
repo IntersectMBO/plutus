@@ -35,6 +35,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Reëxports from "Control.Composition"
                      , (.*)
                      -- * Custom functions
+                     , foldMapM
                      , repeatM
                      , (?)
                      , hoist
@@ -169,6 +170,11 @@ prettyStringBy = docString .* prettyBy
 -- | Render a value as strict 'Text'.
 prettyTextBy :: PrettyBy config a => config -> a -> T.Text
 prettyTextBy = docText .* prettyBy
+
+-- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
+foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
+foldMapM f xs = foldr step return xs mempty where
+    step x r z = f x >>= \y -> r $! z `mappend` y
 
 -- | Make sure your 'Applicative' is sufficiently lazy!
 repeatM :: Applicative f => Int -> f a -> f [a]

@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingStrategies #-}
 module Common
     ( TestNestedGolden
     , runTestNestedGoldenIn
@@ -11,7 +10,7 @@ module Common
 
 import           Language.PlutusCore.Pretty
 
-import           Control.Monad.Reader       (Reader)
+import           Control.Monad.Reader       (Reader, runReader)
 import qualified Control.Monad.Reader       as Reader
 import qualified Data.ByteString.Lazy       as BSL
 import           Data.Text                  (Text)
@@ -21,16 +20,16 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 
 -- | A 'TestTree' of golden tests stored in some folder.
-type TestNestedGolden = Reader (String -> FilePath) TestTree
+type TestNestedGolden = Reader [String] TestTree
 
 -- | Run a 'TestTree' of golden tests against a folder.
-runTestNestedGoldenIn :: FilePath -> TestNestedGolden -> TestTree
-runTestNestedGoldenIn folder test = Reader.runReader test (</> folder)
+runTestNestedGoldenIn :: [String] -> TestNestedGolden -> TestTree
+runTestNestedGoldenIn path test = runReader test path
 
 -- | Descend into a folder of golden tests.
 testNestedGolden :: String -> [TestNestedGolden] -> TestNestedGolden
 testNestedGolden folderName =
-    Reader.local ((</> folderName ) .) . fmap (testGroup folderName) . sequence
+    Reader.local (++ [folderName]) . fmap (testGroup folderName) . sequence
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree
@@ -43,8 +42,8 @@ goldenVsDoc name ref = goldenVsText name ref . docText
 -- | Check the contents of a file nested in some folder against a 'Text'.
 nestedGoldenVsText :: TestName -> Text -> TestNestedGolden
 nestedGoldenVsText name text = do
-    toFolder <- Reader.ask
-    return $ goldenVsText name (toFolder "" </> name ++ ".plc.golden") text
+    path <- Reader.ask
+    return $ goldenVsText name (foldr (</>) (name ++ ".plc.golden") path) text
 
 -- | Check the contents of a file nested in some folder against a 'Text'.
 nestedGoldenVsDoc :: TestName -> Doc ann -> TestNestedGolden
