@@ -61,4 +61,5 @@ test-suite plutus-use-cases-test
         text -any,
         wallet-api -any,
         plutus-use-cases,
-        microlens -any
+        microlens -any,
+        core-to-plc -any

@@ -1,3 +1,4 @@
+{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Main(main) where
 
 import           Data.Either                                         (isLeft, isRight)
@@ -14,9 +15,10 @@ import           Wallet.Emulator                                     hiding (Val
 import           Wallet.Generators                                   (Mockchain (..))
 import qualified Wallet.Generators                                   as Gen
 
-import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor,
+import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor, CampaignPLC (..),
                                                                       contribute)
 import           Language.Plutus.Coordination.Plutus                 (Value)
+import           Language.Plutus.CoreToPLC.Plugin                    (plc)
 
 main :: IO ()
 main = defaultMain tests
@@ -28,10 +30,19 @@ tests = testGroup "use cases" [
         ]
     ]
 
+-- | Example campaign
+c1 :: CampaignPLC
+c1 = CampaignPLC $ plc Campaign {
+    campaignDeadline = 10,
+    campaignTarget   = 1000,
+    campaignCollectionDeadline =  15,
+    campaignOwner              = PubKey 1
+    }
+
 -- | Lock a transaction's outputs with the crowdfunding validator
 --   script.
-contrib :: Campaign -> Trace [Tx]
-contrib c = let w = Wallet 1 in walletAction w $ contribute c 1000
+contrib :: Wallet -> CampaignPLC -> Value -> Trace [Tx]
+contrib w c v = walletAction w $ contribute c v
 
 -- | Generate a transaction that contributes some funds to a campaign.
 --   NOTE: This doesn't actually run the validation script. The script
@@ -40,13 +51,7 @@ makeContribution :: Property
 makeContribution = property $ do
     m <- forAll Gen.genMockchain
     txn <- forAll $ Gen.genValidTransaction m
-    let cmp = Campaign {
-        campaignDeadline = 10,
-        campaignTarget   = 1000,
-        campaignCollectionDeadline = 15,
-        campaignOwner = PubKey 1
-        }
-        (result, st) = Gen.runTrace m $ contrib cmp >> blockchainActions
+    let (result, st) = Gen.runTrace m $ contrib (Wallet 1) c1 600 >> blockchainActions
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == emTxPool st)
 

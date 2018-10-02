@@ -4,13 +4,16 @@
 -- number of inputs a transaction can have.
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.CrowdFunding (
+    -- * Campaign parameters
     Campaign(..)
-    , CampaignActor(..)
+    , CampaignPLC(..)
+    , CampaignActor
     -- * Functionality for campaign contributors
     , contribute
     , contributionScript
@@ -21,46 +24,51 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     , collectFundsTrigger
     ) where
 
-import           Control.Applicative                  (Applicative(..), Alternative(..))
+import           Control.Applicative                  (Alternative (..), Applicative (..))
 import           Control.Monad                        (Monad (..), guard)
 import           Control.Monad.Error.Class            (MonadError (..))
 import qualified Data.Set                             as Set
+
 import           Language.Plutus.Coordination.Plutus  (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
-import           Language.Plutus.TH                   (plutus)
+import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
+import           Language.PlutusCore                  (applyProgram)
 import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
                                                        otherError, pubKey)
 import           Wallet.UTXO                          (Address', DataScript (..), Tx (..), TxOutRef', Validator (..),
                                                        scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
-import           Prelude                              (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($),
-                                                       (<$>))
+import           Prelude                              (Bool (..), Num (..), Ord (..), Word, fromIntegral, succ, sum,
+                                                       ($), (<$>))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
-    { campaignDeadline           :: !Height
-    , campaignTarget             :: !Value
-    , campaignCollectionDeadline :: !Height
-    , campaignOwner              :: !CampaignActor
+    { campaignDeadline           :: Height
+    , campaignTarget             :: Value
+    , campaignCollectionDeadline :: Height
+    , campaignOwner              :: CampaignActor
     }
 
 type CampaignActor = PubKey
 
+-- | Value of type `Campaign` in PLC
+newtype CampaignPLC = CampaignPLC PlcCode
+
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: (MonadError WalletAPIError m, WalletAPI m, Monad m) => Campaign -> Value -> m ()
+contribute :: (MonadError WalletAPIError m, WalletAPI m, Monad m) => CampaignPLC -> Value -> m ()
 contribute c value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
     -- TODO: Uncomment when we can translate values to PLC. Until then, we use
-    --       a constant `PubKey 1`
+    --       a constant `PubKey 1` for the data script
     -- contributorPubKey <- pubKey <$> myKeyPair
-    let contributorPubKey = PubKey 1
+
     -- TODO: Remove duplicate definition of Value
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
     myPayment <- createPayment v'
-    let o = scriptTxOut v' (contributionScript c contributorPubKey) d
+    let o = scriptTxOut v' (contributionScript c) d
         d = DataScript $(plutus [| PubKey 1 |])
 
     submitTxn Tx
@@ -89,15 +97,13 @@ contribute c value = do
 --   2. Refund. In this case each contributor creates a transaction with a
 --      single input claiming back their part of the funds. This case is
 --      covered by the `refundable` branch.
-contributionScript ::
-       Campaign
-    -> PubKey
-    -> Validator
-contributionScript _ _  = Validator inner where
+contributionScript :: CampaignPLC -> Validator
+contributionScript (CampaignPLC c)  = Validator val where
+    val = applyPlc inner c
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = $(plutus [| (\() (a :: CampaignActor) (p :: PendingTx () CampaignActor) Campaign{..} ->
+    inner = $(plutus [| (\Campaign{..} () (a :: CampaignActor) (p :: PendingTx () CampaignActor) ->
         let
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
@@ -107,7 +113,6 @@ contributionScript _ _  = Validator inner where
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
             (&&) = Prim.error ()
-
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx a b -> CampaignActor -> Bool
@@ -155,11 +160,11 @@ collectFundsTrigger Campaign{..} ts = And
     (FundsAtAddress ts $ GEQ $ UTXO.Value $ fromIntegral campaignTarget)
     (BlockHeightRange $ fromIntegral <$> Interval campaignDeadline campaignCollectionDeadline)
 
-refund :: (Monad m, WalletAPI m) => Campaign -> TxOutRef' -> UTXO.Value -> m ()
+refund :: (Monad m, WalletAPI m) => CampaignPLC -> TxOutRef' -> UTXO.Value -> m ()
 refund c ref val = do
     contributorPubKey <- pubKey <$> myKeyPair
     oo <- payToPublicKey val
-    let scr = contributionScript c contributorPubKey
+    let scr = contributionScript c
         i   = scriptTxIn ref scr UTXO.unitRedeemer
     submitTxn Tx
         { txInputs = Set.singleton i
@@ -171,11 +176,11 @@ refund c ref val = do
 -- | Collect all campaign funds (campaign owner)
 --
 --
-collect :: (Monad m, WalletAPI m) => Campaign -> [(TxOutRef', PubKey, UTXO.Value)] -> m ()
+collect :: (Monad m, WalletAPI m) => CampaignPLC -> [(TxOutRef', PubKey, UTXO.Value)] -> m ()
 collect cmp contributions = do
     oo <- payToPublicKey value
     contributorPubKey <- pubKey <$> myKeyPair
-    let scr           = contributionScript cmp contributorPubKey
+    let scr           = contributionScript cmp
         con (r, _, _) = scriptTxIn r scr UTXO.unitRedeemer
         ins           = con <$> contributions
     submitTxn Tx

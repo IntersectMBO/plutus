@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.Plutus.TH (plutus, plutusT, PlcCode, getSerializedCode, getAst) where
+module Language.Plutus.TH (plutus, plutusT, PlcCode, getSerializedCode, getAst, applyPlc) where
 
 import           Language.Plutus.CoreToPLC.Plugin
 
