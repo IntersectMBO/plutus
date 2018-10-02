@@ -1,0 +1,248 @@
+(program 1.0.0
+  [
+    {
+      [
+        {
+          {
+            (abs
+              a_25
+              (type)
+              (abs
+                b_26
+                (type)
+                [
+                  {
+                    (abs
+                      F_27
+                      (fun (type) (type))
+                      (lam
+                        by_28
+                        (fun (all Q_29 (type) (fun [F_27 Q_29] Q_29)) (all Q_30 (type) (fun [F_27 Q_30] Q_30)))
+                        [
+                          {
+                            {
+                              (abs
+                                a_41
+                                (type)
+                                (abs
+                                  b_42
+                                  (type)
+                                  (lam
+                                    f_43
+                                    (fun (fun a_41 b_42) (fun a_41 b_42))
+                                    [
+                                      {
+                                        (abs
+                                          a_35
+                                          (type)
+                                          (lam
+                                            s_36
+                                            [(lam a_33 (type) (fix self_34 (fun self_34 a_33))) a_35]
+                                            [ (unwrap s_36) s_36 ]
+                                          )
+                                        )
+                                        (fun a_41 b_42)
+                                      }
+                                      (wrap
+                                        self_32
+                                        [(lam a_31 (type) (fun self_32 a_31)) (fun a_41 b_42)]
+                                        (lam
+                                          s_44
+                                          [(lam a_31 (type) (fix self_32 (fun self_32 a_31))) (fun a_41 b_42)]
+                                          (lam
+                                            x_45
+                                            a_41
+                                            [
+                                              [
+                                                f_43
+                                                [
+                                                  {
+                                                    (abs
+                                                      a_39
+                                                      (type)
+                                                      (lam
+                                                        s_40
+                                                        [(lam a_37 (type) (fix self_38 (fun self_38 a_37))) a_39]
+                                                        [ (unwrap s_40) s_40 ]
+                                                      )
+                                                    )
+                                                    (fun a_41 b_42)
+                                                  }
+                                                  s_44
+                                                ]
+                                              ]
+                                              x_45
+                                            ]
+                                          )
+                                        )
+                                      )
+                                    ]
+                                  )
+                                )
+                              )
+                              (all Q_46 (type) (fun [F_27 Q_46] [F_27 Q_46]))
+                            }
+                            (all Q_47 (type) (fun [F_27 Q_47] Q_47))
+                          }
+                          (lam
+                            rec_48
+                            (fun (all Q_49 (type) (fun [F_27 Q_49] [F_27 Q_49])) (all Q_50 (type) (fun [F_27 Q_50] Q_50)))
+                            (lam
+                              h_51
+                              (all Q_52 (type) (fun [F_27 Q_52] [F_27 Q_52]))
+                              (abs
+                                R_53
+                                (type)
+                                (lam
+                                  fr_54
+                                  [F_27 R_53]
+                                  [
+                                    {
+                                      [
+                                        by_28
+                                        (abs
+                                          Q_55
+                                          (type)
+                                          (lam
+                                            fq_56
+                                            [F_27 Q_55]
+                                            [
+                                              { [ rec_48 h_51 ] Q_55 }
+                                              [ { h_51 Q_55 } fq_56 ]
+                                            ]
+                                          )
+                                        )
+                                      ]
+                                      R_53
+                                    }
+                                    fr_54
+                                  ]
+                                )
+                              )
+                            )
+                          )
+                        ]
+                      )
+                    )
+                    (lam X_57 (type) (fun (fun a_25 b_26) X_57))
+                  }
+                  (lam
+                    k_59
+                    (all Q_60 (type) (fun (fun (fun a_25 b_26) Q_60) Q_60))
+                    (abs
+                      S_58
+                      (type)
+                      (lam
+                        h_61
+                        (fun (fun a_25 b_26) S_58)
+                        [
+                          h_61
+                          (lam
+                            x_63
+                            a_25
+                            [
+                              { k_59 b_26 }
+                              (lam f_62 (fun a_25 b_26) [ f_62 x_63 ])
+                            ]
+                          )
+                        ]
+                      )
+                    )
+                  )
+                ]
+              )
+            )
+            [(con integer) (con 64)]
+          }
+          [(con integer) (con 64)]
+        }
+        (abs
+          Q_0
+          (type)
+          (lam
+            choose_1
+            (fun (fun [(con integer) (con 64)] [(con integer) (con 64)]) Q_0)
+            (lam
+              fib_2
+              (fun [(con integer) (con 64)] [(con integer) (con 64)])
+              [
+                choose_1
+                (lam
+                  n_3
+                  [(con integer) (con 64)]
+                  [
+                    [
+                      [
+                        {
+                          [
+                            [ { (con equalsInteger) (con 64) } n_3 ]
+                            (con 64 ! 0)
+                          ]
+                          (fun (all a_11 (type) (fun a_11 a_11)) [(con integer) (con 64)])
+                        }
+                        (lam
+                          thunk_12
+                          (all a_13 (type) (fun a_13 a_13))
+                          (con 64 ! 0)
+                        )
+                      ]
+                      (lam
+                        thunk_21
+                        (all a_22 (type) (fun a_22 a_22))
+                        [
+                          [
+                            [
+                              {
+                                [
+                                  [ { (con equalsInteger) (con 64) } n_3 ]
+                                  (con 64 ! 1)
+                                ]
+                                (fun (all a_14 (type) (fun a_14 a_14)) [(con integer) (con 64)])
+                              }
+                              (lam
+                                thunk_15
+                                (all a_16 (type) (fun a_16 a_16))
+                                (con 64 ! 1)
+                              )
+                            ]
+                            (lam
+                              thunk_17
+                              (all a_18 (type) (fun a_18 a_18))
+                              [
+                                [
+                                  { (con addInteger) (con 64) }
+                                  [
+                                    fib_2
+                                    [
+                                      [ { (con subtractInteger) (con 64) } n_3 ]
+                                      (con 64 ! 1)
+                                    ]
+                                  ]
+                                ]
+                                [
+                                  fib_2
+                                  [
+                                    [ { (con subtractInteger) (con 64) } n_3 ]
+                                    (con 64 ! 2)
+                                  ]
+                                ]
+                              ]
+                            )
+                          ]
+                          (abs a_19 (type) (lam x_20 a_19 x_20))
+                        ]
+                      )
+                    ]
+                    (abs a_23 (type) (lam x_24 a_23 x_24))
+                  ]
+                )
+              ]
+            )
+          )
+        )
+      ]
+      (fun [(con integer) (con 64)] [(con integer) (con 64)])
+    }
+    (lam fib_64 (fun [(con integer) (con 64)] [(con integer) (con 64)]) fib_64)
+  ]
+)
