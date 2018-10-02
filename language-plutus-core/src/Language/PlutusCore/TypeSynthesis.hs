@@ -217,7 +217,15 @@ dummyKind = Type ()
 dummyType :: Type TyNameWithKind ()
 dummyType = TyVar () dummyTyName
 
--- | Extract type of a term. The resulting type is normalized.
+-- This works using type environments to handle substitutions efficiently. We
+-- keep a type environment which holds all substitutions which should be in
+-- scope at any given momeny. After any lookups, we clone the looked-up type in
+-- order to maintain global uniqueness.
+--
+-- This is all tracked in a state monad, and we simply delete any substitutions
+-- once they go out of scope; this is permissible since 'Unique's are globally
+-- unique and so we will not delete the wrong thing.
+-- | Synthesize the type of a term, returning a normalized type.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = do
     (TypeConfig norm _) <- ask
