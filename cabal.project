@@ -2,6 +2,8 @@ packages: language-plutus-core
           plutus-core-interpreter
           plutus-exe
           core-to-plc
+          wallet-api
+          plutus-th
 optimization: 2
 constraints: language-plutus-core +development
 tests: true

@@ -60,6 +60,7 @@ library
     hs-source-dirs: src prelude stdlib generators
     other-modules:
         Language.PlutusCore.Type
+        Language.PlutusCore.Clone
         Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
@@ -87,7 +88,7 @@ library
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
-    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+    other-extensions: DeriveAnyClass FlexibleInstances
                       MultiParamTypeClasses TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
                       RankNTypes TemplateHaskell QuasiQuotes TypeApplications
@@ -173,6 +174,7 @@ test-suite language-plutus-core-test
         hedgehog -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
+        transformers,
         bytestring -any,
         filepath -any,
         tasty-golden -any,

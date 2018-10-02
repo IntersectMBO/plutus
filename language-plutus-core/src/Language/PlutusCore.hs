@@ -57,12 +57,18 @@ module Language.PlutusCore
     , typecheckTerm
     , kindCheck
     , fileType
+    , fileNormalizeType
     , fileTypeCfg
     , printType
+    , printNormalizeType
     , TypeError (..)
+    , TypeCheckCfg (..)
     , TypeCheckM
     , BuiltinTable (..)
     , parseTypecheck
+    -- for testing
+    , tyReduce
+    , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
     -- * Serialization
@@ -123,7 +129,10 @@ import           PlutusPrelude
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fmap (either prettyPlcDefText id . printType) . BSL.readFile
+fileType = fileNormalizeType False
+
+fileNormalizeType :: Bool -> FilePath -> IO T.Text
+fileNormalizeType norm = fmap (either prettyPlcDefText id . printNormalizeType norm) . BSL.readFile
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
@@ -136,7 +145,12 @@ checkFile = fmap (either (pure . prettyText) id . fmap (fmap prettyPlcDefText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
-printType bs = runQuoteT $ prettyPlcDefText <$> (typecheckProgram 1000 <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printType = printNormalizeType False
+
+-- | Print the type of a program contained in a 'ByteString'
+printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
+printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$>
+    (typecheckProgram (TypeCheckCfg 1000 norm) <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -149,10 +163,9 @@ parseTypecheck gas = typecheckPipeline gas <=< parseProgram
 
 -- | Typecheck a program.
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
-typecheckPipeline gas program = do
-    checkProgram program
-    annotated <- annotateProgram program
-    typecheckProgram gas annotated
+typecheckPipeline gas p = do
+    checkProgram p
+    typecheckProgram (TypeCheckCfg gas False) =<< annotateProgram p
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs

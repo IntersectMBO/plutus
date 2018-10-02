@@ -3,20 +3,20 @@
 module Main ( main
             ) where
 
+import           Control.Monad
+import           Control.Monad.Trans.Except (runExceptT)
+import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.Text                  as T
+import           Data.Text.Encoding         (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
 import           Generators
+import           Hedgehog                   hiding (Var)
 import           Language.PlutusCore
 import           Language.PlutusCore.Pretty
 import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec             as Quotation
-
-import           Control.Monad
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
-import           Data.Text.Encoding         (encodeUtf8)
-import           Hedgehog                   hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -27,8 +27,9 @@ main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
     typeFiles <- findByExtension [".plc"] "test/types"
+    typeNormalizeFiles <- findByExtension [".plc"] "test/normalize-types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
+    defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -80,14 +81,15 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeErrorFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
+    , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
     , test_PrettyReadable
     , test_constantApplication
@@ -109,16 +111,35 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
+testsNormalizeType :: [FilePath] -> TestTree
+testsNormalizeType = testGroup "golden type synthesis + normalization tests" . fmap (asGolden (printNormalizeType True))
+
 testsGolden :: [FilePath] -> TestTree
 testsGolden = testGroup "golden tests" . fmap (asGolden (format defPrettyConfigPlcClassic))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugPrettyConfigPlcClassic))
 
+appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
+appAppLamLam = do
+    x <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "x")
+    y <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "y")
+    pure $
+        TyApp ()
+            (TyApp ()
+                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
+                 (TyBuiltin () TyInteger))
+            (TyBuiltin () TyInteger)
+
+testLam :: Either (TypeError ()) String
+testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 False) $
+    tyReduce =<< appAppLamLam
+
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
+    , testLam @?= Right "(con integer)"
     ]
     where cfg = defPrettyConfigPlcClassic

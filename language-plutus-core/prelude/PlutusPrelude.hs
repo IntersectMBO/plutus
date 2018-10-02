@@ -18,6 +18,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (<=<)
                      , fromRight
                      , isRight
+                     , void
                      , Generic
                      , NFData
                      , Natural
@@ -28,6 +29,9 @@ module PlutusPrelude ( -- * Reëxports from base
                      , Exception
                      , PairT (..)
                      , Typeable
+                     -- * Debugging
+                     , traceShowId
+                     , trace
                      -- * Reëxports from "Control.Composition"
                      , (.*)
                      -- * Custom functions
@@ -73,6 +77,7 @@ import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
+import           Data.Functor                            (void)
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
@@ -86,6 +91,7 @@ import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
+import           Debug.Trace
 import           GHC.Generics                            (Generic)
 import           GHC.Natural                             (Natural)
 

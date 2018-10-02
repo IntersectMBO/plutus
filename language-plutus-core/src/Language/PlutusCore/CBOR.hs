@@ -191,7 +191,7 @@ decodeTerm = go =<< decodeTag
           go 8 = Error () <$> decodeType
           go _ = fail "Failed to decode Term TyName Name ()"
 
--- | Encode a program/ For use with the @cborg@ library.
+-- | Encode a program. For use with the @cborg@ library.
 encodeProgram :: Program TyName Name a -> Encoding
 encodeProgram (Program _ v t) = encodeVersion v <> encodeTerm t
 
