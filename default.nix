@@ -1,5 +1,9 @@
+{ system ? builtins.currentSystem
+, nixpkgs ? import ./overrideableFetchNixPkgs.nix
+, config ? {}
+}:
+
 let
-  localLib = import ./lib.nix;
   jemallocOverlay = self: super: {
     # jemalloc has a bug that caused cardano-sl-db to fail to link (via
     # rocksdb, which can use jemalloc).
@@ -8,24 +12,19 @@ let
     # fix it.
     jemalloc = self.callPackage ./nix/jemalloc/jemalloc510.nix {};
   };
+  pkgs = import nixpkgs { inherit system config; overlays = [ jemallocOverlay ]; };
 in
-{ system ? builtins.currentSystem
-, pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; overlays = [ jemallocOverlay ]; })
-, config ? {}
-}:
-
 with pkgs.lib;
 with pkgs.haskell.lib;
-
 let
   doHaddockHydra = drv: overrideCabal drv (attrs: {
     doHaddock = true;
     postInstall = ''
       ${attrs.postInstall or ""}
       mkdir -pv $doc/nix-support
-      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc/html .
+      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc .
       echo "file binary-dist $doc/${attrs.pname}-docs.tar.gz" >> $doc/nix-support/hydra-build-products
-      echo "report ${attrs.pname}-docs.html $doc/share/doc/html index.html" >> $doc/nix-support/hydra-build-products
+      echo "report ${attrs.pname}-docs.html $doc/share/doc index.html" >> $doc/nix-support/hydra-build-products
     '';
   });
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
@@ -64,7 +63,7 @@ let
   };
   other = rec {
     tests = let
-      src = localLib.cleanSourceTree ./.;
+      src = (import ./lib.nix { inherit pkgs; }).cleanSourceTree ./.;
     in {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { inherit src; };
       hlint = pkgs.callPackage ./tests/hlint.nix { inherit src; };
