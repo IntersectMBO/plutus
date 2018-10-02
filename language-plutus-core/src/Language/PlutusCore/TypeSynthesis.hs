@@ -297,10 +297,6 @@ tyEnvAssign :: MonadState TypeCheckSt m
             -> m ()
 tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 
-isTyLam :: Type TyNameWithKind () -> Bool
-isTyLam TyLam{} = True
-isTyLam _       = False
-
 -- this will reduce a type, or simply wrap it in a 'NormalizedType' constructor
 -- if we are working with normalized type annotations
 maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
@@ -331,13 +327,6 @@ rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-
--- First, reduce if it is a lambda applied to a type. See Figure 7 of the spec.
-tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = do
-    tyEnvAssign u (void ty')
-    tyReduce ty <* tyEnvDelete u
-
--- The remaining clauses deal with type reduction frames.
 tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
 
 -- The guards here are necessary for spec compliance.
@@ -351,15 +340,16 @@ tyReduce (TyFun x ty ty') | isTypeValue ty                                   = N
 tyReduce (TyLam x tn k ty)                                                   = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
 tyReduce (TyApp x ty ty') = do
 
-    let modTy = if isTypeValue ty
+    let modTy = if isTypeValue ty -- FIXME: does this recurse right?
         then fmap getNormalizedType . tyReduce
         else rewriteCtx
 
-    tyRed <- getNormalizedType <$> tyReduce ty
-    let preTy = TyApp x tyRed <$> modTy ty'
-
-    if isTyLam tyRed
-        then tyReduce =<< preTy
-        else NormalizedType <$> preTy
+    arg <- tyReduce ty'
+    fun <- modTy ty
+    case fun of
+        (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty'') -> do
+            tyEnvAssign u (void ty'')
+            tyReduce (getNormalizedType arg) <* tyEnvDelete u
+        _ -> pure $ NormalizedType $ TyApp x (getNormalizedType arg) fun
 
 tyReduce x                                                                   = NormalizedType <$> rewriteCtx x
