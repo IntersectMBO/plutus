@@ -307,9 +307,8 @@ maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNam
 maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
 
--- This function is necessary because type reductions do *not* traverse 'TyFix'
--- as of the current spec, but context rewrites must traverse *all*
--- constructors.
+-- This performs rewrites with the appropriate environment. It is necessary in
+-- the cases when we are not allowed to perform type reductions.
 rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
 rewriteCtx (TyApp x ty ty')     = TyApp x <$> rewriteCtx ty <*> rewriteCtx ty'
 rewriteCtx (TyFun x ty ty')     = TyFun x <$> rewriteCtx ty <*> rewriteCtx ty'
@@ -338,7 +337,8 @@ tyReduce (TyApp _ (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty) ty') = d
     tyReduce ty <* tyEnvDelete u
 
 -- The remaining clauses deal with type reduction frames.
-tyReduce (TyForall x tn k ty)                                                = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
+tyReduce (TyForall x tn k ty) = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
+tyReduce (TyFix x tn ty) = NormalizedType <$> (TyFix x tn <$> (getNormalizedType <$> tyReduce ty))
 
 -- The guards here are necessary for spec compliance.
 --
