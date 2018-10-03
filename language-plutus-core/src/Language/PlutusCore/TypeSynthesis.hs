@@ -283,6 +283,12 @@ typeOf (Wrap x n ty body) = do
         then pure $ NormalizedType (TyFix () (void n) (void ty))
         else throwError (TypeMismatch x (void body) (getNormalizedType red) nBodyTy)
 
+tyRewrite :: TyNameWithKind () -> Type TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
+tyRewrite n ty ty' = do
+    let u = extractUnique n
+    tyEnvAssign u ty
+    rewriteCtx ty' <* tyEnvDelete u
+
 tyReduceBinder :: TyNameWithKind () -> NormalizedType TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduceBinder n ty ty' = do
     let u = extractUnique n
@@ -309,6 +315,24 @@ tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
+
+tyElim :: Type TyNameWithKind () -> Type TyNameWithKind ()
+tyElim = id
+
+rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
+rewriteCtx x@TyInt{}            = pure x
+rewriteCtx x@TyBuiltin{}        = pure x
+rewriteCtx (TyForall x tn k ty) = TyForall x tn k <$> rewriteCtx ty
+rewriteCtx (TyFix x tn ty)      = TyFix x tn <$> rewriteCtx ty
+rewriteCtx (TyFun x tn ty)      = TyFun x tn <$> rewriteCtx ty
+rewriteCtx (TyApp x ty ty')     = TyApp x <$> rewriteCtx ty <*> rewriteCtx ty'
+rewriteCtx (TyLam x tn k ty)    = TyLam x tn k <$> rewriteCtx ty
+rewriteCtx ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
+    (TypeCheckSt st _) <- get
+    case IM.lookup (unUnique u) st of
+        Just ty'@TyVar{} -> rewriteCtx ty'
+        Just ty'         -> cloneType ty'
+        Nothing          -> pure ty
 
 -- | Reduce any redexes inside a type.
 tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
