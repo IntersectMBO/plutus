@@ -316,8 +316,10 @@ maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNam
 maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
 
-tyElim :: Type TyNameWithKind () -> Type TyNameWithKind ()
-tyElim = id
+-- | Given a type \\( Q \\), we extract \\( \alpha, S \\) such that \\(
+-- \mathcal{E}\{(\textt{fix} \alpha S)\} \\).
+extractFix :: Type TyNameWithKind () -> TypeCheckM a (TyNameWithKind(), Type TyNameWithKind ())
+extractFix _ = undefined
 
 rewriteCtx :: Type TyNameWithKind () -> TypeCheckM a (Type TyNameWithKind ())
 rewriteCtx x@TyInt{}            = pure x
