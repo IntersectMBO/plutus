@@ -113,9 +113,13 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
     prettyBy config (TypeMismatch x t ty ty') =
-        "Type mismatch at" <+> pretty x <+>
-        "in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> "." <> hardline <>
-        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <> "," <> hardline <>
+        "Type mismatch at" <+> pretty x <>
+        (if _pcpoCondensedErrors . _pcpOptions $ config
+            then mempty
+            else " in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
+        hardline <>
+        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
+        "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
     prettyBy _      OutOfGas                  = "Type checker ran out of gas."
 

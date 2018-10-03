@@ -17,19 +17,18 @@ module Language.PlutusCore.Pretty
     , prettyPlcDefString
     , prettyPlcDefText
     -- * Global configuration
+    , PrettyConfigPlcOptions (..)
+    , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
     , PrettyPlc
+    , defPrettyConfigPlcOptions
     , defPrettyConfigPlcClassic
     , debugPrettyConfigPlcClassic
     , defPrettyConfigPlcReadable
     , debugPrettyConfigPlcReadable
     -- * Custom functions for PLC types.
-    , prettyPlcClassicBy
-    , prettyPlcClassicDefBy
     , prettyPlcClassicDef
     , prettyPlcClassicDebug
-    , prettyPlcReadableBy
-    , prettyPlcReadableDefBy
     , prettyPlcReadableDef
     , prettyPlcReadableDebug
     -- * Names
@@ -56,11 +55,14 @@ import           PlutusPrelude
 
 import           Data.Text                           (Text)
 
+-- | Pretty-print a value in the default mode using the classic view.
 prettyPlcDef :: PrettyPlc a => a -> Doc ann
 prettyPlcDef = prettyPlcClassicDef
 
+-- | Render a value to 'String' in the default mode using the classic view.
 prettyPlcDefString :: PrettyPlc a => a -> String
 prettyPlcDefString = docString . prettyPlcClassicDef
 
+-- | Render a value to 'Text' in the default mode using the classic view.
 prettyPlcDefText :: PrettyPlc a => a -> Text
 prettyPlcDefText = docText . prettyPlcClassicDef
