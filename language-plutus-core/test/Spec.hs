@@ -21,6 +21,7 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+-- import           TypeSynthesis.Spec         (test_typecheck)
 
 main :: IO ()
 main = do
@@ -92,6 +93,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
     , test_PrettyReadable
+--     , test_typecheck
     , test_constantApplication
     , test_evaluateCk
     , Quotation.tests
