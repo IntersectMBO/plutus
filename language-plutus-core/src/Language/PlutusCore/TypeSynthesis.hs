@@ -262,10 +262,11 @@ typeOf (TyInst x body ty) = do
     nBodyTy@(NormalizedType bodyTy) <- typeOf body
     case bodyTy of
         TyForall _ n k absTy -> do
+            nTy <- tyReduce $ void ty
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then tyReduceBinder n (void $ NormalizedType ty) absTy
+                then tyReduceBinder n nTy absTy
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
@@ -274,14 +275,18 @@ typeOf (Unwrap x body) = do
         TyFix _ n fixTy ->
             tyReduceBinder n nBodyTy fixTy
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
-typeOf (Wrap x n ty body) = do
-    nBodyTy <- typeOf body
-    tyEnvAssign (extractUnique n) (NormalizedType $ TyFix () (void n) (void ty))
+typeOf (Wrap x n ty term) = do
+    -- G |- term : nTermTy, ty ~>* nTy, [fix n nTy / n] nTy ~>* nTermTy', nTermTy ~ nTermTy'
+    -- -------------------------------------------------------------------------------------
+    -- G |- wrap n ty term : fix n nTy
+
+    NormalizedType nTy <- tyReduce $ void ty
+    nTermTy <- typeOf term
     typeCheckStep
-    red <- tyReduce (void ty) <* tyEnvDelete (extractUnique n)
-    if red == nBodyTy
-        then pure $ NormalizedType (TyFix () (void n) (void ty))
-        else throwError (TypeMismatch x (void body) (getNormalizedType red) nBodyTy)
+    nTermTy' <- tyReduceBinder (void n) (NormalizedType $ TyFix () (void n) nTy) nTy
+    if nTermTy == nTermTy'
+        then pure $ NormalizedType (TyFix () (void n) nTy)
+        else throwError (TypeMismatch x (void term) (getNormalizedType nTermTy') nTermTy)
 
 tyReduceBinder :: TyNameWithKind () -> NormalizedType TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduceBinder n ty ty' = do
