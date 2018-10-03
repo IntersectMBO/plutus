@@ -115,10 +115,14 @@ testsNormalizeType :: [FilePath] -> TestTree
 testsNormalizeType = testGroup "golden type synthesis + normalization tests" . fmap (asGolden (printNormalizeType True))
 
 testsGolden :: [FilePath] -> TestTree
-testsGolden = testGroup "golden tests" . fmap (asGolden (format defPrettyConfigPlcClassic))
+testsGolden
+    = testGroup "golden tests"
+    . fmap (asGolden (format $ defPrettyConfigPlcClassic defPrettyConfigPlcOptions))
 
 testsRewrite :: [FilePath] -> TestTree
-testsRewrite = testGroup "golden rewrite tests" . fmap (asGolden (format debugPrettyConfigPlcClassic))
+testsRewrite
+    = testGroup "golden rewrite tests"
+    . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
 
 appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
 appAppLamLam = do
@@ -142,4 +146,4 @@ tests = testCase "example programs" $ fold
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
     ]
-    where cfg = defPrettyConfigPlcClassic
+    where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

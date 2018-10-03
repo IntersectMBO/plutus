@@ -7,10 +7,14 @@ import           Common
 
 import           Test.Tasty
 
+prettyConfigReadable :: PrettyConfigPlc
+prettyConfigReadable
+    = PrettyConfigPlc defPrettyConfigPlcOptions
+    . PrettyConfigPlcReadable
+    $ botPrettyConfigReadable defPrettyConfigName
+
 testReadable :: PrettyPlc a => TestName -> a -> TestNestedGolden
-testReadable name
-    = nestedGoldenVsDoc name
-    . prettyPlcReadableBy (botPrettyConfigReadable defPrettyConfigName)
+testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable =
