@@ -33,10 +33,9 @@ data RecursiveType tyname a = RecursiveType
     , _recursiveType :: Type tyname a
     }
 
--- | Apply a 'HoledType' to a 'Type' using computing type application under the hood.
+-- | Apply a 'HoledType' to a 'Type'.
 holedTyApp :: HoledType tyname () -> Type tyname () -> HoledType tyname ()
 holedTyApp (HoledType name cont) arg = HoledType name $ \hole -> TyApp () (cont hole) arg
--- TODO: the 'TyApp' must be computing.
 
 -- | Convert a 'HoledType' to the corresponding 'RecursiveType'.
 holedToRecursive :: HoledType tyname () -> RecursiveType tyname ()

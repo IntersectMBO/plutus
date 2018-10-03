@@ -40,20 +40,20 @@ type StdLibFsEntity = Named AnonStdLibFsEntity
 
 -- | Fold a 'StdLibPlcEntity'.
 foldStdLibPlcEntity
-    :: (String -> Type TyName ()      -> a)  -- ^ What to do on a type.
-    -> (String -> Term TyName Name () -> a)  -- ^ What to do on a term.
+    :: (String -> Quote (Type TyName ())      -> a)  -- ^ What to do on a type.
+    -> (String -> Quote (Term TyName Name ()) -> a)  -- ^ What to do on a term.
     -> StdLibPlcEntity
     -> a
 foldStdLibPlcEntity onType onTerm (Named plcName anonStdLibPlcEntity) =
     case anonStdLibPlcEntity of
-        AnonStdLibType ty   -> onType plcName $ runQuote ty
-        AnonStdLibTerm term -> onTerm plcName $ runQuote term
+        AnonStdLibType ty   -> onType plcName ty
+        AnonStdLibTerm term -> onTerm plcName term
 
 -- | Fold a 'StdLibFsEntity'.
 foldStdLibFsEntity
-    :: (String -> [a] -> a)                  -- ^ What to do on a folder or a file.
-    -> (String -> Type TyName ()      -> a)  -- ^ What to do on a type.
-    -> (String -> Term TyName Name () -> a)  -- ^ What to do on a term.
+    :: (String -> [a] -> a)                          -- ^ What to do on a folder or a file.
+    -> (String -> Quote (Type TyName ())      -> a)  -- ^ What to do on a type.
+    -> (String -> Quote (Term TyName Name ()) -> a)  -- ^ What to do on a term.
     -> StdLibFsEntity
     -> a
 foldStdLibFsEntity onFs onType onTerm = go where
@@ -63,9 +63,9 @@ foldStdLibFsEntity onFs onType onTerm = go where
 
 -- | Fold the entire stdlib.
 foldStdLib
-    :: (String -> [a] -> a)                  -- ^ What to do on a folder or a file.
-    -> (String -> Type TyName ()      -> a)  -- ^ What to do on a type.
-    -> (String -> Term TyName Name () -> a)  -- ^ What to do on a term.
+    :: (String -> [a] -> a)                          -- ^ What to do on a folder or a file.
+    -> (String -> Quote (Type TyName ())      -> a)  -- ^ What to do on a type.
+    -> (String -> Quote (Term TyName Name ()) -> a)  -- ^ What to do on a term.
     -> a
 foldStdLib onFs onType onTerm = foldStdLibFsEntity onFs onType onTerm stdLib
 
@@ -90,6 +90,7 @@ stdLib
                 -- , Named "Self"   $ AnonStdLibType getBuiltinSelf
                 , Named "Unroll" $ AnonStdLibTerm getBuiltinUnroll
                 , Named "Fix"    $ AnonStdLibTerm getBuiltinFix
+                , Named "Fix2"   $ AnonStdLibTerm (getBuiltinFixN 2)
                 ]
             , Named "List" $ AnonStdLibFile
                 [ -- Named "List"      $ AnonStdLibType getBuiltinList

@@ -156,9 +156,9 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
-        Evaluation.TypeCheck
         Generators
         Pretty.Readable
+        TypeSynthesis.Spec
         Quotation.Spec
     default-language: Haskell2010
     default-extensions: FlexibleContexts
