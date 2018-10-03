@@ -1,5 +1,9 @@
+{ system ? builtins.currentSystem
+, nixpkgs
+, config ? {}
+}:
+
 let
-  localLib = import ./lib.nix;
   jemallocOverlay = self: super: {
     # jemalloc has a bug that caused cardano-sl-db to fail to link (via
     # rocksdb, which can use jemalloc).
@@ -8,15 +12,10 @@ let
     # fix it.
     jemalloc = self.callPackage ./nix/jemalloc/jemalloc510.nix {};
   };
+  pkgs = import nixpkgs { inherit system config; overlays = [ jemallocOverlay ]; };
 in
-{ system ? builtins.currentSystem
-, pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; overlays = [ jemallocOverlay ]; })
-, config ? {}
-}:
-
 with pkgs.lib;
 with pkgs.haskell.lib;
-
 let
   doHaddockHydra = drv: overrideCabal drv (attrs: {
     doHaddock = true;
@@ -64,7 +63,7 @@ let
   };
   other = rec {
     tests = let
-      src = localLib.cleanSourceTree ./.;
+      src = (import ./lib.nix { inherit pkgs; }).cleanSourceTree ./.;
     in {
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { inherit src; };
       hlint = pkgs.callPackage ./tests/hlint.nix { inherit src; };
