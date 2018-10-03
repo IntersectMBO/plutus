@@ -31,7 +31,7 @@ import           PlutusPrelude
 -- builtin names.
 data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (NormalizedType TyNameWithKind ()))
 
-type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
+type TypeSt = IM.IntMap (Type TyNameWithKind ())
 
 data TypeConfig = TypeConfig { _reduce   :: Bool -- ^ Whether we reduce type annotations
                              , _builtins :: BuiltinTable -- ^ Builtin types
@@ -276,7 +276,7 @@ typeOf (Unwrap x body) = do
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty body) = do
     nBodyTy <- typeOf body
-    tyEnvAssign (extractUnique n) (NormalizedType $ TyFix () (void n) (void ty))
+    tyEnvAssign (extractUnique n) (TyFix () (void n) (void ty))
     typeCheckStep
     red <- tyReduce (void ty) <* tyEnvDelete (extractUnique n)
     if red == nBodyTy
@@ -286,7 +286,7 @@ typeOf (Wrap x n ty body) = do
 tyReduceBinder :: TyNameWithKind () -> NormalizedType TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduceBinder n ty ty' = do
     let u = extractUnique n
-    tyEnvAssign u ty
+    tyEnvAssign u (getNormalizedType ty)
     tyReduce ty' <* tyEnvDelete u
 
 extractUnique :: TyNameWithKind a -> Unique
@@ -300,7 +300,7 @@ tyEnvDelete (Unique i) = modify (over uniqueLookup (IM.delete i))
 
 tyEnvAssign :: MonadState TypeCheckSt m
             => Unique
-            -> NormalizedType TyNameWithKind ()
+            -> Type TyNameWithKind ()
             -> m ()
 tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 
@@ -321,13 +321,13 @@ tyReduce (TyApp x ty ty') = do
 
     -- Once again, @fun@ will always be a type value once reduced so we can do
     -- reduction here
-    arg <- tyReduce ty'
+    arg <- getNormalizedType <$> tyReduce ty'
     fun <- getNormalizedType <$> tyReduce ty
     case fun of
         (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty'') -> do
             tyEnvAssign u (void arg)
             tyReduce ty'' <* tyEnvDelete u
-        _ -> pure $ NormalizedType $ TyApp x fun (getNormalizedType arg)
+        _ -> pure $ NormalizedType $ TyApp x fun arg
 
 tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
@@ -336,9 +336,9 @@ tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
         -- we must use recursive lookups because we can have an assignment
         -- a -> b and an assignment b -> c which is locally valid but in
         -- a smaller scope than a -> b.
-        Just ty'@(NormalizedType TyVar{}) -> pure ty'
-        Just ty'                          -> NormalizedType <$> cloneType (getNormalizedType ty')
-        Nothing                           -> pure $ NormalizedType ty
+        Just ty'@TyVar{} -> tyReduce ty'
+        Just ty'         -> NormalizedType <$> cloneType ty'
+        Nothing          -> pure $ NormalizedType ty
 
 tyReduce x@TyInt{} = pure $ NormalizedType x
 tyReduce x@TyBuiltin{} = pure $ NormalizedType x
