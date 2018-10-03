@@ -12,8 +12,6 @@ description:
     Pretty-printer, parser, and typechecker for Plutus Core.
 category: Language, Plutus
 build-type: Simple
-extra-source-files:
-    cabal.project
 extra-doc-files: README.md
 
 source-repository head
@@ -84,8 +82,8 @@ library
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
     default-language: Haskell2010
-    default-extensions: ExplicitForAll ScopedTypeVariables FlexibleContexts
-                        DeriveGeneric StandaloneDeriving DeriveLift
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        FlexibleContexts DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
     other-extensions: DeriveAnyClass FlexibleInstances
@@ -174,7 +172,7 @@ test-suite language-plutus-core-test
         hedgehog -any,
         tasty-hunit -any,
         tasty-hedgehog -any,
-        transformers,
+        transformers -any,
         bytestring -any,
         filepath -any,
         tasty-golden -any,
