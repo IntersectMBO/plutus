@@ -1,4 +1,4 @@
-resolver: lts-11.11
+resolver: lts-12.10
 
 packages:
 - plutus-prototype
@@ -21,8 +21,6 @@ packages:
   extra-dep: true
 
 extra-deps:
-- cryptonite-0.22
-- cborg-0.2.0.0
 
 flags:
   language-plutus-core:

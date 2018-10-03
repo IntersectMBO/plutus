@@ -4,7 +4,8 @@
 }:
 
 let
-  packageSet = args: import ./. ({ inherit nixpkgs; } // args);
+  packageSet = args: import ./. ({ inherit nixpkgs; isGhcjs = false; } // args);
+
   releaseLib = (import (nixpkgs + "/pkgs/top-level/release-lib.nix") {
     inherit supportedSystems scrubJobs packageSet;
   });
@@ -25,7 +26,14 @@ let
     plutus-core-spec = [ "x86_64-linux" ];
   };
 
+  ghcjsBuilds = pkgs.lib.mapAttrs'
+    (name: value: pkgs.lib.nameValuePair (name + "-ghcjs") value) {
+      inherit (import ./. { inherit nixpkgs; isGhcjs = true; })
+        language-plutus-core
+        plutus-exe;
+    };
+
   testBuilds = {
     inherit (plutusPkgs {}) tests;
   };
-in platformBuilds // testBuilds
+in platformBuilds // ghcjsBuilds // testBuilds
