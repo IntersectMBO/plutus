@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -27,8 +28,12 @@ module Language.PlutusCore.Type ( Term (..)
                                 , RenamedType
                                 , RenamedTerm
                                 , TyNameWithKind (..)
-                                -- * Normalized types
-                                , NormalizedType (..)
+                                -- * Normalized
+                                , Normalized (..)
+                                -- * Backwards compatibility
+                                , NormalizedType
+                                , pattern NormalizedType
+                                , getNormalizedType
                                 ) where
 
 import           Language.Haskell.TH.Syntax         (Lift)
@@ -221,12 +226,24 @@ newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind 
     deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 
-newtype NormalizedType tyname a = NormalizedType { getNormalizedType :: Type tyname a }
-    deriving (Show, Eq, Functor, Generic)
+newtype Normalized a = Normalized { getNormalized :: a }
+    deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
     deriving newtype NFData
 
-instance PrettyBy config (Type tyname a) => PrettyBy config (NormalizedType tyname a) where
-    prettyBy config (NormalizedType ty) = prettyBy config ty
+instance Applicative Normalized where
+    pure = Normalized
+    Normalized f <*> Normalized x = Normalized $ f x
+
+type NormalizedType tyname a = Normalized (Type tyname a)
+
+pattern NormalizedType :: Type tyname a -> NormalizedType tyname a
+pattern NormalizedType ty = Normalized ty
+
+getNormalizedType :: NormalizedType tyname a -> Type tyname a
+getNormalizedType (Normalized ty) = ty
+
+instance PrettyBy config a => PrettyBy config (Normalized a) where
+    prettyBy config (Normalized x) = prettyBy config x
 
 instance ( HasPrettyConfigName config
          , PrettyBy config (Kind a)

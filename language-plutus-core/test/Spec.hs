@@ -139,7 +139,7 @@ appAppLamLam = do
 
 testLam :: Either (TypeError ()) String
 testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 False) $
-    tyReduce =<< appAppLamLam
+    normalizeType =<< appAppLamLam
 
 tests :: TestTree
 tests = testCase "example programs" $ fold

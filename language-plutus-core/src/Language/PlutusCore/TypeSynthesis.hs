@@ -4,7 +4,7 @@
 module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , typecheckTerm
                                          , kindCheck
-                                         , tyReduce
+                                         , normalizeType
                                          , runTypeCheckM
                                          , extractFix
                                          , TypeCheckM
@@ -21,7 +21,7 @@ import qualified Data.IntMap.Strict             as IM
 import qualified Data.Map                       as M
 import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
@@ -228,19 +228,15 @@ dummyType = TyVar () dummyTyName
 -- unique and so we will not delete the wrong thing.
 -- | Synthesize the type of a term, returning a normalized type.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
-typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = do
-    (TypeConfig norm _) <- ask
-    maybeRed norm (void ty)
-typeOf (LamAbs _ _ ty t)                         = do
-    (TypeConfig norm _) <- ask
-    (NormalizedType ty') <- maybeRed norm (void ty)
-    NormalizedType <$> (TyFun () ty' <$> (getNormalizedType <$> typeOf t))
+typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = normalizeTypeOpt $ void ty
+typeOf (LamAbs _ _ ty t)                         =
+    TyFun () <<$>> normalizeTypeOpt (void ty) <<*>> typeOf t
 typeOf (Error x ty)                              = do
     k <- kindOf ty
     case k of
-        Type{} -> tyReduce (void ty)
+        Type{} -> normalizeType (void ty)
         _      -> throwError (KindMismatch x (void ty) (Type ()) k)
-typeOf (TyAbs _ n k t)                           = NormalizedType <$> (TyForall () (void n) (void k) <$> (getNormalizedType <$> typeOf t))
+typeOf (TyAbs _ n k t)                           = TyForall () (void n) (void k) <<$>> typeOf t
 typeOf (Constant _ (BuiltinName _ n)) = do
     (TypeConfig _ (BuiltinTable _ st)) <- ask
     case M.lookup n st of
@@ -250,46 +246,49 @@ typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
 typeOf (Apply x fun arg) = do
-    nFunTy@(NormalizedType funTy) <- typeOf fun
-    case funTy of
+    nFunTy <- typeOf fun
+    case getNormalizedType nFunTy of
         TyFun _ inTy outTy -> do
-            nArgTy@(NormalizedType argTy) <- typeOf arg
+            nArgTy <- typeOf arg
             typeCheckStep
-            if inTy == argTy
+            if inTy == getNormalizedType nArgTy
                 then pure $ NormalizedType outTy -- subpart of a normalized type, so normalized
                 else throwError (TypeMismatch x (void arg) inTy nArgTy)
         _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) nFunTy)
 typeOf (TyInst x body ty) = do
-    nBodyTy@(NormalizedType bodyTy) <- typeOf body
-    case bodyTy of
+    nBodyTy <- typeOf body
+    case getNormalizedType nBodyTy of
         TyForall _ n k absTy -> do
-            nTy <- tyReduce $ void ty
+            nTy <- normalizeTypeOpt $ void ty
             k' <- kindOf ty
             typeCheckStep
             if k == k'
-                then tyReduceBinder n nTy absTy
+                then normalizeTypeBinder n nTy absTy
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x body) = do
-    nBodyTy@(NormalizedType bodyTy) <- typeOf body
-    case bodyTy of
+    nBodyTy <- typeOf body
+    case getNormalizedType nBodyTy of
         TyFix _ n fixTy ->
-            tyReduceBinder n nBodyTy fixTy
+            normalizeTypeBinder n nBodyTy fixTy
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty t) = do
-    NormalizedType nTy <- tyReduce (void ty)
-    nTermTy <- typeOf t
+    nTy <- normalizeType (void ty)
     typeCheckStep
-    nTermTy' <- tyReduceBinder (void n) (NormalizedType $ TyFix () (void n) nTy) nTy
-    if nTermTy == nTermTy'
-        then pure $ NormalizedType (TyFix () (void n) nTy)
-        else throwError (TypeMismatch x (void t) (getNormalizedType nTermTy') nTermTy)
+    nTermTy' <- normalizeTypeBinder (void n) (TyFix () (void n) <$> nTy) $ getNormalizedType nTy
+    if nTy == nTermTy'
+        then pure (TyFix () (void n) <$> nTy)
+        else throwError (TypeMismatch x (void t) (getNormalizedType nTermTy') nTy)
 
-tyReduceBinder :: TyNameWithKind () -> NormalizedType TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-tyReduceBinder n ty ty' = do
+normalizeTypeBinder
+    :: TyNameWithKind ()
+    -> NormalizedType TyNameWithKind ()
+    -> Type TyNameWithKind ()
+    -> TypeCheckM err (NormalizedType TyNameWithKind ())
+normalizeTypeBinder n ty ty' = do
     let u = extractUnique n
     tyEnvAssign u ty
-    tyReduce ty' <* tyEnvDelete u
+    normalizeType ty' <* tyEnvDelete u
 
 extractUnique :: TyNameWithKind a -> Unique
 extractUnique = nameUnique . unTyName . unTyNameWithKind
@@ -306,41 +305,35 @@ tyEnvAssign :: MonadState TypeCheckSt m
             -> m ()
 tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 
--- this will reduce a type, or simply wrap it in a 'NormalizedType' constructor
--- if we are working with normalized type annotations
-maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-maybeRed True  = tyReduce
-maybeRed False = pure . NormalizedType
-
--- | Given a type Q, we extract (a, S) such that Q = E(fix a S)
+-- Given a type Q, we extract (a, S) such that Q = E(fix a S)
 extractFix :: Type TyNameWithKind () -- ^ Q
            -> TypeCheckM a (TyNameWithKind(), Type TyNameWithKind ()) -- ^ (a, S)
 extractFix _ = undefined
 
--- | Reduce any redexes inside a type.
-tyReduce :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-tyReduce (TyForall x tn k ty) = NormalizedType <$> (TyForall x tn k <$> (getNormalizedType <$> tyReduce ty))
-tyReduce (TyFix x tn ty) = NormalizedType <$> (TyFix x tn <$> (getNormalizedType <$> tyReduce ty))
-tyReduce (TyFun x ty ty') = NormalizedType <$> (TyFun x <$> (getNormalizedType <$> tyReduce ty) <*> (getNormalizedType <$> tyReduce ty'))
-tyReduce (TyLam x tn k ty) = NormalizedType <$> (TyLam x tn k <$> (getNormalizedType <$> tyReduce ty))
+normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
+normalizeTypeOpt ty = do
+    TypeConfig norm _ <- ask
+    if norm
+        then normalizeType ty
+        else pure $ NormalizedType ty
 
-tyReduce (TyApp x ty ty') = do
-
-    -- Once again, @fun@ will always be a type value once reduced so we can do
-    -- reduction here
-    arg <- tyReduce ty'
-    fun <- getNormalizedType <$> tyReduce ty
-    case fun of
-        (TyLam _ (TyNameWithKind (TyName (Name _ _ u))) _ ty'') -> do
-            tyEnvAssign u (void arg)
-            tyReduce ty'' <* tyEnvDelete u
-        _ -> pure $ NormalizedType $ TyApp x fun (getNormalizedType arg)
-
-tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
+-- | Normalize a 'Type'.
+normalizeType :: Type TyNameWithKind () -> TypeCheckM err (NormalizedType TyNameWithKind ())
+normalizeType (TyForall x tn k ty) = TyForall x tn k <<$>> normalizeType ty
+normalizeType (TyFix x tn ty)      = TyFix x tn <<$>> normalizeType ty
+normalizeType (TyFun x ty ty')     = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
+normalizeType (TyLam x tn k ty)    = TyLam x tn k <<$>> normalizeType ty
+normalizeType (TyApp x fun arg)    = do
+    nFun <- normalizeType fun
+    nArg <- normalizeType arg
+    case getNormalizedType nFun of
+        TyLam _ name _ body -> normalizeTypeBinder name nArg body
+        _                   -> pure $ TyApp x <$> nFun <*> nArg
+normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
-        Just ty' -> NormalizedType <$> cloneType (getNormalizedType ty')
+        Just ty' -> traverse cloneType ty'
         Nothing  -> pure $ NormalizedType ty
 
-tyReduce x@TyInt{} = pure $ NormalizedType x
-tyReduce x@TyBuiltin{} = pure $ NormalizedType x
+normalizeType ty@TyInt{}     = pure $ NormalizedType ty
+normalizeType ty@TyBuiltin{} = pure $ NormalizedType ty
