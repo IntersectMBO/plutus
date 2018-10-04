@@ -7,6 +7,7 @@ module NormalTypes.Examples where
 \begin{code}
 open import Type
 open import Type.BetaNormal
+open import Type.BetaNBE.RenamingSubstitution
 import Type.RenamingSubstitution as ⋆
 open import NormalTypes.Term
 open import NormalTypes.Term.RenamingSubstitution
@@ -38,22 +39,24 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 
 \begin{code}
 module Scott where
-{-
-  G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-  G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
+
+  G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
+  G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
   
-  M : ∀{Γ} → Γ ⊢⋆ *
+
+  M : ∀{Γ} → Γ ⊢Nf⋆ *
   M = μ G
-  
-  N : ∀{Γ} → Γ ⊢⋆ *
-  N  =  G ⋆.[ M ]
-  
+
+  N : ∀{Γ} → Γ ⊢Nf⋆ *
+  N  =  G [ M ]Nf
+
   Zero : ∀{Γ} → Γ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
-  
+
+
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G (` (S (S (T Z))))))))
-  
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap (` (S (S (T Z))))))))
+
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
   
@@ -65,19 +68,32 @@ module Scott where
 
   Four : ∅ ⊢ N
   Four = Succ · Three
-  
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π ` Z ⇒ (N ⇒ ` Z) ⇒ ` Z)
-  case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ ` (S Z) · unwrap (` Z)))))
 
-  fix : ∀{Γ} → Γ ⊢ Π (` Z ⇒ ` Z) ⇒ ` Z
-  fix = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
+  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
+  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap (` Z)))))))
 
-  TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ Succ · (` (S (S Z)) · (` (S Z))))))
+
+  Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
+  Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap {B = (ne (` Z) ⇒ ne (` (S Z)))} (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
+
+  Z-comb : ∀{Γ} →
+    Γ ⊢ Π {- a -} (Π {- b -} (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
+  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap (` (S Z)) · ` (S Z) · ` Z)) · wrap {B = (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap (` (S Z)) · ` (S Z) · ` Z))))))
+
+
+  OnePlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
+  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+
+  OnePlusOne : ∅ ⊢ N
+  OnePlusOne = (Z-comb ·⋆ N) ·⋆ N · OnePlus · One
+
+ -- Roman's more efficient version
+  Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∅ ⊢ N
-  TwoPlusTwo = fix ·⋆ (N ⇒ N) · TwoPlus · Two
--}
+  TwoPlusTwo = (Plus · Two) · Two
+
 \end{code}
 
 eval (gas 10000000) Scott.Four
