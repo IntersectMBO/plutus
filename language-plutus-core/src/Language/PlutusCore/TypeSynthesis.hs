@@ -337,13 +337,8 @@ tyReduce (TyApp x ty ty') = do
 tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
-
-        -- we must use recursive lookups because we can have an assignment
-        -- a -> b and an assignment b -> c which is locally valid but in
-        -- a smaller scope than a -> b.
-        Just ty'@(NormalizedType TyVar{}) -> pure ty'
-        Just ty'                          -> NormalizedType <$> cloneType (getNormalizedType ty')
-        Nothing                           -> pure $ NormalizedType ty
+        Just ty' -> NormalizedType <$> cloneType (getNormalizedType ty')
+        Nothing  -> pure $ NormalizedType ty
 
 tyReduce x@TyInt{} = pure $ NormalizedType x
 tyReduce x@TyBuiltin{} = pure $ NormalizedType x
