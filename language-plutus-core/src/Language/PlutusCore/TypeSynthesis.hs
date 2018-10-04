@@ -226,6 +226,7 @@ dummyType = TyVar () dummyTyName
 -- This is all tracked in a state monad, and we simply delete any substitutions
 -- once they go out of scope; this is permissible since 'Unique's are globally
 -- unique and so we will not delete the wrong thing.
+--
 -- | Synthesize the type of a term, returning a normalized type.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) = normalizeTypeOpt $ void ty

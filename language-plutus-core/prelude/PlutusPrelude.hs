@@ -177,10 +177,10 @@ prettyTextBy :: PrettyBy config a => config -> a -> T.Text
 prettyTextBy = docText .* prettyBy
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
-(<<$>>) f = getCompose . fmap f . Compose
+(<<$>>) f = fmap (fmap f)
 
 (<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
-f <<*>> a = getCompose $ Compose f <*> Compose a
+f <<*>> a = getCompose (Compose f <*> Compose a)
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
