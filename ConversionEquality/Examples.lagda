@@ -67,18 +67,28 @@ module Scott where
   case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
   case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap (` Z)))))))
 
+  -- Y : (a -> a) -> a
+  -- Y f = (\x. f (x x)) (\x. f (x x))
+  -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x)) 
+
   Y-comb : ∀{Γ} → Γ ⊢ Π ((` Z ⇒ ` Z) ⇒ ` Z)
   Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
+
+  -- Z : ((a -> b) -> a -> b) -> a -> b
+  -- Z f = (\r. f (\x. r r x)) (\r. f (\x. r r x))
+  -- Z f = (\r : mu x. x -> a -> b. (\x : a. r r x)) (\r : mu x. x -> a -> b. (\x : a. r r x))
 
   Z-comb : ∀{Γ} →
     Γ ⊢ Π {- a -} (Π {- b -} (((` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z))
   Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap (` (S Z)) · ` (S Z) · ` Z)) · wrap (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z)) (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap (` (S Z)) · ` (S Z) · ` Z))))))
 
   TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case _⊢_.· (` Z)) ·⋆ N) _⊢_.· Two) _⊢_.· (ƛ (Succ · (` (S (S Z)) · (` (S Z)))))))
+  TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
-  TwoPlusTwo : ∅ ⊢ N
-  TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
+  TwoPlusOne : ∅ ⊢ N
+  -- TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
+  TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
+  
 \end{code}
 
 eval (gas 10000000) Scott.Four

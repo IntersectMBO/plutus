@@ -107,6 +107,7 @@ progress (ƛ M)    = done V-ƛ
 progress (L · M)  with progress L
 ...                   | unhandled-conversion = unhandled-conversion
 ...                   | step p  = step (ξ-·₁ p)
+-- progress (.(ƛ _) · M) | done V-ƛ = step β-ƛ -- lazy version
 ...                   | done vL with progress M
 ...                              | unhandled-conversion = unhandled-conversion
 ...                              | step p  = step (ξ-·₂ vL p)
