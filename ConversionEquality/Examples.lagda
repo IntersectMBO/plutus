@@ -88,7 +88,15 @@ module Scott where
   TwoPlusOne : ∅ ⊢ N
   -- TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
   TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
-  
+
+
+  -- Roman's more efficient version
+  Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+
+  TwoPlusTwo : ∅ ⊢ N
+  TwoPlusTwo = (Plus · Two) · Two
+
 \end{code}
 
 eval (gas 10000000) Scott.Four
