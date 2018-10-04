@@ -273,12 +273,13 @@ typeOf (Unwrap x body) = do
             normalizeTypeBinder n nBodyTy fixTy
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
 typeOf (Wrap x n ty t) = do
-    nTy <- normalizeType (void ty)
+    nTy <- normalizeType $ void ty
+    nTermTy <- typeOf t
     typeCheckStep
     nTermTy' <- normalizeTypeBinder (void n) (TyFix () (void n) <$> nTy) $ getNormalizedType nTy
-    if nTy == nTermTy'
-        then pure (TyFix () (void n) <$> nTy)
-        else throwError (TypeMismatch x (void t) (getNormalizedType nTermTy') nTy)
+    if nTermTy == nTermTy'
+        then pure $ TyFix () (void n) <$> nTy
+        else throwError (TypeMismatch x (void t) (getNormalizedType nTermTy') nTermTy)
 
 normalizeTypeBinder
     :: TyNameWithKind ()
