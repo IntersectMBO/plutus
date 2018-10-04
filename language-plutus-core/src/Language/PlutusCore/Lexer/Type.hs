@@ -8,6 +8,7 @@ module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , Token (..)
                                       , TypeBuiltin (..)
                                       , prettyBytes
+                                      , allBuiltinNames
                                       ) where
 
 import qualified Data.ByteString.Lazy               as BSL
@@ -20,7 +21,7 @@ import           Numeric                            (showHex)
 import           PlutusPrelude
 
 -- | A builtin type
-data TypeBuiltin = TyByteString -- FIXME these should take integer/naturals
+data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
@@ -49,7 +50,7 @@ data BuiltinName = AddInteger
                  | TxHash
                  | BlockNum
                  | BlockTime
-                 deriving (Show, Eq, Ord, Generic, NFData, Lift)
+                 deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
@@ -171,3 +172,9 @@ instance Pretty TypeBuiltin where
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
+
+allBuiltinNames :: [BuiltinName]
+allBuiltinNames = dropR 2 [minBound .. maxBound]  -- Ignoring the last two outdated 'BuiltinName's.
+
+dropR :: Int -> [a] -> [a]
+dropR n xs = take (length xs - n) xs

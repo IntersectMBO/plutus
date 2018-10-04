@@ -25,6 +25,7 @@ module Language.PlutusCore
     , BuiltinName (..)
     , TypeBuiltin (..)
     , defaultVersion
+    , allBuiltinNames
     -- * Lexer
     , AlexPosn (..)
     -- * Views
