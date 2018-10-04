@@ -25,11 +25,11 @@ getBuiltinIntegerToNat n
           go 0 = getBuiltinZero
           go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
 
--- |  'sumNat' as a PLC term.
+-- | @sumNat@ as a PLC term.
 getBuiltinNatSum :: Natural -> Quote (Term TyName Name ())
 getBuiltinNatSum s = do
     foldList <- getBuiltinFoldList
-    let int = TyBuiltin () TyInteger
+    let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
     let add = TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
     RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
     nti <- getBuiltinNatToInteger s
