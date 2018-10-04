@@ -67,7 +67,7 @@ module Language.PlutusCore
     , BuiltinTable (..)
     , parseTypecheck
     -- for testing
-    , tyReduce
+    , normalizeType
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas

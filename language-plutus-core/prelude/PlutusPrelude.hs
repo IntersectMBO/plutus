@@ -35,6 +35,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      -- * Reëxports from "Control.Composition"
                      , (.*)
                      -- * Custom functions
+                     , (<<$>>)
+                     , (<<*>>)
                      , foldMapM
                      , repeatM
                      , (?)
@@ -96,7 +98,10 @@ import           Debug.Trace
 import           GHC.Generics                            (Generic)
 import           GHC.Natural                             (Natural)
 
+import           Data.Functor.Compose
+
 infixr 2 ?
+infixl 4 <<$>>, <<*>>
 
 -- | This class is used in order to provide default implementations of 'PrettyBy' for
 -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
@@ -170,6 +175,12 @@ prettyStringBy = docString .* prettyBy
 -- | Render a value as strict 'Text'.
 prettyTextBy :: PrettyBy config a => config -> a -> T.Text
 prettyTextBy = docText .* prettyBy
+
+(<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
+(<<$>>) f = getCompose . fmap f . Compose
+
+(<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
+f <<*>> a = getCompose $ Compose f <*> Compose a
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
