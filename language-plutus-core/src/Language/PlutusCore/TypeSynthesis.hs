@@ -6,6 +6,7 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , kindCheck
                                          , tyReduce
                                          , runTypeCheckM
+                                         , extractFix
                                          , TypeCheckM
                                          , BuiltinTable (..)
                                          , TypeError (..)
@@ -16,7 +17,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State      hiding (get, modify)
-import qualified Data.IntMap                    as IM
+import qualified Data.IntMap.Strict             as IM
 import qualified Data.Map                       as M
 import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
@@ -275,18 +276,14 @@ typeOf (Unwrap x body) = do
         TyFix _ n fixTy ->
             tyReduceBinder n nBodyTy fixTy
         _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
-typeOf (Wrap x n ty term) = do
-    -- G |- term : nTermTy, ty ~>* nTy, [fix n nTy / n] nTy ~>* nTermTy', nTermTy ~ nTermTy'
-    -- -------------------------------------------------------------------------------------
-    -- G |- wrap n ty term : fix n nTy
-
-    NormalizedType nTy <- tyReduce $ void ty
-    nTermTy <- typeOf term
+typeOf (Wrap x n ty t) = do
+    NormalizedType nTy <- tyReduce (void ty)
+    nTermTy <- typeOf t
     typeCheckStep
     nTermTy' <- tyReduceBinder (void n) (NormalizedType $ TyFix () (void n) nTy) nTy
     if nTermTy == nTermTy'
         then pure $ NormalizedType (TyFix () (void n) nTy)
-        else throwError (TypeMismatch x (void term) (getNormalizedType nTermTy') nTermTy)
+        else throwError (TypeMismatch x (void t) (getNormalizedType nTermTy') nTermTy)
 
 tyReduceBinder :: TyNameWithKind () -> NormalizedType TyNameWithKind () -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 tyReduceBinder n ty ty' = do
@@ -315,9 +312,9 @@ maybeRed :: Bool -> Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNam
 maybeRed True  = tyReduce
 maybeRed False = pure . NormalizedType
 
--- | Given a type \\( Q \\), we extract \\( \alpha, S \\) such that \\(
--- \mathcal{E}\{(\textt{fix} \alpha S)\} \\).
-extractFix :: Type TyNameWithKind () -> TypeCheckM a (TyNameWithKind(), Type TyNameWithKind ())
+-- | Given a type Q, we extract (a, S) such that Q = E(fix a S)
+extractFix :: Type TyNameWithKind () -- ^ Q
+           -> TypeCheckM a (TyNameWithKind(), Type TyNameWithKind ()) -- ^ (a, S)
 extractFix _ = undefined
 
 -- | Reduce any redexes inside a type.
@@ -342,13 +339,8 @@ tyReduce (TyApp x ty ty') = do
 tyReduce ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
-
-        -- we must use recursive lookups because we can have an assignment
-        -- a -> b and an assignment b -> c which is locally valid but in
-        -- a smaller scope than a -> b.
-        Just ty'@(NormalizedType TyVar{}) -> pure ty'
-        Just ty'                          -> NormalizedType <$> cloneType (getNormalizedType ty')
-        Nothing                           -> pure $ NormalizedType ty
+        Just ty' -> NormalizedType <$> cloneType (getNormalizedType ty')
+        Nothing  -> pure $ NormalizedType ty
 
 tyReduce x@TyInt{} = pure $ NormalizedType x
 tyReduce x@TyBuiltin{} = pure $ NormalizedType x
