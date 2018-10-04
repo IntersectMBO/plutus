@@ -169,7 +169,7 @@ getBuiltinFoldList = do
 getBuiltinSum :: Natural -> Quote (Term TyName Name ())
 getBuiltinSum s = do
     foldList <- getBuiltinFoldList
-    let int = TyBuiltin () TyInteger
+    let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
     return
         . mkIterApp (mkIterInst foldList [int, int])
         $ [ TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s

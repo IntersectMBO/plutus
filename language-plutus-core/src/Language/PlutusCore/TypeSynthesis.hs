@@ -102,8 +102,8 @@ defaultTable :: (MonadQuote m) => m BuiltinTable
 defaultTable = do
 
     let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
-                             , (TySize, Size ())
-                             , (TyInteger, KindArrow () (Size ()) (Type ()))
+                             , (TySize      , KindArrow () (Size ()) (Type ()))
+                             , (TyInteger   , KindArrow () (Size ()) (Type ()))
                              ]
         intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
         intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]

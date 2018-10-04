@@ -30,7 +30,9 @@ genNatRoundtrip = do
     let size = 1
         typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     TermOf _ nv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntSized
-    term <- lift $ getBuiltinIntegerToNat nv >>= (\t -> Apply() <$> getBuiltinNatToInteger size <*> pure t)
+    term <- lift $ do
+        t <- getBuiltinIntegerToNat nv
+        Apply () <$> getBuiltinNatToInteger size <*> pure t
     return . TermOf term $ TypedBuiltinValue typedIntSized nv
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
@@ -38,8 +40,8 @@ genNatRoundtrip = do
 genListSum :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
 genListSum = do
     size <- genSizeIn 1 8
-    let intSized      = TyBuiltin () TyInteger
-        typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+    let typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+    intSized <- lift $ typedBuiltinToType typedIntSized
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
     term <- lift $ do
         builtinSum <- getBuiltinSum size
@@ -54,6 +56,7 @@ genIfIntegers :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
 genIfIntegers = do
     size <- genSizeDef
     let typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+    intSized <- lift $ typedBuiltinToType typedIntSized
     TermOf b bv <- genTermLoose TypedBuiltinBool
     TermOf i iv <- genTermLoose typedIntSized
     TermOf j jv <- genTermLoose typedIntSized
@@ -61,9 +64,9 @@ genIfIntegers = do
     builtinUnit  <- lift getBuiltinUnit
     builtinIf    <- lift getBuiltinIf
     let builtinConstSpec =
-            Apply () $ mkIterInst builtinConst [TyBuiltin () TyInteger, builtinUnit]
+            Apply () $ mkIterInst builtinConst [intSized, builtinUnit]
         term = mkIterApp
-            (TyInst () builtinIf $ TyBuiltin () TyInteger)
+            (TyInst () builtinIf intSized)
             [b, builtinConstSpec i, builtinConstSpec j]
         value = if bv then iv else jv
     return $ TermOf term $ TypedBuiltinValue typedIntSized value
