@@ -5,6 +5,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized(..)
     , TypedBuiltinSized(..)
@@ -77,12 +78,14 @@ data TypedBuiltinSized a where
     TypedBuiltinSizedBS   :: TypedBuiltinSized BSL.ByteString
     TypedBuiltinSizedSize :: TypedBuiltinSized Size
 
+-- | Type-level sizes.
 data SizeEntry size
     = SizeValue Size  -- ^ A constant size.
     | SizeBound size  -- ^ A bound size variable.
     deriving (Eq, Ord, Functor)
 -- We write @SizeEntry Size@ sometimes, so this data type is not perfect, but it works fine.
 
+-- | Built-in types.
 data Builtin size
     = BuiltinSized (SizeEntry size) BuiltinSized
     | BuiltinBool
@@ -94,6 +97,7 @@ data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
 
+-- | A 'TypedBuiltin' packaged together with a value of the type that the 'TypedBuiltin' denotes.
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
 
 -- | Type schemes of primitive operations.
@@ -167,46 +171,57 @@ instance Ord size => GCompare (TypedBuiltin size) where
     TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
     TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
 
+-- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
 eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt
 eraseTypedBuiltinSized TypedBuiltinSizedBS   = BuiltinSizedBS
 eraseTypedBuiltinSized TypedBuiltinSizedSize = BuiltinSizedSize
 
+-- | Extract the 'Size' from a 'SizeEntry'.
 flattenSizeEntry :: SizeEntry Size -> Size
 flattenSizeEntry (SizeValue size) = size
 flattenSizeEntry (SizeBound size) = size
 
+-- | Alter the 'SizeEntry' of a 'TypedBuiltin'.
 mapSizeEntryTypedBuiltin
     :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
 mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
 
+-- | Alter the 'size' of a @TypedBuiltin size@.
 mapSizeTypedBuiltin
     :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeTypedBuiltin = mapSizeEntryTypedBuiltin . fmap
 
+-- | Map each 'SizeBound' to 'SizeValue'.
 closeTypedBuiltin :: TypedBuiltin Size a -> TypedBuiltin b a
 closeTypedBuiltin = mapSizeEntryTypedBuiltin $ SizeValue . flattenSizeEntry
 
+-- | Convert a 'TypedBuiltinSized' to the corresponding 'TypeBuiltin' and
+-- wrap the result in 'TyBuiltin' to get a 'Type'.
 typedBuiltinSizedToType :: TypedBuiltinSized a -> Type TyName ()
 typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
 typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
 typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
 
+-- | Apply a continuation to the typed version of a 'BuiltinSized'.
 withTypedBuiltinSized :: BuiltinSized -> (forall a. TypedBuiltinSized a -> c) -> c
 withTypedBuiltinSized BuiltinSizedInt  k = k TypedBuiltinSizedInt
 withTypedBuiltinSized BuiltinSizedBS   k = k TypedBuiltinSizedBS
 withTypedBuiltinSized BuiltinSizedSize k = k TypedBuiltinSizedSize
 
+-- | Apply a continuation to the typed version of a 'Builtin'.
 withTypedBuiltin :: Builtin size -> (forall a. TypedBuiltin size a -> c) -> c
 withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
 withTypedBuiltin BuiltinBool         k = k TypedBuiltinBool
 
+-- | The resulting 'TypedBuiltin' of a 'TypeScheme'.
 typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
 typeSchemeResult (TypeSchemeBuiltin tb)   = tb
 typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK ())
 
+-- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
 typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Quote (Type TyName ())
 typedBuiltinToType (TypedBuiltinSized se tbs) =
     return . TyApp () (typedBuiltinSizedToType tbs) $ case se of
@@ -214,6 +229,8 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
 
+-- | Convert a 'TypeScheme' to the corresponding 'Type'.
+-- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
 typeSchemeToType = go 0 where
     go :: Int -> TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
@@ -222,10 +239,11 @@ typeSchemeToType = go 0 where
         TyFun () <$> go i schA <*> go i schB
     go i (TypeSchemeAllSize schK)    = do
         s <- mapTyNameString (<> BSL.fromStrict (Text.encodeUtf8 $ prettyText i)) <$>
-                 freshTyName () "s"
+                freshTyName () "s"
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a
 
+-- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
 withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
@@ -250,9 +268,11 @@ withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName TxHash               k = k typedTxHash
 withTypedBuiltinName _                    _ = error "Outdated"
 
+-- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
 
+-- | Return the 'Type' of a 'BuiltinName'.
 typeOfBuiltinName :: BuiltinName -> Quote (Type TyName ())
 typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
 
