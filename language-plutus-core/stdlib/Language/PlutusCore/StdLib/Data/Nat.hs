@@ -140,8 +140,8 @@ getBuiltinNatToInteger s = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     return
         . LamAbs () n nat
-        $ mkIterApp (TyInst () builtinFoldNat $ TyBuiltin () TyInteger)
-          [ Apply () (Constant () $ BuiltinName () AddInteger) $ int 1
+        $ mkIterApp (TyInst () builtinFoldNat $ TyApp () (TyBuiltin () TyInteger) (TyInt () s))
+          [ Apply () (TyInst () (Constant () $ BuiltinName () AddInteger) (TyInt () s)) $ int 1
           , int 0
           , Var () n
           ]
