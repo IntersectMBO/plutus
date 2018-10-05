@@ -15,15 +15,16 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State      hiding (get, modify)
-import qualified Data.IntMap.Strict             as IM
-import qualified Data.Map                       as M
+import           Control.Monad.Trans.State                     hiding (get, modify)
+import qualified Data.IntMap.Strict                            as IM
+import qualified Data.Map                                      as M
 import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type hiding (name)
+import           Language.PlutusCore.Lexer.Type                hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.TypeSynthesis.Elimination
 import           Lens.Micro
 import           PlutusPrelude
 
@@ -266,12 +267,15 @@ typeOf (TyInst x body ty) = do
                 then normalizeTypeBinder n nTy absTy
                 else throwError (KindMismatch x (void ty) k k')
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
-typeOf (Unwrap x body) = do
-    nBodyTy <- typeOf body
-    case getNormalizedType nBodyTy of
-        TyFix _ n fixTy ->
-            normalizeTypeBinder n nBodyTy fixTy
-        _             -> throwError (TypeMismatch x (void body) (TyFix () dummyTyName dummyType) nBodyTy)
+typeOf (Unwrap x m) = do
+    q <- getNormalizedType <$> typeOf m
+    let (alpha, s) = extractFix q
+    k <- kindOf (fmap (pure (error "no location info")) q)
+    if isType k then
+        -- TODO: this is not actually normalized! fix spec and/or implementation
+        normalizeTypeBinder alpha (NormalizedType $ TyFix () alpha s) s
+    else
+        throwError (KindMismatch x q (Type ()) k)
 typeOf (Wrap x n ty t) = do
     nTy <- normalizeType $ void ty
     nTermTy <- typeOf t

@@ -44,7 +44,11 @@ data RenameError a
 
 data TypeError a
     = InternalError -- ^ This is thrown if builtin lookup fails
-    | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
+    | KindMismatch { _loc      :: a
+                   , _inType   :: Type TyNameWithKind ()
+                   , _expected :: Kind ()
+                   , _found    :: Kind ()
+                   }
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())

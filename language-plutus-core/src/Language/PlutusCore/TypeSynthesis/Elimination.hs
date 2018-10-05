@@ -17,7 +17,9 @@ elimSubst (App ctx ty) ty' = TyApp () (elimSubst ctx ty) ty'
 
 getElimCtx :: Type TyNameWithKind () -- ^ E{[(fix a S)/a] S}
            -> ElimCtx -- ^ E
-getElimCtx _ = undefined
+getElimCtx TyApp{} = undefined
+getElimCtx _       = Hole -- I think this works because we don't perform reductions ?
+-- TODO: also *check* that there are a, S such that E{[fix a S)/a]S} works
 
 -- | Given a type Q, we extract (a, S) such that Q = E{(fix a S)} for some E
 extractFix :: Type TyNameWithKind () -- ^ Q = E{(fix a S)}
