@@ -2,8 +2,8 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
-
-module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
+{-# LANGUAGE ViewPatterns               #-}
+module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, applyPlc, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC
 import           Language.Plutus.CoreToPLC.Error
@@ -46,6 +46,13 @@ newtype PlcCode = PlcCode { unPlc :: [Word] }
 
 getSerializedCode :: PlcCode -> BSL.ByteString
 getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
+
+-- | Apply a function to an argument in PLC
+applyPlc :: PlcCode -> PlcCode -> PlcCode
+applyPlc (getAst -> f) (getAst -> x) = PlcCode words where
+    program = f `PLC.applyProgram` x
+    serialized = PLC.writeProgram program
+    (words :: [Word]) = fromIntegral <$> BSL.unpack serialized
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
