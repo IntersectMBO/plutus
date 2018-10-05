@@ -5,10 +5,14 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant          (typeOfBuiltinName)
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Everything
 
+import           Common
+
 import           Control.Monad.Except
+import           System.FilePath                       ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -73,9 +77,20 @@ test_typecheckIllTyped =
             [ getBuiltinSelfApply
             ]
 
+test_typecheckBuiltinName :: BuiltinName -> TestTree
+test_typecheckBuiltinName name = goldenVsDoc testName path doc where
+    testName = show name
+    path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
+    doc      = prettyPlcDef . runQuote $ typeOfBuiltinName name
+
+test_typecheckBuiltinNames :: TestTree
+test_typecheckBuiltinNames =
+    testGroup "built-in name" $ map test_typecheckBuiltinName allBuiltinNames
+
 test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
-        [ test_typecheckStdLib
+        [ test_typecheckBuiltinNames
+        , test_typecheckStdLib
         , test_typecheckIllTyped
         ]
