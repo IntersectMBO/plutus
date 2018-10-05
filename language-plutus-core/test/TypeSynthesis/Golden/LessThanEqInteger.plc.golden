@@ -1,0 +1,1 @@
+(all s0 (size) (fun [(con integer) s0] (fun [(con integer) s0] (all a (type) (fun a (fun a a))))))
