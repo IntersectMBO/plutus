@@ -55675,13 +55675,20 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, containers
 , core-to-plc
+, hedgehog
 , language-plutus-core
+, microlens
 , mtl
 , plutus-th
 , stdenv
+, tasty
+, tasty-hedgehog
 , template-haskell
+, text
 , transformers
+, wallet-api
 }:
 mkDerivation {
 
@@ -55690,12 +55697,25 @@ version = "0.1.0.0";
 src = ./../plutus-use-cases;
 libraryHaskellDepends = [
 base
+containers
 core-to-plc
 language-plutus-core
+microlens
 mtl
 plutus-th
 template-haskell
 transformers
+wallet-api
+];
+testHaskellDepends = [
+base
+containers
+hedgehog
+microlens
+tasty
+tasty-hedgehog
+text
+wallet-api
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";
@@ -78291,6 +78311,7 @@ license = stdenv.lib.licenses.mit;
 , hedgehog
 , language-plutus-core
 , memory
+, microlens
 , mmorph
 , mtl
 , operational
@@ -78317,8 +78338,10 @@ core-to-plc
 cryptonite
 free
 ghc
+hedgehog
 language-plutus-core
 memory
+microlens
 mmorph
 mtl
 operational
