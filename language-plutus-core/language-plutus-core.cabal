@@ -73,6 +73,7 @@ library
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
+        Language.PlutusCore.TypeSynthesis.Elimination
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
         Language.PlutusCore.Subst

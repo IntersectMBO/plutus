@@ -6,7 +6,6 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , kindCheck
                                          , normalizeType
                                          , runTypeCheckM
-                                         , extractFix
                                          , TypeCheckM
                                          , BuiltinTable (..)
                                          , TypeError (..)
@@ -282,11 +281,10 @@ typeOf (Wrap x n ty t) = do
         then pure $ TyFix () (void n) <$> nTy
         else throwError (TypeMismatch x (void t) (getNormalizedType nTermTy') nTermTy)
 
-normalizeTypeBinder
-    :: TyNameWithKind ()
-    -> NormalizedType TyNameWithKind ()
-    -> Type TyNameWithKind ()
-    -> TypeCheckM err (NormalizedType TyNameWithKind ())
+normalizeTypeBinder :: TyNameWithKind ()
+                    -> NormalizedType TyNameWithKind ()
+                    -> Type TyNameWithKind ()
+                    -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeBinder n ty ty' = do
     let u = extractUnique n
     tyEnvAssign u ty
@@ -307,11 +305,6 @@ tyEnvAssign :: MonadState TypeCheckSt m
             -> m ()
 tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 
--- Given a type Q, we extract (a, S) such that Q = E(fix a S)
-extractFix :: Type TyNameWithKind () -- ^ Q
-           -> TypeCheckM a (TyNameWithKind(), Type TyNameWithKind ()) -- ^ (a, S)
-extractFix _ = undefined
-
 normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeOpt ty = do
     TypeConfig norm _ <- ask
@@ -320,7 +313,7 @@ normalizeTypeOpt ty = do
         else pure $ NormalizedType ty
 
 -- | Normalize a 'Type'.
-normalizeType :: Type TyNameWithKind () -> TypeCheckM err (NormalizedType TyNameWithKind ())
+normalizeType :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeType (TyForall x tn k ty) = TyForall x tn k <<$>> normalizeType ty
 normalizeType (TyFix x tn ty)      = TyFix x tn <<$>> normalizeType ty
 normalizeType (TyFun x ty ty')     = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
