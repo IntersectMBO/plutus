@@ -50,6 +50,7 @@ module Language.PlutusCore.Constant.Typed
     , typedResizeByteString
     , typedEqByteString
     , typedTxHash
+    , typedBlockNum
     ) where
 
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
@@ -101,6 +102,9 @@ data TypedBuiltin size a where
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
 
 -- | Type schemes of primitive operations.
+-- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
+-- @r@ is the resulting type in @a@, e.g. the resulting type in
+-- @ByteString -> Size -> Integer@ is @Integer@.
 data TypeScheme size a r where
     TypeSchemeBuiltin :: TypedBuiltin size a -> TypeScheme size a a
     TypeSchemeArrow   :: TypeScheme size a q -> TypeScheme size b r -> TypeScheme size (a -> b) r
@@ -109,6 +113,10 @@ data TypeScheme size a r where
     -- and because at the moment we do not need anything else.
     -- We can make this generic by parametrising @TypeScheme@ by an
     -- @f :: Kind () -> *@ rather than @size@.
+
+    -- The @r@ is rather ad hoc and needed only for tests.
+    -- We could use type families to compute it instead of storing as an index.
+    -- That's a TODO perhaps.
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeScheme size a r)
@@ -266,7 +274,7 @@ withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
 withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName TxHash               k = k typedTxHash
-withTypedBuiltinName _                    _ = error "Outdated"
+withTypedBuiltinName BlockNum             k = k typedBlockNum
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
@@ -424,3 +432,11 @@ typedTxHash :: TypedBuiltinName BSL.ByteString BSL.ByteString
 typedTxHash =
     TypedBuiltinName TxHash $
         TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
+
+-- | Typed 'BlockNum'.
+typedBlockNum :: TypedBuiltinName (Size -> Integer) Integer
+typedBlockNum =
+    TypedBuiltinName BlockNum $
+        TypeSchemeAllSize $ \s ->
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize) `TypeSchemeArrow`
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)

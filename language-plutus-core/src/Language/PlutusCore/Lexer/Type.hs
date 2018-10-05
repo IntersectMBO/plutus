@@ -49,7 +49,6 @@ data BuiltinName = AddInteger
                  | EqByteString
                  | TxHash
                  | BlockNum
-                 | BlockTime
                  deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
@@ -163,7 +162,6 @@ instance Pretty BuiltinName where
     pretty VerifySignature      = "verifySignature"
     pretty TxHash               = "txhash"
     pretty BlockNum             = "blocknum"
-    pretty BlockTime            = "blocktime"
 
 instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
@@ -173,8 +171,8 @@ instance Pretty TypeBuiltin where
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
 
+-- | The list of all 'BuiltinName's.
 allBuiltinNames :: [BuiltinName]
-allBuiltinNames = dropR 2 [minBound .. maxBound]  -- Ignoring the last two outdated 'BuiltinName's.
-
-dropR :: Int -> [a] -> [a]
-dropR n xs = take (length xs - n) xs
+allBuiltinNames = [minBound .. maxBound]
+-- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
+-- automatically handled by tests and other stuff that deals with all built-in names at once.

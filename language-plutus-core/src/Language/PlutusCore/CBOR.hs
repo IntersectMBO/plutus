@@ -55,7 +55,6 @@ encodeBuiltinName bi =
             EqByteString         -> 19
             TxHash               -> 20
             BlockNum             -> 21
-            BlockTime            -> 22
     in encodeTag i
 
 decodeBuiltinName :: Decoder s BuiltinName
@@ -82,7 +81,6 @@ decodeBuiltinName = go =<< decodeTag
           go 19 = pure EqByteString
           go 20 = pure TxHash
           go 21 = pure BlockNum
-          go 22 = pure BlockTime
           go _  = fail "Failed to decode BuiltinName"
 
 encodeNatural :: Natural -> Encoding

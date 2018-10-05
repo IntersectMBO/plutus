@@ -30,13 +30,7 @@ genKind = simpleRecursive nonRecursive recursive
           recursive = [KindArrow emptyPosn <$> genKind <*> genKind]
 
 genBuiltinName :: MonadGen m => m BuiltinName
-genBuiltinName = Gen.choice $ pure <$>
-    [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger
-    , LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger
-    , EqInteger, ResizeInteger, IntToByteString, Concatenate, TakeByteString
-    , DropByteString, ResizeByteString, SHA2, SHA3, VerifySignature
-    , EqByteString, TxHash, BlockNum, BlockTime
-    ]
+genBuiltinName = Gen.element allBuiltinNames
 
 genBuiltin :: MonadGen m => m (Constant AlexPosn)
 genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
@@ -76,4 +70,3 @@ genProgram = Program emptyPosn <$> genVersion <*> genTerm
 
 emptyPosn :: AlexPosn
 emptyPosn = AlexPn 0 0 0
-
