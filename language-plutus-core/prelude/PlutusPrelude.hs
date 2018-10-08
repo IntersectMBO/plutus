@@ -4,6 +4,7 @@
 
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)
+                     , ($>)
                      , toList
                      , bool
                      , first
@@ -80,7 +81,7 @@ import qualified Data.ByteString.Lazy                    as BSL
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor                            (void)
+import           Data.Functor                            (void, ($>))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
@@ -177,7 +178,7 @@ prettyTextBy :: PrettyBy config a => config -> a -> T.Text
 prettyTextBy = docText .* prettyBy
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
-(<<$>>) f = fmap (fmap f)
+(<<$>>) = fmap . fmap
 
 (<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
 f <<*>> a = getCompose (Compose f <*> Compose a)

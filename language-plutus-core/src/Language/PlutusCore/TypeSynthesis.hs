@@ -269,10 +269,12 @@ typeOf (TyInst x body ty) = do
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) nBodyTy)
 typeOf (Unwrap x m) = do
     q <- getNormalizedType <$> typeOf m
-    let (alpha, s) = extractFix q
-    k <- kindOf (fmap (pure (error "no location info")) q)
-    if isType k then
-        -- TODO: this is not actually normalized! fix spec and/or implementation
+    (alpha, s) <- extractFix q
+    k <- kindOf (q $> x)
+    if isType k then do
+        -- This is normalized because q is normalized and hence s must be as
+        -- well.
+        typeCheckStep
         normalizeTypeBinder alpha (NormalizedType $ TyFix () alpha s) s
     else
         throwError (KindMismatch x q (Type ()) k)
