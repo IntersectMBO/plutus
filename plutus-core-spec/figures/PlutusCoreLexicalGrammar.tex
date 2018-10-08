@@ -11,8 +11,6 @@
         \textrm{Var}           & x      & ::= & n & \textrm{term variable}\\
         \textrm{TyVar}         & \alpha & ::= & n & \textrm{type variable}\\
         \textrm{BuiltinName}   & bn     & ::= & n & \textrm{builtin term name}\\
-        \textrm{TyBuiltinName} & bt     & ::= & n & \textrm{builtin type name}\\
-        
         \textrm{Integer} & i  & ::= & [\texttt{+-}]^?[\texttt{0}\!\hyphen{}\!\texttt{9}]^+ & \textrm{integer}\\
         
         \textrm{ByteString}   & b  & ::= & \texttt{\#}([\texttt{a}\!\hyphen{}\!\texttt{fA}\!\hyphen{}\!\texttt{F0}\!\hyphen{}\!\texttt{9}][\texttt{a}\!\hyphen{}\!\texttt{fA}\!\hyphen{}\!\texttt{F0}\!\hyphen{}\!\texttt{9}])^+ & \textrm{hex string}\\
@@ -24,9 +22,8 @@
         \textrm{Constant} & cn & ::= & \sizedBuiltin{s}{i} & \textrm{integer constant}\\
                           &    &     & \sizedBuiltin{s}{b} & \textrm{bytestring constant}\\
                           &    &     & s & \textrm{size constant}\\
-                          &    &     & bn & \textrm{builtin name}\\
-        \textrm{TyConstant} & tcn & ::= & s & \textrm{size}\\
-                            &     &     & bt & \textrm{builtin type name}\\
+        \textrm{TypeConstant} & tcn    & ::= & n & \textrm{type constant}\\
+        
         
     \end{array}\]
     \caption{Lexical Grammar of Plutus Core}
