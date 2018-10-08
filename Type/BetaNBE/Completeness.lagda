@@ -221,7 +221,7 @@ renval-eval (ƛ B) {η}{η'} p ρ =
   ,
   λ ρ' q → idext (λ { Z → q ; (S x) → renval-comp ρ ρ' (p x) }) B
 renval-eval (A · B) p ρ = transPER _ (renval·V ρ (idext (reflPER _ ∘ p) A) (idext (reflPER _ ∘ p) B)) (PERApp (renval-eval A p ρ) (renval-eval B p ρ))
-renval-eval (μ B) p ρ = cong μ (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-ext {*} ρ ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
+renval-eval (μ B) p ρ = transPER _ (renval-neV ρ _) (reflect _ (cong μ (trans (rename-readback (idext (PER,,⋆ (renPER S ∘ reflPER _ ∘ p) (reflect _ refl)) B) (ext ρ)) (reify _ (transPER _ (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) (ext ρ)) (idext (λ { Z → renval-neV (ext ρ) (` Z) ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (p x))) (renval-comp ρ S (p x)) }) B))))))
 
 idext p (` x)   = p x
 idext p (Π B)   = cong Π (idext (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) B)
@@ -235,7 +235,7 @@ idext p (ƛ B)   =
   ,
   λ ρ q → idext (PER,,⋆ (renPER ρ ∘ p) q) B
 idext p (A · B) = PERApp (idext p A) (idext p B)
-idext p (μ  B)   = cong μ (idext (PER,,⋆ (renPER S ∘ p) refl) B)
+idext p (μ  B)   = reflect _ (cong μ (reify _ (idext (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) B)))
 \end{code}
 
 Renaming lemma
@@ -269,15 +269,7 @@ rename-eval (ƛ B) p ρ =
   λ ρ' q → transPER _ (rename-eval B (PER,,⋆ (renPER ρ' ∘ p) q) (ext ρ))
                       (idext (λ { Z → reflPER _ (symPER _ q) ; (S x) → renPER ρ' (reflPER _ (symPER _ (p (ρ x)))) }) B)
 rename-eval (A · B) p ρ = PERApp (rename-eval A p ρ) (rename-eval B p ρ)
-rename-eval (μ B) p ρ =
-  cong μ
-       (trans (rename-eval
-                B
-                (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (ext ρ))
-              (idext (λ{ Z     → reflect * refl
-                       ; (S x) → (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (ρ x)})
-                     B))
-                     
+rename-eval (μ B) p ρ = reflect _ (cong μ (reify _ (transPER _ (rename-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) (ext ρ)) (idext (λ { Z → reflect _ refl ; (S x) → renPER S ((reflPER _ ∘ symPER _ ∘ p) (ρ x))}) B))))
 \end{code}
 
 
@@ -314,7 +306,7 @@ subst-eval (ƛ B) p σ =
                           (symPER _ (renval-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) ρ))})
            B)
 subst-eval (A · B) p σ = PERApp (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (μ B) p σ = cong μ (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect * (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflect * (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect * (refl {x = ` Z}))) S) (symPER _ (renval-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
+subst-eval (μ B) p σ = reflect _ (cong μ (reify _ (transPER _ (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) (exts σ)) (idext (λ { Z → reflect _ refl ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect _ refl)) S) (symPER _ (renval-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) S))}) B))))
 \end{code}
 
 
@@ -343,7 +335,7 @@ fund p (ƛ≡β {B = B}{B' = B'} q) =
   ,
   λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
 fund p (·≡β q r) = PERApp (fund p q) (fund p r)
-fund p (μ≡β q) = cong μ (fund (PER,,⋆ (renPER S ∘ p) (reflect * refl)) q)
+fund p (μ≡β q) = reflect _ (cong μ (reify _ (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) q)))
 fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
 \end{code}
 

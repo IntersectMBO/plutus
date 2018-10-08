@@ -1,5 +1,5 @@
 \begin{code}
-module ConversionEquality.Examples where
+module TermIndexedBySyntacticType.Examples where
 \end{code}
 
 ## Imports
@@ -7,9 +7,9 @@ module ConversionEquality.Examples where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import ConversionEquality.Term
-open import ConversionEquality.Term.RenamingSubstitution
-open import ConversionEquality.Evaluation
+open import TermIndexedBySyntacticType.Term
+open import TermIndexedBySyntacticType.Term.RenamingSubstitution
+open import TermIndexedBySyntacticType.Evaluation
 \end{code}
 
 ## Examples

@@ -1,5 +1,5 @@
 \begin{code}
-module NormalTypes.Examples where
+module TermIndexedByNormalType.Examples where
 \end{code}
 
 ## Imports
@@ -9,9 +9,9 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE.RenamingSubstitution
 import Type.RenamingSubstitution as ⋆
-open import NormalTypes.Term
-open import NormalTypes.Term.RenamingSubstitution
-open import NormalTypes.Evaluation
+open import TermIndexedByNormalType.Term
+open import TermIndexedByNormalType.Term.RenamingSubstitution
+open import TermIndexedByNormalType.Evaluation
 \end{code}
 
 ## Examples

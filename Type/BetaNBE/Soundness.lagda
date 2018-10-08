@@ -158,7 +158,7 @@ sfund {K = K ⇒ J} (ƛ B){σ}{η} p =
                     (subst-rename (ext ρ) (subst-cons ` u) (subst (exts σ) B)))
              (sfund B (R,,⋆ (renR ρ ∘ p) q)) )
 sfund (A · B) p = RApp (sfund A p) (sfund B p)
-sfund (μ B)   p = μ≡β (sfund B (Rweak p _))
+sfund (μ B)   p = sreflect (μ≡β (sreify (sfund B (Rweak p _))))
 \end{code}
 
 \begin{code}

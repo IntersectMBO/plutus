@@ -1,5 +1,5 @@
 \begin{code}
-module NormalTypes.Term.RenamingSubstitution where
+module TermIndexedByNormalType.Term.RenamingSubstitution where
 \end{code}
 
 ## Imports
@@ -17,7 +17,7 @@ open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
-open import NormalTypes.Term
+open import TermIndexedByNormalType.Term
 \end{code}
 
 

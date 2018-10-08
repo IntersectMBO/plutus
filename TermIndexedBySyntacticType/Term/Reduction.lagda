@@ -1,5 +1,5 @@
 \begin{code}
-module ConversionEquality.Term.Reduction where
+module TermIndexedBySyntacticType.Term.Reduction where
 \end{code}
 
 ## Imports
@@ -7,8 +7,8 @@ module ConversionEquality.Term.Reduction where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import ConversionEquality.Term
-open import ConversionEquality.Term.RenamingSubstitution
+open import TermIndexedBySyntacticType.Term
+open import TermIndexedBySyntacticType.Term.RenamingSubstitution
 open import Type.Equality
 \end{code}
 

@@ -1,13 +1,13 @@
 \begin{code}
-module NormalTypes.Term.Reduction where
+module TermIndexedByNormalType.Term.Reduction where
 \end{code}
 
 ## Imports
 
 \begin{code}
 open import Type
-open import NormalTypes.Term
-open import NormalTypes.Term.RenamingSubstitution
+open import TermIndexedByNormalType.Term
+open import TermIndexedByNormalType.Term.RenamingSubstitution
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal

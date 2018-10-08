@@ -1,5 +1,5 @@
 \begin{code}
-module ConversionEquality.Term.RenamingSubstitution where
+module TermIndexedBySyntacticType.Term.RenamingSubstitution where
 \end{code}
 
 ## Imports
@@ -12,7 +12,7 @@ open import Relation.Binary.PropositionalEquality
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
-open import ConversionEquality.Term
+open import TermIndexedBySyntacticType.Term
 \end{code}
 
 

@@ -1,13 +1,14 @@
 \begin{code}
-module ConversionEquality.Term where
+module TermIndexedByNormalType.Term where
 \end{code}
 
 ## Imports
 
 \begin{code}
 open import Type
-open import Type.RenamingSubstitution
-open import Type.Equality
+open import Type.BetaNormal
+open import Type.BetaNBE
+open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 \end{code}
 
 ## Fixity declarations
@@ -36,7 +37,7 @@ by a variable of a given type.
 data Ctx where
   ∅ : Ctx
   _,⋆_ : Ctx → Kind → Ctx
-  _,_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Ctx
+  _,_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Ctx
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -53,21 +54,21 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
-data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
+data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
 
-  Z : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+  Z : ∀ {Γ J} {A : ∥ Γ ∥ ⊢Nf⋆ J}
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
+  S : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢Nf⋆ J} {B : ∥ Γ ∥ ⊢Nf⋆ K}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢⋆ J}
+  T : ∀ {Γ J K} {A : ∥ Γ ∥ ⊢Nf⋆ J}
     → Γ ∋ A
       -------------------
-    → Γ ,⋆ K ∋ weaken A
+    → Γ ,⋆ K ∋ weakenNf A
 \end{code}
 Let `x`, `y` range over variables.
 
@@ -77,9 +78,9 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
-data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
+data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
 
-  ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
+  ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢Nf⋆ J}
     → Γ ∋ A
       ------
     → Γ ⊢ A
@@ -95,31 +96,26 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {Γ K} {B : ∥ Γ ∥ ,⋆ K ⊢⋆ *}
+  Λ : ∀ {Γ K}
+    → {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
     → Γ ⊢ Π B
 
-  _·⋆_ : ∀ {Γ B}
+  _·⋆_ : ∀ {Γ K}
+    → {B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}
     → Γ ⊢ Π B
-    → (A : ∥ Γ ∥ ⊢⋆ *)
+    → (A : ∥ Γ ∥ ⊢Nf⋆ K)
       ---------------
     → Γ ⊢ B [ A ]
 
   wrap : ∀{Γ}
-    → (S : ∥ Γ ∥ ,⋆ * ⊢⋆ *)
-    → (M : Γ ⊢ S [ μ S ])
-    → Γ ⊢ μ S
+    → {B : ∥ Γ ∥ ,⋆ * ⊢Nf⋆ *}
+    → (M : Γ ⊢ B [ μ B ])
+    → Γ ⊢ μ B
 
   unwrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → (M : Γ ⊢ μ S)
-    → Γ ⊢ S [ μ S ]
-
-  conv : ∀{Γ J}
-    → {A B : ∥ Γ ∥ ⊢⋆ J}
-    → A ≡β B
-    → Γ ⊢ A
-      -----
-    → Γ ⊢ B
+    → {B : ∥ Γ ∥ ,⋆ * ⊢Nf⋆ *}
+    → (M : Γ ⊢ μ B)
+    → Γ ⊢ B [ μ B ]
 \end{code}

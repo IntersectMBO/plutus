@@ -64,17 +64,12 @@ eval (Π B)   ρ = Π (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
 eval (A ⇒ B) ρ = readback (eval A ρ) ⇒ readback (eval B ρ)
 eval (ƛ B)   ρ = inj₂ λ ρ' v → eval B ((renval ρ' ∘ ρ) ,,⋆ v)
 eval (A · B) ρ = eval A ρ ·V eval B ρ
-eval (μ B)   ρ = μ (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
+eval (μ B)   ρ = neV (μ (readback (eval B ((renval S ∘ ρ) ,,⋆ fresh))))
 \end{code}
 
 \begin{code}
 idEnv : ∀ Γ → Env Γ Γ
 idEnv Γ = neV ∘ `
-{-
-idEnv ∅ ()
-idEnv (Γ ,⋆ K) Z     = fresh
-idEnv (Γ ,⋆ K) (S x) = renval S (idEnv Γ x)
--}
 \end{code}
 
 \begin{code}
