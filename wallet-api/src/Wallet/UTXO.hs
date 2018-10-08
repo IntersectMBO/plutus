@@ -101,7 +101,6 @@ import           Codec.CBOR.Encoding                      (Encoding)
 import qualified Codec.CBOR.Encoding                      as Enc
 import qualified Codec.CBOR.Write                         as Write
 import           Control.Monad                            (join)
-import           Control.Monad.Except
 import           Crypto.Hash                              (Digest, SHA256, hash)
 import qualified Data.ByteArray                           as BA
 import qualified Data.ByteString.Char8                    as BS
@@ -113,15 +112,13 @@ import           Data.Maybe                               (fromMaybe, isJust, li
 import           Data.Monoid                              (Sum (..))
 import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
-import qualified Debug.Trace                              as Trace
 import           Lens.Micro
 
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getAst, getSerializedCode)
 import           Language.Plutus.TH                       (plutus)
-import           Language.PlutusCore                      (applyProgram, typecheckPipeline)
+import           Language.PlutusCore                      (applyProgram)
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Quote
 
 {- Note [Serialisation and hashing]
 
@@ -539,8 +536,8 @@ spentOutputs = Set.map txInRef . txInputs
 -- | Unspent outputs of a ledger.
 unspentOutputs :: Blockchain -> Map TxOutRef' TxOut'
 unspentOutputs = foldr ins Map.empty . join where
-    ins t unspent = (unspent `Map.difference` lift (spentOutputs t)) `Map.union` unspentOutputsTx t
-    lift = Map.fromSet (const ())
+    ins t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` unspentOutputsTx t
+    lift' = Map.fromSet (const ())
 
 -- | Ledger and transaction state available to both the validator and redeemer
 --   scripts
@@ -611,7 +608,6 @@ runScript (ValidationData (getAst -> valData)) (Validator (getAst -> validator))
     let
         applied = ((validator `applyProgram` redeemer) `applyProgram` dataScript) `applyProgram` valData
         -- TODO: do something with the error
-        typecheck = either (const Nothing) Just $ runExcept $ runQuoteT $ void $ typecheckPipeline 1000 applied
     in isJust $ evaluationResultToMaybe $ runCk applied
         -- TODO: Enable type checking of the program
         -- void typecheck

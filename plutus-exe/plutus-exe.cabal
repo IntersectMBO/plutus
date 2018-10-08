@@ -9,15 +9,19 @@ author: Michael Peyton jones
 tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Executable for Plutus Core tools.
 description:
-    Exectuable for Plutus Core tools.
+    This provides an executable which handles typechecking and evaluation of Plutus Core programs on the command line.
 category: Language, Plutus
 build-type: Simple
-extra-source-files:
-extra-doc-files: README.md
 
 source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus-prototype
+
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
 
 executable plc
     main-is: Main.hs
@@ -26,13 +30,16 @@ executable plc
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
-        base -any,
+        base <5,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         bytestring -any,
         text -any,
         mtl -any,
         optparse-applicative -any
+
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
 
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
