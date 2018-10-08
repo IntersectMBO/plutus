@@ -20,6 +20,20 @@ infix  4 _⊢_
 infixl 5 _,_
 \end{code}
 
+# Evaluation contexts
+the first index is the kind of the hole, the second index is the type of the evalcxt
+\begin{code}
+data EvalCxt Γ (K : Kind) : Kind → Set where
+  •    : EvalCxt Γ K K
+  _·E_ : ∀{J L} → EvalCxt Γ K (J ⇒ L) → Γ ⊢⋆ J → EvalCxt Γ K L
+\end{code}
+
+\begin{code}
+applyE : ∀{Γ K K'} → EvalCxt Γ K K' → Γ ⊢⋆ K → Γ ⊢⋆ K'
+applyE •        t = t
+applyE (E ·E u) t = applyE E t · u
+\end{code}
+
 ## Contexts and erasure
 
 We need to mutually define contexts and their
@@ -108,13 +122,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
   wrap : ∀{Γ}
     → (S : ∥ Γ ∥ ,⋆ * ⊢⋆ *)
-    → (M : Γ ⊢ S [ μ S ])
-    → Γ ⊢ μ S
+    → (E : EvalCxt ∥ Γ ∥ * *)
+    → (M : Γ ⊢ applyE E (S [ μ S ]))
+    → Γ ⊢ applyE E (μ S)
 
   unwrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → (M : Γ ⊢ μ S)
-    → Γ ⊢ S [ μ S ]
+    → (E : EvalCxt ∥ Γ ∥ * *)
+    → (M : Γ ⊢ applyE E (μ S))
+    → Γ ⊢ applyE E (S [ μ S ])
 
   conv : ∀{Γ J}
     → {A B : ∥ Γ ∥ ⊢⋆ J}

@@ -32,8 +32,10 @@ import TermIndexedByNormalType.Examples
 -- in the absense of conversions in terms. This version of the syntax
 -- is arguably the most standard
 import TermIndexedBySyntacticType.Term
+{-
 import TermIndexedBySyntacticType.Term.RenamingSubstitution
 import TermIndexedBySyntacticType.Term.Reduction
 import TermIndexedBySyntacticType.Evaluation
 import TermIndexedBySyntacticType.Examples
+-}
 \end{code}
