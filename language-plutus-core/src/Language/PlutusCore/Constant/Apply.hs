@@ -192,4 +192,3 @@ applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignatu
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName TxHash               = applyTypedBuiltinName typedTxHash               undefined
 applyBuiltinName BlockNum             = undefined
-applyBuiltinName BlockTime            = undefined
