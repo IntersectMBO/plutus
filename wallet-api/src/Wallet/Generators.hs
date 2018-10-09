@@ -171,12 +171,12 @@ runTraceOn gm t = flip Wallet.Generators.runTrace t <$> genMockchain' gm
 -- | Split a value into max. n positive-valued parts such that the sum of the
 --   parts equals the original value.
 splitVal :: (MonadGen m, Integral n) => Int -> n -> m [n]
-splitVal mx init = go 0 0 [] where
+splitVal mx init' = go 0 0 [] where
     go i c l =
         if i >= pred mx
-        then pure $ (init - c) : l
+        then pure $ (init' - c) : l
         else do
-            v <- Gen.integral (Range.linear 1 $ init - c)
-            if v + c == init
+            v <- Gen.integral (Range.linear 1 $ init' - c)
+            if v + c == init'
             then pure $ v : l
             else go (succ i) (v + c) (v : l)

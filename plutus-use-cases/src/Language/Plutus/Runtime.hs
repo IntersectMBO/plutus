@@ -1,7 +1,7 @@
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 -- | A model of the types involved in transactions. These types are intented to
 --   be used in PLC scripts.
-module Language.Plutus.Coordination.Plutus (-- * Transactions and related types
+module Language.Plutus.Runtime (-- * Transactions and related types
                 PubKey(..)
               , Value
               , Height
