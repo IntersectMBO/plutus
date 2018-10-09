@@ -36,8 +36,8 @@ module Language.PlutusCore.Type ( Term (..)
                                 , getNormalizedType
                                 ) where
 
+import           Control.Monad.State                (evalState)
 import           Control.Monad.State.Class          (MonadState, get, modify)
-import           Control.Monad.State.Lazy           (evalState)
 import qualified Data.ByteString.Lazy               as BSL
 import           Data.Functor.Foldable
 import qualified Data.Map                           as M
