@@ -23,9 +23,9 @@ import qualified Wallet.Generators                                   as Gen
 import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor, CampaignPLC (..),
                                                                       contribute, refund)
 import qualified Language.Plutus.Coordination.Contracts.CrowdFunding as CF
-import           Language.Plutus.Coordination.Plutus                 (Hash (..), PendingTx (..), PendingTxIn (..),
-                                                                      PendingTxOut (..), PendingTxOutRef (..), Value)
 import           Language.Plutus.CoreToPLC.Plugin                    (plc)
+import           Language.Plutus.Runtime                             (Hash (..), PendingTx (..), PendingTxIn (..),
+                                                                      PendingTxOut (..), PendingTxOutRef (..), Value)
 import qualified Wallet.UTXO                                         as UTXO
 
 tests :: TestTree
