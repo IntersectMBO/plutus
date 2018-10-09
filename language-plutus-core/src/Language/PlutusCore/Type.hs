@@ -93,7 +93,7 @@ instance Corecursive (Type tyname a) where
     embed (TyLamF l tn k ty)    = TyLam l tn k ty
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
--- this type is used for replacing type names for efficient type environments in
+-- this type is used for replacing type names in
 -- the Eq instance
 type EqState tyname a = M.Map (tyname a) (tyname a)
 
@@ -113,6 +113,7 @@ rebindAndEq ty ty' tn tn' =
     rebind tn' tn *>
     eqTypeM ty ty'
 
+-- This tests for equality of names inside a monad that allows substitution.
 eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
         => Type tyname a
         -> Type tyname a
