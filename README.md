@@ -1,5 +1,12 @@
 # plutus-metatheory
-Mechanised meta theory for Plutus Core
+* Mechanised meta theory for Plutus Core *
+
+Plutus Core is the language Plutus programs are compiled into. It is
+based on System F omega with iso-recursive types.
+
+Meta theory is theory about the theory. It seeks to answer the
+questions of whether the language and its semantics are correct rather
+than whether a particular program is correct.
 
 This repository contains a formalisation of Plutus Core in Agda. Agda
 is both a dependently typed functional programming language and a
@@ -25,53 +32,62 @@ Then, two different implementations of the term language:
 
 ## Types
 
-Types are defined the Type module. They are intrinsically kinded so it
-is impossible to apply a type operator to arguments of the wrong kind.
+Types are defined the [Type](Type.lagda) module. They are
+intrinsically kinded so it is impossible to apply a type operator to
+arguments of the wrong kind.
 
 The type module is further subdivided into submodules:
 
-1. Type.RenamingSubstitution contains the operations of renaming and
-substitution for types and their proofs of correctness. These are
-necessary to, for example, define the beta rule for types in the
-equational theory and reduction relation (described below).
+1. [Type.RenamingSubstitution](Type/RenamingSubstitution.lagda)
+contains the operations of renaming and substitution for types and
+their proofs of correctness. These are necessary to, for example,
+define the beta rule for types in the equational theory and reduction
+relation (described below).
 
-2. Type.Equality contains the beta-equational theory of types. This is
-essentially a specification for the computational behaviour of types.
+2. [Type.Equality](Type/Equality.lagda) contains the beta-equational
+theory of types. This is essentially a specification for the
+computational behaviour of types.
 
-3. Type.Reduction contains the small step reduction relation, the
-progress/preservation results for types, and an evaluator for
-types. This result is not used later in the development but is in the spec.
+3. [Type.Reduction](Type/Reduction.lagda) contains the small step
+reduction relation, the progress/preservation results for types, and
+an evaluator for types. This result is not used later in the
+development but is in the spec.
 
-4. Type.BetaNormal contains beta normal forms for types as a separate
-syntax. Beta normal forms contain no beta-redexes and guaranteed not
-to compute any further.
+4. [Type.BetaNormal](Type/BetaNormal.lagda) contains beta normal forms
+for types as a separate syntax. Beta normal forms contain no
+beta-redexes and guaranteed not to compute any further.
 
-5. Type.BetaNBE contains a beta normaliser for types, it is defined in
-the style of "normalization-by-evaluation" (NBE) and is guaranteed to
-terminate. Further submodules define the correctness proofs for the
-normalizer and associated operations.
+5. [Type.BetaNBE](Type/BetaNBE.lagda) contains a beta normaliser for
+types, it is defined in the style of "normalization-by-evaluation"
+(NBE) and is guaranteed to terminate. Further submodules define the
+correctness proofs for the normalizer and associated operations.
 
-5.a. Type.BetaNBE.Soundness contains a proof that normalizer
-preserves the meaning of the types. Formally it states that if we
-normalize a type then the resultant normal form is equal (in the
-equational theory) to the type we started with.
+  * [Type.BetaNBE.Soundness](Type/BetaNBE/Soundness.lagda) contains a
+proof that normalizer preserves the meaning of the types. Formally it
+states that if we normalize a type then the resultant normal form is
+equal (in the equational theory) to the type we started with.
 
-5.b. Type.BetaNBE.Completeness contains a proof that the if we were to
-normalize two types that are equal in the equation theory then we will
-end up with identical normal forms.
+  * [Type.BetaNBE.Completeness](Type/BetaNBE/Completeness.lagda)
+contains a proof that the if we were to normalize two types that are
+equal in the equation theory then we will end up with identical normal
+forms.
 
-5.c. Type.BetaNBE.Stability contains a proof that normalization will
-preserve syntactic structure of terms already in normal form.
+  * [Type.BetaNBE.Stability](Type/BetaNBE/Stability.lagda) contains a
+proof that normalization will preserve syntactic structure of terms
+already in normal form.
 
-5.d. Type.BetaNBE.RenamingSubsitution contains a version of
-substitution that works on normal forms and ensures that the result is
-in normal form. This works by embedding normal forms back into syntax,
-performing a syntactic substitution and then renormalizing. The file
-also contains a correctness proof for this version of substitution.
+  *
+[Type.BetaNBE.RenamingSubsitution](Type/BetaNBE/RenamingSubstitution.lagda)
+contains a version of substitution that works on normal forms and
+ensures that the result is in normal form. This works by embedding
+normal forms back into syntax, performing a syntactic substitution and
+then renormalizing. The file also contains a correctness proof for
+this version of substitution.
 
 ## Terms indexed by syntactic types
 
-This version is contained in the TermIndexedBySyntacticType folder.
+This version is contained in the
+[TermIndexedBySyntacticType](TermIndexedBySyntacticType/) folder.
 
 This is a reference implementation with limited scope. We can define
 the terms in this way but their use is complicated by a separate
@@ -85,7 +101,8 @@ TODO: detailed description.
 
 # Terms indexed by normal types
 
-This version is contained in the TermIndexedByNormalType folder.
+This version is contained in the
+[TermIndexedByNormalType](TermIndexedByNormalType) folder.
 
 This version is able to handle type conversion by using the normalizer
 described above to ensure that types are always in normal form. This
