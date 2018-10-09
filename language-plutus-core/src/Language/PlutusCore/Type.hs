@@ -124,8 +124,8 @@ eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
         -> Type tyname a
         -> m Bool
 
-eqTypeM (TyFun _ ty ty') (TyFun _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
-eqTypeM (TyApp _ f a) (TyApp _ f' a') = (&&) <$> eqTypeM f f' <*> eqTypeM a a'
+eqTypeM (TyFun _ ty ty') (TyFun _ ty'' ty''') = eqTypeM ty ty'' <&&> eqTypeM ty' ty'''
+eqTypeM (TyApp _ f a) (TyApp _ f' a') = eqTypeM f f' <&&> eqTypeM a a'
 
 eqTypeM (TyInt _ n) (TyInt _ n')              = pure (n == n')
 eqTypeM (TyBuiltin _ b) (TyBuiltin _ b')      = pure (b == b')

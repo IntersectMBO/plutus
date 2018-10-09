@@ -28,9 +28,15 @@ main =
                   bgroup "CBOR"
                     [ bench "writeProgram" $ nf (fmap writeProgram) (parse g)
                     ]
+                , env typeCompare $ \ f ->
+                  let parsed = parse f in
+                    bgroup "equality"
+                        [ bench "Program equality" $ nf ((==) <$> parsed <*>) parsed
+                        ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"
           stringFile = BSL.readFile "test/data/stringLiteral.plc"
           files = (,) <$> envFile <*> stringFile
           largeTypeFile = BSL.readFile "test/types/negation.plc"
           cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+          typeCompare = BSL.readFile "test/types/example.plc"
