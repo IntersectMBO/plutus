@@ -62,28 +62,27 @@ types, it is defined in the style of "normalization-by-evaluation"
 (NBE) and is guaranteed to terminate. Further submodules define the
 correctness proofs for the normalizer and associated operations.
 
-  * [Type.BetaNBE.Soundness](Type/BetaNBE/Soundness.lagda) contains a
-proof that normalizer preserves the meaning of the types. Formally it
-states that if we normalize a type then the resultant normal form is
-equal (in the equational theory) to the type we started with.
-
-  * [Type.BetaNBE.Completeness](Type/BetaNBE/Completeness.lagda)
-contains a proof that the if we were to normalize two types that are
-equal in the equation theory then we will end up with identical normal
-forms.
-
-  * [Type.BetaNBE.Stability](Type/BetaNBE/Stability.lagda) contains a
-proof that normalization will preserve syntactic structure of terms
-already in normal form.
-
-  *
-[Type.BetaNBE.RenamingSubsitution](Type/BetaNBE/RenamingSubstitution.lagda)
-contains a version of substitution that works on normal forms and
-ensures that the result is in normal form. This works by embedding
-normal forms back into syntax, performing a syntactic substitution and
-then renormalizing. The file also contains a correctness proof for
-this version of substitution.
-
+   * [Type.BetaNBE.Soundness](Type/BetaNBE/Soundness.lagda) contains a
+     proof that normalizer preserves the meaning of the types. Formally it
+     states that if we normalize a type then the resultant normal form is
+     equal (in the equational theory) to the type we started with.
+ 
+   * [Type.BetaNBE.Completeness](Type/BetaNBE/Completeness.lagda)
+     contains a proof that the if we were to normalize two types that are
+     equal in the equation theory then we will end up with identical normal
+     forms.
+ 
+   * [Type.BetaNBE.Stability](Type/BetaNBE/Stability.lagda) contains a
+     proof that normalization will preserve syntactic structure of terms
+     already in normal form.
+ 
+   * [Type.BetaNBE.RenamingSubsitution](Type/BetaNBE/RenamingSubstitution.lagda)
+     contains a version of substitution that works on normal forms and
+     ensures that the result is in normal form. This works by embedding
+     normal forms back into syntax, performing a syntactic substitution and
+     then renormalizing. The file also contains a correctness proof for
+     this version of substitution.
+     
 ## Terms indexed by syntactic types
 
 This version is contained in the
@@ -99,7 +98,7 @@ beta-reductions. Such as Church/Scott Numerals.
 
 TODO: detailed description.
 
-# Terms indexed by normal types
+## Terms indexed by normal types
 
 This version is contained in the
 [TermIndexedByNormalType](TermIndexedByNormalType) folder.
