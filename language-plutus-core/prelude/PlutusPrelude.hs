@@ -41,6 +41,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , repeatM
                      , (?)
                      , hoist
+                     , (<&&>)
                      -- * Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
