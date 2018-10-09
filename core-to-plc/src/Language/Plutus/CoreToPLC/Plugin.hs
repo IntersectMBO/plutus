@@ -49,10 +49,10 @@ getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
 
 -- | Apply a function to an argument in PLC
 applyPlc :: PlcCode -> PlcCode -> PlcCode
-applyPlc (getAst -> f) (getAst -> x) = PlcCode words where
+applyPlc (getAst -> f) (getAst -> x) = PlcCode words' where
     program = f `PLC.applyProgram` x
     serialized = PLC.writeProgram program
-    (words :: [Word]) = fromIntegral <$> BSL.unpack serialized
+    words' = fromIntegral <$> BSL.unpack serialized
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

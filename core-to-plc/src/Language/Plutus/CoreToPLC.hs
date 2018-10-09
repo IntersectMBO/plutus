@@ -26,7 +26,6 @@ import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function as Function
-import qualified Language.PlutusCore.StdLib.Data.Unit     as Unit
 
 import qualified Language.Haskell.TH.Syntax               as TH
 

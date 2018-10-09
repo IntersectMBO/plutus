@@ -301,10 +301,10 @@ assertOwnFunds w p = assertion go where
 
 -- | Assert that the funds owned by a wallet are equal to an amount
 assertOwnFundsEq :: Wallet -> Value -> Trace ()
-assertOwnFundsEq w target = assertOwnFunds w pred where
+assertOwnFundsEq w target = assertOwnFunds w p where
     tshow :: Show a => a -> T.Text
     tshow = T.pack . show
-    pred v
+    p v
         | v == target = Nothing
         | otherwise   = Just $ T.unwords ["Funds in wallet", tshow w, "were", tshow v, ". Expected:", tshow target]
 

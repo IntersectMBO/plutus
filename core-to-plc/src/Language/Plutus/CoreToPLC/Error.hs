@@ -12,7 +12,6 @@ module Language.Plutus.CoreToPLC.Error (
 
 import qualified Language.PlutusCore        as PLC
 import qualified Language.PlutusCore.Pretty as PLC
-import qualified PlutusPrelude              as PLC
 
 import           Control.Monad.Except
 import qualified Data.Text                  as T
