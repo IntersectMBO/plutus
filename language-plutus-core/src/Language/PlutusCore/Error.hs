@@ -43,7 +43,7 @@ data RenameError a
     deriving (Show, Eq, Generic, NFData)
 
 data TypeError a
-    = InternalError -- ^ This is thrown if builtin lookup fails
+    = NotImplemented
     | KindMismatch { _loc      :: a
                    , _inType   :: Type TyNameWithKind ()
                    , _expected :: Kind ()
@@ -110,7 +110,6 @@ instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError 
         "is not in scope."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy _      InternalError             = "Internal error."
     prettyBy config (KindMismatch x ty k k')  =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -126,6 +125,7 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
     prettyBy _      OutOfGas                  = "Type checker ran out of gas."
+    prettyBy _ NotImplemented = "Not yet implemented."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e

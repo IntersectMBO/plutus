@@ -22,7 +22,7 @@ getElimCtx :: MonadError (TypeError a) m
            -> Type TyNameWithKind () -- ^ S
            -> Type TyNameWithKind () -- ^ E{[(fix a S)/a] S}
            -> m ElimCtx -- ^ E
-getElimCtx _ _ _ = throwError InternalError -- FIXME handle this case
+getElimCtx _ _ _ = throwError NotImplemented -- FIXME handle this case
 
 -- | Given a type Q, we extract (a, S) such that Q = E{(fix a S)} for some E
 extractFix :: MonadError (TypeError a) m
@@ -30,4 +30,4 @@ extractFix :: MonadError (TypeError a) m
            -> m (TyNameWithKind (), Type TyNameWithKind ()) -- ^ (a, S)
 extractFix (TyFix _ tn ty) = pure (tn, ty)
 extractFix (TyApp _ ty _)  = extractFix ty -- can't happen b/c we need ty have to the appropriate kind?
-extractFix _               = throwError InternalError -- FIXME: don't do this
+extractFix _               = throwError NotImplemented -- FIXME: don't do this
