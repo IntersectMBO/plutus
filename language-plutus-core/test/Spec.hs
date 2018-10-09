@@ -142,8 +142,8 @@ testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeC
     normalizeType =<< appAppLamLam
 
 
-testTypeEq :: Bool
-testTypeEq =
+testRebindCapturedVariable :: Bool
+testRebindCapturedVariable =
     let
         xName = TyName (Name () "x" (Unique 0))
         yName = TyName (Name () "y" (Unique 1))
@@ -162,6 +162,23 @@ testTypeEq =
     in
         type0 == type1
 
+testRebindShadowedVariable :: Bool
+testRebindShadowedVariable =
+    let
+        xName = TyName (Name () "x" (Unique 0))
+        yName = TyName (Name () "y" (Unique 1))
+
+        varX = TyVar () xName
+        varY = TyVar () yName
+
+        typeKind = Type ()
+
+        -- (all x (type) (fun (all y (type) y) x))
+        type0 = TyForall () xName typeKind (TyFun () (TyForall () yName typeKind varY) varX)
+        -- (all x (type) (fun (all x (type) x) x))
+        type1 = TyForall () xName typeKind (TyFun () (TyForall () xName typeKind varX) varX)
+    in
+        type0 == type1
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
@@ -169,6 +186,7 @@ tests = testCase "example programs" $ fold
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
-    , testTypeEq @?= True
+    , testRebindCapturedVariable @?= True
+    , testRebindShadowedVariable @?= True
     ]
     where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

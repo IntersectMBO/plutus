@@ -103,6 +103,11 @@ rebind :: (Ord (tyname a), MonadState (EqState tyname a) m)
        -> m ()
 rebind = modify .* M.insert
 
+remove :: (Ord (tyname a), MonadState (EqState tyname a) m)
+       => tyname a
+       -> m ()
+remove = modify . M.delete
+
 rebindAndEq :: (Eq a, Ord (tyname a), MonadState (EqState tyname a) m)
             => Type tyname a
             -> Type tyname a
@@ -111,7 +116,7 @@ rebindAndEq :: (Eq a, Ord (tyname a), MonadState (EqState tyname a) m)
             -> m Bool
 rebindAndEq ty ty' tn tn' =
     rebind tn' tn *>
-    eqTypeM ty ty'
+    eqTypeM ty ty' <* remove tn'
 
 -- This tests for equality of names inside a monad that allows substitution.
 eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
@@ -120,7 +125,7 @@ eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
         -> m Bool
 
 eqTypeM (TyFun _ ty ty') (TyFun _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
-eqTypeM (TyApp _ ty ty') (TyApp _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
+eqTypeM (TyApp _ f a) (TyApp _ f' a') = (&&) <$> eqTypeM f f' <*> eqTypeM a a'
 
 eqTypeM (TyInt _ n) (TyInt _ n')              = pure (n == n')
 eqTypeM (TyBuiltin _ b) (TyBuiltin _ b')      = pure (b == b')
@@ -129,10 +134,10 @@ eqTypeM (TyFix _ tn ty) (TyFix _ tn' ty') =
     rebindAndEq ty ty' tn tn'
 eqTypeM (TyForall _ tn k ty) (TyForall _ tn' k' ty') = do
     tyEq <- rebindAndEq ty ty' tn tn'
-    pure (tyEq && k == k')
+    pure (k == k' && tyEq)
 eqTypeM (TyLam _ tn k ty) (TyLam _ tn' k' ty') = do
     tyEq <- rebindAndEq ty ty' tn tn'
-    pure (tyEq && k == k')
+    pure (k == k' && tyEq)
 
 eqTypeM (TyVar _ tn) (TyVar _ tn') = do
     eqSt <- get
