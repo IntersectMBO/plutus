@@ -11,6 +11,13 @@ main =
     defaultMain [ env envFile $ \ f ->
                   bgroup "format"
                       [ bench "format" $ nf (format cfg :: BSL.ByteString -> Either (Error AlexPosn) T.Text) f ]
+                , env typeCompare $ \ ~(f, g) ->
+                  let parsed0 = parse f
+                      parsed1 = parse g
+                  in
+                    bgroup "equality"
+                        [ bench "Program equality" $ nf ((==) <$> parsed0 <*>) parsed1
+                        ]
                 , env files $ \ ~(f, g) ->
                   bgroup "parse"
                       [ bench "parse (addInteger)" $ nf parse f
@@ -28,15 +35,12 @@ main =
                   bgroup "CBOR"
                     [ bench "writeProgram" $ nf (fmap writeProgram) (parse g)
                     ]
-                , env typeCompare $ \ f ->
-                  let parsed = parse f in
-                    bgroup "equality"
-                        [ bench "Program equality" $ nf ((==) <$> parsed <*>) parsed
-                        ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"
           stringFile = BSL.readFile "test/data/stringLiteral.plc"
           files = (,) <$> envFile <*> stringFile
           largeTypeFile = BSL.readFile "test/types/negation.plc"
           cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
-          typeCompare = BSL.readFile "test/types/example.plc"
+          typeCompare0 = BSL.readFile "test/types/example.plc"
+          typeCompare1 = BSL.readFile "bench/example-compare.plc"
+          typeCompare = (,) <$> typeCompare0 <*> typeCompare1
