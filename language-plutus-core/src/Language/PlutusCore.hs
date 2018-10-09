@@ -65,7 +65,6 @@ module Language.PlutusCore
     , TypeError (..)
     , TypeCheckCfg (..)
     , TypeCheckM
-    , BuiltinTable (..)
     , parseTypecheck
     -- for testing
     , normalizeType

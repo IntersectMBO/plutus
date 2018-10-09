@@ -1,5 +1,15 @@
 
-module Language.PlutusCore.MkPlc where
+module Language.PlutusCore.MkPlc ( mkTermLet
+                                 , mkTypeLet
+                                 , mkIterTyForall
+                                 , mkIterTyLam
+                                 , mkIterApp
+                                 , mkIterTyFun
+                                 , mkIterLamAbs
+                                 , mkIterInst
+                                 , mkIterTyAbs
+                                 , mkIterTyApp
+                                 ) where
 
 import           Language.PlutusCore.Type
 

@@ -7,10 +7,10 @@ module Language.Plutus.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
-import           Language.Plutus.Coordination.Plutus  (OracleValue (..), PendingTx (..), PendingTxIn (..),
-                                                       PendingTxOut (..), PubKey, Value)
 import           Language.Plutus.CoreToPLC.Plugin     (plc)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
+import           Language.Plutus.Runtime              (OracleValue (..), PendingTx (..), PendingTxIn (..),
+                                                       PendingTxOut (..), PubKey, Value)
 import           Wallet.UTXO                          (Height, Validator (..))
 
 import           Data.Ratio                           (Ratio)
@@ -32,7 +32,7 @@ data Swap = Swap
     , swapFixedRate       :: !(Ratio Int) -- ^ Interest rate fixed at the beginning of the contract
     , swapFloatingRate    :: !(Ratio Int) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Value -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
-    , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.Plutus.Coordination.Plutus]])
+    , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.Plutus.Runtime]])
     }
 
 -- | Identities of the parties involved in the swap. This will be the data

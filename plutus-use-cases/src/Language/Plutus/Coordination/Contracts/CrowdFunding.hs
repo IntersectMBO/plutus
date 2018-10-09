@@ -29,8 +29,8 @@ import           Control.Monad                        (Monad (..))
 import           Control.Monad.Error.Class            (MonadError (..))
 import qualified Data.Set                             as Set
 
-import           Language.Plutus.Coordination.Plutus  (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
+import           Language.Plutus.Runtime              (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
 import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
 import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
                                                        otherError, pubKey)

@@ -43,8 +43,7 @@ data RenameError a
     deriving (Show, Eq, Generic, NFData)
 
 data TypeError a
-    = InternalError -- ^ This is thrown if builtin lookup fails
-    | KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
+    = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
@@ -106,7 +105,6 @@ instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError 
         "is not in scope."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy _      InternalError             = "Internal error."
     prettyBy config (KindMismatch x ty k k')  =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>

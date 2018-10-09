@@ -17,14 +17,19 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus-prototype
 
+flag development
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
+
 library
     exposed-modules:
-        Wallet.API,
-        Wallet.Emulator,
-        Wallet.Emulator.Types,
-        Wallet.Generators,
+        Wallet.API
+        Wallet.Emulator
+        Wallet.Emulator.Types
+        Wallet.Generators
         Wallet.UTXO
-    other-modules:
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -38,7 +43,7 @@ library
                       ExistentialQuantification
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
+                 -Wredundant-constraints
     build-depends:
         base >=4.9 && <5,
         ghc -any,
@@ -62,11 +67,14 @@ library
         hedgehog -any,
         microlens -any
 
+    if (flag(development) && impl(ghc <8.4))
+        ghc-options: -Werror
+
 test-suite wallet-api-test
-    default-language: Haskell2010
-    hs-source-dirs: test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    hs-source-dirs: test
+    default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         containers -any,

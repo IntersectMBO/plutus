@@ -27,6 +27,14 @@ extra-deps:
 flags:
   language-plutus-core:
     development: true
+  wallet-api:
+    development: true
+  core-to-plc:
+    development: true
+  plutus-exe:
+    development: true
+  plutus-core-interpreter:
+    development: true
 extra-package-dbs: []
 nix:
   packages: [gmp, openssl]

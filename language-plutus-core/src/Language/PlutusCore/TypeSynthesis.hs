@@ -7,7 +7,6 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , normalizeType
                                          , runTypeCheckM
                                          , TypeCheckM
-                                         , BuiltinTable (..)
                                          , TypeError (..)
                                          , TypeCheckCfg (..)
                                          ) where
@@ -15,35 +14,39 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State      hiding (get, modify)
-import qualified Data.IntMap                    as IM
-import qualified Data.Map                       as M
+import           Control.Monad.Trans.State          hiding (get, modify)
+import qualified Data.IntMap                        as IM
 import           Language.PlutusCore.Clone
+import           Language.PlutusCore.Constant.Typed (typeOfBuiltinName)
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type hiding (name)
+import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty         (prettyPlcDefString)
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer        (annotateType)
 import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
 
--- | A builtin table contains the kinds of builtin types and the types of
--- builtin names.
-data BuiltinTable = BuiltinTable (M.Map TypeBuiltin (Kind ())) (M.Map BuiltinName (NormalizedType TyNameWithKind ()))
+newtype TypeConfig = TypeConfig
+    { _typeConfigNormalize :: Bool  -- ^ Whether we normalize type annotations
+    }
 
 type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
 
-data TypeConfig = TypeConfig { _reduce   :: Bool -- ^ Whether we reduce type annotations
-                             , _builtins :: BuiltinTable -- ^ Builtin types
-                             }
+data TypeCheckSt = TypeCheckSt
+    { _uniqueLookup :: TypeSt
+    , _gas          :: Natural
+    }
 
-data TypeCheckSt = TypeCheckSt { _uniqueLookup :: TypeSt
-                               , _gas          :: Natural
-                               }
+data TypeCheckCfg = TypeCheckCfg
+    { _cfgGas       :: Natural  -- ^ Gas to be provided to the typechecker
+    , _cfgNormalize :: Bool     -- ^ Whether we should normalize type annotations
+    }
 
-data TypeCheckCfg = TypeCheckCfg { _cfgGas       :: Natural -- ^ Gas to be provided to the typechecker
-                                 , _cfgNormalize :: Bool -- ^ Whether we should reduce type annotations
-                                 }
+-- | The type checking monad contains the 'BuiltinTable' and it lets us throw
+-- 'TypeError's.
+type TypeCheckM a = StateT TypeCheckSt (ReaderT TypeConfig (ExceptT (TypeError a) Quote))
 
 uniqueLookup :: Lens' TypeCheckSt TypeSt
 uniqueLookup f s = fmap (\x -> s { _uniqueLookup = x }) (f (_uniqueLookup s))
@@ -51,66 +54,13 @@ uniqueLookup f s = fmap (\x -> s { _uniqueLookup = x }) (f (_uniqueLookup s))
 gas :: Lens' TypeCheckSt Natural
 gas f s = fmap (\x -> s { _gas = x }) (f (_gas s))
 
--- | The type checking monad contains the 'BuiltinTable' and it lets us throw
--- 'TypeError's.
-type TypeCheckM a = StateT TypeCheckSt (ReaderT TypeConfig (ExceptT (TypeError a) Quote))
+sizeToType :: Kind ()
+sizeToType = KindArrow () (Size ()) (Type ())
 
--- | Create a new 'Type' for an integer operation.
-intop :: (MonadQuote m) => m (NormalizedType TyNameWithKind ())
-intop = do
-    nam <- newTyName (Size ())
-    let ity = TyApp () (TyBuiltin () TyInteger) (TyVar () nam)
-        fty = TyFun () ity (TyFun () ity ity)
-    pure $ NormalizedType $ TyForall () nam (Size ()) fty
-
--- | Create a new 'Type' for an integer relation
-intRel :: (MonadQuote m)  => m (NormalizedType TyNameWithKind ())
-intRel = NormalizedType <$> builtinRel TyInteger
-
-bsRel :: (MonadQuote m) => m (NormalizedType TyNameWithKind ())
-bsRel = NormalizedType <$> builtinRel TyByteString
-
--- | Create a dummy 'TyName'
-newTyName :: (MonadQuote m) => Kind () -> m (TyNameWithKind ())
-newTyName k = do
-    u <- nameUnique . unTyName <$> liftQuote (freshTyName () "a")
-    pure $ TyNameWithKind (TyName (Name ((), k) "a" u))
-
-boolean :: MonadQuote m => m (Type TyNameWithKind ())
-boolean = do
-    nam <- newTyName (Type ())
-    let var = TyVar () nam
-    pure $ TyForall () nam (Type ()) (TyFun () var (TyFun () var var))
-
-builtinRel :: (MonadQuote m) => TypeBuiltin -> m (Type TyNameWithKind ())
-builtinRel bi = do
-    nam <- newTyName (Size ())
-    b <- boolean
-    let ity = TyApp () (TyBuiltin () bi) (TyVar () nam)
-        fty = TyFun () ity (TyFun () ity b)
-    pure $ TyForall () nam (Size ()) fty
-
-txHash :: NormalizedType TyNameWithKind ()
-txHash = NormalizedType $ TyApp () (TyBuiltin () TyByteString) (TyInt () 256)
-
-defaultTable :: (MonadQuote m) => m BuiltinTable
-defaultTable = do
-
-    let tyTable = M.fromList [ (TyByteString, KindArrow () (Size ()) (Type ()))
-                             , (TySize      , KindArrow () (Size ()) (Type ()))
-                             , (TyInteger   , KindArrow () (Size ()) (Type ()))
-                             ]
-        intTypes = [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, RemainderInteger ]
-        intRelTypes = [ LessThanInteger, LessThanEqInteger, GreaterThanInteger, GreaterThanEqInteger, EqInteger ]
-
-    is <- repeatM (length intTypes) intop
-    irs <- repeatM (length intRelTypes) intRel
-    bsRelType <- bsRel
-
-    let f = M.fromList .* zip
-        termTable = f intTypes is <> f intRelTypes irs <> f [TxHash, EqByteString] [txHash, bsRelType]
-
-    pure $ BuiltinTable tyTable termTable
+kindOfBuiltinType :: TypeBuiltin -> Kind ()
+kindOfBuiltinType TyInteger    = sizeToType
+kindOfBuiltinType TyByteString = sizeToType
+kindOfBuiltinType TySize       = sizeToType
 
 -- | Type-check a program, returning a normalized type.
 typecheckProgram :: (MonadError (Error a) m, MonadQuote m)
@@ -137,9 +87,8 @@ kindCheck cfg t = convertErrors asError $ runTypeCheckM cfg (kindOf t)
 runTypeCheckM :: TypeCheckCfg
               -> TypeCheckM a b
               -> ExceptT (TypeError a) Quote b
-runTypeCheckM (TypeCheckCfg i n) tc = do
-    table <- defaultTable
-    runReaderT (evalStateT tc (TypeCheckSt mempty i)) (TypeConfig n table)
+runTypeCheckM (TypeCheckCfg i n) tc =
+    runReaderT (evalStateT tc (TypeCheckSt mempty i)) (TypeConfig n)
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
@@ -160,11 +109,7 @@ kindOf (TyForall x _ _ ty) = do
     pure $ Type ()
 kindOf (TyLam _ _ argK body) = KindArrow () (void argK) <$> kindOf body
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
-kindOf (TyBuiltin _ b) = do
-    (TypeConfig _ (BuiltinTable tyst _)) <- ask
-    case M.lookup b tyst of
-        Just k -> pure k
-        _      -> throwError InternalError
+kindOf (TyBuiltin _ b) = pure $ kindOfBuiltinType b
 kindOf (TyFix x _ pat) = do
     kindCheckM x pat $ Type ()
     pure $ Type ()
@@ -266,11 +211,11 @@ typeOf (Error x ty)                              = do
 typeOf (TyAbs _ n nK body)                       =
     TyForall () (void n) (void nK) <<$>> typeOf body
 
-typeOf (Constant _ (BuiltinName _ n)) = do
-    (TypeConfig _ (BuiltinTable _ st)) <- ask
-    case M.lookup n st of
-        Just k -> pure k
-        _      -> throwError InternalError
+typeOf (Constant _ (BuiltinName _ name))         = do
+    tyOfName <- liftQuote $ typeOfBuiltinName name
+    case annotateType tyOfName of
+        Left  err         -> error $ "Internal error: " ++ prettyPlcDefString err
+        Right annTyOfName -> pure $ NormalizedType annTyOfName
 typeOf (Constant _ (BuiltinInt _ n _))           = pure (integerType n)
 typeOf (Constant _ (BuiltinBS _ n _))            = pure (bsType n)
 typeOf (Constant _ (BuiltinSize _ n))            = pure (sizeType n)
@@ -369,8 +314,8 @@ tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
 -- if we are working with normalized type annotations
 normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeOpt ty = do
-    TypeConfig norm _ <- ask
-    if norm
+    typeConfig <- ask
+    if _typeConfigNormalize typeConfig
         then normalizeType ty
         else pure $ NormalizedType ty
 
