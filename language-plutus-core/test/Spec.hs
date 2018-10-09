@@ -141,11 +141,34 @@ testLam :: Either (TypeError ()) String
 testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 False) $
     normalizeType =<< appAppLamLam
 
+
+testTypeEq :: Bool
+testTypeEq =
+    let
+        xName = TyName (Name () "x" (Unique 0))
+        yName = TyName (Name () "y" (Unique 1))
+        zName = TyName (Name () "z" (Unique 2))
+
+        varX = TyVar () xName
+        varY = TyVar () yName
+        varZ = TyVar () zName
+
+        typeKind = Type ()
+
+        -- (all y (type) (all z (type) (fun y z)))
+        type0 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))
+        -- (all x (type) (all y (type) (fun x y)))
+        type1 = TyForall () xName typeKind (TyForall () yName typeKind (TyFun () varX varY))
+    in
+        type0 == type1
+
+
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
+    , testTypeEq @?= True
     ]
     where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

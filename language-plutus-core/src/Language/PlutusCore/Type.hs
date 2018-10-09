@@ -109,15 +109,21 @@ rebindAndEq :: (Eq a, Ord (tyname a), MonadState (EqState tyname a) m)
             -> tyname a
             -> tyname a
             -> m Bool
-rebindAndEq ty ty' tn tn' = do
-    rebind tn' tn
+rebindAndEq ty ty' tn tn' =
+    rebind tn' tn *>
     eqTypeM ty ty'
 
-eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a) => Type tyname a -> Type tyname a -> m Bool
+eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
+        => Type tyname a
+        -> Type tyname a
+        -> m Bool
+
 eqTypeM (TyFun _ ty ty') (TyFun _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
 eqTypeM (TyApp _ ty ty') (TyApp _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
+
 eqTypeM (TyInt _ n) (TyInt _ n')              = pure (n == n')
 eqTypeM (TyBuiltin _ b) (TyBuiltin _ b')      = pure (b == b')
+
 eqTypeM (TyFix _ tn ty) (TyFix _ tn' ty') =
     rebindAndEq ty ty' tn tn'
 eqTypeM (TyForall _ tn k ty) (TyForall _ tn' k' ty') = do
@@ -126,11 +132,13 @@ eqTypeM (TyForall _ tn k ty) (TyForall _ tn' k' ty') = do
 eqTypeM (TyLam _ tn k ty) (TyLam _ tn' k' ty') = do
     tyEq <- rebindAndEq ty ty' tn tn'
     pure (tyEq && k == k')
+
 eqTypeM (TyVar _ tn) (TyVar _ tn') = do
     eqSt <- get
     case M.lookup tn' eqSt of
         Just tn'' -> pure (tn == tn'')
         Nothing   -> pure (tn == tn')
+
 eqTypeM _ _ = pure False
 
 instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
