@@ -36,15 +36,17 @@ module Language.PlutusCore.Type ( Term (..)
                                 , getNormalizedType
                                 ) where
 
+import           Control.Monad.State.Class          (MonadState, get, modify)
+import           Control.Monad.State.Lazy           (evalState)
+import qualified Data.ByteString.Lazy               as BSL
+import           Data.Functor.Foldable
+import qualified Data.Map                           as M
+import           Data.Text.Prettyprint.Doc.Internal (enclose)
+import           Instances.TH.Lift                  ()
 import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           PlutusPrelude
-
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.Functor.Foldable
-import           Data.Text.Prettyprint.Doc.Internal (enclose)
-import           Instances.TH.Lift                  ()
 
 type Size = Natural
 
@@ -91,29 +93,48 @@ instance Corecursive (Type tyname a) where
     embed (TyLamF l tn k ty)    = TyLam l tn k ty
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
--- | Substitute @a@ for @b@ in @c@.
-tyNameSubstitute :: Eq (tyname a)
-                 => tyname a -- ^ @a@
-                 -> tyname a -- ^ @b@
-                 -> Type tyname a -- ^ @c@
-                 -> Type tyname a
-tyNameSubstitute tn tn' = cata a where
-    a (TyVarF x tn'') | tn == tn'' = TyVar x tn'
-    a x               = embed x
+-- this type is used for replacing type names for efficient type environments in
+-- the Eq instance
+type EqState tyname a = M.Map (tyname a) (tyname a)
 
-instance (Eq (tyname a), Eq a) => Eq (Type tyname a) where
-    (==) (TyVar a1 tn) (TyVar a2 tn')                   = a1 == a2 && tn == tn'
-    (==) (TyFun a1 ty ty') (TyFun a2 ty'' ty''')        = a1 == a2 && ty == ty'' && ty' == ty'''
-    (==) (TyFix a1 tn ty) (TyFix a2 tn' ty')            =
-        a1 == a2 && tyNameSubstitute tn' tn ty' == ty
-    (==) (TyForall a1 tn k ty) (TyForall a2 tn' k' ty') =
-        a1 == a2 && tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyBuiltin a1 b) (TyBuiltin a2 b')             = a1 == a2 && b == b'
-    (==) (TyInt a1 n) (TyInt a2 n')                     = a1 == a2 && n == n'
-    (==) (TyLam a1 tn k ty) (TyLam a2 tn' k' ty')       =
-        a1 == a2 && tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyApp a1 ty ty') (TyApp a2 ty'' ty''')        = a1 == a2 && ty == ty'' && ty' == ty'''
-    (==) _ _                                            = False
+rebind :: (Ord (tyname a), MonadState (EqState tyname a) m)
+       => tyname a
+       -> tyname a
+       -> m ()
+rebind = modify .* M.insert
+
+rebindAndEq :: (Eq a, Ord (tyname a), MonadState (EqState tyname a) m)
+            => Type tyname a
+            -> Type tyname a
+            -> tyname a
+            -> tyname a
+            -> m Bool
+rebindAndEq ty ty' tn tn' = do
+    rebind tn' tn
+    eqTypeM ty ty'
+
+eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a) => Type tyname a -> Type tyname a -> m Bool
+eqTypeM (TyFun _ ty ty') (TyFun _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
+eqTypeM (TyApp _ ty ty') (TyApp _ ty'' ty''') = (&&) <$> eqTypeM ty ty'' <*> eqTypeM ty' ty'''
+eqTypeM (TyInt _ n) (TyInt _ n')              = pure (n == n')
+eqTypeM (TyBuiltin _ b) (TyBuiltin _ b')      = pure (b == b')
+eqTypeM (TyFix _ tn ty) (TyFix _ tn' ty') =
+    rebindAndEq ty ty' tn tn'
+eqTypeM (TyForall _ tn k ty) (TyForall _ tn' k' ty') = do
+    tyEq <- rebindAndEq ty ty' tn tn'
+    pure (tyEq && k == k')
+eqTypeM (TyLam _ tn k ty) (TyLam _ tn' k' ty') = do
+    tyEq <- rebindAndEq ty ty' tn tn'
+    pure (tyEq && k == k')
+eqTypeM (TyVar _ tn) (TyVar _ tn') = do
+    eqSt <- get
+    case M.lookup tn' eqSt of
+        Just tn'' -> pure (tn == tn'')
+        Nothing   -> pure (tn == tn')
+eqTypeM _ _ = pure False
+
+instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
+    (==) ty ty' = evalState (eqTypeM ty ty') mempty
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
@@ -223,7 +244,7 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
 
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Show, Eq, Functor, Generic)
+    deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
 
 newtype Normalized a = Normalized { getNormalized :: a }
