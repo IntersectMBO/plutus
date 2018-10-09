@@ -1,5 +1,5 @@
 # plutus-metatheory
-* Mechanised meta theory for Plutus Core *
+*Mechanised meta theory for Plutus Core*
 
 Plutus Core is the language Plutus programs are compiled into. It is
 based on System F omega with iso-recursive types.
@@ -15,11 +15,15 @@ languages.
 
 The formalisation requires Agda version 2.5.4.1 or higher.
 
-The formalisation currently covers System F omega with iso recursive
-types: the core of Plutus Core. Progress and preservation have been
-proven for the language and it is possible to run small
-examples. Current work is focused on scaling up the formalisation to
-full Plutus Core.
+## Status
+
+The formalisation currently covers System F omega with iso-recursive
+types: the core of Plutus Core. Progress has been proven. Preservation
+holds inherently and it is possible to run small examples using the
+evaluator for terms. Current work is focused on scaling up the
+formalisation to full Plutus Core.
+
+## Structure
 
 The formalisation is split into three sections. Firstly,
 
@@ -90,13 +94,36 @@ This version is contained in the
 
 This is a reference implementation with limited scope. We can define
 the terms in this way but their use is complicated by a separate
-syntactic constructor for type conversion (type cast/coercion). The
-version of progress and preservation and the evaluator do not handle
-this constructor. Nevertheless this is sufficient to handle examples
-which do not require computing the types before applying
-beta-reductions. Such as Church/Scott Numerals.
+syntactic constructor for type conversion (type cast/coercion). In
+this version progress, and evaluation do not handle the
+conversion constructor. They fail if the encounter it. Nevertheless
+this is sufficient to handle examples which do not require computing
+the types before applying beta-reductions. Such as Church/Scott
+Numerals.
 
-TODO: detailed description.
+
+1. The [TermIndexedBySyntacticType.Term](TermIndexedBySyntacticType/Term.lagda)
+module contains the definition of terms. This module has two further submodules:
+
+   1. [TermIndexedBySyntacticType.Term.RenamingSubstitution](TermIndexedBySyntacticType/Term/RenamingSubstitution.lagda)
+      contains the defintions of substitution for terms that is necessary to
+      specify the beta-rules in the reduction relation. This definition and
+      those it depends on, in turn, depend on the definitions and correctness
+      proofs of the corresponding type level operations.
+
+   2. [TermIndexedBySyntacticType.Term.Reduction](TermIndexedBySyntacticType/Term/Reduction.lagda)
+      This file contains the reduction relation for terms (also known as the
+      small step operational semantics) and the progress proof.
+      Preservation is, again, inherent.
+
+2. [TermIndexedBySyntacticType.Evaluation](TermIndexedBySyntacticType/Evaluation.lagda)
+contains the evaluator the terms. It takes a *gas* argument which is
+the number of steps of reduction that are allowed. It returns both a
+result and trace of reduction steps or *out of gas*.
+
+3. [TermIndexedBySyntacticType.Examples](TermIndexedBySyntacticType/Examples.lagda)
+contains some examples of Church and Scott Numerals. Currently it is
+very memory intensive to type check this file and/or run examples.
 
 ## Terms indexed by normal types
 
