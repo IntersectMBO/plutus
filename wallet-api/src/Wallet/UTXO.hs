@@ -1,10 +1,17 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DefaultSignatures  #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TupleSections      #-}
+{-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Wallet.UTXO(
     -- * Basic types
     Value(..),
@@ -79,32 +86,21 @@ module Wallet.UTXO(
     inRef,
     inType,
     inScripts,
-    inSignature,
-    -- * Encodings
-    encodePubKey,
-    encodeSignature,
-    encodeValue,
-    encodeValidator,
-    encodeDataScript,
-    encodeRedeemer,
-    encodeHeight,
-    encodeTxId,
-    encodeAddress,
-    encodeTx,
-    encodeTxOutRef,
-    encodeTxIn,
-    encodeTxInType,
-    encodeTxOut,
-    encodeTxOutType
+    inSignature
     ) where
 
-import           Codec.CBOR.Encoding                      (Encoding)
-import qualified Codec.CBOR.Encoding                      as Enc
 import qualified Codec.CBOR.Write                         as Write
+import           Codec.Serialise                          (deserialiseOrFail)
+import           Codec.Serialise.Class                    (Serialise, decode, encode)
 import           Control.Monad                            (join)
-import           Crypto.Hash                              (Digest, SHA256, hash)
+import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
+import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON), withText)
+import qualified Data.Aeson                               as JSON
+import           Data.Bifunctor                           (first)
 import qualified Data.ByteArray                           as BA
-import qualified Data.ByteString.Char8                    as BS
+import qualified Data.ByteString                          as BSS
+import qualified Data.ByteString.Base64                   as Base64
+import qualified Data.ByteString.Char8                    as BS8
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (foldMap)
 import           Data.Map                                 (Map)
@@ -113,6 +109,8 @@ import           Data.Maybe                               (fromMaybe, isJust, li
 import           Data.Monoid                              (Sum (..))
 import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
+import qualified Data.Text.Encoding                       as TE
+import           GHC.Generics                             (Generic)
 import           Lens.Micro
 
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getAst, getSerializedCode)
@@ -147,15 +145,13 @@ especially because we only need one direction (to binary).
 -- | Public key
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
-
-encodePubKey :: PubKey -> Encoding
-encodePubKey = Enc.encodeInt . getPubKey
+    deriving stock (Generic)
+    deriving newtype (Serialise, ToJSON, FromJSON)
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
-
-encodeSignature :: Signature -> Encoding
-encodeSignature = Enc.encodeInt . getSignature
+    deriving stock (Generic)
+    deriving newtype (Serialise, ToJSON, FromJSON)
 
 -- | True if the signature matches the public key
 signedBy :: Signature -> PubKey -> Bool
@@ -164,33 +160,56 @@ signedBy (Signature k) (PubKey s) = k == s
 -- | Cryptocurrency value
 --
 newtype Value = Value { getValue :: Integer }
-    deriving (Eq, Ord, Show, Num, Integral, Real, Enum)
-
-encodeValue :: Value -> Encoding
-encodeValue = Enc.encodeInteger . getValue
+    deriving (Eq, Ord, Show, Enum)
+    deriving stock (Generic)
+    deriving newtype (Num, Integral, Real, Serialise, ToJSON, FromJSON)
 
 -- | Transaction ID (double SHA256 hash of the transaction)
 newtype TxId h = TxId { getTxId :: h }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Generic)
 
 type TxId' = TxId (Digest SHA256)
 
-encodeTxId :: TxId' -> Encoding
-encodeTxId = Enc.encodeBytes . BA.convert . getTxId
+deriving newtype instance Serialise TxId'
+deriving newtype instance ToJSON TxId'
+deriving newtype instance FromJSON TxId'
+
+instance Serialise (Digest SHA256) where
+  encode = encode . BA.unpack
+  decode = do
+    d <- decode
+    let md = digestFromByteString . BSS.pack $ d
+    case md of
+      Nothing -> fail "couldn't decode to Digest SHA256"
+      Just v  -> pure v
+
+instance ToJSON (Digest SHA256) where
+  toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . Write.toStrictByteString . encode
+
+instance FromJSON (Digest SHA256) where
+  parseJSON = withText "SHA256" $ \s -> do
+    let ev = do
+          eun64 <- Base64.decode . TE.encodeUtf8 $ s
+          first show $ deserialiseOrFail $ BSL.fromStrict eun64
+    case ev of
+      Left e  -> fail e
+      Right v -> pure v
 
 -- | A payment address is a double SHA256 of a
 --   UTxO output's validator script (and presumably its data script).
 --   This corresponds to a Bitcoing pay-to-witness-script-hash
 newtype Address h = Address { getAddress :: h }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Generic)
 
 type Address' = Address (Digest SHA256)
 
-encodeAddress :: Address' -> Encoding
-encodeAddress = Enc.encodeBytes . BA.convert . getAddress
+deriving newtype instance Serialise Address'
+deriving newtype instance ToJSON Address'
+deriving newtype instance FromJSON Address'
 
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: PlcCode }
+  deriving newtype (Serialise, ToJSON, FromJSON)
 
 instance Show Validator where
     show = const "Validator { <script> }"
@@ -205,18 +224,13 @@ instance Ord Validator where
 
 instance BA.ByteArrayAccess Validator where
     length =
-        BA.length . Write.toStrictByteString . encodeValidator
+        BA.length . Write.toStrictByteString . encode
     withByteArray =
-        BA.withByteArray . Write.toStrictByteString . encodeValidator
-
-encPlc :: PlcCode -> Encoding
-encPlc = Enc.encodeBytes . BSL.toStrict  . getSerializedCode
-
-encodeValidator :: Validator -> Encoding
-encodeValidator = encPlc . getValidator
+        BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Data script (supplied by producer of the transaction output)
 newtype DataScript = DataScript { getDataScript :: PlcCode  }
+  deriving newtype (Serialise, ToJSON, FromJSON)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
@@ -231,15 +245,13 @@ instance Ord DataScript where
 
 instance BA.ByteArrayAccess DataScript where
     length =
-        BA.length . Write.toStrictByteString . encodeDataScript
+        BA.length . Write.toStrictByteString . encode
     withByteArray =
-        BA.withByteArray . Write.toStrictByteString . encodeDataScript
-
-encodeDataScript :: DataScript -> Encoding
-encodeDataScript = encPlc . getDataScript
+        BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Redeemer (supplied by consumer of the transaction output)
 newtype Redeemer = Redeemer { getRedeemer :: PlcCode }
+  deriving newtype (Serialise, ToJSON, FromJSON)
 
 instance Show Redeemer where
     show = const "Redeemer { <script> }"
@@ -252,15 +264,11 @@ instance Ord Redeemer where
     compare (Redeemer l) (Redeemer r) = -- TODO: Deriving via
         getSerializedCode l `compare` getSerializedCode r
 
-encodeRedeemer :: Redeemer -> Encoding
-encodeRedeemer = encPlc . getRedeemer
-
 -- | Block height
 newtype Height = Height { getHeight :: Integer }
-    deriving (Eq, Ord, Show, Enum, Num, Real, Integral)
-
-encodeHeight :: Height -> Encoding
-encodeHeight = Enc.encodeInteger . getHeight
+    deriving (Eq, Ord, Show, Enum)
+    deriving stock (Generic)
+    deriving newtype (Num, Real, Integral, Serialise)
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
@@ -273,7 +281,7 @@ data Tx = Tx {
     txForge      :: !Value,
     txFee        :: !Value,
     txSignatures :: [Signature]
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | The inputs of a transaction
 inputs :: Lens' Tx (Set.Set TxIn')
@@ -292,16 +300,9 @@ signatures = lens g s where
     g = txSignatures
     s tx sg = tx { txSignatures = sg }
 
-encodeTx :: Tx -> Encoding
-encodeTx Tx{..} =
-    foldMap encodeTxIn txInputs
-    <> foldMap encodeTxOut txOutputs
-    <> encodeValue txForge
-    <> encodeValue txFee
-
 instance BA.ByteArrayAccess Tx where
-    length        = BA.length . Write.toStrictByteString . encodeTx
-    withByteArray = BA.withByteArray . Write.toStrictByteString . encodeTx
+    length        = BA.length . Write.toStrictByteString . encode
+    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Check that all values in a transaction are no.
 --
@@ -318,8 +319,8 @@ data TxStripped = TxStripped {
     } deriving (Show, Eq, Ord)
 
 instance BA.ByteArrayAccess TxStripped where
-    length = BA.length . BS.pack . show
-    withByteArray = BA.withByteArray . BS.pack . show
+    length = BA.length . BS8.pack . show
+    withByteArray = BA.withByteArray . BS8.pack . show
 
 strip :: Tx -> TxStripped
 strip Tx{..} = TxStripped i txOutputs txForge txFee where
@@ -337,14 +338,13 @@ hashTx = TxId . hash . preHash . strip
 data TxOutRef h = TxOutRef {
     txOutRefId  :: TxId h,
     txOutRefIdx :: Int -- ^ Index into the referenced transaction's outputs
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq, Ord, Generic)
 
 type TxOutRef' = TxOutRef (Digest SHA256)
 
-encodeTxOutRef :: TxOutRef' -> Encoding
-encodeTxOutRef TxOutRef{..} =
-    encodeTxId txOutRefId
-    <> Enc.encodeInt txOutRefIdx
+deriving instance Serialise TxOutRef'
+deriving instance ToJSON TxOutRef'
+deriving instance FromJSON TxOutRef'
 
 -- | A list of a transaction's outputs paired with their [[TxOutRef']]s
 txOutRefs :: Tx -> [(TxOut', TxOutRef')]
@@ -356,20 +356,19 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 data TxInType =
       ConsumeScriptAddress !Validator !Redeemer
     | ConsumePublicKeyAddress !Signature
-    deriving (Show, Eq, Ord)
-
-encodeTxInType :: TxInType -> Encoding
-encodeTxInType = \case
-    ConsumeScriptAddress v r  -> encodeValidator v <> encodeRedeemer r
-    ConsumePublicKeyAddress s -> encodeSignature s
+    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | Transaction input
 data TxIn h = TxIn {
     txInRef  :: !(TxOutRef h),
     txInType :: !TxInType
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq, Ord, Generic)
 
 type TxIn' = TxIn (Digest SHA256)
+
+deriving instance Serialise TxIn'
+deriving instance ToJSON TxIn'
+deriving instance FromJSON TxIn'
 
 -- | The `TxOutRef` spent by a transaction input
 inRef :: Lens (TxIn h) (TxIn g) (TxOutRef h) (TxOutRef g)
@@ -402,25 +401,15 @@ pubKeyTxIn r = TxIn r . ConsumePublicKeyAddress
 scriptTxIn :: TxOutRef h -> Validator -> Redeemer -> TxIn h
 scriptTxIn r v = TxIn r . ConsumeScriptAddress v
 
-encodeTxIn :: TxIn' -> Encoding
-encodeTxIn TxIn{..} =
-    encodeTxOutRef txInRef
-    <> encodeTxInType txInType
-
 instance BA.ByteArrayAccess TxIn' where
-    length        = BA.length . Write.toStrictByteString . encodeTxIn
-    withByteArray = BA.withByteArray . Write.toStrictByteString . encodeTxIn
+    length        = BA.length . Write.toStrictByteString . encode
+    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Type of transaction output.
 data TxOutType =
     PayToScript !DataScript
     | PayToPubKey !PubKey
-    deriving (Show, Eq, Ord)
-
-encodeTxOutType :: TxOutType -> Encoding
-encodeTxOutType = \case
-    PayToScript sc -> encodeDataScript sc
-    PayToPubKey pk -> encodePubKey pk
+    deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- Transaction output
 data TxOut h = TxOut {
@@ -428,9 +417,13 @@ data TxOut h = TxOut {
     txOutValue   :: !Value,
     txOutType    :: !TxOutType
     }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic)
 
 type TxOut' = TxOut (Digest SHA256)
+
+deriving instance Serialise TxOut'
+deriving instance ToJSON TxOut'
+deriving instance FromJSON TxOut'
 
 -- | The data script that a [[TxOut]] refers to
 txOutData :: TxOut h -> Maybe DataScript
@@ -473,13 +466,13 @@ isPayToScriptOut = isJust . txOutData
 pubKeyAddress :: Value -> PubKey -> Address (Digest SHA256)
 pubKeyAddress v pk = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encodeValue v <> encodePubKey pk
+    e = encode v <> encode pk
 
 -- | The address of a transaction output locked by a validator script
 scriptAddress :: Value -> Validator -> DataScript -> Address (Digest SHA256)
 scriptAddress v vl ds = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encodeValue v <> encodeValidator vl <> encodeDataScript ds
+    e = encode v <> encode vl <> encode ds
 
 -- | Create a transaction output locked by a validator script
 scriptTxOut :: Value -> Validator -> DataScript -> TxOut'
@@ -493,15 +486,9 @@ pubKeyTxOut v pk = TxOut a v tp where
     a = pubKeyAddress v pk
     tp = PayToPubKey pk
 
-encodeTxOut :: TxOut' -> Encoding
-encodeTxOut TxOut{..} =
-    encodeAddress txOutAddress
-    <> encodeValue txOutValue
-    <> encodeTxOutType txOutType
-
 instance BA.ByteArrayAccess TxOut' where
-    length        = BA.length . Write.toStrictByteString . encodeTxOut
-    withByteArray = BA.withByteArray . Write.toStrictByteString . encodeTxOut
+    length        = BA.length . Write.toStrictByteString . encode
+    withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
 type Block = [Tx]
 type Blockchain = [Block]
