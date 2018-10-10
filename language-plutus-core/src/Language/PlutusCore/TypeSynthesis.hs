@@ -13,7 +13,6 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.State.Class
 import           Control.Monad.Trans.State                     hiding (get, modify)
 import           Language.PlutusCore.Constant.Typed            (typeOfBuiltinName)
 import           Language.PlutusCore.Error
@@ -25,7 +24,6 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis.Elimination
 import           Language.PlutusCore.TypeSynthesis.Normalize
 import           Language.PlutusCore.TypeSynthesis.Type
-import           Lens.Micro
 import           PlutusPrelude
 
 -- | Get the 'Kind' of 'TypeBuiltin'.
@@ -61,13 +59,6 @@ runTypeCheckM :: TypeCheckCfg
               -> ExceptT (TypeError a) Quote b
 runTypeCheckM (TypeCheckCfg i n) tc =
     runReaderT (evalStateT tc (TypeCheckSt mempty i)) (TypeConfig n)
-
-typeCheckStep :: TypeCheckM a ()
-typeCheckStep = do
-    (TypeCheckSt _ i) <- get
-    if i == 0
-        then throwError OutOfGas
-        else modify (over gas (subtract 1))
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
@@ -216,17 +207,18 @@ typeOf (TyInst x body ty) = do
 typeOf (Unwrap x m) = do
     q <- getNormalizedType <$> typeOf m
     (alpha, s) <- extractFix q
+    sNorm <- normalizeType s
     k <- kindOf (q $> x)
     if isType k then do -- FIXME: get rid of this
         -- This is normalized because q is normalized and hence s must be as
         -- well.
         typeCheckStep
-        normalizeTypeBinder alpha (NormalizedType $ TyFix () alpha s) s
+        normalizeTypeBinder alpha (TyFix () alpha <$> sNorm) s
     else
         throwError (KindMismatch x q (Type ()) k)
 
 typeOf (Wrap x alpha s m) = do
-    mTy <- getNormalizedType <$> typeOf m
+    mTy <- typeOf m
     elimCtx <- getElimCtx (void alpha) (void s) mTy
     let q = elimSubst elimCtx (TyFix () (void alpha) (void s))
     qK <- kindOf (q $> x)

@@ -24,14 +24,15 @@ elimSubst (App ctx ty) ty' = TyApp () (elimSubst ctx ty) ty'
 getElimCtx :: (MonadError (TypeError a) m, MonadQuote m, MonadState TypeCheckSt m)
            => TyNameWithKind () -- ^ a
            -> Type TyNameWithKind () -- ^ S
-           -> Type TyNameWithKind () -- ^ E{[(fix a S)/a] S}
+           -> NormalizedType TyNameWithKind () -- ^ E{[(fix a S)/a] S}
            -> m ElimCtx -- ^ E
 getElimCtx alpha s fixSubst = do
-    sNorm <- normalizeType s
+    sNorm <- normalizeType s -- FIXME: when should this be normalized?
+    typeCheckStep
     subst <- normalizeTypeBinder alpha (TyFix () alpha <$> sNorm) s
     case fixSubst of
-        (TyApp _ ty _) -> getElimCtx alpha s ty
-        _ -> if getNormalizedType subst == fixSubst
+        (NormalizedType (TyApp _ ty _)) -> getElimCtx alpha s (NormalizedType ty) -- FIXME: don't do this when fixSubst = subst
+        _ -> if subst == fixSubst
                 then pure Hole
                 else throwError NotImplemented -- FIXME don't do this
 

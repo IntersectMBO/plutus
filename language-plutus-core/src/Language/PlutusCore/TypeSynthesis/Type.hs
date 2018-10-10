@@ -7,16 +7,19 @@ module Language.PlutusCore.TypeSynthesis.Type ( TypeCheckM
                                               , uniqueLookup
                                               , gas
                                               , sizeToType
+                                              -- * Helper functions
+                                              , typeCheckStep
                                               ) where
 
-import           Control.Monad.Except      (ExceptT)
+import           Control.Monad.Except      (ExceptT, MonadError (throwError))
 import           Control.Monad.Reader      (ReaderT)
 import           Control.Monad.State       (StateT)
+import           Control.Monad.State.Class (MonadState, get, modify)
 import qualified Data.IntMap               as IM
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
-import           Lens.Micro                (Lens')
+import           Lens.Micro                (Lens', over)
 import           PlutusPrelude
 
 newtype TypeConfig = TypeConfig
@@ -47,3 +50,11 @@ gas f s = fmap (\x -> s { _gas = x }) (f (_gas s))
 
 sizeToType :: Kind ()
 sizeToType = KindArrow () (Size ()) (Type ())
+
+typeCheckStep :: (MonadState TypeCheckSt m, MonadError (TypeError a) m)
+              => m ()
+typeCheckStep = do
+    (TypeCheckSt _ i) <- get
+    if i == 0
+        then throwError OutOfGas
+        else modify (over gas (subtract 1))
