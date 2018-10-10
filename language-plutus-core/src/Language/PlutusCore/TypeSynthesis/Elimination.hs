@@ -28,7 +28,7 @@ getElimCtx :: (MonadError (TypeError a) m, MonadQuote m, MonadState TypeCheckSt 
            -> m ElimCtx -- ^ E
 getElimCtx alpha s fixSubst = do
     sNorm <- normalizeType s
-    subst <- normalizeTypeBinder alpha sNorm s
+    subst <- normalizeTypeBinder alpha (TyFix () alpha <$> sNorm) s
     case fixSubst of
         (TyApp _ ty _) -> getElimCtx alpha s ty
         _ -> if getNormalizedType subst == fixSubst
