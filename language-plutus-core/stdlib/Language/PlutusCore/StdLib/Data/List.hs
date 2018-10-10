@@ -128,7 +128,7 @@ getBuiltinFoldrList = do
 --
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
--- >         unwrap xs {r} z \(x : a) -> rec (f z x)
+-- >         unwrap xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
 --
 -- @listA@ appears several times in types in the term,
 -- so this is not really a definition with unique names.
@@ -143,6 +143,7 @@ getBuiltinFoldList = do
     z   <- freshName () "z"
     xs  <- freshName () "xs"
     x   <- freshName () "x"
+    xs' <- freshName () "xs'"
     let RecursiveType _ listA =
             holedToRecursive . holedTyApp list $ TyVar () a
     return
@@ -155,15 +156,15 @@ getBuiltinFoldList = do
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
-        . Apply () (Var () rec)
-        $ mkIterApp (Var () f)
-          [ Var () z
-          , Var () x
+        . LamAbs () xs' listA
+        . mkIterApp (Var () rec)
+        $ [ mkIterApp (Var () f) [Var () z, Var () x]
+          , Var () xs'
           ]
 
 -- |  'sum' as a PLC term.
 --
--- > /\(s :: *) -> foldl'ist {integer s} {integer s} (addInteger {s}) s!0
+-- > /\(s :: *) -> foldLst {integer s} {integer s} (addInteger {s}) s!0
 --
 -- TODO: once sizes are added, make the implementation match the comment (which is wrong).
 getBuiltinSum :: Natural -> Quote (Term TyName Name ())
