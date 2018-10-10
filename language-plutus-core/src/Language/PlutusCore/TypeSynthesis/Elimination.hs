@@ -4,10 +4,10 @@ module Language.PlutusCore.TypeSynthesis.Elimination ( ElimCtx (..)
                                                      , extractFix
                                                      ) where
 
-import           Control.Monad.Except
+import           Control.Monad.Except                        (MonadError (throwError))
 import           Control.Monad.State.Class                   (MonadState)
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Error                   (TypeError (..))
+import           Language.PlutusCore.Quote                   (MonadQuote)
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis.Normalize
 import           Language.PlutusCore.TypeSynthesis.Type
