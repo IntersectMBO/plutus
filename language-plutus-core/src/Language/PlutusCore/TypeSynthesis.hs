@@ -223,7 +223,7 @@ typeOf (Wrap x alpha s m) = do
     let q = elimSubst elimCtx (TyFix () (void alpha) (void s))
     qK <- kindOf (q $> x)
     if isType qK
-        then pure (NormalizedType q)
+        then typeCheckStep *> normalizeType q
         else throwError NotImplemented
 
 -- | Check a 'Term' against a 'NormalizedType'.

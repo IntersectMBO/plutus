@@ -22,9 +22,9 @@ elimSubst Hole ty          = ty
 elimSubst (App ctx ty) ty' = TyApp () (elimSubst ctx ty) ty'
 
 getElimCtx :: (MonadError (TypeError a) m, MonadQuote m, MonadState TypeCheckSt m)
-           => TyNameWithKind () -- ^ a
+           => TyNameWithKind () -- ^ α
            -> Type TyNameWithKind () -- ^ S
-           -> NormalizedType TyNameWithKind () -- ^ E{[(fix a S)/a] S}
+           -> NormalizedType TyNameWithKind () -- ^ E{[(fix α S)/α] S}
            -> m ElimCtx -- ^ E
 getElimCtx alpha s fixSubst = do
     sNorm <- normalizeType s -- FIXME: when should this be normalized?
@@ -36,10 +36,10 @@ getElimCtx alpha s fixSubst = do
                 then pure Hole
                 else throwError NotImplemented -- FIXME don't do this
 
--- | Given a type Q, we extract (a, S) such that Q = E{(fix a S)} for some E
+-- | Given a type Q, we extract (α, S) such that Q = E{(fix α S)} for some E
 extractFix :: MonadError (TypeError a) m
-           => Type TyNameWithKind () -- ^ Q = E{(fix a S)}
-           -> m (TyNameWithKind (), Type TyNameWithKind ()) -- ^ (a, S)
+           => Type TyNameWithKind () -- ^ Q = E{(fix α S)}
+           -> m (TyNameWithKind (), Type TyNameWithKind ()) -- ^ (α, S)
 extractFix (TyFix _ tn ty) = pure (tn, ty)
 extractFix (TyApp _ ty _)  = extractFix ty -- can't happen b/c we need ty have to the appropriate kind?
 extractFix _               = throwError NotImplemented -- FIXME: don't do this
