@@ -40,6 +40,7 @@ library
   exposed-modules:
     Language.Plutus.Coordination.Contracts
     Language.Plutus.Coordination.Contracts.CrowdFunding
+    Language.Plutus.Coordination.Contracts.Vesting
     Language.Plutus.Coordination.Contracts.Swap
     Language.Plutus.Runtime
   ghc-options:
@@ -54,6 +55,7 @@ test-suite plutus-use-cases-test
     main-is: Spec.hs
     other-modules:
       Spec.Crowdfunding
+      Spec.Vesting
     build-depends:
         base >=4.9 && <5,
         containers -any,
@@ -63,5 +65,6 @@ test-suite plutus-use-cases-test
         text -any,
         wallet-api -any,
         plutus-use-cases,
+        plutus-th -any,
         microlens -any,
         core-to-plc -any

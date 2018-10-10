@@ -106,7 +106,7 @@ getBuiltinFoldrNat = do
 --
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
--- >         unwrap n {r} z (rec (f z))
+-- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
 --
 -- @nat@ appears several times in types in the term,
 -- so this is not really a definition with unique names.
@@ -119,6 +119,7 @@ getBuiltinFoldNat = do
     rec <- freshName () "rec"
     z   <- freshName () "z"
     n   <- freshName () "n"
+    n'  <- freshName () "n'"
     return
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
@@ -127,9 +128,11 @@ getBuiltinFoldNat = do
         . LamAbs () z (TyVar () r)
         . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
-        . Apply () (Var () rec)
-        . Apply () (Var () f)
-        $ Var () z
+        . LamAbs () n' nat
+        . mkIterApp (Var () rec)
+        $ [ Apply () (Var () f) $ Var () z
+          , Var () n'
+          ]
 
 -- | Convert a @nat@ to an 'Integer'.
 getBuiltinNatToInteger :: Natural -> Quote (Term TyName Name ())

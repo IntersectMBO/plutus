@@ -111,9 +111,7 @@ contributionScript (CampaignPLC c)  = Validator val where
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) l r = case (l, r) of
-                (True, True) -> True
-                _            -> False
+            (&&) l r = if l then r else False
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.

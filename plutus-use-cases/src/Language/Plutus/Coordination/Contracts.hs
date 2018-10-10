@@ -1,11 +1,13 @@
 module Language.Plutus.Coordination.Contracts(
   -- * Example contracts
   module CrowdFunding,
-  module Swap
+  module Swap,
+  module Vesting
   ) where
 
 import           Language.Plutus.Coordination.Contracts.CrowdFunding as CrowdFunding
 import           Language.Plutus.Coordination.Contracts.Swap         as Swap
+import           Language.Plutus.Coordination.Contracts.Vesting      as Vesting
 
 {- Note [Contracts and Validator Scripts]
 
