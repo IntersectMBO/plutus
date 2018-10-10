@@ -29,10 +29,11 @@ getElimCtx :: (MonadError (TypeError a) m, MonadQuote m, MonadState TypeCheckSt 
 getElimCtx alpha s fixSubst = do
     sNorm <- normalizeType s
     subst <- normalizeTypeBinder alpha sNorm s
-    if getNormalizedType subst == fixSubst then
-        pure Hole
-    else
-        throwError NotImplemented -- FIXME don't do this
+    case fixSubst of
+        (TyApp _ ty _) -> getElimCtx alpha s ty
+        _ -> if getNormalizedType subst == fixSubst
+                then pure Hole
+                else throwError NotImplemented -- FIXME don't do this
 
 -- | Given a type Q, we extract (a, S) such that Q = E{(fix a S)} for some E
 extractFix :: MonadError (TypeError a) m
