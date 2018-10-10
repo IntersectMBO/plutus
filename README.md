@@ -6,7 +6,9 @@ based on System F omega with iso-recursive types.
 
 Meta theory is theory about the theory. It seeks to answer the
 questions of whether the language and its semantics are correct rather
-than whether a particular program is correct.
+than whether a particular program is correct. To mechanize it is to
+get a proof assistant tool to check your proofs for you. This gives
+much a much higher degree of assurance.
 
 This repository contains a formalisation of Plutus Core in Agda. Agda
 is both a dependently typed functional programming language and a
@@ -20,8 +22,8 @@ The formalisation requires Agda version 2.5.4.1 or higher.
 The formalisation currently covers System F omega with iso-recursive
 types: the core of Plutus Core. Progress has been proven. Preservation
 holds inherently and it is possible to run small examples using the
-evaluator for terms. Current work is focused on scaling up the
-formalisation to full Plutus Core.
+evaluator. Current work is focused on scaling up the formalisation to
+full Plutus Core.
 
 ## Structure
 
@@ -66,26 +68,26 @@ types, it is defined in the style of "normalization-by-evaluation"
 (NBE) and is guaranteed to terminate. Further submodules define the
 correctness proofs for the normalizer and associated operations.
 
-   * [Type.BetaNBE.Soundness](Type/BetaNBE/Soundness.lagda) contains a
-     proof that normalizer preserves the meaning of the types. Formally it
-     states that if we normalize a type then the resultant normal form is
-     equal (in the equational theory) to the type we started with.
+   1. [Type.BetaNBE.Soundness](Type/BetaNBE/Soundness.lagda) contains a
+      proof that normalizer preserves the meaning of the types. Formally it
+      states that if we normalize a type then the resultant normal form is
+      equal (in the equational theory) to the type we started with.
  
-   * [Type.BetaNBE.Completeness](Type/BetaNBE/Completeness.lagda)
-     contains a proof that the if we were to normalize two types that are
-     equal in the equation theory then we will end up with identical normal
-     forms.
+   2. [Type.BetaNBE.Completeness](Type/BetaNBE/Completeness.lagda)
+      contains a proof that the if we were to normalize two types that are
+      equal in the equation theory then we will end up with identical normal
+      forms.
  
-   * [Type.BetaNBE.Stability](Type/BetaNBE/Stability.lagda) contains a
-     proof that normalization will preserve syntactic structure of terms
-     already in normal form.
+   3. [Type.BetaNBE.Stability](Type/BetaNBE/Stability.lagda) contains a
+      proof that normalization will preserve syntactic structure of terms
+      already in normal form.
  
-   * [Type.BetaNBE.RenamingSubsitution](Type/BetaNBE/RenamingSubstitution.lagda)
-     contains a version of substitution that works on normal forms and
-     ensures that the result is in normal form. This works by embedding
-     normal forms back into syntax, performing a syntactic substitution and
-     then renormalizing. The file also contains a correctness proof for
-     this version of substitution.
+   4. [Type.BetaNBE.RenamingSubsitution](Type/BetaNBE/RenamingSubstitution.lagda)
+      contains a version of substitution that works on normal forms and
+      ensures that the result is in normal form. This works by embedding
+      normal forms back into syntax, performing a syntactic substitution and
+      then renormalizing. The file also contains a correctness proof for
+      this version of substitution.
      
 ## Terms indexed by syntactic types
 
@@ -112,14 +114,16 @@ module contains the definition of terms. This module has two further submodules:
       proofs of the corresponding type level operations.
 
    2. [TermIndexedBySyntacticType.Term.Reduction](TermIndexedBySyntacticType/Term/Reduction.lagda)
-      This file contains the reduction relation for terms (also known as the
-      small step operational semantics) and the progress proof.
-      Preservation is, again, inherent.
+      This file contains the reduction relation for terms (also known
+      as the small step operational semantics) and the progress proof.
+      Preservation is, again, inherent. Note that this version of
+      progress doesn't handle type conversions in terms.
 
 2. [TermIndexedBySyntacticType.Evaluation](TermIndexedBySyntacticType/Evaluation.lagda)
 contains the evaluator the terms. It takes a *gas* argument which is
 the number of steps of reduction that are allowed. It returns both a
-result and trace of reduction steps or *out of gas*.
+result and trace of reduction steps or *out of gas*. Not that this
+version of evaluation doesn't handle type conversions in terms.
 
 3. [TermIndexedBySyntacticType.Examples](TermIndexedBySyntacticType/Examples.lagda)
 contains some examples of Church and Scott Numerals. Currently it is
@@ -138,5 +142,28 @@ form. This allows us to define progress, preservation, and
 evaluation for the full language of System F omega with iso-recursive
 types.
 
-TODO: detailed description.
+1. The [TermIndexedByNormalType.Term](TermIndexedByNormalType/Term.lagda)
+module contains the definition of terms. This module has two further submodules:
 
+   1. [TermIndexedByNormalType.Term.RenamingSubstitution](TermIndexedByNormalType/Term/RenamingSubstitution.lagda)
+      contains the defintions of substitution for terms that is
+      necessary to specify the beta-rules in the reduction
+      relation. This definition and those it depends on, in turn,
+      depend on the definitions and correctness proofs of the
+      corresponding type level operations. In this version this
+      includes depeneding on the correctness proof of the beta
+      normalizer for types.
+
+   2. [TermIndexedByNormalType.Term.Reduction](TermIndexedByNormalType/Term/Reduction.lagda)
+      This file contains the reduction relation for terms (also known
+      as the small step operational semantics) and the progress proof.
+      Preservation is, again, inherent.
+
+2. [TermIndexedByNormalType.Evaluation](TermIndexedByNormalType/Evaluation.lagda)
+contains the evaluator the terms. It takes a *gas* argument which is
+the number of steps of reduction that are allowed. It returns both a
+result and trace of reduction steps or *out of gas*.
+
+3. [TermIndexedByNormalType.Examples](TermIndexedByNormalType/Examples.lagda)
+contains some examples of Church and Scott Numerals. Currently it is
+very memory intensive to type check this file and/or run examples.
