@@ -10,7 +10,7 @@ import           Codec.CBOR.Read
 import           Codec.CBOR.Write
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -83,6 +83,12 @@ decodeBuiltinName = go =<< decodeTag
           go 21 = pure BlockNum
           go _  = fail "Failed to decode BuiltinName"
 
+encodeDynamicBuiltinName :: DynamicBuiltinName -> Encoding
+encodeDynamicBuiltinName (DynamicBuiltinName name) = encodeString name
+
+decodeDynamicBuiltinName :: Decoder s DynamicBuiltinName
+decodeDynamicBuiltinName = DynamicBuiltinName <$> decodeString
+
 encodeNatural :: Natural -> Encoding
 encodeNatural = encodeInteger . fromIntegral
 
@@ -151,10 +157,11 @@ decodeType = go =<< decodeTag
           go _ = fail "Failed to decode Type TyName ()"
 
 encodeConstant :: Constant a -> Encoding
-encodeConstant (BuiltinInt _ n i) = fold [ encodeTag 0, encodeNatural n, encodeInteger i ]
-encodeConstant (BuiltinBS _ n bs) = fold [ encodeTag 1, encodeNatural n, encodeBytes (BSL.toStrict bs) ]
-encodeConstant (BuiltinSize _ n)  = encodeTag 2 <> encodeNatural n
-encodeConstant (BuiltinName _ bn) = encodeTag 3 <> encodeBuiltinName bn
+encodeConstant (BuiltinInt _ n i)     = fold [ encodeTag 0, encodeNatural n, encodeInteger i ]
+encodeConstant (BuiltinBS _ n bs)     = fold [ encodeTag 1, encodeNatural n, encodeBytes (BSL.toStrict bs) ]
+encodeConstant (BuiltinSize _ n)      = encodeTag 2 <> encodeNatural n
+encodeConstant (BuiltinName _ bn)     = encodeTag 3 <> encodeBuiltinName bn
+encodeConstant (DynBuiltinName _ dbn) = encodeTag 4 <> encodeDynamicBuiltinName dbn
 
 decodeConstant :: Decoder s (Constant ())
 decodeConstant = go =<< decodeTag
@@ -162,6 +169,7 @@ decodeConstant = go =<< decodeTag
           go 1 = BuiltinBS () <$> decodeNatural <*> fmap BSL.fromStrict decodeBytes
           go 2 = BuiltinSize () <$> decodeNatural
           go 3 = BuiltinName () <$> decodeBuiltinName
+          go 4 = DynBuiltinName () <$> decodeDynamicBuiltinName
           go _ = fail "Failed to decode Constant ()"
 
 encodeTerm :: Term TyName Name a -> Encoding
