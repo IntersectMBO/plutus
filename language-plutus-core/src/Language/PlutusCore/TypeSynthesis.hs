@@ -225,16 +225,14 @@ typeOf (Unwrap x m) = do
     else
         throwError (KindMismatch x q (Type ()) k)
 
--- [check| pat :: *]    pat ~>? vPat    [fix n vPat / n] vPat ~> vTermTy'    [check| term : vTermTy]
--- -------------------------------------------------------------------------------------------------
--- [infer| wrap n pat term : fix n vPat]
-typeOf (Wrap x n pat term) = do
-    kindCheckM x pat $ Type ()
-    vPat <- normalizeTypeOpt $ void pat
-    vTermTy <- normalizeTypeBinder (void n) (TyFix () (void n) <$> vPat) $ getNormalizedType vPat
-    typeCheckStep
-    typeCheckM x term vTermTy
-    pure $ TyFix () (void n) <$> vPat
+typeOf (Wrap x alpha s m) = do
+    mTy <- getNormalizedType <$> typeOf m
+    elimCtx <- getElimCtx (void alpha) (void s) mTy
+    let q = elimSubst elimCtx (TyFix () (void alpha) (void s))
+    qK <- kindOf (q $> x)
+    if isType qK
+        then pure (NormalizedType q)
+        else throwError NotImplemented
 
 -- | Check a 'Term' against a 'NormalizedType'.
 typeCheckM :: a

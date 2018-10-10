@@ -66,4 +66,3 @@ tyEnvAssign :: MonadState TypeCheckSt m
             -> NormalizedType TyNameWithKind ()
             -> m ()
 tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
-
