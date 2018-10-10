@@ -74,6 +74,8 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.TypeSynthesis.Elimination
+        Language.PlutusCore.TypeSynthesis.Type
+        Language.PlutusCore.TypeSynthesis.Normalize
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
         Language.PlutusCore.Subst
