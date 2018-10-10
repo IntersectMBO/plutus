@@ -187,7 +187,7 @@ once they go out of scope; this is permissible since 'Unique's are globally
 unique and so we will not delete the wrong thing.
 -}
 
--- See the [Type rules] and [Type environments] notes/
+-- See the [Type rules] and [Type environments] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) =
