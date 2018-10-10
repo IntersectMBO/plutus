@@ -204,27 +204,22 @@ typeOf (TyInst x body ty) = do
             typeCheckStep
             normalizeTypeBinder n vTy vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
+
 typeOf (Unwrap x m) = do
     q <- getNormalizedType <$> typeOf m
     (alpha, s) <- extractFix q
     sNorm <- normalizeType s
-    k <- kindOf (q $> x)
-    if isType k then do -- FIXME: get rid of this
-        -- This is normalized because q is normalized and hence s must be as
-        -- well.
-        typeCheckStep
-        normalizeTypeBinder alpha (TyFix () alpha <$> sNorm) s
-    else
-        throwError (KindMismatch x q (Type ()) k)
+    kindCheckM x (q $> x) (Type ())
+    typeCheckStep
+    normalizeTypeBinder alpha (TyFix () alpha <$> sNorm) s
 
 typeOf (Wrap x alpha s m) = do
     mTy <- typeOf m
     elimCtx <- getElimCtx (void alpha) (void s) mTy
     let q = elimSubst elimCtx (TyFix () (void alpha) (void s))
-    qK <- kindOf (q $> x)
-    if isType qK
-        then typeCheckStep *> normalizeType q
-        else throwError NotImplemented
+    kindCheckM x (q $> x) (Type ())
+    typeCheckStep
+    normalizeType q
 
 -- | Check a 'Term' against a 'NormalizedType'.
 typeCheckM :: a
@@ -238,10 +233,6 @@ typeCheckM :: a
 typeCheckM x term vTy = do
     vTermTy <- typeOf term
     when (vTermTy /= vTy) $ throwError (TypeMismatch x (void term) (getNormalizedType vTermTy) vTy)
-
-isType :: Kind a -> Bool
-isType Type{} = True
-isType _      = False
 
 normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeOpt ty = do
