@@ -42131,6 +42131,7 @@ license = stdenv.lib.licenses.bsd3;
 , deepseq
 , dependent-map
 , dependent-sum
+, filepath
 , happy
 , hedgehog
 , microlens
@@ -42194,6 +42195,7 @@ testHaskellDepends = [
 base
 bytestring
 containers
+filepath
 hedgehog
 mmorph
 mtl
@@ -42203,6 +42205,7 @@ tasty-golden
 tasty-hedgehog
 tasty-hunit
 text
+transformers
 ];
 benchmarkHaskellDepends = [
 base
@@ -55710,8 +55713,10 @@ wallet-api
 testHaskellDepends = [
 base
 containers
+core-to-plc
 hedgehog
 microlens
+plutus-th
 tasty
 tasty-hedgehog
 text
@@ -78355,6 +78360,7 @@ testHaskellDepends = [
 base
 containers
 hedgehog
+microlens
 tasty
 tasty-hedgehog
 text

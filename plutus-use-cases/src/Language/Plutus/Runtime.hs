@@ -1,4 +1,3 @@
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 -- | A model of the types involved in transactions. These types are intented to
 --   be used in PLC scripts.
 module Language.Plutus.Runtime (-- * Transactions and related types
@@ -7,11 +6,12 @@ module Language.Plutus.Runtime (-- * Transactions and related types
               , Height
               , PendingTxOutRef(..)
               , TxId
-              , Hash(..)
+              , Hash
               -- * Pending transactions
               , PendingTx(..)
               , PendingTxOut(..)
               , PendingTxIn(..)
+              , PendingTxOutType(..)
               -- * Oracles
               , Signed(..)
               , OracleValue(..)
@@ -20,10 +20,15 @@ module Language.Plutus.Runtime (-- * Transactions and related types
 import           Wallet.API  (PubKey (..))
 import           Wallet.UTXO (TxId)
 
+data PendingTxOutType =
+    PubKeyTxOut PubKey -- ^ Pub key address
+    | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+
 -- | Output of a pending transaction.
 data PendingTxOut d = PendingTxOut {
-    pendingTxOutValue :: Value,
-    pendingTxOutData  :: d -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
+    pendingTxOutValue   :: Value,
+    pendingTxDataScript :: Maybe d, -- ^ Note: It would be better if the `DataTxOut` constructor of `PendingTxOutType` contained the `d` value (because the data script is always `Nothing` for a pub key output). However, this causes the core-to-plc converter to fail with a type error on a pattern match on `PubKeyTxOut`.
+    pendingTxOutData    :: PendingTxOutType
     }
 
 data PendingTxOutRef = PendingTxOutRef {
