@@ -56,6 +56,7 @@ test-suite plutus-use-cases-test
     other-modules:
       Spec.Crowdfunding
       Spec.Vesting
+      Spec.TH
     build-depends:
         base >=4.9 && <5,
         containers -any,
@@ -67,4 +68,5 @@ test-suite plutus-use-cases-test
         plutus-use-cases,
         plutus-th -any,
         microlens -any,
-        core-to-plc -any
+        core-to-plc -any,
+        template-haskell -any

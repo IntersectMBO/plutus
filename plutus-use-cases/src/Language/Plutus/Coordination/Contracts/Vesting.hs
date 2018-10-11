@@ -11,7 +11,8 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     VestingData(..),
     vestFunds,
     retrieveFunds,
-    validatorScript
+    validatorScript,
+    totalAmount
     ) where
 
 import           Control.Monad.Error.Class            (MonadError (..))
