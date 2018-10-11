@@ -55719,6 +55719,7 @@ microlens
 plutus-th
 tasty
 tasty-hedgehog
+template-haskell
 text
 wallet-api
 ];
