@@ -22,11 +22,12 @@ import           Language.Plutus.Coordination.Contracts.Vesting      (VestingDat
 pendingTxVesting :: Q Exp
 pendingTxVesting = [| \(h :: Height) (out :: Value) ->
     let total = 600
+        hash = 1123 -- stand-in for a transaction hash
         rest  = total - out
     in PendingTx {
-        pendingTxCurrentInput = (PendingTxIn (PendingTxOutRef 100 0) (), 600),
+        pendingTxCurrentInput = (PendingTxIn (PendingTxOutRef 100 0) (), total),
         pendingTxOtherInputs  = []::[(PendingTxIn (), Value)],
-        pendingTxOutputs      = (PendingTxOut out Nothing (PubKeyTxOut (PubKey 1))::(PendingTxOut VestingData)):(PendingTxOut rest (Just (VestingData 1123 out)) DataTxOut::(PendingTxOut VestingData)):([]::[PendingTxOut VestingData]),
+        pendingTxOutputs      = (PendingTxOut out Nothing (PubKeyTxOut (PubKey 1))::(PendingTxOut VestingData)):(PendingTxOut rest (Just (VestingData hash out)) DataTxOut::(PendingTxOut VestingData)):([]::[PendingTxOut VestingData]),
         pendingTxForge        = 0,
         pendingTxFee          = 0,
         pendingTxBlockHeight  = h

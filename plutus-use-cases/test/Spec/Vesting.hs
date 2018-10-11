@@ -16,7 +16,8 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog                            (testProperty)
 
 import           Language.Plutus.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingPLC (..),
-                                                                 VestingTranche (..), retrieveFunds, vestFunds)
+                                                                 VestingTranche (..), retrieveFunds, totalAmount,
+                                                                 vestFunds)
 import qualified Language.Plutus.Runtime                        as Runtime
 import           Language.Plutus.TH                             (plutus)
 import           Wallet.API                                     (PubKey (..))
@@ -44,32 +45,29 @@ commit w vv vplc vl = exScriptOut <$> walletAction w (void $ vestFunds vplc vv v
 secureFunds :: Property
 secureFunds = checkVestingTrace scen1 $ do
     let VestingScenario splc s [w1, w2] _ = scen1
-        total = 600
         updateAll' = updateAll scen1
     updateAll'
     _ <- commit w2 s splc total
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w1, 1000)]
-
+    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
 
 canRetrieveFunds :: Property
 canRetrieveFunds = checkVestingTrace scen1 $ do
     let VestingScenario splc s [w1, w2] _ = scen1
-        total = 600
         updateAll' = updateAll scen1
     updateAll'
     ref <- commit w2 s splc total
     updateAll'
     setValidationData $ ValidationData $(plutus [| $(pendingTxVesting) 11 150  |])
     let ds = DataScript $(plutus [|  VestingData 1123 150 |])
+    -- Take 150 out of the scheme
     walletAction w1 $ void (retrieveFunds s splc (VestingData 1123 0) ds ref 150)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w1, 1150)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + 150)]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     let VestingScenario splc s [w1, w2] _ = scen1
-        total = 600
         updateAll' = updateAll scen1
     updateAll'
     ref <- commit w2 s splc total
@@ -79,12 +77,11 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     let ds = DataScript $(plutus [|  VestingData 1123 250 |])
     walletAction w1 $ void (retrieveFunds s splc (VestingData 1123 0) ds ref 250)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w1, 1000)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
 
 canRetrieveFundsAtEnd :: Property
 canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     let VestingScenario splc s [w1, w2] _ = scen1
-        total = 600
         updateAll' = updateAll scen1
     updateAll'
     ref <- commit w2 s splc total
@@ -94,7 +91,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     let ds = DataScript $(plutus [|  VestingData 1123 600 |])
     walletAction w1 $ void (retrieveFunds s splc (VestingData 1123 0) ds ref 600)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w1, 1600)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + fromIntegral total)]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
@@ -117,8 +114,22 @@ scen1 = VestingScenario{..} where
         vestingOwner    = PubKey 1 }
     vsWallets = Wallet <$> [1..2]
     vsInitialBalances = Map.fromList [
-        (PubKey 1, 1000),
-        (PubKey 2, 1000)]
+        (PubKey 1, startingBalance),
+        (PubKey 2, startingBalance)]
+
+-- | Funds available to each wallet after the initial transaction on the
+--   mockchain
+startingBalance :: UTXO.Value
+startingBalance = 1000
+
+-- | Amount of money left in wallet `Wallet 2` after committing funds to the
+--   vesting scheme
+w2Funds :: UTXO.Value
+w2Funds = startingBalance - fromIntegral total
+
+-- | Total amount of money vested in the scheme `scen1`
+total :: Runtime.Value
+total = totalAmount $ vsVestingScheme scen1
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.

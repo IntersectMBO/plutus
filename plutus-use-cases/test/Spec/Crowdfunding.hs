@@ -59,7 +59,7 @@ makeContribution :: Property
 makeContribution = checkCFTrace scenario1 $ do
     let w = Wallet 2
         contribution = 600
-        rest = fromIntegral $ 1000 - contribution
+        rest = startingBalance - fromIntegral contribution
     blockchainActions >>= walletNotifyBlock w
     contrib w (cfCampaign scenario1) contribution
     blockchainActions >>= walletNotifyBlock w
@@ -78,7 +78,7 @@ successfulCampaign = checkCFTrace scenario1 $ do
     setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 11 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w3, 200), (w1, 1400)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 600 + 800)]
 
 -- | Check that the campaign owner cannot collect the monies before the campaign deadline
 cantCollectEarly :: Property
@@ -92,7 +92,7 @@ cantCollectEarly = checkCFTrace scenario1 $ do
     setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 8 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w3, 200), (w1, 0)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
 
 
 -- | Check that the campaign owner cannot collect the monies after the
@@ -108,7 +108,7 @@ cantCollectLate = checkCFTrace scenario1 $ do
     setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 17 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w3, 200), (w1, 0)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
 
 
 -- | Run a successful campaign that ends with a refund
@@ -124,7 +124,7 @@ canRefund = checkCFTrace scenario1 $ do
     walletAction w2 (refund c con2 600)
     walletAction w3 (refund c con3 800)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, 1000), (w3, 1000), (w1, 0)]
+    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance), (w3, startingBalance), (w1, 0)]
 
 -- | Crowdfunding scenario with test parameters
 data CFScenario = CFScenario {
@@ -144,8 +144,12 @@ scenario1 = CFScenario{..} where
     cfWallets = Wallet <$> [1..3]
     cfInitialBalances = Map.fromList [
         (PubKey 1, 0),
-        (PubKey 2, 1000),
-        (PubKey 3, 1000)]
+        (PubKey 2, startingBalance),
+        (PubKey 3, startingBalance)]
+
+-- | Funds available to wallets `Wallet 2` and `Wallet 3`
+startingBalance :: UTXO.Value
+startingBalance = 1000
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.

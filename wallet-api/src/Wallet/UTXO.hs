@@ -612,7 +612,6 @@ runScript (ValidationData (getAst -> valData)) (Validator (getAst -> validator))
         -- TODO: Enable type checking of the program
         -- void typecheck
 
-
 -- | () as a data script
 unitData :: DataScript
 unitData = DataScript $(plutus [| () |])
