@@ -29,9 +29,9 @@ data EvalCxt Γ (K : Kind) : Kind → Set where
 \end{code}
 
 \begin{code}
-applyE : ∀{Γ K K'} → EvalCxt Γ K K' → Γ ⊢⋆ K → Γ ⊢⋆ K'
-applyE •        t = t
-applyE (E ·E u) t = applyE E t · u
+_[_]E : ∀{Γ K K'} → EvalCxt Γ K K' → Γ ⊢⋆ K → Γ ⊢⋆ K'
+• [ t ]E = t
+(E ·E u) [ t ]E = E [ t ]E · u
 \end{code}
 
 ## Contexts and erasure
@@ -123,14 +123,14 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
   wrap : ∀{Γ}
     → (S : ∥ Γ ∥ ,⋆ * ⊢⋆ *)
     → (E : EvalCxt ∥ Γ ∥ * *)
-    → (M : Γ ⊢ applyE E (S [ μ S ]))
-    → Γ ⊢ applyE E (μ S)
+    → (M : Γ ⊢ E [ S [ μ S ] ]E)
+    → Γ ⊢ E [ μ S ]E
 
   unwrap : ∀{Γ}
     → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
     → (E : EvalCxt ∥ Γ ∥ * *)
-    → (M : Γ ⊢ applyE E (μ S))
-    → Γ ⊢ applyE E (S [ μ S ])
+    → (M : Γ ⊢ E [ μ S ]E)
+    → Γ ⊢ E [ S [ μ S ] ]E
 
   conv : ∀{Γ J}
     → {A B : ∥ Γ ∥ ⊢⋆ J}
