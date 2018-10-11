@@ -33,7 +33,7 @@
 - ignore: {name: Parse error}
 - ignore: {name: Eta reduce, within: [Language.PlutusCore.MkPlc]}
 # PLC plugin only accepts lists that are constructed in a certain way
-- ignore: {name: Use list literal, within: [Spec.Crowdfunding]}
+- ignore: {name: Use list literal, within: [Spec.TH]}
 # PLC plugin requires && to be defined in side TH splices
 - ignore: {name: Redundant if, within: [Language.Plutus.Coordination.Contracts.CrowdFunding, Language.Plutus.Coordination.Contracts.Vesting]}
 

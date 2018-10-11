@@ -1,6 +1,8 @@
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Spec.Crowdfunding(tests) where
 
@@ -23,10 +25,11 @@ import qualified Wallet.Generators                                   as Gen
 import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor, CampaignPLC (..),
                                                                       contribute, refund)
 import qualified Language.Plutus.Coordination.Contracts.CrowdFunding as CF
-import           Language.Plutus.CoreToPLC.Plugin                    (plc)
-import           Language.Plutus.Runtime                             (Hash (..), PendingTx (..), PendingTxIn (..),
-                                                                      PendingTxOut (..), PendingTxOutRef (..), Value)
+import qualified Language.Plutus.Runtime                             as Runtime
+import           Language.Plutus.TH                                  (plutus)
 import qualified Wallet.UTXO                                         as UTXO
+
+import           Spec.TH                                             (pendingTxCrowdfunding)
 
 tests :: TestTree
 tests = testGroup "crowdfunding" [
@@ -40,7 +43,7 @@ tests = testGroup "crowdfunding" [
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
-contrib :: Wallet -> CampaignPLC -> Value -> Trace TxOutRef'
+contrib :: Wallet -> CampaignPLC -> Runtime.Value -> Trace TxOutRef'
 contrib w c v = exContrib <$> walletAction w (contribute c v) where
     exContrib = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
 
@@ -72,14 +75,7 @@ successfulCampaign = checkCFTrace scenario1 $ do
     con2 <- contrib w2 c 600
     con3 <- contrib w3 c 800
     updateAll'
-    setValidationData $ ValidationData $ plc PendingTx {
-        pendingTxCurrentInput = (PendingTxIn (PendingTxOutRef 100 1) (), 600),
-        pendingTxOtherInputs  = (PendingTxIn (PendingTxOutRef 200 1) (), 800):[],
-        pendingTxOutputs      = []::[PendingTxOut CampaignActor],
-        pendingTxForge        = 0,
-        pendingTxFee          = 0,
-        pendingTxBlockHeight  = 11
-        }
+    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 11 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
     mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w3, 200), (w1, 1400)]
@@ -93,14 +89,7 @@ cantCollectEarly = checkCFTrace scenario1 $ do
     con2 <- contrib w2 c 600
     con3 <- contrib w3 c 800
     updateAll'
-    setValidationData $ ValidationData $ plc PendingTx {
-        pendingTxCurrentInput = (PendingTxIn (PendingTxOutRef 100 1) (), 600),
-        pendingTxOtherInputs  = (PendingTxIn (PendingTxOutRef 200 1) (), 800):[],
-        pendingTxOutputs      = []::[PendingTxOut CampaignActor],
-        pendingTxForge        = 0,
-        pendingTxFee          = 0,
-        pendingTxBlockHeight  = 8
-        }
+    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 8 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
     mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w3, 200), (w1, 0)]
@@ -116,14 +105,7 @@ cantCollectLate = checkCFTrace scenario1 $ do
     con2 <- contrib w2 c 600
     con3 <- contrib w3 c 800
     updateAll'
-    setValidationData $ ValidationData $ plc PendingTx {
-        pendingTxCurrentInput = (PendingTxIn (PendingTxOutRef 100 1) (), 600),
-        pendingTxOtherInputs  = (PendingTxIn (PendingTxOutRef 200 1) (), 800):[],
-        pendingTxOutputs      = []::[PendingTxOut CampaignActor],
-        pendingTxForge        = 0,
-        pendingTxFee          = 0,
-        pendingTxBlockHeight  = 17
-        }
+    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 17 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
     mapM_ (uncurry assertOwnFundsEq) [(w2, 400), (w3, 200), (w1, 0)]
@@ -138,14 +120,7 @@ canRefund = checkCFTrace scenario1 $ do
     con2 <- contrib w2 c 600
     con3 <- contrib w3 c 800
     updateAll'
-    setValidationData $ ValidationData $ plc PendingTx {
-        pendingTxCurrentInput = (PendingTxIn (PendingTxOutRef 100 1) (), 600),
-        pendingTxOtherInputs  = []::[(PendingTxIn (), Value)],
-        pendingTxOutputs      = []::[PendingTxOut CampaignActor],
-        pendingTxForge        = 0,
-        pendingTxFee          = 0,
-        pendingTxBlockHeight  = 18
-        }
+    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 18 600 Nothing |])
     walletAction w2 (refund c con2 600)
     walletAction w3 (refund c con3 800)
     updateAll'
@@ -160,12 +135,12 @@ data CFScenario = CFScenario {
 
 scenario1 :: CFScenario
 scenario1 = CFScenario{..} where
-    cfCampaign = CampaignPLC $ plc Campaign {
+    cfCampaign = CampaignPLC $(plutus [| Campaign {
         campaignDeadline = 10,
         campaignTarget   = 1000,
         campaignCollectionDeadline = 15,
         campaignOwner              = PubKey 1
-        }
+        } |])
     cfWallets = Wallet <$> [1..3]
     cfInitialBalances = Map.fromList [
         (PubKey 1, 0),
