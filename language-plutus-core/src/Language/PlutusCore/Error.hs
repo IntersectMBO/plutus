@@ -44,14 +44,16 @@ data RenameError a
 
 data TypeError a
     = NotImplemented
-    | KindMismatch { _loc      :: a
-                   , _inType   :: Type TyNameWithKind ()
-                   , _expected :: Kind ()
-                   , _found    :: Kind ()
+    | KindMismatch { _loc          :: a
+                   , _inType       :: Type TyNameWithKind ()
+                   , _expectedKind :: Kind ()
+                   , _foundKind    :: Kind ()
                    }
-    | TypeMismatch a (Term TyNameWithKind NameWithType ())
-                     (Type TyNameWithKind ())
-                     (NormalizedType TyNameWithKind ())
+    | TypeMismatch { _loc          :: a
+                   , _inTerm       :: Term TyNameWithKind NameWithType ()
+                   , _expectedType :: Type TyNameWithKind ()
+                   , _foundType    :: NormalizedType TyNameWithKind ()
+                   }
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 

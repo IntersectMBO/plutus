@@ -215,7 +215,7 @@ typeOf (Unwrap x m) = do
 
 typeOf (Wrap x alpha s m) = do
     mTy <- typeOf m
-    elimCtx <- getElimCtx (void alpha) (void s) mTy
+    elimCtx <- getElimCtx x alpha s mTy
     let q = elimSubst elimCtx (TyFix () (void alpha) (void s))
     kindCheckM x (q $> x) (Type ())
     typeCheckStep
