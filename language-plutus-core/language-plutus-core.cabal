@@ -76,6 +76,7 @@ library
         Language.PlutusCore.TypeSynthesis.Elimination
         Language.PlutusCore.TypeSynthesis.Type
         Language.PlutusCore.TypeSynthesis.Normalize
+        Language.PlutusCore.TypeSynthesis.Error
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
         Language.PlutusCore.Subst
@@ -94,7 +95,7 @@ library
                       MultiParamTypeClasses TypeFamilies OverloadedStrings
                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
                       RankNTypes TemplateHaskell QuasiQuotes TypeApplications
-                      ExistentialQuantification
+                      ExistentialQuantification PatternSynonyms UndecidableInstances
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities

@@ -33,7 +33,7 @@ getElimCtx loc alpha s fixSubst = do
     typeCheckStep
     subst <- normalizeTypeBinder (void alpha) (TyFix () (void alpha) <$> sNorm) (void s)
     case fixSubst of
-        (NormalizedType (TyApp _ ty _)) | subst /= fixSubst -> getElimCtx loc alpha s (NormalizedType ty)
+        (NormalizedType (TyApp _ ty ty')) | subst /= fixSubst -> App <$> getElimCtx loc alpha s (NormalizedType ty) <*> pure ty'
         _ | subst == fixSubst                               -> pure Hole
         _                                                   -> throwError NotImplemented -- FIXME don't do this
 

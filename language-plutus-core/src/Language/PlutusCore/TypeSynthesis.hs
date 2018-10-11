@@ -22,6 +22,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer                   (annotateType)
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeSynthesis.Elimination
+import           Language.PlutusCore.TypeSynthesis.Error
 import           Language.PlutusCore.TypeSynthesis.Normalize
 import           Language.PlutusCore.TypeSynthesis.Type
 import           PlutusPrelude
@@ -94,18 +95,6 @@ kindCheckM x ty k = do
 -- | Apply a 'TypeBuiltin' to a 'Size' and wrap in 'NormalizedType'.
 applySizedNormalized :: TypeBuiltin -> Size -> NormalizedType tyname ()
 applySizedNormalized tb = NormalizedType . TyApp () (TyBuiltin () tb) . TyInt ()
-
-dummyUnique :: Unique
-dummyUnique = Unique 0
-
-dummyTyName :: TyNameWithKind ()
-dummyTyName = TyNameWithKind (TyName (Name ((), Type ()) "*" dummyUnique))
-
-dummyKind :: Kind ()
-dummyKind = Type ()
-
-dummyType :: Type TyNameWithKind ()
-dummyType = TyVar () dummyTyName
 
 -- | Get the 'Type' of a 'Constant' wrapped in 'NormalizedType'.
 typeOfConstant :: Constant a -> Quote (NormalizedType TyNameWithKind ())
