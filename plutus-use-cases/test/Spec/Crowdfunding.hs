@@ -8,6 +8,7 @@ module Spec.Crowdfunding(tests) where
 
 import           Data.Bifunctor                                      (Bifunctor (..))
 import           Data.Either                                         (isLeft, isRight)
+import           Data.Foldable                                       (traverse_)
 import qualified Data.Map                                            as Map
 import           Hedgehog                                            (Property, forAll, property)
 import qualified Hedgehog
@@ -78,7 +79,7 @@ successfulCampaign = checkCFTrace scenario1 $ do
     setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 11 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 600 + 800)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 600 + 800)]
 
 -- | Check that the campaign owner cannot collect the monies before the campaign deadline
 cantCollectEarly :: Property
@@ -92,7 +93,7 @@ cantCollectEarly = checkCFTrace scenario1 $ do
     setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 8 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
 
 
 -- | Check that the campaign owner cannot collect the monies after the
@@ -108,7 +109,7 @@ cantCollectLate = checkCFTrace scenario1 $ do
     setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 17 600 (Just 800) |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
 
 
 -- | Run a successful campaign that ends with a refund
@@ -124,7 +125,7 @@ canRefund = checkCFTrace scenario1 $ do
     walletAction w2 (refund c con2 600)
     walletAction w3 (refund c con3 800)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, startingBalance), (w3, startingBalance), (w1, 0)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance), (w3, startingBalance), (w1, 0)]
 
 -- | Crowdfunding scenario with test parameters
 data CFScenario = CFScenario {

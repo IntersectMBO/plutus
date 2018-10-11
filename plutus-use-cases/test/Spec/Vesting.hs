@@ -8,6 +8,7 @@ module Spec.Vesting(tests) where
 
 import           Control.Monad                                  (void)
 import           Data.Either                                    (isRight)
+import           Data.Foldable                                  (traverse_)
 import qualified Data.Map                                       as Map
 import           Hedgehog                                       (Property, forAll, property)
 import qualified Hedgehog
@@ -49,7 +50,7 @@ secureFunds = checkVestingTrace scen1 $ do
     updateAll'
     _ <- commit w2 s splc total
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
 
 canRetrieveFunds :: Property
 canRetrieveFunds = checkVestingTrace scen1 $ do
@@ -63,7 +64,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     -- Take 150 out of the scheme
     walletAction w1 $ void (retrieveFunds s splc (VestingData 1123 0) ds ref 150)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + 150)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + 150)]
 
 cannotRetrieveTooMuch :: Property
 cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
@@ -77,7 +78,7 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     let ds = DataScript $(plutus [|  VestingData 1123 250 |])
     walletAction w1 $ void (retrieveFunds s splc (VestingData 1123 0) ds ref 250)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance)]
 
 canRetrieveFundsAtEnd :: Property
 canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
@@ -91,7 +92,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     let ds = DataScript $(plutus [|  VestingData 1123 600 |])
     walletAction w1 $ void (retrieveFunds s splc (VestingData 1123 0) ds ref 600)
     updateAll'
-    mapM_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + fromIntegral total)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + fromIntegral total)]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
