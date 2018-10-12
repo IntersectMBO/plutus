@@ -35,7 +35,7 @@
 # PLC plugin only accepts lists that are constructed in a certain way
 - ignore: {name: Use list literal, within: [Spec.TH]}
 # PLC plugin requires && to be defined in side TH splices
-- ignore: {name: Redundant if, within: [Language.Plutus.Coordination.Contracts.CrowdFunding, Language.Plutus.Coordination.Contracts.Vesting]}
+- ignore: {name: Redundant if, within: [Language.Plutus.Coordination.Contracts.CrowdFunding, Language.Plutus.Coordination.Contracts.Vesting, Language.Plutus.Runtime.TH]}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***

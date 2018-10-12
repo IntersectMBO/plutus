@@ -20,9 +20,11 @@ import qualified Data.Set                             as Set
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.Runtime              (Hash, Height, PendingTx (..), PendingTxIn (..),
                                                        PendingTxOut (..), PendingTxOutType (..), PubKey (..), Value)
+import qualified Language.Plutus.Runtime.TH           as TH
 import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
+import           Prelude                              hiding ((&&))
 import           Wallet.API                           (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
-import           Wallet.UTXO                          (DataScript (..), Tx (..), TxOutRef', Validator (..), scriptTxIn,
+import           Wallet.UTXO                          (DataScript (..), TxOutRef', Validator (..), scriptTxIn,
                                                        scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
@@ -103,13 +105,13 @@ validatorScript (VestingPLC v) = Validator val where
         let
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk (PubKey l) (PubKey r) = l == r
+            eqPk = $(TH.eqPubKey)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) l r = if l then r else False
+            (&&) = $( TH.and )
 
-            PendingTx _ (_::[(PendingTxIn (), Value)]) os _ _ h = p
+            PendingTx _ (_::[(PendingTxIn (), Value)]) os _ _ h _ = p
             VestingTranche d1 a1 = vestingTranche1
             VestingTranche d2 a2 = vestingTranche2
 
@@ -117,8 +119,8 @@ validatorScript (VestingPLC v) = Validator val where
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
             amountSpent :: Value
             amountSpent = case os of
-                ((PendingTxOut v _ (PubKeyTxOut pk))::PendingTxOut VestingData):(_::[PendingTxOut VestingData])
-                    | pk `eqPk` vestingOwner -> v
+                ((PendingTxOut v' _ (PubKeyTxOut pk))::PendingTxOut VestingData):(_::[PendingTxOut VestingData])
+                    | pk `eqPk` vestingOwner -> v'
                 (_::[PendingTxOut VestingData]) -> Prim.error ()
 
             -- Value that has been released so far under the scheme
@@ -143,11 +145,11 @@ validatorScript (VestingPLC v) = Validator val where
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
-                (_::PendingTxOut VestingData):(PendingTxOut v (Just d') DataTxOut::PendingTxOut VestingData):(_::[PendingTxOut VestingData]) -> case d' of
+                (_::PendingTxOut VestingData):(PendingTxOut v' (Just d') DataTxOut::PendingTxOut VestingData):(_::[PendingTxOut VestingData]) -> case d' of
                     VestingData h' po ->
                         h' == vestingDataHash
                         && po == newAmount
-                        && v == remainingAmount
+                        && v' == remainingAmount
                 (_::[PendingTxOut VestingData]) -> Prim.error ()
 
             isValid = amountsValid && txnOutputsValid

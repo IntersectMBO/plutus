@@ -39,6 +39,7 @@ import           Wallet.UTXO                          (Address', DataScript (..)
                                                        scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
+import qualified Language.Plutus.Runtime.TH           as TH
 import           Prelude                              (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($),
                                                        (<$>))
 
@@ -57,19 +58,18 @@ newtype CampaignPLC = CampaignPLC PlcCode
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: (MonadError WalletAPIError m, WalletAPI m) => CampaignPLC -> Value -> m ()
-contribute c value = do
+contribute :: (MonadError WalletAPIError m, WalletAPI m) => CampaignPLC -> DataScript -> Value -> m ()
+contribute c ds value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
-    -- TODO: Uncomment when we can translate values to PLC. Until then, we use
-    --       a constant `PubKey 1` for the data script
+    -- TODO: Uncomment when we can translate values to PLC. Until then, we have
+    --       to pass the contributor's public key as the `DataScript` argument
     -- contributorPubKey <- pubKey <$> myKeyPair
 
     -- TODO: Remove duplicate definition of Value
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
     (payment, change) <- createPaymentWithChange v'
-    let o = scriptTxOut v' (contributionScript c) d
-        d = DataScript $(plutus [| PubKey 1 |])
+    let o = scriptTxOut v' (contributionScript c) ds
 
     signAndSubmit payment [o, change]
 
@@ -101,21 +101,21 @@ contributionScript (CampaignPLC c)  = Validator val where
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
             signedBy :: PendingTxIn a -> CampaignActor -> Bool
-            signedBy _ _ = True -- TODO: Actually check signature
+            signedBy = $(TH.txInSignedBy)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) l r = if l then r else False
+            (&&) = $(TH.and)
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx a b -> CampaignActor -> Bool
-            signedByT _ _ = True -- TODO: Actually check signature
+            signedByT = $(TH.txSignedBy)
 
-            PendingTx _ _ _ _ _ h = p
+            PendingTx _ _ _ _ _ h _ = p
 
             isValid = case p of
-                PendingTx (_, v1) ((_, v2):_) _ _ _ _ -> -- the "successful campaign" branch
+                PendingTx (_, v1) ((_, v2):_) _ _ _ _ _ -> -- the "successful campaign" branch
                     let
                         pledgedFunds = v1 + v2
 
@@ -124,7 +124,7 @@ contributionScript (CampaignPLC c)  = Validator val where
                                      pledgedFunds >= campaignTarget &&
                                      signedByT p campaignOwner
                     in payToOwner
-                PendingTx (t, _) [] _ _ _ _ -> -- the "refund" branch
+                PendingTx (t, _) [] _ _ _ _ _ -> -- the "refund" branch
                     let
                         -- Check that a refund transaction only spends the
                         -- amount that was pledged by the contributor
