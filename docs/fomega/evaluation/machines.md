@@ -69,27 +69,26 @@ Analyses efficiency of various machines. Call-by-name and call-by-need, but the 
 ## Machines for lazy evaluation
 Here are some papers dealing with machines which evaluate &lambda;-terms using call-by-name/lazy strategies.
 
-[Jean-Louis Krivine: A call-by-name lambda-calculus machine](https://www.irif.fr/~krivine/articles/lazymach.pdf)
+[Jean-Louis Krivine: A call-by-name lambda-calculus machine](https://www.irif.fr/~krivine/articles/lazymach.pdf).
 Krivine's machine was one of the first machines for call-by-name evaluation and 
 has had a great deal of influence on subsequent research.  It was designed in the 1980s
 but not published until 2007 (see below). The machine is simple but inefficient 
 because it is not lazy: if a term is used more than once then it will have to be 
 evaluated more than once.
 
-[Peter Sestoft: Deriving a Lazy Abstract Machine](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.50.4314)
+[Peter Sestoft: Deriving a Lazy Abstract Machine](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.50.4314).
 This starts by considering a [machine due to Launchbury](https://www.researchgate.net/publication/2639371_A_Natural_Semantics_for_Lazy_Evaluation)
 which is essentially a lazy version of the Krivine machine.  Sestoft gradually improves the
 machine by adding new features to the calculus and corresponding features to the machine.
 This is a very revealing paper because it gives a principled derivation of the machine, clearly showing
 the reasons for various features of the final machine.
 
-[Daniel P. Friedman, Abdulaziz Ghuloum, Jeremy G. Siek, Onnie Lynn Winebarger: 
-Improving the Lazy Krivine Machine](ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf)
+[Daniel P. Friedman, Abdulaziz Ghuloum, Jeremy G. Siek, Onnie Lynn Winebarger: Improving the Lazy Krivine Machine](ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf).
 This paper introduces further improvements to Sestoft's machine (see above). The underlying
 calculus remains simple (and similar to Plutus Core), so this paper is perhaps more relevant 
 from our point of view.
 
-[Rémi Douence,  Pascal Fradet:  The Next 700 Krivine Machines](https://hal.inria.fr/inria-00000940)
+[Rémi Douence,  Pascal Fradet:  The Next 700 Krivine Machines](https://hal.inria.fr/inria-00000940).
 This studies a number of other variants of the Krivine machine and gives a good idea of the
 (very large) space of possibilities for abstract machine implementation.
 
@@ -102,8 +101,8 @@ which contains other papers that may be worth looking at.
 
 All of the papers above consider machines based on the Krivine Machine; however there are at least two
 other approaches to lazy evaluation which have inspired a lot of research: 
-*  Supercombinator-based machines such as the [Three Instruction Machine (TIM)](https://pdfs.semanticscholar.org/a19d/894a2290e2eddca59dd0598c00c5c7dd6793.pdf) of Fairbairn and Wray 
-* Graph reduction machines, including the well-known [STG machine](https://www.microsoft.com/en-us/research/wp.../04/spineless-tagless-gmachine.pdf)
+*  Supercombinator-based machines such as the [Three Instruction Machine (TIM)](https://pdfs.semanticscholar.org/a19d/894a2290e2eddca59dd0598c00c5c7dd6793.pdf) of Fairbairn and Wray.
+* Graph reduction machines, including the well-known [STG machine](https://www.microsoft.com/en-us/research/wp.../04/spineless-tagless-gmachine.pdf).
 
 We haven't looked into the literature carefully here because neither of these types of machine
 deals directly with &lambda;-calculus: a preliminary translation step would be required, which 
