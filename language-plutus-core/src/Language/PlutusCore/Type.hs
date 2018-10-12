@@ -36,8 +36,6 @@ module Language.PlutusCore.Type ( Term (..)
                                 , getNormalizedType
                                 ) where
 
-import           Control.Monad.State                (evalState)
-import           Control.Monad.State.Class          (MonadState, get, modify)
 import qualified Data.ByteString.Lazy               as BSL
 import           Data.Functor.Foldable
 import qualified Data.Map                           as M
@@ -97,58 +95,48 @@ instance Corecursive (Type tyname a) where
 -- the Eq instance
 type EqState tyname a = M.Map (tyname a) (tyname a)
 
-rebind :: (Ord (tyname a), MonadState (EqState tyname a) m)
-       => tyname a
-       -> tyname a
-       -> m ()
-rebind = modify .* M.insert
-
-remove :: (Ord (tyname a), MonadState (EqState tyname a) m)
-       => tyname a
-       -> m ()
-remove = modify . M.delete
-
-rebindAndEq :: (Eq a, Ord (tyname a), MonadState (EqState tyname a) m)
-            => Type tyname a
+rebindAndEq :: (Eq a, Ord (tyname a))
+            => EqState tyname a
+            -> Type tyname a
             -> Type tyname a
             -> tyname a
             -> tyname a
-            -> m Bool
-rebindAndEq tyLeft tyRight tnLeft tnRight =
-    rebind tnRight tnLeft *>
-    eqTypeM tyLeft tyRight <* remove tnRight
+            -> Bool
+rebindAndEq eqSt tyLeft tyRight tnLeft tnRight =
+    let intermediateSt = M.insert tnRight tnLeft eqSt
+        in eqTypeSt intermediateSt tyLeft tyRight
 
 -- This tests for equality of names inside a monad that allows substitution.
-eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
-        => Type tyname a
+eqTypeSt :: (Ord (tyname a), Eq a)
+        => EqState tyname a
         -> Type tyname a
-        -> m Bool
+        -> Type tyname a
+        -> Bool
 
-eqTypeM (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeM domLeft domRight <&&> eqTypeM codLeft codRight
-eqTypeM (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeM fLeft fRight <&&> eqTypeM aLeft aRight
+eqTypeSt eqSt (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeSt eqSt domLeft domRight && eqTypeSt eqSt codLeft codRight
+eqTypeSt eqSt (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeSt eqSt fLeft fRight && eqTypeSt eqSt aLeft aRight
 
-eqTypeM (TyInt _ nLeft) (TyInt _ nRight)              = pure (nLeft == nRight)
-eqTypeM (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = pure (bLeft == bRight)
+eqTypeSt _ (TyInt _ nLeft) (TyInt _ nRight)              = nLeft == nRight
+eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
 
-eqTypeM (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
-    rebindAndEq tyLeft tyRight tnLeft tnRight
-eqTypeM (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) = do
-    tyEq <- rebindAndEq tyLeft tyRight tnLeft tnRight
-    pure (kLeft == kRight && tyEq)
-eqTypeM (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) = do
-    tyEq <- rebindAndEq tyLeft tyRight tnLeft tnRight
-    pure (kLeft == kRight && tyEq)
+eqTypeSt eqSt (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
+    rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+eqTypeSt eqSt (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) =
+    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+        in (kLeft == kRight && tyEq)
+eqTypeSt eqSt (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) =
+    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+        in (kLeft == kRight && tyEq)
 
-eqTypeM (TyVar _ tnRight) (TyVar _ tnLeft) = do
-    eqSt <- get
+eqTypeSt eqSt (TyVar _ tnRight) (TyVar _ tnLeft) =
     case M.lookup tnLeft eqSt of
-        Just tn -> pure (tnRight == tn)
-        Nothing -> pure (tnRight == tnLeft)
+        Just tn -> tnRight == tn
+        Nothing -> tnRight == tnLeft
 
-eqTypeM _ _ = pure False
+eqTypeSt _ _ _ = False
 
 instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
-    (==) ty ty' = evalState (eqTypeM ty ty') mempty
+    (==) = eqTypeSt mempty
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
