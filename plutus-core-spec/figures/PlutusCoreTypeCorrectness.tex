@@ -177,9 +177,10 @@
     \end{prooftree}
     
     \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma, \termJ{y}{\normalform{A}}}{\istermJ{M}{T}}\)}
         \RightLabel{lam}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\normalform{A}}{T}}}\)}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\normalform{A}}{T}}}\)}
     \end{prooftree}
     
     \begin{prooftree}
