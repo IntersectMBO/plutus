@@ -214,8 +214,8 @@ alexEOF :: Alex (Token AlexPosn)
 alexEOF = EOF . alex_pos <$> get
 
 liftError :: Either String a -> Either (ParseError b) a
-liftError(Left s)  = Left $ LexErr s
-liftError(Right a) = Right $ a
+liftError (Left s)  = Left (LexErr s)
+liftError (Right a) = Right a
 
 runAlexST :: ByteString.ByteString -> Alex a -> IdentifierState -> Either (ParseError AlexPosn) (IdentifierState, a)
 runAlexST input (Alex f) initial = liftError $ first alex_ust <$>

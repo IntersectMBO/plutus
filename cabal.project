@@ -12,11 +12,8 @@ constraints: language-plutus-core +development
            , plutus-core-interpreter +development
 tests: true
 benchmarks: true
--- documentation: true
+documentation: true
 -- haddock-internal: true
-
-allow-newer:
-    cborg:containers
 
 program-options
   alex-options: -g
