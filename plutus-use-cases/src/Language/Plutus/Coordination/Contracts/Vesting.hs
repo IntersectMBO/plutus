@@ -21,7 +21,7 @@ import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.Runtime              (Hash, Height, PendingTx (..), PendingTxIn (..),
                                                        PendingTxOut (..), PendingTxOutType (..), PubKey (..), Value)
 import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
-import           Wallet.API                           (WalletAPI (..), WalletAPIError, otherError)
+import           Wallet.API                           (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
 import           Wallet.UTXO                          (DataScript (..), Tx (..), TxOutRef', Validator (..), scriptTxIn,
                                                        scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
@@ -71,12 +71,7 @@ vestFunds c vst value = do
         d = DataScript $(plutus [|
             let hashedVs = 1123 -- TODO: Should be `hash vs` (see [CGP-228])
             in VestingData hashedVs 0 |])
-    submitTxn Tx
-        { txInputs = payment
-        , txOutputs = [o, change]
-        , txForge = 0
-        , txFee = 0
-        }
+    signAndSubmit payment [o, change]
     pure $ VestingData 1123 0
 
 -- | Retrieve some of the vested funds.
@@ -98,12 +93,7 @@ retrieveFunds vs vsPLC vd vdPLC r vnow = do
         remaining = (fromIntegral $ totalAmount vs) - vnow
         vd' = vd {vestingDataPaidOut = fromIntegral vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val UTXO.unitRedeemer
-    submitTxn Tx
-        { txInputs = Set.singleton inp
-        , txOutputs = [oo, o]
-        , txForge = 0
-        , txFee = 0
-        }
+    signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScript :: VestingPLC -> Validator

@@ -34,9 +34,9 @@ import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.Runtime              (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
 import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
 import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
-                                                       otherError, pubKey)
-import           Wallet.UTXO                          (Address', DataScript (..), Tx (..), TxOutRef', Validator (..),
-                                                       scriptTxIn, scriptTxOut)
+                                                       otherError, signAndSubmit)
+import           Wallet.UTXO                          (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
+                                                       scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
 import           Prelude                              (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($),
@@ -71,14 +71,7 @@ contribute c value = do
     let o = scriptTxOut v' (contributionScript c) d
         d = DataScript $(plutus [| PubKey 1 |])
 
-    submitTxn Tx
-      { txInputs  = payment
-      , txOutputs = [o, change]
-      , txForge = 0
-      , txFee = 0
-      }
-    -- the transaction above really ought to be merely a transaction *template* and the transaction fee ought to be
-    -- added by the Wallet API Plutus library on the basis of the size and other costs of the transaction
+    signAndSubmit payment [o, change]
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
@@ -163,16 +156,10 @@ collectFundsTrigger Campaign{..} ts = And
 
 refund :: (Monad m, WalletAPI m) => CampaignPLC -> TxOutRef' -> UTXO.Value -> m ()
 refund c ref val = do
-    contributorPubKey <- pubKey <$> myKeyPair
     oo <- payToPublicKey val
     let scr = contributionScript c
         i   = scriptTxIn ref scr UTXO.unitRedeemer
-    submitTxn Tx
-        { txInputs = Set.singleton i
-        , txOutputs = [oo]
-        , txForge = 0
-        , txFee = 0
-        }
+    signAndSubmit (Set.singleton i) [oo]
 
 -- | Collect all campaign funds (campaign owner)
 --
@@ -180,15 +167,9 @@ refund c ref val = do
 collect :: (Monad m, WalletAPI m) => CampaignPLC -> [(TxOutRef', PubKey, UTXO.Value)] -> m ()
 collect cmp contributions = do
     oo <- payToPublicKey value
-    contributorPubKey <- pubKey <$> myKeyPair
     let scr           = contributionScript cmp
         con (r, _, _) = scriptTxIn r scr UTXO.unitRedeemer
         ins           = con <$> contributions
-    submitTxn Tx
-        { txInputs  = Set.fromList ins
-        , txOutputs = [oo]
-        , txForge   = 0
-        , txFee     = 0 -- TODO: Fee
-        }
+    signAndSubmit (Set.fromList ins) [oo]
     where
       value = sum [ vl | (_, _, vl) <- contributions]
