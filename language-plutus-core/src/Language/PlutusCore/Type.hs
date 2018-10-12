@@ -124,20 +124,20 @@ eqTypeM :: (Ord (tyname a), MonadState (EqState tyname a) m, Eq a)
         -> Type tyname a
         -> m Bool
 
-eqTypeM (TyFun _ ty ty') (TyFun _ ty'' ty''') = eqTypeM ty ty'' <&&> eqTypeM ty' ty'''
-eqTypeM (TyApp _ f a) (TyApp _ f' a') = eqTypeM f f' <&&> eqTypeM a a'
+eqTypeM (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeM domLeft domRight <&&> eqTypeM codLeft codRight
+eqTypeM (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeM fLeft fRight <&&> eqTypeM aLeft aRight
 
-eqTypeM (TyInt _ n) (TyInt _ n')              = pure (n == n')
-eqTypeM (TyBuiltin _ b) (TyBuiltin _ b')      = pure (b == b')
+eqTypeM (TyInt _ nLeft) (TyInt _ nRight)              = pure (nLeft == nRight)
+eqTypeM (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = pure (bLeft == bRight)
 
-eqTypeM (TyFix _ tnL tyL) (TyFix _ tnR tyR) =
-    rebindAndEq tyL tyR tnL tnR
-eqTypeM (TyForall _ tnL k tyL) (TyForall _ tnR k' tyR) = do
-    tyEq <- rebindAndEq tyL tyR tnL tnR
-    pure (k == k' && tyEq)
-eqTypeM (TyLam _ tnL k tyL) (TyLam _ tnR k' tyR) = do
-    tyEq <- rebindAndEq tyL tyR tnL tnR
-    pure (k == k' && tyEq)
+eqTypeM (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
+    rebindAndEq tyLeft tyRight tnLeft tnRight
+eqTypeM (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) = do
+    tyEq <- rebindAndEq tyLeft tyRight tnLeft tnRight
+    pure (kLeft == kRight && tyEq)
+eqTypeM (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) = do
+    tyEq <- rebindAndEq tyLeft tyRight tnLeft tnRight
+    pure (kLeft == kRight && tyEq)
 
 eqTypeM (TyVar _ tnRight) (TyVar _ tnLeft) = do
     eqSt <- get
