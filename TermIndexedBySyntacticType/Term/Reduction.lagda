@@ -26,11 +26,12 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
       ----------------
     → Value (Λ N)
 
-  V-wrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M : Γ ⊢ S ⋆.[ μ S ]}
+  V-wrap : ∀{Γ K}
+    → {S : ∥ Γ ∥ ,⋆ K ⊢⋆ K}
+    → {E : EvalCxt ∥ Γ ∥ K K}
+    → {M : Γ ⊢ E [ S ⋆.[ μ S ] ]E}
       ----------------
-    → Value (wrap S M)
+    → Value (wrap S E M)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -65,16 +66,18 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
       -------------------
     → (Λ N) ·⋆ W —→ N [ W ]⋆
 
-  ξ-unwrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M M' : Γ ⊢ μ S}
+  ξ-unwrap : ∀{Γ K}
+    → {S : ∥ Γ ∥ ,⋆ K ⊢⋆ K}
+    → {E : EvalCxt ∥ Γ ∥ K K}
+    → {M M' : Γ ⊢ E [ μ S ]E}
     → M —→ M'
-    → unwrap M —→ unwrap M'
+    → unwrap E M —→ unwrap E M'
 
-  β-wrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → {M : Γ ⊢ S ⋆.[ μ S ]}    
-    → unwrap (wrap S M) —→ M
+  β-wrap : ∀{Γ K}
+    → {S : ∥ Γ ∥ ,⋆ K ⊢⋆ K}
+    → {E : EvalCxt ∥ Γ ∥ K K}
+    → {M : Γ ⊢ E [ S ⋆.[ μ S ] ]E}
+    → unwrap E (wrap S E M) —→ M
 
   -- this is a temporary hack as currently the type eq relation only has
   -- reflexivity in it.
@@ -108,19 +111,27 @@ progress (L · M)  with progress L
 ...                   | unhandled-conversion = unhandled-conversion
 ...                   | step p  = step (ξ-·₁ p)
 -- progress (.(ƛ _) · M) | done V-ƛ = step β-ƛ -- lazy version
-...                   | done vL with progress M
+...                   | done vL = {!vL!}
+{-
 ...                              | unhandled-conversion = unhandled-conversion
 ...                              | step p  = step (ξ-·₂ vL p)
 progress (.(ƛ _) · M) | done V-ƛ | done vM = step (β-ƛ vM)
+-}
 progress (Λ M)    = done V-Λ_
 progress (M ·⋆ A) with progress M
+... | p = {!!}
+{-
 ...                    | unhandled-conversion = unhandled-conversion
 ...                    | step p  = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
-progress (wrap A M) = done V-wrap
-progress (unwrap M) with progress M
+-}
+progress (wrap A E M) = done V-wrap
+progress (unwrap E M) with progress M
+... | p = {!!}
+{-
 ...                           | unhandled-conversion = unhandled-conversion
 ...                           | step p = step (ξ-unwrap p)
 progress (unwrap .(wrap _ _)) | done V-wrap = step β-wrap
+-}
 progress (conv p t) = unhandled-conversion
 \end{code}

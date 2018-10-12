@@ -120,15 +120,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap : ∀{Γ}
-    → (S : ∥ Γ ∥ ,⋆ * ⊢⋆ *)
-    → (E : EvalCxt ∥ Γ ∥ * *)
+  wrap : ∀{Γ K}
+    → (S : ∥ Γ ∥ ,⋆ K ⊢⋆ K)
+    → (E : EvalCxt ∥ Γ ∥ K K)
     → (M : Γ ⊢ E [ S [ μ S ] ]E)
     → Γ ⊢ E [ μ S ]E
 
-  unwrap : ∀{Γ}
-    → {S : ∥ Γ ∥ ,⋆ * ⊢⋆ *}
-    → (E : EvalCxt ∥ Γ ∥ * *)
+  unwrap : ∀{Γ K}
+    → {S : ∥ Γ ∥ ,⋆ K ⊢⋆ K}
+    → (E : EvalCxt ∥ Γ ∥ K K)
     → (M : Γ ⊢ E [ μ S ]E)
     → Γ ⊢ E [ S [ μ S ] ]E
 
