@@ -41,7 +41,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , repeatM
                      , (?)
                      , hoist
-                     , (<&&>)
                      -- * Reëxports from "Data.Text.Prettyprint.Doc"
                      , (<+>)
                      , parens
@@ -212,12 +211,3 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
-
--- | This is faster than @(&&) <$> f <*> x@ for some monads. It also changes the
--- behavior of e.g. the 'Either' monad, so be careful!
-(<&&>) :: Monad m => m Bool -> m Bool -> m Bool
-getB1 <&&> getB2 = do
-    b1 <- getB1
-    if b1
-        then getB2
-        else pure False
