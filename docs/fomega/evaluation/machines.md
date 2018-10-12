@@ -83,10 +83,10 @@ machine by adding new features to the calculus and corresponding features to the
 This is a very revealing paper because it gives a principled derivation of the machine, clearly showing
 the reasons for various features of the final machine.
 
-[Daniel P. Friedman, Abdulaziz Ghuloum, Jeremy G. Siek, Onnie Lynn Winebarger: Improving the Lazy Krivine Machine](ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf).
+[Daniel P. Friedman, Abdulaziz Ghuloum, Jeremy G. Siek, Onnie Lynn Winebarger: Improving the Lazy Krivine Machine](ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf) .
 This paper introduces further improvements to Sestoft's machine (see above). The underlying
 calculus remains simple (and similar to Plutus Core), so this paper is perhaps more relevant 
-from our point of view.
+from our point of view.  The paper can be found at ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf .
 
 [Rémi Douence,  Pascal Fradet:  The Next 700 Krivine Machines](https://hal.inria.fr/inria-00000940).
 This studies a number of other variants of the Krivine machine and gives a good idea of the
