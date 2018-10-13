@@ -8,6 +8,8 @@ module TermIndexedBySyntacticType.Term where
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
+
+open import Relation.Binary.PropositionalEquality hiding ([_])
 \end{code}
 
 ## Fixity declarations
@@ -124,7 +126,9 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
     → (S : ∥ Γ ∥ ,⋆ K ⊢⋆ K)
     → (E : EvalCxt ∥ Γ ∥ K K)
     → (M : Γ ⊢ E [ S [ μ S ] ]E)
-    → Γ ⊢ E [ μ S ]E
+    → {Q : ∥ Γ ∥ ⊢⋆ K}
+    → Q ≡ E [ μ S ]E
+    → Γ ⊢ Q
 
   unwrap : ∀{Γ K}
     → {S : ∥ Γ ∥ ,⋆ K ⊢⋆ K}
