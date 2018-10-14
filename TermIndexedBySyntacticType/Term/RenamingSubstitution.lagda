@@ -106,7 +106,7 @@ rename {Γ}{Δ} ρ⋆ ρ (wrap M E N refl) =
                                                       M)))))
                          (rename ρ⋆ ρ N))
           refl)
-rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = A} E M) =
+rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = A} E refl M) =
   substEq (λ A → Δ ⊢ A)
           (trans (cong (renameE ρ⋆ E [_]E)
                        (trans (sym (⋆.subst-rename _ _ A))
@@ -114,7 +114,10 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = A} E M) =
                                      (⋆.rename-subst _ _ A))))
                  (sym (renameE[] ρ⋆ E (A ⋆.[ μ A ]))))
           (unwrap (renameE ρ⋆ E )
-                  (substEq (λ A → Δ ⊢ A) (renameE[] ρ⋆ E (μ A)) (rename ρ⋆ ρ M)))
+                  refl
+                  (substEq (λ A → Δ ⊢ A)
+                           (renameE[] ρ⋆ E (μ A))
+                           (rename ρ⋆ ρ M)))
 rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 \end{code}
 
@@ -214,14 +217,18 @@ subst {Γ}{Δ} σ⋆ σ (wrap M E N refl) =
                                                       M)))))
                          (subst σ⋆ σ N))
                 refl)
-subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E M) =
+subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E refl M) =
   substEq (λ A → Δ ⊢ A)
           (trans (cong (substE σ⋆ E [_]E)
                        (trans (trans (sym (⋆.subst-comp _ _ A))
                                      (⋆.subst-cong _ _ (⋆.subst-subst-cons _ _) A))
                               (⋆.subst-comp _ _ A)))
                  (sym (substE[] σ⋆ E (A ⋆.[ μ A ]))))
-          (unwrap (substE σ⋆ E) (substEq (λ A → Δ ⊢ A) (substE[] σ⋆ E (μ A)) (subst σ⋆ σ M)))
+          (unwrap (substE σ⋆ E)
+                  refl
+                  (substEq (λ A → Δ ⊢ A)
+                           (substE[] σ⋆ E (μ A))
+                           (subst σ⋆ σ M)))
 subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 \end{code}
 

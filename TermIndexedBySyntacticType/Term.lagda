@@ -133,7 +133,9 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
   unwrap : ∀{Γ K}
     → {S : ∥ Γ ∥ ,⋆ K ⊢⋆ K}
     → (E : EvalCxt ∥ Γ ∥ K K)
-    → (M : Γ ⊢ E [ μ S ]E)
+    → {Q : ∥ Γ ∥ ⊢⋆ K}
+    → Q ≡ E [ μ S ]E
+    → (M : Γ ⊢ Q)
     → Γ ⊢ E [ S [ μ S ] ]E
 
   conv : ∀{Γ J}
