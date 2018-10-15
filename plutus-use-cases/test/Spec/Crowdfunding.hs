@@ -44,9 +44,18 @@ tests = testGroup "crowdfunding" [
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
-contrib :: Wallet -> CampaignPLC -> Runtime.Value -> Trace TxOutRef'
-contrib w c v = exContrib <$> walletAction w (contribute c v) where
+contrib :: DataScript -> Wallet -> CampaignPLC -> Runtime.Value -> Trace TxOutRef'
+contrib ds w c v = exContrib <$> walletAction w (contribute c ds v) where
     exContrib = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
+
+-- | Make a contribution from wallet 2
+contrib2 :: CampaignPLC -> Runtime.Value -> Trace TxOutRef'
+contrib2 = contrib ds (Wallet 2) where
+    ds = DataScript $(plutus [| PubKey 2  |])
+
+-- | Make a contribution from wallet 3
+contrib3 = contrib ds (Wallet 3) where
+    ds = DataScript $(plutus [| PubKey 3  |])
 
 -- | Collect the contributions of a crowdfunding campaign
 collect :: Wallet -> CampaignPLC -> [(TxOutRef', Wallet, UTXO.Value)] -> Trace [Tx]
@@ -62,7 +71,7 @@ makeContribution = checkCFTrace scenario1 $ do
         contribution = 600
         rest = startingBalance - fromIntegral contribution
     blockchainActions >>= walletNotifyBlock w
-    contrib w (cfCampaign scenario1) contribution
+    contrib2 (cfCampaign scenario1) contribution
     blockchainActions >>= walletNotifyBlock w
     assertOwnFundsEq w rest
 
@@ -73,10 +82,16 @@ successfulCampaign = checkCFTrace scenario1 $ do
     let CFScenario c [w1, w2, w3] _ = scenario1
         updateAll' = updateAll scenario1
     updateAll'
-    con2 <- contrib w2 c 600
-    con3 <- contrib w3 c 800
+    con2 <- contrib2 c 600
+    con3 <- contrib3 c 800
     updateAll'
-    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 11 600 (Just 800) |])
+    setValidationData $ ValidationData $(plutus [| let el = []::[Signature] in
+            $(pendingTxCrowdfunding)
+                11
+                (Signature 1:el)
+                (600, Signature 2 : el)
+                (Just (800, Signature 3 : el))
+            |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
     traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 600 + 800)]
@@ -87,10 +102,16 @@ cantCollectEarly = checkCFTrace scenario1 $ do
     let CFScenario c [w1, w2, w3] _ = scenario1
         updateAll' = updateAll scenario1
     updateAll'
-    con2 <- contrib w2 c 600
-    con3 <- contrib w3 c 800
+    con2 <- contrib2 c 600
+    con3 <- contrib3 c 800
     updateAll'
-    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 8 600 (Just 800) |])
+    setValidationData $ ValidationData $(plutus [| let el = []::[Signature] in
+            $(pendingTxCrowdfunding)
+                8
+                el
+                (600, el)
+                (Just (800, el))
+            |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
     traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
@@ -103,10 +124,16 @@ cantCollectLate = checkCFTrace scenario1 $ do
     let CFScenario c [w1, w2, w3] _ = scenario1
         updateAll' = updateAll scenario1
     updateAll'
-    con2 <- contrib w2 c 600
-    con3 <- contrib w3 c 800
+    con2 <- contrib2 c 600
+    con3 <- contrib3 c 800
     updateAll'
-    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 17 600 (Just 800) |])
+    setValidationData $ ValidationData $(plutus [| let el = []::[Signature] in
+            $(pendingTxCrowdfunding)
+                17
+                (Signature 1:el)
+                (600, el)
+                (Just (800, el))
+            |])
     collect w1 c [(con2, w2, 600), (con3, w3, 800)]
     updateAll'
     traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, 0)]
@@ -118,14 +145,31 @@ canRefund = checkCFTrace scenario1 $ do
     let CFScenario c [w1, w2, w3] _ = scenario1
         updateAll' = updateAll scenario1
     updateAll'
-    con2 <- contrib w2 c 600
-    con3 <- contrib w3 c 800
+    con2 <- contrib2 c 600
+    con3 <- contrib3 c 800
     updateAll'
-    setValidationData $ ValidationData $(plutus [| $(pendingTxCrowdfunding) 18 600 Nothing |])
+    setValidationData $ ValidationData $(plutus [| let el = []::[Signature] in
+            $(pendingTxCrowdfunding)
+                18
+                (Signature 2 : el)
+                (600, Signature 2 : el)
+                Nothing
+            |])
     walletAction w2 (refund c con2 600)
+    updateAll'
+    setValidationData $ ValidationData $(plutus [| let el = []::[Signature] in
+            $(pendingTxCrowdfunding)
+                18
+                (Signature 3 : el)
+                (800, Signature 3 : el)
+                Nothing
+            |])
     walletAction w3 (refund c con3 800)
     updateAll'
-    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance), (w3, startingBalance), (w1, 0)]
+    traverse_ (uncurry assertOwnFundsEq) [
+        (w2, startingBalance),
+        (w3, startingBalance),
+        (w1, 0)]
 
 -- | Crowdfunding scenario with test parameters
 data CFScenario = CFScenario {

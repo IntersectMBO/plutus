@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 -- Disabled until we can use the Num.(*) for `Ratio Int`
 -- {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 module Language.Plutus.Coordination.Contracts.Swap(
@@ -7,14 +8,15 @@ module Language.Plutus.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
-import           Language.Plutus.CoreToPLC.Plugin     (plc)
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.Runtime              (OracleValue (..), PendingTx (..), PendingTxIn (..),
                                                        PendingTxOut (..), PubKey, Value)
+import qualified Language.Plutus.Runtime.TH           as TH
+import           Language.Plutus.TH                   (plutus)
 import           Wallet.UTXO                          (Height, Validator (..))
 
 import           Data.Ratio                           (Ratio)
-import           Prelude                              (Bool, Eq (..), Int, Num (..), Ord (..))
+import           Prelude                              (Bool (..), Eq (..), Int, Num (..), Ord (..))
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -54,17 +56,17 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> Validator
 swapValidator _ = Validator result where
-    result = plc (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx SwapOracle SwapOwners) Swap{..} ->
+    result = $(plutus [| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx SwapOracle SwapOwners) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = Prim.error ()
+            (&&) = $(TH.and)
 
             mn :: Int -> Int -> Int
-            mn a b = if a < b then a else b
+            mn = $(TH.min)
 
             mx :: Int -> Int -> Int
-            mx a b = if a > b then a else b
+            mx = $(TH.max)
 
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
             extractVerifyAt = Prim.error ()
@@ -77,14 +79,14 @@ swapValidator _ = Validator result where
             fromInt = Prim.error ()
 
             signedBy :: PendingTxIn a -> PubKey -> Bool
-            signedBy = Prim.error ()
+            signedBy = $(TH.txInSignedBy)
 
             infixr 3 ||
             (||) :: Bool -> Bool -> Bool
-            (||) = Prim.error ()
+            (||) = $(TH.or)
 
             isPubKeyOutput :: PendingTxOut a -> PubKey -> Bool
-            isPubKeyOutput = Prim.error ()
+            isPubKeyOutput o k = $(TH.maybe) False ($(TH.eqPubKey) k) ($(TH.pubKeyOutput) o)
 
             -- Verify the authenticity of the oracle value and compute
             -- the payments.
@@ -119,7 +121,7 @@ swapValidator _ = Validator result where
             -- NOTE: Partial match is OK because if it fails then the PLC script
             --       terminates with `error` and the validation fails (which is
             --       what we want when the number of inputs and outputs is /= 2)
-            PendingTx t1 [t2] [o1, o2] _ _ _ = p
+            PendingTx t1 [t2] [o1, o2] _ _ _ _ = p
 
             -- Each participant must deposit the margin. But we don't know
             -- which of the two participant's deposit we are currently
@@ -159,7 +161,7 @@ swapValidator _ = Validator result where
 
         in
         if inConditions && outConditions then () else Prim.error ()
-        )
+        ) |])
 
 {- Note [Swap Transactions]
 
