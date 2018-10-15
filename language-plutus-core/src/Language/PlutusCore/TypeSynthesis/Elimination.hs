@@ -35,7 +35,7 @@ getElimCtx t alpha s fixSubst = do
     case fixSubst of
         (NormalizedType (TyApp _ ty ty')) | subst /= fixSubst -> ElimApp <$> getElimCtx t alpha s (NormalizedType ty) <*> pure ty'
         _ | subst == fixSubst                               -> pure Hole
-        _                                                   -> throwError (TypeMismatch (termLoc t) (void t) (getNormalizedType fixSubst) subst)
+        _                                                   -> throwError (TyElimMismatch (termLoc t) (void t))
 
 -- | Given a type Q, we extract (α, S) such that Q = ℰ{(fix α S)} for some ℰ
 extractFix :: MonadError (TypeError a) m
