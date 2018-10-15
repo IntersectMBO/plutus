@@ -18,11 +18,10 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeSynthesis.Error
 import           PlutusPrelude
 
-import qualified Data.Text                               as T
-import           Data.Text.Prettyprint.Doc.Internal      (Doc (Text))
+import qualified Data.Text                          as T
+import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 
 -- | An error encountered during parsing.
 data ParseError a
@@ -141,7 +140,7 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
             then mempty
             else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
         hardline <>
-        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config (TyFix () dummyTyName (TyFun () dummyType dummyType)))) <+>
+        "Expected type" <> hardline <> indent 2 (squotes "(fix * (fun * *))") <+>
         "found type" <+> squotes (prettyBy config ty)
     prettyBy config (TyElimMismatch x t eTy fTy) = -- FIXME cover all cases
         "Type mismatch at" <+> pretty x <+>
