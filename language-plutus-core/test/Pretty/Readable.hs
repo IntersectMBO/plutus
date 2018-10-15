@@ -14,10 +14,10 @@ prettyConfigReadable
     . PrettyConfigPlcReadable
     $ botPrettyConfigReadable defPrettyConfigName
 
-testReadable :: PrettyPlc a => TestName -> Quote a -> TestNestedGolden
-testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable . runQuote
+testReadable :: PrettyPlc a => TestName -> Quote a -> TestNested
+testReadable name = nestedGoldenVsDoc name . pure . prettyBy prettyConfigReadable . runQuote
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable =
-    runTestNestedGoldenIn ["test", "Pretty", "Golden", "Readable"] $
-        foldStdLib testNestedGolden testReadable testReadable
+    runTestNestedIn ["test", "Pretty", "Golden", "Readable"] $
+        foldStdLib testNested testReadable testReadable
