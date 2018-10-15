@@ -35,12 +35,13 @@ getElimCtx loc alpha s fixSubst = do
     case fixSubst of
         (NormalizedType (TyApp _ ty ty')) | subst /= fixSubst -> App <$> getElimCtx loc alpha s (NormalizedType ty) <*> pure ty'
         _ | subst == fixSubst                               -> pure Hole
-        _                                                   -> throwError NotImplemented -- FIXME don't do this
+        _                                                   -> undefined -- FIXME don't do this
 
 -- | Given a type Q, we extract (α, S) such that Q = ℰ{(fix α S)} for some ℰ
 extractFix :: MonadError (TypeError a) m
-           => Type TyNameWithKind () -- ^ Q = ℰ{(fix α S)}
+           => Term TyNameWithKind NameWithType a
+           -> Type TyNameWithKind () -- ^ Q = ℰ{(fix α S)}
            -> m (TyNameWithKind (), Type TyNameWithKind ()) -- ^ (α, S)
-extractFix (TyFix _ tn ty) = pure (tn, ty)
-extractFix (TyApp _ ty _)  = extractFix ty -- can't happen b/c we need ty have to the appropriate kind?
-extractFix _               = throwError NotImplemented -- FIXME: don't do this
+extractFix _ (TyFix _ tn ty) = pure (tn, ty)
+extractFix t (TyApp _ ty _)  = extractFix t ty -- can't happen b/c we need ty have to the appropriate kind?
+extractFix t ty              = throwError (TyFixMismatch (termLoc t) (void t) (NormalizedType ty)) -- FIXME: don't do this

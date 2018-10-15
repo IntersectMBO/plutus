@@ -8,7 +8,7 @@ module Language.PlutusCore.Error
     ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
-    , TypeError (NotImplemented, KindMismatch, TypeMismatch, OutOfGas)
+    , TypeError (KindMismatch, TypeMismatch, OutOfGas, TyFixMismatch)
     , Error (..)
     , IsError (..)
     , convertError
@@ -18,10 +18,11 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
+import           Language.PlutusCore.TypeSynthesis.Error
 import           PlutusPrelude
 
-import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import qualified Data.Text                               as T
+import           Data.Text.Prettyprint.Doc.Internal      (Doc (Text))
 
 -- | An error encountered during parsing.
 data ParseError a
@@ -43,8 +44,7 @@ data RenameError a
     deriving (Show, Eq, Generic, NFData)
 
 data TypeError a
-    = NotImplemented
-    | KindMismatch { _loc          :: a
+    = KindMismatch { _loc          :: a
                    , _inType       :: Type TyNameWithKind ()
                    , _expectedKind :: Kind ()
                    , _foundKind    :: Kind ()
@@ -54,6 +54,10 @@ data TypeError a
                    , _expectedType :: Type TyNameWithKind ()
                    , _foundType    :: NormalizedType TyNameWithKind ()
                    }
+    | TyFixMismatch { _loc       :: a
+                    , _inTerm    :: Term TyNameWithKind NameWithType ()
+                    , _foundType :: NormalizedType TyNameWithKind ()
+                    }
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -126,8 +130,15 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
+    prettyBy config (TyFixMismatch x t ty) =
+        "Type mismatch at" <+> pretty x <+>
+        (if _pcpoCondensedErrors . _pcpOptions $ config
+            then mempty
+            else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
+        hardline <>
+        ". Expected type" <+> hardline <> indent 2 (squotes (prettyBy config (TyFix () dummyTyName (TyFun () dummyType dummyType)))) <+>
+        "found type" <+> squotes (prettyBy config ty)
     prettyBy _      OutOfGas                  = "Type checker ran out of gas."
-    prettyBy _ NotImplemented = "Not yet implemented."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e

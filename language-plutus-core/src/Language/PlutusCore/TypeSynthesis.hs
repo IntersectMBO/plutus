@@ -196,7 +196,7 @@ typeOf (TyInst x body ty) = do
 
 typeOf (Unwrap x m) = do
     q <- getNormalizedType <$> typeOf m
-    (alpha, s) <- extractFix q
+    (alpha, s) <- extractFix m q
     sNorm <- normalizeType s
     kindCheckM x (q $> x) (Type ())
     typeCheckStep
