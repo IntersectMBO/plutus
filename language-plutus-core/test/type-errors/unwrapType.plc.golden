@@ -1,4 +1,8 @@
 Type mismatch at 2:12 in  term
   '(con 64 ! 0)'.
 Expected type
-  '(fix * (fun * *))' found type '(con integer)'
+  '(fix * (fun * *))'
+or type
+  '[(fix * (fun * *)) _]'
+etc.
+found type '(con integer)'

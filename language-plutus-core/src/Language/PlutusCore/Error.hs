@@ -140,7 +140,9 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
             then mempty
             else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
         hardline <>
-        "Expected type" <> hardline <> indent 2 (squotes "(fix * (fun * *))") <+>
+        "Expected type" <> hardline <> indent 2 (squotes "(fix * (fun * *))")
+        <> hardline <> "or type"
+        <> hardline <> indent 2 (squotes "[(fix * (fun * *)) _]") <> hardline <> "etc." <> hardline <>
         "found type" <+> squotes (prettyBy config ty)
     prettyBy config (TyElimMismatch x t eTy fTy) = -- FIXME cover all cases
         "Type mismatch at" <+> pretty x <+>
