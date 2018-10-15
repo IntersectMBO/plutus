@@ -10,10 +10,12 @@ open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq; [_] to [_]≅)
 
 open import Type
+open import Type.Equality
 import Type.RenamingSubstitution as ⋆
 --open import Type.Reduction
 open import Type.BetaNormal
 open import Type.BetaNBE
+open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
@@ -159,7 +161,28 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
-{-
+substE : ∀{Γ Δ K K'}
+ → (σ⋆ : ∀ {K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
+ → EvalCxt Γ K K'
+ → EvalCxt Δ K K'
+substE ρ •        = •
+substE ρ (E ·E t) = substE ρ E ·E substNf ρ t
+
+-- this is a bad name it should be substNf-substE or something
+substE[] : ∀{Γ Δ K K'}
+  → (σ : ∀ {K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
+  → (E : EvalCxt Γ K K')
+  → (t : Γ ⊢Nf⋆ K)
+  → substNf σ (E [ t ]E) ≡ substE σ E [ substNf σ t ]E
+substE[] σ • t = refl
+substE[] σ (E ·E u) t =
+  trans (trans (reify _ (subst-eval (embNf (nf (embNf (E [ t ]E) · embNf u))) idPER (embNf ∘ σ))) (trans (trans (sym (reify _ (fund (λ x → idext idPER (embNf  (σ x))) (soundness (embNf (E [ t ]E) · embNf u))))) (sym (reify _ (PERApp (subst-eval (embNf (E [ t ]E)) idPER (embNf ∘ σ)) (subst-eval (embNf u) idPER (embNf ∘ σ)))))) (reify _ (PERApp (fund idPER (soundness (⋆.subst (embNf ∘ σ) (embNf (E [ t ]E))))) (fund idPER (soundness (⋆.subst (embNf ∘ σ) (embNf u))))))  )
+  )
+        (cong (λ f → nf (embNf f · embNf (substNf σ u))) (substE[] σ E t)) 
+\end{code}
+
+
+\begin{code}
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -178,14 +201,23 @@ subst {Γ}{Δ} σ⋆ σ {J} (_·⋆_ {K = K}{B = B} L M) =
           (trans refl
                  (sym (subst[]Nf' σ⋆ M B)) )
           (subst σ⋆ σ L ·⋆ substNf σ⋆ M)
-subst {Γ}{Δ} σ⋆ σ (wrap {B = B} N) =
+subst {Γ}{Δ} σ⋆ σ (wrap B E N p) =
+  wrap
+    (substNf (extsNf σ⋆) B)
+    {!substE!}
+    {!stability!}
+    {!!}
+{-
   wrap (substEq (λ A → Δ ⊢ A)
                 (subst[]Nf' σ⋆ (μ B) B)
                 (subst σ⋆ σ N))
-subst {Γ}{Δ} σ⋆ σ (unwrap {B = B} M) =
+-}
+subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E p M) = {!!}
+{-
   substEq (λ A → Δ ⊢ A)
           (sym (subst[]Nf' σ⋆ (μ B) B))
           (unwrap (subst σ⋆ σ M))
+-}
 \end{code}
 
 \begin{code}
@@ -230,5 +262,4 @@ _[_]⋆ {J}{Γ}{K}{B} b A =
                                      (trans (trans (trans (sym (stability A')) (sym (reify _ (rename-eval (embNf A') (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) A x))) S)))) (sym (reify _ (evalPERSubst (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) A x))) (rename-embNf S A'))))) (reify _ (symPER _ (subst-eval (embNf (renameNf S A')) idPER (embNf ∘ (substNf-cons (ne ∘ `) A))))))
                                      (` x)}))
                  b
--}
 \end{code}
