@@ -13,7 +13,7 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.Trans.State                     hiding (get, modify)
+import           Control.Monad.Trans.State
 import           Language.PlutusCore.Constant.Typed            (typeOfBuiltinName)
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
