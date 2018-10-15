@@ -8,7 +8,7 @@ module Language.PlutusCore.Error
     ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
-    , TypeError (..)
+    , TypeError (NotImplemented, KindMismatch, TypeMismatch, OutOfGas)
     , Error (..)
     , IsError (..)
     , convertError
