@@ -30,7 +30,6 @@
 # annoyingly, 'within' doesn't seem to work if there's a parse error, so we have to blanket
 # ignore it
 - ignore: {name: Parse error}
-- ignore: {name: Eta reduce, within: [Language.PlutusCore.MkPlc]}
 # PLC plugin only accepts lists that are constructed in a certain way
 - ignore: {name: Use list literal, within: [Spec.Crowdfunding]}
 

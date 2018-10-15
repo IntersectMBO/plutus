@@ -28,14 +28,14 @@ mkIterApp
     :: Term tyname name ()
     -> [Term tyname name ()]
     -> Term tyname name ()
-mkIterApp fun args = foldl' (Apply ()) fun args
+mkIterApp = foldl' (Apply ())
 
 -- | Make an iterated instantiation.
 mkIterInst
     :: Term tyname name ()
     -> [Type tyname ()]
     -> Term tyname name ()
-mkIterInst abstr args = foldl' (TyInst ()) abstr args
+mkIterInst = foldl' (TyInst ())
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs
@@ -56,7 +56,7 @@ mkIterTyApp
     :: Type tyname ()
     -> [Type tyname ()]
     -> Type tyname ()
-mkIterTyApp fun args = foldl' (TyApp ()) fun args
+mkIterTyApp = foldl' (TyApp ())
 
 -- | Make an iterated function type.
 mkIterTyFun
