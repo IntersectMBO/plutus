@@ -9,10 +9,11 @@
 \begin{figure*}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} & f  & ::= & \inFunTLeft{\_}{A}                        & \textrm{left arrow}\\
+        \textrm{Type Frame} & f  & ::= & \inConT{tcn}{\_}                          & \textrm{type constant}\\
+                            &    &     & \inFunTLeft{\_}{A}                        & \textrm{left arrow}\\
                             &    &     & \inFunTRight{S}{\_}                       & \textrm{right arrow}\\
-                            &    &     & \inFixT{\alpha}{\_}                       & \textrm{right arrow}\\
                             &    &     & \inAllT{\alpha}{K}{\_}                    & \textrm{all}\\
+                            &    &     & \inFixT{\alpha}{\_}                       & \textrm{fix}\\
                             &    &     & \inLamT{\alpha}{K}{\_}                    & \textrm{$\lambda$}\\
                             &    &     & \inAppTLeft{\_}{A}                        & \textrm{left app}\\
                             &    &     & \inAppTRight{S}{\_}                       & \textrm{right app}\\
@@ -60,6 +61,7 @@
                        %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
                        &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
                        &   &     & \inAppRightFrame{V}                     & \textrm{right app}\\
+                       &   &     & \inBuiltin{bn}{A*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
     \end{array}\]
     \caption{Grammar of Reduction Frames}
     \label{fig:Plutus_core_reduction_frames}
@@ -73,7 +75,7 @@
     
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{M}}{S}}{\subst{S}{\alpha}{M}}\)}
+        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{M}}{A}}{M}\)}
     \end{prooftree}
     
     \begin{prooftree}
@@ -87,11 +89,8 @@
     \end{prooftree}
     
     \begin{prooftree}
-        \alwaysNoLine
-        \AxiomC{$M$ is a fully saturated constant}
-        \UnaryInfC{$M$ computes to $V$ according to Fig \ref{fig:Plutus_core_builtins}}
-        \alwaysSingleLine
-        \UnaryInfC{\(\step{M}{V}\)}
+        \AxiomC{$bn$ computes on $\repetition{A}$ and $\repetition{V}$ to $U$ according to \ref{fig:Plutus_core_builtins}}
+        \UnaryInfC{\(\step{\builtin{bn}{\repetition{A}}{\repetition{V}}}{U}\)}
     \end{prooftree}
     
     %\begin{prooftree}
@@ -146,23 +145,23 @@
     \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine state $\sigma$ transitions in one step to machine state $\sigma'$}
     
     \begin{align*}
+        &\cksteps{\ckforward{s}{\con{cn}}}{\ckbackward{s}{\con{cn}}}\\
         &\cksteps{\ckforward{s}{\abs{\alpha}{K}{M}}}{\ckbackward{s}{\abs{\alpha}{K}{M}}}\\
         &\cksteps{\ckforward{s}{\inst{M}{A}}}{\ckforward{s, \inInstLeftFrame{A}}{M}}\\
         &\cksteps{\ckforward{s}{\wrap{\alpha}{A}{M}}}{\ckforward{s, \inWrapRightFrame{\alpha}{A}}{M}}\\
         &\cksteps{\ckforward{s}{\unwrap{M}}}{\ckforward{s, \inUnwrapFrame{}}{M}}\\
         &\cksteps{\ckforward{s}{\lam{x}{A}{M}}}{\ckbackward{s}{\lam{x}{A}{M}}}\\
         &\cksteps{\ckforward{s}{\app{M}{N}}}{\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        &\cksteps{\ckforward{s}{\con{cn}}}{\ckbackward{s}{\con{cn}}}\\
-        &\cksteps{\ckforward{s}{\error{S}}}{\ckerror{}}\\
+        &\cksteps{\ckforward{s}{\builtin{bn}{\repetition{A}}{}}}{U} \qquad \textit{$bn$ computes on $\repetition{A}$ to $U$ according to \ref{fig:Plutus_core_builtins}}\\
+        &\cksteps{\ckforward{s}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}}{\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
+        &\cksteps{\ckforward{s}{\error{A}}}{\ckerror{}}\\
         &\cksteps{\ckbackward{s, \inInstLeftFrame{A}}{\abs{\alpha}{K}{M}}}{\ckforward{s}{M}}\\
-        &\cksteps{\ckbackward{s, \inInstLeftFrame{A}}{M}}{\ckbackward{s}{V}} \quad \textit{fully saturated constant}\\
-        &\cksteps{\ckbackward{s, \inInstLeftFrame{A}}{M}}{\ckbackward{s}{\inst{M}{A}}} \quad \textit{partially saturated constant}\\
         &\cksteps{\ckbackward{s, \inWrapRightFrame{\alpha}{A}}{V}}{\ckbackward{s}{\wrap{\alpha}{A}{V}}}\\
         &\cksteps{\ckbackward{s, \inUnwrapFrame{}}{\wrap{\alpha}{A}{V}}}{\ckbackward{s}{V}}\\
         &\cksteps{\ckbackward{s, \inAppLeftFrame{N}}{V}}{\ckforward{s, \inAppRightFrame{V}}{N}}\\
         &\cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}}{V}}{\ckforward{s}{\subst{V}{x}{M}}}\\
-        &\cksteps{\ckbackward{s,\inAppRightFrame{M}}{N}}{\ckbackward{s}{V}} \quad \textit{fully saturated constant}\\
-        &\cksteps{\ckbackward{s,\inAppRightFrame{M}}{N}}{\ckbackward{s}{\app{M}{N}}} \quad \textit{partially saturated constant}\\
+        &\cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}}{V}}{U} \qquad \textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to \ref{fig:Plutus_core_builtins}}\\
+        &\cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}}{V}}{\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
     \end{align*}
     
     \caption{CK Machine}
