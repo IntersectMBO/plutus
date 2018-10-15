@@ -78,6 +78,7 @@ test-suite core-to-plc-plugin
         bytestring -any,
         mtl -any,
         text -any,
+        prettyprinter -any,
         tasty -any,
         tasty-hunit -any,
         tasty-golden -any
