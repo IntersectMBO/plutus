@@ -9,6 +9,9 @@ module Main (main) where
 
 import           IllTyped
 
+import           Common
+import           PlutusPrelude                            (bsToStr, strToBs)
+
 import           Language.Plutus.CoreToPLC.Plugin
 import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
 
@@ -17,43 +20,35 @@ import           Language.PlutusCore.Evaluation.CkMachine
 import qualified Language.PlutusCore.Pretty               as PLC
 
 import           Test.Tasty
-import           Test.Tasty.Golden
 
 import           Control.Exception
 import           Control.Monad.Except                     hiding (void)
 
 import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text                                as T
-import           Data.Text.Encoding                       (encodeUtf8)
+import qualified Data.Text.Prettyprint.Doc                as PP
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}
 
 main :: IO ()
-main = defaultMain tests
+main = defaultMain $ runTestNestedIn ["test"] tests
 
 getPlc :: PlcCode -> ExceptT BSL.ByteString IO (Program TyName Name ())
 getPlc value = withExceptT (strToBs . show) $ getAst <$> (ExceptT $ try @SomeException (evaluate value))
 
-goldenVsPretty :: PLC.PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
-goldenVsPretty name value = goldenVsString name ("test/" ++ name ++ ".plc.golden") $ either id (txtToBs . PLC.docText . PLC.prettyPlcClassicDebug) <$> runExceptT value
-
-golden :: String -> PlcCode -> TestTree
-golden name value = goldenVsPretty name (getPlc value)
-
-goldenEvalApp :: String -> [PlcCode] -> TestTree
-goldenEvalApp name values = goldenVsPretty name $ runCk <$> do
+runPlc :: [PlcCode] -> ExceptT BSL.ByteString IO EvaluationResult
+runPlc values = runCk <$> do
     ps <- mapM getPlc values
     pure $ foldl1 (\acc p -> applyProgram acc p) ps
 
-strToBs :: String -> BSL.ByteString
-strToBs = BSL.fromStrict . encodeUtf8 . T.pack
+golden :: String -> PlcCode -> TestNested
+golden name value = nestedGoldenVsDoc name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ getPlc value)
 
-txtToBs :: T.Text -> BSL.ByteString
-txtToBs = BSL.fromStrict . encodeUtf8
+goldenEval :: String -> [PlcCode] -> TestNested
+goldenEval name values = nestedGoldenVsDoc name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ runPlc values)
 
-tests :: TestTree
-tests = testGroup "GHC Core to PLC conversion" [
+tests :: TestNested
+tests = testGroup "conversion" <$> sequence [
     basic
   , primitives
   , structure
@@ -63,8 +58,8 @@ tests = testGroup "GHC Core to PLC conversion" [
   , errors
   ]
 
-basic :: TestTree
-basic = testGroup "Basic functions" [
+basic :: TestNested
+basic = testNested "basic" [
     golden "monoId" monoId
   , golden "monoK" monoK
   ]
@@ -75,26 +70,26 @@ monoId = plc (\(x :: Int) -> x)
 monoK :: PlcCode
 monoK = plc (\(i :: Int) -> \(j :: Int) -> i)
 
-primitives :: TestTree
-primitives = testGroup "Primitive types and operations" [
+primitives :: TestNested
+primitives = testNested "primitives" [
     golden "string" string
   , golden "int" int
   , golden "int2" int
   , golden "bool" bool
   , golden "and" andPlc
-  , goldenEvalApp "andApply" [ andPlc, plc True, plc False ]
+  , goldenEval "andApply" [ andPlc, plc True, plc False ]
   , golden "tuple" tuple
   , golden "tupleMatch" tupleMatch
-  , goldenEvalApp "tupleConstDest" [ tupleMatch, tuple ]
+  , goldenEval "tupleConstDest" [ tupleMatch, tuple ]
   , golden "intCompare" intCompare
   , golden "intEq" intEq
-  , goldenEvalApp "intEqApply" [ intEq, int, int ]
+  , goldenEval "intEqApply" [ intEq, int, int ]
   , golden "void" void
   , golden "intPlus" intPlus
-  , goldenEvalApp "intPlusApply" [ intPlus, int, int2 ]
+  , goldenEval "intPlusApply" [ intPlus, int, int2 ]
   , golden "error" errorPlc
   , golden "ifThenElse" ifThenElse
-  , goldenEvalApp "ifThenElseApply" [ ifThenElse, int, int2 ]
+  , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
   , golden "blocknum" blocknumPlc
   , golden "bytestring" bytestring
   , golden "verify" verify
@@ -149,8 +144,8 @@ bytestring = plc (\(x::Prims.ByteString) -> x)
 verify :: PlcCode
 verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
 
-structure :: TestTree
-structure = testGroup "Structures" [
+structure :: TestNested
+structure = testNested "structure" [
     golden "letFun" letFun
   ]
 
@@ -158,23 +153,23 @@ structure = testGroup "Structures" [
 letFun :: PlcCode
 letFun = plc (\(x::Int) (y::Int) -> let f z = x == z in f y)
 
-datat :: TestTree
-datat = testGroup "Data" [
+datat :: TestNested
+datat = testNested "data" [
     monoData
   , polyData
   , newtypes
   ]
 
-monoData :: TestTree
-monoData = testGroup "Monomorphic data" [
+monoData :: TestNested
+monoData = testNested "monomorphic" [
     golden "enum" basicEnum
   , golden "monoDataType" monoDataType
   , golden "monoConstructor" monoConstructor
   , golden "monoConstructed" monoConstructed
   , golden "monoCase" monoCase
-  , goldenEvalApp "monoConstDest" [ monoCase, monoConstructed ]
+  , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
   , golden "defaultCase" defaultCase
-  , goldenEvalApp "monoConstDestDefault" [ monoCase, monoConstructed ]
+  , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , golden "nonValueCase" nonValueCase
   , golden "synonym" synonym
   ]
@@ -210,8 +205,8 @@ type Synonym = Int
 synonym :: PlcCode
 synonym = plc (1::Synonym)
 
-polyData :: TestTree
-polyData = testGroup "Polymorphic data" [
+polyData :: TestNested
+polyData = testNested "polymorphic" [
     golden "polyDataType" polyDataType
   , golden "polyConstructed" polyConstructed
   ]
@@ -224,14 +219,14 @@ polyDataType = plc (\(x:: MyPolyData Int Int) -> x)
 polyConstructed :: PlcCode
 polyConstructed = plc (Poly1 (1::Int) (2::Int))
 
-newtypes :: TestTree
-newtypes = testGroup "Newtypes" [
+newtypes :: TestNested
+newtypes = testNested "newtypes" [
     golden "basicNewtype" basicNewtype
    , golden "newtypeMatch" newtypeMatch
    , golden "newtypeCreate" newtypeCreate
    , golden "newtypeCreate2" newtypeCreate2
    , golden "nestedNewtypeMatch" nestedNewtypeMatch
-   , goldenEvalApp "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
+   , goldenEval "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
 
 newtype MyNewtype = MyNewtype Int
@@ -253,31 +248,31 @@ newtypeCreate2 = plc (MyNewtype 1)
 nestedNewtypeMatch :: PlcCode
 nestedNewtypeMatch = plc (\(MyNewtype2 (MyNewtype x)) -> x)
 
-recursiveTypes :: TestTree
-recursiveTypes = testGroup "Recursive types" [
+recursiveTypes :: TestNested
+recursiveTypes = testNested "recursiveTypes" [
     golden "listConstruct" listConstruct
     , golden "listConstruct2" listConstruct2
     , golden "listConstruct3" listConstruct3
     , golden "listMatch" listMatch
-    , goldenEvalApp "listConstDest" [ listMatch, listConstruct ]
-    , goldenEvalApp "listConstDest2" [ listMatch, listConstruct2 ]
+    , goldenEval "listConstDest" [ listMatch, listConstruct ]
+    , goldenEval "listConstDest2" [ listMatch, listConstruct2 ]
     , golden "ptreeConstruct" ptreeConstruct
     , golden "ptreeMatch" ptreeMatch
-    , goldenEvalApp "ptreeConstDest" [ ptreeMatch, ptreeConstruct ]
+    , goldenEval "ptreeConstDest" [ ptreeMatch, ptreeConstruct ]
   ]
 
-recursion :: TestTree
-recursion = testGroup "Recursive functions" [
+recursion :: TestNested
+recursion = testNested "recursiveFunctions" [
     -- currently broken, will come back to this later
     golden "fib" fib
-    , goldenEvalApp "fib4" [ fib, plc (4::Int) ]
+    , goldenEval "fib4" [ fib, plc (4::Int) ]
     , golden "sum" sumDirect
-    , goldenEvalApp "sumList" [ sumDirect, listConstruct3 ]
+    , goldenEval "sumList" [ sumDirect, listConstruct3 ]
     --, golden "sumFold" sumViaFold
-    --, goldenEvalApp "sumFoldList" [ sumViaFold, listConstruct3 ]
+    --, goldenEval "sumFoldList" [ sumViaFold, listConstruct3 ]
     , golden "even" evenMutual
-    , goldenEvalApp "even3" [ evenMutual, plc (3::Int) ]
-    , goldenEvalApp "even4" [ evenMutual, plc (4::Int) ]
+    , goldenEval "even3" [ evenMutual, plc (3::Int) ]
+    , goldenEval "even4" [ evenMutual, plc (4::Int) ]
   ]
 
 fib :: PlcCode
@@ -287,8 +282,8 @@ fib = plc (
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
 
-errors :: TestTree
-errors = testGroup "Errors" [
+errors :: TestNested
+errors = testNested "errors" [
     golden "integer" integer
     , golden "free" free
     , golden "valueRestriction" valueRestriction
