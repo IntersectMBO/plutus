@@ -11,7 +11,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import Type
 import Type.RenamingSubstitution as ⋆
-open import Type.Reduction
+--open import Type.Reduction
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
@@ -53,6 +53,27 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 \end{code}
 
 \begin{code}
+renameE : ∀{Γ Δ K K'} → ⋆.Ren Γ Δ → EvalCxt Γ K K' → EvalCxt Δ K K'
+renameE ρ •        = •
+renameE ρ (E ·E t) = renameE ρ E ·E renameNf ρ t
+
+renameE[] : ∀{Γ Δ K K'}(ρ : ⋆.Ren Γ Δ)(E : EvalCxt Γ K K')(t : Γ ⊢Nf⋆ K)
+  → renameNf ρ (E [ t ]E) ≡ renameE ρ E [ renameNf ρ t ]E
+renameE[] ρ •        t = refl
+renameE[] ρ (E ·E u) t =
+  trans (rename-readback (PERApp (idext idPER (embNf (E [ t ]E)))
+                                 (idext idPER (embNf u)))
+                         ρ)
+        (trans (reify _ (renval-eval (embNf (E [ t ]E) · embNf u) idPER ρ))
+                        (trans (trans (reify _ (transPER _ (PERApp (idext (renval-neV ρ ∘ `) (embNf (E [ t ]E))) (idext (renval-neV ρ ∘ `) (embNf u))) (symPER _ (rename-eval (embNf (E [ t ]E) · embNf u) idPER ρ))))
+                             (sym (cong₂ (λ f a → nf (f · a))
+                                         (rename-embNf ρ (E [ t ]E))
+                                         (rename-embNf ρ u))) )
+                      (cong (λ f → nf (embNf f · embNf (renameNf ρ u)))
+                            (renameE[] ρ E t)) ))
+\end{code}
+
+\begin{code}
 
 rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
@@ -67,15 +88,22 @@ rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (Δ ⊢_)
           (sym (rename[]Nf ρ⋆ B A))
           (rename ρ⋆ ρ t ·⋆ renameNf ρ⋆ A)
-rename {Γ}{Δ} ρ⋆ ρ (wrap {B = B} M) =
-  wrap (substEq (Δ ⊢_)
-                (rename[]Nf ρ⋆ B (μ B))
+rename {Γ}{Δ} ρ⋆ ρ (wrap B E M p) =
+  wrap (renameNf (⋆.ext ρ⋆) B)
+       (renameE ρ⋆ E)
+       (substEq (Δ ⊢_)
+                (trans (renameE[] ρ⋆ E (B [ ne (μ B) ]Nf))
+                       (cong (renameE ρ⋆ E [_]E)
+                             (rename[]Nf ρ⋆ B (ne (μ B)))))
                 (rename ρ⋆ ρ M))
-rename {Γ}{Δ} ρ⋆ ρ (unwrap {B = B} M) =
-  substEq (Δ ⊢_)
-          (sym (rename[]Nf ρ⋆ B (μ B)))
-          (unwrap (rename ρ⋆ ρ M))
-
+       (trans (cong (renameNf ρ⋆) p) (renameE[] ρ⋆ E (ne (μ B))))
+rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = B} E p M) = substEq
+  (Δ ⊢_)
+  (trans (cong (renameE ρ⋆ E [_]E) (sym (rename[]Nf ρ⋆ B (ne (μ B)))))
+         (sym (renameE[] ρ⋆ E (B [ ne (μ B) ]Nf))))
+  (unwrap (renameE ρ⋆ E)
+          (trans (cong (renameNf ρ⋆) p) (renameE[] ρ⋆ E (ne (μ B))))
+          (rename ρ⋆ ρ M))
 \end{code}
 
 \begin{code}
@@ -131,6 +159,7 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
+{-
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -201,4 +230,5 @@ _[_]⋆ {J}{Γ}{K}{B} b A =
                                      (trans (trans (trans (sym (stability A')) (sym (reify _ (rename-eval (embNf A') (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) A x))) S)))) (sym (reify _ (evalPERSubst (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) A x))) (rename-embNf S A'))))) (reify _ (symPER _ (subst-eval (embNf (renameNf S A')) idPER (embNf ∘ (substNf-cons (ne ∘ `) A))))))
                                      (` x)}))
                  b
+-}
 \end{code}

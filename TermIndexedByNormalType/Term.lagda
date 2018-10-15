@@ -9,6 +9,8 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
+
+open import Relation.Binary.PropositionalEquality hiding ([_])
 \end{code}
 
 ## Fixity declarations
@@ -19,6 +21,20 @@ We list separately operators for judgements, types, and terms.
 infix  4 _∋_
 infix  4 _⊢_
 infixl 5 _,_
+\end{code}
+
+# Evaluation contexts
+the first index is the kind of the hole, the second index is the type of the evalcxt
+\begin{code}
+data EvalCxt Γ (K : Kind) : Kind → Set where
+  •    : EvalCxt Γ K K
+  _·E_ : ∀{J L} → EvalCxt Γ K (J ⇒ L) → Γ ⊢Nf⋆ J → EvalCxt Γ K L
+\end{code}
+
+\begin{code}
+_[_]E : ∀{Γ K K'} → EvalCxt Γ K K' → Γ ⊢Nf⋆ K → Γ ⊢Nf⋆ K'
+• [ t ]E = t
+(E ·E u) [ t ]E = nf (embNf (E [ t ]E) · embNf u)
 \end{code}
 
 ## Contexts and erasure
@@ -109,13 +125,19 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap : ∀{Γ}
-    → {B : ∥ Γ ∥ ,⋆ * ⊢Nf⋆ *}
-    → (M : Γ ⊢ B [ μ B ])
-    → Γ ⊢ μ B
+  wrap : ∀{Γ K}
+    → (S : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ K)
+    → (E : EvalCxt ∥ Γ ∥ K K)
+    → (M : Γ ⊢ E [ S [ ne (μ S) ] ]E)
+    → {Q : ∥ Γ ∥ ⊢Nf⋆ K}
+    → Q ≡ E [  ne (μ S) ]E
+    → Γ ⊢ Q
 
-  unwrap : ∀{Γ}
-    → {B : ∥ Γ ∥ ,⋆ * ⊢Nf⋆ *}
-    → (M : Γ ⊢ μ B)
-    → Γ ⊢ B [ μ B ]
+  unwrap : ∀{Γ K}
+    → {S : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ K}
+    → (E : EvalCxt ∥ Γ ∥ K K)
+    → {Q : ∥ Γ ∥ ⊢Nf⋆ K}
+    → Q ≡ E [ ne (μ S) ]E
+    → (M : Γ ⊢ Q)
+    → Γ ⊢ E [ S [ ne (μ S) ] ]E
 \end{code}
