@@ -42154,7 +42154,7 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "language-plutus-core";
-version = "0.1.0.0";
+version = "0.1.0.1";
 src = ./../language-plutus-core;
 isLibrary = true;
 isExecutable = true;
