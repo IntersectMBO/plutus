@@ -33,7 +33,7 @@ testNested folderName =
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> IO Text -> TestTree
-goldenVsText name ref val = goldenVsString name ref $ (BSL.fromStrict . encodeUtf8) <$> val
+goldenVsText name ref val = goldenVsString name ref $ BSL.fromStrict . encodeUtf8 <$> val
 
 -- | Check the contents of a file against a 'Doc'.
 goldenVsDoc :: TestName -> FilePath -> IO (Doc ann) -> TestTree
