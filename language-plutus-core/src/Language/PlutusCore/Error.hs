@@ -8,7 +8,7 @@ module Language.PlutusCore.Error
     ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
-    , TypeError (KindMismatch, TypeMismatch, OutOfGas, TyFixMismatch)
+    , TypeError (KindMismatch, TypeMismatch, OutOfGas, TyFixMismatch, TyElimMismatch)
     , Error (..)
     , IsError (..)
     , convertError
@@ -58,6 +58,11 @@ data TypeError a
                     , _inTerm    :: Term TyNameWithKind NameWithType ()
                     , _foundType :: NormalizedType TyNameWithKind ()
                     }
+    | TyElimMismatch { _loc          :: a
+                     , _inTerm       :: Term TyNameWithKind NameWithType ()
+                     , _expectedType :: Type TyNameWithKind ()
+                     , _foundType    :: NormalizedType TyNameWithKind ()
+                     }
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -136,8 +141,16 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
             then mempty
             else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
         hardline <>
-        ". Expected type" <+> hardline <> indent 2 (squotes (prettyBy config (TyFix () dummyTyName (TyFun () dummyType dummyType)))) <+>
+        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config (TyFix () dummyTyName (TyFun () dummyType dummyType)))) <+>
         "found type" <+> squotes (prettyBy config ty)
+    prettyBy config (TyElimMismatch x t eTy fTy) =
+        "Type mismatch at" <+> pretty x <+>
+        (if _pcpoCondensedErrors . _pcpOptions $ config
+            then mempty
+            else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
+        hardline <>
+        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config eTy)) <+>
+        "found type" <+> squotes (prettyBy config fTy)
     prettyBy _      OutOfGas                  = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where

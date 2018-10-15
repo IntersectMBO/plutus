@@ -202,9 +202,9 @@ typeOf (Unwrap x m) = do
     typeCheckStep
     normalizeTypeBinder alpha (TyFix () alpha <$> sNorm) s
 
-typeOf (Wrap x alpha s m) = do
+typeOf t@(Wrap x alpha s m) = do
     mTy <- typeOf m
-    elimCtx <- getElimCtx x alpha s mTy
+    elimCtx <- getElimCtx t x alpha s mTy
     let q = elimSubst elimCtx (TyFix () (void alpha) (void s))
     kindCheckM x (q $> x) (Type ())
     typeCheckStep
