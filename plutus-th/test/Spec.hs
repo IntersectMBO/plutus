@@ -21,7 +21,7 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 golden :: String -> PlcCode -> TestNested
-golden name value = (nestedGoldenVsDoc name . pure . PLC.prettyPlcClassicDebug . getAst) value
+golden name value = (nestedGoldenVsDoc name . PLC.prettyPlcClassicDebug . getAst) value
 
 tests :: TestNested
 tests = testGroup "plutus-th" <$> sequence [

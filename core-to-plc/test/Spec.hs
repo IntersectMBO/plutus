@@ -42,10 +42,10 @@ runPlc values = runCk <$> do
     pure $ foldl1 (\acc p -> applyProgram acc p) ps
 
 golden :: String -> PlcCode -> TestNested
-golden name value = nestedGoldenVsDoc name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ getPlc value)
+golden name value = nestedGoldenVsDocM name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ getPlc value)
 
 goldenEval :: String -> [PlcCode] -> TestNested
-goldenEval name values = nestedGoldenVsDoc name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ runPlc values)
+goldenEval name values = nestedGoldenVsDocM name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ runPlc values)
 
 tests :: TestNested
 tests = testGroup "conversion" <$> sequence [

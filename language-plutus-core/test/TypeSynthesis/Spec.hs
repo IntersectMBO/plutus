@@ -81,7 +81,7 @@ test_typecheckBuiltinName :: BuiltinName -> TestTree
 test_typecheckBuiltinName name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = pure . prettyPlcDef . runQuote $ typeOfBuiltinName name
+    doc      = prettyPlcDef . runQuote $ typeOfBuiltinName name
 
 test_typecheckBuiltinNames :: TestTree
 test_typecheckBuiltinNames =

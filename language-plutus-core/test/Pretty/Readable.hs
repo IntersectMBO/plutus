@@ -15,7 +15,7 @@ prettyConfigReadable
     $ botPrettyConfigReadable defPrettyConfigName
 
 testReadable :: PrettyPlc a => TestName -> Quote a -> TestNested
-testReadable name = nestedGoldenVsDoc name . pure . prettyBy prettyConfigReadable . runQuote
+testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable . runQuote
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable =
