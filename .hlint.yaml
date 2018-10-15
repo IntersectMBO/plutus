@@ -20,7 +20,6 @@
 
 - ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.Plutus.CoreToPLC, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting]}
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
-- ignore: {name: Eta reduce, within: [Language.PlutusCore.Pretty.Classic, Language.PlutusCore.Pretty.Readable]}
 # this is rarely an improvement, also ignored in cardano
 - ignore: {name: Move brackets to avoid $}
 # this aids clarity since you can name the parameters

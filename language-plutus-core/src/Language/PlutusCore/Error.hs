@@ -132,11 +132,11 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (TyFixMismatch x t ty) = -- FIXME cover all cases
+    prettyBy config (TyFixMismatch x t ty) =
         "Type mismatch at" <+> pretty x <+>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
-            else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
+            else "in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
         hardline <>
         "Expected type" <> hardline <> indent 2 (squotes "(fix * (fun * *))")
         <> hardline <> "or type"
@@ -146,7 +146,7 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
     prettyBy config (TyElimMismatch x t) = "Type elimination mismatch at" <+> pretty x <+>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
-            else "in  term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".")
+            else "in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".")
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e
