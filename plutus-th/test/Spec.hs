@@ -7,30 +7,24 @@
 -- works.
 module Main (main) where
 
-import           Language.Plutus.TH
-
-import           Language.PlutusCore
-import qualified Language.PlutusCore.Pretty as PLC
+import           Common
 
 import           TestTH
 
-import           Language.Haskell.TH.Syntax
+import           Language.Plutus.TH
+
+import qualified Language.PlutusCore.Pretty as PLC
 
 import           Test.Tasty
-import           Test.Tasty.Golden
-
-import qualified Data.ByteString.Lazy as BSL
-import           Data.Text.Encoding   (encodeUtf8)
 
 main :: IO ()
-main = defaultMain tests
+main = defaultMain $ runTestNestedIn ["test"] tests
 
-golden :: String -> PlcCode -> TestTree
-golden name value = (goldenVsString name ("test/" ++ name ++ ".plc.golden") . pure . BSL.fromStrict . encodeUtf8 . PLC.docText . PLC.prettyPlcClassicDebug . getAst) value
+golden :: String -> PlcCode -> TestNested
+golden name value = (nestedGoldenVsDoc name . pure . PLC.prettyPlcClassicDebug . getAst) value
 
-
-tests :: TestTree
-tests = testGroup "Plutus TH frontend" [
+tests :: TestNested
+tests = testGroup "plutus-th" <$> sequence [
     golden "simple" simple
     , golden "power" powerPlc
     , golden "and" andPlc
