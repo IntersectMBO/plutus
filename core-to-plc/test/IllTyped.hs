@@ -13,18 +13,6 @@ import           Language.Plutus.CoreToPLC.Primitives as Prims
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}
 
-blocknumPlc :: PlcCode
-blocknumPlc = plc Prims.blocknum
-
-bytestring :: PlcCode
-bytestring = plc (\(x::Prims.ByteString) -> x)
-
-verify :: PlcCode
-verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
-
-tupleMatch :: PlcCode
-tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
-
 listConstruct :: PlcCode
 listConstruct = plc ([]::[Int])
 
@@ -47,13 +35,6 @@ ptreeConstruct = plc (Two (Two (One ((1,2),(3,4)))) :: B Int)
 -- TODO: replace this with 'first' when we have working recursive functions
 ptreeMatch :: PlcCode
 ptreeMatch = plc (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
-
-fib :: PlcCode
--- not using case to avoid literal cases
-fib = plc (
-    let fib :: Int -> Int
-        fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
-    in fib)
 
 sumDirect :: PlcCode
 sumDirect = plc (

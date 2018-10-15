@@ -118,6 +118,9 @@ andPlc = plc (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else
 tuple :: PlcCode
 tuple = plc ((1::Int), (2::Int))
 
+tupleMatch :: PlcCode
+tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
+
 intCompare :: PlcCode
 intCompare = plc (\(x::Int) (y::Int) -> x < y)
 
@@ -136,6 +139,15 @@ errorPlc = plc (Prims.error @Int)
 
 ifThenElse :: PlcCode
 ifThenElse = plc (\(x::Int) (y::Int) -> if x == y then x else y)
+
+blocknumPlc :: PlcCode
+blocknumPlc = plc Prims.blocknum
+
+bytestring :: PlcCode
+bytestring = plc (\(x::Prims.ByteString) -> x)
+
+verify :: PlcCode
+verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
 
 structure :: TestTree
 structure = testGroup "Structures" [
@@ -267,6 +279,13 @@ recursion = testGroup "Recursive functions" [
     , goldenEvalApp "even3" [ evenMutual, plc (3::Int) ]
     , goldenEvalApp "even4" [ evenMutual, plc (4::Int) ]
   ]
+
+fib :: PlcCode
+-- not using case to avoid literal cases
+fib = plc (
+    let fib :: Int -> Int
+        fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
+    in fib)
 
 errors :: TestTree
 errors = testGroup "Errors" [
