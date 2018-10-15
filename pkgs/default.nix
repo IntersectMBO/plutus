@@ -15686,6 +15686,7 @@ base
 bytestring
 language-plutus-core
 mtl
+prettyprinter
 tasty
 tasty-golden
 tasty-hunit
@@ -42167,6 +42168,7 @@ containers
 deepseq
 dependent-map
 dependent-sum
+filepath
 hedgehog
 microlens
 mmorph
@@ -42174,6 +42176,8 @@ mtl
 prettyprinter
 recursion-schemes
 safe-exceptions
+tasty
+tasty-golden
 template-haskell
 text
 th-lift-instances

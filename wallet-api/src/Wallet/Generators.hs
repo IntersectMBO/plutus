@@ -103,7 +103,8 @@ genInitialTransaction GeneratorModel{..} = do
         txInputs = Set.empty,
         txOutputs = o,
         txForge = t,
-        txFee = 0
+        txFee = 0,
+        txSignatures = []
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -144,7 +145,8 @@ genValidTransaction' g f (Mockchain bc ops) = do
                     txInputs = ins,
                     txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
                     txForge = 0,
-                    txFee = fee }
+                    txFee = fee,
+                    txSignatures = [] }
         else Gen.discard
 
 -- | Assert that a transaction is valid in a chain

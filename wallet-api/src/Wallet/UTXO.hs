@@ -72,6 +72,7 @@ module Wallet.UTXO(
     -- * Lenses
     inputs,
     outputs,
+    signatures,
     outAddress,
     outValue,
     outType,
@@ -267,10 +268,11 @@ height = Height . fromIntegral . length . join
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
-    txInputs  :: Set.Set TxIn',
-    txOutputs :: [TxOut'],
-    txForge   :: !Value,
-    txFee     :: !Value
+    txInputs     :: Set.Set TxIn',
+    txOutputs    :: [TxOut'],
+    txForge      :: !Value,
+    txFee        :: !Value,
+    txSignatures :: [Signature]
     } deriving (Show, Eq, Ord)
 
 -- | The inputs of a transaction
@@ -283,6 +285,12 @@ outputs :: Lens' Tx [TxOut']
 outputs = lens g s where
     g = txOutputs
     s tx o = tx { txOutputs = o }
+
+-- | Signatures of a transaction
+signatures :: Lens' Tx [Signature]
+signatures = lens g s where
+    g = txSignatures
+    s tx sg = tx { txSignatures = sg }
 
 encodeTx :: Tx -> Encoding
 encodeTx Tx{..} =

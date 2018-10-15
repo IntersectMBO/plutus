@@ -1,4 +1,3 @@
-=======
 ## Results of the research.
 
 CEK is a fine first step, but this machine is unoptimized. Eventually we'll need something better. Perhaps something along the lines of eval/apply. It is particularly nice how GHC has a special-purpose language for evaluation (the one that gets executed by the STG machine).
@@ -65,6 +64,52 @@ the design's changed too much in the interim.
 ## [B. Accattoli, B. Barras. Environments and the Complexity of Abstract Machines, 2017](https://sites.google.com/site/beniaminoaccattoli/Accattoli%2C%20Barras%20-%20Environments%20and%20the%20Complexity%20of%20Abstract%20Machines.pdf?attredirects=0)
 Analyses efficiency of various machines. Call-by-name and call-by-need, but the paper claims that results also apply to call-by-value.
 
+----
+
+## Machines for lazy evaluation
+Here are some papers dealing with machines which evaluate &lambda;-terms using call-by-name/lazy strategies.
+
+[Jean-Louis Krivine: A call-by-name lambda-calculus machine](https://www.irif.fr/~krivine/articles/lazymach.pdf).
+Krivine's machine was one of the first machines for call-by-name evaluation and 
+has had a great deal of influence on subsequent research.  It was designed in the 1980s
+but not published until 2007 (see below). The machine is simple but inefficient 
+because it is not lazy: if a term is used more than once then it will have to be 
+evaluated more than once.
+
+[Peter Sestoft: Deriving a Lazy Abstract Machine](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.50.4314).
+This starts by considering a [machine due to Launchbury](https://www.researchgate.net/publication/2639371_A_Natural_Semantics_for_Lazy_Evaluation)
+which is essentially a lazy version of the Krivine machine.  Sestoft gradually improves the
+machine by adding new features to the calculus and corresponding features to the machine.
+This is a very revealing paper because it gives a principled derivation of the machine, clearly showing
+the reasons for various features of the final machine.
+
+[Daniel P. Friedman, Abdulaziz Ghuloum, Jeremy G. Siek, Onnie Lynn Winebarger: Improving the Lazy Krivine Machine](ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf) .
+This paper introduces further improvements to Sestoft's machine (see above). The underlying
+calculus remains simple (and similar to Plutus Core), so this paper is perhaps more relevant 
+from our point of view.  The paper can be found at ftp://www.cs.indiana.edu/pub/techreports/TR581.pdf .
+
+[Rémi Douence,  Pascal Fradet:  The Next 700 Krivine Machines](https://hal.inria.fr/inria-00000940).
+This studies a number of other variants of the Krivine machine and gives a good idea of the
+(very large) space of possibilities for abstract machine implementation.
+
+With the exception of the paper by Sestoft, all of the above papers can be found in
+a [special issue of Higher-Order and Symbolic Computation](https://dl.acm.org/citation.cfm?id=1325146&picked=prox) 
+which contains other papers that may be worth looking at.
+<!---HOSC,  Volume 20 Issue 3, September 2007 --->
+
+----
+
+All of the papers above consider machines based on the Krivine Machine; however there are at least two
+other approaches to lazy evaluation which have inspired a lot of research: 
+*  Supercombinator-based machines such as the [Three Instruction Machine (TIM)](https://pdfs.semanticscholar.org/a19d/894a2290e2eddca59dd0598c00c5c7dd6793.pdf) of Fairbairn and Wray.
+* Graph reduction machines, including the well-known [STG machine](https://www.microsoft.com/en-us/research/wp.../04/spineless-tagless-gmachine.pdf).
+
+We haven't looked into the literature carefully here because neither of these types of machine
+deals directly with &lambda;-calculus: a preliminary translation step would be required, which 
+would complicate things for us. Also, graph reduction is not so easy to implement.
+
+----
+
 ## Olivier Danvy's work
 
 [Olivier Danvy](https://www.yale-nus.edu.sg/about/faculty/olivier-danvy/) 
@@ -81,3 +126,8 @@ and the following reports in particular:
 * [A Functional Correspondence between Evaluators and Abstract Machines](http://www.brics.dk/RS/03/13/index.html)
 * [From Interpreter to Compiler and Virtual Machine: A Functional Derivation](http://www.brics.dk/RS/03/14/index.html)
 * [A Rational Deconstruction of Landin’s SECD Machine](http://www.brics.dk/RS/03/33/)
+
+For lazy and effectful machines see
+
+* [A Functional Correspondence between Call-by-Need Evaluators and Lazy Abstract Machines](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.59.7417)
+* [A functional correspondence between monadic evaluators and abstract machines for languages with computational effects](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.100.4883)
