@@ -28,6 +28,7 @@ library
         Language.Plutus.CoreToPLC.Plugin
         Language.Plutus.CoreToPLC.Error
         Language.Plutus.CoreToPLC.Primitives
+        Language.Plutus.Lift
     hs-source-dirs: src
     other-modules:
         Language.Plutus.CoreToPLC
