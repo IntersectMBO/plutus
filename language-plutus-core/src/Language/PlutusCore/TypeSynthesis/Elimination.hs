@@ -25,15 +25,14 @@ elimSubst (ElimApp ctx ty) ty' = TyApp () (elimSubst ctx ty) ty'
 getElimCtx :: (MonadError (TypeError a) m, MonadQuote m, MonadState TypeCheckSt m)
            => Term TyNameWithKind NameWithType a
            -> TyNameWithKind a -- ^ α
-           -> Type TyNameWithKind a -- ^ S
+           -> NormalizedType TyNameWithKind () -- ^ S
            -> NormalizedType TyNameWithKind () -- ^ ℰ{[(fix α S)/α] S}
            -> m ElimCtx -- ^ ℰ
-getElimCtx t alpha s fixSubst = do
-    sNorm <- normalizeType (void s) -- FIXME: only normalize this once
+getElimCtx t alpha sNorm fixSubst = do
     typeCheckStep
-    subst <- normalizeTypeBinder (void alpha) (TyFix () (void alpha) <$> sNorm) (void s)
+    subst <- normalizeTypeBinder (void alpha) (TyFix () (void alpha) <$> (void <$> sNorm)) (void $ getNormalizedType sNorm)
     case fixSubst of
-        (NormalizedType (TyApp _ ty ty')) | subst /= fixSubst -> ElimApp <$> getElimCtx t alpha s (NormalizedType ty) <*> pure ty'
+        (NormalizedType (TyApp _ ty ty')) | subst /= fixSubst -> ElimApp <$> getElimCtx t alpha sNorm (NormalizedType ty) <*> pure ty'
         _ | subst == fixSubst                               -> pure Hole
         _                                                   -> throwError (TyElimMismatch (termLoc t) (void t))
 
