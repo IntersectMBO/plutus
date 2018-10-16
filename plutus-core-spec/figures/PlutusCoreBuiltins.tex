@@ -30,11 +30,11 @@
 
         $unitval$ & \(\abs{\alpha}{\typeK{}}{\lam{x}{\alpha}{x}}\)\\\\
 
-        $boolean$ & \(\forall \alpha :: \star.\ (unit \to \alpha) \to (unit \to \alpha) \to \alpha\)\\\\
+        $boolean$ & \(\forall \alpha :: \star.\ \alpha \to \alpha \to \alpha\)\\\\
 
-        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{(unit \to \alpha)}{\lam{f}{(unit \to \alpha)}{\app{t}{unitval}}}}\)\\\\
+        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{t}{unitval}}}}\)\\\\
 
-        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{(unit \to \alpha)}{\lam{f}{(unit \to \alpha)}{\app{f}{unitval}}}}\)\\\\
+        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{f}{unitval}}}}\)\\\\
 
     \end{tabular}
 
