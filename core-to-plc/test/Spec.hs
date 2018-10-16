@@ -170,6 +170,7 @@ monoData = testNested "monomorphic" [
   , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
   , golden "defaultCase" defaultCase
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
+  , golden "monoRecord" monoRecord
   , golden "nonValueCase" nonValueCase
   , golden "synonym" synonym
   ]
@@ -195,6 +196,11 @@ monoCase = plc (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a;
 
 defaultCase :: PlcCode
 defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
+
+data MyMonoRecord = MyMonoRecord { a :: Int , b :: Int} deriving Generic
+
+monoRecord :: PlcCode
+monoRecord = plc (\(x :: MyMonoRecord) -> x)
 
 -- must be compiled with a lazy case
 nonValueCase :: PlcCode
