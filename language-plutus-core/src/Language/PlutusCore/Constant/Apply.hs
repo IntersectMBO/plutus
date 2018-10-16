@@ -11,6 +11,7 @@ module Language.PlutusCore.Constant.Apply
     ( ConstAppError(..)
     , ConstAppResult(..)
     , makeConstAppResult
+    , applyTypeSchemed
     , applyBuiltinName
     ) where
 
@@ -142,10 +143,9 @@ extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeVal
 extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 
--- | Apply a 'TypedBuiltinName' to a list of 'Value's.
-applyTypedBuiltinName
-    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> Quote ConstAppResult
-applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeValues mempty) where
+-- | Apply a 'TypeScheme'd function to a list of 'Value's.
+applyTypeSchemed :: TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> Quote ConstAppResult
+applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
     go
         :: TypeScheme SizeVar a r
         -> SizeVar -> SizeValues
@@ -167,6 +167,11 @@ applyTypedBuiltinName (TypedBuiltinName _ schema) = go schema (SizeVar 0) (SizeV
     go (TypeSchemeAllSize schK)    sizeVar sizeValues f args =
         go (schK sizeVar) (succ sizeVar) sizeValues f args  -- Instantiate the `forall` with a fresh var
                                                             -- and proceed recursively.
+
+-- | Apply a 'TypedBuiltinName' to a list of 'Value's.
+applyTypedBuiltinName
+    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> Quote ConstAppResult
+applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'BuiltinName' to a list of 'Value's.
 applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> Quote ConstAppResult
@@ -191,4 +196,4 @@ applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3         
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName TxHash               = applyTypedBuiltinName typedTxHash               undefined
-applyBuiltinName BlockNum             = undefined
+applyBuiltinName BlockNum             = applyTypedBuiltinName typedBlockNum             undefined

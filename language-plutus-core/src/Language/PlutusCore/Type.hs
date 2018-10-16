@@ -14,6 +14,8 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Program (..)
                                 , Constant (..)
                                 , BuiltinName (..)
+                                , DynamicBuiltinName (..)
+                                , StagedBuiltinName (..)
                                 , TypeBuiltin (..)
                                 , Size
                                 -- * Base functors

@@ -6,8 +6,10 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , kindCheck
                                          , normalizeType
                                          , runTypeCheckM
+                                         , DynBuiltinNameTypes
                                          , TypeCheckM
                                          , TypeError (..)
+                                         , TypeConfig (..)
                                          , TypeCheckCfg (..)
                                          ) where
 
@@ -16,6 +18,8 @@ import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State          hiding (get, modify)
 import qualified Data.IntMap                        as IM
+import           Data.Map                           (Map)
+import qualified Data.Map                           as Map
 import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Constant.Typed (typeOfBuiltinName)
 import           Language.PlutusCore.Error
@@ -28,8 +32,13 @@ import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
 
-newtype TypeConfig = TypeConfig
-    { _typeConfigNormalize :: Bool  -- ^ Whether we normalize type annotations
+-- | A 'Map' from dynamic builtin functions to their types.
+type DynBuiltinNameTypes = Map DynamicBuiltinName (Quote (Type TyName ()))
+
+-- | Configuration of the type checker.
+data TypeConfig = TypeConfig
+    { _typeConfigNormalize           :: Bool                 -- ^ Whether to normalize type annotations
+    , _typeConfigDynBuiltinNameTypes :: DynBuiltinNameTypes
     }
 
 type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
@@ -40,8 +49,8 @@ data TypeCheckSt = TypeCheckSt
     }
 
 data TypeCheckCfg = TypeCheckCfg
-    { _cfgGas       :: Natural  -- ^ Gas to be provided to the typechecker
-    , _cfgNormalize :: Bool     -- ^ Whether we should normalize type annotations
+    { _cfgGas        :: Natural     -- ^ Gas to be provided to the typechecker
+    , _cfgTypeConfig :: TypeConfig
     }
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
@@ -88,8 +97,8 @@ kindCheck cfg t = convertErrors asError $ runTypeCheckM cfg (kindOf t)
 runTypeCheckM :: TypeCheckCfg
               -> TypeCheckM a b
               -> ExceptT (TypeError a) Quote b
-runTypeCheckM (TypeCheckCfg i n) tc =
-    runReaderT (evalStateT tc (TypeCheckSt mempty i)) (TypeConfig n)
+runTypeCheckM (TypeCheckCfg i typeConfig) tc =
+    runReaderT (evalStateT tc (TypeCheckSt mempty i)) typeConfig
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
@@ -145,16 +154,29 @@ dummyKind = Type ()
 dummyType :: Type TyNameWithKind ()
 dummyType = TyVar () dummyTyName
 
+unsafeAnnotateNormalType :: Type TyName () -> NormalizedType TyNameWithKind ()
+unsafeAnnotateNormalType ty = case annotateType ty of
+    Left  err         -> error $ "Internal error: " ++ prettyPlcDefString err
+    Right annTyOfName -> NormalizedType annTyOfName
+
+-- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
+lookupDynamicBuiltinName :: DynamicBuiltinName -> TypeCheckM a (Type TyName ())
+lookupDynamicBuiltinName name = do
+    typeConfig <- ask
+    case Map.lookup name $ _typeConfigDynBuiltinNameTypes typeConfig of
+        Nothing    ->
+            throwError $ UnknownDynamicBuiltinNameTypeError (UnknownDynamicBuiltinNameError name)
+        Just quoTy -> liftQuote quoTy
+
 -- | Get the 'Type' of a 'Constant' wrapped in 'NormalizedType'.
-typeOfConstant :: Constant a -> Quote (NormalizedType TyNameWithKind ())
-typeOfConstant (BuiltinName _ name)    = do
-    tyOfName <- typeOfBuiltinName name
-    case annotateType tyOfName of
-        Left  err         -> error $ "Internal error: " ++ prettyPlcDefString err
-        Right annTyOfName -> pure $ NormalizedType annTyOfName
+typeOfConstant :: Constant a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOfConstant (BuiltinInt  _ size _)  = pure $ applySizedNormalized TyInteger    size
 typeOfConstant (BuiltinBS   _ size _)  = pure $ applySizedNormalized TyByteString size
 typeOfConstant (BuiltinSize _ size)    = pure $ applySizedNormalized TySize       size
+typeOfConstant (BuiltinName    _ name) =
+    liftQuote $ unsafeAnnotateNormalType <$> typeOfBuiltinName name
+typeOfConstant (DynBuiltinName _ name) =
+    unsafeAnnotateNormalType <$> lookupDynamicBuiltinName name
 
 {- Note [Type rules]
 We write type rules in the bidirectional style.
@@ -190,6 +212,10 @@ unique and so we will not delete the wrong thing.
 -- See the [Type rules] and [Type environments] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyNameWithKind ())
+
+-- v : ty    ty ~>? vTy
+-- --------------------
+-- [infer| var v : vTy]
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) =
     -- Since we kind check types at lambdas, we can normalize types here without kind checking.
     -- Type normalization at each variable is inefficient and we may consider something else later.
@@ -212,11 +238,12 @@ typeOf (Error x ty)                              = do
 -- [infer| body : vBodyTy]
 -- ----------------------------------------------
 -- [infer| abs n nK body : all (n :: nK) vBodyTy]
-typeOf (TyAbs _ n nK body)                       =
-    TyForall () (void n) (void nK) <<$>> typeOf body
+typeOf (TyAbs _ n nK body)                       = TyForall () (void n) (void nK) <<$>> typeOf body
 
-typeOf (Constant _ con)                          =
-    liftQuote $ typeOfConstant con
+-- c : vTy
+-- --------------------
+-- [infer| con c : vTy]
+typeOf (Constant _ con)                          = typeOfConstant con
 
 -- [infer| fun : vDom -> vCod]    [check| arg : vDom]
 -- --------------------------------------------------
@@ -287,7 +314,7 @@ normalizeTypeBinder
     :: TyNameWithKind ()
     -> NormalizedType TyNameWithKind ()
     -> Type TyNameWithKind ()
-    -> TypeCheckM err (NormalizedType TyNameWithKind ())
+    -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeBinder n ty ty' = do
     let u = extractUnique n
     tyEnvAssign u ty
@@ -318,7 +345,7 @@ normalizeTypeOpt ty = do
         else pure $ NormalizedType ty
 
 -- | Normalize a 'Type'.
-normalizeType :: Type TyNameWithKind () -> TypeCheckM err (NormalizedType TyNameWithKind ())
+normalizeType :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeType (TyForall x tn k ty) = TyForall x tn k <<$>> normalizeType ty
 normalizeType (TyFix x tn ty)      = TyFix x tn <<$>> normalizeType ty
 normalizeType (TyFun x ty ty')     = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'

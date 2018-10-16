@@ -50,6 +50,7 @@ library
         bytestring -any,
         containers -any,
         text -any,
+        mtl -any,
         prettyprinter >=1.1.0.1,
         language-plutus-core -any
 

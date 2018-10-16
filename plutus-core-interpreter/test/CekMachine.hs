@@ -17,7 +17,7 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 propEvaluateCek :: GenT Quote (TermOf (TypedBuiltinValue Size a)) -> Property
-propEvaluateCek = propEvaluate evaluateCek
+propEvaluateCek = propEvaluate $ evaluateCek mempty
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'getBuiltinFoldNat')

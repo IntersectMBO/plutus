@@ -4,6 +4,7 @@
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , DynamicBuiltinName (..)
+                                      , StagedBuiltinName (..)
                                       , Version (..)
                                       , Keyword (..)
                                       , Special (..)
@@ -58,9 +59,14 @@ data BuiltinName = AddInteger
 -- not exist on others. Each 'DynBuiltinName' has an associated type and operational semantics --
 -- this allows to type check and evaluate dynamic builtins just like static ones.
 newtype DynamicBuiltinName = DynamicBuiltinName
-    { unDynBuiltinName :: T.Text  -- ^ The name of a dynamic builtin function.
-    } deriving (Show, Eq, Generic)
+    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic builtin function.
+    } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift)
+
+-- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
+data StagedBuiltinName = StaticStagedBuiltinName  BuiltinName
+                       | DynamicStagedBuiltinName DynamicBuiltinName
+                       deriving (Show, Eq, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
@@ -176,6 +182,10 @@ instance Pretty BuiltinName where
 
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
+
+instance Pretty StagedBuiltinName where
+    pretty (StaticStagedBuiltinName  n) = pretty n
+    pretty (DynamicStagedBuiltinName n) = pretty n
 
 instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"

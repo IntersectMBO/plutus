@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -8,6 +9,7 @@ module Language.PlutusCore.Error
     ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
+    , UnknownDynamicBuiltinNameError (..)
     , TypeError (..)
     , Error (..)
     , IsError (..)
@@ -42,11 +44,18 @@ data RenameError a
     | UnboundTyVar (TyName a)
     deriving (Show, Eq, Generic, NFData)
 
+-- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
+newtype UnknownDynamicBuiltinNameError
+    = UnknownDynamicBuiltinNameError DynamicBuiltinName
+    deriving (Show, Eq, Generic)
+    deriving newtype (NFData)
+
 data TypeError a
     = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
+    | UnknownDynamicBuiltinNameTypeError UnknownDynamicBuiltinNameError
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -104,13 +113,17 @@ instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError 
         ". Type variable" <+> prettyBy config n <+>
         "is not in scope."
 
+instance Pretty UnknownDynamicBuiltinNameError where
+    pretty (UnknownDynamicBuiltinNameError dbn) =
+        "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
+
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')  =
+    prettyBy config (KindMismatch x ty k k')                   =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty') =
+    prettyBy config (TypeMismatch x t ty ty')                  =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -119,7 +132,8 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy _      OutOfGas                  = "Type checker ran out of gas."
+    prettyBy _      (UnknownDynamicBuiltinNameTypeError udbne) = pretty udbne
+    prettyBy _      OutOfGas                                   = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e

@@ -17,7 +17,7 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | Errors which can occur during a run of an abstract machine.
-data MachineError
+data MachineError err
     = NonPrimitiveInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
@@ -28,16 +28,18 @@ data MachineError
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
+    | OtherMachineError err
 
 -- | The type of exceptions an abstract machine can throw.
-data MachineException = MachineException
-    { _machineExceptionError :: MachineError         -- ^ An error.
+data MachineException err = MachineException
+    { _machineExceptionError :: MachineError err     -- ^ An error.
     , _machineExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
     }
 
 instance ( PrettyBy config (Constant ())
          , PrettyBy config (Value TyName Name ())
-         ) => PrettyBy config MachineError where
+         , Pretty err
+         ) => PrettyBy config (MachineError err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -48,11 +50,13 @@ instance ( PrettyBy config (Constant ())
         "Cannot evaluate an open term."
     prettyBy config (ConstAppMachineError constAppError)  =
         prettyBy config constAppError
+    prettyBy _      (OtherMachineError err)               =
+        pretty err
 
-instance Show MachineException where
+instance Pretty err => Show (MachineException err) where
     show (MachineException err cause) = fold
         [ "An abstract machine failed: ", docString $ prettyPlcReadableDebug err, "\n"
         , "Caused by: ", docString $ prettyPlcReadableDebug cause
         ]
 
-instance Exception MachineException
+instance (Pretty err, Typeable err) => Exception (MachineException err)
