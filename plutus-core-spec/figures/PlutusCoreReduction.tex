@@ -75,7 +75,7 @@
 
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{M}}{A}}{M}\)}
+        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{V}}{A}}{V}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -146,7 +146,7 @@
 
     \begin{align*}
         &\cksteps{\ckforward{s}{\con{cn}}}{\ckbackward{s}{\con{cn}}}\\
-        &\cksteps{\ckforward{s}{\abs{\alpha}{K}{M}}}{\ckbackward{s}{\abs{\alpha}{K}{M}}}\\
+        &\cksteps{\ckforward{s}{\abs{\alpha}{K}{V}}}{\ckbackward{s}{\abs{\alpha}{K}{V}}}\\
         &\cksteps{\ckforward{s}{\inst{M}{A}}}{\ckforward{s, \inInstLeftFrame{A}}{M}}\\
         &\cksteps{\ckforward{s}{\wrap{\alpha}{A}{M}}}{\ckforward{s, \inWrapRightFrame{\alpha}{A}}{M}}\\
         &\cksteps{\ckforward{s}{\unwrap{M}}}{\ckforward{s, \inUnwrapFrame{}}{M}}\\
