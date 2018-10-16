@@ -77,3 +77,11 @@ nf : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K
 nf t = readback (eval t (idEnv _))
 \end{code}
 
+
+# Additional Properties
+
+\begin{code}
+readback-neV : ∀{K Γ}(n : Γ ⊢NeN⋆ K) → readback (neV n) ≡ ne n
+readback-neV {*}     n = refl
+readback-neV {K ⇒ J} n = refl
+\end{code}

@@ -112,7 +112,10 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
   unhandled-conversion : Progress M 
 \end{code}
 
-TODO: This stuff should be cleaned up
+These are injectivity and disjointness properties that we would get
+automatically from unification/pattern matching if we hadn't needed to
+introduce Q into wrap and unwarp
+
 \begin{code}
 lemma⇒ : ∀{A B : ∅ ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → A ⇒ B ≡ E [ μ C ]E → ⊥
 lemma⇒ {E = •}      ()
@@ -147,6 +150,7 @@ lemmaQ {E = E ·E x} {•} refl ()
 lemmaQ {E = E ·E x} {E' ·E x₁} refl q with lemma·Dom q
 lemmaQ {E = E ·E _} {E' ·E _} refl q | refl = lemmaQ refl (lemmaQ' q)
 
+-- there are several things wrong here, Q and A' are not used
 lemmaE : ∀{K}{Q : ∅ ⊢⋆ K}{A A' : ∅ ,⋆ * ⊢⋆ *}{E E' : EvalCxt ∅ * K} → E [ μ A ]E ≡ E' [ μ A ]E → E ≡ E'
 lemmaE {E = •} {•} p = refl
 lemmaE {E = •} {E' ·E x₁} ()
