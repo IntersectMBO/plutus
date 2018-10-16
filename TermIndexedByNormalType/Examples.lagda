@@ -12,6 +12,8 @@ import Type.RenamingSubstitution as ⋆
 open import TermIndexedByNormalType.Term
 open import TermIndexedByNormalType.Term.RenamingSubstitution
 open import TermIndexedByNormalType.Evaluation
+
+open import Relation.Binary.PropositionalEquality
 \end{code}
 
 ## Examples
@@ -45,7 +47,7 @@ module Scott where
   
 
   M : ∀{Γ} → Γ ⊢Nf⋆ *
-  M = μ G
+  M = ne (μ G)
 
   N : ∀{Γ} → Γ ⊢Nf⋆ *
   N  =  G [ M ]Nf
@@ -55,7 +57,7 @@ module Scott where
 
 
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap (` (S (S (T Z))))))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G • (` (S (S (T Z)))) refl))))
 
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
@@ -70,15 +72,15 @@ module Scott where
   Four = Succ · Three
 
   case : ∀{Γ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap (` Z)))))))
+  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
 
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
-  Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap (` Z) · (` Z)))) · wrap {B = (ne (` Z) ⇒ ne (` (S Z)))} (ƛ (` (S Z) · (unwrap (` Z) · (` Z))))))
+  Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) · wrap (ne (` Z) ⇒ ne (` (S Z))) • (ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) refl ))
 
   Z-comb : ∀{Γ} →
     Γ ⊢ Π {- a -} (Π {- b -} (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
-  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap (` (S Z)) · ` (S Z) · ` Z)) · wrap {B = (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap (` (S Z)) · ` (S Z) · ` Z))))))
+  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z)) · wrap (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))) • (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z))) refl)))
 
 
   OnePlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
