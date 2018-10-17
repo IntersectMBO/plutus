@@ -36,6 +36,8 @@ module Language.PlutusCore
     , format
     , formatDoc
     -- * Processing
+    , alphaRename
+    , globalRename
     , annotateProgram
     , annotateTerm
     , annotateType
@@ -159,7 +161,7 @@ parseScoped = globalRename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
-parseTypecheck gas = typecheckPipeline gas <=< parseProgram
+parseTypecheck gas = typecheckPipeline gas <=< globalRename <=< parseProgram
 
 -- | Typecheck a program.
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
@@ -168,7 +170,7 @@ typecheckPipeline gas p = do
     typecheckProgram (TypeCheckCfg gas False) =<< annotateProgram p
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
-formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs
+formatDoc bs = runQuoteT $ prettyPlcDef <$> (globalRename =<< parseProgram bs)
 
 format :: (MonadError (Error AlexPosn) m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
 format cfg = fmap (prettyTextBy cfg) . runQuoteT . parseScoped
