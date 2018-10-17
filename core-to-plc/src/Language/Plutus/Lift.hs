@@ -7,7 +7,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Lift (LiftPlc (..)) where
+module Language.Plutus.Lift (TypeablePlc (..), LiftPlc (..)) where
 
 import           PlutusPrelude                      (strToBs)
 
@@ -23,13 +23,15 @@ import           Data.List                          (elemIndex, sortBy)
 import           Data.Maybe                         (fromJust)
 import           GHC.Generics
 
--- | Class for types which can be lifted into Plutus Core.
-class LiftPlc a where
+-- | Class for types which have a corresponding Plutus Core type.
+class TypeablePlc a where
     -- | Get the Plutus Core type corresponding to this type.
     typeRep :: (MonadQuote m) => m (Type TyName ())
-    default typeRep :: (MonadQuote m, GLiftPlc (Rep a)) => m (Type TyName ())
+    default typeRep :: (MonadQuote m, GTypeablePlc (Rep a)) => m (Type TyName ())
     typeRep = gTypeRep @(Rep a)
 
+-- | Class for types which can be lifted into Plutus Core.
+class LiftPlc a where
     -- | Get a Plutus Core term corresponding to the given value.
     lift :: (MonadQuote m) => a -> m (Term TyName Name ())
     default lift :: (MonadQuote m, Generic a, GLiftPlc (Rep a)) => a -> m (Term TyName Name ())
@@ -37,12 +39,16 @@ class LiftPlc a where
 
 -- Explicit instances
 
-instance LiftPlc Int where
+instance TypeablePlc Int where
     typeRep = pure $ appSize haskellIntSize (TyBuiltin () TyInteger)
+
+instance LiftPlc Int where
     lift i = pure $ Constant () $ BuiltinInt () haskellIntSize $ fromIntegral i
 
-instance LiftPlc BSL.ByteString where
+instance TypeablePlc BSL.ByteString where
     typeRep = pure $ appSize haskellBSSize (TyBuiltin () TyByteString)
+
+instance LiftPlc BSL.ByteString where
     lift bs = pure $ Constant () $ BuiltinBS () haskellBSSize bs
 
 -- uses the Generic instance for Bool
@@ -53,12 +59,13 @@ We should use the stdlib list, but currently that uses lambdas-outside-fixpoints
 whereas the plugin uses fixpoints-outside-lambdas. See CGP-381.
 -}
 
-instance LiftPlc a => LiftPlc [a] where
+instance TypeablePlc a => TypeablePlc [a] where
     typeRep = do
         argType <- typeRep @a
         list <- liftQuote getBuiltinList
         pure $ TyApp () list argType
 
+instance (TypeablePlc a, LiftPlc a) => LiftPlc [a] where
     lift [] = do
         nil <- liftQuote getBuiltinNil
         argType <- typeRep @a
@@ -139,8 +146,10 @@ getBuiltinCons = do
 
 -- Generic classes
 
-class GLiftPlc f where
+class GTypeablePlc (f :: * -> *) where
     gTypeRep :: (MonadQuote m) => m (Type TyName ())
+
+class GLiftPlc f where
     gLift :: (MonadQuote m) => f p -> m (Term TyName Name ())
 
 -- Generic instances
@@ -172,7 +181,7 @@ sortConstructors package name cs =
     in if package == "ghc-prim" && (name == "Bool" || name == "[]") then reverse sorted else sorted
 
 -- See Note [Specific generic functions]
-instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPlc (M1 D d f) where
+instance (GGetConstructorTypes f, Datatype d)  => GTypeablePlc (M1 D d f) where
     gTypeRep = do
         -- See note [Ordering of constructors]
         constrs <- sortConstructors (packageName @d undefined) (datatypeName @d undefined) <$> gGetConstructorTypes @f
@@ -180,6 +189,8 @@ instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPl
         let caseTys = fmap (\(_, tys) -> mkIterTyFun tys (TyVar () r)) constrs
         pure $ TyForall () r (Type ()) $ mkIterTyFun caseTys (TyVar () r)
 
+-- See Note [Specific generic functions]
+instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPlc (M1 D d f) where
     gLift a = do
         -- See note [Ordering of constructors]
         constrs <- sortConstructors (packageName @d undefined) (datatypeName @d undefined) <$> gGetConstructorTypes @f
@@ -219,7 +230,7 @@ instance GGetProductTypes U1 where
 instance GGetProductTypes f => GGetProductTypes (M1 t i f) where
     gGetProductTypes = gGetProductTypes @f
 
-instance (LiftPlc a) => GGetProductTypes (K1 i a) where
+instance (TypeablePlc a) => GGetProductTypes (K1 i a) where
     gGetProductTypes = do
         ty <- typeRep @a
         pure [ty]
