@@ -114,6 +114,7 @@ library
         th-lift-instances -any,
         mmorph -any,
         cborg -any,
+        serialise -any,
         safe-exceptions -any,
         dependent-sum -any,
         dependent-map -any,
@@ -139,6 +140,7 @@ executable language-plutus-core-generate-evaluation-test
         base -any,
         language-plutus-core -any,
         bytestring -any,
+        serialise -any,
         text -any,
         prettyprinter -any,
         mmorph -any,
@@ -179,6 +181,7 @@ test-suite language-plutus-core-test
         tasty-hedgehog -any,
         transformers -any,
         bytestring -any,
+        serialise -any,
         filepath -any,
         tasty-golden -any,
         text -any,
@@ -209,6 +212,7 @@ benchmark language-plutus-core-bench
         language-plutus-core -any,
         criterion -any,
         bytestring -any,
+        serialise -any,
         text -any
 
     if flag(eventlog)

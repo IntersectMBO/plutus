@@ -73,11 +73,6 @@ module Language.PlutusCore
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
-    -- * Serialization
-    , encodeProgram
-    , decodeProgram
-    , readProgram
-    , writeProgram
     -- * Errors
     , Error (..)
     , IsError (..)
@@ -111,7 +106,7 @@ import           Control.Monad.State
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.CBOR                 ()
 import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
