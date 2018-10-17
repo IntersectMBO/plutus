@@ -59,6 +59,7 @@ module Language.PlutusCore
     , typecheckProgram
     , typecheckTerm
     , kindCheck
+    , dynamicBuiltinNameMeaningsToTypes
     , fileType
     , fileNormalizeType
     , fileTypeCfg
@@ -66,6 +67,7 @@ module Language.PlutusCore
     , printNormalizeType
     , TypeError (..)
     , TypeConfig (..)
+    , DynamicBuiltinNameTypes (..)
     , TypeCheckCfg (..)
     , TypeCheckM
     , parseTypecheck

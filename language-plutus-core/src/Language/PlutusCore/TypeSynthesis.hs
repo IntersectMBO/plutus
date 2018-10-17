@@ -6,7 +6,8 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , kindCheck
                                          , normalizeType
                                          , runTypeCheckM
-                                         , DynBuiltinNameTypes
+                                         , dynamicBuiltinNameMeaningsToTypes
+                                         , DynamicBuiltinNameTypes (..)
                                          , TypeCheckM
                                          , TypeError (..)
                                          , TypeConfig (..)
@@ -21,7 +22,8 @@ import qualified Data.IntMap                        as IM
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
 import           Language.PlutusCore.Clone
-import           Language.PlutusCore.Constant.Typed (typeOfBuiltinName)
+import           Language.PlutusCore.Constant.Typed (DynamicBuiltinNameMeanings (..), dynamicBuiltinNameMeaningToType,
+                                                     typeOfBuiltinName)
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
@@ -32,13 +34,15 @@ import           Language.PlutusCore.Type
 import           Lens.Micro
 import           PlutusPrelude
 
--- | A 'Map' from dynamic builtin functions to their types.
-type DynBuiltinNameTypes = Map DynamicBuiltinName (Quote (Type TyName ()))
+-- | Mapping from 'DynamicBuiltinName's to their 'Type's.
+newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
+    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Quote (Type TyName ()))
+    } deriving (Monoid)
 
 -- | Configuration of the type checker.
 data TypeConfig = TypeConfig
     { _typeConfigNormalize           :: Bool                 -- ^ Whether to normalize type annotations
-    , _typeConfigDynBuiltinNameTypes :: DynBuiltinNameTypes
+    , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
     }
 
 type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
@@ -71,6 +75,12 @@ kindOfTypeBuiltin :: TypeBuiltin -> Kind ()
 kindOfTypeBuiltin TyInteger    = sizeToType
 kindOfTypeBuiltin TyByteString = sizeToType
 kindOfTypeBuiltin TySize       = sizeToType
+
+-- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
+-- convert it to the corresponding 'Type' for each row of a 'DynamicBuiltinNameMeanings'.
+dynamicBuiltinNameMeaningsToTypes :: DynamicBuiltinNameMeanings -> DynamicBuiltinNameTypes
+dynamicBuiltinNameMeaningsToTypes (DynamicBuiltinNameMeanings means) =
+    DynamicBuiltinNameTypes $ fmap dynamicBuiltinNameMeaningToType means
 
 -- | Type-check a program, returning a normalized type.
 typecheckProgram :: (MonadError (Error a) m, MonadQuote m)
@@ -162,8 +172,8 @@ unsafeAnnotateNormalType ty = case annotateType ty of
 -- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
 lookupDynamicBuiltinName :: DynamicBuiltinName -> TypeCheckM a (Type TyName ())
 lookupDynamicBuiltinName name = do
-    typeConfig <- ask
-    case Map.lookup name $ _typeConfigDynBuiltinNameTypes typeConfig of
+    dbnts <- asks $ unDynamicBuiltinNameTypes . _typeConfigDynBuiltinNameTypes
+    case Map.lookup name dbnts of
         Nothing    ->
             throwError $ UnknownDynamicBuiltinNameTypeError (UnknownDynamicBuiltinNameError name)
         Just quoTy -> liftQuote quoTy

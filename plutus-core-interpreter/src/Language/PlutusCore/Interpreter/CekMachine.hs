@@ -28,7 +28,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.IntMap                                     (IntMap)
 import qualified Data.IntMap                                     as IntMap
-import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import           Data.Void
 
@@ -46,8 +45,6 @@ data Closure = Closure
 -- | Environments used by the CEK machine.
 -- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
 newtype VarEnv = VarEnv (IntMap Closure)
-
-type DynamicBuiltinNameMeanings = Map DynamicBuiltinName DynamicBuiltinNameMeaning
 
 data CekEnv = CekEnv
     { _cekEnvDbnms  :: DynamicBuiltinNameMeanings
@@ -88,7 +85,8 @@ lookupVarName varName = do
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM (Maybe DynamicBuiltinNameMeaning)
-lookupDynamicBuiltinName dynName = Map.lookup dynName <$> asks _cekEnvDbnms
+lookupDynamicBuiltinName dynName =
+    asks $ Map.lookup dynName . unDynamicBuiltinNameMeanings . _cekEnvDbnms
 
 -- | The computing part of the CEK machine.
 -- Either

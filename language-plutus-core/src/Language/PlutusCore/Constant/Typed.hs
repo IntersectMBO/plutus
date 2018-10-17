@@ -16,6 +16,7 @@ module Language.PlutusCore.Constant.Typed
     , TypeScheme(..)
     , TypedBuiltinName(..)
     , DynamicBuiltinNameMeaning(..)
+    , DynamicBuiltinNameMeanings(..)
     , flattenSizeEntry
     , eraseTypedBuiltinSized
     , mapSizeEntryTypedBuiltin
@@ -27,6 +28,7 @@ module Language.PlutusCore.Constant.Typed
     , typeSchemeResult
     , typedBuiltinToType
     , typeSchemeToType
+    , dynamicBuiltinNameMeaningToType
     , withTypedBuiltinName
     , typeOfTypedBuiltinName
     , typeOfBuiltinName
@@ -63,6 +65,7 @@ import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
 import           Data.GADT.Compare
+import           Data.Map                             (Map)
 import qualified Data.Text.Encoding                   as Text
 
 infixr 9 `TypeSchemeArrow`
@@ -141,6 +144,11 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 data DynamicBuiltinNameMeaning =
     forall a r. DynamicBuiltinNameMeaning (forall size. TypeScheme size a r) a
 -- See the [DynBuiltinNameMeaning] note.
+
+-- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
+newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
+    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
+    } deriving (Monoid)
 
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
@@ -269,6 +277,11 @@ typeSchemeToType = go 0 where
                 freshTyName () "s"
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a
+
+-- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
+-- convert it to the corresponding 'Type'.
+dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Quote (Type TyName ())
+dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
