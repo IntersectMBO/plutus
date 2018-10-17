@@ -162,13 +162,14 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \alwaysNoLine
-        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{\typeK{}}}\)}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{\normalform{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}}\)}
-        \alwaysSingleLine
-        \RightLabel{wrap}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{A}{M}}{\fixT{\alpha}{\normalform{A}}}}\)}
+        \AxiomC{\(\Gamma \vdash Q :: \typeK{}\)}
+        \AxiomC{\(Q = \mathcal{E}\{\fixT{\alpha}{S}\}\)}
+		\AxiomC{\(\Gamma \vdash M : \mathcal{E}\{[\fixT{\alpha}{S}/\alpha]S\}\)}
+		\RightLabel{wrap}
+		\TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{S}{M}}{Q}}\)}
     \end{prooftree}
+    
+    Where $\mathcal{E}$ is an elimination context $\mathcal{E} ::= \bullet \mid [\mathcal{E} \,\, A]$, $A$ a type, such that $\mathcal{E}\{Q\}$ denotes the type expression obtained by replacing the $\bullet$ in $\mathcal{E}$ with $Q$. That is, $[\bullet\,\, A]\{B\} = [B\,\,A]$, and so on. 
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\fixT{\alpha}{T}}}\)}
