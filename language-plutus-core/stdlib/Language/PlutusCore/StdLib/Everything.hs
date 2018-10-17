@@ -14,6 +14,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
+import           Language.PlutusCore.StdLib.Data.Integer
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -92,19 +93,27 @@ stdLib
                 , Named "Fix"    $ AnonStdLibTerm getBuiltinFix
                 , Named "Fix2"   $ AnonStdLibTerm (getBuiltinFixN 2)
                 ]
+            , Named "Integer" $ AnonStdLibFile
+                [ Named "SuccInteger" $ AnonStdLibTerm getBuiltinSuccInteger
+                ]
             , Named "List" $ AnonStdLibFile
-                [ -- Named "List"      $ AnonStdLibType getBuiltinList
-                  Named "Nil"       $ AnonStdLibTerm getBuiltinNil
-                , Named "Cons"      $ AnonStdLibTerm getBuiltinCons
-                , Named "FoldrList" $ AnonStdLibTerm getBuiltinFoldrList
-                , Named "FoldList"  $ AnonStdLibTerm getBuiltinFoldList
+                [ -- Named "List"         $ AnonStdLibType getBuiltinList
+                  Named "Nil"          $ AnonStdLibTerm getBuiltinNil
+                , Named "Cons"         $ AnonStdLibTerm getBuiltinCons
+                , Named "FoldrList"    $ AnonStdLibTerm getBuiltinFoldrList
+                , Named "FoldList"     $ AnonStdLibTerm getBuiltinFoldList
+                , Named "EnumCountNat" $ AnonStdLibTerm getBuiltinEnumCountNat
+                , Named "EnumFromTo"   $ AnonStdLibTerm getBuiltinEnumFromTo
+                , Named "Sum"          $ AnonStdLibTerm getBuiltinSum
+                , Named "Product"      $ AnonStdLibTerm getBuiltinProduct
                 ]
             , Named "Nat" $ AnonStdLibFile
-                [ -- Named "Nat"      $ AnonStdLibType getBuiltinNat
-                  Named "Zero"     $ AnonStdLibTerm getBuiltinZero
-                , Named "Succ"     $ AnonStdLibTerm getBuiltinSucc
-                , Named "FoldrNat" $ AnonStdLibTerm getBuiltinFoldrNat
-                , Named "FoldNat"  $ AnonStdLibTerm getBuiltinFoldNat
+                [ -- Named "Nat"          $ AnonStdLibType getBuiltinNat
+                  Named "Zero"         $ AnonStdLibTerm getBuiltinZero
+                , Named "Succ"         $ AnonStdLibTerm getBuiltinSucc
+                , Named "FoldrNat"     $ AnonStdLibTerm getBuiltinFoldrNat
+                , Named "FoldNat"      $ AnonStdLibTerm getBuiltinFoldNat
+                , Named "NatToInteger" $ AnonStdLibTerm getBuiltinNatToInteger
                 ]
             , Named "Unit" $ AnonStdLibFile
                 [ Named "Unit"    $ AnonStdLibType getBuiltinUnit

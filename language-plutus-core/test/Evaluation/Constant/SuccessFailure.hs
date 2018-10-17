@@ -2,8 +2,9 @@ module Evaluation.Constant.SuccessFailure
     ( test_applyBuiltinNameSuccessFailure
     ) where
 
-import           Evaluation.Constant.Apply
 import           Language.PlutusCore.Constant
+
+import           Evaluation.Constant.Apply
 
 import           Data.Semigroup
 import           Test.Tasty
