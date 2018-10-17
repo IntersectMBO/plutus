@@ -69,8 +69,8 @@ instance (PrettyClassicBy configName (tyname a), PrettyClassicBy configName (nam
         a (WrapF _ n ty t)   = parens' ("wrap" </> vsep' [prettyName n, prettyBy config ty, t])
         a (ErrorF _ ty)      = parens' ("error" </> prettyBy config ty)
 
-        prettyName :: forall n ann. PrettyClassicBy configName n => n -> Doc ann
-        prettyName n = prettyBy config n
+        prettyName :: PrettyClassicBy configName n => n -> Doc ann
+        prettyName = prettyBy config
 
 instance PrettyClassicBy configName (Term tyname name a) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name a) where
