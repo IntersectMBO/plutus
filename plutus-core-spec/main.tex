@@ -703,7 +703,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Formal Specification of\\the Plutus Core Language v1.0 (RC5.4)}
+\title{Formal Specification of\\the Plutus Core Language v1.0 (RC5.5)}
 
 
 % author names and affiliations
@@ -821,9 +821,9 @@ overflow, but require that the gas used is calculated at run time. We
 use \Fomega{} (as opposed to F) because it supports types indexed by
 size and parameterised types (such as ``List of A'').
 
-Plutus Core also notable lacks obvious built-in support for recursion,
+Plutus Core also notably lacks obvious built-in support for recursion,
 either general or otherwise. The reason for this is simply that in
-the presence of type left fixed points, it's possible to give a valid
+the presence of type-level fixed points, it's possible to give a valid
 type to recursion combinators. This is analogous to the fact that in
 Haskell, you can define the Y combinator but you need to use a newtype
 declaration to do. Precisely which combinators one defines is up to
