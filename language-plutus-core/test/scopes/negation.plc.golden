@@ -12,16 +12,16 @@
               (lam
                 x_9
                 (all a_10 (type) (fun a_10 (fun a_10 a_10)))
-                (lam t_11 b_8 (lam f_12 b_8 [ [ { x_9 b_8 } t_11 ] f_12 ]))
+                (lam t_11 b_8 (lam f_12 b_8 [ [ { x_9 b_2 } t_11 ] f_12 ]))
               )
             )
-            (all a_13 (type) (fun a_13 (fun a_13 a_13)))
+            (all a_1 (type) (fun a_1 (fun a_1 a_1)))
           }
           x_6
         ]
-        (abs a_14 (type) (lam x_15 a_14 (lam y_16 a_14 y_16)))
+        (abs a_13 (type) (lam x_14 a_13 (lam y_15 a_13 y_15)))
       ]
-      (abs a_17 (type) (lam t_18 a_17 (lam f_19 a_17 t_18)))
+      (abs a_16 (type) (lam t_17 a_16 (lam f_18 a_16 t_17)))
     ]
   )
 )
