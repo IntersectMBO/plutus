@@ -1,63 +1,71 @@
 (program 1.0.0
   (lam
-    ds_2
+    ds_14
     (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
     (lam
-      ds_5
-      (all Bool_matchOut_4 (type) (fun Bool_matchOut_4 (fun Bool_matchOut_4 Bool_matchOut_4)))
+      ds_15
+      (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
       [
         [
           [
             {
-              ds_2
-              (fun (all a_25 (type) (fun a_25 a_25)) (all Bool_matchOut_24 (type) (fun Bool_matchOut_24 (fun Bool_matchOut_24 Bool_matchOut_24))))
+              [
+                (lam
+                  x_9
+                  (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
+                  x_9
+                )
+                ds_14
+              ]
+              (fun (all a_16 (type) (fun a_16 a_16)) (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1))))
             }
             (lam
-              thunk_40
-              (all a_41 (type) (fun a_41 a_41))
+              thunk_17
+              (all a_18 (type) (fun a_18 a_18))
               [
                 [
                   {
-                    ds_5
-                    (all Bool_matchOut_33 (type) (fun Bool_matchOut_33 (fun Bool_matchOut_33 Bool_matchOut_33)))
+                    [
+                      (lam
+                        x_9
+                        (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
+                        x_9
+                      )
+                      ds_15
+                    ]
+                    (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
                   }
                   (abs
-                    Bool_matchOut_34
+                    Bool_matchOut_3
                     (type)
                     (lam
-                      True_35
-                      Bool_matchOut_34
-                      (lam False_36 Bool_matchOut_34 True_35)
+                      True_4
+                      Bool_matchOut_3
+                      (lam False_5 Bool_matchOut_3 True_4)
                     )
                   )
                 ]
                 (abs
-                  Bool_matchOut_37
+                  Bool_matchOut_6
                   (type)
                   (lam
-                    True_38
-                    Bool_matchOut_37
-                    (lam False_39 Bool_matchOut_37 False_39)
+                    True_7 Bool_matchOut_6 (lam False_8 Bool_matchOut_6 False_8)
                   )
                 )
               ]
             )
           ]
           (lam
-            thunk_45
-            (all a_46 (type) (fun a_46 a_46))
+            thunk_19
+            (all a_20 (type) (fun a_20 a_20))
             (abs
-              Bool_matchOut_42
+              Bool_matchOut_6
               (type)
-              (lam
-                True_43
-                Bool_matchOut_42
-                (lam False_44 Bool_matchOut_42 False_44)
-              )
+              (lam True_7 Bool_matchOut_6 (lam False_8 Bool_matchOut_6 False_8))
             )
           )
         ]
-        (abs a_47 (type) (lam x_48 a_47 x_48))
+        (abs a_21 (type) (lam x_22 a_21 x_22))
       ]
     )
   )

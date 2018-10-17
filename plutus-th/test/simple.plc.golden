@@ -1,7 +1,23 @@
 (program 1.0.0
   (lam
-    ds_2
+    ds_14
     (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
-    [ [ { ds_2 [(con integer) (con 64)] } (con 64 ! 1) ] (con 64 ! 2) ]
+    [
+      [
+        {
+          [
+            (lam
+              x_9
+              (all Bool_matchOut_1 (type) (fun Bool_matchOut_1 (fun Bool_matchOut_1 Bool_matchOut_1)))
+              x_9
+            )
+            ds_14
+          ]
+          [(con integer) (con 64)]
+        }
+        (con 64 ! 1)
+      ]
+      (con 64 ! 2)
+    ]
   )
 )
