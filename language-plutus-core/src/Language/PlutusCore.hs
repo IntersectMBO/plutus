@@ -105,11 +105,11 @@ module Language.PlutusCore
     ) where
 
 import           Control.Monad.Except
-import           Control.Monad.State
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
@@ -132,7 +132,7 @@ fileType :: FilePath -> IO T.Text
 fileType = fileNormalizeType False
 
 fileNormalizeType :: Bool -> FilePath -> IO T.Text
-fileNormalizeType norm = fmap (either prettyPlcDefText id . printNormalizeType norm) . BSL.readFile
+fileNormalizeType norm = fmap (either prettyPlcDefText id . runQuoteT . printNormalizeType norm) . BSL.readFile
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
@@ -150,12 +150,12 @@ printType = printNormalizeType False
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$>
-    (typecheckProgram (TypeCheckCfg 1000 norm) <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+    (typecheckProgram (TypeCheckCfg 1000 norm) <=< annotateProgram <=< parseScoped) bs
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
-parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
+parseScoped :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
+parseScoped = globalRename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
@@ -171,7 +171,7 @@ formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs
 
 format :: (MonadError (Error AlexPosn) m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
-format cfg = fmap (prettyTextBy cfg) . parseScoped
+format cfg = fmap (prettyTextBy cfg) . runQuoteT . parseScoped
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: a -> Version a
