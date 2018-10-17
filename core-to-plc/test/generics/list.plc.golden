@@ -1,0 +1,55 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          a_6
+          (type)
+          (lam
+            x_7
+            a_6
+            (lam
+              xs_8
+              [(fix list_1 (lam a_0 (type) (all r_2 (type) (fun r_2 (fun (fun a_0 (fun [list_1 a_0] r_2)) r_2))))) a_6]
+              (wrap
+                list_4
+                [(lam a_3 (type) (all r_5 (type) (fun r_5 (fun (fun a_3 (fun [list_4 a_3] r_5)) r_5)))) a_6]
+                (abs
+                  r_9
+                  (type)
+                  (lam
+                    z_10
+                    r_9
+                    (lam
+                      f_11
+                      (fun a_6 (fun [list_4 a_6] r_9))
+                      [ [ f_11 x_7 ] xs_8 ]
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+        [(con integer) (con 64)]
+      }
+      (con 64 ! 1)
+    ]
+    {
+      (abs
+        a_15
+        (type)
+        (wrap
+          list_13
+          [(lam a_12 (type) (all r_14 (type) (fun r_14 (fun (fun a_12 (fun [list_13 a_12] r_14)) r_14)))) a_15]
+          (abs
+            r_16
+            (type)
+            (lam z_17 r_16 (lam f_18 (fun a_15 (fun [list_13 a_15] r_16)) z_17))
+          )
+        )
+      )
+      [(con integer) (con 64)]
+    }
+  ]
+)
