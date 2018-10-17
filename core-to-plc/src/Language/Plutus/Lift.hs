@@ -52,6 +52,15 @@ instance LiftPlc BSL.ByteString where
 -- uses the Generic instance for Bool
 instance LiftPlc Bool
 
+
+-- uses Generic instance for (a, b)
+instance (TypeablePlc a, TypeablePlc b) => TypeablePlc (a, b)
+instance (TypeablePlc a, TypeablePlc b, LiftPlc a, LiftPlc b) => LiftPlc (a, b)
+
+-- uses Generic instance for `Maybe`
+instance (TypeablePlc a) => TypeablePlc (Maybe a)
+instance (TypeablePlc a, LiftPlc a) => LiftPlc (Maybe a)
+
 {- Note [Stlib lists]
 We should use the stdlib list, but currently that uses lambdas-outside-fixpoints,
 whereas the plugin uses fixpoints-outside-lambdas. See CGP-381.

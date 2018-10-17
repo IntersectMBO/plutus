@@ -152,15 +152,17 @@ especially because we only need one direction (to binary).
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON, LiftPlc)
+    deriving newtype (Serialise, ToJSON, FromJSON)
 
+instance LiftPlc PubKey
 instance TypeablePlc PubKey
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON, LiftPlc)
+    deriving newtype (Serialise, ToJSON, FromJSON)
 
+instance LiftPlc Signature
 instance TypeablePlc Signature
 
 
@@ -179,7 +181,9 @@ newtype Value = Value { getValue :: Integer }
 newtype TxId h = TxId { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (LiftPlc)
+
+instance (LiftPlc h, TypeablePlc h) => LiftPlc (TxId h)
+instance (TypeablePlc h) => TypeablePlc (TxId h)
 
 type TxId' = TxId (Digest SHA256)
 
@@ -285,7 +289,7 @@ newtype Height = Height { getHeight :: Integer }
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
-height = Height . fromIntegral . length . join
+height = Height . fromIntegral . length
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
