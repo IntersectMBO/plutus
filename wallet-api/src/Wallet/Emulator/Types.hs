@@ -1,9 +1,10 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -53,6 +54,7 @@ import           Control.Monad.Except
 import           Control.Monad.Operational as Op
 import           Control.Monad.State
 import           Control.Monad.Writer
+import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Bifunctor            (Bifunctor (..))
 import           Data.List                 (uncons)
 import           Data.Map                  (Map)
@@ -60,9 +62,12 @@ import qualified Data.Map                  as Map
 import           Data.Maybe
 import qualified Data.Set                  as Set
 import qualified Data.Text                 as T
+import           GHC.Generics              (Generic)
 import           Lens.Micro
 import           Prelude                   as P
+import           Servant.API               (FromHttpApiData)
 
+import           Data.Hashable             (Hashable)
 import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
                                             signature)
 import           Wallet.UTXO               (Block, Blockchain, Height, Tx (..), TxIn (..), TxOut (..), TxOutRef (..),
@@ -71,7 +76,8 @@ import           Wallet.UTXO               (Block, Blockchain, Height, Tx (..), 
 
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Generic)
+    deriving newtype (FromHttpApiData, Hashable, ToJSON, FromJSON)
 
 type TxPool = [Tx]
 

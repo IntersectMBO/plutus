@@ -50,17 +50,20 @@ library
                  -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
-        ghc -any,
-        template-haskell -any,
-        language-plutus-core -any,
-        containers -any,
-        cborg -any,
-        mtl -any,
-        transformers -any,
+        aeson -any,
+        base64-bytestring -any,
         bytestring -any,
-        text -any,
+        cborg -any,
+        containers -any,
+        ghc -any,
+        language-plutus-core -any,
+        mmorph -any,
+        mtl -any,
         prettyprinter -any,
-        mmorph -any
+        serialise -any,
+        template-haskell -any,
+        text -any,
+        transformers -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
