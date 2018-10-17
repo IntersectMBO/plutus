@@ -61,6 +61,7 @@ data EventTrigger =
 data WalletAPIError =
     InsufficientFunds Text
     | OtherError Text
+    deriving (Show)
 
 -- | Used by Plutus client to interact with wallet
 class WalletAPI m where

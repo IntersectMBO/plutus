@@ -23,7 +23,8 @@ packages:
 extra-deps:
 - cryptonite-0.22
 - cborg-0.2.0.0
-
+- serialise-0.2.0.0
+- monad-stm-0.1.0.2
 flags:
   language-plutus-core:
     development: true

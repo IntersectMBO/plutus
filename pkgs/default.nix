@@ -15645,7 +15645,9 @@ license = stdenv.lib.licenses.mit;
 "core-to-plc" = callPackage
 ({
   mkDerivation
+, aeson
 , base
+, base64-bytestring
 , bytestring
 , cborg
 , containers
@@ -15654,6 +15656,7 @@ license = stdenv.lib.licenses.mit;
 , mmorph
 , mtl
 , prettyprinter
+, serialise
 , stdenv
 , tasty
 , tasty-golden
@@ -15668,7 +15671,9 @@ pname = "core-to-plc";
 version = "0.1.0.0";
 src = ./../core-to-plc;
 libraryHaskellDepends = [
+aeson
 base
+base64-bytestring
 bytestring
 cborg
 containers
@@ -15677,6 +15682,7 @@ language-plutus-core
 mmorph
 mtl
 prettyprinter
+serialise
 template-haskell
 text
 transformers
@@ -48411,6 +48417,30 @@ description = "Provides a MonadST class";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"monad-stm" = callPackage
+({
+  mkDerivation
+, base
+, stdenv
+, stm
+, transformers
+}:
+mkDerivation {
+
+pname = "monad-stm";
+version = "0.1.0.2";
+sha256 = "b7a71a1cc50a04a461768e03b9813e2c708876d67d6fdb864422bd9fe4826b25";
+libraryHaskellDepends = [
+base
+stm
+transformers
+];
+doHaddock = false;
+doCheck = false;
+description = "MonadSTM class analogous to MonadIO";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "monad-time" = callPackage
 ({
   mkDerivation
@@ -63114,6 +63144,51 @@ doCheck = false;
 homepage = "http://github.com/sanetracker/serf";
 description = "Interact with Serf via Haskell";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"serialise" = callPackage
+({
+  mkDerivation
+, array
+, base
+, bytestring
+, cborg
+, containers
+, ghc-prim
+, half
+, hashable
+, primitive
+, stdenv
+, text
+, time
+, unordered-containers
+, vector
+}:
+mkDerivation {
+
+pname = "serialise";
+version = "0.2.0.0";
+sha256 = "405bb6eb01e5cc64e929cf917119e1e2119866600c8caa1a85cd90e43b5713c7";
+libraryHaskellDepends = [
+array
+base
+bytestring
+cborg
+containers
+ghc-prim
+half
+hashable
+primitive
+text
+time
+unordered-containers
+vector
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/well-typed/cborg";
+description = "A binary serialisation library for Haskell values";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "servant" = callPackage
@@ -78310,12 +78385,16 @@ license = stdenv.lib.licenses.mit;
 "wallet-api" = callPackage
 ({
   mkDerivation
+, aeson
 , base
+, base64-bytestring
+, bifunctors
 , bytestring
 , cborg
 , containers
 , core-to-plc
 , cryptonite
+, errors
 , free
 , ghc
 , hedgehog
@@ -78323,29 +78402,44 @@ license = stdenv.lib.licenses.mit;
 , memory
 , microlens
 , mmorph
+, monad-stm
 , mtl
+, natural-transformation
 , operational
 , plutus-th
 , prettyprinter
+, serialise
+, servant
+, servant-server
 , stdenv
+, stm
 , tasty
 , tasty-hedgehog
 , template-haskell
 , text
 , transformers
+, unordered-containers
+, wai
+, warp
 }:
 mkDerivation {
 
 pname = "wallet-api";
 version = "0.1.0.0";
 src = ./../wallet-api;
+isLibrary = true;
+isExecutable = true;
 libraryHaskellDepends = [
+aeson
 base
+base64-bytestring
+bifunctors
 bytestring
 cborg
 containers
 core-to-plc
 cryptonite
+errors
 free
 ghc
 hedgehog
@@ -78353,13 +78447,29 @@ language-plutus-core
 memory
 microlens
 mmorph
+monad-stm
 mtl
+natural-transformation
 operational
 plutus-th
 prettyprinter
+serialise
+servant
+servant-server
+stm
 template-haskell
 text
 transformers
+unordered-containers
+];
+executableHaskellDepends = [
+base
+containers
+memory
+stm
+unordered-containers
+wai
+warp
 ];
 testHaskellDepends = [
 base
