@@ -4,138 +4,142 @@
 
 \begin{figure*}[t]
     \footnotesize
-    \centering
+
     \begin{tabular}{ll}
         \textrm{Abbreviation} & \textrm{Expanded}\\\\
-        
+
         $\forall \alpha :: K.\ B$ & \(\allT{\alpha}{K}{B}\)\\\\
-        
+
         $\forall \alpha, \beta, \ldots :: K, \ldots.\ C$ & \(\forall \alpha :: K.\ \forall \beta :: K.\ \ldots.\ C\)\\\\
-        
+
         $A \to B$ & \(\funT{A}{B}\)\\\\
-        
+
         $err(A)$ & \(\error{A}\)\\\\
-        
-        $integer_s$ & \(\appT{\conT{\conIntegerType{}}}{s}\)\\\\
-        
-        $bytestring_s$ & \(\appT{\conT{\conBytestringType{}}}{s}\)\\\\
-        
-        $size_s$ & \(\appT{\conT{\conSizeType{}}}{s}\)\\\\
-        
+
+        $integer_s$ & \(\builtinT{\conIntegerType{}}{s}\)\\\\
+
+        $bytestring_s$ & \(\builtinT{\conBytestringType{}}{s}\)\\\\
+
+        $size_s$ & \(\builtinT{\conSizeType{}}{s}\)\\\\
+
         $\star$ & \(\typeK{}\)\\\\
-        
+
         $size$ & \(\sizeK{}\)\\\\
-        
+
         $unit$ & \(\forall \alpha :: \star.\ \alpha \to \alpha\)\\\\
-        
+
         $unitval$ & \(\abs{\alpha}{\typeK{}}{\lam{x}{\alpha}{x}}\)\\\\
-        
+
         $boolean$ & \(\forall \alpha :: \star.\ \alpha \to \alpha \to \alpha\)\\\\
-        
+
         $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{t}{unitval}}}}\)\\\\
-        
+
         $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{f}{unitval}}}}\)\\\\
-        
+
     \end{tabular}
-    
+
     \caption{Abbreviations}
     \label{fig:Plutus_core_type_abbreviations}
 \end{figure*}
 
+\begin{figure*}[t]
+
+
+    \(\begin{array}{lllll}
+        \textrm{Type Constant} & \textrm{Arguments} & \textrm{Semantics}\\
+
+        integer & s & [-2^{8s-1},2^{8s-1})\\
+
+        bytestring & s & \cup_{0\leq s' \leq s}\{0,1\}^{8s'}\\
+
+        size & s & \{s\}\\
+   \end{array}\)
+   \caption{Type Constants}
+   \label{fig:Plutus_core_type_constants}
+
+\end{figure*}
+
+\begin{figure*}
+   \(\begin{array}{lllll}
+        \textrm{Constant} & \textrm{Signature} & \textrm{Semantics}\\
+        s!i   & \constsig{integer}{s} & i\\
+        s!b   & \constsig{bytestring}{s} & b\\
+        s     & \constsig{size}{s} & s\\
+    \end{array}\)
+    \caption{Constants}
+    \label{fig:Plutus_core_constants}
+\end{figure*}
+
 \begin{landscape}
 \thispagestyle{empty}
+ \begin{figure*}
+    \hspace{-8.5cm}Let $txh$ be the transaction hash and $bnum$ be the block number, both as global parameters to normalization.\vspace{1em}
 
-\begin{figure*}[t]
-    \footnotesize
-    \centering
-    
-    \hspace{-25em}\(\begin{array}{lllll}
-        \textrm{Builtin Type Name} & \textrm{Kind} & \textrm{Arguments} & \textrm{Semantics}\\
-        
-        integer & \funK{\sizeK{}}{\typeK{}} & s & [-2^{8s-1},2^{8s-1})\\
-        
-        bytestring & \funK{\sizeK{}}{\typeK{}} & s & \cup_{0\leq s' \leq s}\{0,1\}^{8s'}\\
-        
-        size & \funK{\sizeK{}}{\typeK{}} & s & \{s\}\\
-        
-        s & \sizeK{} & & s\\
-    \end{array}\)\vspace{2em}
-    
-    \hspace{-50em}Let $txh$ be the transaction hash, $bnum$ be the block number, and $btime$ be the block time, all as global parameters to normalization.
-    \vspace{1em}
-    
-    \hspace{-35em}\(\begin{array}{lllll}
-        \textrm{Builtin Name} & \textrm{Type} & \textrm{Arguments} & \textrm{Semantics} & \textrm{Success Conditions}\\
+    \hspace{-8.5cm}\(\begin{array}{llllll}
+        \textrm{Builtin Name} & \textrm{Signature} & \textrm{Type Args} & \textrm{Term Args} & \textrm{Semantics} & \textrm{Success Conditions}\\
+
+
+        \texttt{addInteger}        &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1   & s!(i_0 + i_1)                     & -2^{8s-1} \leq i_0 + i_1 < 2^{8s-1}\\
+        \texttt{subtractInteger}   &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1 & s!(i_0 - i_1)                     & -2^{8s-1} \leq i_0 - i_1 < 2^{8s-1}\\
+        \texttt{multiplyInteger}   &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1   & s!(i_0 * i_1)                     & -2^{8s-1} \leq i_0 * i_1 < 2^{8s-1}\\
+        \texttt{divideInteger}     &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1   & s!(\operatorname{div}\ i_0\ i_1)                     & i_1 \not= 0\\
+        \texttt{quotientInteger}   &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1   & s!(\operatorname{quot}\ i_0\ i_1)                    & i_1 \not= 0\\
+        \texttt{remainderInteger}  &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1   & s!(\operatorname{rem} \ i_0 \ i_1)                     & i_1 \not= 0\\
+        \texttt{modInteger}        &  \sig{s :: size}{integer_s, integer_s}{integer_s}  &  s & s!i_0 , s!i_1   & s!(\operatorname{mod} \ i_0 \ i_1)                     & i_1 \not= 0\\
         %&&\\
-        
-        s!i   & integer_s      &   \textrm{---}   &    s!i\\
+
+        \texttt{lessThanInteger}            &  \sig{s :: size}{integer_s, integer_s}{boolean}  &  s & s!i_0 , s!i_1   &   i_0 < i_1\\
+        \texttt{lessThanEqualsInteger}      &  \sig{s :: size}{integer_s, integer_s}{boolean}  &  s & s!i_0 , s!i_1   &   i_0 <= i_1\\
+        \texttt{greaterThanInteger}         &  \sig{s :: size}{integer_s, integer_s}{boolean}  &  s & s!i_0 , s!i_1   &   i_0 > i_1\\
+þ       \texttt{greaterThanEqualsInteger}   &  \sig{s :: size}{integer_s, integer_s}{boolean}  &  s & s!i_0 , s!i_1   &   i_0 >= i_1\\
+        \texttt{equalsInteger}              &  \sig{s :: size}{integer_s, integer_s}{boolean}  &  s & s!i_0 , s!i_1   &   i_0 == i_1\\
         %&&\\
-        
-        s!b   & bytestring_s   &   \textrm{---}   &    s!b    &\\
+
+        \texttt{resizeInteger}   &  \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{integer_{s_1}}  &   z, s_0!i   & s_1!i & -2^{8s_1-1} \leq i < 2^{8s_1-1}\\
         %&&\\
-        
-        z     & size_s         &   \textrm{---}   &    z      &\\
+
+        \texttt{intToByteString}  &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{str_{s_1}}  &  s & z, s_0!i           & \text{the binary representation of $i$} &-2^{8s_1-1} \leq i < 2^{8s_1-1}\\
+            &&&&\quad\text{$0$ padded to a}\\
+            &&&&\quad\text{most-significant-bit-first}\\
+            &&&&\quad\text{$s_1$-byte bytestring}\\
         %&&\\
-        
-        \texttt{addInteger}        &  \forall s :: size.\ integer_s \to integer_s \to integer_s  &  s!i_0 , s!i_1   & s!(i_0 + i_1)                     & -2^{8s-1} \leq i_0 + i_1 < 2^{8s-1}\\
-        \texttt{subtractInteger}   &  \forall s :: size.\ integer_s \to integer_s \to integer_s  &  s!i_0 , s!i_1 & s!(i_0 - i_1)                     & -2^{8s-1} \leq i_0 - i_1 < 2^{8s-1}\\
-        \texttt{multiplyInteger}   &  \forall s :: size.\ integer_s \to integer_s \to integer_s  &  s!i_0 , s!i_1   & s!(i_0 * i_1)                     & -2^{8s-1} \leq i_0 * i_1 < 2^{8s-1}\\
-        \texttt{divideInteger}     &  \forall s :: size.\ integer_s \to integer_s \to integer_s  &  s!i_0 , s!i_1   & s!(\operatorname{div}\ i_0\ i_1)                     & i_1 \not= 0\\
-        \texttt{remainderInteger}  &  \forall s :: size.\ integer_s \to integer_s \to integer_s  &  s!i_0 , s!i_1   & s!(\operatorname{mod} \ i_0 \ i_1)                     & i_1 \not= 0\\
+
+
+        \texttt{concatenate}   &   \sig{s :: size}{str_s,str_s}{str_s}   &   s & s!b_0 , s!b_1   & s!(b_0\cdot  b_1) & |b_0\cdot  b_1| \leq s\\
         %&&\\
-        
-        \texttt{lessThanInteger}            &  \forall s :: size.\ integer_s \to integer_s \to boolean  &  s!i_0 , s!i_1   &   i_0 < i_1\\
-        \texttt{lessThanEqualsInteger}      &  \forall s :: size.\ integer_s \to integer_s \to boolean  &  s!i_0 , s!i_1   &   i_0 <= i_1\\
-        \texttt{greaterThanInteger}         &  \forall s :: size.\ integer_s \to integer_s \to boolean  &  s!i_0 , s!i_1   &   i_0 > i_1\\
-þ       \texttt{greaterThanEqualsInteger}   &  \forall s :: size.\ integer_s \to integer_s \to boolean  &  s!i_0 , s!i_1   &   i_0 >= i_1\\
-        \texttt{equalsInteger}              &  \forall s :: size.\ integer_s \to integer_s \to boolean  &  s!i_0 , s!i_1   &   i_0 == i_1\\
+
+        \texttt{takeByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_0!i, s_1!b     & s_1!(take \ i \  b)\\
+        \texttt{dropByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_01i, s_1!b     & s_1!(drop \ i \  b)\\
         %&&\\
-        
-        \texttt{resizeInteger}   &  \forall s_0, s_1 :: size.\ size_{s_1} \to integer_{s_0} \to integer_{s_1}  &   z, s_0!i   & s_1!i & -2^{8s_1-1} \leq i < 2^{8s_1-1}\\
+
+        \texttt{sha2$\_256$}         &  \sig{s :: size}{str_s}{str_{256}}  & s &   s!b           & 256!(sha2\_256 \  b)\\
+        \texttt{sha3$\_256$}         &  \sig{s :: size}{str_s}{str_{256}}  & s &   s!b           & 256!(sha3\_256\  b)\\
         %&&\\
-        
-        \texttt{intToByteString}  &   \forall s_0, s_1 :: size.\ size_{s_1} \to integer_{s_0} \to bytestring_{s_1}  &  z, s_0!i           & \text{the binary representation of $i$} &-2^{8s_1-1} \leq i < 2^{8s_1-1}\\
-            &&&\quad\text{$0$ padded to a}\\
-            &&&\quad\text{most-significant-bit-first}\\
-            &&&\quad\text{$s_1$-byte bytestring}\\
+
+        \texttt{verifySignature}   &  \sig{s_0, s_1, s_2 :: size}{str_{s_0},str_{s_1},str_{s_2}}{boolean}  &   s_0, s_1, s_2 & k, d, s           & \text{$true$ if the private key}\\
+            &&&&\quad\text{corresponding to public key}\\
+            &&&&\quad\text{$k$ was used to sign $d$ to}\\
+            &&&&\quad\text{produce $s$, otherwise $false$}\\
         %&&\\
-        
-        
-        \texttt{concatenate}   &   \forall s :: size.\ bytestring_s \to bytestring_s \to bytestring_s   &   s!b_0 , s!b_1   & s!(b_0\cdot  b_1) & |b_0\cdot  b_1| \leq s\\
+
+        \texttt{resizeByteString}   &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},str_{s_0}}{str_{s_1}}   &   s _0, s_1 & z, s_0!b   &   s_1!b & |b| \leq s_1\\
         %&&\\
-        
-        \texttt{takeByteString}    &   \forall s_0, s_1 :: size.\ integer_{s_0} \to bytestring_{s_1} \to bytestring_{s_1}   &   s_0!i, s_1!b     & s_1!(take \ i \  b)\\
-        \texttt{dropByteString}    &   \forall s_0, s_1 :: size.\ integer_{s_0} \to bytestring_{s_1} \to bytestring_{s_1}   &   s_0!i, s_1!b     & s_1!(drop \ i \  b)\\
+
+        \texttt{equalsByteString}  &   \sig{s :: size}{str_s,str_s}{boolean}   &   s_0 & b_0 , b_1   & b_0 == b_1\\
         %&&\\
-        
-        \texttt{sha2\_256}         &  \forall s :: size.\ bytestring_s \to bytestring_{\conT{256}}  &   s!b           & 256!(sha2\_256 \  b)\\
-        \texttt{sha3\_256}         &  \forall s :: size.\ bytestring_s \to bytestring_{\conT{256}}  &   s!b           & 256!(sha3\_256\  b)\\
+
+        \texttt{txhash}^{\dagger}   &   \sig{}{}{str_{256}}   &   & \textrm{---}  & 256!txh\\
         %&&\\
-        
-        \texttt{verifySignature}   &  \forall s_0, s_1, s_2 :: size.\ bytestring_{s_0} \to bytestring_{s_1} \to bytestring_{s_2} \to boolean  &   k, d, s           & \text{$true$ if the private key}\\
-        &&&\quad\text{corresponding to public key}\\
-        &&&\quad\text{$k$ was used to sign $d$ to}\\
-        &&&\quad\text{produce $s$, otherwise $false$}\\
-        %&&\\
-        
-        \texttt{resizeByteString}   &   \forall s_0, s_1 :: size.\ size_{s_1} \to bytestring_{s_0} \to bytestring_{s_1}   &   z, s_0!b   &   s_1!b & |b| \leq s_1\\
-        %&&\\
-        
-        \texttt{equalsByteString}  &   \forall s :: size.\ bytestring_s \to bytestring_s \to boolean   &   b_0 , b_1   & b_0 == b_1\\
-        %&&\\
-        
-        \texttt{txhash}^{\dagger}   &   bytestring_{\conT{256}}   &   \textrm{---}  & 256!txh\\
-        %&&\\
-        
-        \texttt{blocknum}  &  \forall s :: size.\ size_s \to integer_s  & z & s!bnum & 0 \leq bnum < 2^{8s-1}\\
+
+        \texttt{blocknum}  &  \sig{s :: size}{size_s}{integer_s}  & s & z & s!bnum & 0 \leq bnum < 2^{8s-1}\\
         %&&\\
     \end{array}\)
-    
+
     \vspace{1em}
-    
-    $^{\dagger}$ \texttt{txhash} and its meaning $txh$ are the hash of the transaction, containing information as specified by the host blockchain.
-    
-    \caption{Builtin Types and Reductions}
+
+    \hspace{-8.5cm}$^{\dagger}$ \texttt{txhash} and its meaning $txh$ are the hash of the transaction, containing information as specified by the host blockchain.
+
+    \hspace{-8.5cm}\caption{Builtin Signatures and Reductions}
     \label{fig:Plutus_core_builtins}
 \end{figure*}
 
