@@ -336,4 +336,5 @@ generics = testNested "generics" [
     , goldenEval "boolInterop" [ getAst andPlc, (trivialProgram $ runQuote $ lift True), (trivialProgram $ runQuote $ lift True) ]
     , golden "list" (runQuote $ lift ([1]::[Int]))
     , goldenEval "listInterop" [ getAst listMatch, (trivialProgram $ runQuote $ lift ([1]::[Int])) ]
+    , golden "liftPlc" (runQuote $ lift int)
   ]
