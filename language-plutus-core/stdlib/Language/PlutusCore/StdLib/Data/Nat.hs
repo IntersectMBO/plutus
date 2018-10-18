@@ -10,13 +10,13 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinNatToInteger
     ) where
 
+import           Language.PlutusCore.Constant             (makeDynamicBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 -- | @Nat@ as a PLC type.
 --
@@ -134,17 +134,26 @@ getBuiltinFoldNat = do
           , Var () n'
           ]
 
--- | Convert a @nat@ to an 'Integer'.
-getBuiltinNatToInteger :: Natural -> Quote (Term TyName Name ())
-getBuiltinNatToInteger s = do
-    builtinFoldNat <- getBuiltinFoldNat
-    let int = Constant () . BuiltinInt () s
-    n <- freshName () "n"
-    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+-- | Convert a @nat@ to an @integer@.
+--
+-- > /\(s :: size) -> \(ss : size s) ->
+-- >     foldNat {integer s}
+-- >         (addInteger {s} (resizeInteger {1} {s} ss 1!1))
+-- >         (resizeInteger {1} {s} ss 1!0)
+getBuiltinNatToInteger :: Quote (Term TyName Name ())
+getBuiltinNatToInteger = do
+    foldNat <- getBuiltinFoldNat
+    s  <- freshTyName () "s"
+    ss <- freshName () "ss"
+    let addInteger = Constant () $ BuiltinName () AddInteger
+        sv  = TyVar () s
+        ssv = Var () ss
     return
-        . LamAbs () n nat
-        $ mkIterApp (TyInst () builtinFoldNat $ TyApp () (TyBuiltin () TyInteger) (TyInt () s))
-          [ Apply () (TyInst () (Constant () $ BuiltinName () AddInteger) (TyInt () s)) $ int 1
-          , int 0
-          , Var () n
+        . TyAbs ()  s  (Size ())
+        . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
+        $ mkIterApp (TyInst () foldNat $ TyApp () (TyBuiltin () TyInteger) sv)
+          [ Apply ()
+              (TyInst () addInteger (TyVar () s))
+              (makeDynamicBuiltinInt sv ssv 1)
+          , makeDynamicBuiltinInt sv ssv 0
           ]
