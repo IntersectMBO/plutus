@@ -60,7 +60,7 @@ constantFee = FeeEstimator . const . const
 -- | Blockchain for testing the emulator implementation and traces.
 --
 --   To avoid having to rely on functions from the implementation of
---   wallet-api (in particular, `Wallet.UTXO.unspentOutputs`) we note the
+--   wallet-api (in particular, `Wallet.UTXO.Types.unspentOutputs`) we note the
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
     mockchainInitialBlock :: Block,

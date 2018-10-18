@@ -15,6 +15,8 @@ import           Test.Tasty.Hedgehog (testProperty)
 import           Wallet.Emulator
 import           Wallet.Generators   (Mockchain (..))
 import qualified Wallet.Generators   as Gen
+import           Wallet.UTXO         (unitValidationData)
+import qualified Wallet.UTXO.Index   as Index
 
 main :: IO ()
 main = defaultMain tests
@@ -25,6 +27,10 @@ tests = testGroup "all tests" [
         testProperty "initial transaction is valid" initialTxnValid,
         testProperty "compute UTxO of trivial blockchain" utxo,
         testProperty "validate transaction" txnValid
+        ],
+    testGroup "UTXO index" [
+        testProperty "create an index of transactions" txnIndex,
+        testProperty "use the index to validate transactions" txnIndexValid
         ],
     testGroup "traces" [
         testProperty "accept valid txn" validTrace,
@@ -48,9 +54,21 @@ utxo = property $ do
 
 txnValid :: Property
 txnValid = property $ do
-    m <- forAll Gen.genMockchain
-    txn <- forAll $ Gen.genValidTransaction m
+    (m, txn) <- forAll genChainTxn
     Gen.assertValid txn m
+
+txnIndex :: Property
+txnIndex = property $ do
+    (m, txn) <- forAll genChainTxn
+    let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
+    Hedgehog.assert (Index.initialise (emChain st) == emIndex st)
+
+txnIndexValid :: Property
+txnIndexValid = property $ do
+    (m, txn) <- forAll genChainTxn
+    let (result, st) = Gen.runTrace m blockchainActions
+        idx = emIndex st
+    Hedgehog.assert (Right True == Index.runLookup (Index.validTxIndexed unitValidationData txn) idx)
 
 -- | Submit a transaction to the blockchain and assert that it has been
 --   validated
@@ -62,16 +80,14 @@ simpleTrace txn = do
 
 validTrace :: Property
 validTrace = property $ do
-    m <- forAll Gen.genMockchain
-    txn <- forAll $ Gen.genValidTransaction m
+    (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == emTxPool st)
 
 invalidTrace :: Property
 invalidTrace = property $ do
-    m <- forAll Gen.genMockchain
-    txn <- forAll $ Gen.genValidTransaction m
+    (m, txn) <- forAll genChainTxn
     let invalidTxn = txn { txFee = 0 }
         (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
@@ -93,3 +109,10 @@ notifyWallet = property $ do
         $ blockchainActions >>= walletNotifyBlock w
     let ttl = Map.lookup w st
     Hedgehog.assert $ (getSum . foldMap Sum . view ownAddresses <$> ttl) == Just 100000
+
+genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
+genChainTxn = do
+    m <- Gen.genMockchain
+    txn <- Gen.genValidTransaction m
+    pure (m, txn)
+

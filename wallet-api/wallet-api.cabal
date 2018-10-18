@@ -47,6 +47,8 @@ library
         Wallet.Emulator.Types
         Wallet.Generators
         Wallet.UTXO
+        Wallet.UTXO.Types
+        Wallet.UTXO.Index
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables

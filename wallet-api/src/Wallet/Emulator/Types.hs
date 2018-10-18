@@ -44,6 +44,7 @@ module Wallet.Emulator.Types(
     txPool,
     walletStates,
     validationData,
+    index,
     MonadEmulator,
     validateEm,
     liftEmulatedWallet,
@@ -73,7 +74,8 @@ import           Wallet.API                (KeyPair (..), WalletAPI (..), Wallet
                                             signature)
 import           Wallet.UTXO               (Block, Blockchain, Height, Tx (..), TxIn (..), TxOut (..), TxOutRef (..),
                                             TxOutRef', ValidationData, Value, hashTx, pubKeyTxIn, pubKeyTxOut,
-                                            txOutPubKey, unitValidationData, validTx)
+                                            txOutPubKey, unitValidationData)
+import qualified Wallet.UTXO.Index         as Index
 
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }
@@ -193,7 +195,8 @@ data EmulatorState = EmulatorState {
     emChain          :: Blockchain,
     emTxPool         :: TxPool,
     emWalletState    :: Map Wallet WalletState,
-    emValidationData :: ValidationData -- ^ Value that will be used to validate transactions with scripts. Since we cannot generate this data at runtime, we need to set it manually here.
+    emValidationData :: ValidationData, -- ^ Value that will be used to validate transactions with scripts. Since we cannot generate this data at runtime, we need to set it manually here.
+    emIndex          :: Index.UtxoIndex
     } deriving (Show)
 
 chain :: Lens' EmulatorState Blockchain
@@ -216,17 +219,23 @@ validationData = lens g s where
     g = emValidationData
     s es vd = es { emValidationData = vd }
 
+index :: Lens' EmulatorState Index.UtxoIndex
+index = lens g s where
+    g = emIndex
+    s es i = es { emIndex = i }
+
 emptyEmulatorState :: EmulatorState
 emptyEmulatorState = EmulatorState {
     emChain = [],
     emTxPool = [],
     emWalletState = Map.empty,
-    emValidationData = unitValidationData
+    emValidationData = unitValidationData,
+    emIndex = Index.empty
     }
 
 -- | Initialise the emulator state with a blockchain
 emulatorState :: Blockchain -> EmulatorState
-emulatorState bc = emptyEmulatorState { emChain = bc }
+emulatorState bc = emptyEmulatorState { emChain = bc, emIndex = Index.initialise bc }
 
 -- | Initialise the emulator state with a pool of pending transactions
 emulatorState' :: TxPool -> EmulatorState
@@ -236,10 +245,9 @@ type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
 -- | Validate a transaction in the current emulator state
 validateEm :: EmulatorState -> Tx -> Maybe Tx
-validateEm EmulatorState{emChain=bc, emValidationData = vd} txn =
-  if validTx vd txn bc
-    then Just txn
-    else Nothing
+validateEm EmulatorState{emIndex=idx, emValidationData = vd} txn =
+    let result = Index.runLookup (Index.validTxIndexed vd txn) idx in
+    either (const Nothing) (\r -> if r then Just txn else Nothing) result
 
 liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
@@ -263,7 +271,8 @@ eval = \case
             block = validated
         put emState {
             emChain = block : emChain emState,
-            emTxPool = []
+            emTxPool = [],
+            emIndex = Index.insertBlock block (emIndex emState)
             }
         pure block
     Assertion a -> do
