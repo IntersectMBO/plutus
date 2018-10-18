@@ -11,7 +11,8 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     VestingData(..),
     vestFunds,
     retrieveFunds,
-    validatorScript
+    validatorScript,
+    totalAmount
     ) where
 
 import           Control.Monad.Error.Class            (MonadError (..))
@@ -19,9 +20,11 @@ import qualified Data.Set                             as Set
 import qualified Language.Plutus.CoreToPLC.Primitives as Prim
 import           Language.Plutus.Runtime              (Hash, Height, PendingTx (..), PendingTxIn (..),
                                                        PendingTxOut (..), PendingTxOutType (..), PubKey (..), Value)
+import qualified Language.Plutus.Runtime.TH           as TH
 import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
-import           Wallet.API                           (WalletAPI (..), WalletAPIError, otherError)
-import           Wallet.UTXO                          (DataScript (..), Tx (..), TxOutRef', Validator (..), scriptTxIn,
+import           Prelude                              hiding ((&&))
+import           Wallet.API                           (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
+import           Wallet.UTXO                          (DataScript (..), TxOutRef', Validator (..), scriptTxIn,
                                                        scriptTxOut)
 import qualified Wallet.UTXO                          as UTXO
 
@@ -70,12 +73,7 @@ vestFunds c vst value = do
         d = DataScript $(plutus [|
             let hashedVs = 1123 -- TODO: Should be `hash vs` (see [CGP-228])
             in VestingData hashedVs 0 |])
-    submitTxn Tx
-        { txInputs = payment
-        , txOutputs = [o, change]
-        , txForge = 0
-        , txFee = 0
-        }
+    signAndSubmit payment [o, change]
     pure $ VestingData 1123 0
 
 -- | Retrieve some of the vested funds.
@@ -97,12 +95,7 @@ retrieveFunds vs vsPLC vd vdPLC r vnow = do
         remaining = (fromIntegral $ totalAmount vs) - vnow
         vd' = vd {vestingDataPaidOut = fromIntegral vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val UTXO.unitRedeemer
-    submitTxn Tx
-        { txInputs = Set.singleton inp
-        , txOutputs = [oo, o]
-        , txForge = 0
-        , txFee = 0
-        }
+    signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScript :: VestingPLC -> Validator
@@ -112,13 +105,13 @@ validatorScript (VestingPLC v) = Validator val where
         let
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk (PubKey l) (PubKey r) = l == r
+            eqPk = $(TH.eqPubKey)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) l r = if l then r else False
+            (&&) = $( TH.and )
 
-            PendingTx _ (_::[(PendingTxIn (), Value)]) os _ _ h = p
+            PendingTx _ (_::[(PendingTxIn (), Value)]) os _ _ h _ = p
             VestingTranche d1 a1 = vestingTranche1
             VestingTranche d2 a2 = vestingTranche2
 
@@ -126,8 +119,8 @@ validatorScript (VestingPLC v) = Validator val where
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
             amountSpent :: Value
             amountSpent = case os of
-                ((PendingTxOut v _ (PubKeyTxOut pk))::PendingTxOut VestingData):(_::[PendingTxOut VestingData])
-                    | pk `eqPk` vestingOwner -> v
+                ((PendingTxOut v' _ (PubKeyTxOut pk))::PendingTxOut VestingData):(_::[PendingTxOut VestingData])
+                    | pk `eqPk` vestingOwner -> v'
                 (_::[PendingTxOut VestingData]) -> Prim.error ()
 
             -- Value that has been released so far under the scheme
@@ -152,11 +145,11 @@ validatorScript (VestingPLC v) = Validator val where
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
-                (_::PendingTxOut VestingData):(PendingTxOut v (Just d') DataTxOut::PendingTxOut VestingData):(_::[PendingTxOut VestingData]) -> case d' of
+                (_::PendingTxOut VestingData):(PendingTxOut v' (Just d') DataTxOut::PendingTxOut VestingData):(_::[PendingTxOut VestingData]) -> case d' of
                     VestingData h' po ->
                         h' == vestingDataHash
                         && po == newAmount
-                        && v == remainingAmount
+                        && v' == remainingAmount
                 (_::[PendingTxOut VestingData]) -> Prim.error ()
 
             isValid = amountsValid && txnOutputsValid

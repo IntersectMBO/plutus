@@ -22,3 +22,7 @@ TAGS
 .uuid
 
 result*
+*.aux
+*.log
+*.pdf
+*.gz

@@ -43,6 +43,8 @@ library
     Language.Plutus.Coordination.Contracts.Vesting
     Language.Plutus.Coordination.Contracts.Swap
     Language.Plutus.Runtime
+    Language.Plutus.Runtime.Types
+    Language.Plutus.Runtime.TH
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -56,6 +58,7 @@ test-suite plutus-use-cases-test
     other-modules:
       Spec.Crowdfunding
       Spec.Vesting
+      Spec.TH
     build-depends:
         base >=4.9 && <5,
         containers -any,
@@ -67,4 +70,5 @@ test-suite plutus-use-cases-test
         plutus-use-cases,
         plutus-th -any,
         microlens -any,
-        core-to-plc -any
+        core-to-plc -any,
+        template-haskell -any

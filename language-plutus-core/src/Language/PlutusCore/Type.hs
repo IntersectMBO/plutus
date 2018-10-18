@@ -38,15 +38,15 @@ module Language.PlutusCore.Type ( Term (..)
                                 , getNormalizedType
                                 ) where
 
+import qualified Data.ByteString.Lazy               as BSL
+import           Data.Functor.Foldable
+import qualified Data.Map                           as M
+import           Data.Text.Prettyprint.Doc.Internal (enclose)
+import           Instances.TH.Lift                  ()
 import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           PlutusPrelude
-
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.Functor.Foldable
-import           Data.Text.Prettyprint.Doc.Internal (enclose)
-import           Instances.TH.Lift                  ()
 
 type Size = Natural
 
@@ -93,29 +93,52 @@ instance Corecursive (Type tyname a) where
     embed (TyLamF l tn k ty)    = TyLam l tn k ty
     embed (TyAppF l ty ty')     = TyApp l ty ty'
 
--- | Substitute @a@ for @b@ in @c@.
-tyNameSubstitute :: Eq (tyname a)
-                 => tyname a -- ^ @a@
-                 -> tyname a -- ^ @b@
-                 -> Type tyname a -- ^ @c@
-                 -> Type tyname a
-tyNameSubstitute tn tn' = cata a where
-    a (TyVarF x tn'') | tn == tn'' = TyVar x tn'
-    a x               = embed x
+-- this type is used for replacing type names in
+-- the Eq instance
+type EqState tyname a = M.Map (tyname a) (tyname a)
 
-instance (Eq (tyname a), Eq a) => Eq (Type tyname a) where
-    (==) (TyVar a1 tn) (TyVar a2 tn')                   = a1 == a2 && tn == tn'
-    (==) (TyFun a1 ty ty') (TyFun a2 ty'' ty''')        = a1 == a2 && ty == ty'' && ty' == ty'''
-    (==) (TyFix a1 tn ty) (TyFix a2 tn' ty')            =
-        a1 == a2 && tyNameSubstitute tn' tn ty' == ty
-    (==) (TyForall a1 tn k ty) (TyForall a2 tn' k' ty') =
-        a1 == a2 && tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyBuiltin a1 b) (TyBuiltin a2 b')             = a1 == a2 && b == b'
-    (==) (TyInt a1 n) (TyInt a2 n')                     = a1 == a2 && n == n'
-    (==) (TyLam a1 tn k ty) (TyLam a2 tn' k' ty')       =
-        a1 == a2 && tyNameSubstitute tn' tn ty' == ty && k == k'
-    (==) (TyApp a1 ty ty') (TyApp a2 ty'' ty''')        = a1 == a2 && ty == ty'' && ty' == ty'''
-    (==) _ _                                            = False
+rebindAndEq :: (Eq a, Ord (tyname a))
+            => EqState tyname a
+            -> Type tyname a
+            -> Type tyname a
+            -> tyname a
+            -> tyname a
+            -> Bool
+rebindAndEq eqSt tyLeft tyRight tnLeft tnRight =
+    let intermediateSt = M.insert tnRight tnLeft eqSt
+        in eqTypeSt intermediateSt tyLeft tyRight
+
+-- This tests for equality of names inside a monad that allows substitution.
+eqTypeSt :: (Ord (tyname a), Eq a)
+        => EqState tyname a
+        -> Type tyname a
+        -> Type tyname a
+        -> Bool
+
+eqTypeSt eqSt (TyFun _ domLeft codLeft) (TyFun _ domRight codRight) = eqTypeSt eqSt domLeft domRight && eqTypeSt eqSt codLeft codRight
+eqTypeSt eqSt (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeSt eqSt fLeft fRight && eqTypeSt eqSt aLeft aRight
+
+eqTypeSt _ (TyInt _ nLeft) (TyInt _ nRight)              = nLeft == nRight
+eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
+
+eqTypeSt eqSt (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
+    rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+eqTypeSt eqSt (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) =
+    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+        in (kLeft == kRight && tyEq)
+eqTypeSt eqSt (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) =
+    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+        in (kLeft == kRight && tyEq)
+
+eqTypeSt eqSt (TyVar _ tnRight) (TyVar _ tnLeft) =
+    case M.lookup tnLeft eqSt of
+        Just tn -> tnRight == tn
+        Nothing -> tnRight == tnLeft
+
+eqTypeSt _ _ _ = False
+
+instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
+    (==) = eqTypeSt mempty
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
@@ -226,7 +249,7 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
 
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Show, Eq, Functor, Generic)
+    deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
 
 newtype Normalized a = Normalized { getNormalized :: a }

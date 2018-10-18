@@ -1,0 +1,16 @@
+(program 1.0.0
+  (abs
+    r_0
+    (type)
+    (lam
+      Mono1_1
+      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] r_0))
+      (lam
+        Mono2_2
+        (fun [(con integer) (con 64)] r_0)
+        (lam Mono3_3 (fun [(con integer) (con 64)] r_0) [ Mono2_2 (con 64 ! 2) ]
+        )
+      )
+    )
+  )
+)

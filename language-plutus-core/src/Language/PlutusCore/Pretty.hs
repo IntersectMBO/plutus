@@ -16,7 +16,6 @@ module Language.PlutusCore.Pretty
     , prettyPlcDef
     , prettyPlcDefString
     , prettyPlcDefText
-    , prettyPlcCondensedErrorClassicString
     -- * Global configuration
     , PrettyConfigPlcOptions (..)
     , PrettyConfigPlcStrategy (..)
@@ -32,6 +31,8 @@ module Language.PlutusCore.Pretty
     , prettyPlcClassicDebug
     , prettyPlcReadableDef
     , prettyPlcReadableDebug
+    , prettyPlcCondensedErrorBy
+    , prettyPlcCondensedErrorClassicString
     -- * Names
     , PrettyConfigName (..)
     , HasPrettyConfigName (..)
@@ -70,4 +71,5 @@ prettyPlcDefText = docText . prettyPlcClassicDef
 
 -- | Render an error to 'String' in the condensed manner using the classic view.
 prettyPlcCondensedErrorClassicString :: PrettyPlc a => a -> String
-prettyPlcCondensedErrorClassicString = docString . prettyPlcCondensedErrorClassic
+prettyPlcCondensedErrorClassicString =
+    docString . prettyPlcCondensedErrorBy defPrettyConfigPlcClassic

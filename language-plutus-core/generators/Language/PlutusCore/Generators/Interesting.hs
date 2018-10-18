@@ -27,12 +27,15 @@ import qualified Hedgehog.Range                           as Range
 -- along with the original 'Integer'
 genNatRoundtrip :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
 genNatRoundtrip = do
-    let size = 1
-        typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
+    let sizev = 1
+        typedIntSized = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     TermOf _ nv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntSized
     term <- lift $ do
-        t <- getBuiltinIntegerToNat nv
-        Apply () <$> getBuiltinNatToInteger size <*> pure t
+        n <- getBuiltinIntegerToNat nv
+        natToInteger <- getBuiltinNatToInteger
+        let size  = TyInt () sizev
+            ssize = Constant () $ BuiltinSize () sizev
+        return $ mkIterApp (TyInst () natToInteger size) [ssize, n]
     return . TermOf term $ TypedBuiltinValue typedIntSized nv
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
@@ -44,9 +47,13 @@ genListSum = do
     intSized <- lift $ typedBuiltinToType typedIntSized
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
     term <- lift $ do
-        builtinSum <- getBuiltinSum size
+        builtinSum <- getBuiltinSum
         list <- getListToBuiltinList intSized $ map _termOfTerm ps
-        return $ Apply () builtinSum list
+        return
+            $ mkIterApp (TyInst () builtinSum $ TyInt () size)
+            [ Constant () $ BuiltinSize () size
+            , list
+            ]
     let haskSum = sum $ map _termOfValue ps
     return . TermOf term $ TypedBuiltinValue typedIntSized haskSum
 

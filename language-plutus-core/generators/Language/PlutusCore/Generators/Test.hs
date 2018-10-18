@@ -26,7 +26,7 @@ propEvaluate eval genTermOfTbv = property . hoist (return . runQuote) $ do
         forAllPrettyPlcT $ fmap PrettyConfigIgnore <$> genTermOfTbv
     -- TODO: return type checking.
     -- case runExcept . runQuoteT $ annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 True) of
-    --     Left err -> fail $ prettyPlcCondensedErrorClassicString err
+    --     Left err -> fail . docString $ prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic err
     --     Right _  -> return ()
     resExpected <- lift $ unsafeMakeBuiltin tbv
     for_ (evaluationResultToMaybe $ eval term) $ \resActual ->

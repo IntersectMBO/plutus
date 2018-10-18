@@ -22,8 +22,6 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     , genTypedBuiltinLoose
     , genTypedBuiltinSum
     , genTypedBuiltinDiv
-    , isqrt
-    , iasqrt
     ) where
 
 import           Language.PlutusCore
@@ -159,25 +157,3 @@ genTypedBuiltinDiv
     = updateTypedBuiltinGenInt
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
     $ genTypedBuiltinDef
-
--- | The integer square root.
--- Throws an 'error' on negative input.
-isqrt :: Integer -> Integer
-isqrt n
-    | n < 0     = error "isqrt: negative number"
-    | n <= 1    = n
-    | otherwise = head $ dropWhile (not . isRoot) iters
-    where
-        sqr = (^ (2 :: Int))
-        twopows = iterate sqr 2
-        (lowerRoot, lowerN) = last . takeWhile ((n >=) . snd) $ zip (1 : twopows) twopows
-        newtonStep x = (x + n `div` x) `div` 2
-        iters = iterate newtonStep $ isqrt (n `div` lowerN) * lowerRoot
-        isRoot r = sqr r <= n && n < sqr (r + 1)
-
--- | The integer square root that acts on negative numbers like this:
---
--- >>> iasqrt (-4)
--- -2
-iasqrt :: Integer -> Integer
-iasqrt n = signum n * isqrt (abs n)

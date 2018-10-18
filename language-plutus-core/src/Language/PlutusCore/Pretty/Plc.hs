@@ -24,7 +24,7 @@ module Language.PlutusCore.Pretty.Plc
     , prettyPlcClassicDebug
     , prettyPlcReadableDef
     , prettyPlcReadableDebug
-    , prettyPlcCondensedErrorClassic
+    , prettyPlcCondensedErrorBy
     ) where
 
 import           Language.PlutusCore.Name
@@ -129,7 +129,6 @@ prettyPlcReadableDef = prettyBy $ defPrettyConfigPlcReadable defPrettyConfigPlcO
 prettyPlcReadableDebug :: PrettyPlc a => a -> Doc ann
 prettyPlcReadableDebug = prettyBy $ debugPrettyConfigPlcReadable defPrettyConfigPlcOptions
 
--- | Pretty-print an error in the condensed manner using the classic view.
-prettyPlcCondensedErrorClassic :: PrettyPlc a => a -> Doc ann
-prettyPlcCondensedErrorClassic =
-    prettyBy . defPrettyConfigPlcClassic $ PrettyConfigPlcOptions True
+prettyPlcCondensedErrorBy
+    :: PrettyPlc a => (PrettyConfigPlcOptions -> PrettyConfigPlc) -> a -> Doc ann
+prettyPlcCondensedErrorBy toConfig = prettyBy (toConfig $ PrettyConfigPlcOptions True)

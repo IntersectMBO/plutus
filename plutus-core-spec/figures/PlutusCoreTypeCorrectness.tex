@@ -6,68 +6,68 @@
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
                      &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
-                     &         &     & \Gamma, \termJ{x}{A}        & \textrm{term variable} \\
+                     &         &     & \Gamma, \termJ{x}{S}        & \textrm{term variable} \\
     \end{array}\]
-    
-    
-    
+
+
+
     \judgmentdef{\(\ctxni{\Gamma}{J}\)}{Context $\Gamma$ contains judgment $J$}
-    
+
     \begin{prooftree}
         \AxiomC{}
         \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\alpha}{K}}{\typeJ{\alpha}{K}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{A}}{\termJ{x}{A}}\)}
+        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{S}}{\termJ{x}{S}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
         \AxiomC{\(\alpha \not= \beta\)}
         \BinaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\typeJ{\alpha}{K}}\)}
     \end{prooftree}
-    
+
      \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
-        \UnaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\typeJ{\alpha}{K}}\)}
+        \UnaryInfC{\(\ctxni{\Gamma, \termJ{y}{T}}{\typeJ{\alpha}{K}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{A}}\)}
+        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{S}}\)}
+        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{S}}\)}
     \end{prooftree}
-    
+
      \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{S}}\)}
         \AxiomC{\(x \not= y\)}
-        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
+        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{T}}{\termJ{x}{S}}\)}
     \end{prooftree}
-    
-    
-    
+
+
+
     \judgmentdef{\(\validJ{\Gamma}\)}{Context $\Gamma$ is valid}
-    
+
     \begin{prooftree}
         \AxiomC{}
         \UnaryInfC{\(\validJ{\epsilon}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\validJ{\Gamma}\)}
         \AxiomC{$\alpha$ is free in $\Gamma$}
         \BinaryInfC{\(\Gamma, \typeJ{\alpha}{K}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\validJ{\Gamma}\)}
         \AxiomC{$x$ is free in $\Gamma$}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-        \TrinaryInfC{\(\Gamma, \termJ{x}{A}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{S}{\typeK{}}}\)}
+        \TrinaryInfC{\(\Gamma, \termJ{x}{S}\)}
     \end{prooftree}
-    
-    
+
+
     \caption{Contexts}
     \label{fig:Plutus_core_contexts}
 \end{figure*}
@@ -78,51 +78,53 @@
 
 \begin{figure*}[t]
     \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In context $\Gamma$, type $A$ has kind $K$}
-    
+
     \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\typeJ{\alpha}{K}}\)}
         \RightLabel{tyvar}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\alpha}{K}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{tyall}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma, \istypeJ{\alpha}{K}}{\istypeJ{A}{K}}\)}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{K}}\)}
+        \AxiomC{\(K = \typeK{}\)}
         \RightLabel{tyfix}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{K}}\)}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
         \RightLabel{tyfun}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\funT{B}{A}}{\typeK{}}}\)}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\funT{A}{B }}{\typeK{}}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{J}}{\istypeJ{A}{K}}\)}
         \RightLabel{tylam}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\lamT{\alpha}{J}{A}}{\funK{J}{K}}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{J}{K}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{J}}\)}
         \RightLabel{tyapp}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\appT{A}{B}}{K}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
-        \AxiomC{$bt$ has kind $K$ in Fig. \ref{fig:Plutus_core_builtins}}
-        \RightLabel{tybuiltin}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{K}}\)}
+        \AxiomC{$tcn$ is a type constant in in Fig. \ref{fig:Plutus_core_type_constants}}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\sizeK{}}}\)}
+        \RightLabel{tycon}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}{A}}{\typeK{}}}\)}
     \end{prooftree}
-    
+
     \caption{Kind Synthesis}
     \label{fig:Plutus_core_kind_synthesis}
 \end{figure*}
@@ -133,71 +135,77 @@
 
 \begin{figure*}[t]
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
-    
+
     \begin{prooftree}
         \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{S}}\)}
         \RightLabel{var}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{S}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{S}}\)}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:Plutus_core_constants}}
+        \RightLabel{con}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{T}}\)}
         \RightLabel{abs}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{S}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{T}}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\allT{\alpha}{K}{S}}}\)}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{T}{K}}\)}
-        \AxiomC{\(\typeMultistep{\subst{T}{\alpha}{S}}{R}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\allT{\alpha}{K}{T}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
         \RightLabel{inst}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{T}}{R}}\)}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\normalform{\subst{S}{\alpha}{T}}}}\)}
     \end{prooftree}
-    
-    
+
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{T}}{\istermJ{M}{S}}\)}
-        \RightLabel{lam}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{T}{M}}{\funT{T}{S}}}\)}
+        \AxiomC{\(\Gamma \vdash Q :: \typeK{}\)}
+        \AxiomC{\(Q = \mathcal{E}\{\fixT{\alpha}{S}\}\)}
+		\AxiomC{\(\Gamma \vdash M : \mathcal{E}\{[\fixT{\alpha}{S}/\alpha]S\}\)}
+		\RightLabel{wrap}
+		\TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{S}{M}}{Q}}\)}
     \end{prooftree}
     
+    Where $\mathcal{E}$ is an elimination context $\mathcal{E} ::= \bullet \mid [\mathcal{E} \,\, A]$, $A$ a type, such that $\mathcal{E}\{Q\}$ denotes the type expression obtained by replacing the $\bullet$ in $\mathcal{E}$ with $Q$. That is, $[\bullet\,\, A]\{B\} = [B\,\,A]$, and so on. 
+
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\funT{T}{S}}}\)}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{T}}\)}
-        \RightLabel{app}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{S}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\fixT{\alpha}{T}}}\)}
+        \RightLabel{unwrap}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\normalform{\subst{\fixT{\alpha}{T}}{\alpha}{T}}}}\)}
     \end{prooftree}
-    
-    \begin{prooftree}
-        \AxiomC{$bi$ has type $S$ in Fig. \ref{fig:Plutus_core_builtins}}
-        \RightLabel{builtin}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\con{cn}}{S}}\)}
-    \end{prooftree}
-    
+
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-        \AxiomC{\(\typeMultistep{A}{S}\)}
+        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{\normalform{A}}}{\istermJ{M}{T}}\)}
+        \RightLabel{lam}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\normalform{A}}{T}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\funT{S}{T}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}
+        \RightLabel{app}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{\normalform{\subst{A_0, ..., A_n}{\alpha_0, ..., \alpha_m}{B_i}}}}\)}
+        \alwaysSingleLine
+        \RightLabel{builtin}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0, ..., A_m}{M_0, ..., M_n}}{\normalform{\subst{A_0, ..., A_n}{\alpha_0, ..., \alpha_m}{C}}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{error}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{S}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{\normalform{A}}}\)}
     \end{prooftree}
 
-    \begin{prooftree}
-        \AxiomC{$\Gamma \vdash Q :: \typeK$}
-        \AxiomC{$Q = \mathcal{E}\{\fixT{\alpha}{S}\}$}
-        \AxiomC{$\Gamma \vdash M : Q$}
-        \RightLabel{unwrap}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{[\fixT{\alpha}{S}}/\alpha]S}\)}
-    \end{prooftree}
-    
-    \begin{prooftree}
-        \AxiomC{$\Gamma \vdash Q :: \typeK$}
-        \AxiomC{$Q = \mathcal{E}\{\fixT{\alpha}{S}\}$}
-        \AxiomC{$\Gamma \vdash M : \mathcal{E}\{[\fixT{\alpha}{S}/\alpha]S\}$}
-        \RightLabel{wrap}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{S}{M}}{Q}}\)}
-    \end{prooftree}
-
-Where $\mathcal{E}$ is an elimination context $\mathcal{E} ::= \bullet \mid [\mathcal{E} \,\, A]$, $A$ a type, such that $\mathcal{E}\{Q\}$ denotes the type expression obtained by replacing the $\bullet$ in $\mathcal{E}$ with $Q$. That is, $[\bullet\,\, A]\{B\} = [B\,\,A]$, and so on. 
     \caption{Type Synthesis}
     \label{fig:Plutus_core_type_synthesis}
 \end{figure*}

@@ -45,6 +45,7 @@ library
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
+        Language.PlutusCore.StdLib.Data.Integer
         Language.PlutusCore.StdLib.Data.List
         Language.PlutusCore.StdLib.Data.Nat
         Language.PlutusCore.StdLib.Data.Unit
@@ -55,8 +56,9 @@ library
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         PlutusPrelude
+        Common
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude stdlib generators
+    hs-source-dirs: src prelude stdlib generators common
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Clone
@@ -83,7 +85,7 @@ library
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
     default-language: Haskell2010
-    default-extensions: ExplicitForAll ScopedTypeVariables
+    default-extensions: ScopedTypeVariables
                         FlexibleContexts DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
@@ -115,7 +117,10 @@ library
         safe-exceptions -any,
         dependent-sum -any,
         dependent-map -any,
-        hedgehog -any
+        hedgehog -any,
+        filepath -any,
+        tasty -any,
+        tasty-golden -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -150,7 +155,6 @@ test-suite language-plutus-core-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Common
         Evaluation.CkMachine
         Evaluation.Constant.All
         Evaluation.Constant.Apply

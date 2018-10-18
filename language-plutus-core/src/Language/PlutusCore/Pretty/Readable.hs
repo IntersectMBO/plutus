@@ -254,13 +254,13 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
         Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
         -- Annoyingly, @TypeFamilies@ break type inference.
-        prettyName :: forall n ann. PrettyReadableBy configName n => n -> Doc ann
-        prettyName n = prettyBy config n
+        prettyName :: PrettyReadableBy configName n => n -> Doc ann
+        prettyName = prettyBy config
         unit = unitaryDoc  config
         bind = binderDoc   config
         comp = compoundDoc config
-        inBot :: forall b ann. PrettyReadableBy configName b => b -> Doc ann
-        inBot x = prettyInBotBy config x
+        inBot :: PrettyReadableBy configName b => b -> Doc ann
+        inBot = prettyInBotBy config
         inMiddle = prettyInMiddleBy config
         inBraces = enclose "{" "}" . inBot
 

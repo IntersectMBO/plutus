@@ -41,7 +41,7 @@ import qualified Data.Map                                 as Map
 import qualified Data.Text                                as T
 import qualified Data.Text.Encoding                       as TE
 
-import           Data.List                                (elemIndex)
+import           Data.List                                (elemIndex, sortBy)
 
 import           Debug.Trace
 
@@ -193,7 +193,6 @@ convTyCon tc = handleMaybeRecType (GHC.getName tc) $ do
     case Map.lookup (GHC.getName tc) prims of
         Just ty -> liftQuote ty
         Nothing -> do
-            -- See note [Spec booleans and Haskell booleans]
             -- we don't have to do anything here because it's symmetrical, but morally we should
             dcs <- getDataCons tc
             convDataCons tc dcs
@@ -339,15 +338,54 @@ This is somewhat wasteful, since we may convert the expression twice, but it's d
 it's hard to tell if a GHC core expression will be a PLC value or not. Easiest to just try it.
 -}
 
+{- Note [Ordering of constructors]
+It is very important that we convert types and constructors consistently, especially between
+lifting at runtime and compilation via the plugin. The main place we can get bitten is ordering.
+
+GHC is under no obligation to give us any particular ordering of constructors, so we impose
+an alphabetical one (with a few exceptions, see [Ensuring compatibility with spec and stdlib types]).
+
+The other place where ordering matters is arguments to constructors, but here there is a
+clear natural ordering which we will assume GHC respects.
+-}
+
+{- Note [Ensuring compatibility with spec and stdlib types]
+Haskell's Bool has its constructors ordered with False before True, which results in the
+normal case expression having the oppposite sense to the one in the spec, where
+the true branch comes first (which is more logical).
+
+Our options are:
+- Reverse the branches in the spec.
+    - This is ugly, the plugin details shouldn't influence the spec.
+- Rewrite the primitive functions that produce booleans to produce spec booleans.
+    - This is pretty bad codegen.
+- Special case Bool to swap the order of the cases.
+
+We take the least bad option, option 3.
+
+The same problem arises for List. It's not in the spec, but the stdlib order (and the natural one)
+is nil first and then cons, but ":" is less than "[]", so we end up with the wrong order. Again,
+we just special case this.
+-}
+
+-- See Note [Ordering of constructors]
+sortConstructors :: GHC.TyCon -> [GHC.DataCon] -> [GHC.DataCon]
+sortConstructors tc cs =
+    -- note we compare on the OccName *not* the Name, as the latter compares on uniques, not the string name
+    let sorted = sortBy (\dc1 dc2 -> compare (GHC.getOccName dc1) (GHC.getOccName dc2)) cs
+    in if tc == GHC.boolTyCon || tc == GHC.listTyCon then reverse sorted else sorted
+
 getDataCons :: (Converting m) =>  GHC.TyCon -> m [GHC.DataCon]
-getDataCons tc
-    | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
-        GHC.AbstractTyCon                -> throwSd UnsupportedError $ "Abstract type:" GHC.<+> GHC.ppr tc
-        GHC.DataTyCon{GHC.data_cons=dcs} -> pure dcs
-        GHC.TupleTyCon{GHC.data_con=dc}  -> pure [dc]
-        GHC.SumTyCon{GHC.data_cons=dcs}  -> pure dcs
-        GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
-    | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
+getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
+    where
+        extractDcs tc
+          | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
+              GHC.AbstractTyCon                -> throwSd UnsupportedError $ "Abstract type:" GHC.<+> GHC.ppr tc
+              GHC.DataTyCon{GHC.data_cons=dcs} -> pure dcs
+              GHC.TupleTyCon{GHC.data_con=dc}  -> pure [dc]
+              GHC.SumTyCon{GHC.data_cons=dcs}  -> pure dcs
+              GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
+          | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 -- This is the creation of the Scott-encoded datatype type.
 -- See Note [Scott encoding of datatypes]
@@ -401,13 +439,11 @@ convConstructor dc =
             -- See Note [Scott encoding of datatypes]
             resultType <- safeFreshTyName $ tcName ++ "_matchOut"
             dcs <- getDataCons tc
-            -- See Note [Spec booleans and Haskell booleans]
-            let maybeSwapped = if tc == GHC.boolTyCon then reverse dcs else dcs
-            index <- case elemIndex dc maybeSwapped of
+            index <- case elemIndex dc dcs of
                 Just i  -> pure i
                 Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
-            caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) maybeSwapped
-            caseArgNames <- mapM (convNameFresh . GHC.getName) maybeSwapped
+            caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
+            caseArgNames <- mapM (convNameFresh . GHC.getName) dcs
             argTypes <- mapM convType $ GHC.dataConRepArgTys dc
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ dcName ++ "_arg" ++ show i)
 
@@ -746,22 +782,6 @@ into this:
 (\f1 ... fi . result)
 -}
 
-{- Note [Spec booleans and Haskell booleans]
-Haskell's Bool has its constructors ordered with False before True, which results in the
-normal case expression having the oppposite sense to the one in the spec, where
-the true branch comes first (which is more logical).
-
-Our options are:
-- Reverse the branches in the spec.
-    - This is ugly, the plugin details shouldn't influence the spec.
-- Rewrite the primitive functions that produce booleans to produce spec booleans.
-    - This is pretty bad codegen.
-- Special case Bool to swap the order of the cases.
-
-We take the least bad option, option 3.
--}
-
-
 -- The main function
 
 convExpr :: Converting m => GHC.CoreExpr -> m PLCExpr
@@ -875,10 +895,8 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             instantiated <- PLC.TyInst () unwrapped <$> (convType t >>= maybeDelayType lazyCase)
 
             dcs <- getDataCons tc
-            -- See Note [Spec booleans and Haskell booleans]
-            let maybeSwapped = if tc == GHC.boolTyCon then reverse dcs else dcs
 
-            branches <- forM maybeSwapped $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
+            branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
                 Just alt -> convAlt lazyCase dc alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
 

@@ -10,6 +10,7 @@ module Wallet.API(
     keyPair,
     signature,
     createPayment,
+    signAndSubmit,
     -- * Error handling
     WalletAPIError(..),
     insufficientFundsError,
@@ -60,6 +61,7 @@ data EventTrigger =
 data WalletAPIError =
     InsufficientFunds Text
     | OtherError Text
+    deriving (Show)
 
 -- | Used by Plutus client to interact with wallet
 class WalletAPI m where
@@ -79,3 +81,17 @@ otherError = throwError . OtherError
 
 createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
+
+-- | Create a transaction, sign it and submit it
+--   TODO: Also compute the fee
+signAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m ()
+signAndSubmit ins outs = do
+    sig <- signature <$> myKeyPair
+    submitTxn Tx
+        { txInputs = ins
+        , txOutputs = outs
+        , txForge = 0
+        , txFee = 0
+        , txSignatures = [sig]
+        }
+
