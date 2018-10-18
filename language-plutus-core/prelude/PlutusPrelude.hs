@@ -67,6 +67,11 @@ module PlutusPrelude ( -- * Reëxports from base
                      , prettyTextBy
                      -- * Custom pretty-printing functions
                      , module X
+                     -- * Integer arithmetic
+                     , isqrt
+                     , iasqrt
+                     , ilogFloor
+                     , ilogRound
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -212,3 +217,42 @@ strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
 
 bsToStr :: BSL.ByteString -> String
 bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
+
+-- | The integer square root.
+-- Throws an 'error' on negative input.
+isqrt :: Integer -> Integer
+isqrt n
+    | n < 0     = error "isqrt: negative number"
+    | n <= 1    = n
+    | otherwise = head $ dropWhile (not . isRoot) iters
+    where
+        sqr = (^ (2 :: Int))
+        twopows = iterate sqr 2
+        (lowerRoot, lowerN) = last . takeWhile ((n >=) . snd) $ zip (1 : twopows) twopows
+        newtonStep x = (x + n `div` x) `div` 2
+        iters = iterate newtonStep $ isqrt (n `div` lowerN) * lowerRoot
+        isRoot r = sqr r <= n && n < sqr (r + 1)
+
+-- | The integer square root that acts on negative numbers like this:
+--
+-- >>> iasqrt (-4)
+-- -2
+iasqrt :: Integer -> Integer
+iasqrt n = signum n * isqrt (abs n)
+
+-- | Compute the maximal @p@ such that @b ^ p <= x@.
+ilogFloor :: Integer -> Integer -> Integer
+ilogFloor b x
+    | x < b     = 0
+    | otherwise = go (x `div` (b ^ l)) l
+    where
+        l = 2 * ilogFloor (b * b) x
+        go x' l' = if x' < b then l' else go (x' `div` b) (l' + 1)
+
+-- | Compute the minimal @p@ such that @x <= b ^ p@.
+ilogRound :: Integer -> Integer -> Integer
+-- That's a really stupid implementation.
+ilogRound b x
+    | b ^ p == x = p
+    | otherwise  = p + 1
+    where p = ilogFloor b x

@@ -45,6 +45,7 @@ library
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
+        Language.PlutusCore.StdLib.Data.Integer
         Language.PlutusCore.StdLib.Data.List
         Language.PlutusCore.StdLib.Data.Nat
         Language.PlutusCore.StdLib.Data.Unit

@@ -4,24 +4,27 @@ module Main ( main
             ) where
 
 import           Control.Monad
-import           Control.Monad.Trans.Except (runExceptT)
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.Text                  as T
-import           Data.Text.Encoding         (encodeUtf8)
+import           Control.Monad.Trans.Except   (runExceptT)
+import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.Text                    as T
+import           Data.Text.Encoding           (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
 import           Generators
-import           Hedgehog                   hiding (Var)
+import           Hedgehog                     hiding (Var)
+import qualified Hedgehog.Gen                 as Gen
+import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Pretty
 import           PlutusPrelude
 import           Pretty.Readable
-import qualified Quotation.Spec             as Quotation
+import qualified Quotation.Spec               as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
-import           TypeSynthesis.Spec         (test_typecheck)
+import           TypeSynthesis.Spec           (test_typecheck)
 
 main :: IO ()
 main = do
@@ -85,6 +88,7 @@ propParser = property $ do
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
     [ tests
+    , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testsGolden plcFiles
@@ -112,6 +116,28 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
+
+propSizeOfInteger :: Property
+propSizeOfInteger = property $ do
+    i <- forAll . Gen.integral $ Range.linearFrom 0 (-10000) 10000
+    Hedgehog.assert $ checkBoundsInt (sizeOfInteger i) i
+
+unitSizeOfInteger :: IO ()
+unitSizeOfInteger
+    = foldMap (\(i, s) -> sizeOfInteger i @?= s)
+    [ (0, 1)
+    , (-1  , 1), (1  , 1)
+    , (-127, 1), (127, 1)
+    , (-128, 1), (128, 2)
+    , (-129, 2), (129, 2)
+    ]
+
+testsSizeOfInteger :: TestTree
+testsSizeOfInteger
+    = testGroup "sizeOfInteger"
+    [ testCase     "unit" unitSizeOfInteger
+    , testProperty "prop" propSizeOfInteger
+    ]
 
 testsNormalizeType :: [FilePath] -> TestTree
 testsNormalizeType = testGroup "golden type synthesis + normalization tests" . fmap (asGolden (printNormalizeType True))
@@ -141,27 +167,6 @@ testLam :: Either (TypeError ()) String
 testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 False) $
     normalizeType =<< appAppLamLam
 
-
-testRebindCapturedVariable :: Bool
-testRebindCapturedVariable =
-    let
-        xName = TyName (Name () "x" (Unique 0))
-        yName = TyName (Name () "y" (Unique 1))
-        zName = TyName (Name () "z" (Unique 2))
-
-        varX = TyVar () xName
-        varY = TyVar () yName
-        varZ = TyVar () zName
-
-        typeKind = Type ()
-
-        -- (all y (type) (all z (type) (fun y z)))
-        type0 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))
-        -- (all x (type) (all y (type) (fun x y)))
-        type1 = TyForall () xName typeKind (TyForall () yName typeKind (TyFun () varX varY))
-    in
-        type0 == type1
-
 testRebindShadowedVariable :: Bool
 testRebindShadowedVariable =
     let
@@ -180,13 +185,48 @@ testRebindShadowedVariable =
     in
         type0 == type1
 
+testRebindCapturedVariable :: Bool
+testRebindCapturedVariable =
+    let
+        wName = TyName (Name () "w" (Unique 0))
+        xName = TyName (Name () "x" (Unique 1))
+        yName = TyName (Name () "y" (Unique 2))
+        zName = TyName (Name () "z" (Unique 3))
+
+        varW = TyVar () wName
+        varX = TyVar () xName
+        varY = TyVar () yName
+        varZ = TyVar () zName
+
+        typeKind = Type ()
+
+        -- (all y (type) (all z (type) (fun y z)))
+        typeL1 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))
+        -- (all x (type) (all y (type) (fun x y)))
+        typeR1 = TyForall () xName typeKind (TyForall () yName typeKind (TyFun () varX varY))
+
+        -- (all z (type) (fun (all w (all x (type) (fun w x))))) z)
+        typeL2
+            = TyForall () zName typeKind
+            $ TyFun ()
+                (TyFix () wName $ TyForall () xName typeKind (TyFun () varW varX))
+                varZ
+        -- (all x (type) (fun (all x (all y (type) (fun x y))))) x)
+        typeR2
+            = TyForall () xName typeKind
+            $ TyFun ()
+                (TyFix () xName $ TyForall () yName typeKind (TyFun () varX varY))
+                varX
+    in
+        [typeL1, typeL2] == [typeR1, typeR2]
+
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
-    , testRebindCapturedVariable @?= True
     , testRebindShadowedVariable @?= True
+    , testRebindCapturedVariable @?= True
     ]
     where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
