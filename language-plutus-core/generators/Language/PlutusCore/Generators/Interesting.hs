@@ -1,6 +1,12 @@
 -- | Sample generators used for tests.
+
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+
 module Language.PlutusCore.Generators.Interesting
-    ( genNatRoundtrip
+    ( fromInteretingGens
+    , genFactorial
+    , genNatRoundtrip
     , genListSum
     , genIfIntegers
     ) where
@@ -21,6 +27,47 @@ import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
+-- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
+--
+-- > /\(s : size) -> \(ss : size s) (i : integer s) ->
+--     product {s} ss (enumFromTo {s} ss (resizeInteger {1} {s} ss 1!1) i)
+getBuiltinFactorial :: Quote (Term TyName Name ())
+getBuiltinFactorial = do
+    product'    <- getBuiltinProduct
+    enumFromTo' <- getBuiltinEnumFromTo
+    s <- freshTyName () "s"
+    ss  <- freshName () "ss"
+    i   <- freshName () "i"
+    let int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
+    return
+        . TyAbs () s (Size ())
+        . LamAbs () ss (TyApp () (TyBuiltin () TySize) $ TyVar () s)
+        . LamAbs () i int
+        . mkIterApp (TyInst () product' $ TyVar () s)
+        $ [ Var () ss
+          , mkIterApp (TyInst () enumFromTo' $ TyVar () s)
+                [ Var () ss
+                , makeDynamicBuiltinInt (TyVar () s) (Var () ss) 1
+                , Var () i
+                ]
+          ]
+
+-- | Generate a term that computes the factorial of an @integer@ and return it
+-- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
+genFactorial :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
+genFactorial = do
+    let m = 10
+        sizev = sizeOfInteger $ product [1..m]
+        typedIntSized = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
+    iv <- Gen.integral $ Range.linear 1 m
+    term <- lift $ do
+        let i     = Constant () $ BuiltinInt () sizev iv
+            size  = TyInt () sizev
+            ssize = Constant () $ BuiltinSize () sizev
+        factorial <- getBuiltinFactorial
+        return $ mkIterApp (TyInst () factorial size) [ssize, i]
+    return . TermOf term . TypedBuiltinValue typedIntSized $ product [1..iv]
+
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'getBuiltinFoldNat')
 -- defined in terms of generic fix (see 'getBuiltinFix') and return the result
@@ -28,15 +75,15 @@ import qualified Hedgehog.Range                           as Range
 genNatRoundtrip :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
 genNatRoundtrip = do
     let sizev = 1
+        size  = TyInt () sizev
+        ssize = Constant () $ BuiltinSize () sizev
         typedIntSized = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
-    TermOf _ nv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntSized
+    TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntSized
     term <- lift $ do
-        n <- getBuiltinIntegerToNat nv
+        n <- getBuiltinIntegerToNat iv
         natToInteger <- getBuiltinNatToInteger
-        let size  = TyInt () sizev
-            ssize = Constant () $ BuiltinSize () sizev
         return $ mkIterApp (TyInst () natToInteger size) [ssize, n]
-    return . TermOf term $ TypedBuiltinValue typedIntSized nv
+    return . TermOf term $ TypedBuiltinValue typedIntSized iv
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
 -- sum elements of the list (see 'getBuiltinSum') and return it along with the sum of the original list.
@@ -77,3 +124,13 @@ genIfIntegers = do
             [b, builtinConstSpec i, builtinConstSpec j]
         value = if bv then iv else jv
     return $ TermOf term $ TypedBuiltinValue typedIntSized value
+
+-- | Apply a function to all interesting generators and collect the results.
+fromInteretingGens
+    :: (forall a. String -> GenT Quote (TermOf (TypedBuiltinValue Size a)) -> c) -> [c]
+fromInteretingGens f =
+    [ f "factorial"    genFactorial
+    , f "NatRoundTrip" genNatRoundtrip
+    , f "ListSum"      genListSum
+    , f "IfIntegers"   genIfIntegers
+    ]

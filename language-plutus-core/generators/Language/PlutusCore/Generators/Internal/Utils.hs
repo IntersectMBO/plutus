@@ -6,6 +6,8 @@ module Language.PlutusCore.Generators.Internal.Utils
     ( liftT
     , hoistSupply
     , choiceDef
+    , forAllNoShow
+    , forAllNoShowT
     , forAllPretty
     , forAllPrettyT
     , forAllPrettyPlc
@@ -34,6 +36,15 @@ hoistSupply r = hoist $ flip runReaderT r
 choiceDef :: Monad m => GenT m a -> [GenT m a] -> GenT m a
 choiceDef a [] = a
 choiceDef _ as = Gen.choice as
+
+-- | Generate a value, but do not show it in case an error occurs.
+forAllNoShow :: Monad m => Gen a -> PropertyT m a
+forAllNoShow = forAllWith mempty
+
+-- | Generate a value, but do not show it in case an error occurs.
+-- A supplied generator has access to the 'Monad' the whole property has access to.
+forAllNoShowT :: Monad m => GenT m a -> PropertyT m a
+forAllNoShowT = forAllWithT mempty
 
 -- | Generate a value using the 'Pretty' class for getting its 'String' representation.
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
