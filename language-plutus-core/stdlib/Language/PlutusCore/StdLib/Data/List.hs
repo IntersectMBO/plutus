@@ -221,13 +221,14 @@ getBuiltinEnumCountNat = do
 -- >     fix {integer s} {list (integer s)}
 -- >         (\(rec : integer s -> list (integer s)) (n' : integer s) ->
 -- >             ifThenElse {list (integer s)}
--- >                 (eqInteger {integer s} n' m)
+-- >                 (greaterThanInteger {integer s} n' m)
 -- >                 (nil {integer s})
 -- >                 (cons {integer s} n' (rec (addInteger {s} n' (resizeInteger {1} {s} ss 1!0))))
 -- >         n
 --
 -- @list (integer s)@ appears several times in types,
 -- so this is not really a definition with unique names.
+-- TODO: remove the @ss@ once @sizeOfInteger@ lands.
 getBuiltinEnumFromTo :: Quote (Term TyName Name ())
 getBuiltinEnumFromTo = do
     fix         <- getBuiltinFix
@@ -244,7 +245,7 @@ getBuiltinEnumFromTo = do
     rec <- freshName () "rec"
     n'  <- freshName () "n'"
     u   <- freshName () "u"
-    let eqInteger  = Constant () $ BuiltinName () EqInteger
+    let gtInteger  = Constant () $ BuiltinName () GreaterThanInteger
         int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
         RecursiveType _ listInt =
             holedToRecursive $ holedTyApp list int
@@ -257,7 +258,7 @@ getBuiltinEnumFromTo = do
         $ [   LamAbs () rec (TyFun () int listInt)
             . LamAbs () n' int
             . mkIterApp (TyInst () ifThenElse listInt)
-            $ [ mkIterApp (TyInst () eqInteger $ TyVar () s)
+            $ [ mkIterApp (TyInst () gtInteger $ TyVar () s)
                     [ Var () n'
                     , Var () m
                     ]
@@ -297,7 +298,7 @@ getBuiltinSum = do
 -- |  'product' as a PLC term.
 --
 -- > /\(s :: *) -> \(ss : size s) ->
--- >     foldList {integer s} {integer s} (addInteger {s}) (resizeInteger {1} {s} ss 1!0)
+-- >     foldList {integer s} {integer s} (multiplyInteger {s}) (resizeInteger {1} {s} ss 1!1)
 getBuiltinProduct :: Quote (Term TyName Name ())
 getBuiltinProduct = do
     foldList <- getBuiltinFoldList
@@ -305,11 +306,11 @@ getBuiltinProduct = do
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        add = TyInst () (Constant () (BuiltinName () AddInteger)) sv
+        mul = TyInst () (Constant () (BuiltinName () MultiplyInteger)) sv
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp (mkIterInst foldList [int, int])
-        $ [ add
-          , makeDynamicBuiltinInt sv (Var () ss) 0
+        $ [ mul
+          , makeDynamicBuiltinInt sv (Var () ss) 1
           ]
