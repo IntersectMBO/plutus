@@ -5,6 +5,8 @@
 
 module Language.PlutusCore.Generators.Interesting
     ( fromInteretingGens
+    , getBuiltinFactorial
+    , applyFactorial
     , genFactorial
     , genNatRoundtrip
     , genListSum
@@ -52,6 +54,15 @@ getBuiltinFactorial = do
                 ]
           ]
 
+-- | Apply some factorial function to its 'Size' and 'Integer' arguments.
+-- This function exist, because we have another implementation via dynamic built-ins
+-- and want to compare it to the direct implementation from the above.
+applyFactorial :: Term TyName Name () -> Size -> Integer -> Term TyName Name ()
+applyFactorial factorial sizev iv = mkIterApp (TyInst () factorial size) [ssize, i] where
+    i     = Constant () $ BuiltinInt () sizev iv
+    size  = TyInt () sizev
+    ssize = Constant () $ BuiltinSize () sizev
+
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
 genFactorial :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
@@ -61,11 +72,8 @@ genFactorial = do
         typedIntSized = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     iv <- Gen.integral $ Range.linear 1 m
     term <- lift $ do
-        let i     = Constant () $ BuiltinInt () sizev iv
-            size  = TyInt () sizev
-            ssize = Constant () $ BuiltinSize () sizev
         factorial <- getBuiltinFactorial
-        return $ mkIterApp (TyInst () factorial size) [ssize, i]
+        return $ applyFactorial factorial sizev iv
     return . TermOf term . TypedBuiltinValue typedIntSized $ product [1..iv]
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
