@@ -23,7 +23,8 @@ propEvaluate
     -> Property
 propEvaluate eval genTermOfTbv = property . hoist (return . runQuote) $ do
     TermOf term (PrettyConfigIgnore tbv) <-
-        forAllPrettyPlcT $ fmap PrettyConfigIgnore <$> genTermOfTbv
+        -- We do not show generated terms, because they're huge and unreadable.
+        forAllNoShowT $ fmap PrettyConfigIgnore <$> genTermOfTbv
     -- TODO: return type checking.
     -- case runExcept . runQuoteT $ annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 True) of
     --     Left err -> fail . docString $ prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic err
