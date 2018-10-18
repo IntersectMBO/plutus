@@ -1,3 +1,5 @@
+-- | Dynamic built-ins tests.
+
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -14,6 +16,7 @@ import           Control.Monad.Except
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
+-- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckEvaluate
     :: (MonadError (Error ()) m, MonadQuote m)
     => DynamicBuiltinNameMeanings -> Quote (Term TyName Name ()) -> m EvaluationResult

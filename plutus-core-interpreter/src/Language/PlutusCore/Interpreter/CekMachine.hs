@@ -42,10 +42,11 @@ data Closure = Closure
     , _closureValue  :: Plain Value
     }
 
--- | Environments used by the CEK machine.
+-- | Variable environments used by the CEK machine.
 -- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
 newtype VarEnv = VarEnv (IntMap Closure)
 
+-- | The environment the CEK machine runs in.
 data CekEnv = CekEnv
     { _cekEnvDbnms  :: DynamicBuiltinNameMeanings
     , _cekEnvVarEnv :: VarEnv
@@ -63,9 +64,11 @@ data Frame
 
 type Context = [Frame]
 
+-- | Get the current 'VarEnv'.
 getVarEnv :: CekM VarEnv
 getVarEnv = asks _cekEnvVarEnv
 
+-- | Set a new 'VarEnv' and proceed.
 withVarEnv :: VarEnv -> CekM a -> CekM a
 withVarEnv env = local $ \cekEnv -> cekEnv { _cekEnvVarEnv = env }
 
@@ -165,11 +168,12 @@ applyEvaluate funVarEnv _         con fun                    arg =
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) term
 
+-- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM (Quote ConstAppResult)
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
     mayMean <- lookupDynamicBuiltinName name
     pure $ case mayMean of
-        -- return 'ConstAppFailue' in case a dynamic built-in is out of scope.
+        -- returns 'ConstAppFailure' in case a dynamic built-in is out of scope.
         Nothing                                -> pure ConstAppFailure
         Just (DynamicBuiltinNameMeaning sch x) -> applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args = pure $ applyBuiltinName name args

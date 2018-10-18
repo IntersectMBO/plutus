@@ -149,6 +149,7 @@ data DynamicBuiltinNameMeaning =
     forall a r. DynamicBuiltinNameMeaning (forall size. TypeScheme size a r) a
 -- See the [DynBuiltinNameMeaning] note.
 
+-- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition =
     DynamicBuiltinNameDefinition DynamicBuiltinName DynamicBuiltinNameMeaning
 
@@ -290,6 +291,7 @@ typeSchemeToType = go 0 where
 dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Quote (Type TyName ())
 dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
 
+-- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
 insertDynamicBuiltinNameDefinition
     :: DynamicBuiltinNameDefinition -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
 insertDynamicBuiltinNameDefinition

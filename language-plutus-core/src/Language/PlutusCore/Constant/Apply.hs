@@ -143,7 +143,7 @@ extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeVal
 extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 
--- | Apply a 'TypeScheme'd function to a list of 'Value's.
+-- | Apply a function with a known 'TypeScheme' to a list of 'Value's.
 applyTypeSchemed :: TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> Quote ConstAppResult
 applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
     go
