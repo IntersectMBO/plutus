@@ -162,7 +162,7 @@ parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ run
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
-parseTypecheck gas = typecheckPipeline gas <=< parseProgram
+parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
