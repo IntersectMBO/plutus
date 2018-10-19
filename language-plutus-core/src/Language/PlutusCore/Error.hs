@@ -6,8 +6,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Error
-    ( InternalError (..)
-    , ParseError (..)
+    ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
     , UnknownDynamicBuiltinNameError (..)
@@ -26,12 +25,6 @@ import           PlutusPrelude
 
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
-
--- | A wrapper that indicates some error is internal.
-newtype InternalError err = InternalError
-    { unInternalError :: err
-    } deriving (Show, Eq, Generic)
-      deriving newtype NFData
 
 -- | An error encountered during parsing.
 data ParseError a
@@ -69,7 +62,7 @@ data TypeError a
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
     | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
-    | InternalTypeError a (InternalError (InternalTypeError a))
+    | InternalTypeError a (InternalTypeError a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -79,6 +72,11 @@ data Error a
     | TypeError (TypeError a)
     | NormalizationError (NormalizationError TyName Name a)
     deriving (Show, Eq, Generic, NFData)
+
+asInternalError :: Doc ann -> Doc ann
+asInternalError doc =
+    "An internal error has occurred:" <+> doc <> hardline <>
+    "Please report this as a bug."
 
 class IsError f where
     asError :: f a -> Error a
@@ -100,11 +98,6 @@ instance IsError TypeError where
 
 instance IsError (NormalizationError TyName Name) where
     asError = NormalizationError
-
-instance PrettyBy config err => PrettyBy config (InternalError err) where
-    prettyBy config (InternalError err) =
-        "An internal error has occurred:" <+> prettyBy config err <> hardline <>
-        "Please report this as a bug."
 
 instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
@@ -138,9 +131,10 @@ instance Pretty UnknownDynamicBuiltinNameError where
 
 instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
     prettyBy config (OpenTypeOfBuiltin ty con)        =
-        "The type" <+> prettyBy config ty <+>
-        "of the" <+> prettyBy config con <+>
-        "built-in is open"
+        asInternalError $
+            "The type" <+> prettyBy config ty <+>
+            "of the" <+> prettyBy config con <+>
+            "built-in is open"
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
     prettyBy config (KindMismatch x ty k k')            =

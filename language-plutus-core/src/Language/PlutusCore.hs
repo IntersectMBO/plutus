@@ -80,7 +80,6 @@ module Language.PlutusCore
     , typecheckPipeline
     , defaultTypecheckerGas
     -- * Errors
-    , InternalError (..)
     , Error (..)
     , IsError (..)
     , UnknownDynamicBuiltinNameError (..)

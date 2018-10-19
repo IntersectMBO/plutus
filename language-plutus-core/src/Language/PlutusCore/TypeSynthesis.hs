@@ -82,7 +82,7 @@ annotateClosedNormalType
     :: MonadError (TypeError a) m
     => a -> Constant () -> Type TyName () -> m (NormalizedType TyNameWithKind ())
 annotateClosedNormalType ann con ty = case annotateType ty of
-    Left  _           -> throwError . InternalTypeError ann . InternalError $ OpenTypeOfBuiltin ty con
+    Left  _           -> throwError . InternalTypeError ann $ OpenTypeOfBuiltin ty con
     Right annTyOfName -> pure $ NormalizedType annTyOfName
 
 -- | Annotate the type of a 'BuiltinName' and return it wrapped in 'NormalizedType'.
