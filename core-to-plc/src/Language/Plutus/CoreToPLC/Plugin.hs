@@ -20,10 +20,7 @@ import           Language.PlutusCore.Quote
 
 import           Language.Haskell.TH.Syntax      as TH
 
-import           Codec.CBOR.Read                 (DeserialiseFailure)
-import qualified Codec.CBOR.Write                as Write
-import           Codec.Serialise                 (deserialiseOrFail)
-import           Codec.Serialise.Class           (Serialise, encode)
+import           Codec.Serialise                 (DeserialiseFailure, Serialise, deserialiseOrFail, serialise)
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
@@ -62,7 +59,7 @@ instance LiftPlc PlcCode where
     lift (getAst -> (PLC.Program () _ body)) = PLC.globalRename body
 
 instance ToJSON PlcCode where
-  toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . Write.toStrictByteString . encode
+  toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
 
 instance FromJSON PlcCode where
   parseJSON = withText "PlcCode" $ \s -> do
@@ -80,7 +77,7 @@ getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
 applyPlc :: PlcCode -> PlcCode -> PlcCode
 applyPlc (getAst -> f) (getAst -> x) = PlcCode words' where
     program = f `PLC.applyProgram` x
-    serialized = PLC.writeProgram program
+    serialized = serialise program
     words' = fromIntegral <$> BSL.unpack serialized
 
 {- Note [Deserializing the AST]
@@ -94,7 +91,7 @@ instance Show ImpossibleDeserialisationFailure where
 instance Exception ImpossibleDeserialisationFailure
 
 getAst :: PlcCode -> PLC.Program PLC.TyName PLC.Name ()
-getAst wrapper = case PLC.readProgram $ getSerializedCode wrapper of
+getAst wrapper = case deserialiseOrFail $ getSerializedCode wrapper of
     Left e  -> throw $ ImpossibleDeserialisationFailure e
     Right p -> p
 
@@ -230,7 +227,7 @@ convertExpr opts origE tpe = do
                 "Resulting PLC term is:" GHC.$+$
                 GHC.text termRep
             let program = PLC.Program () (PLC.defaultVersion ()) term
-            let serialized = PLC.writeProgram program
+            let serialized = serialise program
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
             let (word8s :: [Word]) = fromIntegral <$> BSL.unpack serialized
             -- The flags here are so GHC can check whether the word is in range for the current platform.
