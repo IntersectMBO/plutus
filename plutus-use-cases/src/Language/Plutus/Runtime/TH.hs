@@ -24,7 +24,7 @@ module Language.Plutus.Runtime.TH(
     ) where
 
 import           Language.Haskell.TH           (Exp, Q)
-import           Language.Plutus.Runtime.Types
+import           Wallet.UTXO.Runtime
 
 import           Prelude                       (Bool (..), Eq (..), Int, Maybe (..))
 
