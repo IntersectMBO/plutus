@@ -6,10 +6,12 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Error
-    ( ParseError (..)
+    ( InternalError (..)
+    , ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
     , UnknownDynamicBuiltinNameError (..)
+    , InternalTypeError (..)
     , TypeError (..)
     , Error (..)
     , IsError (..)
@@ -24,6 +26,12 @@ import           PlutusPrelude
 
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+
+-- | A wrapper that indicates some error is internal.
+newtype InternalError err = InternalError
+    { unInternalError :: err
+    } deriving (Show, Eq, Generic)
+      deriving newtype NFData
 
 -- | An error encountered during parsing.
 data ParseError a
@@ -50,13 +58,18 @@ newtype UnknownDynamicBuiltinNameError
     deriving (Show, Eq, Generic)
     deriving newtype (NFData)
 
+-- | An internal error occurred during type checking.
+data InternalTypeError a
+    = OpenTypeOfBuiltin (Type TyName ()) (Constant ())
+    deriving (Show, Eq, Generic, NFData)
+
 data TypeError a
     = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
-    | UnknownDynamicBuiltinName UnknownDynamicBuiltinNameError
-    | OpenTypeOfBuiltin (Type TyName ()) (Constant a)
+    | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
+    | InternalTypeError a (InternalError (InternalTypeError a))
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -88,6 +101,11 @@ instance IsError TypeError where
 instance IsError (NormalizationError TyName Name) where
     asError = NormalizationError
 
+instance PrettyBy config err => PrettyBy config (InternalError err) where
+    prettyBy config (InternalError err) =
+        "An internal error has occurred:" <+> prettyBy config err <> hardline <>
+        "Please report this as a bug."
+
 instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
@@ -118,13 +136,19 @@ instance Pretty UnknownDynamicBuiltinNameError where
     pretty (UnknownDynamicBuiltinNameError dbn) =
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
+instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
+    prettyBy config (OpenTypeOfBuiltin ty con)        =
+        "The type" <+> prettyBy config ty <+>
+        "of the" <+> prettyBy config con <+>
+        "built-in is open"
+
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')          =
+    prettyBy config (KindMismatch x ty k k')            =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty')         =
+    prettyBy config (TypeMismatch x t ty ty')           =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -133,13 +157,13 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (OpenTypeOfBuiltin ty con)        =
-        "The type" <+> prettyBy config ty <+>
-        "of the" <+> prettyBy config con <+>
-        "built-in is open"
-    prettyBy _      (UnknownDynamicBuiltinName udbne) =
-        "Unknown dynamic built-in:" <+> pretty udbne
-    prettyBy _      OutOfGas                          = "Type checker ran out of gas."
+    prettyBy config (InternalTypeError x err)           =
+        prettyBy config err <> hardline <>
+        "Error location:" <+> pretty x
+    prettyBy _      (UnknownDynamicBuiltinName x udbne) =
+        "Unknown dynamic built-in at" <+> pretty x <>
+        ":" <+> pretty udbne
+    prettyBy _      OutOfGas                            = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e

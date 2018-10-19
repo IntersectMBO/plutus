@@ -80,9 +80,9 @@ kindOfTypeBuiltin TySize       = sizeToType
 -- We use this for annotating types of built-ins (both static and dynamic).
 annotateClosedNormalType
     :: MonadError (TypeError a) m
-    => Constant a -> Type TyName () -> m (NormalizedType TyNameWithKind ())
-annotateClosedNormalType con ty = case annotateType ty of
-    Left  _           -> throwError $ OpenTypeOfBuiltin ty con
+    => a -> Constant () -> Type TyName () -> m (NormalizedType TyNameWithKind ())
+annotateClosedNormalType ann con ty = case annotateType ty of
+    Left  _           -> throwError . InternalTypeError ann . InternalError $ OpenTypeOfBuiltin ty con
     Right annTyOfName -> pure $ NormalizedType annTyOfName
 
 -- | Annotate the type of a 'BuiltinName' and return it wrapped in 'NormalizedType'.
@@ -91,7 +91,7 @@ normalizedAnnotatedTypeOfBuiltinName
     => a -> BuiltinName -> m (NormalizedType TyNameWithKind ())
 normalizedAnnotatedTypeOfBuiltinName ann name = do
     tyOfName <- liftQuote $ typeOfBuiltinName name
-    annotateClosedNormalType (BuiltinName ann name) tyOfName
+    annotateClosedNormalType ann (BuiltinName () name) tyOfName
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.
@@ -187,10 +187,10 @@ lookupDynamicBuiltinName ann name = do
     dbnts <- asks $ unDynamicBuiltinNameTypes . _typeConfigDynBuiltinNameTypes
     case Map.lookup name dbnts of
         Nothing    ->
-            throwError $ UnknownDynamicBuiltinName (UnknownDynamicBuiltinNameError name)
+            throwError $ UnknownDynamicBuiltinName ann (UnknownDynamicBuiltinNameError name)
         Just quoTy -> do
             ty <- liftQuote quoTy
-            annotateClosedNormalType (DynBuiltinName ann name) ty
+            annotateClosedNormalType ann (DynBuiltinName () name) ty
 
 -- | Get the 'Type' of a 'Constant' wrapped in 'NormalizedType'.
 typeOfConstant :: Constant a -> TypeCheckM a (NormalizedType TyNameWithKind ())

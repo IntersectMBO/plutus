@@ -65,6 +65,7 @@ module Language.PlutusCore
     , fileTypeCfg
     , printType
     , printNormalizeType
+    , InternalTypeError (..)
     , TypeError (..)
     , TypeConfig (..)
     , DynamicBuiltinNameTypes (..)
@@ -82,6 +83,7 @@ module Language.PlutusCore
     , readProgram
     , writeProgram
     -- * Errors
+    , InternalError (..)
     , Error (..)
     , IsError (..)
     , UnknownDynamicBuiltinNameError (..)
