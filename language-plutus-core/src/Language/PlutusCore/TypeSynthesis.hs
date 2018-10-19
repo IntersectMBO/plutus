@@ -36,7 +36,7 @@ import           PlutusPrelude
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
-    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Quote (Type TyName ()))
+    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Quote (NormalizedType TyNameWithKind ()))
     } deriving (Monoid)
 
 -- | Configuration of the type checker.
@@ -76,11 +76,24 @@ kindOfTypeBuiltin TyInteger    = sizeToType
 kindOfTypeBuiltin TyByteString = sizeToType
 kindOfTypeBuiltin TySize       = sizeToType
 
--- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
--- convert it to the corresponding 'Type' for each row of a 'DynamicBuiltinNameMeanings'.
+-- | Annotate a 'Type'. Invariants: the type must be closed and in normal form.
+-- We use this for annotating types of built-ins (both static and dynamic).
+unsafeAnnotateClosedNormalType :: Type TyName () -> NormalizedType TyNameWithKind ()
+unsafeAnnotateClosedNormalType ty = case annotateType ty of
+    Left  err         -> error $ "Internal error: " ++ prettyPlcDefString err
+    Right annTyOfName -> NormalizedType annTyOfName
+
+-- | Annotate the type of a 'BuiltinName' and return it wrapped in 'NormalizedType'.
+normalizedAnnotatedTypeOfBuiltinName :: BuiltinName -> Quote (NormalizedType TyNameWithKind ())
+normalizedAnnotatedTypeOfBuiltinName =
+    fmap unsafeAnnotateClosedNormalType . typeOfBuiltinName
+
+-- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
+-- corresponding 'NormalizedType TyNameWithKind' for each row of a 'DynamicBuiltinNameMeanings'.
 dynamicBuiltinNameMeaningsToTypes :: DynamicBuiltinNameMeanings -> DynamicBuiltinNameTypes
 dynamicBuiltinNameMeaningsToTypes (DynamicBuiltinNameMeanings means) =
-    DynamicBuiltinNameTypes $ fmap dynamicBuiltinNameMeaningToType means
+    DynamicBuiltinNameTypes $ fmap toNormAnnType means where
+        toNormAnnType = fmap unsafeAnnotateClosedNormalType . dynamicBuiltinNameMeaningToType
 
 -- | Type-check a program, returning a normalized type.
 typecheckProgram :: (MonadError (Error a) m, MonadQuote m)
@@ -164,13 +177,8 @@ dummyKind = Type ()
 dummyType :: Type TyNameWithKind ()
 dummyType = TyVar () dummyTyName
 
-unsafeAnnotateNormalType :: Type TyName () -> NormalizedType TyNameWithKind ()
-unsafeAnnotateNormalType ty = case annotateType ty of
-    Left  err         -> error $ "Internal error: " ++ prettyPlcDefString err
-    Right annTyOfName -> NormalizedType annTyOfName
-
 -- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
-lookupDynamicBuiltinName :: DynamicBuiltinName -> TypeCheckM a (Type TyName ())
+lookupDynamicBuiltinName :: DynamicBuiltinName -> TypeCheckM a (NormalizedType TyNameWithKind ())
 lookupDynamicBuiltinName name = do
     dbnts <- asks $ unDynamicBuiltinNameTypes . _typeConfigDynBuiltinNameTypes
     case Map.lookup name dbnts of
@@ -183,10 +191,8 @@ typeOfConstant :: Constant a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOfConstant (BuiltinInt  _ size _)  = pure $ applySizedNormalized TyInteger    size
 typeOfConstant (BuiltinBS   _ size _)  = pure $ applySizedNormalized TyByteString size
 typeOfConstant (BuiltinSize _ size)    = pure $ applySizedNormalized TySize       size
-typeOfConstant (BuiltinName    _ name) =
-    liftQuote $ unsafeAnnotateNormalType <$> typeOfBuiltinName name
-typeOfConstant (DynBuiltinName _ name) =
-    unsafeAnnotateNormalType <$> lookupDynamicBuiltinName name
+typeOfConstant (BuiltinName    _ name) = liftQuote $ normalizedAnnotatedTypeOfBuiltinName name
+typeOfConstant (DynBuiltinName _ name) = lookupDynamicBuiltinName name
 
 {- Note [Type rules]
 We write type rules in the bidirectional style.

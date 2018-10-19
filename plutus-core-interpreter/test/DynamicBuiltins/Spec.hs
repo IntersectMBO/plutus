@@ -46,6 +46,8 @@ dynamicFactorialDefinition = DynamicBuiltinNameDefinition dynamicFactorialName d
 dynamicFactorial :: Term tyname name ()
 dynamicFactorial = Constant () $ DynBuiltinName () dynamicFactorialName
 
+-- | Check that the dynamic factorial defined above computes to the same thing as
+-- a factorial defined in PLC itself.
 test_dynamicFactorial :: TestTree
 test_dynamicFactorial = testCase "dynamicFactorial" $
         runQuoteT (typecheckEvaluate

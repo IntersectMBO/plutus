@@ -9,8 +9,6 @@
 -- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
 
-{-# LANGUAGE ExistentialQuantification #-}
-
 module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
     , EvaluationResult (..)

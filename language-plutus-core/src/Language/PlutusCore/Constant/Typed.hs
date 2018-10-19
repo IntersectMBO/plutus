@@ -131,7 +131,7 @@ data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeSchem
 -- I attempted to unify various typed things, but sometimes type variables must be universally
 -- quantified, sometimes they must be existentially quatified. And those are distinct type variables.
 
-{- Note [DynBuiltinNameMeaning]
+{- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
 We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
 well-typedness to avoid using 'unsafeCoerce' and similar junk, while the denotation is what
@@ -147,7 +147,7 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning =
     forall a r. DynamicBuiltinNameMeaning (forall size. TypeScheme size a r) a
--- See the [DynBuiltinNameMeaning] note.
+-- See the [DynamicBuiltinNameMeaning] note.
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition =
