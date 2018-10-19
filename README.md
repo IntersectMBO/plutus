@@ -68,21 +68,21 @@ types, it is defined in the style of "normalization-by-evaluation"
 (NBE) and is guaranteed to terminate. Further submodules define the
 correctness proofs for the normalizer and associated operations.
 
-   1. [Type.BetaNBE.Soundness](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE/Soundness.html) contains a
+   1. [Type.BetaNBE.Soundness](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.Soundness.html) contains a
       proof that normalizer preserves the meaning of the types. Formally it
       states that if we normalize a type then the resultant normal form is
       equal (in the equational theory) to the type we started with.
  
-   2. [Type.BetaNBE.Completeness](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE/Completeness.html)
+   2. [Type.BetaNBE.Completeness](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.Completeness.html)
       contains a proof that the if we were to normalize two types that are
       equal in the equation theory then we will end up with identical normal
       forms.
  
-   3. [Type.BetaNBE.Stability](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE/Stability.html) contains a
+   3. [Type.BetaNBE.Stability](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.Stability.html) contains a
       proof that normalization will preserve syntactic structure of terms
       already in normal form.
  
-   4. [Type.BetaNBE.RenamingSubsitution](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE/RenamingSubstitution.html)
+   4. [Type.BetaNBE.RenamingSubsitution](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.RenamingSubstitution.html)
       contains a version of substitution that works on normal forms and
       ensures that the result is in normal form. This works by embedding
       normal forms back into syntax, performing a syntactic substitution and
