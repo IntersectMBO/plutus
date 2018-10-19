@@ -8,13 +8,13 @@ module Language.PlutusCore.View
     , TermIterApp
     , PrimIterApp
     , constantAsInteger
-    , constantAsBuiltinName
+    , constantAsStagedBuiltinName
     , termAsConstant
     , termAsTermIterApp
     , termAsPrimIterApp
     ) where
 
-import           Language.PlutusCore.Lexer.Type (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type (StagedBuiltinName (..))
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -30,7 +30,7 @@ type TermIterApp tyname name a =
 
 -- | An iterated application of a 'BuiltinName' to a list of 'Value's.
 type PrimIterApp tyname name a =
-    IterApp BuiltinName (Value tyname name a)
+    IterApp StagedBuiltinName (Value tyname name a)
 
 instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp head arg) where
     prettyBy config (IterApp appHead appSpine) =
@@ -41,10 +41,11 @@ constantAsInteger :: Constant a -> Maybe Integer
 constantAsInteger (BuiltinInt _ _ int) = Just int
 constantAsInteger _                    = Nothing
 
--- | View a 'Constant' as a 'BuiltinName'.
-constantAsBuiltinName :: Constant a -> Maybe BuiltinName
-constantAsBuiltinName (BuiltinName _ name) = Just name
-constantAsBuiltinName _                    = Nothing
+-- | View a 'Constant' as a 'StagedBuiltinName'.
+constantAsStagedBuiltinName :: Constant a -> Maybe StagedBuiltinName
+constantAsStagedBuiltinName (BuiltinName    _ name) = Just $ StaticStagedBuiltinName  name
+constantAsStagedBuiltinName (DynBuiltinName _ name) = Just $ DynamicStagedBuiltinName name
+constantAsStagedBuiltinName _                       = Nothing
 
 -- | View a 'Term' as a 'Constant'.
 termAsConstant :: Term tyname name a -> Maybe (Constant a)
@@ -62,7 +63,7 @@ termAsTermIterApp = go [] where
 termAsPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
 termAsPrimIterApp term = do
     let IterApp termHead spine = termAsTermIterApp term
-    headName <- termAsConstant termHead >>= constantAsBuiltinName
+    headName <- termAsConstant termHead >>= constantAsStagedBuiltinName
     guard $ all isValue spine
     Just $ IterApp headName spine
 

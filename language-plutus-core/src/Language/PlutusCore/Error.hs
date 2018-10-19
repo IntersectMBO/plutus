@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -8,6 +9,8 @@ module Language.PlutusCore.Error
     ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
+    , UnknownDynamicBuiltinNameError (..)
+    , InternalTypeError (..)
     , TypeError (..)
     , Error (..)
     , IsError (..)
@@ -42,11 +45,24 @@ data RenameError a
     | UnboundTyVar (TyName a)
     deriving (Show, Eq, Generic, NFData)
 
+-- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
+newtype UnknownDynamicBuiltinNameError
+    = UnknownDynamicBuiltinNameError DynamicBuiltinName
+    deriving (Show, Eq, Generic)
+    deriving newtype (NFData)
+
+-- | An internal error occurred during type checking.
+data InternalTypeError a
+    = OpenTypeOfBuiltin (Type TyName ()) (Constant ())
+    deriving (Show, Eq, Generic, NFData)
+
 data TypeError a
     = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
+    | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
+    | InternalTypeError a (InternalTypeError a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -56,6 +72,11 @@ data Error a
     | TypeError (TypeError a)
     | NormalizationError (NormalizationError TyName Name a)
     deriving (Show, Eq, Generic, NFData)
+
+asInternalError :: Doc ann -> Doc ann
+asInternalError doc =
+    "An internal error has occurred:" <+> doc <> hardline <>
+    "Please report this as a bug."
 
 class IsError f where
     asError :: f a -> Error a
@@ -104,13 +125,24 @@ instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError 
         ". Type variable" <+> prettyBy config n <+>
         "is not in scope."
 
+instance Pretty UnknownDynamicBuiltinNameError where
+    pretty (UnknownDynamicBuiltinNameError dbn) =
+        "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
+
+instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
+    prettyBy config (OpenTypeOfBuiltin ty con)        =
+        asInternalError $
+            "The type" <+> prettyBy config ty <+>
+            "of the" <+> prettyBy config con <+>
+            "built-in is open"
+
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')  =
+    prettyBy config (KindMismatch x ty k k')            =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty') =
+    prettyBy config (TypeMismatch x t ty ty')           =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -119,7 +151,13 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy _      OutOfGas                  = "Type checker ran out of gas."
+    prettyBy config (InternalTypeError x err)           =
+        prettyBy config err <> hardline <>
+        "Error location:" <+> pretty x
+    prettyBy _      (UnknownDynamicBuiltinName x udbne) =
+        "Unknown dynamic built-in at" <+> pretty x <>
+        ":" <+> pretty udbne
+    prettyBy _      OutOfGas                            = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e

@@ -1,7 +1,10 @@
 -- | The CK machine.
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.Evaluation.CkMachine
-    ( EvaluationResult(..)
+    ( CkMachineException
+    , EvaluationResult(..)
     , evaluateCk
     , runCk
     ) where
@@ -17,6 +20,12 @@ import           PlutusPrelude
 
 infix 4 |>, <|
 
+-- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
+data NoDynamicBuiltinNamesMachineError = NoDynamicBuiltinNamesMachineError
+
+-- | The CK machine-specific 'MachineException'.
+type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
+
 data Frame
     = FrameApplyFun (Value TyName Name ())       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name ())        -- ^ @[_ N]@
@@ -25,6 +34,17 @@ data Frame
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
 
 type Context = [Frame]
+
+instance Pretty NoDynamicBuiltinNamesMachineError where
+    pretty NoDynamicBuiltinNamesMachineError =
+        "The CK machine doesn't support dynamic extensions to the set of built-in names."
+
+-- | Throw a 'CkMachineException'. This function is needed, because it constrains 'MachinerError'
+-- to be parametrized by a 'NoDynamicBuiltinNamesError' which is required in order to disambiguate
+-- @throw .* MachineException@.
+throwCkMachineException
+    :: MachineError NoDynamicBuiltinNamesMachineError -> Term TyName Name () -> a
+throwCkMachineException = throw .* MachineException
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
@@ -62,7 +82,7 @@ stack |> tyAbs@TyAbs{}        = stack <| tyAbs
 stack |> lamAbs@LamAbs{}      = stack <| lamAbs
 stack |> constant@Constant{}  = stack <| constant
 _     |> Error{}              = EvaluationFailure
-_     |> var@Var{}            = throw $ MachineException OpenTermEvaluatedMachineError var
+_     |> var@Var{}            = throwCkMachineException OpenTermEvaluatedMachineError var
 
 -- | The returning part of the CK machine. Rules are as follows:
 --
@@ -82,7 +102,7 @@ FrameApplyFun fun    : stack <| arg       = applyEvaluate stack fun arg
 FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value
 FrameUnwrap          : stack <| wrapped   = case wrapped of
     Wrap _ _ _ term -> stack <| term
-    term            -> throw $ MachineException NonWrapUnwrappedMachineError term
+    term            -> throwCkMachineException NonWrapUnwrappedMachineError term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -93,7 +113,7 @@ instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
     | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
     | otherwise                      =
-          throw $ MachineException NonPrimitiveInstantiationMachineError fun
+          throwCkMachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -105,17 +125,19 @@ applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg 
 applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
-            Nothing                       ->
-                throw $ MachineException NonPrimitiveApplicationMachineError term
-            Just (IterApp headName spine) ->
-                case runQuote $ applyBuiltinName headName spine of
+            Nothing                                 ->
+                throwCkMachineException NonPrimitiveApplicationMachineError term
+            Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+                throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
+            Just (IterApp (StaticStagedBuiltinName name) spine) ->
+                case runQuote $ applyBuiltinName name spine of
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->
-                        throw $ MachineException (ConstAppMachineError err) term
+                        throwCkMachineException (ConstAppMachineError err) term
 
--- | Evaluate a term using the CK machine. May throw a 'MachineException'.
+-- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:
 --
 -- > s , {_ A} ◁ F ↦ s ◁ W  -- Fully saturated constant, {F A} ~> W.
@@ -126,7 +148,7 @@ applyEvaluate stack fun                    arg =
 evaluateCk :: Term TyName Name () -> EvaluationResult
 evaluateCk = ([] |>)
 
--- | Run a program using the CK machine. May throw a 'MachineException'.
+-- | Run a program using the CK machine. May throw a 'CkMachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
 runCk :: Program TyName Name () -> EvaluationResult
 runCk (Program _ _ term) = evaluateCk term

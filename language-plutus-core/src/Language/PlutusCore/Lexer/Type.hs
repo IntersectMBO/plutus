@@ -1,7 +1,10 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
+                                      , DynamicBuiltinName (..)
+                                      , StagedBuiltinName (..)
                                       , Version (..)
                                       , Keyword (..)
                                       , Special (..)
@@ -11,14 +14,15 @@ module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , allBuiltinNames
                                       ) where
 
+import           Language.PlutusCore.Name
+import           PlutusPrelude
+
 import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
 import           Data.Text.Encoding                 (decodeUtf8)
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Language.Haskell.TH.Syntax         (Lift)
-import           Language.PlutusCore.Name
 import           Numeric                            (showHex)
-import           PlutusPrelude
 
 -- | A builtin type
 data TypeBuiltin = TyByteString
@@ -50,6 +54,19 @@ data BuiltinName = AddInteger
                  | TxHash
                  | BlockNum
                  deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
+
+-- | The type of dynamic builtin functions. I.e. functions that exist on certain chains and do
+-- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
+-- this allows to type check and evaluate dynamic builtins just like static ones.
+newtype DynamicBuiltinName = DynamicBuiltinName
+    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic builtin function.
+    } deriving (Show, Eq, Ord, Generic)
+      deriving newtype (NFData, Lift)
+
+-- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
+data StagedBuiltinName = StaticStagedBuiltinName  BuiltinName
+                       | DynamicStagedBuiltinName DynamicBuiltinName
+                       deriving (Show, Eq, Generic, NFData, Lift)
 
 -- | Version of Plutus Core to be used for the program.
 data Version a = Version a Natural Natural Natural
@@ -162,6 +179,13 @@ instance Pretty BuiltinName where
     pretty VerifySignature      = "verifySignature"
     pretty TxHash               = "txhash"
     pretty BlockNum             = "blocknum"
+
+instance Pretty DynamicBuiltinName where
+    pretty (DynamicBuiltinName n) = pretty n
+
+instance Pretty StagedBuiltinName where
+    pretty (StaticStagedBuiltinName  n) = pretty n
+    pretty (DynamicStagedBuiltinName n) = pretty n
 
 instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
