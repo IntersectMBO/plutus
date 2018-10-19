@@ -29,7 +29,7 @@ normalizeType (TyApp x fun arg)    = do
 normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
-        Just ty' -> traverse cloneType ty'
+        Just ty' -> traverse alphaRename ty'
         Nothing  -> pure $ NormalizedType ty
 
 normalizeType ty@TyInt{}     = pure $ NormalizedType ty

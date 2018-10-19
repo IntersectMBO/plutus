@@ -1,5 +1,7 @@
 module Main (main) where
 
+import           Codec.Serialise
+import           Control.Monad
 import           Criterion.Main
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.Text                  as T
@@ -33,7 +35,7 @@ main =
                       ]
                 , env largeTypeFile $ \ g ->
                   bgroup "CBOR"
-                    [ bench "writeProgram" $ nf (fmap writeProgram) (parse g)
+                    [ bench "writeProgram" $ nf (fmap (serialise . void)) $ parse g
                     ]
                 ]
     where envFile = BSL.readFile "test/data/addInteger.plc"

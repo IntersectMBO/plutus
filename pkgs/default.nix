@@ -42147,6 +42147,7 @@ license = stdenv.lib.licenses.bsd3;
 , prettyprinter
 , recursion-schemes
 , safe-exceptions
+, serialise
 , stdenv
 , tasty
 , tasty-golden
@@ -42182,6 +42183,7 @@ mtl
 prettyprinter
 recursion-schemes
 safe-exceptions
+serialise
 tasty
 tasty-golden
 template-haskell
@@ -42199,6 +42201,7 @@ bytestring
 hedgehog
 mmorph
 prettyprinter
+serialise
 text
 ];
 testHaskellDepends = [
@@ -42210,6 +42213,7 @@ hedgehog
 mmorph
 mtl
 prettyprinter
+serialise
 tasty
 tasty-golden
 tasty-hedgehog
@@ -78397,6 +78401,7 @@ license = stdenv.lib.licenses.mit;
 , errors
 , free
 , ghc
+, hashable
 , hedgehog
 , language-plutus-core
 , memory
@@ -78442,6 +78447,7 @@ cryptonite
 errors
 free
 ghc
+hashable
 hedgehog
 language-plutus-core
 memory
