@@ -2,23 +2,26 @@
 -- Rules are the same as for the CK machine from "Language.PlutusCore.Evaluation.CkMachine",
 -- except we do not use substitution and use environments instead.
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
--- string names. I.e. 'Unique's are used instead of string names, so the renamer pass is required.
--- This is for efficiency reasons.
--- The type checker pass is required as well (and in our case it subsumes the renamer pass).
+-- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
+-- The type checker pass is a prerequisite.
 -- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
 -- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
+-- Dynamic extensions to the set of built-ins are allowed.
+-- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
+-- (wrapped in 'OtherMachineError').
 
 module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
     , EvaluationResult (..)
+    , evaluateCekCatch
     , evaluateCek
     , runCek
     ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
+import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
@@ -27,12 +30,11 @@ import           Control.Monad.Reader
 import           Data.IntMap                                     (IntMap)
 import qualified Data.IntMap                                     as IntMap
 import qualified Data.Map                                        as Map
-import           Data.Void
 
 type Plain f = f TyName Name ()
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException = MachineException Void
+type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -85,9 +87,14 @@ lookupVarName varName = do
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
-lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM (Maybe DynamicBuiltinNameMeaning)
-lookupDynamicBuiltinName dynName =
-    asks $ Map.lookup dynName . unDynamicBuiltinNameMeanings . _cekEnvDbnms
+lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM DynamicBuiltinNameMeaning
+lookupDynamicBuiltinName dynName = do
+    DynamicBuiltinNameMeanings means <- asks _cekEnvDbnms
+    case Map.lookup dynName means of
+        Nothing   -> throwError $ MachineException err term where
+            err  = OtherMachineError $ UnknownDynamicBuiltinNameError dynName
+            term = Constant () $ DynBuiltinName () dynName
+        Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
 -- Either
@@ -169,11 +176,8 @@ applyEvaluate funVarEnv _         con fun                    arg =
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM (Quote ConstAppResult)
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
-    mayMean <- lookupDynamicBuiltinName name
-    pure $ case mayMean of
-        -- returns 'ConstAppFailure' in case a dynamic built-in is out of scope.
-        Nothing                                -> pure ConstAppFailure
-        Just (DynamicBuiltinNameMeaning sch x) -> applyTypeSchemed sch x args
+    DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
+    pure $ applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args = pure $ applyBuiltinName name args
 
 -- | Evaluate a term using the CEK machine.

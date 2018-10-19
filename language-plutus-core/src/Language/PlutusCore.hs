@@ -84,6 +84,7 @@ module Language.PlutusCore
     -- * Errors
     , Error (..)
     , IsError (..)
+    , UnknownDynamicBuiltinNameError (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)

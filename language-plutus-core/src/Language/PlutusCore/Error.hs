@@ -55,7 +55,8 @@ data TypeError a
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
-    | UnknownDynamicBuiltinNameTypeError UnknownDynamicBuiltinNameError
+    | UnknownDynamicBuiltinName UnknownDynamicBuiltinNameError
+    | OpenTypeOfBuiltin (Type TyName ()) (Constant a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 
@@ -118,12 +119,12 @@ instance Pretty UnknownDynamicBuiltinNameError where
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')                   =
+    prettyBy config (KindMismatch x ty k k')          =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty')                  =
+    prettyBy config (TypeMismatch x t ty ty')         =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -132,8 +133,13 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy _      (UnknownDynamicBuiltinNameTypeError udbne) = pretty udbne
-    prettyBy _      OutOfGas                                   = "Type checker ran out of gas."
+    prettyBy config (OpenTypeOfBuiltin ty con)        =
+        "The type" <+> prettyBy config ty <+>
+        "of the" <+> prettyBy config con <+>
+        "built-in is open"
+    prettyBy _      (UnknownDynamicBuiltinName udbne) =
+        "Unknown dynamic built-in:" <+> pretty udbne
+    prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseError e)         = pretty e
