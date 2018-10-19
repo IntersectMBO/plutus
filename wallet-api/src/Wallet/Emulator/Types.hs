@@ -43,6 +43,7 @@ module Wallet.Emulator.Types(
     chain,
     txPool,
     walletStates,
+    validationData,
     MonadEmulator,
     validateEm,
     liftEmulatedWallet,
@@ -234,10 +235,11 @@ emulatorState' tp = emptyEmulatorState { emTxPool = tp }
 type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
 -- | Validate a transaction in the current emulator state
-validateEm :: (MonadEmulator m) => Tx -> m (Maybe Tx)
-validateEm txn = do
-    EmulatorState{emChain=bc, emValidationData = vd} <- get
-    pure $ if validTx vd txn bc then Just txn else Nothing
+validateEm :: EmulatorState -> Tx -> Maybe Tx
+validateEm EmulatorState{emChain=bc, emValidationData = vd} txn =
+  if validTx vd txn bc
+    then Just txn
+    else Nothing
 
 liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
@@ -256,9 +258,9 @@ eval = \case
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
     BlockchainActions -> do
         emState <- get
-        processed <- forM (emTxPool emState) validateEm
-        let validated = catMaybes processed
-        let block = validated
+        let processed = validateEm emState <$> emTxPool emState
+            validated = catMaybes processed
+            block = validated
         put emState {
             emChain = block : emChain emState,
             emTxPool = []

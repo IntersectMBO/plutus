@@ -268,7 +268,7 @@ instance Ord Redeemer where
 newtype Height = Height { getHeight :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving newtype (Num, Real, Integral, Serialise)
+    deriving newtype (Num, Real, Integral, Serialise, FromJSON)
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
@@ -549,6 +549,7 @@ data BlockchainState = BlockchainState {
 --   for now we have to construct it at compilation time (in the test suite)
 --   and pass it to the validator.
 newtype ValidationData = ValidationData PlcCode
+  deriving newtype (ToJSON, FromJSON)
 
 instance Show ValidationData where
     show = const "ValidationData { <script> }"
