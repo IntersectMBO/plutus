@@ -1,6 +1,6 @@
 -- | A model of the types involved in transactions. These types are intented to
 --   be used in PLC scripts.
-module Language.Plutus.Runtime.Types (-- * Transactions and related types
+module Wallet.UTXO.Runtime (-- * Transactions and related types
                 PubKey(..)
               , Value
               , Height

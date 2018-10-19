@@ -43,7 +43,6 @@ library
     Language.Plutus.Coordination.Contracts.Vesting
     Language.Plutus.Coordination.Contracts.Swap
     Language.Plutus.Runtime
-    Language.Plutus.Runtime.Types
     Language.Plutus.Runtime.TH
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
