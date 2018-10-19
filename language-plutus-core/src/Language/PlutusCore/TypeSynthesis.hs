@@ -386,7 +386,7 @@ normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
         -- a -> b and an assignment b -> c which is locally valid but in
         -- a smaller scope than a -> b.
         Just ty'@(NormalizedType TyVar{}) -> pure ty'
-        Just ty'                          -> traverse cloneType ty'
+        Just ty'                          -> traverse alphaRename ty'
         Nothing                           -> pure $ NormalizedType ty
 
 normalizeType ty@TyInt{}     = pure $ NormalizedType ty

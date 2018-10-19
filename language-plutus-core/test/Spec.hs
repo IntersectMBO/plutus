@@ -3,6 +3,7 @@
 module Main ( main
             ) where
 
+import           Codec.Serialise
 import           Control.Monad
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
@@ -70,7 +71,8 @@ compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 propCBOR :: Property
 propCBOR = property $ do
     prog <- forAll genProgram
-    let trip = readProgram . writeProgram
+    let
+        trip = deserialiseOrFail . serialise
         compared = (==) <$> trip (void prog) <*> pure (void prog)
     Hedgehog.assert (fromRight False compared)
 

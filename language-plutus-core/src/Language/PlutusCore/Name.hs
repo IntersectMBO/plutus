@@ -8,6 +8,7 @@
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
                                 , Unique (..)
+                                , HasUnique (..)
                                 , Name (..)
                                 , TyName (..)
                                 -- * Functions
@@ -31,6 +32,7 @@ import qualified Data.Map                   as M
 import           Data.Text.Encoding         (decodeUtf8)
 import           Instances.TH.Lift          ()
 import           Language.Haskell.TH.Syntax (Lift)
+import           Lens.Micro
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
@@ -75,6 +77,20 @@ identifierStateFrom u = (mempty, mempty, u)
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, Ord, Lift)
     deriving newtype (NFData)
+
+-- | Types which have a 'Unique' attached to them, mostly names.
+class HasUnique a where
+    unique :: Lens' a Unique
+
+instance HasUnique (Name a) where
+    unique = lens g s where
+        g = nameUnique
+        s n u = n{nameUnique=u}
+
+instance HasUnique (TyName a) where
+    unique = lens g s where
+        g (TyName n) = n ^. unique
+        s (TyName n) u = TyName (n & unique .~ u)
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast

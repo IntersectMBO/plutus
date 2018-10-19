@@ -47,6 +47,8 @@ module Language.PlutusCore
     , TypeState (..)
     , RenamedType
     , RenamedTerm
+    , alphaRename
+    , globalRename
     -- * Normalization
     , check
     , checkProgram
@@ -77,11 +79,6 @@ module Language.PlutusCore
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
-    -- * Serialization
-    , encodeProgram
-    , decodeProgram
-    , readProgram
-    , writeProgram
     -- * Errors
     , InternalError (..)
     , Error (..)
@@ -117,7 +114,8 @@ import           Control.Monad.State
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.CBOR                 ()
+import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
@@ -169,7 +167,7 @@ parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ run
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
-parseTypecheck gas = typecheckPipeline gas <=< parseProgram
+parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())

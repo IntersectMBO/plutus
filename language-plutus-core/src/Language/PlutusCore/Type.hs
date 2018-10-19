@@ -46,6 +46,7 @@ import           Instances.TH.Lift                  ()
 import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
+import           Lens.Micro
 import           PlutusPrelude
 
 type Size = Natural
@@ -191,7 +192,7 @@ data TermF tyname name a x = VarF a (name a)
                            | UnwrapF a x
                            | WrapF a (tyname a) (Type tyname a) x
                            | ErrorF a (Type tyname a)
-                           deriving (Functor)
+                           deriving (Functor, Traversable, Foldable)
 
 type instance Base (Term tyname name a) = TermF tyname name a
 
@@ -247,10 +248,20 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Show, Eq, Functor, Generic)
     deriving newtype NFData
 
+instance HasUnique (NameWithType a) where
+    unique = lens g s where
+        g (NameWithType n) = n ^. unique
+        s (NameWithType n) u = NameWithType (n & unique .~ u)
+
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
+
+instance HasUnique (TyNameWithKind a) where
+    unique = lens g s where
+        g (TyNameWithKind n) = n ^. unique
+        s (TyNameWithKind n) u = TyNameWithKind (n & unique .~ u)
 
 newtype Normalized a = Normalized { getNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
