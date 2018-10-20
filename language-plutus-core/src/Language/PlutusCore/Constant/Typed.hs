@@ -156,7 +156,7 @@ data DynamicBuiltinNameDefinition =
 -- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
 newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
-    } deriving (Monoid)
+    } deriving (Semigroup, Monoid)
 
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
