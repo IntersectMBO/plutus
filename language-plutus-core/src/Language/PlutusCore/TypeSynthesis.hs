@@ -36,7 +36,7 @@ import           PlutusPrelude
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
     { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Quote (Type TyName ()))
-    } deriving (Monoid)
+    } deriving (Semigroup, Monoid)
 
 -- | Configuration of the type checker.
 data TypeConfig = TypeConfig
