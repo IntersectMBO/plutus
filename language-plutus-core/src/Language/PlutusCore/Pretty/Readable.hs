@@ -214,7 +214,8 @@ instance PrettyBy (PrettyConfigReadable configName) (Constant a) where
         BuiltinInt _ size int -> pretty size <> "!" <> pretty int
         BuiltinSize _ size    -> pretty size
         BuiltinBS _ size bs   -> pretty size <> "!" <> prettyBytes bs
-        BuiltinName _ name    -> pretty name
+        BuiltinName    _ name -> pretty name
+        DynBuiltinName _ name -> pretty name
 
 instance PrettyReadableBy configName (tyname a) =>
         PrettyBy (PrettyConfigReadable configName) (Type tyname a) where

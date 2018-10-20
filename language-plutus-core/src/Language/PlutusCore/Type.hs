@@ -14,6 +14,8 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Program (..)
                                 , Constant (..)
                                 , BuiltinName (..)
+                                , DynamicBuiltinName (..)
+                                , StagedBuiltinName (..)
                                 , TypeBuiltin (..)
                                 , Size
                                 -- * Base functors
@@ -165,6 +167,7 @@ data Constant a = BuiltinInt a Natural Integer
                 | BuiltinBS a Natural BSL.ByteString
                 | BuiltinSize a Natural
                 | BuiltinName a BuiltinName
+                | DynBuiltinName a DynamicBuiltinName
                 deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
 -- TODO make this parametric in tyname as well

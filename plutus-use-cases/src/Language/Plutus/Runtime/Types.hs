@@ -63,7 +63,7 @@ newtype Signed a = Signed (PubKey, a)
 
 -- | Ada value
 --
--- TODO: Use [[Wallet.UTXO.Value]] when Integer is supported
+-- TODO: Use [[Wallet.UTXO.Types.Value]] when Integer is supported
 type Value = Int
 
 type Hash = Int

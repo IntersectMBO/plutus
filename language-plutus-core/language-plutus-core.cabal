@@ -89,8 +89,8 @@ library
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
     default-language: Haskell2010
-    default-extensions: ScopedTypeVariables
-                        FlexibleContexts DeriveGeneric StandaloneDeriving DeriveLift
+    default-extensions: ScopedTypeVariables FlexibleContexts
+                        DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable
     other-extensions: DeriveAnyClass FlexibleInstances
@@ -101,6 +101,7 @@ library
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+                 -Wnoncanonical-monoid-instances
     build-depends:
         base >=4.9 && <5,
         bytestring -any,

@@ -23,6 +23,8 @@ module Language.PlutusCore
     , Size
     , Value
     , BuiltinName (..)
+    , DynamicBuiltinName (..)
+    , StagedBuiltinName (..)
     , TypeBuiltin (..)
     , defaultVersion
     , allBuiltinNames
@@ -59,12 +61,16 @@ module Language.PlutusCore
     , typecheckProgram
     , typecheckTerm
     , kindCheck
+    , dynamicBuiltinNameMeaningsToTypes
     , fileType
     , fileNormalizeType
     , fileTypeCfg
     , printType
     , printNormalizeType
+    , InternalTypeError (..)
     , TypeError (..)
+    , TypeConfig (..)
+    , DynamicBuiltinNameTypes (..)
     , TypeCheckCfg (..)
     , TypeCheckM
     , parseTypecheck
@@ -76,6 +82,7 @@ module Language.PlutusCore
     -- * Errors
     , Error (..)
     , IsError (..)
+    , UnknownDynamicBuiltinNameError (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -147,8 +154,10 @@ printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
-printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$>
-    (typecheckProgram (TypeCheckCfg 1000 norm) <=< annotateProgram <=< (liftEither . convertError . parseScoped)) bs
+printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
+    scoped <- liftEither . convertError . parseScoped $ bs
+    annotated <- annotateProgram scoped
+    typecheckProgram (TypeCheckCfg 1000 $ TypeConfig norm mempty) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -163,7 +172,7 @@ parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline gas p = do
     checkProgram p
-    typecheckProgram (TypeCheckCfg gas False) =<< annotateProgram p
+    typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty) =<< annotateProgram p
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs

@@ -87,7 +87,7 @@ main = do
             let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
             let evalFn = case mode of
                     CK  -> PLC.runCk
-                    CEK -> PLC.runCek
+                    CEK -> PLC.runCek mempty
             case evalFn .void <$> PLC.parseScoped bsContents of
                 Left e -> do
                     T.putStrLn $ PLC.prettyPlcDefText e

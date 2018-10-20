@@ -8,6 +8,7 @@
 module Language.PlutusCore.Evaluation.Result
     ( EvaluationResult(..)
     , evaluationResultToMaybe
+    , maybeToEvaluationResult
     ) where
 
 import           Language.PlutusCore.Name
@@ -28,3 +29,8 @@ instance PrettyBy config (Value TyName Name ()) => PrettyBy config EvaluationRes
 evaluationResultToMaybe :: EvaluationResult -> Maybe (Value TyName Name ())
 evaluationResultToMaybe (EvaluationSuccess res) = Just res
 evaluationResultToMaybe EvaluationFailure       = Nothing
+
+-- | Map 'Just' to 'EvaluationSuccess' and 'Nothing' to 'EvaluationFailure'.
+maybeToEvaluationResult :: Maybe (Value TyName Name ()) -> EvaluationResult
+maybeToEvaluationResult (Just res) = EvaluationSuccess res
+maybeToEvaluationResult Nothing    = EvaluationFailure

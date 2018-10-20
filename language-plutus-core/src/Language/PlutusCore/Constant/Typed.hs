@@ -15,6 +15,9 @@ module Language.PlutusCore.Constant.Typed
     , TypedBuiltinValue(..)
     , TypeScheme(..)
     , TypedBuiltinName(..)
+    , DynamicBuiltinNameMeaning(..)
+    , DynamicBuiltinNameDefinition(..)
+    , DynamicBuiltinNameMeanings(..)
     , flattenSizeEntry
     , eraseTypedBuiltinSized
     , mapSizeEntryTypedBuiltin
@@ -26,6 +29,8 @@ module Language.PlutusCore.Constant.Typed
     , typeSchemeResult
     , typedBuiltinToType
     , typeSchemeToType
+    , dynamicBuiltinNameMeaningToType
+    , insertDynamicBuiltinNameDefinition
     , withTypedBuiltinName
     , typeOfTypedBuiltinName
     , typeOfBuiltinName
@@ -62,6 +67,8 @@ import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy.Char8           as BSL
 import           Data.GADT.Compare
+import           Data.Map                             (Map)
+import qualified Data.Map                             as Map
 import qualified Data.Text.Encoding                   as Text
 
 infixr 9 `TypeSchemeArrow`
@@ -77,6 +84,7 @@ data BuiltinSized
 data TypedBuiltinSized a where
     TypedBuiltinSizedInt  :: TypedBuiltinSized Integer
     TypedBuiltinSizedBS   :: TypedBuiltinSized BSL.ByteString
+    -- We may actually want to ignore sizes on the Haskell side.
     TypedBuiltinSizedSize :: TypedBuiltinSized Size
 
 -- | Type-level sizes.
@@ -122,6 +130,33 @@ data TypeScheme size a r where
 data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeScheme size a r)
 -- I attempted to unify various typed things, but sometimes type variables must be universally
 -- quantified, sometimes they must be existentially quatified. And those are distinct type variables.
+
+{- Note [DynamicBuiltinNameMeaning]
+We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
+We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
+well-typedness to avoid using 'unsafeCoerce' and similar junk, while the denotation is what
+actually computes. We do not need denotations for type checking, nor strongly typed 'TypeScheme'
+is required, however analogously to static built-ins, we compute the types of dynamic built-ins from
+their 'TypeScheme's. This way we only define a 'TypeScheme', which we anyway need, and then compute
+the corresponding 'Type' from it. And we can't go the other way around -- from untyped to typed --
+of course. Therefore a typed thing has to go before the corresponding untyped thing and in the
+final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
+-}
+
+-- | The meaning of of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
+-- and its Haskell denotation.
+data DynamicBuiltinNameMeaning =
+    forall a r. DynamicBuiltinNameMeaning (forall size. TypeScheme size a r) a
+-- See the [DynamicBuiltinNameMeaning] note.
+
+-- | The definition of a dynamic built-in consists of its name and meaning.
+data DynamicBuiltinNameDefinition =
+    DynamicBuiltinNameDefinition DynamicBuiltinName DynamicBuiltinNameMeaning
+
+-- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
+newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
+    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
+    } deriving (Semigroup, Monoid)
 
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
@@ -250,6 +285,18 @@ typeSchemeToType = go 0 where
                 freshTyName () "s"
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a
+
+-- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
+-- convert it to the corresponding 'Type'.
+dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Quote (Type TyName ())
+dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
+
+-- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
+insertDynamicBuiltinNameDefinition
+    :: DynamicBuiltinNameDefinition -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
+insertDynamicBuiltinNameDefinition
+    (DynamicBuiltinNameDefinition name mean) (DynamicBuiltinNameMeanings nameMeans) =
+        DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c

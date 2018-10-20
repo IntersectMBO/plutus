@@ -8,7 +8,7 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -130,17 +130,23 @@ instance Serialise (tyname ()) => Serialise (Type tyname ()) where
               go 7 = TyApp () <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
+instance Serialise DynamicBuiltinName where
+    encode (DynamicBuiltinName name) = encode name
+    decode = DynamicBuiltinName <$> decode
+
 instance Serialise (Constant ()) where
-    encode (BuiltinInt _ n i) = fold [ encodeTag 0, encode n, encodeInteger i ]
-    encode (BuiltinBS _ n bs) = fold [ encodeTag 1, encode n, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinSize _ n)  = encodeTag 2 <> encode n
-    encode (BuiltinName _ bn) = encodeTag 3 <> encode bn
+    encode (BuiltinInt _ n i)     = fold [ encodeTag 0, encode n, encodeInteger i ]
+    encode (BuiltinBS _ n bs)     = fold [ encodeTag 1, encode n, encodeBytes (BSL.toStrict bs) ]
+    encode (BuiltinSize _ n)      = encodeTag 2 <> encode n
+    encode (BuiltinName _ bn)     = encodeTag 3 <> encode bn
+    encode (DynBuiltinName _ dbn) = encodeTag 4 <> encode dbn
 
     decode = go =<< decodeTag
         where go 0 = BuiltinInt () <$> decode <*> decodeInteger
               go 1 = BuiltinBS () <$> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinSize () <$> decode
               go 3 = BuiltinName () <$> decode
+              go 4 = DynBuiltinName () <$> decode
               go _ = fail "Failed to decode Constant ()"
 
 instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname name ()) where
