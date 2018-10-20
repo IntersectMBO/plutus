@@ -55,8 +55,8 @@ isTermValue = isRight . termValue
 
 -- ensure a term is a value
 termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-termValue (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkT t
-termValue (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> termValue t
+termValue (LamAbs l n ty t) = LamAbs l n ty <$> checkT t
+termValue (Wrap l tn ty t)  = Wrap l tn ty <$> termValue t
 termValue (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
 termValue t                 = builtinValue t
 
