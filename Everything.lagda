@@ -4,7 +4,7 @@ module Everything where
 -- Types
 import Type
 import Type.RenamingSubstitution
---import Type.Reduction
+import Type.Reduction
 import Type.Equality
 import Type.BetaNormal
 

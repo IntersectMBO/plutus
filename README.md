@@ -150,7 +150,7 @@ types.
 module contains the definition of terms. This module has two further submodules:
 
    1. [TermIndexedByNormalType.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/TermIndexedByNormalType.Term.RenamingSubstitution.html)
-      contains the defintions of substitution for terms that is
+      contains the definitions of substitution for terms that is
       necessary to specify the beta-rules in the reduction
       relation. This definition and those it depends on, in turn,
       depend on the definitions and correctness proofs of the
