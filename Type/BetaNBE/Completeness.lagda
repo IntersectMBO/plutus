@@ -331,7 +331,6 @@ fund : ∀{Γ Δ K}{η η' : Env Γ Δ}
 fund p (refl≡β A) = idext p A
 fund p (sym≡β q) = symPER _ (fund (symPER _ ∘ p) q)
 fund p (trans≡β q r) = transPER _ (fund (reflPER _ ∘ p) q) (fund p r)
-fund p `≡β = p _
 fund p (⇒≡β q r) = cong₂ _⇒_ (fund p q) (fund p r)
 fund p (Π≡β q) = cong Π (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) q)
 fund p (ƛ≡β {B = B}{B' = B'} q) =
