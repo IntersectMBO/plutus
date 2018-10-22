@@ -51,7 +51,8 @@ Let `Φ`, `Ψ` range over type contexts.
 
 ## Type variables
 
-A type variable is indexed by its context and kind.
+A type variable is indexed by its context and kind. For a given
+context, it's impossible to construct a variable that is out of scope.
 
 \begin{code}
 data _∋⋆_ : Ctx⋆ → Kind → Set where
@@ -70,8 +71,13 @@ Let `α`, `β` range over type variables.
 
 ## Types
 
-A type is indexed by its context and kind.  A type is either a type
-variable, a pi type, or a function type.
+A type is indexed by its context and kind. Types are intrinsically
+scoped and kinded: it's impossible to construct an ill-kinded
+application and it's impossible to refer to a variable that is not in
+scope.
+
+A type is either a type variable, a pi type, a function type, a
+lambda, an application, or a recursive type.
 
 \begin{code}
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
