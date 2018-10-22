@@ -2,6 +2,12 @@
 module Type.Equality where
 \end{code}
 
+## Fixity
+
+\begin{code}
+infix  1 _≡β_
+\end{code}
+
 ## Imports
 
 \begin{code}
@@ -45,7 +51,7 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
 
   -- congruence rules
 
-  -- no variable rule is needed
+  -- (no variable rule is needed)
  
   ⇒≡β : {A A' B B' : Γ ⊢⋆ *}
     → A ≡β A'
@@ -67,20 +73,24 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
     → A ≡β A'
     → B ≡β B'
       --------------------
-    → (A · B) ≡β (A' · B')
+    → A · B ≡β A' · B'
     
   μ≡β : ∀{K}{B B' : Γ ,⋆ K ⊢⋆ K}
     → B ≡β B'
       ---------------
     → μ B ≡β μ B'
 
-  -- computation rules
+  -- computation rule
 
-  β≡β : ∀{K J}{B : Γ ,⋆ J ⊢⋆ K}{A : Γ ⊢⋆ J}
+  β≡β : ∀{K J}
+    → (B : Γ ,⋆ J ⊢⋆ K)
+    → (A : Γ ⊢⋆ J)
       ------------------------
-    → ((ƛ B) · A) ≡β (B [ A ])
+    → ƛ B · A ≡β B [ A ]
     
 \end{code}
+
+Let `p` and `q` range over proofs of type equality.
 
 ## Renaming for proofs of type equality
 
@@ -98,12 +108,12 @@ rename≡β ρ (Π≡β p)       = Π≡β (rename≡β (ext ρ) p)
 rename≡β ρ (ƛ≡β p)       = ƛ≡β (rename≡β (ext ρ) p)
 rename≡β ρ (·≡β p q)     = ·≡β (rename≡β ρ p) (rename≡β ρ q)
 rename≡β ρ (μ≡β p)       = μ≡β (rename≡β (ext ρ) p)
-rename≡β ρ (β≡β {B = B}{A = A}) =
+rename≡β ρ (β≡β B A)     =
   substEq (rename ρ ((ƛ B) · A) ≡β_)
           (trans (sym (subst-rename (ext ρ) (subst-cons ` (rename ρ A)) B))
                  (trans (subst-cong _ _ (rename-subst-cons ρ A) B)
                         (rename-subst (subst-cons ` A) ρ B)))
-         β≡β
+         (β≡β _ _)
 \end{code}
 
 ## Substitution for proofs of type equality
@@ -122,7 +132,7 @@ subst≡β σ (Π≡β p)       = Π≡β (subst≡β (exts σ) p)
 subst≡β σ (ƛ≡β p)       = ƛ≡β (subst≡β (exts σ) p)
 subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
 subst≡β σ (μ≡β p)       = μ≡β (subst≡β (exts σ) p)
-subst≡β σ (β≡β {B = B}{A = A}) =
+subst≡β σ (β≡β B A)     =
   substEq (subst σ ((ƛ B) · A) ≡β_)
           (trans (trans (sym (subst-comp (exts σ)
                                          (subst-cons ` (subst σ A))
@@ -131,5 +141,5 @@ subst≡β σ (β≡β {B = B}{A = A}) =
                                     _
                                     (subst-subst-cons σ A) B))
           (subst-comp (subst-cons ` A) σ B))
-          β≡β
+          (β≡β _ _)
 \end{code}

@@ -23,7 +23,7 @@ R : ∀{Γ} K → Γ ⊢⋆ K → Val Γ K → Set
 R size    t v = t ≡β embNf (readback v)
 R *       t v = t ≡β embNf (readback v)
 R (K ⇒ J) t (inj₁ n) = t ≡β embNeN n
-R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → t ≡β ƛ t' × ∀{Δ}(ρ : Ren _ Δ){u : Δ ⊢⋆ K}{v : Val Δ K}
+R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → (t ≡β ƛ t') × ∀{Δ}(ρ : Ren _ Δ){u : Δ ⊢⋆ K}{v : Val Δ K}
   → R K u v  → R J (rename ρ (ƛ t') · u) (renval ρ (inj₂ f) ·V v)
 \end{code}
 
@@ -46,7 +46,7 @@ sreify {K = K ⇒ J} {t} {inj₂ f} (t' , p , q) =
                      (trans (sym (subst-rename (ext S) (subst-cons ` (` Z)) t'))
                             (trans (subst-cong _ _ (λ { Z → refl ; (S x) → refl}) t')
                                    (subst-id t')))
-                     (ƛ≡β (trans≡β (sym≡β β≡β) (sreify {K = J} (q S (sreflect (refl≡β (` Z))))))))
+                     (ƛ≡β (trans≡β (sym≡β (β≡β _ _)) (sreify {K = J} (q S (sreflect (refl≡β (` Z))))))))
 \end{code}
 
 \begin{code}
@@ -80,7 +80,7 @@ renR ρ {K ⇒ J} {t} {inj₂ f} (t' , p , q) =
   rename≡β ρ p
   ,
   λ ρ' {u}{v} r → substEq (λ t → R J (ƛ t · u) (f (ρ' ∘ ρ) v))
-                          (trans (rename-cong _ _ (ext-comp ρ ρ') t') (rename-comp (ext ρ) (ext ρ') t'))
+                          (trans (rename-cong ext-comp t') (rename-comp _ _ t'))
                           (q (ρ' ∘ ρ) r)
 \end{code}
 
@@ -132,7 +132,7 @@ RApp : ∀{Γ K J}
 RApp {t = t} {inj₁ n} p {u} {v} q = sreflect (·≡β (sreflect p) (sreify q))
 RApp {t = t} {inj₂ f} (t' , p , q) {u} {v} r =
   substR (·≡β (substEq (λ t' → t ≡β ƛ t')
-                       (trans (sym (rename-id t')) (rename-cong _ _ (sym ∘ ext-id) t'))
+                       (trans (sym (rename-id t')) (rename-cong (sym ∘ ext-id) t'))
                        p)
               (refl≡β u))
          (q id r)
@@ -151,7 +151,7 @@ sfund {K = K ⇒ J} (ƛ B){σ}{η} p =
   refl≡β _
   ,
   λ ρ {u}{v} q → substR
-    β≡β
+    (β≡β _ _)
     (substEq (λ t → R J t (eval B ((renval ρ ∘ η) ,,⋆ v)))
              (trans (trans (subst-cong _
                                        _

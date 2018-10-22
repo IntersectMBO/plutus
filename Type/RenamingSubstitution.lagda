@@ -5,28 +5,26 @@ module Type.RenamingSubstitution where
 ## Imports
 
 \begin{code}
+open import Type
+
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-
-open import Type
 \end{code}
-
-\begin{code}
-Ren : Ctx⋆ → Ctx⋆ → Set
-Ren Δ Γ = ∀{J} → Δ ∋⋆ J → Γ ∋⋆ J
-
-Sub : Ctx⋆ → Ctx⋆ → Set
-Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
-\end{code}
-
-Let `A`, `B`, `C` range over types.
 
 ## Type renaming
 
 A type renaming is a mapping of type variables to type variables.
 
+\begin{code}
+Ren : Ctx⋆ → Ctx⋆ → Set
+Ren Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J
+\end{code}
+
+Let `ρ` range of renamings.
+
 Extending a type renaming — used when going under a binder.
+
 \begin{code}
 ext : ∀ {Φ Ψ} → (∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     ------------------------------------------
@@ -38,15 +36,15 @@ ext ρ (S α)  =  S (ρ α)
 Apply a type renaming to a type.
 \begin{code}
 rename : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ----------------------------
-  → (∀ {J} → Φ ⊢⋆ J → Ψ ⊢⋆ J)
-rename ρ (` α)    =  ` (ρ α)
-rename ρ (Π B)    =  Π (rename (ext ρ) B)
-rename ρ (A ⇒ B)  =  rename ρ A ⇒ rename ρ B
+  → Ren Φ Ψ
+    -----------------------
+  → ∀ {J} → Φ ⊢⋆ J → Ψ ⊢⋆ J
+rename ρ (` α)    = ` (ρ α)
+rename ρ (Π B)    = Π (rename (ext ρ) B)
+rename ρ (A ⇒ B)  = rename ρ A ⇒ rename ρ B
 rename ρ (ƛ B)    = ƛ (rename (ext ρ) B)
 rename ρ (A · B)  = rename ρ A · rename ρ B
-rename ρ (μ B)    =  μ (rename (ext ρ) B)
+rename ρ (μ B)    = μ (rename (ext ρ) B)
 \end{code}
 
 Weakening is a special case of renaming.
@@ -61,8 +59,12 @@ weaken = rename S
 ## Renaming proofs
 
 First functor law for ext
+
 \begin{code}
-ext-id :  ∀ {Φ J K} → (x : Φ ,⋆ K ∋⋆ J) → ext id x ≡ x
+ext-id :  ∀ {Φ J K}
+  → (x : Φ ,⋆ K ∋⋆ J)
+    ------------
+  → ext id x ≡ x
 ext-id Z     = refl
 ext-id (S x) = refl
 \end{code}
@@ -73,86 +75,94 @@ renamings/substitutions as we only need a pointwise version of
 equality. If we used the standard library's cong we would need to
 postulate extensionality and our equality proofs wouldn't compute. I
 learnt this from Conor McBride.
+
 \begin{code}
-ext-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+ext-cong : ∀ {Φ Ψ}
+  → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{J K}(x : Φ ,⋆ J ∋⋆ K)
     -------------------
   → ext f x ≡ ext g x
-ext-cong f g p Z     = refl
-ext-cong f g p (S x) = cong S (p x)
+ext-cong p Z     = refl
+ext-cong p (S x) = cong S (p x)
 \end{code}
+
 Congruence lemma for renaming⋆
+
 \begin{code}
-rename-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+rename-cong : ∀ {Φ Ψ}
+  → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢⋆ K)
-    -------------------------
+    -----------------------
   → rename f A ≡ rename g A
-rename-cong f g p (` x)   = cong ` (p x)
-rename-cong f g p (Π A)   =
-  cong Π (rename-cong (ext f) (ext g) (ext-cong f g p) A)
-rename-cong f g p (A ⇒ B) =
-  cong₂ _⇒_ (rename-cong f g p A) (rename-cong f g p B)
-rename-cong f g p (ƛ A)   =
-  cong ƛ (rename-cong (ext f) (ext g) (ext-cong f g p) A)
-rename-cong f g p (A · B) =
-  cong₂ _·_ (rename-cong f g p A) (rename-cong f g p B)
-rename-cong f g p (μ A)   =
-  cong μ (rename-cong (ext f) (ext g) (ext-cong f g p) A)
+rename-cong p (` x)   = cong ` (p x)
+rename-cong p (Π A)   = cong Π (rename-cong (ext-cong p) A)
+rename-cong p (A ⇒ B) = cong₂ _⇒_ (rename-cong p A) (rename-cong p B)
+rename-cong p (ƛ A)   = cong ƛ (rename-cong (ext-cong p) A)
+rename-cong p (A · B) = cong₂ _·_ (rename-cong p A) (rename-cong p B)
+rename-cong p (μ A)   = cong μ (rename-cong (ext-cong p) A)
 \end{code}
 
 First functor law for rename
-\begin{code}
-rename-id : ∀{Φ J}(t : Φ ⊢⋆ J) → rename id t ≡ t
-rename-id (` x)   = refl
-rename-id (Π t)   =
-  cong Π (trans (rename-cong (ext id) id ext-id t) (rename-id t))
-rename-id (t ⇒ u) = cong₂ _⇒_ (rename-id t) (rename-id u)
-rename-id (ƛ t)   =
-  cong ƛ (trans (rename-cong (ext id) id ext-id t) (rename-id t))
-rename-id (t · u) = cong₂ _·_ (rename-id t) (rename-id u)
-rename-id (μ t)   =
-  cong μ (trans (rename-cong (ext id) id ext-id t) (rename-id t))
 
+\begin{code}
+rename-id : ∀{Φ J}
+ → (t : Φ ⊢⋆ J)
+   ---------------
+ → rename id t ≡ t
+rename-id (` x)   = refl
+rename-id (Π t)   = cong Π (trans (rename-cong ext-id t) (rename-id t))
+rename-id (t ⇒ u) = cong₂ _⇒_ (rename-id t) (rename-id u)
+rename-id (ƛ t)   = cong ƛ (trans (rename-cong ext-id t) (rename-id t))
+rename-id (t · u) = cong₂ _·_ (rename-id t) (rename-id u)
+rename-id (μ t)   = cong μ (trans (rename-cong ext-id t) (rename-id t))
 \end{code}
 
 Second functor law for ext
+
 \begin{code}
-ext-comp : ∀{Φ Ψ Θ}(g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)(f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J)
+ext-comp : ∀{Φ Ψ Θ}
+  → {g : Ren Φ Ψ}
+  → {f : Ren Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
-    ----------------------------------
+    -------------------------------
   → ext (f ∘ g) x ≡ ext f (ext g x)
-ext-comp g f Z     = refl
-ext-comp g f (S x) = refl
+ext-comp Z     = refl
+ext-comp (S x) = refl
 \end{code}
 
 Second functor law for renaming⋆
 \begin{code}
 rename-comp : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)(f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J)
+  → (g : Ren Φ Ψ)
+  → (f : Ren Ψ Θ)
   → ∀{J}(A : Φ ⊢⋆ J)
-    -------------------------------------------
+    ----------------------------------------
   → rename (f ∘ g) A ≡ rename f (rename g A)
 rename-comp g f (` x)   = refl
 rename-comp g f (Π A)   =
-  cong Π
-       (trans (rename-cong (ext (f ∘ g)) (ext f ∘ ext g) (ext-comp g f) A)
-              (rename-comp (ext g) (ext f) A))
-rename-comp g f (A ⇒ B) = cong₂ _⇒_ (rename-comp g f A) (rename-comp g f B)
-rename-comp g f (ƛ A) = 
-  cong ƛ
-       (trans (rename-cong (ext (f ∘ g)) (ext f ∘ ext g) (ext-comp g f) A)
-              (rename-comp (ext g) (ext f) A))
-rename-comp g f (A · B) = cong₂ _·_ (rename-comp g f A) (rename-comp g f B)
+  cong Π (trans (rename-cong ext-comp A) (rename-comp _ _ A))
+rename-comp g f (A ⇒ B) =
+  cong₂ _⇒_ (rename-comp g f A) (rename-comp g f B)
+rename-comp g f (ƛ A)   =
+  cong ƛ (trans (rename-cong ext-comp A) (rename-comp _ _ A))
+rename-comp g f (A · B) =
+  cong₂ _·_ (rename-comp g f A) (rename-comp g f B)
 rename-comp g f (μ A)   =
-  cong μ
-       (trans (rename-cong (ext (f ∘ g)) (ext f ∘ ext g) (ext-comp g f) A)
-              (rename-comp (ext g) (ext f) A))
+  cong μ (trans (rename-cong ext-comp A) (rename-comp _ _ A))
 \end{code}
+
 ## Type substitution
 
 A type substitution is a mapping of type variables to types.
+
+\begin{code}
+Sub : Ctx⋆ → Ctx⋆ → Set
+Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
+\end{code}
+
+Let `σ` range over substitutions.
 
 Extending a type substitution — used when going under a binder.
 \begin{code}
@@ -170,12 +180,12 @@ subst : ∀ {Φ Ψ}
   → (∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     -------------------------
   → (∀ {J} → Φ ⊢⋆ J → Ψ ⊢⋆ J)
-subst σ (` α)     =  σ α
-subst σ (Π B)     =  Π (subst (exts σ) B)
-subst σ (A ⇒ B)   =  subst σ A ⇒ subst σ B
-subst σ (ƛ B)     =  ƛ (subst (exts σ) B)
-subst σ (A · B)   =  subst σ A · subst σ B
-subst σ (μ B)     =  μ (subst (exts σ) B)
+subst σ (` α)    = σ α
+subst σ (Π B)    = Π (subst (exts σ) B)
+subst σ (A ⇒ B)  = subst σ A ⇒ subst σ B
+subst σ (ƛ B)    = ƛ (subst (exts σ) B)
+subst σ (A · B)  =  subst σ A · subst σ B
+subst σ (μ B)    =  μ (subst (exts σ) B)
 \end{code}
 
 Extend a substitution with an additional type (analogous to cons for
@@ -190,25 +200,27 @@ subst-cons f A (S x) = f x
 A special case is substitution a type for the outermost free variable.
 \begin{code}
 _[_] : ∀ {Φ J K}
-        → Φ ,⋆ K ⊢⋆ J
-        → Φ ⊢⋆ K 
-          ------
-        → Φ ⊢⋆ J
-_[_] {Φ} {J} {K} B A =  subst (subst-cons ` A) B
+  → Φ ,⋆ K ⊢⋆ J
+  → Φ ⊢⋆ K 
+    ------
+  → Φ ⊢⋆ J
+B [ A ] =  subst (subst-cons ` A) B
 \end{code}
 
 ## Type Substitution Proofs
 
 Extending the identity substitution yields the identity substitution
+
 \begin{code}
 exts-id : ∀ {Φ J K}(x : Φ ,⋆ K ∋⋆ J)
-    ----------------
+    ---------------
   → exts ` x ≡ ` x 
 exts-id Z     = refl
 exts-id (S x) = refl
 \end{code}
 
 Congruence lemma for exts
+
 \begin{code}
 exts-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
@@ -300,8 +312,8 @@ rename-ext-exts : ∀{Φ Ψ Θ}
   exts (rename f ∘ g) x ≡ rename (ext f) (exts g x)
 rename-ext-exts g f Z = refl
 rename-ext-exts g f (S x) =
-  trans (sym (rename-comp f S (g x)))
-        (rename-comp S (ext f) (g x))
+  trans (sym (rename-comp _ _ (g x)))
+        (rename-comp _ _ (g x))
 \end{code}
 
 Fusion for rename and subst

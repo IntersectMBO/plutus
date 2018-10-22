@@ -42,7 +42,7 @@ ext⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ∋ ⋆.rename (⋆.ext ρ⋆) A )
 ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (⋆.rename-comp ρ⋆ S _)) (⋆.rename-comp S (⋆.ext ρ⋆) _))
+          (trans (sym (⋆.rename-comp _ _ _)) (⋆.rename-comp _ _ _))
           (T (ρ x))
 \end{code}
 

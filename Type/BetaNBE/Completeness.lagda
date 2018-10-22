@@ -348,7 +348,7 @@ fund p (ƛ≡β {B = B}{B' = B'} q) =
   λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
 fund p (·≡β q r) = PERApp (fund p q) (fund p r)
 fund p (μ≡β q) = reflect _ (cong μ (reify _ (fund (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) q)))
-fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
+fund p (β≡β B A) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
 \end{code}
 
 \begin{code}
