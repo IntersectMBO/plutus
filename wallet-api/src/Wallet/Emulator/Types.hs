@@ -171,14 +171,14 @@ newtype AssertionError = AssertionError T.Text
     deriving Show
 
 assert :: (MonadEmulator m) => Assertion -> m ()
-assert (IsValidated txn) = isValidated txn
+assert (IsValidated txn)            = isValidated txn
 assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
 
 ownFundsEqual :: (MonadEmulator m) => Wallet -> Value -> m ()
 ownFundsEqual wallet value = do
   es <- get
   ws <- case Map.lookup wallet $ emWalletState es of
-        Nothing -> throwError . AssertionError $ "Wallet not found"
+        Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
   let total = getSum $ foldMap Sum $ walletStateOwnAddresses ws
   if value == total
