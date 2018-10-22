@@ -77,7 +77,9 @@ application and it's impossible to refer to a variable that is not in
 scope.
 
 A type is either a type variable, a pi type, a function type, a
-lambda, an application, or a recursive type.
+lambda, an application, or an iso-recursive type `μ`. Note that
+recursive types range over an arbitrary kind `k` which goes beyond
+standard iso-recursive types.
 
 \begin{code}
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
@@ -115,3 +117,5 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → φ ⊢⋆ K
 
 \end{code}
+
+Let `A`, `B`, `C` range over types.
