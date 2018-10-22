@@ -14,7 +14,10 @@ module Wallet.UTXO.Index(
     runValidation,
     lookupRef,
     ValidationError(..),
-    validateTransaction
+    validateTransaction,
+    lkpValue,
+    lkpSigs,
+    lkpTxOut
     ) where
 
 import           Control.Monad.Except (MonadError (..), liftEither)
@@ -26,7 +29,7 @@ import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
 import           Prelude              hiding (lookup)
 import           Wallet.UTXO.Types    (Blockchain, DataScript, PubKey, Signature, Tx (..), TxIn (..), TxIn', TxOut (..),
-                                       TxOut', TxOutRef', ValidationData, Value, unspentOutputs, updateUtxo,
+                                       TxOut', TxOutRef', ValidationData, Value, updateUtxo,
                                        validValuesTx)
 import qualified Wallet.UTXO.Types    as UTXO
 
@@ -35,7 +38,7 @@ import qualified Wallet.UTXO.Types    as UTXO
 type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The transactions of a blockchain indexed by hash
-newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef' TxOut' }
+newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef' (TxOut', [Signature]) }
     deriving (Eq, Ord, Show, Semigroup)
 
 -- | An empty [[UtxoIndex]]
@@ -44,7 +47,7 @@ empty = UtxoIndex Map.empty
 
 -- | Create an index of all transactions on the chain
 initialise :: Blockchain -> UtxoIndex
-initialise = UtxoIndex . unspentOutputs
+initialise = UtxoIndex . UTXO.unspentOutputsAndSigs
 
 -- | Add a transaction to the index
 insert :: Tx -> UtxoIndex -> UtxoIndex
@@ -55,7 +58,7 @@ insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
 insertBlock blck i = foldl' (flip insert) i blck
 
 -- | Find an unspent transaction output by the `TxOutRef'` that spends it.
-lookup :: TxOutRef' -> UtxoIndex -> Either ValidationError TxOut'
+lookup :: TxOutRef' -> UtxoIndex -> Either ValidationError (TxOut', [Signature])
 lookup i =
     maybe (Left $ TxOutRefNotFound i) Right . Map.lookup i . getIndex
 
@@ -83,18 +86,26 @@ newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either
 -- | Find an unspent transaction output by its reference. Assumes that the
 --   output for this reference exists. If you want to handle the lookup error
 --   you can use `runLookup`.
-lookupRef :: ValidationMonad m => TxOutRef' -> m TxOut'
+lookupRef :: ValidationMonad m => TxOutRef' -> m (TxOut', [Signature])
 lookupRef t = liftEither  . lookup t =<< ask
 
 -- | Run a `Validation` on a `UtxoIndex`
 runValidation :: Validation a -> UtxoIndex -> Either ValidationError a
 runValidation l = runReaderT (_runValidation l)
 
--- | Determine the unspent value that an input refers to
-value :: ValidationMonad m => TxOutRef' -> m Value
-value o = txOutValue <$> lookupRef o
+-- | Determine the unspent value that a [[TxOutRef']] refers to
+lkpValue :: ValidationMonad m => TxOutRef' -> m Value
+lkpValue = fmap txOutValue . lkpTxOut
 
--- | Validate a transaction in a `UtxoLookup` context.
+-- | Determine the signatures of the transaction that [[TxOutRef']] refers to.
+lkpSigs :: ValidationMonad m => TxOutRef' -> m [Signature]
+lkpSigs o = snd <$> lookupRef o
+
+-- | Determine the transaction output that a [[TxOutRef']] refers to
+lkpTxOut :: ValidationMonad m => TxOutRef' -> m TxOut'
+lkpTxOut o = fst <$> lookupRef o
+
+-- | Validate a transaction in a `ValidationMonad` context.
 --
 --   This does the same as `Wallet.UTXO.Types.validTx`, but more efficiently as
 --   it doesn't compute the UTXO of a blockchain from scratch.
@@ -114,7 +125,7 @@ checkValidInputs v = traverse_ (checkValidInput v) . Set.toList . txInputs
 
 -- | Validate a single transaction input
 checkValidInput :: ValidationMonad m => ValidationData -> TxIn' -> m ()
-checkValidInput v i = (lookupRef $ txInRef i) >>= checkInputOutput v i
+checkValidInput v i = (lkpTxOut $ txInRef i) >>= checkInputOutput v i
 
 -- | Check that a transaction output can be spent by a transaction input
 checkInputOutput :: ValidationMonad m => ValidationData -> TxIn' -> TxOut' -> m ()
@@ -137,7 +148,7 @@ checkInputOutput bs i txo =
 --   it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- (txForge t +) <$> fmap (getSum . foldMap Sum) (traverse (value . txInRef) (Set.toList $ txInputs t))
+    inVal <- (txForge t +) <$> fmap (getSum . foldMap Sum) (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
     let outVal = txFee t + sum (map txOutValue (txOutputs t))
     if outVal == inVal
     then pure ()

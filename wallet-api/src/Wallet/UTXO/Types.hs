@@ -68,6 +68,7 @@ module Wallet.UTXO.Types(
     unspentOutputsTx,
     spentOutputs,
     unspentOutputs,
+    unspentOutputsAndSigs,
     updateUtxo,
     validTx,
     txOutPubKey,
@@ -542,13 +543,18 @@ spentOutputs = Set.map txInRef . txInputs
 
 -- | Unspent outputs of a ledger.
 unspentOutputs :: Blockchain -> Map TxOutRef' TxOut'
-unspentOutputs = foldr updateUtxo Map.empty . join
+unspentOutputs = Map.map fst . unspentOutputsAndSigs
 
--- | Update a map of unspent transaction outputs with the inputs and outputs of
---   a transaction.
-updateUtxo :: Tx -> Map TxOutRef' TxOut' -> Map TxOutRef' TxOut'
-updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` unspentOutputsTx t where
+-- | Unspent outputs, paired with signatures of their transactions, of a ledger
+unspentOutputsAndSigs :: Blockchain -> Map TxOutRef' (TxOut', [Signature])
+unspentOutputsAndSigs = foldr updateUtxo Map.empty . join
+
+-- | Update a map of unspent transaction outputs and sigantures with the inputs
+--   and outputs of a transaction.
+updateUtxo :: Tx -> Map TxOutRef' (TxOut', [Signature]) -> Map TxOutRef' (TxOut', [Signature])
+updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
+    outs = Map.map (,txSignatures t) $ unspentOutputsTx t
 
 -- | Ledger and transaction state available to both the validator and redeemer
 --   scripts
