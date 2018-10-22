@@ -15,6 +15,7 @@ open import Relation.Binary.PropositionalEquality
 ## Values
 
 \begin{code}
+data Neutral⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}
@@ -22,40 +23,72 @@ data Value⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ (Π N)
 
   _V-⇒_ : ∀ {Φ} {S : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
-    → Value⋆ S
-    → Value⋆ T
-      -----------------------------------
+       -----------------------------------
     → Value⋆ (S ⇒ T)
 
   V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
       ----------------------------
     → Value⋆ (ƛ N)
 
-  V-μ_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ K}
+  N- : ∀ {Φ K} {N : Φ ⊢⋆ K}
+    → Neutral⋆ N
+    → Value⋆ N 
+
+-- as we only prove progress in the empty context we have no stuck
+-- applications of a variable to an argument outside of a
+-- binder. However, due to allowing μ to appear at arbitrary kind we
+-- can have terms such as "μ X · Y" which are stuck and hence we
+-- introduce neutral terms.
+
+data Neutral⋆ where
+  N-μ_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ K}
       ----------------------------
-    → Value⋆ (μ N)
+    → Neutral⋆ (μ N)
+    
+  N-· :  ∀ {Φ K J} {N : Φ ⊢⋆ K ⇒ J}{V : Φ ⊢⋆ K}
+   → Neutral⋆ N
+   → Value⋆ V
+   → Neutral⋆ (N · V)
 \end{code}
 
+
+
 \begin{code}
+renameNeutral⋆ : ∀ {Φ Ψ}
+  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+    ----------------------------
+  → ∀ {J}{A : Φ ⊢⋆ J} → Neutral⋆ A → Neutral⋆ (rename ρ A)
+
 renameValue⋆ : ∀ {Φ Ψ}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     ----------------------------
   → ∀ {J}{A : Φ ⊢⋆ J} → Value⋆ A → Value⋆ (rename ρ A)
 renameValue⋆ ρ V-Π_  = V-Π_
-renameValue⋆ ρ (p V-⇒ q) = renameValue⋆ ρ p V-⇒ renameValue⋆ ρ q
+renameValue⋆ ρ _V-⇒_ = _V-⇒_
 renameValue⋆ ρ V-ƛ_  = V-ƛ_
-renameValue⋆ ρ V-μ_  = V-μ_
+renameValue⋆ ρ (N- N) = N- (renameNeutral⋆ ρ N)
+
+renameNeutral⋆ ρ N-μ_ = N-μ_
+renameNeutral⋆ ρ (N-· N V) = N-· (renameNeutral⋆ ρ N) (renameValue⋆ ρ V)
 \end{code}
 
 \begin{code}
+substNeutral⋆ : ∀ {Φ Ψ}
+  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+    ----------------------------
+  → ∀ {J}{A : Φ ⊢⋆ J} → Neutral⋆ A → Neutral⋆ (subst σ A)
+
 substValue⋆ : ∀ {Φ Ψ}
   → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ----------------------------
   → ∀ {J}{A : Φ ⊢⋆ J} → Value⋆ A → Value⋆ (subst σ A)
 substValue⋆ σ V-Π_  = V-Π_
-substValue⋆ σ (p V-⇒ q) = substValue⋆ σ p V-⇒ substValue⋆ σ q
+substValue⋆ σ _V-⇒_ = _V-⇒_
 substValue⋆ σ V-ƛ_   = V-ƛ_
-substValue⋆ σ V-μ_   = V-μ_
+substValue⋆ σ (N- N) = N- (substNeutral⋆ σ N)
+
+substNeutral⋆ σ N-μ_ = N-μ_
+substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
 \end{code}
 
 ## Intrinsically Kind Preserving Type Reduction
@@ -182,26 +215,9 @@ data Progress⋆ {K} (M : ∅ ⊢⋆ K) : Set where
 open import Data.Product
 open import Data.Sum
 
-progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Value⋆ M ⊎ Σ (∅ ⊢⋆ K) λ M' → M —→⋆ M'  
-progress⋆ (` ())
-progress⋆ (Π M)   = inj₁ V-Π_
-progress⋆ (M ⇒ N) with progress⋆ M
-progress⋆ (M ⇒ N) | inj₁ VM with progress⋆ N
-progress⋆ (M ⇒ N) | inj₁ VM | inj₁ VN = inj₁ (VM V-⇒ VN)
-progress⋆ (M ⇒ N) | inj₁ VM | inj₂ (N' , p) = inj₂ (M ⇒ N' , ξ-⇒₂ VM p)
-progress⋆ (M ⇒ N) | inj₂ (M' , p) = inj₂ (M' ⇒ N , ξ-⇒₁ p)
-progress⋆ (ƛ M)   = inj₁ V-ƛ_
-progress⋆ (M · N) with progress⋆ M
-progress⋆ (M · N) | inj₁ vM with progress⋆ N
-progress⋆ (.(ƛ _) · N) | inj₁ (V-ƛ_ {N = M}) | inj₁ vN =
-  inj₂ ((M [ N ]) , (β-ƛ vN))
-progress⋆ (M · N) | inj₁ vM | inj₂ (N' , p) = inj₂ (M · N'  , ξ-·₂ vM p)
-progress⋆ (M · N) | inj₂ (M' , p)  = inj₂ (M' · N , (ξ-·₁ p))
-progress⋆ (μ M)   = inj₁ V-μ_
-
-{-
 progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` ())
+progress⋆ (μ M)   = done (N- N-μ_)
 progress⋆ (Π M)   = done V-Π_
 progress⋆ (M ⇒ N) = done _V-⇒_
 progress⋆ (ƛ M)   = done V-ƛ_
@@ -210,6 +226,5 @@ progress⋆ (M · N)  with progress⋆ M
 ...                    | done vM with progress⋆ N
 ...                                | step p = step (ξ-·₂ vM p)
 progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step (β-ƛ vN)
-progress⋆ (μ M)   = done V-μ_
--}
+progress⋆ (M · N) | done (N- {∅} {K ⇒ K₁} x₁) | done x = done (N- (N-· x₁ x))
 \end{code}
