@@ -2,3 +2,4 @@ Error: Used but not defined in the current conversion: Variable: &&
 Context: Converting expr: &&
 Context: Converting expr: && True
 Context: Converting expr: && True False
+Context: Converting expr at "free"

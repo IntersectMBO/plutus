@@ -1,5 +1,7 @@
+{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -29,11 +31,13 @@ import qualified Data.Aeson                      as JSON
 import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Base64          as Base64
 import qualified Data.ByteString.Lazy            as BSL
+import           Data.Data
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
 import           Data.Text                       as T
 import qualified Data.Text.Encoding              as TE
 import qualified Data.Text.Prettyprint.Doc       as PP
+import           GHC.TypeLits
 
 {- Note [Constructing the final program]
 Our final type is a simple newtype wrapper. However, constructing *anything* in Core
@@ -96,7 +100,7 @@ getAst wrapper = case deserialiseOrFail $ getSerializedCode wrapper of
     Right p -> p
 
 -- | Marks the given expression for conversion to PLC.
-plc :: a -> PlcCode
+plc :: forall (loc::Symbol) a . a -> PlcCode
 -- this constructor is only really there to get rid of the unused warning
 plc _ = PlcCode mustBeReplaced
 
@@ -142,7 +146,8 @@ qqMarkerName = GHC.thNameToGhcName 'plc
 qqMarkerType :: GHC.Type -> Maybe GHC.Type
 qqMarkerType vtype = do
     (_, ty) <- GHC.splitForAllTy_maybe vtype
-    (_, o) <- GHC.splitFunTy_maybe ty
+    (_, ty') <- GHC.splitForAllTy_maybe ty
+    (_, o) <- GHC.splitFunTy_maybe ty'
     pure o
 
 makePrimitiveMap :: [(TH.Name, a)] -> GHC.CoreM (Map.Map GHC.Name a)
@@ -166,9 +171,12 @@ convertMarkedExprs opts markerName =
         convB = convertMarkedExprsBind opts markerName
     in \case
       -- the ignored argument is the type for the polymorphic 'plc'
-      e@(GHC.App(GHC.App (GHC.Var fid) _) inner) | markerName == GHC.idName fid -> let vtype = GHC.varType fid in
-          case qqMarkerType vtype of
-              Just t -> convertExpr opts inner t
+      e@(GHC.App(GHC.App (GHC.App (GHC.Var fid) (GHC.Type (GHC.isStrLitTy -> Just (fs_locStr)))) (GHC.Type _)) inner) | markerName == GHC.idName fid ->
+          let
+              vtype = GHC.varType fid
+              locStr = show fs_locStr
+          in case qqMarkerType vtype of
+              Just t -> convertExpr opts locStr inner t
               Nothing -> do
                   GHC.errorMsg $ "plc Plugin: found invalid marker, could not decode type:" GHC.$+$ GHC.ppr vtype
                   pure e
@@ -191,13 +199,12 @@ convertMarkedExprs opts markerName =
       e@(GHC.Type _) -> pure e
 
 -- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
-convertExpr :: PluginOptions -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
-convertExpr opts origE tpe = do
+convertExpr :: PluginOptions -> String -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
+convertExpr opts locStr origE resType = do
     flags <- GHC.getDynFlags
     primTerms <- makePrimitiveMap primitiveTermAssociations
     primTys <- makePrimitiveMap primitiveTypeAssociations
-    let result =
-          do
+    let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               converted <- convExprWithDefs origE
               when (poDoTypecheck opts) $ do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
@@ -216,7 +223,7 @@ convertExpr opts origE tpe = do
             let shown = show $ PP.pretty s in
             if poDeferErrors opts
             -- TODO: is this the right way to do either of these things?
-            then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID tpe shown -- this will blow up at runtime
+            then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID resType shown -- this will blow up at runtime
             else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
         Right term -> do
             let termRep = T.unpack $ PLC.docText $ PLC.prettyPlcClassicDebug term
@@ -236,4 +243,4 @@ convertExpr opts origE tpe = do
             let (wordExprs :: [GHC.CoreExpr]) = fmap (GHC.mkWordExprWord flags) word8s
             let listExpr = GHC.mkListExpr GHC.wordTy wordExprs
             -- See Note [Constructing the final program]
-            pure $ GHC.Cast listExpr $ GHC.mkRepReflCo tpe
+            pure $ GHC.Cast listExpr $ GHC.mkRepReflCo resType

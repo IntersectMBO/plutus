@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 -- remove when we can use addCorePlugin
@@ -31,11 +32,11 @@ tests = testGroup "plutus-th" <$> sequence [
   ]
 
 simple :: PlcCode
-simple = $$(plutusT [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
+simple = $(plutus [| \(x::Bool) -> if x then (1::Int) else (2::Int) |])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
 powerPlc :: PlcCode
-powerPlc = $$(plutusT [|| $$(power (4::Int)) ||])
+powerPlc = $(plutus [| $(power (4::Int)) |])
 
 andPlc :: PlcCode
-andPlc = $$(plutusT [|| $$(andTH) True False ||])
+andPlc = $(plutus [| $(andTH) True False |])
