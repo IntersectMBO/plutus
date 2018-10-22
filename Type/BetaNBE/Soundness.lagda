@@ -20,6 +20,7 @@ open import Data.Product
 
 \begin{code}
 R : ∀{Γ} K → Γ ⊢⋆ K → Val Γ K → Set
+R size    t v = t ≡β embNf (readback v)
 R *       t v = t ≡β embNf (readback v)
 R (K ⇒ J) t (inj₁ n) = t ≡β embNeN n
 R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → t ≡β ƛ t' × ∀{Δ}(ρ : Ren _ Δ){u : Δ ⊢⋆ K}{v : Val Δ K}
@@ -30,6 +31,7 @@ R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → t ≡β ƛ t' × ∀
 sreflect : ∀{Γ K}{t : Γ ⊢⋆ K}{n : Γ ⊢NeN⋆ K}
   → t ≡β embNeN n
   → R K t (neV n)
+sreflect {K = size}  p = p
 sreflect {K = *}     p = p
 sreflect {K = K ⇒ J} p = p
 
@@ -37,6 +39,7 @@ sreify : ∀{Γ K}{t : Γ ⊢⋆ K}{v : Val Γ K}
   → R K t v
   → t ≡β embNf (readback v)
 sreify {K = *}     p = p
+sreify {K = size}  p = p
 sreify {K = K ⇒ J} {t} {inj₁ n} p = p
 sreify {K = K ⇒ J} {t} {inj₂ f} (t' , p , q) =
   trans≡β p (substEq (λ t → ƛ t ≡β ƛ (embNf (readback (f S fresh))))
@@ -66,6 +69,8 @@ R,,⋆ p q (S x) = p x
 renR : ∀{Γ Δ}(ρ : Ren Γ Δ){K}{t : Γ ⊢⋆ K}{v : Val Γ K}
   → R K t v
   → R K (rename ρ t) (renval ρ v)
+renR ρ {size}{t}{n} p = 
+  substEq (rename ρ t ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renR ρ {*}{t}{n} p = 
   substEq (rename ρ t ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renR ρ {K ⇒ J} {t} {inj₁ n} p rewrite rename-embNeN ρ n = rename≡β ρ p  
@@ -109,6 +114,7 @@ substR : ∀{Γ K}{t t' : Γ ⊢⋆ K}
   → {v : Val Γ K}
   → R K t v
   → R K t' v
+substR {K = size}   p q = trans≡β p q
 substR {K = *}      p q = trans≡β p q
 substR {K = K ⇒ J} p {inj₁ n} q = trans≡β p q
 substR {K = K ⇒ J} p {inj₂ f} (t' , q , r) = _ , trans≡β p q , r

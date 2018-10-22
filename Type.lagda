@@ -25,6 +25,7 @@ The only kind is `*`, the kind of types.
 \begin{code}
 data Kind : Set where
   * : Kind
+  size : Kind
   _⇒_ : Kind → Kind → Kind
 \end{code}
 Let `J`, `K` range over kinds.

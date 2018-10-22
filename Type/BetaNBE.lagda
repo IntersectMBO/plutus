@@ -21,10 +21,12 @@ open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 
 \begin{code}
 Val : Ctx⋆ -> Kind -> Set
+Val Γ size    = Γ ⊢Nf⋆ size
 Val Γ  *      = Γ ⊢Nf⋆ *
 Val Γ (σ ⇒ τ) = Γ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Δ} -> Ren Γ Δ -> Val Δ σ -> Val Δ τ
 
 neV : ∀{Γ σ} → Γ ⊢NeN⋆ σ → Val Γ σ
+neV {σ = size}  n = ne n
 neV {σ = *}     n = ne n
 neV {σ = σ ⇒ τ} n = inj₁ n
 
@@ -32,11 +34,13 @@ fresh : ∀ {Γ σ} -> Val (Γ ,⋆ σ) σ
 fresh = neV (` Z)
 
 renval : ∀ {σ Γ Δ} -> Ren Γ Δ -> Val Γ σ -> Val Δ σ
+renval {size}  ψ n         = renameNf ψ n
 renval {*}     ψ n         = renameNf ψ n
 renval {σ ⇒ τ} ψ (inj₁ n)  = inj₁ (renameNeN ψ n)
 renval {σ ⇒ τ} ψ (inj₂ f)  = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
 
 readback : ∀ {σ Γ} -> Val Γ σ -> Γ ⊢Nf⋆ σ
+readback {size}  n         = n
 readback {*}     n         = n
 readback {σ ⇒ τ} (inj₁ n)  = ne n
 readback {σ ⇒ τ} (inj₂ f)  = ƛ (readback (f S fresh))
@@ -82,6 +86,7 @@ nf t = readback (eval t (idEnv _))
 
 \begin{code}
 readback-neV : ∀{K Γ}(n : Γ ⊢NeN⋆ K) → readback (neV n) ≡ ne n
+readback-neV {size}  n = refl
 readback-neV {*}     n = refl
 readback-neV {K ⇒ J} n = refl
 \end{code}

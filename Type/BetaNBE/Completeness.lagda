@@ -21,6 +21,7 @@ open import Function
 mutual
   -- A Partial equivalence relation on values: 'equality on values'
   PER : ∀{Γ} K → Val Γ K → Val Γ K → Set
+  PER size    n n' = n ≡ n'
   PER *       n n' = n ≡ n' -- the same as readback n ≡ readback n'
   PER (K ⇒ J) (inj₁ n) (inj₁ n') = readback (inj₁ n) ≡ readback (inj₁ n')
   PER (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥ -- A semantic function cannot be beta-equal to a neutral
@@ -43,13 +44,15 @@ mutual
 transPER : ∀{Γ} K {v v' v'' : Val Γ K} → PER K v v' → PER K v' v'' → PER K v v''
 
 symPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v' v
-symPER *       p = sym p
+symPER size                       p = sym p
+symPER *                          p = sym p
 symPER (K ⇒ J) {inj₁ n} {inj₁ n'} p = sym p
 symPER (K ⇒ J) {inj₁ n} {inj₂ f'} ()
 symPER (K ⇒ J) {inj₂ f} {inj₁ n'} ()
 symPER (K ⇒ J) {inj₂ f} {inj₂ f'} (p , p' , p'') = p' , p , λ ρ q → symPER J (p'' ρ (symPER K q))
 
-transPER * p q = trans p q
+transPER size                                  p q = trans p q
+transPER *                                     p q = trans p q
 transPER (K ⇒ J) {inj₁ n} {inj₁ n'} {inj₁ n''} p q = trans p q
 transPER (K ⇒ J) {inj₁ n} {inj₁ n'} {inj₂ f''} p ()
 transPER (K ⇒ J) {inj₁ n} {inj₂ f'} () q
@@ -65,13 +68,15 @@ reflPER K p = transPER K p (symPER K p)
 
 reflect : ∀{Γ} K → {n n' : Γ ⊢NeN⋆ K}
   → n ≡ n' → PER K (neV n) (neV n')
-reflect * p = cong ne p
+reflect size    p = cong ne p
+reflect *       p = cong ne p
 reflect (K ⇒ J) p = cong ne p
 
 
 reify : ∀{Γ} K → {v v' : Val Γ K}
   → PER K v v' → readback v ≡ readback v'
-reify *       p = p
+reify size                       p = p
+reify *                          p = p
 reify (K ⇒ J) {inj₁ n} {inj₁ n'} p = p
 reify (K ⇒ J) {inj₁ n} {inj₂ f'} ()
 reify (K ⇒ J) {inj₂ f} {inj₁ n'} ()
@@ -113,32 +118,34 @@ PERApp {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
 
 \begin{code}
 renval-ext : ∀{K Γ Δ}(ρ : Ren Γ Δ) → PER K (renval (ext ρ) (neV (` Z))) (neV (` Z))
-renval-ext {*} ρ = refl
+renval-ext {size}  ρ = refl
+renval-ext {*}     ρ = refl
 renval-ext {K ⇒ J} ρ = refl
 \end{code}
 
 \begin{code}
 rename-readback : ∀{K Γ Δ}{v v' : Val Γ K} → PER K v v' → (ρ : Ren Γ Δ) → renameNf ρ (readback v) ≡ readback (renval ρ v')
-rename-readback {*} {v = v} {.v} refl ρ = refl
-rename-readback {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl ρ = refl
-rename-readback {K ⇒ J} {v = inj₁ n} {inj₂ f'} () ρ
-rename-readback {K ⇒ J} {v = inj₂ f} {inj₁ n'} () ρ
+rename-readback {size}                         refl           ρ = refl
+rename-readback {*}                            refl           ρ = refl
+rename-readback {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
+rename-readback {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
+rename-readback {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
 rename-readback {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ (trans
                                                                             (rename-readback (p'' S (reflect K (refl {x = ` Z}))) (ext ρ)) (reify J (transPER J ( p' S (ext ρ) _ _ (reflect K refl) ) (PERApp {f = renval (S ∘ ρ) (inj₂ f')}{renval (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , λ ρ' q → (proj₂ (proj₂ (reflPER (K ⇒ J) (symPER (K ⇒ J) (p , p' , p'')))) (ρ' ∘ S ∘ ρ) q)) (renval-ext ρ)))))
 
 
 \end{code}
 
-
 \begin{code}
 renval-id : ∀ {K Γ}{v v' : Val Γ K} →
   PER K v v' → 
   PER K (renval id v) v'
-renval-id {*} {v} {v'} refl = renameNf-id _
+renval-id {size}                         refl = renameNf-id _
+renval-id {*}                            refl = renameNf-id _
 renval-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = cong ne (renameNeN-id _)
 renval-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
 renval-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
-renval-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
+renval-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
 \end{code}
 
 \begin{code}
@@ -146,8 +153,11 @@ renval-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
 renval-comp : ∀ {K Γ Δ Θ}(ρ : Ren Γ Δ)(ρ' : Ren Δ Θ){v v' : Val Γ K} →
   PER K v v' → 
   PER K (renval (ρ' ∘ ρ) v) (renval ρ' (renval ρ v'))
-renval-comp {*} ρ ρ' refl = renameNf-comp ρ ρ' _
-renval-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl =
+renval-comp {size}   ρ ρ'                    refl           =
+  renameNf-comp ρ ρ' _
+renval-comp {*}      ρ ρ'                    refl           =
+  renameNf-comp ρ ρ' _
+renval-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
   cong ne (renameNeN-comp ρ ρ' _)
 renval-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
 renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
@@ -165,8 +175,9 @@ renPER : ∀{Γ Δ K}{v v' : Val Γ K}
   → (ρ : Ren Γ Δ)
   → PER K v v'
   → PER K (renval ρ v) (renval ρ v')
-renPER {K = *} {v} {v'} ρ p = cong (renameNf ρ) p
-renPER {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl = refl
+renPER {K = size}                      ρ p              = cong (renameNf ρ) p
+renPER {K = *}                         ρ p              = cong (renameNf ρ) p
+renPER {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl           = refl
 renPER {K = K ⇒ K₁} {inj₁ n} {inj₂ f'} ρ ()
 renPER {K = K ⇒ K₁} {inj₂ f} {inj₁ n'} ρ ()
 renPER {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
@@ -179,6 +190,7 @@ renPER {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
 
 \begin{code}
 renval-neV : ∀{Γ Δ K}(ρ : Ren Γ Δ)(n : Γ ⊢NeN⋆ K) → PER K (renval ρ (neV n)) (neV (renameNeN ρ n))
+renval-neV {K = size}  ρ n = refl
 renval-neV {K = *}     ρ n = refl
 renval-neV {K = K ⇒ J} ρ n = refl 
 \end{code}
@@ -194,6 +206,7 @@ renval·V : ∀{K J Γ Δ}
   → {v v' : Val Γ K}
   → PER K v v'
   → PER J (renval ρ (f ·V v)) (renval ρ f' ·V renval ρ v')
+renval·V {J = size} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
 renval·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
 renval·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
 renval·V ρ {inj₁ n} {inj₂ f} () q
@@ -341,6 +354,7 @@ fund p (β≡β{B = B}{A = A}) = transPER _  (idext (λ { Z → idext (reflPER _
 
 \begin{code}
 idPER : ∀{Γ K} → (x : Γ ∋⋆ K) → PER K (idEnv Γ x) (idEnv Γ x)
+idPER {K = size}  x = refl
 idPER {K = *}     x = refl
 idPER {K = K ⇒ J} x = refl
 \end{code}

@@ -20,11 +20,13 @@ mutual
   stability (A ⇒ B) = cong₂ _⇒_ (stability A) (stability B)
   stability (ƛ B) = cong ƛ (trans (reify _ (idext (λ { Z → reflect _ refl ; (S x) → renval-neV S (` x)}) (embNf B)))
                                   (stability B))
-  stability {K = *} (ne n) = stabilityNeN n
+  stability {K = size}  (ne n) = stabilityNeN n
+  stability {K = *}     (ne n) = stabilityNeN n
   stability {K = K ⇒ J} (ne n) = cong (λ v → readback v) (stabilityNeN n)
 
   stabilityNeN : ∀{Γ K}(n : Γ ⊢NeN⋆ K) → eval (embNeN n) (idEnv _)  ≡ neV n
-  stabilityNeN {K = *} (` x) = refl
+  stabilityNeN {K = size}   (` x) = refl
+  stabilityNeN {K = *}      (` x) = refl
   stabilityNeN {K = K ⇒ K₁} (` x) = refl
   stabilityNeN (n · n') = trans (cong (_·V (eval (embNf n') (idEnv _))) (stabilityNeN n))
                                 (cong (λ n'' → neV (n · n'')) (stability n'))
