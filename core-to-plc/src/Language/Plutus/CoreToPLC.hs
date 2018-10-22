@@ -211,14 +211,14 @@ convTyCon tc = do
                     internalName <- convTyNameFresh tcName
 
                     -- TODO: it's a bit weird for this to have to have a RHS that we will never use
-                    let inProgressDef = Def Abstract (internalName, k) (PlainType (PLC.TyVar () internalName))
+                    let inProgressDef = Def Abstract (PLCTyVar internalName k) (PlainType (PLC.TyVar () internalName))
                     modify $ over typeDefs (Map.insert tcName (inProgressDef, deps))
                     convDataCons tc dcs
 
                 -- this is the name for the final type itself
                 finalName <- convTyNameFresh tcName
                 (constrs, match) <- do
-                    let visibleDef = Def Visible (finalName, k) (PlainType ty)
+                    let visibleDef = Def Visible (PLCTyVar finalName k) (PlainType ty)
                     modify $ over typeDefs (Map.insert tcName (visibleDef, deps))
                     -- make the constructor bodies with the type visible
                     constrs <- forM dcs $ \dc -> do
@@ -231,22 +231,22 @@ convTyCon tc = do
                 let finalVisibility = if tc == GHC.boolTyCon then Visible else Abstract
                 (constrDefs, matchDef) <- do
                     -- make the constructor *types* with the type abstract
-                    let abstractDef = Def finalVisibility (finalName, k) (PlainType ty)
+                    let abstractDef = Def finalVisibility (PLCTyVar finalName k) (PlainType ty)
                     modify $ over typeDefs (Map.insert tcName (abstractDef, deps))
 
                     constrDefs <- forM constrs $ \(dc, constr) -> do
                         constrName <- convNameFresh (GHC.getName dc)
                         constrTy <- dataConType dc
-                        pure $ Def finalVisibility (constrName, constrTy) constr
+                        pure $ Def finalVisibility (PLCVar constrName constrTy) constr
 
                     matchName <- safeFreshName $ (GHC.getOccString $ GHC.getName tc) ++ "_match"
                     matchTy <- mkMatchTy tc dcs
-                    let matchDef = Def finalVisibility (matchName, matchTy) match
+                    let matchDef = Def finalVisibility (PLCVar matchName matchTy) match
                     pure (constrDefs, matchDef)
 
                 do
                     -- create the final def with the type abstract and the constructors present
-                    let def = Def finalVisibility (finalName, k) (DataType ty constrDefs matchDef)
+                    let def = Def finalVisibility (PLCTyVar finalName k) (DataType ty constrDefs matchDef)
                     modify $ over typeDefs (Map.insert tcName (def, deps))
                     case finalVisibility of
                         Abstract -> pure $ PLC.TyVar () finalName
@@ -516,7 +516,9 @@ convDataCons tc dcs = do
     isSelfRecursive <- isSelfRecursiveTyCon tc
     if isSelfRecursive
     then case Map.lookup (GHC.getName tc) tcDefs of
-        Just (Def{dVis=Abstract,dVar=(tyname, _)}, _) -> pure $ PLC.TyFix () tyname abstracted
+        -- TODO: this is inelegant
+        -- we're recursive, therefore the variable stored as our definition is the fixpoint variable
+        Just (Def{dVis=Abstract,dVar=(PLCTyVar tyname _)}, _) -> pure $ PLC.TyFix () tyname abstracted
         _                                             -> throwPlain $ ConversionError "Could not find var to fix over"
     else pure abstracted
 

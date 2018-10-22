@@ -41,7 +41,7 @@ type TypeDef = Def PLCTyVar TypeRep
 
 tydTy :: TypeDef -> PLCType
 tydTy = \case
-    Def Abstract (n, _) _ -> PLC.TyVar () n
+    Def Abstract (PLCTyVar n _) _ -> PLC.TyVar () n
     Def Visible _ tr -> trTy tr
 
 tydConstrs :: TypeDef -> Maybe [TermDef]
@@ -58,7 +58,7 @@ type TermDef = Def PLCVar PLCTerm
 
 tdTerm :: TermDef -> PLCTerm
 tdTerm = \case
-    Def Abstract (n, _) _ -> PLC.Var () n
+    Def Abstract (PLCVar n _) _ -> PLC.Var () n
     Def Visible _ t -> t
 
 type DefMap key def = Map.Map key (def, [key])
@@ -111,10 +111,10 @@ wrapDef term def = case def of
             -- been inlined
             abstractTys = filter (not . isVisible) [d]
             abstractTerms = filter (not . isVisible) (constructors ++ destructors)
-            tyVars = fmap dVar abstractTys
+            tyVars = fmap (splitTyVar . dVar) abstractTys
             tys = fmap (trTy . dVal) abstractTys
-            vars = fmap dVar abstractTerms
+            vars = fmap (splitVar . dVar) abstractTerms
             vals = fmap dVal abstractTerms
         in
             mkIterApp (mkIterInst (mkIterTyAbs tyVars (mkIterLamAbs vars term)) tys) vals
-    TermDef (Def _ (n, ty) rhs) -> mkTermLet n rhs ty term
+    TermDef (Def _ (PLCVar n ty) rhs) -> mkTermLet n rhs ty term
