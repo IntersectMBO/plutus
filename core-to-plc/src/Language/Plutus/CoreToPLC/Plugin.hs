@@ -226,13 +226,6 @@ convertExpr opts locStr origE resType = do
             then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID resType shown -- this will blow up at runtime
             else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
         Right term -> do
-            let termRep = T.unpack $ PLC.docText $ PLC.prettyPlcClassicDebug term
-            -- Note: tests run with --verbose, so these will appear
-            GHC.debugTraceMsg $
-                "Successfully converted GHC core expression:" GHC.$+$
-                GHC.ppr origE GHC.$+$
-                "Resulting PLC term is:" GHC.$+$
-                GHC.text termRep
             let program = PLC.Program () (PLC.defaultVersion ()) term
             let serialized = serialise program
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
