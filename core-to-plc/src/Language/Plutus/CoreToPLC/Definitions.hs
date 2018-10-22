@@ -17,6 +17,7 @@ import           Control.Monad.Except
 import           Data.Foldable
 import qualified Data.Graph                         as Graph
 import qualified Data.Map                           as Map
+import           Data.Maybe                         (fromMaybe)
 
 -- | The visibility of a definition. See Note [Abstract data types]
 data Visibility = Abstract | Visible
@@ -96,7 +97,7 @@ wrapDefScc acc scc = case scc of
     Graph.AcyclicSCC def            -> pure $ wrapDef acc def
     -- self-recursive types are okay, but we don't handle recursive groups of definitions in general at the moment
     Graph.CyclicSCC [def@TypeDef{}] -> pure $ wrapDef acc def
-    Graph.CyclicSCC _               -> throwPlain $ UnsupportedError "Recursive definitions not currently supported"
+    Graph.CyclicSCC _               -> throwPlain $ UnsupportedError "Mutually recursive definitions not currently supported"
 
 -- | Wrap a term with a single definition.
 wrapDef :: PLC.Term PLC.TyName PLC.Name () -> TermOrTypeDef -> PLC.Term PLC.TyName PLC.Name ()
@@ -104,7 +105,7 @@ wrapDef term def = case def of
     TypeDef d ->
         -- See Note [Abstract data types]
         let
-            constructors = join $ toList $ tydConstrs d
+            constructors = fromMaybe [] $ tydConstrs d
             destructors = toList $ tydMatch d
             -- we don't bother binding things that are not abstract since they will have
             -- been inlined
