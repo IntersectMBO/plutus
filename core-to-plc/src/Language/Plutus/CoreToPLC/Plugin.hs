@@ -198,7 +198,7 @@ convertExpr opts origE tpe = do
     primTys <- makePrimitiveMap primitiveTypeAssociations
     let result =
           do
-              converted <- convExpr origE
+              converted <- convExprWithDefs origE
               when (poDoTypecheck opts) $ do
                   annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
                   void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
@@ -210,7 +210,7 @@ convertExpr opts origE tpe = do
             ccPrimTypes=primTys,
             ccScopes=initialScopeStack
             }
-        initialState = ConvertingState Map.empty
+        initialState = ConvertingState Map.empty Map.empty
     case runConverting context initialState result of
         Left s ->
             let shown = show $ PP.pretty s in

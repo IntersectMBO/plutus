@@ -4,36 +4,50 @@
 
 module Language.Plutus.CoreToPLC.Types where
 
+import           Language.Plutus.CoreToPLC.Definitions
 import           Language.Plutus.CoreToPLC.Error
+import           Language.Plutus.CoreToPLC.PLCTypes
 
-import qualified Language.PlutusCore             as PLC
+import qualified Language.PlutusCore                   as PLC
 import           Language.PlutusCore.Quote
 
-import qualified GhcPlugins                      as GHC
+import qualified GhcPlugins                            as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Data.List.NonEmpty              as NE
-import qualified Data.Map                        as Map
-import qualified Data.Text                       as T
+import qualified Data.List.NonEmpty                    as NE
+import qualified Data.Map                              as Map
+import           Lens.Micro
 
-type PLCExpr = PLC.Term PLC.TyName PLC.Name ()
-type PLCType = PLC.Type PLC.TyName ()
-
-type ConvError = WithContext T.Text (Error ())
-
-type PrimTerms = Map.Map GHC.Name (Quote PLCExpr)
+type PrimTerms = Map.Map GHC.Name (Quote PLCTerm)
 type PrimTypes = Map.Map GHC.Name (Quote PLCType)
 
 newtype ConversionOptions = ConversionOptions { coCheckValueRestriction :: Bool }
 
-data ConvertingContext = ConvertingContext { ccOpts :: ConversionOptions, ccFlags :: GHC.DynFlags, ccPrimTerms :: PrimTerms, ccPrimTypes :: PrimTypes, ccScopes :: ScopeStack }
+data ConvertingContext = ConvertingContext {
+    ccOpts      :: ConversionOptions,
+    ccFlags     :: GHC.DynFlags,
+    ccPrimTerms :: PrimTerms,
+    ccPrimTypes :: PrimTypes,
+    ccScopes    :: ScopeStack
+    }
 
-data EvalState a = Done | InProgress a
-type TypeDefs = Map.Map GHC.Name (EvalState (PLC.TyName ()))
-newtype ConvertingState = ConvertingState { csTypeDefs :: TypeDefs }
+data ConvertingState = ConvertingState {
+    csTypeDefs :: DefMap GHC.Name TypeDef,
+    csTermDefs :: DefMap GHC.Name TermDef
+    }
+
+typeDefs :: Lens' ConvertingState (DefMap GHC.Name TypeDef)
+typeDefs = lens g s where
+    g = csTypeDefs
+    s cs tds = cs { csTypeDefs = tds }
+
+termDefs :: Lens' ConvertingState (DefMap GHC.Name TermDef)
+termDefs = lens g s where
+    g = csTermDefs
+    s cs tds = cs { csTermDefs = tds }
 
 -- See Note [Scopes]
 type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)

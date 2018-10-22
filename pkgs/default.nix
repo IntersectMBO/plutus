@@ -15653,6 +15653,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , ghc
 , language-plutus-core
+, microlens
 , mmorph
 , mtl
 , prettyprinter
@@ -15679,6 +15680,7 @@ cborg
 containers
 ghc
 language-plutus-core
+microlens
 mmorph
 mtl
 prettyprinter
@@ -42225,6 +42227,7 @@ benchmarkHaskellDepends = [
 base
 bytestring
 criterion
+serialise
 text
 ];
 doHaddock = false;

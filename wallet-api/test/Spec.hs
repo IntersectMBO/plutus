@@ -76,7 +76,7 @@ simpleTrace :: Tx -> Trace ()
 simpleTrace txn = do
     [txn'] <- walletAction (Wallet 1) $ submitTxn txn
     block <- blockchainActions
-    assertion $ isValidated txn'
+    assertIsValidated txn'
 
 validTrace :: Property
 validTrace = property $ do
