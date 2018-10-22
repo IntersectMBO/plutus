@@ -329,7 +329,7 @@ assertion :: Assertion -> Trace ()
 assertion = Op.singleton . Assertion
 
 assertOwnFundsEq :: Wallet -> Value -> Trace ()
-assertOwnFundsEq wallet value = assertion $ OwnFundsEqual wallet value
+assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 
 assertIsValidated :: Tx -> Trace ()
 assertIsValidated = assertion . IsValidated
