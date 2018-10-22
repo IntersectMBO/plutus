@@ -167,7 +167,7 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
         (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.TyFun () <$> convType i <*> convType o
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts
-        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForall tv (convType tpe)
+        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (convType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
@@ -510,7 +510,7 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
 -- See Note [Scott encoding of datatypes]
 convDataCons :: forall m. Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCType
 convDataCons tc dcs = do
-    abstracted <- flip (foldr (\tv acc -> mkTyLam tv acc)) (GHC.tyConTyVars tc) $ mkScottTy tc dcs
+    abstracted <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ mkScottTy tc dcs
 
     tcDefs <- gets csTypeDefs
     isSelfRecursive <- isSelfRecursiveTyCon tc
@@ -553,7 +553,7 @@ dataConType dc =
         tcTyVars = GHC.tyConTyVars tc
     in
         withContextM (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $
-            flip (foldr (\tv acc -> mkTyForall tv acc)) tcTyVars $ do
+            mkIterTyForallScoped tcTyVars $ do
                 args <- mapM convType argTys
                 resultType <- convType (GHC.dataConOrigResTy dc)
                 -- t_1 -> ... -> t_m -> resultType
@@ -571,7 +571,7 @@ convConstructor dc =
         withContextM (sdToTxt $ "Converting data constructor:" GHC.<+> GHC.ppr dc) $
             -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
             -- /\ tv_1 .. tv_n . body
-            flip (foldr (\tv acc -> mkTyAbs tv acc)) tcTyVars $ do
+            mkIterTyAbsScoped tcTyVars $ do
                 -- See Note [Scott encoding of datatypes]
                 resultType <- safeFreshTyName $ tcName ++ "_matchOut"
                 dcs <- getDataCons tc
@@ -648,7 +648,7 @@ mkMatchTy tc dcs =
     let
         tyVars = GHC.tyConTyVars tc
     in
-        flip (foldr (\tv acc -> mkTyForall tv acc)) tyVars $ do
+        mkIterTyForallScoped tyVars $ do
             tc' <- convTyCon tc
             args <- mapM (convType . GHC.mkTyVarTy) tyVars
             let applied = mkIterTyApp tc' args
@@ -662,7 +662,7 @@ mkMatch tc =
     let
         tyVars = GHC.tyConTyVars tc
     in
-        flip (foldr (\tv acc -> mkTyAbs tv acc)) tyVars $ do
+        mkIterTyAbsScoped tyVars $ do
             tc' <- convTyCon tc
             args <- mapM (convType . GHC.mkTyVarTy) tyVars
             let applied = mkIterTyApp tc' args
@@ -706,7 +706,7 @@ convAlt mustDelay dc (alt, vars, body) = case alt of
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> foldr (\v acc -> mkLambda v acc) (convExpr body >>= maybeDelay mustDelay) vars
+    GHC.DataAlt _ -> mkIterLamAbsScoped vars (convExpr body >>= maybeDelay mustDelay)
 
 -- Literals and primitives
 
@@ -904,17 +904,20 @@ mangleTyAbs = \case
 
 -- | Builds a lambda, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkLambda :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
-mkLambda v body = do
+mkLamAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
+mkLamAbsScoped v body = do
     let ghcName = GHC.getName v
     (t', n') <- convVarFresh v
     body' <- local (\c -> c {ccScopes=pushName ghcName n' (ccScopes c)}) body
     pure $ PLC.LamAbs () n' t' body'
 
+mkIterLamAbsScoped :: Converting m => [GHC.Var] -> m PLCTerm -> m PLCTerm
+mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
+
 -- | Builds a type abstraction, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkTyAbs :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
-mkTyAbs v body = do
+mkTyAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
+mkTyAbsScoped v body = do
     let ghcName = GHC.getName v
     (t', k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
@@ -923,23 +926,32 @@ mkTyAbs v body = do
     unless (not (coCheckValueRestriction opts) || PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
 
+mkIterTyAbsScoped :: Converting m => [GHC.Var] -> m PLCTerm -> m PLCTerm
+mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars
+
 -- | Builds a forall, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkTyForall :: Converting m => GHC.Var -> m PLCType -> m PLCType
-mkTyForall v body = do
+mkTyForallScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
+mkTyForallScoped v body = do
     let ghcName = GHC.getName v
     (t', k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyForall () t' k' body'
 
+mkIterTyForallScoped :: Converting m => [GHC.Var] -> m PLCType -> m PLCType
+mkIterTyForallScoped vars body = foldr (\v acc -> mkTyForallScoped v acc) body vars
+
 -- | Builds a type lambda, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkTyLam :: Converting m => GHC.Var -> m PLCType -> m PLCType
-mkTyLam v body = do
+mkTyLamScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
+mkTyLamScoped v body = do
     let ghcName = GHC.getName v
     (t', k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyLam () t' k' body'
+
+mkIterTyLamScoped :: Converting m => [GHC.Var] -> m PLCType -> m PLCType
+mkIterTyLamScoped vars body = foldr (\v acc -> mkTyLamScoped v acc) body vars
 
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values
@@ -1025,13 +1037,13 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- otherwise it's a normal application
         GHC.App l arg -> PLC.Apply () <$> convExpr l <*> convExpr arg
         -- if we're biding a type variable it's a type abstraction
-        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbs b $ convExpr body
+        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ convExpr body
         -- othewise it's a normal lambda
-        GHC.Lam b body -> mkLambda b $ convExpr body
+        GHC.Lam b body -> mkLamAbsScoped b $ convExpr body
         GHC.Let (GHC.NonRec b arg) body -> do
             -- convert it as a lambda
             a' <- convExpr arg
-            l' <- mkLambda b $ convExpr body
+            l' <- mkLamAbsScoped b $ convExpr body
             pure $ PLC.Apply () l' a'
         GHC.Let (GHC.Rec bs) body -> do
             -- See note [Recursive lets]
@@ -1051,7 +1063,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             let chooseTy = mkIterTyFun tys (PLC.TyVar () q)
 
             -- \f1 ... fn -> choose b1 ... bn
-            bsLam <- flip (foldr (\b acc -> mkLambda b acc)) (fmap fst bs) $ do
+            bsLam <- mkIterLamAbsScoped (fmap fst bs) $ do
                 rhss <- mapM convExpr (fmap snd bs)
                 pure $ mkIterApp (PLC.Var() choose) rhss
 
@@ -1066,7 +1078,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             let fixed = PLC.Apply () instantiatedFix cLam
 
             -- the consumer of the recursive functions
-            bodyLam <- foldr (\b acc -> mkLambda b acc) (convExpr body) (fmap fst bs)
+            bodyLam <- mkIterLamAbsScoped (fmap fst bs) (convExpr body)
             pure $ PLC.Apply () (PLC.TyInst () fixed outTy) bodyLam
         GHC.Case scrutinee b t alts -> do
             let scrutineeType = GHC.varType b
