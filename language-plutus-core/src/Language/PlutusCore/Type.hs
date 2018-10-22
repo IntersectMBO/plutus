@@ -96,22 +96,22 @@ instance Corecursive (Type tyname a) where
 
 -- this type is used for replacing type names in
 -- the Eq instance
-type EqState tyname a = M.Map (tyname a) (tyname a)
+type EqTyState tyname a = M.Map (tyname a) (tyname a)
 
-rebindAndEq :: (Eq a, Ord (tyname a))
-            => EqState tyname a
-            -> Type tyname a
-            -> Type tyname a
-            -> tyname a
-            -> tyname a
-            -> Bool
-rebindAndEq eqSt tyLeft tyRight tnLeft tnRight =
+rebindAndEqTy :: (Eq a, Ord (tyname a))
+              => EqTyState tyname a
+              -> Type tyname a
+              -> Type tyname a
+              -> tyname a
+              -> tyname a
+              -> Bool
+rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight =
     let intermediateSt = M.insert tnRight tnLeft eqSt
         in eqTypeSt intermediateSt tyLeft tyRight
 
 -- This tests for equality of names inside a monad that allows substitution.
 eqTypeSt :: (Ord (tyname a), Eq a)
-        => EqState tyname a
+        => EqTyState tyname a
         -> Type tyname a
         -> Type tyname a
         -> Bool
@@ -123,12 +123,12 @@ eqTypeSt _ (TyInt _ nLeft) (TyInt _ nRight)              = nLeft == nRight
 eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
 
 eqTypeSt eqSt (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
-    rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+    rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
 eqTypeSt eqSt (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) =
-    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+    let tyEq = rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
         in (kLeft == kRight && tyEq)
 eqTypeSt eqSt (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) =
-    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+    let tyEq = rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
         in (kLeft == kRight && tyEq)
 
 eqTypeSt eqSt (TyVar _ tnRight) (TyVar _ tnLeft) =
@@ -140,6 +140,32 @@ eqTypeSt _ _ _ = False
 
 instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
     (==) = eqTypeSt mempty
+
+type EqState name a = M.Map (name a) (name a)
+
+rebindAndEq :: (Eq a, Ord (name a))
+            => EqState name a
+            -> Term tyname name a
+            -> Term tyname name a
+            -> name a
+            -> name a
+            -> Bool
+rebindAndEq eqSt tLeft tRight nLeft nRight =
+    let intermediateSt = M.insert nRight nLeft eqSt
+        in eqTermSt intermediateSt tLeft tRight
+
+eqTermSt :: (Ord (name a), Eq a)
+         => EqState name a
+         -> Term tyname name a
+         -> Term tyname name a
+         -> Bool
+
+eqTermSt eqSt (Var _ nRight) (Var _ nLeft) =
+    case M.lookup nLeft eqSt of
+        Just n  -> nRight == n
+        Nothing -> nRight == nLeft
+
+eqTermSt _ _ _ = False
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
