@@ -3,7 +3,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 module Language.Plutus.CoreToPLC.Error (
-    Error (..)
+    ConvError
+    , Error (..)
     , WithContext (..)
     , withContext
     , withContextM
@@ -17,6 +18,8 @@ import           Control.Monad.Except
 import qualified Data.Text                  as T
 import qualified Data.Text.Prettyprint.Doc  as PP
 import           Data.Typeable
+
+type ConvError = WithContext T.Text (Error ())
 
 -- | An error with some (nested) context.
 data WithContext c e = NoContext e | WithContext c (WithContext c e)

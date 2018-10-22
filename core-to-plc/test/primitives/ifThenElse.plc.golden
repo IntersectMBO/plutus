@@ -9,14 +9,21 @@
         [
           [
             {
-              [ [ { (con equalsInteger) (con 64) } ds_0 ] ds_1 ]
-              (fun (all a_2 (type) (fun a_2 a_2)) [(con integer) (con 64)])
+              [
+                (lam
+                  x_11
+                  (all Bool_matchOut_3 (type) (fun Bool_matchOut_3 (fun Bool_matchOut_3 Bool_matchOut_3)))
+                  x_11
+                )
+                [ [ { (con equalsInteger) (con 64) } ds_0 ] ds_1 ]
+              ]
+              (fun (all a_16 (type) (fun a_16 a_16)) [(con integer) (con 64)])
             }
-            (lam thunk_3 (all a_4 (type) (fun a_4 a_4)) ds_0)
+            (lam thunk_17 (all a_18 (type) (fun a_18 a_18)) ds_0)
           ]
-          (lam thunk_5 (all a_6 (type) (fun a_6 a_6)) ds_1)
+          (lam thunk_19 (all a_20 (type) (fun a_20 a_20)) ds_1)
         ]
-        (abs a_7 (type) (lam x_8 a_7 x_8))
+        (abs a_21 (type) (lam x_22 a_21 x_22))
       ]
     )
   )
