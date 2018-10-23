@@ -5,7 +5,6 @@ module Type.BetaNormal where
 ## Fixity declarations
 
 To begin, we get all our infix declarations out of the way.
-We list separately operators for judgements, types, and terms.
 \begin{code}
 infix  4 _⊢Nf⋆_
 \end{code}
@@ -18,13 +17,16 @@ open import Type.RenamingSubstitution
 
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-
-open import Data.Product
-open import Data.Unit
 open import Function
 \end{code}
 
 ## Type β-normal forms
+
+We mutually define normal forms and neutral terms. It is guaranteed
+that not further beta reductions are possible. Neutral terms can be
+variables, neutral applications (where the term in the function
+position cannot be a lambda), or recursive types. Normal forms can be
+pi types, function types, lambdas or neutral terms.
 
 \begin{code}
 
@@ -46,8 +48,6 @@ data _⊢NeN⋆_ : Ctx⋆ → Kind → Set where
     → φ ,⋆ K ⊢Nf⋆ K
       -----------
     → φ ⊢NeN⋆ K
-
-
 
 data _⊢Nf⋆_ where
 
@@ -73,20 +73,25 @@ data _⊢Nf⋆_ where
     → φ ⊢Nf⋆ K
 \end{code}
 
+# Renaming
+
+We need to be able to weaken (introduce a new variable into the
+context) in normal forms so we define renaming which subsumes
+weakening.
+
 \begin{code}
 renameNf : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ----------------------------
+  → Ren Φ Ψ
+    -----------------------------
   → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
 renameNeN : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ----------------------------
+  → Ren Φ Ψ
+    -------------------------------
   → (∀ {J} → Φ ⊢NeN⋆ J → Ψ ⊢NeN⋆ J)
 
 renameNf ρ (Π A)   = Π (renameNf (ext ρ) A)
 renameNf ρ (A ⇒ B) = renameNf ρ A ⇒ renameNf ρ B
 renameNf ρ (ƛ B)   = ƛ (renameNf (ext ρ) B)
-
 renameNf ρ (ne A)  = ne (renameNeN ρ A)
 
 renameNeN ρ (` x) = ` (ρ x)
@@ -103,30 +108,32 @@ weakenNf = renameNf S
 \end{code}
 
 \begin{code}
-renameNeN-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+renameNeN-cong : ∀ {Φ Ψ}
+  → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢NeN⋆ K)
     -------------------------
   → renameNeN f A ≡ renameNeN g A
 
-renameNf-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+renameNf-cong : ∀ {Φ Ψ}
+  → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢Nf⋆ K)
     -------------------------
   → renameNf f A ≡ renameNf g A
-renameNf-cong f g p (Π A)   =
-  cong Π (renameNf-cong (ext f) (ext g) (ext-cong p) A)
-renameNf-cong f g p (A ⇒ B) =
-  cong₂ _⇒_ (renameNf-cong f g p A) (renameNf-cong f g p B)
-renameNf-cong f g p (ƛ A)   =
-  cong ƛ (renameNf-cong (ext f) (ext g) (ext-cong p) A)
-renameNf-cong f g p (ne A) = cong ne (renameNeN-cong f g p A)
+renameNf-cong p (Π A)   =
+  cong Π (renameNf-cong (ext-cong p) A)
+renameNf-cong p (A ⇒ B) =
+  cong₂ _⇒_ (renameNf-cong p A) (renameNf-cong p B)
+renameNf-cong p (ƛ A)   =
+  cong ƛ (renameNf-cong (ext-cong p) A)
+renameNf-cong p (ne A) = cong ne (renameNeN-cong p A)
 
-renameNeN-cong f g p (` x)   = cong ` (p x)
-renameNeN-cong f g p (A · B) =
-  cong₂ _·_ (renameNeN-cong f g p A) (renameNf-cong f g p B)
-renameNeN-cong f g p (μ A)   =
-  cong μ (renameNf-cong (ext f) (ext g) (ext-cong p) A)
+renameNeN-cong p (` x)   = cong ` (p x)
+renameNeN-cong p (A · B) =
+  cong₂ _·_ (renameNeN-cong p A) (renameNf-cong p B)
+renameNeN-cong p (μ A)   =
+  cong μ (renameNf-cong (ext-cong p) A)
 \end{code}
 
 \begin{code}
@@ -136,9 +143,9 @@ mutual
     → ∀ {J}
     → (n : Φ ⊢Nf⋆ J)
     → renameNf id n ≡ n
-  renameNf-id (Π n) = cong Π (trans (renameNf-cong _ _ ext-id n) (renameNf-id n))
+  renameNf-id (Π n) = cong Π (trans (renameNf-cong ext-id n) (renameNf-id n))
   renameNf-id (n ⇒ n') = cong₂ _⇒_ (renameNf-id n) (renameNf-id n')
-  renameNf-id (ƛ n) = cong ƛ (trans (renameNf-cong _ _ ext-id n) (renameNf-id n))
+  renameNf-id (ƛ n) = cong ƛ (trans (renameNf-cong ext-id n) (renameNf-id n))
   renameNf-id (ne x) = cong ne (renameNeN-id x)
   
   renameNeN-id : ∀ {Φ}
@@ -148,7 +155,7 @@ mutual
     → renameNeN id n ≡ n
   renameNeN-id (` x) = refl
   renameNeN-id (n · n') = cong₂ _·_ (renameNeN-id n) (renameNf-id n')
-  renameNeN-id (μ n) = cong μ (trans (renameNf-cong _ _ ext-id n) (renameNf-id n))
+  renameNeN-id (μ n) = cong μ (trans (renameNf-cong ext-id n) (renameNf-id n))
 
 \end{code}
 
@@ -160,12 +167,12 @@ mutual
       -------------------------------------------
     → renameNf (f ∘ g) A ≡ renameNf f (renameNf g A)
   renameNf-comp g f (Π B) =
-    cong Π (trans (renameNf-cong _ _ ext-comp B)
+    cong Π (trans (renameNf-cong ext-comp B)
                   (renameNf-comp (ext g) (ext f) B))
   renameNf-comp g f (A ⇒ B) =
     cong₂ _⇒_ (renameNf-comp g f A) (renameNf-comp g f B)
   renameNf-comp g f (ƛ B) = 
-    cong ƛ (trans (renameNf-cong _ _ ext-comp B)
+    cong ƛ (trans (renameNf-cong ext-comp B)
                   (renameNf-comp (ext g) (ext f) B))
   renameNf-comp g f (ne n) = cong ne (renameNeN-comp g f n)
 
@@ -178,7 +185,7 @@ mutual
   renameNeN-comp g f (A · x) =
     cong₂ _·_ (renameNeN-comp g f A) (renameNf-comp g f x)
   renameNeN-comp g f (μ B) =
-    cong μ (trans (renameNf-cong _ _ ext-comp B)
+    cong μ (trans (renameNf-cong ext-comp B)
                   (renameNf-comp (ext g) (ext f) B))
 
 \end{code}
