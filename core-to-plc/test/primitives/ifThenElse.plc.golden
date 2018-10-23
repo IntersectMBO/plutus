@@ -17,13 +17,13 @@
                 )
                 [ [ { (con equalsInteger) (con 64) } ds_0 ] ds_1 ]
               ]
-              (fun (all a_16 (type) (fun a_16 a_16)) [(con integer) (con 64)])
+              (fun (all a_17 (type) (fun a_17 a_17)) [(con integer) (con 64)])
             }
-            (lam thunk_17 (all a_18 (type) (fun a_18 a_18)) ds_0)
+            (lam thunk_18 (all a_20 (type) (fun a_20 a_20)) ds_0)
           ]
-          (lam thunk_19 (all a_20 (type) (fun a_20 a_20)) ds_1)
+          (lam thunk_21 (all a_23 (type) (fun a_23 a_23)) ds_1)
         ]
-        (abs a_21 (type) (lam x_22 a_21 x_22))
+        (abs a_26 (type) (lam x_27 a_26 x_27))
       ]
     )
   )
