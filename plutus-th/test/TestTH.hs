@@ -4,6 +4,8 @@ module TestTH where
 
 import           Language.Haskell.TH
 
+{-# ANN module "HLint: ignore" #-}
+
 power :: Int -> Q Exp
 power n =
     if n <= 0 then

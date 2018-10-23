@@ -171,7 +171,7 @@ convertMarkedExprs opts markerName =
         convB = convertMarkedExprsBind opts markerName
     in \case
       -- the ignored argument is the type for the polymorphic 'plc'
-      e@(GHC.App(GHC.App (GHC.App (GHC.Var fid) (GHC.Type (GHC.isStrLitTy -> Just (fs_locStr)))) (GHC.Type _)) inner) | markerName == GHC.idName fid ->
+      e@(GHC.App(GHC.App (GHC.App (GHC.Var fid) (GHC.Type (GHC.isStrLitTy -> Just fs_locStr))) (GHC.Type _)) inner) | markerName == GHC.idName fid ->
           let
               vtype = GHC.varType fid
               locStr = show fs_locStr
