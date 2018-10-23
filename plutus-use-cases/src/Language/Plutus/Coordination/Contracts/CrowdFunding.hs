@@ -26,23 +26,22 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     , collectFundsTrigger
     ) where
 
-import           Control.Applicative                  (Applicative (..))
-import           Control.Monad                        (Monad (..))
-import           Control.Monad.Error.Class            (MonadError (..))
-import qualified Data.Set                             as Set
+import           Control.Applicative                (Applicative (..))
+import           Control.Monad                      (Monad (..))
+import           Control.Monad.Error.Class          (MonadError (..))
+import qualified Data.Set                           as Set
 
-import qualified Language.Plutus.CoreToPLC.Primitives as Prim
-import           Language.Plutus.Runtime              (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
-import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
-import           Wallet.API                           (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
-                                                       otherError, signAndSubmit)
-import           Wallet.UTXO                          (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                                       scriptTxOut)
-import qualified Wallet.UTXO                          as UTXO
+import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
+import           Language.Plutus.Runtime            (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
+import           Language.Plutus.TH                 (PlcCode, applyPlc, plutus)
+import           Wallet.API                         (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
+                                                     otherError, signAndSubmit)
+import           Wallet.UTXO                        (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
+                                                     scriptTxOut)
+import qualified Wallet.UTXO                        as UTXO
 
-import qualified Language.Plutus.Runtime.TH           as TH
-import           Prelude                              (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($),
-                                                       (<$>))
+import qualified Language.Plutus.Runtime.TH         as TH
+import           Prelude                            (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($), (<$>))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -139,7 +138,7 @@ contributionScript (CampaignPLC c)  = Validator val where
                     in refundable
                 _ -> False
         in
-        if isValid then () else Prim.error ()) |])
+        if isValid then () else Builtins.error ()) |])
 
 -- | Given the campaign data and the output from the contributing transaction,
 --   make a trigger that fires when the transaction can be refunded.

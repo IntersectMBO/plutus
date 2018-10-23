@@ -7,7 +7,6 @@ module Spec.TH(
     ) where
 
 import           Language.Haskell.TH                                 (Exp, Q)
-import qualified Language.Plutus.CoreToPLC.Primitives                as Prim
 import           Language.Plutus.Runtime                             (Hash (..), Height, PendingTx (..),
                                                                       PendingTxIn (..), PendingTxOut (..),
                                                                       PendingTxOutRef (..), PendingTxOutType (..),
