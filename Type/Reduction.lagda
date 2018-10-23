@@ -23,7 +23,7 @@ data Value⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ (Π N)
 
   _V-⇒_ : ∀ {Φ} {S : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
-       -----------------------------------
+      -----------------------------------
     → Value⋆ (S ⇒ T)
 
   V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
@@ -51,7 +51,83 @@ data Neutral⋆ where
    → Neutral⋆ (N · V)
 \end{code}
 
+## Intrinsically Kind Preserving Type Reduction
 
+\begin{code}
+infix 2 _—→⋆_
+
+data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
+  ξ-⇒₁ : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
+    → S —→⋆ S'
+      -----------------------------------
+    → S ⇒ T —→⋆ S' ⇒ T
+
+  ξ-⇒₂ : ∀ {Φ} {S : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
+    → Value⋆ S
+    → T —→⋆ T'
+      -----------------------------------
+    → S ⇒ T —→⋆ S ⇒ T'
+
+  ξ-·₁ : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
+    → L —→⋆ L′
+      -----------------
+    → L · M —→⋆ L′ · M
+
+  ξ-·₂ : ∀ {Γ K J} {V : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
+    → Value⋆ V
+    → M —→⋆ M′
+      --------------
+    → V · M —→⋆ V · M′
+
+
+  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
+    → Value⋆ W
+      -------------------
+    → ƛ N · W —→⋆ N [ W ]
+\end{code}
+
+\begin{code}
+data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
+
+  refl—↠⋆ : ∀{M}
+      --------
+    → M —↠⋆ M
+
+  trans—↠⋆ : (L : Γ ⊢⋆ J) {M N : Γ ⊢⋆ J}
+    → L —→⋆ M
+    → M —↠⋆ N
+      ---------
+    → L —↠⋆ N
+\end{code}
+
+\begin{code}
+data Progress⋆ {K} (M : ∅ ⊢⋆ K) : Set where
+  step : ∀ {N : ∅ ⊢⋆ K}
+    → M —→⋆ N
+      -------------
+    → Progress⋆ M
+  done :
+      Value⋆ M
+      ----------
+    → Progress⋆ M
+\end{code}
+
+\begin{code}
+progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
+progress⋆ (` ())
+progress⋆ (μ M)   = done (N- N-μ_)
+progress⋆ (Π M)   = done V-Π_
+progress⋆ (M ⇒ N) = done _V-⇒_
+progress⋆ (ƛ M)   = done V-ƛ_
+progress⋆ (M · N)  with progress⋆ M
+...                    | step p = step (ξ-·₁ p)
+...                    | done vM with progress⋆ N
+...                                | step p = step (ξ-·₂ vM p)
+progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step (β-ƛ vN)
+progress⋆ (M · N) | done (N- {∅} {K ⇒ K₁} x₁) | done x = done (N- (N-· x₁ x))
+\end{code}
+
+# Renaming and Substitution
 
 \begin{code}
 renameNeutral⋆ : ∀ {Φ Ψ}
@@ -91,41 +167,6 @@ substNeutral⋆ σ N-μ_ = N-μ_
 substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
 \end{code}
 
-## Intrinsically Kind Preserving Type Reduction
-
-\begin{code}
-infix 2 _—→⋆_
-
-data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
-  ξ-⇒₁ : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
-    → S —→⋆ S'
-      -----------------------------------
-    → S ⇒ T —→⋆ S' ⇒ T
-
-  ξ-⇒₂ : ∀ {Φ} {S : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
-    → Value⋆ S
-    → T —→⋆ T'
-      -----------------------------------
-    → S ⇒ T —→⋆ S ⇒ T'
-
-  ξ-·₁ : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
-    → L —→⋆ L′
-      -----------------
-    → L · M —→⋆ L′ · M
-
-  ξ-·₂ : ∀ {Γ K J} {V : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
-    → Value⋆ V
-    → M —→⋆ M′
-      --------------
-    → V · M —→⋆ V · M′
-
-
-  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
-    → Value⋆ W
-      -------------------
-    → (ƛ N) · W —→⋆ N [ W ]
-\end{code}
-
 \begin{code}
 rename—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
@@ -163,20 +204,6 @@ subst—→⋆ σ (β-ƛ {N = M}{W = N} V) =
 \end{code}
 
 \begin{code}
-data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
-
-  refl—↠⋆ : ∀{M}
-      --------
-    → M —↠⋆ M
-
-  trans—↠⋆ : (L : Γ ⊢⋆ J) {M N : Γ ⊢⋆ J}
-    → L —→⋆ M
-    → M —↠⋆ N
-      ---------
-    → L —↠⋆ N
-\end{code}
-
-\begin{code}
 rename—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
   → A —↠⋆ B
@@ -199,32 +226,3 @@ subst—↠⋆ σ (trans—↠⋆ L p q) =
 \end{code}
 
 
-\begin{code}
-data Progress⋆ {K} (M : ∅ ⊢⋆ K) : Set where
-  step : ∀ {N : ∅ ⊢⋆ K}
-    → M —→⋆ N
-      -------------
-    → Progress⋆ M
-  done :
-      Value⋆ M
-      ----------
-    → Progress⋆ M
-\end{code}
-
-\begin{code}
-open import Data.Product
-open import Data.Sum
-
-progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
-progress⋆ (` ())
-progress⋆ (μ M)   = done (N- N-μ_)
-progress⋆ (Π M)   = done V-Π_
-progress⋆ (M ⇒ N) = done _V-⇒_
-progress⋆ (ƛ M)   = done V-ƛ_
-progress⋆ (M · N)  with progress⋆ M
-...                    | step p = step (ξ-·₁ p)
-...                    | done vM with progress⋆ N
-...                                | step p = step (ξ-·₂ vM p)
-progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step (β-ƛ vN)
-progress⋆ (M · N) | done (N- {∅} {K ⇒ K₁} x₁) | done x = done (N- (N-· x₁ x))
-\end{code}

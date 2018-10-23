@@ -161,6 +161,7 @@ Sub Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J
 Let `σ` range over substitutions.
 
 Extending a type substitution — used when going under a binder.
+
 \begin{code}
 exts : ∀ {Φ Ψ}
   → Sub Φ Ψ
@@ -373,7 +374,7 @@ rename-subst-cons ρ A Z     = refl
 rename-subst-cons ρ A (S x) = refl
 \end{code}
 
-Commuting substcons and subst
+Commuting subst-cons and subst
 
 \begin{code}
 subst-subst-cons : ∀{Γ Δ}{J K} 
