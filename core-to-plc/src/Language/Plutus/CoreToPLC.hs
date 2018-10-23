@@ -405,6 +405,11 @@ The requirements imposed by 3. render translation somewhat tricky. We want our t
 ambivalent about where we are in the process of creating a type, so we use a richer type
 of definitions to handle things gracefully.
 
+(Why do we want to be ambivalent? We want to use e.g. the same code to compile both
+`data List a = Nil | Cons a (List a)` and `data ListWrapper a = ListWrapper (List a)`, even though
+`List` has to be two different things in the two cases (in the first it will be a reference to
+the fixpoint variable, in the second a reference to the abstract type.).)
+
 Definitions consist roughtly of a variable and a value. They can be visible, or abstract. Visible
 definitions are inlined, abstract definitions are referenced via their variable. At the end
 we bind all abstract definitions as described above. (We also track dependencies between them
