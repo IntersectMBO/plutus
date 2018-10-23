@@ -9,18 +9,16 @@
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Lift (TypeablePlc (..), LiftPlc (..)) where
 
-import           PlutusPrelude                      (strToBs)
-
-import           Language.Plutus.CoreToPLC.Builtins
+import           Language.Plutus.CoreToPLC.Utils
 
 import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
 
 import           Control.Monad
 
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.List                          (elemIndex, sortBy)
-import           Data.Maybe                         (fromJust)
+import qualified Data.ByteString.Lazy            as BSL
+import           Data.List                       (elemIndex, sortBy)
+import           Data.Maybe                      (fromJust)
 import           GHC.Generics
 
 -- | Class for types which have a corresponding Plutus Core type.

@@ -27,16 +27,24 @@ library
     exposed-modules:
         Language.Plutus.CoreToPLC.Plugin
         Language.Plutus.CoreToPLC.Error
-        Language.Plutus.CoreToPLC.Primitives
+        Language.Plutus.CoreToPLC.Builtins
         Language.Plutus.Lift
     hs-source-dirs: src
     other-modules:
-        Language.Plutus.CoreToPLC
-        Language.Plutus.CoreToPLC.Builtins
-        Language.Plutus.CoreToPLC.Definitions
         Language.Plutus.CoreToPLC.Laziness
-        Language.Plutus.CoreToPLC.Types
         Language.Plutus.CoreToPLC.PLCTypes
+        Language.Plutus.CoreToPLC.Utils
+        Language.Plutus.CoreToPLC.Compiler.Binders
+        Language.Plutus.CoreToPLC.Compiler.Builtins
+        Language.Plutus.CoreToPLC.Compiler.Definitions
+        Language.Plutus.CoreToPLC.Compiler.Expr
+        Language.Plutus.CoreToPLC.Compiler.Names
+        Language.Plutus.CoreToPLC.Compiler.Kind
+        Language.Plutus.CoreToPLC.Compiler.Primitives
+        Language.Plutus.CoreToPLC.Compiler.Type
+        Language.Plutus.CoreToPLC.Compiler.Types
+        Language.Plutus.CoreToPLC.Compiler.Utils
+        Language.Plutus.CoreToPLC.Compiler.ValueRestriction
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
