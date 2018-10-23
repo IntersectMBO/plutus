@@ -2,6 +2,7 @@
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}

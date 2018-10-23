@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
@@ -83,10 +84,10 @@ basic = testNested "basic" [
   ]
 
 monoId :: PlcCode
-monoId = plc (\(x :: Int) -> x)
+monoId = plc @"monoId" (\(x :: Int) -> x)
 
 monoK :: PlcCode
-monoK = plc (\(i :: Int) -> \(j :: Int) -> i)
+monoK = plc @"monoK" (\(i :: Int) -> \(j :: Int) -> i)
 
 primitives :: TestNested
 primitives = testNested "primitives" [
@@ -95,7 +96,7 @@ primitives = testNested "primitives" [
   , golden "int2" int
   , golden "bool" bool
   , golden "and" andPlc
-  , goldenEval "andApply" [ andPlc, plc True, plc False ]
+  , goldenEval "andApply" [ andPlc, plc @"T" True, plc @"F" False ]
   , golden "tuple" tuple
   , golden "tupleMatch" tupleMatch
   , goldenEval "tupleConstDest" [ tupleMatch, tuple ]
@@ -114,53 +115,53 @@ primitives = testNested "primitives" [
   ]
 
 string :: PlcCode
-string = plc "test"
+string = plc @"string" "test"
 
 int :: PlcCode
-int = plc (1::Int)
+int = plc @"int" (1::Int)
 
 int2 :: PlcCode
-int2 = plc (2::Int)
+int2 = plc @"int2" (2::Int)
 
 bool :: PlcCode
-bool = plc True
+bool = plc @"bool" True
 
 andPlc :: PlcCode
-andPlc = plc (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)
+andPlc = plc @"andPlc" (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)
 
 tuple :: PlcCode
-tuple = plc ((1::Int), (2::Int))
+tuple = plc @"tuple" ((1::Int), (2::Int))
 
 tupleMatch :: PlcCode
-tupleMatch = plc (\(x:: (Int, Int)) -> let (a, b) = x in a)
+tupleMatch = plc @"tupleMatch" (\(x:: (Int, Int)) -> let (a, b) = x in a)
 
 intCompare :: PlcCode
-intCompare = plc (\(x::Int) (y::Int) -> x < y)
+intCompare = plc @"intCompare" (\(x::Int) (y::Int) -> x < y)
 
 intEq :: PlcCode
-intEq = plc (\(x::Int) (y::Int) -> x == y)
+intEq = plc @"intEq" (\(x::Int) (y::Int) -> x == y)
 
 -- Has a Void in it
 void :: PlcCode
-void = plc (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))
+void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))
 
 intPlus :: PlcCode
-intPlus = plc (\(x::Int) (y::Int) -> x + y)
+intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> x + y)
 
 errorPlc :: PlcCode
-errorPlc = plc (Prims.error @Int)
+errorPlc = plc @"errorPlc" (Prims.error @Int)
 
 ifThenElse :: PlcCode
-ifThenElse = plc (\(x::Int) (y::Int) -> if x == y then x else y)
+ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
 
 blocknumPlc :: PlcCode
-blocknumPlc = plc Prims.blocknum
+blocknumPlc = plc @"blocknumPlc" Prims.blocknum
 
 bytestring :: PlcCode
-bytestring = plc (\(x::Prims.ByteString) -> x)
+bytestring = plc @"bytestring" (\(x::Prims.ByteString) -> x)
 
 verify :: PlcCode
-verify = plc (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
+verify = plc @"verify" (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
 
 structure :: TestNested
 structure = testNested "structure" [
@@ -169,7 +170,7 @@ structure = testNested "structure" [
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
 letFun :: PlcCode
-letFun = plc (\(x::Int) (y::Int) -> let f z = x == z in f y)
+letFun = plc @"lefFun" (\(x::Int) (y::Int) -> let f z = x == z in f y)
 
 datat :: TestNested
 datat = testNested "data" [
@@ -196,38 +197,38 @@ monoData = testNested "monomorphic" [
 data MyEnum = Enum1 | Enum2
 
 basicEnum :: PlcCode
-basicEnum = plc (Enum1)
+basicEnum = plc @"basicEnum" (Enum1)
 
 data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int deriving (Generic)
 
 monoDataType :: PlcCode
-monoDataType = plc (\(x :: MyMonoData) -> x)
+monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
 
 monoConstructor :: PlcCode
-monoConstructor = plc (Mono1)
+monoConstructor = plc @"monConstructor" (Mono1)
 
 monoConstructed :: PlcCode
-monoConstructed = plc (Mono2 1)
+monoConstructed = plc @"monoConstructed" (Mono2 1)
 
 monoCase :: PlcCode
-monoCase = plc (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a; Mono3 a -> a })
+monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a; Mono3 a -> a })
 
 defaultCase :: PlcCode
-defaultCase = plc (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
+defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
 
 data MyMonoRecord = MyMonoRecord { a :: Int , b :: Int} deriving Generic
 
 monoRecord :: PlcCode
-monoRecord = plc (\(x :: MyMonoRecord) -> x)
+monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
 
 -- must be compiled with a lazy case
 nonValueCase :: PlcCode
-nonValueCase = plc (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Prims.error (); })
+nonValueCase = plc @"nonValueCase" (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Prims.error (); })
 
 type Synonym = Int
 
 synonym :: PlcCode
-synonym = plc (1::Synonym)
+synonym = plc @"synonym" (1::Synonym)
 
 polyData :: TestNested
 polyData = testNested "polymorphic" [
@@ -238,10 +239,10 @@ polyData = testNested "polymorphic" [
 data MyPolyData a b = Poly1 a b | Poly2 a
 
 polyDataType :: PlcCode
-polyDataType = plc (\(x:: MyPolyData Int Int) -> x)
+polyDataType = plc @"polyDataType" (\(x:: MyPolyData Int Int) -> x)
 
 polyConstructed :: PlcCode
-polyConstructed = plc (Poly1 (1::Int) (2::Int))
+polyConstructed = plc @"polyConstructed" (Poly1 (1::Int) (2::Int))
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [
@@ -258,19 +259,19 @@ newtype MyNewtype = MyNewtype Int
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
 basicNewtype :: PlcCode
-basicNewtype = plc (\(x::MyNewtype) -> x)
+basicNewtype = plc @"basicNewtype" (\(x::MyNewtype) -> x)
 
 newtypeMatch :: PlcCode
-newtypeMatch = plc (\(MyNewtype x) -> x)
+newtypeMatch = plc @"newtypeMatch" (\(MyNewtype x) -> x)
 
 newtypeCreate :: PlcCode
-newtypeCreate = plc (\(x::Int) -> MyNewtype x)
+newtypeCreate = plc @"newtypeCreate" (\(x::Int) -> MyNewtype x)
 
 newtypeCreate2 :: PlcCode
-newtypeCreate2 = plc (MyNewtype 1)
+newtypeCreate2 = plc @"newtypeCreate2" (MyNewtype 1)
 
 nestedNewtypeMatch :: PlcCode
-nestedNewtypeMatch = plc (\(MyNewtype2 (MyNewtype x)) -> x)
+nestedNewtypeMatch = plc @"nestedNewtypeMatch" (\(MyNewtype2 (MyNewtype x)) -> x)
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursiveTypes" [
@@ -289,19 +290,19 @@ recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
     -- currently broken, will come back to this later
     golden "fib" fib
-    , goldenEval "fib4" [ fib, plc (4::Int) ]
+    , goldenEval "fib4" [ fib, plc @"4" (4::Int) ]
     , golden "sum" sumDirect
     , goldenEval "sumList" [ sumDirect, listConstruct3 ]
     --, golden "sumFold" sumViaFold
     --, goldenEval "sumFoldList" [ sumViaFold, listConstruct3 ]
     , golden "even" evenMutual
-    , goldenEval "even3" [ evenMutual, plc (3::Int) ]
-    , goldenEval "even4" [ evenMutual, plc (4::Int) ]
+    , goldenEval "even3" [ evenMutual, plc @"3" (3::Int) ]
+    , goldenEval "even4" [ evenMutual, plc @"4" (4::Int) ]
   ]
 
 fib :: PlcCode
 -- not using case to avoid literal cases
-fib = plc (
+fib = plc @"fib" (
     let fib :: Int -> Int
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
@@ -314,15 +315,15 @@ errors = testNested "errors" [
   ]
 
 integer :: PlcCode
-integer = plc (1::Integer)
+integer = plc @"integer" (1::Integer)
 
 free :: PlcCode
-free = plc (True && False)
+free = plc @"free" (True && False)
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.
 valueRestriction :: PlcCode
-valueRestriction = plc (let { f :: forall a . a; f = Prims.error (); } in (f @Bool, f @Int))
+valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Prims.error (); } in (f @Bool, f @Int))
 
 instance LiftPlc (MyMonoData)
 instance LiftPlc (MyMonoRecord)

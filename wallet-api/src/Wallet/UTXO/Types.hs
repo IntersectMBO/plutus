@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DefaultSignatures  #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
@@ -78,6 +79,7 @@ module Wallet.UTXO.Types(
     unitRedeemer,
     unitData,
     unitValidationData,
+    runScript,
     -- * Lenses
     inputs,
     outputs,

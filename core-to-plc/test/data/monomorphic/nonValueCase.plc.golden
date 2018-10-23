@@ -1,6 +1,7 @@
 Error: Type mismatch at () in term
-         'bad_name_24'.
+         'bad_name_25'.
        Expected type
-         'bad_name_20',
+         'bad_name_21',
        found type
-         '(all a_32 (type) (fun a_32 a_32))'
+         '(all a_36 (type) (fun a_36 a_36))'
+Context: Converting expr at "nonValueCase"

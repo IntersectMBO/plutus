@@ -6,7 +6,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators
--- import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Pretty
 import           PlutusPrelude                         (PrettyConfigIgnore (..))
 
 import           Control.Monad.Except
@@ -25,10 +25,10 @@ propEvaluate eval genTermOfTbv = property . hoist (return . runQuote) $ do
     TermOf term (PrettyConfigIgnore tbv) <-
         -- We do not show generated terms, because they're huge and unreadable.
         forAllNoShowT $ fmap PrettyConfigIgnore <$> genTermOfTbv
-    -- TODO: return type checking.
-    -- case runExcept . runQuoteT $ annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 True) of
-    --     Left err -> fail . docString $ prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic err
-    --     Right _  -> return ()
+    let typecheck = annotateTerm >=> typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True mempty)
+    case runExcept . runQuoteT $ typecheck term of
+        Left err -> fail . docString $ prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic err
+        Right _  -> return ()
     resExpected <- lift $ unsafeMakeBuiltin tbv
     for_ (evaluationResultToMaybe $ eval term) $ \resActual ->
         resActual === resExpected
