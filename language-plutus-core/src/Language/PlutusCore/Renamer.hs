@@ -146,32 +146,29 @@ withRefreshed x k = do
 class Rename a where
     renameM :: a -> RenameM a
 
-instance Rename (Name a) where
-    renameM name = do
-        let uniqOld = nameUnique name
-        mayUniqNew <- lookupUnique uniqOld
-        pure $ case mayUniqNew of
-            Nothing      -> name
-            Just uniqNew -> name { nameUnique = uniqNew }
+-- | Rename a name that has a 'Unique' inside.
+renameNameM :: HasUnique name => name -> RenameM name
+renameNameM name = do
+    let uniqOld = name ^. unique
+    mayUniqNew <- lookupUnique uniqOld
+    pure $ case mayUniqNew of
+        Nothing      -> name
+        Just uniqNew -> name & unique .~ uniqNew
 
-instance Rename (TyName a) where
-    renameM (TyName name) = TyName <$> renameM name
-
-instance (HasUnique (tyname a), Rename (tyname a)) => Rename (Type tyname a) where
+instance HasUnique (tyname a) => Rename (Type tyname a) where
     renameM (TyLam ann name kind ty)    =
         withRefreshed name $ \nameFr -> TyLam ann nameFr kind <$> renameM ty
     renameM (TyForall ann name kind ty) =
         withRefreshed name $ \nameFr -> TyForall ann nameFr kind <$> renameM ty
     renameM (TyFix ann name pat)        =
         withRefreshed name $ \nameFr -> TyFix ann nameFr <$> renameM pat
-    renameM (TyApp x ty ty')            = TyApp x <$> renameM ty <*> renameM ty'
-    renameM (TyFun x ty ty')            = TyFun x <$> renameM ty <*> renameM ty'
-    renameM (TyVar ann name)            = TyVar ann <$> renameM name
+    renameM (TyApp ann fun arg)         = TyApp ann <$> renameM fun <*> renameM arg
+    renameM (TyFun ann dom cod)         = TyFun ann <$> renameM dom <*> renameM cod
+    renameM (TyVar ann name)            = TyVar ann <$> renameNameM name
     renameM ty@TyInt{}                  = pure ty
     renameM ty@TyBuiltin{}              = pure ty
 
-instance (HasUnique (tyname a), HasUnique (name a), Rename (tyname a), Rename (name a)) =>
-        Rename (Term tyname name a) where
+instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Term tyname name a) where
     renameM (LamAbs ann name ty body)  =
         withRefreshed name $ \nameFr -> LamAbs ann nameFr <$> renameM ty <*> renameM body
     renameM (Wrap ann name ty term)    =
@@ -182,9 +179,8 @@ instance (HasUnique (tyname a), HasUnique (name a), Rename (tyname a), Rename (n
     renameM (Unwrap ann term)          = Unwrap ann <$> renameM term
     renameM (Error ann ty)             = Error ann <$> renameM ty
     renameM (TyInst ann body ty)       = TyInst ann <$> renameM body <*> renameM ty
-    renameM (Var ann name)             = Var ann <$> renameM name
+    renameM (Var ann name)             = Var ann <$> renameNameM name
     renameM con@Constant{}             = pure con
 
-instance (HasUnique (tyname a), HasUnique (name a), Rename (tyname a), Rename (name a)) =>
-        Rename (Program tyname name a) where
+instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Program tyname name a) where
     renameM (Program ann ver term) = Program ann ver <$> renameM term
