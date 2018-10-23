@@ -17,6 +17,7 @@ import           Control.Monad.Except
 import           Data.Foldable
 import qualified Data.Graph                         as Graph
 import qualified Data.Map                           as Map
+import           Data.Maybe                         (fromMaybe)
 
 -- | The visibility of a definition. See Note [Abstract data types]
 data Visibility = Abstract | Visible
@@ -40,7 +41,7 @@ type TypeDef = Def PLCTyVar TypeRep
 
 tydTy :: TypeDef -> PLCType
 tydTy = \case
-    Def Abstract (n, _) _ -> PLC.TyVar () n
+    Def Abstract (PLCTyVar n _) _ -> PLC.TyVar () n
     Def Visible _ tr -> trTy tr
 
 tydConstrs :: TypeDef -> Maybe [TermDef]
@@ -57,7 +58,7 @@ type TermDef = Def PLCVar PLCTerm
 
 tdTerm :: TermDef -> PLCTerm
 tdTerm = \case
-    Def Abstract (n, _) _ -> PLC.Var () n
+    Def Abstract (PLCVar n _) _ -> PLC.Var () n
     Def Visible _ t -> t
 
 type DefMap key def = Map.Map key (def, [key])
@@ -96,7 +97,7 @@ wrapDefScc acc scc = case scc of
     Graph.AcyclicSCC def            -> pure $ wrapDef acc def
     -- self-recursive types are okay, but we don't handle recursive groups of definitions in general at the moment
     Graph.CyclicSCC [def@TypeDef{}] -> pure $ wrapDef acc def
-    Graph.CyclicSCC _               -> throwPlain $ UnsupportedError "Recursive definitions not currently supported"
+    Graph.CyclicSCC _               -> throwPlain $ UnsupportedError "Mutually recursive definitions not currently supported"
 
 -- | Wrap a term with a single definition.
 wrapDef :: PLC.Term PLC.TyName PLC.Name () -> TermOrTypeDef -> PLC.Term PLC.TyName PLC.Name ()
@@ -104,16 +105,16 @@ wrapDef term def = case def of
     TypeDef d ->
         -- See Note [Abstract data types]
         let
-            constructors = join $ toList $ tydConstrs d
+            constructors = fromMaybe [] $ tydConstrs d
             destructors = toList $ tydMatch d
             -- we don't bother binding things that are not abstract since they will have
             -- been inlined
             abstractTys = filter (not . isVisible) [d]
             abstractTerms = filter (not . isVisible) (constructors ++ destructors)
-            tyVars = fmap dVar abstractTys
+            tyVars = fmap (splitTyVar . dVar) abstractTys
             tys = fmap (trTy . dVal) abstractTys
-            vars = fmap dVar abstractTerms
+            vars = fmap (splitVar . dVar) abstractTerms
             vals = fmap dVal abstractTerms
         in
             mkIterApp (mkIterInst (mkIterTyAbs tyVars (mkIterLamAbs vars term)) tys) vals
-    TermDef (Def _ (n, ty) rhs) -> mkTermLet n rhs ty term
+    TermDef (Def _ (PLCVar n ty) rhs) -> mkTermLet n rhs ty term
