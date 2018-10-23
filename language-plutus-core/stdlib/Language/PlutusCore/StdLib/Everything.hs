@@ -97,15 +97,14 @@ stdLib
                 [ Named "SuccInteger" $ AnonStdLibTerm getBuiltinSuccInteger
                 ]
             , Named "List" $ AnonStdLibFile
-                [ -- Named "List"         $ AnonStdLibType getBuiltinList
-                  Named "Nil"          $ AnonStdLibTerm getBuiltinNil
-                , Named "Cons"         $ AnonStdLibTerm getBuiltinCons
-                , Named "FoldrList"    $ AnonStdLibTerm getBuiltinFoldrList
-                , Named "FoldList"     $ AnonStdLibTerm getBuiltinFoldList
-                , Named "EnumCountNat" $ AnonStdLibTerm getBuiltinEnumCountNat
-                , Named "EnumFromTo"   $ AnonStdLibTerm getBuiltinEnumFromTo
-                , Named "Sum"          $ AnonStdLibTerm getBuiltinSum
-                , Named "Product"      $ AnonStdLibTerm getBuiltinProduct
+                [ -- Named "List"       $ AnonStdLibType getBuiltinList
+                  Named "Nil"        $ AnonStdLibTerm getBuiltinNil
+                , Named "Cons"       $ AnonStdLibTerm getBuiltinCons
+                , Named "FoldrList"  $ AnonStdLibTerm getBuiltinFoldrList
+                , Named "FoldList"   $ AnonStdLibTerm getBuiltinFoldList
+                , Named "EnumFromTo" $ AnonStdLibTerm getBuiltinEnumFromTo
+                , Named "Sum"        $ AnonStdLibTerm getBuiltinSum
+                , Named "Product"    $ AnonStdLibTerm getBuiltinProduct
                 ]
             , Named "Nat" $ AnonStdLibFile
                 [ -- Named "Nat"          $ AnonStdLibType getBuiltinNat

@@ -9,6 +9,7 @@ import           Language.PlutusCore.Constant (makeDynamicBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
@@ -16,7 +17,7 @@ import           Language.PlutusCore.Type
 -- > /\(s :: size) -> \(ss : size s) (i : integer s) ->
 -- >     addInteger {s} i (resizeInteger {1} {s} ss 1!1)
 getBuiltinSuccInteger :: Quote (Term TyName Name ())
-getBuiltinSuccInteger = do
+getBuiltinSuccInteger = rename =<< do
     s <- freshTyName () "s"
     ss <- freshName () "ss"
     i  <- freshName () "i"

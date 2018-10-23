@@ -11,14 +11,16 @@ module Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
+
+import           Language.PlutusCore.StdLib.Data.Unit
 
 -- | 'Bool' as a PLC type.
 --
 -- > all (A :: *). A -> A -> A
 getBuiltinBool :: Quote (Type TyName ())
-getBuiltinBool = do
+getBuiltinBool = rename =<< do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
@@ -29,7 +31,7 @@ getBuiltinBool = do
 --
 -- > /\(A :: *) -> \(x y : A) -> x
 getBuiltinTrue :: Quote (Value TyName Name ())
-getBuiltinTrue = do
+getBuiltinTrue = rename =<< do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
@@ -45,7 +47,7 @@ getBuiltinTrue = do
 --
 -- > /\(A :: *) -> \(x y : A) -> y
 getBuiltinFalse :: Quote (Value TyName Name ())
-getBuiltinFalse = do
+getBuiltinFalse = rename =<< do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
@@ -61,24 +63,22 @@ getBuiltinFalse = do
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b {() -> A} x y ()
 getBuiltinIf :: Quote (Value TyName Name ())
-getBuiltinIf = do
-    unit1 <- getBuiltinUnit
-    unit2 <- getBuiltinUnit
-    unit3 <- getBuiltinUnit
+getBuiltinIf = rename =<< do
+    unit <- getBuiltinUnit
     unitval <- getBuiltinUnitval
     builtinBool <- getBuiltinBool
     a <- freshTyName () "a"
     b <- freshName () "b"
     x <- freshName () "x"
     y <- freshName () "y"
-    let unitFunA u = TyFun () u (TyVar () a)
+    let unitFunA = TyFun () unit (TyVar () a)
     return
        . TyAbs () a (Type ())
       $ mkIterLamAbs [
           (b, builtinBool),
-          (x, unitFunA unit1),
-          (y, unitFunA unit2)
+          (x, unitFunA),
+          (y, unitFunA)
           ]
       $ mkIterApp
-          (TyInst () (Var () b) (TyFun () unit3 (TyVar () a)))
+          (TyInst () (Var () b) unitFunA)
           [Var () x, Var () y, unitval]
