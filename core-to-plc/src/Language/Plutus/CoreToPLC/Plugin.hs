@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE ViewPatterns               #-}
+{-# OPTIONS_GHC -fno-warn-unused-foralls #-}
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, applyPlc, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC
@@ -17,7 +18,6 @@ import qualified GhcPlugins                      as GHC
 import qualified Panic                           as GHC
 
 import qualified Language.PlutusCore             as PLC
-import qualified Language.PlutusCore.Pretty      as PLC
 import           Language.PlutusCore.Quote
 
 import           Language.Haskell.TH.Syntax      as TH
@@ -31,10 +31,8 @@ import qualified Data.Aeson                      as JSON
 import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Base64          as Base64
 import qualified Data.ByteString.Lazy            as BSL
-import           Data.Data
 import qualified Data.Map                        as Map
 import           Data.Maybe                      (catMaybes)
-import           Data.Text                       as T
 import qualified Data.Text.Encoding              as TE
 import qualified Data.Text.Prettyprint.Doc       as PP
 import           GHC.TypeLits
