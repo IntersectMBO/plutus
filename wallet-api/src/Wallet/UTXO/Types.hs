@@ -79,6 +79,7 @@ module Wallet.UTXO.Types(
     unitRedeemer,
     unitData,
     unitValidationData,
+    runScript,
     -- * Lenses
     inputs,
     outputs,
