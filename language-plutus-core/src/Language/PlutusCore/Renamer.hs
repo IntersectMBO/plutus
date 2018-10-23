@@ -1,7 +1,5 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleInstances  #-}
-
-module Language.PlutusCore.Renamer ( rename
+module Language.PlutusCore.Renamer ( Rename (..)
+                                   , rename
                                    , annotateProgram
                                    , annotateTerm
                                    , annotateType
@@ -9,14 +7,17 @@ module Language.PlutusCore.Renamer ( rename
                                    , RenameError (..)
                                    ) where
 
-import           Control.Monad.Except
-import           Control.Monad.State.Lazy
-import qualified Data.IntMap               as IM
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
-import           Lens.Micro
 import           PlutusPrelude
+
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Control.Monad.State.Lazy
+import qualified Data.IntMap               as IM
+import           Lens.Micro
 
 data TypeState a = TypeState { _terms :: IM.IntMap (RenamedType a), _types :: IM.IntMap (Kind a) }
 
@@ -111,104 +112,79 @@ annotateTy (TyApp x ty ty') =
 annotateTy (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
 annotateTy (TyInt x n) = pure (TyInt x n)
 
--- This renames terms so that they have a unique identifier. This is useful
--- because of scoping.
-rename :: IdentifierState -> Program TyName Name a -> Program TyName Name a
-rename (st, _, nextU) (Program x v p) = Program x v (evalState (renameTerm (Identifiers st') p) m)
-    where st' = IM.fromList (zip keys keys)
-          keys = IM.keys st
-          -- the next unique is one more than the maximum
-          m = unUnique nextU-1
+-- | Mapping from locally unique indices to globally unique 'Unique's.
+newtype UniquesRenaming = UniquesRenaming
+    { unUniquesRenaming :: IM.IntMap Unique
+    }
 
-newtype Identifiers = Identifiers { _identifiers :: IM.IntMap Int }
+-- | The monad the renamer runs in.
+type RenameM = ReaderT UniquesRenaming Quote
 
-type MaxM = State Int
+-- | Rename 'Unique's so that they're globally unique.
+rename :: (Rename a, MonadQuote m) => a -> m a
+rename x = liftQuote $ runReaderT (renameM x) (UniquesRenaming mempty)
 
-identifiers :: Lens' Identifiers (IM.IntMap Int)
-identifiers f s = fmap (\x -> s { _identifiers = x }) (f (_identifiers s))
+-- | Save the mapping from an old 'Unique' to a new one.
+updateUniquesRenaming :: Unique -> Unique -> UniquesRenaming -> UniquesRenaming
+updateUniquesRenaming uniqOld uniqNew (UniquesRenaming uniques) =
+    UniquesRenaming $ IM.insert (unUnique uniqOld) uniqNew uniques
 
-modifyIdentifiers :: Int -> Int -> Identifiers -> Identifiers
-modifyIdentifiers u m = over identifiers (IM.insert u (m+1))
+-- | Look up a new 'Unique' an old 'Unique' got mapped to.
+lookupUnique :: Unique -> RenameM (Maybe Unique)
+lookupUnique uniq = asks $ IM.lookup (unUnique uniq) . unUniquesRenaming
 
-lookupId :: Int -> Identifiers -> Maybe Int
-lookupId u st = IM.lookup u (_identifiers st)
+-- | Replace the 'Unique' in a value by a new 'Unique', save the mapping
+-- from an old 'Unique' to the new one and supply the updated value to a continuation.
+withRefreshed :: HasUnique a => a -> (a -> RenameM c) -> RenameM c
+withRefreshed x k = do
+    let uniqOld = x ^. unique
+    uniqNew <- liftQuote freshUnique
+    local (updateUniquesRenaming uniqOld uniqNew) $ k (x & unique .~ uniqNew)
 
--- this convoluted affair lets us track the maximum in a global state monad,
--- while keeping the table for renaming local (so that we don't rename things in
--- function applications)
-renameTerm :: Identifiers -> Term TyName Name a -> MaxM (Term TyName Name a)
-renameTerm st t@(LamAbs x (Name x' s (Unique u)) ty t') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            LamAbs x (Name x' s (Unique (m+1))) <$> renameType st' ty <*> renameTerm st' t'
-        _      -> renameTerm st' t
-renameTerm st t@(Wrap x (TyName (Name x' s (Unique u))) ty t') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            Wrap x (TyName (Name x' s (Unique (m+1)))) <$> renameType st' ty <*> renameTerm st' t'
-        _ -> renameTerm st' t
-renameTerm st t@(TyAbs x (TyName (Name x' s (Unique u))) k t') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            TyAbs x (TyName (Name x' s (Unique (m+1)))) k <$> renameTerm st' t'
-        _ -> renameTerm st' t
-renameTerm st t@(Var x (Name x' s (Unique u))) =
-    case pastDef of
-        Just j -> pure $ Var x (Name x' s (Unique j))
-        _      -> pure t
-    where pastDef = lookupId u st
-renameTerm st (Apply x t t') = Apply x <$> renameTerm st t <*> renameTerm st t'
-renameTerm st (Unwrap x t) = Unwrap x <$> renameTerm st t
-renameTerm _ x@Constant{} = pure x
-renameTerm st (Error x ty) = Error x <$> renameType st ty
-renameTerm st (TyInst x t tys) = TyInst x <$> renameTerm st t <*> renameType st tys
+-- | The class of things that can be renamed.
+-- I.e. things that are capable of satisfying the global uniqueness condition.
+class Rename a where
+    renameM :: a -> RenameM a
 
-renameType :: Identifiers -> Type TyName a -> MaxM (Type TyName a)
-renameType _ ty@TyInt{} = pure ty
-renameType st ty@(TyLam x (TyName (Name x' s (Unique u))) k ty') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            TyLam x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
-        _ -> renameType st' ty
-renameType st ty@(TyForall x (TyName (Name x' s (Unique u))) k ty') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            TyForall x (TyName (Name x' s (Unique (m+1)))) k <$> renameType st' ty'
-        _ -> renameType st' ty
-renameType st ty@(TyFix x (TyName (Name x' s (Unique u))) ty') = do
-    m <- get
-    let st' = modifyIdentifiers u m st
-        pastDef = lookupId u st
-    case pastDef of
-        Just _ ->
-            modify (+1) >>
-            TyFix x (TyName (Name x' s (Unique (m+1)))) <$> renameType st' ty'
-        _ -> renameType st' ty
-renameType st ty@(TyVar x (TyName (Name x' s (Unique u)))) =
-    case pastDef of
-        Just j -> pure $ TyVar x (TyName (Name x' s (Unique j)))
-        _      -> pure ty
-    where pastDef = lookupId u st
-renameType st (TyApp x ty ty') = TyApp x <$> renameType st ty <*> renameType st ty'
-renameType st (TyFun x ty ty') = TyFun x <$> renameType st ty <*> renameType st ty'
-renameType _ ty@TyBuiltin{} = pure ty
+instance Rename (Name a) where
+    renameM name = do
+        let uniqOld = nameUnique name
+        mayUniqNew <- lookupUnique uniqOld
+        pure $ case mayUniqNew of
+            Nothing      -> name
+            Just uniqNew -> name { nameUnique = uniqNew }
+
+instance Rename (TyName a) where
+    renameM (TyName name) = TyName <$> renameM name
+
+instance (HasUnique (tyname a), Rename (tyname a)) => Rename (Type tyname a) where
+    renameM (TyLam ann name kind ty)    =
+        withRefreshed name $ \nameFr -> TyLam ann nameFr kind <$> renameM ty
+    renameM (TyForall ann name kind ty) =
+        withRefreshed name $ \nameFr -> TyForall ann nameFr kind <$> renameM ty
+    renameM (TyFix ann name pat)        =
+        withRefreshed name $ \nameFr -> TyFix ann nameFr <$> renameM pat
+    renameM (TyApp x ty ty')            = TyApp x <$> renameM ty <*> renameM ty'
+    renameM (TyFun x ty ty')            = TyFun x <$> renameM ty <*> renameM ty'
+    renameM (TyVar ann name)            = TyVar ann <$> renameM name
+    renameM ty@TyInt{}                  = pure ty
+    renameM ty@TyBuiltin{}              = pure ty
+
+instance (HasUnique (tyname a), HasUnique (name a), Rename (tyname a), Rename (name a)) =>
+        Rename (Term tyname name a) where
+    renameM (LamAbs ann name ty body)  =
+        withRefreshed name $ \nameFr -> LamAbs ann nameFr <$> renameM ty <*> renameM body
+    renameM (Wrap ann name ty term)    =
+        withRefreshed name $ \nameFr -> Wrap ann nameFr <$> renameM ty <*> renameM term
+    renameM (TyAbs ann name kind body) =
+        withRefreshed name $ \nameFr -> TyAbs ann nameFr kind <$> renameM body
+    renameM (Apply ann fun arg)        = Apply ann <$> renameM fun <*> renameM arg
+    renameM (Unwrap ann term)          = Unwrap ann <$> renameM term
+    renameM (Error ann ty)             = Error ann <$> renameM ty
+    renameM (TyInst ann body ty)       = TyInst ann <$> renameM body <*> renameM ty
+    renameM (Var ann name)             = Var ann <$> renameM name
+    renameM con@Constant{}             = pure con
+
+instance (HasUnique (tyname a), HasUnique (name a), Rename (tyname a), Rename (name a)) =>
+        Rename (Program tyname name a) where
+    renameM (Program ann ver term) = Program ann ver <$> renameM term
