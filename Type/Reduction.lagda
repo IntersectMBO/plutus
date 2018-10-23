@@ -138,9 +138,9 @@ rename—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-·₂ V p)             = ξ-·₂ (renameValue⋆ ρ V) (rename—→⋆ ρ p)
 rename—→⋆ ρ (β-ƛ {N = M}{W = N} V) =
   substEq (λ X → rename ρ ((ƛ M) · N) —→⋆ X)
-          (trans (sym (subst-rename (ext ρ) (subst-cons ` (rename ρ N)) M))
-                 (trans (subst-cong _ _ (rename-subst-cons ρ N) M)
-                        (rename-subst (subst-cons ` N) ρ M)))
+          (trans (sym (subst-rename M))
+                 (trans (subst-cong (rename-subst-cons ρ N) M)
+                        (rename-subst M)))
           (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N} (renameValue⋆ ρ V)) 
 \end{code}
 
@@ -156,9 +156,9 @@ subst—→⋆ σ (ξ-·₁ p)               = ξ-·₁ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-·₂ V p)             = ξ-·₂ (substValue⋆ σ V) (subst—→⋆ σ p)
 subst—→⋆ σ (β-ƛ {N = M}{W = N} V) =
   substEq (λ X → subst σ ((ƛ M) · N) —→⋆ X)
-          (trans (sym (subst-comp (exts σ) (subst-cons ` (subst σ N)) M))
-                 (trans (subst-cong _ _ (subst-subst-cons σ N) M)
-                        (subst-comp (subst-cons ` N) σ M)))
+          (trans (sym (subst-comp M))
+                 (trans (subst-cong (subst-subst-cons σ N) M)
+                        (subst-comp  M)))
           (β-ƛ {N = subst (exts σ) M}{W = subst σ N} (substValue⋆ σ V))
 \end{code}
 

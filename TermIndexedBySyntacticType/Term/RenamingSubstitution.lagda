@@ -42,7 +42,7 @@ ext⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ∋ ⋆.rename (⋆.ext ρ⋆) A )
 ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (⋆.rename-comp _ _ _)) (⋆.rename-comp _ _ _))
+          (trans (sym (⋆.rename-comp _)) (⋆.rename-comp _))
           (T (ρ x))
 \end{code}
 
@@ -80,11 +80,9 @@ rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N )
 rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
   substEq (λ A → Δ ⊢ A)
-          ( trans (sym (⋆.subst-rename (⋆.ext ρ⋆)
-                                      (⋆.subst-cons ` (⋆.rename ρ⋆ A))
-                                      B))
-                 (trans (⋆.subst-cong _ _ (⋆.rename-subst-cons ρ⋆ A) B)
-                        (⋆.rename-subst (⋆.subst-cons ` A) ρ⋆ B) ) )
+          ( trans (sym (⋆.subst-rename B))
+                 (trans (⋆.subst-cong (⋆.rename-subst-cons ρ⋆ A) B)
+                        (⋆.rename-subst B) ) )
           (rename ρ⋆ ρ t ·⋆ ⋆.rename ρ⋆ A)
 rename {Γ}{Δ} ρ⋆ ρ (wrap M E N refl) =
   substEq (λ A → Δ ⊢ A)
@@ -94,24 +92,19 @@ rename {Γ}{Δ} ρ⋆ ρ (wrap M E N refl) =
                 (substEq (λ A → Δ ⊢ A)
                          (trans (renameE[] ρ⋆ E (M ⋆.[ μ M ]))
                                 (cong (renameE ρ⋆ E [_]E)
-                                      (trans (sym (⋆.rename-subst (⋆.subst-cons ` (μ M)) ρ⋆ M))
+                                      (trans (sym (⋆.rename-subst M))
                                              (trans (⋆.subst-cong
-                                                      _
-                                                      _
                                                       (λ x → sym (⋆.rename-subst-cons _ _ x))
                                                       M)
-                                                    (⋆.subst-rename
-                                                      (⋆.ext ρ⋆)
-                                                      (⋆.subst-cons ` (μ (⋆.rename (⋆.ext ρ⋆) M)))
-                                                      M)))))
+                                                    (⋆.subst-rename M)))))
                          (rename ρ⋆ ρ N))
           refl)
 rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = A} E refl M) =
   substEq (λ A → Δ ⊢ A)
           (trans (cong (renameE ρ⋆ E [_]E)
-                       (trans (sym (⋆.subst-rename _ _ A))
-                              (trans (⋆.subst-cong _ _ (⋆.rename-subst-cons _ _) A)
-                                     (⋆.rename-subst _ _ A))))
+                       (trans (sym (⋆.subst-rename A))
+                              (trans (⋆.subst-cong (⋆.rename-subst-cons _ _) A)
+                                     (⋆.rename-subst A))))
                  (sym (renameE[] ρ⋆ E (A ⋆.[ μ A ]))))
           (unwrap (renameE ρ⋆ E )
                   refl
@@ -167,8 +160,8 @@ exts⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ⊢ ⋆.subst (⋆.exts σ⋆) A )
 exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
   substEq (λ x → Δ ,⋆ K ⊢ x)
-          (trans (sym (⋆.rename-subst σ⋆ S A))
-                 (⋆.subst-rename S (⋆.exts σ⋆) A))
+          (trans (sym (⋆.rename-subst A))
+                 (⋆.subst-rename A))
           (weaken⋆ (σ x))
 
 \end{code}
@@ -186,16 +179,10 @@ subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
 subst σ⋆ σ (Λ N)                     = Λ (subst (⋆.exts σ⋆) (exts⋆ σ⋆ σ) N)
 subst {Γ}{Δ} σ⋆ σ (_·⋆_ {B = B} L M) =
   substEq (λ A → Δ ⊢ A)
-          (trans (sym (⋆.subst-comp (⋆.exts σ⋆)
-                                    (⋆.subst-cons ` (⋆.subst σ⋆ M))
-                                    B))
-                 (trans (⋆.subst-cong (⋆.subst (⋆.subst-cons ` (⋆.subst σ⋆ M))
-                                     ∘
-                                     ⋆.exts σ⋆)
-                                    (⋆.subst σ⋆ ∘ ⋆.subst-cons ` M)
-                                    (⋆.subst-subst-cons σ⋆ M)
+          (trans (sym (⋆.subst-comp B))
+                 (trans (⋆.subst-cong (⋆.subst-subst-cons σ⋆ M)
                                     B)
-                        (⋆.subst-comp (⋆.subst-cons ` M) σ⋆ B)))
+                        (⋆.subst-comp B)))
           (subst σ⋆ σ L ·⋆ ⋆.subst σ⋆ M)
 subst {Γ}{Δ} σ⋆ σ (wrap M E N refl) =
   substEq (λ A → Δ ⊢ A)
@@ -205,24 +192,20 @@ subst {Γ}{Δ} σ⋆ σ (wrap M E N refl) =
                 (substEq (λ A → Δ ⊢ A)
                          (trans (substE[] σ⋆ E (M ⋆.[ μ M ]))
                                 (cong (substE σ⋆ E [_]E)
-                                      (trans (sym (⋆.subst-comp (⋆.subst-cons ` (μ M)) σ⋆ M))
+                                      (trans (sym (⋆.subst-comp M))
                                              (trans (⋆.subst-cong
-                                                      _
-                                                      _
                                                       (λ x → sym (⋆.subst-subst-cons _ _ x))
                                                       M)
                                                     (⋆.subst-comp
-                                                      (⋆.exts σ⋆)
-                                                      (⋆.subst-cons ` (μ (⋆.subst (⋆.exts σ⋆) M)))
                                                       M)))))
                          (subst σ⋆ σ N))
                 refl)
 subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E refl M) =
   substEq (λ A → Δ ⊢ A)
           (trans (cong (substE σ⋆ E [_]E)
-                       (trans (trans (sym (⋆.subst-comp _ _ A))
-                                     (⋆.subst-cong _ _ (⋆.subst-subst-cons _ _) A))
-                              (⋆.subst-comp _ _ A)))
+                       (trans (trans (sym (⋆.subst-comp A))
+                                     (⋆.subst-cong (⋆.subst-subst-cons _ _) A))
+                              (⋆.subst-comp A)))
                  (sym (substE[] σ⋆ E (A ⋆.[ μ A ]))))
           (unwrap (substE σ⋆ E)
                   refl
@@ -273,7 +256,7 @@ _[_]⋆ {J}{Γ}{K}{B} t A =
   subst (⋆.subst-cons ` A)
         (λ{(T {A = A'} x) → substEq (λ A → Γ ⊢ A)
                                      (trans (sym (⋆.subst-id A'))
-                                     (⋆.subst-rename S (⋆.subst-cons ` A) A'))
+                                     (⋆.subst-rename A'))
                                      (` x)})
           t
 \end{code}

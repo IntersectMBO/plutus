@@ -132,25 +132,21 @@ ext-comp Z     = refl
 ext-comp (S x) = refl
 \end{code}
 
-Second functor law for renaming⋆
+Second functor law for rename
+
 \begin{code}
 rename-comp : ∀{Φ Ψ Θ}
-  → (g : Ren Φ Ψ)
-  → (f : Ren Ψ Θ)
+  → {g : Ren Φ Ψ}
+  → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     ----------------------------------------
   → rename (f ∘ g) A ≡ rename f (rename g A)
-rename-comp g f (` x)   = refl
-rename-comp g f (Π A)   =
-  cong Π (trans (rename-cong ext-comp A) (rename-comp _ _ A))
-rename-comp g f (A ⇒ B) =
-  cong₂ _⇒_ (rename-comp g f A) (rename-comp g f B)
-rename-comp g f (ƛ A)   =
-  cong ƛ (trans (rename-cong ext-comp A) (rename-comp _ _ A))
-rename-comp g f (A · B) =
-  cong₂ _·_ (rename-comp g f A) (rename-comp g f B)
-rename-comp g f (μ A)   =
-  cong μ (trans (rename-cong ext-comp A) (rename-comp _ _ A))
+rename-comp (` x)   = refl
+rename-comp (Π A)   = cong Π (trans (rename-cong ext-comp A) (rename-comp A))
+rename-comp (A ⇒ B) = cong₂ _⇒_ (rename-comp A) (rename-comp B)
+rename-comp (ƛ A)   = cong ƛ (trans (rename-cong ext-comp A) (rename-comp A))
+rename-comp (A · B) = cong₂ _·_ (rename-comp A) (rename-comp B)
+rename-comp (μ A)   = cong μ (trans (rename-cong ext-comp A) (rename-comp A))
 \end{code}
 
 ## Type substitution
@@ -167,17 +163,18 @@ Let `σ` range over substitutions.
 Extending a type substitution — used when going under a binder.
 \begin{code}
 exts : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-    -------------------------------------
-  → (∀ {J K} → Φ ,⋆ K ∋⋆ J → Ψ ,⋆ K ⊢⋆ J)
+  → Sub Φ Ψ
+    -------------------------------
+  → (∀ {K} → Sub (Φ ,⋆ K) (Ψ ,⋆ K))
 exts σ Z      =  ` Z
 exts σ (S α)  =  weaken (σ α)
 \end{code}
 
 Apply a type substitution to a type.
+
 \begin{code}
 subst : ∀ {Φ Ψ}
-  → (∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+  → Sub Φ Ψ
     -------------------------
   → (∀ {J} → Φ ⊢⋆ J → Ψ ⊢⋆ J)
 subst σ (` α)    = σ α
@@ -190,14 +187,19 @@ subst σ (μ B)    =  μ (subst (exts σ) B)
 
 Extend a substitution with an additional type (analogous to cons for
 backward lists)
+
 \begin{code}
-subst-cons : ∀{Φ Ψ} → (∀{K} → Φ ∋⋆ K → Ψ ⊢⋆ K) → ∀{J}(A : Ψ ⊢⋆ J) →
-             (∀{K} → Φ ,⋆ J ∋⋆ K → Ψ ⊢⋆ K)
+subst-cons : ∀{Φ Ψ}
+  → Sub Φ Ψ
+  → ∀{J}(A : Ψ ⊢⋆ J)
+    ----------------
+  → Sub (Φ ,⋆ J) Ψ
 subst-cons f A Z = A
 subst-cons f A (S x) = f x
 \end{code}
 
 A special case is substitution a type for the outermost free variable.
+
 \begin{code}
 _[_] : ∀ {Φ J K}
   → Φ ,⋆ K ⊢⋆ J
@@ -212,8 +214,9 @@ B [ A ] =  subst (subst-cons ` A) B
 Extending the identity substitution yields the identity substitution
 
 \begin{code}
-exts-id : ∀ {Φ J K}(x : Φ ,⋆ K ∋⋆ J)
-    ---------------
+exts-id : ∀ {Φ J K}
+  → (x : Φ ,⋆ K ∋⋆ J)
+    -----------------
   → exts ` x ≡ ` x 
 exts-id Z     = refl
 exts-id (S x) = refl
@@ -222,205 +225,165 @@ exts-id (S x) = refl
 Congruence lemma for exts
 
 \begin{code}
-exts-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+exts-cong : ∀ {Φ Ψ}
+  → {f g : Sub Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
     -----------------------
   → exts f x ≡ exts g x
-exts-cong f g p Z     = refl
-exts-cong f g p (S x) = cong weaken (p x)
+exts-cong p Z     = refl
+exts-cong p (S x) = cong weaken (p x)
 \end{code}
 
 Congruence lemma for subst
+
 \begin{code}
-subst-cong : ∀ {Φ Ψ}(f g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+subst-cong : ∀ {Φ Ψ}
+  → {f g : Sub Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢⋆ K)
     -----------------------
   → subst f A ≡ subst g A
-subst-cong f g p (` x)   = p x
-subst-cong f g p (Π A)   =
-  cong Π (subst-cong (exts f) (exts g) (exts-cong f g p) A)
-subst-cong f g p (A ⇒ B) = cong₂ _⇒_ (subst-cong f g p A) (subst-cong f g p B)
-subst-cong f g p (ƛ A)   =
-  cong ƛ (subst-cong (exts f) (exts g) (exts-cong f g p) A)
-subst-cong f g p (A · B) = cong₂ _·_ (subst-cong f g p A) (subst-cong f g p B)
-subst-cong f g p (μ A)   =
-  cong μ (subst-cong (exts f) (exts g) (exts-cong f g p) A)
+subst-cong p (` x)   = p x
+subst-cong p (Π A)   = cong Π (subst-cong (exts-cong p) A)
+subst-cong p (A ⇒ B) = cong₂ _⇒_ (subst-cong p A) (subst-cong p B)
+subst-cong p (ƛ A)   = cong ƛ (subst-cong (exts-cong p) A)
+subst-cong p (A · B) = cong₂ _·_ (subst-cong p A) (subst-cong p B)
+subst-cong p (μ A)   = cong μ (subst-cong (exts-cong p) A)
 \end{code}
 
 First monad law for subst
+
 \begin{code}
-subst-id : ∀ {Φ J}(t : Φ ⊢⋆ J)
+subst-id : ∀ {Φ J}
+  → (t : Φ ⊢⋆ J)
+    -------------
   → subst ` t ≡ t
 subst-id (` x)   = refl
-subst-id (Π A)   =
-  cong Π (trans (subst-cong (exts `) ` exts-id A) (subst-id A))
+subst-id (Π A)   = cong Π (trans (subst-cong exts-id A) (subst-id A))
 subst-id (A ⇒ B) = cong₂ _⇒_ (subst-id A) (subst-id B)
-subst-id (ƛ A)    =
-  cong ƛ (trans (subst-cong (exts `) ` exts-id A) (subst-id A))
+subst-id (ƛ A)    = cong ƛ (trans (subst-cong exts-id A) (subst-id A))
 subst-id (A · B) = cong₂ _·_ (subst-id A) (subst-id B)
-subst-id (μ A)   =
-  cong μ (trans (subst-cong (exts `) ` exts-id A) (subst-id A))
+subst-id (μ A)   = cong μ (trans (subst-cong exts-id A) (subst-id A))
 \end{code}
 
 Fusion of exts and ext
+
 \begin{code}
 exts-ext : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ⊢⋆ J)
+  → {g : Ren Φ Ψ}
+  → {f : Sub Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
     ------------------------------------
   → exts (f ∘ g) x ≡ exts f (ext g x)
-exts-ext g f Z     = refl
-exts-ext g f (S x) = refl
+exts-ext Z     = refl
+exts-ext (S x) = refl
 \end{code}
 
 Fusion for subst and rename
+
 \begin{code}
 subst-rename : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ⊢⋆ J)
+  → {g : Ren Φ Ψ}
+  → {f : Sub Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     -----------------------------------------
   → subst (f ∘ g) A ≡ subst f (rename g A)
-subst-rename g f (` x)   = refl
-subst-rename g f (Π A)   =
-  cong Π
-       (trans (subst-cong (exts (f ∘ g)) (exts f ∘ ext g) (exts-ext g f) A)
-              (subst-rename (ext g) (exts f) A)  )
-subst-rename g f (A ⇒ B) =
-  cong₂ _⇒_ (subst-rename g f A) (subst-rename g f B)
-subst-rename g f (ƛ A)   =
-  cong ƛ
-       (trans (subst-cong (exts (f ∘ g)) (exts f ∘ ext g) (exts-ext g f) A)
-              (subst-rename (ext g) (exts f) A)  )
-subst-rename g f (A · B) =
-  cong₂ _·_ (subst-rename g f A) (subst-rename g f B)
-subst-rename g f (μ A)   =
-  cong μ
-       (trans (subst-cong (exts (f ∘ g)) (exts f ∘ ext g) (exts-ext g f) A)
-              (subst-rename (ext g) (exts f) A)  )
+subst-rename (` x)   = refl
+subst-rename (Π A)   = cong Π (trans (subst-cong exts-ext A) (subst-rename A))
+subst-rename (A ⇒ B) = cong₂ _⇒_ (subst-rename A) (subst-rename B)
+subst-rename (ƛ A)   = cong ƛ (trans (subst-cong exts-ext A) (subst-rename A))
+subst-rename (A · B) = cong₂ _·_ (subst-rename A) (subst-rename B)
+subst-rename (μ A)   = cong μ (trans (subst-cong exts-ext A) (subst-rename A))
 \end{code}
 
 Fusion for exts and ext
+
 \begin{code}
 rename-ext-exts : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J) →
-  ∀{J K}(x : Φ ,⋆ K ∋⋆ J) →
-  exts (rename f ∘ g) x ≡ rename (ext f) (exts g x)
-rename-ext-exts g f Z = refl
-rename-ext-exts g f (S x) =
-  trans (sym (rename-comp _ _ (g x)))
-        (rename-comp _ _ (g x))
+  → {g : Sub Φ Ψ}
+  → {f : Ren Ψ Θ}
+  → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
+    -------------------------------------------------
+  → exts (rename f ∘ g) x ≡ rename (ext f) (exts g x)
+rename-ext-exts Z     = refl
+rename-ext-exts (S x) = trans (sym (rename-comp _)) (rename-comp _)
 \end{code}
 
 Fusion for rename and subst
+
 \begin{code}
 rename-subst : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ∋⋆ J)
+  → {g : Sub Φ Ψ}
+  → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     -------------------------------------------------
   → subst (rename f ∘ g) A ≡ rename f (subst g A)
-rename-subst g f (` x)   = refl
-rename-subst g f (Π A)   =
-  cong Π
-       (trans (subst-cong (exts (rename f ∘ g))
-                          (rename (ext f) ∘ exts g)
-                          (rename-ext-exts g f)
-                 A)
-              (rename-subst (exts g) (ext f) A))
-rename-subst g f (A ⇒ B) =
-  cong₂ _⇒_ (rename-subst g f A) (rename-subst g f B)
-rename-subst g f (ƛ A)    =
-  cong ƛ
-       (trans (subst-cong (exts (rename f ∘ g))
-                          (rename (ext f) ∘ exts g)
-                          (rename-ext-exts g f)
-                 A)
-              (rename-subst (exts g) (ext f) A))
-rename-subst g f (A · B) =
-  cong₂ _·_ (rename-subst g f A) (rename-subst g f B)
-rename-subst g f (μ A)   =
-  cong μ
-       (trans (subst-cong (exts (rename f ∘ g))
-                          (rename (ext f) ∘ exts g)
-                          (rename-ext-exts g f)
-                 A)
-              (rename-subst (exts g) (ext f) A))
+rename-subst (` x)   = refl
+rename-subst (Π A)   =
+  cong Π (trans (subst-cong rename-ext-exts A) (rename-subst A))
+rename-subst (A ⇒ B) = cong₂ _⇒_ (rename-subst A) (rename-subst B)
+rename-subst (ƛ A)    =
+  cong ƛ (trans (subst-cong rename-ext-exts A) (rename-subst A))
+rename-subst (A · B) = cong₂ _·_ (rename-subst A) (rename-subst B)
+rename-subst (μ A)   =
+  cong μ (trans (subst-cong rename-ext-exts A) (rename-subst A))
 \end{code}
 
 Fusion of two exts
+
 \begin{code}
 extscomp : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ⊢⋆ J)
+  → {g : Sub Φ Ψ}
+  → {f : Sub Ψ Θ}
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
-    -----------------------------------------------------
+    ------------------------------------------------
   → exts (subst f ∘ g) x ≡ subst (exts f) (exts g x)
-extscomp g f Z = refl
-extscomp g f (S x) =
-  trans (sym (rename-subst f S (g x)))
-        (subst-rename S (exts f) (g x))
+extscomp         Z     = refl
+extscomp {g = g} (S x) = trans (sym (rename-subst (g x))) (subst-rename (g x))
 \end{code}
 
 Fusion of substitutions
+
 \begin{code}
 subst-comp : ∀{Φ Ψ Θ}
-  (g : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-  (f : ∀ {J} → Ψ ∋⋆ J → Θ ⊢⋆ J)
+  → {g : Sub Φ Ψ}
+  → {f : Sub Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
-    -----------------------------------------------
+    -------------------------------------------
   → subst (subst f ∘ g) A ≡ subst f (subst g A)
-subst-comp g f (` x)   = refl
-subst-comp g f (Π A)   =
-  cong Π (trans (subst-cong (exts (subst f ∘ g))
-                             (subst (exts f) ∘ exts g)
-                             (extscomp g f)
-                             A)
-                 (subst-comp (exts g) (exts f) A))
-subst-comp g f (A ⇒ B) = cong₂ _⇒_ (subst-comp g f A) (subst-comp g f B)
-subst-comp g f (ƛ A)    =
-  cong ƛ (trans (subst-cong (exts (subst f ∘ g))
-                             (subst (exts f) ∘ exts g)
-                             (extscomp g f)
-                             A)
-                 (subst-comp (exts g) (exts f) A))
-subst-comp g f (A · B) = cong₂ _·_ (subst-comp g f A) (subst-comp g f B)
-subst-comp g f (μ A)   =
-  cong μ (trans (subst-cong (exts (subst f ∘ g))
-                             (subst (exts f) ∘ exts g)
-                             (extscomp g f)
-                             A)
-                 (subst-comp (exts g) (exts f) A))
+subst-comp (` x)   = refl
+subst-comp (Π A)   = cong Π (trans (subst-cong extscomp A) (subst-comp A))
+subst-comp (A ⇒ B) = cong₂ _⇒_ (subst-comp A) (subst-comp B)
+subst-comp (ƛ A)    = cong ƛ (trans (subst-cong extscomp A) (subst-comp A))
+subst-comp (A · B) = cong₂ _·_ (subst-comp A) (subst-comp B)
+subst-comp (μ A)   = cong μ (trans (subst-cong extscomp A) (subst-comp A))
 \end{code}
 
 Commuting substcons and rename
+
 \begin{code}
 rename-subst-cons : ∀{Γ Δ}{J K} 
-  (ρ⋆ : ∀{K} → Γ ∋⋆ K → Δ ∋⋆ K )
+  → (ρ : Ren Γ Δ)
   → (A : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
-    -------------------------------------------------------------------------
-  → subst-cons ` (rename ρ⋆ A) (ext ρ⋆ x) ≡ rename ρ⋆ (subst-cons ` A x)
-rename-subst-cons ρ⋆ A Z     = refl
-rename-subst-cons ρ⋆ A (S x) = refl
+    -----------------------------------------------------------------
+  → subst-cons ` (rename ρ A) (ext ρ x) ≡ rename ρ (subst-cons ` A x)
+rename-subst-cons ρ A Z     = refl
+rename-subst-cons ρ A (S x) = refl
 \end{code}
 
 Commuting substcons and subst
+
 \begin{code}
 subst-subst-cons : ∀{Γ Δ}{J K} 
-  (σ⋆ : ∀{K} → Γ ∋⋆ K → Δ ⊢⋆ K )
+  → (σ : Sub Γ Δ)
   → (M : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
-    -------------------------------------------------
-  → subst (subst-cons ` (subst σ⋆ M)) (exts σ⋆ x)
+    ---------------------------------------------
+  → subst (subst-cons ` (subst σ M)) (exts σ x)
     ≡
-    subst σ⋆ (subst-cons ` M x)
-subst-subst-cons σ⋆ M Z     = refl
-subst-subst-cons σ⋆ M (S x) =
-  trans (sym (subst-rename S (subst-cons ` (subst σ⋆ M)) (σ⋆ x)))
-        (subst-id (σ⋆ x))
+    subst σ (subst-cons ` M x)
+subst-subst-cons σ M Z     = refl
+subst-subst-cons σ M (S x) = trans (sym (subst-rename (σ x))) (subst-id (σ x))
 \end{code}

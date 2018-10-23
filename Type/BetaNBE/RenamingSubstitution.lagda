@@ -70,7 +70,7 @@ substNf-comp : ∀{Φ Ψ Θ}
   → ∀{J}(A : Φ ⊢Nf⋆ J)
     -----------------------------------------------
   → substNf (substNf f ∘ g) A ≡ substNf f (substNf g A)
-substNf-comp g f A = trans (trans (trans (reify _ (subst-eval (embNf A) idPER (embNf ∘ nf ∘ subst (embNf ∘ f) ∘ embNf ∘ g))) (trans (reify _ (idext (λ x → fund idPER (sym≡β (soundness (subst (embNf ∘ f) (embNf (g x)))))) (embNf A))) (sym (reify _ (subst-eval (embNf A) idPER (subst (embNf ∘ f) ∘ embNf ∘ g)))))) (cong nf (subst-comp (embNf ∘ g) (embNf ∘ f) (embNf A)))) (lemma2 f (subst (embNf ∘ g) (embNf A)))
+substNf-comp g f A = trans (trans (trans (reify _ (subst-eval (embNf A) idPER (embNf ∘ nf ∘ subst (embNf ∘ f) ∘ embNf ∘ g))) (trans (reify _ (idext (λ x → fund idPER (sym≡β (soundness (subst (embNf ∘ f) (embNf (g x)))))) (embNf A))) (sym (reify _ (subst-eval (embNf A) idPER (subst (embNf ∘ f) ∘ embNf ∘ g)))))) (cong nf (subst-comp (embNf A)))) (lemma2 f (subst (embNf ∘ g) (embNf A)))
 \end{code}
 
 
@@ -134,7 +134,7 @@ substNf-lemma : ∀{Γ Δ K J}
   (ρ : ∀{K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
   → (t : Γ ,⋆ K ⊢⋆ J)
   → subst (exts (embNf ∘ ρ)) t ≡ subst (embNf ∘ extsNf ρ) t
-substNf-lemma ρ t = subst-cong _ _ (λ { Z → refl ; (S x) → sym (rename-embNf S (ρ x))}) t
+substNf-lemma ρ t = subst-cong (λ { Z → refl ; (S x) → sym (rename-embNf S (ρ x))}) t
 \end{code}
 
 \begin{code}

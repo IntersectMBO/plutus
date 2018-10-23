@@ -110,9 +110,9 @@ rename≡β ρ (·≡β p q)     = ·≡β (rename≡β ρ p) (rename≡β ρ q)
 rename≡β ρ (μ≡β p)       = μ≡β (rename≡β (ext ρ) p)
 rename≡β ρ (β≡β B A)     =
   substEq (rename ρ ((ƛ B) · A) ≡β_)
-          (trans (sym (subst-rename (ext ρ) (subst-cons ` (rename ρ A)) B))
-                 (trans (subst-cong _ _ (rename-subst-cons ρ A) B)
-                        (rename-subst (subst-cons ` A) ρ B)))
+          (trans (sym (subst-rename B))
+                 (trans (subst-cong (rename-subst-cons ρ A) B)
+                        (rename-subst B)))
          (β≡β _ _)
 \end{code}
 
@@ -134,12 +134,8 @@ subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
 subst≡β σ (μ≡β p)       = μ≡β (subst≡β (exts σ) p)
 subst≡β σ (β≡β B A)     =
   substEq (subst σ ((ƛ B) · A) ≡β_)
-          (trans (trans (sym (subst-comp (exts σ)
-                                         (subst-cons ` (subst σ A))
-                                         B))
-                        (subst-cong _
-                                    _
-                                    (subst-subst-cons σ A) B))
-          (subst-comp (subst-cons ` A) σ B))
+          (trans (trans (sym (subst-comp B))
+                        (subst-cong (subst-subst-cons σ A) B))
+          (subst-comp B))
           (β≡β _ _)
 \end{code}

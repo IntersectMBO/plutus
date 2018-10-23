@@ -43,8 +43,8 @@ sreify {K = size}  p = p
 sreify {K = K ⇒ J} {t} {inj₁ n} p = p
 sreify {K = K ⇒ J} {t} {inj₂ f} (t' , p , q) =
   trans≡β p (substEq (λ t → ƛ t ≡β ƛ (embNf (readback (f S fresh))))
-                     (trans (sym (subst-rename (ext S) (subst-cons ` (` Z)) t'))
-                            (trans (subst-cong _ _ (λ { Z → refl ; (S x) → refl}) t')
+                     (trans (sym (subst-rename t'))
+                            (trans (subst-cong (λ { Z → refl ; (S x) → refl}) t')
                                    (subst-id t')))
                      (ƛ≡β (trans≡β (sym≡β (β≡β _ _)) (sreify {K = J} (q S (sreflect (refl≡β (` Z))))))))
 \end{code}
@@ -80,7 +80,7 @@ renR ρ {K ⇒ J} {t} {inj₂ f} (t' , p , q) =
   rename≡β ρ p
   ,
   λ ρ' {u}{v} r → substEq (λ t → R J (ƛ t · u) (f (ρ' ∘ ρ) v))
-                          (trans (rename-cong ext-comp t') (rename-comp _ _ t'))
+                          (trans (rename-cong ext-comp t') (rename-comp t'))
                           (q (ρ' ∘ ρ) r)
 \end{code}
 
@@ -153,15 +153,13 @@ sfund {K = K ⇒ J} (ƛ B){σ}{η} p =
   λ ρ {u}{v} q → substR
     (β≡β _ _)
     (substEq (λ t → R J t (eval B ((renval ρ ∘ η) ,,⋆ v)))
-             (trans (trans (subst-cong _
-                                       _
-                                       (λ { Z → refl
+             (trans (trans (subst-cong (λ { Z → refl
                                           ; (S x) → trans (trans (sym (subst-id (rename ρ (σ x))))
-                                                                 (sym (subst-rename ρ ` (σ x))))
-                                                          (subst-rename S (subst-cons ` u ∘ ext ρ) (σ x))})
+                                                                 (sym (subst-rename (σ x))))
+                                                          (subst-rename (σ x))})
                                        B)
-                           (subst-comp (exts σ) (subst-cons ` u ∘ ext ρ) B))
-                    (subst-rename (ext ρ) (subst-cons ` u) (subst (exts σ) B)))
+                           (subst-comp B))
+                    (subst-rename (subst (exts σ) B)))
              (sfund B (R,,⋆ (renR ρ ∘ p) q)) )
 sfund (A · B) p = RApp (sfund A p) (sfund B p)
 sfund (μ B)   p = sreflect (μ≡β (sreify (sfund B (Rweak p _))))
