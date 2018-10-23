@@ -15,8 +15,8 @@ import           IllTyped
 import           Common
 import           PlutusPrelude                            (bsToStr, strToBs)
 
+import qualified Language.Plutus.CoreToPLC.Builtins       as Builtins
 import           Language.Plutus.CoreToPLC.Plugin
-import qualified Language.Plutus.CoreToPLC.Primitives     as Prims
 import           Language.Plutus.Lift
 
 import           Language.PlutusCore
@@ -149,19 +149,19 @@ intPlus :: PlcCode
 intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> x + y)
 
 errorPlc :: PlcCode
-errorPlc = plc @"errorPlc" (Prims.error @Int)
+errorPlc = plc @"errorPlc" (Builtins.error @Int)
 
 ifThenElse :: PlcCode
 ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
 
 blocknumPlc :: PlcCode
-blocknumPlc = plc @"blocknumPlc" Prims.blocknum
+blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
 bytestring :: PlcCode
-bytestring = plc @"bytestring" (\(x::Prims.ByteString) -> x)
+bytestring = plc @"bytestring" (\(x::Builtins.ByteString) -> x)
 
 verify :: PlcCode
-verify = plc @"verify" (\(x::Prims.ByteString) (y::Prims.ByteString) (z::Prims.ByteString) -> Prims.verifySignature x y z)
+verify = plc @"verify" (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
 
 structure :: TestNested
 structure = testNested "structure" [
@@ -223,7 +223,7 @@ monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
 
 -- must be compiled with a lazy case
 nonValueCase :: PlcCode
-nonValueCase = plc @"nonValueCase" (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Prims.error (); })
+nonValueCase = plc @"nonValueCase" (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Builtins.error (); })
 
 type Synonym = Int
 
@@ -323,7 +323,7 @@ free = plc @"free" (True && False)
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.
 valueRestriction :: PlcCode
-valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Prims.error (); } in (f @Bool, f @Int))
+valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Int))
 
 instance LiftPlc (MyMonoData)
 instance LiftPlc (MyMonoRecord)

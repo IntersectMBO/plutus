@@ -6,35 +6,38 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE ViewPatterns               #-}
-{-# OPTIONS_GHC -fno-warn-unused-foralls #-}
+{-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, applyPlc, getAst, plugin, plc) where
 
-import           Language.Plutus.CoreToPLC
+import           Language.Plutus.CoreToPLC.Compiler.Builtins
+import           Language.Plutus.CoreToPLC.Compiler.Expr
+import           Language.Plutus.CoreToPLC.Compiler.Types
+import           Language.Plutus.CoreToPLC.Compiler.Utils
 import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Types
 import           Language.Plutus.Lift
 
-import qualified GhcPlugins                      as GHC
-import qualified Panic                           as GHC
+import qualified GhcPlugins                                  as GHC
+import qualified Panic                                       as GHC
 
-import qualified Language.PlutusCore             as PLC
+import qualified Language.PlutusCore                         as PLC
 import           Language.PlutusCore.Quote
 
-import           Language.Haskell.TH.Syntax      as TH
+import           Language.Haskell.TH.Syntax                  as TH
 
-import           Codec.Serialise                 (DeserialiseFailure, Serialise, deserialiseOrFail, serialise)
+import           Codec.Serialise                             (DeserialiseFailure, Serialise, deserialiseOrFail,
+                                                              serialise)
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
-import           Data.Aeson                      (FromJSON (parseJSON), ToJSON (toJSON), withText)
-import qualified Data.Aeson                      as JSON
-import           Data.Bifunctor                  (first)
-import qualified Data.ByteString.Base64          as Base64
-import qualified Data.ByteString.Lazy            as BSL
-import qualified Data.Map                        as Map
-import           Data.Maybe                      (catMaybes)
-import qualified Data.Text.Encoding              as TE
-import qualified Data.Text.Prettyprint.Doc       as PP
+import           Data.Aeson                                  (FromJSON (parseJSON), ToJSON (toJSON), withText)
+import qualified Data.Aeson                                  as JSON
+import           Data.Bifunctor                              (first)
+import qualified Data.ByteString.Base64                      as Base64
+import qualified Data.ByteString.Lazy                        as BSL
+import qualified Data.Map                                    as Map
+import           Data.Maybe                                  (catMaybes)
+import qualified Data.Text.Encoding                          as TE
+import qualified Data.Text.Prettyprint.Doc                   as PP
 import           GHC.TypeLits
 
 {- Note [Constructing the final program]
@@ -200,8 +203,8 @@ convertMarkedExprs opts markerName =
 convertExpr :: PluginOptions -> String -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
 convertExpr opts locStr origE resType = do
     flags <- GHC.getDynFlags
-    primTerms <- makePrimitiveMap primitiveTermAssociations
-    primTys <- makePrimitiveMap primitiveTypeAssociations
+    primTerms <- makePrimitiveMap builtinTermAssociations
+    primTys <- makePrimitiveMap builtinTypeAssociations
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               converted <- convExprWithDefs origE
               when (poDoTypecheck opts) $ do

@@ -2,23 +2,23 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types       #-}
 
-module Language.Plutus.CoreToPLC.Types where
+module Language.Plutus.CoreToPLC.Compiler.Types where
 
-import           Language.Plutus.CoreToPLC.Definitions
+import           Language.Plutus.CoreToPLC.Compiler.Definitions
 import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PLCTypes
 
-import qualified Language.PlutusCore                   as PLC
+import qualified Language.PlutusCore                            as PLC
 import           Language.PlutusCore.Quote
 
-import qualified GhcPlugins                            as GHC
+import qualified GhcPlugins                                     as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Data.List.NonEmpty                    as NE
-import qualified Data.Map                              as Map
+import qualified Data.List.NonEmpty                             as NE
+import qualified Data.Map                                       as Map
 import           Lens.Micro
 
 type PrimTerms = Map.Map GHC.Name (Quote PLCTerm)

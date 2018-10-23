@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.Plutus.CoreToPLC.Definitions where
+module Language.Plutus.CoreToPLC.Compiler.Definitions where
 
 import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PLCTypes

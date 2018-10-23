@@ -16,18 +16,18 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     totalAmount
     ) where
 
-import           Control.Monad.Error.Class            (MonadError (..))
-import qualified Data.Set                             as Set
-import qualified Language.Plutus.CoreToPLC.Primitives as Prim
-import           Language.Plutus.Runtime              (Hash, Height, PendingTx (..), PendingTxIn (..),
-                                                       PendingTxOut (..), PendingTxOutType (..), PubKey (..), Value)
-import qualified Language.Plutus.Runtime.TH           as TH
-import           Language.Plutus.TH                   (PlcCode, applyPlc, plutus)
-import           Prelude                              hiding ((&&))
-import           Wallet.API                           (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
-import           Wallet.UTXO                          (DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                                       scriptTxOut)
-import qualified Wallet.UTXO                          as UTXO
+import           Control.Monad.Error.Class          (MonadError (..))
+import qualified Data.Set                           as Set
+import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
+import           Language.Plutus.Runtime            (Hash, Height, PendingTx (..), PendingTxIn (..), PendingTxOut (..),
+                                                     PendingTxOutType (..), PubKey (..), Value)
+import qualified Language.Plutus.Runtime.TH         as TH
+import           Language.Plutus.TH                 (PlcCode, applyPlc, plutus)
+import           Prelude                            hiding ((&&))
+import           Wallet.API                         (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
+import           Wallet.UTXO                        (DataScript (..), TxOutRef', Validator (..), scriptTxIn,
+                                                     scriptTxOut)
+import qualified Wallet.UTXO                        as UTXO
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -122,7 +122,7 @@ validatorScript (VestingPLC v) = Validator val where
             amountSpent = case os of
                 ((PendingTxOut v' _ (PubKeyTxOut pk))::PendingTxOut VestingData):(_::[PendingTxOut VestingData])
                     | pk `eqPk` vestingOwner -> v'
-                (_::[PendingTxOut VestingData]) -> Prim.error ()
+                (_::[PendingTxOut VestingData]) -> Builtins.error ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
@@ -151,9 +151,9 @@ validatorScript (VestingPLC v) = Validator val where
                         h' == vestingDataHash
                         && po == newAmount
                         && v' == remainingAmount
-                (_::[PendingTxOut VestingData]) -> Prim.error ()
+                (_::[PendingTxOut VestingData]) -> Builtins.error ()
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else Prim.error () |])
+        if isValid then () else Builtins.error () |])
 
