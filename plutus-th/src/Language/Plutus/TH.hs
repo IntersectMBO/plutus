@@ -16,3 +16,10 @@ plutus e = do
     loc <- TH.location
     let locStr = TH.pprint loc
     [| plc @($(TH.litT $ TH.strTyLit locStr)) $(e) |]
+
+{- Note [Typed TH]
+It would be nice to have a typed TH version of `plutus`. However, this is hard to do because the singleton type
+is not known until TH runtime.
+
+We could cheat and use `unsafeTExpCoerce`, but I'd prefer not to do that unless we have to.
+-}
