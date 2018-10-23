@@ -8,13 +8,14 @@ module Language.PlutusCore.StdLib.Data.Unit
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
 -- | '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
 getBuiltinUnit :: Quote (Type TyName ())
-getBuiltinUnit = do
+getBuiltinUnit = rename =<< do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
@@ -25,7 +26,7 @@ getBuiltinUnit = do
 --
 -- > /\(A :: *) -> \(x : A) -> x
 getBuiltinUnitval :: Quote (Value TyName Name ())
-getBuiltinUnitval = do
+getBuiltinUnitval = rename =<< do
     a <- freshTyName () "a"
     x <- freshName () "x"
     return

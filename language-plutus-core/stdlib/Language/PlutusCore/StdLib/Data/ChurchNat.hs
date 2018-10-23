@@ -10,13 +10,14 @@ module Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
 -- | Church-encoded @Nat@ as a PLC type.
 --
 -- > all (r :: *). r -> (r -> r) -> r
 getBuiltinChurchNat :: Quote (Type TyName ())
-getBuiltinChurchNat = do
+getBuiltinChurchNat = rename =<< do
     r <- freshTyName () "r"
     return
         . TyForall () r (Type ())
@@ -28,7 +29,7 @@ getBuiltinChurchNat = do
 --
 -- > /\(r :: *) -> \(z : r) (f : r -> r) -> z
 getBuiltinChurchZero :: Quote (Term TyName Name ())
-getBuiltinChurchZero = do
+getBuiltinChurchZero = rename =<< do
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
@@ -42,7 +43,7 @@ getBuiltinChurchZero = do
 --
 -- > \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
 getBuiltinChurchSucc :: Quote (Term TyName Name ())
-getBuiltinChurchSucc = do
+getBuiltinChurchSucc = rename =<< do
     nat <- getBuiltinChurchNat
     n <- freshName () "n"
     r <- freshTyName () "r"
