@@ -167,7 +167,7 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
         (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.TyFun () <$> convType i <*> convType o
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts
-        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForall tv (convType tpe)
+        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (convType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> convType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
@@ -211,18 +211,18 @@ convTyCon tc = do
                     internalName <- convTyNameFresh tcName
 
                     -- TODO: it's a bit weird for this to have to have a RHS that we will never use
-                    let inProgressDef = Def Abstract (internalName, k) (PlainType (PLC.TyVar () internalName))
+                    let inProgressDef = Def Abstract (PLCTyVar internalName k) (PlainType (PLC.TyVar () internalName))
                     modify $ over typeDefs (Map.insert tcName (inProgressDef, deps))
-                    convDataCons tc dcs
+                    mkTyCon tc
 
                 -- this is the name for the final type itself
                 finalName <- convTyNameFresh tcName
                 (constrs, match) <- do
-                    let visibleDef = Def Visible (finalName, k) (PlainType ty)
+                    let visibleDef = Def Visible (PLCTyVar finalName k) (PlainType ty)
                     modify $ over typeDefs (Map.insert tcName (visibleDef, deps))
                     -- make the constructor bodies with the type visible
                     constrs <- forM dcs $ \dc -> do
-                        constr <- convConstructor dc
+                        constr <- mkConstructor dc
                         pure (dc, constr)
                     match <- mkMatch tc
                     pure (constrs, match)
@@ -231,22 +231,22 @@ convTyCon tc = do
                 let finalVisibility = if tc == GHC.boolTyCon then Visible else Abstract
                 (constrDefs, matchDef) <- do
                     -- make the constructor *types* with the type abstract
-                    let abstractDef = Def finalVisibility (finalName, k) (PlainType ty)
+                    let abstractDef = Def finalVisibility (PLCTyVar finalName k) (PlainType ty)
                     modify $ over typeDefs (Map.insert tcName (abstractDef, deps))
 
                     constrDefs <- forM constrs $ \(dc, constr) -> do
                         constrName <- convNameFresh (GHC.getName dc)
-                        constrTy <- dataConType dc
-                        pure $ Def finalVisibility (constrName, constrTy) constr
+                        constrTy <- mkConstructorType dc
+                        pure $ Def finalVisibility (PLCVar constrName constrTy) constr
 
                     matchName <- safeFreshName $ (GHC.getOccString $ GHC.getName tc) ++ "_match"
-                    matchTy <- mkMatchTy tc dcs
-                    let matchDef = Def finalVisibility (matchName, matchTy) match
+                    matchTy <- mkMatchTy tc
+                    let matchDef = Def finalVisibility (PLCVar matchName matchTy) match
                     pure (constrDefs, matchDef)
 
                 do
                     -- create the final def with the type abstract and the constructors present
-                    let def = Def finalVisibility (finalName, k) (DataType ty constrDefs matchDef)
+                    let def = Def finalVisibility (PLCTyVar finalName k) (DataType ty constrDefs matchDef)
                     modify $ over typeDefs (Map.insert tcName (def, deps))
                     case finalVisibility of
                         Abstract -> pure $ PLC.TyVar () finalName
@@ -405,6 +405,11 @@ The requirements imposed by 3. render translation somewhat tricky. We want our t
 ambivalent about where we are in the process of creating a type, so we use a richer type
 of definitions to handle things gracefully.
 
+(Why do we want to be ambivalent? We want to use e.g. the same code to compile both
+`data List a = Nil | Cons a (List a)` and `data ListWrapper a = ListWrapper (List a)`, even though
+`List` has to be two different things in the two cases (in the first it will be a reference to
+the fixpoint variable, in the second a reference to the abstract type.).)
+
 Definitions consist roughtly of a variable and a value. They can be visible, or abstract. Visible
 definitions are inlined, abstract definitions are referenced via their variable. At the end
 we bind all abstract definitions as described above. (We also track dependencies between them
@@ -506,39 +511,42 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
               GHC.NewTyCon{GHC.data_con=dc}    -> pure [dc]
           | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
--- This is the creation of the Scott-encoded datatype type.
 -- See Note [Scott encoding of datatypes]
-convDataCons :: forall m. Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCType
-convDataCons tc dcs = do
-    abstracted <- flip (foldr (\tv acc -> mkTyLam tv acc)) (GHC.tyConTyVars tc) $ mkScottTy tc dcs
+-- | Make the type corresponding to a given 'TyCon'.
+mkTyCon :: forall m. Converting m => GHC.TyCon -> m PLCType
+mkTyCon tc = do
+    -- abstract out the type variables
+    -- \t_1 .. t_i . scottTy
+    abstracted <- mkIterTyLamScoped (GHC.tyConTyVars tc) $ mkScottTy tc
 
+    -- add the fixpoint, if there is one
     tcDefs <- gets csTypeDefs
     isSelfRecursive <- isSelfRecursiveTyCon tc
     if isSelfRecursive
     then case Map.lookup (GHC.getName tc) tcDefs of
-        Just (Def{dVis=Abstract,dVar=(tyname, _)}, _) -> pure $ PLC.TyFix () tyname abstracted
+        -- TODO: this is inelegant
+        -- we're recursive, therefore the variable stored as our definition is the fixpoint variable
+        Just (Def{dVis=Abstract,dVar=(PLCTyVar tyname _)}, _) -> pure $ PLC.TyFix () tyname abstracted
         _                                             -> throwPlain $ ConversionError "Could not find var to fix over"
     else pure abstracted
 
-mkScottTy :: Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCType
-mkScottTy tc dcs = do
+-- See Note [Scott encoding of datatypes]
+-- | Make the pure Scott-encoded type of the given 'TyCon'.
+mkScottTy :: Converting m => GHC.TyCon -> m PLCType
+mkScottTy tc = do
+    dcs <- getDataCons tc
     resultType <- safeFreshTyName $ (GHC.getOccString $ GHC.getName tc) ++ "_matchOut"
-    cases <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
-    pure $ mkScottTyBody resultType cases
+    -- we can only match into kind Type
+    let resultKind = PLC.Type ()
+    cases <- mapM (mkCaseType (PLC.TyVar () resultType)) dcs
+    -- case_1 -> ... -> case_n -> resultType
+    let funcs = mkIterTyFun cases (PLC.TyVar () resultType)
+    -- forall resultType . funcs
+    pure $ PLC.TyForall () resultType resultKind funcs
 
-mkScottTyBody :: PLC.TyName () -> [PLCType] -> PLCType
-mkScottTyBody resultTypeName cases =
-    let
-        -- we can only match into kind Type
-        resultKind = PLC.Type ()
-        -- case_1 -> ... -> case_n -> resultType
-        funcs = mkIterTyFun cases (PLC.TyVar () resultTypeName)
-        -- forall resultType . funcs
-        resultAbstracted = PLC.TyForall () resultTypeName resultKind funcs
-    in resultAbstracted
-
-dataConCaseType :: Converting m => PLCType -> GHC.DataCon -> m PLCType
-dataConCaseType resultType dc = withContextM (sdToTxt $ "Converting data constructor:" GHC.<+> GHC.ppr dc) $
+-- | Makes the type of a matcher for the given 'DataCon' producing the given type.
+mkCaseType :: Converting m => PLCType -> GHC.DataCon -> m PLCType
+mkCaseType resultType dc = withContextM (sdToTxt $ "Converting data constructor:" GHC.<+> GHC.ppr dc) $
     if not (GHC.isVanillaDataCon dc) then throwSd UnsupportedError $ "Non-vanilla data constructor:" GHC.<+> GHC.ppr dc
     else do
         let argTys = GHC.dataConRepArgTys dc
@@ -546,43 +554,51 @@ dataConCaseType resultType dc = withContextM (sdToTxt $ "Converting data constru
         -- t_1 -> ... -> t_m -> resultType
         pure $ mkIterTyFun args resultType
 
-dataConType :: Converting m => GHC.DataCon -> m PLCType
-dataConType dc =
+-- | Makes the type of the constructor corresponding to the given 'DataCon'.
+mkConstructorType :: Converting m => GHC.DataCon -> m PLCType
+mkConstructorType dc =
     let argTys = GHC.dataConRepArgTys dc
         tc = GHC.dataConTyCon dc
         tcTyVars = GHC.tyConTyVars tc
     in
+        -- See Note [Scott encoding of datatypes]
         withContextM (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $
-            flip (foldr (\tv acc -> mkTyForall tv acc)) tcTyVars $ do
+            -- forall . t_1 .. t_i
+            mkIterTyForallScoped tcTyVars $ do
                 args <- mapM convType argTys
                 resultType <- convType (GHC.dataConOrigResTy dc)
-                -- t_1 -> ... -> t_m -> resultType
+                -- t_c_i_1 -> ... -> t_c_i_j -> resultType
                 pure $ mkIterTyFun args resultType
 
--- This is the creation of the Scott-encoded constructor value.
-convConstructor :: Converting m => GHC.DataCon -> m PLCTerm
-convConstructor dc =
+-- | Makes the constructor for the given 'DataCon'.
+mkConstructor :: Converting m => GHC.DataCon -> m PLCTerm
+mkConstructor dc =
     let
         tc = GHC.dataConTyCon dc
         tcTyVars = GHC.tyConTyVars tc
         tcName = GHC.getOccString $ GHC.getName tc
         dcName = GHC.getOccString $ GHC.getName dc
     in
+        -- See Note [Scott encoding of datatypes]
         withContextM (sdToTxt $ "Converting data constructor:" GHC.<+> GHC.ppr dc) $
             -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
             -- /\ tv_1 .. tv_n . body
-            flip (foldr (\tv acc -> mkTyAbs tv acc)) tcTyVars $ do
-                -- See Note [Scott encoding of datatypes]
+            mkIterTyAbsScoped tcTyVars $ do
                 resultType <- safeFreshTyName $ tcName ++ "_matchOut"
                 dcs <- getDataCons tc
                 index <- case elemIndex dc dcs of
                     Just i  -> pure i
                     Nothing -> throwPlain $ ConversionError "Data constructor not in the type constructor's list of constructors!"
-                caseTypes <- mapM (dataConCaseType (PLC.TyVar () resultType)) dcs
+
+                -- case arguments and their types
+                caseTypes <- mapM (mkCaseType (PLC.TyVar () resultType)) dcs
                 caseArgNames <- mapM (convNameFresh . GHC.getName) dcs
+
+                -- constructor args and their types
                 argTypes <- mapM convType $ GHC.dataConRepArgTys dc
                 argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ dcName ++ "_arg" ++ show i)
 
+                -- we need the pattern functor if there is one so we can wrap
                 isSelfRecursive <- isSelfRecursiveTyCon tc
                 maybePf <- if isSelfRecursive
                           then do
@@ -623,6 +639,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index m
         afuncs = mkIterLamAbs argNamesAndTypes fixed
     in afuncs
 
+-- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: Converting m => GHC.TyCon -> m [PLCTerm]
 getConstructors tc = do
     -- make sure the constructors have been created
@@ -632,6 +649,8 @@ getConstructors tc = do
         Just (tydConstrs -> Just constrs, _) -> pure $ tdTerm <$> constrs
         _                                    -> throwPlain $ ConversionError "Constructors have not been converted"
 
+-- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
+-- the type constructor argument types.
 getConstructorsInstantiated :: Converting m => GHC.Type -> m [PLCTerm]
 getConstructorsInstantiated = \case
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
@@ -643,30 +662,42 @@ getConstructorsInstantiated = \case
     -- must be a TC app
     _ -> throwPlain $ ConversionError "Type was not a type constructor application"
 
-mkMatchTy :: Converting m => GHC.TyCon -> [GHC.DataCon] -> m PLCType
-mkMatchTy tc dcs =
+-- | Make the type of the matcher for a given 'TyCon'.
+mkMatchTy :: Converting m => GHC.TyCon -> m PLCType
+mkMatchTy tc =
     let
         tyVars = GHC.tyConTyVars tc
     in
-        flip (foldr (\tv acc -> mkTyForall tv acc)) tyVars $ do
+        -- forall t_1 .. t_n
+        mkIterTyForallScoped tyVars $ do
+            -- we essentially "unveil" the abstract type, so this
+            -- is a function from the (instantiated, unwrapped) abstract type
+            -- to the "real" Scott-encoded type that we can use as
+            -- a matcher
             tc' <- convTyCon tc
+            -- t t_1 .. t_n
             args <- mapM (convType . GHC.mkTyVarTy) tyVars
             let applied = mkIterTyApp tc' args
 
-            scottTy <- mkScottTy tc dcs
+            scottTy <- mkScottTy tc
 
             pure $ PLC.TyFun () applied scottTy
 
+-- | Make the matcher for a given 'TyCon'.
 mkMatch :: Converting m => GHC.TyCon -> m PLCTerm
 mkMatch tc =
     let
         tyVars = GHC.tyConTyVars tc
     in
-        flip (foldr (\tv acc -> mkTyAbs tv acc)) tyVars $ do
+        -- /\ t_1 .. t_n
+        mkIterTyAbsScoped tyVars $ do
+
             tc' <- convTyCon tc
+            -- t t_1 .. t_n
             args <- mapM (convType . GHC.mkTyVarTy) tyVars
             let applied = mkIterTyApp tc' args
 
+            -- this is basically the identity! but we do need to unwrap it
             x <- safeFreshName "x"
             isSelfRecursive <- isSelfRecursiveTyCon tc
             let body = PLC.Var () x
@@ -674,6 +705,7 @@ mkMatch tc =
 
             pure $ PLC.LamAbs () x applied unwrapped
 
+-- | Get the matcher of the given 'TyCon' as a PLC term
 getMatch :: Converting m => GHC.TyCon -> m PLCTerm
 getMatch tc = do
     -- ensure the tycon has been converted, which will create the matcher
@@ -683,6 +715,8 @@ getMatch tc = do
         Just (tydMatch -> Just match, _) -> pure $ tdTerm match
         _                                -> throwPlain $ ConversionError "Match has not been converted"
 
+-- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
+-- the type constructor argument types.
 getMatchInstantiated :: Converting m => GHC.Type -> m PLCTerm
 getMatchInstantiated = \case
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
@@ -693,7 +727,13 @@ getMatchInstantiated = \case
     -- must be a TC app
     _ -> throwPlain $ ConversionError "Type was not a type constructor application"
 
-convAlt :: Converting m => Bool -> GHC.DataCon -> GHC.CoreAlt -> m PLCTerm
+-- | Make the alternative for a given 'CoreAlt'.
+convAlt
+    :: Converting m
+    => Bool -- ^ Whether we must delay the alternative.
+    -> GHC.DataCon -- ^ The 'DataCon' for the current alternative.
+    -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
+    -> m PLCTerm
 convAlt mustDelay dc (alt, vars, body) = case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
@@ -706,7 +746,7 @@ convAlt mustDelay dc (alt, vars, body) = case alt of
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> foldr (\v acc -> mkLambda v acc) (convExpr body >>= maybeDelay mustDelay) vars
+    GHC.DataAlt _ -> mkIterLamAbsScoped vars (convExpr body >>= maybeDelay mustDelay)
 
 -- Literals and primitives
 
@@ -904,17 +944,20 @@ mangleTyAbs = \case
 
 -- | Builds a lambda, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkLambda :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
-mkLambda v body = do
+mkLamAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
+mkLamAbsScoped v body = do
     let ghcName = GHC.getName v
     (t', n') <- convVarFresh v
     body' <- local (\c -> c {ccScopes=pushName ghcName n' (ccScopes c)}) body
     pure $ PLC.LamAbs () n' t' body'
 
+mkIterLamAbsScoped :: Converting m => [GHC.Var] -> m PLCTerm -> m PLCTerm
+mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
+
 -- | Builds a type abstraction, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkTyAbs :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
-mkTyAbs v body = do
+mkTyAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
+mkTyAbsScoped v body = do
     let ghcName = GHC.getName v
     (t', k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
@@ -923,23 +966,32 @@ mkTyAbs v body = do
     unless (not (coCheckValueRestriction opts) || PLC.isTermValue body') $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
     pure $ PLC.TyAbs () t' k' body'
 
+mkIterTyAbsScoped :: Converting m => [GHC.Var] -> m PLCTerm -> m PLCTerm
+mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars
+
 -- | Builds a forall, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkTyForall :: Converting m => GHC.Var -> m PLCType -> m PLCType
-mkTyForall v body = do
+mkTyForallScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
+mkTyForallScoped v body = do
     let ghcName = GHC.getName v
     (t', k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyForall () t' k' body'
 
+mkIterTyForallScoped :: Converting m => [GHC.Var] -> m PLCType -> m PLCType
+mkIterTyForallScoped vars body = foldr (\v acc -> mkTyForallScoped v acc) body vars
+
 -- | Builds a type lambda, binding the given variable to a name that
 -- will be in scope when running the second argument.
-mkTyLam :: Converting m => GHC.Var -> m PLCType -> m PLCType
-mkTyLam v body = do
+mkTyLamScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
+mkTyLamScoped v body = do
     let ghcName = GHC.getName v
     (t', k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
     pure $ PLC.TyLam () t' k' body'
+
+mkIterTyLamScoped :: Converting m => [GHC.Var] -> m PLCType -> m PLCType
+mkIterTyLamScoped vars body = foldr (\v acc -> mkTyLamScoped v acc) body vars
 
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values
@@ -1025,13 +1077,13 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- otherwise it's a normal application
         GHC.App l arg -> PLC.Apply () <$> convExpr l <*> convExpr arg
         -- if we're biding a type variable it's a type abstraction
-        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbs b $ convExpr body
+        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ convExpr body
         -- othewise it's a normal lambda
-        GHC.Lam b body -> mkLambda b $ convExpr body
+        GHC.Lam b body -> mkLamAbsScoped b $ convExpr body
         GHC.Let (GHC.NonRec b arg) body -> do
             -- convert it as a lambda
             a' <- convExpr arg
-            l' <- mkLambda b $ convExpr body
+            l' <- mkLamAbsScoped b $ convExpr body
             pure $ PLC.Apply () l' a'
         GHC.Let (GHC.Rec bs) body -> do
             -- See note [Recursive lets]
@@ -1051,7 +1103,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             let chooseTy = mkIterTyFun tys (PLC.TyVar () q)
 
             -- \f1 ... fn -> choose b1 ... bn
-            bsLam <- flip (foldr (\b acc -> mkLambda b acc)) (fmap fst bs) $ do
+            bsLam <- mkIterLamAbsScoped (fmap fst bs) $ do
                 rhss <- mapM convExpr (fmap snd bs)
                 pure $ mkIterApp (PLC.Var() choose) rhss
 
@@ -1066,7 +1118,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             let fixed = PLC.Apply () instantiatedFix cLam
 
             -- the consumer of the recursive functions
-            bodyLam <- foldr (\b acc -> mkLambda b acc) (convExpr body) (fmap fst bs)
+            bodyLam <- mkIterLamAbsScoped (fmap fst bs) (convExpr body)
             pure $ PLC.Apply () (PLC.TyInst () fixed outTy) bodyLam
         GHC.Case scrutinee b t alts -> do
             let scrutineeType = GHC.varType b

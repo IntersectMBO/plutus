@@ -6,5 +6,12 @@ type PLCKind = PLC.Kind ()
 type PLCType = PLC.Type PLC.TyName ()
 type PLCTerm = PLC.Term PLC.TyName PLC.Name ()
 
-type PLCTyVar = (PLC.TyName (), PLCKind)
-type PLCVar = (PLC.Name (), PLCType)
+data PLCTyVar = PLCTyVar (PLC.TyName ()) PLCKind
+
+splitTyVar :: PLCTyVar -> (PLC.TyName (), PLCKind)
+splitTyVar (PLCTyVar n k) = (n, k)
+
+data PLCVar = PLCVar (PLC.Name ()) PLCType
+
+splitVar :: PLCVar -> (PLC.Name (), PLCType)
+splitVar (PLCVar n ty) = (n, ty)
