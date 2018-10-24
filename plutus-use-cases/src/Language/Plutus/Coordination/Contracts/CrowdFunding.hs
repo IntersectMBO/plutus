@@ -11,6 +11,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Language.Plutus.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
