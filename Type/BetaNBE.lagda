@@ -121,8 +121,8 @@ inj₂ f ·V v = f id v
 Evaluation a term in an environment yields a value. The most
 interesting cases are ƛ where we introduce a new Kripke function that
 will evaluate when it receives an argument and Π/μ where we need to go
-under the binder and weaken and extend the environement before
-evaluating and reifying.
+under the binder and extend the environement before evaluating and
+reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
