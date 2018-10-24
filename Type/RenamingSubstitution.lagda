@@ -50,10 +50,11 @@ rename ρ (con tcn s) = con tcn (rename ρ s)
 \end{code}
 
 Weakening is a special case of renaming.
+
 \begin{code}
 weaken : ∀ {Φ J K}
   → Φ ⊢⋆ J
-    -------------
+    -----------
   → Φ ,⋆ K ⊢⋆ J
 weaken = rename S
 \end{code}
@@ -65,7 +66,7 @@ First functor law for ext
 \begin{code}
 ext-id :  ∀ {Φ J K}
   → (x : Φ ,⋆ K ∋⋆ J)
-    ------------
+    ----------------
   → ext id x ≡ x
 ext-id Z     = refl
 ext-id (S x) = refl
@@ -83,7 +84,7 @@ ext-cong : ∀ {Φ Ψ}
   → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{J K}(x : Φ ,⋆ J ∋⋆ K)
-    -------------------
+    -------------------------------
   → ext f x ≡ ext g x
 ext-cong p Z     = refl
 ext-cong p (S x) = cong S (p x)
@@ -96,7 +97,7 @@ rename-cong : ∀ {Φ Ψ}
   → {f g : Ren Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢⋆ K)
-    -----------------------
+    -------------------------------
   → rename f A ≡ rename g A
 rename-cong p (` x)       = cong ` (p x)
 rename-cong p (Π A)       = cong Π (rename-cong (ext-cong p) A)
@@ -178,8 +179,8 @@ exts : ∀ {Φ Ψ}
   → Sub Φ Ψ
     -------------------------------
   → (∀ {K} → Sub (Φ ,⋆ K) (Ψ ,⋆ K))
-exts σ Z      =  ` Z
-exts σ (S α)  =  weaken (σ α)
+exts σ Z      = ` Z
+exts σ (S α)  = weaken (σ α)
 \end{code}
 
 Apply a type substitution to a type.
@@ -218,7 +219,7 @@ A special case is substitution a type for the outermost free variable.
 _[_] : ∀ {Φ J K}
   → Φ ,⋆ K ⊢⋆ J
   → Φ ⊢⋆ K 
-    ------
+    ------------
   → Φ ⊢⋆ J
 B [ A ] =  subst (subst-cons ` A) B
 \end{code}
@@ -243,7 +244,7 @@ exts-cong : ∀ {Φ Ψ}
   → {f g : Sub Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{J K}(x : Φ ,⋆ K ∋⋆ J)
-    -----------------------
+    -------------------------------
   → exts f x ≡ exts g x
 exts-cong p Z     = refl
 exts-cong p (S x) = cong weaken (p x)
@@ -256,7 +257,7 @@ subst-cong : ∀ {Φ Ψ}
   → {f g : Sub Φ Ψ}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
   → ∀{K}(A : Φ ⊢⋆ K)
-    -----------------------
+    -------------------------------
   → subst f A ≡ subst g A
 subst-cong p (` x)       = p x
 subst-cong p (Π A)       = cong Π (subst-cong (exts-cong p) A)
@@ -268,7 +269,7 @@ subst-cong p (size⋆ n)   = refl
 subst-cong p (con tcn s) = cong (con tcn) (subst-cong p s)
 \end{code}
 
-First monad law for subst
+First relative monad law for subst
 
 \begin{code}
 subst-id : ∀ {Φ J}
@@ -305,7 +306,7 @@ subst-rename : ∀{Φ Ψ Θ}
   → {g : Ren Φ Ψ}
   → {f : Sub Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
-    -----------------------------------------
+    --------------------------------------
   → subst (f ∘ g) A ≡ subst f (rename g A)
 subst-rename (` x)   = refl
 subst-rename (Π A)   = cong Π (trans (subst-cong exts-ext A) (subst-rename A))
@@ -337,7 +338,7 @@ rename-subst : ∀{Φ Ψ Θ}
   → {g : Sub Φ Ψ}
   → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
-    -------------------------------------------------
+    ---------------------------------------------
   → subst (rename f ∘ g) A ≡ rename f (subst g A)
 rename-subst (` x)       = refl
 rename-subst (Π A)       =
@@ -365,7 +366,7 @@ extscomp         Z     = refl
 extscomp {g = g} (S x) = trans (sym (rename-subst (g x))) (subst-rename (g x))
 \end{code}
 
-Fusion of substitutions
+Fusion of substitutions/third relative monad law for subst
 
 \begin{code}
 subst-comp : ∀{Φ Ψ Θ}
@@ -384,7 +385,7 @@ subst-comp (size⋆ n)   = refl
 subst-comp (con tcn s) = cong (con tcn) (subst-comp s)
 \end{code}
 
-Commuting substcons and rename
+Commuting subst-cons and rename
 
 \begin{code}
 rename-subst-cons : ∀{Γ Δ}{J K} 
@@ -404,10 +405,8 @@ subst-subst-cons : ∀{Γ Δ}{J K}
   → (σ : Sub Γ Δ)
   → (M : Γ ⊢⋆ K)
   → (x : Γ ,⋆ K ∋⋆ J)
-    ---------------------------------------------
-  → subst (subst-cons ` (subst σ M)) (exts σ x)
-    ≡
-    subst σ (subst-cons ` M x)
+    ------------------------------------------------------------------------
+  → subst (subst-cons ` (subst σ M)) (exts σ x) ≡ subst σ (subst-cons ` M x)
 subst-subst-cons σ M Z     = refl
 subst-subst-cons σ M (S x) = trans (sym (subst-rename (σ x))) (subst-id (σ x))
 \end{code}
