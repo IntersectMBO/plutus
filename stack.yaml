@@ -21,7 +21,7 @@ packages:
   extra-dep: true
 
 extra-deps:
-- cryptonite-0.22
+- cryptonite-0.25
 - cborg-0.2.0.0
 - serialise-0.2.0.0
 - monad-stm-0.1.0.2

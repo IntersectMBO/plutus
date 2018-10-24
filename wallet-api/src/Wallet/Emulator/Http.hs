@@ -9,6 +9,7 @@
 module Wallet.Emulator.Http
   ( app
   , initialState
+  , API
   ) where
 
 import           Control.Concurrent.STM     (STM, TVar, atomically, modifyTVar, newTVar, readTVar, readTVarIO,
@@ -17,13 +18,11 @@ import           Control.Monad.Error.Class  (MonadError)
 import           Control.Monad.Except       (ExceptT, liftEither, runExceptT)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Reader       (MonadReader, ReaderT, asks, runReaderT)
-import           Control.Monad.State        (runStateT)
-import           Control.Monad.Writer       (runWriter)
+import           Control.Monad.State        (State, runState)
 import           Control.Natural            (type (~>))
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (catMaybes)
-import           Data.Monoid                ((<>))
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
@@ -34,10 +33,12 @@ import           Servant                    (Application, Handler, ServantErr (e
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
                                              Put, ReqBody)
 import qualified Wallet.API                 as WAPI
-import           Wallet.Emulator.Types      (EmulatedWalletApi, EmulatorState (emWalletState),
-                                             Notification (BlockHeight, BlockValidated), Wallet, WalletState, chain,
-                                             emTxPool, emptyEmulatorState, emptyWalletState, runEmulatedWalletApi,
-                                             txPool, validateEm, validationData, walletStates)
+import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
+                                             EmulatorState (emWalletState), Notification (BlockHeight, BlockValidated),
+                                             Wallet, WalletState, assert, chain, emTxPool, emptyEmulatorState,
+                                             emptyWalletState, liftEmulatedWallet, txPool, validateEm, validationData,
+                                             walletStates)
+
 import qualified Wallet.Emulator.Types      as Types
 import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', ValidationData, Value)
 
@@ -51,33 +52,38 @@ type WalletAPI
      :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] ()
      :<|> "wallets" :> "transactions" :> Get '[ JSON] [Tx]
 
+type WalletControlAPI
+   = "wallets" :> (Capture "walletid" Wallet :> "notifications" :> "block-validation" :> ReqBody '[ JSON] Block :> Post '[ JSON] ()
+                   :<|> Capture "walletid" Wallet :> "notifications" :> "block-height" :> ReqBody '[ JSON] Height :> Post '[ JSON] ())
+
+type AssertionsAPI
+   = "assertions" :> ("own-funds-eq" :> Capture "walletid" Wallet :> ReqBody '[ JSON] Value :> Post '[ JSON] NoContent
+                      :<|> "is-validated-txn" :> ReqBody '[ JSON] Tx :> Post '[ JSON] NoContent)
+
 type ControlAPI
    = "emulator" :> ("blockchain-actions" :> Get '[ JSON] [Tx]
-                    :<|> "validation-data" :> ReqBody '[ JSON] ValidationData :> Put '[ JSON] ()
-                    :<|> "wallets" :> Capture "walletid" Wallet :> "notifications" :> "block-validation" :> ReqBody '[ JSON] Block :> Post '[ JSON] ()
-                    :<|> "wallets" :> Capture "walletid" Wallet :> "notifications" :> "block-height" :> ReqBody '[ JSON] Height :> Post '[ JSON] ())
+                    :<|> "validation-data" :> ReqBody '[ JSON] ValidationData :> Put '[ JSON] ())
 
 type API
    = WalletAPI
+     :<|> WalletControlAPI
      :<|> ControlAPI
+     :<|> AssertionsAPI
 
-newtype State = State
+newtype ServerState = ServerState
   { getState :: TVar EmulatorState
   }
 
-data AppError
-  = WalletAPIError WAPI.WalletAPIError
-  | HttpError ServantErr
-
 wallets ::
-     (MonadError ServantErr m, MonadReader State m, MonadIO m) => m [Wallet]
+     (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
+  => m [Wallet]
 wallets = do
   var <- asks getState
   ws <- liftIO $ readTVarIO var
   pure . Map.keys . emWalletState $ ws
 
 fetchWallet ::
-     (MonadError ServantErr m, MonadReader State m, MonadIO m)
+     (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
   => Wallet
   -> m Wallet
 fetchWallet wallet = do
@@ -87,7 +93,7 @@ fetchWallet wallet = do
     then pure wallet
     else throwError err404
 
-createWallet :: (MonadReader State m, MonadIO m) => Wallet -> m NoContent
+createWallet :: (MonadReader ServerState m, MonadIO m) => Wallet -> m NoContent
 createWallet wallet = do
   var <- asks getState
   let walletState = emptyWalletState wallet
@@ -95,71 +101,31 @@ createWallet wallet = do
   pure NoContent
 
 createPaymentWithChange ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Value
   -> m (Set.Set TxIn', TxOut')
-createPaymentWithChange = runWalletApiAction WAPI.createPaymentWithChange
+createPaymentWithChange wallet =
+  runWalletAction wallet . WAPI.createPaymentWithChange
 
 payToPublicKey ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Value
   -> m TxOut'
-payToPublicKey = runWalletApiAction WAPI.payToPublicKey
+payToPublicKey wallet = runWalletAction wallet . WAPI.payToPublicKey
 
 submitTxn ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Tx
   -> m ()
-submitTxn = runWalletApiAction WAPI.submitTxn
-
-runWalletApiAction ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
-  => (a -> EmulatedWalletApi b)
-  -> Wallet
-  -> a
-  -> m b
-runWalletApiAction action wallet a = do
-  var <- asks getState
-  result <- liftIO . atomically $ runWalletApiActionSTM var wallet action a
-  case result of
-    Left (HttpError e) -> throwError e
-    Left (WalletAPIError e) ->
-      throwError $ err500 {errBody = BSL.pack . show $ e}
-    Right res -> pure res
-
-runWalletApiActionSTM ::
-     TVar EmulatorState
-  -> Wallet
-  -> (a -> EmulatedWalletApi b)
-  -> a
-  -> STM (Either AppError b)
-runWalletApiActionSTM var wallet action a = do
-  states <- readTVar var
-  let mState = Map.lookup wallet . emWalletState $ states
-  case mState of
-    Nothing -> pure . Left . HttpError $ err404
-    Just oldState -> do
-      let (res, txs) =
-            runWriter .
-            flip runStateT oldState . runExceptT . runEmulatedWalletApi $
-            action a
-      modifyTVar var (addTransactions txs)
-      case res of
-        (Left e, _) -> pure . Left . WalletAPIError $ e
-        (Right v, newState) -> do
-          modifyTVar var (insertWallet wallet newState)
-          pure $ Right v
+submitTxn wallet = runWalletAction wallet . WAPI.submitTxn
 
 insertWallet :: Wallet -> WalletState -> EmulatorState -> EmulatorState
 insertWallet w ws = over walletStates (Map.insert w ws)
 
-addTransactions :: [Tx] -> EmulatorState -> EmulatorState
-addTransactions txs = over txPool (<> txs)
-
-getTransactions :: (MonadReader State m, MonadIO m) => m [Tx]
+getTransactions :: (MonadReader ServerState m, MonadIO m) => m [Tx]
 getTransactions = do
   var <- asks getState
   states <- liftIO $ readTVarIO var
@@ -167,59 +133,108 @@ getTransactions = do
 
 -- | Concrete monad stack for server server
 newtype AppM a = AppM
-  { unM :: ReaderT State (ExceptT ServantErr IO) a
+  { unM :: ReaderT ServerState (ExceptT ServantErr IO) a
   } deriving ( Functor
              , Applicative
              , Monad
-             , MonadReader State
+             , MonadReader ServerState
              , MonadIO
              , MonadError ServantErr
              )
 
-runM :: State -> AppM ~> Handler
+runM :: ServerState -> AppM ~> Handler
 runM state r = do
   res <- liftIO . runExceptT . flip runReaderT state . unM $ r
   liftEither res
 
-walletHandlers :: State -> Server API
-walletHandlers state = hoistServer api (runM state) $ walletApi :<|> controlApi
+walletHandlers :: ServerState -> Server API
+walletHandlers state =
+  hoistServer api (runM state) $
+  walletApi :<|> walletControlApi :<|> controlApi :<|> assertionsApi
   where
     walletApi =
       wallets :<|> fetchWallet :<|> createWallet :<|> createPaymentWithChange :<|>
       payToPublicKey :<|>
       submitTxn :<|>
       getTransactions
-    controlApi =
-      blockchainActions :<|> setValidationData :<|> blockValidated :<|>
-      blockHeight
+    controlApi = blockchainActions :<|> setValidationData
+    walletControlApi = blockValidated :<|> blockHeight
+    assertionsApi = assertOwnFundsEq :<|> assertIsValidated
 
-handleNotifications ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
+assertOwnFundsEq ::
+     (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
   => Wallet
-  -> [Notification]
-  -> m ()
-handleNotifications = runWalletApiAction Types.handleNotifications
+  -> Value
+  -> m NoContent
+assertOwnFundsEq wallet value =
+  NoContent <$ (runAssertion $ OwnFundsEqual wallet value)
+
+assertIsValidated ::
+     (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
+  => Tx
+  -> m NoContent
+assertIsValidated tx = NoContent <$ (runAssertion $ IsValidated tx)
 
 blockValidated ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Block
   -> m ()
 blockValidated wallet block = handleNotifications wallet [BlockValidated block]
 
 blockHeight ::
-     (MonadReader State m, MonadIO m, MonadError ServantErr m)
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Height
   -> m ()
 blockHeight wallet height = handleNotifications wallet [BlockHeight height]
 
-setValidationData :: (MonadReader State m, MonadIO m) => ValidationData -> m ()
+runWalletAction ::
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
+  => Wallet
+  -> EmulatedWalletApi a
+  -> m a
+runWalletAction wallet = runServerState . fmap snd . liftEmulatedWallet wallet
+
+runAssertion ::
+     (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
+  => Assertion
+  -> m ()
+runAssertion = runServerState . runExceptT . assert
+
+handleNotifications ::
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
+  => Wallet
+  -> [Notification]
+  -> m ()
+handleNotifications wallet =
+  runWalletAction wallet . Types.handleNotifications
+
+runServerState ::
+     (Show e, MonadError ServantErr m, MonadIO m, MonadReader ServerState m)
+  => State EmulatorState (Either e a)
+  -> m a
+runServerState s = do
+  var <- asks getState
+  res <- liftIO . atomically . runStateSTM var $ s
+  case res of
+    Left e  -> throwError $ err500 {errBody = BSL.pack . show $ e}
+    Right a -> pure a
+
+runStateSTM :: TVar s -> State s ~> STM
+runStateSTM var action = do
+  es <- readTVar var
+  let (res, newState) = runState action es
+  writeTVar var newState
+  pure res
+
+setValidationData ::
+     (MonadReader ServerState m, MonadIO m) => ValidationData -> m ()
 setValidationData vd = do
   var <- asks getState
   liftIO . atomically $ modifyTVar var (set validationData vd)
 
-blockchainActions :: (MonadReader State m, MonadIO m) => m [Tx]
+blockchainActions :: (MonadReader ServerState m, MonadIO m) => m [Tx]
 blockchainActions = do
   var <- asks getState
   liftIO . atomically $ blockchainActionsSTM var
@@ -240,8 +255,8 @@ blockchainActionsSTM var = do
 api :: Proxy API
 api = Proxy
 
-app :: State -> Application
+app :: ServerState -> Application
 app state = serve api $ walletHandlers state
 
-initialState :: IO State
-initialState = atomically $ State <$> newTVar emptyEmulatorState
+initialState :: IO ServerState
+initialState = atomically $ ServerState <$> newTVar emptyEmulatorState

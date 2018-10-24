@@ -10,7 +10,8 @@ module Wallet.Emulator.Types(
     Wallet(..),
     TxPool,
     -- * Emulator
-    Assertion,
+    Assertion(OwnFundsEqual, IsValidated),
+    assert,
     assertIsValidated,
     AssertionError,
     Event(..),
@@ -66,7 +67,7 @@ import qualified Data.Text                 as T
 import           GHC.Generics              (Generic)
 import           Lens.Micro
 import           Prelude                   as P
-import           Servant.API               (FromHttpApiData)
+import           Servant.API               (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable             (Hashable)
 import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
@@ -79,7 +80,7 @@ import qualified Wallet.UTXO.Index         as Index
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }
     deriving (Show, Eq, Ord, Generic)
-    deriving newtype (FromHttpApiData, Hashable, ToJSON, FromJSON)
+    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable, ToJSON, FromJSON)
 
 type TxPool = [Tx]
 
@@ -272,7 +273,7 @@ validateEm EmulatorState{emIndex=idx, emValidationData = vd} txn =
     let result = Index.runValidation (Index.validateTransaction vd txn) idx in
     either (const Nothing) (const $ Just txn) result
 
-liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
+liftEmulatedWallet :: (MonadState EmulatorState m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ emWalletState emState
@@ -301,7 +302,7 @@ eval = \case
     Assertion a -> assert a
     SetValidationData d -> modify (set validationData d)
 
-process :: (MonadState EmulatorState m, MonadError AssertionError m) => Trace a -> m a
+process :: (MonadEmulator m) => Trace a -> m a
 process = interpretWithMonad eval
 
 -- | Interact with a wallet
