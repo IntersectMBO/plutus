@@ -16773,6 +16773,7 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, basement
 , bytestring
 , deepseq
 , ghc-prim
@@ -16783,10 +16784,11 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "cryptonite";
-version = "0.22";
-sha256 = "4be312a42a12ccd2ca60272ef485664f242c7ed89fa1909ba36a54c5fb6ff5f0";
+version = "0.25";
+sha256 = "89be1a18af8730a7bfe4d718d7d5f6ce858e9df93a411566d15bf992db5a3c8c";
 libraryHaskellDepends = [
 base
+basement
 bytestring
 deepseq
 ghc-prim
@@ -55553,6 +55555,7 @@ license = stdenv.lib.licenses.bsd3;
 , hedgehog
 , language-plutus-core
 , mmorph
+, mtl
 , prettyprinter
 , stdenv
 , tasty
@@ -55571,6 +55574,7 @@ base
 bytestring
 containers
 language-plutus-core
+mtl
 prettyprinter
 text
 ];
@@ -55581,6 +55585,7 @@ containers
 hedgehog
 language-plutus-core
 mmorph
+mtl
 prettyprinter
 tasty
 tasty-golden
@@ -78418,6 +78423,7 @@ license = stdenv.lib.licenses.mit;
 , prettyprinter
 , serialise
 , servant
+, servant-client
 , servant-server
 , stdenv
 , stm
@@ -78464,6 +78470,7 @@ plutus-th
 prettyprinter
 serialise
 servant
+servant-client
 servant-server
 stm
 template-haskell
