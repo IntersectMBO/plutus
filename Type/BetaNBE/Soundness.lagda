@@ -20,7 +20,7 @@ open import Data.Product
 
 \begin{code}
 R : ∀{Γ} K → Γ ⊢⋆ K → Val Γ K → Set
-R size    t v = t ≡β embNf (reify v)
+R #    t v = t ≡β embNf (reify v)
 R *       t v = t ≡β embNf (reify v)
 R (K ⇒ J) t (inj₁ n) = t ≡β embNeN n
 R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → (t ≡β ƛ t') × ∀{Δ}(ρ : Ren _ Δ){u : Δ ⊢⋆ K}{v : Val Δ K}
@@ -31,7 +31,7 @@ R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → (t ≡β ƛ t') × �
 sreflect : ∀{Γ K}{t : Γ ⊢⋆ K}{n : Γ ⊢NeN⋆ K}
   → t ≡β embNeN n
   → R K t (reflect n)
-sreflect {K = size}  p = p
+sreflect {K = #}  p = p
 sreflect {K = *}     p = p
 sreflect {K = K ⇒ J} p = p
 
@@ -39,7 +39,7 @@ sreify : ∀{Γ K}{t : Γ ⊢⋆ K}{v : Val Γ K}
   → R K t v
   → t ≡β embNf (reify v)
 sreify {K = *}     p = p
-sreify {K = size}  p = p
+sreify {K = #}  p = p
 sreify {K = K ⇒ J} {t} {inj₁ n} p = p
 sreify {K = K ⇒ J} {t} {inj₂ f} (t' , p , q) =
   trans≡β p (substEq (λ t → ƛ t ≡β ƛ (embNf (reify (f S fresh))))
@@ -69,7 +69,7 @@ R,,⋆ p q (S x) = p x
 renR : ∀{Γ Δ}(ρ : Ren Γ Δ){K}{t : Γ ⊢⋆ K}{v : Val Γ K}
   → R K t v
   → R K (rename ρ t) (renval ρ v)
-renR ρ {size}{t}{n} p = 
+renR ρ {#}{t}{n} p = 
   substEq (rename ρ t ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renR ρ {*}{t}{n} p = 
   substEq (rename ρ t ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
@@ -114,7 +114,7 @@ substR : ∀{Γ K}{t t' : Γ ⊢⋆ K}
   → {v : Val Γ K}
   → R K t v
   → R K t' v
-substR {K = size}   p q = trans≡β p q
+substR {K = #}   p q = trans≡β p q
 substR {K = *}      p q = trans≡β p q
 substR {K = K ⇒ J} p {inj₁ n} q = trans≡β p q
 substR {K = K ⇒ J} p {inj₂ f} (t' , q , r) = _ , trans≡β p q , r
@@ -163,6 +163,8 @@ sfund {K = K ⇒ J} (ƛ B){σ}{η} p =
              (sfund B (R,,⋆ (renR ρ ∘ p) q)) )
 sfund (A · B) p = RApp (sfund A p) (sfund B p)
 sfund (μ B)   p = sreflect (μ≡β (sreify (sfund B (Rweak p _))))
+sfund (size⋆ n)   p = refl≡β _
+sfund (con tcn s) p = con≡β (sfund s p)
 \end{code}
 
 \begin{code}

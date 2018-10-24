@@ -20,6 +20,11 @@ infixl 7 _·_
 infix  9 S
 \end{code}
 
+\begin{code}
+open import Agda.Builtin.Int
+open import Agda.Builtin.Nat
+\end{code}
+
 ## Kinds
 
 The kind of types is `*`. Plutus core core is based on System Fω which
@@ -30,7 +35,7 @@ a kind called `size`. There are no terms of kind `size`, instead
 \begin{code}
 data Kind : Set where
   * : Kind
-  size : Kind
+  # : Kind
   _⇒_ : Kind → Kind → Kind
 \end{code}
 
@@ -82,6 +87,11 @@ recursive types range over an arbitrary kind `k` which goes beyond
 standard iso-recursive types.
 
 \begin{code}
+data TyCon : Set where
+  integer bytstring size : TyCon
+\end{code}
+
+\begin{code}
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
 
   ` : ∀ {Φ J}
@@ -115,6 +125,10 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → φ ,⋆ K ⊢⋆ K
       -----------
     → φ ⊢⋆ K
+
+  size⋆ : ∀{φ} → Nat → φ ⊢⋆ #
+
+  con : ∀{φ} → TyCon → φ ⊢⋆ # → φ ⊢⋆ *
 
 \end{code}
 

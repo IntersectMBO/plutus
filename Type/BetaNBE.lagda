@@ -25,8 +25,8 @@ either neutral or Kripke functions
 
 \begin{code}
 Val : Ctx⋆ -> Kind -> Set
-Val Γ size    = Γ ⊢Nf⋆ size
-Val Γ  *      = Γ ⊢Nf⋆ *
+Val Γ #       = Γ ⊢Nf⋆ #
+Val Γ *       = Γ ⊢Nf⋆ *
 Val Γ (σ ⇒ τ) = Γ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Δ} -> Ren Γ Δ -> Val Δ σ -> Val Δ τ
 \end{code}
 
@@ -36,7 +36,7 @@ defined with reify.
 
 \begin{code}
 reflect : ∀{Γ σ} → Γ ⊢NeN⋆ σ → Val Γ σ
-reflect {σ = size}  n = ne n
+reflect {σ = #}  n = ne n
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
@@ -53,7 +53,7 @@ Renaming for values
 
 \begin{code}
 renval : ∀ {σ Γ Δ} -> Ren Γ Δ -> Val Γ σ -> Val Δ σ
-renval {size}  ψ n         = renameNf ψ n
+renval {#}     ψ n         = renameNf ψ n
 renval {*}     ψ n         = renameNf ψ n
 renval {σ ⇒ τ} ψ (inj₁ n)  = inj₁ (renameNeN ψ n)
 renval {σ ⇒ τ} ψ (inj₂ f)  = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
@@ -63,7 +63,7 @@ Reify takes a value and yields a normal form.
 
 \begin{code}
 reify : ∀ {σ Γ} -> Val Γ σ -> Γ ⊢Nf⋆ σ
-reify {size}  n         = n
+reify {#}     n         = n
 reify {*}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
 reify {σ ⇒ τ} (inj₂ f)  = ƛ (reify (f S fresh))
@@ -110,6 +110,8 @@ eval (A ⇒ B) ρ = reify (eval A ρ) ⇒ reify (eval B ρ)
 eval (ƛ B)   ρ = inj₂ λ ρ' v → eval B ((renval ρ' ∘ ρ) ,,⋆ v)
 eval (A · B) ρ = eval A ρ ·V eval B ρ
 eval (μ B)   ρ = reflect (μ (reify (eval B ((renval S ∘ ρ) ,,⋆ fresh))))
+eval (size⋆ n)   ρ = size⋆ n
+eval (con tcn s) ρ = con tcn (reify (eval s ρ))
 \end{code}
 
 Identity environment

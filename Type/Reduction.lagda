@@ -8,6 +8,7 @@ module Type.Reduction where
 open import Type
 open import Type.RenamingSubstitution
 
+open import Agda.Builtin.Nat
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
 \end{code}
@@ -32,7 +33,20 @@ data Value⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   N- : ∀ {Φ K} {N : Φ ⊢⋆ K}
     → Neutral⋆ N
-    → Value⋆ N 
+      ----------
+    → Value⋆ N
+
+  V-size : ∀{Φ}
+    → {n : Nat}
+      --------------------
+    → Value⋆ (size⋆ {Φ} n)
+
+  V-con : ∀{Φ}
+    → {tcn : TyCon}
+    → {s : Φ ⊢⋆ #}
+    → Value⋆ s
+      ------------------
+    → Value⋆ (con tcn s)
 
 -- as we only prove progress in the empty context we have no stuck
 -- applications of a variable to an argument outside of a
@@ -79,6 +93,12 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       --------------
     → V · M —→⋆ V · M′
 
+  ξ-con : ∀{Φ}
+    → {tcn : TyCon}
+    → {s s' : Φ ⊢⋆ #}
+    → s —→⋆ s'
+      ------------------
+    → con tcn s —→⋆ con tcn s'
 
   β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
     → Value⋆ W
@@ -125,6 +145,11 @@ progress⋆ (M · N)  with progress⋆ M
 ...                                | step p = step (ξ-·₂ vM p)
 progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step (β-ƛ vN)
 progress⋆ (M · N) | done (N- {∅} {K ⇒ K₁} x₁) | done x = done (N- (N-· x₁ x))
+progress⋆ (size⋆ n)   = done V-size
+progress⋆ (con tcn s) with progress⋆ s
+... | step p  = step (ξ-con p)
+... | done Vs = done (V-con Vs)
+
 \end{code}
 
 # Renaming and Substitution
@@ -139,10 +164,12 @@ renameValue⋆ : ∀ {Φ Ψ}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     ----------------------------
   → ∀ {J}{A : Φ ⊢⋆ J} → Value⋆ A → Value⋆ (rename ρ A)
-renameValue⋆ ρ V-Π_  = V-Π_
-renameValue⋆ ρ _V-⇒_ = _V-⇒_
-renameValue⋆ ρ V-ƛ_  = V-ƛ_
-renameValue⋆ ρ (N- N) = N- (renameNeutral⋆ ρ N)
+renameValue⋆ ρ V-Π_      = V-Π_
+renameValue⋆ ρ _V-⇒_     = _V-⇒_
+renameValue⋆ ρ V-ƛ_      = V-ƛ_
+renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
+renameValue⋆ ρ V-size    = V-size
+renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)
 
 renameNeutral⋆ ρ N-μ_ = N-μ_
 renameNeutral⋆ ρ (N-· N V) = N-· (renameNeutral⋆ ρ N) (renameValue⋆ ρ V)
@@ -162,6 +189,8 @@ substValue⋆ σ V-Π_  = V-Π_
 substValue⋆ σ _V-⇒_ = _V-⇒_
 substValue⋆ σ V-ƛ_   = V-ƛ_
 substValue⋆ σ (N- N) = N- (substNeutral⋆ σ N)
+substValue⋆ σ  V-size   = V-size
+substValue⋆ σ (V-con s) = V-con (substValue⋆ σ s)
 
 substNeutral⋆ σ N-μ_ = N-μ_
 substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
@@ -182,7 +211,8 @@ rename—→⋆ ρ (β-ƛ {N = M}{W = N} V) =
           (trans (sym (subst-rename M))
                  (trans (subst-cong (rename-subst-cons ρ N) M)
                         (rename-subst M)))
-          (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N} (renameValue⋆ ρ V)) 
+          (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N} (renameValue⋆ ρ V))
+rename—→⋆ ρ (ξ-con p)              = ξ-con (rename—→⋆ ρ p)
 \end{code}
 
 \begin{code}
@@ -201,6 +231,7 @@ subst—→⋆ σ (β-ƛ {N = M}{W = N} V) =
                  (trans (subst-cong (subst-subst-cons σ N) M)
                         (subst-comp  M)))
           (β-ƛ {N = subst (exts σ) M}{W = subst σ N} (substValue⋆ σ V))
+subst—→⋆ ρ (ξ-con p)              = ξ-con (subst—→⋆ ρ p)
 \end{code}
 
 \begin{code}

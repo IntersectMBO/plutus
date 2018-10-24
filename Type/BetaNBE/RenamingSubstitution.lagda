@@ -17,7 +17,7 @@ open import Function
 
 \begin{code}
 reify-reflect : ∀{K Γ}(n : Γ ⊢NeN⋆ K) → reify (reflect n) ≡ ne n
-reify-reflect {size}  n = refl
+reify-reflect {#}     n = refl
 reify-reflect {*}     n = refl
 reify-reflect {K ⇒ J} n = refl
 \end{code}
