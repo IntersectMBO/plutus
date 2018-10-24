@@ -1,0 +1,193 @@
+# Plutus IR design proposal
+
+## Syntax
+
+The syntax is mostly as in Plutus Core. Where we modify the syntax of Plutus Core we will
+list only the additions and removals, marking them explicitly with `+` or `-`.
+We also require syntax with lists of subparts. We denote a list of `t`-productions with `t..`.
+
+```
+VarDecl VD      := (vardecl x T)
+TyVarDecl TVD   := (tyvardecl alpha K)
+
+Type R, S, T    := - (fix alpha T)
+Term L, M, N    := + (let BK B.. M)
+
+BiningKind BK   := (nonrec)
+                   (rec)
+Binding B       := (termbind VD L)
+                   (typebind TVD T)
+                   (datatypebind D)
+
+Datatype D      := (datatype
+                      TVD   # the type variable for the datatype
+                      TVD.. # the argument type variables of the datatype
+                      x     # the name of the destructor function
+                      C..   # the constructors of the datatype
+                   )
+Constructor C   := (constr
+                       x   # the name of the constructor
+                       T.. # the argument types of the constructor
+                    )
+```
+
+Here is an example, constructing `[1]`:
+```
+# bind List
+(let (rec)
+    (datatypebind
+        (datatype
+            (tyvardecl List (fun (type) (type)))
+            (tyvardecl a (type))
+            match_List
+            (constr
+                Nil
+            )
+            (constr
+                Cons
+                a
+                [List a]
+            )
+        )
+    )
+    # bind int64 for convenience
+    (typebind (tyvardecl int (type)) [(con integer) (con 64)])
+    # apply cons to 1 and nil
+    [ { Cons int } (con 64 ! 1) { Nil int } ]
+)
+```
+
+Another, implementing `fromMaybe`:
+```
+# bind Maybe
+(let (nonrec)
+    (datatypebind
+        (datatype
+            (tyvardecl Maybe (fun (type) (type)))
+            (tyvardecl a (type))
+            match_Maybe
+            (constr
+                Nothing
+            )
+            (constr
+                Just
+                a
+            )
+        )
+    )
+    (abs a (type)
+        (lam default a
+            (lam arg [Maybe a]
+                # match on the arg, producing an a, giving the default
+                # in the Nothing case and using the identity function
+                # in the Just case
+                [ { match_Maybe a } arg default (lam x a x) ]
+            )
+        )
+    )
+)
+```
+
+
+## Validity
+
+### Mutually recursive types
+
+The syntax of Plutus IR suggests that you can write mutually recursive datatypes, even though
+we don't know how to compile those yet. I think we will eventually be able to cover all
+types defined with this syntax, but until then, validity of Plutus IR programs will be somewhat
+determined simply by *whatever we are able to compile*.
+
+### Typechecking
+
+Similarly, while we will define a typing judgement for Plutus IR, we will probably not
+write a typechecker for it, and rather will compile it to Plutus Core before typechecking.
+
+### Value restriction
+
+Since type-lets are going to be desugared as type abstractions, a type-let whose body is not
+a value will fail the Plutus Core value restriction, and there is no attempt to prevent this
+in the Plutus IR syntax. It will simply compile into an invalid Plutus Core program.
+
+## Typing
+
+Typing rules are largely the same as Plutus Core.
+
+(I should write out some real rules for this, but everything being variadic makes it a bit noisy.)
+
+Let bindings are straightforward: they introduce names into the context with their declared
+type or kind. For recursive let bindings we typecheck each binding under the assumption that
+all the bindings have their declared type or kind.
+
+We do need to state something more complex about datatype bindings: they introduce a
+number of names with various types or kinds, with the correctness conditions being:
+- The type variable declarations are well-kinded.
+- The application of the datatype to its type variables is well-kinded and of kind `(type)`.
+- The constructor argument types are all well-kinded and of type `(type)`.
+
+## Design notes
+
+### Why do we need variadic syntax?
+
+`letrec` is inherently about binding an arbitrary number of mutually recursive bindings, so
+we need to be able to write that.
+
+### Why is `let` variadic?
+
+`letrec` obviously needs to be variadic, since the whole point is to have multiple bindings
+that reference each other.
+
+`let` doesn't *need* to be variadic, but it's symmetrical, convenient, and no harder to support.
+
+### Why is there a special datatype binding?
+
+Datatype bindings are weird in that they bind multiple names, which are part of the binding
+(the type, the constructors, the destructor). So we can't handle it as a normal "type binding" since
+it also declares other things.
+
+### Why are variable declarations reified in the syntax?
+
+It's very helpful to have a syntax form for variable declarations, since the syntax is too
+homogeneous when everything is just names. For example, in the datatype declaration we have
+a whole series of type variable declarations. I think we could just about parse the version
+with them all flattened, but it's much clearer when they're reified.
+
+I think this is quite useful and arguably worth introducing in the Plutus Core syntax too.
+
+### Why does `datatype` bind its type variables?
+
+I considered having the constructors of the datatype have an explicit type instead of having arguments, e.g.
+`(constr Cons (all a (type) (fun a (fun [List a] [List a]))))`.
+
+The downside of this is that:
+- It obscures the nature of the datatype as a sum-of-products.
+- We need to construct several types from the constructor: the main datatype, the matcher type, and the constructor
+  types. Having the "full" constructor type given means that we just need to deconstruct it again later.
+
+Plus it's even closer to the usual Haskell-style `data` declarations.
+
+## Discussion points
+
+### I hate your keyword suggestions
+
+Better suggestions welcome! In particular I wonder whether we can get away with using `con` instead of `constr`.
+(I believe in an older version of the Plutus Core spec which had datatypes, `con` was indeed used for constructors.)
+
+### Should we have `match`?
+
+Currently there is no `match` syntax, instead we expose destructor functions.
+
+This has the following advantages:
+- Easier to translate into Plutus Core
+- Only allowing "simple" matches, which are all we're going to support anyway.
+
+It does have some disadvantages:
+- Need an additional name for the destructor.
+- The destructor needs to be instantiated at the result type of the match, whereas for a match
+  syntax this could be inferred.
+
+I think these are fine for an IR.
+
+### Can we simplify the datatype-binding syntax?
+
+Currently it's a bit clumsy.
