@@ -78,7 +78,11 @@ Env Ψ Φ = ∀{J} → Ψ ∋⋆ J → Val Φ J
 'cons' for environments
 
 \begin{code}
-_,,⋆_ : ∀{Ψ Φ} → (σ : Env Φ Ψ) → ∀{K}(A : Val Ψ K) → Env (Φ ,⋆ K) Ψ
+_,,⋆_ : ∀{Ψ Φ}
+  → (σ : Env Φ Ψ)
+  → ∀{K}(A : Val Ψ K)
+    -----------------
+  → Env (Φ ,⋆ K) Ψ
 (σ ,,⋆ A) Z     = A
 (σ ,,⋆ A) (S x) = σ x
 \end{code}
@@ -99,7 +103,11 @@ inj₁ n ·V v = reflect (n · reify v)
 inj₂ f ·V v = f id v
 \end{code}
 
-Evaluation a term in an environment yields a value.
+Evaluation a term in an environment yields a value. The most
+interesting cases are ƛ where we introduce a new Kripke function that
+will evaluate when it receives an argument and Π/μ where we need to go
+under the binder and weaken and extend the environement before
+evaluating and reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
