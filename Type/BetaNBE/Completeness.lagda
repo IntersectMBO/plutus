@@ -190,11 +190,11 @@ renval-comp : ∀ {K Γ Δ Θ}(ρ : Ren Γ Δ)(ρ' : Ren Δ Θ){v v' : Val Γ K}
   PER K v v' → 
   PER K (renval (ρ' ∘ ρ) v) (renval ρ' (renval ρ v'))
 renval-comp {#}   ρ ρ'                    refl           =
-  renameNf-comp ρ ρ' _
+  renameNf-comp _
 renval-comp {*}      ρ ρ'                    refl           =
-  renameNf-comp ρ ρ' _
+  renameNf-comp _
 renval-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
-  cong ne (renameNeN-comp ρ ρ' _)
+  cong ne (renameNeN-comp _)
 renval-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
 renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
 renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =

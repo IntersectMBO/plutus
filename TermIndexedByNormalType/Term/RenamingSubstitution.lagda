@@ -50,7 +50,7 @@ ext⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ∋ renameNf (⋆.ext ρ⋆) A )
 ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
-          (trans (sym (renameNf-comp ρ⋆ S _)) (renameNf-comp S (⋆.ext ρ⋆) _))
+          (trans (sym (renameNf-comp _)) (renameNf-comp _))
           (T (ρ x))
 \end{code}
 
