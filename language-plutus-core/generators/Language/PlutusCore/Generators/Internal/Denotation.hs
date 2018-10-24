@@ -106,4 +106,6 @@ typedBuiltinNames
     . insertTypedBuiltinName typedResizeByteString     (const id)
     . insertTypedBuiltinName typedEqByteString         (==)
 --     . insertTypedBuiltinName typedTxHash               undefined
+--     . insertTypedBuiltinName typedBlockNum             undefined
+--     . insertTypedBuiltinName typedSizeOfInteger        sizeOfInteger
     $ DenotationContext DMap.empty

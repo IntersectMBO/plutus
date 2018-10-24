@@ -1,6 +1,7 @@
 -- | Church-encoded @nat@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Data.ChurchNat
     ( getBuiltinChurchNat
     , getBuiltinChurchZero
