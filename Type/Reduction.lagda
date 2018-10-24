@@ -16,8 +16,8 @@ open import Relation.Binary.PropositionalEquality
 ## Values
 
 \begin{code}
-data Neutral⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set
-data Value⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set where
+data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
+data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}
       ----------------------------
@@ -28,7 +28,7 @@ data Value⋆ :  ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ (S ⇒ T)
 
   V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
-      ----------------------------
+      -----------------------------
     → Value⋆ (ƛ N)
 
   N- : ∀ {Φ K} {N : Φ ⊢⋆ K}
@@ -156,14 +156,19 @@ progress⋆ (con tcn s) with progress⋆ s
 
 \begin{code}
 renameNeutral⋆ : ∀ {Φ Ψ}
-  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ----------------------------
-  → ∀ {J}{A : Φ ⊢⋆ J} → Neutral⋆ A → Neutral⋆ (rename ρ A)
+  → (ρ : Ren Φ Ψ)
+  → ∀ {J}{A : Φ ⊢⋆ J}
+  → Neutral⋆ A
+    ---------------------
+  → Neutral⋆ (rename ρ A)
 
 renameValue⋆ : ∀ {Φ Ψ}
-  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ----------------------------
-  → ∀ {J}{A : Φ ⊢⋆ J} → Value⋆ A → Value⋆ (rename ρ A)
+  → (ρ : Ren Φ Ψ)
+  → ∀ {J}{A : Φ ⊢⋆ J}
+  → Value⋆ A
+    -------------------
+  → Value⋆ (rename ρ A)
+
 renameValue⋆ ρ V-Π_      = V-Π_
 renameValue⋆ ρ _V-⇒_     = _V-⇒_
 renameValue⋆ ρ V-ƛ_      = V-ƛ_
@@ -171,36 +176,41 @@ renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
 renameValue⋆ ρ V-size    = V-size
 renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)
 
-renameNeutral⋆ ρ N-μ_ = N-μ_
+renameNeutral⋆ ρ N-μ_      = N-μ_
 renameNeutral⋆ ρ (N-· N V) = N-· (renameNeutral⋆ ρ N) (renameValue⋆ ρ V)
 \end{code}
 
 \begin{code}
 substNeutral⋆ : ∀ {Φ Ψ}
-  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-    ----------------------------
-  → ∀ {J}{A : Φ ⊢⋆ J} → Neutral⋆ A → Neutral⋆ (subst σ A)
+  → (σ : Sub Φ Ψ)
+  → ∀ {J}{A : Φ ⊢⋆ J}
+  → Neutral⋆ A
+    --------------------
+  → Neutral⋆ (subst σ A)
 
 substValue⋆ : ∀ {Φ Ψ}
   → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-    ----------------------------
-  → ∀ {J}{A : Φ ⊢⋆ J} → Value⋆ A → Value⋆ (subst σ A)
-substValue⋆ σ V-Π_  = V-Π_
-substValue⋆ σ _V-⇒_ = _V-⇒_
-substValue⋆ σ V-ƛ_   = V-ƛ_
-substValue⋆ σ (N- N) = N- (substNeutral⋆ σ N)
+  → ∀ {J}{A : Φ ⊢⋆ J}
+  → Value⋆ A
+    -----------------------------
+  → Value⋆ (subst σ A)
+  
+substValue⋆ σ V-Π_      = V-Π_
+substValue⋆ σ _V-⇒_     = _V-⇒_
+substValue⋆ σ V-ƛ_      = V-ƛ_
+substValue⋆ σ (N- N)    = N- (substNeutral⋆ σ N)
 substValue⋆ σ  V-size   = V-size
 substValue⋆ σ (V-con s) = V-con (substValue⋆ σ s)
 
-substNeutral⋆ σ N-μ_ = N-μ_
+substNeutral⋆ σ N-μ_      = N-μ_
 substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
 \end{code}
 
 \begin{code}
 rename—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → (ρ : Ren Φ Ψ)
   → A —→⋆ B
-    ----------------------------
+    -------------------------
   → rename ρ A —→⋆ rename ρ B
 rename—→⋆ ρ (ξ-⇒₁ p)               = ξ-⇒₁ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-⇒₂ VS p)            = ξ-⇒₂ (renameValue⋆ ρ VS) (rename—→⋆ ρ p)
@@ -217,7 +227,7 @@ rename—→⋆ ρ (ξ-con p)              = ξ-con (rename—→⋆ ρ p)
 
 \begin{code}
 subst—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+  → (σ : Sub Φ Ψ)
   → A —→⋆ B
     ----------------------------
   → subst σ A —→⋆ subst σ B
@@ -236,9 +246,9 @@ subst—→⋆ ρ (ξ-con p)              = ξ-con (subst—→⋆ ρ p)
 
 \begin{code}
 rename—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+  → (ρ : Ren Φ Ψ)
   → A —↠⋆ B
-    ----------------------------
+    ------------------------------
   → rename ρ A —↠⋆ rename ρ B
 rename—↠⋆ ρ refl—↠⋆          = refl—↠⋆
 rename—↠⋆ ρ (trans—↠⋆ L p q) =
@@ -247,7 +257,7 @@ rename—↠⋆ ρ (trans—↠⋆ L p q) =
 
 \begin{code}
 subst—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+  → (σ : Sub Φ Ψ)
   → A —↠⋆ B
     ----------------------------
   → subst σ A —↠⋆ subst σ B
