@@ -1,6 +1,6 @@
 \begin{code}
 module Type.BetaNBE where
-\end{code} where
+\end{code}
 
 ## Imports
 
@@ -14,20 +14,19 @@ open import Function
 open import Data.Sum
 open import Data.Empty
 open import Data.Product
-open import Data.Unit
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 \end{code}
 
-Values are defined by induction on kind. At kind size and * they are
+Values are defined by induction on kind. At kind # and * they are
 inert and defined to be just normal forms. At function kind they are
 either neutral or Kripke functions
 
 \begin{code}
 Val : Ctx⋆ -> Kind -> Set
-Val Γ #       = Γ ⊢Nf⋆ #
-Val Γ *       = Γ ⊢Nf⋆ *
-Val Γ (σ ⇒ τ) = Γ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Δ} -> Ren Γ Δ -> Val Δ σ -> Val Δ τ
+Val Φ #       = Φ ⊢Nf⋆ #
+Val Φ *       = Φ ⊢Nf⋆ *
+Val Φ (σ ⇒ τ) = Φ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} -> Ren Φ Ψ -> Val Ψ σ -> Val Ψ τ
 \end{code}
 
 We can embed neutral terms into values at any kind using reflect.
@@ -35,8 +34,8 @@ reflect is quite simple in this version of NBE and not mutually
 defined with reify.
 
 \begin{code}
-reflect : ∀{Γ σ} → Γ ⊢NeN⋆ σ → Val Γ σ
-reflect {σ = #}  n = ne n
+reflect : ∀{Φ σ} → Φ ⊢NeN⋆ σ → Val Φ σ
+reflect {σ = #}     n = ne n
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
@@ -45,24 +44,24 @@ A shorthand for creating a new fresh variable as a value which we need
 in reify
 
 \begin{code}
-fresh : ∀ {Γ σ} -> Val (Γ ,⋆ σ) σ
+fresh : ∀ {Φ σ} -> Val (Φ ,⋆ σ) σ
 fresh = reflect (` Z)
 \end{code}
 
 Renaming for values
 
 \begin{code}
-renval : ∀ {σ Γ Δ} -> Ren Γ Δ -> Val Γ σ -> Val Δ σ
-renval {#}     ψ n         = renameNf ψ n
-renval {*}     ψ n         = renameNf ψ n
-renval {σ ⇒ τ} ψ (inj₁ n)  = inj₁ (renameNeN ψ n)
-renval {σ ⇒ τ} ψ (inj₂ f)  = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
+renval : ∀ {σ Φ Ψ} -> Ren Φ Ψ -> Val Φ σ -> Val Ψ σ
+renval {#}     ψ n        = renameNf ψ n
+renval {*}     ψ n        = renameNf ψ n
+renval {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renameNeN ψ n)
+renval {σ ⇒ τ} ψ (inj₂ f) = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
 \end{code}
 
 Reify takes a value and yields a normal form.
 
 \begin{code}
-reify : ∀ {σ Γ} -> Val Γ σ -> Γ ⊢Nf⋆ σ
+reify : ∀ {σ Φ} -> Val Φ σ -> Φ ⊢Nf⋆ σ
 reify {#}     n         = n
 reify {*}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
@@ -73,14 +72,14 @@ An environment is a mapping from variables to values
 
 \begin{code}
 Env : Ctx⋆ → Ctx⋆ → Set
-Env Δ Γ = ∀{J} → Δ ∋⋆ J → Val Γ J
+Env Ψ Φ = ∀{J} → Ψ ∋⋆ J → Val Φ J
 \end{code}
 
 'cons' for environments
 
 \begin{code}
-_,,⋆_ : ∀{Δ Γ} → (σ : Env Γ Δ) → ∀{K}(A : Val Δ K) → Env (Γ ,⋆ K) Δ
-(σ ,,⋆ A) Z = A
+_,,⋆_ : ∀{Ψ Φ} → (σ : Env Φ Ψ) → ∀{K}(A : Val Ψ K) → Env (Φ ,⋆ K) Ψ
+(σ ,,⋆ A) Z     = A
 (σ ,,⋆ A) (S x) = σ x
 \end{code}
 
@@ -95,7 +94,7 @@ context so we do not need the Kripke extension, hence the identity
 renaming.
 
 \begin{code}
-_·V_ : ∀{Γ K J} → Val Γ (K ⇒ J) → Val Γ K → Val Γ J
+_·V_ : ∀{Φ K J} → Val Φ (K ⇒ J) → Val Φ K → Val Φ J
 inj₁ n ·V v = reflect (n · reify v)
 inj₂ f ·V v = f id v
 \end{code}
@@ -103,22 +102,22 @@ inj₂ f ·V v = f id v
 Evaluation a term in an environment yields a value.
 
 \begin{code}
-eval : ∀{Γ Δ K} → Δ ⊢⋆ K → (∀{J} → Δ ∋⋆ J → Val Γ J)  → Val Γ K
-eval (` x)   ρ = ρ x
-eval (Π B)   ρ = Π (reify (eval B ((renval S ∘ ρ) ,,⋆ fresh)))
-eval (A ⇒ B) ρ = reify (eval A ρ) ⇒ reify (eval B ρ)
-eval (ƛ B)   ρ = inj₂ λ ρ' v → eval B ((renval ρ' ∘ ρ) ,,⋆ v)
-eval (A · B) ρ = eval A ρ ·V eval B ρ
-eval (μ B)   ρ = reflect (μ (reify (eval B ((renval S ∘ ρ) ,,⋆ fresh))))
-eval (size⋆ n)   ρ = size⋆ n
-eval (con tcn s) ρ = con tcn (reify (eval s ρ))
+eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
+eval (` x)       η = η x
+eval (Π B)       η = Π (reify (eval B ((renval S ∘ η) ,,⋆ fresh)))
+eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
+eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renval ρ ∘ η) ,,⋆ v)
+eval (A · B)     η = eval A η ·V eval B η
+eval (μ B)       η = reflect (μ (reify (eval B ((renval S ∘ η) ,,⋆ fresh))))
+eval (size⋆ n)   η = size⋆ n
+eval (con tcn s) η = con tcn (reify (eval s η))
 \end{code}
 
 Identity environment
 
 \begin{code}
-idEnv : ∀ Γ → Env Γ Γ
-idEnv Γ = reflect ∘ `
+idEnv : ∀ Φ → Env Φ Φ
+idEnv Φ = reflect ∘ `
 \end{code}
 
 Normalisation a term yields a normal form. We evaluate in the identity
@@ -126,6 +125,6 @@ environment to yield a value in the same context as the original term
 and then reify to yield a normal form
 
 \begin{code}
-nf : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K
+nf : ∀{Φ K} → Φ ⊢⋆ K → Φ ⊢Nf⋆ K
 nf t = reify (eval t (idEnv _))
 \end{code}

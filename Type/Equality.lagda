@@ -120,8 +120,8 @@ rename≡β ρ (β≡β B A)     =
           (trans (sym (subst-rename B))
                  (trans (subst-cong (rename-subst-cons ρ A) B)
                         (rename-subst B)))
-         (β≡β _ _)
-rename≡β ρ (con≡β p) = con≡β (rename≡β ρ p)
+          (β≡β _ _)
+rename≡β ρ (con≡β p)     = con≡β (rename≡β ρ p)
 \end{code}
 
 ## Substitution for proofs of type equality
@@ -146,5 +146,5 @@ subst≡β σ (β≡β B A)     =
                         (subst-cong (subst-subst-cons σ A) B))
           (subst-comp B))
           (β≡β _ _)
-subst≡β ρ (con≡β p) = con≡β (subst≡β ρ p)
+subst≡β ρ (con≡β p)     = con≡β (subst≡β ρ p)
 \end{code}
