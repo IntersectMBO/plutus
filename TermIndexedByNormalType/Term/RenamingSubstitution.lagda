@@ -66,8 +66,8 @@ renameE[] ρ (E ·E u) t =
   trans (rename-reify (PERApp (idext idPER (embNf (E [ t ]E)))
                                  (idext idPER (embNf u)))
                          ρ)
-        (trans (reifyPER _ (renval-eval (embNf (E [ t ]E) · embNf u) idPER ρ))
-                        (trans (trans (reifyPER _ (transPER _ (PERApp (idext (renval-reflect ρ ∘ `) (embNf (E [ t ]E))) (idext (renval-reflect ρ ∘ `) (embNf u))) (symPER _ (rename-eval (embNf (E [ t ]E) · embNf u) idPER ρ))))
+        (trans (reifyPER _ (renameVal-eval (embNf (E [ t ]E) · embNf u) idPER ρ))
+                        (trans (trans (reifyPER _ (transPER _ (PERApp (idext (renameVal-reflect ρ ∘ `) (embNf (E [ t ]E))) (idext (renameVal-reflect ρ ∘ `) (embNf u))) (symPER _ (rename-eval (embNf (E [ t ]E) · embNf u) idPER ρ))))
                              (sym (cong₂ (λ f a → nf (f · a))
                                          (rename-embNf ρ (E [ t ]E))
                                          (rename-embNf ρ u))) )
@@ -155,8 +155,8 @@ exts⋆ : ∀ {Γ Δ}
      → Δ ,⋆ K ⊢ substNf (extsNf σ⋆) A )
 exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) = 
   substEq (λ x → Δ ,⋆ K ⊢ x)
-          (trans (rename-reify (idext idPER (⋆.subst (embNf ∘ σ⋆) (embNf A))) S) (reifyPER _ (transPER _ (renval-eval (⋆.subst (embNf ∘ σ⋆) (embNf A)) idPER S)
-                                                                                                (transPER _ (transPER _ (subst-eval  (embNf A) (renPER S ∘ idPER) (embNf ∘ σ⋆)) (transPER _ (idext (λ {x → transPER _ (transPER _ (idext (λ x → renval-reflect S (` x)) (embNf (σ⋆ x))) (symPER _ (rename-eval (embNf (σ⋆ x)) idPER S))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))}) (embNf A)) (symPER _ (subst-eval (embNf A) idPER (embNf ∘ renameNf S ∘ σ⋆))))) (evalPERSubst idPER (trans (⋆.subst-rename (embNf A)) (cong (λ x → ⋆.subst (embNf ∘ extsNf σ⋆) x) (sym (rename-embNf S A)))))))))
+          (trans (rename-reify (idext idPER (⋆.subst (embNf ∘ σ⋆) (embNf A))) S) (reifyPER _ (transPER _ (renameVal-eval (⋆.subst (embNf ∘ σ⋆) (embNf A)) idPER S)
+                                                                                                (transPER _ (transPER _ (subst-eval  (embNf A) (renPER S ∘ idPER) (embNf ∘ σ⋆)) (transPER _ (idext (λ {x → transPER _ (transPER _ (idext (λ x → renameVal-reflect S (` x)) (embNf (σ⋆ x))) (symPER _ (rename-eval (embNf (σ⋆ x)) idPER S))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))}) (embNf A)) (symPER _ (subst-eval (embNf A) idPER (embNf ∘ renameNf S ∘ σ⋆))))) (evalPERSubst idPER (trans (⋆.subst-rename (embNf A)) (cong (λ x → ⋆.subst (embNf ∘ extsNf σ⋆) x) (sym (rename-embNf S A)))))))))
           (weaken⋆ (σ x))
 \end{code}
 
@@ -210,13 +210,13 @@ subst {Γ}{Δ} σ⋆ σ (wrap B E N p) =
                           (trans (subst[]Nf σ⋆ (ne (μ B)) B)
                                  (cong (substNf (extsNf σ⋆) B [_]Nf)
                                        (trans (reify-reflect _)
-                                              (cong (ne ∘ μ) (reifyPER _ (transPER _ (transPER _ (subst-eval (embNf B) (PER,,⋆ (renPER S ∘ idPER) (reflectPER _ refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ{ Z → reflectPER _ refl ; (S x) → transPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renval-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))}) (embNf B))) (symPER _ (subst-eval (embNf B) idPER (embNf ∘ extsNf σ⋆)))))))))))
+                                              (cong (ne ∘ μ) (reifyPER _ (transPER _ (transPER _ (subst-eval (embNf B) (PER,,⋆ (renPER S ∘ idPER) (reflectPER _ refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ{ Z → reflectPER _ refl ; (S x) → transPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renameVal-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))}) (embNf B))) (symPER _ (subst-eval (embNf B) idPER (embNf ∘ extsNf σ⋆)))))))))))
              (subst σ⋆ σ N))
     (trans (cong (substNf σ⋆) p)
            (trans (substE[] σ⋆ E (ne (μ B))) (cong (substE σ⋆ E [_]E)
                   (trans (reify-reflect _)
                          (cong (ne ∘ μ)
-                               (reifyPER _ (transPER _ (transPER _ (subst-eval (embNf B) (PER,,⋆ (renPER S ∘ idPER) (reflectPER _ refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ { Z → reflectPER _ refl ; (S x) → transPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renval-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))} ) (embNf B))) (symPER _ (subst-eval (embNf B) idPER (embNf ∘ extsNf σ⋆))))))))))
+                               (reifyPER _ (transPER _ (transPER _ (subst-eval (embNf B) (PER,,⋆ (renPER S ∘ idPER) (reflectPER _ refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ { Z → reflectPER _ refl ; (S x) → transPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renameVal-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))} ) (embNf B))) (symPER _ (subst-eval (embNf B) idPER (embNf ∘ extsNf σ⋆))))))))))
 subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E p M) =
   substEq (Δ ⊢_)
           (trans (cong (substE σ⋆ E [_]E)
@@ -228,7 +228,7 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E p M) =
                          (trans (substE[] σ⋆ E (ne (μ A)))
                                 (cong (substE σ⋆ E [_]E) (trans (reify-reflect _)
                          (cong (ne ∘ μ)
-                               (reifyPER _ (transPER _ (transPER _ (subst-eval (embNf A) (PER,,⋆ (renPER S ∘ idPER) (reflectPER _ refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ { Z → reflectPER _ refl ; (S x) → transPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renval-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))} ) (embNf A))) (symPER _ (subst-eval (embNf A) idPER (embNf ∘ extsNf σ⋆))))))))))
+                               (reifyPER _ (transPER _ (transPER _ (subst-eval (embNf A) (PER,,⋆ (renPER S ∘ idPER) (reflectPER _ refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ { Z → reflectPER _ refl ; (S x) → transPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renameVal-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symPER _ (evalPERSubst idPER (rename-embNf S (σ⋆ x))))} ) (embNf A))) (symPER _ (subst-eval (embNf A) idPER (embNf ∘ extsNf σ⋆))))))))))
                   (subst σ⋆ σ M))
 \end{code}
 

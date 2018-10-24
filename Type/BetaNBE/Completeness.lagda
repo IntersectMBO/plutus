@@ -35,7 +35,7 @@ PER (K ⇒ J) (inj₂ f) (inj₂ f') =
      → {v v' : Val Δ K}
      → PER K v v'
        ---------------------------------------------------------
-     → PER J (renval ρ (inj₂ f) ·V v) (renval ρ (inj₂ f') ·V v')
+     → PER J (renameVal ρ (inj₂ f) ·V v) (renameVal ρ (inj₂ f') ·V v')
   where
     -- Uniformity
     Unif : ∀{Γ K J} → Val Γ (K ⇒ J) → Set
@@ -44,8 +44,8 @@ PER (K ⇒ J) (inj₂ f) (inj₂ f') =
       → (ρ' : Ren Δ Δ')
       → (v v' : Val Δ K)
       → PER K v v'
-        ------------------------------------------------------------------------
-      → PER J  (renval ρ' (renval ρ f ·V v)) (renval (ρ' ∘ ρ) f ·V renval ρ' v')
+        --------————————————————————————————————————————————————————————————————
+      → PER J (renameVal ρ' (renameVal ρ f ·V v)) (renameVal (ρ' ∘ ρ) f ·V renameVal ρ' v')
 \end{code}
 
 PER is symmetric and transitive, it is not reflexive, but we if we
@@ -148,56 +148,56 @@ PERApp {f = inj₂ f} {inj₁ n} () q
 PERApp {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
 \end{code}
 
-renval commutes with reflect
+renameVal commutes with reflect
 
 \begin{code}
-renval-reflect : ∀{Γ Δ K}(ρ : Ren Γ Δ)(n : Γ ⊢NeN⋆ K) → PER K (renval ρ (reflect n)) (reflect (renameNeN ρ n))
-renval-reflect {K = #}  ρ n = refl
-renval-reflect {K = *}     ρ n = refl
-renval-reflect {K = K ⇒ J} ρ n = refl 
+renameVal-reflect : ∀{Γ Δ K}(ρ : Ren Γ Δ)(n : Γ ⊢NeN⋆ K) → PER K (renameVal ρ (reflect n)) (reflect (renameNeN ρ n))
+renameVal-reflect {K = #}  ρ n = refl
+renameVal-reflect {K = *}     ρ n = refl
+renameVal-reflect {K = K ⇒ J} ρ n = refl 
 \end{code}
 
 renaming commutes with reify
 
 \begin{code}
-rename-reify : ∀{K Γ Δ}{v v' : Val Γ K} → PER K v v' → (ρ : Ren Γ Δ) → renameNf ρ (reify v) ≡ reify (renval ρ v')
+rename-reify : ∀{K Γ Δ}{v v' : Val Γ K} → PER K v v' → (ρ : Ren Γ Δ) → renameNf ρ (reify v) ≡ reify (renameVal ρ v')
 rename-reify {#}                         refl           ρ = refl
 rename-reify {*}                            refl           ρ = refl
 rename-reify {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
 rename-reify {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
 rename-reify {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
-rename-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ (trans (rename-reify (p'' S (reflectPER K (refl {x = ` Z}))) (ext ρ)) (reifyPER J (transPER J ( p' S (ext ρ) _ _ (reflectPER K refl) ) (PERApp {f = renval (S ∘ ρ) (inj₂ f')}{renval (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , λ ρ' q → (proj₂ (proj₂ (reflPER (K ⇒ J) (symPER (K ⇒ J) (p , p' , p'')))) (ρ' ∘ S ∘ ρ) q)) (renval-reflect (ext ρ) (` Z))))))
+rename-reify {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ (trans (rename-reify (p'' S (reflectPER K (refl {x = ` Z}))) (ext ρ)) (reifyPER J (transPER J ( p' S (ext ρ) _ _ (reflectPER K refl) ) (PERApp {f = renameVal (S ∘ ρ) (inj₂ f')}{renameVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , λ ρ' q → (proj₂ (proj₂ (reflPER (K ⇒ J) (symPER (K ⇒ J) (p , p' , p'')))) (ρ' ∘ S ∘ ρ) q)) (renameVal-reflect (ext ρ) (` Z))))))
 \end{code}
 
-first functor law for renval
+first functor law for renameVal
 
 \begin{code}
-renval-id : ∀ {K Γ}{v v' : Val Γ K} →
+renameVal-id : ∀ {K Γ}{v v' : Val Γ K} →
   PER K v v' → 
-  PER K (renval id v) v'
-renval-id {#}                         refl = renameNf-id _
-renval-id {*}                            refl = renameNf-id _
-renval-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = cong ne (renameNeN-id _)
-renval-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
-renval-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
-renval-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
+  PER K (renameVal id v) v'
+renameVal-id {#}                         refl = renameNf-id _
+renameVal-id {*}                            refl = renameNf-id _
+renameVal-id {K ⇒ J} {v = inj₁ n} {inj₁ n'} refl = cong ne (renameNeN-id _)
+renameVal-id {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
+renameVal-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
+renameVal-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
 \end{code}
 
-second functor law for renval
+second functor law for renameVal
 
 \begin{code}
-renval-comp : ∀ {K Γ Δ Θ}(ρ : Ren Γ Δ)(ρ' : Ren Δ Θ){v v' : Val Γ K} →
+renameVal-comp : ∀ {K Γ Δ Θ}(ρ : Ren Γ Δ)(ρ' : Ren Δ Θ){v v' : Val Γ K} →
   PER K v v' → 
-  PER K (renval (ρ' ∘ ρ) v) (renval ρ' (renval ρ v'))
-renval-comp {#}   ρ ρ'                    refl           =
+  PER K (renameVal (ρ' ∘ ρ) v) (renameVal ρ' (renameVal ρ v'))
+renameVal-comp {#}   ρ ρ'                    refl           =
   renameNf-comp _
-renval-comp {*}      ρ ρ'                    refl           =
+renameVal-comp {*}      ρ ρ'                    refl           =
   renameNf-comp _
-renval-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
+renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ n} {inj₁ n'} refl           =
   cong ne (renameNeN-comp _)
-renval-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
-renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
-renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
+renameVal-comp {K ⇒ K₁} ρ ρ' {inj₁ x} {inj₂ y} ()
+renameVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₁ x} ()
+renameVal-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
   (λ ρ'' ρ''' v → p (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
   (λ ρ'' ρ''' v → p' (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
@@ -211,7 +211,7 @@ PER is closed under renaming
 renPER : ∀{Γ Δ K}{v v' : Val Γ K}
   → (ρ : Ren Γ Δ)
   → PER K v v'
-  → PER K (renval ρ v) (renval ρ v')
+  → PER K (renameVal ρ v) (renameVal ρ v')
 renPER {K = #}                      ρ p              = cong (renameNf ρ) p
 renPER {K = *}                         ρ p              = cong (renameNf ρ) p
 renPER {K = K ⇒ K₁} {inj₁ n} {inj₁ .n} ρ refl           = refl
@@ -227,26 +227,26 @@ renPER {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
 
 PER is closed under application
 \begin{code}
-renval·V : ∀{K J Γ Δ}
+renameVal·V : ∀{K J Γ Δ}
   → (ρ : Ren Γ Δ)
   → {f f' : Val Γ (K ⇒ J)}
   → PER (K ⇒ J) f f'
   → {v v' : Val Γ K}
   → PER K v v'
     ------------------------------------------------------
-  → PER J (renval ρ (f ·V v)) (renval ρ f' ·V renval ρ v')
-renval·V {J = #} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
+  → PER J (renameVal ρ (f ·V v)) (renameVal ρ f' ·V renameVal ρ v')
+renameVal·V {J = #} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
   cong (ne ∘ (renameNeN ρ n ·_))
        (trans ( rename-reify (reflPER _ q) ρ ) (reifyPER _ (renPER ρ q)))
-renval·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
+renameVal·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
   cong (ne ∘ (renameNeN ρ n ·_))
        (trans ( rename-reify (reflPER _ q) ρ ) (reifyPER _ (renPER ρ q)))
-renval·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
+renameVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
   cong (ne ∘ (renameNeN ρ n ·_))
        (trans ( rename-reify (reflPER _ q) ρ ) (reifyPER _ (renPER ρ q)))
-renval·V ρ {inj₁ n} {inj₂ f} () q
-renval·V ρ {inj₂ f} {inj₁ n'} () q
-renval·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
+renameVal·V ρ {inj₁ n} {inj₂ f} () q
+renameVal·V ρ {inj₂ f} {inj₁ n'} () q
+renameVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
   transPER _ (p id ρ _ _ q) (p'' ρ (renPER ρ (reflPER _ (symPER _ q))))
 \end{code}
 
@@ -259,36 +259,36 @@ idext : ∀{Γ Δ K}{η η' : Env Γ Δ}
     ----------------------------
   → PER K (eval t η) (eval t η')
 
-renval-eval : ∀{Γ Δ Θ K}
+renameVal-eval : ∀{Γ Δ Θ K}
   → (t : Δ ⊢⋆ K)
   → {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
   → (p : PEREnv η η')
   → (ρ : Ren Γ Θ )
     ----------------------------------------------------
-  → PER K (renval ρ (eval t η)) (eval t (renval ρ ∘ η'))
-renval-eval (` x) p ρ = renPER ρ (p x)
-renval-eval (Π B) p ρ = cong Π (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-reflect (ext ρ) (` Z) ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
-renval-eval (A ⇒ B) p ρ = cong₂ _⇒_ (renval-eval A p ρ) (renval-eval B p ρ)
-renval-eval (ƛ B) {η}{η'} p ρ =
-  (λ ρ' ρ'' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER (ρ' ∘ ρ) ∘ p) q) ρ'') (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renval-comp (ρ' ∘ ρ) ρ'' (p x))}) B))
+  → PER K (renameVal ρ (eval t η)) (eval t (renameVal ρ ∘ η'))
+renameVal-eval (` x) p ρ = renPER ρ (p x)
+renameVal-eval (Π B) p ρ = cong Π (trans (renameVal-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renameVal-reflect (ext ρ) (` Z) ; (S x) → transPER _ (symPER _ (renameVal-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renameVal-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
+renameVal-eval (A ⇒ B) p ρ = cong₂ _⇒_ (renameVal-eval A p ρ) (renameVal-eval B p ρ)
+renameVal-eval (ƛ B) {η}{η'} p ρ =
+  (λ ρ' ρ'' v v' q → transPER _ (renameVal-eval B (PER,,⋆ (renPER (ρ' ∘ ρ) ∘ p) q) ρ'') (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renameVal-comp (ρ' ∘ ρ) ρ'' (p x))}) B))
   ,
-  (λ ρ' ρ'' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ' ∘ renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) q) ρ'') (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renval-comp ρ' ρ'' (renPER ρ (reflPER _ (symPER _ (p x)))))}) B))
+  (λ ρ' ρ'' v v' q → transPER _ (renameVal-eval B (PER,,⋆ (renPER ρ' ∘ renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) q) ρ'') (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renameVal-comp ρ' ρ'' (renPER ρ (reflPER _ (symPER _ (p x)))))}) B))
   ,
-  λ ρ' q → idext (λ { Z → q ; (S x) → renval-comp ρ ρ' (p x) }) B
-renval-eval (A · B) p ρ = transPER _ (renval·V ρ (idext (reflPER _ ∘ p) A) (idext (reflPER _ ∘ p) B)) (PERApp (renval-eval A p ρ) (renval-eval B p ρ))
-renval-eval (μ B) p ρ = transPER _ (renval-reflect ρ _) (reflectPER _ (cong μ (trans (rename-reify (idext (PER,,⋆ (renPER S ∘ reflPER _ ∘ p) (reflectPER _ refl)) B) (ext ρ)) (reifyPER _ (transPER _ (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) (ext ρ)) (idext (λ { Z → renval-reflect (ext ρ) (` Z) ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (p x))) (renval-comp ρ S (p x)) }) B))))))
-renval-eval (size⋆ n)   p ρ = refl
-renval-eval (con tcn s) p ρ = cong (con tcn) (renval-eval s p ρ)
+  λ ρ' q → idext (λ { Z → q ; (S x) → renameVal-comp ρ ρ' (p x) }) B
+renameVal-eval (A · B) p ρ = transPER _ (renameVal·V ρ (idext (reflPER _ ∘ p) A) (idext (reflPER _ ∘ p) B)) (PERApp (renameVal-eval A p ρ) (renameVal-eval B p ρ))
+renameVal-eval (μ B) p ρ = transPER _ (renameVal-reflect ρ _) (reflectPER _ (cong μ (trans (rename-reify (idext (PER,,⋆ (renPER S ∘ reflPER _ ∘ p) (reflectPER _ refl)) B) (ext ρ)) (reifyPER _ (transPER _ (renameVal-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) (ext ρ)) (idext (λ { Z → renameVal-reflect (ext ρ) (` Z) ; (S x) → transPER _ (symPER _ (renameVal-comp S (ext ρ) (p x))) (renameVal-comp ρ S (p x)) }) B))))))
+renameVal-eval (size⋆ n)   p ρ = refl
+renameVal-eval (con tcn s) p ρ = cong (con tcn) (renameVal-eval s p ρ)
 
 idext p (` x)   = p x
 idext p (Π B)   = cong Π (idext (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) B)
 idext p (A ⇒ B) = cong₂ _⇒_ (idext p A) (idext p B)
 idext p (ƛ B)   =
-  (λ ρ ρ' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) q) ρ')
-                     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (p x)))}) B))
+  (λ ρ ρ' v v' q → transPER _ (renameVal-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) q) ρ')
+                     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renameVal-comp ρ ρ' (reflPER _ (p x)))}) B))
   ,
-  (λ ρ ρ' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) q) ρ')
-     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (symPER _ (p x))))}) B))
+  (λ ρ ρ' v v' q → transPER _ (renameVal-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) q) ρ')
+     (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renameVal-comp ρ ρ' (reflPER _ (symPER _ (p x))))}) B))
   ,
   λ ρ q → idext (PER,,⋆ (renPER ρ ∘ p) q) B
 idext p (A · B) = PERApp (idext p A) (idext p B)
@@ -319,14 +319,14 @@ rename-eval (Π B) p ρ =
 rename-eval (A ⇒ B) p ρ = cong₂ _⇒_ (rename-eval A p ρ) (rename-eval B p ρ) 
 rename-eval (ƛ B) p ρ =
   (λ ρ' ρ'' v v' q → transPER _
-                       (renval-eval (rename (ext ρ) B)
+                       (renameVal-eval (rename (ext ρ) B)
                         (PER,,⋆ (renPER ρ' ∘ reflPER _ ∘ p) q) ρ'')
                        (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q))
-                                 ; (S x) → symPER _ (renval-comp ρ' ρ'' (reflPER _ (p x)))}) (rename (ext ρ) B)))
+                                 ; (S x) → symPER _ (renameVal-comp ρ' ρ'' (reflPER _ (p x)))}) (rename (ext ρ) B)))
   ,
-  (λ ρ' ρ'' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ' ∘ reflPER _ ∘ symPER _ ∘ p ∘ ρ) q) ρ'')
+  (λ ρ' ρ'' v v' q → transPER _ (renameVal-eval B (PER,,⋆ (renPER ρ' ∘ reflPER _ ∘ symPER _ ∘ p ∘ ρ) q) ρ'')
                                 (idext (λ { Z →  renPER ρ'' (reflPER _ (symPER _ q))
-                                          ; (S x) → symPER _ (renval-comp ρ' ρ'' (reflPER _ (symPER _ (p (ρ x)))))}) B))
+                                          ; (S x) → symPER _ (renameVal-comp ρ' ρ'' (reflPER _ (symPER _ (p (ρ x)))))}) B))
   ,
   λ ρ' q → transPER _ (rename-eval B (PER,,⋆ (renPER ρ' ∘ p) q) (ext ρ))
                       (idext (λ { Z → reflPER _ (symPER _ q) ; (S x) → renPER ρ' (reflPER _ (symPER _ (p (ρ x)))) }) B)
@@ -346,19 +346,19 @@ subst-eval : ∀{Γ Δ Θ K}
   (σ : Sub Θ Δ) →
   PER K (eval (subst σ t) η) (eval t (λ x → eval (σ x) η'))
 subst-eval (` x) p σ = idext p (σ x)
-subst-eval (Π B) p σ = cong Π (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflectPER _ (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflectPER _ (refl {x = ` Z}))) S) (symPER _ (renval-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
+subst-eval (Π B) p σ = cong Π (trans (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ (refl {x = ` Z}))) (exts σ)) (idext (λ{ Z → reflectPER _ (refl {x = ` Z}) ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflectPER _ (refl {x = ` Z}))) S) (symPER _ (renameVal-eval (σ x)  (reflPER _ ∘ symPER _ ∘ p) S)) }) B))
 subst-eval (A ⇒ B) p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
 subst-eval (ƛ B) p σ =
   (λ ρ ρ' v v' q → transPER _
-                     (renval-eval (subst (exts σ) B)
+                     (renameVal-eval (subst (exts σ) B)
                       (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) q) ρ')
                      (idext (λ { Z    → renPER ρ' (reflPER _ (symPER _ q))
-                               ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (p x)))})
+                               ; (S x) → symPER _ (renameVal-comp ρ ρ' (reflPER _ (p x)))})
                             (subst (exts σ) B)))
   ,
-  (λ ρ ρ' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER ρ ∘ idext (reflPER _ ∘ symPER _ ∘ p) ∘ σ) q) ρ')
+  (λ ρ ρ' v v' q → transPER _ (renameVal-eval B (PER,,⋆ (renPER ρ ∘ idext (reflPER _ ∘ symPER _ ∘ p) ∘ σ) q) ρ')
      (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ q))
-               ; (S x) → symPER _ (renval-comp ρ ρ' (idext (reflPER _ ∘ symPER _ ∘ p) (σ x)))}) B))
+               ; (S x) → symPER _ (renameVal-comp ρ ρ' (idext (reflPER _ ∘ symPER _ ∘ p) (σ x)))}) B))
   ,
   λ ρ q → transPER _ (subst-eval B (PER,,⋆ (renPER ρ ∘ p) q) (exts σ))
     (idext (λ { Z → reflPER _ (symPER _ q)
@@ -367,10 +367,10 @@ subst-eval (ƛ B) p σ =
                            (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p)
                             (reflPER _ (symPER _ q)))
                            S)
-                          (symPER _ (renval-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) ρ))})
+                          (symPER _ (renameVal-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) ρ))})
            B)
 subst-eval (A · B) p σ = PERApp (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (μ B) p σ = reflectPER _ (cong μ (reifyPER _ (transPER _ (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) (exts σ)) (idext (λ { Z → reflectPER _ refl ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflectPER _ refl)) S) (symPER _ (renval-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) S))}) B))))
+subst-eval (μ B) p σ = reflectPER _ (cong μ (reifyPER _ (transPER _ (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) (exts σ)) (idext (λ { Z → reflectPER _ refl ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflectPER _ refl)) S) (symPER _ (renameVal-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) S))}) B))))
 subst-eval (size⋆ n)   p ρ = refl
 subst-eval (con tcn s) p ρ = cong (con tcn) (subst-eval s p ρ)
 \end{code}
@@ -388,21 +388,21 @@ fund p (trans≡β q r) = transPER _ (fund (reflPER _ ∘ p) q) (fund p r)
 fund p (⇒≡β q r) = cong₂ _⇒_ (fund p q) (fund p r)
 fund p (Π≡β q) = cong Π (fund (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) q)
 fund p (ƛ≡β {B = B}{B' = B'} q) =
-  (λ ρ ρ' v v' r → transPER _ (renval-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) r) ρ')
+  (λ ρ ρ' v v' r → transPER _ (renameVal-eval B (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ p) r) ρ')
                      (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ r))
-                               ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (p x)))})
+                               ; (S x) → symPER _ (renameVal-comp ρ ρ' (reflPER _ (p x)))})
                             B))
   ,
   (λ ρ ρ' v v' r → transPER _
-                     (renval-eval B' (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) r)
+                     (renameVal-eval B' (PER,,⋆ (renPER ρ ∘ reflPER _ ∘ symPER _ ∘ p) r)
                       ρ')
                      (idext (λ { Z → renPER ρ' (reflPER _ (symPER _ r))
-                            ; (S x) → symPER _ (renval-comp ρ ρ' (reflPER _ (symPER _ (p x))))}) B'))
+                            ; (S x) → symPER _ (renameVal-comp ρ ρ' (reflPER _ (symPER _ (p x))))}) B'))
   ,
   λ ρ r → fund (PER,,⋆ (renPER ρ ∘ p) r) q
 fund p (·≡β q r) = PERApp (fund p q) (fund p r)
 fund p (μ≡β q) = reflectPER _ (cong μ (reifyPER _ (fund (PER,,⋆ (renPER S ∘ p) (reflectPER _ refl)) q)))
-fund p (β≡β B A) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))
+fund p (β≡β B A) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renameVal-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))
 fund p (con≡β q) = cong (con _) (fund p q)
 \end{code}
 

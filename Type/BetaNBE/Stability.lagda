@@ -15,10 +15,10 @@ open import Function
 \begin{code}
 mutual
   stability : ∀{Γ K}(n : Γ ⊢Nf⋆ K) → nf (embNf n) ≡ n
-  stability (Π B) = cong Π (trans (idext (λ { Z → reflectPER _ refl ; (S x) → renval-reflect S (` x)}) (embNf B))
+  stability (Π B) = cong Π (trans (idext (λ { Z → reflectPER _ refl ; (S x) → renameVal-reflect S (` x)}) (embNf B))
                                   (stability B))
   stability (A ⇒ B) = cong₂ _⇒_ (stability A) (stability B)
-  stability (ƛ B) = cong ƛ (trans (reifyPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renval-reflect S (` x)}) (embNf B)))
+  stability (ƛ B) = cong ƛ (trans (reifyPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → renameVal-reflect S (` x)}) (embNf B)))
                                   (stability B))
   stability {K = #}     (ne n) = stabilityNeN n
   stability {K = #}     (size⋆ n) = refl
@@ -35,6 +35,6 @@ mutual
   stabilityNeN (μ B) =
     cong (reflect ∘ μ)
          (trans (reifyPER _ (idext (λ { Z → reflectPER _ refl
-                                   ; (S x) → renval-reflect S (` x)}) (embNf B)))
+                                   ; (S x) → renameVal-reflect S (` x)}) (embNf B)))
                 (stability B))
 \end{code}

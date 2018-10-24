@@ -23,10 +23,10 @@ inert and defined to be just normal forms. At function kind they are
 either neutral or Kripke functions
 
 \begin{code}
-Val : Ctx⋆ -> Kind -> Set
+Val : Ctx⋆ → Kind → Set
 Val Φ #       = Φ ⊢Nf⋆ #
 Val Φ *       = Φ ⊢Nf⋆ *
-Val Φ (σ ⇒ τ) = Φ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} -> Ren Φ Ψ -> Val Ψ σ -> Val Ψ τ
+Val Φ (σ ⇒ τ) = Φ ⊢NeN⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
 
 We can embed neutral terms into values at any kind using reflect.
@@ -44,24 +44,31 @@ A shorthand for creating a new fresh variable as a value which we need
 in reify
 
 \begin{code}
-fresh : ∀ {Φ σ} -> Val (Φ ,⋆ σ) σ
+fresh : ∀ {Φ σ} → Val (Φ ,⋆ σ) σ
 fresh = reflect (` Z)
 \end{code}
 
 Renaming for values
 
 \begin{code}
-renval : ∀ {σ Φ Ψ} -> Ren Φ Ψ -> Val Φ σ -> Val Ψ σ
-renval {#}     ψ n        = renameNf ψ n
-renval {*}     ψ n        = renameNf ψ n
-renval {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renameNeN ψ n)
-renval {σ ⇒ τ} ψ (inj₂ f) = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
+renameVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
+renameVal {#}     ψ n        = renameNf ψ n
+renameVal {*}     ψ n        = renameNf ψ n
+renameVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renameNeN ψ n)
+renameVal {σ ⇒ τ} ψ (inj₂ f) = inj₂ (λ ρ' →  f (ρ' ∘ ψ))
+\end{code}
+
+Weakening for values
+
+\begin{code}
+weakenVal : ∀ {σ Φ K} → Val Φ σ → Val (Φ ,⋆ K) σ
+weakenVal = renameVal S
 \end{code}
 
 Reify takes a value and yields a normal form.
 
 \begin{code}
-reify : ∀ {σ Φ} -> Val Φ σ -> Φ ⊢Nf⋆ σ
+reify : ∀ {σ Φ} → Val Φ σ → Φ ⊢Nf⋆ σ
 reify {#}     n         = n
 reify {*}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
@@ -78,14 +85,22 @@ Env Ψ Φ = ∀{J} → Ψ ∋⋆ J → Val Φ J
 'cons' for environments
 
 \begin{code}
-_,,⋆_ : ∀{Ψ Φ}
-  → (σ : Env Φ Ψ)
-  → ∀{K}(A : Val Ψ K)
-    -----------------
-  → Env (Φ ,⋆ K) Ψ
+_,,⋆_ : ∀{Ψ Φ} → (σ : Env Φ Ψ) → ∀{K}(A : Val Ψ K) → Env (Φ ,⋆ K) Ψ
 (σ ,,⋆ A) Z     = A
-(σ ,,⋆ A) (S x) = σ x
+(σ ,,⋆ A) (S α) = σ α
 \end{code}
+
+\begin{code}
+exte : ∀ {Φ Ψ} → Env Φ Ψ → (∀ {K} → Env (Φ ,⋆ K) (Ψ ,⋆ K))
+exte η = (weakenVal ∘ η) ,,⋆ fresh
+{-
+-- this version would be more analogous to ext and exts but would
+-- require changing some proofs for terms
+exte η Z      = fresh
+exte η (S α)  = weakenVal (η α)
+-}
+\end{code}
+
 
 Application for values. As values at function type can be semantic
 functions or neutral terms we need this function to unpack them. If
@@ -111,12 +126,12 @@ evaluating and reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
-eval (` x)       η = η x
-eval (Π B)       η = Π (reify (eval B ((renval S ∘ η) ,,⋆ fresh)))
+eval (` α)       η = η α
+eval (Π B)       η = Π (reify (eval B (exte η)))
 eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
-eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renval ρ ∘ η) ,,⋆ v)
+eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renameVal ρ ∘ η) ,,⋆ v)
 eval (A · B)     η = eval A η ·V eval B η
-eval (μ B)       η = reflect (μ (reify (eval B ((renval S ∘ η) ,,⋆ fresh))))
+eval (μ B)       η = reflect (μ (reify (eval B (exte η))))
 eval (size⋆ n)   η = size⋆ n
 eval (con tcn s) η = con tcn (reify (eval s η))
 \end{code}
@@ -128,7 +143,7 @@ idEnv : ∀ Φ → Env Φ Φ
 idEnv Φ = reflect ∘ `
 \end{code}
 
-Normalisation a term yields a normal form. We evaluate in the identity
+Normalisating a term yields a normal form. We evaluate in the identity
 environment to yield a value in the same context as the original term
 and then reify to yield a normal form
 

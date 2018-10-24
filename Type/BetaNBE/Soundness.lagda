@@ -24,7 +24,7 @@ R #    t v = t ≡β embNf (reify v)
 R *       t v = t ≡β embNf (reify v)
 R (K ⇒ J) t (inj₁ n) = t ≡β embNeN n
 R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → (t ≡β ƛ t') × ∀{Δ}(ρ : Ren _ Δ){u : Δ ⊢⋆ K}{v : Val Δ K}
-  → R K u v  → R J (rename ρ (ƛ t') · u) (renval ρ (inj₂ f) ·V v)
+  → R K u v  → R J (rename ρ (ƛ t') · u) (renameVal ρ (inj₂ f) ·V v)
 \end{code}
 
 \begin{code}
@@ -68,7 +68,7 @@ R,,⋆ p q (S x) = p x
 \begin{code}
 renR : ∀{Γ Δ}(ρ : Ren Γ Δ){K}{t : Γ ⊢⋆ K}{v : Val Γ K}
   → R K t v
-  → R K (rename ρ t) (renval ρ v)
+  → R K (rename ρ t) (renameVal ρ v)
 renR ρ {#}{t}{n} p = 
   substEq (rename ρ t ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
 renR ρ {*}{t}{n} p = 
@@ -104,7 +104,7 @@ substREnv p q x rewrite sym (p x) = q x
 Rweak : ∀{Γ Δ}{σ : Sub Γ Δ}{η : Env Γ Δ}
   → RSubEnv σ η
   → ∀ K
-  → RSubEnv (exts σ) ((renval S ∘ η) ,,⋆ fresh {σ = K})
+  → RSubEnv (exts σ) ((renameVal S ∘ η) ,,⋆ fresh {σ = K})
 Rweak {σ = σ} p K = substREnv (sym ∘ lemma σ) (R,,⋆ (renR S ∘ p) (sreflect (refl≡β (` (Z {J = K}))))) 
 \end{code}
 
@@ -152,7 +152,7 @@ sfund {K = K ⇒ J} (ƛ B){σ}{η} p =
   ,
   λ ρ {u}{v} q → substR
     (β≡β _ _)
-    (substEq (λ t → R J t (eval B ((renval ρ ∘ η) ,,⋆ v)))
+    (substEq (λ t → R J t (eval B ((renameVal ρ ∘ η) ,,⋆ v)))
              (trans (trans (subst-cong (λ { Z → refl
                                           ; (S x) → trans (trans (sym (subst-id (rename ρ (σ x))))
                                                                  (sym (subst-rename (σ x))))

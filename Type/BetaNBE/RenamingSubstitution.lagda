@@ -115,7 +115,7 @@ rename[]Nf : ∀ {Φ Θ J K}
         → (u : Φ ⊢Nf⋆ K )
           ------
         → renameNf ρ (t [ u ]Nf) ≡ renameNf (ext ρ) t [ renameNf ρ u ]Nf
-rename[]Nf ρ t u = trans (rename-reify (idext idPER (subst (embNf ∘ substNf-cons (ne ∘ `) u) (embNf t))) ρ) (reifyPER _ (transPER _ (transPER _ (renval-eval (subst (embNf ∘ (substNf-cons (ne ∘ `) u)) (embNf t)) idPER ρ) (transPER _ (subst-eval (embNf t) (renPER ρ ∘ idPER) (embNf ∘ (substNf-cons (ne ∘ `) u))) (transPER _ (transPER _ (idext (λ { Z → transPER _ (transPER _ (idext (λ x → renval-reflect ρ (` x)) (embNf u)) (symPER _ (rename-eval (embNf u) idPER ρ))) (symPER _ (evalPERSubst idPER (rename-embNf ρ u))) ; (S x) → renval-reflect ρ (` x)}) (embNf t)) (symPER _ (rename-eval (embNf t) (λ z → idext idPER (embNf (substNf-cons (ne ∘ `) (renameNf ρ u) z))) (ext ρ)))) (evalPERSubst (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (renameNf ρ u) x))) (sym (rename-embNf (ext ρ) t)))))) (symPER _ (subst-eval (embNf (renameNf (ext ρ) t)) idPER (embNf ∘ (substNf-cons (ne ∘ `) (renameNf ρ u))))))) 
+rename[]Nf ρ t u = trans (rename-reify (idext idPER (subst (embNf ∘ substNf-cons (ne ∘ `) u) (embNf t))) ρ) (reifyPER _ (transPER _ (transPER _ (renameVal-eval (subst (embNf ∘ (substNf-cons (ne ∘ `) u)) (embNf t)) idPER ρ) (transPER _ (subst-eval (embNf t) (renPER ρ ∘ idPER) (embNf ∘ (substNf-cons (ne ∘ `) u))) (transPER _ (transPER _ (idext (λ { Z → transPER _ (transPER _ (idext (λ x → renameVal-reflect ρ (` x)) (embNf u)) (symPER _ (rename-eval (embNf u) idPER ρ))) (symPER _ (evalPERSubst idPER (rename-embNf ρ u))) ; (S x) → renameVal-reflect ρ (` x)}) (embNf t)) (symPER _ (rename-eval (embNf t) (λ z → idext idPER (embNf (substNf-cons (ne ∘ `) (renameNf ρ u) z))) (ext ρ)))) (evalPERSubst (λ x → idext idPER (embNf (substNf-cons (ne ∘ `) (renameNf ρ u) x))) (sym (rename-embNf (ext ρ) t)))))) (symPER _ (subst-eval (embNf (renameNf (ext ρ) t)) idPER (embNf ∘ (substNf-cons (ne ∘ `) (renameNf ρ u))))))) 
 \end{code}
 
 \begin{code}
@@ -149,8 +149,8 @@ substNf-lemma ρ t = subst-cong (λ { Z → refl ; (S x) → sym (rename-embNf S
 \begin{code}
 substNf-lemma' : ∀{Γ K J}
   → (B : Γ ,⋆ K ⊢⋆ J)
-  → nf B ≡ reify (eval B ((renval S ∘ idEnv _) ,,⋆ fresh))
-substNf-lemma' B = reifyPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → symPER _ (renval-reflect S (` x))}) B)
+  → nf B ≡ reify (eval B ((renameVal S ∘ idEnv _) ,,⋆ fresh))
+substNf-lemma' B = reifyPER _ (idext (λ { Z → reflectPER _ refl ; (S x) → symPER _ (renameVal-reflect S (` x))}) B)
 \end{code}
 
 \begin{code}
@@ -158,7 +158,7 @@ subst[]Nf' : ∀{Γ Δ K J}
   (ρ : ∀{K} → Γ ∋⋆ K → Δ ⊢Nf⋆ K)
   → (A : Γ ⊢Nf⋆ K)
   → (B : Γ ,⋆ K ⊢Nf⋆ J)
-  → substNf ρ (B [ A ]Nf) ≡ (reify (eval (subst (exts (embNf ∘ ρ)) (embNf B)) ((renval S ∘ idEnv _) ,,⋆ fresh))) [ substNf ρ A ]Nf
+  → substNf ρ (B [ A ]Nf) ≡ (reify (eval (subst (exts (embNf ∘ ρ)) (embNf B)) ((renameVal S ∘ idEnv _) ,,⋆ fresh))) [ substNf ρ A ]Nf
 subst[]Nf' ρ A B =
   trans (subst[]Nf ρ A B)
         (trans (cong (λ t → nf t [ substNf ρ A ]Nf) (sym (substNf-lemma ρ (embNf B))))
