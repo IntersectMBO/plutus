@@ -5,7 +5,6 @@ module Type where
 ## Fixity declarations
 
 To begin, we get all our infix declarations out of the way.
-We list separately operators for judgements, types, and terms.
 
 \begin{code}
 infix  4 _∋⋆_
@@ -20,8 +19,9 @@ infixl 7 _·_
 infix  9 S
 \end{code}
 
+## Imports
+
 \begin{code}
-open import Agda.Builtin.Int
 open import Agda.Builtin.Nat
 \end{code}
 
@@ -29,14 +29,13 @@ open import Agda.Builtin.Nat
 
 The kind of types is `*`. Plutus core core is based on System Fω which
 is higher order so we have `⇒` for type level functions. We also have
-a kind called `size`. There are no terms of kind `size`, instead
-`size` apears in types to support sized integers, etc.
+a kind called `#` which is used for sized integers and bytestrings.
 
 \begin{code}
 data Kind : Set where
-  * : Kind
-  # : Kind
-  _⇒_ : Kind → Kind → Kind
+  *   : Kind               -- type
+  #   : Kind               -- size
+  _⇒_ : Kind → Kind → Kind -- function kind
 \end{code}
 
 Let `J`, `K` range over kinds.
@@ -56,8 +55,11 @@ Let `Φ`, `Ψ` range over type contexts.
 
 ## Type variables
 
+Type variables are not named, they are numbered (de Bruijn indices).
+
 A type variable is indexed by its context and kind. For a given
-context, it's impossible to construct a variable that is out of scope.
+context, it's impossible to construct a variable that is out of
+scope.
 
 \begin{code}
 data _∋⋆_ : Ctx⋆ → Kind → Set where
@@ -74,6 +76,17 @@ data _∋⋆_ : Ctx⋆ → Kind → Set where
 
 Let `α`, `β` range over type variables.
 
+## Type constants
+
+We have three base types referred to as type constants, integer,
+bytestring, and size, size is used to limit the size of integers and
+bytestrings
+
+\begin{code}
+data TyCon : Set where
+  integer bytstring size : TyCon
+\end{code}
+
 ## Types
 
 A type is indexed by its context and kind. Types are intrinsically
@@ -82,14 +95,9 @@ application and it's impossible to refer to a variable that is not in
 scope.
 
 A type is either a type variable, a pi type, a function type, a
-lambda, an application, or an iso-recursive type `μ`. Note that
-recursive types range over an arbitrary kind `k` which goes beyond
-standard iso-recursive types.
-
-\begin{code}
-data TyCon : Set where
-  integer bytstring size : TyCon
-\end{code}
+lambda, an application, an iso-recursive type `μ`, a size, or a type
+constant (base type). Note that recursive types range over an
+arbitrary kind `k` which goes beyond standard iso-recursive types.
 
 \begin{code}
 data _⊢⋆_ : Ctx⋆ → Kind → Set where
@@ -126,9 +134,16 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
       -----------
     → φ ⊢⋆ K
 
-  size⋆ : ∀{φ} → Nat → φ ⊢⋆ #
+  size⋆ : ∀{φ}
+    → Nat
+      ------
+    → φ ⊢⋆ #
 
-  con : ∀{φ} → TyCon → φ ⊢⋆ # → φ ⊢⋆ *
+  con : ∀{φ}
+    → TyCon
+    → φ ⊢⋆ #
+      ------
+    → φ ⊢⋆ *
 
 \end{code}
 
