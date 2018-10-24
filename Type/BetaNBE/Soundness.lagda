@@ -20,8 +20,8 @@ open import Data.Product
 
 \begin{code}
 R : ∀{Γ} K → Γ ⊢⋆ K → Val Γ K → Set
-R size    t v = t ≡β embNf (readback v)
-R *       t v = t ≡β embNf (readback v)
+R size    t v = t ≡β embNf (reify v)
+R *       t v = t ≡β embNf (reify v)
 R (K ⇒ J) t (inj₁ n) = t ≡β embNeN n
 R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → (t ≡β ƛ t') × ∀{Δ}(ρ : Ren _ Δ){u : Δ ⊢⋆ K}{v : Val Δ K}
   → R K u v  → R J (rename ρ (ƛ t') · u) (renval ρ (inj₂ f) ·V v)
@@ -30,19 +30,19 @@ R (K ⇒ J) t (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ t' → (t ≡β ƛ t') × �
 \begin{code}
 sreflect : ∀{Γ K}{t : Γ ⊢⋆ K}{n : Γ ⊢NeN⋆ K}
   → t ≡β embNeN n
-  → R K t (neV n)
+  → R K t (reflect n)
 sreflect {K = size}  p = p
 sreflect {K = *}     p = p
 sreflect {K = K ⇒ J} p = p
 
 sreify : ∀{Γ K}{t : Γ ⊢⋆ K}{v : Val Γ K}
   → R K t v
-  → t ≡β embNf (readback v)
+  → t ≡β embNf (reify v)
 sreify {K = *}     p = p
 sreify {K = size}  p = p
 sreify {K = K ⇒ J} {t} {inj₁ n} p = p
 sreify {K = K ⇒ J} {t} {inj₂ f} (t' , p , q) =
-  trans≡β p (substEq (λ t → ƛ t ≡β ƛ (embNf (readback (f S fresh))))
+  trans≡β p (substEq (λ t → ƛ t ≡β ƛ (embNf (reify (f S fresh))))
                      (trans (sym (subst-rename t'))
                             (trans (subst-cong (λ { Z → refl ; (S x) → refl}) t')
                                    (subst-id t')))

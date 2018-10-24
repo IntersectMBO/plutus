@@ -140,7 +140,7 @@ lemma-ne : ∀{K J}(N : ∅ ⊢NeN⋆ K)(E : EvalCxt ∅ K J) →
            Σ (∅ ⊢NeN⋆ J) λ N' → E [ ne N ]E ≡ ne N'
 lemma-ne N • = N ,, refl
 lemma-ne N (E ·E A) with lemma-ne N E
-... | (N' ,, p) rewrite p | stabilityNeN N' = (N' · A) ,, trans (readback-neV _) (cong (ne ∘ (N' ·_)) (stability A))
+... | (N' ,, p) rewrite p | stabilityNeN N' = (N' · A) ,, trans (reify-reflect _) (cong (ne ∘ (N' ·_)) (stability A))
 
 lemma⇒ : ∀{A B : ∅ ⊢Nf⋆ *}{C : ∅ ,⋆ * ⊢Nf⋆ *}{E : EvalCxt ∅ * *} → A ⇒ B ≡ E [ ne (μ C) ]E → ⊥
 lemma⇒ {C = C}{E = E} p with lemma-ne (μ C) E
@@ -185,8 +185,8 @@ lemmaQ {Q = Q} {A} {A'} {E ·E B} {E' ·E B'} refl q
   | E' [ ne (μ A') ]E
   | inspect (E' [_]E) (ne (μ A'))
   | lemma-ne (μ A') E'
-lemmaQ {_} {.(readback (eval (embNf (E [ ne (μ A) ]E) · embNf B) (idEnv ∅)))} {A} {A'} {E ·E B} {E' ·E B'} refl q | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl with lemma·Dom (trans (trans (trans (trans (sym (readback-neV _)) (cong (readback ∘ _·V eval (embNf B) (idEnv _)) (sym (stabilityNeN N)))) q)  (cong (readback ∘ _·V eval (embNf B') (idEnv _))(stabilityNeN N'))) (readback-neV _))
-lemmaQ {_} {.(readback (eval (embNf (E [ ne (μ A) ]E) · embNf B) (idEnv ∅)))} {A} {A'} {E ·E B} {E' ·E B'} refl q | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl | refl = lemmaQ {E = E}{E'} refl (trans (trans eq (cong ne (lemmaQ' (trans (trans (trans (trans (sym (readback-neV _)) (cong (readback ∘ _·V eval (embNf B) (idEnv _)) (sym (stabilityNeN N)))) q)  (cong (readback ∘ _·V eval (embNf B') (idEnv _))(stabilityNeN N'))) (readback-neV _))))) (sym eq'))
+lemmaQ {_} {.(reify (eval (embNf (E [ ne (μ A) ]E) · embNf B) (idEnv ∅)))} {A} {A'} {E ·E B} {E' ·E B'} refl q | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl with lemma·Dom (trans (trans (trans (trans (sym (reify-reflect _)) (cong (reify ∘ _·V eval (embNf B) (idEnv _)) (sym (stabilityNeN N)))) q)  (cong (reify ∘ _·V eval (embNf B') (idEnv _))(stabilityNeN N'))) (reify-reflect _))
+lemmaQ {_} {.(reify (eval (embNf (E [ ne (μ A) ]E) · embNf B) (idEnv ∅)))} {A} {A'} {E ·E B} {E' ·E B'} refl q | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl | refl = lemmaQ {E = E}{E'} refl (trans (trans eq (cong ne (lemmaQ' (trans (trans (trans (trans (sym (reify-reflect _)) (cong (reify ∘ _·V eval (embNf B) (idEnv _)) (sym (stabilityNeN N)))) q)  (cong (reify ∘ _·V eval (embNf B') (idEnv _))(stabilityNeN N'))) (reify-reflect _))))) (sym eq'))
 
 lemmaE : ∀{K}{A A' : ∅ ,⋆ * ⊢Nf⋆ *}{E E' : EvalCxt ∅ * K} → E [ ne (μ A) ]E ≡ E' [ ne (μ A') ]E → E ≡ E'
 lemmaE {E = •} {•} p = refl
@@ -203,8 +203,8 @@ lemmaE {A = A}{A'}{E = E ·E B} {E' ·E B'} p
   | E' [ ne (μ A') ]E
   | inspect (E' [_]E) (ne (μ A'))
   | lemma-ne (μ A') E'
-lemmaE {A = A} {A'} {E ·E B} {E' ·E B'} p | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl with lemma·Dom (trans (trans (sym (trans (cong (readback ∘ _·V eval (embNf B) (idEnv _)) (stabilityNeN N)) (readback-neV _))) p) (trans (cong (readback ∘ _·V eval (embNf B') (idEnv _)) (stabilityNeN N')) (readback-neV _)))
-lemmaE {A = A} {A'} {E ·E B} {E' ·E B'} p | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl | refl = cong₂ _·E_ (lemmaE {E = E}{E'} (trans (trans eq (cong ne (lemmaQ' (trans (trans (sym (trans (cong (readback ∘ _·V eval (embNf B) (idEnv _)) (stabilityNeN N)) (readback-neV _))) p) (trans (cong (readback ∘ _·V eval (embNf B') (idEnv _)) (stabilityNeN N')) (readback-neV _)))))) (sym eq'))) (trans (trans (sym (stability B)) (lemmaQ'' (trans (trans (sym (trans (cong (readback ∘ _·V eval (embNf B) (idEnv _)) (stabilityNeN N)) (readback-neV _))) p) (trans (cong (readback ∘ _·V eval (embNf B') (idEnv _)) (stabilityNeN N')) (readback-neV _))))) (stability B'))
+lemmaE {A = A} {A'} {E ·E B} {E' ·E B'} p | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl with lemma·Dom (trans (trans (sym (trans (cong (reify ∘ _·V eval (embNf B) (idEnv _)) (stabilityNeN N)) (reify-reflect _))) p) (trans (cong (reify ∘ _·V eval (embNf B') (idEnv _)) (stabilityNeN N')) (reify-reflect _)))
+lemmaE {A = A} {A'} {E ·E B} {E' ·E B'} p | .(ne N) | Reveal_·_is_.[ eq ] | N ,, refl | .(ne N') | Reveal_·_is_.[ eq' ] | N' ,, refl | refl = cong₂ _·E_ (lemmaE {E = E}{E'} (trans (trans eq (cong ne (lemmaQ' (trans (trans (sym (trans (cong (reify ∘ _·V eval (embNf B) (idEnv _)) (stabilityNeN N)) (reify-reflect _))) p) (trans (cong (reify ∘ _·V eval (embNf B') (idEnv _)) (stabilityNeN N')) (reify-reflect _)))))) (sym eq'))) (trans (trans (sym (stability B)) (lemmaQ'' (trans (trans (sym (trans (cong (reify ∘ _·V eval (embNf B) (idEnv _)) (stabilityNeN N)) (reify-reflect _))) p) (trans (cong (reify ∘ _·V eval (embNf B') (idEnv _)) (stabilityNeN N')) (reify-reflect _))))) (stability B'))
 \end{code}
 
 
