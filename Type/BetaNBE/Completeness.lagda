@@ -13,44 +13,63 @@ open import Relation.Binary.PropositionalEquality hiding (subst)
 open import Data.Sum
 open import Data.Empty
 open import Data.Product
-open import Data.Unit
 open import Function
 \end{code}
 
 \begin{code}
-mutual
-  -- A Partial equivalence relation on values: 'equality on values'
-  PER : ∀{Γ} K → Val Γ K → Val Γ K → Set
-  PER size    n n' = n ≡ n'
-  PER *       n n' = n ≡ n' -- the same as readback n ≡ readback n'
-  PER (K ⇒ J) (inj₁ n) (inj₁ n') = readback (inj₁ n) ≡ readback (inj₁ n')
-  PER (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥ -- A semantic function cannot be beta-equal to a neutral
-  PER (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥ -- A semantic function cannot be beta-equal to a neutral
-  PER (K ⇒ J) (inj₂ f) (inj₂ f') =
-   Unif (inj₂ f)
-   ×
-   Unif (inj₂ f')
-   ×
-   ∀ {Δ}
+-- A Partial equivalence relation on values: 'equality' for values
+-- It's also a Kripke Logical Relation
+PER : ∀{Γ} K → Val Γ K → Val Γ K → Set
+PER size    n n' = n ≡ n'
+PER *       n n' = n ≡ n'
+PER (K ⇒ J) (inj₁ n) (inj₁ n') = readback (inj₁ n) ≡ readback (inj₁ n')
+PER (K ⇒ J) (inj₂ f) (inj₁ n') = ⊥
+PER (K ⇒ J) (inj₁ n) (inj₂ f)  = ⊥
+PER (K ⇒ J) (inj₂ f) (inj₂ f') =
+  Unif (inj₂ f)
+  ×
+  Unif (inj₂ f')
+  ×
+  ∀ {Δ}
      → (ρ : Ren _ Δ)
      → {v v' : Val Δ K}
      → PER K v v'
+       ---------------------------------------------------------
      → PER J (renval ρ (inj₂ f) ·V v) (renval ρ (inj₂ f') ·V v')
+  where
+    -- Uniformity
+    Unif : ∀{Γ K J} → Val Γ (K ⇒ J) → Set
+    Unif {Γ}{K}{J} f = ∀{Δ Δ'}
+      → (ρ : Ren Γ Δ)
+      → (ρ' : Ren Δ Δ')
+      → (v v' : Val Δ K)
+      → PER K v v'
+        ------------------------------------------------------------------------
+      → PER J  (renval ρ' (renval ρ f ·V v)) (renval (ρ' ∘ ρ) f ·V renval ρ' v')
+\end{code}
 
-  Unif : ∀{Γ K J} → Val Γ (K ⇒ J) → Set
-  Unif {Γ}{K}{J} f = ∀{Δ Δ'}(ρ : Ren Γ Δ)(ρ' : Ren Δ Δ')(v v' : Val Δ K) → PER K v v'
-    → PER J  (renval ρ' (renval ρ f ·V v)) (renval (ρ' ∘ ρ) f ·V renval ρ' v')
+PER is symmetric and transitive, it is not reflexive, but we if we
+have a value that is related to something else by PER then we can
+derive a reflexivity result for it.
 
-transPER : ∀{Γ} K {v v' v'' : Val Γ K} → PER K v v' → PER K v' v'' → PER K v v''
-
-symPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v' v
+\begin{code}
+symPER : ∀{Γ} K {v v' : Val Γ K}
+  → PER K v v'
+    ----------
+  → PER K v' v
 symPER size                       p = sym p
 symPER *                          p = sym p
 symPER (K ⇒ J) {inj₁ n} {inj₁ n'} p = sym p
 symPER (K ⇒ J) {inj₁ n} {inj₂ f'} ()
 symPER (K ⇒ J) {inj₂ f} {inj₁ n'} ()
-symPER (K ⇒ J) {inj₂ f} {inj₂ f'} (p , p' , p'') = p' , p , λ ρ q → symPER J (p'' ρ (symPER K q))
+symPER (K ⇒ J) {inj₂ f} {inj₂ f'} (p , p' , p'') =
+  p' , p , λ ρ q → symPER J (p'' ρ (symPER K q))
 
+transPER : ∀{Γ} K {v v' v'' : Val Γ K}
+  → PER K v v'
+  → PER K v' v''
+    ------------
+  → PER K v v''
 transPER size                                  p q = trans p q
 transPER *                                     p q = trans p q
 transPER (K ⇒ J) {inj₁ n} {inj₁ n'} {inj₁ n''} p q = trans p q
@@ -58,20 +77,30 @@ transPER (K ⇒ J) {inj₁ n} {inj₁ n'} {inj₂ f''} p ()
 transPER (K ⇒ J) {inj₁ n} {inj₂ f'} () q
 transPER (K ⇒ J) {inj₂ f} {inj₁ n'} () q
 transPER (K ⇒ J) {inj₂ f} {inj₂ f'} {inj₁ n} p ()
-transPER (K ⇒ J) {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , p'') (q , q' , q'') = p , q' , λ ρ r → transPER J (p'' ρ r) (q'' ρ (transPER K (symPER K r) r))
+transPER (K ⇒ J) {inj₂ f} {inj₂ f'} {inj₂ f''} (p , p' , p'') (q , q' , q'') =
+  p , q' , λ ρ r → transPER J (p'' ρ r) (q'' ρ (transPER K (symPER K r) r))
 
-reflPER : ∀{Γ} K {v v' : Val Γ K} → PER K v v' → PER K v v
+reflPER : ∀{Γ} K {v v' : Val Γ K}
+  → PER K v v'
+    ---------
+  → PER K v v
 reflPER K p = transPER K p (symPER K p)
 \end{code}
 
-\begin{code}
+reify takes two related values and produces to identical normal
+forms. reflect works in the other direction for neutral terms. They
+are not mutually defined in this version of NBE.
 
+Composing reify with the fundamental theorem of PER defined later and
+using reflect to build identify environments will give us the
+completeness result.
+
+\begin{code}
 reflect : ∀{Γ} K → {n n' : Γ ⊢NeN⋆ K}
   → n ≡ n' → PER K (neV n) (neV n')
 reflect size    p = cong ne p
 reflect *       p = cong ne p
 reflect (K ⇒ J) p = cong ne p
-
 
 reify : ∀{Γ} K → {v v' : Val Γ K}
   → PER K v v' → readback v ≡ readback v'
@@ -84,25 +113,28 @@ reify (K ⇒ J) {inj₂ f} {inj₂ f'} (p , p' , p'') =
   cong ƛ (reify J (p'' S (reflect K refl)))
 \end{code}
 
-\begin{code}
+'equality' for environements
 
+\begin{code}
 PEREnv : ∀ {Γ Δ} → (η η' : Env Γ Δ) →  Set
 PEREnv {Γ}{Δ} η η' = ∀{K} (x : Γ ∋⋆ K) → PER K (η x) (η' x) 
 \end{code}
 
-
 Closure under environment extension
+
 \begin{code}
 PER,,⋆ : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PEREnv η η'
   → {v v' : Val Δ K}
   → PER K v v'
+    ----------------------------
   → PEREnv (η ,,⋆ v) (η' ,,⋆ v')
 PER,,⋆ p q Z = q
 PER,,⋆ p q (S x) = p x
 \end{code}
 
-Closure under applicatoin
+Closure under application
+
 \begin{code}
 PERApp : ∀{Γ K J}
   → {f f' : Val Γ (K ⇒ J)}
@@ -116,12 +148,16 @@ PERApp {f = inj₂ f} {inj₁ n} () q
 PERApp {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
 \end{code}
 
+renval commutes with neV
+
 \begin{code}
-renval-ext : ∀{K Γ Δ}(ρ : Ren Γ Δ) → PER K (renval (ext ρ) (neV (` Z))) (neV (` Z))
-renval-ext {size}  ρ = refl
-renval-ext {*}     ρ = refl
-renval-ext {K ⇒ J} ρ = refl
+renval-neV : ∀{Γ Δ K}(ρ : Ren Γ Δ)(n : Γ ⊢NeN⋆ K) → PER K (renval ρ (neV n)) (neV (renameNeN ρ n))
+renval-neV {K = size}  ρ n = refl
+renval-neV {K = *}     ρ n = refl
+renval-neV {K = K ⇒ J} ρ n = refl 
 \end{code}
+
+renaming commutes with readback
 
 \begin{code}
 rename-readback : ∀{K Γ Δ}{v v' : Val Γ K} → PER K v v' → (ρ : Ren Γ Δ) → renameNf ρ (readback v) ≡ readback (renval ρ v')
@@ -130,11 +166,10 @@ rename-readback {*}                            refl           ρ = refl
 rename-readback {K ⇒ J} {v = inj₁ n} {inj₁ .n} refl           ρ = refl
 rename-readback {K ⇒ J} {v = inj₁ n} {inj₂ f'} ()             ρ
 rename-readback {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()             ρ
-rename-readback {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ (trans
-                                                                            (rename-readback (p'' S (reflect K (refl {x = ` Z}))) (ext ρ)) (reify J (transPER J ( p' S (ext ρ) _ _ (reflect K refl) ) (PERApp {f = renval (S ∘ ρ) (inj₂ f')}{renval (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , λ ρ' q → (proj₂ (proj₂ (reflPER (K ⇒ J) (symPER (K ⇒ J) (p , p' , p'')))) (ρ' ∘ S ∘ ρ) q)) (renval-ext ρ)))))
-
-
+rename-readback {K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ (trans (rename-readback (p'' S (reflect K (refl {x = ` Z}))) (ext ρ)) (reify J (transPER J ( p' S (ext ρ) _ _ (reflect K refl) ) (PERApp {f = renval (S ∘ ρ) (inj₂ f')}{renval (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , λ ρ' q → (proj₂ (proj₂ (reflPER (K ⇒ J) (symPER (K ⇒ J) (p , p' , p'')))) (ρ' ∘ S ∘ ρ) q)) (renval-neV (ext ρ) (` Z))))))
 \end{code}
+
+first functor law for renval
 
 \begin{code}
 renval-id : ∀ {K Γ}{v v' : Val Γ K} →
@@ -148,8 +183,9 @@ renval-id {K ⇒ J} {v = inj₂ f} {inj₁ n'} ()
 renval-id {K ⇒ J} {v = inj₂ f} {inj₂ f'} p    = p
 \end{code}
 
-\begin{code}
+second functor law for renval
 
+\begin{code}
 renval-comp : ∀ {K Γ Δ Θ}(ρ : Ren Γ Δ)(ρ' : Ren Δ Θ){v v' : Val Γ K} →
   PER K v v' → 
   PER K (renval (ρ' ∘ ρ) v) (renval ρ' (renval ρ v'))
@@ -169,7 +205,8 @@ renval-comp {K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
   λ ρ'' q → p'' (ρ'' ∘ ρ' ∘ ρ) q
 \end{code}
 
-Closure under renaming
+PER is closed under renaming
+
 \begin{code}
 renPER : ∀{Γ Δ K}{v v' : Val Γ K}
   → (ρ : Ren Γ Δ)
@@ -188,44 +225,49 @@ renPER {K = K ⇒ K₁} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
   λ ρ' q → p'' (ρ' ∘ ρ) q
 \end{code}
 
-\begin{code}
-renval-neV : ∀{Γ Δ K}(ρ : Ren Γ Δ)(n : Γ ⊢NeN⋆ K) → PER K (renval ρ (neV n)) (neV (renameNeN ρ n))
-renval-neV {K = size}  ρ n = refl
-renval-neV {K = *}     ρ n = refl
-renval-neV {K = K ⇒ J} ρ n = refl 
-\end{code}
-
--- completeness
-
-identity extension lemma/a congruence for eval
+PER is closed under application
 \begin{code}
 renval·V : ∀{K J Γ Δ}
-  (ρ : Ren Γ Δ)
-  {f f' : Val Γ (K ⇒ J)}
+  → (ρ : Ren Γ Δ)
+  → {f f' : Val Γ (K ⇒ J)}
   → PER (K ⇒ J) f f'
   → {v v' : Val Γ K}
   → PER K v v'
+    ------------------------------------------------------
   → PER J (renval ρ (f ·V v)) (renval ρ f' ·V renval ρ v')
-renval·V {J = size} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
-renval·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
-renval·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q = cong (ne ∘ (renameNeN ρ n ·_)) (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
+renval·V {J = size} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
+  cong (ne ∘ (renameNeN ρ n ·_))
+       (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
+renval·V {J = *} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
+  cong (ne ∘ (renameNeN ρ n ·_))
+       (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
+renval·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ .n} refl {v}{v'} q =
+  cong (ne ∘ (renameNeN ρ n ·_))
+       (trans ( rename-readback (reflPER _ q) ρ ) (reify _ (renPER ρ q)))
 renval·V ρ {inj₁ n} {inj₂ f} () q
 renval·V ρ {inj₂ f} {inj₁ n'} () q
-renval·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q = transPER _ (p id ρ _ _ q) (p'' ρ (renPER ρ (reflPER _ (symPER _ q))))
+renval·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
+  transPER _ (p id ρ _ _ q) (p'' ρ (renPER ρ (reflPER _ (symPER _ q))))
+\end{code}
 
+identity extension lemma, renaming commutes with eval, defined mutually
+
+\begin{code}
 idext : ∀{Γ Δ K}{η η' : Env Γ Δ}
   → PEREnv η η'
   → (t : Γ ⊢⋆ K)
+    ----------------------------
   → PER K (eval t η) (eval t η')
 
 renval-eval : ∀{Γ Δ Θ K}
-  (t : Δ ⊢⋆ K)
-  {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
-  (p : PEREnv η η')
-  (ρ : Ren Γ Θ ) →
-  PER K (renval ρ (eval t η)) (eval t (renval ρ ∘ η'))
+  → (t : Δ ⊢⋆ K)
+  → {η η' : ∀{J} → Δ ∋⋆ J → Val Γ J}
+  → (p : PEREnv η η')
+  → (ρ : Ren Γ Θ )
+    ----------------------------------------------------
+  → PER K (renval ρ (eval t η)) (eval t (renval ρ ∘ η'))
 renval-eval (` x) p ρ = renPER ρ (p x)
-renval-eval (Π B) p ρ = cong Π (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-ext ρ ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
+renval-eval (Π B) p ρ = cong Π (trans (renval-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ (refl {x = ` Z}))) (ext ρ)) (idext (λ{ Z → renval-neV (ext ρ) (` Z) ; (S x) → transPER _ (symPER _ (renval-comp S (ext ρ) (reflPER _ (symPER _ (p x))))) (renval-comp ρ S (reflPER _ (symPER _ (p x))))}) B))
 renval-eval (A ⇒ B) p ρ = cong₂ _⇒_ (renval-eval A p ρ) (renval-eval B p ρ)
 renval-eval (ƛ B) {η}{η'} p ρ =
   (λ ρ' ρ'' v v' q → transPER _ (renval-eval B (PER,,⋆ (renPER (ρ' ∘ ρ) ∘ p) q) ρ'') (idext (λ { Z → renPER ρ'' (reflPER _ (symPER _ q)) ; (S x) → symPER _ (renval-comp (ρ' ∘ ρ) ρ'' (p x))}) B))
@@ -248,10 +290,13 @@ idext p (ƛ B)   =
   ,
   λ ρ q → idext (PER,,⋆ (renPER ρ ∘ p) q) B
 idext p (A · B) = PERApp (idext p A) (idext p B)
-idext p (μ  B)   = reflect _ (cong μ (reify _ (idext (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) B)))
+idext p (μ  B)  =
+  reflect _
+          (cong μ (reify _ (idext (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) B)))
 \end{code}
 
-Renaming lemma
+(pre) renaming commutes with eval
+
 \begin{code}
 rename-eval : ∀{Γ Δ Θ K}
   (t : Θ ⊢⋆ K)
@@ -285,8 +330,8 @@ rename-eval (A · B) p ρ = PERApp (rename-eval A p ρ) (rename-eval B p ρ)
 rename-eval (μ B) p ρ = reflect _ (cong μ (reify _ (transPER _ (rename-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) (ext ρ)) (idext (λ { Z → reflect _ refl ; (S x) → renPER S ((reflPER _ ∘ symPER _ ∘ p) (ρ x))}) B))))
 \end{code}
 
-
 Subsitution lemma
+
 \begin{code}
 subst-eval : ∀{Γ Δ Θ K}
   (t : Θ ⊢⋆ K)
@@ -322,6 +367,7 @@ subst-eval (A · B) p σ = PERApp (subst-eval A p σ) (subst-eval B p σ)
 subst-eval (μ B) p σ = reflect _ (cong μ (reify _ (transPER _ (subst-eval B (PER,,⋆ (renPER S ∘ p) (reflect _ refl)) (exts σ)) (idext (λ { Z → reflect _ refl ; (S x) → transPER _ (rename-eval (σ x) (PER,,⋆ (renPER S ∘ reflPER _ ∘ symPER _ ∘ p) (reflect _ refl)) S) (symPER _ (renval-eval (σ x) (reflPER _ ∘ symPER _ ∘ p) S))}) B))))
 \end{code}
 
+Fundamental Theorem of logical relations for PER
 
 \begin{code}
 fund : ∀{Γ Δ K}{η η' : Env Γ Δ}
@@ -351,11 +397,11 @@ fund p (μ≡β q) = reflect _ (cong μ (reify _ (fund (PER,,⋆ (renPER S ∘ p
 fund p (β≡β B A) = transPER _  (idext (λ { Z → idext (reflPER _ ∘ p) A ; (S x) → renval-id (reflPER _ (p x))}) B) (symPER _ (subst-eval B (symPER _ ∘ p) (subst-cons ` A)))  
 \end{code}
 
+constructing the identity PER
+
 \begin{code}
 idPER : ∀{Γ K} → (x : Γ ∋⋆ K) → PER K (idEnv Γ x) (idEnv Γ x)
-idPER {K = size}  x = refl
-idPER {K = *}     x = refl
-idPER {K = K ⇒ J} x = refl
+idPER x = reflect _ refl
 \end{code}
 
 \begin{code}
