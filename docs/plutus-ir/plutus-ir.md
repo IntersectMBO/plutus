@@ -2,8 +2,14 @@
 
 ## Syntax
 
-The syntax is mostly as in Plutus Core. Where we modify the syntax of Plutus Core we will
+We are not going to have a concrete syntax initially, but since the syntax of Plutus Core already
+corresponds closely to the AST structure giving an illustrative syntax is the easiest way to describe
+the proposed AST.
+
+The syntax is mostly as in Plutus Core, and this syntax should be read as an extension to the Plutus
+Core grammar, and references productions from it. Where we modify the syntax of Plutus Core we will
 list only the additions and removals, marking them explicitly with `+` or `-`.
+
 We also require syntax with lists of subparts. We denote a list of `t`-productions with `t..`.
 
 ```
@@ -11,9 +17,9 @@ VarDecl VD      := (vardecl x T)
 TyVarDecl TVD   := (tyvardecl alpha K)
 
 Type R, S, T    := - (fix alpha T)
-Term L, M, N    := + (let BK B.. M)
+Term L, M, N    := + (let R B.. M)
 
-BiningKind BK   := (nonrec)
+Recursivity R   := (nonrec)
                    (rec)
 Binding B       := (termbind VD L)
                    (typebind TVD T)
@@ -25,9 +31,9 @@ Datatype D      := (datatype
                       x     # the name of the destructor function
                       C..   # the constructors of the datatype
                    )
-Constructor C   := (constr
-                       x   # the name of the constructor
-                       T.. # the argument types of the constructor
+Constructor C   := (con
+                       x  # the name of the constructor
+                       T  # the type of the constructor
                     )
 ```
 
@@ -40,13 +46,13 @@ Here is an example, constructing `[1]`:
             (tyvardecl List (fun (type) (type)))
             (tyvardecl a (type))
             match_List
-            (constr
+            (con
                 Nil
-            )
-            (constr
-                Cons
-                a
                 [List a]
+            )
+            (con
+                Cons
+                (fun a [List a])
             )
         )
     )
@@ -66,12 +72,13 @@ Another, implementing `fromMaybe`:
             (tyvardecl Maybe (fun (type) (type)))
             (tyvardecl a (type))
             match_Maybe
-            (constr
+            (con
                 Nothing
+                [Maybe a]
             )
-            (constr
+            (con
                 Just
-                a
+                (fun a [Maybe a])
             )
         )
     )
@@ -88,6 +95,48 @@ Another, implementing `fromMaybe`:
 )
 ```
 
+## Semantics
+
+Plutus IR is defined by its compilation into Plutus Core. This process will eventually be formalized,
+but for now we give a schematic description.
+
+### Let bindings
+
+#### Non recursive
+
+Non-recursive term let bindings are translated as lambdas in the usual way, and non-reursive type bindings are
+translated as type abstractions.
+
+#### Recursive
+
+There is no way to have mutual recursion between terms and types, so if both terms and types are defined
+in a let binding, we separate the two groups out and handle them separately.
+
+Recursive term bindings are compiled using the n-ary fixpoint combinator. They must therefore all be of
+function type. It is the responsibility of the author to transform bindings which are not of this type
+beforehand (e.g. by thunking it and forcing at the recursion sites.)
+
+Singly self-recursive type bindings are compiled with a type variable of the appropriate kind in scope.
+We then take the fixpoint over that type variable.
+
+Mutually recursive type bindings are not currently supported.
+
+### Datatypes
+
+Datatypes are compiled into:
+
+- A datatype.
+    - This is the usual Scott-encoded type.
+- Constructor functions for each constructor.
+    - These have the types specified in the datatype declaration.
+- A destructor function.
+    - This has the type `forall tvs . [datatype tvs] -> <Scott-encoded type>`. Once applied,
+      one can use the Scott-encoded type as a matcher as usual.
+
+These are then let-bound as usual.
+
+We must take some care over this process, which is described in detail in the GHC Core to Plutus Core
+compiler, and which I will not repeat now (but should eventually move to the specification).
 
 ## Validity
 
@@ -156,22 +205,29 @@ I think this is quite useful and arguably worth introducing in the Plutus Core s
 
 ### Why does `datatype` bind its type variables?
 
-I considered having the constructors of the datatype have an explicit type instead of having arguments, e.g.
-`(constr Cons (all a (type) (fun a (fun [List a] [List a]))))`.
+The current syntax is very close to the GADT-style datatype declaration common in Haskell
+and other languages. Having the type variable bound outside the constructor type is helpful
+because we will in practice want to instantiated it in a variety of ways, e.g. for `Just`:
 
-The downside of this is that:
-- It obscures the nature of the datatype as a sum-of-products.
-- We need to construct several types from the constructor: the main datatype, the matcher type, and the constructor
-  types. Having the "full" constructor type given means that we just need to deconstruct it again later.
+```
+# the constructor declaration
+(constr Just (fun a [Maybe a]))
+# the type of the constructor functoin
+forall a . a -> Maybe a
+# the datatype itself
+\a :: * -> forall r . r -> (a -> r) -> r
+# the type of the matcher function
+forall a r . Maybe a -> r -> (a -> r) -> r
+```
 
-Plus it's even closer to the usual Haskell-style `data` declarations.
+So we need to deconstruct the declaration to throw away the output type and replace it, at least.
+But this is doable.
 
 ## Discussion points
 
 ### I hate your keyword suggestions
 
-Better suggestions welcome! In particular I wonder whether we can get away with using `con` instead of `constr`.
-(I believe in an older version of the Plutus Core spec which had datatypes, `con` was indeed used for constructors.)
+Better suggestions welcome! This also is not intended to fix a concrete syntax.
 
 ### Should we have `match`?
 
