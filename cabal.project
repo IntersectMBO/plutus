@@ -4,6 +4,7 @@ packages: language-plutus-core
           core-to-plc
           wallet-api
           plutus-th
+          plutus-use-cases
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
@@ -14,6 +15,9 @@ tests: true
 benchmarks: true
 documentation: true
 -- haddock-internal: true
+tests: true
+benchmarks: true
+documentation: true
 
 program-options
   alex-options: -g

@@ -4,6 +4,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Spec.Vesting(tests) where
 
@@ -13,7 +14,6 @@ import           Data.Foldable                                  (traverse_)
 import qualified Data.Map                                       as Map
 import           Hedgehog                                       (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                                   as Gen
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                            (testProperty)
 
