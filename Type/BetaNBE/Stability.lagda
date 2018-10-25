@@ -23,13 +23,13 @@ stability : ∀{Φ K}(n : Φ ⊢Nf⋆ K) → nf (embNf n) ≡ n
 stabilityNeN : ∀{Φ K}(n : Φ ⊢NeN⋆ K) → eval (embNeN n) (idEnv _)  ≡ reflect n
 
 stability (Π B) =
-  cong Π (trans (idext (λ { Z → reflectPER _ refl
+  cong Π (trans (idext (λ { Z → reflectCR refl
                           ; (S α) → renameVal-reflect S (` α)})
                        (embNf B))
                 (stability B))
 stability (A ⇒ B) = cong₂ _⇒_ (stability A) (stability B)
 stability (ƛ B)    =
-  cong ƛ (trans (reifyPER _ (idext (λ { Z → reflectPER _ refl
+  cong ƛ (trans (reifyCR (idext (λ { Z → reflectCR refl
                                       ; (S α) → renameVal-reflect S (` α)})
                                    (embNf B)))
                 (stability B))
@@ -45,7 +45,7 @@ stabilityNeN (n · n') =
         (cong (λ n'' → reflect (n · n'')) (stability n'))
 stabilityNeN (μ B)    =
   cong (reflect ∘ μ)
-       (trans (reifyPER _ (idext (λ { Z → reflectPER _ refl
+       (trans (reifyCR (idext (λ { Z → reflectCR refl
                                  ; (S x) → renameVal-reflect S (` x)}) (embNf B)))
               (stability B))
 \end{code}
