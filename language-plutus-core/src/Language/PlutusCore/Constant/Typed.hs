@@ -1,5 +1,5 @@
 -- | This module assigns types to built-ins.
--- See the @plutus-prototype/language-plutus-core/docs/Constant application.md@
+-- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
 {-# LANGUAGE GADTs             #-}

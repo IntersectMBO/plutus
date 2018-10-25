@@ -20,7 +20,7 @@ cabal-version:       >=1.10
 
 source-repository head
   type:                git
-  location:            git://github.com/input-output-hk/plutus-prototype.git
+  location:            git://github.com/input-output-hk/plutus.git
 
 library
   exposed-modules:     PlutusTypes.ConSig,
