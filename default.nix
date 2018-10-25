@@ -31,6 +31,8 @@ let
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
+  # probably replace with failOnAllWarnings from the haskell lib once we're on a newer nixpkgs
+  addWerror = drv: appendConfigureFlag drv "--ghc-option=-Werror";
   filterSource = drv: drv.overrideAttrs (attrs : {
     src = builtins.filterSource cleanSourceFilter attrs.src;
   });
@@ -53,13 +55,14 @@ let
     overrides = self: super: {
       plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
-      language-plutus-core = appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
-      plutus-core-interpreter = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter));
-      plutus-exe = addRealTimeTestLogs (filterSource super.plutus-exe);
-      core-to-plc = doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc));
-      plutus-th = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th));
-      plutus-use-cases = addRealTimeTestLogs (filterSource super.plutus-use-cases);
-      wallet-api = doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api));
+      # we need to enable benchmarks as a flag too, until we are on a newer nixpkgs where this is implied by doBenchmark
+      language-plutus-core = addWerror (appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks");
+      plutus-core-interpreter = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter)));
+      plutus-exe = addWerror (addRealTimeTestLogs (filterSource super.plutus-exe));
+      core-to-plc = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc)));
+      plutus-th = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th)));
+      plutus-use-cases = addWerror (addRealTimeTestLogs (filterSource super.plutus-use-cases));
+      wallet-api = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api)));
     };
   };
   other = rec {

@@ -2,6 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 -- Disabled until we can use the Num.(*) for `Ratio Int`
 -- {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 module Language.Plutus.Coordination.Contracts.Swap(
