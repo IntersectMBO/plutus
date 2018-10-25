@@ -70002,10 +70002,10 @@ license = stdenv.lib.licenses.mit;
 mkDerivation {
 
 pname = "tasty-hedgehog";
-version = "0.1.0.2";
-sha256 = "1dc1ffb73bae9c6ccefb050a5489faae9b3144e987f8d054a9645d7e27884d32";
-revision = "2";
-editedCabalFile = "0kcsky6xnqpg2hpvpw50sdmjg50z1s57wbvxqmcjrd7wx8hpapdq";
+version = "0.2.0.0";
+sha256 = "5a107fc3094efc50663e4634331a296281318b38c9902969c2d2d215d754a182";
+revision = "4";
+editedCabalFile = "04d7lhn0dlqna0pqz7wxmz2y6vq7qar2m2g432z38cvm5na9w4y0";
 libraryHaskellDepends = [
 base
 hedgehog
@@ -70015,7 +70015,7 @@ tasty
 doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/qfpl/tasty-hedgehog";
-description = "Integrates the hedgehog testing library with the tasty testing framework";
+description = "Integration for tasty and hedgehog";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};

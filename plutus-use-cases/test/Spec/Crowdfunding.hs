@@ -4,28 +4,25 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Spec.Crowdfunding(tests) where
 
 import           Data.Bifunctor                                      (Bifunctor (..))
-import           Data.Either                                         (isLeft, isRight)
+import           Data.Either                                         (isRight)
 import           Data.Foldable                                       (traverse_)
 import qualified Data.Map                                            as Map
 import           Hedgehog                                            (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                                        as Gen
-import qualified Hedgehog.Range                                      as Range
-import           Lens.Micro
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                                 (testProperty)
 
 import           Wallet.API                                          (PubKey (..))
 import           Wallet.Emulator                                     hiding (Value)
-import           Wallet.Generators                                   (Mockchain (..))
 import qualified Wallet.Generators                                   as Gen
 
-import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignActor, CampaignPLC (..),
-                                                                      contribute, refund)
+import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), CampaignPLC (..), contribute,
+                                                                      refund)
 import qualified Language.Plutus.Coordination.Contracts.CrowdFunding as CF
 import qualified Language.Plutus.Runtime                             as Runtime
 import           Language.Plutus.TH                                  (plutus)
@@ -55,6 +52,7 @@ contrib2 = contrib ds (Wallet 2) where
     ds = DataScript $(plutus [| PubKey 2  |])
 
 -- | Make a contribution from wallet 3
+contrib3 :: CampaignPLC -> Runtime.Value -> Trace TxOutRef'
 contrib3 = contrib ds (Wallet 3) where
     ds = DataScript $(plutus [| PubKey 3  |])
 
