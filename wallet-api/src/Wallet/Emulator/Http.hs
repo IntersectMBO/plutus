@@ -106,7 +106,7 @@ myKeyPair ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> m KeyPair
-myKeyPair wallet = runWalletAction wallet $ WAPI.myKeyPair
+myKeyPair wallet = runWalletAction wallet WAPI.myKeyPair
 
 createPaymentWithChange ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
