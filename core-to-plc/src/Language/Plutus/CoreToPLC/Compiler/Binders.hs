@@ -32,8 +32,8 @@ variable *last* (so it is on the outside, so will be first when applying).
 mkLamAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
 mkLamAbsScoped v body = do
     let ghcName = GHC.getName v
-    (t', n') <- convVarFresh v
-    body' <- local (\c -> c {ccScopes=pushName ghcName n' (ccScopes c)}) body
+    var@(PLCVar n' t') <- convVarFresh v
+    body' <- local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) body
     pure $ PLC.LamAbs () n' t' body'
 
 mkIterLamAbsScoped :: Converting m => [GHC.Var] -> m PLCTerm -> m PLCTerm
@@ -44,8 +44,8 @@ mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
 mkTyAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
 mkTyAbsScoped v body = do
     let ghcName = GHC.getName v
-    (t', k') <- convTyVarFresh v
-    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
+    var@(PLCTyVar t' k') <- convTyVarFresh v
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) body
     checkTyAbsBody body'
     pure $ PLC.TyAbs () t' k' body'
 
@@ -57,8 +57,8 @@ mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars
 mkTyForallScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyForallScoped v body = do
     let ghcName = GHC.getName v
-    (t', k') <- convTyVarFresh v
-    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
+    var@(PLCTyVar t' k') <- convTyVarFresh v
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) body
     pure $ PLC.TyForall () t' k' body'
 
 mkIterTyForallScoped :: Converting m => [GHC.Var] -> m PLCType -> m PLCType
@@ -69,8 +69,8 @@ mkIterTyForallScoped vars body = foldr (\v acc -> mkTyForallScoped v acc) body v
 mkTyLamScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyLamScoped v body = do
     let ghcName = GHC.getName v
-    (t', k') <- convTyVarFresh v
-    body' <- local (\c -> c {ccScopes=pushTyName ghcName t' (ccScopes c)}) body
+    var@(PLCTyVar t' k') <- convTyVarFresh v
+    body' <- local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) body
     pure $ PLC.TyLam () t' k' body'
 
 mkIterTyLamScoped :: Converting m => [GHC.Var] -> m PLCType -> m PLCType

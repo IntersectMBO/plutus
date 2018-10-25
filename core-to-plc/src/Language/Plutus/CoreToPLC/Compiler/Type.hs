@@ -58,7 +58,7 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     let top = NE.head stack
     case t of
         -- in scope type name
-        (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.getName -> Just name)) -> pure $ PLC.TyVar () name
+        (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.getName -> Just (PLCTyVar name _))) -> pure $ PLC.TyVar () name
         (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
         (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.TyFun () <$> convType i <*> convType o
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts

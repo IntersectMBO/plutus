@@ -8,7 +8,6 @@ import           Language.Plutus.CoreToPLC.Compiler.Definitions
 import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PLCTypes
 
-import qualified Language.PlutusCore                            as PLC
 import           Language.PlutusCore.Quote
 
 import qualified GhcPlugins                                     as GHC
@@ -64,7 +63,7 @@ appropriately.
 So we have the usual mechanism of carrying around a stack of scopes.
 -}
 
-data Scope = Scope (Map.Map GHC.Name (PLC.Name ())) (Map.Map GHC.Name (PLC.TyName ()))
+data Scope = Scope (Map.Map GHC.Name PLCVar) (Map.Map GHC.Name PLCTyVar)
 type ScopeStack = NE.NonEmpty Scope
 
 initialScopeStack :: ScopeStack
