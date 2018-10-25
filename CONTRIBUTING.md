@@ -36,7 +36,7 @@ We use `stylish-haskell` and `hlint`, and enable a large number of GHC warnings.
 
 # Issues
 
-General issues can be opened on the [GitHub Issue tracker](https://github.com/input-output-hk/plutus-prototype/issues).
+General issues can be opened on the [GitHub Issue tracker](https://github.com/input-output-hk/plutus/issues).
 
 ## IOHK developers
 

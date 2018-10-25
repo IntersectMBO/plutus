@@ -29,7 +29,7 @@ want validator scripts to be able to look at all the redeemers, then we would
 have to change `pendingTxOtherInputs` to a heterogenous list. (Same for
 `pendingTxOutputs`). (This would also affect the "set vs list" question for
 transaction inputs -- cf. discussion on
-https://github.com/input-output-hk/plutus-prototype/pull/139)
+https://github.com/input-output-hk/plutus/pull/139)
 
 -}
 
