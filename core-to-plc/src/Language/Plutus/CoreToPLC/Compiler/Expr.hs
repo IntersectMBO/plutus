@@ -145,7 +145,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> liftQuote errorFunc
         -- locally bound vars
-        GHC.Var (lookupName top . GHC.getName -> Just name) -> pure $ PLC.Var () name
+        GHC.Var (lookupName top . GHC.getName -> Just (PLCVar name _)) -> pure $ PLC.Var () name
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) ->

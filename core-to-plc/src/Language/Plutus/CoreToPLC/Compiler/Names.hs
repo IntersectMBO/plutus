@@ -20,7 +20,7 @@ import           Data.Char
 import qualified Data.List.NonEmpty                       as NE
 import qualified Data.Map                                 as Map
 
-lookupName :: Scope -> GHC.Name -> Maybe (PLC.Name ())
+lookupName :: Scope -> GHC.Name -> Maybe PLCVar
 lookupName (Scope ns _) n = Map.lookup n ns
 
 {- Note [PLC names]
@@ -53,13 +53,13 @@ safeFreshName s
 convNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
 convNameFresh n = safeFreshName $ GHC.getOccString n
 
-convVarFresh :: Converting m => GHC.Var -> m (PLCType, PLC.Name ())
+convVarFresh :: Converting m => GHC.Var -> m PLCVar
 convVarFresh v = do
     t' <- convType $ GHC.varType v
     n' <- convNameFresh $ GHC.getName v
-    pure (t', n')
+    pure $ PLCVar n' t'
 
-lookupTyName :: Scope -> GHC.Name -> Maybe (PLC.TyName ())
+lookupTyName :: Scope -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
 safeFreshTyName :: MonadQuote m => String -> m (PLC.TyName ())
@@ -68,14 +68,14 @@ safeFreshTyName s = PLC.TyName <$> safeFreshName s
 convTyNameFresh :: MonadQuote m => GHC.Name -> m (PLC.TyName ())
 convTyNameFresh n = PLC.TyName <$> convNameFresh n
 
-convTyVarFresh :: Converting m => GHC.TyVar -> m (PLC.TyName (), PLC.Kind ())
+convTyVarFresh :: Converting m => GHC.TyVar -> m PLCTyVar
 convTyVarFresh v = do
     k' <- convKind $ GHC.tyVarKind v
     t' <- convTyNameFresh $ GHC.getName v
-    pure (t', k')
+    pure $ PLCTyVar t' k'
 
-pushName :: GHC.Name -> PLC.Name () -> ScopeStack -> ScopeStack
+pushName :: GHC.Name -> PLCVar-> ScopeStack -> ScopeStack
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack
 
-pushTyName :: GHC.Name -> PLC.TyName () -> ScopeStack -> ScopeStack
+pushTyName :: GHC.Name -> PLCTyVar -> ScopeStack -> ScopeStack
 pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.insert ghcName n tyns) NE.<| stack

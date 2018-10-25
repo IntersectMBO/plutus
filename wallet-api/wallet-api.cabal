@@ -15,7 +15,7 @@ extra-doc-files: README.md
 
 source-repository head
     type: git
-    location: https://github.com/input-output-hk/plutus-prototype
+    location: https://github.com/input-output-hk/plutus
 
 flag development
     description:
