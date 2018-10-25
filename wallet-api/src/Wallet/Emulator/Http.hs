@@ -32,6 +32,7 @@ import           Servant                    (Application, Handler, ServantErr (e
                                              hoistServer, serve, throwError)
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
                                              Put, ReqBody)
+import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
                                              EmulatorState (emWalletState), Notification (BlockHeight, BlockValidated),
@@ -46,6 +47,7 @@ type WalletAPI
    = "wallets" :> Get '[ JSON] [Wallet]
      :<|> "wallets" :> Capture "walletid" Wallet :> Get '[ JSON] Wallet
      :<|> "wallets" :> ReqBody '[ JSON] Wallet :> Post '[ JSON] NoContent
+     :<|> "wallets" :> Capture "walletid" Wallet :> "my-key-pair" :> Get '[ JSON] KeyPair
      :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] ( Set TxIn'
                                                                                                           , TxOut')
      :<|> "wallets" :> Capture "walletid" Wallet :> "pay-to-public-key" :> ReqBody '[ JSON] Value :> Post '[ JSON] TxOut'
@@ -100,6 +102,12 @@ createWallet wallet = do
   liftIO . atomically $ modifyTVar var (insertWallet wallet walletState)
   pure NoContent
 
+myKeyPair ::
+     (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
+  => Wallet
+  -> m KeyPair
+myKeyPair wallet = runWalletAction wallet WAPI.myKeyPair
+
 createPaymentWithChange ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
@@ -153,7 +161,7 @@ walletHandlers state =
   walletApi :<|> walletControlApi :<|> controlApi :<|> assertionsApi
   where
     walletApi =
-      wallets :<|> fetchWallet :<|> createWallet :<|> createPaymentWithChange :<|>
+      wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
       payToPublicKey :<|>
       submitTxn :<|>
       getTransactions
