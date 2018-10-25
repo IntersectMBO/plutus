@@ -64,7 +64,7 @@ test-suite plutus-use-cases-test
         containers -any,
         hedgehog -any,
         tasty -any,
-        tasty-hedgehog -any,
+        tasty-hedgehog >=0.2.0.0,
         text -any,
         wallet-api -any,
         plutus-use-cases,
@@ -72,3 +72,7 @@ test-suite plutus-use-cases-test
         microlens -any,
         core-to-plc -any,
         template-haskell -any
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances
+    -Wincomplete-uni-patterns -Wincomplete-record-updates
+    -Wredundant-constraints -Widentities

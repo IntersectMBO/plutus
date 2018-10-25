@@ -4,6 +4,7 @@ packages: language-plutus-core
           core-to-plc
           wallet-api
           plutus-th
+          plutus-use-cases
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
