@@ -59,7 +59,7 @@ data BuiltinName = AddInteger
 
 {- Note [sizeOfInteger]
 The 'sizeOfInteger' built-in is a later addition. The main motivation for adding it is that it
-allows to pass less singleton sizes around. However less boilerplate is not the only advantage,
+allows to pass fewer singleton sizes around. However less boilerplate is not the only advantage,
 'sizeOfInteger' also allows to treat built-in functions and user-defined ones similarly.
 Consider the 'addInteger' built-in: it has the following type signature (PLCish pseudocode):
 
