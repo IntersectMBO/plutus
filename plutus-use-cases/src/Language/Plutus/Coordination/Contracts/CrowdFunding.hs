@@ -9,9 +9,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Language.Plutus.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
@@ -137,7 +135,6 @@ contributionScript (CampaignPLC c)  = Validator val where
                         -- In case of a refund, we can only collect the funds that
                         -- were committed by this contributor
                     in refundable
-                _ -> False
         in
         if isValid then () else Builtins.error ()) |])
 
