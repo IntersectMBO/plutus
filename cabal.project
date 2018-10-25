@@ -11,9 +11,12 @@ constraints: language-plutus-core +development
            , core-to-plc +development
            , plutus-exe +development
            , plutus-core-interpreter +development
-tests: true
-benchmarks: true
-documentation: true
+-- tests: true
+-- benchmarks: true
+-- documentation: true
+
+allow-boot-library-installs:
+    true
 
 allow-newer:
     cborg:containers
