@@ -35,7 +35,9 @@ data BuiltinName = AddInteger
                  | SubtractInteger
                  | MultiplyInteger
                  | DivideInteger
+                 | QuotientInteger
                  | RemainderInteger
+                 | ModInteger
                  | LessThanInteger
                  | LessThanEqInteger
                  | GreaterThanInteger
@@ -193,6 +195,8 @@ instance Pretty BuiltinName where
     pretty SubtractInteger      = "subtractInteger"
     pretty MultiplyInteger      = "multiplyInteger"
     pretty DivideInteger        = "divideInteger"
+    pretty QuotientInteger      = "quotientInteger"
+    pretty ModInteger           = "modInteger"
     pretty RemainderInteger     = "remainderInteger"
     pretty LessThanInteger      = "lessThanInteger"
     pretty LessThanEqInteger    = "lessThanEqualsInteger"

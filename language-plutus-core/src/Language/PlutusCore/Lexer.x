@@ -74,6 +74,8 @@ tokens :-
     <0> subtractInteger          { mkBuiltin SubtractInteger }
     <0> multiplyInteger          { mkBuiltin MultiplyInteger}
     <0> divideInteger            { mkBuiltin DivideInteger }
+    <0> quotientInteger          { mkBuiltin QuotientInteger }
+    <0> modInteger               { mkBuiltin ModInteger }
     <0> remainderInteger         { mkBuiltin RemainderInteger }
     <0> lessThanInteger          { mkBuiltin LessThanInteger }
     <0> lessThanEqualsInteger    { mkBuiltin LessThanEqInteger }
