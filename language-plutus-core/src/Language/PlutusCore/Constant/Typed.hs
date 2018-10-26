@@ -414,7 +414,7 @@ typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Intege
 typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
 
 typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedModInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
+typedModInteger = TypedBuiltinName ModInteger sizeIntIntInt
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
