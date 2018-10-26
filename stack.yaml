@@ -6,6 +6,7 @@ packages:
 - plutus-core-interpreter
 - plutus-exe
 - core-to-plc
+- plutus-ir
 - plutus-th
 - plutus-use-cases
 - wallet-api
