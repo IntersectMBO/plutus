@@ -21,6 +21,8 @@ test_applyBuiltinNameSuccess =
         , test_typedSubtractIntegerSuccess
         , test_typedMultiplyIntegerSuccess
         , test_typedDivideIntegerSuccess
+        , test_typedQuotientIntegerSuccess
+        , test_typedModIntegerSuccess
         , test_typedRemainderIntegerSuccess
         , test_typedLessThanIntegerSuccess
         , test_typedLessThanEqIntegerSuccess
@@ -59,10 +61,22 @@ test_typedDivideIntegerSuccess
     $ prop_applyBuiltinNameSuccess typedDivideInteger div
     $ genTypedBuiltinDiv
 
+test_typedQuotientIntegerSuccess :: TestTree
+test_typedQuotientIntegerSuccess =
+    testProperty "typedQuotientInteger"
+    $ prop_applyBuiltinNameSuccess typedQuotientInteger quot
+    $ genTypedBuiltinDiv
+
+test_typedModIntegerSuccess :: TestTree
+test_typedModIntegerSuccess
+    = testProperty "typedModInteger"
+    $ prop_applyBuiltinNameSuccess typedModInteger mod
+    $ genTypedBuiltinDiv
+
 test_typedRemainderIntegerSuccess :: TestTree
 test_typedRemainderIntegerSuccess
     = testProperty "typedRemainderInteger"
-    $ prop_applyBuiltinNameSuccess typedRemainderInteger mod
+    $ prop_applyBuiltinNameSuccess typedRemainderInteger rem
     $ genTypedBuiltinDiv
 
 test_typedLessThanIntegerSuccess :: TestTree

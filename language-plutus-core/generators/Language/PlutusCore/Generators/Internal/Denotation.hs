@@ -111,4 +111,4 @@ typedBuiltinNames = thread
 --     , insertTypedBuiltinName typedBlockNum             undefined
 --     , insertTypedBuiltinName typedSizeOfInteger        sizeOfInteger
     ]
-    $ DenotationContext DMap.empty
+    $ DenotationContext mempty
