@@ -29,12 +29,8 @@ Datatype D      := (datatype
                       TVD   # the type variable for the datatype
                       TVD.. # the argument type variables of the datatype
                       x     # the name of the destructor function
-                      C..   # the constructors of the datatype
+                      VD..  # the constructors of the datatype
                    )
-Constructor C   := (con
-                       x  # the name of the constructor
-                       T  # the type of the constructor
-                    )
 ```
 
 Here is an example, constructing `[1]`:
@@ -46,11 +42,11 @@ Here is an example, constructing `[1]`:
             (tyvardecl List (fun (type) (type)))
             (tyvardecl a (type))
             match_List
-            (con
+            (vardecl
                 Nil
                 [List a]
             )
-            (con
+            (vardecl
                 Cons
                 (fun a [List a])
             )
@@ -72,11 +68,11 @@ Another, implementing `fromMaybe`:
             (tyvardecl Maybe (fun (type) (type)))
             (tyvardecl a (type))
             match_Maybe
-            (con
+            (vardecl
                 Nothing
                 [Maybe a]
             )
-            (con
+            (vardecl
                 Just
                 (fun a [Maybe a])
             )
