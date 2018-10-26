@@ -48,8 +48,8 @@ module Wallet.Emulator.Types(
     MonadEmulator,
     validateEm,
     liftEmulatedWallet,
-    eval,
-    process
+    evalEmulated,
+    processEmulated
     ) where
 
 import           Control.Monad.Except
@@ -213,7 +213,7 @@ data Event n a where
 
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
-type Trace = Op.Program (Event EmulatedWalletApi)
+type Trace m = Op.Program (Event m)
 
 data EmulatorState = EmulatorState {
     emChain          :: Blockchain,
@@ -284,8 +284,8 @@ liftEmulatedWallet wallet act = do
         }
     pure (txns, out)
 
-eval :: (MonadEmulator m) => Event EmulatedWalletApi a -> m a
-eval = \case
+evalEmulated :: (MonadEmulator m) => Event EmulatedWalletApi a -> m a
+evalEmulated = \case
     WalletAction wallet action -> fst <$> liftEmulatedWallet wallet action
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
     BlockchainActions -> do
@@ -302,50 +302,50 @@ eval = \case
     Assertion a -> assert a
     SetValidationData d -> modify (set validationData d)
 
-process :: (MonadEmulator m) => Trace a -> m a
-process = interpretWithMonad eval
+processEmulated :: (MonadEmulator m) => Trace EmulatedWalletApi a -> m a
+processEmulated = interpretWithMonad evalEmulated
 
 -- | Interact with a wallet
-walletAction :: Wallet -> EmulatedWalletApi () -> Trace [Tx]
+walletAction :: Wallet -> m () -> Trace m [Tx]
 walletAction w = Op.singleton . WalletAction w
 
 -- | Notify a wallet of blockchain events
-walletRecvNotifications :: Wallet -> [Notification] -> Trace [Tx]
+walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]
 walletRecvNotifications w = Op.singleton . WalletRecvNotification w
 
 -- | Notify a wallet that a block has been validated
-walletNotifyBlock :: Wallet -> Block -> Trace [Tx]
+walletNotifyBlock :: Wallet -> Block -> Trace m [Tx]
 walletNotifyBlock w = walletRecvNotifications w . pure . BlockValidated
 
 -- | Notify a list of wallets that a block has been validated
-walletsNotifyBlock :: [Wallet] -> Block -> Trace [Tx]
+walletsNotifyBlock :: [Wallet] -> Block -> Trace m [Tx]
 walletsNotifyBlock wls b = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w b) [] wls
 
 -- | Validate all pending transactions
-blockchainActions :: Trace Block
+blockchainActions :: Trace m Block
 blockchainActions = Op.singleton BlockchainActions
 
 -- | Make an assertion about the emulator state
-assertion :: Assertion -> Trace ()
+assertion :: Assertion -> Trace m ()
 assertion = Op.singleton . Assertion
 
-assertOwnFundsEq :: Wallet -> Value -> Trace ()
+assertOwnFundsEq :: Wallet -> Value -> Trace m ()
 assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 
-assertIsValidated :: Tx -> Trace ()
+assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
 
 -- | Set the validation data (in PLC) used to validate transactions that consume
 --   output from Pay-To-Script addresses.
-setValidationData :: ValidationData -> Trace ()
+setValidationData :: ValidationData -> Trace m ()
 setValidationData = Op.singleton . SetValidationData
 
 -- | Run an emulator trace on a blockchain
-runTraceChain :: Blockchain -> Trace a -> (Either AssertionError a, EmulatorState)
-runTraceChain ch t = runState (runExceptT $ process t) emState where
+runTraceChain :: Blockchain -> Trace EmulatedWalletApi a -> (Either AssertionError a, EmulatorState)
+runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState ch
 
 -- | Run an emulator trace on an empty blockchain with a pool of pending transactions
-runTraceTxPool :: TxPool -> Trace a -> (Either AssertionError a, EmulatorState)
-runTraceTxPool tp t = runState (runExceptT $ process t) emState where
+runTraceTxPool :: TxPool -> Trace EmulatedWalletApi a -> (Either AssertionError a, EmulatorState)
+runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState' tp

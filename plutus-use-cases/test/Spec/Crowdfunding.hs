@@ -42,22 +42,22 @@ tests = testGroup "crowdfunding" [
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
-contrib :: DataScript -> Wallet -> CampaignPLC -> Runtime.Value -> Trace TxOutRef'
+contrib :: DataScript -> Wallet -> CampaignPLC -> Runtime.Value -> Trace EmulatedWalletApi TxOutRef'
 contrib ds w c v = exContrib <$> walletAction w (contribute c ds v) where
     exContrib = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
 
 -- | Make a contribution from wallet 2
-contrib2 :: CampaignPLC -> Runtime.Value -> Trace TxOutRef'
+contrib2 :: CampaignPLC -> Runtime.Value -> Trace EmulatedWalletApi TxOutRef'
 contrib2 = contrib ds (Wallet 2) where
     ds = DataScript $(plutus [| PubKey 2  |])
 
 -- | Make a contribution from wallet 3
-contrib3 :: CampaignPLC -> Runtime.Value -> Trace TxOutRef'
+contrib3 :: CampaignPLC -> Runtime.Value -> Trace EmulatedWalletApi TxOutRef'
 contrib3 = contrib ds (Wallet 3) where
     ds = DataScript $(plutus [| PubKey 3  |])
 
 -- | Collect the contributions of a crowdfunding campaign
-collect :: Wallet -> CampaignPLC -> [(TxOutRef', Wallet, UTXO.Value)] -> Trace [Tx]
+collect :: Wallet -> CampaignPLC -> [(TxOutRef', Wallet, UTXO.Value)] -> Trace EmulatedWalletApi [Tx]
 collect w c contributions = walletAction w $ CF.collect c ins where
     ins = first (PubKey . getWallet) <$> contributions
 
@@ -197,7 +197,7 @@ startingBalance = 1000
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkCFTrace :: CFScenario -> Trace () -> Property
+checkCFTrace :: CFScenario -> Trace EmulatedWalletApi () -> Property
 checkCFTrace CFScenario{cfInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = cfInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
@@ -205,6 +205,6 @@ checkCFTrace CFScenario{cfInitialBalances} t = property $ do
     Hedgehog.assert ([] == emTxPool st)
 
 -- | Validate all pending transactions and notify the wallets
-updateAll :: CFScenario -> Trace [Tx]
+updateAll :: CFScenario -> Trace EmulatedWalletApi [Tx]
 updateAll CFScenario{cfWallets} =
     blockchainActions >>= walletsNotifyBlock cfWallets
