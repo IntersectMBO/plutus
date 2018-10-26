@@ -99,7 +99,7 @@
         \texttt{sizeOfInteger}   &  \sig{s :: size}{integer_{s}}{size_{s}}                                   &   s          & s!i        & s\\
         %&&\\
 
-        \texttt{intToByteString}  &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{str_{s_1}}  &  s & z, s_0!i           & \text{the binary representation of $i$} &-2^{8s_1-1} \leq i < 2^{8s_1-1}\\
+        \texttt{intToByteString}  &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{str_{s_1}}  &  s_0, s_1  & z, s_0!i           & \text{the binary representation of $i$} &-2^{8s_1-1} \leq i < 2^{8s_1-1}\\
             &&&&\quad\text{$0$ padded to a}\\
             &&&&\quad\text{most-significant-bit-first}\\
             &&&&\quad\text{$s_1$-byte bytestring}\\
