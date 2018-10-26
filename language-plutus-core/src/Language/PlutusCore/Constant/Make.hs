@@ -3,16 +3,17 @@
 {-# LANGUAGE GADTs #-}
 
 module Language.PlutusCore.Constant.Make
-    ( toBoundsInt
+    ( builtinNameAsTerm
+    , dynamicBuiltinNameAsTerm
+    , toBoundsInt
     , checkBoundsInt
     , checkBoundsBS
-    , checkBoundsSize
     , sizeOfInteger
     , makeAutoSizedBuiltinInt
-    , makeDynamicBuiltinInt
+    , makeDynBuiltinInt
+    , makeDynBuiltinIntSizedAs
     , makeBuiltinInt
     , makeBuiltinBS
-    , makeBuiltinSize
     , makeSizedConstant
     , makeBuiltinBool
     , makeBuiltin
@@ -30,6 +31,14 @@ import           PlutusPrelude
 import qualified Data.ByteString.Lazy                 as BSL
 import           Data.Maybe
 
+-- | Lift a 'BuiltinName' to 'Term'.
+builtinNameAsTerm :: BuiltinName -> Term tyname name ()
+builtinNameAsTerm = Constant () . BuiltinName ()
+
+-- | Lift a 'DynamicBuiltinName' to 'Term'.
+dynamicBuiltinNameAsTerm :: DynamicBuiltinName -> Term tyname name ()
+dynamicBuiltinNameAsTerm = Constant () . DynBuiltinName ()
+
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)
 toBoundsInt s = (-2 ^ p, 2 ^ p) where
@@ -43,10 +52,6 @@ checkBoundsInt s i = low <= i && i < high where
 -- | Check whether the length of a 'ByteString' is less than or equal to a given 'Size'.
 checkBoundsBS :: Size -> BSL.ByteString -> Bool
 checkBoundsBS size bs = BSL.length bs <= fromIntegral size
-
--- | Check whether a 'Size' is a singleton.
-checkBoundsSize :: Size -> Size -> Bool
-checkBoundsSize = (==)
 
 -- | Compute the size of an 'Integer'. See also 'toBoundsInt'.
 sizeOfInteger :: Integer -> Size
@@ -67,7 +72,7 @@ we can't simply write @addInteger {s} i 1!1@, because @1!1@ is not of type @inte
 > addInteger {s} i (resizeInteger {1} {s} ss 1!1)
 
 Constructing such terms by hand is tedious and error-prone, therefore we define the
-'makeDynamicBuiltinInt' function, which computes the size of an @Integer@, constructs the
+'makeDynBuiltinInt' function, which computes the size of an @Integer@, constructs the
 corresponding built-in @integer@ and applies appropriately instantiated 'resizeInteger'
 to the result.
 
@@ -75,16 +80,26 @@ Same considerations apply to bytestrings.
 -}
 
 -- | Convert a Haskell 'Integer' to the corresponding PLC @integer@.
-makeDynamicBuiltinInt
+makeDynBuiltinInt
     :: Type tyname ()       -- ^ An actual size @s@.
     -> Term tyname name ()  -- ^ A singleton for @s@.
     -> Integer              -- ^ An 'Integer' to lift.
     -> Term tyname name ()
-makeDynamicBuiltinInt sTy sTerm intVal =
+makeDynBuiltinInt sTy sTerm intVal =
     mkIterApp (mkIterInst resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
         sizeOfIntVal = sizeOfInteger intVal
-        resizeInteger = Constant () $ BuiltinName () ResizeInteger
+        resizeInteger = builtinNameAsTerm ResizeInteger
         intTerm = Constant () $ BuiltinInt () sizeOfIntVal intVal
+
+-- | Convert a Haskell 'Integer' to the corresponding PLC @integer@,
+-- taking the size singleton from an already existing PLC @integer@.
+makeDynBuiltinIntSizedAs
+    :: Type tyname ()       -- ^ An actual size @s@.
+    -> Term tyname name ()  -- ^ An @integer@ to take the singleton size from.
+    -> Integer              -- ^ An 'Integer' to lift.
+    -> Term tyname name ()
+makeDynBuiltinIntSizedAs sTy intAs = makeDynBuiltinInt sTy sTerm where
+    sTerm = Apply () (TyInst () (builtinNameAsTerm SizeOfInteger) sTy) intAs
 
 -- | Check whether an 'Integer' is in bounds (see 'checkBoundsInt') and return it as a 'Constant'.
 makeBuiltinInt :: Size -> Integer -> Maybe (Constant ())
@@ -94,16 +109,12 @@ makeBuiltinInt size int = checkBoundsInt size int ? BuiltinInt () size int
 makeBuiltinBS :: Size -> BSL.ByteString -> Maybe (Constant ())
 makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 
--- | Check whether a 'Size' is a singleton and return it as a 'Constant'.
-makeBuiltinSize :: Size -> Size -> Maybe (Constant ())
-makeBuiltinSize size size' = checkBoundsSize size size' ? BuiltinSize () size
-
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
-makeSizedConstant size TypedBuiltinSizedInt  int   = makeBuiltinInt  size int
-makeSizedConstant size TypedBuiltinSizedBS   bs    = makeBuiltinBS   size bs
-makeSizedConstant size TypedBuiltinSizedSize size' = makeBuiltinSize size size'
+makeSizedConstant size TypedBuiltinSizedInt  int = makeBuiltinInt size int
+makeSizedConstant size TypedBuiltinSizedBS   bs  = makeBuiltinBS  size bs
+makeSizedConstant size TypedBuiltinSizedSize ()  = Just $ BuiltinSize () size
 
 -- | Convert a 'Bool' to the corresponding PLC's @boolean@.
 makeBuiltinBool :: Bool -> Quote (Value TyName Name ())

@@ -10,7 +10,7 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinNatToInteger
     ) where
 
-import           Language.PlutusCore.Constant             (makeDynamicBuiltinInt)
+import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -147,6 +147,6 @@ getBuiltinNatToInteger = rename =<< do
         $ mkIterApp (TyInst () foldNat $ TyApp () (TyBuiltin () TyInteger) sv)
           [ Apply ()
               (TyInst () addInteger (TyVar () s))
-              (makeDynamicBuiltinInt sv ssv 1)
-          , makeDynamicBuiltinInt sv ssv 0
+              (makeDynBuiltinInt sv ssv 1)
+          , makeDynBuiltinInt sv ssv 0
           ]

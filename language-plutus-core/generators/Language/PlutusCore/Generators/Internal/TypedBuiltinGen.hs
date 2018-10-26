@@ -107,7 +107,7 @@ updateTypedBuiltinGenBS genBytes =
 updateTypedBuiltinGenSize
     :: MonadQuote m
     => TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize return
+updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize (\_ -> return ())
 
 -- | Update a typed built-ins generator by overwriting the @boolean@s generator.
 updateTypedBuiltinGenBool

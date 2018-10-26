@@ -31,25 +31,24 @@ import qualified Hedgehog.Range                           as Range
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
--- > /\(s : size) -> \(ss : size s) (i : integer s) ->
---     product {s} ss (enumFromTo {s} ss (resizeInteger {1} {s} ss 1!1) i)
+-- > /\(s : size) -> \(i : integer s) ->
+--     let ss = sizeOfInteger {s} i in
+--         product {s} ss (enumFromTo {s} (resizeInteger {1} {s} ss 1!1) i)
 getBuiltinFactorial :: Quote (Term TyName Name ())
 getBuiltinFactorial = do
     product'    <- getBuiltinProduct
     enumFromTo' <- getBuiltinEnumFromTo
     s <- freshTyName () "s"
-    ss  <- freshName () "ss"
     i   <- freshName () "i"
     let int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
+        ss  = Apply () (TyInst () (builtinNameAsTerm SizeOfInteger) (TyVar () s)) (Var () i)
     return
         . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) $ TyVar () s)
         . LamAbs () i int
         . mkIterApp (TyInst () product' $ TyVar () s)
-        $ [ Var () ss
+        $ [ ss
           , mkIterApp (TyInst () enumFromTo' $ TyVar () s)
-                [ Var () ss
-                , makeDynamicBuiltinInt (TyVar () s) (Var () ss) 1
+                [ makeDynBuiltinInt (TyVar () s) ss 1
                 , Var () i
                 ]
           ]
@@ -58,10 +57,9 @@ getBuiltinFactorial = do
 -- This function exist, because we have another implementation via dynamic built-ins
 -- and want to compare it to the direct implementation from the above.
 applyFactorial :: Term TyName Name () -> Size -> Integer -> Term TyName Name ()
-applyFactorial factorial sizev iv = mkIterApp (TyInst () factorial size) [ssize, i] where
-    i     = Constant () $ BuiltinInt () sizev iv
-    size  = TyInt () sizev
-    ssize = Constant () $ BuiltinSize () sizev
+applyFactorial factorial sizev iv = Apply () (TyInst () factorial size) i where
+    i    = Constant () $ BuiltinInt () sizev iv
+    size = TyInt () sizev
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.

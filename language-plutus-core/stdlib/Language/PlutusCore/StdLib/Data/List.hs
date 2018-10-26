@@ -1,6 +1,7 @@
 -- | @list@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Data.List
     ( getBuiltinList
     , getBuiltinNil
@@ -12,7 +13,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinProduct
     ) where
 
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -162,15 +163,14 @@ getBuiltinFoldList = rename =<< do
 
 -- | 'enumFromTo' as a PLC term
 --
--- > /\(s :: size) -> \(ss : size s) -> (n m : integer s) ->
+-- > /\(s :: size) -> (n m : integer s) ->
 -- >     fix {integer s} {list (integer s)}
 -- >         (\(rec : integer s -> list (integer s)) (n' : integer s) ->
 -- >             ifThenElse {list (integer s)}
 -- >                 (greaterThanInteger {integer s} n' m)
 -- >                 (nil {integer s})
--- >                 (cons {integer s} n' (rec (addInteger {s} n' (resizeInteger {1} {s} ss 1!0))))
+-- >                 (cons {integer s} n' (rec (succInteger {s} n'))))
 -- >         n
--- TODO: remove the @ss@ once @sizeOfInteger@ lands.
 getBuiltinEnumFromTo :: Quote (Term TyName Name ())
 getBuiltinEnumFromTo = rename =<< do
     fix         <- getBuiltinFix
@@ -181,7 +181,6 @@ getBuiltinEnumFromTo = rename =<< do
     nil         <- getBuiltinNil
     cons        <- getBuiltinCons
     s <- freshTyName () "s"
-    ss  <- freshName () "ss"
     n   <- freshName () "n"
     m   <- freshName () "m"
     rec <- freshName () "rec"
@@ -193,7 +192,6 @@ getBuiltinEnumFromTo = rename =<< do
             holedToRecursive $ holedTyApp list int
     return
         . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) $ TyVar () s)
         . LamAbs () n int
         . LamAbs () m int
         . mkIterApp (mkIterInst fix [int, listInt])
@@ -207,11 +205,9 @@ getBuiltinEnumFromTo = rename =<< do
               , LamAbs () u unit $ TyInst () nil int
               , LamAbs () u unit $ mkIterApp (TyInst () cons int)
                     [ Var () n'
-                    ,   Apply () (Var () rec)
-                      . mkIterApp (TyInst () succInteger (TyVar () s))
-                      $ [ Var () ss
-                        , Var () n'
-                        ]
+                    ,    Apply () (Var () rec)
+                       . Apply () (TyInst () succInteger (TyVar () s))
+                       $ Var () n'
                     ]
               ]
           , Var () n
@@ -234,7 +230,7 @@ getBuiltinSum = rename =<< do
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp (mkIterInst foldList [int, int])
         $ [ add
-          , makeDynamicBuiltinInt sv (Var () ss) 0
+          , makeDynBuiltinInt sv (Var () ss) 0
           ]
 
 -- |  'product' as a PLC term.
@@ -254,5 +250,5 @@ getBuiltinProduct = rename =<< do
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp (mkIterInst foldList [int, int])
         $ [ mul
-          , makeDynamicBuiltinInt sv (Var () ss) 1
+          , makeDynBuiltinInt sv (Var () ss) 1
           ]
