@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.Plutus.TH (plutus, plutusT, PlcCode, getSerializedCode, getAst, applyPlc) where
+module Language.Plutus.TH (PlcCode, getSerializedCode, getAst, applyPlc) where
 
-import           Language.Plutus.CoreToPLC.Plugin
+import           Language.Plutus.CoreToPLC.Plugin (PlcCode,plc, getAst, applyPlc, getSerializedCode)
 
-import           Language.Haskell.TH
+import           Language.Haskell.TH (Q,TExp,Exp)
 
 -- | Covert a quoted Haskell expression into a corresponding Plutus Core program. Produces an expression of type
 -- 'PlcCode'.

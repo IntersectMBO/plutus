@@ -5,6 +5,7 @@ packages:
 - language-plutus-core
 - plutus-core-interpreter
 - plutus-exe
+- do-nothing
 - core-to-plc
 - plutus-th
 - plutus-use-cases

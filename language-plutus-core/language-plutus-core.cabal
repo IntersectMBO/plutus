@@ -99,6 +99,7 @@ library
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        criterion -any,
         array -any,
         mtl -any,
         transformers -any,

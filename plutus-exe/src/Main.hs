@@ -1,5 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fplugin=DoNothing.Plugin #-}
 module Main (main) where
+
 
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC

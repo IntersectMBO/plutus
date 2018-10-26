@@ -29,8 +29,12 @@ executable plc
     default-language: Haskell2010
     ghc-options: -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
+                 -fplugin=DoNothing.Plugin
+                 -ddump-if-trace
     build-depends:
         base <5,
+        ghc -any,
+        do-nothing -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         bytestring -any,

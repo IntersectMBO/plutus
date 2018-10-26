@@ -24,12 +24,16 @@ flag development
     manual: True
 
 library
-    exposed-modules:
+    hs-source-dirs: src
+    if impl(ghcjs)
+      exposed-modules:
+      other-modules:
+    else
+      exposed-modules:
         Language.Plutus.CoreToPLC.Plugin
         Language.Plutus.CoreToPLC.Error
         Language.Plutus.CoreToPLC.Primitives
-    hs-source-dirs: src
-    other-modules:
+      other-modules:
         Language.Plutus.CoreToPLC
         Language.Plutus.CoreToPLC.Builtins
         Language.Plutus.CoreToPLC.Laziness

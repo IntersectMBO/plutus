@@ -1,7 +1,6 @@
 { system ? builtins.currentSystem
 , nixpkgs ? import ./overrideableFetchNixPkgs.nix
 , config ? {}
-, isGhcjs
 }:
 
 let
@@ -15,10 +14,8 @@ let
   };
   pkgs = import nixpkgs { inherit system config; overlays = [ jemallocOverlay ]; };
 in
-with pkgs.lib;
-with pkgs.haskell.lib;
 let
-  doHaddockHydra = drv: overrideCabal drv (attrs: {
+  doHaddockHydra = drv: pkgs.haskell.lib.overrideCabal drv (attrs: {
     doHaddock = true;
     postInstall = ''
       ${attrs.postInstall or ""}
@@ -28,10 +25,10 @@ let
       echo "report ${attrs.pname}-docs.html $doc/share/doc index.html" >> $doc/nix-support/hydra-build-products
     '';
   });
-  addPatches = drv: patches: overrideCabal drv (attrs: {
+  addPatches = drv: patches: pkgs.haskell.lib.overrideCabal drv (attrs: {
     inherit patches;
   });
-  addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
+  addRealTimeTestLogs = drv: pkgs.haskell.lib.overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
   filterSource = drv: drv.overrideAttrs (attrs : {
@@ -52,23 +49,59 @@ let
       (type == "symlink" && lib.hasPrefix "result" baseName) ||
       (type == "directory" && baseName == ".stack-work")
     );
-  plutusPkgs = (import ./pkgs {
+  plutusPkgs2 = (import ./pkgs {
     inherit pkgs;
-    compiler = if isGhcjs
-                 then pkgs.haskell.packages.ghcjs
-                 else pkgs.haskell.packages.ghc843;
+    compiler = pkgs.haskell.packages.ghc843;
   }).override {
     overrides = self: super: ({
       plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
-      language-plutus-core = appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
+      language-plutus-core = pkgs.haskell.lib.appendConfigureFlag (pkgs.haskell.lib.doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
       plutus-core-interpreter = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter));
       plutus-exe = addRealTimeTestLogs (filterSource super.plutus-exe);
       core-to-plc = doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc));
       plutus-th = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th));
       plutus-use-cases = addRealTimeTestLogs (filterSource super.plutus-use-cases);
       wallet-api = doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api));
-    } // (if !isGhcjs then {} else {
+      mtl = null;
+      text = null;
+      stm_2_4_5_1 = self.callPackage
+        ({
+          mkDerivation
+        , array
+        , base
+        , stdenv
+        }:
+        self.mkDerivation {
+          pname = "stm";
+          version = "2.4.5.1";
+          sha256 = "6cf0c280062736c9980ba1c2316587648b8e9d4e4ecc5aed16a41979c0a3a3f4";
+          libraryHaskellDepends = [ array base ];
+          doHaddock = false;
+          doCheck = false;
+          homepage = "https://wiki.haskell.org/Software_transactional_memory";
+          description = "Software Transactional Memory";
+          license = stdenv.lib.licenses.bsd3;
+        }) {};
+    });
+  };
+
+  plutusPkgs = (import ./pkgs {
+    inherit pkgs;
+    compiler = pkgs.haskell.packages.ghcjs84;
+  }).override {
+    overrides = self: super: ({
+      plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
+      # we want to enable benchmarking, which also means we have criterion in the corresponding env
+      language-plutus-core = pkgs.haskell.lib.appendConfigureFlag (pkgs.haskell.lib.doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks";
+      plutus-core-interpreter = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter));
+      plutus-exe = addRealTimeTestLogs (filterSource super.plutus-exe);
+      plutus-th = doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th));
+      plutus-use-cases = addRealTimeTestLogs (filterSource super.plutus-use-cases);
+      wallet-api = doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api));
+      mtl = null;
+      text = null;
+    } // ({
       cborg = addPatches super.cborg [ pkgs/cborg.patch ];
       stm_2_4_5_1 = self.callPackage
         ({
@@ -97,7 +130,7 @@ let
       shellcheck = pkgs.callPackage ./tests/shellcheck.nix { inherit src; };
       hlint = pkgs.callPackage ./tests/hlint.nix { inherit src; };
       stylishHaskell = pkgs.callPackage ./tests/stylish.nix {
-        inherit (plutusPkgs) stylish-haskell;
+        inherit (plutusPkgs2) stylish-haskell;
         inherit src;
       };
     };
