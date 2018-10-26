@@ -33,18 +33,15 @@ dynamicFactorialMeaning :: DynamicBuiltinNameMeaning
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac where
     sch =
         TypeSchemeAllSize $ \s ->
-            -- This argument is only for making the type signatures of the dynamic factorial and
-            -- the defined in PLC factorial match. TODO: remove once @sizeOfInteger@ lands.
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)  `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
-    fac _size n = product [1..n]
+    fac n = product [1..n]
 
 dynamicFactorialDefinition :: DynamicBuiltinNameDefinition
 dynamicFactorialDefinition = DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
 
 dynamicFactorial :: Term tyname name ()
-dynamicFactorial = Constant () $ DynBuiltinName () dynamicFactorialName
+dynamicFactorial = dynamicBuiltinNameAsTerm dynamicFactorialName
 
 -- | Check that the dynamic factorial defined above computes to the same thing as
 -- a factorial defined in PLC itself.

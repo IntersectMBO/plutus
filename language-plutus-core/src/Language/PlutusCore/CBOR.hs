@@ -52,6 +52,7 @@ instance Serialise BuiltinName where
                 EqByteString         -> 19
                 TxHash               -> 20
                 BlockNum             -> 21
+                SizeOfInteger        -> 22
         in encodeTag i
 
     decode = go =<< decodeTag
@@ -77,6 +78,7 @@ instance Serialise BuiltinName where
               go 19 = pure EqByteString
               go 20 = pure TxHash
               go 21 = pure BlockNum
+              go 22 = pure SizeOfInteger
               go _  = fail "Failed to decode BuiltinName"
 
 instance Serialise Unique where

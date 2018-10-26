@@ -93,6 +93,7 @@ tokens :-
     <0> equalsByteString         { mkBuiltin EqByteString }
     <0> txhash                   { mkBuiltin TxHash }
     <0> blocknum                 { mkBuiltin BlockNum }
+    <0> sizeOfInteger            { mkBuiltin SizeOfInteger }
 
     -- Various special characters
     <0> "("                      { mkSpecial OpenParen }
