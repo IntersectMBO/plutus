@@ -37,6 +37,10 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
     → (p : Q ≡ E [ μ S ]E)
       ----------------
     → Value (wrap S E M p)
+
+  V-con : ∀{Γ}{s : ∥ Γ ∥ ⊢⋆ #}{tcn : TyCon}
+    → (cn : TermCon (con tcn s))
+    → Value (con {Γ} cn)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -125,6 +129,10 @@ lemmaΠ : ∀{K}{B : ∅ ,⋆ K ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt �
 lemmaΠ {E = •}      ()
 lemmaΠ {E = E ·E A} ()
 
+lemmacon : ∀{tcn : TyCon}{s : ∅ ⊢⋆ #}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → con tcn s ≡ E [ μ C ]E → ⊥
+lemmacon {E = •}      ()
+lemmacon {E = E ·E x} ()
+
 lemma·Dom : ∀{J J' K}
   {F  : ∅ ⊢⋆ (J ⇒ K)}
   {F' : ∅ ⊢⋆ (J' ⇒ K)}
@@ -160,7 +168,6 @@ lemmaE {A = A}{A' = A'} {E ·E x₁} {E' ·E x₂} x | refl =
   cong₂ _·E_ (lemmaE {Q = E [ μ A ]E}{A' = A'}{E = E}{E'} (lemmaQ' x)) (lemmaQ'' x)
 \end{code}
 
-
 \begin{code}
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progress (` ())
@@ -188,9 +195,12 @@ progress (unwrap E p .(ƛ _)) | done V-ƛ with lemma⇒ p
 ... | ()
 progress (unwrap E p .(Λ _)) | done V-Λ_ with lemmaΠ p
 ... | ()
+progress (unwrap E p .(con cn)) | done (V-con cn) with lemmacon p
+... | ()
 progress (unwrap E p .(wrap _ _ _ q)) | done (V-wrap {M = M} q) with lemmaQ q p
 progress (unwrap E refl .(wrap _ E' M q)) | done (V-wrap {S = A}{E = E'} {M} q) | refl with lemmaE {Q = E [ μ A ]E}{A' = A} q
 progress (unwrap E refl .(wrap _ E M refl)) | done (V-wrap {S = _} {.E} {M} refl) | refl | refl = step (β-wrap refl)
 progress (unwrap E p M) | unhandled-conversion = unhandled-conversion
 progress (conv p t) = unhandled-conversion
+progress (con cn)   = done (V-con cn)
 \end{code}

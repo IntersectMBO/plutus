@@ -10,6 +10,8 @@ open import Type.RenamingSubstitution
 open import Type.Equality
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Agda.Builtin.Int
+open import Data.Empty
 \end{code}
 
 ## Fixity declarations
@@ -87,6 +89,15 @@ data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 \end{code}
 Let `x`, `y` range over variables.
 
+## Term Constants
+
+\begin{code}
+data TermCon {Φ} : Φ ⊢⋆ * → Set where
+  integer    : ∀ s → Int → TermCon (con integer s)
+  bytestring : ∀ s → ⊥ → TermCon (con integer s)
+  size       : ∀ s → TermCon (con size s) 
+\end{code}
+
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
@@ -144,4 +155,9 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
     → Γ ⊢ A
       -----
     → Γ ⊢ B
+
+  con : ∀{Γ s tcn}
+    → TermCon (con tcn s)
+      -------------------
+    → Γ ⊢ con tcn s
 \end{code}

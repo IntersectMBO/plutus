@@ -69,6 +69,16 @@ substE[] σ (E ·E u) t = cong (_· _) (substE[] σ E t)
 \end{code}
 
 \begin{code}
+renameTermCon : ∀ {Φ Ψ}
+  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+    ------------------------
+  → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.rename ρ⋆ A ))
+renameTermCon ρ⋆ (integer s i)    = integer (⋆.rename ρ⋆ s) i
+renameTermCon ρ⋆ (bytestring s b) = bytestring (⋆.rename ρ⋆ s) b
+renameTermCon ρ⋆ (size s)         = size (⋆.rename ρ⋆ s)
+\end{code}
+
+\begin{code}
 rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ⋆ A)
@@ -112,6 +122,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = A} E refl M) =
                            (renameE[] ρ⋆ E (μ A))
                            (rename ρ⋆ ρ M)))
 rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
+rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
 \end{code}
 
 \begin{code}
@@ -167,7 +178,17 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
+substTermCon : ∀ {Φ Ψ}
+  → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+    ------------------------
+  → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.subst σ⋆ A ))
+substTermCon σ⋆ (integer s i)    = integer (⋆.subst σ⋆ s) i
+substTermCon σ⋆ (bytestring s b) = bytestring (⋆.subst σ⋆ s) b
+substTermCon σ⋆ (size s)         = size (⋆.subst σ⋆ s)
+\end{code}
 
+
+\begin{code}
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -213,6 +234,7 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E refl M) =
                            (substE[] σ⋆ E (μ A))
                            (subst σ⋆ σ M)))
 subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
+subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
 \end{code}
 
 \begin{code}
