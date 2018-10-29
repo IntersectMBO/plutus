@@ -1,0 +1,379 @@
+[
+  (lam
+    arg
+    (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+    [
+      (lam
+        tuple
+        (all r (type) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) r)))
+        [
+          (lam
+            even
+            (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+            [
+              (lam
+                odd
+                (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                [ even arg ]
+              )
+              [
+                (lam
+                  tuple
+                  (all r (type) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) r)))
+                  [
+                    {
+                      tuple
+                      (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                    }
+                    (lam
+                      arg0
+                      (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                      (lam
+                        arg1
+                        (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                        arg1
+                      )
+                    )
+                  ]
+                )
+                tuple
+              ]
+            ]
+          )
+          [
+            (lam
+              tuple
+              (all r (type) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) r)))
+              [
+                {
+                  tuple
+                  (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                }
+                (lam
+                  arg0
+                  (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                  (lam
+                    arg1
+                    (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                    arg0
+                  )
+                )
+              ]
+            )
+            tuple
+          ]
+        ]
+      )
+      [
+        {
+          {
+            {
+              {
+                (abs
+                  a
+                  (type)
+                  (abs
+                    b
+                    (type)
+                    (abs
+                      a
+                      (type)
+                      (abs
+                        b
+                        (type)
+                        [
+                          {
+                            (abs
+                              F
+                              (fun (type) (type))
+                              (lam
+                                by
+                                (fun (all Q (type) (fun [F Q] Q)) (all Q (type) (fun [F Q] Q)))
+                                [
+                                  {
+                                    {
+                                      (abs
+                                        a
+                                        (type)
+                                        (abs
+                                          b
+                                          (type)
+                                          (lam
+                                            f
+                                            (fun (fun a b) (fun a b))
+                                            [
+                                              {
+                                                (abs
+                                                  a
+                                                  (type)
+                                                  (lam
+                                                    s
+                                                    [(lam a (type) (fix self (fun self a))) a]
+                                                    [ (unwrap s) s ]
+                                                  )
+                                                )
+                                                (fun a b)
+                                              }
+                                              (wrap
+                                                self
+                                                [(lam a (type) (fun self a)) (fun a b)]
+                                                (lam
+                                                  s
+                                                  [(lam a (type) (fix self (fun self a))) (fun a b)]
+                                                  (lam
+                                                    x
+                                                    a
+                                                    [
+                                                      [
+                                                        f
+                                                        [
+                                                          {
+                                                            (abs
+                                                              a
+                                                              (type)
+                                                              (lam
+                                                                s
+                                                                [(lam a (type) (fix self (fun self a))) a]
+                                                                [ (unwrap s) s ]
+                                                              )
+                                                            )
+                                                            (fun a b)
+                                                          }
+                                                          s
+                                                        ]
+                                                      ]
+                                                      x
+                                                    ]
+                                                  )
+                                                )
+                                              )
+                                            ]
+                                          )
+                                        )
+                                      )
+                                      (all Q (type) (fun [F Q] [F Q]))
+                                    }
+                                    (all Q (type) (fun [F Q] Q))
+                                  }
+                                  (lam
+                                    rec
+                                    (fun (all Q (type) (fun [F Q] [F Q])) (all Q (type) (fun [F Q] Q)))
+                                    (lam
+                                      h
+                                      (all Q (type) (fun [F Q] [F Q]))
+                                      (abs
+                                        R
+                                        (type)
+                                        (lam
+                                          fr
+                                          [F R]
+                                          [
+                                            {
+                                              [
+                                                by
+                                                (abs
+                                                  Q
+                                                  (type)
+                                                  (lam
+                                                    fq
+                                                    [F Q]
+                                                    [
+                                                      { [ rec h ] Q }
+                                                      [ { h Q } fq ]
+                                                    ]
+                                                  )
+                                                )
+                                              ]
+                                              R
+                                            }
+                                            fr
+                                          ]
+                                        )
+                                      )
+                                    )
+                                  )
+                                ]
+                              )
+                            )
+                            (lam X (type) (fun (fun a b) (fun (fun a b) X)))
+                          }
+                          (lam
+                            k
+                            (all Q (type) (fun (fun (fun a b) (fun (fun a b) Q)) Q))
+                            (abs
+                              S
+                              (type)
+                              (lam
+                                h
+                                (fun (fun a b) (fun (fun a b) S))
+                                [
+                                  [
+                                    h
+                                    (lam
+                                      x
+                                      a
+                                      [
+                                        { k b }
+                                        (lam
+                                          f (fun a b) (lam f (fun a b) [ f x ])
+                                        )
+                                      ]
+                                    )
+                                  ]
+                                  (lam
+                                    x
+                                    a
+                                    [
+                                      { k b }
+                                      (lam f (fun a b) (lam f (fun a b) [ f x ])
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        ]
+                      )
+                    )
+                  )
+                )
+                (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+              }
+              (all a (type) (fun a (fun a a)))
+            }
+            (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+          }
+          (all a (type) (fun a (fun a a)))
+        }
+        (abs
+          Q
+          (type)
+          (lam
+            choose
+            (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) (fun (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a)))) Q))
+            (lam
+              even
+              (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+              (lam
+                odd
+                (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+                [
+                  [
+                    choose
+                    (lam
+                      n
+                      (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+                      [
+                        [
+                          { (unwrap n) (all a (type) (fun a (fun a a))) }
+                          (abs a (type) (lam x a (lam y a x)))
+                        ]
+                        odd
+                      ]
+                    )
+                  ]
+                  (lam
+                    n
+                    (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+                    [
+                      [
+                        { (unwrap n) (all a (type) (fun a (fun a a))) }
+                        (abs a (type) (lam x a (lam y a y)))
+                      ]
+                      even
+                    ]
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    ]
+  )
+  [
+    (lam
+      n
+      (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+      (wrap
+        nat
+        (all r (type) (fun r (fun (fun nat r) r)))
+        (abs
+          r
+          (type)
+          (lam
+            z
+            r
+            (lam
+              f
+              (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+              [ f n ]
+            )
+          )
+        )
+      )
+    )
+    [
+      (lam
+        n
+        (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+        (wrap
+          nat
+          (all r (type) (fun r (fun (fun nat r) r)))
+          (abs
+            r
+            (type)
+            (lam
+              z
+              r
+              (lam
+                f
+                (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+                [ f n ]
+              )
+            )
+          )
+        )
+      )
+      [
+        (lam
+          n
+          (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+          (wrap
+            nat
+            (all r (type) (fun r (fun (fun nat r) r)))
+            (abs
+              r
+              (type)
+              (lam
+                z
+                r
+                (lam
+                  f
+                  (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+                  [ f n ]
+                )
+              )
+            )
+          )
+        )
+        (wrap
+          nat
+          (all r (type) (fun r (fun (fun nat r) r)))
+          (abs
+            r
+            (type)
+            (lam
+              z
+              r
+              (lam
+                f (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r) z
+              )
+            )
+          )
+        )
+      ]
+    ]
+  ]
+]
