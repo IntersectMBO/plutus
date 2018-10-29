@@ -1,0 +1,33 @@
+{
+  "scripts": {
+    "webpack": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production",
+    "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
+    "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
+    "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
+    "purs:compile": "purs compile 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs'",
+    "purs:bundle": "purs bundle output/**/*.js",
+    "start": "node bundle.js"
+  },
+  "devDependencies": {
+    "bower": "^1.8.4",
+    "pulp": "^12.3.0",
+    "purescript-psa": "^0.7.2",
+    "purs-loader": "^3.2.0",
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.1.5"
+  },
+  "dependencies": {
+    "bootstrap": "^4.1.3",
+    "brace": "^0.11.1",
+    "css-loader": "^1.0.0",
+    "font-awesome": "^4.7.0",
+    "font-awesome-webpack": "^0.0.5-beta.2",
+    "jquery": "^3.3.1",
+    "less": "^3.8.1",
+    "less-loader": "^4.1.0",
+    "popper.js": "^1.14.4",
+    "style-loader": "^0.23.1"
+  },
+  "license": "UNLICENSED"
+}

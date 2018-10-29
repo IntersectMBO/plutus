@@ -1,0 +1,27 @@
+{
+  "name": "plutus-playground-client",
+  "description": "",
+  "main": "",
+  "authors": [
+    "Kris Jenkins <kris.jenkins@tweag.io>"
+  ],
+  "license": "UNLICENSED",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^4.1.0",
+    "purescript-aff": "^5.0.2",
+    "purescript-console": "^4.1.0",
+    "purescript-ace": "^6.0.0",
+    "purescript-halogen": "^4.0.0",
+    "purescript-coroutines": "^5.0.0",
+    "purescript-debug": "^4.0.0"
+  }
+}

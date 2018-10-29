@@ -1,0 +1,63 @@
+name:                plutus-playground-server
+version:             0.1.0.0
+github:              "iohk/plutus-playground"
+license:             BSD3
+author:              "Kris Jenkins"
+maintainer:          "kris.jenkins@tweag.io"
+copyright:           "2018 IOHK"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+description:         Please see the README on GitHub at <https://github.com/githubuser/plutus-playground#readme>
+
+dependencies:
+- QuickCheck
+- aeson
+- base >= 4.7 && < 5
+- containers
+- data-default-class
+- gitrev
+- hspec
+- http-types
+- monad-logger
+- mtl
+- network
+- purescript-bridge
+- servant
+- servant-foreign
+- servant-options
+- servant-server
+- text
+- transformers
+- wai
+- wai-cors
+- wai-extra
+- warp
+
+library:
+  source-dirs: src
+
+executables:
+  plutus-playground-server:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - plutus-playground-server
+    - optparse-applicative
+
+tests:
+  plutus-playground-server-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - plutus-playground-server
