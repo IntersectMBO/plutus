@@ -2,6 +2,7 @@
 
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
+
 module Language.PlutusCore.Generators.Internal.Utils
     ( liftT
     , hoistSupply
@@ -12,9 +13,11 @@ module Language.PlutusCore.Generators.Internal.Utils
     , forAllPrettyT
     , forAllPrettyPlc
     , forAllPrettyPlcT
+    , runQuoteSampleSucceed
     ) where
 
 import           Language.PlutusCore.Pretty (PrettyPlc, prettyPlcDefString)
+import           Language.PlutusCore.Quote  (Quote, runQuote)
 import           PlutusPrelude              hiding (hoist)
 
 import           Control.Monad.Morph
@@ -63,3 +66,7 @@ forAllPrettyPlc = forAllWith prettyPlcDefString
 -- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyPlcT :: (Monad m, PrettyPlc a) => GenT m a -> PropertyT m a
 forAllPrettyPlcT = forAllWithT prettyPlcDefString
+
+-- | Run a generator until it succeeds with a 'Just'.
+runQuoteSampleSucceed :: GenT Quote (Maybe a) -> IO a
+runQuoteSampleSucceed = Gen.sample . Gen.just . hoist (pure . runQuote)
