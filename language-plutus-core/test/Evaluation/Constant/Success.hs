@@ -9,8 +9,6 @@ import           PlutusPrelude
 import           Evaluation.Constant.Apply
 
 import qualified Data.ByteString.Lazy           as BSL
-import qualified Hedgehog.Gen                   as Gen
-import qualified Hedgehog.Range                 as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -51,33 +49,31 @@ test_typedMultiplyIntegerSuccess :: TestTree
 test_typedMultiplyIntegerSuccess
     = testProperty "typedMultiplyInteger"
     $ prop_applyBuiltinNameSuccess typedMultiplyInteger (*)
-    $ updateTypedBuiltinGenInt
-          (\low high -> Gen.integral $ Range.linear (negate . isqrt . abs $ low) (isqrt high))
-    $ genTypedBuiltinDef
+    $ genTypedBuiltinMultiply
 
 test_typedDivideIntegerSuccess :: TestTree
 test_typedDivideIntegerSuccess
     = testProperty "typedDivideInteger"
     $ prop_applyBuiltinNameSuccess typedDivideInteger div
-    $ genTypedBuiltinDiv
+    $ genTypedBuiltinDivide
 
 test_typedQuotientIntegerSuccess :: TestTree
 test_typedQuotientIntegerSuccess =
     testProperty "typedQuotientInteger"
     $ prop_applyBuiltinNameSuccess typedQuotientInteger quot
-    $ genTypedBuiltinDiv
+    $ genTypedBuiltinDivide
 
 test_typedModIntegerSuccess :: TestTree
 test_typedModIntegerSuccess
     = testProperty "typedModInteger"
     $ prop_applyBuiltinNameSuccess typedModInteger mod
-    $ genTypedBuiltinDiv
+    $ genTypedBuiltinDivide
 
 test_typedRemainderIntegerSuccess :: TestTree
 test_typedRemainderIntegerSuccess
     = testProperty "typedRemainderInteger"
     $ prop_applyBuiltinNameSuccess typedRemainderInteger rem
-    $ genTypedBuiltinDiv
+    $ genTypedBuiltinDivide
 
 test_typedLessThanIntegerSuccess :: TestTree
 test_typedLessThanIntegerSuccess
@@ -113,9 +109,7 @@ test_typedConcatenateSuccess :: TestTree
 test_typedConcatenateSuccess
     = testProperty "typedConcatenate"
     $ prop_applyBuiltinNameSuccess typedConcatenate (<>)
-    $ updateTypedBuiltinGenBS
-          (\high -> genLowerBytes $ Range.linear 0 (high `div` 2))
-    $ genTypedBuiltinDef
+    $ genTypedBuiltinConcatenate
 
 test_typedTakeByteStringSuccess :: TestTree
 test_typedTakeByteStringSuccess

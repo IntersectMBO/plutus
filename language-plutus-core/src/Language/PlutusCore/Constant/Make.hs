@@ -6,10 +6,13 @@ module Language.PlutusCore.Constant.Make
     ( builtinNameAsTerm
     , dynamicBuiltinNameAsTerm
     , toBoundsInt
+    , toInclusiveBoundsInt
     , checkBoundsInt
     , checkBoundsBS
     , sizeOfInteger
+    , sizeOfByteString
     , makeAutoSizedBuiltinInt
+    , makeAutoSizedBuiltinBS
     , makeDynBuiltinInt
     , makeDynBuiltinIntSizedAs
     , makeBuiltinInt
@@ -44,9 +47,13 @@ toBoundsInt :: Size -> (Integer, Integer)
 toBoundsInt s = (-2 ^ p, 2 ^ p) where
     p = 8 * fromIntegral s - 1 :: Int
 
+-- | Return the @[-2^(8s - 1), 2^(8s - 1) - 1]@ bounds for integers of a given 'Size'.
+toInclusiveBoundsInt :: Size -> (Integer, Integer)
+toInclusiveBoundsInt = fmap pred . toBoundsInt
+
 -- | Check whether an 'Integer' is in the @[-2^(8s - 1), 2^(8s - 1))@ interval.
 checkBoundsInt :: Size -> Integer -> Bool
-checkBoundsInt s i = low <= i && i < high where
+checkBoundsInt s i = s /= 0 && low <= i && i < high where
     (low, high) = toBoundsInt s
 
 -- | Check whether the length of a 'ByteString' is less than or equal to a given 'Size'.
@@ -58,9 +65,17 @@ sizeOfInteger :: Integer -> Size
 sizeOfInteger i = fromIntegral $ ilogRound 2 (abs i + d) `div` 8 + 1 where
     d = if i < 0 then 0 else 1
 
+-- | Compute the size of a 'ByteString'. See also 'toBoundsBS'.
+sizeOfByteString :: BSL.ByteString -> Size
+sizeOfByteString = fromIntegral . BSL.length
+
 -- | Make a 'Constant' out of an 'Integer'. The size is computed using 'sizeOfInteger'.
 makeAutoSizedBuiltinInt :: Integer -> Constant ()
 makeAutoSizedBuiltinInt i = BuiltinInt () (sizeOfInteger i) i
+
+-- | Make a 'Constant' out of a 'ByteString'. The size is computed using 'sizeOfBS'.
+makeAutoSizedBuiltinBS :: BSL.ByteString -> Constant ()
+makeAutoSizedBuiltinBS bs = BuiltinBS () (sizeOfByteString bs) bs
 
 {- Note [Dynamic sized built-ins]
 How do we increment an integer in PLC? We can't simply write @addInteger {s} i 1@, because @1@
@@ -133,4 +148,4 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 -- fail in case constraints are not satisfied.
 unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
 unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
-    err = error $ "unsafeDupMakeConstant: out of bounds: " ++ prettyString tbv
+    err = error $ "unsafeMakeBuiltin: out of bounds: " ++ prettyString tbv

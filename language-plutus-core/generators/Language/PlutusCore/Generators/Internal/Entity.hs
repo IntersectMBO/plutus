@@ -229,11 +229,10 @@ genTerm genBase = go where
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose :: TypedBuiltinGenT Quote
-genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
+genTermLoose = genTerm genTypedBuiltinSmall typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
--- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass
--- that to a continuation.
+-- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
     :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Quote c) -> GenT Quote c
 withAnyTermLoose k =

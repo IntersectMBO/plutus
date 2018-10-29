@@ -98,7 +98,7 @@ genListSum = do
     size <- genSizeIn 1 8
     let typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     intSized <- lift $ typedBuiltinToType typedIntSized
-    ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinLoose typedIntSized
+    ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinSmall typedIntSized
     term <- lift $ do
         builtinSum <- getBuiltinSum
         list <- getListToBuiltinList intSized $ map _termOfTerm ps

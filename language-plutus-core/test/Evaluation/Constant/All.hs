@@ -2,6 +2,8 @@ module Evaluation.Constant.All
     ( test_constantApplication
     ) where
 
+import           Evaluation.Constant.Failure
+import           Evaluation.Constant.Resize
 import           Evaluation.Constant.Success
 import           Evaluation.Constant.SuccessFailure
 
@@ -12,4 +14,6 @@ test_constantApplication =
     testGroup "constantApplication"
         [ test_applyBuiltinNameSuccess
         , test_applyBuiltinNameSuccessFailure
+        , test_applyBuiltinNameFailure
+        , test_resize
         ]

@@ -163,6 +163,8 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Apply
         Evaluation.Constant.Success
         Evaluation.Constant.SuccessFailure
+        Evaluation.Constant.Failure
+        Evaluation.Constant.Resize
         Generators
         Pretty.Readable
         TypeSynthesis.Spec
