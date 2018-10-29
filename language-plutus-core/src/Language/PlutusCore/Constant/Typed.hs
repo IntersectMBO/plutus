@@ -406,6 +406,7 @@ typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
 typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
 
+-- | Typed 'QuotientInteger'
 typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedQuotientInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
 
@@ -413,6 +414,7 @@ typedQuotientInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
 typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
 
+-- | Typed 'ModInteger'
 typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedModInteger = TypedBuiltinName ModInteger sizeIntIntInt
 

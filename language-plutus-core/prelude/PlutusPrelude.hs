@@ -34,7 +34,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , trace
                      -- * Reëxports from "Control.Composition"
                      , (.*)
-                     , thread
                      -- * Custom functions
                      , (<<$>>)
                      , (<<*>>)
@@ -76,7 +75,7 @@ module PlutusPrelude ( -- * Reëxports from base
 
 import           Control.Applicative                     (Alternative (..))
 import           Control.Arrow                           ((&&&))
-import           Control.Composition                     (thread, (.*))
+import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
 import           Control.Monad                           (guard, join, (<=<))

@@ -17,12 +17,12 @@ module Language.PlutusCore.Generators.Internal.Denotation
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Dependent.Map           (DMap)
 import qualified Data.Dependent.Map           as DMap
 import           Data.Functor.Compose
+import           Data.Semigroup
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
 data Denotation object size r = forall a. Denotation
@@ -84,31 +84,30 @@ insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
 
 -- | A 'DenotationContext' that consists of 'TypedBuiltinName's.
 typedBuiltinNames :: DenotationContext
-typedBuiltinNames = thread
-    [ insertTypedBuiltinName typedAddInteger           (+)
-    , insertTypedBuiltinName typedSubtractInteger      (-)
-    , insertTypedBuiltinName typedMultiplyInteger      (*)
-    , insertTypedBuiltinName typedDivideInteger        div
-    , insertTypedBuiltinName typedRemainderInteger     rem
-    , insertTypedBuiltinName typedQuotientInteger      quot
-    , insertTypedBuiltinName typedModInteger           mod
-    , insertTypedBuiltinName typedLessThanInteger      (<)
-    , insertTypedBuiltinName typedLessThanEqInteger    (<=)
-    , insertTypedBuiltinName typedGreaterThanInteger   (>)
-    , insertTypedBuiltinName typedGreaterThanEqInteger (>=)
-    , insertTypedBuiltinName typedEqInteger            (==)
-    , insertTypedBuiltinName typedResizeInteger        (const id)
---     , insertTypedBuiltinName typedIntToByteString      undefined
-    , insertTypedBuiltinName typedConcatenate          (<>)
-    , insertTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
-    , insertTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
---     , insertTypedBuiltinName typedSHA2                 undefined
---     , insertTypedBuiltinName typedSHA3                 undefined
---     , insertTypedBuiltinName typedVerifySignature      undefined
-    , insertTypedBuiltinName typedResizeByteString     (const id)
-    , insertTypedBuiltinName typedEqByteString         (==)
---     , insertTypedBuiltinName typedTxHash               undefined
---     , insertTypedBuiltinName typedBlockNum             undefined
---     , insertTypedBuiltinName typedSizeOfInteger        sizeOfInteger
-    ]
+typedBuiltinNames
+    = insertTypedBuiltinName typedAddInteger           (+)
+    . insertTypedBuiltinName typedSubtractInteger      (-)
+    . insertTypedBuiltinName typedMultiplyInteger      (*)
+    . insertTypedBuiltinName typedDivideInteger        div
+    . insertTypedBuiltinName typedRemainderInteger     rem
+    . insertTypedBuiltinName typedQuotientInteger      quot
+    . insertTypedBuiltinName typedModInteger           mod
+    . insertTypedBuiltinName typedLessThanInteger      (<)
+    . insertTypedBuiltinName typedLessThanEqInteger    (<=)
+    . insertTypedBuiltinName typedGreaterThanInteger   (>)
+    . insertTypedBuiltinName typedGreaterThanEqInteger (>=)
+    . insertTypedBuiltinName typedEqInteger            (==)
+    . insertTypedBuiltinName typedResizeInteger        (const id)
+--     . insertTypedBuiltinName typedIntToByteString      undefined
+    . insertTypedBuiltinName typedConcatenate          (<>)
+    . insertTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
+    . insertTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
+--     . insertTypedBuiltinName typedSHA2                 undefined
+--     . insertTypedBuiltinName typedSHA3                 undefined
+--     . insertTypedBuiltinName typedVerifySignature      undefined
+    . insertTypedBuiltinName typedResizeByteString     (const id)
+    . insertTypedBuiltinName typedEqByteString         (==)
+--     . insertTypedBuiltinName typedTxHash               undefined
+--     . insertTypedBuiltinName typedBlockNum             undefined
+--     . insertTypedBuiltinName typedSizeOfInteger        sizeOfInteger
     $ DenotationContext mempty
