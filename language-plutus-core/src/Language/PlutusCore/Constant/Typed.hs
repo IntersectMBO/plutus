@@ -38,6 +38,8 @@ module Language.PlutusCore.Constant.Typed
     , typedSubtractInteger
     , typedMultiplyInteger
     , typedDivideInteger
+    , typedQuotientInteger
+    , typedModInteger
     , typedRemainderInteger
     , typedLessThanInteger
     , typedLessThanEqInteger
@@ -344,7 +346,9 @@ withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
 withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
 withTypedBuiltinName DivideInteger        k = k typedDivideInteger
+withTypedBuiltinName QuotientInteger      k = k typedQuotientInteger
 withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
+withTypedBuiltinName ModInteger           k = k typedModInteger
 withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
 withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
 withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
@@ -402,9 +406,17 @@ typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
 typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
 
+-- | Typed 'QuotientInteger'
+typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
+typedQuotientInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
+
 -- | Typed 'RemainderInteger'.
 typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
+
+-- | Typed 'ModInteger'
+typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
+typedModInteger = TypedBuiltinName ModInteger sizeIntIntInt
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool

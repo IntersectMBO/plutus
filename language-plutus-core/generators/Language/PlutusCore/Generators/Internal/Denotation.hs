@@ -89,7 +89,9 @@ typedBuiltinNames
     . insertTypedBuiltinName typedSubtractInteger      (-)
     . insertTypedBuiltinName typedMultiplyInteger      (*)
     . insertTypedBuiltinName typedDivideInteger        div
-    . insertTypedBuiltinName typedRemainderInteger     mod
+    . insertTypedBuiltinName typedRemainderInteger     rem
+    . insertTypedBuiltinName typedQuotientInteger      quot
+    . insertTypedBuiltinName typedModInteger           mod
     . insertTypedBuiltinName typedLessThanInteger      (<)
     . insertTypedBuiltinName typedLessThanEqInteger    (<=)
     . insertTypedBuiltinName typedGreaterThanInteger   (>)
@@ -108,4 +110,4 @@ typedBuiltinNames
 --     . insertTypedBuiltinName typedTxHash               undefined
 --     . insertTypedBuiltinName typedBlockNum             undefined
 --     . insertTypedBuiltinName typedSizeOfInteger        sizeOfInteger
-    $ DenotationContext DMap.empty
+    $ DenotationContext mempty
