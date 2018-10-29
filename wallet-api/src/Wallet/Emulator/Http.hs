@@ -51,7 +51,11 @@ type WalletAPI
      :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] ( Set TxIn'
                                                                                                           , TxOut')
      :<|> "wallets" :> Capture "walletid" Wallet :> "pay-to-public-key" :> ReqBody '[ JSON] Value :> Post '[ JSON] TxOut'
-     :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] ()
+-- This is where the line between wallet API and control API is crossed
+-- Returning the [Tx] only makes sense when running a WalletAPI m => m () inside a Trace, but not on the wallet API on its own,
+--   otherwise the signature of submitTxn would be submitTxn :: Tx -> m [Tx]
+-- Unfortunately we need to return the Tx here because we have to reference it later. So I can't see a way around this change.
+     :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] [Tx]
      :<|> "wallets" :> "transactions" :> Get '[ JSON] [Tx]
 
 type WalletControlAPI
@@ -127,8 +131,8 @@ submitTxn ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Tx
-  -> m ()
-submitTxn wallet = runWalletAction wallet . WAPI.submitTxn
+  -> m [Tx]
+submitTxn wallet tx = runWalletAction wallet $ WAPI.submitTxn tx >> pure [tx]
 
 insertWallet :: Wallet -> WalletState -> EmulatorState -> EmulatorState
 insertWallet w ws = over walletStates (Map.insert w ws)

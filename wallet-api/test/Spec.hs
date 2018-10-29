@@ -72,7 +72,7 @@ txnIndexValid = property $ do
 
 -- | Submit a transaction to the blockchain and assert that it has been
 --   validated
-simpleTrace :: Tx -> Trace ()
+simpleTrace :: Tx -> Trace EmulatedWalletApi ()
 simpleTrace txn = do
     [txn'] <- walletAction (Wallet 1) $ submitTxn txn
     block <- blockchainActions
@@ -115,4 +115,3 @@ genChainTxn = do
     m <- Gen.genMockchain
     txn <- Gen.genValidTransaction m
     pure (m, txn)
-
