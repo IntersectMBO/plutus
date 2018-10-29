@@ -9,7 +9,13 @@ module Language.PlutusIR (
     Kind (..),
     Type (..),
     VarDecl (..),
+    varDeclName,
+    varDeclTy,
+    splitVarDecl,
     TyVarDecl (..),
+    tyVarDeclName,
+    tyVarDeclKind,
+    splitTyVarDecl,
     Datatype (..),
     Recursivity (..),
     Binding (..),
@@ -30,8 +36,27 @@ import           GHC.Generics               (Generic)
 
 data VarDecl tyname name a = VarDecl a (name a) (Type tyname a)
     deriving (Functor, Show, Eq, Generic)
+
+varDeclName :: VarDecl tyname name a -> name a
+varDeclName (VarDecl _ n _) = n
+
+varDeclTy :: VarDecl tyname name a -> Type tyname a
+varDeclTy (VarDecl _ _ ty) = ty
+
+splitVarDecl :: VarDecl tyname name a -> (name a, Type tyname a)
+splitVarDecl (VarDecl _ n ty) = (n, ty)
+
 data TyVarDecl tyname a = TyVarDecl a (tyname a) (Kind a)
     deriving (Functor, Show, Eq, Generic)
+
+tyVarDeclName :: TyVarDecl tyname a -> tyname a
+tyVarDeclName (TyVarDecl _ n _) = n
+
+tyVarDeclKind :: TyVarDecl name a -> Kind a
+tyVarDeclKind (TyVarDecl _ _ k) = k
+
+splitTyVarDecl :: TyVarDecl tyname a -> (tyname a, Kind a)
+splitTyVarDecl (TyVarDecl _ n k) = (n, k)
 
 -- Datatypes
 
