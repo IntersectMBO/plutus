@@ -26,6 +26,9 @@ module Language.PlutusCore
     , DynamicBuiltinName (..)
     , StagedBuiltinName (..)
     , TypeBuiltin (..)
+    , Normalized (..)
+    , NormalizedType
+    , getNormalizedType
     , defaultVersion
     , allBuiltinNames
     -- * Lexer
@@ -103,7 +106,8 @@ module Language.PlutusCore
     , plcTerm
     , plcProgram
     -- * Evaluation
-    , EvaluationResult (..)
+    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    , EvaluationResult
     -- * Combining programs
     , applyProgram
     ) where
