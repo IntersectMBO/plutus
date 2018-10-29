@@ -6,9 +6,9 @@ We are not going to have a concrete syntax initially, but since the syntax of Pl
 corresponds closely to the AST structure giving an illustrative syntax is the easiest way to describe
 the proposed AST.
 
-The syntax is mostly as in Plutus Core, and this syntax should be read as an extension to the Plutus
+The syntax is a strict superset of Plutus Core, and this syntax should be read as an extension to the Plutus
 Core grammar, and references productions from it. Where we modify the syntax of Plutus Core we will
-list only the additions and removals, marking them explicitly with `+` or `-`.
+list only the additions, marking them explicitly with `+`.
 
 We also require syntax with lists of subparts. We denote a list of `t`-productions with `t..`.
 
@@ -16,7 +16,6 @@ We also require syntax with lists of subparts. We denote a list of `t`-productio
 VarDecl VD      := (vardecl x T)
 TyVarDecl TVD   := (tyvardecl alpha K)
 
-Type R, S, T    := - (fix alpha T)
 Term L, M, N    := + (let R B.. M)
 
 Recursivity R   := (nonrec)
@@ -146,7 +145,9 @@ determined simply by *whatever we are able to compile*.
 ### Typechecking
 
 Similarly, while we will define a typing judgement for Plutus IR, we will probably not
-write a typechecker for it, and rather will compile it to Plutus Core before typechecking.
+write a typechecker for it initially, and rather will compile it to Plutus Core before typechecking.
+
+A typechecker is desirable in the long run to help catch bugs and give better error messages.
 
 ### Value restriction
 
