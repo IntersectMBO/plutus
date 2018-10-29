@@ -128,7 +128,7 @@ substNf-cons σ A Z     = A
 substNf-cons σ A (S x) = σ x
 \end{code}
 
-One place normal substitution
+Substitution of one variable
 
 \begin{code}
 _[_]Nf : ∀ {Φ J K}
@@ -139,9 +139,66 @@ _[_]Nf : ∀ {Φ J K}
 A [ B ]Nf = substNf (substNf-cons (ne ∘ `) B) A
 \end{code}
 
-Pushing renaming through a one place normal substitution
+Congruence lemma for subst
+\begin{code}
+substNf-cong : ∀ {Φ Ψ}
+  → {f g : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K}
+  → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
+  → ∀{K}(A : Φ ⊢Nf⋆ K)
+    -------------------------------
+  → substNf f A ≡ substNf g A
+substNf-cong p A =
+ reifyCR (evalCRSubst idCR (subst-cong (cong embNf ∘ p) (embNf A)))
+\end{code}
 
-note: It might be good to prove rename ∘ substNf = ... first?
+Pushing renaming through normal substitution
+
+\begin{code}
+renameNf-substNf : ∀{Φ Ψ Θ}
+  → {g : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K}
+  → {f : Ren Ψ Θ}
+  → ∀{J}(A : Φ ⊢Nf⋆ J)
+    -----------------------------------------------------
+  → substNf (renameNf f ∘ g) A ≡ renameNf f (substNf g A)
+renameNf-substNf {g = g}{f} A = trans
+  (reifyCR
+    (transCR
+      (transCR
+        (subst-eval (embNf A) idCR (embNf ∘ renameNf f ∘ g))
+        (transCR
+          (idext
+            (λ α → transCR
+              (evalCRSubst idCR (rename-embNf f (g α)))
+              (transCR
+                (rename-eval (embNf (g α)) idCR f)
+                (idext (symCR ∘ renameVal-reflect f ∘ `) (embNf (g α)))))
+            (embNf A))
+          (symCR (subst-eval (embNf A) (renCR f ∘ idCR) (embNf ∘ g)))))
+      (symCR (renameVal-eval (subst (embNf ∘ g) (embNf A)) idCR f))))
+  (sym (rename-reify (idext idCR (subst (embNf ∘ g) (embNf A))) f))
+\end{code}
+
+Pushing a substitution through a renaming
+
+\begin{code}
+substNf-renameNf : ∀{Φ Ψ Θ}
+  → {g : Ren Φ Ψ}
+  → {f : ∀{K} → Ψ ∋⋆ K → Θ ⊢Nf⋆ K}
+  → ∀{J}(A : Φ ⊢Nf⋆ J)
+    --------------------------------------
+  → substNf (f ∘ g) A ≡ substNf f (renameNf g A)
+substNf-renameNf {g = g}{f} A = reifyCR
+  (transCR
+    (subst-eval (embNf A) idCR (embNf ∘ f ∘ g))
+    (transCR
+      (transCR
+        (symCR (rename-eval (embNf A) (λ α → idext idCR (embNf (f α))) g))
+        (symCR
+          (evalCRSubst (λ α → idext idCR (embNf (f α))) (rename-embNf g A))))
+      (symCR (subst-eval (embNf (renameNf g A)) idCR (embNf ∘ f)))))
+\end{code}
+
+Pushing renaming through a one variable normal substitution
 
 \begin{code}
 rename[]Nf : ∀ {Φ Θ J K}
@@ -151,49 +208,14 @@ rename[]Nf : ∀ {Φ Θ J K}
           --------------------------------------------------------------
         → renameNf ρ (t [ u ]Nf) ≡ renameNf (ext ρ) t [ renameNf ρ u ]Nf
 rename[]Nf ρ t u = trans
-  (rename-reify
-    (idext idCR (subst (embNf ∘ substNf-cons (ne ∘ `) u) (embNf t))) ρ)
-  (reifyCR
-    (transCR
-      (transCR
-        (renameVal-eval
-          (subst (embNf ∘ (substNf-cons (ne ∘ `) u)) (embNf t))
-          idCR
-          ρ)
-        (transCR
-          (subst-eval
-            (embNf t)
-            (renCR ρ ∘ idCR)
-            (embNf ∘ (substNf-cons (ne ∘ `) u)))
-          (transCR
-            (transCR
-              (idext
-                (λ { Z → transCR
-                       (transCR
-                         (idext (λ x → renameVal-reflect ρ (` x)) (embNf u))
-                         (symCR (rename-eval (embNf u) idCR ρ)))
-                       (symCR (evalCRSubst idCR (rename-embNf ρ u)))
-                   ; (S x) → renameVal-reflect ρ (` x)})
-                (embNf t))
-              (symCR
-                (rename-eval
-                  (embNf t)
-                  (λ z →
-                    idext
-                      idCR
-                      (embNf (substNf-cons (ne ∘ `) (renameNf ρ u) z)))
-                  (ext ρ))))
-          (evalCRSubst
-            (λ x →
-              idext
-                idCR
-                (embNf (substNf-cons (ne ∘ `) (renameNf ρ u) x)))
-            (sym (rename-embNf (ext ρ) t))))))
-      (symCR
-        (subst-eval
-          (embNf (renameNf (ext ρ) t))
-          idCR
-          (embNf ∘ (substNf-cons (ne ∘ `) (renameNf ρ u)))))))
+  (sym (renameNf-substNf {g = substNf-cons (ne ∘ `) u}{f = ρ} t))
+  (trans
+    (substNf-cong
+      {f = renameNf ρ ∘ substNf-cons (ne ∘ `) u}
+      {g = substNf-cons (ne ∘ `) (renameNf ρ u) ∘ ext ρ}
+      (λ { Z → refl ; (S α) → refl})
+      t)
+    (substNf-renameNf {g = ext ρ}{f = substNf-cons (ne ∘ `) (renameNf ρ u)} t))
 \end{code}
 
 Pushing a normal substitution through a one place normal substitution
