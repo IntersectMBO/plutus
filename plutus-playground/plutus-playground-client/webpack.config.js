@@ -1,7 +1,8 @@
 'use strict';
 
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-
 const webpack = require('webpack');
 
 const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-dev-server');
@@ -22,17 +23,17 @@ module.exports = {
     devtool: 'eval-source-map',
 
     devServer: {
-        contentBase: '.',
-        port: 4008,
-        stats: 'errors-only'
+        contentBase: path.join(__dirname, "dist"),
+        compress: true,
+        port: 8000
     },
 
     entry: './entry.js',
 
     output: {
-        path: __dirname,
+        path: path.join(__dirname, 'dist'),
         pathinfo: true,
-        filename: 'bundle.js'
+        filename: 'app.[hash].js'
     },
 
     module: {
@@ -50,9 +51,8 @@ module.exports = {
                                 'src/**/*.purs'
                             ],
                             bundle: false,
-                            psc: 'psa',
                             watch: isWebpackDevServer || isWatch,
-                            pscIde: true
+                            pscIdeServer: true
                         }
                     }
                 ]
@@ -63,25 +63,22 @@ module.exports = {
             },
             {
                 test: /\.less$/,
-        use: [{
-          loader: "style-loader" // creates style nodes from JS strings
-        }, {
-          loader: "css-loader" // translates CSS into CommonJS
-        }, {
-          loader: "less-loader" // compiles Less to CSS
-        }]
+                use: ['style-loader', 'css-loader', 'less-loader']
             }
         ]
     },
 
     resolve: {
-        modules: [ 'node_modules', 'bower_components', 'static' ],
-        extensions: [ '.purs', '.js', '.less']
+        modules: [ 'node_modules', 'bower_components' ],
+        extensions: [ '.purs', '.js']
     },
 
     plugins: [
         new webpack.LoaderOptionsPlugin({
             debug: true
+        }),
+        new HtmlWebpackPlugin({
+            template: 'static/index.html'
         })
     ].concat(plugins)
 };

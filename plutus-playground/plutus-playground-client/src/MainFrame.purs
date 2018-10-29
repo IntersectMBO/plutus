@@ -96,6 +96,5 @@ render state =
               then "Off"
               else "On"
           ]
-          , i [ class_ (ClassName "fa " <> ClassName "fa-wallet") ] []
       ]
     ]
