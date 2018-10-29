@@ -47,7 +47,7 @@ substNf : ∀ {Φ Ψ}
 substNf ρ n = nf (subst (embNf ∘ ρ) (embNf n))
 \end{code}
 
-First monad law for substnf
+First monad law for substNf
 
 \begin{code}
 substNf-id : ∀ {Φ J}
@@ -55,6 +55,19 @@ substNf-id : ∀ {Φ J}
   → substNf (ne ∘ `) n ≡ n
 substNf-id n = trans (cong nf (subst-id (embNf n))) (stability n)
 \end{code}
+
+Second monad law for substNf
+This is often holds definitionally for substitution (e.g. subst) but not here.
+
+\begin{code}
+substNf-∋ : ∀ {Φ Ψ J}
+  → (ρ : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
+  → (α : Φ ∋⋆ J)
+  → substNf ρ (ne (` α)) ≡ ρ α
+substNf-∋ ρ α = stability (ρ α) 
+\end{code}
+
+
 
 Two lemmas that aim to remove a superfluous additional normalisation
 via stability
@@ -231,70 +244,18 @@ subst[]Nf : ∀{Φ Ψ K J}
 subst[]Nf ρ A B = trans
   (sym (substNf-comp (substNf-cons (ne ∘ `) A) ρ B))
   (trans
-    (reifyCR
-      (subst-eval
-        (embNf B)
-        idCR
-        (embNf ∘ substNf ρ ∘ (substNf-cons (ne ∘ `) A))))
-    (trans
-      (trans
-        (trans
-          (reifyCR
-            (idext
-              (λ x → fund
-                idCR
-                (sym≡β
-                  (soundness
-                    (subst (embNf ∘ ρ) (embNf (substNf-cons (ne ∘ `) A x))))))
-              (embNf B)))
-          (trans
-            (reifyCR
-              (idext
-                (λ { Z → symCR
-                     (fund
-                       idCR
-                       (sym≡β (soundness (subst (embNf ∘ ρ) (embNf A)))))
-                   ; (S x) → transCR
-                        (symCR
-                          (rename-eval
-                            (embNf (ρ x))
-                            (λ x → idext
-                              idCR
-                              (embNf (substNf-cons (ne ∘ `) (substNf ρ A) x)))
-                              S))
-                        (symCR
-                          (evalCRSubst
-                            (λ y → idext
-                              idCR
-                              (embNf (substNf-cons (ne ∘ `) (substNf ρ A) y)))
-                            (rename-embNf S (ρ x))))})
-                (embNf B)))
-            (sym
-              (reifyCR
-                (subst-eval
-                  (embNf B)
-                  (λ x → idext
-                    idCR
-                    (embNf (substNf-cons (ne ∘ `) (substNf ρ A) x)))
-                  (embNf ∘ extsNf ρ))))))
-        (sym
-          (reifyCR
-            (fund
-              (λ x → idext
-                idCR
-                (embNf
-                  (substNf-cons
-                    (ne ∘ `)
-                    (nf (subst (embNf ∘ ρ) (embNf A)))
-                    x)))
-              (sym≡β (soundness (subst (embNf ∘ extsNf ρ) (embNf B))))))))
-      (sym
-        (reifyCR
-          (subst-eval
-            (embNf (substNf (extsNf ρ) B))
-            idCR
-            (λ x → embNf
-              (substNf-cons (ne ∘ `) (nf (subst (embNf ∘ ρ) (embNf A))) x)))))))
+    (substNf-cong
+      {f = substNf ρ ∘ substNf-cons (ne ∘ `) A}
+      {g = substNf (substNf-cons (ne ∘ `) (substNf ρ A)) ∘ extsNf ρ}
+      (λ { Z     → sym (substNf-∋ (substNf-cons (ne ∘ `) (substNf ρ A)) Z) 
+         ; (S α) → trans
+              (trans (substNf-∋ ρ α) (sym (substNf-id (ρ α))))
+              (substNf-renameNf
+                {g = S}
+                {f = substNf-cons (ne ∘ `) (substNf ρ A)}
+                (ρ α))})
+      B)
+    (substNf-comp  (extsNf ρ) (substNf-cons (ne ∘ `) (substNf ρ A)) B))
 \end{code}
 
 Extending a normal environment and then embedding is the same as
