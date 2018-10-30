@@ -28,6 +28,7 @@ library
   exposed-modules:
       Playground.API
       Playground.Server
+      Playground.Interpreter
       Webserver
   other-modules:
       Paths_plutus_playground_server
@@ -37,12 +38,15 @@ library
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , temporary
+    , directory
+    , exceptions
     , bytestring
     , containers
     , data-default-class
     , gitrev
     , hspec
-    , hint
+    , hint >= 0.9.0
     , http-media
     , http-types
     , monad-logger
