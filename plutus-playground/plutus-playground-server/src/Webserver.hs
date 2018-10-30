@@ -36,18 +36,16 @@ import Servant ((:<|>), (:>), Get, JSON, PlainText, Post, Raw, ReqBody)
 import Servant.Server (Handler, Server)
 import Servant.Foreign (GenerateList, NoContent, Req, generateList)
 import Network.HTTP.Types (Method)
+import qualified Playground.API as PA
+import qualified Playground.Server as PS
+
 instance GenerateList NoContent (Method -> Req NoContent) where
   generateList _ = []
 
-type Web = "version" :> Get '[ PlainText, JSON] Text :<|> "api" :> API :<|> Raw
-
-type API = Get '[ PlainText, JSON] Text
+type Web = "version" :> Get '[ PlainText, JSON] Text :<|> "api" :> PA.API :<|> Raw
 
 server :: FilePath -> Server Web
-server staticDir = version :<|> hello :<|> serveDirectoryFileServer staticDir
-
-hello :: Handler Text
-hello = pure "Hello"
+server staticDir = version :<|> PS.handlers :<|> serveDirectoryFileServer staticDir
 
 version :: Applicative m => m Text
 version = pure $(gitHash)
@@ -55,7 +53,7 @@ version = pure $(gitHash)
 app :: FilePath -> Application
 app staticDir =
   gzip def .
-  logStdout . cors (const $ Just policy) . provideOptions webApi . serve webApi $
+  logStdout . cors (const $ Just policy) . serve webApi $
   server staticDir
   where
     policy = simpleCorsResourcePolicy {corsRequestHeaders = ["content-type"]}

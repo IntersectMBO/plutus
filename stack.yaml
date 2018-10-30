@@ -9,6 +9,7 @@ packages:
 - plutus-th
 - plutus-use-cases
 - wallet-api
+- plutus-playground/plutus-playground-server
 
 - location:
     git: https://github.com/input-output-hk/cardano-crypto
@@ -26,6 +27,7 @@ extra-deps:
 - serialise-0.2.0.0
 - monad-stm-0.1.0.2
 - tasty-hedgehog-0.2.0.0
+- servant-options-0.1.0.0
 flags:
   language-plutus-core:
     development: true

@@ -79,6 +79,7 @@ library
         ghc -any,
         hashable -any,
         hedgehog -any,
+        http-media -any,
         language-plutus-core -any,
         memory -any,
         microlens -any,

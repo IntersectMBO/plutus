@@ -5,12 +5,14 @@ packages: language-plutus-core
           wallet-api
           plutus-th
           plutus-use-cases
+          plutus-playground-server
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
            , core-to-plc +development
            , plutus-exe +development
            , plutus-core-interpreter +development
+           , plutus-playground-server +development
 -- tests: true
 -- benchmarks: true
 -- documentation: true
