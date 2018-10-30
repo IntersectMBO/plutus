@@ -40,11 +40,11 @@ instance MimeRender Haskell SourceCode where
 instance MimeUnrender Haskell SourceCode where
   mimeUnrender _ = left show . fmap SourceCode . decodeUtf8' . toStrict
 
-newtype Fx = Fx Text
+newtype Fn = Fn Text
   deriving stock (Generic)
   deriving newtype (ToJSON, FromJSON)
 
 data Evaluation = Evaluation { wallets :: (Wallet, Integer)
-                                , functions :: [(Fx, Value)]
+                                , functions :: [(Fn, Value)]
                                 }
   deriving (Generic, ToJSON, FromJSON)
