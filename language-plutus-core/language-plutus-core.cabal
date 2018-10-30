@@ -16,7 +16,7 @@ extra-doc-files: README.md
 
 source-repository head
     type: git
-    location: https://github.com/input-output-hk/plutus-prototype
+    location: https://github.com/input-output-hk/plutus
 
 flag eventlog
     description:
@@ -110,7 +110,7 @@ library
         text -any,
         prettyprinter >=1.1.0.1,
         microlens -any,
-        composition-prelude -any,
+        composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,
         mmorph -any,

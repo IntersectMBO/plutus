@@ -1,5 +1,5 @@
 -- | This module assigns types to built-ins.
--- See the @plutus-prototype/language-plutus-core/docs/Constant application.md@
+-- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
 {-# LANGUAGE GADTs             #-}
@@ -38,6 +38,8 @@ module Language.PlutusCore.Constant.Typed
     , typedSubtractInteger
     , typedMultiplyInteger
     , typedDivideInteger
+    , typedQuotientInteger
+    , typedModInteger
     , typedRemainderInteger
     , typedLessThanInteger
     , typedLessThanEqInteger
@@ -56,6 +58,7 @@ module Language.PlutusCore.Constant.Typed
     , typedEqByteString
     , typedTxHash
     , typedBlockNum
+    , typedSizeOfInteger
     ) where
 
 import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
@@ -84,8 +87,47 @@ data BuiltinSized
 data TypedBuiltinSized a where
     TypedBuiltinSizedInt  :: TypedBuiltinSized Integer
     TypedBuiltinSizedBS   :: TypedBuiltinSized BSL.ByteString
-    -- We may actually want to ignore sizes on the Haskell side.
-    TypedBuiltinSizedSize :: TypedBuiltinSized Size
+    -- See Note [Semantics of sizes].
+    TypedBuiltinSizedSize :: TypedBuiltinSized ()
+
+{- Note [Semantics of sizes]
+We convert each PLC's @size s@ into Haskell's '()'. I.e. sizes are completely ignored in
+the semantics of various built-ins. Hence the Haskell's type signature of PLC's 'resizeInteger' is
+
+    () -> Integer -> Integer
+
+while its PLC signature is
+
+    forall s0 s1. size s1 -> integer s0 -> integer s1
+
+This does not mean that we do not perform all the checks prescribed by the specification.
+Merely that we can't compute using sizes on the Haskell side, e.g. we cannot assign a semantics to
+
+    maxIntegerOfGivenSize : forall s. size s -> integer s
+
+There are two reasons for that:
+
+1. Clarity. We want to be clear that size checks are not handled by Haskell interpretations of
+   Plutus Core built-ins -- they're handled separately (see the "Apply" module).
+   The reason for that is that we do not basically care what an operation do w.r.t. to sizes,
+   we only care whether something it returns fits into some expected size.
+   And this last checking step can be performed uniformly for all currently presented built-ins.
+
+2. The semantics of @integer s@ is 'Integer'. While this may look ok, we actually lose size information,
+   so e.g. there is no meaningful way we could interpret
+
+       sizeOfInteger : forall s. integer s -> size s
+
+   with @size s@ being interpreted as 'Size', because in @Integer -> Size@ the size of the 'Integer'
+   is not specified. And we can't compute it, because we want its actual runtime size rather than
+   the minimal size it fits into, as the former can be larger than the latter.
+   Hence the semantics we have is
+
+       sizeOfIntegerMeaning :: Integer -> ()
+
+   I.e. this doesn't do anything useful at all. But it's not supposed to,
+   since it returns a size and sizes are handled separately as (1) describes.
+-}
 
 -- | Type-level sizes.
 data SizeEntry size
@@ -304,7 +346,9 @@ withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
 withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
 withTypedBuiltinName DivideInteger        k = k typedDivideInteger
+withTypedBuiltinName QuotientInteger      k = k typedQuotientInteger
 withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
+withTypedBuiltinName ModInteger           k = k typedModInteger
 withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
 withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
 withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
@@ -322,6 +366,7 @@ withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
 withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName TxHash               k = k typedTxHash
 withTypedBuiltinName BlockNum             k = k typedBlockNum
+withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
@@ -361,9 +406,17 @@ typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
 typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
 
+-- | Typed 'QuotientInteger'
+typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
+typedQuotientInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
+
 -- | Typed 'RemainderInteger'.
 typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
 typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
+
+-- | Typed 'ModInteger'
+typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
+typedModInteger = TypedBuiltinName ModInteger sizeIntIntInt
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
@@ -386,7 +439,7 @@ typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
 typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
 
 -- | Typed 'ResizeInteger'.
-typedResizeInteger :: TypedBuiltinName (Size -> Integer -> Integer) Integer
+typedResizeInteger :: TypedBuiltinName (() -> Integer -> Integer) Integer
 typedResizeInteger =
     TypedBuiltinName ResizeInteger $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -395,7 +448,7 @@ typedResizeInteger =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedInt)
 
 -- | Typed 'IntToByteString'.
-typedIntToByteString :: TypedBuiltinName (Size -> Integer -> BSL.ByteString) BSL.ByteString
+typedIntToByteString :: TypedBuiltinName (() -> Integer -> BSL.ByteString) BSL.ByteString
 typedIntToByteString =
     TypedBuiltinName IntToByteString $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -457,7 +510,7 @@ typedVerifySignature =
             TypeSchemeBuiltin TypedBuiltinBool
 
 -- | Typed 'ResizeByteString'.
-typedResizeByteString :: TypedBuiltinName (Size -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
+typedResizeByteString :: TypedBuiltinName (() -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
 typedResizeByteString =
     TypedBuiltinName ResizeByteString $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
@@ -481,9 +534,17 @@ typedTxHash =
         TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
 
 -- | Typed 'BlockNum'.
-typedBlockNum :: TypedBuiltinName (Size -> Integer) Integer
+typedBlockNum :: TypedBuiltinName (() -> Integer) Integer
 typedBlockNum =
     TypedBuiltinName BlockNum $
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
+
+-- | Typed 'SizeOfInteger'.
+typedSizeOfInteger :: TypedBuiltinName (Integer -> ()) ()
+typedSizeOfInteger =
+    TypedBuiltinName SizeOfInteger $
+        TypeSchemeAllSize $ \s ->
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize)

@@ -10,8 +10,9 @@ module Wallet.Emulator.Types(
     Wallet(..),
     TxPool,
     -- * Emulator
-    Assertion,
-    isValidated,
+    Assertion(OwnFundsEqual, IsValidated),
+    assert,
+    assertIsValidated,
     AssertionError,
     Event(..),
     Notification(..),
@@ -31,7 +32,6 @@ module Wallet.Emulator.Types(
     walletsNotifyBlock,
     blockchainActions,
     assertion,
-    assertOwnFunds,
     assertOwnFundsEq,
     setValidationData,
     -- * Emulator internals
@@ -48,8 +48,8 @@ module Wallet.Emulator.Types(
     MonadEmulator,
     validateEm,
     liftEmulatedWallet,
-    eval,
-    process
+    evalEmulated,
+    processEmulated
     ) where
 
 import           Control.Monad.Except
@@ -67,7 +67,7 @@ import qualified Data.Text                 as T
 import           GHC.Generics              (Generic)
 import           Lens.Micro
 import           Prelude                   as P
-import           Servant.API               (FromHttpApiData)
+import           Servant.API               (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable             (Hashable)
 import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
@@ -80,7 +80,7 @@ import qualified Wallet.UTXO.Index         as Index
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }
     deriving (Show, Eq, Ord, Generic)
-    deriving newtype (FromHttpApiData, Hashable, ToJSON, FromJSON)
+    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable, ToJSON, FromJSON)
 
 type TxPool = [Tx]
 
@@ -164,13 +164,37 @@ instance WalletAPI EmulatedWalletApi where
 
 -- Emulator code
 
-type Assertion = EmulatorState -> Maybe AssertionError
+data Assertion
+  = IsValidated Tx
+  | OwnFundsEqual Wallet Value
+
 newtype AssertionError = AssertionError T.Text
     deriving Show
 
-isValidated :: Tx -> Assertion
-isValidated txn emState =
-    if notElem txn (join $ emChain emState) then Just $ AssertionError $ "Txn not validated: " <> T.pack (show txn) else Nothing
+assert :: (MonadEmulator m) => Assertion -> m ()
+assert (IsValidated txn)            = isValidated txn
+assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
+
+ownFundsEqual :: (MonadEmulator m) => Wallet -> Value -> m ()
+ownFundsEqual wallet value = do
+  es <- get
+  ws <- case Map.lookup wallet $ emWalletState es of
+        Nothing -> throwError $ AssertionError "Wallet not found"
+        Just ws -> pure ws
+  let total = getSum $ foldMap Sum $ walletStateOwnAddresses ws
+  if value == total
+    then pure ()
+    else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
+  where
+    tshow :: Show a => a -> T.Text
+    tshow = T.pack . show
+
+isValidated :: (MonadEmulator m) => Tx -> m ()
+isValidated txn = do
+    emState <- get
+    if notElem txn (join $ emChain emState)
+      then throwError $ AssertionError $ "Txn not validated: " <> T.pack (show txn)
+      else pure ()
 
 -- | The type of events in the emulator. @n@ is the type (usually a monad) in which wallet actions
 -- take place.
@@ -189,7 +213,7 @@ data Event n a where
 
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
-type Trace = Op.Program (Event EmulatedWalletApi)
+type Trace m = Op.Program (Event m)
 
 data EmulatorState = EmulatorState {
     emChain          :: Blockchain,
@@ -246,10 +270,10 @@ type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 -- | Validate a transaction in the current emulator state
 validateEm :: EmulatorState -> Tx -> Maybe Tx
 validateEm EmulatorState{emIndex=idx, emValidationData = vd} txn =
-    let result = Index.runLookup (Index.validTxIndexed vd txn) idx in
-    either (const Nothing) (\r -> if r then Just txn else Nothing) result
+    let result = Index.runValidation (Index.validateTransaction vd txn) idx in
+    either (const Nothing) (const $ Just txn) result
 
-liftEmulatedWallet :: (MonadEmulator m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
+liftEmulatedWallet :: (MonadState EmulatorState m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ emWalletState emState
@@ -260,8 +284,8 @@ liftEmulatedWallet wallet act = do
         }
     pure (txns, out)
 
-eval :: (MonadEmulator m) => Event EmulatedWalletApi a -> m a
-eval = \case
+evalEmulated :: (MonadEmulator m) => Event EmulatedWalletApi a -> m a
+evalEmulated = \case
     WalletAction wallet action -> fst <$> liftEmulatedWallet wallet action
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
     BlockchainActions -> do
@@ -275,67 +299,53 @@ eval = \case
             emIndex = Index.insertBlock block (emIndex emState)
             }
         pure block
-    Assertion a -> do
-        s <- get
-        case a s of
-            Just err -> throwError err
-            Nothing  -> pure ()
+    Assertion a -> assert a
     SetValidationData d -> modify (set validationData d)
 
-process :: (MonadState EmulatorState m, MonadError AssertionError m) => Trace a -> m a
-process = interpretWithMonad eval
+processEmulated :: (MonadEmulator m) => Trace EmulatedWalletApi a -> m a
+processEmulated = interpretWithMonad evalEmulated
 
 -- | Interact with a wallet
-walletAction :: Wallet -> EmulatedWalletApi () -> Trace [Tx]
+walletAction :: Wallet -> m () -> Trace m [Tx]
 walletAction w = Op.singleton . WalletAction w
 
 -- | Notify a wallet of blockchain events
-walletRecvNotifications :: Wallet -> [Notification] -> Trace [Tx]
+walletRecvNotifications :: Wallet -> [Notification] -> Trace m [Tx]
 walletRecvNotifications w = Op.singleton . WalletRecvNotification w
 
 -- | Notify a wallet that a block has been validated
-walletNotifyBlock :: Wallet -> Block -> Trace [Tx]
+walletNotifyBlock :: Wallet -> Block -> Trace m [Tx]
 walletNotifyBlock w = walletRecvNotifications w . pure . BlockValidated
 
 -- | Notify a list of wallets that a block has been validated
-walletsNotifyBlock :: [Wallet] -> Block -> Trace [Tx]
+walletsNotifyBlock :: [Wallet] -> Block -> Trace m [Tx]
 walletsNotifyBlock wls b = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w b) [] wls
 
 -- | Validate all pending transactions
-blockchainActions :: Trace Block
+blockchainActions :: Trace m Block
 blockchainActions = Op.singleton BlockchainActions
 
 -- | Make an assertion about the emulator state
-assertion :: Assertion -> Trace ()
+assertion :: Assertion -> Trace m ()
 assertion = Op.singleton . Assertion
 
--- | Make an assertion about the total value of funds owned by a wallet.
-assertOwnFunds :: Wallet -> (Value -> Maybe T.Text) -> Trace ()
-assertOwnFunds w p = assertion go where
-    go s = case Map.lookup w $ emWalletState s of
-                    Nothing -> Just $ AssertionError "Wallet not found"
-                    Just ws -> AssertionError <$> p (getSum $ foldMap Sum $ walletStateOwnAddresses ws)
+assertOwnFundsEq :: Wallet -> Value -> Trace m ()
+assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 
--- | Assert that the funds owned by a wallet are equal to an amount
-assertOwnFundsEq :: Wallet -> Value -> Trace ()
-assertOwnFundsEq w target = assertOwnFunds w p where
-    tshow :: Show a => a -> T.Text
-    tshow = T.pack . show
-    p v
-        | v == target = Nothing
-        | otherwise   = Just $ T.unwords ["Funds in wallet", tshow w, "were", tshow v, ". Expected:", tshow target]
+assertIsValidated :: Tx -> Trace m ()
+assertIsValidated = assertion . IsValidated
 
 -- | Set the validation data (in PLC) used to validate transactions that consume
 --   output from Pay-To-Script addresses.
-setValidationData :: ValidationData -> Trace ()
+setValidationData :: ValidationData -> Trace m ()
 setValidationData = Op.singleton . SetValidationData
 
 -- | Run an emulator trace on a blockchain
-runTraceChain :: Blockchain -> Trace a -> (Either AssertionError a, EmulatorState)
-runTraceChain ch t = runState (runExceptT $ process t) emState where
+runTraceChain :: Blockchain -> Trace EmulatedWalletApi a -> (Either AssertionError a, EmulatorState)
+runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState ch
 
 -- | Run an emulator trace on an empty blockchain with a pool of pending transactions
-runTraceTxPool :: TxPool -> Trace a -> (Either AssertionError a, EmulatorState)
-runTraceTxPool tp t = runState (runExceptT $ process t) emState where
+runTraceTxPool :: TxPool -> Trace EmulatedWalletApi a -> (Either AssertionError a, EmulatorState)
+runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState' tp

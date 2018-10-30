@@ -1,2 +1,3 @@
 Error: Unsupported: Literal (unbounded) integer
 Context: Converting expr: 1
+Context: Converting expr at "integer"

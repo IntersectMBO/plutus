@@ -1,32 +1,7 @@
-(program 1.0.0
-  (lam
-    ds_2
-    (all MyEnum_matchOut_1 (type) (fun MyEnum_matchOut_1 (fun MyEnum_matchOut_1 MyEnum_matchOut_1)))
-    [
-      [
-        [
-          { ds_2 (fun (all a_8 (type) (fun a_8 a_8)) [(con integer) (con 64)]) }
-          (lam thunk_9 (all a_10 (type) (fun a_10 a_10)) (con 64 ! 1))
-        ]
-        (lam
-          thunk_16
-          (all a_17 (type) (fun a_17 a_17))
-          [
-            {
-              (abs
-                e_11
-                (type)
-                (lam thunk_12 (all a_13 (type) (fun a_13 a_13)) (error e_11))
-              )
-              [(con integer) (con 64)]
-            }
-            (abs
-              p_matchOut_14 (type) (lam bad_name_15 p_matchOut_14 bad_name_15)
-            )
-          ]
-        )
-      ]
-      (abs a_18 (type) (lam x_19 a_18 x_19))
-    ]
-  )
-)
+Error: Type mismatch at () in term
+         'bad_name_25'.
+       Expected type
+         'bad_name_21',
+       found type
+         '(all a_36 (type) (fun a_36 a_36))'
+Context: Converting expr at "nonValueCase"

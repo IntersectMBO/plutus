@@ -1,23 +1,2 @@
-(program 1.0.0
-  (lam
-    ds_4
-    (all MyNewtype2_matchOut_1 (type) (fun (fun (all MyNewtype_matchOut_3 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_3) MyNewtype_matchOut_3)) MyNewtype2_matchOut_1) MyNewtype2_matchOut_1))
-    [
-      {
-        [
-          {
-            ds_4
-            (all MyNewtype_matchOut_6 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_6) MyNewtype_matchOut_6))
-          }
-          (lam
-            inner_7
-            (all MyNewtype_matchOut_6 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_6) MyNewtype_matchOut_6))
-            inner_7
-          )
-        ]
-        [(con integer) (con 64)]
-      }
-      (lam inner_8 [(con integer) (con 64)] inner_8)
-    ]
-  )
-)
+Error: Error at (). Type variable MyNewtype_4 is not in scope.
+Context: Converting expr at "nestedNewtypeMatch"

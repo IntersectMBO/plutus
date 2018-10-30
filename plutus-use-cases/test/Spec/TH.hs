@@ -7,11 +7,9 @@ module Spec.TH(
     ) where
 
 import           Language.Haskell.TH                                 (Exp, Q)
-import qualified Language.Plutus.CoreToPLC.Primitives                as Prim
-import           Language.Plutus.Runtime                             (Hash (..), Height, PendingTx (..),
-                                                                      PendingTxIn (..), PendingTxOut (..),
-                                                                      PendingTxOutRef (..), PendingTxOutType (..),
-                                                                      Signature, Value)
+import           Language.Plutus.Runtime                             (Height, PendingTx (..), PendingTxIn (..),
+                                                                      PendingTxOut (..), PendingTxOutRef (..),
+                                                                      PendingTxOutType (..), Signature, Value)
 import           Wallet.API                                          (PubKey (..))
 
 import           Language.Plutus.Coordination.Contracts.CrowdFunding (CampaignActor)

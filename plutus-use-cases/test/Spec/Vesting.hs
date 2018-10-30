@@ -1,8 +1,10 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Spec.Vesting(tests) where
 
@@ -12,7 +14,6 @@ import           Data.Foldable                                  (traverse_)
 import qualified Data.Map                                       as Map
 import           Hedgehog                                       (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                                   as Gen
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                            (testProperty)
 
@@ -39,7 +40,7 @@ tests = testGroup "vesting" [
 -- | Commit some funds from a wallet to a vesting scheme. Returns the reference
 --   to the transaction output that is locked by the schemes's validator
 --   script (and can be collected by the scheme's owner)
-commit :: Wallet -> Vesting -> VestingPLC -> Runtime.Value -> Trace TxOutRef'
+commit :: Wallet -> Vesting -> VestingPLC -> Runtime.Value -> Trace EmulatedWalletApi TxOutRef'
 commit w vv vplc vl = exScriptOut <$> walletAction w (void $ vestFunds vplc vv vl) where
     exScriptOut = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
 
@@ -134,7 +135,7 @@ total = totalAmount $ vsVestingScheme scen1
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkVestingTrace :: VestingScenario -> Trace () -> Property
+checkVestingTrace :: VestingScenario -> Trace EmulatedWalletApi () -> Property
 checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = vsInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
@@ -142,6 +143,6 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
     Hedgehog.assert ([] == emTxPool st)
 
 -- | Validate all pending transactions and notify the wallets
-updateAll :: VestingScenario -> Trace [Tx]
+updateAll :: VestingScenario -> Trace EmulatedWalletApi [Tx]
 updateAll VestingScenario{vsWallets} =
     blockchainActions >>= walletsNotifyBlock vsWallets

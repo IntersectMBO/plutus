@@ -1,29 +1,39 @@
--- | Functions for working with PLC builtins.
+-- | Primitive names and functions for working with Plutus Core builtins.
 module Language.Plutus.CoreToPLC.Builtins where
 
-import           GHC.Natural
-import qualified Language.PlutusCore as PLC
+import           Language.Plutus.CoreToPLC.Error
 
-haskellIntSize :: Natural
-haskellIntSize = 64
+-- | An abstract data type representing bytestrings in Plutus Core.
+data ByteString
 
-haskellBSSize :: Natural
-haskellBSSize = 64
+-- TODO: resizing primitives? better handling of sizes?
 
-instSize :: Natural -> PLC.Term tyname name () -> PLC.Term tyname name ()
-instSize n t = PLC.TyInst () t (PLC.TyInt () n)
+concatenate :: ByteString -> ByteString -> ByteString
+concatenate = mustBeReplaced
 
-appSize :: Natural -> PLC.Type tyname () -> PLC.Type tyname ()
-appSize n t = PLC.TyApp () t (PLC.TyInt () n)
+takeByteString :: Int -> ByteString -> ByteString
+takeByteString = mustBeReplaced
 
-mkConstant :: PLC.BuiltinName -> PLC.Term tyname name ()
-mkConstant n = PLC.Constant () $ PLC.BuiltinName () n
+dropByteString :: Int -> ByteString -> ByteString
+dropByteString = mustBeReplaced
 
-mkIntFun :: PLC.BuiltinName -> PLC.Term PLC.TyName PLC.Name ()
-mkIntFun name = instSize haskellIntSize (mkConstant name)
+sha2_256 :: ByteString -> ByteString
+sha2_256 = mustBeReplaced
 
-mkIntRel :: PLC.BuiltinName -> PLC.Term PLC.TyName PLC.Name ()
-mkIntRel name = instSize haskellIntSize (mkConstant name)
+sha3_256 :: ByteString -> ByteString
+sha3_256 = mustBeReplaced
 
-mkBsRel :: PLC.BuiltinName -> PLC.Term PLC.TyName PLC.Name ()
-mkBsRel name = instSize haskellBSSize (mkConstant name)
+verifySignature :: ByteString -> ByteString -> ByteString -> Bool
+verifySignature = mustBeReplaced
+
+equalsByteString :: ByteString -> ByteString -> Bool
+equalsByteString = mustBeReplaced
+
+txhash :: ByteString
+txhash = mustBeReplaced
+
+blocknum :: Int
+blocknum = mustBeReplaced
+
+error :: () -> a
+error = mustBeReplaced

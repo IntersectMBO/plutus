@@ -15653,6 +15653,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , ghc
 , language-plutus-core
+, microlens
 , mmorph
 , mtl
 , prettyprinter
@@ -15679,6 +15680,7 @@ cborg
 containers
 ghc
 language-plutus-core
+microlens
 mmorph
 mtl
 prettyprinter
@@ -16771,6 +16773,7 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, basement
 , bytestring
 , deepseq
 , ghc-prim
@@ -16781,10 +16784,11 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "cryptonite";
-version = "0.22";
-sha256 = "4be312a42a12ccd2ca60272ef485664f242c7ed89fa1909ba36a54c5fb6ff5f0";
+version = "0.25";
+sha256 = "89be1a18af8730a7bfe4d718d7d5f6ce858e9df93a411566d15bf992db5a3c8c";
 libraryHaskellDepends = [
 base
+basement
 bytestring
 deepseq
 ghc-prim
@@ -42225,6 +42229,7 @@ benchmarkHaskellDepends = [
 base
 bytestring
 criterion
+serialise
 text
 ];
 doHaddock = false;
@@ -55550,6 +55555,7 @@ license = stdenv.lib.licenses.bsd3;
 , hedgehog
 , language-plutus-core
 , mmorph
+, mtl
 , prettyprinter
 , stdenv
 , tasty
@@ -55568,6 +55574,7 @@ base
 bytestring
 containers
 language-plutus-core
+mtl
 prettyprinter
 text
 ];
@@ -55578,6 +55585,7 @@ containers
 hedgehog
 language-plutus-core
 mmorph
+mtl
 prettyprinter
 tasty
 tasty-golden
@@ -55620,6 +55628,55 @@ text
 ];
 doHaddock = false;
 description = "Executable for Plutus Core tools";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"plutus-ir" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, language-plutus-core
+, microlens
+, mtl
+, prettyprinter
+, stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-ir";
+version = "0.1.0.0";
+src = ./../plutus-ir;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+language-plutus-core
+microlens
+mtl
+prettyprinter
+text
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+language-plutus-core
+mtl
+prettyprinter
+tasty
+tasty-golden
+tasty-hunit
+text
+];
+doHaddock = false;
+description = "Plutus IR language";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -69994,10 +70051,10 @@ license = stdenv.lib.licenses.mit;
 mkDerivation {
 
 pname = "tasty-hedgehog";
-version = "0.1.0.2";
-sha256 = "1dc1ffb73bae9c6ccefb050a5489faae9b3144e987f8d054a9645d7e27884d32";
-revision = "2";
-editedCabalFile = "0kcsky6xnqpg2hpvpw50sdmjg50z1s57wbvxqmcjrd7wx8hpapdq";
+version = "0.2.0.0";
+sha256 = "5a107fc3094efc50663e4634331a296281318b38c9902969c2d2d215d754a182";
+revision = "4";
+editedCabalFile = "04d7lhn0dlqna0pqz7wxmz2y6vq7qar2m2g432z38cvm5na9w4y0";
 libraryHaskellDepends = [
 base
 hedgehog
@@ -70007,7 +70064,7 @@ tasty
 doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/qfpl/tasty-hedgehog";
-description = "Integrates the hedgehog testing library with the tasty testing framework";
+description = "Integration for tasty and hedgehog";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -78415,6 +78472,7 @@ license = stdenv.lib.licenses.mit;
 , prettyprinter
 , serialise
 , servant
+, servant-client
 , servant-server
 , stdenv
 , stm
@@ -78461,6 +78519,7 @@ plutus-th
 prettyprinter
 serialise
 servant
+servant-client
 servant-server
 stm
 template-haskell

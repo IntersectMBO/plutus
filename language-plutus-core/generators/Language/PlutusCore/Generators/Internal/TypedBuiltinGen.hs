@@ -43,7 +43,7 @@ genLowerBytes range = BSL.fromStrict <$> Gen.utf8 range Gen.lower
 data TermOf a = TermOf
     { _termOfTerm  :: Term TyName Name ()  -- ^ The PLC term
     , _termOfValue :: a                    -- ^ The Haskell value.
-    } deriving (Functor)
+    } deriving (Functor, Foldable, Traversable)
 -- This has an interesting @Apply@ instance (no pun intended).
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
@@ -107,7 +107,7 @@ updateTypedBuiltinGenBS genBytes =
 updateTypedBuiltinGenSize
     :: MonadQuote m
     => TypedBuiltinGenT m -> TypedBuiltinGenT m
-updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize return
+updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize (\_ -> return ())
 
 -- | Update a typed built-ins generator by overwriting the @boolean@s generator.
 updateTypedBuiltinGenBool

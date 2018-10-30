@@ -2,38 +2,68 @@
   [
     [
       {
-        {
-          (abs
-            a_0
-            (type)
-            (abs
-              b_1
-              (type)
-              (lam
-                p_arg0_4
-                a_0
+        (abs
+          bad_name_4
+          (fun (type) (fun (type) (type)))
+          (lam
+            bad_name_14
+            (all a_15 (type) (all b_16 (type) (fun a_15 (fun b_16 [[bad_name_4 a_15] b_16]))))
+            (lam
+              p_match_17
+              (all a_18 (type) (all b_19 (type) (fun [[bad_name_4 a_18] b_19] (all p_matchOut_20 (type) (fun (fun a_18 (fun b_19 p_matchOut_20)) p_matchOut_20)))))
+              [
+                [
+                  {
+                    { bad_name_14 [(con integer) (con 64)] }
+                    [(con integer) (con 64)]
+                  }
+                  (con 64 ! 1)
+                ]
+                (con 64 ! 2)
+              ]
+            )
+          )
+        )
+        (lam a_1 (type) (lam b_2 (type) (all p_matchOut_3 (type) (fun (fun a_1 (fun b_2 p_matchOut_3)) p_matchOut_3))))
+      }
+      (abs
+        a_5
+        (type)
+        (abs
+          b_6
+          (type)
+          (lam
+            p_arg0_9
+            a_5
+            (lam
+              p_arg1_10
+              b_6
+              (abs
+                p_matchOut_7
+                (type)
                 (lam
-                  p_arg1_5
-                  b_1
-                  (abs
-                    p_matchOut_2
-                    (type)
-                    (lam
-                      bad_name_3
-                      (fun a_0 (fun b_1 p_matchOut_2))
-                      [ [ bad_name_3 p_arg0_4 ] p_arg1_5 ]
-                    )
-                  )
+                  bad_name_8
+                  (fun a_5 (fun b_6 p_matchOut_7))
+                  [ [ bad_name_8 p_arg0_9 ] p_arg1_10 ]
                 )
               )
             )
           )
-          [(con integer) (con 64)]
-        }
-        [(con integer) (con 64)]
-      }
-      (con 64 ! 1)
+        )
+      )
     ]
-    (con 64 ! 2)
+    (abs
+      a_11
+      (type)
+      (abs
+        b_12
+        (type)
+        (lam
+          x_13
+          [[(lam a_1 (type) (lam b_2 (type) (all p_matchOut_3 (type) (fun (fun a_1 (fun b_2 p_matchOut_3)) p_matchOut_3)))) a_11] b_12]
+          x_13
+        )
+      )
+    )
   ]
 )

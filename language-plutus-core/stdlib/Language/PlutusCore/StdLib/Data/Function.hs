@@ -1,6 +1,7 @@
 -- | Combinators.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Data.Function
     ( getBuiltinConst
     , getBuiltinSelf
@@ -12,8 +13,10 @@ module Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Type
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
+
+import           Language.PlutusCore.StdLib.Type
 
 import           Control.Monad
 
@@ -68,31 +71,30 @@ getBuiltinUnroll = do
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
 -- >    unroll {a -> b} (wrap \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 --
--- See @plutus-prototype/docs/fomega/z-combinator-benchmarks@ for details.
+-- See @plutus/docs/fomega/z-combinator-benchmarks@ for details.
 getBuiltinFix :: Quote (Term TyName Name ())
-getBuiltinFix = do
-    self    <- getBuiltinSelf
-    unroll1 <- getBuiltinUnroll
-    unroll2 <- getBuiltinUnroll
+getBuiltinFix = rename =<< do
+    self   <- getBuiltinSelf
+    unroll <- getBuiltinUnroll
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     f <- freshName () "f"
     s <- freshName () "s"
     x <- freshName () "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
-        unrollFunAB u = TyInst () u funAB
+        unrollFunAB = TyInst () unroll funAB
         RecursiveType wrapSelfFunAB selfFunAB =
             holedToRecursive $ holedTyApp self funAB
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
-        . Apply () (unrollFunAB unroll1)
+        . Apply () unrollFunAB
         . wrapSelfFunAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
         $ mkIterApp (Var () f)
-          [ Apply () (unrollFunAB unroll2) $ Var () s
+          [ Apply () unrollFunAB $ Var () s
           , Var () x
           ]
 

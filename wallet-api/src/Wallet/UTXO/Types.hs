@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DefaultSignatures  #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
@@ -78,6 +79,7 @@ module Wallet.UTXO.Types(
     unitRedeemer,
     unitData,
     unitValidationData,
+    runScript,
     -- * Lenses
     inputs,
     outputs,
@@ -278,7 +280,7 @@ instance Ord Redeemer where
 newtype Height = Height { getHeight :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving newtype (Num, Real, Integral, Serialise, FromJSON)
+    deriving newtype (Num, Real, Integral, Serialise, FromJSON, ToJSON)
 
 -- | The height of a blockchain
 height :: Blockchain -> Height

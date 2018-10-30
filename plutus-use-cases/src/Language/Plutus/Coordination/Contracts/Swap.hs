@@ -1,6 +1,8 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 -- Disabled until we can use the Num.(*) for `Ratio Int`
 -- {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 module Language.Plutus.Coordination.Contracts.Swap(
@@ -8,15 +10,15 @@ module Language.Plutus.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
-import qualified Language.Plutus.CoreToPLC.Primitives as Prim
-import           Language.Plutus.Runtime              (OracleValue (..), PendingTx (..), PendingTxIn (..),
-                                                       PendingTxOut (..), PubKey, Value)
-import qualified Language.Plutus.Runtime.TH           as TH
-import           Language.Plutus.TH                   (plutus)
-import           Wallet.UTXO                          (Height, Validator (..))
+import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
+import           Language.Plutus.Runtime            (OracleValue (..), PendingTx (..), PendingTxIn (..),
+                                                     PendingTxOut (..), PubKey, Value)
+import qualified Language.Plutus.Runtime.TH         as TH
+import           Language.Plutus.TH                 (plutus)
+import           Wallet.UTXO                        (Height, Validator (..))
 
-import           Data.Ratio                           (Ratio)
-import           Prelude                              (Bool (..), Eq (..), Int, Num (..), Ord (..))
+import           Data.Ratio                         (Ratio)
+import           Prelude                            (Bool (..), Eq (..), Int, Num (..), Ord (..))
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -69,14 +71,14 @@ swapValidator _ = Validator result where
             mx = $(TH.max)
 
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
-            extractVerifyAt = Prim.error ()
+            extractVerifyAt = Builtins.error ()
 
             round :: Ratio Int -> Int
-            round = Prim.error ()
+            round = Builtins.error ()
 
             -- | Convert an [[Int]] to a [[Ratio Int]]
             fromInt :: Int -> Ratio Int
-            fromInt = Prim.error ()
+            fromInt = Builtins.error ()
 
             signedBy :: PendingTxIn a -> PubKey -> Bool
             signedBy = $(TH.txInSignedBy)
@@ -160,7 +162,7 @@ swapValidator _ = Validator result where
 
 
         in
-        if inConditions && outConditions then () else Prim.error ()
+        if inConditions && outConditions then () else Builtins.error ()
         ) |])
 
 {- Note [Swap Transactions]

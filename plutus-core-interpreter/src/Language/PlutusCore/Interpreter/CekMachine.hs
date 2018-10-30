@@ -13,7 +13,8 @@
 
 module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
-    , EvaluationResult (..)
+    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    , EvaluationResult
     , evaluateCekCatch
     , evaluateCek
     , runCek

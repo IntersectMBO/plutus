@@ -14,7 +14,7 @@ main = defaultMain tests
 --   the test suite.
 --
 limit :: HedgehogTestLimit
-limit = HedgehogTestLimit 30
+limit = HedgehogTestLimit (Just 30)
 
 tests :: TestTree
 tests = localOption limit $ testGroup "use cases" [

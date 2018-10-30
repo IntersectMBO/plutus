@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
 -- | Interface between wallet and Plutus client
 module Wallet.API(
     WalletAPI(..),
@@ -18,6 +19,7 @@ module Wallet.API(
     ) where
 
 import           Control.Monad.Error.Class (MonadError (..))
+import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.Set                  as Set
 import           Data.Text                 (Text)
 import           Wallet.UTXO               (Address', Height, PubKey (..), Signature (..), Tx (..), TxIn', TxOut',
@@ -25,9 +27,11 @@ import           Wallet.UTXO               (Address', Height, PubKey (..), Signa
 
 newtype PrivateKey = PrivateKey { getPrivateKey :: Int }
     deriving (Eq, Ord, Show)
+    deriving newtype (FromJSON, ToJSON)
 
 newtype KeyPair = KeyPair { getKeyPair :: (PrivateKey, PubKey) }
     deriving (Eq, Ord, Show)
+    deriving newtype (FromJSON, ToJSON)
 
 -- | Get the public key of a [[KeyPair]]
 pubKey :: KeyPair -> PubKey
@@ -94,4 +98,3 @@ signAndSubmit ins outs = do
         , txFee = 0
         , txSignatures = [sig]
         }
-

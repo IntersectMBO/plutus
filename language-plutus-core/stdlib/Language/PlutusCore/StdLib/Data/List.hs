@@ -1,29 +1,30 @@
 -- | @list@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Data.List
     ( getBuiltinList
     , getBuiltinNil
     , getBuiltinCons
     , getBuiltinFoldrList
     , getBuiltinFoldList
-    , getBuiltinEnumCountNat
     , getBuiltinEnumFromTo
     , getBuiltinSum
     , getBuiltinProduct
     ) where
 
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Type
+
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Type
-import           Language.PlutusCore.Type
 
 -- | @List@ as a PLC type.
 --
@@ -46,7 +47,7 @@ getBuiltinList = do
 --
 -- >  /\(a :: *) -> wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z
 getBuiltinNil :: Quote (Term TyName Name ())
-getBuiltinNil = do
+getBuiltinNil = rename =<< do
     list <- getBuiltinList
     a <- freshTyName () "a"
     r <- freshTyName () "r"
@@ -66,11 +67,8 @@ getBuiltinNil = do
 --
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     wrap /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
---
--- @listA@ appears twice in types in the term,
--- so this is not really a definition with unique names.
 getBuiltinCons :: Quote (Term TyName Name ())
-getBuiltinCons = do
+getBuiltinCons = rename =<< do
     list <- getBuiltinList
     a  <- freshTyName () "a"
     x  <- freshName () "x"
@@ -98,11 +96,8 @@ getBuiltinCons = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f (rec xs') x
---
--- @listA@ appears several times in types in the term,
--- so this is not really a definition with unique names.
 getBuiltinFoldrList :: Quote (Term TyName Name ())
-getBuiltinFoldrList = do
+getBuiltinFoldrList = rename =<< do
     list <- getBuiltinList
     fix  <- getBuiltinFix
     a   <- freshTyName () "a"
@@ -136,11 +131,8 @@ getBuiltinFoldrList = do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
---
--- @listA@ appears several times in types in the term,
--- so this is not really a definition with unique names.
 getBuiltinFoldList :: Quote (Term TyName Name ())
-getBuiltinFoldList = do
+getBuiltinFoldList = rename =<< do
     list <- getBuiltinList
     fix  <- getBuiltinFix
     a   <- freshTyName () "a"
@@ -169,68 +161,18 @@ getBuiltinFoldList = do
           , Var () xs'
           ]
 
--- | @enumFromCount@
---
--- > enumFromCount :: Nat -> Nat -> [Nat]
--- > enumFromCount n zero    = []
--- > enumFromCount n (suc k) = n : enumFromCount (suc n) k
---
--- as a PLC term
---
--- > \(n k : nat) ->
--- >     foldrNat {nat -> list nat}
--- >         (\(rec : nat -> list nat) (n' : nat) -> cons {nat} n' (rec (succ n')))
--- >         (\(n' : nat) -> nil {nat})
--- >         k
--- >         n
---
--- @n'@ appears twice in the term, @nat@ appears several times in types,
--- so this is not really a definition with unique names.
-getBuiltinEnumCountNat :: Quote (Term TyName Name ())
-getBuiltinEnumCountNat = do
-    list     <- getBuiltinList
-    nil      <- getBuiltinNil
-    cons     <- getBuiltinCons
-    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
-    succNat  <- getBuiltinSucc
-    foldrNat <- getBuiltinFoldrNat
-    n   <- freshName () "n"
-    k   <- freshName () "k"
-    rec <- freshName () "rec"
-    n'  <- freshName () "n'"
-    let RecursiveType _ listNat =
-            holedToRecursive $ holedTyApp list nat
-    return
-        . LamAbs () n nat
-        . LamAbs () k nat
-        . mkIterApp (TyInst () foldrNat $ TyFun () nat listNat)
-        $ [   LamAbs () rec (TyFun () nat listNat)
-            . LamAbs () n' nat
-            $ mkIterApp (TyInst () cons nat)
-            [ Var () n'
-            , Apply () (Var () rec) $ Apply () succNat (Var () n')
-            ]
-          , LamAbs () n' nat $ TyInst () nil nat
-          , Var () k
-          , Var () n
-          ]
-
 -- | 'enumFromTo' as a PLC term
 --
--- > /\(s :: size) -> \(ss : size s) -> (n m : integer s) ->
+-- > /\(s :: size) -> (n m : integer s) ->
 -- >     fix {integer s} {list (integer s)}
 -- >         (\(rec : integer s -> list (integer s)) (n' : integer s) ->
 -- >             ifThenElse {list (integer s)}
 -- >                 (greaterThanInteger {integer s} n' m)
 -- >                 (nil {integer s})
--- >                 (cons {integer s} n' (rec (addInteger {s} n' (resizeInteger {1} {s} ss 1!0))))
+-- >                 (cons {integer s} n' (rec (succInteger {s} n'))))
 -- >         n
---
--- @list (integer s)@ appears several times in types,
--- so this is not really a definition with unique names.
--- TODO: remove the @ss@ once @sizeOfInteger@ lands.
 getBuiltinEnumFromTo :: Quote (Term TyName Name ())
-getBuiltinEnumFromTo = do
+getBuiltinEnumFromTo = rename =<< do
     fix         <- getBuiltinFix
     succInteger <- getBuiltinSuccInteger
     unit        <- getBuiltinUnit
@@ -239,7 +181,6 @@ getBuiltinEnumFromTo = do
     nil         <- getBuiltinNil
     cons        <- getBuiltinCons
     s <- freshTyName () "s"
-    ss  <- freshName () "ss"
     n   <- freshName () "n"
     m   <- freshName () "m"
     rec <- freshName () "rec"
@@ -251,7 +192,6 @@ getBuiltinEnumFromTo = do
             holedToRecursive $ holedTyApp list int
     return
         . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) $ TyVar () s)
         . LamAbs () n int
         . LamAbs () m int
         . mkIterApp (mkIterInst fix [int, listInt])
@@ -265,11 +205,9 @@ getBuiltinEnumFromTo = do
               , LamAbs () u unit $ TyInst () nil int
               , LamAbs () u unit $ mkIterApp (TyInst () cons int)
                     [ Var () n'
-                    ,   Apply () (Var () rec)
-                      . mkIterApp (TyInst () succInteger (TyVar () s))
-                      $ [ Var () ss
-                        , Var () n'
-                        ]
+                    ,    Apply () (Var () rec)
+                       . Apply () (TyInst () succInteger (TyVar () s))
+                       $ Var () n'
                     ]
               ]
           , Var () n
@@ -280,7 +218,7 @@ getBuiltinEnumFromTo = do
 -- > /\(s :: *) -> \(ss : size s) ->
 -- >     foldList {integer s} {integer s} (addInteger {s}) (resizeInteger {1} {s} ss 1!0)
 getBuiltinSum :: Quote (Term TyName Name ())
-getBuiltinSum = do
+getBuiltinSum = rename =<< do
     foldList <- getBuiltinFoldList
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
@@ -292,7 +230,7 @@ getBuiltinSum = do
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp (mkIterInst foldList [int, int])
         $ [ add
-          , makeDynamicBuiltinInt sv (Var () ss) 0
+          , makeDynBuiltinInt sv (Var () ss) 0
           ]
 
 -- |  'product' as a PLC term.
@@ -300,7 +238,7 @@ getBuiltinSum = do
 -- > /\(s :: *) -> \(ss : size s) ->
 -- >     foldList {integer s} {integer s} (multiplyInteger {s}) (resizeInteger {1} {s} ss 1!1)
 getBuiltinProduct :: Quote (Term TyName Name ())
-getBuiltinProduct = do
+getBuiltinProduct = rename =<< do
     foldList <- getBuiltinFoldList
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
@@ -312,5 +250,5 @@ getBuiltinProduct = do
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
         . mkIterApp (mkIterInst foldList [int, int])
         $ [ mul
-          , makeDynamicBuiltinInt sv (Var () ss) 1
+          , makeDynBuiltinInt sv (Var () ss) 1
           ]

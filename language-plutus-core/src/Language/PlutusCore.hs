@@ -26,6 +26,9 @@ module Language.PlutusCore
     , DynamicBuiltinName (..)
     , StagedBuiltinName (..)
     , TypeBuiltin (..)
+    , Normalized (..)
+    , NormalizedType
+    , getNormalizedType
     , defaultVersion
     , allBuiltinNames
     -- * Lexer
@@ -103,13 +106,13 @@ module Language.PlutusCore
     , plcTerm
     , plcProgram
     -- * Evaluation
-    , EvaluationResult (..)
+    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    , EvaluationResult
     -- * Combining programs
     , applyProgram
     ) where
 
 import           Control.Monad.Except
-import           Control.Monad.State
 import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
@@ -162,7 +165,7 @@ printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
-parseScoped str = liftEither $ convertError $ fmap (\(p, s) -> rename s p) $ runExcept $ runStateT (parseST str) emptyIdentifierState
+parseScoped str = runQuoteT $ parseProgram str >>= rename
 
 -- | Parse a program and typecheck it.
 parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())

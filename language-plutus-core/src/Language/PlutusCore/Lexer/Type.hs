@@ -35,7 +35,9 @@ data BuiltinName = AddInteger
                  | SubtractInteger
                  | MultiplyInteger
                  | DivideInteger
+                 | QuotientInteger
                  | RemainderInteger
+                 | ModInteger
                  | LessThanInteger
                  | LessThanEqInteger
                  | GreaterThanInteger
@@ -53,7 +55,39 @@ data BuiltinName = AddInteger
                  | EqByteString
                  | TxHash
                  | BlockNum
+                 -- See Note [sizeOfInteger].
+                 | SizeOfInteger
                  deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
+
+{- Note [sizeOfInteger]
+The 'sizeOfInteger' built-in is a later addition. The main motivation for adding it is that it
+allows to pass fewer singleton sizes around. However less boilerplate is not the only advantage,
+'sizeOfInteger' also allows to treat built-in functions and user-defined ones similarly.
+Consider the 'addInteger' built-in: it has the following type signature (PLCish pseudocode):
+
+    addInteger : forall s. integer s -> integer s -> integer s
+
+We know that @integer s@ determines the @s@ and hence do not require an additional singleton size.
+We could have @succInteger@ with a similar type signature:
+
+    succInteger : forall s. integer s -> integer s
+
+However without 'sizeOfInteger' we can't define 'succInteger' inside the language without requiring
+an additional singleton size. A previous definition without 'sizeOfInteger':
+
+    /\(s :: size) -> \(ss : size s) (i : integer s) ->
+        addInteger {s} i (resizeInteger {1} {s} ss 1!1)
+
+So we have this metaknowledge that @integer s@ determines the @s@, but without an additional primitive
+cannot communicate this to Plutus Core and pay by passing a lot of sizes around. The current definition:
+
+    /\(s :: size) -> \(i : integer s) ->
+        addInteger {s} i (resizeInteger {1} {s} (sizeOfInteger {s} i) 1!1)
+
+which has the desired type signature:
+
+    succInteger : forall s. integer s -> integer s
+-}
 
 -- | The type of dynamic builtin functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -161,6 +195,8 @@ instance Pretty BuiltinName where
     pretty SubtractInteger      = "subtractInteger"
     pretty MultiplyInteger      = "multiplyInteger"
     pretty DivideInteger        = "divideInteger"
+    pretty QuotientInteger      = "quotientInteger"
+    pretty ModInteger           = "modInteger"
     pretty RemainderInteger     = "remainderInteger"
     pretty LessThanInteger      = "lessThanInteger"
     pretty LessThanEqInteger    = "lessThanEqualsInteger"
@@ -179,6 +215,7 @@ instance Pretty BuiltinName where
     pretty VerifySignature      = "verifySignature"
     pretty TxHash               = "txhash"
     pretty BlockNum             = "blocknum"
+    pretty SizeOfInteger        = "sizeOfInteger"
 
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n

@@ -6,6 +6,7 @@ packages:
 - plutus-core-interpreter
 - plutus-exe
 - core-to-plc
+- plutus-ir
 - plutus-th
 - plutus-use-cases
 - wallet-api
@@ -21,10 +22,11 @@ packages:
   extra-dep: true
 
 extra-deps:
-- cryptonite-0.22
+- cryptonite-0.25
 - cborg-0.2.0.0
 - serialise-0.2.0.0
 - monad-stm-0.1.0.2
+- tasty-hedgehog-0.2.0.0
 flags:
   language-plutus-core:
     development: true

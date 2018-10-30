@@ -15,7 +15,7 @@ extra-doc-files: README.md
 
 source-repository head
     type: git
-    location: https://github.com/input-output-hk/plutus-prototype
+    location: https://github.com/input-output-hk/plutus
 
 flag development
     description:
@@ -43,6 +43,7 @@ library
     exposed-modules:
         Wallet.API
         Wallet.Emulator
+        Wallet.Emulator.Client
         Wallet.Emulator.Http
         Wallet.Emulator.Types
         Wallet.Generators
@@ -72,7 +73,7 @@ library
         cborg -any,
         containers -any,
         core-to-plc -any,
-        cryptonite -any,
+        cryptonite >=0.25,
         errors -any,
         free -any,
         ghc -any,
@@ -90,6 +91,7 @@ library
         prettyprinter -any,
         serialise -any,
         servant -any,
+        servant-client -any,
         servant-server -any,
         stm -any,
         template-haskell -any,

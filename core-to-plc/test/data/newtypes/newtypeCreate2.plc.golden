@@ -1,7 +1,40 @@
 (program 1.0.0
-  (abs
-    match_out_0
-    (type)
-    (lam c_1 (fun [(con integer) (con 64)] match_out_0) [ c_1 (con 64 ! 1) ])
-  )
+  [
+    [
+      {
+        (abs
+          MyNewtype_2
+          (type)
+          (lam
+            MyNewtype_7
+            (fun [(con integer) (con 64)] MyNewtype_2)
+            (lam
+              MyNewtype_match_8
+              (fun MyNewtype_2 (all MyNewtype_matchOut_9 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_9) MyNewtype_matchOut_9)))
+              [ MyNewtype_7 (con 64 ! 1) ]
+            )
+          )
+        )
+        (all MyNewtype_matchOut_1 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_1) MyNewtype_matchOut_1))
+      }
+      (lam
+        MyNewtype_arg0_5
+        [(con integer) (con 64)]
+        (abs
+          MyNewtype_matchOut_3
+          (type)
+          (lam
+            MyNewtype_4
+            (fun [(con integer) (con 64)] MyNewtype_matchOut_3)
+            [ MyNewtype_4 MyNewtype_arg0_5 ]
+          )
+        )
+      )
+    ]
+    (lam
+      x_6
+      (all MyNewtype_matchOut_1 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_1) MyNewtype_matchOut_1))
+      x_6
+    )
+  ]
 )

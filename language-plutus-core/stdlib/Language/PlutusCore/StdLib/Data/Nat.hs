@@ -10,13 +10,15 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinNatToInteger
     ) where
 
-import           Language.PlutusCore.Constant             (makeDynamicBuiltinInt)
+import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Type
+
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Type
-import           Language.PlutusCore.Type
 
 -- | @Nat@ as a PLC type.
 --
@@ -37,7 +39,7 @@ getBuiltinNat = do
 --
 -- > wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> z
 getBuiltinZero :: Quote (Term TyName Name ())
-getBuiltinZero = do
+getBuiltinZero = rename =<< do
     RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
     r <- freshTyName () "r"
     z <- freshName () "z"
@@ -52,11 +54,8 @@ getBuiltinZero = do
 -- |  'succ' as a PLC term.
 --
 -- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
---
--- @nat@ appears several times in types in the term,
--- so this is not really a definition with unique names.
 getBuiltinSucc :: Quote (Term TyName Name ())
-getBuiltinSucc = do
+getBuiltinSucc = rename =<< do
     RecursiveType wrapNat nat <- holedToRecursive <$> getBuiltinNat
     n <- freshName () "n"
     r <- freshTyName () "r"
@@ -76,11 +75,8 @@ getBuiltinSucc = do
 -- > /\(r :: *) -> \(f : r -> r) (z : r) ->
 -- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
---
--- @nat@ appears several times in types in the term,
--- so this is not really a definition with unique names.
 getBuiltinFoldrNat :: Quote (Term TyName Name ())
-getBuiltinFoldrNat = do
+getBuiltinFoldrNat = rename =<< do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     fix <- getBuiltinFix
     r   <- freshTyName () "r"
@@ -107,11 +103,8 @@ getBuiltinFoldrNat = do
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
 -- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
---
--- @nat@ appears several times in types in the term,
--- so this is not really a definition with unique names.
 getBuiltinFoldNat :: Quote (Term TyName Name ())
-getBuiltinFoldNat = do
+getBuiltinFoldNat = rename =<< do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     fix <- getBuiltinFix
     r   <- freshTyName () "r"
@@ -141,7 +134,7 @@ getBuiltinFoldNat = do
 -- >         (addInteger {s} (resizeInteger {1} {s} ss 1!1))
 -- >         (resizeInteger {1} {s} ss 1!0)
 getBuiltinNatToInteger :: Quote (Term TyName Name ())
-getBuiltinNatToInteger = do
+getBuiltinNatToInteger = rename =<< do
     foldNat <- getBuiltinFoldNat
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
@@ -154,6 +147,6 @@ getBuiltinNatToInteger = do
         $ mkIterApp (TyInst () foldNat $ TyApp () (TyBuiltin () TyInteger) sv)
           [ Apply ()
               (TyInst () addInteger (TyVar () s))
-              (makeDynamicBuiltinInt sv ssv 1)
-          , makeDynamicBuiltinInt sv ssv 0
+              (makeDynBuiltinInt sv ssv 1)
+          , makeDynBuiltinInt sv ssv 0
           ]

@@ -4,13 +4,14 @@
 {-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.Generators.Interesting
-    ( fromInteretingGens
+    ( TermGen
     , getBuiltinFactorial
     , applyFactorial
     , genFactorial
     , genNatRoundtrip
     , genListSum
     , genIfIntegers
+    , fromInterestingTermGens
     ) where
 
 import           Language.PlutusCore
@@ -29,27 +30,29 @@ import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
+-- | The type of terms-and-their-values generators.
+type TermGen size a = GenT Quote (TermOf (TypedBuiltinValue size a))
+
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
--- > /\(s : size) -> \(ss : size s) (i : integer s) ->
---     product {s} ss (enumFromTo {s} ss (resizeInteger {1} {s} ss 1!1) i)
+-- > /\(s : size) -> \(i : integer s) ->
+--     let ss = sizeOfInteger {s} i in
+--         product {s} ss (enumFromTo {s} (resizeInteger {1} {s} ss 1!1) i)
 getBuiltinFactorial :: Quote (Term TyName Name ())
 getBuiltinFactorial = do
     product'    <- getBuiltinProduct
     enumFromTo' <- getBuiltinEnumFromTo
     s <- freshTyName () "s"
-    ss  <- freshName () "ss"
     i   <- freshName () "i"
     let int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
+        ss  = Apply () (TyInst () (builtinNameAsTerm SizeOfInteger) (TyVar () s)) (Var () i)
     return
         . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) $ TyVar () s)
         . LamAbs () i int
         . mkIterApp (TyInst () product' $ TyVar () s)
-        $ [ Var () ss
+        $ [ ss
           , mkIterApp (TyInst () enumFromTo' $ TyVar () s)
-                [ Var () ss
-                , makeDynamicBuiltinInt (TyVar () s) (Var () ss) 1
+                [ makeDynBuiltinInt (TyVar () s) ss 1
                 , Var () i
                 ]
           ]
@@ -58,14 +61,13 @@ getBuiltinFactorial = do
 -- This function exist, because we have another implementation via dynamic built-ins
 -- and want to compare it to the direct implementation from the above.
 applyFactorial :: Term TyName Name () -> Size -> Integer -> Term TyName Name ()
-applyFactorial factorial sizev iv = mkIterApp (TyInst () factorial size) [ssize, i] where
-    i     = Constant () $ BuiltinInt () sizev iv
-    size  = TyInt () sizev
-    ssize = Constant () $ BuiltinSize () sizev
+applyFactorial factorial sizev iv = Apply () (TyInst () factorial size) i where
+    i    = Constant () $ BuiltinInt () sizev iv
+    size = TyInt () sizev
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
-genFactorial :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
+genFactorial :: TermGen size Integer
 genFactorial = do
     let m = 10
         sizev = sizeOfInteger $ product [1..m]
@@ -95,7 +97,7 @@ genNatRoundtrip = do
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
 -- sum elements of the list (see 'getBuiltinSum') and return it along with the sum of the original list.
-genListSum :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
+genListSum :: TermGen size Integer
 genListSum = do
     size <- genSizeIn 1 8
     let typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
@@ -114,7 +116,7 @@ genListSum = do
 
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
-genIfIntegers :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
+genIfIntegers :: TermGen size Integer
 genIfIntegers = do
     size <- genSizeDef
     let typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
@@ -131,12 +133,11 @@ genIfIntegers = do
             (TyInst () builtinIf intSized)
             [b, builtinConstSpec i, builtinConstSpec j]
         value = if bv then iv else jv
-    return $ TermOf term $ TypedBuiltinValue typedIntSized value
+    return . TermOf term $ TypedBuiltinValue typedIntSized value
 
 -- | Apply a function to all interesting generators and collect the results.
-fromInteretingGens
-    :: (forall a. String -> GenT Quote (TermOf (TypedBuiltinValue Size a)) -> c) -> [c]
-fromInteretingGens f =
+fromInterestingTermGens :: (forall a. String -> TermGen size a -> c) -> [c]
+fromInterestingTermGens f =
     [ f "factorial"    genFactorial
     , f "NatRoundTrip" genNatRoundtrip
     , f "ListSum"      genListSum
