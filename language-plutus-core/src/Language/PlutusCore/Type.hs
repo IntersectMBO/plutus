@@ -149,7 +149,10 @@ emptyEqState = EqState mempty mempty
 termMap :: Lens' (EqState tyname name a) (M.Map (name a) (name a))
 termMap f s = fmap (\x -> s { _termMap = x }) (f (_termMap s))
 
-rebindAndEq :: (Eq a, Ord (name a))
+tyMap :: Lens' (EqState tyname name a) (M.Map (tyname a) (tyname a))
+tyMap f s = fmap (\x -> s { _tyMap = x }) (f (_tyMap s))
+
+rebindAndEq :: (Eq a, Ord (name a), Ord (tyname a))
             => EqState tyname name a
             -> Term tyname name a
             -> Term tyname name a
@@ -160,11 +163,39 @@ rebindAndEq eqSt tLeft tRight nLeft nRight =
     let intermediateSt = over termMap (M.insert nRight nLeft) eqSt
         in eqTermSt intermediateSt tLeft tRight
 
-eqTermSt :: (Ord (name a), Eq a)
+eqTermSt :: (Ord (name a), Ord (tyname a), Eq a)
          => EqState tyname name a
          -> Term tyname name a
          -> Term tyname name a
          -> Bool
+
+eqTermSt eqSt (TyAbs _ tnLeft kLeft tLeft) (TyAbs _ tnRight kRight tRight) =
+    let intermediateSt = over tyMap (M.insert tnRight tnLeft) eqSt
+        in kLeft == kRight && eqTermSt intermediateSt tLeft tRight
+
+eqTermSt eqSt (Wrap _ tnLeft tyLeft tLeft) (Wrap _ tnRight tyRight tRight) =
+    let intermediateSt = over tyMap (M.insert tnRight tnLeft) eqSt
+        in eqTypeSt (_tyMap intermediateSt) tyLeft tyRight
+            && eqTermSt intermediateSt tLeft tRight
+
+eqTermSt eqSt (LamAbs _ nLeft tyLeft tLeft) (LamAbs _ nRight tyRight tRight) =
+    let tEq = rebindAndEq eqSt tLeft tRight nLeft nRight
+        in eqTypeSt (_tyMap eqSt) tyLeft tyRight && tEq
+
+eqTermSt eqSt (Apply _ fLeft aLeft) (Apply _ fRight aRight) =
+    eqTermSt eqSt fLeft fRight && eqTermSt eqSt aLeft aRight
+
+eqTermSt _ (Constant _ cLeft) (Constant _ cRight) =
+    cLeft == cRight
+
+eqTermSt eqSt (Unwrap _ tLeft) (Unwrap _ tRight) =
+    eqTermSt eqSt tLeft tRight
+
+eqTermSt eqSt (TyInst _ tLeft tyLeft) (TyInst _ tRight tyRight) =
+    eqTermSt eqSt tLeft tRight && eqTypeSt (_tyMap eqSt) tyLeft tyRight
+
+eqTermSt eqSt (Error _ tyLeft) (Error _ tyRight) =
+    eqTypeSt (_tyMap eqSt) tyLeft tyRight
 
 eqTermSt eqSt (Var _ nRight) (Var _ nLeft) =
     case M.lookup nLeft (_termMap eqSt) of
@@ -228,7 +259,7 @@ data TermF tyname name a x = VarF a (name a)
                            | UnwrapF a x
                            | WrapF a (tyname a) (Type tyname a) x
                            | ErrorF a (Type tyname a)
-                           deriving (Functor, Traversable, Foldable)
+                           deriving (Functor)
 
 type instance Base (Term tyname name a) = TermF tyname name a
 
