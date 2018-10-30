@@ -1,7 +1,6 @@
 resolver: lts-11.11
 
 packages:
-- plutus-prototype
 - language-plutus-core
 - plutus-core-interpreter
 - plutus-exe
@@ -11,10 +10,6 @@ packages:
 - plutus-use-cases
 - wallet-api
 
-- location:
-    git: https://github.com/input-output-hk/cardano-crypto
-    commit: 838b064d8a59286142aa2fe14434fe7601896ddb
-  extra-dep: true
 # Add custom stylish-haskell while waiting for PR upstream: https://github.com/jaspervdj/stylish-haskell/pull/214
 - location:
     git: https://github.com/input-output-hk/stylish-haskell.git
