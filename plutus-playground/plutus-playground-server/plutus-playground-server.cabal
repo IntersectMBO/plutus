@@ -41,6 +41,7 @@ library
     , temporary
     , directory
     , exceptions
+    , base64-bytestring
     , bytestring
     , containers
     , data-default-class
