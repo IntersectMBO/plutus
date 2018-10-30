@@ -25,7 +25,13 @@ module.exports = {
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
-        port: 8000
+        port: 8009,
+        proxy: {
+            "/api": {
+                target: 'http://localhost:8080',
+                pathRewrite: {'^/api' : ''}
+            }
+        }
     },
 
     entry: './entry.js',
@@ -69,7 +75,10 @@ module.exports = {
     },
 
     resolve: {
-        modules: [ 'node_modules', 'bower_components' ],
+        modules: [
+            'node_modules',
+            'bower_components'
+        ],
         extensions: [ '.purs', '.js']
     },
 

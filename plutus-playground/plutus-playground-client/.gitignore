@@ -2,3 +2,5 @@
 /node_modules/
 /output/
 /yarn-error.log
+/src/PSGenerator.purs
+/src/Playground/Server.purs

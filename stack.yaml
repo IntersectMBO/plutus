@@ -30,6 +30,7 @@ extra-deps:
 - servant-options-0.1.0.0
 - hint-0.9.0
 - exceptions-0.10.0
+- purescript-bridge-0.13.0.0
 flags:
   language-plutus-core:
     development: true

@@ -22,8 +22,8 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import ECharts.Commands as E
-import ECharts.Monad (DSL)
-import ECharts.Types.Phantom as ETP
+import ECharts.Monad (CommandsT, interpret)
+import ECharts.Types.Phantom (I)
 import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -34,7 +34,7 @@ import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, div_, h1_, h2_,
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, href, target)
 import Halogen.Query (HalogenM)
-import Prelude (class Eq, class Ord, type (~>), Unit, Void, bind, const, discard, not, pure, unit, void, ($))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, not, pure, unit, void, ($))
 import Wallet (Wallet, walletsPane)
 import Wallet as Wallet
 
@@ -113,7 +113,11 @@ eval (HandleAceMessage (TextChanged msg) next) = do
   pure next
 
 eval (HandleEChartsMessage EC.Initialized next) = do
-  _ <- H.query' cp2 EChartsSlot $ H.action $ EC.Set sankeyDiagramOptions
+  void $ H.query' cp2 EChartsSlot $ H.action $ EC.Set $ interpret sankeyDiagramOptions
+  pure next
+
+-- We just ignore most ECharts events.
+eval (HandleEChartsMessage (EC.EventRaised event) next) =
   pure next
 
 ------------------------------------------------------------
@@ -195,7 +199,7 @@ scaffoldPane state =
         ]
       ]
 
-sankeyDiagramOptions :: DSL ETP.OptionI
+sankeyDiagramOptions :: forall m i. Monad m => CommandsT (series :: I | i) m Unit
 sankeyDiagramOptions = do
   E.series $ E.sankey do
     E.buildItems do

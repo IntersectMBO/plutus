@@ -30,6 +30,7 @@ library
       Playground.Server
       Playground.Interpreter
       Webserver
+      PSGenerator
   other-modules:
       Paths_plutus_playground_server
   hs-source-dirs:
@@ -50,6 +51,7 @@ library
     , hint >= 0.9.0
     , http-media
     , http-types
+    , lens
     , monad-logger
     , mtl
     , network
@@ -57,6 +59,7 @@ library
     , servant
     , servant-foreign
     , servant-options
+    , servant-purescript
     , servant-server
     , text
     , transformers
