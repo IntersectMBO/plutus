@@ -160,6 +160,7 @@ monoData = testNested "monomorphic" [
   , goldenPlc "defaultCase" defaultCase
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , goldenPlc "monoRecord" monoRecord
+   -- FIXME: this should *not* fail
   , goldenPlcCatch "nonValueCase" nonValueCase
   , goldenPlc "synonym" synonym
   ]
@@ -220,6 +221,7 @@ newtypes = testNested "newtypes" [
    , goldenPlc "newtypeMatch" newtypeMatch
    , goldenPlc "newtypeCreate" newtypeCreate
    , goldenPlc "newtypeCreate2" newtypeCreate2
+   -- FIXME: this should *not* fail
    , goldenPlcCatch "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
