@@ -55631,6 +55631,55 @@ description = "Executable for Plutus Core tools";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"plutus-ir" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, language-plutus-core
+, microlens
+, mtl
+, prettyprinter
+, stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-ir";
+version = "0.1.0.0";
+src = ./../plutus-ir;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+language-plutus-core
+microlens
+mtl
+prettyprinter
+text
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+language-plutus-core
+mtl
+prettyprinter
+tasty
+tasty-golden
+tasty-hunit
+text
+];
+doHaddock = false;
+description = "Plutus IR language";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "plutus-prototype" = callPackage
 ({
   mkDerivation

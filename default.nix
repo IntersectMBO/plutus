@@ -60,6 +60,7 @@ let
       plutus-core-interpreter = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter)));
       plutus-exe = addWerror (addRealTimeTestLogs (filterSource super.plutus-exe));
       core-to-plc = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc)));
+      plutus-ir = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-ir)));
       plutus-th = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th)));
       plutus-use-cases = addWerror (addRealTimeTestLogs (filterSource super.plutus-use-cases));
       wallet-api = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api)));
