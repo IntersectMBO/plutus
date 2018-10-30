@@ -141,31 +141,41 @@ eqTypeSt _ _ _ = False
 instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
     (==) = eqTypeSt mempty
 
-type EqState name a = M.Map (name a) (name a)
+data EqState tyname name a = EqState { _tyMap :: M.Map (tyname a) (tyname a), _termMap :: M.Map (name a) (name a) }
+
+emptyEqState :: (Ord (tyname a), Ord (name a)) => EqState tyname name a
+emptyEqState = EqState mempty mempty
+
+termMap :: Lens' (EqState tyname name a) (M.Map (name a) (name a))
+termMap f s = fmap (\x -> s { _termMap = x }) (f (_termMap s))
 
 rebindAndEq :: (Eq a, Ord (name a))
-            => EqState name a
+            => EqState tyname name a
             -> Term tyname name a
             -> Term tyname name a
             -> name a
             -> name a
             -> Bool
 rebindAndEq eqSt tLeft tRight nLeft nRight =
-    let intermediateSt = M.insert nRight nLeft eqSt
+    let intermediateSt = over termMap (M.insert nRight nLeft) eqSt
         in eqTermSt intermediateSt tLeft tRight
 
 eqTermSt :: (Ord (name a), Eq a)
-         => EqState name a
+         => EqState tyname name a
          -> Term tyname name a
          -> Term tyname name a
          -> Bool
 
 eqTermSt eqSt (Var _ nRight) (Var _ nLeft) =
-    case M.lookup nLeft eqSt of
+    case M.lookup nLeft (_termMap eqSt) of
         Just n  -> nRight == n
         Nothing -> nRight == nLeft
 
 eqTermSt _ _ _ = False
+
+instance (Ord (tyname a), Ord (name a), Eq a) => Eq (Term tyname name a) where
+    (==) = eqTermSt emptyEqState
+
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
@@ -207,7 +217,7 @@ data Term tyname name a = Var a (name a) -- ^ A named variable
                         | Unwrap a (Term tyname name a)
                         | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
                         | Error a (Type tyname a)
-                        deriving (Functor, Show, Eq, Generic, NFData, Lift)
+                        deriving (Functor, Show, Generic, NFData, Lift)
 
 data TermF tyname name a x = VarF a (name a)
                            | TyAbsF a (tyname a) (Kind a) x
@@ -271,7 +281,7 @@ data Program tyname name a = Program a (Version a) (Term tyname name a)
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Show, Eq, Functor, Generic)
+    deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
 
 instance HasUnique (NameWithType a) where
