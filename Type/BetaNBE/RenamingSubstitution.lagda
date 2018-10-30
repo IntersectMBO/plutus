@@ -240,7 +240,6 @@ subst[]Nf : ∀{Φ Ψ K J}
   → (B : Φ ,⋆ K ⊢Nf⋆ J)
     --------------------------------------------------------------
   → substNf ρ (B [ A ]Nf) ≡ substNf (extsNf ρ) B [ substNf ρ A ]Nf
-
 subst[]Nf ρ A B = trans
   (sym (substNf-comp (substNf-cons (ne ∘ `) A) ρ B))
   (trans

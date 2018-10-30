@@ -45,6 +45,7 @@ rename ρ (A ⇒ B)     = rename ρ A ⇒ rename ρ B
 rename ρ (ƛ B)       = ƛ (rename (ext ρ) B)
 rename ρ (A · B)     = rename ρ A · rename ρ B
 rename ρ (μ B)       = μ (rename (ext ρ) B)
+rename ρ μ1          = μ1
 rename ρ (size⋆ n)   = size⋆ n
 rename ρ (con tcn s) = con tcn (rename ρ s)
 \end{code}
@@ -105,6 +106,7 @@ rename-cong p (A ⇒ B)     = cong₂ _⇒_ (rename-cong p A) (rename-cong p B)
 rename-cong p (ƛ A)       = cong ƛ (rename-cong (ext-cong p) A)
 rename-cong p (A · B)     = cong₂ _·_ (rename-cong p A) (rename-cong p B)
 rename-cong p (μ A)       = cong μ (rename-cong (ext-cong p) A)
+rename-cong p μ1          = refl
 rename-cong p (size⋆ n)   = refl
 rename-cong p (con tcn s) = cong (con tcn) (rename-cong p s)
 \end{code}
@@ -122,6 +124,7 @@ rename-id (t ⇒ u)     = cong₂ _⇒_ (rename-id t) (rename-id u)
 rename-id (ƛ t)       = cong ƛ (trans (rename-cong ext-id t) (rename-id t))
 rename-id (t · u)     = cong₂ _·_ (rename-id t) (rename-id u)
 rename-id (μ t)       = cong μ (trans (rename-cong ext-id t) (rename-id t))
+rename-id μ1          = refl
 rename-id (size⋆ n)   = refl
 rename-id (con tcn s) = cong (con tcn) (rename-id s)
 \end{code}
@@ -157,6 +160,7 @@ rename-comp (ƛ A)       =
 rename-comp (A · B)     = cong₂ _·_ (rename-comp A) (rename-comp B)
 rename-comp (μ A)       =
   cong μ (trans (rename-cong ext-comp A) (rename-comp A))
+rename-comp μ1          = refl
 rename-comp (size⋆ n)   = refl
 rename-comp (con tcn s) = cong (con tcn) (rename-comp s)
 \end{code}
@@ -196,6 +200,7 @@ subst σ (A ⇒ B)     = subst σ A ⇒ subst σ B
 subst σ (ƛ B)       = ƛ (subst (exts σ) B)
 subst σ (A · B)     = subst σ A · subst σ B
 subst σ (μ B)       = μ (subst (exts σ) B)
+subst σ μ1           = μ1
 subst σ (size⋆ n)   = size⋆ n
 subst σ (con tcn s) = con tcn (subst σ s)
 \end{code}
@@ -265,6 +270,7 @@ subst-cong p (A ⇒ B)     = cong₂ _⇒_ (subst-cong p A) (subst-cong p B)
 subst-cong p (ƛ A)       = cong ƛ (subst-cong (exts-cong p) A)
 subst-cong p (A · B)     = cong₂ _·_ (subst-cong p A) (subst-cong p B)
 subst-cong p (μ A)       = cong μ (subst-cong (exts-cong p) A)
+subst-cong p μ1          = refl
 subst-cong p (size⋆ n)   = refl
 subst-cong p (con tcn s) = cong (con tcn) (subst-cong p s)
 \end{code}
@@ -276,12 +282,13 @@ subst-id : ∀ {Φ J}
   → (t : Φ ⊢⋆ J)
     -------------
   → subst ` t ≡ t
-subst-id (` x)   = refl
-subst-id (Π A)   = cong Π (trans (subst-cong exts-id A) (subst-id A))
-subst-id (A ⇒ B) = cong₂ _⇒_ (subst-id A) (subst-id B)
-subst-id (ƛ A)    = cong ƛ (trans (subst-cong exts-id A) (subst-id A))
-subst-id (A · B) = cong₂ _·_ (subst-id A) (subst-id B)
-subst-id (μ A)   = cong μ (trans (subst-cong exts-id A) (subst-id A))
+subst-id (` x)      = refl
+subst-id (Π A)      = cong Π (trans (subst-cong exts-id A) (subst-id A))
+subst-id (A ⇒ B)    = cong₂ _⇒_ (subst-id A) (subst-id B)
+subst-id (ƛ A)       = cong ƛ (trans (subst-cong exts-id A) (subst-id A))
+subst-id (A · B)     = cong₂ _·_ (subst-id A) (subst-id B)
+subst-id (μ A)       = cong μ (trans (subst-cong exts-id A) (subst-id A))
+subst-id μ1          = refl
 subst-id (size⋆ n)   = refl
 subst-id (con tcn s) = cong (con tcn) (subst-id s)
 \end{code}
@@ -308,12 +315,16 @@ subst-rename : ∀{Φ Ψ Θ}
   → ∀{J}(A : Φ ⊢⋆ J)
     --------------------------------------
   → subst (f ∘ g) A ≡ subst f (rename g A)
-subst-rename (` x)   = refl
-subst-rename (Π A)   = cong Π (trans (subst-cong exts-ext A) (subst-rename A))
-subst-rename (A ⇒ B) = cong₂ _⇒_ (subst-rename A) (subst-rename B)
-subst-rename (ƛ A)   = cong ƛ (trans (subst-cong exts-ext A) (subst-rename A))
-subst-rename (A · B) = cong₂ _·_ (subst-rename A) (subst-rename B)
-subst-rename (μ A)   = cong μ (trans (subst-cong exts-ext A) (subst-rename A))
+subst-rename (` x)       = refl
+subst-rename (Π A)       =
+  cong Π (trans (subst-cong exts-ext A) (subst-rename A))
+subst-rename (A ⇒ B)     = cong₂ _⇒_ (subst-rename A) (subst-rename B)
+subst-rename (ƛ A)       =
+  cong ƛ (trans (subst-cong exts-ext A) (subst-rename A))
+subst-rename (A · B)     = cong₂ _·_ (subst-rename A) (subst-rename B)
+subst-rename (μ A)       =
+  cong μ (trans (subst-cong exts-ext A) (subst-rename A))
+subst-rename μ1           = refl
 subst-rename (size⋆ n)   = refl
 subst-rename (con tcn s) = cong (con tcn) (subst-rename s)
 \end{code}
@@ -349,6 +360,7 @@ rename-subst (ƛ A)       =
 rename-subst (A · B)     = cong₂ _·_ (rename-subst A) (rename-subst B)
 rename-subst (μ A)       =
   cong μ (trans (subst-cong rename-ext-exts A) (rename-subst A))
+rename-subst μ1          = refl
 rename-subst (size⋆ n)   = refl
 rename-subst (con tcn s) = cong (con tcn) (rename-subst s)
 \end{code}
@@ -381,6 +393,7 @@ subst-comp (A ⇒ B)     = cong₂ _⇒_ (subst-comp A) (subst-comp B)
 subst-comp (ƛ A)       = cong ƛ (trans (subst-cong extscomp A) (subst-comp A))
 subst-comp (A · B)     = cong₂ _·_ (subst-comp A) (subst-comp B)
 subst-comp (μ A)       = cong μ (trans (subst-cong extscomp A) (subst-comp A))
+subst-comp μ1          = refl
 subst-comp (size⋆ n)   = refl
 subst-comp (con tcn s) = cong (con tcn) (subst-comp s)
 \end{code}
