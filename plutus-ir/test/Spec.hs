@@ -92,7 +92,7 @@ listMatch :: Term TyName Name ()
 listMatch = runQuote $ do
     m <- freshTyName () "List"
     a <- freshTyName () "a"
-    let ma = (TyApp () (TyVar () m) (TyVar () a))
+    let ma = TyApp () (TyVar () m) (TyVar () a)
     match <- freshName () "match_List"
     nil <- freshName () "Nil"
     cons <- freshName () "Cons"
@@ -102,8 +102,8 @@ listMatch = runQuote $ do
     h <- freshName () "head"
     t <- freshName () "tail"
 
-    let unitMatch = (PLC.TyInst () (PLC.Var () match) unit)
-    let unitNil = (PLC.TyInst () (PLC.Var () nil) unit)
+    let unitMatch = PLC.TyInst () (PLC.Var () match) unit
+    let unitNil = PLC.TyInst () (PLC.Var () nil) unit
     pure $
         Let ()
             Rec
@@ -121,12 +121,12 @@ listMatch = runQuote $ do
                 ]
             ] $
             -- embed so we can use PLC construction functions
-            embedIntoIR $ PLC.mkIterApp (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit) $
+            embedIntoIR $ PLC.mkIterApp (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit)
                 [
                     -- nil case
                     unitval,
                     -- cons case
-                    PLC.mkIterLamAbs [(h, unit), (t, PLC.TyApp () (PLC.TyVar () m) unit) ] $ PLC.Var () h
+                    PLC.mkIterLamAbs [PLC.VarDecl () h unit, PLC.VarDecl () t (PLC.TyApp () (PLC.TyVar () m) unit)] $ PLC.Var () h
                 ]
 
 datatypes :: TestNested

@@ -15,7 +15,7 @@ import           Control.Monad
 import           Control.Monad.Except
 
 import qualified Language.PlutusCore                      as PLC
-import           Language.PlutusCore.MkPlc
+import qualified Language.PlutusCore.MkPlc                as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function as Function
 
@@ -59,13 +59,13 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
 
  -- See note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
-compileRecTerms :: Compiling m => PLC.Term TyName Name () -> [Def (VarDecl TyName Name ()) (Term TyName Name ())] -> m (PLC.Term TyName Name ())
-compileRecTerms body bs = PLC.Apply () <$> mkTupleBinder body (fmap defVar bs) <*> mkFixpoint bs
+compileRecTerms :: Compiling m => PLC.Term TyName Name () -> [TermDef TyName Name ()] -> m (PLC.Term TyName Name ())
+compileRecTerms body bs = PLC.Apply () <$> mkTupleBinder body (fmap PLC.defVar bs) <*> mkFixpoint bs
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
-mkFixpoint :: Compiling m => [Def (VarDecl TyName Name ()) (Term TyName Name ())] -> m (PLC.Term TyName Name ())
+mkFixpoint :: Compiling m => [TermDef TyName Name ()] -> m (PLC.Term TyName Name ())
 mkFixpoint bs = do
-    let tys = fmap (varDeclTy . defVar) bs
+    let tys = fmap (PLC.varDeclType . PLC.defVar) bs
     -- The pairs of types we'll need for fixN
     asbs <- forM tys $ \case
         PLC.TyFun () i o -> pure (i, o)
@@ -73,13 +73,13 @@ mkFixpoint bs = do
 
     q <- liftQuote $ freshTyName () "Q"
     choose <- liftQuote $ freshName () "choose"
-    let chooseTy = mkIterTyFun tys (PLC.TyVar () q)
+    let chooseTy = PLC.mkIterTyFun tys (PLC.TyVar () q)
 
     -- \f1 ... fn -> choose b1 ... bn
     bsLam <- do
-          rhss <- traverse (compileTerm . defVal) bs
-          let chosen =  mkIterApp (PLC.Var() choose) rhss
-              abstracted = mkIterLamAbs (fmap (splitVarDecl . defVar) bs) chosen
+          rhss <- traverse (compileTerm . PLC.defVal) bs
+          let chosen =  PLC.mkIterApp (PLC.Var () choose) rhss
+              abstracted = PLC.mkIterLamAbs (fmap PLC.defVar bs) chosen
           pure abstracted
 
     -- abstract out Q and choose
@@ -88,7 +88,7 @@ mkFixpoint bs = do
     -- fixN {A1 B1 ... An Bn}
     instantiatedFix <- do
         fixN <- liftQuote $ Function.getBuiltinFixN (length bs)
-        pure $ mkIterInst fixN $ foldMap (\(a, b) -> [a, b]) asbs
+        pure $ PLC.mkIterInst fixN $ foldMap (\(a, b) -> [a, b]) asbs
 
     pure $ PLC.Apply () instantiatedFix cLam
 
@@ -96,7 +96,7 @@ mkFixpoint bs = do
 mkTupleType :: MonadQuote m => [PLC.Type TyName ()] -> m (PLC.Type TyName ())
 mkTupleType tys = do
     resultType <- liftQuote $ freshTyName () "out_Tuple"
-    let match = mkIterTyFun tys (PLC.TyVar () resultType)
+    let match = PLC.mkIterTyFun tys (PLC.TyVar () resultType)
     let universal = PLC.TyForall () resultType (PLC.Type ()) match
     pure universal
 
@@ -112,7 +112,7 @@ mkTupleAccessor tys index = do
     pure $
         PLC.LamAbs () tupleArg tupleTy $
         PLC.Apply () (PLC.TyInst () (PLC.Var () tupleArg) selectedTy) $
-        mkIterLamAbs (zip argNames tys) $
+        PLC.mkIterLamAbs (zipWith (VarDecl ()) argNames tys) $
         PLC.Var () selectedArg
 
 -- TODO: move to MkPlc?
@@ -120,7 +120,7 @@ mkTupleAccessor tys index = do
 -- them in the body.
 mkTupleBinder :: MonadQuote m => PLC.Term TyName Name () -> [VarDecl TyName Name ()] -> m (PLC.Term TyName Name ())
 mkTupleBinder body vars = do
-    let tys = fmap varDeclTy vars
+    let tys = fmap PLC.varDeclType vars
     tupleTy <- mkTupleType tys
 
     tupleArg <- liftQuote $ freshName () "tuple"
@@ -129,7 +129,7 @@ mkTupleBinder body vars = do
     accesses <- forM [0..(length tys -1)] $ \i -> do
             accessor <- mkTupleAccessor tys i
             pure $ PLC.Apply () accessor (PLC.Var () tupleArg)
-    let defsAndAccesses = zip vars accesses
+    let defsAndAccesses = zipWith PLC.Def vars accesses
 
     -- let
     --   f_1 = _1 tuple
@@ -137,7 +137,7 @@ mkTupleBinder body vars = do
     --   f_i = _i tuple
     -- in
     --   result
-    let finalBound = foldr (\(VarDecl _ n ty, access) acc -> mkTermLet n access ty acc) body defsAndAccesses
+    let finalBound = foldr (\def acc -> PLC.mkTermLet def acc) body defsAndAccesses
 
     -- \tuple -> finalBound
     pure $ PLC.LamAbs () tupleArg tupleTy finalBound

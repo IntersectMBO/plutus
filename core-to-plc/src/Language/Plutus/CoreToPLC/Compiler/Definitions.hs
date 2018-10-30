@@ -8,7 +8,7 @@ import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PLCTypes
 
 import qualified Language.PlutusCore                as PLC
-import           Language.PlutusCore.MkPlc
+import qualified Language.PlutusCore.MkPlc          as PLC
 
 import qualified GhcPlugins                         as GHC
 
@@ -41,7 +41,7 @@ type TypeDef = Def PLCTyVar TypeRep
 
 tydTy :: TypeDef -> PLCType
 tydTy = \case
-    Def Abstract (PLCTyVar n _) _ -> PLC.TyVar () n
+    Def Abstract (PLC.TyVarDecl _ n _) _ -> PLC.TyVar () n
     Def Visible _ tr -> trTy tr
 
 tydConstrs :: TypeDef -> Maybe [TermDef]
@@ -58,7 +58,7 @@ type TermDef = Def PLCVar PLCTerm
 
 tdTerm :: TermDef -> PLCTerm
 tdTerm = \case
-    Def Abstract (PLCVar n _) _ -> PLC.Var () n
+    Def Abstract (PLC.VarDecl _ n _) _ -> PLC.Var () n
     Def Visible _ t -> t
 
 type DefMap key def = Map.Map key (def, [key])
@@ -111,10 +111,10 @@ wrapDef term def = case def of
             -- been inlined
             abstractTys = filter (not . isVisible) [d]
             abstractTerms = filter (not . isVisible) (constructors ++ destructors)
-            tyVars = fmap (splitTyVar . dVar) abstractTys
+            tyVars = fmap dVar abstractTys
             tys = fmap (trTy . dVal) abstractTys
-            vars = fmap (splitVar . dVar) abstractTerms
+            vars = fmap dVar abstractTerms
             vals = fmap dVal abstractTerms
         in
-            mkIterApp (mkIterInst (mkIterTyAbs tyVars (mkIterLamAbs vars term)) tys) vals
-    TermDef (Def _ (PLCVar n ty) rhs) -> mkTermLet n rhs ty term
+            PLC.mkIterApp (PLC.mkIterInst (PLC.mkIterTyAbs tyVars (PLC.mkIterLamAbs vars term)) tys) vals
+    TermDef (Def _ d rhs) -> PLC.mkTermLet (PLC.Def d rhs) term

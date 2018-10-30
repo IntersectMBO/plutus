@@ -208,9 +208,9 @@ instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPl
         cases <- forM constrs $ \(n, tys) -> do
                 arg <- liftQuote $ freshName () (strToBs n)
                 let ty = mkIterTyFun tys (TyVar () r)
-                pure (arg, ty)
+                pure $ VarDecl () arg ty
 
-        pure $ TyAbs () r (Type ()) $ mkIterLamAbs cases $ mkIterApp (Var () $ fst $ cases !! index) (snd constr)
+        pure $ TyAbs () r (Type ()) $ mkIterLamAbs cases $ mkIterApp (mkVar $ cases !! index) (snd constr)
 
 -- Auxiliary generic functions
 
