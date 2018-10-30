@@ -4,7 +4,8 @@
 
 module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
-    , EvaluationResult(..)
+    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    , EvaluationResult
     , evaluateCk
     , runCk
     ) where
