@@ -57,6 +57,7 @@ library
         Language.PlutusCore.Generators.Test
         PlutusPrelude
         Common
+        PlcTestUtils
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src prelude stdlib generators common
     other-modules:
