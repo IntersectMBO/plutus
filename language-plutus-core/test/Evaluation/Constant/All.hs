@@ -1,5 +1,5 @@
 module Evaluation.Constant.All
-    ( test_constantApplication
+    ( test_constant
     ) where
 
 import           Evaluation.Constant.Failure
@@ -9,11 +9,11 @@ import           Evaluation.Constant.SuccessFailure
 
 import           Test.Tasty
 
-test_constantApplication :: TestTree
-test_constantApplication =
-    testGroup "constantApplication"
-        [ test_applyBuiltinNameSuccess
+test_constant :: TestTree
+test_constant =
+    testGroup "constant"
+        [ test_constantSuccess
         , test_applyBuiltinNameSuccessFailure
-        , test_applyBuiltinNameFailure
+        , test_constantFailure
         , test_resize
         ]

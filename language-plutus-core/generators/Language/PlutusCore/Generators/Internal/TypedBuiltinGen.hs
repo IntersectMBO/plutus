@@ -68,7 +68,14 @@ instance (PrettyBy config a, PrettyBy config (Term TyName Name ())) =>
 attachCoercedTerm :: MonadQuote m => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
 attachCoercedTerm tb genX = do
     x <- genX
-    term <- liftQuote . unsafeMakeBuiltin $ TypedBuiltinValue tb x
+    -- Previously we used 'unsafeMakeBuiltin' here, however it didn't allow to generate
+    -- terms with out-of-bounds constants. Hence we now use 'makeBuiltinNOCHECK'.
+    -- The right thing would be to parameterize this function by a built-in maker,
+    -- so we check bounds when this makes sense and do not check otherwise.
+    -- But this function is used rather deeply in the pipeline, so we need to
+    -- attach a 'ReaderT' to 'm' instead of parameterizing the function and
+    -- this just makes everything convoluted. We anyway check bounds down the pipeline.
+    term <- liftQuote . makeBuiltinNOCHECK $ TypedBuiltinValue tb x
     return $ TermOf term x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
@@ -148,7 +155,8 @@ genTypedBuiltinSmall
           (genLowerBytes . Range.constant 0 . (`div` 3) . (* 2))
     $ genTypedBuiltinDef
 
--- | A sized built-ins generator that produces values outside of bounds seen in the spec.
+-- | A sized built-ins generator that produces values outside of bounds seen in the spec
+-- for @integer@s and @bytestring@s.
 genTypedBuiltinOutOfBounds :: MonadQuote m => TypedBuiltinGenT m
 genTypedBuiltinOutOfBounds
     = updateTypedBuiltinGenInt

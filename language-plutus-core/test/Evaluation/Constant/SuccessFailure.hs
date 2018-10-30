@@ -10,17 +10,6 @@ import           Data.Semigroup
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
-test_applyBuiltinNameSuccessFailure :: TestTree
-test_applyBuiltinNameSuccessFailure =
-    testGroup "applyBuiltinNameSuccessFailure"
-        [ test_typedAddIntegerSuccessFailure
-        , test_typedSubtractIntegerSuccessFailure
-        , test_typedMultiplyIntegerSuccessFailure
-        , test_typedResizeIntegerSuccessFailure
-        , test_typedConcatenateSuccessFailure
-        , test_typedResizeByteStringSuccessFailure
-        ]
-
 test_typedAddIntegerSuccessFailure :: TestTree
 test_typedAddIntegerSuccessFailure
     = testProperty "typedAddInteger"
@@ -50,3 +39,14 @@ test_typedResizeByteStringSuccessFailure :: TestTree
 test_typedResizeByteStringSuccessFailure
     = testProperty "typedResizeByteString"
     $ prop_applyBuiltinNameSuccessFailure typedResizeByteString (const id)
+
+test_applyBuiltinNameSuccessFailure :: TestTree
+test_applyBuiltinNameSuccessFailure =
+    testGroup "applyBuiltinNameSuccessFailure"
+        [ test_typedAddIntegerSuccessFailure
+        , test_typedSubtractIntegerSuccessFailure
+        , test_typedMultiplyIntegerSuccessFailure
+        , test_typedResizeIntegerSuccessFailure
+        , test_typedConcatenateSuccessFailure
+        , test_typedResizeByteStringSuccessFailure
+        ]

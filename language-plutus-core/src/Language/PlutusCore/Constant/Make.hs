@@ -21,6 +21,8 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinBool
     , makeBuiltin
     , unsafeMakeBuiltin
+    , makeSizedConstantNOCHECK
+    , makeBuiltinNOCHECK
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -139,9 +141,9 @@ makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeBuiltin :: TypedBuiltinValue Size a -> Quote (Maybe (Value TyName Name ()))
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
-    (TypedBuiltinSized se tbs) ->
+    TypedBuiltinSized se tbs ->
         return $ Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
-    TypedBuiltinBool           -> Just <$> makeBuiltinBool x
+    TypedBuiltinBool         -> Just <$> makeBuiltinBool x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
@@ -149,3 +151,22 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
 unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
     err = error $ "unsafeMakeBuiltin: out of bounds: " ++ prettyString tbv
+
+-- | Convert a Haskell value to the corresponding PLC constant indexed by size
+-- without checking constraints (e.g. an 'Integer' is in appropriate bounds).
+-- This function allows to fake a 'Constant' with a wrong size and thus it's highly unsafe
+-- and should be used with great caution.
+makeSizedConstantNOCHECK :: Size -> TypedBuiltinSized a -> a -> Constant ()
+makeSizedConstantNOCHECK size TypedBuiltinSizedInt  int = BuiltinInt  () size int
+makeSizedConstantNOCHECK size TypedBuiltinSizedBS   bs  = BuiltinBS   () size bs
+makeSizedConstantNOCHECK size TypedBuiltinSizedSize ()  = BuiltinSize () size
+
+-- | Convert a Haskell value to the corresponding PLC value without checking constraints
+-- (e.g. an 'Integer' is in appropriate bounds).
+-- This function allows to fake a 'Value' with a wrong size and thus it's highly unsafe
+-- and should be used with great caution.
+makeBuiltinNOCHECK :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+makeBuiltinNOCHECK (TypedBuiltinValue tb x) = case tb of
+    TypedBuiltinSized se tbs ->
+        return . Constant () $ makeSizedConstantNOCHECK (flattenSizeEntry se) tbs x
+    TypedBuiltinBool         -> makeBuiltinBool x

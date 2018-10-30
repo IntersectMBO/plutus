@@ -1,37 +1,20 @@
 module Evaluation.Constant.Success
-    ( test_applyBuiltinNameSuccess
+    ( test_constantSuccess
     ) where
 
+import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators
-import           PlutusPrelude
 
 import           Evaluation.Constant.Apply
 
+import           Control.Monad.Morph
 import qualified Data.ByteString.Lazy           as BSL
+import           Data.Maybe
+import           Data.Semigroup
+import           Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
-
-test_applyBuiltinNameSuccess :: TestTree
-test_applyBuiltinNameSuccess =
-    testGroup "applyBuiltinNameSuccess"
-        [ test_typedAddIntegerSuccess
-        , test_typedSubtractIntegerSuccess
-        , test_typedMultiplyIntegerSuccess
-        , test_typedDivideIntegerSuccess
-        , test_typedQuotientIntegerSuccess
-        , test_typedModIntegerSuccess
-        , test_typedRemainderIntegerSuccess
-        , test_typedLessThanIntegerSuccess
-        , test_typedLessThanEqIntegerSuccess
-        , test_typedGreaterThanIntegerSuccess
-        , test_typedGreaterThanEqIntegerSuccess
-        , test_typedEqIntegerSuccess
-        , test_typedConcatenateSuccess
-        , test_typedTakeByteStringSuccess
-        , test_typedDropByteStringSuccess
-        , test_typedEqByteStringSuccess
-        ]
 
 test_typedAddIntegerSuccess :: TestTree
 test_typedAddIntegerSuccess
@@ -128,3 +111,39 @@ test_typedEqByteStringSuccess
     = testProperty "typedEqByteString"
     $ prop_applyBuiltinNameSuccess typedEqByteString (==)
     $ genTypedBuiltinDef
+
+test_applyBuiltinNameSuccess :: TestTree
+test_applyBuiltinNameSuccess =
+    testGroup "applyBuiltinNameSuccess"
+        [ test_typedAddIntegerSuccess
+        , test_typedSubtractIntegerSuccess
+        , test_typedMultiplyIntegerSuccess
+        , test_typedDivideIntegerSuccess
+        , test_typedQuotientIntegerSuccess
+        , test_typedModIntegerSuccess
+        , test_typedRemainderIntegerSuccess
+        , test_typedLessThanIntegerSuccess
+        , test_typedLessThanEqIntegerSuccess
+        , test_typedGreaterThanIntegerSuccess
+        , test_typedGreaterThanEqIntegerSuccess
+        , test_typedEqIntegerSuccess
+        , test_typedConcatenateSuccess
+        , test_typedTakeByteStringSuccess
+        , test_typedDropByteStringSuccess
+        , test_typedEqByteStringSuccess
+        ]
+
+-- | Generates in-bounds constants and checks that their evaluation results in an 'EvaluationSuccess'.
+test_evalInBounds :: TestTree
+test_evalInBounds =
+    testProperty "evalInBounds" . property . hoist (pure . runQuote) $ do
+        mayTermWithValue <-
+            forAllPrettyPlcMaybeT $ withCheckedTermGen genTypedBuiltinDef $ const return
+        assert $ isJust mayTermWithValue
+
+test_constantSuccess :: TestTree
+test_constantSuccess =
+    testGroup "constantSuccess"
+       [ test_applyBuiltinNameSuccess
+       , test_evalInBounds
+       ]
