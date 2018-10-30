@@ -200,7 +200,9 @@ applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger   
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
 applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)
 applyBuiltinName DivideInteger        = applyTypedBuiltinName typedDivideInteger        div
-applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInteger     mod
+applyBuiltinName QuotientInteger      = applyTypedBuiltinName typedQuotientInteger      quot
+applyBuiltinName RemainderInteger     = applyTypedBuiltinName typedRemainderInteger     rem
+applyBuiltinName ModInteger           = applyTypedBuiltinName typedModInteger           mod
 applyBuiltinName LessThanInteger      = applyTypedBuiltinName typedLessThanInteger      (<)
 applyBuiltinName LessThanEqInteger    = applyTypedBuiltinName typedLessThanEqInteger    (<=)
 applyBuiltinName GreaterThanInteger   = applyTypedBuiltinName typedGreaterThanInteger   (>)

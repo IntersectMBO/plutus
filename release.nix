@@ -19,6 +19,7 @@ let
     plutus-core-interpreter = supportedSystems;
     plutus-exe = supportedSystems;
     core-to-plc = supportedSystems;
+    plutus-ir = supportedSystems;
     plutus-th = supportedSystems;
     plutus-use-cases = supportedSystems;
     wallet-api = supportedSystems;
