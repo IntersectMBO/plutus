@@ -1,66 +1,37 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
 import           Common
-import           PlutusPrelude                            (bsToStr, strToBs)
+import           PlcTestUtils
 
 import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler
 
-import qualified Language.PlutusCore                      as PLC
-import qualified Language.PlutusCore.Evaluation.CkMachine as PLC
-import qualified Language.PlutusCore.Pretty               as PLC
+import qualified Language.PlutusCore                  as PLC
 
-import qualified Language.PlutusCore.StdLib.Data.Bool     as Bool
-import qualified Language.PlutusCore.StdLib.Data.Nat      as Nat
-import qualified Language.PlutusCore.StdLib.Data.Unit     as Unit
-import qualified Language.PlutusCore.StdLib.Meta          as Meta
+import qualified Language.PlutusCore.StdLib.Data.Bool as Bool
+import qualified Language.PlutusCore.StdLib.Data.Nat  as Nat
+import qualified Language.PlutusCore.StdLib.Data.Unit as Unit
+import qualified Language.PlutusCore.StdLib.Meta      as Meta
 import           Language.PlutusCore.StdLib.Type
-
-import           Control.Monad.Except
 
 import           Test.Tasty
 
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text.Prettyprint.Doc                as PP
+import qualified Data.Text.Prettyprint.Doc            as PP
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
--- TODO: share more code with plugin testing lib
-class GetProgram a where
-    getProgram :: a -> ExceptT BSL.ByteString IO (PLC.Program TyName Name ())
-
-instance GetProgram (PLC.Program TyName Name ()) where
-    getProgram = pure
-
-instance GetProgram (PLC.Term TyName Name ()) where
-    getProgram = pure . trivialProgram
-
 instance GetProgram (Term TyName Name ()) where
-    getProgram = pure . trivialProgram . compile
+    getProgram = trivialProgram . compile
 
-trivialProgram :: PLC.Term TyName Name () -> PLC.Program TyName Name ()
-trivialProgram = PLC.Program () (PLC.defaultVersion ())
-
-runPlc :: (GetProgram a) => [a] -> ExceptT BSL.ByteString IO PLC.EvaluationResult
-runPlc values = do
-    ps <- mapM getProgram values
-    let p = foldl1 (\acc p -> PLC.applyProgram acc p) ps
-    pure $ PLC.runCk p
-
-goldenPIR :: String -> Term TyName Name () -> TestNested
-goldenPIR name value = nestedGoldenVsDoc name $ prettyDef value
-
-goldenPLC :: String -> PLC.Term TyName Name () -> TestNested
-goldenPLC name value = nestedGoldenVsDoc name $ PLC.prettyPlcDef value
-
-goldenEval :: (GetProgram a) => String -> [a] -> TestNested
-goldenEval name values = nestedGoldenVsDocM name $ either (PP.pretty . bsToStr) PLC.prettyPlcClassicDebug <$> (runExceptT $ runPlc values)
+goldenPir :: String -> Term TyName Name () -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
 
 compile :: Term TyName Name () -> PLC.Term TyName Name ()
 compile pir = case runCompiling $ compileTerm pir of
@@ -76,8 +47,8 @@ tests = testGroup "plutus-ir" <$> sequence [
 
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting" [
-    goldenPIR "basic" basic
-    , goldenPIR "datatype" datatype
+    goldenPir "basic" basic
+    , goldenPir "datatype" datatype
     ]
 
 basic :: Term TyName Name ()
@@ -118,12 +89,12 @@ datatype = runQuote $ do
 
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
-    goldenPLC "maybe" (compile datatype)
+    goldenPlc "maybe" (compile datatype)
     ]
 
 recursion :: TestNested
 recursion = testNested "recursion" [
-    goldenPLC "even3" (compile evenOdd),
+    goldenPlc "even3" (compile evenOdd),
     goldenEval "even3Eval" [evenOdd]
     ]
 

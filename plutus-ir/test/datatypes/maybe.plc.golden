@@ -1,35 +1,50 @@
-[
+(program 1.0.0
   [
     [
-      {
-        (abs
-          Maybe
-          (fun (type) (type))
-          (lam
-            Nothing
-            [Maybe a]
+      [
+        {
+          (abs
+            Maybe_0
+            (fun (type) (type))
             (lam
-              Just
-              (fun a [Maybe a])
+              Nothing_3
+              [Maybe_0 a_1]
               (lam
-                match_Maybe
-                (all a (type) (fun [Maybe a] [(lam a (type) (all r (type) (fun r (fun (fun a r) r)))) a]))
-                [ { Just (all a (type) (fun a a)) } (abs a (type) (lam x a x)) ]
+                Just_4
+                (fun a_1 [Maybe_0 a_1])
+                (lam
+                  match_Maybe_2
+                  (all a_1 (type) (fun [Maybe_0 a_1] [(lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 r_0) r_0)))) a_1]))
+                  [
+                    { Just_4 (all a_6 (type) (fun a_6 a_6)) }
+                    (abs a_9 (type) (lam x_10 a_9 x_10))
+                  ]
+                )
               )
             )
           )
+          (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 r_0) r_0))))
+        }
+        (abs
+          a_1
+          (type)
+          (abs r_1 (type) (lam case0_2 r_1 (lam case1_3 (fun a_1 r_1) case0_2)))
         )
-        (lam a (type) (all r (type) (fun r (fun (fun a r) r))))
-      }
-      (abs a (type) (abs r (type) (lam case0 r (lam case1 (fun a r) case0))))
-    ]
-    (abs
-      a
-      (type)
-      (lam
-        arg0 a (abs r (type) (lam case0 r (lam case1 (fun a r) [ case1 arg0 ])))
+      ]
+      (abs
+        a_1
+        (type)
+        (lam
+          arg0_7
+          a_1
+          (abs
+            r_4
+            (type)
+            (lam case0_5 r_4 (lam case1_6 (fun a_1 r_4) [ case1_6 arg0_7 ]))
+          )
+        )
       )
-    )
+    ]
+    (abs a_1 (type) (lam x_8 [Maybe_0 a_1] x_8))
   ]
-  (abs a (type) (lam x [Maybe a] x))
-]
+)
