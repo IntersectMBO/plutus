@@ -26,7 +26,7 @@ We can emulate application of `fix` to a spine of arguments. With kind-level pro
 fix f (\(r :: k1 -> k2 -> ... -> kn -> *) -> r a1 a2 ... an)
 ```
 
-which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case (a proof needed).
+which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case ([an illustration](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d#file-ifixn-agda)).
 
 Besides, `ifix` is what we use to [encode mutually recursive data types](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d) and having the ability to encode mutually recursive data type is the primary reason for having a higher-kinded `fix`.
 
