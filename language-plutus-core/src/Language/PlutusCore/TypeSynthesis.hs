@@ -147,7 +147,7 @@ kindOf (TyForall x _ _ ty) = do
 kindOf (TyLam _ _ argK body) = KindArrow () (void argK) <$> kindOf body
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = pure $ kindOfTypeBuiltin b
-kindOf (TyFix x _ pat) = do
+kindOf (TyIFix x _ pat arg) = do
     kindCheckM x pat $ Type ()
     pure $ Type ()
 kindOf (TyApp x fun arg) = do
@@ -292,20 +292,23 @@ typeOf (TyInst x body ty) = do
             normalizeTypeBinder n vTy vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
--- [infer| term : fix n vPat]    [fix n vPat / n] vPat ~> vRes
--- -----------------------------------------------------------
--- [infer| unwrap n term : vRes]
+-- [infer| term : ifix n vPat vArg]
+-- ---------------------------------------------------
+-- [infer| unwrap term : NORM (([ifix n vPat / n] vPat) vArg)]
 typeOf (Unwrap x term) = do
     vTermTy <- typeOf term
     case getNormalizedType vTermTy of
-        TyFix _ n vPat -> normalizeTypeBinder n vTermTy vPat
-        _              -> throwError (TypeMismatch x (void term) (TyFix () dummyTyName dummyType) vTermTy)
+        TyIFix _ n vPat vArg -> do
+            unfoldedVPat <- normalizeTypeBinder n (TyIFix () n vPat) vPat
+            normalizeType $ TyApp () unfoldedVPat vArg
+        _                    -> throwError (TypeMismatch x (void term) (TyFix () dummyTyName dummyType) vTermTy)
 
--- [check| pat :: *]    pat ~>? vPat    [fix n vPat / n] vPat ~> vTermTy'    [check| term : vTermTy]
--- -------------------------------------------------------------------------------------------------
--- [infer| wrap n pat term : fix n vPat]
-typeOf (Wrap x n pat term) = do
-    kindCheckM x pat $ Type ()
+-- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]    pat ~>? vPat    arg ~>? vArg
+-- [check| term : NORM (vPat (ifix vPat) vArg)]
+-- ----------------------------------------------------------------------------------------
+-- [infer| iwrap pat arg term : ifix vPat vArg]
+typeOf (IWrap x n pat arg term) = do
+    patKind <- kindOf pat -- TODO: continue
     vPat <- normalizeTypeOpt $ void pat
     vTermTy <- normalizeTypeBinder (void n) (TyFix () (void n) <$> vPat) $ getNormalizedType vPat
     typeCheckStep
@@ -331,6 +334,23 @@ that receives two already normalized types. However we do not enforce this in th
 1) it's perfectly correct for the last argument to be non-normalized
 2) it would be annoying to wrap 'Type's into 'NormalizedType's
 -}
+
+
+-- -- [check| term : norm ([ ifix vPat nPat vPat (fix1 vPat) vArg)]
+
+
+-- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]
+-- --------------------------------------------------------
+-- [infer| fix1 pat arg :: *]
+
+-- [infer| term : fix1 vPat vArg]
+-- ---------------------------------------------------
+-- [infer| unwrap term : NORM (vPat (fix1 vPat) vArg)]
+
+-- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]    pat ~>? vPat    arg ~>? vArg
+-- [check| term : NORM (vPat (fix1 vPat) vArg)]
+-- ----------------------------------------------------------------------------------------
+-- [infer| wrap pat arg term : fix1 vPat vArg]
 
 normalizeTypeBinder
     :: TyNameWithKind ()
@@ -368,11 +388,11 @@ normalizeTypeOpt ty = do
 
 -- | Normalize a 'Type'.
 normalizeType :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-normalizeType (TyForall x tn k ty) = TyForall x tn k <<$>> normalizeType ty
-normalizeType (TyFix x tn ty)      = TyFix x tn <<$>> normalizeType ty
-normalizeType (TyFun x ty ty')     = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
-normalizeType (TyLam x tn k ty)    = TyLam x tn k <<$>> normalizeType ty
-normalizeType (TyApp x fun arg)    = do
+normalizeType (TyForall x tn k ty)  = TyForall x tn k <<$>> normalizeType ty
+normalizeType (TyIFix x tn pat arg) = TyIFix x tn <<$>> normalizeType pat <<*>> normalizeType arg
+normalizeType (TyFun x ty ty')      = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
+normalizeType (TyLam x tn k ty)     = TyLam x tn k <<$>> normalizeType ty
+normalizeType (TyApp x fun arg)     = do
     nFun <- normalizeType fun
     nArg <- normalizeType arg
     case getNormalizedType nFun of

@@ -223,8 +223,8 @@ instance PrettyReadableBy configName (tyname a) =>
         TyApp _ fun arg         -> applicationDoc config fun arg
         TyVar _ name            -> unit $ prettyName name
         TyFun _ tyIn tyOut      -> arrowDoc config tyIn tyOut
-        TyFix _ name body       -> bind $ \bindBody ->
-            "fix" <+> prettyName name <> "." <+> bindBody body
+        TyIFix _ name body _    -> bind $ \bindBody ->
+            "fix" <+> prettyName name <> "." <+> bindBody body  -- TODO: wrong.
         TyForall _ name kind ty -> bind $ \bindBody ->
             "all" <+> parens (prettyName name <+> "::" <+> inBot kind) <> "." <+> bindBody ty
         TyBuiltin _ builtin     -> unit $ pretty builtin
@@ -249,8 +249,8 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
         LamAbs _ name ty body  -> bind $ \bindBody ->
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
         Unwrap _ term          -> comp juxtApp $ \_ juxtRight -> "unwrap" <+> juxtRight term
-        Wrap _ name ty term    -> comp juxtApp $ \_ juxtRight ->
-            "wrap" <+> prettyName name <+> inMiddle ty <+> juxtRight term
+        IWrap _ name ty _ term -> comp juxtApp $ \_ juxtRight ->
+            "wrap" <+> prettyName name <+> inMiddle ty <+> juxtRight term  -- TODO: wrong.
         Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
         -- Annoyingly, @TypeFamilies@ break type inference.

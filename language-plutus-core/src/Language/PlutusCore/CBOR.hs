@@ -118,7 +118,7 @@ instance Serialise (tyname ()) => Serialise (Type tyname ()) where
     encode = cata a where
         a (TyVarF _ tn)        = encodeTag 0 <> encode tn
         a (TyFunF _ t t')      = encodeTag 1 <> t <> t'
-        a (TyFixF _ tn t)      = encodeTag 2 <> encode tn <> t
+        a (TyIFixF _ tn t x)   = encodeTag 2 <> encode tn <> t <> x
         a (TyForallF _ tn k t) = encodeTag 3 <> encode tn <> encode k <> t
         a (TyBuiltinF _ bi)    = encodeTag 4 <> encode bi
         a (TyIntF _ n)         = encodeTag 5 <> encode n
@@ -128,7 +128,7 @@ instance Serialise (tyname ()) => Serialise (Type tyname ()) where
     decode = go =<< decodeTag
         where go 0 = TyVar () <$> decode
               go 1 = TyFun () <$> decode <*> decode
-              go 2 = TyFix () <$> decode <*> decode
+              go 2 = TyFix () <$> decode <*> decode <*> decode
               go 3 = TyForall () <$> decode <*> decode <*> decode
               go 4 = TyBuiltin () <$> decode
               go 5 = TyInt () <$> decode
@@ -157,15 +157,15 @@ instance Serialise (Constant ()) where
 
 instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname name ()) where
     encode = cata a where
-        a (VarF _ n)         = encodeTag 0 <> encode n
-        a (TyAbsF _ tn k t)  = encodeTag 1 <> encode tn <> encode k <> t
-        a (LamAbsF _ n ty t) = encodeTag 2 <> encode n <> encode ty <> t
-        a (ApplyF _ t t')    = encodeTag 3 <> t <> t'
-        a (ConstantF _ c)    = encodeTag 4 <> encode c
-        a (TyInstF _ t ty)   = encodeTag 5 <> t <> encode ty
-        a (UnwrapF _ t)      = encodeTag 6 <> t
-        a (WrapF _ tn ty t)  = encodeTag 7 <> encode tn <> encode ty <> t
-        a (ErrorF _ ty)      = encodeTag 8 <> encode ty
+        a (VarF _ n)          = encodeTag 0 <> encode n
+        a (TyAbsF _ tn k t)   = encodeTag 1 <> encode tn <> encode k <> t
+        a (LamAbsF _ n ty t)  = encodeTag 2 <> encode n <> encode ty <> t
+        a (ApplyF _ t t')     = encodeTag 3 <> t <> t'
+        a (ConstantF _ c)     = encodeTag 4 <> encode c
+        a (TyInstF _ t ty)    = encodeTag 5 <> t <> encode ty
+        a (UnwrapF _ t)       = encodeTag 6 <> t
+        a (WrapF _ tn ty x t) = encodeTag 7 <> encode tn <> encode ty <> encode x <> t
+        a (ErrorF _ ty)       = encodeTag 8 <> encode ty
 
     decode = go =<< decodeTag
         where go 0 = Var () <$> decode
@@ -175,7 +175,7 @@ instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname 
               go 4 = Constant () <$> decode
               go 5 = TyInst () <$> decode <*> decode
               go 6 = Unwrap () <$> decode
-              go 7 = Wrap () <$> decode <*> decode <*> decode
+              go 7 = Wrap () <$> decode <*> decode <*> decode <*> decode
               go 8 = Error () <$> decode
               go _ = fail "Failed to decode Term TyName Name ()"
 

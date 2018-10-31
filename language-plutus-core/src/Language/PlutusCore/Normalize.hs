@@ -78,7 +78,7 @@ typeValue = cataM aM where
 
     isTyValue TyFunF{}     = True
     isTyValue TyForallF{}  = True
-    isTyValue TyFixF{}     = True
+    isTyValue TyIFixF{}    = True
     isTyValue TyLamF{}     = True
     isTyValue TyBuiltinF{} = True
     isTyValue TyIntF{}     = True

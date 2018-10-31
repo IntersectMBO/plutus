@@ -48,7 +48,7 @@ instance PrettyClassicBy configName (tyname a) =>
         a (TyAppF _ t t')     = brackets (t <+> t')
         a (TyVarF _ n)        = prettyName n
         a (TyFunF _ t t')     = parens ("fun" <+> t <+> t')
-        a (TyFixF _ n t)      = parens ("fix" <+> prettyName n <+> t)
+        a (TyIFixF _ n t x)   = parens ("fix" <+> prettyName n <+> t <+> x)
         a (TyForallF _ n k t) = parens ("all" <+> prettyName n <+> prettyBy config k <+> t)
         a (TyBuiltinF _ n)    = parens ("con" <+> pretty n)
         a (TyIntF _ n)        = parens ("con" <+> pretty n)
@@ -59,16 +59,16 @@ instance PrettyClassicBy configName (tyname a) =>
 instance (PrettyClassicBy configName (tyname a), PrettyClassicBy configName (name a)) =>
         PrettyBy (PrettyConfigClassic configName) (Term tyname name a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)    = parens' ("con" </> prettyBy config b)
-        a (ApplyF _ t t')    = brackets' (vsep' [t, t'])
-        a (VarF _ n)         = prettyName n
-        a (TyAbsF _ n k t)   = parens' ("abs" </> vsep' [prettyName n, prettyBy config k, t])
-        a (TyInstF _ t ty)   = braces' (vsep' [t, prettyBy config ty])
+        a (ConstantF _ b)     = parens' ("con" </> prettyBy config b)
+        a (ApplyF _ t t')     = brackets' (vsep' [t, t'])
+        a (VarF _ n)          = prettyName n
+        a (TyAbsF _ n k t)    = parens' ("abs" </> vsep' [prettyName n, prettyBy config k, t])
+        a (TyInstF _ t ty)    = braces' (vsep' [t, prettyBy config ty])
         -- FIXME: only do the </> thing when there's a line break in the `vsep'` part?
-        a (LamAbsF _ n ty t) = parens' ("lam" </> vsep' [prettyName n, prettyBy config ty, t])
-        a (UnwrapF _ t)      = parens' ("unwrap" </> t)
-        a (WrapF _ n ty t)   = parens' ("wrap" </> vsep' [prettyName n, prettyBy config ty, t])
-        a (ErrorF _ ty)      = parens' ("error" </> prettyBy config ty)
+        a (LamAbsF _ n ty t)  = parens' ("lam" </> vsep' [prettyName n, prettyBy config ty, t])
+        a (UnwrapF _ t)       = parens' ("unwrap" </> t)
+        a (IWrapF _ n ty x t) = parens' ("iwrap" </> vsep' [prettyName n, prettyBy config ty, prettyBy config x, t])
+        a (ErrorF _ ty)       = parens' ("error" </> prettyBy config ty)
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config

@@ -10,6 +10,12 @@ module Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Type
 
+tyFix :: a -> tyname a -> Type tyname a -> Type tyname a
+tyFix = undefined
+
+wrap :: a -> tyname a -> Type tyname a -> Term tyname name a -> Term tyname name a
+wrap = undefined
+
 -- | A type with a hole inside. The reason for having such a thing is that 'Wrap'
 -- expects the pattern functor of a recursive type while in type signatures we use
 -- actual recursive types. So we need a way to construct recursive types such that from
@@ -40,4 +46,4 @@ holedTyApp (HoledType name cont) arg = HoledType name $ \hole -> TyApp () (cont 
 -- | Convert a 'HoledType' to the corresponding 'RecursiveType'.
 holedToRecursive :: HoledType tyname () -> RecursiveType tyname ()
 holedToRecursive (HoledType name cont) =
-    RecursiveType (Wrap () name $ cont id) (cont $ TyFix () name)
+    RecursiveType (wrap () name $ cont id) (cont $ tyFix () name)

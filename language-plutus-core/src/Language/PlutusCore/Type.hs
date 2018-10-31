@@ -54,7 +54,8 @@ type Size = Natural
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)
                    | TyFun a (Type tyname a) (Type tyname a)
-                   | TyFix a (tyname a) (Type tyname a) -- ^ Fix-point type, for constructing self-recursive types
+                   | TyIFix a (Type tyname a) (Type tyname a)
+                     -- ^ Fix-point type, for constructing self-recursive types
                    | TyForall a (tyname a) (Kind a) (Type tyname a)
                    | TyBuiltin a TypeBuiltin -- ^ Builtin type
                    | TyInt a Natural -- ^ Type-level size
@@ -64,7 +65,7 @@ data Type tyname a = TyVar a (tyname a)
 
 data TypeF tyname a x = TyVarF a (tyname a)
                       | TyFunF a x x
-                      | TyFixF a (tyname a) x
+                      | TyIFixF a (tyname a) x x
                       | TyForallF a (tyname a) (Kind a) x
                       | TyBuiltinF a TypeBuiltin
                       | TyIntF a Natural
@@ -77,7 +78,7 @@ type instance Base (Type tyname a) = TypeF tyname a
 instance Recursive (Type tyname a) where
     project (TyVar l tn)         = TyVarF l tn
     project (TyFun l ty ty')     = TyFunF l ty ty'
-    project (TyFix l tn ty)      = TyFixF l tn ty
+    project (TyIFix l tn ty arg) = TyIFixF l tn ty arg
     project (TyForall l tn k ty) = TyForallF l tn k ty
     project (TyBuiltin l b)      = TyBuiltinF l b
     project (TyInt l n)          = TyIntF l n
@@ -87,7 +88,7 @@ instance Recursive (Type tyname a) where
 instance Corecursive (Type tyname a) where
     embed (TyVarF l tn)         = TyVar l tn
     embed (TyFunF l ty ty')     = TyFun l ty ty'
-    embed (TyFixF l tn ty)      = TyFix l tn ty
+    embed (TyIFixF l tn ty arg) = TyIFix l tn ty arg
     embed (TyForallF l tn k ty) = TyForall l tn k ty
     embed (TyBuiltinF l b)      = TyBuiltin l b
     embed (TyIntF l n)          = TyInt l n
@@ -122,8 +123,8 @@ eqTypeSt eqSt (TyApp _ fLeft aLeft) (TyApp _ fRight aRight) = eqTypeSt eqSt fLef
 eqTypeSt _ (TyInt _ nLeft) (TyInt _ nRight)              = nLeft == nRight
 eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
 
-eqTypeSt eqSt (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
-    rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+eqTypeSt eqSt (TyIFix _ tnLeft tyLeft argLeft) (TyIFix _ tnRight tyRight argRight) =
+    rebindAndEq eqSt tyLeft tyRight tnLeft tnRight && eqTypeSt eqSt argLeft argRight
 eqTypeSt eqSt (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) =
     let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
         in (kLeft == kRight && tyEq)
@@ -144,7 +145,7 @@ instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
 tyLoc (TyFun l _ _)      = l
-tyLoc (TyFix l _ _)      = l
+tyLoc (TyIFix l _ _ _)   = l
 tyLoc (TyForall l _ _ _) = l
 tyLoc (TyBuiltin l _)    = l
 tyLoc (TyInt l _)        = l
@@ -152,15 +153,15 @@ tyLoc (TyLam l _ _ _)    = l
 tyLoc (TyApp l _ _)      = l
 
 termLoc :: Term tyname name a -> a
-termLoc (Var l _)        = l
-termLoc (TyAbs l _ _ _)  = l
-termLoc (Apply l _ _)    = l
-termLoc (Constant l _)   = l
-termLoc (TyInst l _ _)   = l
-termLoc (Unwrap l _)     = l
-termLoc (Wrap l _ _ _)   = l
-termLoc (Error l _ )     = l
-termLoc (LamAbs l _ _ _) = l
+termLoc (Var l _)         = l
+termLoc (TyAbs l _ _ _)   = l
+termLoc (Apply l _ _)     = l
+termLoc (Constant l _)    = l
+termLoc (TyInst l _ _)    = l
+termLoc (Unwrap l _)      = l
+termLoc (IWrap l _ _ _ _) = l
+termLoc (Error l _ )      = l
+termLoc (LamAbs l _ _ _)  = l
 
 -- | A constant value.
 data Constant a = BuiltinInt a Natural Integer
@@ -179,7 +180,7 @@ data Term tyname name a = Var a (name a) -- ^ A named variable
                         | Constant a (Constant a) -- ^ A constant term
                         | TyInst a (Term tyname name a) (Type tyname a)
                         | Unwrap a (Term tyname name a)
-                        | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
+                        | IWrap a (tyname a) (Type tyname a) (Type tyname a) (Term tyname name a)
                         | Error a (Type tyname a)
                         deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
@@ -190,7 +191,7 @@ data TermF tyname name a x = VarF a (name a)
                            | ConstantF a (Constant a)
                            | TyInstF a x (Type tyname a)
                            | UnwrapF a x
-                           | WrapF a (tyname a) (Type tyname a) x
+                           | IWrapF a (tyname a) (Type tyname a) (Type tyname a) x
                            | ErrorF a (Type tyname a)
                            deriving (Functor, Traversable, Foldable)
 
@@ -199,26 +200,26 @@ type instance Base (Term tyname name a) = TermF tyname name a
 type Value = Term
 
 instance Recursive (Term tyname name a) where
-    project (Var x n)         = VarF x n
-    project (TyAbs x n k t)   = TyAbsF x n k t
-    project (LamAbs x n ty t) = LamAbsF x n ty t
-    project (Apply x t t')    = ApplyF x t t'
-    project (Constant x c)    = ConstantF x c
-    project (TyInst x t ty)   = TyInstF x t ty
-    project (Unwrap x t)      = UnwrapF x t
-    project (Wrap x tn ty t)  = WrapF x tn ty t
-    project (Error x ty)      = ErrorF x ty
+    project (Var x n)             = VarF x n
+    project (TyAbs x n k t)       = TyAbsF x n k t
+    project (LamAbs x n ty t)     = LamAbsF x n ty t
+    project (Apply x t t')        = ApplyF x t t'
+    project (Constant x c)        = ConstantF x c
+    project (TyInst x t ty)       = TyInstF x t ty
+    project (Unwrap x t)          = UnwrapF x t
+    project (IWrap x tn ty tyx t) = IWrapF x tn ty tyx t
+    project (Error x ty)          = ErrorF x ty
 
 instance Corecursive (Term tyname name a) where
-    embed (VarF x n)         = Var x n
-    embed (TyAbsF x n k t)   = TyAbs x n k t
-    embed (LamAbsF x n ty t) = LamAbs x n ty t
-    embed (ApplyF x t t')    = Apply x t t'
-    embed (ConstantF x c)    = Constant x c
-    embed (TyInstF x t ty)   = TyInst x t ty
-    embed (UnwrapF x t)      = Unwrap x t
-    embed (WrapF x tn ty t)  = Wrap x tn ty t
-    embed (ErrorF x ty)      = Error x ty
+    embed (VarF x n)             = Var x n
+    embed (TyAbsF x n k t)       = TyAbs x n k t
+    embed (LamAbsF x n ty t)     = LamAbs x n ty t
+    embed (ApplyF x t t')        = Apply x t t'
+    embed (ConstantF x c)        = Constant x c
+    embed (TyInstF x t ty)       = TyInst x t ty
+    embed (UnwrapF x t)          = Unwrap x t
+    embed (IWrapF x tn ty tyx t) = IWrap x tn ty tyx t
+    embed (ErrorF x ty)          = Error x ty
 
 -- | Kinds. Each type has an associated kind.
 data Kind a = Type a
