@@ -15,8 +15,8 @@ import Type.Equality
 
 
 import Type.BetaNormal
-{-
 import Type.BetaNBE
+{-
 import Type.BetaNBE.Soundness
 import Type.BetaNBE.Completeness
 import Type.BetaNBE.Stability
