@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
@@ -24,10 +25,11 @@ import           Language.PlutusCore
 
 import           Test.Tasty
 
+import           Data.ByteString.Lazy
 import           GHC.Generics
 
 -- this module does lots of weird stuff deliberately
-{-# ANN module "HLint: ignore" #-}
+{-# ANN module ("HLint: ignore"::String) #-}
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
@@ -81,6 +83,7 @@ primitives = testNested "primitives" [
   , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
   , goldenPlc "blocknum" blocknumPlc
   , goldenPlc "bytestring" bytestring
+  , goldenEval "bytestringApply" [ getAst bytestring, trivialProgram $ runQuote $ lift ("hello"::ByteString) ]
   , goldenPlc "verify" verify
   ]
 
@@ -128,10 +131,10 @@ blocknumPlc :: PlcCode
 blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
 bytestring :: PlcCode
-bytestring = plc @"bytestring" (\(x::Builtins.ByteString) -> x)
+bytestring = plc @"bytestring" (\(x::ByteString) -> x)
 
 verify :: PlcCode
-verify = plc @"verify" (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
+verify = plc @"verify" (\(x::ByteString) (y::ByteString) (z::ByteString) -> Builtins.verifySignature x y z)
 
 structure :: TestNested
 structure = testNested "structure" [
