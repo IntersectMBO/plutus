@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
-module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, applyPlc, getAst, plugin, plc, lifted) where
+module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Expr
@@ -29,14 +29,9 @@ import           Codec.Serialise                             (DeserialiseFailure
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
-import           Data.Aeson                                  (FromJSON (parseJSON), ToJSON (toJSON), withText)
-import qualified Data.Aeson                                  as JSON
-import           Data.Bifunctor                              (first)
-import qualified Data.ByteString.Base64                      as Base64
 import qualified Data.ByteString.Lazy                        as BSL
 import qualified Data.Map                                    as Map
 import           Data.Maybe                                  (catMaybes)
-import qualified Data.Text.Encoding                          as TE
 import qualified Data.Text.Prettyprint.Doc                   as PP
 import           GHC.TypeLits
 
@@ -63,35 +58,8 @@ newtype PlcCode = PlcCode { unPlc :: [Word] }
 instance LiftPlc PlcCode where
     lift (getAst -> (PLC.Program () _ body)) = PLC.globalRename body
 
-instance ToJSON PlcCode where
-  toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
-
-instance FromJSON PlcCode where
-  parseJSON = withText "PlcCode" $ \s -> do
-    let ev = do
-          eun64 <- Base64.decode . TE.encodeUtf8 $ s
-          first show $ deserialiseOrFail $ BSL.fromStrict eun64
-    case ev of
-      Left e  -> fail e
-      Right v -> pure v
-
-lifted :: LiftPlc a => a -> PlcCode
-lifted a =
-    let term = runQuote $ Language.Plutus.Lift.lift a
-        program = PLC.Program () (PLC.defaultVersion ()) term
-        serialized = serialise program
-    in
-        PlcCode $ fromIntegral <$> BSL.unpack serialized
-
 getSerializedCode :: PlcCode -> BSL.ByteString
 getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
-
--- | Apply a function to an argument in PLC
-applyPlc :: PlcCode -> PlcCode -> PlcCode
-applyPlc (getAst -> f) (getAst -> x) = PlcCode words' where
-    program = f `PLC.applyProgram` x
-    serialized = serialise program
-    words' = fromIntegral <$> BSL.unpack serialized
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

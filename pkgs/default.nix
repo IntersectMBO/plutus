@@ -15683,9 +15683,7 @@ license = stdenv.lib.licenses.mit;
 "core-to-plc" = callPackage
 ({
   mkDerivation
-, aeson
 , base
-, base64-bytestring
 , bytestring
 , cborg
 , containers
@@ -15710,9 +15708,7 @@ pname = "core-to-plc";
 version = "0.1.0.0";
 src = ./../core-to-plc;
 libraryHaskellDepends = [
-aeson
 base
-base64-bytestring
 bytestring
 cborg
 containers

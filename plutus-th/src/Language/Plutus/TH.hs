@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
-module Language.Plutus.TH (plutus, PlcCode, getSerializedCode, getAst, applyPlc) where
+module Language.Plutus.TH (plutus, PlcCode, getSerializedCode, getAst) where
 
 import           Language.Plutus.CoreToPLC.Plugin
 
