@@ -7,10 +7,11 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Unsafe (unsafePerformEff)
 import Halogen.Aff (HalogenEffects, awaitBody, runHalogenAff)
+import Halogen.ECharts (EChartsEffects)
 import Halogen.VDom.Driver (runUI)
 import MainFrame (mainFrame)
 
-main :: Eff (HalogenEffects (AceEffects (console :: CONSOLE))) Unit
+main :: Eff (HalogenEffects (EChartsEffects (AceEffects (console :: CONSOLE)))) Unit
 main = runHalogenAff do
   body <- awaitBody
   runUI mainFrame unit body
