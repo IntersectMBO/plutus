@@ -3,11 +3,15 @@ module MainFrame
   , Query
   ) where
 
+import Debug.Trace
+
 import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery, aceComponent)
 import Ace.Types (ACE, Editor)
-import Bootstrap (btnPrimary, btnSecondary, container)
+import Action (Action, actionsPane)
+import Action as Action
+import Bootstrap (btnPrimary, btnSecondary, col, col9, container, row)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Either.Nested (Either2)
@@ -17,7 +21,6 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
-import Debug.Trace
 import ECharts.Commands as E
 import ECharts.Monad (DSL)
 import ECharts.Types.Phantom as ETP
@@ -27,11 +30,13 @@ import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Halogen.ECharts (EChartsEffects, EChartsMessage, EChartsQuery, echarts)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, button, div, h1_, h3_, hr_, slot', small_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, div_, h1_, h2_, h3_, hr_, p_, slot', small_, text)
 import Halogen.HTML.Events (input, input_, onClick)
-import Halogen.HTML.Properties (class_, classes)
+import Halogen.HTML.Properties (class_, href, target)
 import Halogen.Query (HalogenM)
 import Prelude (class Eq, class Ord, type (~>), Unit, Void, bind, const, discard, not, pure, unit, void, ($))
+import Wallet (Wallet, walletsPane)
+import Wallet as Wallet
 
 data Query a
   = ToggleState a
@@ -39,16 +44,27 @@ data Query a
   | HandleEChartsMessage EChartsMessage a
 
 type State =
-  { on :: Boolean }
+  { on :: Boolean
+  , wallets :: Array Wallet
+  , actions :: Array Action
+  }
 
 _on :: forall s a. Lens' {on :: a | s} a
 _on = prop (SProxy :: SProxy "on")
 
+_wallets :: forall s a. Lens' {wallets :: a | s} a
+_wallets = prop (SProxy :: SProxy "wallets")
+
 initialState :: State
-initialState = { on: false }
+initialState =
+  { on: false
+  , wallets: Wallet.staticWallets
+  , actions: Action.staticActions
+  }
 
 initialText :: String
 initialText = """{-# LANGUAGE TemplatePlutus #-}
+
 
 module Main where
 
@@ -111,35 +127,65 @@ render :: forall aff. State -> ParentHTML Query ChildQuery ChildSlot (Aff (EChar
 render state =
   div [ class_ (ClassName "main-frame") ] $
     [ container
-      [ h1_ [ text "Plutus Playground" ]
+      [ header
       , hr_
-      , slot' cpAce AceSlot
-          (aceComponent initEditor Nothing)
-          unit
-          (input HandleAceMessage)
+      , editorPane
       , hr_
-      , slot' cpECharts EChartsSlot
-          (echarts Nothing)
-          ({width: 800, height: 400} /\ unit)
-          (input HandleEChartsMessage)
+      , mockChainPane state
+      , hr_
+      , scaffoldPane state
       ]
-      , scaffold state
     ]
 
-scaffold :: forall p. State -> HTML p (Query Unit)
-scaffold state =
+header :: forall p i. HTML p i
+header =
+  row
+    [ col [ h1_ [ text "Plutus Playground" ] ]
+    , col
+      [ p_ [
+          a [ href "https://github.com/input-output-hk/plutus/tree/mchakravarty/plutus-playground-spec/docs/playground"
+            , target "_blank"
+            ]
+            [ text "Design Document" ]
+          ]
+      ]
+    ]
+
+editorPane :: forall aff. ParentHTML Query ChildQuery ChildSlot (Aff (EChartsEffects (AceEffects aff)))
+editorPane =
+  div_
+    [ h2_ [ text "Editor" ]
+    , slot' cpAce AceSlot
+        (aceComponent initEditor Nothing)
+        unit
+        (input HandleAceMessage)
+    ]
+
+mockChainPane :: forall aff. State -> ParentHTML Query ChildQuery ChildSlot (Aff (EChartsEffects (AceEffects aff)))
+mockChainPane state =
+  div_
+    [ row
+        [ col9 [ walletsPane state.wallets ]
+        , col [ actionsPane state.actions  ]
+        ]
+    , h3_ [ text "Chain" ]
+    , slot' cpECharts EChartsSlot
+        (echarts Nothing)
+        ({width: 800, height: 800} /\ unit)
+        (input HandleEChartsMessage)
+    ]
+
+scaffoldPane :: forall p. State -> HTML p (Query Unit)
+scaffoldPane state =
   div [ class_ (ClassName "scaffold") ] $
-    [ hr_
-    , h3_ [ text "Scaffolding"
+    [ h3_ [ text "Scaffolding"
           , text " "
           , small_ [ text "(ignore below this line)" ]
           ]
     , button
-        [ classes
-          [ if state.on
-               then btnPrimary
-               else btnSecondary
-          ]
+        [ if state.on
+            then btnPrimary
+            else btnSecondary
         , onClick $ input_ ToggleState
         ]
         [ text
@@ -178,3 +224,12 @@ sankeyDiagramOptions = do
         E.sourceName "charles"
         E.targetName "manuel"
         E.value 20.0
+
+      E.addLink do
+        E.sourceName "manuel"
+        E.targetName "kris"
+        E.value 5.0
+      E.addLink do
+        E.sourceName "manuel"
+        E.targetName "david"
+        E.value 5.0

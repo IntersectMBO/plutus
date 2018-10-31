@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'font-awesome/less/font-awesome.less';
 import './static/main.less';
 
 import 'ace-builds';
