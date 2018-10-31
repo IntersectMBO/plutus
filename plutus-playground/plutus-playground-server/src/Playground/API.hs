@@ -25,7 +25,7 @@ import           Wallet.Emulator.Types  (Wallet)
 import           Wallet.UTXO.Types      (Blockchain)
 
 type API
-   = "contract" :> ReqBody '[ Haskell] SourceCode :> Post '[ JSON] NoContent
+   = "contract" :> ReqBody '[ Haskell] SourceCode :> Post '[ JSON] FunctionsSchema
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] Blockchain
 
 data Haskell
@@ -52,13 +52,17 @@ instance MimeRender Haskell SourceCode where
 instance MimeUnrender Haskell SourceCode where
   mimeUnrender _ = left show . fmap SourceCode . decodeUtf8' . toStrict
 
+newtype FunctionsSchema = FunctionsSchema [(Fn, Text)]
+  deriving stock (Generic)
+  deriving newtype (ToJSON, FromJSON)
+
 newtype Fn = Fn Text
   deriving stock (Generic)
   deriving newtype (ToJSON, FromJSON)
 
 data Evaluation = Evaluation
   { wallets   :: [(Wallet, Integer)]
-  , functions :: [(Fn, Value)]
+  , functions :: [(Fn, [Value])]
   , contract  :: SourceCode
   }
   deriving (Generic, ToJSON, FromJSON)
