@@ -5,7 +5,7 @@ module Everything where
 
 import Type
 import Type.RenamingSubstitution
--- import Type.Reduction
+import Type.Reduction
 import Type.Equality
 
 -- a beta NBE algorithm and accompanying soundness, completeness and
