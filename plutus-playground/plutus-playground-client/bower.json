@@ -16,12 +16,12 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-prelude": "^4.1.0",
-    "purescript-aff": "^5.0.2",
-    "purescript-console": "^4.1.0",
-    "purescript-ace": "^6.0.0",
-    "purescript-halogen": "^4.0.0",
-    "purescript-coroutines": "^5.0.0",
-    "purescript-debug": "^4.0.0"
+	"purescript-prelude": "^3.2.0",
+	"purescript-halogen": "^2.1.0",
+	"purescript-halogen-echarts": "^6.0.0",
+	"purescript-ace-halogen": "^6.0.0",
+	"purescript-console": "^3.0.0",
+	"purescript-ace": "^4.0.0",
+	"purescript-debug": "^3.0.0"
   }
 }

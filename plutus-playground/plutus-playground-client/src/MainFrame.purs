@@ -3,26 +3,30 @@ module MainFrame
   , Query
   ) where
 
-import AceComponent (AceOutput(..), AceQuery, aceComponent)
+import Ace.EditSession as Session
+import Ace.Editor as Editor
+import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery, aceComponent)
+import Ace.Types (ACE, Editor)
 import Bootstrap (btnPrimary, btnSecondary, container)
+import Control.Monad.Aff (Aff)
+import Control.Monad.Eff.Class (liftEff)
 import Data.Lens (Lens', modifying)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Debug.Trace (traceM)
-import Effect.Aff (Aff)
+import Debug.Trace
 import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(..), HTML, button, div, h1_, h3_, hr_, i, slot, small_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, button, div, h1_, h3_, hr_, slot, small_, text)
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Halogen.Query (HalogenM)
-import Prelude (class Eq, class Ord, type (~>), Unit, Void, const, discard, not, pure, unit, ($), (<>))
+import Prelude (class Eq, class Ord, type (~>), Unit, Void, bind, const, discard, not, pure, unit, void, ($))
 
 data Query a
   = ToggleState a
-  | HandleAceOutput AceOutput a
+  | HandleAceOutput AceMessage a
 
 type State =
   { on :: Boolean }
@@ -45,13 +49,15 @@ main = do
 """
 ------------------------------------------------------------
 
-data Slot = AceComponent
+data Slot
+  = AceComponent
+
 derive instance eqComponentSlot :: Eq Slot
 derive instance ordComponentSlot :: Ord Slot
 
 ------------------------------------------------------------
 
-mainFrame :: Component HTML Query Unit Void Aff
+mainFrame :: forall aff. Component HTML Query Unit Void (Aff (AceEffects aff))
 mainFrame =
   H.parentComponent
     { initialState: const initialState
@@ -66,18 +72,26 @@ eval (ToggleState next) = do
   pure next
 
 eval (HandleAceOutput (TextChanged msg) next) = do
-  traceM msg
+  void $ traceAnyM msg
   pure next
 
 ------------------------------------------------------------
+initEditor ∷ forall aff. Editor -> Aff (ace :: ACE | aff) Unit
+initEditor editor = liftEff $ do
+  session <- Editor.getSession editor
+  Session.setMode "ace/mode/haskell" session
+  void $ Editor.setValue initialText (Just 1) editor
 
-render :: State -> ParentHTML Query AceQuery Slot Aff
+render :: forall aff. State -> ParentHTML Query AceQuery Slot (Aff (AceEffects aff))
 render state =
   div [ class_ (ClassName "main-frame") ] $
     [ container
       [ h1_ [ text "Plutus Playground" ]
       , hr_
-      , slot AceComponent (aceComponent (Just initialText)) unit (input HandleAceOutput)
+      , slot AceComponent
+          (aceComponent initEditor Nothing)
+          unit
+          (input HandleAceOutput)
       , hr_
       , h3_ [ text "Scaffolding"
             , text " "

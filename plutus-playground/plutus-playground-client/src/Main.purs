@@ -2,16 +2,18 @@ module Main where
 
 import Prelude
 
-import MainFrame (mainFrame)
-import Effect (Effect)
-import Effect.Unsafe (unsafePerformEffect)
-import Halogen.Aff as HA
+import Ace.Halogen.Component (AceEffects)
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Unsafe (unsafePerformEff)
+import Halogen.Aff (HalogenEffects, awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
+import MainFrame (mainFrame)
 
-main :: Effect Unit
-main = HA.runHalogenAff do
-  body <- HA.awaitBody
+main :: Eff (HalogenEffects (AceEffects (console :: CONSOLE))) Unit
+main = runHalogenAff do
+  body <- awaitBody
   runUI mainFrame unit body
 
 onLoad :: Unit
-onLoad = unsafePerformEffect main
+onLoad = unsafePerformEff main
