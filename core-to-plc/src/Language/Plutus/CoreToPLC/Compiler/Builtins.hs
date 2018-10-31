@@ -18,6 +18,8 @@ import           Language.PlutusCore.Quote
 
 import qualified Language.Haskell.TH.Syntax                          as TH
 
+import qualified Data.ByteString.Lazy                                as BSL
+
 -- Plutus primitives
 
 {- Note [Mapping builtins]
@@ -45,7 +47,7 @@ builtinTermAssociations = [
 
 builtinTypeAssociations :: [(TH.Name, Quote (PLC.Type PLC.TyName ()))]
 builtinTypeAssociations = [
-    (''Builtins.ByteString, pure $ appSize haskellBSSize $ PLC.TyBuiltin () PLC.TyByteString)
+    (''BSL.ByteString, pure $ appSize haskellBSSize $ PLC.TyBuiltin () PLC.TyByteString)
     ]
 
 -- | The function 'error :: forall a . () -> a'.
