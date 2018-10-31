@@ -76,6 +76,12 @@ propCBOR = property $ do
         compared = (==) <$> trip (void prog) <*> pure (void prog)
     Hedgehog.assert (fromRight False compared)
 
+-- TODO: don't fail when there are free variables
+propRename :: Property
+propRename = property $ do
+    prog <- forAll genProgram
+    Hedgehog.assert $ runQuote (rename prog) == prog
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
@@ -93,6 +99,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
+    , testProperty "equality survives renaming" propRename
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
