@@ -8,16 +8,14 @@ import           Language.PlutusIR.Compiler.Types
 
 import           PlutusPrelude                    (strToBs)
 
-import           Control.Monad
-
 import qualified Language.PlutusCore              as PLC
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Quote
 
 import           Data.List
+import           Data.Maybe
 import           Data.Semigroup
 import           Data.Traversable
-import           Data.Maybe
 
 -- Utilities
 
@@ -56,26 +54,26 @@ precisely the thing you need to do a pattern match. Namely, a function that take
 each arm of the match, and then gives you a result.
 
 We also need to think about the types. In general, we need:
-- The type of the datatype
-- The type of each constructor
-- The value of each constructor
-- The type of the destructor
-- The value of the destructor
+- The encoded type corresponding to the datatype itself
+- The encoded type of each constructor
+- The encoded term for each constructor
+- The encoded type of the destructor
+- The encoded term for the destructor
 
 -- Basic example
 
 For example, consider 'Maybe a'. Then:
-- The type of the datatype is:
-  Maybe = \(a :: *) -> forall out_Maybe . out_maybe -> (a -> out_maybe) -> out_maybe
+- The type corresponding to the datatype is:
+  Maybe = \(a :: *) -> forall out_Maybe . out_maybe -> (a -> out_Maybe) -> out_Maybe
 - The type of the constructors are:
   Just : forall (a :: *) . a -> Maybe a
   Nothing : forall (a :: *) . Maybe a
-- The value of the constructors are:
+- The terms for the constructors are:
   Just = \(arg1 : a). /\ (out_Maybe :: *) . \(case_Nothing : out_Maybe) (case_Just : a -> out_Maybe) . case_Just arg1
   Nothing = /\ (out_Maybe :: *) . \(case_Nothing : out_Maybe) (caseJust : a -> out_Maybe) . caseNothing
 - The type of the destructor is:
   match_Maybe : forall (a :: *) . Maybe a -> forall (out_Maybe :: *) . out_maybe -> (a -> out_maybe) -> out_maybe
-- The value of the constructor is:
+- The term for the destructor is:
   match_Maybe = /\(a :: *) -> \(x : Maybe a) -> x
 
 (Constructors and destructors are much more necessary when we define the datatype as abstract,
@@ -103,7 +101,7 @@ That is, it has:
 - Destructor match_t
 _ j constructors with c_i_k arguments each of types t_c_i_1 to t_c_i_(c_i_k)
 
-The type of the datatype is:
+The type corresponding to the datatype is:
 \(t_1 :: *) .. (t_n :: *) .
   forall out_T :: * .
     (t_c_1_1 -> .. -> t_c_1_(c_1_k) -> out_T) -> .. -> (t_c_j_1 -> .. -> t_c_j_(c_j_k) -> out_T) ->
@@ -116,7 +114,7 @@ forall (t_1 :: *) .. (t_n :: *) .
 This is actually declared for us in the datatype declaration, but without the type
 variables being abstracted out. We use this to get the argument types of the constructor.
 
-The value of the constructor c_i is:
+The term for the constructor c_i is:
 /\(t_1 :: *) .. (t_n :: *) .
   \(a_1 : t_c_j_1) .. (a_c_i_(c_i_k) : t_c_i_(c_i_k)) .
     abs out_T :: * .
@@ -130,7 +128,7 @@ forall (t_1 :: *) .. (t_n :: *) .
       (t_c_1_1 -> .. -> t_c_1_(c_1_k) -> out_T) -> .. -> (t_c_j_1 -> .. -> t_c_j_(c_j_k) -> out_T) ->
         out_T
 
-The value of the destructor is:
+The term for the destructor is:
 /\(t_1 :: *) .. (t_n :: *) .
   \(x :: (T t_1 .. t_n)) ->
     x
@@ -231,10 +229,12 @@ mkDatatypeType r pf (Datatype _ tn _ _ _) = pure $ case r of
 -- Constructors
 
 -- See note [Scott encoding of datatypes]
--- | Make a constructor of a 'Datatype' with the given pattern functor.
+-- | Make a constructor of a 'Datatype' with the given pattern functor. The constructor argument mostly serves to identify the constructor
+-- that we are interested in in the list of constructors.
 -- @
---     mkConstructor List (\(a :: *) -> forall (out_List :: *) . out_List -> (a -> List a -> out_List) -> out_List) Cons =
---         /\(a :: *) . \(arg1 : a) (arg1 : List a) . /\(out_List :: *) . \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
+--     mkConstructor ListF List Cons =
+--     mkConstructor (\(a :: *) -> forall (out_List :: *) . out_List -> (a -> List a -> out_List) -> out_List) List Cons =
+--         /\(a :: *) . \(arg1 : a) (arg2 : List a) . /\(out_List :: *) . \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
 -- @
 mkConstructor :: MonadQuote m => Recursivity -> Type TyName () -> Datatype TyName Name () -> VarDecl TyName Name () -> m (PLC.Term TyName Name ())
 mkConstructor r pf (Datatype _ tn tvs _ constrs) constr = do
@@ -310,10 +310,9 @@ mkDestructor r (Datatype _ tn tvs _ _) =
 -- See note [Scott encoding of datatypes]
 -- | Make the type of a destructor for a 'Datatype'.
 -- @
---     mkDestructorTy
---         (\(a :: *) -> forall (out_List :: *) . (r -> (a -> List a -> r) -> r))
---         List =
---         forall (a :: *) . (List a) -> ((\(a :: *) -> forall (out_List :: *) . (r -> (a -> List a -> r) -> r)) a)
+--     mkDestructorTy ListF List =
+--     mkDestructorTy (\(a :: *) -> forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List)) List =
+--         forall (a :: *) . (List a) -> ((\(a :: *) -> forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List)) a)
 -- @
 mkDestructorTy :: MonadQuote m => PLC.Type TyName () -> Datatype TyName Name () -> m (PLC.Type TyName ())
 mkDestructorTy pf (Datatype _ tn tvs _ _) =

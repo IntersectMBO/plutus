@@ -49,16 +49,18 @@ compileRecBindings r body bs =
         compileRecTermBindings r tysBound termBinds
 
 compileRecTermBindings :: Compiling m => Recursivity -> PLC.Term TyName Name () -> [Binding TyName Name ()] -> m (PLC.Term TyName Name ())
-compileRecTermBindings _ body bs= do
-    binds <- forM bs $ \case
-        TermBind () vd rhs -> pure $ Def vd rhs
-        _ -> throwError $ CompilationError "Internal error: type binding in term binding group"
-    compileRecTerms body binds
+compileRecTermBindings _ body bs = case bs of
+    [] -> pure body
+    _ -> do
+        binds <- forM bs $ \case
+            TermBind () vd rhs -> pure $ Def vd rhs
+            _ -> throwError $ CompilationError "Internal error: type binding in term binding group"
+        compileRecTerms body binds
 
 compileRecTypeBindings :: Compiling m => Recursivity -> PLC.Term TyName Name () -> [Binding TyName Name ()] -> m (PLC.Term TyName Name ())
 compileRecTypeBindings r body bs = case bs of
-    [b] -> compileSingleBinding r body b
     []  -> pure body
+    [b] -> compileSingleBinding r body b
     _   -> throwError $ UnsupportedError "Mutually recursive types are not supported"
 
 compileSingleBinding :: Compiling m => Recursivity -> PLC.Term TyName Name () -> Binding TyName Name () ->  m (PLC.Term TyName Name ())
