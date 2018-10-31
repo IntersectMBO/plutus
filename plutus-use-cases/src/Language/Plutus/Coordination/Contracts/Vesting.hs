@@ -16,21 +16,19 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     totalAmount
     ) where
 
-import           Control.Monad.Error.Class          (MonadError (..))
-import qualified Data.Set                           as Set
-import           GHC.Generics                       (Generic)
-import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.CoreToPLC.Plugin   (lifted)
-import           Language.Plutus.Lift               (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime            (Hash, Height, PendingTx (..), PendingTxOut (..),
-                                                     PendingTxOutType (..), PubKey (..), Value)
-import qualified Language.Plutus.Runtime.TH         as TH
-import           Language.Plutus.TH                 (applyPlc, plutus)
-import           Prelude                            hiding ((&&))
-import           Wallet.API                         (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
-import           Wallet.UTXO                        (DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                                     scriptTxOut)
-import qualified Wallet.UTXO                        as UTXO
+import           Control.Monad.Error.Class  (MonadError (..))
+import qualified Data.Set                   as Set
+import           GHC.Generics               (Generic)
+import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Runtime    (Hash, Height, PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
+                                             PubKey (..), Value)
+import qualified Language.Plutus.Runtime.TH as TH
+import           Language.Plutus.TH         (plutus)
+import qualified Language.Plutus.TH         as Builtins
+import           Prelude                    hiding ((&&))
+import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
+import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
+import qualified Wallet.UTXO                as UTXO
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -79,7 +77,7 @@ vestFunds vst value = do
     let v' = UTXO.Value $ fromIntegral value
     (payment, change) <- createPaymentWithChange v'
     let vs = validatorScript vst
-        o = scriptTxOut v' vs (DataScript $ lifted vd)
+        o = scriptTxOut v' vs (DataScript $ UTXO.lifted vd)
         vd =  VestingData 1123 0 -- [CGP-400]
     signAndSubmit payment [o, change]
     pure vd
@@ -96,7 +94,7 @@ retrieveFunds :: (
 retrieveFunds vs vd r vnow = do
     oo <- payToPublicKey vnow
     let val = validatorScript vs
-        o   = scriptTxOut remaining val (DataScript $ lifted vd')
+        o   = scriptTxOut remaining val (DataScript $ UTXO.lifted vd')
         remaining = (fromIntegral $ totalAmount vs) - vnow
         vd' = vd {vestingDataPaidOut = fromIntegral vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val UTXO.unitRedeemer
@@ -105,8 +103,8 @@ retrieveFunds vs vd r vnow = do
 
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
-    val = applyPlc inner (lifted v)
-    inner = $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
+    val = UTXO.applyScript inner (UTXO.lifted v)
+    inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
         let
 
             eqPk :: PubKey -> PubKey -> Bool
@@ -156,4 +154,3 @@ validatorScript v = Validator val where
             isValid = amountsValid && txnOutputsValid
         in
         if isValid then () else Builtins.error () |])
-

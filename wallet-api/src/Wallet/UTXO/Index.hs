@@ -25,22 +25,20 @@ module Wallet.UTXO.Index(
     validateTransaction
     ) where
 
-import           Control.Monad.Except             (MonadError (..), liftEither)
-import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
-import           Crypto.Hash                      (Digest, SHA256)
-import           Data.Foldable                    (foldl', traverse_)
-import qualified Data.Map                         as Map
-import           Data.Semigroup                   (Semigroup, Sum (..))
-import qualified Data.Set                         as Set
-import           GHC.Generics                     (Generic)
-import           Language.Plutus.CoreToPLC.Plugin (lifted)
-import           Prelude                          hiding (lookup)
-import           Wallet.UTXO.Runtime              (PendingTx (..))
-import qualified Wallet.UTXO.Runtime              as Runtime
-import           Wallet.UTXO.Types                (Blockchain, DataScript, PubKey, Signature, Tx (..), TxIn (..), TxIn',
-                                                   TxOut (..), TxOut', TxOutRef', ValidationData (..), Value,
-                                                   updateUtxo, validValuesTx)
-import qualified Wallet.UTXO.Types                as UTXO
+import           Control.Monad.Except (MonadError (..), liftEither)
+import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
+import           Crypto.Hash          (Digest, SHA256)
+import           Data.Foldable        (foldl', traverse_)
+import qualified Data.Map             as Map
+import           Data.Semigroup       (Semigroup, Sum (..))
+import qualified Data.Set             as Set
+import           GHC.Generics         (Generic)
+import           Prelude              hiding (lookup)
+import           Wallet.UTXO.Runtime  (PendingTx (..))
+import qualified Wallet.UTXO.Runtime  as Runtime
+import           Wallet.UTXO.Types    (Blockchain, DataScript, PubKey, Signature, Tx (..), TxIn (..), TxIn', TxOut (..),
+                                       TxOut', TxOutRef', ValidationData (..), Value, lifted, updateUtxo, validValuesTx)
+import qualified Wallet.UTXO.Types    as UTXO
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw `ValidationError`s

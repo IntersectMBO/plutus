@@ -25,28 +25,26 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     , collectFundsTrigger
     ) where
 
-import           Control.Applicative                (Applicative (..))
-import           Control.Monad                      (Monad (..))
-import           Control.Monad.Error.Class          (MonadError (..))
-import           Data.Foldable                      (foldMap)
-import           Data.Monoid                        (Sum (..))
-import qualified Data.Set                           as Set
-import           GHC.Generics                       (Generic)
+import           Control.Applicative        (Applicative (..))
+import           Control.Monad              (Monad (..))
+import           Control.Monad.Error.Class  (MonadError (..))
+import           Data.Foldable              (foldMap)
+import           Data.Monoid                (Sum (..))
+import qualified Data.Set                   as Set
+import           GHC.Generics               (Generic)
 
-import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.CoreToPLC.Plugin   (lifted)
-import           Language.Plutus.Lift               (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime            (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
-import           Language.Plutus.TH                 (applyPlc, plutus)
-import           Wallet.API                         (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
-                                                     otherError, pubKey, signAndSubmit)
-import           Wallet.UTXO                        (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                                     scriptTxOut)
-import qualified Wallet.UTXO                        as UTXO
+import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
+import           Language.Plutus.TH         (plutus)
+import qualified Language.Plutus.TH         as Builtins
+import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
+                                             pubKey, signAndSubmit)
+import           Wallet.UTXO                (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
+                                             scriptTxOut)
+import qualified Wallet.UTXO                as UTXO
 
-import qualified Language.Plutus.Runtime.TH         as TH
-import           Prelude                            (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.),
-                                                     (<$>))
+import qualified Language.Plutus.Runtime.TH as TH
+import           Prelude                    (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.), (<$>))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -71,7 +69,7 @@ contribute :: (
     -> m ()
 contribute cmp value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
-    ds <- DataScript . lifted . pubKey <$> myKeyPair
+    ds <- DataScript . UTXO.lifted . pubKey <$> myKeyPair
 
     -- TODO: Remove duplicate definition of Value
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
@@ -100,11 +98,11 @@ contribute cmp value = do
 --      covered by the `refundable` branch.
 contributionScript :: Campaign -> Validator
 contributionScript cmp  = Validator val where
-    val = applyPlc inner (lifted cmp)
+    val = UTXO.applyScript inner (UTXO.lifted cmp)
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = $(plutus [| (\Campaign{..} () (a :: CampaignActor) (p :: PendingTx) ->
+    inner = UTXO.fromPlcCode $(plutus [| (\Campaign{..} () (a :: CampaignActor) (p :: PendingTx) ->
         let
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
