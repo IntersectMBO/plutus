@@ -48,4 +48,5 @@ stabilityNeN (μ B)    =
        (trans (reifyCR (idext (λ { Z → reflectCR refl
                                  ; (S x) → renameVal-reflect S (` x)}) (embNf B)))
               (stability B))
+stabilityNeN μ1      = refl
 \end{code}

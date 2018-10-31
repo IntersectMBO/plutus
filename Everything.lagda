@@ -16,12 +16,10 @@ import Type.Equality
 
 import Type.BetaNormal
 import Type.BetaNBE
-{-
 import Type.BetaNBE.Soundness
 import Type.BetaNBE.Completeness
 import Type.BetaNBE.Stability
 import Type.BetaNBE.RenamingSubstitution
--}
 -- a complete attempt to index terms by syntactic types where
 -- conversion takes an equation as an argument. Evaluation only works
 -- in the absense of conversions in terms.
