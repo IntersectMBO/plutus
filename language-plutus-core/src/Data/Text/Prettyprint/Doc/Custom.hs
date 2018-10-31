@@ -49,4 +49,3 @@ braces' = section "{" "}"
 -- closing parentheses.
 parens' :: Doc a -> Doc a
 parens' d = vsepSquish ["(" <> d, ")"]
-
