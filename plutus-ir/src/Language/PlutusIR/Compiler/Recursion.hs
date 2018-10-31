@@ -77,7 +77,7 @@ mkFixpoint bs = do
 
     -- \f1 ... fn -> choose b1 ... bn
     bsLam <- do
-          rhss <- mapM compileTerm (fmap defVal bs)
+          rhss <- traverse (compileTerm . defVal) bs
           let chosen =  mkIterApp (PLC.Var() choose) rhss
               abstracted = mkIterLamAbs (fmap (splitVarDecl . defVar) bs) chosen
           pure abstracted
@@ -95,7 +95,7 @@ mkFixpoint bs = do
 -- TODO: move these functions to a Tuple module in the stdlib
 mkTupleType :: MonadQuote m => [PLC.Type TyName ()] -> m (PLC.Type TyName ())
 mkTupleType tys = do
-    resultType <- liftQuote $ freshTyName () "r"
+    resultType <- liftQuote $ freshTyName () "out_Tuple"
     let match = mkIterTyFun tys (PLC.TyVar () resultType)
     let universal = PLC.TyForall () resultType (PLC.Type ()) match
     pure universal
@@ -105,7 +105,7 @@ mkTupleAccessor tys index = do
     tupleTy <- mkTupleType tys
     let selectedTy = tys !! index
 
-    argNames <- forM [0..(length tys -1)] (\i -> liftQuote $ freshName () $ strToBs $ "arg" ++ show i)
+    argNames <- forM [0..(length tys -1)] (\i -> liftQuote $ freshName () $ strToBs $ "arg_" ++ show i)
     let selectedArg = argNames !! index
 
     tupleArg <- liftQuote $ freshName () "tuple"
@@ -126,7 +126,7 @@ mkTupleBinder body vars = do
     tupleArg <- liftQuote $ freshName () "tuple"
 
     -- _i tuple
-    accesses <- forM [0..(length vars -1)] $ \i -> do
+    accesses <- forM [0..(length tys -1)] $ \i -> do
             accessor <- mkTupleAccessor tys i
             pure $ PLC.Apply () accessor (PLC.Var () tupleArg)
     let defsAndAccesses = zip vars accesses
@@ -139,4 +139,5 @@ mkTupleBinder body vars = do
     --   result
     let finalBound = foldr (\(VarDecl _ n ty, access) acc -> mkTermLet n access ty acc) body defsAndAccesses
 
+    -- \tuple -> finalBound
     pure $ PLC.LamAbs () tupleArg tupleTy finalBound
