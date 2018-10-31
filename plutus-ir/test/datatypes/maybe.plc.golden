@@ -28,19 +28,31 @@
         (abs
           a_1
           (type)
-          (abs r_1 (type) (lam case0_2 r_1 (lam case1_3 (fun a_1 r_1) case0_2)))
+          (abs
+            out_Maybe_1
+            (type)
+            (lam
+              case_Nothing_2
+              out_Maybe_1
+              (lam case_Just_3 (fun a_1 out_Maybe_1) case_Nothing_2)
+            )
+          )
         )
       ]
       (abs
         a_1
         (type)
         (lam
-          arg0_7
+          arg_0_7
           a_1
           (abs
-            r_4
+            out_Maybe_4
             (type)
-            (lam case0_5 r_4 (lam case1_6 (fun a_1 r_4) [ case1_6 arg0_7 ]))
+            (lam
+              case_Nothing_5
+              out_Maybe_4
+              (lam case_Just_6 (fun a_1 out_Maybe_4) [ case_Just_6 arg_0_7 ])
+            )
           )
         )
       )
