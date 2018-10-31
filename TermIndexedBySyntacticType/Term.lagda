@@ -20,7 +20,7 @@ To begin, we get all our infix declarations out of the way.
 We list separately operators for judgements, types, and terms.
 \begin{code}
 infix  4 _∋_
-infix  4 _⊢_
+infix  3 _⊢_
 infixl 5 _,_
 \end{code}
 
@@ -149,6 +149,18 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
     → (M : Γ ⊢ Q)
     → Γ ⊢ E [ S [ μ S ] ]E
 
+  wrap1 : ∀{Γ K}
+   → (pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
+   → (arg : ∥ Γ ∥ ⊢⋆ K)
+   → (term : Γ ⊢ pat · (μ1 · pat) · arg)
+   → Γ ⊢ μ1 · pat · arg
+
+  unwrap1 : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢⋆ K}
+    → (term : Γ ⊢ μ1 · pat · arg)
+    → Γ ⊢ pat · (μ1 · pat) · arg
+    
   conv : ∀{Γ J}
     → {A B : ∥ Γ ∥ ⊢⋆ J}
     → A ≡β B

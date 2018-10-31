@@ -38,6 +38,13 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
       ----------------
     → Value (wrap S E M p)
 
+  V-wrap1 : ∀{Γ K}
+   → {pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {arg : ∥ Γ ∥ ⊢⋆ K}
+   → {term : Γ ⊢ pat · (μ1 · pat) · arg}
+   → Value (wrap1 pat arg term)
+
+
   V-con : ∀{Γ}{s : ∥ Γ ∥ ⊢⋆ #}{tcn : TyCon}
     → (cn : TermCon (con tcn s))
     → Value (con {Γ} cn)
@@ -92,6 +99,20 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → (p : Q ≡ E [ μ S ]E)
     → unwrap E p (wrap S E M p) —→ M
 
+  β-wrap1 : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢⋆ K}
+    → {term : Γ ⊢ pat · (μ1 · pat) · arg}
+    → unwrap1 (wrap1 pat arg term) —→ term
+
+  ξ-unwrap1 : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢⋆ K}
+    → {M M' : Γ ⊢ μ1 · pat · arg}
+    → M —→ M'
+    → unwrap1 M —→ unwrap1 M'
+
+
   -- this is a temporary hack as currently the type eq relation only has
   -- reflexivity in it.
   ξ-conv₁ : ∀{Γ J}{A : ∥ Γ ∥ ⊢⋆ J}{L : Γ ⊢ A}
@@ -121,17 +142,17 @@ automatically from unification/pattern matching if we hadn't needed to
 introduce Q into wrap and unwarp
 
 \begin{code}
-lemma⇒ : ∀{A B : ∅ ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → A ⇒ B ≡ E [ μ C ]E → ⊥
-lemma⇒ {E = •}      ()
-lemma⇒ {E = E ·E A} ()
+disjoint-μ⇒ : ∀{A B : ∅ ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → A ⇒ B ≡ E [ μ C ]E → ⊥
+disjoint-μ⇒ {E = •}      ()
+disjoint-μ⇒ {E = E ·E A} ()
 
-lemmaΠ : ∀{K}{B : ∅ ,⋆ K ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → Π B ≡ E [ μ C ]E → ⊥
-lemmaΠ {E = •}      ()
-lemmaΠ {E = E ·E A} ()
+disjoint-μΠ : ∀{K}{B : ∅ ,⋆ K ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → Π B ≡ E [ μ C ]E → ⊥
+disjoint-μΠ {E = •}      ()
+disjoint-μΠ {E = E ·E A} ()
 
-lemmacon : ∀{tcn : TyCon}{s : ∅ ⊢⋆ #}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → con tcn s ≡ E [ μ C ]E → ⊥
-lemmacon {E = •}      ()
-lemmacon {E = E ·E x} ()
+lemmaQ' : ∀{J K'}{F F' : ∅ ⊢⋆ (J ⇒ K')}{A A' : ∅ ⊢⋆ J} →
+  F _⊢⋆_.· A ≡ F' · A' → F ≡ F'
+lemmaQ' refl = refl
 
 lemma·Dom : ∀{J J' K}
   {F  : ∅ ⊢⋆ (J ⇒ K)}
@@ -142,9 +163,21 @@ lemma·Dom : ∀{J J' K}
   → J ≡ J'
 lemma·Dom refl = refl
 
-lemmaQ' : ∀{J K'}{F F' : ∅ ⊢⋆ (J ⇒ K')}{A A' : ∅ ⊢⋆ J} →
-  F _⊢⋆_.· A ≡ F' · A' → F ≡ F'
-lemmaQ' refl = refl
+disjoint-μμ1 : ∀{K K'}{C : ∅ ,⋆ * ⊢⋆ *}
+  {E : EvalCxt ∅ _ K'}{E' : EvalCxt ∅ _ _} →
+  E [ μ1 {K = K} ]E ≡ E' [ μ C ]E → ⊥
+disjoint-μμ1 {E = •} {E' ·E x} ()
+disjoint-μμ1 {E = E ·E x} {•} ()
+disjoint-μμ1 {E = E ·E x} {E' ·E x₁} p with lemma·Dom p
+... | refl = disjoint-μμ1 (lemmaQ' p)
+
+disjoint-μμ1' : ∀{K}{C : ∅ ,⋆ * ⊢⋆ *}{pat : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+ {arg : ∅ ⊢⋆ K}{E : EvalCxt ∅ _ _} → μ1 · pat · arg  ≡ E [ μ C ]E → ⊥
+disjoint-μμ1' p = disjoint-μμ1 p
+
+disjoint-μcon : ∀{tcn : TyCon}{s : ∅ ⊢⋆ #}{C : ∅ ,⋆ * ⊢⋆ *}{E : EvalCxt ∅ * *} → con tcn s ≡ E [ μ C ]E → ⊥
+disjoint-μcon {E = •}      ()
+disjoint-μcon {E = E ·E x} ()
 
 lemmaQ'' : ∀{J K'}{F F' : ∅ ⊢⋆ (J ⇒ K')}{A A' : ∅ ⊢⋆ J} →
   F _⊢⋆_.· A ≡ F' · A' → A ≡ A'
@@ -159,7 +192,8 @@ lemmaQ {E = E ·E x} {E' ·E x₁} refl q with lemma·Dom q
 lemmaQ {E = E ·E _} {E' ·E _} refl q | refl = lemmaQ refl (lemmaQ' q)
 
 -- there are several things wrong here, Q and A' are not used
-lemmaE : ∀{K}{Q : ∅ ⊢⋆ K}{A A' : ∅ ,⋆ * ⊢⋆ *}{E E' : EvalCxt ∅ * K} → E [ μ A ]E ≡ E' [ μ A ]E → E ≡ E'
+lemmaE : ∀{K}{Q : ∅ ⊢⋆ K}{A A' : ∅ ,⋆ * ⊢⋆ *}{E E' : EvalCxt ∅ * K}
+  → E [ μ A ]E ≡ E' [ μ A ]E → E ≡ E'
 lemmaE {E = •} {•} p = refl
 lemmaE {E = •} {E' ·E x₁} ()
 lemmaE {E = E ·E x₁} {•} ()
@@ -179,28 +213,37 @@ progress (.(ƛ _) · M) | done V-ƛ with progress M
 progress (.(ƛ _) · M) | done V-ƛ | step p = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · M) | done V-ƛ | done VM = step (β-ƛ VM)
 progress (.(ƛ _) · M) | done V-ƛ | unhandled-conversion = unhandled-conversion
-progress (.(wrap _ _ _ p) · M) | done (V-wrap p) with lemma⇒ p
+progress (.(wrap _ _ _ p) · M) | done (V-wrap p) with disjoint-μ⇒ p
 ... | ()
 progress (Λ M)    = done V-Λ_
 progress (M ·⋆ A) with progress M
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
-progress (.(wrap _ _ _ p) ·⋆ A) | done (V-wrap p) with lemmaΠ p
+progress (.(wrap _ _ _ p) ·⋆ A) | done (V-wrap p) with disjoint-μΠ p
 ... | ()
 progress (M ·⋆ A) | unhandled-conversion = unhandled-conversion
 progress (wrap A E M p) = done (V-wrap p)
 progress (unwrap E p M) with progress M
 progress (unwrap E p M) | step q = step (ξ-unwrap p q)
-progress (unwrap E p .(ƛ _)) | done V-ƛ with lemma⇒ p
+progress (unwrap E p .(ƛ _)) | done V-ƛ with disjoint-μ⇒ p
 ... | ()
-progress (unwrap E p .(Λ _)) | done V-Λ_ with lemmaΠ p
+progress (unwrap E p .(Λ _)) | done V-Λ_ with disjoint-μΠ p
 ... | ()
-progress (unwrap E p .(con cn)) | done (V-con cn) with lemmacon p
+progress (unwrap E p .(con cn)) | done (V-con cn) with disjoint-μcon p
 ... | ()
 progress (unwrap E p .(wrap _ _ _ q)) | done (V-wrap {M = M} q) with lemmaQ q p
 progress (unwrap E refl .(wrap _ E' M q)) | done (V-wrap {S = A}{E = E'} {M} q) | refl with lemmaE {Q = E [ μ A ]E}{A' = A} q
 progress (unwrap E refl .(wrap _ E M refl)) | done (V-wrap {S = _} {.E} {M} refl) | refl | refl = step (β-wrap refl)
+progress (unwrap E p M) | done V-wrap1 with disjoint-μμ1 p
+progress (unwrap E p .(wrap1 _ _ _)) | done V-wrap1 | ()
 progress (unwrap E p M) | unhandled-conversion = unhandled-conversion
+progress (wrap1 _ _ t) = done V-wrap1
+progress (unwrap1 t) with progress t
+progress (unwrap1 t) | step p = step (ξ-unwrap1 p)
+progress (unwrap1 .(wrap _ _ _ p)) | done (V-wrap p) with disjoint-μμ1 p
+progress (unwrap1 .(wrap _ _ _ p)) | done (V-wrap p) | ()
+progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
+progress (unwrap1 t) | unhandled-conversion = unhandled-conversion
 progress (conv p t) = unhandled-conversion
 progress (con cn)   = done (V-con cn)
 \end{code}
