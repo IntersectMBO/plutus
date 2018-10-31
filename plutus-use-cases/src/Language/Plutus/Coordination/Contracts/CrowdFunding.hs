@@ -25,27 +25,26 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
     , collectFundsTrigger
     ) where
 
-import           Control.Applicative                (Applicative (..))
-import           Control.Monad                      (Monad (..))
-import           Control.Monad.Error.Class          (MonadError (..))
-import           Data.Foldable                      (foldMap)
-import           Data.Monoid                        (Sum (..))
-import qualified Data.Set                           as Set
-import           GHC.Generics                       (Generic)
+import           Control.Applicative        (Applicative (..))
+import           Control.Monad              (Monad (..))
+import           Control.Monad.Error.Class  (MonadError (..))
+import           Data.Foldable              (foldMap)
+import           Data.Monoid                (Sum (..))
+import qualified Data.Set                   as Set
+import           GHC.Generics               (Generic)
 
-import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.Lift               (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime            (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
-import           Language.Plutus.TH                 (plutus)
-import           Wallet.API                         (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError,
-                                                     otherError, pubKey, signAndSubmit)
-import           Wallet.UTXO                        (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                                     scriptTxOut)
-import qualified Wallet.UTXO                        as UTXO
+import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
+import           Language.Plutus.TH         (plutus)
+import qualified Language.Plutus.TH         as Builtins
+import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
+                                             pubKey, signAndSubmit)
+import           Wallet.UTXO                (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
+                                             scriptTxOut)
+import qualified Wallet.UTXO                as UTXO
 
-import qualified Language.Plutus.Runtime.TH         as TH
-import           Prelude                            (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.),
-                                                     (<$>))
+import qualified Language.Plutus.Runtime.TH as TH
+import           Prelude                    (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.), (<$>))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
