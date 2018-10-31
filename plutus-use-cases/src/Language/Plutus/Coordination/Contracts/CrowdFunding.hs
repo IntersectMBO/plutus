@@ -28,6 +28,8 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
 import           Control.Applicative                (Applicative (..))
 import           Control.Monad                      (Monad (..))
 import           Control.Monad.Error.Class          (MonadError (..))
+import           Data.Foldable                      (foldMap)
+import           Data.Monoid                        (Sum (..))
 import qualified Data.Set                           as Set
 import           GHC.Generics                       (Generic)
 
@@ -43,7 +45,7 @@ import           Wallet.UTXO                        (Address', DataScript (..), 
 import qualified Wallet.UTXO                        as UTXO
 
 import qualified Language.Plutus.Runtime.TH         as TH
-import           Prelude                            (Bool (..), Num (..), Ord (..), fromIntegral, succ, sum, ($), (.),
+import           Prelude                            (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.),
                                                      (<$>))
 
 -- | A crowdfunding campaign.
@@ -177,12 +179,12 @@ refund c ref val = do
 -- | Collect all campaign funds (campaign owner)
 --
 --
-collect :: (Monad m, WalletAPI m) => Campaign -> [(TxOutRef', PubKey, UTXO.Value)] -> m ()
+collect :: (Monad m, WalletAPI m) => Campaign -> [(TxOutRef', UTXO.Value)] -> m ()
 collect cmp contributions = do
     oo <- payToPublicKey value
-    let scr           = contributionScript cmp
-        con (r, _, _) = scriptTxIn r scr UTXO.unitRedeemer
-        ins           = con <$> contributions
+    let scr        = contributionScript cmp
+        con (r, _) = scriptTxIn r scr UTXO.unitRedeemer
+        ins        = con <$> contributions
     signAndSubmit (Set.fromList ins) [oo]
     where
-      value = sum [ vl | (_, _, vl) <- contributions]
+      value = getSum $ foldMap (Sum . snd) contributions
