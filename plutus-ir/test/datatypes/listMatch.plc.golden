@@ -1,0 +1,95 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            List_0
+            (fun (type) (type))
+            (lam
+              Nil_3
+              [List_0 a_1]
+              (lam
+                Cons_4
+                (fun a_1 (fun [List_0 a_1] [List_0 a_1]))
+                (lam
+                  match_List_2
+                  (all a_1 (type) (fun [List_0 a_1] [(lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0)))) a_1]))
+                  [
+                    [
+                      {
+                        [
+                          { match_List_2 (all a_6 (type) (fun a_6 a_6)) }
+                          { Nil_3 (all a_6 (type) (fun a_6 a_6)) }
+                        ]
+                        (all a_6 (type) (fun a_6 a_6))
+                      }
+                      (abs a_9 (type) (lam x_10 a_9 x_10))
+                    ]
+                    (lam
+                      head_11
+                      (all a_6 (type) (fun a_6 a_6))
+                      (lam
+                        tail_12 [List_0 (all a_6 (type) (fun a_6 a_6))] head_11
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+          )
+          (fix List_0 (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0)))))
+        }
+        (abs
+          a_1
+          (type)
+          (wrap
+            List_0
+            (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0))))
+            (abs
+              out_List_1
+              (type)
+              (lam
+                case_Nil_2
+                out_List_1
+                (lam
+                  case_Cons_3 (fun a_1 (fun [List_0 a_1] out_List_1)) case_Nil_2
+                )
+              )
+            )
+          )
+        )
+      ]
+      (abs
+        a_1
+        (type)
+        (lam
+          arg_0_7
+          a_1
+          (lam
+            arg_1_8
+            [List_0 a_1]
+            (wrap
+              List_0
+              (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0))))
+              (abs
+                out_List_4
+                (type)
+                (lam
+                  case_Nil_5
+                  out_List_4
+                  (lam
+                    case_Cons_6
+                    (fun a_1 (fun [List_0 a_1] out_List_4))
+                    [ [ case_Cons_6 arg_0_7 ] arg_1_8 ]
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs a_1 (type) (lam x_9 [List_0 a_1] (unwrap x_9)))
+  ]
+)

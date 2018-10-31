@@ -13,6 +13,7 @@ import           Language.PlutusIR
 import           Language.PlutusIR.Compiler
 
 import qualified Language.PlutusCore                  as PLC
+import qualified Language.PlutusCore.MkPlc            as PLC
 
 import qualified Language.PlutusCore.StdLib.Data.Bool as Bool
 import qualified Language.PlutusCore.StdLib.Data.Nat  as Nat
@@ -48,7 +49,7 @@ tests = testGroup "plutus-ir" <$> sequence [
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting" [
     goldenPir "basic" basic
-    , goldenPir "datatype" datatype
+    , goldenPir "maybe" maybePir
     ]
 
 basic :: Term TyName Name ()
@@ -60,8 +61,8 @@ basic = runQuote $ do
         LamAbs () x (TyVar () a) $
         Var () x
 
-datatype :: Term TyName Name ()
-datatype = runQuote $ do
+maybePir :: Term TyName Name ()
+maybePir = runQuote $ do
     m <- freshTyName () "Maybe"
     a <- freshTyName () "a"
     match <- freshName () "match_Maybe"
@@ -87,9 +88,52 @@ datatype = runQuote $ do
             ] $
         Apply () (TyInst () (Var () just) unit) unitval
 
+listMatch :: Term TyName Name ()
+listMatch = runQuote $ do
+    m <- freshTyName () "List"
+    a <- freshTyName () "a"
+    let ma = (TyApp () (TyVar () m) (TyVar () a))
+    match <- freshName () "match_List"
+    nil <- freshName () "Nil"
+    cons <- freshName () "Cons"
+    unit <- Unit.getBuiltinUnit
+    unitval <- Unit.getBuiltinUnitval
+
+    h <- freshName () "head"
+    t <- freshName () "tail"
+
+    let unitMatch = (PLC.TyInst () (PLC.Var () match) unit)
+    let unitNil = (PLC.TyInst () (PLC.Var () nil) unit)
+    pure $
+        Let ()
+            Rec
+            [
+                DatatypeBind () $
+                Datatype ()
+                    (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
+                    [
+                        TyVarDecl () a (Type ())
+                    ]
+                match
+                [
+                    VarDecl () nil ma,
+                    VarDecl () cons (TyFun () (TyVar () a) (TyFun () ma ma))
+                ]
+            ] $
+            -- embed so we can use PLC construction functions
+            embedIntoIR $ PLC.mkIterApp (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit) $
+                [
+                    -- nil case
+                    unitval,
+                    -- cons case
+                    PLC.mkIterLamAbs [(h, unit), (t, PLC.TyApp () (PLC.TyVar () m) unit) ] $ PLC.Var () h
+                ]
+
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
-    goldenPlc "maybe" (compile datatype)
+    goldenPlc "maybe" (compile maybePir),
+    goldenPlc "listMatch" (compile listMatch),
+    goldenEval "listMatchEval" [listMatch]
     ]
 
 recursion :: TestNested
