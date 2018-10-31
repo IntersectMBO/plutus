@@ -12,7 +12,6 @@ module Wallet.Emulator.Client
   , blockValidated
   , blockHeight
   , blockchainActions
-  , setValidationData
   , assertOwnFundsEq
   , assertIsValidated
   , process
@@ -32,7 +31,7 @@ import           Wallet.API                (KeyPair, WalletAPI (..))
 import           Wallet.Emulator.Http      (API)
 import           Wallet.Emulator.Types     (Assertion (IsValidated, OwnFundsEqual), Event (..),
                                             Notification (BlockHeight, BlockValidated), Trace, Wallet)
-import           Wallet.UTXO               (Block, Height, Tx, TxIn', TxOut', ValidationData, Value)
+import           Wallet.UTXO               (Block, Height, Tx, TxIn', TxOut', Value)
 
 api :: Proxy API
 api = Proxy
@@ -46,12 +45,11 @@ payToPublicKey' :: Wallet -> Value -> ClientM TxOut'
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
 blockchainActions :: ClientM [Tx]
-setValidationData :: ValidationData -> ClientM ()
 blockValidated :: Wallet -> Block -> ClientM ()
 blockHeight :: Wallet -> Height -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> payToPublicKey' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> (blockchainActions :<|> setValidationData) :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> payToPublicKey' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> blockchainActions  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -115,8 +113,6 @@ eval clientEnv =
         trigger
     BlockchainActions -> ExceptT $ runClientM blockchainActions clientEnv
     Assertion a -> ExceptT $ runClientM (assert a) clientEnv
-    SetValidationData d ->
-      ExceptT $ runClientM (setValidationData d) clientEnv
 
 process :: ClientEnv -> Trace WalletClient a -> ExceptT ServantError IO a
 process clientEnv = interpretWithMonad (eval clientEnv)

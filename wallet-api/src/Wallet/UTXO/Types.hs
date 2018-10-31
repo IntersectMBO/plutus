@@ -68,6 +68,7 @@ module Wallet.UTXO.Types(
     unspentOutputsTx,
     spentOutputs,
     unspentOutputs,
+    unspentOutputsAndSigs,
     updateUtxo,
     validTx,
     txOutPubKey,
@@ -151,15 +152,17 @@ especially because we only need one direction (to binary).
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON, LiftPlc)
+    deriving newtype (Serialise, ToJSON, FromJSON)
 
+instance LiftPlc PubKey
 instance TypeablePlc PubKey
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON, LiftPlc)
+    deriving newtype (Serialise, ToJSON, FromJSON)
 
+instance LiftPlc Signature
 instance TypeablePlc Signature
 
 
@@ -178,7 +181,9 @@ newtype Value = Value { getValue :: Integer }
 newtype TxId h = TxId { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (LiftPlc)
+
+instance (LiftPlc h, TypeablePlc h) => LiftPlc (TxId h)
+instance (TypeablePlc h) => TypeablePlc (TxId h)
 
 type TxId' = TxId (Digest SHA256)
 
@@ -284,7 +289,7 @@ newtype Height = Height { getHeight :: Integer }
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
-height = Height . fromIntegral . length . join
+height = Height . fromIntegral . length
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
@@ -542,13 +547,18 @@ spentOutputs = Set.map txInRef . txInputs
 
 -- | Unspent outputs of a ledger.
 unspentOutputs :: Blockchain -> Map TxOutRef' TxOut'
-unspentOutputs = foldr updateUtxo Map.empty . join
+unspentOutputs = Map.map fst . unspentOutputsAndSigs
 
--- | Update a map of unspent transaction outputs with the inputs and outputs of
---   a transaction.
-updateUtxo :: Tx -> Map TxOutRef' TxOut' -> Map TxOutRef' TxOut'
-updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` unspentOutputsTx t where
+-- | Unspent outputs, paired with signatures of their transactions, of a ledger
+unspentOutputsAndSigs :: Blockchain -> Map TxOutRef' (TxOut', [Signature])
+unspentOutputsAndSigs = foldr updateUtxo Map.empty . join
+
+-- | Update a map of unspent transaction outputs and sigantures with the inputs
+--   and outputs of a transaction.
+updateUtxo :: Tx -> Map TxOutRef' (TxOut', [Signature]) -> Map TxOutRef' (TxOut', [Signature])
+updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
+    outs = Map.map (,txSignatures t) $ unspentOutputsTx t
 
 -- | Ledger and transaction state available to both the validator and redeemer
 --   scripts

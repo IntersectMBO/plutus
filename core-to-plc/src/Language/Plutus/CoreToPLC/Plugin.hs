@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
-module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, applyPlc, getAst, plugin, plc) where
+module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, applyPlc, getAst, plugin, plc, lifted) where
 
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Expr
@@ -74,6 +74,14 @@ instance FromJSON PlcCode where
     case ev of
       Left e  -> fail e
       Right v -> pure v
+
+lifted :: LiftPlc a => a -> PlcCode
+lifted a =
+    let term = runQuote $ Language.Plutus.Lift.lift a
+        program = PLC.Program () (PLC.defaultVersion ()) term
+        serialized = serialise program
+    in
+        PlcCode $ fromIntegral <$> BSL.unpack serialized
 
 getSerializedCode :: PlcCode -> BSL.ByteString
 getSerializedCode = BSL.pack . fmap fromIntegral . unPlc
