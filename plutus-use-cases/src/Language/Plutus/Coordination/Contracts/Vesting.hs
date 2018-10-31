@@ -16,20 +16,19 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     totalAmount
     ) where
 
-import           Control.Monad.Error.Class          (MonadError (..))
-import qualified Data.Set                           as Set
-import           GHC.Generics                       (Generic)
-import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.Lift               (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime            (Hash, Height, PendingTx (..), PendingTxOut (..),
-                                                     PendingTxOutType (..), PubKey (..), Value)
-import qualified Language.Plutus.Runtime.TH         as TH
-import           Language.Plutus.TH                 (plutus)
-import           Prelude                            hiding ((&&))
-import           Wallet.API                         (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
-import           Wallet.UTXO                        (DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                                     scriptTxOut)
-import qualified Wallet.UTXO                        as UTXO
+import           Control.Monad.Error.Class  (MonadError (..))
+import qualified Data.Set                   as Set
+import           GHC.Generics               (Generic)
+import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Runtime    (Hash, Height, PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
+                                             PubKey (..), Value)
+import qualified Language.Plutus.Runtime.TH as TH
+import           Language.Plutus.TH         (plutus)
+import qualified Language.Plutus.TH         as Builtins
+import           Prelude                    hiding ((&&))
+import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
+import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
+import qualified Wallet.UTXO                as UTXO
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {

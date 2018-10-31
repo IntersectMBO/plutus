@@ -10,16 +10,16 @@ module Language.Plutus.Coordination.Contracts.Swap(
     swapValidator
     ) where
 
-import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.Runtime            (OracleValue (..), PendingTx (..), PendingTxIn (..),
-                                                     PendingTxOut (..), PubKey, Value)
-import qualified Language.Plutus.Runtime.TH         as TH
-import           Language.Plutus.TH                 (plutus)
-import           Wallet.UTXO                        (Height, Validator (..))
-import qualified Wallet.UTXO                        as UTXO
+import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
+                                             PubKey, Value)
+import qualified Language.Plutus.Runtime.TH as TH
+import           Language.Plutus.TH         (plutus)
+import qualified Language.Plutus.TH         as Builtins
+import           Wallet.UTXO                (Height, Validator (..))
+import qualified Wallet.UTXO                as UTXO
 
-import           Data.Ratio                         (Ratio)
-import           Prelude                            (Bool (..), Eq (..), Int, Num (..), Ord (..))
+import           Data.Ratio                 (Ratio)
+import           Prelude                    (Bool (..), Eq (..), Int, Num (..), Ord (..))
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are

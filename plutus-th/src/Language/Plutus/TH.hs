@@ -1,11 +1,17 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
-module Language.Plutus.TH (plutus, PlcCode, getSerializedCode, getAst) where
+module Language.Plutus.TH (
+    module Builtins,
+    plutus,
+    PlcCode,
+    getSerializedCode,
+    getAst) where
 
+import           Language.Plutus.CoreToPLC.Builtins as Builtins
 import           Language.Plutus.CoreToPLC.Plugin
 
-import qualified Language.Haskell.TH              as TH
+import qualified Language.Haskell.TH                as TH
 
 -- | Covert a quoted Haskell expression into a corresponding Plutus Core program. Produces an expression of type
 -- 'PlcCode'.
