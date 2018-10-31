@@ -8,6 +8,8 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , Height
               , PendingTxOutRef(..)
               , Hash
+              , plcHash
+              , plcDigest
               , Signature(..)
               -- * Pending transactions
               , PendingTx(..)
@@ -19,6 +21,10 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , OracleValue(..)
               ) where
 
+import           Codec.Serialise      (serialise)
+import           Crypto.Hash          (Digest, SHA256, hash)
+import qualified Data.ByteArray       as BA
+import qualified Data.ByteString.Lazy as BSL
 import           GHC.Generics         (Generic)
 import           Language.Plutus.Lift (LiftPlc (..), TypeablePlc (..))
 import           Wallet.UTXO.Types    (PubKey (..), Signature (..))
@@ -33,9 +39,9 @@ instance LiftPlc PendingTxOutType
 
 -- | Output of a pending transaction.
 data PendingTxOut = PendingTxOut {
-    pendingTxOutValue   :: Value,
-    pendingTxDataScript :: Maybe Hash,
-    pendingTxOutData    :: PendingTxOutType
+    pendingTxOutValue  :: Value,
+    pendingTxOutHashes :: Maybe (Hash, Hash), -- ^ Hashes of validator script and data script
+    pendingTxOutData   :: PendingTxOutType
     } deriving Generic
 
 instance TypeablePlc PendingTxOut
@@ -52,9 +58,9 @@ instance LiftPlc PendingTxOutRef
 
 -- | Input of a pending transaction.
 data PendingTxIn = PendingTxIn {
-    pendingTxInRef         :: PendingTxOutRef,
-    pendingTxInRefRedeemer :: Maybe Hash,
-    pendingTxInValue       :: Value -- ^ Value consumed by this txn input
+    pendingTxInRef       :: PendingTxOutRef,
+    pendingTxInRefHashes :: Maybe (Hash, Hash), -- ^ Hashes of validator and redeemer scripts
+    pendingTxInValue     :: Value -- ^ Value consumed by this txn input
     } deriving Generic
 
 instance TypeablePlc PendingTxIn
@@ -92,7 +98,15 @@ instance (TypeablePlc a, LiftPlc a) => LiftPlc (Signed a)
 -- TODO: Use [[Wallet.UTXO.Types.Value]] when Integer is supported
 type Value = Int
 
-type Hash = Int -- TODO: ByteString
+type Hash = BSL.ByteString
+
+-- | PLC-compatible hash of a hashable value
+plcHash :: BA.ByteArrayAccess a => a -> Hash
+plcHash = plcDigest . hash
+
+-- | Convert a `Digest SHA256` to a PLC `Hash`
+plcDigest :: Digest SHA256 -> Hash
+plcDigest = serialise
 
 -- | Blockchain height
 --   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported

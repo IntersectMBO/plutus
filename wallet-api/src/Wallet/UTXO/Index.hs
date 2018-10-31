@@ -148,7 +148,7 @@ data InOutMatch =
 --   both are of the same type (pubkey or pay-to-script)
 matchInputOutput :: ValidationMonad m => TxIn' -> TxOut' -> m InOutMatch
 matchInputOutput i txo = case (txInType i, txOutType txo) of
-    (UTXO.ConsumeScriptAddress v r, UTXO.PayToScript d) ->
+    (UTXO.ConsumeScriptAddress v r, UTXO.PayToScript _ d) ->
         pure $ ScriptMatch v r d (txOutValue txo) (txOutAddress txo)
     (UTXO.ConsumePublicKeyAddress sig, UTXO.PayToPubKey pk) ->
         pure $ PubKeyMatch pk sig
@@ -209,21 +209,26 @@ validationData h tx = rump <$> ins where
 mkOut :: TxOut' -> Runtime.PendingTxOut
 mkOut t = Runtime.PendingTxOut (fromIntegral $ txOutValue t) d tp where
     (d, tp) = case txOutType t of
-        UTXO.PayToScript _ ->
-            let hash = 1123 in -- [CGP-400]
-                (Just hash, Runtime.DataTxOut)
+        UTXO.PayToScript vh scrpt ->
+            let
+                dataScriptHash = Runtime.plcHash scrpt
+                validatorHash  = Runtime.plcDigest vh
+            in
+                (Just (validatorHash, dataScriptHash), Runtime.DataTxOut)
         UTXO.PayToPubKey pk -> (Nothing, Runtime.PubKeyTxOut pk)
 
 mkIn :: ValidationMonad m => TxIn' -> m Runtime.PendingTxIn
 mkIn i = Runtime.PendingTxIn <$> ref <*> pure red <*> vl where
     ref =
-        let hash = 100 -- [CGP-400]
+        let hash = Runtime.plcDigest . UTXO.getTxId . UTXO.txOutRefId $ txInRef i
             idx  = UTXO.txOutRefIdx $ UTXO.txInRef i
         in
             Runtime.PendingTxOutRef hash idx <$> lkpSigs (UTXO.txInRef i)
     red = case txInType i of
-        UTXO.ConsumeScriptAddress _ _  -> Just 100 -- [CGP-400]
-        UTXO.ConsumePublicKeyAddress _ -> Nothing
+        UTXO.ConsumeScriptAddress v r  ->
+            Just (Runtime.plcHash v, Runtime.plcHash r)
+        UTXO.ConsumePublicKeyAddress _ ->
+            Nothing
     vl = fromIntegral <$> valueOf i
 
 valueOf :: ValidationMonad m => UTXO.TxIn' -> m Value

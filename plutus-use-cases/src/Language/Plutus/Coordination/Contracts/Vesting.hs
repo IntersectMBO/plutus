@@ -13,7 +13,8 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     vestFunds,
     retrieveFunds,
     validatorScript,
-    totalAmount
+    totalAmount,
+    validatorScriptHash
     ) where
 
 import           Control.Monad.Error.Class  (MonadError (..))
@@ -29,6 +30,7 @@ import           Prelude                    hiding ((&&))
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
+import qualified Wallet.UTXO.Runtime        as Runtime
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -78,7 +80,7 @@ vestFunds vst value = do
     (payment, change) <- createPaymentWithChange v'
     let vs = validatorScript vst
         o = scriptTxOut v' vs (DataScript $ UTXO.lifted vd)
-        vd =  VestingData 1123 0 -- [CGP-400]
+        vd =  VestingData (validatorScriptHash vst) 0
     signAndSubmit payment [o, change]
     pure vd
 
@@ -101,11 +103,17 @@ retrieveFunds vs vd r vnow = do
     signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
+validatorScriptHash :: Vesting -> Runtime.Hash
+validatorScriptHash = Runtime.plcHash . validatorScript
+
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted v)
     inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
         let
+
+            eqBs :: Hash -> Hash -> Bool
+            eqBs = Builtins.equalsByteString
 
             eqPk :: PubKey -> PubKey -> Bool
             eqPk = $(TH.eqPubKey)
@@ -147,8 +155,8 @@ validatorScript v = Validator val where
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
-                (_::PendingTxOut):(PendingTxOut _ (Just d') DataTxOut::PendingTxOut):(_::[PendingTxOut]) ->
-                    d' == vestingDataHash
+                (_::PendingTxOut):(PendingTxOut _ (Just (vl', _))  DataTxOut::PendingTxOut):(_::[PendingTxOut]) ->
+                    vl' `eqBs` vestingDataHash
                 (_::[PendingTxOut]) -> Builtins.error ()
 
             isValid = amountsValid && txnOutputsValid
