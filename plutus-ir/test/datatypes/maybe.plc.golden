@@ -1,0 +1,62 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Maybe_0
+            (fun (type) (type))
+            (lam
+              Nothing_3
+              [Maybe_0 a_1]
+              (lam
+                Just_4
+                (fun a_1 [Maybe_0 a_1])
+                (lam
+                  match_Maybe_2
+                  (all a_1 (type) (fun [Maybe_0 a_1] [(lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 r_0) r_0)))) a_1]))
+                  [
+                    { Just_4 (all a_6 (type) (fun a_6 a_6)) }
+                    (abs a_9 (type) (lam x_10 a_9 x_10))
+                  ]
+                )
+              )
+            )
+          )
+          (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 r_0) r_0))))
+        }
+        (abs
+          a_1
+          (type)
+          (abs
+            out_Maybe_1
+            (type)
+            (lam
+              case_Nothing_2
+              out_Maybe_1
+              (lam case_Just_3 (fun a_1 out_Maybe_1) case_Nothing_2)
+            )
+          )
+        )
+      ]
+      (abs
+        a_1
+        (type)
+        (lam
+          arg_0_7
+          a_1
+          (abs
+            out_Maybe_4
+            (type)
+            (lam
+              case_Nothing_5
+              out_Maybe_4
+              (lam case_Just_6 (fun a_1 out_Maybe_4) [ case_Just_6 arg_0_7 ])
+            )
+          )
+        )
+      )
+    ]
+    (abs a_1 (type) (lam x_8 [Maybe_0 a_1] x_8))
+  ]
+)

@@ -68,7 +68,7 @@ txnIndexValid = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m blockchainActions
         idx = emIndex st
-    Hedgehog.assert (Right () == Index.runValidation (Index.validateTransaction unitValidationData txn) idx)
+    Hedgehog.assert (Right () == Index.runValidation (Index.validateTransaction 0 txn) idx)
 
 -- | Submit a transaction to the blockchain and assert that it has been
 --   validated

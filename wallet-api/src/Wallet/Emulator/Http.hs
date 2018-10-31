@@ -31,17 +31,16 @@ import           Lens.Micro.Extras          (view)
 import           Servant                    (Application, Handler, ServantErr (errBody), Server, err404, err500,
                                              hoistServer, serve, throwError)
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
-                                             Put, ReqBody)
+                                             ReqBody)
 import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
                                              EmulatorState (emWalletState), Notification (BlockHeight, BlockValidated),
                                              Wallet, WalletState, assert, chain, emTxPool, emptyEmulatorState,
-                                             emptyWalletState, liftEmulatedWallet, txPool, validateEm, validationData,
-                                             walletStates)
+                                             emptyWalletState, liftEmulatedWallet, txPool, validateEm, walletStates)
 
 import qualified Wallet.Emulator.Types      as Types
-import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', ValidationData, Value)
+import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
 
 type WalletAPI
    = "wallets" :> Get '[ JSON] [Wallet]
@@ -67,8 +66,7 @@ type AssertionsAPI
                       :<|> "is-validated-txn" :> ReqBody '[ JSON] Tx :> Post '[ JSON] NoContent)
 
 type ControlAPI
-   = "emulator" :> ("blockchain-actions" :> Get '[ JSON] [Tx]
-                    :<|> "validation-data" :> ReqBody '[ JSON] ValidationData :> Put '[ JSON] ())
+   = "emulator" :> "blockchain-actions" :> Get '[ JSON] [Tx]
 
 type API
    = WalletAPI
@@ -169,7 +167,7 @@ walletHandlers state =
       payToPublicKey :<|>
       submitTxn :<|>
       getTransactions
-    controlApi = blockchainActions :<|> setValidationData
+    controlApi = blockchainActions
     walletControlApi = blockValidated :<|> blockHeight
     assertionsApi = assertOwnFundsEq :<|> assertIsValidated
 
@@ -239,12 +237,6 @@ runStateSTM var action = do
   let (res, newState) = runState action es
   writeTVar var newState
   pure res
-
-setValidationData ::
-     (MonadReader ServerState m, MonadIO m) => ValidationData -> m ()
-setValidationData vd = do
-  var <- asks getState
-  liftIO . atomically $ modifyTVar var (set validationData vd)
 
 blockchainActions :: (MonadReader ServerState m, MonadIO m) => m [Tx]
 blockchainActions = do
