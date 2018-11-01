@@ -18,6 +18,7 @@ import           Language.PlutusCore.StdLib.Data.Integer
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 
 -- We use 'String's for names, because this module exists for tests right now and
 -- there we have 'FilePath's which are 'String's.
@@ -117,6 +118,16 @@ stdLib
             , Named "Unit" $ AnonStdLibFile
                 [ Named "Unit"    $ AnonStdLibType getBuiltinUnit
                 , Named "Unitval" $ AnonStdLibTerm getBuiltinUnitval
+                ]
+            ]
+        , Named "Meta" $ AnonStdLibFolder
+            [ Named "Data" $ AnonStdLibFolder
+                [ Named "Tuple" $ AnonStdLibFile
+                    [ Named "Tuple2"       $ AnonStdLibType $ getBuiltinTuple 2
+                    , Named "Tuple2_0"     $ AnonStdLibTerm $ getBuiltinTupleAccessor 2 0
+                    , Named "Tuple2_1"     $ AnonStdLibTerm $ getBuiltinTupleAccessor 2 1
+                    , Named "MkTuple2"     $ AnonStdLibTerm $ getBuiltinTupleConstructor 2
+                    ]
                 ]
             ]
         ]
