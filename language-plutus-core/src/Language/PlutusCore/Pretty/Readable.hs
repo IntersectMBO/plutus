@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -223,8 +224,9 @@ instance PrettyReadableBy configName (tyname a) =>
         TyApp _ fun arg         -> applicationDoc config fun arg
         TyVar _ name            -> unit $ prettyName name
         TyFun _ tyIn tyOut      -> arrowDoc config tyIn tyOut
-        TyIFix _ name body _    -> bind $ \bindBody ->
-            "fix" <+> prettyName name <> "." <+> bindBody body  -- TODO: wrong.
+        -- TODO: add another combinator for doing this. Or fix the existing one somehow.
+        TyIFix _ pat arg        -> compoundDoc @_ @(Type tyname a) config juxtApp $ \_ juxtRight ->
+            "ifix" <+> inMiddle pat <+> juxtRight arg
         TyForall _ name kind ty -> bind $ \bindBody ->
             "all" <+> parens (prettyName name <+> "::" <+> inBot kind) <> "." <+> bindBody ty
         TyBuiltin _ builtin     -> unit $ pretty builtin
@@ -236,6 +238,7 @@ instance PrettyReadableBy configName (tyname a) =>
         unit = unitaryDoc config
         bind = binderDoc  config
         inBot = prettyInBotBy config
+        inMiddle = prettyInMiddleBy config
 
 instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (name a)) =>
         PrettyBy (PrettyConfigReadable configName) (Term tyname name a) where
@@ -249,8 +252,8 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
         LamAbs _ name ty body  -> bind $ \bindBody ->
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
         Unwrap _ term          -> comp juxtApp $ \_ juxtRight -> "unwrap" <+> juxtRight term
-        IWrap _ name ty _ term -> comp juxtApp $ \_ juxtRight ->
-            "wrap" <+> prettyName name <+> inMiddle ty <+> juxtRight term  -- TODO: wrong.
+        IWrap _ pat arg term   -> comp juxtApp $ \_ juxtRight ->
+            "wrap" <+> inMiddle pat <+> inMiddle arg <+> juxtRight term
         Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
         -- Annoyingly, @TypeFamilies@ break type inference.

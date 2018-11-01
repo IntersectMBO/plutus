@@ -1,1 +1,0 @@
-(fun [(lam x (type) x) [(lam y (type) y) [(con integer) (con 2)]]] [(con integer) (con 2)])

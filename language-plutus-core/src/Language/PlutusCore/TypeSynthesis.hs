@@ -134,6 +134,17 @@ typeCheckStep = do
         then throwError OutOfGas
         else modify (over gas (subtract 1))
 
+indexOfPatternFunctor :: a -> Type TyNameWithKind a -> TypeCheckM a (Kind ())
+indexOfPatternFunctor _ pat = do
+    patKind <- kindOf pat
+    case patKind of
+        KindArrow _ (KindArrow _ k (Type _)) (KindArrow () k' (Type ())) ->
+            if k == k'
+                then return k
+                else error "handle me"
+        _                                                                ->
+            error "handle me"
+
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
 kindOf TyInt{} = pure (Size ())
@@ -147,17 +158,26 @@ kindOf (TyForall x _ _ ty) = do
 kindOf (TyLam _ _ argK body) = KindArrow () (void argK) <$> kindOf body
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = pure $ kindOfTypeBuiltin b
-kindOf (TyIFix x _ pat arg) = do
-    kindCheckM x pat $ Type ()
+
+-- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]
+-- --------------------------------------------------------
+-- [infer| ifix pat arg :: *]
+kindOf (TyIFix x pat arg) = do
+    k <- indexOfPatternFunctor x pat
+    kindCheckM x arg k
     pure $ Type ()
+
+-- [infer| fun :: dom -> cod]    [check | arg :: dom]
+-- --------------------------------------------------
+-- [infer| fun arg :: cod]
 kindOf (TyApp x fun arg) = do
-    funK <- kindOf fun
-    case funK of
-        KindArrow _ argK resK -> do
+    funKind <- kindOf fun
+    case funKind of
+        KindArrow _ dom cod -> do
             typeCheckStep
-            kindCheckM x arg argK
-            pure resK
-        _ -> throwError $ KindMismatch x (void fun) (KindArrow () dummyKind dummyKind) funK
+            kindCheckM x arg dom
+            pure cod
+        _ -> throwError $ KindMismatch x (void fun) (KindArrow () dummyKind dummyKind) funKind
 
 -- | Check a 'Type' against a 'Kind'.
 kindCheckM :: a -> Type TyNameWithKind a -> Kind () -> TypeCheckM a ()
@@ -269,7 +289,7 @@ typeOf (Constant _ con)                          = typeOfConstant con
 
 -- [infer| fun : vDom -> vCod]    [check| arg : vDom]
 -- --------------------------------------------------
--- [infer| [fun arg] : vCod]
+-- [infer| fun arg : vCod]
 typeOf (Apply x fun arg) = do
     vFunTy <- typeOf fun
     case getNormalizedType vFunTy of
@@ -281,7 +301,7 @@ typeOf (Apply x fun arg) = do
 
 -- [infer| body : all (n :: nK) vCod]    [check| ty :: tyK]    ty ~>? vTy    [vTy / n] vCod ~> vRes
 -- ------------------------------------------------------------------------------------------------
--- [infer| {body ty} : vRes]
+-- [infer| body {ty} : vRes]
 typeOf (TyInst x body ty) = do
     vBodyTy <- typeOf body
     case getNormalizedType vBodyTy of
@@ -292,28 +312,30 @@ typeOf (TyInst x body ty) = do
             normalizeTypeBinder n vTy vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
--- [infer| term : ifix n vPat vArg]
--- ---------------------------------------------------
--- [infer| unwrap term : NORM (([ifix n vPat / n] vPat) vArg)]
+-- [infer| term : ifix vPat vArg]    [infer| vArg :: k]
+-- ------------------------------------------------------------------
+-- [infer| unwrap term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
 typeOf (Unwrap x term) = do
     vTermTy <- typeOf term
     case getNormalizedType vTermTy of
-        TyIFix _ n vPat vArg -> do
-            unfoldedVPat <- normalizeTypeBinder n (TyIFix () n vPat) vPat
-            normalizeType $ TyApp () unfoldedVPat vArg
-        _                    -> throwError (TypeMismatch x (void term) (TyFix () dummyTyName dummyType) vTermTy)
+        TyIFix _ vPat vArg -> do
+            k <- kindOf $ x <$ vArg  -- Looks weird.
+            unfoldFixOf vPat vArg k
+        _                  -> throwError (TypeMismatch x (void term) (TyIFix () dummyType dummyType) vTermTy)
 
 -- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]    pat ~>? vPat    arg ~>? vArg
--- [check| term : NORM (vPat (ifix vPat) vArg)]
+-- [check| term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
 -- ----------------------------------------------------------------------------------------
 -- [infer| iwrap pat arg term : ifix vPat vArg]
-typeOf (IWrap x n pat arg term) = do
-    patKind <- kindOf pat -- TODO: continue
-    vPat <- normalizeTypeOpt $ void pat
-    vTermTy <- normalizeTypeBinder (void n) (TyFix () (void n) <$> vPat) $ getNormalizedType vPat
+typeOf (IWrap x pat arg term) = do
+    k <- indexOfPatternFunctor x pat
+    kindCheckM x arg k
+    vPat <- normalizeType {- Opt -} $ void pat
+    vArg <- normalizeType {- Opt -} $ void arg
+    unfoldedFix <- unfoldFixOf (getNormalizedType vPat) (getNormalizedType vArg) k
     typeCheckStep
-    typeCheckM x term vTermTy
-    pure $ TyFix () (void n) <$> vPat
+    typeCheckM x term unfoldedFix
+    return $ TyIFix () <$> vPat <*> vArg
 
 -- | Check a 'Term' against a 'NormalizedType'.
 typeCheckM :: a
@@ -328,29 +350,26 @@ typeCheckM x term vTy = do
     vTermTy <- typeOf term
     when (vTermTy /= vTy) $ throwError (TypeMismatch x (void term) (getNormalizedType vTermTy) vTy)
 
+-- | @unfoldFixOf pat arg k = NORM (pat (\(a :: k) -> ifix vPat a) arg)@
+unfoldFixOf
+    :: Type TyNameWithKind ()  -- ^ @pat@
+    -> Type TyNameWithKind ()  -- ^ @arg@
+    -> Kind ()                 -- ^ @k@
+    -> TypeCheckM a (NormalizedType TyNameWithKind ())
+unfoldFixOf pat arg k = do
+    a <- liftQuote $ TyNameWithKind <$> freshTyName ((), k) "a"
+    normalizeType
+        $ foldl' (TyApp ()) pat
+        [ TyLam () a k . TyIFix () pat $ TyVar () a
+        , arg
+        ]
+
 {- Note [NormalizedTypeBinder]
 'normalizeTypeBinder' is only ever used as normalizing substitution (we should probably change the name)
 that receives two already normalized types. However we do not enforce this in the type signature, because
 1) it's perfectly correct for the last argument to be non-normalized
 2) it would be annoying to wrap 'Type's into 'NormalizedType's
 -}
-
-
--- -- [check| term : norm ([ ifix vPat nPat vPat (fix1 vPat) vArg)]
-
-
--- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]
--- --------------------------------------------------------
--- [infer| fix1 pat arg :: *]
-
--- [infer| term : fix1 vPat vArg]
--- ---------------------------------------------------
--- [infer| unwrap term : NORM (vPat (fix1 vPat) vArg)]
-
--- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]    pat ~>? vPat    arg ~>? vArg
--- [check| term : NORM (vPat (fix1 vPat) vArg)]
--- ----------------------------------------------------------------------------------------
--- [infer| wrap pat arg term : fix1 vPat vArg]
 
 normalizeTypeBinder
     :: TyNameWithKind ()
@@ -388,11 +407,11 @@ normalizeTypeOpt ty = do
 
 -- | Normalize a 'Type'.
 normalizeType :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-normalizeType (TyForall x tn k ty)  = TyForall x tn k <<$>> normalizeType ty
-normalizeType (TyIFix x tn pat arg) = TyIFix x tn <<$>> normalizeType pat <<*>> normalizeType arg
-normalizeType (TyFun x ty ty')      = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
-normalizeType (TyLam x tn k ty)     = TyLam x tn k <<$>> normalizeType ty
-normalizeType (TyApp x fun arg)     = do
+normalizeType (TyForall x tn k ty) = TyForall x tn k <<$>> normalizeType ty
+normalizeType (TyIFix x pat arg)   = TyIFix x <<$>> normalizeType pat <<*>> normalizeType arg
+normalizeType (TyFun x ty ty')     = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
+normalizeType (TyLam x tn k ty)    = TyLam x tn k <<$>> normalizeType ty
+normalizeType (TyApp x fun arg)    = do
     nFun <- normalizeType fun
     nArg <- normalizeType arg
     case getNormalizedType nFun of
@@ -405,7 +424,7 @@ normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
         -- we must use recursive lookups because we can have an assignment
         -- a -> b and an assignment b -> c which is locally valid but in
         -- a smaller scope than a -> b.
-        Just ty'@(NormalizedType TyVar{}) -> pure ty'
+        Just ty'@(NormalizedType TyVar{}) -> pure ty' -- normalizeType $ getNormalizedType ty'
         Just ty'                          -> traverse alphaRename ty'
         Nothing                           -> pure $ NormalizedType ty
 

@@ -40,25 +40,25 @@ preCheck (Program l v t) = Program l v <$> checkT t
 
 -- this basically ensures all type instatiations, etc. occur only with type *values*
 checkT :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-checkT (Error l ty)      = Error l <$> typeValue ty
-checkT (TyInst l t ty)   = TyInst l <$> checkT t <*> typeValue ty
-checkT (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> checkT t
-checkT (Unwrap l t)      = Unwrap l <$> checkT t
-checkT (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkT t
-checkT (Apply l t t')    = Apply l <$> checkT t <*> checkT t'
-checkT (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
-checkT t@Var{}           = pure t
-checkT t@Constant{}      = pure t
+checkT (Error l ty)        = Error l <$> typeValue ty
+checkT (TyInst l t ty)     = TyInst l <$> checkT t <*> typeValue ty
+checkT (IWrap l pat arg t) = IWrap l <$> typeValue pat <*> typeValue arg <*> checkT t
+checkT (Unwrap l t)        = Unwrap l <$> checkT t
+checkT (LamAbs l n ty t)   = LamAbs l n <$> typeValue ty <*> checkT t
+checkT (Apply l t t')      = Apply l <$> checkT t <*> checkT t'
+checkT (TyAbs l tn k t)    = TyAbs l tn k <$> termValue t
+checkT t@Var{}             = pure t
+checkT t@Constant{}        = pure t
 
 isTermValue :: Term tyname name a -> Bool
 isTermValue = isRight . termValue
 
 -- ensure a term is a value
 termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-termValue (LamAbs l n ty t) = LamAbs l n ty <$> checkT t
-termValue (Wrap l tn ty t)  = Wrap l tn ty <$> termValue t
-termValue (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
-termValue t                 = builtinValue t
+termValue (LamAbs l n ty t)   = LamAbs l n ty <$> checkT t
+termValue (IWrap l pat arg t) = IWrap l pat arg <$> termValue t
+termValue (TyAbs l tn k t)    = TyAbs l tn k <$> termValue t
+termValue t                   = builtinValue t
 
 builtinValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
 builtinValue t@Constant{}    = pure t

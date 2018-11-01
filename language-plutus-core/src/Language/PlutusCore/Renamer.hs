@@ -79,12 +79,8 @@ annotateT (Constant x c) =
     pure (Constant x c)
 annotateT (TyInst x t ty) =
     TyInst x <$> annotateT t <*> annotateTy ty
-annotateT (IWrap x (TyName (Name x' b u@(Unique i))) ty arg t) = do
-    annotatedArg <- annotateTy arg
-    let k = Type x'
-    insertKind i k
-    let nwty = TyNameWithKind (TyName (Name (x', k) b u))
-    IWrap x nwty <$> annotateTy ty <*> pure annotatedArg <*> annotateT t
+annotateT (IWrap x pat arg t) =
+    IWrap x <$> annotateTy pat <*> annotateTy arg <*> annotateT t
 
 annotateTy :: Type TyName a -> TypeM a (RenamedType a)
 annotateTy (TyVar x (TyName (Name x' b (Unique u)))) = do
@@ -100,12 +96,8 @@ annotateTy (TyForall x (TyName (Name x' s u@(Unique i))) k ty) = do
     insertKind i k
     let nwty = TyNameWithKind (TyName (Name (x', k) s u))
     TyForall x nwty k <$> annotateTy ty
-annotateTy (TyIFix x (TyName (Name x' s u@(Unique i))) ty arg) = do
-    annotatedArg <- annotateTy arg
-    let k = Type x'
-    insertKind i k
-    let nwty = TyNameWithKind (TyName (Name (x', k) s u))
-    TyIFix x nwty <$> annotateTy ty <*> pure annotatedArg
+annotateTy (TyIFix x pat arg) =
+    TyIFix x <$> annotateTy pat <*> annotateTy arg
 annotateTy (TyFun x ty ty') =
     TyFun x <$> annotateTy ty <*> annotateTy ty'
 annotateTy (TyApp x ty ty') =
@@ -161,9 +153,7 @@ instance HasUnique (tyname a) => Rename (Type tyname a) where
         withRefreshed name $ \nameFr -> TyLam ann nameFr kind <$> renameM ty
     renameM (TyForall ann name kind ty) =
         withRefreshed name $ \nameFr -> TyForall ann nameFr kind <$> renameM ty
-    renameM (TyIFix ann name pat arg)   = do
-        renamedArg <- renameM arg
-        withRefreshed name $ \nameFr -> TyIFix ann nameFr <$> renameM pat <*> pure renamedArg
+    renameM (TyIFix ann pat arg)        = TyIFix ann <$> renameM pat <*> renameM arg
     renameM (TyApp ann fun arg)         = TyApp ann <$> renameM fun <*> renameM arg
     renameM (TyFun ann dom cod)         = TyFun ann <$> renameM dom <*> renameM cod
     renameM (TyVar ann name)            = TyVar ann <$> renameNameM name
@@ -171,21 +161,17 @@ instance HasUnique (tyname a) => Rename (Type tyname a) where
     renameM ty@TyBuiltin{}              = pure ty
 
 instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Term tyname name a) where
-    renameM (LamAbs ann name ty body)     =
-        withRefreshed name $ \nameFr ->
-            LamAbs ann nameFr <$> renameM ty <*> renameM body
-    renameM (IWrap ann name pat arg term) = do
-        renamedArg <- rename arg
-        withRefreshed name $ \nameFr ->
-            IWrap ann nameFr <$> renameM pat <*> pure renamedArg <*> renameM term
-    renameM (TyAbs ann name kind body)    =
+    renameM (LamAbs ann name ty body)  =
+        withRefreshed name $ \nameFr -> LamAbs ann nameFr <$> renameM ty <*> renameM body
+    renameM (IWrap ann pat arg term)   = IWrap ann <$> renameM pat <*> renameM arg <*> renameM term
+    renameM (TyAbs ann name kind body) =
         withRefreshed name $ \nameFr -> TyAbs ann nameFr kind <$> renameM body
-    renameM (Apply ann fun arg)           = Apply ann <$> renameM fun <*> renameM arg
-    renameM (Unwrap ann term)             = Unwrap ann <$> renameM term
-    renameM (Error ann ty)                = Error ann <$> renameM ty
-    renameM (TyInst ann body ty)          = TyInst ann <$> renameM body <*> renameM ty
-    renameM (Var ann name)                = Var ann <$> renameNameM name
-    renameM con@Constant{}                = pure con
+    renameM (Apply ann fun arg)        = Apply ann <$> renameM fun <*> renameM arg
+    renameM (Unwrap ann term)          = Unwrap ann <$> renameM term
+    renameM (Error ann ty)             = Error ann <$> renameM ty
+    renameM (TyInst ann body ty)       = TyInst ann <$> renameM body <*> renameM ty
+    renameM (Var ann name)             = Var ann <$> renameNameM name
+    renameM con@Constant{}             = pure con
 
 instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Program tyname name a) where
     renameM (Program ann ver term) = Program ann ver <$> renameM term

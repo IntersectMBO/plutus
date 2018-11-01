@@ -99,10 +99,7 @@ instance Cloneable (TyNameWithKind a) where
 instance (Cloneable (tyname a), HasUnique (tyname a)) => Cloneable (Type tyname a) where
     clone what = \case
         TyVar a n          -> TyVar a <$> clone what n
-        TyIFix a tn ty arg -> do
-            clonedArg <- clone what arg
-            addBound (tn ^. unique)
-            TyIFix a <$> clone what tn <*> clone what ty <*> pure clonedArg
+        TyIFix a pat arg   -> TyIFix a <$> clone what pat <*> clone what arg
         TyForall a tn k ty -> do
             addBound (tn ^. unique)
             tn' <- clone what tn
@@ -117,23 +114,20 @@ instance (Cloneable (tyname a), HasUnique (tyname a)) => Cloneable (Type tyname 
 
 instance (Cloneable (tyname a), Cloneable (name a), HasUnique (tyname a), HasUnique (name a)) => Cloneable (Term tyname name a) where
     clone what = \case
-        Var a n             -> Var a <$> clone what n
-        TyAbs a tn k ty     -> do
+        Var a n           -> Var a <$> clone what n
+        TyAbs a tn k ty   -> do
             addBound (tn ^. unique)
             tn' <- clone what tn
             TyAbs a tn' k <$> clone what ty
-        LamAbs a n ty t     -> do
+        LamAbs a n ty t   -> do
             addBound (n ^. unique)
             LamAbs a <$> clone what n <*> clone what ty <*> clone what t
-        IWrap a tn ty arg t -> do
-            clonedArg <- clone what arg
-            addBound (tn ^. unique)
-            IWrap a <$> clone what tn <*> clone what ty <*> pure clonedArg <*> clone what t
-        TyInst a x ty       -> TyInst a <$> clone what x <*> clone what ty
-        Error a ty          -> Error a <$> clone what ty
-        Apply a t1 t2       -> Apply a <$> clone what t1 <*> clone what t2
-        Unwrap a t          -> Unwrap a <$> clone what t
-        x                   -> pure x
+        IWrap a pat arg t -> IWrap a <$> clone what pat <*> clone what arg <*> clone what t
+        TyInst a x ty     -> TyInst a <$> clone what x <*> clone what ty
+        Error a ty        -> Error a <$> clone what ty
+        Apply a t1 t2     -> Apply a <$> clone what t1 <*> clone what t2
+        Unwrap a t        -> Unwrap a <$> clone what t
+        x                 -> pure x
 
 instance (Cloneable (tyname a), Cloneable (name a), HasUnique (tyname a), HasUnique (name a)) => Cloneable (Program tyname name a) where
     clone what (Program a v t) = Program a v <$> clone what t

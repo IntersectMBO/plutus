@@ -56,7 +56,7 @@ tokens :-
     -- Keywords
     <0> abs                      { mkKeyword KwAbs }
     <0> lam                      { mkKeyword KwLam }
-    <0> fix                      { mkKeyword KwFix }
+    <0> ifix                     { mkKeyword KwIFix }
     <0> fun                      { mkKeyword KwFun }
     <0> all                      { mkKeyword KwAll }
     <0> bytestring               { mkKeyword KwByteString }
@@ -65,7 +65,7 @@ tokens :-
     <0> type                     { mkKeyword KwType }
     <0> program                  { mkKeyword KwProgram }
     <0> con                      { mkKeyword KwCon }
-    <0> wrap                     { mkKeyword KwWrap }
+    <0> iwrap                    { mkKeyword KwIWrap }
     <0> unwrap                   { mkKeyword KwUnwrap }
     <0> error                    { mkKeyword KwError }
 

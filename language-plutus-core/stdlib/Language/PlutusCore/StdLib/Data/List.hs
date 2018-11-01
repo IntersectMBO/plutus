@@ -29,14 +29,14 @@ import           Language.PlutusCore.StdLib.Type
 -- | @List@ as a PLC type.
 --
 -- > \(a :: *). fix \(list :: *) -> all (r :: *). r -> (a -> list -> r) -> r
-getBuiltinList :: Quote (HoledType TyName ())
+getBuiltinList :: Quote (HoledType ())
 getBuiltinList = do
     a    <- freshTyName () "a"
     list <- freshTyName () "list"
     r    <- freshTyName () "r"
     return
         . HoledType list $ \hole ->
-          TyLam () a (Type ())
+          fmap (TyLam () a (Type ()))
         . hole
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -53,8 +53,8 @@ getBuiltinNil = rename =<< do
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    let RecursiveType wrapListA listA =
-            holedToRecursive . holedTyApp list $ TyVar () a
+    RecursiveType wrapListA listA <-
+        holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . wrapListA
@@ -76,8 +76,8 @@ getBuiltinCons = rename =<< do
     r  <- freshTyName () "r"
     z  <- freshName () "z"
     f  <- freshName () "f"
-    let RecursiveType wrapListA listA =
-            holedToRecursive . holedTyApp list $ TyVar () a
+    RecursiveType wrapListA listA <-
+        holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
@@ -108,8 +108,8 @@ getBuiltinFoldrList = rename =<< do
     xs  <- freshName () "xs"
     x   <- freshName () "x"
     xs' <- freshName () "xs'"
-    let RecursiveType _ listA =
-            holedToRecursive . holedTyApp list $ TyVar () a
+    RecursiveType _ listA <-
+        holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
@@ -143,8 +143,8 @@ getBuiltinFoldList = rename =<< do
     xs  <- freshName () "xs"
     x   <- freshName () "x"
     xs' <- freshName () "xs'"
-    let RecursiveType _ listA =
-            holedToRecursive . holedTyApp list $ TyVar () a
+    RecursiveType _ listA <-
+        holedToRecursive . holedTyApp list $ TyVar () a
     return
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
@@ -188,8 +188,8 @@ getBuiltinEnumFromTo = rename =<< do
     u   <- freshName () "u"
     let gtInteger  = Constant () $ BuiltinName () GreaterThanInteger
         int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
-        RecursiveType _ listInt =
-            holedToRecursive $ holedTyApp list int
+    RecursiveType _ listInt <-
+        holedToRecursive $ holedTyApp list int
     return
         . TyAbs () s (Size ())
         . LamAbs () n int

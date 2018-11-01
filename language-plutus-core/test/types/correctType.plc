@@ -1,5 +1,0 @@
-(program 0.1.0
-  (lam x (all s (size) [(con integer) s])
-    x
-  )
-)

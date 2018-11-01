@@ -37,7 +37,7 @@ import Language.PlutusCore.Constant.Make
 %nonassoc integer
 %nonassoc float
 %nonassoc bytestring
-%nonassoc wrap
+%nonassoc iwrap
 %nonassoc unwrap
 %nonassoc lam
 %nonassoc con
@@ -47,7 +47,7 @@ import Language.PlutusCore.Constant.Make
 
     abs { LexKeyword $$ KwAbs }
     lam { LexKeyword $$ KwLam }
-    fix { LexKeyword $$ KwFix }
+    ifix { LexKeyword $$ KwIFix }
     con { LexKeyword $$ KwCon }
     fun { LexKeyword $$ KwFun }
     all { LexKeyword $$ KwAll }
@@ -56,7 +56,7 @@ import Language.PlutusCore.Constant.Make
     bytestring { LexKeyword $$ KwByteString }
     type { LexKeyword $$ KwType }
     program { LexKeyword $$ KwProgram }
-    wrap { LexKeyword $$ KwWrap }
+    iwrap { LexKeyword $$ KwIWrap }
     unwrap { LexKeyword $$ KwUnwrap }
     errorTerm { LexKeyword $$ KwError }
 
@@ -110,7 +110,7 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
      | openParen con Builtin closeParen { Constant $2 $3 }
-     | openParen wrap TyName Type Term closeParen { Wrap $2 $3 $4 $5 }
+     | openParen iwrap Type Type Term closeParen { IWrap $2 $3 $4 $5 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
@@ -123,7 +123,7 @@ Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
+     | openParen ifix Type Type closeParen { TyIFix $2 $3 $4 }
      | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
      | openParen con BuiltinType closeParen { $3 }
 

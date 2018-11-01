@@ -31,11 +31,11 @@ getBuiltinNatSum s = do
     foldList <- getBuiltinFoldList
     let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
     let add = TyInst () (Constant () (BuiltinName () AddInteger)) $ TyInt () s
-    RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
+    RecursiveType _ nat1 <- holedToRecursive =<< getBuiltinNat
     nti <- getBuiltinNatToInteger
     acc <- freshName () "acc"
     n <- freshName () "n"
-    RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
+    RecursiveType _ nat2 <- holedToRecursive =<< getBuiltinNat
     return
         $ mkIterApp (mkIterInst foldList [nat1, int])
           [   LamAbs () acc int

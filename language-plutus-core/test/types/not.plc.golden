@@ -1,1 +1,0 @@
-(fun (all A (type) (fun A (fun A A))) (all T (type) (fun T (fun T T))))

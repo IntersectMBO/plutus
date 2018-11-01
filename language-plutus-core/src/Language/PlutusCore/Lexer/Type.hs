@@ -109,7 +109,7 @@ data Version a = Version a Natural Natural Natural
 -- | A keyword in Plutus Core.
 data Keyword = KwAbs
              | KwLam
-             | KwFix
+             | KwIFix
              | KwFun
              | KwAll
              | KwByteString
@@ -118,7 +118,7 @@ data Keyword = KwAbs
              | KwType
              | KwProgram
              | KwCon
-             | KwWrap
+             | KwIWrap
              | KwUnwrap
              | KwError
              deriving (Show, Eq, Generic, NFData)
@@ -167,7 +167,7 @@ instance Pretty Special where
 instance Pretty Keyword where
     pretty KwAbs        = "abs"
     pretty KwLam        = "lam"
-    pretty KwFix        = "fix"
+    pretty KwIFix       = "ifix"
     pretty KwFun        = "fun"
     pretty KwAll        = "forall"
     pretty KwByteString = "bytestring"
@@ -176,7 +176,7 @@ instance Pretty Keyword where
     pretty KwType       = "type"
     pretty KwProgram    = "program"
     pretty KwCon        = "con"
-    pretty KwWrap       = "wrap"
+    pretty KwIWrap      = "iwrap"
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"
 
