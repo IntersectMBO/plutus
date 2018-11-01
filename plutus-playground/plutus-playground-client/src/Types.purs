@@ -2,6 +2,8 @@ module Types where
 
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Ace.Halogen.Component (AceMessage)
+import Halogen.ECharts (EChartsMessage)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 
@@ -31,3 +33,12 @@ type Action =
   { actionId :: ActionId
   , walletId :: WalletId
   }
+
+------------------------------------------------------------
+
+data Query a
+  = ToggleState a
+  | HandleAceMessage AceMessage a
+  | HandleEChartsMessage EChartsMessage a
+  | SendAction Action a
+  | KillAction Int a

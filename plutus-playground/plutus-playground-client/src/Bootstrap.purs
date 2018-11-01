@@ -19,8 +19,14 @@ col9 = div [ class_ $ ClassName "col col-9" ]
 card :: forall p i. Array (HTML p i) -> HTML p i
 card = div [ class_ $ ClassName "card"  ]
 
+cardHeader :: forall p i. Array (HTML p i) -> HTML p i
+cardHeader = div [ class_ $ ClassName "card-header" ]
+
 cardBody :: forall p i. Array (HTML p i) -> HTML p i
 cardBody = div [ class_ $ ClassName "card-body" ]
+
+cardFooter :: forall p i. Array (HTML p i) -> HTML p i
+cardFooter = div [ class_ $ ClassName "card-footer" ]
 
 cardImgTop :: forall p i. Array (HTML p i) -> HTML p i
 cardImgTop = div [ class_ $ ClassName "card-img-top" ]

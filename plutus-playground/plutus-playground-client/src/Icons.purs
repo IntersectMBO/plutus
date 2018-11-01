@@ -6,6 +6,7 @@ import Halogen.HTML.Properties (classes)
 data Icon
   = CreditCard
   | LongArrowDown
+  | Close
 
 icon :: forall p i. Icon -> HTML p i
 icon iconType =
@@ -15,3 +16,4 @@ icon iconType =
 iconClass :: Icon -> ClassName
 iconClass CreditCard = ClassName "fa-credit-card"
 iconClass LongArrowDown = ClassName "fa-long-arrow-down"
+iconClass Close = ClassName "fa-close"

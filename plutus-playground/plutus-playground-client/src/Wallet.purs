@@ -9,18 +9,16 @@ import Halogen.HTML.Properties (class_)
 import Icons (Icon(..), icon)
 import Prelude (($), (<$>))
 import StaticData (staticActionIds)
-import Types (Action, ActionId, Wallet, WalletId(WalletId))
+import Types (ActionId, Wallet, WalletId(WalletId), Query(..))
 
-data Message a = Send Action a
-
-walletsPane :: forall p. Array Wallet -> HTML p Message
+walletsPane :: forall p. Array Wallet -> HTML p Query
 walletsPane wallets =
   div_
     [ h3_ [ text "Wallets" ]
     , row (walletPane <$> wallets)
     ]
 
-walletPane :: forall p. Wallet -> HTML p Message
+walletPane :: forall p. Wallet -> HTML p Query
 walletPane wallet =
   div [ class_ $ ClassName "wallet" ]
     [ card
@@ -34,11 +32,11 @@ walletPane wallet =
       ]
     ]
 
-actionButton :: forall p. WalletId -> ActionId -> HTML p Message
+actionButton :: forall p. WalletId -> ActionId -> HTML p Query
 actionButton walletId actionId =
   button
     [ btnInfoSmall
-    , onClick $ input_ $ Send { actionId, walletId }
+    , onClick $ input_ $ SendAction { actionId, walletId }
     ]
     [ text (unwrap actionId) ]
 

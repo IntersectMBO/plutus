@@ -1,6 +1,5 @@
 module MainFrame
   ( mainFrame
-  , Query
   ) where
 
 import Debug.Trace
@@ -18,7 +17,7 @@ import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Lens (Lens', modifying)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import ECharts.Commands as E
@@ -28,22 +27,16 @@ import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
-import Halogen.ECharts (EChartsEffects, EChartsMessage, EChartsQuery, echarts)
+import Halogen.ECharts (EChartsEffects, EChartsQuery, echarts)
 import Halogen.ECharts as EC
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, div_, h1_, h2_, h3_, hr_, p_, slot', small_, text)
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, href, target)
 import Halogen.Query (HalogenM)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, not, pure, unit, void, ($), (<$>))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, not, pure, unit, void, ($), (<*>))
 import StaticData (staticWallets)
-import Types (Wallet, Action)
-import Wallet (Message(..), walletsPane)
-
-data Query a
-  = ToggleState a
-  | HandleAceMessage AceMessage a
-  | HandleEChartsMessage EChartsMessage a
-  | SendAction (Message a)
+import Types (Action, Query(..), Wallet)
+import Wallet (walletsPane)
 
 type State =
   { on :: Boolean
@@ -125,10 +118,16 @@ eval (HandleEChartsMessage EC.Initialized next) = do
 eval (HandleEChartsMessage (EC.EventRaised event) next) =
   pure next
 
-eval (SendAction (Send action next)) = do
+eval (SendAction action next) = do
   modifying _actions $ flip Array.snoc action
   pure next
+
+eval (KillAction index next) = do
+  modifying _actions $ (fromMaybe <*> Array.deleteAt index)
+  pure next
+
 ------------------------------------------------------------
+
 initEditor ∷ forall aff. Editor -> Aff (ace :: ACE | aff) Unit
 initEditor editor = liftEff $ do
   session <- Editor.getSession editor
@@ -177,7 +176,7 @@ mockChainPane :: forall aff. State -> ParentHTML Query ChildQuery ChildSlot (Aff
 mockChainPane state =
   div_
     [ row
-        [ col9 [ SendAction <$> walletsPane state.wallets ]
+        [ col9 [ walletsPane state.wallets ]
         , col [ actionsPane state.actions  ]
         ]
     , h3_ [ text "Chain" ]

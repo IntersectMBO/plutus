@@ -1,17 +1,19 @@
 module Action where
 
-import Bootstrap (btnLight)
+import Bootstrap (btnLight, card, cardBody, cardFooter)
+import Data.Array (mapWithIndex)
 import Data.Foldable (intercalate)
 import Data.Newtype (unwrap)
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), button, div, div_, h3_, text)
+import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_)
 import Icons (Icon(..), icon)
-import Prelude (pure, ($), (<$>), (<<<))
-import Types (Action)
+import Prelude (pure, ($), (<<<))
+import Types (Action, Query(..))
 import Wallet (walletIdPane)
 
-actionsPane :: forall p i. Array Action -> HTML p i
+actionsPane :: forall p. Array Action -> HTML p Query
 actionsPane actions =
   div [ class_ $ ClassName "actions" ]
     [ h3_ [ text "Actions" ]
@@ -19,15 +21,23 @@ actionsPane actions =
       (
         intercalate
           [ icon LongArrowDown ]
-          (pure <<< actionPane <$> actions)
+          (mapWithIndex (\index -> pure <<< actionPane index) actions)
       )
     ]
 
-actionPane :: forall p i. Action -> HTML p i
-actionPane action =
+actionPane :: forall p. Int -> Action -> HTML p Query
+actionPane index action =
   div [ class_ $ ClassName "action" ]
-    [ button [ btnLight ]
-      [ div_ [ text (unwrap action.actionId) ]
-      , div_ [ walletIdPane action.walletId ]
+    [ card
+      [ cardBody
+        [ div_ [ walletIdPane action.walletId ]
+        , div_ [ text (unwrap action.actionId) ]
+        ]
+      , cardFooter [
+          button
+            [ btnLight
+            , onClick $ input_ $ KillAction index ]
+            [ icon Close ]
+        ]
       ]
     ]
