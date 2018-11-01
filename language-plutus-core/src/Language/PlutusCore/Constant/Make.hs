@@ -28,6 +28,7 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Data.Bits                            (bit)
 import qualified Data.ByteString.Lazy                 as BSL
 import           Data.Maybe
 
@@ -41,8 +42,8 @@ dynamicBuiltinNameAsTerm = Constant () . DynBuiltinName ()
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)
-toBoundsInt s = (-2 ^ p, 2 ^ p) where
-    p = 8 * fromIntegral s - 1 :: Int
+toBoundsInt s = (-b, b) where
+    b = bit (8 * fromIntegral s - 1)  -- This is much quicker than 2^n for large n
 
 -- | Check whether an 'Integer' is in the @[-2^(8s - 1), 2^(8s - 1))@ interval.
 checkBoundsInt :: Size -> Integer -> Bool
