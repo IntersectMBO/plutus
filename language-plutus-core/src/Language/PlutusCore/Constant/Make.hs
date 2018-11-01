@@ -28,7 +28,7 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Data.Bits (bit)
+import           Data.Bits                            (bit)
 import qualified Data.ByteString.Lazy                 as BSL
 import           Data.Maybe
 
