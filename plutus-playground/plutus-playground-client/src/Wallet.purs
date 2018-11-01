@@ -1,13 +1,13 @@
 module Wallet where
 
-import Bootstrap (btnGroup, card, cardBody, cardTitle, col, row, btnInfoSmall)
+import Bootstrap (btnGroup, btnInfoSmall, card, cardBody, cardFooter, cardTitle, col, row)
 import Data.Newtype (unwrap)
 import Halogen (HTML)
-import Halogen.HTML (ClassName(..), button, div, div_, h3_, span, strong_, text)
+import Halogen.HTML (ClassName(ClassName), button, div, div_, h3_, span, strong_, text)
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_)
 import Icons (Icon(..), icon)
-import Prelude (($), (<$>))
+import Prelude (show, ($), (<$>))
 import StaticData (staticActionIds)
 import Types (ActionId, Wallet, WalletId(WalletId), Query(..))
 
@@ -25,9 +25,15 @@ walletPane wallet =
       [ cardBody
           [ col
              [ cardTitle [ walletIdPane wallet.walletId ]
-             , div [ btnGroup ]
-                 (actionButton wallet.walletId <$> staticActionIds)
+             , div_
+               [ text $ show wallet.balance
+               , icon Bitcoin
+               ]
              ]
+          ]
+      , cardFooter
+          [ div [ btnGroup ]
+              (actionButton wallet.walletId <$> staticActionIds)
           ]
       ]
     ]
