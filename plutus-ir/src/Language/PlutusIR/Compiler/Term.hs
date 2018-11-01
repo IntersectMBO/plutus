@@ -14,7 +14,7 @@ import           Control.Monad
 import           Control.Monad.Except
 
 import qualified Language.PlutusCore                  as PLC
-import           Language.PlutusCore.MkPlc
+import qualified Language.PlutusCore.MkPlc            as PLC
 
 import           Data.List
 
@@ -53,7 +53,7 @@ compileRecTermBindings _ body bs = case bs of
     [] -> pure body
     _ -> do
         binds <- forM bs $ \case
-            TermBind () vd rhs -> pure $ Def vd rhs
+            TermBind () vd rhs -> pure $ PLC.Def vd rhs
             _ -> throwError $ CompilationError "Internal error: type binding in term binding group"
         compileRecTerms body binds
 
@@ -65,10 +65,12 @@ compileRecTypeBindings r body bs = case bs of
 
 compileSingleBinding :: Compiling m => Recursivity -> PLC.Term TyName Name () -> Binding TyName Name () ->  m (PLC.Term TyName Name ())
 compileSingleBinding r body b = case b of
-    TermBind () vd@(VarDecl () n ty) rhs -> case r of
-        Rec -> compileRecTerms body [Def vd rhs]
+    TermBind () d rhs -> case r of
+        Rec -> compileRecTerms body [PLC.Def d rhs]
         NonRec -> do
-            rhs' <- compileTerm rhs
-            pure $ mkTermLet n rhs' ty body
-    TypeBind () (TyVarDecl () n k) rhs -> pure $ mkTypeLet n rhs k body
+            def <- PLC.Def d <$> compileTerm rhs
+            pure $ PLC.mkTermLet def body
+    TypeBind () d rhs -> do
+        let def = PLC.Def d rhs
+        pure $ PLC.mkTypeLet def body
     DatatypeBind () d -> compileDatatype r body d

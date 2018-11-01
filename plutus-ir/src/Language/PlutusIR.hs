@@ -3,19 +3,14 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
     TyName (..),
     Name (..),
+    VarDecl (..),
+    TyVarDecl (..),
     Kind (..),
     Type (..),
-    VarDecl (..),
-    varDeclName,
-    varDeclTy,
-    splitVarDecl,
-    TyVarDecl (..),
-    tyVarDeclName,
-    tyVarDeclKind,
-    splitTyVarDecl,
     Datatype (..),
     Recursivity (..),
     Binding (..),
@@ -28,35 +23,10 @@ import           PlutusPrelude
 
 import           Language.PlutusCore        (Kind, Name, TyName, Type)
 import qualified Language.PlutusCore        as PLC
+import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           GHC.Generics               (Generic)
-
--- Variable declarations
-
-data VarDecl tyname name a = VarDecl a (name a) (Type tyname a)
-    deriving (Functor, Show, Eq, Generic)
-
-varDeclName :: VarDecl tyname name a -> name a
-varDeclName (VarDecl _ n _) = n
-
-varDeclTy :: VarDecl tyname name a -> Type tyname a
-varDeclTy (VarDecl _ _ ty) = ty
-
-splitVarDecl :: VarDecl tyname name a -> (name a, Type tyname a)
-splitVarDecl (VarDecl _ n ty) = (n, ty)
-
-data TyVarDecl tyname a = TyVarDecl a (tyname a) (Kind a)
-    deriving (Functor, Show, Eq, Generic)
-
-tyVarDeclName :: TyVarDecl tyname a -> tyname a
-tyVarDeclName (TyVarDecl _ n _) = n
-
-tyVarDeclKind :: TyVarDecl name a -> Kind a
-tyVarDeclKind (TyVarDecl _ _ k) = k
-
-splitTyVarDecl :: TyVarDecl tyname a -> (tyname a, Kind a)
-splitTyVarDecl (TyVarDecl _ n k) = (n, k)
 
 -- Datatypes
 

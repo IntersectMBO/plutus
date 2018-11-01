@@ -39,8 +39,8 @@ getBuiltinTrue = rename =<< do
     return
        . TyAbs () a (Type ())
        $ mkIterLamAbs [
-          (x, TyVar () a),
-          (y, TyVar () a)
+          VarDecl () x (TyVar () a),
+          VarDecl () y (TyVar () a)
           ]
        $ Var () x
 
@@ -55,8 +55,8 @@ getBuiltinFalse = rename =<< do
     return
        . TyAbs () a (Type ())
        $ mkIterLamAbs [
-          (x, TyVar () a),
-          (y, TyVar () a)
+          VarDecl () x (TyVar () a),
+          VarDecl () y (TyVar () a)
           ]
        $ Var () y
 
@@ -76,9 +76,9 @@ getBuiltinIf = rename =<< do
     return
        . TyAbs () a (Type ())
       $ mkIterLamAbs [
-          (b, builtinBool),
-          (x, unitFunA),
-          (y, unitFunA)
+          VarDecl () b builtinBool,
+          VarDecl () x unitFunA,
+          VarDecl () y unitFunA
           ]
       $ mkIterApp
           (TyInst () (Var () b) unitFunA)
