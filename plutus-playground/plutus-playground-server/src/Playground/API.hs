@@ -28,7 +28,7 @@ type API
    = "contract" :> ReqBody '[ Haskell] SourceCode :> Post '[ JSON] FunctionsSchema
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] Blockchain
 
-data Haskell = Haskell Text
+newtype Haskell = Haskell Text
   deriving stock (Generic)
   deriving anyclass (ToJSON, FromJSON)
 
