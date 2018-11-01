@@ -34,6 +34,9 @@ cardText = div [ class_ $ ClassName "card-text" ]
 btn :: forall p i. IProp ("class" :: String | p) i
 btn = class_ $ ClassName "btn"
 
+btnGroup :: forall p i. IProp ("class" :: String | p) i
+btnGroup = class_ $ ClassName "btn-group"
+
 btnPrimary :: forall p i. IProp ("class" :: String | p) i
 btnPrimary = class_ $ ClassName "btn btn-primary"
 
@@ -42,3 +45,6 @@ btnSecondary = class_ $ ClassName "btn btn-secondary"
 
 btnLight :: forall p i. IProp ("class" :: String | p) i
 btnLight = class_ $ ClassName "btn btn-light"
+
+btnInfoSmall :: forall p i. IProp ("class" :: String | p) i
+btnInfoSmall = class_ $ ClassName "btn btn-info btn-sm"

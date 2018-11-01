@@ -9,11 +9,11 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery, aceComponent)
 import Ace.Types (ACE, Editor)
-import Action (Action, actionsPane)
-import Action as Action
+import Action (actionsPane)
 import Bootstrap (btnPrimary, btnSecondary, col, col9, container, row)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff.Class (liftEff)
+import Data.Array as Array
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Lens (Lens', modifying)
@@ -34,14 +34,16 @@ import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, div_, h1_, h2_,
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, href, target)
 import Halogen.Query (HalogenM)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, not, pure, unit, void, ($))
-import Wallet (Wallet, walletsPane)
-import Wallet as Wallet
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, not, pure, unit, void, ($), (<$>))
+import StaticData (staticWallets)
+import Types (Wallet, Action)
+import Wallet (Message(..), walletsPane)
 
 data Query a
   = ToggleState a
   | HandleAceMessage AceMessage a
   | HandleEChartsMessage EChartsMessage a
+  | SendAction (Message a)
 
 type State =
   { on :: Boolean
@@ -52,14 +54,17 @@ type State =
 _on :: forall s a. Lens' {on :: a | s} a
 _on = prop (SProxy :: SProxy "on")
 
+_actions :: forall s a. Lens' {actions :: a | s} a
+_actions = prop (SProxy :: SProxy "actions")
+
 _wallets :: forall s a. Lens' {wallets :: a | s} a
 _wallets = prop (SProxy :: SProxy "wallets")
 
 initialState :: State
 initialState =
   { on: false
-  , wallets: Wallet.staticWallets
-  , actions: Action.staticActions
+  , actions: []
+  , wallets: staticWallets
   }
 
 initialText :: String
@@ -120,6 +125,9 @@ eval (HandleEChartsMessage EC.Initialized next) = do
 eval (HandleEChartsMessage (EC.EventRaised event) next) =
   pure next
 
+eval (SendAction (Send action next)) = do
+  modifying _actions $ flip Array.snoc action
+  pure next
 ------------------------------------------------------------
 initEditor ∷ forall aff. Editor -> Aff (ace :: ACE | aff) Unit
 initEditor editor = liftEff $ do
@@ -169,7 +177,7 @@ mockChainPane :: forall aff. State -> ParentHTML Query ChildQuery ChildSlot (Aff
 mockChainPane state =
   div_
     [ row
-        [ col9 [ walletsPane state.wallets ]
+        [ col9 [ SendAction <$> walletsPane state.wallets ]
         , col [ actionsPane state.actions  ]
         ]
     , h3_ [ text "Chain" ]

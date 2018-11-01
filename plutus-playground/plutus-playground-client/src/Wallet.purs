@@ -1,57 +1,46 @@
 module Wallet where
 
-import Bootstrap (card, cardBody, cardTitle, col, row)
-import Data.Lens (Lens')
-import Data.Lens.Record (prop)
-import Data.Newtype (class Newtype)
-import Data.Symbol (SProxy(..))
-import Halogen.HTML (ClassName(..), HTML, div, div_, h3_, span, strong_, text)
+import Bootstrap (btnGroup, card, cardBody, cardTitle, col, row, btnInfoSmall)
+import Data.Newtype (unwrap)
+import Halogen (HTML)
+import Halogen.HTML (ClassName(..), button, div, div_, h3_, span, strong_, text)
+import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_)
 import Icons (Icon(..), icon)
 import Prelude (($), (<$>))
+import StaticData (staticActionIds)
+import Types (Action, ActionId, Wallet, WalletId(WalletId))
 
-newtype WalletId = WalletId String
-derive instance newtypeWalletId :: Newtype WalletId _
+data Message a = Send Action a
 
-type Wallet =
-  { id :: WalletId
-  , balance :: Number
-  }
-
-_id :: forall s a. Lens' {id :: a | s} a
-_id = prop (SProxy :: SProxy "id")
-
-_balance :: forall s a. Lens' {balance :: a | s} a
-_balance = prop (SProxy :: SProxy "balance")
-
-staticWallets :: Array Wallet
-staticWallets =
-  [ { id: WalletId "kris0001", balance: 10.0 }
-  , { id: WalletId "kris0002", balance: 5.0 }
-  , { id: WalletId "david0001", balance: 23.0 }
-  , { id: WalletId "david0002", balance: 1.0 }
-  , { id: WalletId "manuel0001", balance: 817.0 }
-  ]
-
-walletsPane :: forall p i. Array Wallet -> HTML p i
+walletsPane :: forall p. Array Wallet -> HTML p Message
 walletsPane wallets =
   div_
     [ h3_ [ text "Wallets" ]
     , row (walletPane <$> wallets)
     ]
 
-walletPane :: forall p i. Wallet -> HTML p i
+walletPane :: forall p. Wallet -> HTML p Message
 walletPane wallet =
   div [ class_ $ ClassName "wallet" ]
     [ card
       [ cardBody
           [ col
-             [ cardTitle [ walletIdPane wallet.id ]
-             , cardBody [ text "..." ]
+             [ cardTitle [ walletIdPane wallet.walletId ]
+             , div [ btnGroup ]
+                 (actionButton wallet.walletId <$> staticActionIds)
              ]
           ]
       ]
     ]
+
+actionButton :: forall p. WalletId -> ActionId -> HTML p Message
+actionButton walletId actionId =
+  button
+    [ btnInfoSmall
+    , onClick $ input_ $ Send { actionId, walletId }
+    ]
+    [ text (unwrap actionId) ]
 
 walletIdPane :: forall p i. WalletId -> HTML p i
 walletIdPane (WalletId walletId) =
