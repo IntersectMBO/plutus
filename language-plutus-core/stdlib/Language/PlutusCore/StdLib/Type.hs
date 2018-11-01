@@ -11,6 +11,7 @@ module Language.PlutusCore.StdLib.Type
     ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Renamer
 import           PlutusPrelude
 
@@ -22,25 +23,21 @@ infixr 5 ~~>
 star :: Kind ()
 star = Type ()
 
-getPatternFunctor
-    :: Kind ()
-    -> Type TyName ()
-    -> Type TyName ()
-    -> Quote (Type TyName ())
-getPatternFunctor k withSpine pat = rename =<< do
-    b <- freshTyName () "b"
-    p <- freshTyName () "p"
-
-    -- TODO: return
-    --     . TyLam () withSpine (((k ~~> star) ~~> star) ~~> k)
-    --     . TyLam () pat (k ~~> k)
+getPatternFunctor :: Kind () -> Quote (Type TyName ())
+getPatternFunctor k = rename =<< do
+    withSpine <- freshTyName () "withSpine"
+    pat       <- freshTyName () "pat"
+    b         <- freshTyName () "b"
+    p         <- freshTyName () "p"
 
     return
+        . TyLam () withSpine (((k ~~> star) ~~> star) ~~> k)
+        . TyLam () pat (k ~~> k)
         . TyLam () b ((k ~~> star) ~~> star)
         . TyLam () p (k ~~> star)
         . TyApp () (TyVar () p)
-        . TyApp () pat
-        . TyApp () withSpine
+        . TyApp () (TyVar () pat)
+        . TyApp () (TyVar () withSpine)
         $ TyVar () b
 
 -- |
@@ -48,19 +45,21 @@ getPatternFunctor k withSpine pat = rename =<< do
 -- > FixN {K} withSpine Pat =
 -- >     withSpine λ (spine : K -> Set) -> IFix patternFunctor spine where
 -- >         patternFunctor = λ (B : (K -> Set) -> Set) (P : K -> Set) -> P (Pat (withSpine B))
-getTyFixN
-    :: Kind ()
-    -> Type TyName ()
-    -> Type TyName ()
-    -> Quote (Type TyName ())
-getTyFixN k withSpine pat = rename =<< do
-    patternFunctor <- getPatternFunctor k withSpine pat
+getTyFixN :: Kind () -> Quote (Type TyName ())
+getTyFixN k = rename =<< do
+    withSpine      <- freshTyName () "withSpine"
+    pat            <- freshTyName () "pat"
+    patternFunctor <- getPatternFunctor k
     spine          <- freshTyName () "spine"
 
     return
-        . TyApp () withSpine
+        . TyLam () withSpine (((k ~~> star) ~~> star) ~~> k)
+        . TyLam () pat (k ~~> k)
+        . TyApp () (TyVar () withSpine)
         . TyLam () spine (k ~~> star)
-        $ TyIFix () patternFunctor (TyVar () spine)
+        $ TyIFix ()
+            (mkIterTyApp patternFunctor [TyVar () withSpine, TyVar () pat])
+            (TyVar () spine)
 
 getWithSpine0 :: Quote (Type TyName ())
 getWithSpine0 = rename =<< do
@@ -83,16 +82,17 @@ getTyFix0 :: a -> TyName a -> Type TyName a -> Quote (Type TyName a)
 getTyFix0 ann name patBind = do
     withSpine0 <- getWithSpine0
     let pat = TyLam () (void name) star (void patBind)
+    tyFixN <- getTyFixN star
 
     -- First throw away annotations, then annotate everything using the same annotation. Silly.
-    (ann <$) <$> getTyFixN star withSpine0 pat
+    return $ ann <$ mkIterTyApp tyFixN [withSpine0, pat]
 
 -- IWrap (λ B P -> P (Pat (B (λ R -> R)))) (λ R -> R)
 getWrap :: a -> TyName a -> Type TyName a -> Quote (Term TyName Name a -> Term TyName Name a)
 getWrap ann name patBind = do
     withSpine0 <- getWithSpine0
     let pat = TyLam () (void name) star (void patBind)
-    patternFunctor <- getPatternFunctor star withSpine0 pat
+    patternFunctor <- getPatternFunctor star
 
     -- TODO: generalize for other cases.
     identity <- do
@@ -101,7 +101,7 @@ getWrap ann name patBind = do
             . TyLam () r star
             $ TyVar () r
 
-    return $ IWrap ann (ann <$ patternFunctor) (ann <$ identity)
+    return $ IWrap ann (ann <$ mkIterTyApp patternFunctor [withSpine0, pat]) (ann <$ identity)
 
 -- | A type with a hole inside. The reason for having such a thing is that 'Wrap'
 -- expects the pattern functor of a recursive type while in type signatures we use
