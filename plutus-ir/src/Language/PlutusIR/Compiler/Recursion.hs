@@ -4,8 +4,6 @@
 -- | Functions for compiling PIR recursive let-bound functions into PLC.
 module Language.PlutusIR.Compiler.Recursion where
 
-import           PlutusPrelude                            (strToBs)
-
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
 import {-# SOURCE #-} Language.PlutusIR.Compiler.Term
@@ -14,10 +12,11 @@ import           Language.PlutusIR.Compiler.Types
 import           Control.Monad
 import           Control.Monad.Except
 
-import qualified Language.PlutusCore                      as PLC
-import qualified Language.PlutusCore.MkPlc                as PLC
+import qualified Language.PlutusCore                        as PLC
+import qualified Language.PlutusCore.MkPlc                  as PLC
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Function as Function
+import qualified Language.PlutusCore.StdLib.Data.Function   as Function
+import qualified Language.PlutusCore.StdLib.Meta.Data.Tuple as Tuple
 
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values
@@ -92,42 +91,23 @@ mkFixpoint bs = do
 
     pure $ PLC.Apply () instantiatedFix cLam
 
--- TODO: move these functions to a Tuple module in the stdlib
-mkTupleType :: MonadQuote m => [PLC.Type TyName ()] -> m (PLC.Type TyName ())
-mkTupleType tys = do
-    resultType <- liftQuote $ freshTyName () "out_Tuple"
-    let match = PLC.mkIterTyFun tys (PLC.TyVar () resultType)
-    let universal = PLC.TyForall () resultType (PLC.Type ()) match
-    pure universal
-
-mkTupleAccessor :: MonadQuote m => [PLC.Type TyName ()] -> Int -> m (PLC.Term TyName Name ())
-mkTupleAccessor tys index = do
-    tupleTy <- mkTupleType tys
-    let selectedTy = tys !! index
-
-    argNames <- forM [0..(length tys -1)] (\i -> liftQuote $ freshName () $ strToBs $ "arg_" ++ show i)
-    let selectedArg = argNames !! index
-
-    tupleArg <- liftQuote $ freshName () "tuple"
-    pure $
-        PLC.LamAbs () tupleArg tupleTy $
-        PLC.Apply () (PLC.TyInst () (PLC.Var () tupleArg) selectedTy) $
-        PLC.mkIterLamAbs (zipWith (VarDecl ()) argNames tys) $
-        PLC.Var () selectedArg
-
 -- TODO: move to MkPlc?
 -- | Given a term, and a list of var decls, creates a function which takes a tuple of values for each decl, and binds
 -- them in the body.
 mkTupleBinder :: MonadQuote m => PLC.Term TyName Name () -> [VarDecl TyName Name ()] -> m (PLC.Term TyName Name ())
 mkTupleBinder body vars = do
     let tys = fmap PLC.varDeclType vars
-    tupleTy <- mkTupleType tys
+
+    tupleTy <- do
+        ntuple <- Tuple.getBuiltinTuple (length tys)
+        pure $ PLC.mkIterTyApp ntuple tys
 
     tupleArg <- liftQuote $ freshName () "tuple"
 
     -- _i tuple
     accesses <- forM [0..(length tys -1)] $ \i -> do
-            accessor <- mkTupleAccessor tys i
+            naccessor <- Tuple.getBuiltinTupleAccessor (length tys) i
+            let accessor = PLC.mkIterInst naccessor tys
             pure $ PLC.Apply () accessor (PLC.Var () tupleArg)
     let defsAndAccesses = zipWith PLC.Def vars accesses
 
