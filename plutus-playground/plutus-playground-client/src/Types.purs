@@ -37,8 +37,20 @@ type Action =
 ------------------------------------------------------------
 
 data Query a
-  = ToggleState a
-  | HandleAceMessage AceMessage a
+  = HandleAceMessage AceMessage a
   | HandleEChartsMessage EChartsMessage a
   | SendAction Action a
   | KillAction Int a
+
+-----------------------------------------------------------
+
+type State =
+  { wallets :: Array Wallet
+  , actions :: Array Action
+  }
+
+_actions :: forall s a. Lens' {actions :: a | s} a
+_actions = prop (SProxy :: SProxy "actions")
+
+_wallets :: forall s a. Lens' {wallets :: a | s} a
+_wallets = prop (SProxy :: SProxy "wallets")

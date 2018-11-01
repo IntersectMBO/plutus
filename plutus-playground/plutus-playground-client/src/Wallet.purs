@@ -20,23 +20,23 @@ walletsPane wallets =
 
 walletPane :: forall p. Wallet -> HTML p Query
 walletPane wallet =
-  div [ class_ $ ClassName "wallet" ]
-    [ card
-      [ cardBody
-          [ col
-             [ cardTitle [ walletIdPane wallet.walletId ]
-             , div_
-               [ text $ show wallet.balance
-               , icon Bitcoin
-               ]
-             ]
-          ]
-      , cardFooter
-          [ div [ btnGroup ]
-              (actionButton wallet.walletId <$> staticActionIds)
-          ]
+  col [
+    div [ class_ $ ClassName "wallet" ]
+      [ card
+        [ cardBody
+            [ cardTitle [ walletIdPane wallet.walletId ]
+            , div_
+              [ text $ show wallet.balance
+              , icon Bitcoin
+              ]
+            ]
+        , cardFooter
+            [ div [ btnGroup ]
+                (actionButton wallet.walletId <$> staticActionIds)
+            ]
+        ]
       ]
-    ]
+ ]
 
 actionButton :: forall p. WalletId -> ActionId -> HTML p Query
 actionButton walletId actionId =

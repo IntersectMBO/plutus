@@ -9,16 +9,14 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery, aceComponent)
 import Ace.Types (ACE, Editor)
 import Action (actionsPane)
-import Bootstrap (btnPrimary, btnSecondary, col, col9, container, row)
+import Bootstrap (col, col9, container, row)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
-import Data.Lens (Lens', modifying)
-import Data.Lens.Record (prop)
+import Data.Lens (modifying)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested ((/\))
 import ECharts.Commands as E
 import ECharts.Monad (CommandsT, interpret)
@@ -29,34 +27,18 @@ import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Halogen.ECharts (EChartsEffects, EChartsQuery, echarts)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, div_, h1_, h2_, h3_, hr_, p_, slot', small_, text)
-import Halogen.HTML.Events (input, input_, onClick)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h2_, h3_, hr_, p_, slot', text)
+import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_, href, target)
 import Halogen.Query (HalogenM)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, not, pure, unit, void, ($), (<*>))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (<*>))
 import StaticData (staticWallets)
-import Types (Action, Query(..), Wallet)
+import Types (Query(HandleEChartsMessage, HandleAceMessage, KillAction, SendAction), State, _actions, State)
 import Wallet (walletsPane)
-
-type State =
-  { on :: Boolean
-  , wallets :: Array Wallet
-  , actions :: Array Action
-  }
-
-_on :: forall s a. Lens' {on :: a | s} a
-_on = prop (SProxy :: SProxy "on")
-
-_actions :: forall s a. Lens' {actions :: a | s} a
-_actions = prop (SProxy :: SProxy "actions")
-
-_wallets :: forall s a. Lens' {wallets :: a | s} a
-_wallets = prop (SProxy :: SProxy "wallets")
 
 initialState :: State
 initialState =
-  { on: false
-  , actions: []
+  { actions: []
   , wallets: staticWallets
   }
 
@@ -102,10 +84,6 @@ mainFrame =
     }
 
 eval :: forall m. Query ~> HalogenM State Query ChildQuery ChildSlot Void m
-eval (ToggleState next) = do
-  modifying _on not
-  pure next
-
 eval (HandleAceMessage (TextChanged msg) next) = do
   void $ traceAnyM msg
   pure next
@@ -143,8 +121,6 @@ render state =
       , editorPane
       , hr_
       , mockChainPane state
-      , hr_
-      , scaffoldPane state
       ]
     ]
 
@@ -165,8 +141,7 @@ header =
 editorPane :: forall aff. ParentHTML Query ChildQuery ChildSlot (Aff (EChartsEffects (AceEffects aff)))
 editorPane =
   div_
-    [ h2_ [ text "Editor" ]
-    , slot' cpAce AceSlot
+    [ slot' cpAce AceSlot
         (aceComponent initEditor Nothing)
         unit
         (input HandleAceMessage)
@@ -185,26 +160,6 @@ mockChainPane state =
         ({width: 800, height: 800} /\ unit)
         (input HandleEChartsMessage)
     ]
-
-scaffoldPane :: forall p. State -> HTML p (Query Unit)
-scaffoldPane state =
-  div [ class_ (ClassName "scaffold") ] $
-    [ h3_ [ text "Scaffolding"
-          , text " "
-          , small_ [ text "(ignore below this line)" ]
-          ]
-    , button
-        [ if state.on
-            then btnPrimary
-            else btnSecondary
-        , onClick $ input_ ToggleState
-        ]
-        [ text
-            if not state.on
-            then "Off"
-            else "On"
-        ]
-      ]
 
 sankeyDiagramOptions :: forall m i. Monad m => CommandsT (series :: I | i) m Unit
 sankeyDiagramOptions = do
