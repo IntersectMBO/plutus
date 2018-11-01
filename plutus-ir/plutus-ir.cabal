@@ -80,6 +80,7 @@ test-suite plutus-ir-test
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        bazel-runfiles -any,
         plutus-ir -any,
         language-plutus-core -any,
         mtl -any,

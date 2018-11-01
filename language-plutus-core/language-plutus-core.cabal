@@ -64,7 +64,7 @@ library
         Common
         PlcTestUtils
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude stdlib generators common
+    hs-source-dirs: src
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Lexer
@@ -196,6 +196,7 @@ test-suite language-plutus-core-test
         bytestring -any,
         serialise -any,
         filepath -any,
+        bazel-runfiles -any,
         tasty-golden -any,
         text -any,
         prettyprinter -any,
@@ -226,6 +227,8 @@ benchmark language-plutus-core-bench
         criterion -any,
         bytestring -any,
         serialise -any,
+        filepath -any,
+        bazel-runfiles -any,
         text -any
 
     if flag(eventlog)

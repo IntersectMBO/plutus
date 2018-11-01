@@ -32,3 +32,10 @@ You can also build the docs yourself locally. For example:
 ```
 nix build -f default.nix localPackages.language-plutus-core.doc
 ```
+
+## Bazel
+
+Currently there are a couple of things missing from the bazel conversion:
+
+1. Cabal benchmarks haven't been converted to bazel targets yet
+2. The tests in `./tests` haven't been added as targets

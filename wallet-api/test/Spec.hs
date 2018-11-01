@@ -87,6 +87,7 @@ validTrace = property $ do
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == _txPool st)
+    pure ()
 
 invalidTrace :: Property
 invalidTrace = property $ do

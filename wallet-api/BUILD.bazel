@@ -1,0 +1,100 @@
+load(
+    "@io_tweag_rules_haskell//haskell:haskell.bzl",
+    "haskell_binary",
+    "haskell_import",
+    "haskell_library",
+    "haskell_test",
+)
+
+haskell_packages = [
+    "aeson",
+    "base",
+    "base64-bytestring",
+    "bytestring",
+    "cborg",
+    "containers",
+    "cryptonite",
+    "hashable",
+    "hedgehog",
+    "memory",
+    "mtl",
+    "natural-transformation",
+    "operational",
+    "serialise",
+    "servant",
+    "servant-client",
+    "servant-server",
+    "stm",
+    "text",
+    "transformers",
+    "recursion-schemes",
+    "lens",
+    "deriving-compat"
+]
+
+binary_packages = [
+    "base",
+    "warp",
+]
+
+test_packages = [
+    "base",
+    "containers",
+    "hedgehog",
+    "tasty",
+    "tasty-hedgehog",
+    "text",
+    "lens",
+]
+
+[
+    haskell_import(name = name)
+    for name in (list(depset(haskell_packages + binary_packages + test_packages)))
+]
+
+haskell_library(
+    name = "wallet-api",
+    srcs = glob([
+        "src/**/*.hs",
+    ]),
+    compiler_flags = [
+        "-XExplicitForAll",
+        "-XScopedTypeVariables",
+        "-XDeriveGeneric",
+        "-XStandaloneDeriving",
+        "-XDeriveLift",
+        "-XGeneralizedNewtypeDeriving",
+        "-XDeriveFunctor",
+        "-XDeriveFoldable",
+        "-XDeriveTraversable",
+    ],
+    src_strip_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in haskell_packages] + [
+        "//language-plutus-core:language-plutus-core",
+        "//core-to-plc:core-to-plc",
+        "//plutus-th:plutus-th",
+    ],
+)
+
+haskell_binary(
+    name = "wallet-api-emulator",
+    srcs = ["emulator/Main.hs"],
+    src_strip_prefix = "emulator",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in binary_packages] + [
+        ":wallet-api",
+    ],
+)
+
+haskell_test(
+    name = "wallet-api-test",
+    srcs = glob([
+        "test/*.hs",
+    ]),
+    src_strip_prefix = "test",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in test_packages] + [
+        ":wallet-api",
+    ],
+)

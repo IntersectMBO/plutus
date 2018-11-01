@@ -9,6 +9,7 @@ packages:
 - plutus-tx-plugin
 - plutus-use-cases
 - wallet-api
+- runfiles
 
 # Add custom stylish-haskell while waiting for PR upstream: https://github.com/jaspervdj/stylish-haskell/pull/214
 - location:

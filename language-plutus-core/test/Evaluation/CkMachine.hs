@@ -20,6 +20,7 @@ import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.List
 import           Data.Text.Encoding                         (encodeUtf8)
+import           System.FilePath                            ((</>))
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -180,16 +181,16 @@ smallNatList = do
     RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
     getListToBuiltinList nat nats
 
-goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
-goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
+goldenVsPretty :: PrettyPlc a => FilePath -> String -> ExceptT BSL.ByteString IO a -> TestTree
+goldenVsPretty testDir name value = goldenVsString name (testDir </> "test/Evaluation/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
-test_evaluateCk :: TestTree
-test_evaluateCk = testGroup "evaluateCk"
+test_evaluateCk :: FilePath -> TestTree
+test_evaluateCk testDir = testGroup "evaluateCk"
     [ testGroup "props" $ fromInterestingTermGens (\name -> testProperty name . propEvaluate evaluateCk)
-    , goldenVsPretty "even2" (pure $ evaluateCk (runQuote $
+    , goldenVsPretty testDir "even2" (pure $ evaluateCk (runQuote $
                                                  Apply () <$> getEven <*> getBuiltinIntegerToNat 2))
-    , goldenVsPretty "even3" (pure $ evaluateCk (runQuote $
+    , goldenVsPretty testDir "even3" (pure $ evaluateCk (runQuote $
                                                  Apply () <$> getEven <*> getBuiltinIntegerToNat 3))
-    , goldenVsPretty "evenList" (pure $ evaluateCk (runQuote $
+    , goldenVsPretty testDir "evenList" (pure $ evaluateCk (runQuote $
                                                  Apply () <$> getBuiltinNatSum 64 <*> (Apply () <$> getEvenList <*> smallNatList)))
     ]

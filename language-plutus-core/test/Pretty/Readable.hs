@@ -17,7 +17,7 @@ prettyConfigReadable
 testReadable :: PrettyPlc a => TestName -> Quote a -> TestNested
 testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable . runQuote
 
-test_PrettyReadable :: TestTree
-test_PrettyReadable =
-    runTestNestedIn ["test", "Pretty", "Golden", "Readable"] $
+test_PrettyReadable :: FilePath -> TestTree
+test_PrettyReadable testDir =
+    runTestNestedIn [testDir, "test", "Pretty", "Golden", "Readable"] $
         foldStdLib testNested testReadable testReadable

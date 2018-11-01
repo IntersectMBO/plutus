@@ -1,0 +1,17 @@
+
+exports_files([
+    "pkgs/default.nix",
+    "nix/overlays/required.nix",
+    "criterion.sh",
+])
+
+load(
+    "@io_tweag_rules_haskell//haskell:haskell.bzl",
+    "haskell_toolchain",
+)
+
+haskell_toolchain(
+    name = "ghc",
+    tools = "@ghc//:bin",
+    version = "8.4.3",
+)

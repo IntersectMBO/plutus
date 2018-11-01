@@ -1,0 +1,79 @@
+load(
+    "@io_tweag_rules_haskell//haskell:haskell.bzl",
+    "haskell_import",
+    "haskell_library",
+    "haskell_test",
+)
+
+haskell_packages = [
+    "base",
+    "bytestring",
+    "containers",
+    "language-plutus-core",
+    "lens",
+    "mtl",
+    "mmorph",
+    "prettyprinter",
+    "text",
+    "transformers",
+    "algebraic-graphs"
+]
+
+test_packages = [
+    "base",
+    "language-plutus-core",
+    "bytestring",
+    "mtl",
+    "mmorph",
+    "text",
+    "prettyprinter",
+    "tasty",
+    "tasty-hunit",
+    "tasty-golden",
+]
+
+[
+    haskell_import(name = name)
+    for name in (list(depset(haskell_packages + test_packages)))
+]
+
+haskell_library(
+    name = "plutus-ir",
+    srcs = glob([
+        "src/**/*.hs",
+        "src/**/*.hs-boot",
+    ]),
+    compiler_flags = [
+        "-XExplicitForAll",
+        "-XScopedTypeVariables",
+        "-XDeriveGeneric",
+        "-XStandaloneDeriving",
+        "-XDeriveLift",
+        "-XGeneralizedNewtypeDeriving",
+        "-XDeriveFunctor",
+        "-XDeriveFoldable",
+        "-XDeriveTraversable",
+    ],
+    visibility = ["//visibility:public"],
+    src_strip_prefix = "src",
+    deps = [":" + name for name in haskell_packages] + [
+        "//language-plutus-core:language-plutus-core",
+    ],
+)
+
+haskell_test(
+    name = "plutus-ir-test",
+    srcs = glob([
+        "test/**/*.hs",
+    ]),
+    src_strip_prefix = "test",
+    data = glob([
+      "test/**/*",
+    ]),
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in test_packages] + [
+        "//language-plutus-core:language-plutus-core",
+        "//runfiles:runfiles",
+        ":plutus-ir",
+    ],
+)

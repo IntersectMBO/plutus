@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified Bazel.Runfiles             as Runfiles
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
@@ -7,9 +8,24 @@ import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.Text                  as T
 import           Language.PlutusCore
 import           Language.PlutusCore.Pretty
+import           System.FilePath            ((</>))
 
 main :: IO ()
-main =
+main = do
+    mr <- Runfiles.createMaybe
+    let testDir = case mr of
+                    Just r  -> Runfiles.rlocation r "plutus/language-plutus-core/"
+                    Nothing -> "."
+
+        envFile = BSL.readFile (testDir </> "test/data/addInteger.plc")
+        stringFile = BSL.readFile (testDir </> "test/data/stringLiteral.plc")
+        files = (,) <$> envFile <*> stringFile
+        largeTypeFile = BSL.readFile (testDir </> "test/types/negation.plc")
+        cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+        typeCompare0 = BSL.readFile (testDir </> "test/types/example.plc")
+        typeCompare1 = BSL.readFile (testDir </> "bench/example-compare.plc")
+        typeCompare = (,) <$> typeCompare0 <*> typeCompare1
+
     defaultMain [ env envFile $ \ f ->
                   bgroup "format"
                       [ bench "format" $ nf (format cfg :: BSL.ByteString -> Either (Error AlexPosn) T.Text) f ]
@@ -38,11 +54,3 @@ main =
                     [ bench "writeProgram" $ nf (fmap (serialise . void)) $ parse g
                     ]
                 ]
-    where envFile = BSL.readFile "test/data/addInteger.plc"
-          stringFile = BSL.readFile "test/data/stringLiteral.plc"
-          files = (,) <$> envFile <*> stringFile
-          largeTypeFile = BSL.readFile "test/types/negation.plc"
-          cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
-          typeCompare0 = BSL.readFile "test/types/example.plc"
-          typeCompare1 = BSL.readFile "bench/example-compare.plc"
-          typeCompare = (,) <$> typeCompare0 <*> typeCompare1

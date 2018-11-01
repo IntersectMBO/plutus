@@ -1,0 +1,167 @@
+load(
+    "@io_tweag_rules_haskell//haskell:haskell.bzl",
+    "haskell_binary",
+    "haskell_import",
+    "haskell_library",
+    "haskell_test",
+)
+
+haskell_packages = [
+    "base",
+    "array",
+    "bytestring",
+    "cborg",
+    "composition-prelude",
+    "containers",
+    "deepseq",
+    "dependent-map",
+    "dependent-sum",
+    "filepath",
+    "hedgehog",
+    "mmorph",
+    "mtl",
+    "prettyprinter",
+    "lens",
+    "recursion-schemes",
+    "safe-exceptions",
+    "serialise",
+    "tasty",
+    "tasty-golden",
+    "template-haskell",
+    "text",
+    "th-lift-instances",
+    "transformers",
+]
+
+binary_packages = [
+    "base",
+    "bytestring",
+    "hedgehog",
+    "mmorph",
+    "prettyprinter",
+    "text",
+]
+
+test_packages = [
+    "base",
+    "bytestring",
+    "containers",
+    "directory",
+    "filepath",
+    "hedgehog",
+    "mmorph",
+    "mtl",
+    "prettyprinter",
+    "serialise",
+    "tasty",
+    "tasty-golden",
+    "tasty-hedgehog",
+    "tasty-hunit",
+    "text",
+    "transformers",
+]
+
+bench_packages = [
+    "base",
+    "filepath",
+    "criterion",
+    "bytestring",
+    "serialise",
+    "text",
+]
+
+[
+    haskell_import(name = name)
+    for name in (list(depset(haskell_packages + binary_packages + test_packages + bench_packages)))
+]
+
+genrule(
+    name = "plutus_parser",
+    srcs = ["src/Language/PlutusCore/Parser.y"],
+    outs = ["src/Language/PlutusCore/Parser.hs"],
+    cmd = "$(location @happy//:bin) -gac -o $@ $<",
+    tools = ["@happy//:bin"],
+)
+
+genrule(
+    name = "plutus_lexer",
+    srcs = ["src/Language/PlutusCore/Lexer.x"],
+    outs = ["src/Language/PlutusCore/Lexer.hs"],
+    cmd = "$(location @alex//:bin) -o $@ $<",
+    tools = ["@alex//:bin"],
+)
+
+haskell_library(
+    name = "language-plutus-core",
+    srcs = glob([
+        "src/**/*.hs",
+        "prelude/PlutusPrelude.hs",
+        "stdlib/**/*.hs",
+        "generators/**/*.hs",
+        "common/**/*.hs",
+    ]) + [
+        "src/Language/PlutusCore/Parser.hs",
+        "src/Language/PlutusCore/Lexer.hs",
+    ],
+    compiler_flags = [
+        "-XStandaloneDeriving",
+        "-XScopedTypeVariables",
+        "-XFlexibleContexts",
+        "-XDeriveGeneric",
+        "-XStandaloneDeriving",
+        "-XDeriveLift",
+        "-XGeneralizedNewtypeDeriving",
+        "-XDeriveFunctor",
+        "-XDeriveFoldable",
+        "-XDeriveTraversable",
+    ],
+    src_strip_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in haskell_packages] + [],
+)
+
+haskell_binary(
+    name = "language-plutus-core-generate-evaluation-test",
+    srcs = ["generate-evaluation-test/Main.hs"],
+    src_strip_prefix = "generate-evaluation-test",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in binary_packages] + [
+        ":language-plutus-core",
+    ],
+)
+
+haskell_test(
+    name = "language-plutus-core-test",
+    srcs = glob([
+        "test/**/*.hs",
+    ]),
+    data = glob([
+      "test/**/*",
+    ]),
+    compiler_flags = [
+        "-XFlexibleContexts",
+    ],
+    src_strip_prefix = "test",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in test_packages] + [
+        ":language-plutus-core",
+        "//runfiles:runfiles",
+    ],
+)
+
+load("//:benchmark.bzl", "haskell_benchmark")
+
+haskell_benchmark(
+    name = "language-plutus-core-bench",
+    deps = [":" + name for name in bench_packages] + [
+        ":language-plutus-core",
+        "//runfiles:runfiles",
+    ],
+    srcs = glob([
+        "bench/**/*.hs",
+    ]),
+    data = glob([
+      "bench/**/*",
+      "test/**/*",
+    ]),
+)

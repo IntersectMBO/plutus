@@ -77,20 +77,20 @@ test_typecheckIllTyped =
             [ getBuiltinSelfApply
             ]
 
-test_typecheckBuiltinName :: BuiltinName -> TestTree
-test_typecheckBuiltinName name = goldenVsDoc testName path doc where
+test_typecheckBuiltinName :: FilePath -> BuiltinName -> TestTree
+test_typecheckBuiltinName testDir name = goldenVsDoc testName path doc where
     testName = show name
-    path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
+    path     = testDir </> "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
     doc      = prettyPlcDef . runQuote $ typeOfBuiltinName name
 
-test_typecheckBuiltinNames :: TestTree
-test_typecheckBuiltinNames =
-    testGroup "built-in name" $ map test_typecheckBuiltinName allBuiltinNames
+test_typecheckBuiltinNames :: FilePath -> TestTree
+test_typecheckBuiltinNames testDir =
+    testGroup "built-in name" $ map (test_typecheckBuiltinName testDir) allBuiltinNames
 
-test_typecheck :: TestTree
-test_typecheck =
+test_typecheck :: FilePath -> TestTree
+test_typecheck testDir =
     testGroup "typecheck"
-        [ test_typecheckBuiltinNames
+        [ test_typecheckBuiltinNames testDir
         , test_typecheckStdLib
         , test_typecheckIllTyped
         ]

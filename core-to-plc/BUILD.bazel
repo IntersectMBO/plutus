@@ -1,0 +1,53 @@
+load(
+    "@io_tweag_rules_haskell//haskell:haskell.bzl",
+    "haskell_import",
+    "haskell_library",
+)
+
+haskell_packages = [
+    "base",
+    "bytestring",
+    "cborg",
+    "containers",
+    "ghc",
+    "language-plutus-core",
+    "plutus-ir",
+    "mmorph",
+    "lens",
+    "mtl",
+    "prettyprinter",
+    "serialise",
+    "template-haskell",
+    "text",
+    "transformers",
+]
+
+[
+    haskell_import(name = name)
+    for name in haskell_packages
+]
+
+haskell_library(
+    name = "core-to-plc",
+    srcs = glob([
+        "src/**/*.hs",
+        "src/**/*.hs-boot",
+    ]),
+    compiler_flags = [
+        "-XExplicitForAll",
+        "-XScopedTypeVariables",
+        "-XDeriveGeneric",
+        "-XStandaloneDeriving",
+        "-XDeriveLift",
+        "-XGeneralizedNewtypeDeriving",
+        "-XDeriveFunctor",
+        "-XDeriveFoldable",
+        "-XDeriveTraversable",
+    ],
+    src_strip_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in haskell_packages] + [
+        "//language-plutus-core:language-plutus-core",
+        "//plutus-ir:plutus-ir",
+    ],
+)

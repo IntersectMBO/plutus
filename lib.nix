@@ -29,6 +29,7 @@ let
     "plutus-tx-plugin"
     "plutus-use-cases"
     "wallet-api"
+    "bazel-runfiles"
   ];
 
 

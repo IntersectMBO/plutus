@@ -1,0 +1,31 @@
+load(
+    "@io_tweag_rules_haskell//haskell:haskell.bzl",
+    "haskell_binary",
+    "haskell_import",
+)
+
+binary_packages = [
+    "base",
+    "language-plutus-core",
+    "plutus-core-interpreter",
+    "bytestring",
+    "text",
+    "mtl",
+    "optparse-applicative",
+]
+
+[
+    haskell_import(name = name)
+    for name in (list(depset(binary_packages)))
+]
+
+haskell_binary(
+    name = "plutus-exe",
+    srcs = ["src/Main.hs"],
+    src_strip_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [":" + name for name in binary_packages] + [
+        "//plutus-core-interpreter:plutus-core-interpreter",
+        "//language-plutus-core:language-plutus-core",
+    ],
+)

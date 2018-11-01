@@ -4,6 +4,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
+import qualified Bazel.Runfiles                       as Runfiles
 import           Common
 import           PlcTestUtils
 import           TestLib
@@ -36,7 +37,12 @@ import           Control.Monad.Reader
 import           Data.Functor.Identity
 
 main :: IO ()
-main = defaultMain $ runTestNestedIn ["test"] tests
+main = do
+    mr <- Runfiles.createMaybe
+    let testDir = case mr of
+          Just r  -> Runfiles.rlocation r "plutus/plutus-ir/"
+          Nothing -> "."
+    defaultMain $ runTestNestedIn [testDir, "test"] tests
 
 instance GetProgram (Quote (Term TyName Name ())) where
     getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True

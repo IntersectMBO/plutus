@@ -3,6 +3,7 @@
 module Main ( main
             ) where
 
+import qualified Bazel.Runfiles               as Runfiles
 import qualified Check.Spec                   as Check
 import           Codec.Serialise
 import           Control.Monad.Except
@@ -19,9 +20,10 @@ import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Pretty
-import           PlutusPrelude
+import           PlutusPrelude                hiding ((</>))
 import           Pretty.Readable
 import qualified Quotation.Spec               as Quotation
+import           System.FilePath              ((</>))
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -30,12 +32,17 @@ import           TypeSynthesis.Spec           (test_typecheck)
 
 main :: IO ()
 main = do
-    plcFiles <- findByExtension [".plc"] "test/data"
-    rwFiles <- findByExtension [".plc"] "test/scopes"
-    typeFiles <- findByExtension [".plc"] "test/types"
-    typeNormalizeFiles <- findByExtension [".plc"] "test/normalize-types"
-    typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles)
+    mr <- Runfiles.createMaybe
+    let testDir = case mr of
+                    Just r  -> Runfiles.rlocation r "plutus/language-plutus-core/"
+                    Nothing -> "."
+    putStrLn (testDir </> "test/data")
+    plcFiles <- findByExtension [".plc"] (testDir </> "test/data")
+    rwFiles <- findByExtension [".plc"] (testDir </> "test/scopes")
+    typeFiles <- findByExtension [".plc"] (testDir </> "test/types")
+    typeNormalizeFiles <- findByExtension [".plc"] (testDir </> "test/normalize-types")
+    typeErrorFiles <- findByExtension [".plc"] (testDir </> "test/type-errors")
+    defaultMain (allTests testDir plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -93,8 +100,8 @@ propRename = property $ do
     prog <- forAll genProgram
     Hedgehog.assert $ runQuote (rename prog) == prog
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
+allTests :: FilePath -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests testDir plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
     [ tests
     , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
@@ -105,11 +112,11 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsType typeFiles
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
-    , test_PrettyReadable
-    , test_typecheck
+    , test_PrettyReadable testDir
+    , test_typecheck testDir
     , test_constant
-    , test_evaluateCk
-    , Quotation.tests
+    , test_evaluateCk testDir
+    , Quotation.tests testDir
     , Check.tests
     ]
 

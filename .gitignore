@@ -29,3 +29,5 @@ result*
 *.pdf
 *.gz
 *.synctex(busy)
+/bazel-*
+BUILD

@@ -9280,6 +9280,30 @@ description = "An enhanced core prelude; a common foundation for alternate prelu
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"bazel-runfiles" = callPackage
+({
+  mkDerivation
+, base
+, directory
+, filepath
+, stdenv
+}:
+mkDerivation {
+
+pname = "bazel-runfiles";
+version = "0.7.0.0";
+src = .././runfiles;
+libraryHaskellDepends = [
+base
+directory
+filepath
+];
+doHaddock = false;
+homepage = "https://github.com/tweag/rules_haskell#readme";
+description = "Locate Bazel runfiles location";
+license = stdenv.lib.licenses.asl20;
+
+}) {};
 "bbdb" = callPackage
 ({
   mkDerivation
@@ -43089,6 +43113,7 @@ license = stdenv.lib.licenses.bsd3;
 , alex
 , array
 , base
+, bazel-runfiles
 , bytestring
 , cborg
 , composition-prelude
@@ -43160,6 +43185,7 @@ text
 ];
 testHaskellDepends = [
 base
+bazel-runfiles
 bytestring
 containers
 filepath
@@ -43177,8 +43203,10 @@ transformers
 ];
 benchmarkHaskellDepends = [
 base
+bazel-runfiles
 bytestring
 criterion
+filepath
 serialise
 text
 ];
@@ -55641,6 +55669,7 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , algebraic-graphs
 , base
+, bazel-runfiles
 , containers
 , language-plutus-core
 , lens
@@ -55671,6 +55700,7 @@ transformers
 ];
 testHaskellDepends = [
 base
+bazel-runfiles
 language-plutus-core
 mmorph
 mtl
@@ -55685,7 +55715,9 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, bazel-runfiles
 , doctest
+, filepath
 , language-plutus-core
 , markdown-unlit
 , mtl
@@ -55707,7 +55739,9 @@ template-haskell
 ];
 testHaskellDepends = [
 base
+bazel-runfiles
 doctest
+filepath
 language-plutus-core
 markdown-unlit
 mtl

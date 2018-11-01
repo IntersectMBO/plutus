@@ -62,13 +62,18 @@ in
 # Forces all warnings as errors
 , forceError ? true
 
+, pkgsGenerated ? ./pkgs
+
+, requiredOverlay ? ./nix/overlays/required.nix
+
+, errorOverlayPath ? ./nix/overlays/force-error.nix
 }:
 
 with pkgs.lib;
 
 let
   src = localLib.iohkNix.cleanSourceHaskell ./.;
-  errorOverlay = import ./nix/overlays/force-error.nix {
+  errorOverlay = import errorOverlayPath {
     inherit pkgs;
     # TODO: fix plutus-use-cases and plutus-exe warnings
     #filter = localLib.isPlutus;
@@ -80,13 +85,14 @@ let
   packages = self: ({
     inherit pkgs;
 
+    ghc = pkgs.haskell.compiler.ghc843;
+
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
     haskellPackages = self.callPackage localLib.iohkNix.haskellPackages {
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      enableSplitCheck customOverlays;
-      pkgsGenerated = ./pkgs;
+      enableSplitCheck customOverlays requiredOverlay pkgsGenerated;
       filter = name: builtins.elem name localLib.plutusPkgList; 
       filterOverrides = {
         # split check is broken for things with test tool dependencies
@@ -94,8 +100,7 @@ let
           pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
           in name: builtins.elem name pkgList;
       };
-      requiredOverlay = ./nix/overlays/required.nix;
-      ghc = pkgs.haskell.compiler.ghc843;
+      ghc = self.ghc;
     };
 
     localPackages = localLib.getPackages {
@@ -105,7 +110,7 @@ let
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
         inherit src;
-        projects = localLib.plutusPkgList;
+        projects = remove "bazel-runfiles" localLib.plutusPkgList;
       };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;

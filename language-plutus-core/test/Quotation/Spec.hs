@@ -12,14 +12,16 @@ import           Data.Text.Encoding         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
-tests :: TestTree
-tests = testGroup "quasiquoter" [
-  asGolden (runQuote unit) "test/Quotation/unit.plc",
-  asGolden (runQuote one) "test/Quotation/one.plc",
-  asGolden (runQuote bool) "test/Quotation/bool.plc",
-  asGolden (runQuote true) "test/Quotation/true.plc",
-  asGolden (runQuote false) "test/Quotation/false.plc",
-  asGolden (runQuote free) "test/Quotation/free.plc"
+import           System.FilePath            ((</>))
+
+tests :: FilePath -> TestTree
+tests testDir = testGroup "quasiquoter" [
+  asGolden (runQuote unit) $ testDir </> "test/Quotation/unit.plc",
+  asGolden (runQuote one) $ testDir </> "test/Quotation/one.plc",
+  asGolden (runQuote bool) $ testDir </> "test/Quotation/bool.plc",
+  asGolden (runQuote true) $ testDir </> "test/Quotation/true.plc",
+  asGolden (runQuote false) $ testDir </> "test/Quotation/false.plc",
+  asGolden (runQuote free) $ testDir </> "test/Quotation/free.plc"
  ]
 
 asGolden :: PrettyPlc a => a -> TestName -> TestTree

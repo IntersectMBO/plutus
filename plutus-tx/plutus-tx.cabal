@@ -49,6 +49,8 @@ test-suite plutus-tx-tests
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        bazel-runfiles -any,
+        filepath -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
         plutus-tx-plugin -any,
