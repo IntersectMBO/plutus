@@ -7,56 +7,66 @@
             Maybe_0
             (fun (type) (type))
             (lam
-              Nothing_3
-              [Maybe_0 a_1]
+              Nothing_1
+              (all a_2 (type) [Maybe_0 a_2])
               (lam
-                Just_4
-                (fun a_1 [Maybe_0 a_1])
+                Just_3
+                (all a_4 (type) (fun a_4 [Maybe_0 a_4]))
                 (lam
-                  match_Maybe_2
-                  (all a_1 (type) (fun [Maybe_0 a_1] [(lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 r_0) r_0)))) a_1]))
+                  match_Maybe_5
+                  (all a_6 (type) (fun [Maybe_0 a_6] [(lam a_7 (type) (all out_Maybe_8 (type) (fun out_Maybe_8 (fun (fun a_7 out_Maybe_8) out_Maybe_8)))) a_6]))
                   [
-                    { Just_4 (all a_6 (type) (fun a_6 a_6)) }
-                    (abs a_9 (type) (lam x_10 a_9 x_10))
+                    { Just_3 (all a_9 (type) (fun a_9 a_9)) }
+                    (abs a_10 (type) (lam x_11 a_10 x_11))
                   ]
                 )
               )
             )
           )
-          (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 r_0) r_0))))
+          (lam a_12 (type) (all out_Maybe_13 (type) (fun out_Maybe_13 (fun (fun a_12 out_Maybe_13) out_Maybe_13))))
         }
         (abs
-          a_1
+          a_14
           (type)
           (abs
-            out_Maybe_1
+            out_Maybe_15
             (type)
             (lam
-              case_Nothing_2
-              out_Maybe_1
-              (lam case_Just_3 (fun a_1 out_Maybe_1) case_Nothing_2)
+              case_Nothing_16
+              out_Maybe_15
+              (lam case_Just_17 (fun a_14 out_Maybe_15) case_Nothing_16)
             )
           )
         )
       ]
       (abs
-        a_1
+        a_18
         (type)
         (lam
-          arg_0_7
-          a_1
+          arg_0_19
+          a_18
           (abs
-            out_Maybe_4
+            out_Maybe_20
             (type)
             (lam
-              case_Nothing_5
-              out_Maybe_4
-              (lam case_Just_6 (fun a_1 out_Maybe_4) [ case_Just_6 arg_0_7 ])
+              case_Nothing_21
+              out_Maybe_20
+              (lam
+                case_Just_22 (fun a_18 out_Maybe_20) [ case_Just_22 arg_0_19 ]
+              )
             )
           )
         )
       )
     ]
-    (abs a_1 (type) (lam x_8 [Maybe_0 a_1] x_8))
+    (abs
+      a_23
+      (type)
+      (lam
+        x_24
+        [(lam a_25 (type) (all out_Maybe_26 (type) (fun out_Maybe_26 (fun (fun a_25 out_Maybe_26) out_Maybe_26)))) a_23]
+        x_24
+      )
+    )
   ]
 )

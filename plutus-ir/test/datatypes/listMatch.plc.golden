@@ -7,30 +7,32 @@
             List_0
             (fun (type) (type))
             (lam
-              Nil_3
-              [List_0 a_1]
+              Nil_1
+              (all a_2 (type) [List_0 a_2])
               (lam
-                Cons_4
-                (fun a_1 (fun [List_0 a_1] [List_0 a_1]))
+                Cons_3
+                (all a_4 (type) (fun a_4 (fun [List_0 a_4] [List_0 a_4])))
                 (lam
-                  match_List_2
-                  (all a_1 (type) (fun [List_0 a_1] [(lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0)))) a_1]))
+                  match_List_5
+                  (all a_6 (type) (fun [List_0 a_6] [(lam a_7 (type) (all out_List_8 (type) (fun out_List_8 (fun (fun a_7 (fun [List_0 a_7] out_List_8)) out_List_8)))) a_6]))
                   [
                     [
                       {
                         [
-                          { match_List_2 (all a_6 (type) (fun a_6 a_6)) }
-                          { Nil_3 (all a_6 (type) (fun a_6 a_6)) }
+                          { match_List_5 (all a_9 (type) (fun a_9 a_9)) }
+                          { Nil_1 (all a_10 (type) (fun a_10 a_10)) }
                         ]
-                        (all a_6 (type) (fun a_6 a_6))
+                        (all a_11 (type) (fun a_11 a_11))
                       }
-                      (abs a_9 (type) (lam x_10 a_9 x_10))
+                      (abs a_12 (type) (lam x_13 a_12 x_13))
                     ]
                     (lam
-                      head_11
-                      (all a_6 (type) (fun a_6 a_6))
+                      head_14
+                      (all a_15 (type) (fun a_15 a_15))
                       (lam
-                        tail_12 [List_0 (all a_6 (type) (fun a_6 a_6))] head_11
+                        tail_16
+                        [List_0 (all a_17 (type) (fun a_17 a_17))]
+                        head_14
                       )
                     )
                   ]
@@ -38,22 +40,24 @@
               )
             )
           )
-          (fix List_0 (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0)))))
+          (fix List_18 (lam a_19 (type) (all out_List_20 (type) (fun out_List_20 (fun (fun a_19 (fun [List_18 a_19] out_List_20)) out_List_20)))))
         }
         (abs
-          a_1
+          a_21
           (type)
           (wrap
-            List_0
-            (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0))))
+            List_22
+            (lam a_23 (type) (all out_List_24 (type) (fun out_List_24 (fun (fun a_23 (fun [List_22 a_23] out_List_24)) out_List_24))))
             (abs
-              out_List_1
+              out_List_25
               (type)
               (lam
-                case_Nil_2
-                out_List_1
+                case_Nil_26
+                out_List_25
                 (lam
-                  case_Cons_3 (fun a_1 (fun [List_0 a_1] out_List_1)) case_Nil_2
+                  case_Cons_27
+                  (fun a_21 (fun [List_22 a_21] out_List_25))
+                  case_Nil_26
                 )
               )
             )
@@ -61,27 +65,27 @@
         )
       ]
       (abs
-        a_1
+        a_28
         (type)
         (lam
-          arg_0_7
-          a_1
+          arg_0_29
+          a_28
           (lam
-            arg_1_8
-            [List_0 a_1]
+            arg_1_30
+            [(fix List_31 (lam a_32 (type) (all out_List_33 (type) (fun out_List_33 (fun (fun a_32 (fun [List_31 a_32] out_List_33)) out_List_33))))) a_28]
             (wrap
-              List_0
-              (lam a_1 (type) (all r_0 (type) (fun r_0 (fun (fun a_1 (fun [List_0 a_1] r_0)) r_0))))
+              List_34
+              (lam a_35 (type) (all out_List_36 (type) (fun out_List_36 (fun (fun a_35 (fun [List_34 a_35] out_List_36)) out_List_36))))
               (abs
-                out_List_4
+                out_List_37
                 (type)
                 (lam
-                  case_Nil_5
-                  out_List_4
+                  case_Nil_38
+                  out_List_37
                   (lam
-                    case_Cons_6
-                    (fun a_1 (fun [List_0 a_1] out_List_4))
-                    [ [ case_Cons_6 arg_0_7 ] arg_1_8 ]
+                    case_Cons_39
+                    (fun a_28 (fun [List_34 a_28] out_List_37))
+                    [ [ case_Cons_39 arg_0_29 ] arg_1_30 ]
                   )
                 )
               )
@@ -90,6 +94,14 @@
         )
       )
     ]
-    (abs a_1 (type) (lam x_9 [List_0 a_1] (unwrap x_9)))
+    (abs
+      a_40
+      (type)
+      (lam
+        x_41
+        [(fix List_42 (lam a_43 (type) (all out_List_44 (type) (fun out_List_44 (fun (fun a_43 (fun [List_42 a_43] out_List_44)) out_List_44))))) a_40]
+        (unwrap x_41)
+      )
+    )
   ]
 )
