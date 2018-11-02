@@ -22,6 +22,16 @@ data EvaluationResultF a
     | EvaluationFailure
     deriving (Show, Eq, Functor, Foldable, Traversable)
 
+instance Applicative EvaluationResultF where
+    pure = EvaluationSuccess
+
+    EvaluationSuccess f <*> a = fmap f a
+    EvaluationFailure   <*> _ = EvaluationFailure
+
+instance Monad EvaluationResultF where
+    EvaluationSuccess x >>= f = f x
+    EvaluationFailure   >>= _ = EvaluationFailure
+
 -- | The type of results various evaluation engines return.
 type EvaluationResult = EvaluationResultF (Value TyName Name ())
 

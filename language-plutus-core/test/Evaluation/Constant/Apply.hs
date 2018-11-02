@@ -8,6 +8,7 @@ module Evaluation.Constant.Apply
     ( prop_applyBuiltinName
     , prop_applyBuiltinNameSuccess
     , prop_applyBuiltinNameSuccessFailure
+    , prop_applyBuiltinNameFailure
     ) where
 
 import           Language.PlutusCore
@@ -67,4 +68,13 @@ prop_applyBuiltinNameSuccess =
 prop_applyBuiltinNameSuccessFailure :: TypedBuiltinName a r -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
     prop_applyBuiltinName getFinal tbn x genTypedBuiltinDef where
+        getFinal tb = lift . makeConstAppResult . TypedBuiltinValue tb
+
+-- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
+-- the Haskell side must not fit into the default bounds (as per the spec) and hence the
+-- result of the 'applyBuiltinName' computation must  be a 'ConstAppFailure'.
+-- See the "Failure" module for tests defined in terms of this function.
+prop_applyBuiltinNameFailure :: TypedBuiltinName a r -> a -> TypedBuiltinGenT Quote -> Property
+prop_applyBuiltinNameFailure =
+    prop_applyBuiltinName getFinal where
         getFinal tb = lift . makeConstAppResult . TypedBuiltinValue tb

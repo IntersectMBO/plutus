@@ -1,7 +1,7 @@
 ---
 - functions:
   - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity]}
-  - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Constant.Typed, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Test, Language.PlutusCore.Constant.Make, Language.PlutusCore.TH, Language.Plutus.CoreToPLC.Error, Language.PlutusIR.Compiler.Datatype]}
+  - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Constant.Typed, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.Utils, Language.PlutusCore.Constant.Make, Language.PlutusCore.TH, Language.Plutus.CoreToPLC.Error, Language.PlutusIR.Compiler.Datatype]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.Plutus.Lift]}
   - {name: fromJust, within: [Language.Plutus.Lift]}
   - {name: foldl, within: []}

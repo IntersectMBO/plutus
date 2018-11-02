@@ -6,10 +6,13 @@ module Language.PlutusCore.Constant.Make
     ( builtinNameAsTerm
     , dynamicBuiltinNameAsTerm
     , toBoundsInt
+    , toInclusiveBoundsInt
     , checkBoundsInt
     , checkBoundsBS
     , sizeOfInteger
+    , sizeOfByteString
     , makeAutoSizedBuiltinInt
+    , makeAutoSizedBuiltinBS
     , makeDynBuiltinInt
     , makeDynBuiltinIntSizedAs
     , makeBuiltinInt
@@ -18,6 +21,8 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinBool
     , makeBuiltin
     , unsafeMakeBuiltin
+    , makeSizedConstantNOCHECK
+    , makeBuiltinNOCHECK
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -45,9 +50,13 @@ toBoundsInt :: Size -> (Integer, Integer)
 toBoundsInt s = (-b, b) where
     b = bit (8 * fromIntegral s - 1)  -- This is much quicker than 2^n for large n
 
+-- | Return the @[-2^(8s - 1), 2^(8s - 1) - 1]@ bounds for integers of a given 'Size'.
+toInclusiveBoundsInt :: Size -> (Integer, Integer)
+toInclusiveBoundsInt = fmap pred . toBoundsInt
+
 -- | Check whether an 'Integer' is in the @[-2^(8s - 1), 2^(8s - 1))@ interval.
 checkBoundsInt :: Size -> Integer -> Bool
-checkBoundsInt s i = low <= i && i < high where
+checkBoundsInt s i = s /= 0 && low <= i && i < high where
     (low, high) = toBoundsInt s
 
 -- | Check whether the length of a 'ByteString' is less than or equal to a given 'Size'.
@@ -59,9 +68,17 @@ sizeOfInteger :: Integer -> Size
 sizeOfInteger i = fromIntegral $ ilogRound 2 (abs i + d) `div` 8 + 1 where
     d = if i < 0 then 0 else 1
 
+-- | Compute the size of a 'ByteString'. See also 'toBoundsBS'.
+sizeOfByteString :: BSL.ByteString -> Size
+sizeOfByteString = fromIntegral . BSL.length
+
 -- | Make a 'Constant' out of an 'Integer'. The size is computed using 'sizeOfInteger'.
 makeAutoSizedBuiltinInt :: Integer -> Constant ()
 makeAutoSizedBuiltinInt i = BuiltinInt () (sizeOfInteger i) i
+
+-- | Make a 'Constant' out of a 'ByteString'. The size is computed using 'sizeOfBS'.
+makeAutoSizedBuiltinBS :: BSL.ByteString -> Constant ()
+makeAutoSizedBuiltinBS bs = BuiltinBS () (sizeOfByteString bs) bs
 
 {- Note [Dynamic sized built-ins]
 How do we increment an integer in PLC? We can't simply write @addInteger {s} i 1@, because @1@
@@ -125,13 +142,32 @@ makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeBuiltin :: TypedBuiltinValue Size a -> Quote (Maybe (Value TyName Name ()))
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
-    (TypedBuiltinSized se tbs) ->
+    TypedBuiltinSized se tbs ->
         return $ Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
-    TypedBuiltinBool           -> Just <$> makeBuiltinBool x
+    TypedBuiltinBool         -> Just <$> makeBuiltinBool x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
 unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
 unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
-    err = error $ "unsafeDupMakeConstant: out of bounds: " ++ prettyString tbv
+    err = error $ "unsafeMakeBuiltin: out of bounds: " ++ prettyString tbv
+
+-- | Convert a Haskell value to the corresponding PLC constant indexed by size
+-- without checking constraints (e.g. an 'Integer' is in appropriate bounds).
+-- This function allows to fake a 'Constant' with a wrong size and thus it's highly unsafe
+-- and should be used with great caution.
+makeSizedConstantNOCHECK :: Size -> TypedBuiltinSized a -> a -> Constant ()
+makeSizedConstantNOCHECK size TypedBuiltinSizedInt  int = BuiltinInt  () size int
+makeSizedConstantNOCHECK size TypedBuiltinSizedBS   bs  = BuiltinBS   () size bs
+makeSizedConstantNOCHECK size TypedBuiltinSizedSize ()  = BuiltinSize () size
+
+-- | Convert a Haskell value to the corresponding PLC value without checking constraints
+-- (e.g. an 'Integer' is in appropriate bounds).
+-- This function allows to fake a 'Value' with a wrong size and thus it's highly unsafe
+-- and should be used with great caution.
+makeBuiltinNOCHECK :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+makeBuiltinNOCHECK (TypedBuiltinValue tb x) = case tb of
+    TypedBuiltinSized se tbs ->
+        return . Constant () $ makeSizedConstantNOCHECK (flattenSizeEntry se) tbs x
+    TypedBuiltinBool         -> makeBuiltinBool x
