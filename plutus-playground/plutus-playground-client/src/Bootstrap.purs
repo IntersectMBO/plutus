@@ -1,56 +1,128 @@
+-- | For most definitions in this file:
+-- |
+-- | `fooId` is the Bootstrap ClassName "foo-id"
+-- | and
+-- | `fooId_` is a div that has that class name as its sole attribute.
+-- |
+-- | Use `fooId_` for convenience and `div [ classes [ fooId ... ] ]` when you need more control.
+-- |
+-- | (Note: I'm not 100% convinced this is the best organisation, but we'll
+-- | try it and see how it works out!)
 module Bootstrap where
 
-import Halogen.HTML (ClassName(..), HTML, IProp, div)
+import Halogen.HTML (ClassName(ClassName), HTML, div)
 import Halogen.HTML.Properties (class_, classes)
-import Prelude (($))
 
-container :: forall p i. Array (HTML p i) -> HTML p i
-container = div [ classes [ ClassName "container" ] ]
+container :: ClassName
+container = ClassName "container"
 
-row :: forall p i. Array (HTML p i) -> HTML p i
-row = div [ classes [ ClassName "row" ] ]
+container_ :: forall p i. Array (HTML p i) -> HTML p i
+container_ = div [ class_ container ]
 
-col :: forall p i. Array (HTML p i) -> HTML p i
-col = div [ class_ $ ClassName "col" ]
+row :: ClassName
+row = ClassName "row"
 
-col9 :: forall p i. Array (HTML p i) -> HTML p i
-col9 = div [ class_ $ ClassName "col col-9" ]
+row_ :: forall p i. Array (HTML p i) -> HTML p i
+row_ = div [ class_ row ]
 
-card :: forall p i. Array (HTML p i) -> HTML p i
-card = div [ class_ $ ClassName "card"  ]
+col :: ClassName
+col = ClassName "col"
 
-cardHeader :: forall p i. Array (HTML p i) -> HTML p i
-cardHeader = div [ class_ $ ClassName "card-header" ]
+col_ :: forall p i. Array (HTML p i) -> HTML p i
+col_ = div [ class_ col ]
 
-cardBody :: forall p i. Array (HTML p i) -> HTML p i
-cardBody = div [ class_ $ ClassName "card-body" ]
+col9 :: ClassName
+col9 = ClassName "col-9"
 
-cardFooter :: forall p i. Array (HTML p i) -> HTML p i
-cardFooter = div [ class_ $ ClassName "card-footer" ]
+col9_ :: forall p i. Array (HTML p i) -> HTML p i
+col9_ = div [ classes [ col, col9 ] ]
 
-cardImgTop :: forall p i. Array (HTML p i) -> HTML p i
-cardImgTop = div [ class_ $ ClassName "card-img-top" ]
+card :: ClassName
+card = ClassName "card"
 
-cardTitle :: forall p i. Array (HTML p i) -> HTML p i
-cardTitle = div [ class_ $ ClassName "card-title" ]
+card_ :: forall p i. Array (HTML p i) -> HTML p i
+card_ = div [ class_ card ]
 
-cardText :: forall p i. Array (HTML p i) -> HTML p i
-cardText = div [ class_ $ ClassName "card-text" ]
+textWhite :: ClassName
+textWhite = ClassName "text-white"
 
-btn :: forall p i. IProp ("class" :: String | p) i
-btn = class_ $ ClassName "btn"
+bgInfo :: ClassName
+bgInfo = ClassName "bg-info"
 
-btnGroup :: forall p i. IProp ("class" :: String | p) i
-btnGroup = class_ $ ClassName "btn-group"
+cardHeader :: ClassName
+cardHeader = ClassName "card-header"
 
-btnPrimary :: forall p i. IProp ("class" :: String | p) i
-btnPrimary = class_ $ ClassName "btn btn-primary"
+cardHeader_ :: forall p i. Array (HTML p i) -> HTML p i
+cardHeader_ = div [ class_ cardHeader ]
 
-btnSecondary :: forall p i. IProp ("class" :: String | p) i
-btnSecondary = class_ $ ClassName "btn btn-secondary"
+cardBody :: ClassName
+cardBody = ClassName "card-body"
 
-btnLight :: forall p i. IProp ("class" :: String | p) i
-btnLight = class_ $ ClassName "btn btn-light"
+cardBody_ :: forall p i. Array (HTML p i) -> HTML p i
+cardBody_ = div [ class_ cardBody ]
 
-btnInfoSmall :: forall p i. IProp ("class" :: String | p) i
-btnInfoSmall = class_ $ ClassName "btn btn-info btn-sm"
+cardFooter :: ClassName
+cardFooter = ClassName "card-footer"
+
+cardFooter_ :: forall p i. Array (HTML p i) -> HTML p i
+cardFooter_ = div [ class_ cardFooter ]
+
+cardTitle :: ClassName
+cardTitle = ClassName "card-title"
+
+cardTitle_ :: forall p i. Array (HTML p i) -> HTML p i
+cardTitle_ = div [ class_ cardTitle ]
+
+cardText :: ClassName
+cardText = ClassName "card-text"
+
+cardText_ :: forall p i. Array (HTML p i) -> HTML p i
+cardText_ = div [ class_ cardText ]
+
+btn :: ClassName
+btn = ClassName "btn"
+
+btn_ :: forall p i. Array (HTML p i) -> HTML p i
+btn_ = div [ class_ btn ]
+
+btnGroup :: ClassName
+btnGroup = ClassName "btn-group"
+
+btnGroup_ :: forall p i. Array (HTML p i) -> HTML p i
+btnGroup_ = div [ class_ btnGroup ]
+
+btnPrimary :: ClassName
+btnPrimary = ClassName "btn-primary"
+
+btnPrimary_ :: forall p i. Array (HTML p i) -> HTML p i
+btnPrimary_ = div [ classes [ btn, btnPrimary ] ]
+
+btnSecondary :: ClassName
+btnSecondary = ClassName "btn btn-secondary"
+
+btnSecondary_ :: forall p i. Array (HTML p i) -> HTML p i
+btnSecondary_ = div [ classes [ btn, btnSecondary ] ]
+
+btnLight :: ClassName
+btnLight = ClassName "btn btn-light"
+
+btnLight_ :: forall p i. Array (HTML p i) -> HTML p i
+btnLight_ = div [ classes [ btn, btnLight ] ]
+
+btnDark :: ClassName
+btnDark = ClassName "btn btn-dark"
+
+btnDark_ :: forall p i. Array (HTML p i) -> HTML p i
+btnDark_ = div [ classes [ btn, btnDark ] ]
+
+btnInfo :: ClassName
+btnInfo = ClassName "btn-info"
+
+btnSmall :: ClassName
+btnSmall = ClassName "btn-sm"
+
+pullLeft :: ClassName
+pullLeft = ClassName "pull-left"
+
+pullRight :: ClassName
+pullRight = ClassName "pull-right"

@@ -1,15 +1,15 @@
 module Action where
 
-import Bootstrap (btnLight, card, cardBody, cardFooter)
+import Bootstrap
 import Data.Array (mapWithIndex)
 import Data.Foldable (intercalate)
 import Data.Newtype (unwrap)
 import Halogen (HTML)
 import Halogen.HTML (ClassName(ClassName), button, div, div_, h3_, text)
 import Halogen.HTML.Events (input_, onClick)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Prelude (pure, ($), (<<<))
+import Prelude
 import Types (Action, Query(..))
 import Wallet (walletIdPane)
 
@@ -28,16 +28,14 @@ actionsPane actions =
 actionPane :: forall p. Int -> Action -> HTML p Query
 actionPane index action =
   div [ class_ $ ClassName "action" ]
-    [ card
-      [ cardBody
-        [ div_ [ walletIdPane action.walletId ]
-        , div_ [ text (unwrap action.actionId) ]
-        ]
-      , cardFooter [
-          button
-            [ btnLight
+    [ div [ classes [ card, textWhite, bgInfo ] ]
+      [ cardBody_
+        [ button
+            [ classes [ btn, btnDark, pullRight ]
             , onClick $ input_ $ KillAction index ]
             [ icon Close ]
+        , div_ [ walletIdPane action.walletId ]
+        , div_ [ text (unwrap action.actionId) ]
         ]
       ]
     ]

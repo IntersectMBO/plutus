@@ -9,7 +9,7 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery, aceComponent)
 import Ace.Types (ACE, Editor)
 import Action (actionsPane)
-import Bootstrap (col, col9, container, row)
+import Bootstrap
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
@@ -27,13 +27,13 @@ import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Halogen.ECharts (EChartsEffects, EChartsQuery, echarts)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h2_, h3_, hr_, p_, slot', text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h3_, hr_, p_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_, href, target)
 import Halogen.Query (HalogenM)
 import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (<*>))
 import StaticData (staticWallets)
-import Types (Query(HandleEChartsMessage, HandleAceMessage, KillAction, SendAction), State, _actions, State)
+import Types (Query(HandleEChartsMessage, HandleAceMessage, KillAction, SendAction), _actions, State)
 import Wallet (walletsPane)
 
 initialState :: State
@@ -115,7 +115,7 @@ initEditor editor = liftEff $ do
 render :: forall aff. State -> ParentHTML Query ChildQuery ChildSlot (Aff (EChartsEffects (AceEffects aff)))
 render state =
   div [ class_ (ClassName "main-frame") ] $
-    [ container
+    [ container_
       [ header
       , hr_
       , editorPane
@@ -126,9 +126,9 @@ render state =
 
 header :: forall p i. HTML p i
 header =
-  row
-    [ col [ h1_ [ text "Plutus Playground" ] ]
-    , col
+  row_
+    [ col_ [ h1_ [ text "Plutus Playground" ] ]
+    , col_
       [ p_ [
           a [ href "https://github.com/input-output-hk/plutus/tree/mchakravarty/plutus-playground-spec/docs/playground"
             , target "_blank"
@@ -150,9 +150,9 @@ editorPane =
 mockChainPane :: forall aff. State -> ParentHTML Query ChildQuery ChildSlot (Aff (EChartsEffects (AceEffects aff)))
 mockChainPane state =
   div_
-    [ row
-        [ col9 [ walletsPane state.wallets ]
-        , col [ actionsPane state.actions  ]
+    [ row_
+        [ col9_ [ walletsPane state.wallets ]
+        , col_ [ actionsPane state.actions  ]
         ]
     , h3_ [ text "Chain" ]
     , slot' cpECharts EChartsSlot
