@@ -21,6 +21,7 @@ module Language.PlutusCore.Name ( -- * Types
                                 , identifierStateFrom
                                 , mapNameString
                                 , mapTyNameString
+                                , newtypeUnique
                                 , PrettyConfigName (..)
                                 , HasPrettyConfigName (..)
                                 , defPrettyConfigName
@@ -31,6 +32,7 @@ import           PlutusPrelude
 
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL
+import           Data.Coerce.Lens
 import qualified Data.IntMap                as IM
 import qualified Data.Map                   as M
 import           Data.Text.Encoding         (decodeUtf8)
@@ -91,21 +93,23 @@ newtype TermUnique = TermUnique
     { unTermUnique :: Unique
     }
 
+-- | The default implementation of 'HasUnique' for newtypes.
+newtypeUnique
+    :: (Newtype new, HasUnique (Unwrap new) unique', Coercible unique' unique)
+    => Lens' new unique
+newtypeUnique = wrapped . unique . coerced
+
 -- | Types which have a 'Unique' attached to them, mostly names.
 class Coercible Unique unique => HasUnique a unique | a -> unique where
     unique :: Lens' a unique
-
-    -- The default instance for newtypes.
-    default unique :: (Coercible (Unwrap a) a, HasUnique (Unwrap a) unique', Coercible unique' unique)
-                   => Lens' a unique
-    unique = wrapped . unique . coerced
 
 instance HasUnique (Name a) TermUnique where
     unique = lens g s where
         g = TermUnique . nameUnique
         s n (TermUnique u) = n{nameUnique=u}
 
-instance HasUnique (TyName a) TypeUnique
+instance HasUnique (TyName a) TypeUnique where
+    unique = newtypeUnique
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast

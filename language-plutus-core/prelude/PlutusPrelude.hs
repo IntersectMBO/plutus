@@ -23,7 +23,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , isRight
                      , void
                      , coerce
-                     , Unwrap
                      , Generic
                      , NFData
                      , Natural
@@ -43,9 +42,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , (.~)
                      , set
                      , over
-                     , coerced
-                     , wrapped
-                     , unwrapped
                      -- * Debugging
                      , traceShowId
                      , trace
@@ -230,27 +226,6 @@ instance Functor f => Functor (PairT b f) where
 -- | Like a version of 'everywhere' for recursion schemes.
 hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
 hoist f = c where c = embed . f . fmap c . project
-
-type family UnwrapRep r :: * where
-    UnwrapRep (D1 d (C1 c (S1 s (K1 i a)))) = a
-
--- | Extract the underlying type of a newtype wrapper.
-type family Unwrap a :: * where
-    Unwrap a = UnwrapRep (Rep a)
-
--- | The lens induced by back and forth coercions.
-coerced :: Coercible a b => Lens' a b
-coerced f x = coerce <$> f (coerce x)
-
--- | A specialized version of 'coerced' that works over newtypes.
--- Useful, because improves type inference.
-wrapped :: Coercible (Unwrap new) new => Lens' new (Unwrap new)
-wrapped = coerced
-
--- | A specialized version of 'coerced' that works over newtypes.
--- Useful, because improves type inference.
-unwrapped :: Coercible (Unwrap new) new => Lens' (Unwrap new) new
-unwrapped = coerced
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack

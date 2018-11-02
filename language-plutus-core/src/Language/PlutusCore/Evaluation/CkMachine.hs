@@ -17,7 +17,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
-import           PlutusPrelude                                   hiding (wrapped)
+import           PlutusPrelude
 
 infix 4 |>, <|
 

@@ -314,14 +314,16 @@ newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
 
-instance HasUnique (NameWithType a) TermUnique
+instance HasUnique (NameWithType a) TermUnique where
+    unique = newtypeUnique
 
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
 
-instance HasUnique (TyNameWithKind a) TypeUnique
+instance HasUnique (TyNameWithKind a) TypeUnique where
+    unique = newtypeUnique
 
 newtype Normalized a = Normalized { getNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
