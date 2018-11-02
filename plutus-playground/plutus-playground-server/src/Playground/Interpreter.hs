@@ -1,8 +1,8 @@
 module Playground.Interpreter where
 
-import           Control.Monad.Catch          (finally)
+import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.IO.Class       (liftIO)
-import           Data.Aeson                   (FromJSON, Result (Success), Value, fromJSON)
+import           Data.Aeson                   (FromJSON, Result (Success), ToJSON, Value, fromJSON)
 import qualified Data.Aeson                   as JSON
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.List                    (intercalate)
@@ -12,17 +12,20 @@ import           Data.Text                    (unpack)
 import qualified Data.Text                    as Text
 import           Data.Typeable                (TypeRep, Typeable, typeRepArgs)
 import qualified Data.Typeable                as DT
-import           Language.Haskell.Interpreter (Extension (..), GhcError, ModuleElem (Fun), MonadInterpreter,
-                                               OptionVal ((:=)), as, getModuleExports, interpret, languageExtensions,
-                                               loadModules, runInterpreter, set, setImportsQ, setTopLevelModules,
+import           Language.Haskell.Interpreter (Extension (..), GhcError, InterpreterError (UnknownError),
+                                               ModuleElem (Fun), MonadInterpreter, OptionVal ((:=)), as,
+                                               getModuleExports, interpret, languageExtensions, loadModules,
+                                               runInterpreter, set, setImportsQ, setTopLevelModules,
                                                typeChecksWithDetails, typeOf)
-import           Playground.API               (Expression(Expression), Program, Fn (Fn), SourceCode (SourceCode))
+import           Playground.API               (Evaluation (program, sourceCode), Expression (Expression), Fn (Fn),
+                                               Program, SourceCode (getSourceCode), blockchain)
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
 import           Wallet.API                   (WalletAPI)
-import           Wallet.Emulator.Types        (Trace, AssertionError, EmulatedWalletApi, EmulatorState,
-                                               Wallet (Wallet, getWallet), runTraceTxPool, walletAction)
+import           Wallet.Emulator.Types        (AssertionError, EmulatedWalletApi, EmulatorState (emChain), Trace,
+                                               Wallet (Wallet, getWallet), runTraceChain, runTraceTxPool, walletAction)
+import           Wallet.UTXO                  (Blockchain)
 
 defaultExtensions =
   [ ExplicitForAll
@@ -36,7 +39,7 @@ defaultExtensions =
   , DeriveTraversable
   ]
 
-loadSource :: (MonadInterpreter m) => FilePath -> m () -> m ()
+loadSource :: (MonadInterpreter m) => FilePath -> m a -> m a
 loadSource fileName action =
   flip finally (liftIO (removeFile fileName)) $ do
     set [languageExtensions := defaultExtensions]
@@ -47,43 +50,51 @@ loadSource fileName action =
 -- TODO: this needs to return a schema of the function names and types
 --       http://hackage.haskell.org/package/swagger2-2.3.0.1/docs/Data-Swagger-Internal-Schema.html#t:ToSchema
 compile :: (MonadInterpreter m) => SourceCode -> m ()
-compile (SourceCode s) = do
-  fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack s)
+compile s = do
+  fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack . getSourceCode $ s)
   loadSource fileName $ do
     exports <- getModuleExports "Main"
     walletFunctions <- catMaybes <$> traverse isWalletFunction exports
     liftIO $ print walletFunctions
 
-runFunction :: (MonadInterpreter m) => SourceCode -> Program -> m ()
-runFunction (SourceCode s) program = do
-  fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack s)
+runFunction :: (MonadInterpreter m) => Evaluation -> m Blockchain
+runFunction evaluation = do
+  fileName <-
+    liftIO $
+    writeTempFile
+      "."
+      "Main.hs"
+      (unpack . getSourceCode . sourceCode $ evaluation)
   loadSource fileName $ do
     setImportsQ
       [("Playground.Interpreter", Nothing), ("Wallet.Emulator", Nothing)]
-    liftIO . putStrLn $ mkExpr program
-    res <- interpret (mkExpr program) (as :: Bool)
-    liftIO . print $ res
+    liftIO . putStrLn $ mkExpr evaluation
+    res <-
+      interpret (mkExpr evaluation) (as :: Either AssertionError Blockchain)
+    case res of
+      Left e           -> throwM . UnknownError $ show e
+      Right blockchain -> pure blockchain
 
-runTrace :: Trace EmulatedWalletApi a -> Bool
-runTrace action =
-  let (eRes, newState) = runTraceTxPool [] action
+runTrace ::
+     Blockchain -> Trace EmulatedWalletApi a -> Either AssertionError Blockchain
+runTrace blockchain action =
+  let (eRes, newState) = runTraceChain blockchain action
    in case eRes of
-        Right _ -> True
-        Left _  -> False
+        Right _ -> Right . emChain $ newState
+        Left e  -> Left e
 
-mkExpr :: Program -> String
-mkExpr program =
-  "runTrace (" <>
+mkExpr :: Evaluation -> String
+mkExpr evaluation =
+  "runTrace (decode " <> jsonToString (blockchain evaluation) <> ") (" <>
   (intercalate " >> " $
-   fmap
-     (\expression -> walletActionExpr expression)
-     program) <>
+   fmap (\expression -> walletActionExpr expression) (program evaluation)) <>
   ")"
 
 walletActionExpr :: Expression -> String
 walletActionExpr (Expression (Fn f) wallet args) =
   "(walletAction (" <> show wallet <> ") (" <>
-  mkApplyExpr (Text.unpack f) (fmap jsonToString args) <> "))"
+  mkApplyExpr (Text.unpack f) (fmap jsonToString args) <>
+  "))"
 
 mkApplyExpr :: String -> [String] -> String
 mkApplyExpr functionName [] = functionName
@@ -102,9 +113,13 @@ mkApplyExpr functionName [a, b, c, d, e, f, g] =
 (<+>) :: String -> String -> String
 a <+> b = a <> " " <> b
 
-jsonToString :: Value -> String
+jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode
 
+{-# ANN module ("HLint: ignore"::String) #-}
+-- | This will throw an exception if it cannot decode the json however it should
+--   never do this as long as it is only called in places where we have already
+--   decoded and encode the value since it came from an HTTP API call
 decode :: FromJSON a => String -> a
 decode = fromJust . JSON.decode . BSL.pack
 

@@ -2,8 +2,8 @@ module ServerSpec
   ( spec
   ) where
 
-import Control.Exception (evaluate)
-import Test.Hspec (Spec, describe, it, shouldBe)
+import           Control.Exception (evaluate)
+import           Test.Hspec        (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec =

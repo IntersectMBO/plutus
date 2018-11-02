@@ -1,54 +1,24 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ApplicativeDo     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ApplicativeDo #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Main
   ( main
   ) where
 
-import Control.Applicative ((<|>))
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Logger (MonadLogger, logInfoN, runStderrLoggingT)
-import Data.Function ((&))
-import Data.Monoid ((<>))
-import qualified Data.Text as Text
-import Development.GitRev (gitHash)
-import Network (HostName)
-import Network.Wai.Handler.Warp
-  ( HostPreference
-  , defaultSettings
-  , setHost
-  , setPort
-  )
-import Options.Applicative
-  ( CommandFields
-  , Mod
-  , Parser
-  , argument
-  , auto
-  , command
-  , command
-  , customExecParser
-  , disambiguate
-  , fullDesc
-  , help
-  , helper
-  , idm
-  , info
-  , infoOption
-  , long
-  , metavar
-  , option
-  , prefs
-  , short
-  , showDefault
-  , str
-  , strOption
-  , subparser
-  , subparser
-  , value
-  )
+import           Control.Applicative      ((<|>))
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
+import           Data.Function            ((&))
+import           Data.Monoid              ((<>))
+import qualified Data.Text                as Text
+import           Development.GitRev       (gitHash)
+import           Network                  (HostName)
+import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
+import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
+                                           disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
+                                           option, prefs, short, showDefault, str, strOption, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -56,8 +26,8 @@ data WebserverOptions =
   WebserverOptions
 
 data Command
-  = Webserver { _host :: HostPreference
-              , _port :: Int
+  = Webserver { _host      :: HostPreference
+              , _port      :: Int
               , _staticDir :: FilePath }
   | PSGenerator { _outputDir :: FilePath }
   deriving (Show, Eq)
@@ -104,7 +74,7 @@ runCommand Webserver {..} = do
   Webserver.run settings _staticDir
   where
     settings = setHost _host . setPort _port $ defaultSettings
-runCommand PSGenerator {..} = do
+runCommand PSGenerator {..} =
   liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()

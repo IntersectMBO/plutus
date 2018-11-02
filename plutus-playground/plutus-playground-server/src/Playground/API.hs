@@ -35,7 +35,7 @@ newtype Haskell = Haskell Text
 instance Accept Haskell where
   contentType _ = "application" // "x-haskell" /: ("charset", "utf-8")
 
-newtype SourceCode = SourceCode Text
+newtype SourceCode = SourceCode {getSourceCode :: Text}
   deriving stock (Generic)
 
 instance ToJSON SourceCode where
@@ -72,8 +72,9 @@ data Expression = Expression
 type Program = [Expression]
 
 data Evaluation = Evaluation
-  { wallets  :: [(Wallet, Integer)]
-  , program  :: Program
-  , contract :: SourceCode
+  { wallets    :: [(Wallet, Integer)]
+  , program    :: Program
+  , sourceCode :: SourceCode
+  , blockchain :: Blockchain
   }
   deriving (Generic, ToJSON, FromJSON)
