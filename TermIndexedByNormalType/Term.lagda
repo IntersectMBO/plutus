@@ -23,20 +23,6 @@ infix  4 _⊢_
 infixl 5 _,_
 \end{code}
 
-# Evaluation contexts
-the first index is the kind of the hole, the second index is the type of the evalcxt
-\begin{code}
-data EvalCxt Γ (K : Kind) : Kind → Set where
-  •    : EvalCxt Γ K K
-  _·E_ : ∀{J L} → EvalCxt Γ K (J ⇒ L) → Γ ⊢Nf⋆ J → EvalCxt Γ K L
-\end{code}
-
-\begin{code}
-_[_]E : ∀{Γ K K'} → EvalCxt Γ K K' → Γ ⊢Nf⋆ K → Γ ⊢Nf⋆ K'
-• [ t ]E = t
-(E ·E u) [ t ]E = nf (embNf (E [ t ]E) · embNf u)
-\end{code}
-
 ## Contexts and erasure
 
 We need to mutually define contexts and their
@@ -124,22 +110,6 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → (A : ∥ Γ ∥ ⊢Nf⋆ K)
       ---------------
     → Γ ⊢ B [ A ]
-
-  wrap : ∀{Γ K}
-    → (S : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ K)
-    → (E : EvalCxt ∥ Γ ∥ K K)
-    → (M : Γ ⊢ E [ S [ ne (μ S) ] ]E)
-    → {Q : ∥ Γ ∥ ⊢Nf⋆ K}
-    → Q ≡ E [  ne (μ S) ]E
-    → Γ ⊢ Q
-
-  unwrap : ∀{Γ K}
-    → {S : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ K}
-    → (E : EvalCxt ∥ Γ ∥ K K)
-    → {Q : ∥ Γ ∥ ⊢Nf⋆ K}
-    → Q ≡ E [ ne (μ S) ]E
-    → (M : Γ ⊢ Q)
-    → Γ ⊢ E [ S [ ne (μ S) ] ]E
 
   wrap1 : ∀{Γ K}
    → (pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
