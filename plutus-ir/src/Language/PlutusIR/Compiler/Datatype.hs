@@ -10,6 +10,7 @@ import           PlutusPrelude             (strToBs)
 import qualified Language.PlutusCore       as PLC
 import qualified Language.PlutusCore.MkPlc as PLC
 import           Language.PlutusCore.Quote
+import qualified Language.PlutusCore.Subst as PLC
 
 import           Data.List
 import           Data.Maybe

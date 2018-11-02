@@ -42,6 +42,7 @@ library
         Language.PlutusCore.Constant
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
+        Language.PlutusCore.Subst
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -79,7 +80,6 @@ library
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
-        Language.PlutusCore.Subst
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypedBuiltinGen
