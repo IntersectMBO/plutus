@@ -12,7 +12,6 @@ in
 let
   plutusPkgs = import ./. {};
   ghc = pkgs.haskell.packages.ghc822.ghcWithPackages (ps: [
-    plutusPkgs.plutus-prototype
     plutusPkgs.language-plutus-core
     plutusPkgs.core-to-plc
     plutusPkgs.plutus-th
@@ -24,10 +23,10 @@ let
   ]);
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
-    buildInputs = with pkgs; [ plutusPkgs.stylish-haskell git ];
+    buildInputs = with pkgs; [ plutusPkgs.stylish-haskell git fd ];
     shellHook = ''
       git diff > pre-stylish.diff
-      find . -type f -name "*hs" -not -path '.git' -not -path '*.stack-work*' -not -path '*/dist/*' -not -path '*/docs/*' -not -name 'HLint.hs' -exec stylish-haskell -i {} \;
+      fd --extension hs --exclude '*/dist/*' --exclude '*/docs/*' --exec stylish-haskell -i {}
       git diff > post-stylish.diff
       diff pre-stylish.diff post-stylish.diff > /dev/null
       if [ $? != 0 ]

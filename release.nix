@@ -14,7 +14,6 @@ let
   plutusPkgs = import ./. { };
   pkgs = import fixedNixpkgs { config = {}; };
   platforms = {
-    plutus-prototype = supportedSystems;
     language-plutus-core = supportedSystems;
     plutus-core-interpreter = supportedSystems;
     plutus-exe = supportedSystems;

@@ -81,6 +81,7 @@ module Language.PlutusCore
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
+    , rename
     -- * Errors
     , Error (..)
     , IsError (..)

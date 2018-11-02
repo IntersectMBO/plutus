@@ -14,6 +14,7 @@ import           Language.PlutusIR.Compiler
 
 import qualified Language.PlutusCore                  as PLC
 import qualified Language.PlutusCore.MkPlc            as PLC
+import qualified Language.PlutusCore.Pretty           as PLC
 
 import qualified Language.PlutusCore.StdLib.Data.Bool as Bool
 import qualified Language.PlutusCore.StdLib.Data.Nat  as Nat
@@ -23,21 +24,32 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Test.Tasty
 
-import qualified Data.Text.Prettyprint.Doc            as PP
+import           Control.Monad
+import           Control.Monad.Except
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-instance GetProgram (Term TyName Name ()) where
-    getProgram = trivialProgram . compile
+instance GetProgram (Quote (Term TyName Name ())) where
+    getProgram = trivialProgram . compileAndMaybeTypecheck False
 
 goldenPir :: String -> Term TyName Name () -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
 
-compile :: Term TyName Name () -> PLC.Term TyName Name ()
-compile pir = case runCompiling $ compileTerm pir of
-    Right plc -> plc
-    Left e    -> error (show $ PP.pretty e)
+compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
+compileAndMaybeTypecheck doTypecheck pir = either (error . show . PLC.prettyPlcClassicDebug) id $ runExcept $ runQuoteT $ do
+    -- it is important we run the two computations in the same Quote together, otherwise we might make
+    -- names during compilation that are not fresh
+    compiled <- compileTerm =<< liftQuote pir
+    when doTypecheck $ void $
+        convertErrors PLCError $ do
+            annotated <- PLC.annotateTerm compiled
+            -- need our own typechecker pipeline to allow normalized types
+            PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated
+    pure compiled
+
+compile :: Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
+compile = compileAndMaybeTypecheck True
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence [
@@ -49,7 +61,7 @@ tests = testGroup "plutus-ir" <$> sequence [
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting" [
     goldenPir "basic" basic
-    , goldenPir "maybe" maybePir
+    , goldenPir "maybe" (runQuote maybePir)
     ]
 
 basic :: Term TyName Name ()
@@ -61,8 +73,8 @@ basic = runQuote $ do
         LamAbs () x (TyVar () a) $
         Var () x
 
-maybePir :: Term TyName Name ()
-maybePir = runQuote $ do
+maybePir :: Quote (Term TyName Name ())
+maybePir = do
     m <- freshTyName () "Maybe"
     a <- freshTyName () "a"
     match <- freshName () "match_Maybe"
@@ -88,8 +100,8 @@ maybePir = runQuote $ do
             ] $
         Apply () (TyInst () (Var () just) unit) unitval
 
-listMatch :: Term TyName Name ()
-listMatch = runQuote $ do
+listMatch :: Quote (Term TyName Name ())
+listMatch = do
     m <- freshTyName () "List"
     a <- freshTyName () "a"
     let ma = TyApp () (TyVar () m) (TyVar () a)
@@ -132,7 +144,7 @@ listMatch = runQuote $ do
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
     goldenPlc "maybe" (compile maybePir),
-    goldenPlc "listMatch" (compile listMatch),
+    goldenPlc "listMatch" (compileAndMaybeTypecheck False listMatch),
     goldenEval "listMatchEval" [listMatch]
     ]
 
@@ -147,8 +159,8 @@ natToBool = do
     RecursiveType _ nat <- holedToRecursive <$> Nat.getBuiltinNat
     TyFun () nat <$> Bool.getBuiltinBool
 
-evenOdd :: Term TyName Name ()
-evenOdd = runQuote $ do
+evenOdd :: Quote (Term TyName Name ())
+evenOdd = do
     true <- embedIntoIR <$> Bool.getBuiltinTrue
     false <- embedIntoIR <$> Bool.getBuiltinFalse
 
