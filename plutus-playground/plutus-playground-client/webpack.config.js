@@ -57,6 +57,7 @@ module.exports = {
                                 'src/**/*.purs'
                             ],
                             bundle: false,
+							psc: 'psa',
                             watch: isWebpackDevServer || isWatch,
                             pscIde: true
                         }

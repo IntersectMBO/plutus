@@ -3702,9 +3702,10 @@ purescript@^0.11.7:
   dependencies:
     install-purescript-cli "^0.2.0"
 
-purs-loader@3.1.4:
-  version "3.1.4"
-  resolved "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.1.4.tgz#92a4326e748bdf7aff9d69f4a10feb8466e148a6"
+purs-loader@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/purs-loader/-/purs-loader-3.2.0.tgz#90dea335976fb87199f721969eaee95ad6810721"
+  integrity sha512-S8nbzDu140jGwDEZqas74RHqLMHU5soFVn91aCqM6GpKdSAP4Bf991VFIa3f+XCeA/UVfx2V2jyyliggTk9tdg==
   dependencies:
     bluebird "^3.3.5"
     chalk "^1.1.3"
