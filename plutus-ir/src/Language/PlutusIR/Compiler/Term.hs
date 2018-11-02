@@ -7,39 +7,41 @@ module Language.PlutusIR.Compiler.Term (compileTerm) where
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Datatype
 import           Language.PlutusIR.Compiler.Error
+import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Recursion
 import           Language.PlutusIR.Compiler.Types
 
 import           Control.Monad
 import           Control.Monad.Except
+import           Control.Monad.Reader
 
-import qualified Language.PlutusCore                  as PLC
-import qualified Language.PlutusCore.MkPlc            as PLC
+import qualified Language.PlutusCore                   as PLC
+import qualified Language.PlutusCore.MkPlc             as PLC
 
 import           Data.List
 
 -- | Compile a 'Term' into a PLC Term. Note: the result does *not* have globally unique names.
-compileTerm :: Compiling m => Term TyName Name () -> m (PLC.Term TyName Name ())
+compileTerm :: Compiling m a => PIRTerm a -> m (PLCTerm a)
 compileTerm = \case
-    Let _ r bs body -> do
+    Let p r bs body -> local (const $ LetBinding r p) $ do
         body' <- compileTerm body
         case r of
             NonRec -> compileNonRecBindings r body' bs
             Rec    -> compileRecBindings r body' bs
-    Var _ n -> pure $ PLC.Var () n
-    TyAbs _ n k t -> PLC.TyAbs () n k <$> compileTerm t
-    LamAbs _ n ty t -> PLC.LamAbs () n ty <$> compileTerm t
-    Apply _ t1 t2 -> PLC.Apply () <$> compileTerm t1 <*> compileTerm t2
-    Constant _ c -> pure $ PLC.Constant () c
-    TyInst _ t ty -> PLC.TyInst () <$> compileTerm t <*> pure ty
-    Error _ ty -> pure $ PLC.Error () ty
-    Wrap _ tn ty t -> PLC.Wrap () tn ty <$> compileTerm t
-    Unwrap _ t -> PLC.Unwrap () <$> compileTerm t
+    Var x n -> pure $ PLC.Var x n
+    TyAbs x n k t -> PLC.TyAbs x n k <$> compileTerm t
+    LamAbs x n ty t -> PLC.LamAbs x n ty <$> compileTerm t
+    Apply x t1 t2 -> PLC.Apply x <$> compileTerm t1 <*> compileTerm t2
+    Constant x c -> pure $ PLC.Constant x c
+    TyInst x t ty -> PLC.TyInst x <$> compileTerm t <*> pure ty
+    Error x ty -> pure $ PLC.Error x ty
+    Wrap x tn ty t -> PLC.Wrap x tn ty <$> compileTerm t
+    Unwrap x t -> PLC.Unwrap x <$> compileTerm t
 
-compileNonRecBindings :: Compiling m => Recursivity -> PLC.Term TyName Name () -> [Binding TyName Name ()] -> m (PLC.Term TyName Name ())
+compileNonRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileNonRecBindings r body bs = foldM (compileSingleBinding r) body bs
 
-compileRecBindings :: Compiling m => Recursivity -> PLC.Term TyName Name () -> [Binding TyName Name ()] -> m (PLC.Term TyName Name ())
+compileRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecBindings r body bs =
     let
         partitionBindings = partition (\case { TermBind {} -> True ; _ -> False; })
@@ -48,29 +50,30 @@ compileRecBindings r body bs =
         tysBound <- compileRecTypeBindings r body typeBinds
         compileRecTermBindings r tysBound termBinds
 
-compileRecTermBindings :: Compiling m => Recursivity -> PLC.Term TyName Name () -> [Binding TyName Name ()] -> m (PLC.Term TyName Name ())
+compileRecTermBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecTermBindings _ body bs = case bs of
     [] -> pure body
     _ -> do
         binds <- forM bs $ \case
-            TermBind () vd rhs -> pure $ PLC.Def vd rhs
-            _ -> throwError $ CompilationError "Internal error: type binding in term binding group"
+            TermBind _ vd rhs -> pure $ PLC.Def vd rhs
+            _ -> ask >>= \p -> throwError $ CompilationError p "Internal error: type binding in term binding group"
         compileRecTerms body binds
 
-compileRecTypeBindings :: Compiling m => Recursivity -> PLC.Term TyName Name () -> [Binding TyName Name ()] -> m (PLC.Term TyName Name ())
+compileRecTypeBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecTypeBindings r body bs = case bs of
     []  -> pure body
     [b] -> compileSingleBinding r body b
-    _   -> throwError $ UnsupportedError "Mutually recursive types are not supported"
+    _   -> ask >>= \p -> throwError $ UnsupportedError p "Mutually recursive types are not supported"
 
-compileSingleBinding :: Compiling m => Recursivity -> PLC.Term TyName Name () -> Binding TyName Name () ->  m (PLC.Term TyName Name ())
-compileSingleBinding r body b = case b of
-    TermBind () d rhs -> case r of
+compileSingleBinding :: Compiling m a => Recursivity -> PLCTerm a -> Binding TyName Name (Provenance a) ->  m (PLCTerm a)
+compileSingleBinding r body b =  case b of
+    TermBind x d rhs -> local (const x) $ case r of
         Rec -> compileRecTerms body [PLC.Def d rhs]
-        NonRec -> do
+        NonRec -> local (TermBinding (varDeclNameString d)) $ do
             def <- PLC.Def d <$> compileTerm rhs
-            pure $ PLC.mkTermLet () def body
-    TypeBind () d rhs -> do
+            PLC.mkTermLet <$> ask <*> pure def <*> pure body
+    TypeBind x d rhs -> local (const x) $ local (TypeBinding (tyVarDeclNameString d)) $ do
         let def = PLC.Def d rhs
-        pure $ PLC.mkTypeLet () def body
-    DatatypeBind () d -> compileDatatype r body d
+        PLC.mkTypeLet <$> ask <*> pure def <*> pure body
+    DatatypeBind x d -> local (const x) $ local (TypeBinding (datatypeNameString d)) $
+        compileDatatype r body d
