@@ -163,8 +163,7 @@ monoData = testNested "monomorphic" [
   , goldenPlc "defaultCase" defaultCase
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , goldenPlc "monoRecord" monoRecord
-   -- FIXME: this should *not* fail
-  , goldenPlcCatch "nonValueCase" nonValueCase
+  , goldenPlc "nonValueCase" nonValueCase
   , goldenPlc "synonym" synonym
   ]
 
@@ -224,8 +223,7 @@ newtypes = testNested "newtypes" [
    , goldenPlc "newtypeMatch" newtypeMatch
    , goldenPlc "newtypeCreate" newtypeCreate
    , goldenPlc "newtypeCreate2" newtypeCreate2
-   -- FIXME: this should *not* fail
-   , goldenPlcCatch "nestedNewtypeMatch" nestedNewtypeMatch
+   , goldenPlc "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
 
@@ -281,6 +279,14 @@ fib = plc @"fib" (
     let fib :: Int -> Int
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
+
+evenMutual :: PlcCode
+evenMutual = plc @"evenMutual" (
+    let even :: Int -> Bool
+        even n = if n == 0 then True else odd (n-1)
+        odd :: Int -> Bool
+        odd n = if n == 0 then False else even (n-1)
+    in even)
 
 errors :: TestNested
 errors = testNested "errors" [

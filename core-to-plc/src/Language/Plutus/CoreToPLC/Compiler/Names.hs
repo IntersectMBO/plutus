@@ -36,6 +36,7 @@ safeFreshName s
     -- some special cases
     | s == ":" = safeFreshName "cons"
     | s == "[]" = safeFreshName "list"
+    | s == "()" = safeFreshName "unit"
     | otherwise =
           let
               -- See Note [PLC names]
