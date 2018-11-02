@@ -40,8 +40,12 @@ stdInput = flag' StdInput
   (  long "stdin"
   <> help "Read from stdin" )
 
+<<<<<<< HEAD
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input NormalizationMode
+=======
+newtype TypecheckOptions = TypecheckOptions Input
+>>>>>>> Added -m L option for L machine
 data EvalMode = CK | CEK | L deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 data Command = Typecheck TypecheckOptions | Eval EvalOptions
