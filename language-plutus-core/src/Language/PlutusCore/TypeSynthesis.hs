@@ -14,6 +14,15 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , TypeCheckCfg (..)
                                          ) where
 
+import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Error
+import           Language.PlutusCore.Lexer.Type     hiding (name)
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer        (annotateType, rename)
+import           Language.PlutusCore.Type
+import           PlutusPrelude
+
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
@@ -21,17 +30,6 @@ import           Control.Monad.Trans.State          hiding (get, modify)
 import qualified Data.IntMap                        as IM
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
-import           Language.PlutusCore.Clone
-import           Language.PlutusCore.Constant.Typed (DynamicBuiltinNameMeanings (..), dynamicBuiltinNameMeaningToType,
-                                                     typeOfBuiltinName)
-import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer        (annotateType)
-import           Language.PlutusCore.Type
-import           Lens.Micro
-import           PlutusPrelude
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
@@ -386,7 +384,7 @@ normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
         -- a -> b and an assignment b -> c which is locally valid but in
         -- a smaller scope than a -> b.
         Just ty'@(NormalizedType TyVar{}) -> pure ty'
-        Just ty'                          -> traverse alphaRename ty'
+        Just ty'                          -> traverse rename ty'
         Nothing                           -> pure $ NormalizedType ty
 
 normalizeType ty@TyInt{}     = pure $ NormalizedType ty
