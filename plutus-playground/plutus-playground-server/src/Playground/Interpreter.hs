@@ -5,6 +5,7 @@ import           Control.Monad.IO.Class       (liftIO)
 import           Data.Aeson                   (FromJSON, Result (Success), Value, fromJSON)
 import qualified Data.Aeson                   as JSON
 import qualified Data.ByteString.Lazy.Char8   as BSL
+import           Data.List                    (intercalate)
 import           Data.Maybe                   (catMaybes, fromJust)
 import           Data.Monoid                  ((<>))
 import           Data.Text                    (unpack)
@@ -19,6 +20,9 @@ import           Playground.API               (Fn (Fn), SourceCode (SourceCode))
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
+import           Wallet.API                   (WalletAPI)
+import           Wallet.Emulator.Types        (Trace, AssertionError, EmulatedWalletApi, EmulatorState,
+                                               Wallet (Wallet, getWallet), runTraceTxPool, walletAction)
 
 defaultExtensions =
   [ ExplicitForAll
@@ -54,18 +58,32 @@ runFunction :: (MonadInterpreter m) => SourceCode -> [(Fn, [Value])] -> m ()
 runFunction (SourceCode s) fs = do
   fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack s)
   loadSource fileName $ do
-    setImportsQ [("Playground.Interpreter", Nothing)]
-    res <- interpret (mkExpr fs) (as :: Int)
+    setImportsQ
+      [("Playground.Interpreter", Nothing), ("Wallet.Emulator", Nothing)]
+    liftIO . putStrLn $ mkExpr (fmap (\(f, vs) -> (f, (Wallet 1), vs)) fs)
+    res <- interpret (mkExpr (fmap (\(f, vs) -> (f, (Wallet 1), vs)) fs)) (as :: Bool)
     liftIO . print $ res
 
--- TODO: currently this just makes an expression out of the first one but in reality we will
---       need to work out how to compose each of the individual function calls (probably >>=)
-mkExpr :: [(Fn, [Value])] -> String
+runTrace :: Trace EmulatedWalletApi a -> Bool
+runTrace action =
+  let (eRes, newState) = runTraceTxPool [] action
+   in case eRes of
+        Right _ -> True
+        Left _  -> False
+
+mkExpr :: [(Fn, Wallet, [Value])] -> String
 mkExpr fs =
-  head $
-  fmap
-    (\(Fn f, args) -> mkApplyExpr (Text.unpack f) (fmap jsonToString args))
-    fs
+  "runTrace (" <>
+  (intercalate " >> " $
+   fmap
+     (\(f, wallet, args) -> walletActionExpr f wallet args)
+     fs) <>
+  ")"
+
+walletActionExpr :: Fn -> Wallet -> [Value] -> String
+walletActionExpr (Fn f) wallet args =
+  "(walletAction (" <> show wallet <> ") (" <>
+  mkApplyExpr (Text.unpack f) (fmap jsonToString args) <> "))"
 
 mkApplyExpr :: String -> [String] -> String
 mkApplyExpr functionName [] = functionName
@@ -93,8 +111,8 @@ decode = fromJust . JSON.decode . BSL.pack
 apply1 :: FromJSON a => (a -> b) -> String -> b
 apply1 fun v = fun (decode v)
 
-apply2 :: (FromJSON a, FromJSON b) => (a -> b -> c) -> (String, String) -> c
-apply2 fun (a, b) = fun (decode a) (decode b)
+apply2 :: (FromJSON a, FromJSON b) => (a -> b -> c) -> String -> String -> c
+apply2 fun a b = fun (decode a) (decode b)
 
 apply3 ::
      (FromJSON a, FromJSON b, FromJSON c)
