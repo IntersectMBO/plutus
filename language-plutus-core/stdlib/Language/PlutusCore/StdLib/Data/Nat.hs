@@ -44,8 +44,7 @@ getBuiltinZero = rename =<< do
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    return
-        . wrapNat
+    wrapNat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () nat $ TyVar () r)
@@ -61,8 +60,9 @@ getBuiltinSucc = rename =<< do
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    return
-        . LamAbs () n nat
+    fmap
+        ( LamAbs () n nat
+        )
         . wrapNat
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)

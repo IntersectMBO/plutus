@@ -20,6 +20,7 @@ import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer        (annotateType, rename)
+import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -30,6 +31,10 @@ import           Control.Monad.Trans.State          hiding (get, modify)
 import qualified Data.IntMap                        as IM
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
+import qualified Data.Set                           as Set
+
+import           Debug.Trace
+import           Language.PlutusCore.Pretty
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
@@ -348,9 +353,9 @@ typeCheckM x term vTy = do
     vTermTy <- typeOf term
     when (vTermTy /= vTy) $ throwError (TypeMismatch x (void term) (getNormalizedType vTermTy) vTy)
 
--- | @unfoldFixOf pat arg k = NORM (pat (\(a :: k) -> ifix vPat a) arg)@
+-- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldFixOf
-    :: Type TyNameWithKind ()  -- ^ @pat@
+    :: Type TyNameWithKind ()  -- ^ @vPat@
     -> Type TyNameWithKind ()  -- ^ @arg@
     -> Kind ()                 -- ^ @k@
     -> TypeCheckM a (NormalizedType TyNameWithKind ())
@@ -376,6 +381,9 @@ normalizeTypeBinder
     -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeBinder n ty ty' = do
     let u = extractUnique n
+    when (Set.member n . ftvTy $ getNormalizedType ty) $ do
+        traceShowM $ prettyPlcDefString ty
+        traceShowM $ prettyPlcDefString n
     tyEnvAssign u ty
     normalizeType ty' <* tyEnvDelete u
 
@@ -422,7 +430,7 @@ normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
         -- we must use recursive lookups because we can have an assignment
         -- a -> b and an assignment b -> c which is locally valid but in
         -- a smaller scope than a -> b.
-        Just ty'@(NormalizedType TyVar{}) -> pure ty' -- normalizeType $ getNormalizedType ty'
+        Just ty'@(NormalizedType TyVar{}) -> normalizeType $ getNormalizedType ty'
         Just ty'                          -> traverse rename ty'
         Nothing                           -> pure $ NormalizedType ty
 

@@ -85,11 +85,12 @@ getBuiltinFix = rename =<< do
         unrollFunAB = TyInst () unroll funAB
     RecursiveType wrapSelfFunAB selfFunAB <-
         holedToRecursive $ holedTyApp self funAB
-    return
-        . TyAbs () a (Type ())
+    fmap
+        ( TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
         . Apply () unrollFunAB
+        )
         . wrapSelfFunAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)

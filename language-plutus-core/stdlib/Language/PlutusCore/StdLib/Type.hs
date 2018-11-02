@@ -78,7 +78,7 @@ getWithSpine0 = rename =<< do
 -- >         λ (K : (Set -> Set) -> Set) ->
 -- >             K λ (R : Set) -> R
 getTyFix0 :: a -> TyName a -> Type TyName a -> Quote (Type TyName a)
-getTyFix0 ann name patBind = do
+getTyFix0 ann name patBind = rename =<< do
     withSpine0 <- getWithSpine0
     let pat = TyLam () (void name) star (void patBind)
     tyFixN <- getTyFixN star
@@ -87,8 +87,8 @@ getTyFix0 ann name patBind = do
     return $ ann <$ mkIterTyApp () tyFixN [withSpine0, pat]
 
 -- IWrap (λ B P -> P (Pat (B (λ R -> R)))) (λ R -> R)
-getWrap :: a -> TyName a -> Type TyName a -> Quote (Term TyName Name a -> Term TyName Name a)
-getWrap ann name patBind = do
+getWrap :: a -> TyName a -> Type TyName a -> Term TyName Name a -> Quote (Term TyName Name a)
+getWrap ann name patBind term = do
     withSpine0 <- getWithSpine0
     let pat = TyLam () (void name) star (void patBind)
     patternFunctor <- getPatternFunctor star
@@ -100,7 +100,7 @@ getWrap ann name patBind = do
             . TyLam () r star
             $ TyVar () r
 
-    return $ IWrap ann (ann <$ mkIterTyApp () patternFunctor [withSpine0, pat]) (ann <$ identity)
+    return $ IWrap ann (ann <$ mkIterTyApp () patternFunctor [withSpine0, pat]) (ann <$ identity) term
 
 -- | A type with a hole inside. The reason for having such a thing is that 'Wrap'
 -- expects the pattern functor of a recursive type while in type signatures we use
@@ -121,7 +121,7 @@ data HoledType a = HoledType
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
 data RecursiveType a = RecursiveType
-    { _recursiveWrap :: Term TyName Name a -> Term TyName Name a
+    { _recursiveWrap :: Term TyName Name a -> Quote (Term TyName Name a)
     , _recursiveType :: Type TyName a
     }
 
@@ -132,6 +132,6 @@ holedTyApp (HoledType name cont) arg = HoledType name $ \hole -> TyApp () <$> co
 -- | Convert a 'HoledType' to the corresponding 'RecursiveType'.
 holedToRecursive :: HoledType () -> Quote (RecursiveType ())
 holedToRecursive (HoledType name cont) = do
-    wrap <- getWrap () name =<< cont return
+    let wrap term = cont return >>= \ty -> getWrap () name ty term
     fixedPat <- cont $ getTyFix0 () name
     return $ RecursiveType wrap fixedPat

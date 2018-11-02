@@ -55,8 +55,9 @@ getBuiltinNil = rename =<< do
     f <- freshName () "f"
     RecursiveType wrapListA listA <-
         holedToRecursive . holedTyApp list $ TyVar () a
-    return
-        . TyAbs () a (Type ())
+    fmap
+        ( TyAbs () a (Type ())
+        )
         . wrapListA
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
@@ -78,10 +79,11 @@ getBuiltinCons = rename =<< do
     f  <- freshName () "f"
     RecursiveType wrapListA listA <-
         holedToRecursive . holedTyApp list $ TyVar () a
-    return
-        . TyAbs () a (Type ())
+    fmap
+        ( TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
         . LamAbs () xs listA
+        )
         . wrapListA
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
