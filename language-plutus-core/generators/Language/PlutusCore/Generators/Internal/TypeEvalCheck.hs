@@ -68,12 +68,10 @@ typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     termTy <- convertErrors TypeEvalCheckErrorIllFormed $ typecheck term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
-        for ((,) <$> resExpected <*> eval term) $ \(_valExpected, valActual) ->
-            return valActual
-            -- TODO: return equality checking once it's modulo alpha.
-            -- if valExpected == valActual
-            --     then return valActual
-            --     else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+        for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->
+            if valExpected == valActual
+                then return valActual
+                else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
