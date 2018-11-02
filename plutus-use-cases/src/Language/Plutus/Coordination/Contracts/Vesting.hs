@@ -21,8 +21,8 @@ import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime    (Hash, Height, PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
-                                             PubKey (..), Value)
+import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
+                                             PubKey (..), ValidatorHash, Value)
 import qualified Language.Plutus.Runtime.TH as TH
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
@@ -59,7 +59,7 @@ totalAmount Vesting{..} =
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
-    vestingDataHash    :: Hash, -- ^ Hash of the validator script
+    vestingDataHash    :: ValidatorHash, -- ^ Hash of the validator script
     vestingDataPaidOut :: Value -- ^ How much of the vested value has already been retrieved
     } deriving (Eq, Generic)
 
@@ -103,8 +103,8 @@ retrieveFunds vs vd r vnow = do
     signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
-validatorScriptHash :: Vesting -> Runtime.Hash
-validatorScriptHash = Runtime.plcHash . validatorScript
+validatorScriptHash :: Vesting -> ValidatorHash
+validatorScriptHash = Runtime.plcValidatorHash . validatorScript
 
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
@@ -112,8 +112,8 @@ validatorScript v = Validator val where
     inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
         let
 
-            eqBs :: Hash -> Hash -> Bool
-            eqBs = Builtins.equalsByteString
+            eqBs :: ValidatorHash -> ValidatorHash -> Bool
+            eqBs = $(TH.eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
             eqPk = $(TH.eqPubKey)

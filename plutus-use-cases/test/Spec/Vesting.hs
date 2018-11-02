@@ -125,7 +125,7 @@ data VestingScenario = VestingScenario {
     vsVestingScheme   :: Vesting,
     vsWallets         :: [Wallet],
     vsInitialBalances :: Map.Map PubKey UTXO.Value,
-    vsScriptHash      :: Runtime.Hash -- Hash of validator script for this scenario
+    vsScriptHash      :: Runtime.ValidatorHash -- Hash of validator script for this scenario
     }
 
 -- | Funds available to each wallet after the initial transaction on the

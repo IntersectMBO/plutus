@@ -211,8 +211,8 @@ mkOut t = Runtime.PendingTxOut (fromIntegral $ txOutValue t) d tp where
     (d, tp) = case txOutType t of
         UTXO.PayToScript vh scrpt ->
             let
-                dataScriptHash = Runtime.plcHash scrpt
-                validatorHash  = Runtime.plcDigest vh
+                dataScriptHash = Runtime.plcDataScriptHash scrpt
+                validatorHash  = Runtime.plcValidatorDigest vh
             in
                 (Just (validatorHash, dataScriptHash), Runtime.DataTxOut)
         UTXO.PayToPubKey pk -> (Nothing, Runtime.PubKeyTxOut pk)
@@ -220,13 +220,13 @@ mkOut t = Runtime.PendingTxOut (fromIntegral $ txOutValue t) d tp where
 mkIn :: ValidationMonad m => TxIn' -> m Runtime.PendingTxIn
 mkIn i = Runtime.PendingTxIn <$> ref <*> pure red <*> vl where
     ref =
-        let hash = Runtime.plcDigest . UTXO.getTxId . UTXO.txOutRefId $ txInRef i
+        let hash = Runtime.plcTxHash . UTXO.txOutRefId $ txInRef i
             idx  = UTXO.txOutRefIdx $ UTXO.txInRef i
         in
             Runtime.PendingTxOutRef hash idx <$> lkpSigs (UTXO.txInRef i)
     red = case txInType i of
         UTXO.ConsumeScriptAddress v r  ->
-            Just (Runtime.plcHash v, Runtime.plcHash r)
+            Just (Runtime.plcValidatorHash v, Runtime.plcRedeemerHash r)
         UTXO.ConsumePublicKeyAddress _ ->
             Nothing
     vl = fromIntegral <$> valueOf i

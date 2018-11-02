@@ -20,10 +20,15 @@ module Language.Plutus.Runtime.TH(
     -- * Transactions
     pubKeyOutput,
     scriptOutput,
-    eqPubKey
+    eqPubKey,
+    eqDataScript,
+    eqRedeemer,
+    eqValidator,
+    eqTx
     ) where
 
 import           Language.Haskell.TH (Exp, Q)
+import qualified Language.Plutus.TH  as Builtins
 import           Wallet.UTXO.Runtime
 
 import           Prelude             (Bool (..), Eq (..), Int, Maybe (..))
@@ -113,3 +118,18 @@ scriptOutput = [| \(o:: PendingTxOut) -> case o of
 -- | Equality of public keys
 eqPubKey :: Q Exp
 eqPubKey = [| \(PubKey l) (PubKey r) -> l == r |]
+
+-- | Equality of data scripts
+eqDataScript :: Q Exp
+eqDataScript = [| \(DataScriptHash l) (DataScriptHash r) -> Builtins.equalsByteString l r |]
+
+-- | Equality of validator scripts
+eqValidator :: Q Exp
+eqValidator = [| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r |]
+
+-- | Equality of redeemer scripts
+eqRedeemer :: Q Exp
+eqRedeemer = [| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString l r |]
+
+eqTx :: Q Exp
+eqTx = [| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r |]
