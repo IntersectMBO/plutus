@@ -1,13 +1,6 @@
--- | The CEK machine.
--- Rules are the same as for the CK machine from "Language.PlutusCore.Evaluation.CkMachine",
--- except we do not use substitution and use environments instead.
--- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
--- string names. I.e. 'Unique's are used instead of string names, so the renamer pass is required.
--- This is for efficiency reasons.
--- The type checker pass is required as well (and in our case it subsumes the renamer pass).
--- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
--- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
--- This is not a problem as the CEK machines handles name capture by design.
+-- | The L machine
+-- A lazy machine based on the L machine of Friedman et al. [Improving the Lazy Krivine Machine]
+-- More documentation to follow
 
 module Language.PlutusCore.Interpreter.LMachine
     ( EvaluationResult (..)
