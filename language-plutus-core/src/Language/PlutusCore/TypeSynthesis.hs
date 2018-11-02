@@ -426,13 +426,15 @@ normalizeType (TyApp x fun arg)    = do
 normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
     (TypeCheckSt st _) <- get
     case IM.lookup (unUnique u) st of
+        Nothing  -> pure $ NormalizedType ty
+        Just ty' -> rename (getNormalizedType ty') >>= normalizeType
 
-        -- we must use recursive lookups because we can have an assignment
-        -- a -> b and an assignment b -> c which is locally valid but in
-        -- a smaller scope than a -> b.
-        Just ty'@(NormalizedType TyVar{}) -> normalizeType $ getNormalizedType ty'
-        Just ty'                          -> traverse rename ty'
-        Nothing                           -> pure $ NormalizedType ty
+        -- -- we must use recursive lookups because we can have an assignment
+        -- -- a -> b and an assignment b -> c which is locally valid but in
+        -- -- a smaller scope than a -> b.
+        -- Just ty'@(NormalizedType TyVar{}) -> normalizeType $ getNormalizedType ty'
+        -- Just ty'                          -> traverse rename ty'
+        -- Nothing                           -> pure $ NormalizedType ty
 
 normalizeType ty@TyInt{}     = pure $ NormalizedType ty
 normalizeType ty@TyBuiltin{} = pure $ NormalizedType ty

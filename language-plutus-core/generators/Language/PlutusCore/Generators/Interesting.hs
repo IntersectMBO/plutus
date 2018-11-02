@@ -172,3 +172,13 @@ fromInterestingTermGens f =
     , f "ListSum"         genListSum
     , f "IfIntegers"      genIfIntegers
     ]
+
+{-
+           Expected type
+              '(fun (all a_18 (type) (fun (all a_19 (type) (fun a_19 a_19)) (all a_20 (type) (fun a_20 a_20)))) [(con integer) (con 2)])',
+            found type
+              '(fun (all a_39 (type) (fun a_39 a_39)) [(con integer) (con 2)])'
+
+            This failure can be reproduced by running:
+            > recheck (Size 40) (Seed 5363149071393393081 (-4496973423881789079)) IfIntegers
+-}

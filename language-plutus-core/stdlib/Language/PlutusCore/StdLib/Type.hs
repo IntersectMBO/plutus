@@ -88,7 +88,7 @@ getTyFix0 ann name patBind = rename =<< do
 
 -- IWrap (λ B P -> P (Pat (B (λ R -> R)))) (λ R -> R)
 getWrap :: a -> TyName a -> Type TyName a -> Term TyName Name a -> Quote (Term TyName Name a)
-getWrap ann name patBind term = do
+getWrap ann name patBind term = rename =<< do
     withSpine0 <- getWithSpine0
     let pat = TyLam () (void name) star (void patBind)
     patternFunctor <- getPatternFunctor star
