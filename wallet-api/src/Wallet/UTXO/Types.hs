@@ -320,6 +320,12 @@ instance Ord Redeemer where
     compare (Redeemer l) (Redeemer r) = -- TODO: Deriving via
         l `compare` r
 
+instance BA.ByteArrayAccess Redeemer where
+    length =
+        BA.length . Write.toStrictByteString . encode
+    withByteArray =
+        BA.withByteArray . Write.toStrictByteString . encode
+
 -- | Block height
 newtype Height = Height { getHeight :: Integer }
     deriving (Eq, Ord, Show, Enum)
@@ -463,8 +469,8 @@ instance BA.ByteArrayAccess TxIn' where
 
 -- | Type of transaction output.
 data TxOutType =
-    PayToScript !DataScript
-    | PayToPubKey !PubKey
+    PayToScript !(Digest SHA256) !DataScript -- ^ A pay-to-script output with the hash of the validator script, and the full data script
+    | PayToPubKey !PubKey -- ^ A pay-to-pubkey output
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- Transaction output
@@ -484,8 +490,8 @@ deriving instance FromJSON TxOut'
 -- | The data script that a [[TxOut]] refers to
 txOutData :: TxOut h -> Maybe DataScript
 txOutData TxOut{txOutType = t} = case  t of
-    PayToScript s -> Just s
-    PayToPubKey _ -> Nothing
+    PayToScript _ s -> Just s
+    PayToPubKey _   -> Nothing
 
 -- | The public key that a [[TxOut]] refers to
 txOutPubKey :: TxOut h -> Maybe PubKey
@@ -534,7 +540,8 @@ scriptAddress v vl ds = Address $ hash h where
 scriptTxOut :: Value -> Validator -> DataScript -> TxOut'
 scriptTxOut v vl ds = TxOut a v tp where
     a = scriptAddress v vl ds
-    tp = PayToScript ds
+    tp = PayToScript h ds
+    h :: Digest SHA256 = hash $ Write.toStrictByteString $ encode vl
 
 -- | Create a transaction output locked by a public key
 pubKeyTxOut :: Value -> PubKey -> TxOut'
@@ -657,7 +664,7 @@ validTx v t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
 validate :: ValidationData -> TxIn' -> TxOut' -> Bool
 validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
-        (ConsumeScriptAddress v r, PayToScript d)
+        (ConsumeScriptAddress v r, PayToScript _ d)
             | txOutAddress /= scriptAddress txOutValue v d -> False
             | otherwise                                    -> runScript bs v r d
         (ConsumePublicKeyAddress sig, PayToPubKey pk) -> sig `signedBy` pk
