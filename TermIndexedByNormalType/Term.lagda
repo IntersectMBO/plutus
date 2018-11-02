@@ -140,4 +140,16 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → Q ≡ E [ ne (μ S) ]E
     → (M : Γ ⊢ Q)
     → Γ ⊢ E [ S [ ne (μ S) ] ]E
+
+  wrap1 : ∀{Γ K}
+   → (pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
+   → (arg : ∥ Γ ∥ ⊢Nf⋆ K)
+   → (term : Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+   → Γ ⊢ ne (μ1 · pat · arg)
+
+  unwrap1 : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+    → (term : Γ ⊢ ne (μ1 · pat · arg))
+    → Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)
 \end{code}

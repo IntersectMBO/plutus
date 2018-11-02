@@ -8,6 +8,7 @@ module TermIndexedByNormalType.Term.RenamingSubstitution where
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq; [_] to [_]≅)
+open import Data.Sum
 
 open import Type
 open import Type.Equality
@@ -76,6 +77,21 @@ renameE[] ρ (E ·E u) t =
 \end{code}
 
 \begin{code}
+rename-nf : ∀{Γ Δ K}
+  → (A : ∥ Γ ∥ ⊢⋆ K)
+  → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
+  → renameNf ρ⋆ (nf A) ≡ nf (⋆.rename ρ⋆ A)
+rename-nf A ρ⋆ = trans
+  (rename-reify (idext idCR A) ρ⋆)
+  (reifyCR
+    (transCR
+      (transCR
+        (renameVal-eval A idCR ρ⋆)
+        (idext (λ α → renameVal-reflect ρ⋆ (` α)) A))
+      (symCR (rename-eval A idCR ρ⋆))))
+\end{code}
+
+\begin{code}
 
 rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
@@ -106,6 +122,25 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap {S = B} E p M) = substEq
   (unwrap (renameE ρ⋆ E)
           (trans (cong (renameNf ρ⋆) p) (renameE[] ρ⋆ E (ne (μ B))))
           (rename ρ⋆ ρ M))
+rename {Γ}{Δ} ρ⋆ ρ (wrap1 pat arg term) = wrap1
+  (renameNf ρ⋆ pat)
+  (renameNf ρ⋆ arg)
+  (substEq
+    (Δ ⊢_)
+    (trans
+      (rename-nf {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)
+      (cong₂ (λ (p : ∥ Δ ∥ ⊢⋆ _)(a : ∥ Δ ∥ ⊢⋆ _) → nf (p · (μ1 · p) · a))
+             (sym (rename-embNf ρ⋆ pat))
+             (sym (rename-embNf ρ⋆ arg))))
+    (rename ρ⋆ ρ term))
+rename {Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
+  (Δ ⊢_)
+  (trans  -- same as above but backwards
+    (cong₂ (λ (p : ∥ Δ ∥ ⊢⋆ _)(a : ∥ Δ ∥ ⊢⋆ _) → nf (p · (μ1 · p) · a))
+             (rename-embNf ρ⋆ pat)
+             (rename-embNf ρ⋆ arg))
+    (sym (rename-nf {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
+  (unwrap1 (rename ρ⋆ ρ term))
 \end{code}
 
 \begin{code}
@@ -230,6 +265,39 @@ subst {Γ}{Δ} σ⋆ σ (unwrap {S = A} E p M) =
                          (cong (ne ∘ μ)
                                (reifyCR (transCR (transCR (subst-eval (embNf A) (CR,,⋆ (renCR S ∘ idCR) (reflectCR refl)) (⋆.exts (embNf ∘ σ⋆))) (idext (λ { Z → reflectCR refl ; (S x) → transCR (idext (λ { Z → reflectCR refl ; (S x) → renameVal-reflect S (` x)}) (⋆.rename S (embNf (σ⋆ x)))) (symCR (evalCRSubst idCR (rename-embNf S (σ⋆ x))))} ) (embNf A))) (symCR (subst-eval (embNf A) idCR (embNf ∘ extsNf σ⋆))))))))))
                   (subst σ⋆ σ M))
+
+subst {Γ}{Δ} σ⋆ σ (wrap1 {K = K} pat arg term) = wrap1
+  (substNf σ⋆ pat)
+  (substNf σ⋆ arg)
+  (substEq
+    (Δ ⊢_)
+    (trans
+       (sym (substNf-nf σ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg)))
+       (AppCR
+         (AppCR
+           (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat))))
+           (cong
+             ne
+             (cong
+               (μ1 ·_)
+               (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat)))))))
+         (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg))))))
+    (subst σ⋆ σ term))
+subst {Γ}{Δ} σ⋆ σ (unwrap1 {pat = pat}{arg} term)       = substEq
+  (Δ ⊢_)
+  (sym  -- the same but backwards
+    (trans
+       (sym (substNf-nf σ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg)))
+       (AppCR
+         (AppCR
+           (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat))))
+           (cong
+             ne
+             (cong
+               (μ1 ·_)
+               (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat)))))))
+         (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg)))))))
+  (unwrap1 (subst σ⋆ σ term))
 \end{code}
 
 \begin{code}

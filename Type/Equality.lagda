@@ -80,6 +80,7 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
       ---------------
     → μ B ≡β μ B'
 
+  -- no μ1 rule is needed
   -- no size⋆ rule is needed
 
   con≡β : {tcn : TyCon}{s s' : Γ ⊢⋆ #}
