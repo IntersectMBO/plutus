@@ -2,6 +2,8 @@
 -- A lazy machine based on the L machine of Friedman et al. [Improving the Lazy Krivine Machine]
 -- More documentation to follow
 
+-- DON'T LOOK AT THIS - it's horrible!
+
 module Language.PlutusCore.Interpreter.LMachine
     ( EvaluationResult (..)
     , evaluateL
@@ -17,6 +19,56 @@ import           PlutusPrelude
 
 import           Data.IntMap                                     (IntMap)
 import qualified Data.IntMap                                     as IntMap
+
+----------------------------------------------------------------------------------------------------
+
+nameStr :: Name () -> String
+nameStr n = show $ nameString n
+
+tnameStr :: TyName () -> String
+tnameStr n = nameStr $ unTyName n
+
+builtinStr :: TypeBuiltin -> String
+builtinStr TyByteString = "bs"
+builtinStr TyInteger    = "int"
+builtinStr TySize       = "size"
+
+
+typeStr :: Type TyName () -> String
+typeStr (TyVar _ tname)         = tnameStr tname
+typeStr (TyFun _ ty1 ty2)       = "(" ++ typeStr ty1 ++ " ~> " ++ typeStr ty2 ++ ")"
+typeStr (TyFix _ tname ty)      = "fix " ++ tnameStr tname ++ ".(" ++ typeStr ty ++ ")"
+typeStr (TyForall _ tname k ty) = "forall " ++ tnameStr tname ++ ".(" ++ typeStr ty ++ ")"
+typeStr (TyBuiltin _ tbi)       = builtinStr tbi
+typeStr (TyInt _ n)             = show n
+typeStr (TyLam _ tname k ty)    = "TLam " ++ tnameStr tname ++ " (" ++ typeStr ty ++ ")"
+typeStr (TyApp _ t1 t2)         = typeStr t1 ++ "<" ++ typeStr t2 ++ ">"
+
+
+
+
+termStr :: Plain Term -> String
+termStr (Var _ name)                = nameStr name
+termStr (TyAbs _ tyname  k term)    = "TyAbs " ++ tnameStr tyname ++ ".<" ++ termStr term ++ ">"
+termStr (LamAbs _ name tyname term) = "Lam " ++ nameStr name ++ " (" ++ termStr term ++ ")"
+termStr (Apply _ term1 term2)       = "Apply [" ++ termStr term1 ++ ", " ++ termStr term2 ++ "]"
+termStr (Constant _ c)              = "Const " ++ show c
+termStr (TyInst _ term ty)          = "TyInst {" ++ termStr term ++ ", " ++ typeStr ty  ++ "}"
+termStr (Unwrap _ term)             = "Unwrap (" ++ termStr term  ++ ")"
+termStr (Wrap  _ tyname ty term)    = "Wrap (" ++ termStr term ++ ")"
+termStr (Error _ _)                 = "Error"
+
+termStr2 :: Plain Term -> String
+termStr2 (LamAbs _ name _ _) = "LamAbs " ++ nameStr name
+termStr2 t                   = termStr t
+
+trace2 _ y = y
+-- trace2 = trace
+----------------------------------------------------------------------------------------------------
+
+data LocalResult
+    = Success (Plain Term) Heap
+    | Failure
 
 type Plain f = f TyName Name ()
 
@@ -95,7 +147,7 @@ emptyHeap = Heap IntMap.empty 0
 insertInHeap :: Closure -> Heap -> (Loc, Heap)
 insertInHeap cl (Heap h top) =
     let top' = top + 1
-    in (top', Heap (IntMap.insert top' (Unevaluated cl) h) top')
+    in trace2 ("Inserting at " ++ show top') $ (top', Heap (IntMap.insert top' (Unevaluated cl) h) top')
 
 modifyHeap :: Loc -> HeapEntry -> Heap -> Heap
 modifyHeap l cl (Heap h top) =
@@ -107,51 +159,44 @@ lookupHeap l (Heap h _) =
       Nothing -> error $ "Missing heap location in lookupHeap: " ++ show l
       Just e  -> e
 
--- | The computing part of the CEK machine.
--- Either
--- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'Wrap', 'Unwrap')
--- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
--- 3. returns 'EvaluationFailure' ('Error')
--- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
-computeL :: Heap -> Environment -> EvaluationContext -> Plain Term -> EvaluationResult
-computeL heap env ctx (TyInst _ fun ty)      = computeL heap env (FrameTyInstArg ty : ctx) fun      -- fun isn't necesaarily a function
-computeL heap env ctx (Apply _ fun arg)      = computeL heap env (FrameDelayedArg arg env: ctx) fun
-computeL heap env ctx (Wrap ann tyn ty term) = computeL heap env (FrameWrap ann tyn ty : ctx) term
-computeL heap env ctx (Unwrap _ term)        = computeL heap env (FrameUnwrap : ctx) term
-computeL heap env ctx tyAbs@TyAbs{}          = returnL heap env ctx tyAbs
-computeL heap env ctx lamAbs@LamAbs{}        = returnL heap env ctx lamAbs
-computeL heap env ctx constant@Constant{}    = returnL heap env ctx constant
-computeL _ _   _   Error{}                   = EvaluationFailure
+computeL :: Heap -> Environment -> EvaluationContext -> Plain Term -> LocalResult
+computeL heap env ctx (TyInst _ fun ty)      = trace2 ("-> TyInst "  ++ typeStr ty) $
+                                               computeL heap env (FrameTyInstArg ty : ctx) fun      -- fun isn't necesaarily a function
+computeL heap env ctx (Apply _ fun arg)      = trace2 ("-> Apply " ++ termStr fun ++ " " ++ termStr arg) $
+                                               computeL heap env (FrameDelayedArg arg env: ctx) fun
+computeL heap env ctx (Wrap ann tyn ty term) = trace2 ("-> Wrap " ++ termStr term) $
+                                               computeL heap env (FrameWrap ann tyn ty : ctx) term
+computeL heap env ctx (Unwrap _ term)        = trace2 ("-> Unwrap " ++ termStr term) $
+                                               computeL heap env (FrameUnwrap : ctx) term
+computeL heap env ctx tyAbs@TyAbs{}          = trace2 ("<- tyAbs") $
+                                               returnL heap env ctx tyAbs
+computeL heap env ctx lamAbs@LamAbs{}        = trace2 ("<- " ++ termStr2 lamAbs) $
+                                               returnL heap env ctx lamAbs
+computeL heap env ctx constant@Constant{}    = trace2 ("<- Constant " ++ termStr constant) $
+                                               returnL heap env ctx constant
+computeL _ _   _   Error{}                   = Failure
 computeL heap env ctx var@(Var _ name)       = let l = lookupLoc name env
                                                in case lookupHeap l heap of
-                                                    Evaluated v -> returnL heap env ctx v
+                                                    Evaluated v -> trace2 ("<- Evaluated " ++ show l ++ ": "
+                                                                          ++ termStr v) $ returnL heap env ctx v
                                                     Unevaluated (Closure term env') ->
---                                                        trace ("Unevaluated: " ++ show term) $
-  --                                                      trace ("env: " ++ show env') $
+                                                        trace2 ("-> Unevaluated " ++ show l ++ ": " ++ show term) $
+--                                                      trace2 ("env: " ++ show env') $
                                                         computeL heap env' (FrameMark env l: ctx) term -- CHECK THE ENVS
                                                         -- reduce the entry to a value, leaving a mark on
                                                         -- the stack so we know when we've finished
-{--
-    Nothing                  -> throw $ MachineException OpenTermEvaluatedMachineError var
-    Just (Closure term env') -> returnL env' ctx term
----}
-
--- | The returning part of the CEK machine.
--- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
--- from the context and either
--- 1. performs reduction and calls 'computeL' ('FrameTyInstArg', 'FrameApplyFun', 'FrameUnwrap')
--- 2. performs a constant application and calls 'returnL' ('FrameTyInstArg', 'FrameApplyFun')
--- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
--- 4. grows the resulting term ('FrameWrap')
-returnL :: Heap -> Environment -> EvaluationContext -> Plain Value -> EvaluationResult
-returnL _ _ []                                    res = EvaluationSuccess res
+returnL :: Heap -> Environment -> EvaluationContext -> Plain Value -> LocalResult
+returnL heap _ []                                 res = Success res heap
 returnL heap env (FrameTyInstArg ty        : ctx) fun = instantiateEvaluate heap env ctx ty fun
 returnL heap env (FrameDelayedArg arg env' : ctx) val = evaluateFun heap ctx val env arg env'
 returnL heap env (FrameWrap ann tyn ty     : ctx) val = returnL heap env ctx $ Wrap ann tyn ty val
 returnL heap env (FrameUnwrap              : ctx) dat = case dat of
     Wrap _ _ _ term -> returnL heap env ctx term
     term            -> throw $ MachineException NonWrapUnwrappedMachineError term
-returnL heap env (FrameMark env' l: ctx) val = returnL heap env' ctx val -- Restore the old environment
+returnL (heap@(Heap _ sz)) env (FrameMark env' l: ctx) val =
+    trace2 ("<- Mark " ++ show l ++ ", heap size = " ++ show sz) $
+           let heap' = modifyHeap l (Evaluated val) heap
+           in returnL heap' env' ctx val -- Restore the old environment
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -160,7 +205,7 @@ returnL heap env (FrameMark env' l: ctx) val = returnL heap env' ctx val -- Rest
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 
-evaluateFun :: Heap -> EvaluationContext -> Plain Term -> Environment -> Plain Term -> Environment -> EvaluationResult
+evaluateFun :: Heap -> EvaluationContext -> Plain Term -> Environment -> Plain Term -> Environment -> LocalResult
 evaluateFun heap ctx (LamAbs _ var _ body) funEnv arg argEnv =
     let (l, heap') = insertInHeap (Closure arg argEnv) heap
         env9 = updateEnvironment (unUnique $ nameUnique var) l funEnv -- ???
@@ -168,8 +213,8 @@ evaluateFun heap ctx (LamAbs _ var _ body) funEnv arg argEnv =
 evaluateFun heap ctx fun funEnv arg argEnv =
 -- We have to force the arguments, which means that we need to get the new heap back as well. ****************
    case computeL heap argEnv [] arg of
-     EvaluationFailure -> EvaluationFailure
-     EvaluationSuccess arg' ->
+     Failure -> Failure
+     Success arg' heap' ->
          let term = Apply () fun arg'
          in case termAsPrimIterApp term of
               Nothing ->
@@ -177,8 +222,8 @@ evaluateFun heap ctx fun funEnv arg argEnv =
                   -- "Cannot reduce a not immediately reducible application."
               Just (IterApp headName spine) ->
                   case runQuote $ applyBuiltinName headName spine of
-                    ConstAppSuccess term' -> returnL heap funEnv ctx term'
-                    ConstAppStuck         -> returnL heap funEnv ctx term
+                    ConstAppSuccess term' -> trace2 ("Evaluated builtin " ++ (show headName)) $ returnL heap' funEnv ctx term'
+                    ConstAppStuck         -> returnL heap' funEnv ctx term
                     ConstAppFailure       -> error $ "ConstAppFailure" ++ show term
                     ConstAppError err     -> throw $ MachineException (ConstAppMachineError err) term
 
@@ -188,17 +233,20 @@ evaluateFun heap ctx fun funEnv arg argEnv =
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
-    :: Heap -> Environment -> EvaluationContext -> Type TyName () -> Plain Term -> EvaluationResult
+    :: Heap -> Environment -> EvaluationContext -> Type TyName () -> Plain Term -> LocalResult
 instantiateEvaluate heap env ctx _  (TyAbs _ _ _ body) = computeL heap env ctx body
 instantiateEvaluate heap env ctx ty fun
     | isJust $ termAsPrimIterApp fun = returnL heap env ctx $ TyInst () fun ty
     | otherwise                      = throw $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Evaluate a term using the CEK machine. May throw a 'MachineException'.
-evaluateL :: Term TyName Name () -> EvaluationResult
+evaluateL :: Term TyName Name () -> LocalResult
 evaluateL = computeL emptyHeap (Environment IntMap.empty) []
 
 -- | Run a program using the CEK machine. May throw a 'MachineException'.
 -- Calls 'evaluateL' under the hood, so the same caveats apply.
 runL :: Program TyName Name () -> EvaluationResult
-runL (Program _ _ term) = evaluateL term
+runL (Program _ _ term) =
+    case evaluateL term of
+      Success r heap -> EvaluationSuccess r
+      Failure        -> EvaluationFailure
