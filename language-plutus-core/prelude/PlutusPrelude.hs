@@ -1,9 +1,12 @@
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude ( -- * Reëxports from base
-                       (&&&)
+                       (&)
+                     , (&&&)
                      , toList
                      , bool
                      , first
@@ -19,6 +22,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fromRight
                      , isRight
                      , void
+                     , coerce
                      , Generic
                      , NFData
                      , Natural
@@ -28,7 +32,16 @@ module PlutusPrelude ( -- * Reëxports from base
                      , Alternative (..)
                      , Exception
                      , PairT (..)
+                     , Coercible
                      , Typeable
+                     -- * Lens
+                     , Lens'
+                     , lens
+                     , (^.)
+                     , view
+                     , (.~)
+                     , set
+                     , over
                      -- * Debugging
                      , traceShowId
                      , trace
@@ -82,6 +95,7 @@ import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
+import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
@@ -100,8 +114,10 @@ import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
 import           Debug.Trace
-import           GHC.Generics                            (Generic)
+import           GHC.Generics
 import           GHC.Natural                             (Natural)
+import           Lens.Micro
+import           Lens.Micro.Extras
 
 import           Data.Functor.Compose
 

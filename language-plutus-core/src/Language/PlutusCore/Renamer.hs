@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module Language.PlutusCore.Renamer ( Rename (..)
                                    , rename
                                    , annotateProgram
@@ -17,7 +20,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap               as IM
-import           Lens.Micro
+import           Lens.Micro.TH
 
 data TypeState a = TypeState { _terms :: IM.IntMap (RenamedType a), _types :: IM.IntMap (Kind a) }
 
@@ -105,42 +108,63 @@ annotateTy (TyApp x ty ty') =
 annotateTy (TyBuiltin x tyb) = pure (TyBuiltin x tyb)
 annotateTy (TyInt x n) = pure (TyInt x n)
 
--- | Mapping from locally unique indices to globally unique 'Unique's.
-newtype UniquesRenaming = UniquesRenaming
-    { unUniquesRenaming :: IM.IntMap Unique
+-- | Mapping from locally unique indices to globally unique uniques.
+data ScopedUniquesRenaming = ScopedUniquesRenaming
+    { _scopedUniquesRenamingTypes :: IM.IntMap TypeUnique
+    , _scopedUniquesRenamingTerms :: IM.IntMap TermUnique
     }
 
+makeLenses ''ScopedUniquesRenaming
+
+class Coercible Unique unique => HasUniquesRenaming unique where
+    uniquesRenaming :: Lens' ScopedUniquesRenaming (IM.IntMap unique)
+
+instance HasUniquesRenaming TypeUnique where
+    uniquesRenaming = scopedUniquesRenamingTypes
+
+instance HasUniquesRenaming TermUnique where
+    uniquesRenaming = scopedUniquesRenamingTerms
+
 -- | The monad the renamer runs in.
-type RenameM = ReaderT UniquesRenaming Quote
+type RenameM = ReaderT ScopedUniquesRenaming Quote
 
 -- | Rename 'Unique's so that they're globally unique.
+-- In case there are any free variables, they're leaved untouched.
+-- Always assigns new names to bound variables, hence can be used for cloning as well.
+-- Distinguishes between type- and term-level scopes.
 rename :: (Rename a, MonadQuote m) => a -> m a
-rename x = liftQuote $ runReaderT (renameM x) (UniquesRenaming mempty)
+rename x = liftQuote $ runReaderT (renameM x) (ScopedUniquesRenaming mempty mempty)
 
 -- | Save the mapping from an old 'Unique' to a new one.
-updateUniquesRenaming :: Unique -> Unique -> UniquesRenaming -> UniquesRenaming
-updateUniquesRenaming uniqOld uniqNew (UniquesRenaming uniques) =
-    UniquesRenaming $ IM.insert (unUnique uniqOld) uniqNew uniques
+updateScopedUniquesRenaming
+    :: HasUniquesRenaming unique
+    => unique -> unique -> ScopedUniquesRenaming -> ScopedUniquesRenaming
+updateScopedUniquesRenaming uniqOld uniqNew =
+    over uniquesRenaming $ IM.insert (coerce uniqOld) uniqNew
 
--- | Look up a new 'Unique' an old 'Unique' got mapped to.
-lookupUnique :: Unique -> RenameM (Maybe Unique)
-lookupUnique uniq = asks $ IM.lookup (unUnique uniq) . unUniquesRenaming
+-- | Look up a new unique an old unique got mapped to.
+lookupUnique :: HasUniquesRenaming unique => unique -> RenameM (Maybe unique)
+lookupUnique uniq = asks $ IM.lookup (coerce uniq) . view uniquesRenaming
 
--- | Replace the 'Unique' in a value by a new 'Unique', save the mapping
--- from an old 'Unique' to the new one and supply the updated value to a continuation.
-withRefreshed :: HasUnique a => a -> (a -> RenameM c) -> RenameM c
+-- | Replace the unique in a value by a new unique, save the mapping
+-- from an old unique to the new one and supply the updated value to a continuation.
+withRefreshed
+    :: (HasUniquesRenaming unique, HasUnique a unique)
+    => a -> (a -> RenameM c) -> RenameM c
 withRefreshed x k = do
     let uniqOld = x ^. unique
-    uniqNew <- liftQuote freshUnique
-    local (updateUniquesRenaming uniqOld uniqNew) $ k (x & unique .~ uniqNew)
+    uniqNew <- liftQuote $ coerce <$> freshUnique
+    local (updateScopedUniquesRenaming uniqOld uniqNew) $ k (x & unique .~ uniqNew)
 
 -- | The class of things that can be renamed.
 -- I.e. things that are capable of satisfying the global uniqueness condition.
 class Rename a where
     renameM :: a -> RenameM a
 
--- | Rename a name that has a 'Unique' inside.
-renameNameM :: HasUnique name => name -> RenameM name
+-- | Rename a name that has a unique inside.
+renameNameM
+    :: (HasUniquesRenaming unique, HasUnique name unique)
+    => name -> RenameM name
 renameNameM name = do
     let uniqOld = name ^. unique
     mayUniqNew <- lookupUnique uniqOld
@@ -148,7 +172,7 @@ renameNameM name = do
         Nothing      -> name
         Just uniqNew -> name & unique .~ uniqNew
 
-instance HasUnique (tyname a) => Rename (Type tyname a) where
+instance HasUnique (tyname a) TypeUnique => Rename (Type tyname a) where
     renameM (TyLam ann name kind ty)    =
         withRefreshed name $ \nameFr -> TyLam ann nameFr kind <$> renameM ty
     renameM (TyForall ann name kind ty) =
@@ -160,7 +184,8 @@ instance HasUnique (tyname a) => Rename (Type tyname a) where
     renameM ty@TyInt{}                  = pure ty
     renameM ty@TyBuiltin{}              = pure ty
 
-instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Term tyname name a) where
+instance (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) =>
+        Rename (Term tyname name a) where
     renameM (LamAbs ann name ty body)  =
         withRefreshed name $ \nameFr -> LamAbs ann nameFr <$> renameM ty <*> renameM body
     renameM (IWrap ann pat arg term)   = IWrap ann <$> renameM pat <*> renameM arg <*> renameM term
@@ -173,5 +198,6 @@ instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Term tyname name 
     renameM (Var ann name)             = Var ann <$> renameNameM name
     renameM con@Constant{}             = pure con
 
-instance (HasUnique (tyname a), HasUnique (name a)) => Rename (Program tyname name a) where
+instance (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) =>
+        Rename (Program tyname name a) where
     renameM (Program ann ver term) = Program ann ver <$> renameM term

@@ -88,12 +88,18 @@ propParser = property $ do
         compared = and (compareProgram (nullPosn prog) <$> proc)
     Hedgehog.assert compared
 
+propRename :: Property
+propRename = property $ do
+    prog <- forAll genProgram
+    Hedgehog.assert $ runQuote (rename prog) == prog
+
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
     [ tests
     , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
+    , testProperty "equality survives renaming" propRename
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles

@@ -1,0 +1,8 @@
+(program 0.1.0
+
+(abs a (type) (lam xs (fix x (all r (type) (fun r (fun (fun a (fun x r)) r))))
+  [ { (unwrap xs) a }
+    (error a)
+    (lam h a (lam t (fix x (all r (type) (fun r (fun (fun a (fun x r)) r)))) h))]))
+
+)
