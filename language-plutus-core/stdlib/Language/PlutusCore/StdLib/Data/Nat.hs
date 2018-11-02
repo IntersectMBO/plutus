@@ -89,7 +89,7 @@ getBuiltinFoldrNat = rename =<< do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
         . LamAbs () z (TyVar () r)
-        . Apply () (mkIterInst fix [nat, TyVar () r])
+        . Apply () (mkIterInst () fix [nat, TyVar () r])
         . LamAbs () rec (TyFun () nat $ TyVar () r)
         . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
@@ -116,13 +116,13 @@ getBuiltinFoldNat = rename =<< do
     return
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) (TyVar () r))
-        . Apply () (mkIterInst fix [TyVar () r, TyFun () nat $ TyVar () r])
+        . Apply () (mkIterInst () fix [TyVar () r, TyFun () nat $ TyVar () r])
         . LamAbs () rec (TyFun () (TyVar () r) . TyFun () nat $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . LamAbs () n nat
         . Apply () (Apply () (TyInst () (Unwrap () (Var () n)) $ TyVar () r) $ Var () z)
         . LamAbs () n' nat
-        . mkIterApp (Var () rec)
+        . mkIterApp () (Var () rec)
         $ [ Apply () (Var () f) $ Var () z
           , Var () n'
           ]
@@ -144,7 +144,7 @@ getBuiltinNatToInteger = rename =<< do
     return
         . TyAbs ()  s  (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
-        $ mkIterApp (TyInst () foldNat $ TyApp () (TyBuiltin () TyInteger) sv)
+        $ mkIterApp () (TyInst () foldNat $ TyApp () (TyBuiltin () TyInteger) sv)
           [ Apply ()
               (TyInst () addInteger (TyVar () s))
               (makeDynBuiltinInt sv ssv 1)

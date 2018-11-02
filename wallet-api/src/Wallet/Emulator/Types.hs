@@ -31,9 +31,9 @@ module Wallet.Emulator.Types(
     walletNotifyBlock,
     walletsNotifyBlock,
     blockchainActions,
+    addBlocks,
     assertion,
     assertOwnFundsEq,
-    setValidationData,
     -- * Emulator internals
     EmulatedWalletApi(..),
     handleNotifications,
@@ -43,7 +43,6 @@ module Wallet.Emulator.Types(
     chain,
     txPool,
     walletStates,
-    validationData,
     index,
     MonadEmulator,
     validateEm,
@@ -73,8 +72,7 @@ import           Data.Hashable             (Hashable)
 import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
                                             signature)
 import           Wallet.UTXO               (Block, Blockchain, Height, Tx (..), TxIn (..), TxOut (..), TxOutRef (..),
-                                            TxOutRef', ValidationData, Value, hashTx, pubKeyTxIn, pubKeyTxOut,
-                                            txOutPubKey, unitValidationData)
+                                            TxOutRef', Value, hashTx, height, pubKeyTxIn, pubKeyTxOut, txOutPubKey)
 import qualified Wallet.UTXO.Index         as Index
 
 -- agents/wallets
@@ -208,19 +206,16 @@ data Event n a where
     BlockchainActions :: Event n Block
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> Event n ()
-    -- | Change the data used to validate transactions.
-    SetValidationData :: ValidationData -> Event n ()
 
 
 -- Program is like Free, except it makes the Functor for us so we can have a nice GADT
 type Trace m = Op.Program (Event m)
 
 data EmulatorState = EmulatorState {
-    emChain          :: Blockchain,
-    emTxPool         :: TxPool,
-    emWalletState    :: Map Wallet WalletState,
-    emValidationData :: ValidationData, -- ^ Value that will be used to validate transactions with scripts. Since we cannot generate this data at runtime, we need to set it manually here.
-    emIndex          :: Index.UtxoIndex
+    emChain       :: Blockchain,
+    emTxPool      :: TxPool,
+    emWalletState :: Map Wallet WalletState,
+    emIndex       :: Index.UtxoIndex
     } deriving (Show)
 
 chain :: Lens' EmulatorState Blockchain
@@ -238,11 +233,6 @@ walletStates = lens g s where
     g = emWalletState
     s es ws = es { emWalletState = ws }
 
-validationData :: Lens' EmulatorState ValidationData
-validationData = lens g s where
-    g = emValidationData
-    s es vd = es { emValidationData = vd }
-
 index :: Lens' EmulatorState Index.UtxoIndex
 index = lens g s where
     g = emIndex
@@ -253,7 +243,6 @@ emptyEmulatorState = EmulatorState {
     emChain = [],
     emTxPool = [],
     emWalletState = Map.empty,
-    emValidationData = unitValidationData,
     emIndex = Index.empty
     }
 
@@ -269,8 +258,9 @@ type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
 -- | Validate a transaction in the current emulator state
 validateEm :: EmulatorState -> Tx -> Maybe Tx
-validateEm EmulatorState{emIndex=idx, emValidationData = vd} txn =
-    let result = Index.runValidation (Index.validateTransaction vd txn) idx in
+validateEm EmulatorState{emIndex=idx, emChain = ch} txn =
+    let h = height ch
+        result = Index.runValidation (Index.validateTransaction h txn) idx in
     either (const Nothing) (const $ Just txn) result
 
 liftEmulatedWallet :: (MonadState EmulatorState m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
@@ -300,7 +290,6 @@ evalEmulated = \case
             }
         pure block
     Assertion a -> assert a
-    SetValidationData d -> modify (set validationData d)
 
 processEmulated :: (MonadEmulator m) => Trace EmulatedWalletApi a -> m a
 processEmulated = interpretWithMonad evalEmulated
@@ -325,6 +314,11 @@ walletsNotifyBlock wls b = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w b) []
 blockchainActions :: Trace m Block
 blockchainActions = Op.singleton BlockchainActions
 
+-- | Add a number of empty blocks to the blockchain, by performing
+--   `blockchainActions` @n@ times.
+addBlocks :: Int -> Trace m [Block]
+addBlocks i = traverse (const blockchainActions) [1..i]
+
 -- | Make an assertion about the emulator state
 assertion :: Assertion -> Trace m ()
 assertion = Op.singleton . Assertion
@@ -334,11 +328,6 @@ assertOwnFundsEq wallet = assertion . OwnFundsEqual wallet
 
 assertIsValidated :: Tx -> Trace m ()
 assertIsValidated = assertion . IsValidated
-
--- | Set the validation data (in PLC) used to validate transactions that consume
---   output from Pay-To-Script addresses.
-setValidationData :: ValidationData -> Trace m ()
-setValidationData = Op.singleton . SetValidationData
 
 -- | Run an emulator trace on a blockchain
 runTraceChain :: Blockchain -> Trace EmulatedWalletApi a -> (Either AssertionError a, EmulatorState)

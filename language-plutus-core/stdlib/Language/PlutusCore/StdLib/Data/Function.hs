@@ -93,7 +93,7 @@ getBuiltinFix = rename =<< do
         . wrapSelfFunAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
-        $ mkIterApp (Var () f)
+        $ mkIterApp () (Var () f)
           [ Apply () unrollFunAB $ Var () s
           , Var () x
           ]
@@ -204,7 +204,7 @@ getBuiltinFixN n = do
     let abFuns = fmap (\(a, b) -> TyFun () (TyVar () a) (TyVar () b)) asbs
 
     -- funTysTo X = (A1 -> B1) -> ... -> (An -> Bn) -> X
-    let funTysTo = mkIterTyFun abFuns
+    let funTysTo = mkIterTyFun () abFuns
 
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
@@ -229,16 +229,16 @@ getBuiltinFixN n = do
             -- names and types for the f arguments
             fs <- forM asbs $ \(a',b') -> do
                 f <- freshName () "f"
-                pure (f, TyFun () (TyVar () a') (TyVar () b'))
+                pure $ VarDecl () f (TyFun () (TyVar () a') (TyVar () b'))
 
             x <- freshName () "x"
 
             pure $
                 LamAbs () x (TyVar () a) $
                 Apply () (TyInst () (Var () k) (TyVar () b)) $
-                mkIterLamAbs fs $
+                mkIterLamAbs () fs $
                 -- this is an ugly but straightforward way of getting the right fi
-                Apply() (Var () (fst (fs !! i))) (Var () x)
+                Apply () (mkVar (fs !! i)) (Var () x)
 
     -- a list of all the branches
     branches <- forM (zip asbs [0..]) $ uncurry branch
@@ -247,9 +247,9 @@ getBuiltinFixN n = do
     let allAsBs = foldMap (\(a, b) -> [a, b]) asbs
     pure $
         -- abstract out all the As and Bs
-        mkIterTyAbs (zip allAsBs (repeat (Type ()))) $
+        mkIterTyAbs () (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
         Apply () instantiatedFix $
         LamAbs () k kTy $
         TyAbs () s (Type ()) $
         LamAbs () h hTy $
-        mkIterApp (Var () h) branches
+        mkIterApp () (Var () h) branches

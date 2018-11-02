@@ -26,8 +26,14 @@ flag development
 library
     exposed-modules:
         Language.PlutusIR
+        Language.PlutusIR.Compiler
     hs-source-dirs: src
     other-modules:
+        Language.PlutusIR.Compiler.Error
+        Language.PlutusIR.Compiler.Term
+        Language.PlutusIR.Compiler.Datatype
+        Language.PlutusIR.Compiler.Recursion
+        Language.PlutusIR.Compiler.Types
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift

@@ -12,7 +12,6 @@ module Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Renamer
 import           PlutusPrelude
 
 infixr 5 ~~>
@@ -58,7 +57,7 @@ getTyFixN k = rename =<< do
         . TyApp () (TyVar () withSpine)
         . TyLam () spine (k ~~> star)
         $ TyIFix ()
-            (mkIterTyApp patternFunctor [TyVar () withSpine, TyVar () pat])
+            (mkIterTyApp () patternFunctor [TyVar () withSpine, TyVar () pat])
             (TyVar () spine)
 
 getWithSpine0 :: Quote (Type TyName ())
@@ -85,7 +84,7 @@ getTyFix0 ann name patBind = do
     tyFixN <- getTyFixN star
 
     -- First throw away annotations, then annotate everything using the same annotation. Silly.
-    return $ ann <$ mkIterTyApp tyFixN [withSpine0, pat]
+    return $ ann <$ mkIterTyApp () tyFixN [withSpine0, pat]
 
 -- IWrap (λ B P -> P (Pat (B (λ R -> R)))) (λ R -> R)
 getWrap :: a -> TyName a -> Type TyName a -> Quote (Term TyName Name a -> Term TyName Name a)
@@ -101,7 +100,7 @@ getWrap ann name patBind = do
             . TyLam () r star
             $ TyVar () r
 
-    return $ IWrap ann (ann <$ mkIterTyApp patternFunctor [withSpine0, pat]) (ann <$ identity)
+    return $ IWrap ann (ann <$ mkIterTyApp () patternFunctor [withSpine0, pat]) (ann <$ identity)
 
 -- | A type with a hole inside. The reason for having such a thing is that 'Wrap'
 -- expects the pattern functor of a recursive type while in type signatures we use

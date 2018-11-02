@@ -26,7 +26,7 @@ import qualified MkId                                           as GHC
 import qualified PrelNames                                      as GHC
 
 import qualified Language.PlutusCore                            as PLC
-import           Language.PlutusCore.MkPlc
+import qualified Language.PlutusCore.MkPlc                      as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function       as Function
 
@@ -145,7 +145,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> liftQuote errorFunc
         -- locally bound vars
-        GHC.Var (lookupName top . GHC.getName -> Just (PLCVar name _)) -> pure $ PLC.Var () name
+        GHC.Var (lookupName top . GHC.getName -> Just (PLC.VarDecl _ name _)) -> pure $ PLC.Var () name
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) ->
@@ -195,12 +195,12 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
 
             q <- safeFreshTyName "Q"
             choose <- safeFreshName "choose"
-            let chooseTy = mkIterTyFun tys (PLC.TyVar () q)
+            let chooseTy = PLC.mkIterTyFun () tys (PLC.TyVar () q)
 
             -- \f1 ... fn -> choose b1 ... bn
             bsLam <- mkIterLamAbsScoped (fmap fst bs) $ do
                 rhss <- mapM convExpr (fmap snd bs)
-                pure $ mkIterApp (PLC.Var() choose) rhss
+                pure $ PLC.mkIterApp () (PLC.Var() choose) rhss
 
             -- abstract out Q and choose
             let cLam = PLC.TyAbs () q (PLC.Type ()) $ PLC.LamAbs () choose chooseTy bsLam
@@ -208,7 +208,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             -- fixN {A1 B1 ... An Bn}
             instantiatedFix <- do
                 fixN <- liftQuote $ Function.getBuiltinFixN (length bs)
-                pure $ mkIterInst fixN $ foldMap (\(a, b) -> [a, b]) asbs
+                pure $ PLC.mkIterInst () fixN $ foldMap (\(a, b) -> [a, b]) asbs
 
             let fixed = PLC.Apply () instantiatedFix cLam
 
@@ -240,7 +240,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 Just alt -> convAlt lazyCase dc alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
 
-            let applied = mkIterApp instantiated branches
+            let applied = PLC.mkIterApp () instantiated branches
             -- See Note [Case expressions and laziness]
             maybeForce lazyCase applied
         -- ignore annotation

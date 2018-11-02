@@ -7,4 +7,5 @@ module Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.Internal.Denotation      as Export
 import           Language.PlutusCore.Generators.Internal.Entity          as Export
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen as Export
+import           Language.PlutusCore.Generators.Internal.TypeEvalCheck   as Export
 import           Language.PlutusCore.Generators.Internal.Utils           as Export

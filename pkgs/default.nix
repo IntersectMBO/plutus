@@ -12109,46 +12109,6 @@ description = "OTP-like supervision trees in Haskell";
 license = stdenv.lib.licenses.mit;
 
 }) {};
-"cardano-crypto" = callPackage
-({
-  mkDerivation
-, base
-, bytestring
-, cryptonite
-, cryptonite-openssl
-, deepseq
-, fetchgit
-, hashable
-, memory
-, stdenv
-}:
-mkDerivation {
-
-pname = "cardano-crypto";
-version = "1.0.0";
-src = fetchgit {
-
-url = "https://github.com/input-output-hk/cardano-crypto";
-sha256 = "02gjaj7889y30g2qfdh96ywrsdpmgfgyqyajw49zaklwjvkh87sv";
-rev = "838b064d8a59286142aa2fe14434fe7601896ddb";
-
-};
-libraryHaskellDepends = [
-base
-bytestring
-cryptonite
-cryptonite-openssl
-deepseq
-hashable
-memory
-];
-doHaddock = false;
-doCheck = false;
-homepage = "https://github.com/input-output-hk/cardano-crypto#readme";
-description = "Cryptography primitives for cardano";
-license = stdenv.lib.licenses.mit;
-
-}) {};
 "carray" = callPackage
 ({
   mkDerivation
@@ -15645,9 +15605,7 @@ license = stdenv.lib.licenses.mit;
 "core-to-plc" = callPackage
 ({
   mkDerivation
-, aeson
 , base
-, base64-bytestring
 , bytestring
 , cborg
 , containers
@@ -15672,9 +15630,7 @@ pname = "core-to-plc";
 version = "0.1.0.0";
 src = ./../core-to-plc;
 libraryHaskellDepends = [
-aeson
 base
-base64-bytestring
 bytestring
 cborg
 containers
@@ -55678,55 +55634,6 @@ text
 doHaddock = false;
 description = "Plutus IR language";
 license = stdenv.lib.licenses.bsd3;
-
-}) {};
-"plutus-prototype" = callPackage
-({
-  mkDerivation
-, base
-, bifunctors
-, binary
-, bytestring
-, cardano-crypto
-, cryptonite
-, ed25519
-, either
-, filepath
-, lens
-, memory
-, mtl
-, operational
-, parsec
-, stdenv
-, transformers
-}:
-mkDerivation {
-
-pname = "plutus-prototype";
-version = "0.1.0.0";
-src = ./../plutus-prototype;
-enableSeparateDataOutput = true;
-libraryHaskellDepends = [
-base
-bifunctors
-binary
-bytestring
-cardano-crypto
-cryptonite
-ed25519
-either
-filepath
-lens
-memory
-mtl
-operational
-parsec
-transformers
-];
-doHaddock = false;
-homepage = "iohk.io";
-description = "Prototype of the Plutus language";
-license = stdenv.lib.licenses.mit;
 
 }) {};
 "plutus-th" = callPackage

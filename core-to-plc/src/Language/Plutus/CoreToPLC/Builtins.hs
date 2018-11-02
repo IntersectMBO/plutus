@@ -1,10 +1,8 @@
 -- | Primitive names and functions for working with Plutus Core builtins.
 module Language.Plutus.CoreToPLC.Builtins where
 
+import           Data.ByteString.Lazy
 import           Language.Plutus.CoreToPLC.Error
-
--- | An abstract data type representing bytestrings in Plutus Core.
-data ByteString
 
 -- TODO: resizing primitives? better handling of sizes?
 

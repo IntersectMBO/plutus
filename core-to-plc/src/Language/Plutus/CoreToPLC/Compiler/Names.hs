@@ -14,6 +14,7 @@ import           Language.Plutus.CoreToPLC.Utils
 import qualified GhcPlugins                               as GHC
 
 import qualified Language.PlutusCore                      as PLC
+import qualified Language.PlutusCore.MkPlc                as PLC
 import           Language.PlutusCore.Quote
 
 import           Data.Char
@@ -35,6 +36,7 @@ safeFreshName s
     -- some special cases
     | s == ":" = safeFreshName "cons"
     | s == "[]" = safeFreshName "list"
+    | s == "()" = safeFreshName "unit"
     | otherwise =
           let
               -- See Note [PLC names]
@@ -57,7 +59,7 @@ convVarFresh :: Converting m => GHC.Var -> m PLCVar
 convVarFresh v = do
     t' <- convType $ GHC.varType v
     n' <- convNameFresh $ GHC.getName v
-    pure $ PLCVar n' t'
+    pure $ PLC.VarDecl () n' t'
 
 lookupTyName :: Scope -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
@@ -72,7 +74,7 @@ convTyVarFresh :: Converting m => GHC.TyVar -> m PLCTyVar
 convTyVarFresh v = do
     k' <- convKind $ GHC.tyVarKind v
     t' <- convTyNameFresh $ GHC.getName v
-    pure $ PLCTyVar t' k'
+    pure $ PLC.TyVarDecl () t' k'
 
 pushName :: GHC.Name -> PLCVar-> ScopeStack -> ScopeStack
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack

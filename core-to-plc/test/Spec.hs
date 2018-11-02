@@ -2,68 +2,40 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
 -- the simplfiier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
+{-# OPTIONS_GHC   -Wno-orphans #-}
 
 module Main (main) where
 
 import           IllTyped
 
 import           Common
-import           PlutusPrelude                            (bsToStr, strToBs)
+import           PlcTestUtils
 
-import qualified Language.Plutus.CoreToPLC.Builtins       as Builtins
+import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
 import           Language.Plutus.CoreToPLC.Plugin
 import           Language.Plutus.Lift
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.CkMachine
-import qualified Language.PlutusCore.Pretty               as PLC
 
 import           Test.Tasty
 
-import           Control.Exception
-import           Control.Monad.Except                     hiding (lift, void)
-
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text.Prettyprint.Doc                as PP
+import           Data.ByteString.Lazy
 import           GHC.Generics
 
 -- this module does lots of weird stuff deliberately
-{-# ANN module "HLint: ignore" #-}
+{-# ANN module ("HLint: ignore"::String) #-}
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-class GetProgram a where
-    getProgram :: a -> ExceptT BSL.ByteString IO (Program TyName Name ())
-
 instance GetProgram PlcCode where
-    getProgram value = withExceptT (strToBs . show) $ getAst <$> (ExceptT $ try @SomeException (evaluate value))
-
-instance GetProgram (Program TyName Name ()) where
-    getProgram = pure
-
-instance GetProgram (Term TyName Name ()) where
-    getProgram = pure . trivialProgram
-
-trivialProgram :: Term TyName Name () -> Program TyName Name ()
-trivialProgram t = Program () (defaultVersion ()) t
-
-runPlc :: (GetProgram a) => [a] -> ExceptT BSL.ByteString IO EvaluationResult
-runPlc values = do
-    ps <- mapM getProgram values
-    let p = foldl1 (\acc p -> applyProgram acc p) ps
-    pure $ runCk p
-
-golden :: (GetProgram a) => String -> a -> TestNested
-golden name value = nestedGoldenVsDocM name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ getProgram value)
-
-goldenEval :: (GetProgram a) => String -> [a] -> TestNested
-goldenEval name values = nestedGoldenVsDocM name $ either (PP.pretty . bsToStr) (PLC.prettyPlcClassicDebug) <$> (runExceptT $ runPlc values)
+    getProgram = getAst
 
 tests :: TestNested
 tests = testGroup "conversion" <$> sequence [
@@ -79,8 +51,8 @@ tests = testGroup "conversion" <$> sequence [
 
 basic :: TestNested
 basic = testNested "basic" [
-    golden "monoId" monoId
-  , golden "monoK" monoK
+    goldenPlc "monoId" monoId
+  , goldenPlc "monoK" monoK
   ]
 
 monoId :: PlcCode
@@ -91,27 +63,28 @@ monoK = plc @"monoK" (\(i :: Int) -> \(j :: Int) -> i)
 
 primitives :: TestNested
 primitives = testNested "primitives" [
-    golden "string" string
-  , golden "int" int
-  , golden "int2" int
-  , golden "bool" bool
-  , golden "and" andPlc
+    goldenPlc "string" string
+  , goldenPlc "int" int
+  , goldenPlc "int2" int
+  , goldenPlc "bool" bool
+  , goldenPlc "and" andPlc
   , goldenEval "andApply" [ andPlc, plc @"T" True, plc @"F" False ]
-  , golden "tuple" tuple
-  , golden "tupleMatch" tupleMatch
+  , goldenPlc "tuple" tuple
+  , goldenPlc "tupleMatch" tupleMatch
   , goldenEval "tupleConstDest" [ tupleMatch, tuple ]
-  , golden "intCompare" intCompare
-  , golden "intEq" intEq
+  , goldenPlc "intCompare" intCompare
+  , goldenPlc "intEq" intEq
   , goldenEval "intEqApply" [ intEq, int, int ]
-  , golden "void" void
-  , golden "intPlus" intPlus
+  , goldenPlc "void" void
+  , goldenPlc "intPlus" intPlus
   , goldenEval "intPlusApply" [ intPlus, int, int2 ]
-  , golden "error" errorPlc
-  , golden "ifThenElse" ifThenElse
+  , goldenPlc "error" errorPlc
+  , goldenPlc "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
-  , golden "blocknum" blocknumPlc
-  , golden "bytestring" bytestring
-  , golden "verify" verify
+  , goldenPlc "blocknum" blocknumPlc
+  , goldenPlc "bytestring" bytestring
+  , goldenEval "bytestringApply" [ getAst bytestring, trivialProgram $ runQuote $ lift ("hello"::ByteString) ]
+  , goldenPlc "verify" verify
   ]
 
 string :: PlcCode
@@ -158,14 +131,14 @@ blocknumPlc :: PlcCode
 blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
 bytestring :: PlcCode
-bytestring = plc @"bytestring" (\(x::Builtins.ByteString) -> x)
+bytestring = plc @"bytestring" (\(x::ByteString) -> x)
 
 verify :: PlcCode
-verify = plc @"verify" (\(x::Builtins.ByteString) (y::Builtins.ByteString) (z::Builtins.ByteString) -> Builtins.verifySignature x y z)
+verify = plc @"verify" (\(x::ByteString) (y::ByteString) (z::ByteString) -> Builtins.verifySignature x y z)
 
 structure :: TestNested
 structure = testNested "structure" [
-    golden "letFun" letFun
+    goldenPlc "letFun" letFun
   ]
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
@@ -181,17 +154,17 @@ datat = testNested "data" [
 
 monoData :: TestNested
 monoData = testNested "monomorphic" [
-    golden "enum" basicEnum
-  , golden "monoDataType" monoDataType
-  , golden "monoConstructor" monoConstructor
-  , golden "monoConstructed" monoConstructed
-  , golden "monoCase" monoCase
+    goldenPlc "enum" basicEnum
+  , goldenPlc "monoDataType" monoDataType
+  , goldenPlc "monoConstructor" monoConstructor
+  , goldenPlc "monoConstructed" monoConstructed
+  , goldenPlc "monoCase" monoCase
   , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
-  , golden "defaultCase" defaultCase
+  , goldenPlc "defaultCase" defaultCase
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
-  , golden "monoRecord" monoRecord
-  , golden "nonValueCase" nonValueCase
-  , golden "synonym" synonym
+  , goldenPlc "monoRecord" monoRecord
+  , goldenPlc "nonValueCase" nonValueCase
+  , goldenPlc "synonym" synonym
   ]
 
 data MyEnum = Enum1 | Enum2
@@ -232,8 +205,8 @@ synonym = plc @"synonym" (1::Synonym)
 
 polyData :: TestNested
 polyData = testNested "polymorphic" [
-    golden "polyDataType" polyDataType
-  , golden "polyConstructed" polyConstructed
+    goldenPlc "polyDataType" polyDataType
+  , goldenPlc "polyConstructed" polyConstructed
   ]
 
 data MyPolyData a b = Poly1 a b | Poly2 a
@@ -246,11 +219,11 @@ polyConstructed = plc @"polyConstructed" (Poly1 (1::Int) (2::Int))
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [
-    golden "basicNewtype" basicNewtype
-   , golden "newtypeMatch" newtypeMatch
-   , golden "newtypeCreate" newtypeCreate
-   , golden "newtypeCreate2" newtypeCreate2
-   , golden "nestedNewtypeMatch" nestedNewtypeMatch
+    goldenPlc "basicNewtype" basicNewtype
+   , goldenPlc "newtypeMatch" newtypeMatch
+   , goldenPlc "newtypeCreate" newtypeCreate
+   , goldenPlc "newtypeCreate2" newtypeCreate2
+   , goldenPlc "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
 
@@ -275,27 +248,27 @@ nestedNewtypeMatch = plc @"nestedNewtypeMatch" (\(MyNewtype2 (MyNewtype x)) -> x
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursiveTypes" [
-    golden "listConstruct" listConstruct
-    , golden "listConstruct2" listConstruct2
-    , golden "listConstruct3" listConstruct3
-    , golden "listMatch" listMatch
+    goldenPlc "listConstruct" listConstruct
+    , goldenPlc "listConstruct2" listConstruct2
+    , goldenPlc "listConstruct3" listConstruct3
+    , goldenPlc "listMatch" listMatch
     , goldenEval "listConstDest" [ listMatch, listConstruct ]
     , goldenEval "listConstDest2" [ listMatch, listConstruct2 ]
-    , golden "ptreeConstruct" ptreeConstruct
-    , golden "ptreeMatch" ptreeMatch
+    , goldenPlc "ptreeConstruct" ptreeConstruct
+    , goldenPlc "ptreeMatch" ptreeMatch
     , goldenEval "ptreeConstDest" [ ptreeMatch, ptreeConstruct ]
   ]
 
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
     -- currently broken, will come back to this later
-    golden "fib" fib
+    goldenPlc "fib" fib
     , goldenEval "fib4" [ fib, plc @"4" (4::Int) ]
-    , golden "sum" sumDirect
+    , goldenPlc "sum" sumDirect
     , goldenEval "sumList" [ sumDirect, listConstruct3 ]
     --, golden "sumFold" sumViaFold
     --, goldenEval "sumFoldList" [ sumViaFold, listConstruct3 ]
-    , golden "even" evenMutual
+    , goldenPlc "even" evenMutual
     , goldenEval "even3" [ evenMutual, plc @"3" (3::Int) ]
     , goldenEval "even4" [ evenMutual, plc @"4" (4::Int) ]
   ]
@@ -307,11 +280,19 @@ fib = plc @"fib" (
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
 
+evenMutual :: PlcCode
+evenMutual = plc @"evenMutual" (
+    let even :: Int -> Bool
+        even n = if n == 0 then True else odd (n-1)
+        odd :: Int -> Bool
+        odd n = if n == 0 then False else even (n-1)
+    in even)
+
 errors :: TestNested
 errors = testNested "errors" [
-    golden "integer" integer
-    , golden "free" free
-    , golden "valueRestriction" valueRestriction
+    goldenPlcCatch "integer" integer
+    , goldenPlcCatch "free" free
+    , goldenPlcCatch "valueRestriction" valueRestriction
   ]
 
 integer :: PlcCode
@@ -330,12 +311,12 @@ instance LiftPlc (MyMonoRecord)
 
 generics :: TestNested
 generics = testNested "generics" [
-    golden "int" (runQuote $ lift (1::Int))
-    , golden "mono" (runQuote $ lift (Mono2 2))
+    goldenPlc "int" (runQuote $ lift (1::Int))
+    , goldenPlc "mono" (runQuote $ lift (Mono2 2))
     , goldenEval "monoInterop" [ getAst monoCase, (trivialProgram $ runQuote $ lift (Mono1 1 2)) ]
-    , golden "record" (runQuote $ lift (MyMonoRecord 1 2))
+    , goldenPlc "record" (runQuote $ lift (MyMonoRecord 1 2))
     , goldenEval "boolInterop" [ getAst andPlc, (trivialProgram $ runQuote $ lift True), (trivialProgram $ runQuote $ lift True) ]
-    , golden "list" (runQuote $ lift ([1]::[Int]))
+    , goldenPlc "list" (runQuote $ lift ([1]::[Int]))
     , goldenEval "listInterop" [ getAst listMatch, (trivialProgram $ runQuote $ lift ([1]::[Int])) ]
-    , golden "liftPlc" (runQuote $ lift int)
+    , goldenPlc "liftPlc" (runQuote $ lift int)
   ]

@@ -52,6 +52,15 @@ instance LiftPlc BSL.ByteString where
 -- uses the Generic instance for Bool
 instance LiftPlc Bool
 
+
+-- uses Generic instance for (a, b)
+instance (TypeablePlc a, TypeablePlc b) => TypeablePlc (a, b)
+instance (TypeablePlc a, TypeablePlc b, LiftPlc a, LiftPlc b) => LiftPlc (a, b)
+
+-- uses Generic instance for `Maybe`
+instance (TypeablePlc a) => TypeablePlc (Maybe a)
+instance (TypeablePlc a, LiftPlc a) => LiftPlc (Maybe a)
+
 {- Note [Stlib lists]
 We should use the stdlib list, but currently that uses lambdas-outside-fixpoints,
 whereas the plugin uses fixpoints-outside-lambdas. See CGP-381.
@@ -74,7 +83,7 @@ instance (TypeablePlc a, LiftPlc a) => LiftPlc [a] where
         argType <- typeRep @a
         h <- lift x
         t <- lift xs
-        pure $ mkIterApp (TyInst () cons argType) [h, t]
+        pure $ mkIterApp () (TyInst () cons argType) [h, t]
 
 -- Tweaked copies of the stdlib functions, see note [Stdlib lists].
 
@@ -137,7 +146,7 @@ getBuiltinCons = do
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () (TyApp () (TyVar () list) (TyVar () a)) $ TyVar () r)
-        $ mkIterApp (Var () f)
+        $ mkIterApp () (Var () f)
           [ Var () x
           , Var () xs
           ]
@@ -184,8 +193,8 @@ instance (GGetConstructorTypes f, Datatype d)  => GTypeablePlc (M1 D d f) where
         -- See note [Ordering of constructors]
         constrs <- sortConstructors (packageName @d undefined) (datatypeName @d undefined) <$> gGetConstructorTypes @f
         r <- liftQuote $ freshTyName () "r"
-        let caseTys = fmap (\(_, tys) -> mkIterTyFun tys (TyVar () r)) constrs
-        pure $ TyForall () r (Type ()) $ mkIterTyFun caseTys (TyVar () r)
+        let caseTys = fmap (\(_, tys) -> mkIterTyFun () tys (TyVar () r)) constrs
+        pure $ TyForall () r (Type ()) $ mkIterTyFun () caseTys (TyVar () r)
 
 -- See Note [Specific generic functions]
 instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPlc (M1 D d f) where
@@ -198,10 +207,10 @@ instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPl
         r <- liftQuote $ freshTyName () "r"
         cases <- forM constrs $ \(n, tys) -> do
                 arg <- liftQuote $ freshName () (strToBs n)
-                let ty = mkIterTyFun tys (TyVar () r)
-                pure (arg, ty)
+                let ty = mkIterTyFun () tys (TyVar () r)
+                pure $ VarDecl () arg ty
 
-        pure $ TyAbs () r (Type ()) $ mkIterLamAbs cases $ mkIterApp (Var () $ fst $ cases !! index) (snd constr)
+        pure $ TyAbs () r (Type ()) $ mkIterLamAbs () cases $ mkIterApp () (mkVar $ cases !! index) (snd constr)
 
 -- Auxiliary generic functions
 

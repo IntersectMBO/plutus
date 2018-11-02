@@ -1,0 +1,72 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Maybe_20
+            (fun (type) (type))
+            (lam
+              Nothing_21
+              (all a_22 (type) [Maybe_20 a_22])
+              (lam
+                Just_23
+                (all a_24 (type) (fun a_24 [Maybe_20 a_24]))
+                (lam
+                  match_Maybe_25
+                  (all a_26 (type) (fun [Maybe_20 a_26] [(lam a_27 (type) (all out_Maybe_28 (type) (fun out_Maybe_28 (fun (fun a_27 out_Maybe_28) out_Maybe_28)))) a_26]))
+                  [
+                    { Just_23 (all a_29 (type) (fun a_29 a_29)) }
+                    (abs a_30 (type) (lam x_31 a_30 x_31))
+                  ]
+                )
+              )
+            )
+          )
+          (lam a_32 (type) (all out_Maybe_33 (type) (fun out_Maybe_33 (fun (fun a_32 out_Maybe_33) out_Maybe_33))))
+        }
+        (abs
+          a_34
+          (type)
+          (abs
+            out_Maybe_35
+            (type)
+            (lam
+              case_Nothing_36
+              out_Maybe_35
+              (lam case_Just_37 (fun a_34 out_Maybe_35) case_Nothing_36)
+            )
+          )
+        )
+      ]
+      (abs
+        a_38
+        (type)
+        (lam
+          arg_0_39
+          a_38
+          (abs
+            out_Maybe_40
+            (type)
+            (lam
+              case_Nothing_41
+              out_Maybe_40
+              (lam
+                case_Just_42 (fun a_38 out_Maybe_40) [ case_Just_42 arg_0_39 ]
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_43
+      (type)
+      (lam
+        x_44
+        [(lam a_45 (type) (all out_Maybe_46 (type) (fun out_Maybe_46 (fun (fun a_45 out_Maybe_46) out_Maybe_46)))) a_43]
+        x_44
+      )
+    )
+  ]
+)

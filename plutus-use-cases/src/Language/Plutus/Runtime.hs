@@ -5,7 +5,7 @@ module Language.Plutus.Runtime (
     module Types
     ) where
 
-import           Language.Plutus.Runtime.Types as Types
+import           Wallet.UTXO.Runtime as Types
 
 {- Note [Script types in pending transactions]
 

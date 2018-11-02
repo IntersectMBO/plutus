@@ -50,6 +50,7 @@ module Language.PlutusCore
     , TypeState (..)
     , RenamedType
     , RenamedTerm
+    , rename
     , alphaRename
     , globalRename
     -- * Normalization

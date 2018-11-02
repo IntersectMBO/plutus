@@ -17,6 +17,7 @@ module Language.PlutusCore.Generators.Internal.Entity
     , genBuiltinSized
     , genBuiltin
     , withTypedBuiltinGen
+    , withCheckedTermGen
     , genIterAppValue
     , genTerm
     , genTermLoose
@@ -27,6 +28,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
+import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 import           PlutusPrelude
 
@@ -117,6 +119,20 @@ genBuiltin genSize = Gen.choice
 withTypedBuiltinGen
     :: Monad m => GenT m Size -> (forall a. TypedBuiltin size a -> GenT m c) -> GenT m c
 withTypedBuiltinGen genSize k = genBuiltin genSize >>= \b -> withTypedBuiltin b k
+
+-- | Generate a 'Term' along with the value it computes to,
+-- having a generator of terms of built-in types.
+withCheckedTermGen
+    :: TypedBuiltinGenT Quote
+    -> (forall a. TypedBuiltin Size a -> Maybe (TermOf (Value TyName Name ())) -> GenT Quote c)
+    -> GenT Quote c
+withCheckedTermGen genTb k =
+    withTypedBuiltinGen genSizeDef $ \tb -> do
+        termWithMetaValue <- genTb tb
+        termWithValue <-
+            liftQuote . unsafeTypeEvalCheck $
+                TypedBuiltinValue tb <$> termWithMetaValue
+        k tb termWithValue
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
 genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
@@ -229,11 +245,10 @@ genTerm genBase = go where
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose :: TypedBuiltinGenT Quote
-genTermLoose = genTerm genTypedBuiltinLoose typedBuiltinNames 4
+genTermLoose = genTerm genTypedBuiltinSmall typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
--- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass
--- that to a continuation.
+-- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
     :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Quote c) -> GenT Quote c
 withAnyTermLoose k =

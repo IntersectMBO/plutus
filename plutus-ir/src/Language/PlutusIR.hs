@@ -3,13 +3,14 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
     TyName (..),
     Name (..),
-    Kind (..),
-    Type (..),
     VarDecl (..),
     TyVarDecl (..),
+    Kind (..),
+    Type (..),
     Datatype (..),
     Recursivity (..),
     Binding (..),
@@ -22,16 +23,10 @@ import           PlutusPrelude
 
 import           Language.PlutusCore        (Kind, Name, TyName, Type)
 import qualified Language.PlutusCore        as PLC
+import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           GHC.Generics               (Generic)
-
--- Variable declarations
-
-data VarDecl tyname name a = VarDecl a (name a) (Type tyname a)
-    deriving (Functor, Show, Eq, Generic)
-data TyVarDecl tyname a = TyVarDecl a (tyname a) (Kind a)
-    deriving (Functor, Show, Eq, Generic)
 
 -- Datatypes
 

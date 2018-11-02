@@ -13,12 +13,14 @@ module Language.PlutusCore.Generators.Internal.Utils
     , forAllPrettyT
     , forAllPrettyPlc
     , forAllPrettyPlcT
+    , forAllPrettyPlcMaybe
+    , forAllPrettyPlcMaybeT
     , runQuoteSampleSucceed
+    , errorPlc
     ) where
 
-import           Language.PlutusCore.Pretty (PrettyPlc, prettyPlcDefString)
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote  (Quote, runQuote)
-import           PlutusPrelude              hiding (hoist)
 
 import           Control.Monad.Morph
 import           Control.Monad.Reader
@@ -67,6 +69,21 @@ forAllPrettyPlc = forAllWith prettyPlcDefString
 forAllPrettyPlcT :: (Monad m, PrettyPlc a) => GenT m a -> PropertyT m a
 forAllPrettyPlcT = forAllWithT prettyPlcDefString
 
+-- | Generate a value wrapped in 'Maybe' using the 'PrettyPlc' constraint
+-- for getting its 'String' representation.
+forAllPrettyPlcMaybe :: (Monad m, PrettyPlc a) => Gen (Maybe a) -> PropertyT m (Maybe a)
+forAllPrettyPlcMaybe = forAllWith $ maybe "Nothing" prettyPlcDefString
+
+-- | Generate a value wrapped in 'Maybe' using the 'PrettyPlc' constraint
+-- for getting its 'String' representation.
+-- A supplied generator has access to the 'Monad' the whole property has access to.
+forAllPrettyPlcMaybeT :: (Monad m, PrettyPlc a) => GenT m (Maybe a) -> PropertyT m (Maybe a)
+forAllPrettyPlcMaybeT = forAllWithT $ maybe "Nothing" prettyPlcDefString
+
 -- | Run a generator until it succeeds with a 'Just'.
 runQuoteSampleSucceed :: GenT Quote (Maybe a) -> IO a
 runQuoteSampleSucceed = Gen.sample . Gen.just . hoist (pure . runQuote)
+
+-- | Throw a PLC error.
+errorPlc :: PrettyPlc err => err -> b
+errorPlc = error . docString . prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic
