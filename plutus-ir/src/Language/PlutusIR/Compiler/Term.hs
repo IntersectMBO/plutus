@@ -18,7 +18,7 @@ import qualified Language.PlutusCore.MkPlc            as PLC
 
 import           Data.List
 
--- | Compile a 'Term' into a PLC Term.
+-- | Compile a 'Term' into a PLC Term. Note: the result does *not* have globally unique names.
 compileTerm :: Compiling m => Term TyName Name () -> m (PLC.Term TyName Name ())
 compileTerm = \case
     Let _ r bs body -> do
