@@ -122,8 +122,8 @@ convTyCon tc = do
                     match <- mkMatch tc
                     pure (constrs, match)
 
-                -- See Note [Booleans and abstraction]
-                let finalVisibility = if tc == GHC.boolTyCon then Visible else Abstract
+                -- See Note [Booleans, unit and abstraction]
+                let finalVisibility = if tc == GHC.boolTyCon || tc == GHC.unitTyCon then Visible else Abstract
                 (constrDefs, matchDef) <- do
                     -- make the constructor *types* with the type abstract
                     let abstractDef = Def finalVisibility (PLC.TyVarDecl () finalName k) (PlainType ty)
@@ -318,15 +318,18 @@ When constructing a datatype we therefore carefully construct its pieces in seve
   and with all the constructors and destructors attached.
 -}
 
-{- Note [Booleans and abstraction]
+{- Note [Booleans, unit and abstraction]
 While we convert most datatypes as abstract (see Note [Abstract data types]), we do *not*
-do so for Booleans. This is because the booleans produced by builtins will be non-abstract
+do so for Booleans and Unit.
+
+This is because the Booleans and Unit appear in our builtins. Booleans are in the spec, and Unit
+appears because we need to expose error as `\_ -> error`. But these types will be non-abstract
 (i.e. will actually be the Scott-encoded values), and so in order for user code to interoperate
 with that we would have to either:
-1. Wrap all builtins that return booleans to convert them into abstract booleans.
-2. Leave booleans as visible throughout.
+1. Wrap all builtins that use such types to convert them into the abstract types.
+2. Leave the types as visible throughout.
 
-At the moment we take option 2 since Bool is a fairly small type, but possibly we should
+At the moment we take option 2 since Bool and Unit are fairly small types, but possibly we should
 consider option 1 later.
 -}
 

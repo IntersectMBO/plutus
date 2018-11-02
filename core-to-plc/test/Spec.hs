@@ -163,8 +163,7 @@ monoData = testNested "monomorphic" [
   , goldenPlc "defaultCase" defaultCase
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , goldenPlc "monoRecord" monoRecord
-   -- FIXME: this should *not* fail
-  , goldenPlcCatch "nonValueCase" nonValueCase
+  , goldenPlc "nonValueCase" nonValueCase
   , goldenPlc "synonym" synonym
   ]
 
