@@ -43,7 +43,6 @@ library
     Language.Plutus.Coordination.Contracts.Vesting
     Language.Plutus.Coordination.Contracts.Swap
     Language.Plutus.Runtime
-    Language.Plutus.Runtime.Types
     Language.Plutus.Runtime.TH
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
@@ -58,7 +57,6 @@ test-suite plutus-use-cases-test
     other-modules:
       Spec.Crowdfunding
       Spec.Vesting
-      Spec.TH
     build-depends:
         base >=4.9 && <5,
         containers -any,

@@ -12,6 +12,7 @@ import           Language.Plutus.CoreToPLC.PLCTypes
 import qualified GhcPlugins                                          as GHC
 
 import qualified Language.PlutusCore                                 as PLC
+import qualified Language.PlutusCore.MkPlc                           as PLC
 
 import           Control.Monad.Reader
 
@@ -32,7 +33,7 @@ variable *last* (so it is on the outside, so will be first when applying).
 mkLamAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
 mkLamAbsScoped v body = do
     let ghcName = GHC.getName v
-    var@(PLCVar n' t') <- convVarFresh v
+    var@(PLC.VarDecl _ n' t') <- convVarFresh v
     body' <- local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) body
     pure $ PLC.LamAbs () n' t' body'
 
@@ -44,7 +45,7 @@ mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
 mkTyAbsScoped :: Converting m => GHC.Var -> m PLCTerm -> m PLCTerm
 mkTyAbsScoped v body = do
     let ghcName = GHC.getName v
-    var@(PLCTyVar t' k') <- convTyVarFresh v
+    var@(PLC.TyVarDecl _ t' k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) body
     checkTyAbsBody body'
     pure $ PLC.TyAbs () t' k' body'
@@ -57,7 +58,7 @@ mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars
 mkTyForallScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyForallScoped v body = do
     let ghcName = GHC.getName v
-    var@(PLCTyVar t' k') <- convTyVarFresh v
+    var@(PLC.TyVarDecl _ t' k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) body
     pure $ PLC.TyForall () t' k' body'
 
@@ -69,7 +70,7 @@ mkIterTyForallScoped vars body = foldr (\v acc -> mkTyForallScoped v acc) body v
 mkTyLamScoped :: Converting m => GHC.Var -> m PLCType -> m PLCType
 mkTyLamScoped v body = do
     let ghcName = GHC.getName v
-    var@(PLCTyVar t' k') <- convTyVarFresh v
+    var@(PLC.TyVarDecl _ t' k') <- convTyVarFresh v
     body' <- local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) body
     pure $ PLC.TyLam () t' k' body'
 

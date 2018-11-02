@@ -169,6 +169,28 @@ testLam :: Either (TypeError ()) String
 testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty) $
     normalizeType =<< appAppLamLam
 
+testEqTerm :: Bool
+testEqTerm =
+    let
+        xName = Name () "x" (Unique 0)
+        yName = Name () "y" (Unique 1)
+
+        varX = Var () xName
+        varY = Var () yName
+
+        varType = TyVar () (TyName (Name () "a" (Unique 2)))
+
+        lamX = LamAbs () xName varType varX
+        lamY = LamAbs () yName varType varY
+
+        -- [(lam x a x) x]
+        term0 = Apply () lamX varX
+        -- [(lam y a y) x]
+        term1 = Apply () lamY varX
+
+    in
+        term0 == term1
+
 testRebindShadowedVariable :: Bool
 testRebindShadowedVariable =
     let
@@ -230,5 +252,6 @@ tests = testCase "example programs" $ fold
     , testLam @?= Right "(con integer)"
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
+    , testEqTerm @?= True
     ]
     where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

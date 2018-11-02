@@ -14,11 +14,11 @@ let
   plutusPkgs = import ./. { };
   pkgs = import fixedNixpkgs { config = {}; };
   platforms = {
-    plutus-prototype = supportedSystems;
     language-plutus-core = supportedSystems;
     plutus-core-interpreter = supportedSystems;
     plutus-exe = supportedSystems;
     core-to-plc = supportedSystems;
+    plutus-ir = supportedSystems;
     plutus-th = supportedSystems;
     plutus-use-cases = supportedSystems;
     wallet-api = supportedSystems;

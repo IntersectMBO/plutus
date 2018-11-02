@@ -53,13 +53,13 @@ let
     );
   plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
     overrides = self: super: {
-      plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
       # we want to enable benchmarking, which also means we have criterion in the corresponding env
       # we need to enable benchmarks as a flag too, until we are on a newer nixpkgs where this is implied by doBenchmark
       language-plutus-core = addWerror (appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks");
       plutus-core-interpreter = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter)));
       plutus-exe = addWerror (addRealTimeTestLogs (filterSource super.plutus-exe));
       core-to-plc = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc)));
+      plutus-ir = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-ir)));
       plutus-th = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th)));
       plutus-use-cases = addWerror (addRealTimeTestLogs (filterSource super.plutus-use-cases));
       wallet-api = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api)));

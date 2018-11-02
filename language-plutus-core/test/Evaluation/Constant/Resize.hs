@@ -42,7 +42,7 @@ resizeTermOfSize :: BuiltinName -> (Size -> Size) -> TermOf Size -> TermOf Size
 resizeTermOfSize resize f (TermOf term size) = TermOf resizedTerm size' where
     size' = f size
     resizedTerm =
-        mkIterApp (mkIterInst (builtinNameAsTerm resize) [TyInt () size, TyInt () size'])
+        mkIterApp () (mkIterInst () (builtinNameAsTerm resize) [TyInt () size, TyInt () size'])
             [ Constant () $ BuiltinSize () size'
             , term
             ]

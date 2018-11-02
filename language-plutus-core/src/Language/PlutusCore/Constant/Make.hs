@@ -33,6 +33,7 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Data.Bits                            (bit)
 import qualified Data.ByteString.Lazy                 as BSL
 import           Data.Maybe
 
@@ -46,8 +47,8 @@ dynamicBuiltinNameAsTerm = Constant () . DynBuiltinName ()
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)
-toBoundsInt s = (-2 ^ p, 2 ^ p) where
-    p = 8 * fromIntegral s - 1 :: Int
+toBoundsInt s = (-b, b) where
+    b = bit (8 * fromIntegral s - 1)  -- This is much quicker than 2^n for large n
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1) - 1]@ bounds for integers of a given 'Size'.
 toInclusiveBoundsInt :: Size -> (Integer, Integer)
@@ -103,7 +104,7 @@ makeDynBuiltinInt
     -> Integer              -- ^ An 'Integer' to lift.
     -> Term tyname name ()
 makeDynBuiltinInt sTy sTerm intVal =
-    mkIterApp (mkIterInst resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
+    mkIterApp () (mkIterInst () resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
         sizeOfIntVal = sizeOfInteger intVal
         resizeInteger = builtinNameAsTerm ResizeInteger
         intTerm = Constant () $ BuiltinInt () sizeOfIntVal intVal

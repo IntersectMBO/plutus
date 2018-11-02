@@ -20,13 +20,18 @@ module Language.Plutus.Runtime.TH(
     -- * Transactions
     pubKeyOutput,
     scriptOutput,
-    eqPubKey
+    eqPubKey,
+    eqDataScript,
+    eqRedeemer,
+    eqValidator,
+    eqTx
     ) where
 
-import           Language.Haskell.TH           (Exp, Q)
-import           Language.Plutus.Runtime.Types
+import           Language.Haskell.TH (Exp, Q)
+import qualified Language.Plutus.TH  as Builtins
+import           Wallet.UTXO.Runtime
 
-import           Prelude                       (Bool (..), Eq (..), Int, Maybe (..))
+import           Prelude             (Bool (..), Eq (..), Int, Maybe (..))
 
 -- | Logical AND
 and :: Q Exp
@@ -51,9 +56,9 @@ max = [| \(a :: Int) (b :: Int) -> if a > b then a else b |]
 -- | Check if a transaction was signed by a public key
 txSignedBy :: Q Exp
 txSignedBy = [|
-    \(p :: PendingTx a b) (PubKey k) ->
+    \(p :: PendingTx) (PubKey k) ->
         let
-            PendingTx _ _ _ _ _ _ sigs = p
+            PendingTx _ _ _ _ _ sigs = p
 
             signedBy :: Signature -> Bool
             signedBy (Signature s) = s == k
@@ -69,9 +74,9 @@ txSignedBy = [|
 -- | Check if the input of a pending transaction was signed by a public key
 txInSignedBy :: Q Exp
 txInSignedBy = [|
-    \(i :: PendingTxIn r) (PubKey k) ->
+    \(i :: PendingTxIn) (PubKey k) ->
         let
-            PendingTxIn ref _        = i
+            PendingTxIn ref _ _      = i
             PendingTxOutRef _ _ sigs = ref
 
             signedBy :: Signature -> Bool
@@ -99,17 +104,32 @@ maybe = [| \b f m ->
 
 -- | Returns the public key that locks the transaction output
 pubKeyOutput :: Q Exp
-pubKeyOutput = [| \(o:: PendingTxOut d) -> case o of
+pubKeyOutput = [| \(o:: PendingTxOut) -> case o of
     PendingTxOut _ _ (PubKeyTxOut pk) -> Just pk
     _                                 -> Nothing |]
 
 -- | Returns the data script that is part of the pay-to-script transaction
 --   output
 scriptOutput :: Q Exp
-scriptOutput = [| \(o:: PendingTxOut d) -> case o of
+scriptOutput = [| \(o:: PendingTxOut) -> case o of
     PendingTxOut _ d DataTxOut -> d
     _                          -> Nothing |]
 
 -- | Equality of public keys
 eqPubKey :: Q Exp
 eqPubKey = [| \(PubKey l) (PubKey r) -> l == r |]
+
+-- | Equality of data scripts
+eqDataScript :: Q Exp
+eqDataScript = [| \(DataScriptHash l) (DataScriptHash r) -> Builtins.equalsByteString l r |]
+
+-- | Equality of validator scripts
+eqValidator :: Q Exp
+eqValidator = [| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r |]
+
+-- | Equality of redeemer scripts
+eqRedeemer :: Q Exp
+eqRedeemer = [| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString l r |]
+
+eqTx :: Q Exp
+eqTx = [| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r |]

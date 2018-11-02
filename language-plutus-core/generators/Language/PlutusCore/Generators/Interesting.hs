@@ -49,9 +49,9 @@ getBuiltinFactorial = do
     return
         . TyAbs () s (Size ())
         . LamAbs () i int
-        . mkIterApp (TyInst () product' $ TyVar () s)
+        . mkIterApp () (TyInst () product' $ TyVar () s)
         $ [ ss
-          , mkIterApp (TyInst () enumFromTo' $ TyVar () s)
+          , mkIterApp () (TyInst () enumFromTo' $ TyVar () s)
                 [ makeDynBuiltinInt (TyVar () s) ss 1
                 , Var () i
                 ]
@@ -92,7 +92,7 @@ genNatRoundtrip = do
     term <- lift $ do
         n <- getBuiltinIntegerToNat iv
         natToInteger <- getBuiltinNatToInteger
-        return $ mkIterApp (TyInst () natToInteger size) [ssize, n]
+        return $ mkIterApp () (TyInst () natToInteger size) [ssize, n]
     return . TermOf term $ TypedBuiltinValue typedIntSized iv
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
@@ -107,7 +107,7 @@ genListSum = do
         builtinSum <- getBuiltinSum
         list <- getListToBuiltinList intSized $ map _termOfTerm ps
         return
-            $ mkIterApp (TyInst () builtinSum $ TyInt () size)
+            $ mkIterApp () (TyInst () builtinSum $ TyInt () size)
             [ Constant () $ BuiltinSize () size
             , list
             ]
@@ -128,8 +128,8 @@ genIfIntegers = do
     builtinUnit  <- lift getBuiltinUnit
     builtinIf    <- lift getBuiltinIf
     let builtinConstSpec =
-            Apply () $ mkIterInst builtinConst [intSized, builtinUnit]
-        term = mkIterApp
+            Apply () $ mkIterInst () builtinConst [intSized, builtinUnit]
+        term = mkIterApp ()
             (TyInst () builtinIf intSized)
             [b, builtinConstSpec i, builtinConstSpec j]
         value = if bv then iv else jv

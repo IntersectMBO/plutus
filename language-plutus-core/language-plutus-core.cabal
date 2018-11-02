@@ -42,6 +42,7 @@ library
         Language.PlutusCore.Constant
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
+        Language.PlutusCore.Subst
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -51,12 +52,14 @@ library
         Language.PlutusCore.StdLib.Data.Unit
         Language.PlutusCore.StdLib.Everything
         Language.PlutusCore.StdLib.Meta
+        Language.PlutusCore.StdLib.Meta.Data.Tuple
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         PlutusPrelude
         Common
+        PlcTestUtils
     build-tools: alex -any, happy >=1.17.1
     hs-source-dirs: src prelude stdlib generators common
     other-modules:
@@ -77,7 +80,6 @@ library
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
-        Language.PlutusCore.Subst
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypeEvalCheck

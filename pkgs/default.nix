@@ -12109,46 +12109,6 @@ description = "OTP-like supervision trees in Haskell";
 license = stdenv.lib.licenses.mit;
 
 }) {};
-"cardano-crypto" = callPackage
-({
-  mkDerivation
-, base
-, bytestring
-, cryptonite
-, cryptonite-openssl
-, deepseq
-, fetchgit
-, hashable
-, memory
-, stdenv
-}:
-mkDerivation {
-
-pname = "cardano-crypto";
-version = "1.0.0";
-src = fetchgit {
-
-url = "https://github.com/input-output-hk/cardano-crypto";
-sha256 = "02gjaj7889y30g2qfdh96ywrsdpmgfgyqyajw49zaklwjvkh87sv";
-rev = "838b064d8a59286142aa2fe14434fe7601896ddb";
-
-};
-libraryHaskellDepends = [
-base
-bytestring
-cryptonite
-cryptonite-openssl
-deepseq
-hashable
-memory
-];
-doHaddock = false;
-doCheck = false;
-homepage = "https://github.com/input-output-hk/cardano-crypto#readme";
-description = "Cryptography primitives for cardano";
-license = stdenv.lib.licenses.mit;
-
-}) {};
 "carray" = callPackage
 ({
   mkDerivation
@@ -15645,9 +15605,7 @@ license = stdenv.lib.licenses.mit;
 "core-to-plc" = callPackage
 ({
   mkDerivation
-, aeson
 , base
-, base64-bytestring
 , bytestring
 , cborg
 , containers
@@ -15672,9 +15630,7 @@ pname = "core-to-plc";
 version = "0.1.0.0";
 src = ./../core-to-plc;
 libraryHaskellDepends = [
-aeson
 base
-base64-bytestring
 bytestring
 cborg
 containers
@@ -55631,53 +55587,53 @@ description = "Executable for Plutus Core tools";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
-"plutus-prototype" = callPackage
+"plutus-ir" = callPackage
 ({
   mkDerivation
 , base
-, bifunctors
-, binary
 , bytestring
-, cardano-crypto
-, cryptonite
-, ed25519
-, either
-, filepath
-, lens
-, memory
+, containers
+, language-plutus-core
+, microlens
 , mtl
-, operational
-, parsec
+, prettyprinter
 , stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
+, text
 , transformers
 }:
 mkDerivation {
 
-pname = "plutus-prototype";
+pname = "plutus-ir";
 version = "0.1.0.0";
-src = ./../plutus-prototype;
-enableSeparateDataOutput = true;
+src = ./../plutus-ir;
 libraryHaskellDepends = [
 base
-bifunctors
-binary
 bytestring
-cardano-crypto
-cryptonite
-ed25519
-either
-filepath
-lens
-memory
+containers
+language-plutus-core
+microlens
 mtl
-operational
-parsec
+prettyprinter
+text
 transformers
 ];
+testHaskellDepends = [
+base
+bytestring
+language-plutus-core
+mtl
+prettyprinter
+tasty
+tasty-golden
+tasty-hunit
+text
+];
 doHaddock = false;
-homepage = "iohk.io";
-description = "Prototype of the Plutus language";
-license = stdenv.lib.licenses.mit;
+description = "Plutus IR language";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "plutus-th" = callPackage

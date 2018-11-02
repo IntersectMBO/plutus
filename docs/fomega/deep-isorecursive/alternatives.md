@@ -26,6 +26,24 @@ We can emulate application of `fix` to a spine of arguments. With kind-level pro
 fix f (\(r :: k1 -> k2 -> ... -> kn -> *) -> r a1 a2 ... an)
 ```
 
-which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case (a proof needed).
+which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case ([an illustration](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d#file-ifixn-agda)).
 
 Besides, `ifix` is what we use to [encode mutually recursive data types](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d) and having the ability to encode mutually recursive data type is the primary reason for having a higher-kinded `fix`.
+
+## Replace `synth`-only moded type system w/ `synth+check` moded type system
+
+The original reason for introducing elimination contexts is because we have types of the form `K{(fix a B)}`, which is stuck and cannot compute, but where the fixed point type may have types of kind `k -> k'`. That is to say, we non-`lambda` forms at function kinds. In the term language, we might just compute by fix reduction `(fix x M) ~> [(fix x M)/x]M` and then proceed, but this can't happen at the type level because we're using type-level fix for things which would run forever if we were to do this (e.g. the type of lists).
+
+The form of `K` is guaranteed a priori to be a (possibly-empty) spine with the `fix` at the head, because type-level functions and application are the only computation we have in types, and so the only things that can be stuck. So we know that `K{_} = [_ A_0 ... A_n]`.
+
+If the type `K{(fix a B)}` had been given to us as input to a checking judgment instead of as a synthesized output, then we would have no trouble figuring out what `K` is, because we simply look at the type and see if it's a spin headed by a `fix`:
+
+```
+checkSpine :: Type -> Maybe (TyVar, Type, [Type])
+applySpine :: Type -> [Type] -> Type
+
+check g (Wrap m) a =
+  case checkSpine a of
+    Nothing -> False
+    Just (alpha, b, as) -> check g m (applySpine (substitute (Fix alpha b) alpha b) as)
+```
