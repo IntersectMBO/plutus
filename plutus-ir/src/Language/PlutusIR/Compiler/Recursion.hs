@@ -72,13 +72,13 @@ mkFixpoint bs = do
 
     q <- liftQuote $ freshTyName () "Q"
     choose <- liftQuote $ freshName () "choose"
-    let chooseTy = PLC.mkIterTyFun tys (PLC.TyVar () q)
+    let chooseTy = PLC.mkIterTyFun () tys (PLC.TyVar () q)
 
     -- \f1 ... fn -> choose b1 ... bn
     bsLam <- do
           rhss <- traverse (compileTerm . PLC.defVal) bs
-          let chosen =  PLC.mkIterApp (PLC.Var () choose) rhss
-              abstracted = PLC.mkIterLamAbs (fmap PLC.defVar bs) chosen
+          let chosen =  PLC.mkIterApp () (PLC.Var () choose) rhss
+              abstracted = PLC.mkIterLamAbs () (fmap PLC.defVar bs) chosen
           pure abstracted
 
     -- abstract out Q and choose
@@ -87,7 +87,7 @@ mkFixpoint bs = do
     -- fixN {A1 B1 ... An Bn}
     instantiatedFix <- do
         fixN <- liftQuote $ Function.getBuiltinFixN (length bs)
-        pure $ PLC.mkIterInst fixN $ foldMap (\(a, b) -> [a, b]) asbs
+        pure $ PLC.mkIterInst () fixN $ foldMap (\(a, b) -> [a, b]) asbs
 
     pure $ PLC.Apply () instantiatedFix cLam
 
@@ -100,14 +100,14 @@ mkTupleBinder body vars = do
 
     tupleTy <- do
         ntuple <- Tuple.getBuiltinTuple (length tys)
-        pure $ PLC.mkIterTyApp ntuple tys
+        pure $ PLC.mkIterTyApp () ntuple tys
 
     tupleArg <- liftQuote $ freshName () "tuple"
 
     -- _i tuple
     accesses <- forM [0..(length tys -1)] $ \i -> do
             naccessor <- Tuple.getBuiltinTupleAccessor (length tys) i
-            let accessor = PLC.mkIterInst naccessor tys
+            let accessor = PLC.mkIterInst () naccessor tys
             pure $ PLC.Apply () accessor (PLC.Var () tupleArg)
     let defsAndAccesses = zipWith PLC.Def vars accesses
 
@@ -117,7 +117,7 @@ mkTupleBinder body vars = do
     --   f_i = _i tuple
     -- in
     --   result
-    let finalBound = foldr (\def acc -> PLC.mkTermLet def acc) body defsAndAccesses
+    let finalBound = foldr (\def acc -> PLC.mkTermLet () def acc) body defsAndAccesses
 
     -- \tuple -> finalBound
     pure $ PLC.LamAbs () tupleArg tupleTy finalBound

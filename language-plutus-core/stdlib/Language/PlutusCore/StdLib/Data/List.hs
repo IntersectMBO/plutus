@@ -86,7 +86,7 @@ getBuiltinCons = rename =<< do
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterApp (Var () f)
+        $ mkIterApp () (Var () f)
           [ Var () x
           , Var () xs
           ]
@@ -115,13 +115,13 @@ getBuiltinFoldrList = rename =<< do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
         . LamAbs () z (TyVar () r)
-        . Apply () (mkIterInst fix [listA, TyVar () r])
+        . Apply () (mkIterInst () fix [listA, TyVar () r])
         . LamAbs () rec (TyFun () listA $ TyVar () r)
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . LamAbs () xs' listA
-        $ mkIterApp (Var () f)
+        $ mkIterApp () (Var () f)
           [ Apply () (Var () rec) $ Var () xs'
           , Var () x
           ]
@@ -149,15 +149,15 @@ getBuiltinFoldList = rename =<< do
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
-        . Apply () (mkIterInst fix [TyVar () r, TyFun () listA $ TyVar () r])
+        . Apply () (mkIterInst () fix [TyVar () r, TyFun () listA $ TyVar () r])
         . LamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . LamAbs () xs' listA
-        . mkIterApp (Var () rec)
-        $ [ mkIterApp (Var () f) [Var () z, Var () x]
+        . mkIterApp () (Var () rec)
+        $ [ mkIterApp () (Var () f) [Var () z, Var () x]
           , Var () xs'
           ]
 
@@ -194,16 +194,16 @@ getBuiltinEnumFromTo = rename =<< do
         . TyAbs () s (Size ())
         . LamAbs () n int
         . LamAbs () m int
-        . mkIterApp (mkIterInst fix [int, listInt])
+        . mkIterApp () (mkIterInst () fix [int, listInt])
         $ [   LamAbs () rec (TyFun () int listInt)
             . LamAbs () n' int
-            . mkIterApp (TyInst () ifThenElse listInt)
-            $ [ mkIterApp (TyInst () gtInteger $ TyVar () s)
+            . mkIterApp () (TyInst () ifThenElse listInt)
+            $ [ mkIterApp () (TyInst () gtInteger $ TyVar () s)
                     [ Var () n'
                     , Var () m
                     ]
               , LamAbs () u unit $ TyInst () nil int
-              , LamAbs () u unit $ mkIterApp (TyInst () cons int)
+              , LamAbs () u unit $ mkIterApp () (TyInst () cons int)
                     [ Var () n'
                     ,    Apply () (Var () rec)
                        . Apply () (TyInst () succInteger (TyVar () s))
@@ -228,7 +228,7 @@ getBuiltinSum = rename =<< do
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
-        . mkIterApp (mkIterInst foldList [int, int])
+        . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ add
           , makeDynBuiltinInt sv (Var () ss) 0
           ]
@@ -248,7 +248,7 @@ getBuiltinProduct = rename =<< do
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
-        . mkIterApp (mkIterInst foldList [int, int])
+        . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ mul
           , makeDynBuiltinInt sv (Var () ss) 1
           ]

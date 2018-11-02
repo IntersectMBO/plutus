@@ -69,8 +69,8 @@ compileSingleBinding r body b = case b of
         Rec -> compileRecTerms body [PLC.Def d rhs]
         NonRec -> do
             def <- PLC.Def d <$> compileTerm rhs
-            pure $ PLC.mkTermLet def body
+            pure $ PLC.mkTermLet () def body
     TypeBind () d rhs -> do
         let def = PLC.Def d rhs
-        pure $ PLC.mkTypeLet def body
+        pure $ PLC.mkTypeLet () def body
     DatatypeBind () d -> compileDatatype r body d

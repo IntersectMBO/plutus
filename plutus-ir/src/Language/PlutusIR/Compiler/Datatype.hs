@@ -217,14 +217,14 @@ mkScottTy d@(Datatype _ _ _ _ constrs) = do
         -- forall resultType
         PLC.TyForall () resultType (PLC.Type ()) $
         -- c_1 -> .. -> c_n -> resultType
-        PLC.mkIterTyFun caseTys (PLC.TyVar () resultType)
+        PLC.mkIterTyFun () caseTys (PLC.TyVar () resultType)
 
 -- | Make the "pattern functor" of a 'Datatype'. This is just the normal type, but with the
 -- type variable for the type itself free. In the case of non-recursive datatypes this is just the
 -- datatype.
 -- @mkDatatypePatternFunctor List = \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r@
 mkDatatypePatternFunctor :: MonadQuote m => Datatype TyName Name () -> m (PLC.Type TyName ())
-mkDatatypePatternFunctor d@(Datatype _ _ tvs _ _) = PLC.mkIterTyLam tvs <$> mkScottTy d
+mkDatatypePatternFunctor d@(Datatype _ _ tvs _ _) = PLC.mkIterTyLam () tvs <$> mkScottTy d
 
 -- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor.
 -- @
@@ -251,7 +251,7 @@ mkConstructorType :: MonadQuote m => Datatype TyName Name () -> VarDecl TyName N
 -- this type appears *inside* the scope of the abstraction for the datatype so we can just reference the name and
 -- we don't need to do anything to the declared type
 -- see note [Abstract data types]
-mkConstructorType (Datatype _ _ tvs _ _) constr = pure $ PLC.mkIterTyForall tvs (varDeclType constr)
+mkConstructorType (Datatype _ _ tvs _ _) constr = pure $ PLC.mkIterTyForall () tvs (varDeclType constr)
 
 -- See note [Scott encoding of datatypes]
 -- | Make a constructor of a 'Datatype' with the given pattern functor. The constructor argument mostly serves to identify the constructor
@@ -296,18 +296,18 @@ mkConstructor r dty pf d@(Datatype _ tn tvs _ constrs) constr = do
 
     pure $
         -- /\t_1 .. t_n
-        PLC.mkIterTyAbs tvs $
+        PLC.mkIterTyAbs () tvs $
         -- \arg_1 .. arg_m
-        PLC.mkIterLamAbs argsAndTypes $
+        PLC.mkIterLamAbs () argsAndTypes $
         -- wrap
         maybeWrap $
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall out
         PLC.TyAbs () resultType (PLC.Type ()) $
         -- \case_1 .. case_j
-        PLC.mkIterLamAbs casesAndTypes $
+        PLC.mkIterLamAbs () casesAndTypes $
         -- c_i arg_1 .. arg_m
-        PLC.mkIterApp thisCase (fmap PLC.mkVar argsAndTypes)
+        PLC.mkIterApp () thisCase (fmap PLC.mkVar argsAndTypes)
 
 -- Destructors
 
@@ -328,12 +328,12 @@ mkDestructor r dty (Datatype _ _ tvs _ _) = do
     -- This term appears *outside* the scope of the abstraction for the datatype, so we need to put in the Scott-encoded type here
     -- see note [Abstract data types]
     -- dty t_1 .. t_n
-    let appliedReal = PLC.mkIterTyApp dty (fmap PLC.mkTyVar tvs)
+    let appliedReal = PLC.mkIterTyApp () dty (fmap PLC.mkTyVar tvs)
 
     x <- liftQuote $ freshName () "x"
     pure $
         -- /\t_1 .. t_n
-        PLC.mkIterTyAbs tvs $
+        PLC.mkIterTyAbs () tvs $
         -- \x
         PLC.LamAbs () x appliedReal $
         -- unwrap
@@ -359,12 +359,12 @@ mkDestructorTy pf (Datatype _ tn tvs _ _) =
         -- and we don't need to do anything to the pattern functor
         -- see note [Abstract data types]
         -- t t_1 .. t_n
-        appliedAbstract = PLC.mkIterTyApp (PLC.mkTyVar tn) (fmap PLC.mkTyVar tvs)
+        appliedAbstract = PLC.mkIterTyApp () (PLC.mkTyVar tn) (fmap PLC.mkTyVar tvs)
         -- pf t_1 .. t_n
-        appliedPattern = PLC.mkIterTyApp pf (fmap PLC.mkTyVar tvs)
+        appliedPattern = PLC.mkIterTyApp () pf (fmap PLC.mkTyVar tvs)
     in pure $
         -- forall t_1 .. t_n
-         PLC.mkIterTyForall tvs $
+         PLC.mkIterTyForall () tvs $
          PLC.TyFun () appliedAbstract appliedPattern
 
 -- The main function
@@ -390,4 +390,4 @@ compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
         vars = fmap PLC.defVar constrDefs ++ [PLC.defVar destrDef]
         vals = fmap PLC.defVal constrDefs ++ [PLC.defVal destrDef]
     -- See note [Abstract data types]
-    pure $ PLC.mkIterApp (PLC.mkIterInst (PLC.mkIterTyAbs tyVars (PLC.mkIterLamAbs vars body)) tys) vals
+    pure $ PLC.mkIterApp () (PLC.mkIterInst () (PLC.mkIterTyAbs () tyVars (PLC.mkIterLamAbs () vars body)) tys) vals

@@ -87,7 +87,7 @@ makeDynBuiltinInt
     -> Integer              -- ^ An 'Integer' to lift.
     -> Term tyname name ()
 makeDynBuiltinInt sTy sTerm intVal =
-    mkIterApp (mkIterInst resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
+    mkIterApp () (mkIterInst () resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
         sizeOfIntVal = sizeOfInteger intVal
         resizeInteger = builtinNameAsTerm ResizeInteger
         intTerm = Constant () $ BuiltinInt () sizeOfIntVal intVal

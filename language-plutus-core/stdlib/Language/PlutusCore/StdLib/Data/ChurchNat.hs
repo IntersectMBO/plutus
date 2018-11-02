@@ -56,7 +56,7 @@ getBuiltinChurchSucc = rename =<< do
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
         . Apply () (Var () f)
-        $ mkIterApp (TyInst () (Var () n) $ TyVar () r)
+        $ mkIterApp () (TyInst () (Var () n) $ TyVar () r)
           [ Var () z
           , Var () f
           ]

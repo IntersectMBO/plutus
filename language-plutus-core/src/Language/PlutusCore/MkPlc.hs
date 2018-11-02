@@ -43,76 +43,86 @@ mkTyVar = TyVar () . tyVarDeclName
 data Def var val = Def { defVar::var, defVal::val}
 
 -- | A term definition as a variable.
-type TermDef tyname name a = Def (VarDecl tyname name ()) (Term tyname name ())
+type TermDef tyname name a = Def (VarDecl tyname name a) (Term tyname name a)
 -- | A type definition as a type variable.
-type TypeDef tyname a = Def (TyVarDecl tyname ()) (Type tyname ())
+type TypeDef tyname a = Def (TyVarDecl tyname a) (Type tyname a)
 
 -- | Make a "let-binding" for a term.
 mkTermLet
-    :: TermDef tyname name ()
-    -> Term tyname name () -- ^ The body of the let, possibly referencing the name.
-    -> Term tyname name ()
-mkTermLet (Def (VarDecl _ name ty) bind) body = Apply () (LamAbs () name ty body) bind
+    :: a
+    -> TermDef tyname name a
+    -> Term tyname name a -- ^ The body of the let, possibly referencing the name.
+    -> Term tyname name a
+mkTermLet x (Def (VarDecl _ name ty) bind) body = Apply x (LamAbs x name ty body) bind
 
 -- | Make a "let-binding" for a type. Note: the body must be a value.
 mkTypeLet
-    :: TypeDef tyname ()
-    -> Term tyname name () -- ^ The body of the let, possibly referencing the name.
-    -> Term tyname name ()
-mkTypeLet (Def (TyVarDecl _ name k) bind) body = TyInst () (TyAbs () name k body) bind
+    :: a
+    -> TypeDef tyname a
+    -> Term tyname name a -- ^ The body of the let, possibly referencing the name.
+    -> Term tyname name a
+mkTypeLet x (Def (TyVarDecl _ name k) bind) body = TyInst x (TyAbs x name k body) bind
 
 -- | Make an iterated application.
 mkIterApp
-    :: Term tyname name () -- ^ @f@
-    -> [Term tyname name ()] -- ^@[ x0 ... xn ]@
-    -> Term tyname name () -- ^ @[f x0 ... xn ]@
-mkIterApp = foldl' (Apply ())
+    :: a
+    -> Term tyname name a -- ^ @f@
+    -> [Term tyname name a] -- ^@[ x0 ... xn ]@
+    -> Term tyname name a -- ^ @[f x0 ... xn ]@
+mkIterApp x = foldl' (Apply x)
 
 -- | Make an iterated instantiation.
 mkIterInst
-    :: Term tyname name () -- ^ @a@
-    -> [Type tyname ()] -- ^ @ [ x0 ... xn ] @
-    -> Term tyname name () -- ^ @{ a x0 ... xn }@
-mkIterInst = foldl' (TyInst ())
+    :: a
+    -> Term tyname name a -- ^ @a@
+    -> [Type tyname a] -- ^ @ [ x0 ... xn ] @
+    -> Term tyname name a -- ^ @{ a x0 ... xn }@
+mkIterInst x = foldl' (TyInst x)
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs
-    :: [VarDecl tyname name ()]
-    -> Term tyname name ()
-    -> Term tyname name ()
-mkIterLamAbs args body = foldr (\(VarDecl _ n ty) acc -> LamAbs () n ty acc) body args
+    :: a
+    -> [VarDecl tyname name a]
+    -> Term tyname name a
+    -> Term tyname name a
+mkIterLamAbs x args body = foldr (\(VarDecl _ n ty) acc -> LamAbs x n ty acc) body args
 
 -- | Type abstract a list of names.
 mkIterTyAbs
-    :: [TyVarDecl tyname ()]
-    -> Term tyname name ()
-    -> Term tyname name ()
-mkIterTyAbs args body = foldr (\(TyVarDecl _ n k) acc -> TyAbs () n k acc) body args
+    :: a
+    -> [TyVarDecl tyname a]
+    -> Term tyname name a
+    -> Term tyname name a
+mkIterTyAbs x args body = foldr (\(TyVarDecl _ n k) acc -> TyAbs x n k acc) body args
 
 -- | Make an iterated type application.
 mkIterTyApp
-    :: Type tyname () -- ^ @f@
-    -> [Type tyname ()] -- ^ @[ x0 ... xn ]@
-    -> Type tyname () -- ^ @[ f x0 ... xn ]@
-mkIterTyApp = foldl' (TyApp ())
+    :: a
+    -> Type tyname a -- ^ @f@
+    -> [Type tyname a] -- ^ @[ x0 ... xn ]@
+    -> Type tyname a -- ^ @[ f x0 ... xn ]@
+mkIterTyApp x = foldl' (TyApp x)
 
 -- | Make an iterated function type.
 mkIterTyFun
-    :: [Type tyname ()]
-    -> Type tyname ()
-    -> Type tyname ()
-mkIterTyFun tys target = foldr (\ty acc -> TyFun () ty acc) target tys
+    :: a
+    -> [Type tyname a]
+    -> Type tyname a
+    -> Type tyname a
+mkIterTyFun x tys target = foldr (\ty acc -> TyFun x ty acc) target tys
 
 -- | Universally quantify a list of names.
 mkIterTyForall
-    :: [TyVarDecl tyname ()]
-    -> Type tyname ()
-    -> Type tyname ()
-mkIterTyForall args body = foldr (\(TyVarDecl _ n k) acc -> TyForall () n k acc) body args
+    :: a
+    -> [TyVarDecl tyname a]
+    -> Type tyname a
+    -> Type tyname a
+mkIterTyForall x args body = foldr (\(TyVarDecl _ n k) acc -> TyForall x n k acc) body args
 
 -- | Lambda abstract a list of names.
 mkIterTyLam
-    :: [TyVarDecl tyname ()]
-    -> Type tyname ()
-    -> Type tyname ()
-mkIterTyLam args body = foldr (\(TyVarDecl _ n k) acc -> TyLam () n k acc) body args
+    :: a
+    -> [TyVarDecl tyname a]
+    -> Type tyname a
+    -> Type tyname a
+mkIterTyLam x args body = foldr (\(TyVarDecl _ n k) acc -> TyLam x n k acc) body args

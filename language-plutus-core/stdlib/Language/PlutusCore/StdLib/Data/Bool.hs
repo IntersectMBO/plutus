@@ -25,7 +25,7 @@ getBuiltinBool = rename =<< do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
-        $ mkIterTyFun [ TyVar () a, TyVar () a ]
+        $ mkIterTyFun () [ TyVar () a, TyVar () a ]
         $ TyVar () a
 
 -- | 'True' as a PLC term.
@@ -38,7 +38,7 @@ getBuiltinTrue = rename =<< do
     y <- freshName () "y"
     return
        . TyAbs () a (Type ())
-       $ mkIterLamAbs [
+       $ mkIterLamAbs () [
           VarDecl () x (TyVar () a),
           VarDecl () y (TyVar () a)
           ]
@@ -54,7 +54,7 @@ getBuiltinFalse = rename =<< do
     y <- freshName () "y"
     return
        . TyAbs () a (Type ())
-       $ mkIterLamAbs [
+       $ mkIterLamAbs () [
           VarDecl () x (TyVar () a),
           VarDecl () y (TyVar () a)
           ]
@@ -75,11 +75,11 @@ getBuiltinIf = rename =<< do
     let unitFunA = TyFun () unit (TyVar () a)
     return
        . TyAbs () a (Type ())
-      $ mkIterLamAbs [
+      $ mkIterLamAbs () [
           VarDecl () b builtinBool,
           VarDecl () x unitFunA,
           VarDecl () y unitFunA
           ]
-      $ mkIterApp
+      $ mkIterApp ()
           (TyInst () (Var () b) unitFunA)
           [Var () x, Var () y, unitval]

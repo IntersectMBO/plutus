@@ -122,5 +122,5 @@ wrapDef term def = case def of
             vars = fmap dVar abstractTerms
             vals = fmap dVal abstractTerms
         in
-            PLC.mkIterApp (PLC.mkIterInst (PLC.mkIterTyAbs tyVars (PLC.mkIterLamAbs vars term)) tys) vals
-    TermDef (Def _ d rhs) -> PLC.mkTermLet (PLC.Def d rhs) term
+            PLC.mkIterApp () (PLC.mkIterInst () (PLC.mkIterTyAbs () tyVars (PLC.mkIterLamAbs () vars term)) tys) vals
+    TermDef (Def _ d rhs) -> PLC.mkTermLet () (PLC.Def d rhs) term
