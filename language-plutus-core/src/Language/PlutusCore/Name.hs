@@ -1,7 +1,5 @@
-{-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
