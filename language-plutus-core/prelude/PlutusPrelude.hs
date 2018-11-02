@@ -5,7 +5,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude ( -- * Reëxports from base
-                       (&&&)
+                       (&)
+                     , (&&&)
                      , toList
                      , bool
                      , first
@@ -22,10 +23,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , isRight
                      , void
                      , coerce
-                     , coerced
                      , Unwrap
-                     , wrapped
-                     , unwrapped
                      , Generic
                      , NFData
                      , Natural
@@ -37,6 +35,17 @@ module PlutusPrelude ( -- * Reëxports from base
                      , PairT (..)
                      , Coercible
                      , Typeable
+                     -- * Lens
+                     , Lens'
+                     , lens
+                     , (^.)
+                     , view
+                     , (.~)
+                     , set
+                     , over
+                     , coerced
+                     , wrapped
+                     , unwrapped
                      -- * Debugging
                      , traceShowId
                      , trace
@@ -111,7 +120,8 @@ import           Data.Word                               (Word8)
 import           Debug.Trace
 import           GHC.Generics
 import           GHC.Natural                             (Natural)
-import           Lens.Micro                              (Lens')
+import           Lens.Micro
+import           Lens.Micro.Extras
 
 import           Data.Functor.Compose
 

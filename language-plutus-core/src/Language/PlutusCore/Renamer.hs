@@ -20,8 +20,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap               as IM
-import           Lens.Micro
-import           Lens.Micro.Extras         (view)
 import           Lens.Micro.TH
 
 data TypeState a = TypeState { _terms :: IM.IntMap (RenamedType a), _types :: IM.IntMap (Kind a) }

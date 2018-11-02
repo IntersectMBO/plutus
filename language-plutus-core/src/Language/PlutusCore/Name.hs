@@ -36,7 +36,6 @@ import qualified Data.Map                   as M
 import           Data.Text.Encoding         (decodeUtf8)
 import           Instances.TH.Lift          ()
 import           Language.Haskell.TH.Syntax (Lift)
-import           Lens.Micro
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
