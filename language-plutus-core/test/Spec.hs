@@ -76,12 +76,6 @@ propCBOR = property $ do
         compared = (==) <$> trip (void prog) <*> pure (void prog)
     Hedgehog.assert (fromRight False compared)
 
--- TODO: don't fail when there are free variables
-propRename :: Property
-propRename = property $ do
-    prog <- forAll genProgram
-    Hedgehog.assert $ runQuote (rename prog) == prog
-
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
@@ -99,7 +93,6 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
-    , testProperty "equality survives renaming" propRename
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -176,6 +169,28 @@ testLam :: Either (TypeError ()) String
 testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty) $
     normalizeType =<< appAppLamLam
 
+testEqTerm :: Bool
+testEqTerm =
+    let
+        xName = Name () "x" (Unique 0)
+        yName = Name () "y" (Unique 1)
+
+        varX = Var () xName
+        varY = Var () yName
+
+        varType = TyVar () (TyName (Name () "a" (Unique 2)))
+
+        lamX = LamAbs () xName varType varX
+        lamY = LamAbs () yName varType varY
+
+        -- [(lam x a x) x]
+        term0 = Apply () lamX varX
+        -- [(lam y a y) x]
+        term1 = Apply () lamY varX
+
+    in
+        term0 == term1
+
 testRebindShadowedVariable :: Bool
 testRebindShadowedVariable =
     let
@@ -237,5 +252,6 @@ tests = testCase "example programs" $ fold
     , testLam @?= Right "(con integer)"
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
+    , testEqTerm @?= True
     ]
     where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
