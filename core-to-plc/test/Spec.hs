@@ -224,8 +224,7 @@ newtypes = testNested "newtypes" [
    , goldenPlc "newtypeMatch" newtypeMatch
    , goldenPlc "newtypeCreate" newtypeCreate
    , goldenPlc "newtypeCreate2" newtypeCreate2
-   -- FIXME: this should *not* fail
-   , goldenPlcCatch "nestedNewtypeMatch" nestedNewtypeMatch
+   , goldenPlc "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
 

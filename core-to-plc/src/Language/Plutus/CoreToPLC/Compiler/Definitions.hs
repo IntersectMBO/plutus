@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Language.Plutus.CoreToPLC.Compiler.Definitions where
 
@@ -39,6 +40,9 @@ trTy = \case
 
 type TypeDef = Def PLCTyVar TypeRep
 
+instance Show (Def PLCTyVar TypeRep) where
+    show Def{dVar=v} = show (PLC.tyVarDeclName v)
+
 tydTy :: TypeDef -> PLCType
 tydTy = \case
     Def Abstract (PLC.TyVarDecl _ n _) _ -> PLC.TyVar () n
@@ -55,6 +59,9 @@ tydMatch = \case
     _ -> Nothing
 
 type TermDef = Def PLCVar PLCTerm
+
+instance Show (Def PLCVar PLCTerm) where
+    show Def{dVar=v} = show (PLC.varDeclName v)
 
 tdTerm :: TermDef -> PLCTerm
 tdTerm = \case
@@ -74,8 +81,7 @@ defSccs typeDefs termDefs =
         typeInputs = fmap (\(ghcName, (d, deps)) -> (TypeDef d, ghcName, deps)) (Map.assocs typeDefs)
         termInputs = fmap (\(ghcName, (d, deps)) -> (TermDef d, ghcName, deps)) (Map.assocs termDefs)
     in
-        -- weirdly this produces them in reverse topological order
-        reverse $ Graph.stronglyConnComp (typeInputs ++ termInputs)
+        Graph.stronglyConnComp (typeInputs ++ termInputs)
 
 wrapWithDefs
     :: (MonadError ConvError m)
