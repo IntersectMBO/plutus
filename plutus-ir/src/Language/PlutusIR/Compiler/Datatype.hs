@@ -227,9 +227,9 @@ mkDatatypePatternFunctor d@(Datatype _ _ tvs _ _) = PLC.mkIterTyLam tvs <$> mkSc
 
 -- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor.
 -- @
---     mkDatatypeType List <pattern functor of List> =
---         fix list . <pattern functor of List> =
---         fix list . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r =
+--     mkDatatypeType List <pattern functor of List>
+--         = fix list . <pattern functor of List>
+--         = fix list . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r
 -- @
 mkDatatypeType :: MonadQuote m => Recursivity -> Type TyName () -> Datatype TyName Name () -> m (PLC.Type TyName ())
 mkDatatypeType r pf (Datatype _ tn _ _ _) = pure $ case r of
@@ -256,8 +256,8 @@ mkConstructorType (Datatype _ _ tvs _ _) constr = pure $ PLC.mkIterTyForall tvs 
 -- | Make a constructor of a 'Datatype' with the given pattern functor. The constructor argument mostly serves to identify the constructor
 -- that we are interested in in the list of constructors.
 -- @
---     mkConstructor <definition of List> <pattern functor of List> List Cons =
---         /\(a :: *) . \(arg1 : a) (arg2 : <definition of List> a) .
+--     mkConstructor <definition of List> <pattern functor of List> List Cons
+--         = /\(a :: *) . \(arg1 : a) (arg2 : <definition of List> a) .
 --             wrap <pattern functor of List> /\(out_List :: *) .
 --                 \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
 -- @
@@ -313,9 +313,9 @@ mkConstructor r dty pf d@(Datatype _ tn tvs _ constrs) constr = do
 -- See note [Scott encoding of datatypes]
 -- | Make the destructor for a 'Datatype'.
 -- @
---     mkDestructor <definition of List> List =
---        /\(a :: *) -> \(x : (<definition of List> a)) -> unwrap x =
---        /\(a :: *) -> \(x : (fix list . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r) a) -> unwrap x
+--     mkDestructor <definition of List> List
+--        = /\(a :: *) -> \(x : (<definition of List> a)) -> unwrap x
+--        = /\(a :: *) -> \(x : (fix List . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r) a) -> unwrap x
 -- @
 mkDestructor :: MonadQuote m => Recursivity -> Type TyName () -> Datatype TyName Name () -> m (PLC.Term TyName Name ())
 mkDestructor r dty (Datatype _ _ tvs _ _) = do
@@ -342,9 +342,9 @@ mkDestructor r dty (Datatype _ _ tvs _ _) = do
 -- See note [Scott encoding of datatypes]
 -- | Make the type of a destructor for a 'Datatype'.
 -- @
---     mkDestructorTy <pattern functor of List> List =
---         forall (a :: *) . (List a) -> ((<pattern functor of List>) a) =
---         forall (a :: *) . (List a) -> ((\(a :: *) -> forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List)) a)
+--     mkDestructorTy <pattern functor of List> List
+--         = forall (a :: *) . (List a) -> ((<pattern functor of List>) a)
+--         = forall (a :: *) . (List a) -> ((\(a :: *) -> forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List)) a)
 -- @
 mkDestructorTy :: MonadQuote m => PLC.Type TyName () -> Datatype TyName Name () -> m (PLC.Type TyName ())
 mkDestructorTy pf (Datatype _ tn tvs _ _) =

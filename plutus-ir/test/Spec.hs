@@ -24,7 +24,8 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Test.Tasty
 
-import qualified Data.Text.Prettyprint.Doc            as PP
+import           Control.Monad
+import           Control.Monad.Except
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
@@ -35,26 +36,20 @@ instance GetProgram (Quote (Term TyName Name ())) where
 goldenPir :: String -> Term TyName Name () -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
 
-typecheck :: PLC.Term TyName Name () -> Either (PLC.Error ()) (PLC.Term TyName Name ())
-typecheck t = runQuoteT $ do
-    renamed <- PLC.rename t
-    _ <- PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) =<< PLC.annotateTerm renamed
-    pure renamed
-
-rename :: PLC.Term TyName Name () -> Either (PLC.Error ()) (PLC.Term TyName Name ())
-rename t = runQuoteT $ PLC.rename t
+compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
+compileAndMaybeTypecheck doTypecheck pir = either (error . show . PLC.prettyPlcClassicDebug) id $ runExcept $ runQuoteT $ do
+    -- it is important we run the two computations in the same Quote together, otherwise we might make
+    -- names during compilation that are not fresh
+    compiled <- compileTerm =<< liftQuote pir
+    when doTypecheck $ void $
+        convertErrors PLCError $ do
+            annotated <- PLC.annotateTerm compiled
+            -- need our own typechecker pipeline to allow normalized types
+            PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated
+    pure compiled
 
 compile :: Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
 compile = compileAndMaybeTypecheck True
-
-compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
--- it is important we run the two computations using Quote together, otherwise we might make
--- names during compilation that are not fresh
-compileAndMaybeTypecheck doTypecheck pir = case runCompiling $ compileTerm =<< liftQuote pir of
-    Right plc -> case if doTypecheck then typecheck plc else rename plc of
-        Right renamed -> renamed
-        Left e        -> error (show $ PLC.prettyPlcClassicDebug e)
-    Left e    -> error (show $ PP.pretty e)
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence [
