@@ -280,6 +280,14 @@ fib = plc @"fib" (
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
 
+evenMutual :: PlcCode
+evenMutual = plc @"evenMutual" (
+    let even :: Int -> Bool
+        even n = if n == 0 then True else odd (n-1)
+        odd :: Int -> Bool
+        odd n = if n == 0 then False else even (n-1)
+    in even)
+
 errors :: TestNested
 errors = testNested "errors" [
     goldenPlcCatch "integer" integer

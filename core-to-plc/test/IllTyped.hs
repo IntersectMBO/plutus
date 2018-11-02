@@ -56,11 +56,3 @@ sumViaFold = plc (let fold :: (a -> b -> a) -> a -> [b] -> a
                       sum = fold (+) 0
                   in sum)
 -}
-
-evenMutual :: PlcCode
-evenMutual = plc @"evenMutual" (
-    let even :: Int -> Bool
-        even n = if n == 0 then True else odd (n-1)
-        odd :: Int -> Bool
-        odd n = if n == 0 then False else even (n-1)
-    in even)
