@@ -1,6 +1,6 @@
 module Action where
 
-import Bootstrap
+import Bootstrap (bgInfo, btn, btnDark, card, cardBody_, pullRight, textWhite)
 import Data.Array (mapWithIndex)
 import Data.Foldable (intercalate)
 import Data.Newtype (unwrap)
@@ -9,7 +9,7 @@ import Halogen.HTML (ClassName(ClassName), button, div, div_, h3_, text)
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Prelude
+import Prelude (pure, ($), (<<<))
 import Types (Action, Query(..))
 import Wallet (walletIdPane)
 
