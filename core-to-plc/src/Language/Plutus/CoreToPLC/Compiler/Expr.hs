@@ -195,12 +195,12 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
 
             q <- safeFreshTyName "Q"
             choose <- safeFreshName "choose"
-            let chooseTy = PLC.mkIterTyFun tys (PLC.TyVar () q)
+            let chooseTy = PLC.mkIterTyFun () tys (PLC.TyVar () q)
 
             -- \f1 ... fn -> choose b1 ... bn
             bsLam <- mkIterLamAbsScoped (fmap fst bs) $ do
                 rhss <- mapM convExpr (fmap snd bs)
-                pure $ PLC.mkIterApp (PLC.Var() choose) rhss
+                pure $ PLC.mkIterApp () (PLC.Var() choose) rhss
 
             -- abstract out Q and choose
             let cLam = PLC.TyAbs () q (PLC.Type ()) $ PLC.LamAbs () choose chooseTy bsLam
@@ -208,7 +208,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             -- fixN {A1 B1 ... An Bn}
             instantiatedFix <- do
                 fixN <- liftQuote $ Function.getBuiltinFixN (length bs)
-                pure $ PLC.mkIterInst fixN $ foldMap (\(a, b) -> [a, b]) asbs
+                pure $ PLC.mkIterInst () fixN $ foldMap (\(a, b) -> [a, b]) asbs
 
             let fixed = PLC.Apply () instantiatedFix cLam
 
@@ -240,7 +240,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 Just alt -> convAlt lazyCase dc alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
 
-            let applied = PLC.mkIterApp instantiated branches
+            let applied = PLC.mkIterApp () instantiated branches
             -- See Note [Case expressions and laziness]
             maybeForce lazyCase applied
         -- ignore annotation

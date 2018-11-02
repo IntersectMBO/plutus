@@ -80,7 +80,7 @@ convTyConApp tc ts
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
-        pure $ PLC.mkIterTyApp tc' args'
+        pure $ PLC.mkIterTyApp () tc' args'
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PLCType
 convTyCon tc = do
@@ -196,7 +196,7 @@ splitPatternFunctor ty =
     (noFix, fixVar) <- case ty' of
         PLC.TyFix _ fixVar inner -> Just (inner, fixVar)
         _                        -> Nothing
-    let withApps = PLC.mkIterTyApp noFix tas
+    let withApps = PLC.mkIterTyApp () noFix tas
     pure (withApps, fixVar)
 
 stripTyApps :: PLC.Type PLC.TyName () -> (PLC.Type PLC.TyName(), [PLC.Type PLC.TyName ()])
@@ -429,7 +429,7 @@ mkScottTy tc = do
     let resultKind = PLC.Type ()
     cases <- mapM (mkCaseType (PLC.TyVar () resultType)) dcs
     -- case_1 -> ... -> case_n -> resultType
-    let funcs = PLC.mkIterTyFun cases (PLC.TyVar () resultType)
+    let funcs = PLC.mkIterTyFun () cases (PLC.TyVar () resultType)
     -- forall resultType . funcs
     pure $ PLC.TyForall () resultType resultKind funcs
 
@@ -441,7 +441,7 @@ mkCaseType resultType dc = withContextM (sdToTxt $ "Converting data constructor:
         let argTys = GHC.dataConRepArgTys dc
         args <- mapM convType argTys
         -- t_1 -> ... -> t_m -> resultType
-        pure $ PLC.mkIterTyFun args resultType
+        pure $ PLC.mkIterTyFun () args resultType
 
 -- | Makes the type of the constructor corresponding to the given 'DataCon'.
 mkConstructorType :: Converting m => GHC.DataCon -> m PLCType
@@ -457,7 +457,7 @@ mkConstructorType dc =
                 args <- mapM convType argTys
                 resultType <- convType (GHC.dataConOrigResTy dc)
                 -- t_c_i_1 -> ... -> t_c_i_j -> resultType
-                pure $ PLC.mkIterTyFun args resultType
+                pure $ PLC.mkIterTyFun () args resultType
 
 -- | Makes the constructor for the given 'DataCon'.
 mkConstructor :: Converting m => GHC.DataCon -> m PLCTerm
@@ -524,7 +524,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index m
         -- c_i a_1 .. a_m
         applied = foldl' (\acc a -> PLC.Apply () acc a) thisConstructor (fmap PLC.mkVar argNamesAndTypes)
         -- \c_1 .. c_n . applied
-        cfuncs = PLC.mkIterLamAbs caseNamesAndTypes applied
+        cfuncs = PLC.mkIterLamAbs () caseNamesAndTypes applied
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])
         -- forall r . cfuncs
         resAbstracted = PLC.TyAbs () resultTypeName resultKind cfuncs
@@ -533,7 +533,7 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index m
             Just (PLC.Def (PLC.TyVarDecl _ n _) pf) -> PLC.Wrap () n pf resAbstracted
             Nothing                                 -> resAbstracted
         -- \a_1 .. a_m . fixed
-        afuncs = PLC.mkIterLamAbs argNamesAndTypes fixed
+        afuncs = PLC.mkIterLamAbs () argNamesAndTypes fixed
     in afuncs
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
@@ -555,7 +555,7 @@ getConstructorsInstantiated = \case
 
         forM constrs $ \c -> do
             args' <- mapM convType args
-            pure $ PLC.mkIterInst c args'
+            pure $ PLC.mkIterInst () c args'
     -- must be a TC app
     _ -> throwPlain $ ConversionError "Type was not a type constructor application"
 
@@ -574,7 +574,7 @@ mkMatchTy tc =
             tc' <- convTyCon tc
             -- t t_1 .. t_n
             args <- mapM (convType . GHC.mkTyVarTy) tyVars
-            let applied = PLC.mkIterTyApp tc' args
+            let applied = PLC.mkIterTyApp () tc' args
 
             scottTy <- mkScottTy tc
 
@@ -592,7 +592,7 @@ mkMatch tc =
             tc' <- convTyCon tc
             -- t t_1 .. t_n
             args <- mapM (convType . GHC.mkTyVarTy) tyVars
-            let applied = PLC.mkIterTyApp tc' args
+            let applied = PLC.mkIterTyApp () tc' args
 
             -- this is basically the identity! but we do need to unwrap it
             x <- safeFreshName "x"
@@ -620,7 +620,7 @@ getMatchInstantiated = \case
         match <- getMatch tc
 
         args' <- mapM convType args
-        pure $ PLC.mkIterInst match args'
+        pure $ PLC.mkIterInst () match args'
     -- must be a TC app
     _ -> throwPlain $ ConversionError "Type was not a type constructor application"
 
@@ -638,7 +638,7 @@ convAlt mustDelay dc (alt, vars, body) = case alt of
         -- need to consume the args
         argTypes <- mapM convType $ GHC.dataConRepArgTys dc
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" ++ show i)
-        pure $ PLC.mkIterLamAbs (zipWith (PLC.VarDecl ()) argNames argTypes) body'
+        pure $ PLC.mkIterLamAbs () (zipWith (PLC.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]

@@ -133,12 +133,12 @@ listMatch = do
                 ]
             ] $
             -- embed so we can use PLC construction functions
-            embedIntoIR $ PLC.mkIterApp (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit)
+            embedIntoIR $ PLC.mkIterApp () (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit)
                 [
                     -- nil case
                     unitval,
                     -- cons case
-                    PLC.mkIterLamAbs [PLC.VarDecl () h unit, PLC.VarDecl () t (PLC.TyApp () (PLC.TyVar () m) unit)] $ PLC.Var () h
+                    PLC.mkIterLamAbs () [PLC.VarDecl () h unit, PLC.VarDecl () t (PLC.TyApp () (PLC.TyVar () m) unit)] $ PLC.Var () h
                 ]
 
 datatypes :: TestNested

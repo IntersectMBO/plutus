@@ -28,10 +28,10 @@ getBuiltinTuple arity = do
         pure $ TyVarDecl () tn $ Type ()
 
     resultType <- liftQuote $ freshTyName () "r"
-    let caseType = mkIterTyFun (fmap mkTyVar tyVars) (TyVar () resultType)
+    let caseType = mkIterTyFun () (fmap mkTyVar tyVars) (TyVar () resultType)
     pure $
         -- \T_1 .. T_n
-        mkIterTyLam tyVars $
+        mkIterTyLam () tyVars $
         -- all R
         TyForall () resultType (Type ()) $
         -- (T_1 -> .. -> T_n -> r) -> r
@@ -58,18 +58,18 @@ getBuiltinTupleConstructor arity = do
         pure $ VarDecl () n $ mkTyVar $ tyVars !! i
 
     caseArg <- liftQuote $ freshName () "case"
-    let caseTy = mkIterTyFun (fmap mkTyVar tyVars) (TyVar () resultType)
+    let caseTy = mkIterTyFun () (fmap mkTyVar tyVars) (TyVar () resultType)
     pure $
         -- /\T_1 .. T_n
-        mkIterTyAbs tyVars $
+        mkIterTyAbs () tyVars $
         -- \arg_1 .. arg_n
-        mkIterLamAbs args $
+        mkIterLamAbs () args $
         -- /\R
         TyAbs () resultType (Type ()) $
         -- \case
         LamAbs () caseArg caseTy $
         -- case arg_1 .. arg_n
-        mkIterApp (Var() caseArg) $ fmap mkVar args
+        mkIterApp () (Var () caseArg) $ fmap mkVar args
 
 -- | Given an arity @n@ and an index @i@, create a function for accessing the i'th component of a n-tuple.
 --
@@ -86,7 +86,7 @@ getBuiltinTupleAccessor arity index = rename =<< do
 
     tupleTy <- do
         genericTuple <- getBuiltinTuple arity
-        pure $ mkIterTyApp genericTuple (fmap mkTyVar tyVars)
+        pure $ mkIterTyApp () genericTuple (fmap mkTyVar tyVars)
     let selectedTy = mkTyVar $ tyVars !! index
 
     args <- for [0..(arity -1)] $ \i -> do
@@ -97,10 +97,10 @@ getBuiltinTupleAccessor arity index = rename =<< do
     tupleArg <- liftQuote $ freshName () "tuple"
     pure $
         -- /\T_1 .. T_n
-        mkIterTyAbs tyVars $
+        mkIterTyAbs () tyVars $
         -- \tuple :: (tupleN T_1 .. T_n)
         LamAbs () tupleArg tupleTy $
         -- tuple {T_i}
         Apply () (TyInst () (Var () tupleArg) selectedTy) $
         -- \arg_1 .. arg_n . arg_i
-        mkIterLamAbs args selectedArg
+        mkIterLamAbs () args selectedArg

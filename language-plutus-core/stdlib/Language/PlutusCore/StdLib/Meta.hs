@@ -37,12 +37,12 @@ getBuiltinNatSum s = do
     n <- freshName () "n"
     RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
     return
-        $ mkIterApp (mkIterInst foldList [nat1, int])
+        $ mkIterApp () (mkIterInst () foldList [nat1, int])
           [   LamAbs () acc int
             . LamAbs () n nat2
-            . mkIterApp add
+            . mkIterApp () add
             $ [ Var () acc
-              , mkIterApp (TyInst () nti (TyInt () s))
+              , mkIterApp () (TyInst () nti (TyInt () s))
                   [ Constant () $ BuiltinSize () s
                   , Var () n
                   ]
