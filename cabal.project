@@ -5,21 +5,17 @@ packages: language-plutus-core
           wallet-api
           plutus-th
           plutus-use-cases
+          plutus-ir
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
            , core-to-plc +development
            , plutus-exe +development
            , plutus-core-interpreter +development
--- tests: true
--- benchmarks: true
--- documentation: true
-
-allow-boot-library-installs:
-    true
-
-allow-newer:
-    cborg:containers
+           , plutus-ir +development
+tests: true
+benchmarks: true
+documentation: true
 
 program-options
   alex-options: -g
