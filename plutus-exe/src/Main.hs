@@ -5,6 +5,7 @@ module Main (main) where
 import qualified Language.PlutusCore                        as PLC
 import qualified Language.PlutusCore.Evaluation.CkMachine   as PLC
 import qualified Language.PlutusCore.Interpreter.CekMachine as PLC
+import qualified Language.PlutusCore.Interpreter.LMachine   as PLC
 import qualified Language.PlutusCore.Pretty                 as PLC
 
 import           Control.Monad
@@ -41,7 +42,7 @@ stdInput = flag' StdInput
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input NormalizationMode
-data EvalMode = CK | CEK deriving (Show, Read)
+data EvalMode = CK | CEK | L deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 data Command = Typecheck TypecheckOptions | Eval EvalOptions
 
@@ -72,7 +73,7 @@ evalMode = option auto
   <> metavar "MODE"
   <> value CEK
   <> showDefault
-  <> help "Evaluation mode (one of CK or CEK)" )
+  <> help "Evaluation mode (one of CK, CEK or L)" )
 
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOptions <$> input <*> evalMode
@@ -97,6 +98,7 @@ runEval (EvalOptions inp mode) = do
     let evalFn = case mode of
             CK  -> PLC.runCk
             CEK -> PLC.runCek mempty
+            L   -> PLC.runL mempty
     case evalFn .void <$> PLC.parseScoped bsContents of
         Left (e :: PLC.Error PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
