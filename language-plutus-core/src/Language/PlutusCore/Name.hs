@@ -1,13 +1,17 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE DefaultSignatures      #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
 
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
                                 , Unique (..)
+                                , TypeUnique (..)
+                                , TermUnique (..)
                                 , HasUnique (..)
                                 , Name (..)
                                 , TyName (..)
@@ -44,7 +48,7 @@ data Name a = Name { nameAttribute :: a
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
-    deriving (Show, Lift)
+    deriving (Show, Generic, Lift)
     deriving newtype (Eq, Ord, Functor, NFData)
 
 -- | Apply a function to the string representation of a 'Name'.
@@ -78,19 +82,31 @@ newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, Ord, Lift)
     deriving newtype (NFData)
 
+-- | The unique of a type-level name.
+newtype TypeUnique = TypeUnique
+    { unTypeUnique :: Unique
+    }
+
+-- | The unique of a term-level name.
+newtype TermUnique = TermUnique
+    { unTermUnique :: Unique
+    }
+
 -- | Types which have a 'Unique' attached to them, mostly names.
-class HasUnique a where
-    unique :: Lens' a Unique
+class Coercible Unique unique => HasUnique a unique | a -> unique where
+    unique :: Lens' a unique
 
-instance HasUnique (Name a) where
-    unique = lens g s where
-        g = nameUnique
-        s n u = n{nameUnique=u}
+    -- The default instance for newtypes.
+    default unique :: (Coercible (Unwrap a) a, HasUnique (Unwrap a) unique', Coercible unique' unique)
+                   => Lens' a unique
+    unique = wrapped . unique . coerced
 
-instance HasUnique (TyName a) where
+instance HasUnique (Name a) TermUnique where
     unique = lens g s where
-        g (TyName n) = n ^. unique
-        s (TyName n) u = TyName (n & unique .~ u)
+        g = TermUnique . nameUnique
+        s n (TermUnique u) = n{nameUnique=u}
+
+instance HasUnique (TyName a) TypeUnique
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast

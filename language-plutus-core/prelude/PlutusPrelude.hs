@@ -1,6 +1,8 @@
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)
@@ -19,6 +21,11 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fromRight
                      , isRight
                      , void
+                     , coerce
+                     , coerced
+                     , Unwrap
+                     , wrapped
+                     , unwrapped
                      , Generic
                      , NFData
                      , Natural
@@ -28,6 +35,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , Alternative (..)
                      , Exception
                      , PairT (..)
+                     , Coercible
                      , Typeable
                      -- * Debugging
                      , traceShowId
@@ -82,6 +90,7 @@ import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
+import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
@@ -100,8 +109,9 @@ import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
 import           Debug.Trace
-import           GHC.Generics                            (Generic)
+import           GHC.Generics
 import           GHC.Natural                             (Natural)
+import           Lens.Micro                              (Lens')
 
 import           Data.Functor.Compose
 
@@ -210,6 +220,27 @@ instance Functor f => Functor (PairT b f) where
 -- | Like a version of 'everywhere' for recursion schemes.
 hoist :: (Recursive t, Corecursive t) => (Base t t -> Base t t) -> t -> t
 hoist f = c where c = embed . f . fmap c . project
+
+type family UnwrapRep r :: * where
+    UnwrapRep (D1 d (C1 c (S1 s (K1 i a)))) = a
+
+-- | Extract the underlying type of a newtype wrapper.
+type family Unwrap a :: * where
+    Unwrap a = UnwrapRep (Rep a)
+
+-- | The lens induced by back and forth coercions.
+coerced :: Coercible a b => Lens' a b
+coerced f x = coerce <$> f (coerce x)
+
+-- | A specialized version of 'coerced' that works over newtypes.
+-- Useful, because improves type inference.
+wrapped :: Coercible (Unwrap new) new => Lens' new (Unwrap new)
+wrapped = coerced
+
+-- | A specialized version of 'coerced' that works over newtypes.
+-- Useful, because improves type inference.
+unwrapped :: Coercible (Unwrap new) new => Lens' (Unwrap new) new
+unwrapped = coerced
 
 strToBs :: String -> BSL.ByteString
 strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack

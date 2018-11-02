@@ -63,7 +63,6 @@ library
     hs-source-dirs: src prelude stdlib generators common
     other-modules:
         Language.PlutusCore.Type
-        Language.PlutusCore.Clone
         Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
@@ -112,6 +111,7 @@ library
         text -any,
         prettyprinter >=1.1.0.1,
         microlens -any,
+        microlens-th -any,
         composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,

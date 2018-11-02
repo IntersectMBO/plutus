@@ -50,8 +50,7 @@ module Language.PlutusCore
     , TypeState (..)
     , RenamedType
     , RenamedTerm
-    , alphaRename
-    , globalRename
+    , rename
     -- * Normalization
     , check
     , checkProgram
@@ -117,7 +116,6 @@ import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR                 ()
-import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
