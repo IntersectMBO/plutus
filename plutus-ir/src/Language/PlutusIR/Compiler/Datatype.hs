@@ -277,7 +277,7 @@ mkConstructor r dty pf d@(Datatype _ tn tvs _ constrs) constr = do
 
     -- This is inelegant, but it should never fail
     let index = fromMaybe (error "Should never fail") $ elemIndex constr constrs
-    let thisCase = PLC.mkVar $ casesAndTypes !! index
+    let thisCase = PLC.mkVar () $ casesAndTypes !! index
 
     -- constructor args and their types
     argsAndTypes <- do
@@ -307,7 +307,7 @@ mkConstructor r dty pf d@(Datatype _ tn tvs _ constrs) constr = do
         -- \case_1 .. case_j
         PLC.mkIterLamAbs () casesAndTypes $
         -- c_i arg_1 .. arg_m
-        PLC.mkIterApp () thisCase (fmap PLC.mkVar argsAndTypes)
+        PLC.mkIterApp () thisCase (fmap (PLC.mkVar ()) argsAndTypes)
 
 -- Destructors
 
@@ -328,7 +328,7 @@ mkDestructor r dty (Datatype _ _ tvs _ _) = do
     -- This term appears *outside* the scope of the abstraction for the datatype, so we need to put in the Scott-encoded type here
     -- see note [Abstract data types]
     -- dty t_1 .. t_n
-    let appliedReal = PLC.mkIterTyApp () dty (fmap PLC.mkTyVar tvs)
+    let appliedReal = PLC.mkIterTyApp () dty (fmap (PLC.mkTyVar ()) tvs)
 
     x <- liftQuote $ freshName () "x"
     pure $
@@ -359,9 +359,9 @@ mkDestructorTy pf (Datatype _ tn tvs _ _) =
         -- and we don't need to do anything to the pattern functor
         -- see note [Abstract data types]
         -- t t_1 .. t_n
-        appliedAbstract = PLC.mkIterTyApp () (PLC.mkTyVar tn) (fmap PLC.mkTyVar tvs)
+        appliedAbstract = PLC.mkIterTyApp () (PLC.mkTyVar () tn) (fmap (PLC.mkTyVar ()) tvs)
         -- pf t_1 .. t_n
-        appliedPattern = PLC.mkIterTyApp () pf (fmap PLC.mkTyVar tvs)
+        appliedPattern = PLC.mkIterTyApp () pf (fmap (PLC.mkTyVar ()) tvs)
     in pure $
         -- forall t_1 .. t_n
          PLC.mkIterTyForall () tvs $

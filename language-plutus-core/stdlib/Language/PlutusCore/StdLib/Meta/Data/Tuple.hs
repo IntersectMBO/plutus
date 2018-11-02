@@ -28,7 +28,7 @@ getBuiltinTuple arity = do
         pure $ TyVarDecl () tn $ Type ()
 
     resultType <- liftQuote $ freshTyName () "r"
-    let caseType = mkIterTyFun () (fmap mkTyVar tyVars) (TyVar () resultType)
+    let caseType = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
     pure $
         -- \T_1 .. T_n
         mkIterTyLam () tyVars $
@@ -55,10 +55,10 @@ getBuiltinTupleConstructor arity = do
 
     args <- for [0..(arity -1)] $ \i -> do
         n <- liftQuote $ freshName () $ strToBs $ "arg_" ++ show i
-        pure $ VarDecl () n $ mkTyVar $ tyVars !! i
+        pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
 
     caseArg <- liftQuote $ freshName () "case"
-    let caseTy = mkIterTyFun () (fmap mkTyVar tyVars) (TyVar () resultType)
+    let caseTy = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
     pure $
         -- /\T_1 .. T_n
         mkIterTyAbs () tyVars $
@@ -69,7 +69,7 @@ getBuiltinTupleConstructor arity = do
         -- \case
         LamAbs () caseArg caseTy $
         -- case arg_1 .. arg_n
-        mkIterApp () (Var () caseArg) $ fmap mkVar args
+        mkIterApp () (Var () caseArg) $ fmap (mkVar ()) args
 
 -- | Given an arity @n@ and an index @i@, create a function for accessing the i'th component of a n-tuple.
 --
@@ -86,13 +86,13 @@ getBuiltinTupleAccessor arity index = rename =<< do
 
     tupleTy <- do
         genericTuple <- getBuiltinTuple arity
-        pure $ mkIterTyApp () genericTuple (fmap mkTyVar tyVars)
-    let selectedTy = mkTyVar $ tyVars !! index
+        pure $ mkIterTyApp () genericTuple (fmap (mkTyVar ()) tyVars)
+    let selectedTy = mkTyVar () $ tyVars !! index
 
     args <- for [0..(arity -1)] $ \i -> do
         n <- liftQuote $ freshName () $ strToBs $ "arg_" ++ show i
-        pure $ VarDecl () n $ mkTyVar $ tyVars !! i
-    let selectedArg = mkVar $ args !! index
+        pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
+    let selectedArg = mkVar () $ args !! index
 
     tupleArg <- liftQuote $ freshName () "tuple"
     pure $
