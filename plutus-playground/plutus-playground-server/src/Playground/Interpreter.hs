@@ -16,7 +16,7 @@ import           Language.Haskell.Interpreter (Extension (..), GhcError, ModuleE
                                                OptionVal ((:=)), as, getModuleExports, interpret, languageExtensions,
                                                loadModules, runInterpreter, set, setImportsQ, setTopLevelModules,
                                                typeChecksWithDetails, typeOf)
-import           Playground.API               (Fn (Fn), SourceCode (SourceCode))
+import           Playground.API               (Expression(Expression), Program, Fn (Fn), SourceCode (SourceCode))
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
@@ -54,14 +54,14 @@ compile (SourceCode s) = do
     walletFunctions <- catMaybes <$> traverse isWalletFunction exports
     liftIO $ print walletFunctions
 
-runFunction :: (MonadInterpreter m) => SourceCode -> [(Fn, [Value])] -> m ()
-runFunction (SourceCode s) fs = do
+runFunction :: (MonadInterpreter m) => SourceCode -> Program -> m ()
+runFunction (SourceCode s) program = do
   fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack s)
   loadSource fileName $ do
     setImportsQ
       [("Playground.Interpreter", Nothing), ("Wallet.Emulator", Nothing)]
-    liftIO . putStrLn $ mkExpr (fmap (\(f, vs) -> (f, (Wallet 1), vs)) fs)
-    res <- interpret (mkExpr (fmap (\(f, vs) -> (f, (Wallet 1), vs)) fs)) (as :: Bool)
+    liftIO . putStrLn $ mkExpr program
+    res <- interpret (mkExpr program) (as :: Bool)
     liftIO . print $ res
 
 runTrace :: Trace EmulatedWalletApi a -> Bool
@@ -71,17 +71,17 @@ runTrace action =
         Right _ -> True
         Left _  -> False
 
-mkExpr :: [(Fn, Wallet, [Value])] -> String
-mkExpr fs =
+mkExpr :: Program -> String
+mkExpr program =
   "runTrace (" <>
   (intercalate " >> " $
    fmap
-     (\(f, wallet, args) -> walletActionExpr f wallet args)
-     fs) <>
+     (\expression -> walletActionExpr expression)
+     program) <>
   ")"
 
-walletActionExpr :: Fn -> Wallet -> [Value] -> String
-walletActionExpr (Fn f) wallet args =
+walletActionExpr :: Expression -> String
+walletActionExpr (Expression (Fn f) wallet args) =
   "(walletAction (" <> show wallet <> ") (" <>
   mkApplyExpr (Text.unpack f) (fmap jsonToString args) <> "))"
 

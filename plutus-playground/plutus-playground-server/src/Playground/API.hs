@@ -62,9 +62,18 @@ newtype Fn = Fn Text
   deriving stock (Generic)
   deriving newtype (ToJSON, FromJSON)
 
+data Expression = Expression
+  { function  :: Fn
+  , wallet    :: Wallet
+  , arguments :: [Value]
+  }
+  deriving (Generic, ToJSON, FromJSON)
+
+type Program = [Expression]
+
 data Evaluation = Evaluation
-  { wallets   :: [(Wallet, Integer)]
-  , functions :: [(Fn, [Value])]
-  , contract  :: SourceCode
+  { wallets  :: [(Wallet, Integer)]
+  , program  :: Program
+  , contract :: SourceCode
   }
   deriving (Generic, ToJSON, FromJSON)
