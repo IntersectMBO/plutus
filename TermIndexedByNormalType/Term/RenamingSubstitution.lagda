@@ -56,27 +56,6 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 \end{code}
 
 \begin{code}
-renameE : ∀{Γ Δ K K'} → ⋆.Ren Γ Δ → EvalCxt Γ K K' → EvalCxt Δ K K'
-renameE ρ •        = •
-renameE ρ (E ·E t) = renameE ρ E ·E renameNf ρ t
-
-renameE[] : ∀{Γ Δ K K'}(ρ : ⋆.Ren Γ Δ)(E : EvalCxt Γ K K')(t : Γ ⊢Nf⋆ K)
-  → renameNf ρ (E [ t ]E) ≡ renameE ρ E [ renameNf ρ t ]E
-renameE[] ρ •        t = refl
-renameE[] ρ (E ·E u) t =
-  trans (rename-reify (AppCR (idext idCR (embNf (E [ t ]E)))
-                                 (idext idCR (embNf u)))
-                         ρ)
-        (trans (reifyCR (renameVal-eval (embNf (E [ t ]E) · embNf u) idCR ρ))
-                        (trans (trans (reifyCR (transCR (AppCR (idext (renameVal-reflect ρ ∘ `) (embNf (E [ t ]E))) (idext (renameVal-reflect ρ ∘ `) (embNf u))) (symCR (rename-eval (embNf (E [ t ]E) · embNf u) idCR ρ))))
-                             (sym (cong₂ (λ f a → nf (f · a))
-                                         (rename-embNf ρ (E [ t ]E))
-                                         (rename-embNf ρ u))) )
-                      (cong (λ f → nf (embNf f · embNf (renameNf ρ u)))
-                            (renameE[] ρ E t)) ))
-\end{code}
-
-\begin{code}
 rename-nf : ∀{Γ Δ K}
   → (A : ∥ Γ ∥ ⊢⋆ K)
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)

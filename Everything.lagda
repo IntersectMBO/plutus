@@ -25,9 +25,11 @@ import Type.BetaNBE.RenamingSubstitution
 -- in the absense of conversions in terms.
 
 import TermIndexedBySyntacticType.Term
+{-
 import TermIndexedBySyntacticType.Term.RenamingSubstitution
 import TermIndexedBySyntacticType.Term.Reduction
 import TermIndexedBySyntacticType.Evaluation
+-}
 --import TermIndexedBySyntacticType.Examples
 
 -- Terms, reduction and evaluation where terms are indexed by normal

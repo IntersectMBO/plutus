@@ -9,7 +9,7 @@ open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
 
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
 open import Data.Empty
 \end{code}
@@ -34,7 +34,7 @@ data EvalCxt Γ (K : Kind) : Kind → Set where
 
 \begin{code}
 _[_]E : ∀{Γ K K'} → EvalCxt Γ K K' → Γ ⊢⋆ K → Γ ⊢⋆ K'
-• [ t ]E = t
+•        [ t ]E = t
 (E ·E u) [ t ]E = E [ t ]E · u
 \end{code}
 
@@ -98,12 +98,41 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
   size       : ∀ s → TermCon (con size s) 
 \end{code}
 
+## Signatures
+
+
+
+\begin{code}
+\end{code}
+
+
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
+open import Data.Vec hiding ([_])
+open import Data.List hiding ([_])
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.Nat
+
+Sig : Ctx → Set
+Sig Δ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
+
+
+
+data Builtin (Γ : Ctx) : Set where
+
+El : ∀{Γ} → Builtin Γ → Sig Γ
+El ()
+
+Tel : ∀ {Γ Δ} → Sub ∥ Δ ∥  ∥ Γ ∥ → Sig Δ → Set
+
+Ran : ∀ Γ → Sig Γ → ∥ Γ ∥ ⊢⋆ *
+Ran Γ (Ms ,, C) = C
+
+
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
   ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
@@ -172,4 +201,15 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
     → TermCon (con tcn s)
       -------------------
     → Γ ⊢ con tcn s
+
+  builtin : ∀{Γ Δ K}{A : ∥ Γ ∥ ⊢⋆ K}
+    → (bn : Builtin Δ)
+    → (σ : Sub ∥ Δ ∥ ∥ Γ ∥)
+    → Tel {Γ} {Δ} σ (El bn)
+    → Γ ⊢ subst σ (Ran Δ (El bn))
+
+open import Data.Unit
+Tel σ ([] ,, _)     = ⊤
+Tel {Γ}{Δ} σ ((A ∷ As) ,, C) = Γ ⊢ subst σ A × Tel {Γ} {Δ} σ (As ,, C)
+
 \end{code}
