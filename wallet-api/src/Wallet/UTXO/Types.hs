@@ -130,6 +130,7 @@ import           Language.Plutus.TH                       (plutus)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Evaluation.Result
+import Data.Swagger.Internal.Schema (ToSchema)
 
 {- Note [Serialisation and hashing]
 
@@ -158,6 +159,7 @@ especially because we only need one direction (to binary).
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
+    deriving anyclass (ToSchema)
     deriving newtype (Serialise, ToJSON, FromJSON)
 
 instance LiftPlc PubKey
@@ -181,6 +183,7 @@ signedBy (Signature k) (PubKey s) = k == s
 newtype Value = Value { getValue :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
+    deriving anyclass (ToSchema)
     deriving newtype (Num, Integral, Real, Serialise, ToJSON, FromJSON)
 
 -- | Transaction ID (double SHA256 hash of the transaction)
@@ -324,6 +327,7 @@ instance Ord Redeemer where
 newtype Height = Height { getHeight :: Integer }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
+    deriving anyclass (ToSchema)
     deriving newtype (Num, Real, Integral, Serialise, FromJSON, ToJSON)
 
 -- | The height of a blockchain

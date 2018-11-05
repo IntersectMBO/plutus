@@ -29,6 +29,7 @@ library
       Playground.API
       Playground.Server
       Playground.Interpreter
+      Playground.TH
       Webserver
       PSGenerator
   other-modules:
@@ -61,6 +62,8 @@ library
     , servant-options
     , servant-purescript
     , servant-server
+    , swagger2
+    , template-haskell
     , text
     , transformers
     , wai

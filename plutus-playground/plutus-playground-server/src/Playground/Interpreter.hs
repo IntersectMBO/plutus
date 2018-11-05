@@ -1,3 +1,5 @@
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Playground.Interpreter where
 
 import           Control.Monad.Catch          (finally, throwM)
@@ -8,6 +10,8 @@ import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.List                    (intercalate)
 import           Data.Maybe                   (catMaybes, fromJust)
 import           Data.Monoid                  ((<>))
+import           Data.Swagger                 (Schema)
+import           Data.Swagger.Schema          (ToSchema, toSchema, declareNamedSchema)
 import           Data.Text                    (unpack)
 import qualified Data.Text                    as Text
 import           Data.Typeable                (TypeRep, Typeable, typeRepArgs)
@@ -18,14 +22,18 @@ import           Language.Haskell.Interpreter (Extension (..), GhcError, Interpr
                                                runInterpreter, set, setImportsQ, setTopLevelModules,
                                                typeChecksWithDetails, typeOf)
 import           Playground.API               (Evaluation (program, sourceCode), Expression (Expression), Fn (Fn),
-                                               Program, SourceCode (getSourceCode), blockchain)
+                                               FunctionSchema (FunctionSchema), Program, SourceCode (getSourceCode),
+                                               blockchain)
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
+import qualified Type.Reflection              as TR
 import           Wallet.API                   (WalletAPI)
 import           Wallet.Emulator.Types        (AssertionError, EmulatedWalletApi, EmulatorState (emChain), Trace,
                                                Wallet (Wallet, getWallet), runTraceChain, runTraceTxPool, walletAction)
 import           Wallet.UTXO                  (Blockchain)
+import qualified Language.Haskell.TH as TH
+import qualified Playground.TH as TH
 
 defaultExtensions =
   [ ExplicitForAll
@@ -49,13 +57,19 @@ loadSource fileName action =
 
 -- TODO: this needs to return a schema of the function names and types
 --       http://hackage.haskell.org/package/swagger2-2.3.0.1/docs/Data-Swagger-Internal-Schema.html#t:ToSchema
-compile :: (MonadInterpreter m) => SourceCode -> m ()
+compile :: (MonadInterpreter m) => SourceCode -> m [FunctionSchema]
 compile s = do
   fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack . getSourceCode $ s)
   loadSource fileName $ do
     exports <- getModuleExports "Main"
+    liftIO $ print exports
     walletFunctions <- catMaybes <$> traverse isWalletFunction exports
     liftIO $ print walletFunctions
+    traverse getSchema walletFunctions
+
+getSchema :: (MonadInterpreter m) => ModuleElem -> m FunctionSchema
+getSchema (Fun m) = interpret m (as :: FunctionSchema)
+getSchema _ = error "Trying to get a schema by calling something other than a function"
 
 runFunction :: (MonadInterpreter m) => Evaluation -> m Blockchain
 runFunction evaluation = do
@@ -116,7 +130,8 @@ a <+> b = a <> " " <> b
 jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode
 
-{-# ANN module ("HLint: ignore"::String) #-}
+{-# ANN module ("HLint: ignore" :: String) #-}
+
 -- | This will throw an exception if it cannot decode the json however it should
 --   never do this as long as it is only called in places where we have already
 --   decoded and encode the value since it came from an HTTP API call
@@ -186,18 +201,21 @@ apply7 fun (a, b, c, d, e, f, g) =
 isWalletFunction :: (MonadInterpreter m) => ModuleElem -> m (Maybe ModuleElem)
 isWalletFunction f@(Fun s) = do
   t <- typeOf s
+  liftIO . print $ t
   pure $
-    if t == "Int -> Int"
+    if t == "FunctionSchema"
       then Just f
       else Nothing
 isWalletFunction _ = pure Nothing
 
-data Function =
-  Function String
-           [TypeRep]
+testFun :: Int -> Int -> Int
+testFun x y = x + y
 
-registerFunction :: Typeable a => String -> a -> Function
-registerFunction name fn = Function name $ typesOf fn
+$(TH.mkFunction 'testFun)
+
+-- notes: Schemas don't have a way of representing functions so we will create
+-- our own representation, a name and a list of schemas. We can convert this
+-- to json
 
 typesOf :: Typeable a => a -> [TypeRep]
 typesOf f = splitFunType [DT.typeOf f]

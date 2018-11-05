@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveLift #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
@@ -9,6 +10,7 @@
 
 module Playground.API where
 
+import qualified Language.Haskell.TH.Syntax as TH
 import           Control.Arrow          (left)
 import           Data.Aeson             (FromJSON (parseJSON), ToJSON (toJSON), Value, withText)
 import qualified Data.Aeson             as JSON
@@ -23,9 +25,10 @@ import           Servant.API            ((:<|>), (:>), Accept (contentType), Cap
                                          MimeUnrender (mimeUnrender), NoContent, Post, ReqBody)
 import           Wallet.Emulator.Types  (Wallet)
 import           Wallet.UTXO.Types      (Blockchain)
+import Data.Swagger (Schema, ToSchema)
 
 type API
-   = "contract" :> ReqBody '[ Haskell] SourceCode :> Post '[ JSON] FunctionsSchema
+   = "contract" :> ReqBody '[ Haskell] SourceCode :> Post '[ JSON] [FunctionSchema]
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] Blockchain
 
 newtype Haskell = Haskell Text
@@ -59,7 +62,7 @@ newtype FunctionsSchema = FunctionsSchema [(Fn, Text)]
   deriving newtype (ToJSON, FromJSON)
 
 newtype Fn = Fn Text
-  deriving stock (Generic)
+  deriving stock (Show, Generic, TH.Lift)
   deriving newtype (ToJSON, FromJSON)
 
 data Expression = Expression
@@ -78,3 +81,9 @@ data Evaluation = Evaluation
   , blockchain :: Blockchain
   }
   deriving (Generic, ToJSON, FromJSON)
+
+data FunctionSchema = FunctionSchema
+  { functionName :: Fn
+  , argumentSchema :: [Schema]
+  }
+  deriving (Show, Generic, ToJSON)
