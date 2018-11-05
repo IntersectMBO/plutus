@@ -57,6 +57,7 @@ library
     , monad-logger
     , mtl
     , network
+    , newtype-generics
     , purescript-bridge
     , servant
     , servant-foreign
@@ -114,6 +115,7 @@ test-suite plutus-playground-server-test
   main-is: Spec.hs
   other-modules:
       ServerSpec
+      Playground.InterpreterSpec
       Paths_plutus_playground_server
   hs-source-dirs:
       test

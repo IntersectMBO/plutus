@@ -1,10 +1,13 @@
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Playground.Interpreter where
 
 import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.IO.Class       (liftIO)
+import qualified Control.Newtype.Generics     as Newtype
 import           Data.Aeson                   (FromJSON, Result (Success), ToJSON, Value, fromJSON)
 import qualified Data.Aeson                   as JSON
 import qualified Data.ByteString.Lazy.Char8   as BSL
@@ -13,10 +16,11 @@ import           Data.Maybe                   (catMaybes, fromJust)
 import           Data.Monoid                  ((<>))
 import           Data.Swagger                 (Schema)
 import           Data.Swagger.Schema          (ToSchema, declareNamedSchema, toSchema)
-import           Data.Text                    (unpack)
+import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Data.Typeable                (TypeRep, Typeable, typeRepArgs)
 import qualified Data.Typeable                as DT
+import           GHC.Generics                 (Generic)
 import           Language.Haskell.Interpreter (Extension (..), GhcError, InterpreterError (UnknownError),
                                                ModuleElem (Fun), ModuleName, MonadInterpreter, OptionVal ((:=)), as,
                                                getLoadedModules, getModuleExports, interpret, languageExtensions,
@@ -24,8 +28,7 @@ import           Language.Haskell.Interpreter (Extension (..), GhcError, Interpr
                                                typeChecksWithDetails, typeOf)
 import qualified Language.Haskell.TH          as TH
 import           Playground.API               (Evaluation (program, sourceCode), Expression (Expression), Fn (Fn),
-                                               FunctionSchema (FunctionSchema), Program, SourceCode (getSourceCode),
-                                               blockchain)
+                                               FunctionSchema (FunctionSchema), Program, SourceCode, blockchain)
 import qualified Playground.TH                as TH
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
@@ -60,7 +63,7 @@ loadSource fileName action =
 compile :: (MonadInterpreter m) => SourceCode -> m [FunctionSchema]
 compile s = do
   fileName <-
-    liftIO $ writeTempFile "." "Contract.hs" (unpack . getSourceCode $ s)
+    liftIO $ writeTempFile "." "Contract.hs" (Text.unpack . Newtype.unpack $ s)
   loadSource fileName $ \moduleName -> do
     exports <- getModuleExports moduleName
     walletFunctions <- catMaybes <$> traverse isWalletFunction exports
@@ -80,7 +83,7 @@ runFunction evaluation = do
     writeTempFile
       "."
       "Contract.hs"
-      (unpack . getSourceCode . sourceCode $ evaluation)
+      (Text.unpack . Newtype.unpack . sourceCode $ evaluation)
   loadSource fileName $ \_ -> do
     setImportsQ
       [("Playground.Interpreter", Nothing), ("Wallet.Emulator", Nothing)]
@@ -205,3 +208,35 @@ isWalletFunction f@(Fun s) = do
       then Just f
       else Nothing
 isWalletFunction _ = pure Nothing
+
+------------------------------------------------------------
+data CompilationError = CompilationError
+  { filename :: !FilePath
+  , row      :: !Int
+  , column   :: !Int
+  , text     :: ![Text]
+  } deriving (Show, Eq, Generic)
+
+-- | Stub. TODO
+parseErrorText :: Text -> CompilationError
+parseErrorText _ =
+  CompilationError
+    { filename = "Main70317-3.hs"
+    , row = 76
+    , column = 14
+    , text =
+        [ "    \8226 Could not deduce (MonadError WalletAPIError m0)"
+        , "      from the context: (MonadError WalletAPIError m, WalletAPI m)"
+        , "        bound by the type signature for:"
+        , "                   vestFunds :: forall (m :: * -> *)."
+        , "                                (MonadError WalletAPIError m, WalletAPI m) =>"
+        , "                                Vesting -> Value -> IO ()"
+        , "        at Main70317-3.hs:(76,14)-(81,12)"
+        , "      The type variable \8216m0\8217 is ambiguous"
+        , "    \8226 In the ambiguity check for \8216vestFunds\8217"
+        , "      To defer the ambiguity check to use sites, enable AllowAmbiguousTypes"
+        , "      In the type signature:"
+        , "        vestFunds :: (MonadError WalletAPIError m, WalletAPI m) =>"
+        , "                     Vesting -> Value -> IO ()"
+        ]
+    }

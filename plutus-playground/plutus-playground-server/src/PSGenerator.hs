@@ -1,14 +1,12 @@
-{-# LANGUAGE AutoDeriveTypeable         #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE AutoDeriveTypeable    #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module PSGenerator
   ( generate
@@ -28,7 +26,9 @@ import           GHC.Generics                       (Generic)
 import           Language.PureScript.Bridge         (BridgePart, Language (Haskell), SumType, buildBridge, mkSumType,
                                                      stringBridge, writePSTypes)
 import           Language.PureScript.Bridge.PSTypes ()
-import           Playground.API                     (API, Evaluation, Fn, SourceCode)
+import           Playground.API                     (API, Evaluation, Fn, FunctionSchema, FunctionsSchema, SourceCode)
+import qualified Playground.API                     as API
+import           Playground.Interpreter             (CompilationError)
 import           Servant.API                        ((:>), Capture, Get, JSON, PlainText, Post, ReqBody)
 import           Servant.PureScript                 (HasBridge, Settings, apiModuleName, defaultBridge, defaultSettings,
                                                      languageBridge, writeAPIModuleWithSettings, _generateSubscriberAPI)
@@ -36,17 +36,6 @@ import           Wallet.UTXO.Types                  (Blockchain)
 
 myBridge :: BridgePart
 myBridge = defaultBridge
-
-newtype WalletId =
-  WalletId String
-  deriving stock (Generic)
-  deriving newtype (ToJSON, FromJSON)
-
-data Wallet = Wallet
-  { id      :: WalletId
-  , balance :: Double
-  }
-  deriving stock (Generic)
 
 data MyBridge
 
@@ -57,7 +46,13 @@ instance HasBridge MyBridge where
   languageBridge _ = buildBridge myBridge
 
 myTypes :: [SumType 'Haskell]
-myTypes = [mkSumType (Proxy @WalletId), mkSumType (Proxy @Wallet)]
+myTypes =
+  [ mkSumType (Proxy @FunctionSchema)
+  , mkSumType (Proxy @FunctionsSchema)
+  , mkSumType (Proxy @Fn)
+  , mkSumType (Proxy @SourceCode)
+  , mkSumType (Proxy @CompilationError)
+  ]
 
 mySettings :: Settings
 mySettings =
@@ -70,5 +65,5 @@ generate outputDir = do
     mySettings
     outputDir
     myBridgeProxy
-    (Proxy :: Proxy ("version" :> Get '[PlainText, JSON] Text))
+    (Proxy :: Proxy ("contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] [FunctionSchema]))
   writePSTypes outputDir (buildBridge myBridge) myTypes

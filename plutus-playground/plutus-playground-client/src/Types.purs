@@ -1,11 +1,16 @@
 module Types where
 
+import Ace.Halogen.Component (AceMessage)
+import Data.Either (Either)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
-import Ace.Halogen.Component (AceMessage)
-import Halogen.ECharts (EChartsMessage)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
+import Halogen.ECharts (EChartsMessage)
+import Network.RemoteData (RemoteData)
+import Playground.API (FunctionsSchema)
+import Playground.Interpreter (CompilationError)
+import Servant.PureScript.Affjax (AjaxError)
 
 newtype WalletId = WalletId String
 derive instance newtypeWalletId :: Newtype WalletId _
@@ -39,14 +44,20 @@ type Action =
 data Query a
   = HandleAceMessage AceMessage a
   | HandleEChartsMessage EChartsMessage a
+  | CompileProgram a
   | SendAction Action a
   | KillAction Int a
 
 -----------------------------------------------------------
 
+type CompilationResult =
+  Either (Array CompilationError) FunctionsSchema
+
 type State =
   { wallets :: Array Wallet
   , actions :: Array Action
+  , editorContents :: String
+  , compilationResult :: RemoteData AjaxError CompilationResult
   }
 
 _actions :: forall s a. Lens' {actions :: a | s} a
@@ -54,3 +65,9 @@ _actions = prop (SProxy :: SProxy "actions")
 
 _wallets :: forall s a. Lens' {wallets :: a | s} a
 _wallets = prop (SProxy :: SProxy "wallets")
+
+_editorContents :: forall s a. Lens' {editorContents :: a | s} a
+_editorContents = prop (SProxy :: SProxy "editorContents")
+
+_compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
+_compilationResult = prop (SProxy :: SProxy "compilationResult")
