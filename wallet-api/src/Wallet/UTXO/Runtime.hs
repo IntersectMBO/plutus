@@ -38,6 +38,12 @@ import           Language.Plutus.Lift (LiftPlc (..), TypeablePlc (..))
 import           Wallet.UTXO.Types    (PubKey (..), Signature (..))
 import qualified Wallet.UTXO.Types    as UTXO
 
+-- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
+-- problems with the plugin
+--
+-- TODO: Remove annotation once `newtype Oracle = (...)` works
+{-# ANN module "HLint: ignore Use newtype instead of data" #-}
+
 data PendingTxOutType =
     PubKeyTxOut PubKey -- ^ Pub key address
     | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
@@ -91,13 +97,13 @@ instance LiftPlc (PendingTx ValidatorHash)
 
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle.
-newtype OracleValue a = OracleValue (Signed (Height, a))
+data OracleValue a = OracleValue (Signed (Height, a))
     deriving Generic
 
 instance TypeablePlc a => TypeablePlc (OracleValue a)
 instance (TypeablePlc a, LiftPlc a) => LiftPlc (OracleValue a)
 
-newtype Signed a = Signed (PubKey, a)
+data Signed a = Signed (PubKey, a)
     deriving Generic
 
 instance TypeablePlc a => TypeablePlc (Signed a)
