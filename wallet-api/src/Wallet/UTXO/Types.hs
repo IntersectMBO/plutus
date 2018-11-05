@@ -124,13 +124,13 @@ import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 import           Lens.Micro
 
+import           Data.Swagger.Internal.Schema             (ToSchema)
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getSerializedCode)
 import           Language.Plutus.Lift                     (LiftPlc (..), TypeablePlc (..))
 import           Language.Plutus.TH                       (plutus)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Evaluation.Result
-import Data.Swagger.Internal.Schema (ToSchema)
 
 {- Note [Serialisation and hashing]
 

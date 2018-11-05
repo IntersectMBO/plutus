@@ -1,5 +1,5 @@
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Playground.Interpreter where
 
 import           Control.Monad.Catch          (finally, throwM)
@@ -11,7 +11,7 @@ import           Data.List                    (intercalate)
 import           Data.Maybe                   (catMaybes, fromJust)
 import           Data.Monoid                  ((<>))
 import           Data.Swagger                 (Schema)
-import           Data.Swagger.Schema          (ToSchema, toSchema, declareNamedSchema)
+import           Data.Swagger.Schema          (ToSchema, declareNamedSchema, toSchema)
 import           Data.Text                    (unpack)
 import qualified Data.Text                    as Text
 import           Data.Typeable                (TypeRep, Typeable, typeRepArgs)
@@ -21,9 +21,11 @@ import           Language.Haskell.Interpreter (Extension (..), GhcError, Interpr
                                                getModuleExports, interpret, languageExtensions, loadModules,
                                                runInterpreter, set, setImportsQ, setTopLevelModules,
                                                typeChecksWithDetails, typeOf)
+import qualified Language.Haskell.TH          as TH
 import           Playground.API               (Evaluation (program, sourceCode), Expression (Expression), Fn (Fn),
                                                FunctionSchema (FunctionSchema), Program, SourceCode (getSourceCode),
                                                blockchain)
+import qualified Playground.TH                as TH
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
@@ -32,8 +34,6 @@ import           Wallet.API                   (WalletAPI)
 import           Wallet.Emulator.Types        (AssertionError, EmulatedWalletApi, EmulatorState (emChain), Trace,
                                                Wallet (Wallet, getWallet), runTraceChain, runTraceTxPool, walletAction)
 import           Wallet.UTXO                  (Blockchain)
-import qualified Language.Haskell.TH as TH
-import qualified Playground.TH as TH
 
 defaultExtensions =
   [ ExplicitForAll
@@ -69,7 +69,7 @@ compile s = do
 
 getSchema :: (MonadInterpreter m) => ModuleElem -> m FunctionSchema
 getSchema (Fun m) = interpret m (as :: FunctionSchema)
-getSchema _ = error "Trying to get a schema by calling something other than a function"
+getSchema _       = error "Trying to get a schema by calling something other than a function"
 
 runFunction :: (MonadInterpreter m) => Evaluation -> m Blockchain
 runFunction evaluation = do

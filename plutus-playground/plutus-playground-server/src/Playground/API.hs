@@ -1,7 +1,7 @@
-{-# LANGUAGE DeriveLift #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DeriveLift                 #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -10,22 +10,22 @@
 
 module Playground.API where
 
+import           Control.Arrow              (left)
+import           Data.Aeson                 (FromJSON (parseJSON), ToJSON (toJSON), Value, withText)
+import qualified Data.Aeson                 as JSON
+import qualified Data.ByteString.Base64     as Base64
+import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import           Data.Map                   (Map)
+import           Data.Swagger               (Schema, ToSchema)
+import           Data.Text                  (Text)
+import           Data.Text.Encoding         (decodeUtf8, decodeUtf8', encodeUtf8)
+import           GHC.Generics               (Generic)
 import qualified Language.Haskell.TH.Syntax as TH
-import           Control.Arrow          (left)
-import           Data.Aeson             (FromJSON (parseJSON), ToJSON (toJSON), Value, withText)
-import qualified Data.Aeson             as JSON
-import qualified Data.ByteString.Base64 as Base64
-import           Data.ByteString.Lazy   (fromStrict, toStrict)
-import           Data.Map               (Map)
-import           Data.Text              (Text)
-import           Data.Text.Encoding     (decodeUtf8, decodeUtf8', encodeUtf8)
-import           GHC.Generics           (Generic)
-import           Network.HTTP.Media     ((//), (/:))
-import           Servant.API            ((:<|>), (:>), Accept (contentType), Capture, JSON, MimeRender (mimeRender),
-                                         MimeUnrender (mimeUnrender), NoContent, Post, ReqBody)
-import           Wallet.Emulator.Types  (Wallet)
-import           Wallet.UTXO.Types      (Blockchain)
-import Data.Swagger (Schema, ToSchema)
+import           Network.HTTP.Media         ((//), (/:))
+import           Servant.API                ((:<|>), (:>), Accept (contentType), Capture, JSON, MimeRender (mimeRender),
+                                             MimeUnrender (mimeUnrender), NoContent, Post, ReqBody)
+import           Wallet.Emulator.Types      (Wallet)
+import           Wallet.UTXO.Types          (Blockchain)
 
 type API
    = "contract" :> ReqBody '[ Haskell] SourceCode :> Post '[ JSON] [FunctionSchema]
@@ -83,7 +83,7 @@ data Evaluation = Evaluation
   deriving (Generic, ToJSON, FromJSON)
 
 data FunctionSchema = FunctionSchema
-  { functionName :: Fn
+  { functionName   :: Fn
   , argumentSchema :: [Schema]
   }
   deriving (Show, Generic, ToJSON)
