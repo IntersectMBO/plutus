@@ -2,7 +2,7 @@
 -- A lazy machine based on the L machine of Friedman et al. [Improving the Lazy Krivine Machine]
 -- More documentation to follow
 
--- DON'T LOOK AT THIS - it's horrible!
+-- WORK IN PROGRESS
 
 module Language.PlutusCore.Interpreter.LMachine
     ( EvaluationResult (..)
@@ -20,75 +20,31 @@ import           PlutusPrelude
 import           Data.IntMap                                     (IntMap)
 import qualified Data.IntMap                                     as IntMap
 
-----------------------------------------------------------------------------------------------------
 
-nameStr :: Name () -> String
-nameStr n = show $ nameString n
-
-tnameStr :: TyName () -> String
-tnameStr n = nameStr $ unTyName n
-
-builtinStr :: TypeBuiltin -> String
-builtinStr TyByteString = "bs"
-builtinStr TyInteger    = "int"
-builtinStr TySize       = "size"
-
-
-typeStr :: Type TyName () -> String
-typeStr (TyVar _ tname)         = tnameStr tname
-typeStr (TyFun _ ty1 ty2)       = "(" ++ typeStr ty1 ++ " ~> " ++ typeStr ty2 ++ ")"
-typeStr (TyFix _ tname ty)      = "fix " ++ tnameStr tname ++ ".(" ++ typeStr ty ++ ")"
-typeStr (TyForall _ tname k ty) = "forall " ++ tnameStr tname ++ ".(" ++ typeStr ty ++ ")"
-typeStr (TyBuiltin _ tbi)       = builtinStr tbi
-typeStr (TyInt _ n)             = show n
-typeStr (TyLam _ tname k ty)    = "TLam " ++ tnameStr tname ++ " (" ++ typeStr ty ++ ")"
-typeStr (TyApp _ t1 t2)         = typeStr t1 ++ "<" ++ typeStr t2 ++ ">"
-
-
-
-
-termStr :: Plain Term -> String
-termStr (Var _ name)                = nameStr name
-termStr (TyAbs _ tyname  k term)    = "TyAbs " ++ tnameStr tyname ++ ".<" ++ termStr term ++ ">"
-termStr (LamAbs _ name tyname term) = "Lam " ++ nameStr name ++ " (" ++ termStr term ++ ")"
-termStr (Apply _ term1 term2)       = "Apply [" ++ termStr term1 ++ ", " ++ termStr term2 ++ "]"
-termStr (Constant _ c)              = "Const " ++ show c
-termStr (TyInst _ term ty)          = "TyInst {" ++ termStr term ++ ", " ++ typeStr ty  ++ "}"
-termStr (Unwrap _ term)             = "Unwrap (" ++ termStr term  ++ ")"
-termStr (Wrap  _ tyname ty term)    = "Wrap (" ++ termStr term ++ ")"
-termStr (Error _ _)                 = "Error"
-
-termStr2 :: Plain Term -> String
-termStr2 (LamAbs _ name _ _) = "LamAbs " ++ nameStr name
-termStr2 t                   = termStr t
-
-trace2 _ y = y
--- trace2 = trace
-----------------------------------------------------------------------------------------------------
-
--- | A Term packed together with the environment it's defined in.
+-- | A term together with an enviroment mapping free variables to heap locations
 data Closure = Closure
     { _closureValue       :: Plain Term
     , _closureEnvironment :: Environment
     } deriving (Show)
 
+-- | A local version of the MachineResult type using closures instead of values
 data LMachineResult
-    = Success Closure Heap
+    = Success Closure Heap  -- We need both the environment and the heap to see what the value "really" is.
     | Failure
 
 type Plain f = f TyName Name ()
 
--- | Environments used by the CEK machine.
+-- L machine environments
 -- Each row is a mapping from the 'Unique' representing a variable to a heap location
 newtype Environment = Environment (IntMap Loc)
     deriving (Show)
 
 data Frame
-    = FrameDelayedArg Closure
+    = FrameDelayedArg Closure                    -- Tells the machine that we've got back to N after evaluating M in [M N]
+    | FrameMark Environment Loc                  -- Tells the machine that we've finished evaluating a delayed term in the heap
     | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
     | FrameUnwrap                                -- ^ @(unwrap _)@
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
-    | FrameMark Environment Loc
       deriving (Show)
 
 {- Suppose we come to [M N]: we want to save N and the current
@@ -109,28 +65,22 @@ emptyEnvironment = Environment IntMap.empty
 updateEnvironment :: Int -> Loc -> Environment -> Environment
 updateEnvironment index cl (Environment m) = Environment (IntMap.insert index cl m)
 
--- | Extend an environment with a variable name, the value the variable stands for
--- and the environment the value is defined in.
-{-
-extendEnvironment :: Name () -> Plain Value -> Environment -> Environment -> Environment
-extendEnvironment argName arg argEnv (Environment oldEnv) =
-    Environment $ IntMap.insert (unUnique $ nameUnique argName) (Closure arg argEnv) oldEnv
--}
-
-{-
--- | Look up a name in an environment.
-lookupName :: Name () -> Environment -> Maybe Closure
-lookupName name (Environment env) = IntMap.lookup (unUnique $ nameUnique name) env
--}
-
 type Loc = Int -- Heap location. Will Int always be big enough?  maxBound::Int is 2^63-1
+
+{- Environments map variable ids to locations, the heap maps locations
+   to terms.  We really do require this indirection: there may be
+   multiple objects in the heap corresponding to the same variable
+   (during recursion, for example). -}
 
 -- | Look up a heap location in an environment.
 lookupLoc :: Name () -> Environment -> Loc
 lookupLoc name (Environment env) =
     case IntMap.lookup (unUnique $ nameUnique name) env of
       Nothing  -> error $ "Name not found in environment: " ++ show (nameString name)
+                  -- or maybe throw $ MachineException OpenTermEvaluatedMachineError var
+                  -- This might be a bit misleading if the error's not due to an open term.
       Just loc -> loc
+
 
 data HeapEntry =
     Evaluated (Plain Term) -- Should really be Value
@@ -144,14 +94,19 @@ data Heap = Heap {
 emptyHeap :: Heap
 emptyHeap = Heap IntMap.empty 0
 
+-- | Insert a new entry into a heap. The heap grows monotonically with no garbage collection or reuse of heap slots.
 insertInHeap :: Closure -> Heap -> (Loc, Heap)
 insertInHeap cl (Heap h top) =
     let top' = top + 1
-    in trace2 ("Inserting at " ++ show top') $ (top', Heap (IntMap.insert top' (Unevaluated cl) h) top')
+    in (top', Heap (IntMap.insert top' (Unevaluated cl) h) top')
 
+-- | Update the heap entry at a given location.
+-- | The old entry presumably persits in the old heap.
 modifyHeap :: Loc -> HeapEntry -> Heap -> Heap
 modifyHeap l cl (Heap h top) =
-    Heap (IntMap.adjust (\_ -> cl) l h) top  -- insert or adjust?
+    -- Heap (IntMap.adjust (\_ -> cl) l h) top  -- insert or adjust?
+    Heap (IntMap.insert l cl h) top
+    -- insert seems to be faster than adjust (18s vs 28 s for fib 32) and also uses less memory.
 
 lookupHeap :: Loc -> Heap -> HeapEntry
 lookupHeap l (Heap h _) =
@@ -178,7 +133,7 @@ evalVar ctx heap name env =
          in case lookupHeap l heap of
               Evaluated v    -> returnL ctx heap (Closure v env)
               Unevaluated cl -> computeL (FrameMark env l: ctx) heap cl
-              -- reduce the entry to a value, leaving a mark on the stack so we know when we've finished
+              -- Reduce the entry to a value, leaving a mark on the stack so we know when we've finished
 
 
 returnL :: EvaluationContext -> Heap -> Closure -> LMachineResult  -- The closure here should contain a value
@@ -187,10 +142,10 @@ returnL (FrameTyInstArg ty        : ctx) heap cl                           = ins
 returnL (FrameDelayedArg argCl    : ctx) heap cl                           = evaluateFun ctx heap cl argCl
 returnL (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL ctx heap $ Closure (Wrap ann tyn ty v) env
 returnL (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL ctx heap (Closure t env)
-returnL (FrameUnwrap              : ctx) _ (Closure term _)                = throw $ MachineException NonWrapUnwrappedMachineError term
+returnL (FrameUnwrap              : ctx) _    (Closure term _)             = throw $ MachineException NonWrapUnwrappedMachineError term
 returnL (FrameMark env' l         : ctx) heap (Closure v env)              = let heap' = modifyHeap l (Evaluated v) heap
                                                                              in returnL ctx heap' (Closure v env')
-                                                                                 -- Restore the old environment
+                                                                                -- Restore the old environment
                                                                                 -- Really? Might we need env again?
 
 -- | Apply a function to an argument and proceed.
@@ -207,7 +162,9 @@ evaluateFun ctx heap (Closure fun funEnv) argCl =
           let  (l, heap') = insertInHeap argCl heap
                env9 = updateEnvironment (unUnique $ nameUnique var) l funEnv -- ???
           in computeL ctx heap' (Closure body env9)
-      _ -> -- We have to force the arguments, which means that we need to get the new heap back as well. ****************
+      _ ->
+          -- We have to force the arguments, which means that we need to get the new heap back as well.
+          -- This is messy but should go away when we have n-ary application for builtins.
           case computeL [] heap argCl of
             Failure -> Failure
             Success (Closure arg' env') heap' ->
@@ -218,7 +175,7 @@ evaluateFun ctx heap (Closure fun funEnv) argCl =
              -- "Cannot reduce a not immediately reducible application."
                      Just (IterApp headName spine) ->
                          case runQuote $ applyBuiltinName headName spine of
-                           ConstAppSuccess term' -> trace2 ("Evaluated builtin " ++ (show headName)) $
+                           ConstAppSuccess term' ->  -- trace2 ("Evaluated builtin " ++ (show headName)) $
                                                     returnL ctx heap' (Closure term' funEnv)
                            ConstAppStuck         -> returnL ctx heap' (Closure term funEnv) -- env???
                            ConstAppFailure       -> error $ "ConstAppFailure" ++ show term
@@ -229,8 +186,7 @@ evaluateFun ctx heap (Closure fun funEnv) argCl =
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate
-    :: EvaluationContext -> Heap -> Type TyName () -> Closure -> LMachineResult
+instantiateEvaluate :: EvaluationContext -> Heap -> Type TyName () -> Closure -> LMachineResult
 instantiateEvaluate ctx heap ty (Closure fun env) =
     case fun of
       TyAbs _ _ _ body ->
@@ -248,5 +204,5 @@ evaluateL t = computeL [] emptyHeap (Closure t (Environment IntMap.empty))
 runL :: Program TyName Name () -> EvaluationResult
 runL (Program _ _ term) =
     case evaluateL term of
-      Success (Closure r _) (Heap _ sz) -> trace ("Heap size = " ++ show sz) $ EvaluationSuccess r
+      Success (Closure r _) (Heap m sz) -> trace ("Heap size = " ++ show sz ++ " [" ++ show (IntMap.size m) ++ "]") $ EvaluationSuccess r
       Failure                           -> EvaluationFailure
