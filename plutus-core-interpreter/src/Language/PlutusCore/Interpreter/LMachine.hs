@@ -164,7 +164,7 @@ evaluateFun ctx heap (Closure fun funEnv) argCl =
           in computeL ctx heap' (Closure body env9)
       _ ->
           -- We have to force the arguments, which means that we need to get the new heap back as well.
-          -- This is messy but should go away when we have n-ary application for builtins.
+          -- This bit is messy but should be much easier when we have n-ary application for builtins.
           case computeL [] heap argCl of
             Failure -> Failure
             Success (Closure arg' env') heap' ->
