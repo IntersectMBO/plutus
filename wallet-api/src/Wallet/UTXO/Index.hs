@@ -140,7 +140,7 @@ lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList 
 -- | Matching pair of transaction input and transaction output. The type
 --   parameter is to allow the validation data to be inserted.
 data InOutMatch =
-    ScriptMatch UTXO.Validator UTXO.Redeemer DataScript Value (UTXO.Address (Digest SHA256))
+    ScriptMatch UTXO.Validator UTXO.Redeemer DataScript (UTXO.Address (Digest SHA256))
     | PubKeyMatch PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -149,7 +149,7 @@ data InOutMatch =
 matchInputOutput :: ValidationMonad m => TxIn' -> TxOut' -> m InOutMatch
 matchInputOutput i txo = case (txInType i, txOutType txo) of
     (UTXO.ConsumeScriptAddress v r, UTXO.PayToScript _ d) ->
-        pure $ ScriptMatch v r d (txOutValue txo) (txOutAddress txo)
+        pure $ ScriptMatch v r d (txOutAddress txo)
     (UTXO.ConsumePublicKeyAddress sig, UTXO.PayToPubKey pk) ->
         pure $ PubKeyMatch pk sig
     _ -> throwError $ InOutTypeMismatch i txo
@@ -161,8 +161,8 @@ matchInputOutput i txo = case (txInType i, txOutType txo) of
 --   locks it.
 checkMatch :: ValidationMonad m => ValidationData -> InOutMatch -> m ()
 checkMatch v = \case
-    ScriptMatch vl r d vv a
-        | a /= UTXO.scriptAddress vv vl d ->
+    ScriptMatch vl r d a
+        | a /= UTXO.scriptAddress vl d ->
                 throwError $ InvalidScriptHash d
         | otherwise ->
             if UTXO.runScript v vl r d
