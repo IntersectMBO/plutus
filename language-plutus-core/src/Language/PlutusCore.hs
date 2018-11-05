@@ -97,7 +97,6 @@ module Language.PlutusCore
     , runQuoteT
     , MonadQuote
     , liftQuote
-    , convertErrors
     -- * Name generation
     , freshUnique
     , freshName

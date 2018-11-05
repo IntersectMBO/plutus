@@ -1,5 +1,6 @@
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , typecheckTerm
@@ -111,21 +112,21 @@ typecheckTerm :: (MonadError (Error a) m, MonadQuote m)
               => TypeCheckCfg
               -> Term TyNameWithKind NameWithType a
               -> m (NormalizedType TyNameWithKind ())
-typecheckTerm cfg t = convertErrors asError $ runTypeCheckM cfg (typeOf t)
+typecheckTerm cfg t = mapErrors @MonadQuote asError $ runTypeCheckM cfg (typeOf t)
 
 -- | Kind-check a PLC type.
 kindCheck :: (MonadError (Error a) m, MonadQuote m)
           => TypeCheckCfg
           -> Type TyNameWithKind a
           -> m (Kind ())
-kindCheck cfg t = convertErrors asError $ runTypeCheckM cfg (kindOf t)
+kindCheck cfg t = mapErrors @MonadQuote asError $ runTypeCheckM cfg (kindOf t)
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: TypeCheckCfg
+runTypeCheckM :: (MonadError (TypeError a) m, MonadQuote m) => TypeCheckCfg
               -> TypeCheckM a b
-              -> ExceptT (TypeError a) Quote b
+              -> m b
 runTypeCheckM (TypeCheckCfg i typeConfig) tc =
-    runReaderT (evalStateT tc (TypeCheckSt mempty i)) typeConfig
+    (liftEither <=< liftQuote) $ runExceptT $ runReaderT (evalStateT tc (TypeCheckSt mempty i)) typeConfig
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do

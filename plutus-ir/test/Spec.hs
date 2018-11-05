@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
@@ -11,6 +12,8 @@ import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler
+
+import           PlutusPrelude                        (mapErrors)
 
 import qualified Language.PlutusCore                  as PLC
 import qualified Language.PlutusCore.MkPlc            as PLC
@@ -42,7 +45,7 @@ compileAndMaybeTypecheck doTypecheck pir = either (error . show . PLC.prettyPlcC
     -- names during compilation that are not fresh
     compiled <- compileTerm =<< liftQuote pir
     when doTypecheck $ void $
-        convertErrors PLCError $ do
+        mapErrors @MonadQuote PLCError $ do
             annotated <- PLC.annotateTerm compiled
             -- need our own typechecker pipeline to allow normalized types
             PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated

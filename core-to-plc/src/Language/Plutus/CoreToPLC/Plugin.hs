@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
@@ -21,6 +22,7 @@ import qualified Panic                                       as GHC
 
 import qualified Language.PlutusCore                         as PLC
 import           Language.PlutusCore.Quote
+import           PlutusPrelude                               (mapErrors)
 
 import           Language.Haskell.TH.Syntax                  as TH
 
@@ -184,8 +186,8 @@ convertExpr opts locStr origE resType = do
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               converted <- convExprWithDefs origE
               when (poDoTypecheck opts) $ do
-                  annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
-                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
+                  annotated <- mapErrors @MonadQuote (NoContext . PLCError) $ PLC.annotateTerm converted
+                  void $ mapErrors @MonadQuote (NoContext . PLCError) $ PLC.typecheckTerm (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
               pure converted
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

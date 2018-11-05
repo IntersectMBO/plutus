@@ -1,6 +1,12 @@
+-- this is needed so that mapErrors can have its type argument provided later
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
 
 module PlutusPrelude ( -- * Reëxports from base
                        (&&&)
@@ -71,6 +77,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , iasqrt
                      , ilogFloor
                      , ilogRound
+                     -- * Error conversion
+                     , mapErrors
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -79,6 +87,7 @@ import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
 import           Control.Monad                           (guard, join, (<=<))
+import           Control.Monad.Except
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
@@ -100,6 +109,7 @@ import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
 import           Debug.Trace
+import           GHC.Exts                                (Constraint)
 import           GHC.Generics                            (Generic)
 import           GHC.Natural                             (Natural)
 
@@ -255,3 +265,25 @@ ilogRound b x
     | b ^ p == x = p
     | otherwise  = p + 1
     where p = ilogFloor b x
+
+-- | Map the given function over the errors in a monad with a 'MonadError' constraint. The
+-- constraint type parameter represents additional constraints that are preserved - this cannot
+-- be inferred and must be passed explicitly with @-XTypeApplications@.
+mapErrors :: forall (c :: (* -> *) -> Constraint) (m :: * -> *) e e' a .
+  (MonadError e' m, c (ExceptT e m))
+  => (e -> e')
+  -> (forall n . (MonadError e n, c n) => n a)
+  -> m a
+mapErrors convert act =
+    let
+        -- We instantiate n to ExceptT with *m* on the inside. This gives us the ability to
+        -- throw errors of type e' in m, although none will have been thrown yet since we
+        -- just made up the fact that it's m rather than something else on the inside.
+        (instantiated :: ExceptT e m a) = act
+        -- Map the errors into e'
+        (mapped :: ExceptT e' m a) = withExceptT convert instantiated
+        -- Unwrap the ExceptT into a form we can lift
+        (unwrapped :: m (Either e' a)) = runExceptT mapped
+        -- Lift into new context now we have the right types
+        (lifted :: m a) = unwrapped >>= liftEither
+    in lifted
