@@ -62,7 +62,7 @@ actionButton walletId actionId =
     [ classes [ btn, btnInfo, btnSmall ]
     , onClick $ input_ $ SendAction { actionId, walletId }
     ]
-    [ text (unwrap actionId) ]
+    [ text $ unwrap actionId ]
 
 walletIdPane :: forall p i. WalletId -> HTML p i
 walletIdPane (WalletId walletId) =
