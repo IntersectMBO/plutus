@@ -1,4 +1,6 @@
-module Playground.Server where
+module Playground.Server
+  ( handlers
+  ) where
 
 import           Control.Monad.IO.Class       (liftIO)
 import qualified Data.ByteString.Lazy.Char8   as BSL
@@ -14,7 +16,6 @@ import           Wallet.UTXO.Types            (Blockchain)
 acceptSourceCode :: SourceCode -> Handler [FunctionSchema]
 acceptSourceCode sourceCode = do
   r <- liftIO $ runInterpreter $ Interpreter.compile sourceCode
-  liftIO . print $ r
   case r of
     Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
     Right v -> pure v
@@ -22,7 +23,6 @@ acceptSourceCode sourceCode = do
 runFunction :: Evaluation -> Handler Blockchain
 runFunction e = do
   r <- liftIO $ runInterpreter $ Interpreter.runFunction e
-  liftIO . print $ r
   case r of
     Left e           -> throwError $ err400 {errBody = BSL.pack . show $ e}
     Right blockchain -> pure blockchain

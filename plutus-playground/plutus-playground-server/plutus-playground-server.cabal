@@ -29,6 +29,7 @@ library
       Playground.API
       Playground.Server
       Playground.Interpreter
+      Playground.Contract
       Playground.TH
       Webserver
       PSGenerator

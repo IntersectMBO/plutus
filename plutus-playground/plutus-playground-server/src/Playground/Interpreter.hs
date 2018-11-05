@@ -1,6 +1,10 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE TemplateHaskell   #-}
-module Playground.Interpreter where
+
+module Playground.Interpreter
+  ( compile
+  , runFunction
+  ) where
 
 import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.IO.Class       (liftIO)
@@ -17,9 +21,9 @@ import qualified Data.Text                    as Text
 import           Data.Typeable                (TypeRep, Typeable, typeRepArgs)
 import qualified Data.Typeable                as DT
 import           Language.Haskell.Interpreter (Extension (..), GhcError, InterpreterError (UnknownError),
-                                               ModuleElem (Fun), MonadInterpreter, OptionVal ((:=)), as,
-                                               getModuleExports, interpret, languageExtensions, loadModules,
-                                               runInterpreter, set, setImportsQ, setTopLevelModules,
+                                               ModuleElem (Fun), ModuleName, MonadInterpreter, OptionVal ((:=)), as,
+                                               getLoadedModules, getModuleExports, interpret, languageExtensions,
+                                               loadModules, runInterpreter, set, setImportsQ, setTopLevelModules,
                                                typeChecksWithDetails, typeOf)
 import qualified Language.Haskell.TH          as TH
 import           Playground.API               (Evaluation (program, sourceCode), Expression (Expression), Fn (Fn),
@@ -47,29 +51,30 @@ defaultExtensions =
   , DeriveTraversable
   ]
 
-loadSource :: (MonadInterpreter m) => FilePath -> m a -> m a
+loadSource :: (MonadInterpreter m) => FilePath -> (ModuleName -> m a) -> m a
 loadSource fileName action =
   flip finally (liftIO (removeFile fileName)) $ do
     set [languageExtensions := defaultExtensions]
     loadModules [fileName]
-    setTopLevelModules ["Main"]
-    action
+    (m:_) <- getLoadedModules
+    setTopLevelModules [m]
+    action m
 
--- TODO: this needs to return a schema of the function names and types
---       http://hackage.haskell.org/package/swagger2-2.3.0.1/docs/Data-Swagger-Internal-Schema.html#t:ToSchema
 compile :: (MonadInterpreter m) => SourceCode -> m [FunctionSchema]
 compile s = do
-  fileName <- liftIO $ writeTempFile "." "Main.hs" (unpack . getSourceCode $ s)
-  loadSource fileName $ do
-    exports <- getModuleExports "Main"
-    liftIO $ print exports
+  fileName <-
+    liftIO $ writeTempFile "." "Contract.hs" (unpack . getSourceCode $ s)
+  loadSource fileName $ \moduleName -> do
+    exports <- getModuleExports moduleName
     walletFunctions <- catMaybes <$> traverse isWalletFunction exports
-    liftIO $ print walletFunctions
     traverse getSchema walletFunctions
+
+{-# ANN getSchema ("HLint: ignore" :: String) #-}
 
 getSchema :: (MonadInterpreter m) => ModuleElem -> m FunctionSchema
 getSchema (Fun m) = interpret m (as :: FunctionSchema)
-getSchema _       = error "Trying to get a schema by calling something other than a function"
+getSchema _ =
+  error "Trying to get a schema by calling something other than a function"
 
 runFunction :: (MonadInterpreter m) => Evaluation -> m Blockchain
 runFunction evaluation = do
@@ -79,10 +84,9 @@ runFunction evaluation = do
       "."
       "Main.hs"
       (unpack . getSourceCode . sourceCode $ evaluation)
-  loadSource fileName $ do
+  loadSource fileName $ \_ -> do
     setImportsQ
       [("Playground.Interpreter", Nothing), ("Wallet.Emulator", Nothing)]
-    liftIO . putStrLn $ mkExpr evaluation
     res <-
       interpret (mkExpr evaluation) (as :: Either AssertionError Blockchain)
     case res of
@@ -130,11 +134,11 @@ a <+> b = a <> " " <> b
 jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode
 
-{-# ANN module ("HLint: ignore" :: String) #-}
-
 -- | This will throw an exception if it cannot decode the json however it should
 --   never do this as long as it is only called in places where we have already
---   decoded and encode the value since it came from an HTTP API call
+--   decoded and encoded the value since it came from an HTTP API call
+{-# ANN decode ("HLint: ignore" :: String) #-}
+
 decode :: FromJSON a => String -> a
 decode = fromJust . JSON.decode . BSL.pack
 
@@ -196,33 +200,11 @@ apply7 fun (a, b, c, d, e, f, g) =
     (decode f)
     (decode g)
 
--- TODO: this is just a placeholder, really we want to work out how to find the
---       correct function types (or force user to declare them)
 isWalletFunction :: (MonadInterpreter m) => ModuleElem -> m (Maybe ModuleElem)
 isWalletFunction f@(Fun s) = do
   t <- typeOf s
-  liftIO . print $ t
   pure $
     if t == "FunctionSchema"
       then Just f
       else Nothing
 isWalletFunction _ = pure Nothing
-
-testFun :: Int -> Int -> Int
-testFun x y = x + y
-
-$(TH.mkFunction 'testFun)
-
--- notes: Schemas don't have a way of representing functions so we will create
--- our own representation, a name and a list of schemas. We can convert this
--- to json
-
-typesOf :: Typeable a => a -> [TypeRep]
-typesOf f = splitFunType [DT.typeOf f]
-
-splitFunType :: [TypeRep] -> [TypeRep]
-splitFunType [] = []
-splitFunType (t1:ts) =
-  case typeRepArgs t1 of
-    []       -> t1 : splitFunType ts
-    (t2:t2s) -> t2 : splitFunType t2s
