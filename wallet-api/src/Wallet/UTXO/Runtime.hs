@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
 -- | A model of the types involved in transactions. These types are intented to
 --   be used in PLC scripts.
 module Wallet.UTXO.Runtime (-- * Transactions and related types
@@ -75,17 +76,18 @@ instance TypeablePlc PendingTxIn
 instance LiftPlc PendingTxIn
 
 -- | A pending transaction as seen by validator scripts.
-data PendingTx = PendingTx {
+data PendingTx a = PendingTx {
     pendingTxInputs      :: [PendingTxIn], -- ^ Transaction inputs
     pendingTxOutputs     :: [PendingTxOut],
     pendingTxFee         :: Value,
     pendingTxForge       :: Value,
     pendingTxBlockHeight :: Height,
-    pendingTxSignatures  :: [Signature]
-    } deriving Generic
+    pendingTxSignatures  :: [Signature],
+    pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
+    } deriving (Functor, Generic)
 
-instance TypeablePlc PendingTx
-instance LiftPlc PendingTx
+instance TypeablePlc (PendingTx ValidatorHash)
+instance LiftPlc (PendingTx ValidatorHash)
 
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle.
