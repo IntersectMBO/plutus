@@ -4,12 +4,6 @@
 
 module Language.PlutusCore.Constant.Make
     ( toBoundsInt
-    , checkBoundsInt
-    , checkBoundsBS
-    , checkBoundsSize
-    , sizeOfInteger
-    , makeAutoSizedBuiltinInt
-    , makeDynamicBuiltinInt
     , makeBuiltinInt
     , makeBuiltinBS
     , makeBuiltinSize
@@ -20,20 +14,20 @@ module Language.PlutusCore.Constant.Make
     ) where
 
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Data.Bits                            (bit)
 import qualified Data.ByteString.Lazy                 as BSL
 import           Data.Maybe
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)
-toBoundsInt s = (-2 ^ p, 2 ^ p) where
-    p = 8 * fromIntegral s - 1 :: Int
+toBoundsInt s = (-b, b) where
+    b = bit (8 * fromIntegral s - 1)  -- This is much quicker than 2^n for large n
 
 -- | Check whether an 'Integer' is in the @[-2^(8s - 1), 2^(8s - 1))@ interval.
 checkBoundsInt :: Size -> Integer -> Bool
@@ -47,44 +41,6 @@ checkBoundsBS size bs = BSL.length bs <= fromIntegral size
 -- | Check whether a 'Size' is a singleton.
 checkBoundsSize :: Size -> Size -> Bool
 checkBoundsSize = (==)
-
--- | Compute the size of an 'Integer'. See also 'toBoundsInt'.
-sizeOfInteger :: Integer -> Size
-sizeOfInteger i = fromIntegral $ ilogRound 2 (abs i + d) `div` 8 + 1 where
-    d = if i < 0 then 0 else 1
-
--- | Make a 'Constant' out of an 'Integer'. The size is computed using 'sizeOfInteger'.
-makeAutoSizedBuiltinInt :: Integer -> Constant ()
-makeAutoSizedBuiltinInt i = BuiltinInt () (sizeOfInteger i) i
-
-{- Note [Dynamic sized built-ins]
-How do we increment an integer in PLC? We can't simply write @addInteger {s} i 1@, because @1@
-is not even legal syntax. The legal syntax is @1!1@ where the right @1@ is an integer and the left
-@1@ is its size. In order for two integers to be addable, they have to be of the same type, so
-we can't simply write @addInteger {s} i 1!1@, because @1!1@ is not of type @integer s@
-(unless @s@ is literally @1@). Hence we need to resize @1!1@. The final solution is
-
-> addInteger {s} i (resizeInteger {1} {s} ss 1!1)
-
-Constructing such terms by hand is tedious and error-prone, therefore we define the
-'makeDynamicBuiltinInt' function, which computes the size of an @Integer@, constructs the
-corresponding built-in @integer@ and applies appropriately instantiated 'resizeInteger'
-to the result.
-
-Same considerations apply to bytestrings.
--}
-
--- | Convert a Haskell 'Integer' to the corresponding PLC @integer@.
-makeDynamicBuiltinInt
-    :: Type tyname ()       -- ^ An actual size @s@.
-    -> Term tyname name ()  -- ^ A singleton for @s@.
-    -> Integer              -- ^ An 'Integer' to lift.
-    -> Term tyname name ()
-makeDynamicBuiltinInt sTy sTerm intVal =
-    mkIterApp (mkIterInst resizeInteger [TyInt () sizeOfIntVal, sTy]) [sTerm, intTerm] where
-        sizeOfIntVal = sizeOfInteger intVal
-        resizeInteger = Constant () $ BuiltinName () ResizeInteger
-        intTerm = Constant () $ BuiltinInt () sizeOfIntVal intVal
 
 -- | Check whether an 'Integer' is in bounds (see 'checkBoundsInt') and return it as a 'Constant'.
 makeBuiltinInt :: Size -> Integer -> Maybe (Constant ())
