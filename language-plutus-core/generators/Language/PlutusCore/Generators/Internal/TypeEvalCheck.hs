@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Generators.Internal.TypeEvalCheck
@@ -64,8 +65,8 @@ typeEvalCheckBy
     -> TermOf (TypedBuiltinValue Size a)
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
-    let typecheck = annotateTerm >=> typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True mempty)
-    termTy <- convertErrors TypeEvalCheckErrorIllFormed $ typecheck term
+    termTy <- mapErrors @MonadQuote TypeEvalCheckErrorIllFormed $
+        typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True mempty) =<< annotateTerm term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
         for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->

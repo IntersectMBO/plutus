@@ -1,5 +1,6 @@
 {
     {-# LANGUAGE OverloadedStrings  #-}
+    {-# LANGUAGE TypeApplications   #-}
     module Language.PlutusCore.Parser ( parse
                                       , parseST
                                       , parseTermST
@@ -162,7 +163,7 @@ parseTypeST str = runAlexST' str (runExceptT parsePlutusCoreType) >>= liftEither
 mapParseRun :: (MonadError (Error a) m, MonadQuote m) => StateT IdentifierState (Except (ParseError a)) b -> m b
 -- we need to run the parser starting from our current next unique, then throw away the rest of the
 -- parser state and get back the new next unique
-mapParseRun run = convertErrors asError $ do
+mapParseRun run = mapErrors @MonadQuote asError $ do
     nextU <- liftQuote get
     (p, (_, _, u)) <- liftEither $ runExcept $ runStateT run (identifierStateFrom nextU)
     liftQuote $ put u
