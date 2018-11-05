@@ -1,10 +1,7 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Playground.Interpreter
-  ( compile
-  , runFunction
-  ) where
+module Playground.Interpreter where
 
 import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.IO.Class       (liftIO)
@@ -82,7 +79,7 @@ runFunction evaluation = do
     liftIO $
     writeTempFile
       "."
-      "Main.hs"
+      "Contract.hs"
       (unpack . getSourceCode . sourceCode $ evaluation)
   loadSource fileName $ \_ -> do
     setImportsQ
