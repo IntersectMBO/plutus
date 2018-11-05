@@ -29,6 +29,7 @@ library
         Language.PlutusIR.Compiler
     hs-source-dirs: src
     other-modules:
+        Language.PlutusIR.Value
         Language.PlutusIR.Compiler.Error
         Language.PlutusIR.Compiler.Term
         Language.PlutusIR.Compiler.Datatype
