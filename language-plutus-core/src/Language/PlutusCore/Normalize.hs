@@ -1,98 +1,114 @@
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
+-- | Normalization of PLC entities.
 
--- | This module makes sure terms and types are well-formed according to Fig. 2
-module Language.PlutusCore.Normalize ( check
-                                     , checkProgram
-                                     , checkTerm
-                                     , NormalizationError
-                                     , isTypeValue
-                                     , isTermValue
-                                     ) where
+module Language.PlutusCore.Normalize
+    ( normalizeType
+    , substituteNormalizeType
+    ) where
 
-import           Control.Monad.Except
-
-import           Data.Functor.Foldable
-import           Data.Functor.Foldable.Monadic
-
-import           Language.PlutusCore.Error
+import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
--- | Ensure that all terms and types are well-formed accoring to Fig. 2
-checkProgram :: (MonadError (Error a) m) => Program TyName Name a -> m ()
-checkProgram p = void $ liftEither $ convertError $ preCheck p
+import           Control.Monad.Reader
+import           Data.IntMap               (IntMap)
+import qualified Data.IntMap               as IntMap
+import           Lens.Micro
 
--- | Ensure that all terms and types are well-formed accoring to Fig. 2
-checkTerm :: (MonadError (Error a) m) => Term TyName Name a -> m ()
-checkTerm p = void $ liftEither $ convertError $ checkTerm p
+-- | Type environments contain
+newtype TypeEnv tyname = TypeEnv
+    { unTypeEnv :: IntMap (NormalizedType tyname ())
+    }
 
-check :: Program tyname name a -> Maybe (NormalizationError tyname name a)
-check = go . preCheck where
-    go Right{}  = Nothing
-    go (Left x) = Just x
+type NormalizeTypeM tyname = ReaderT (TypeEnv tyname) Quote
 
--- | Ensure that all terms and types are well-formed accoring to Fig. 2
-preCheck :: Program tyname name a -> Either (NormalizationError tyname name a) (Program tyname name a)
-preCheck (Program l v t) = Program l v <$> checkT t
+-- | Run a 'NormalizeTypeM' computation.
+runNormalizeTypeM :: MonadQuote m => NormalizeTypeM tyname a -> m a
+runNormalizeTypeM a = liftQuote $ runReaderT a (TypeEnv mempty)
 
--- this basically ensures all type instatiations, etc. occur only with type *values*
-checkT :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-checkT (Error l ty)      = Error l <$> typeValue ty
-checkT (TyInst l t ty)   = TyInst l <$> checkT t <*> typeValue ty
-checkT (Wrap l tn ty t)  = Wrap l tn <$> typeValue ty <*> checkT t
-checkT (Unwrap l t)      = Unwrap l <$> checkT t
-checkT (LamAbs l n ty t) = LamAbs l n <$> typeValue ty <*> checkT t
-checkT (Apply l t t')    = Apply l <$> checkT t <*> checkT t'
-checkT (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
-checkT t@Var{}           = pure t
-checkT t@Constant{}      = pure t
+-- | Locally extend a 'TypeEnv' in a 'NormalizeTypeM' computation.
+withExtendedTypeEnv
+    :: HasUnique (tyname ())
+    => tyname () -> NormalizedType tyname () -> NormalizeTypeM tyname a -> NormalizeTypeM tyname a
+withExtendedTypeEnv name ty =
+    local (TypeEnv . IntMap.insert (unUnique $ name ^. unique) ty . unTypeEnv)
 
-isTermValue :: Term tyname name a -> Bool
-isTermValue = isRight . termValue
+-- | Look up a @tyname@ in a 'TypeEnv'.
+lookupTyName
+    :: HasUnique (tyname ())
+    => tyname () -> NormalizeTypeM tyname (Maybe (NormalizedType tyname ()))
+lookupTyName name = asks $ IntMap.lookup (unUnique $ name ^. unique) . unTypeEnv
 
--- ensure a term is a value
-termValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-termValue (LamAbs l n ty t) = LamAbs l n ty <$> checkT t
-termValue (Wrap l tn ty t)  = Wrap l tn ty <$> termValue t
-termValue (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
-termValue t                 = builtinValue t
+{- Note [Normalization]
+Normalization works under the assumption that variables are globally unique.
+We use environments instead of substitutions as they're more efficient.
 
-builtinValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
-builtinValue t@Constant{}    = pure t
-builtinValue (TyInst l t ty) = TyInst l <$> builtinValue t <*> pure ty
-builtinValue (Apply l t t')  = Apply l <$> builtinValue t <*> termValue t'
-builtinValue t               = Left $ BadTerm (termLoc t) t "builtin value"
+Since all names are unique and there is no need to track scopes, type normalization has only two
+interesting cases: function application and a variable usage. In the function application case we
+normalize a function and its argument, add the normalized argument to the environment and continue
+normalization. In the variable case we look up the variable in the current environment: if it's not
+found, we leave the variable untouched. If the variable is found, then what this variable stands for
+was previously added to an environment (while handling the function application case), so we pick this
+value and rename all bound variables in it to preserve the global uniqueness condition. It is safe to
+do so, because picked values cannot contain uninstantiated variables as only normalized types are
+added to environments and normalization instantiates all variables presented in an environment.
+-}
 
-isTypeValue :: Type tyname a -> Bool
-isTypeValue = isRight . typeValue
+-- See Note [Normalization].
+-- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
+normalizeTypeM
+    :: (HasUnique (tyname ()), Cloneable (tyname ()))
+    => Type tyname () -> NormalizeTypeM tyname (NormalizedType tyname ())
+normalizeTypeM (TyForall ann name kind body) = TyForall ann name kind <<$>> normalizeTypeM body
+normalizeTypeM (TyFix ann name pat)          = TyFix ann name <<$>> normalizeTypeM pat
+normalizeTypeM (TyFun ann dom cod)           =
+    TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
+normalizeTypeM (TyLam ann name kind body)    = TyLam ann name kind <<$>> normalizeTypeM body
+normalizeTypeM (TyApp ann fun arg)           = do
+    vFun <- normalizeTypeM fun
+    vArg <- normalizeTypeM arg
+    case getNormalizedType vFun of
+        TyLam _ nArg _ body -> substituteNormalizeTypeM vArg nArg body
+        _                   -> pure $ TyApp ann <$> vFun <*> vArg
+normalizeTypeM var@(TyVar _ name)            = do
+    mayTy <- lookupTyName name
+    case mayTy of
+        Nothing -> pure $ NormalizedType var
+        Just ty -> traverse alphaRename ty
+normalizeTypeM size@TyInt{}                  = pure $ NormalizedType size
+normalizeTypeM builtin@TyBuiltin{}           = pure $ NormalizedType builtin
 
--- ensure that a type is a type value
-typeValue :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-typeValue = cataM aM where
+{- Note [Normalizing substitution]
+@substituteNormalize[M]@ is only ever used as normalizing substitution that receives two already
+normalized types. However we do not enforce this in the type signature, because
+1) it's perfectly correct for the last argument to be non-normalized
+2) it would be annoying to wrap 'Type's into 'NormalizedType's
+-}
 
-    aM ty | isTyValue ty = pure (embed ty)
-          | otherwise    = neutralType (embed ty)
+-- See Note [Normalizing substitution].
+-- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
+substituteNormalizeTypeM
+    :: (HasUnique (tyname ()), Cloneable (tyname ()))
+    => NormalizedType tyname ()                          -- ^ @ty@
+    -> tyname ()                                         -- ^ @name@
+    -> Type tyname ()                                    -- ^ @body@
+    -> NormalizeTypeM tyname (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
+substituteNormalizeTypeM ty name = withExtendedTypeEnv name ty . normalizeTypeM
 
-    isTyValue TyFunF{}     = True
-    isTyValue TyForallF{}  = True
-    isTyValue TyFixF{}     = True
-    isTyValue TyLamF{}     = True
-    isTyValue TyBuiltinF{} = True
-    isTyValue TyIntF{}     = True
-    isTyValue _            = False
+-- See Note [Normalization].
+-- | Normalize a 'Type'.
+normalizeType
+    :: (HasUnique (tyname ()), Cloneable (tyname ()), MonadQuote m)
+    => Type tyname () -> m (NormalizedType tyname ())
+normalizeType = runNormalizeTypeM . normalizeTypeM
 
--- ensure a type is a neutral type
-neutralType :: Type tyname a -> Either (NormalizationError tyname name a) (Type tyname a)
-neutralType = cataM aM where
-
-    aM ty | isNeutralType ty = pure (embed ty)
-          | otherwise        = Left (BadType (tyLocF ty) (embed ty) "neutral type")
-
-    isNeutralType TyVarF{} = True
-    isNeutralType TyAppF{} = True
-    isNeutralType _        = False
-
-    tyLocF = tyLoc . embed
+-- See Note [Normalizing substitution].
+-- | Substitute a type for a variable in a type and normalize.
+substituteNormalizeType
+    :: (HasUnique (tyname ()), Cloneable (tyname ()), MonadQuote m)
+    => NormalizedType tyname ()      -- ^ @ty@
+    -> tyname ()                     -- ^ @name@
+    -> Type tyname ()                -- ^ @body@
+    -> m (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
+substituteNormalizeType ty name = runNormalizeTypeM . substituteNormalizeTypeM ty name
