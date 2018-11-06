@@ -18,9 +18,9 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer        (annotateType, rename)
-import           Language.PlutusCore.Subst
+import           Language.PlutusCore.Renamer        (annotateType)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -28,13 +28,8 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
 import           Control.Monad.Trans.State          hiding (get, modify)
-import qualified Data.IntMap                        as IM
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
-import qualified Data.Set                           as Set
-
-import           Debug.Trace
-import           Language.PlutusCore.Pretty
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
@@ -43,15 +38,13 @@ newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
 
 -- | Configuration of the type checker.
 data TypeConfig = TypeConfig
-    { _typeConfigNormalize           :: Bool                 -- ^ Whether to normalize type annotations
+    { _typeConfigNormalize           :: Bool
+      -- ^ Whether to normalize type annotations
     , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
     }
 
-type TypeSt = IM.IntMap (NormalizedType TyNameWithKind ())
-
-data TypeCheckSt = TypeCheckSt
-    { _uniqueLookup :: TypeSt
-    , _gas          :: Natural
+newtype TypeCheckSt = TypeCheckSt
+    { _gas :: Natural
     }
 
 data TypeCheckCfg = TypeCheckCfg
@@ -62,9 +55,6 @@ data TypeCheckCfg = TypeCheckCfg
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
 type TypeCheckM a = StateT TypeCheckSt (ReaderT TypeConfig (ExceptT (TypeError a) Quote))
-
-uniqueLookup :: Lens' TypeCheckSt TypeSt
-uniqueLookup f s = fmap (\x -> s { _uniqueLookup = x }) (f (_uniqueLookup s))
 
 gas :: Lens' TypeCheckSt Natural
 gas f s = fmap (\x -> s { _gas = x }) (f (_gas s))
@@ -128,11 +118,11 @@ runTypeCheckM :: TypeCheckCfg
               -> TypeCheckM a b
               -> ExceptT (TypeError a) Quote b
 runTypeCheckM (TypeCheckCfg i typeConfig) tc =
-    runReaderT (evalStateT tc (TypeCheckSt mempty i)) typeConfig
+    runReaderT (evalStateT tc (TypeCheckSt i)) typeConfig
 
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
-    (TypeCheckSt _ i) <- get
+    (TypeCheckSt i) <- get
     if i == 0
         then throwError OutOfGas
         else modify (over gas (subtract 1))
@@ -312,7 +302,7 @@ typeOf (TyInst x body ty) = do
             kindCheckM x ty nK
             vTy <- normalizeTypeOpt $ void ty
             typeCheckStep
-            normalizeTypeBinder n vTy vCod
+            substituteNormalizeType vTy n vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
 -- [infer| term : ifix vPat vArg]    [infer| vArg :: k]
@@ -367,41 +357,6 @@ unfoldFixOf pat arg k = do
         , arg
         ]
 
-{- Note [NormalizedTypeBinder]
-'normalizeTypeBinder' is only ever used as normalizing substitution (we should probably change the name)
-that receives two already normalized types. However we do not enforce this in the type signature, because
-1) it's perfectly correct for the last argument to be non-normalized
-2) it would be annoying to wrap 'Type's into 'NormalizedType's
--}
-
-normalizeTypeBinder
-    :: TyNameWithKind ()
-    -> NormalizedType TyNameWithKind ()
-    -> Type TyNameWithKind ()
-    -> TypeCheckM a (NormalizedType TyNameWithKind ())
-normalizeTypeBinder n ty ty' = do
-    let u = extractUnique n
-    when (Set.member n . ftvTy $ getNormalizedType ty) $ do
-        traceShowM $ prettyPlcDefString ty
-        traceShowM $ prettyPlcDefString n
-    tyEnvAssign u ty
-    normalizeType ty' <* tyEnvDelete u
-
-extractUnique :: TyNameWithKind a -> Unique
-extractUnique = nameUnique . unTyName . unTyNameWithKind
-
--- This works because names are globally unique
-tyEnvDelete :: MonadState TypeCheckSt m
-            => Unique
-            -> m ()
-tyEnvDelete (Unique i) = modify (over uniqueLookup (IM.delete i))
-
-tyEnvAssign :: MonadState TypeCheckSt m
-            => Unique
-            -> NormalizedType TyNameWithKind ()
-            -> m ()
-tyEnvAssign (Unique i) ty = modify (over uniqueLookup (IM.insert i ty))
-
 -- this will reduce a type, or simply wrap it in a 'NormalizedType' constructor
 -- if we are working with normalized type annotations
 normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
@@ -410,31 +365,3 @@ normalizeTypeOpt ty = do
     if _typeConfigNormalize typeConfig
         then normalizeType ty
         else pure $ NormalizedType ty
-
--- | Normalize a 'Type'.
-normalizeType :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
-normalizeType (TyForall x tn k ty) = TyForall x tn k <<$>> normalizeType ty
-normalizeType (TyIFix x pat arg)   = TyIFix x <<$>> normalizeType pat <<*>> normalizeType arg
-normalizeType (TyFun x ty ty')     = TyFun x <<$>> normalizeType ty <<*>> normalizeType ty'
-normalizeType (TyLam x tn k ty)    = TyLam x tn k <<$>> normalizeType ty
-normalizeType (TyApp x fun arg)    = do
-    nFun <- normalizeType fun
-    nArg <- normalizeType arg
-    case getNormalizedType nFun of
-        TyLam _ name _ body -> normalizeTypeBinder name nArg body
-        _                   -> pure $ TyApp x <$> nFun <*> nArg
-normalizeType ty@(TyVar _ (TyNameWithKind (TyName (Name _ _ u)))) = do
-    (TypeCheckSt st _) <- get
-    case IM.lookup (unUnique u) st of
-        Nothing  -> pure $ NormalizedType ty
-        Just ty' -> rename (getNormalizedType ty') >>= normalizeType
-
-        -- -- we must use recursive lookups because we can have an assignment
-        -- -- a -> b and an assignment b -> c which is locally valid but in
-        -- -- a smaller scope than a -> b.
-        -- Just ty'@(NormalizedType TyVar{}) -> normalizeType $ getNormalizedType ty'
-        -- Just ty'                          -> traverse rename ty'
-        -- Nothing                           -> pure $ NormalizedType ty
-
-normalizeType ty@TyInt{}     = pure $ NormalizedType ty
-normalizeType ty@TyBuiltin{} = pure $ NormalizedType ty

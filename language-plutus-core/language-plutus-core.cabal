@@ -71,6 +71,7 @@ library
         Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.Check.Normal
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable

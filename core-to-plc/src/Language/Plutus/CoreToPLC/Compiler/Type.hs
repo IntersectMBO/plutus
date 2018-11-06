@@ -522,10 +522,10 @@ mkScottConstructorBody resultTypeName caseNamesAndTypes argNamesAndTypes index m
     let
         -- data types are always in kind Type
         resultKind = PLC.Type ()
-        thisConstructor = PLC.mkVar $ caseNamesAndTypes !! index
+        thisConstructor = PLC.mkVar () $ caseNamesAndTypes !! index
         -- See Note [Iterated abstraction and application]
         -- c_i a_1 .. a_m
-        applied = foldl' (\acc a -> PLC.Apply () acc a) thisConstructor (fmap PLC.mkVar argNamesAndTypes)
+        applied = foldl' (\acc a -> PLC.Apply () acc a) thisConstructor (fmap (PLC.mkVar ()) argNamesAndTypes)
         -- \c_1 .. c_n . applied
         cfuncs = PLC.mkIterLamAbs () caseNamesAndTypes applied
         -- no need for a body value check here, we know it's a lambda (see Note [Value restriction])

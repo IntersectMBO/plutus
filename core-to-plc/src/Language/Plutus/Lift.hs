@@ -210,7 +210,7 @@ instance (GGetConstructorTypes f, GGetConstructorArgs f, Datatype d)  => GLiftPl
                 let ty = mkIterTyFun () tys (TyVar () r)
                 pure $ VarDecl () arg ty
 
-        pure $ TyAbs () r (Type ()) $ mkIterLamAbs () cases $ mkIterApp () (mkVar $ cases !! index) (snd constr)
+        pure $ TyAbs () r (Type ()) $ mkIterLamAbs () cases $ mkIterApp () (mkVar () $ cases !! index) (snd constr)
 
 -- Auxiliary generic functions
 
