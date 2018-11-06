@@ -246,5 +246,5 @@ progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (unwrap1 t) | unhandled = unhandled
 progress (conv p t) = unhandled
 progress (con cn)   = done (V-con cn)
-progress (builtin bn σ X) = unhandled
+progress (builtin bn σ X σ') = unhandled
 \end{code}

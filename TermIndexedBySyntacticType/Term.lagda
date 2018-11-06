@@ -120,6 +120,8 @@ data Builtin  : Set where
 
 El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 -- could have just one context so Signatures extend from ∅...
+-- going in the other direction could take a substitution as an arg and
+-- extend it appropriately...
 El addInteger       Γ =
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 El substractInteger Γ = 
@@ -196,13 +198,14 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -------------------
     → Γ ⊢ con tcn s
 
-  builtin : ∀{Γ}
+  builtin : ∀{Γ Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = El bn Γ in
-      (σ : Sub ∥ Δ ∥ ∥ Γ ∥) -- substitutes for new vars introduced by the Sig
-    → Tel Γ Δ σ As         -- a telescope of terms M_i typed in subst σ A_i
+      (σ : Sub ∥ Δ ∥ ∥ Γ ∥)   -- substitutes for new vars introduced by the Sig
+    → Tel Γ Δ σ As           -- a telescope of terms M_i typed in subst σ A_i
+    → (σ' : Sub ∥ Γ ∥ ∥ Γ' ∥) -- a delayed substitution applied after computation
       -----------------------------
-    → Γ ⊢ subst σ C
+    → Γ' ⊢ subst σ' (subst σ C)
 
 open import Data.Unit
 Tel Γ Δ σ [] = ⊤

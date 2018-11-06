@@ -79,23 +79,8 @@ renameTermCon ρ⋆ (size s)         = size (⋆.rename ρ⋆ s)
 \end{code}
 
 \begin{code}
-renameBuiltin : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
-  → Builtin Γ → Builtin Δ
-renameBuiltin ρ⋆ ()
-\end{code}
-
-\begin{code}
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
-
-renameTel : ∀ {B Γ Δ}
-  → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
-  → (ρ : ∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ⋆ A)
-  → {σ : ⋆.Sub ∥ B ∥ ∥ Γ ∥}
-  → {G : Sig B}
-  → Tel {Γ}{B} σ G
-  → Tel {Δ}{B} (⋆.rename ρ⋆ ∘ σ) G
 
 rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
@@ -143,14 +128,10 @@ rename ρ⋆ ρ (wrap1 pat arg t) = wrap1 _ _ (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (unwrap1 t)       = unwrap1 (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
-rename {Γ}{Δ} ρ⋆ ρ (builtin {Γ'}{Δ'} bn σ X) = substEq
+rename {Γ}{Δ} ρ⋆ ρ (builtin {Γ'} bn σ X σ') = substEq
   (Δ ⊢_)
-  (⋆.rename-subst (Ran Δ' (El bn)))
-  (builtin bn (⋆.rename ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X))
-
-renameTel ρ⋆ ρ {G = []     ,, C} _ = _
-renameTel {B}{Γ}{Δ} ρ⋆ ρ {G = A ∷ As ,, C} (t ,, ts) =
-  substEq (Δ ⊢_) (sym (⋆.rename-subst A)) (rename ρ⋆ ρ t) ,, renameTel ρ⋆ ρ ts
+  (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (El bn Γ')))))
+  (builtin bn σ X (⋆.rename ρ⋆ ∘ σ'))
 \end{code}
 
 \begin{code}
@@ -217,14 +198,6 @@ substTermCon σ⋆ (size s)         = size (⋆.subst σ⋆ s)
 
 
 \begin{code}
-substTel : ∀ {B Γ Δ}
-  → (σ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ⊢⋆ J)
-  → (σ : ∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
-  → {σ' : ⋆.Sub ∥ B ∥ ∥ Γ ∥}
-  → {G : Sig B}
-  → Tel {Γ}{B} σ' G
-  → Tel {Δ}{B} (⋆.subst σ⋆ ∘ σ') G
-
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -273,14 +246,10 @@ subst σ⋆ σ (wrap1 pat arg t) = wrap1 _ _ (subst σ⋆ σ t)
 subst σ⋆ σ (unwrap1 t)       = unwrap1 (subst σ⋆ σ t)
 subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
-subst {Γ}{Δ} σ⋆ σ (builtin {Γ'}{Δ'} bn σ' tel) = substEq
+subst {Γ}{Δ} σ⋆ σ (builtin {Γ = Γ'} bn σ' tel σ'') = substEq
   (Δ ⊢_)
-  (⋆.subst-comp (Ran Δ' (El bn)))
-  (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
-
-substTel σ⋆ σ {G = []     ,, C} _ = _
-substTel {B}{Γ}{Δ} σ⋆ σ {G = A ∷ As ,, C} (t ,, ts) =
-  substEq (Δ ⊢_) (sym (⋆.subst-comp A)) (subst σ⋆ σ t) ,, substTel σ⋆ σ ts
+  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (El bn Γ')))))
+  (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ'')) 
 \end{code}
 
 \begin{code}
