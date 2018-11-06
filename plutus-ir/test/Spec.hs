@@ -26,25 +26,23 @@ import           Test.Tasty
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
+import           Control.Monad.Morph
 import           Control.Monad.Reader
+
+import           Data.Functor.Identity
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
--- for throwing away the annotation
-instance GetProgram (PLC.Term TyName Name (Provenance ())) where
-    getProgram = getProgram . void
-
--- normal compilation with typechecking
 instance GetProgram (Quote (Term TyName Name ())) where
-    getProgram = getProgram . compileAndMaybeTypecheck True
+    getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
--- convenience so we can also compile without typechecking
-instance (Exception e, GetProgram a) => GetProgram (Except e a) where
-    getProgram = either throw id . runExcept . fmap getProgram
-
-goldenPir :: String -> Term TyName Name a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
+-- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
+asIfThrown
+    :: Exception e
+    => Except e a
+    -> ExceptT SomeException IO a
+asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
 compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name a) -> Except (CompError (Provenance a)) (PLC.Term TyName Name (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuoteT $ do
@@ -57,6 +55,9 @@ compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuo
             -- need our own typechecker pipeline to allow normalized types
             PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated
     pure compiled
+
+goldenPir :: String -> Term TyName Name a -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence [
@@ -152,8 +153,8 @@ listMatch = do
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
     goldenPlc "maybe" maybePir,
-    goldenPlc "listMatch" (compileAndMaybeTypecheck False listMatch),
-    goldenEval "listMatchEval" [compileAndMaybeTypecheck False listMatch]
+    goldenPlc "listMatch" (asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch),
+    goldenEval "listMatchEval" [asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch]
     ]
 
 recursion :: TestNested

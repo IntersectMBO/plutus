@@ -35,7 +35,7 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 instance GetProgram PlcCode where
-    getProgram = getAst
+    getProgram = catchAll . getAst
 
 tests :: TestNested
 tests = testGroup "conversion" <$> sequence [
@@ -311,12 +311,12 @@ instance LiftPlc (MyMonoRecord)
 
 generics :: TestNested
 generics = testNested "generics" [
-    goldenPlc "int" (runQuote $ lift (1::Int))
-    , goldenPlc "mono" (runQuote $ lift (Mono2 2))
+    goldenPlc "int" (trivialProgram $ runQuote $ lift (1::Int))
+    , goldenPlc "mono" (trivialProgram $ runQuote $ lift (Mono2 2))
     , goldenEval "monoInterop" [ getAst monoCase, (trivialProgram $ runQuote $ lift (Mono1 1 2)) ]
-    , goldenPlc "record" (runQuote $ lift (MyMonoRecord 1 2))
+    , goldenPlc "record" (trivialProgram $ runQuote $ lift (MyMonoRecord 1 2))
     , goldenEval "boolInterop" [ getAst andPlc, (trivialProgram $ runQuote $ lift True), (trivialProgram $ runQuote $ lift True) ]
-    , goldenPlc "list" (runQuote $ lift ([1]::[Int]))
+    , goldenPlc "list" (trivialProgram $ runQuote $ lift ([1]::[Int]))
     , goldenEval "listInterop" [ getAst listMatch, (trivialProgram $ runQuote $ lift ([1]::[Int])) ]
-    , goldenPlc "liftPlc" (runQuote $ lift int)
+    , goldenPlc "liftPlc" (trivialProgram $ runQuote $ lift int)
   ]
