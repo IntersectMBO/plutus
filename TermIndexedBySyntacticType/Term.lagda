@@ -202,10 +202,11 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -------------------
     → Γ ⊢ con tcn s
 
-  builtin : ∀{Γ Δ K}{A : ∥ Γ ∥ ⊢⋆ K}
+  builtin : ∀{Γ Δ}
     → (bn : Builtin Δ)
     → (σ : Sub ∥ Δ ∥ ∥ Γ ∥)
     → Tel {Γ} {Δ} σ (El bn)
+      ---------------------------
     → Γ ⊢ subst σ (Ran Δ (El bn))
 
 open import Data.Unit
