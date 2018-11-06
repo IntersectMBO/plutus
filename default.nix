@@ -23,9 +23,9 @@ let
     postInstall = ''
       ${attrs.postInstall or ""}
       mkdir -pv $doc/nix-support
-      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc/html .
-      echo "file binary-dist $doc/${attrs.pname}-docs.tar.gz" >> $doc/nix-support/hydra-build-products
-      echo "report ${attrs.pname}-docs.html $doc/share/doc/html index.html" >> $doc/nix-support/hydra-build-products
+      tar -czvf $doc/${attrs.pname}-${attrs.version}-docs.tar.gz -C $doc/share/doc/${attrs.pname}-${attrs.version}/html .
+      echo "file binary-dist $doc/${attrs.pname}-${attrs.version}-docs.tar.gz" >> $doc/nix-support/hydra-build-products
+      echo "report ${attrs.pname}-${attrs.version}-docs.html $doc/share/doc/${attrs.pname}-${attrs.version}/html index.html" >> $doc/nix-support/hydra-build-products
     '';
   });
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
@@ -76,12 +76,6 @@ let
         inherit src;
       };
     };
-    stack2nix = import (pkgs.fetchFromGitHub {
-      owner = "avieth";
-      repo = "stack2nix";
-      rev = "c51db2d31892f7c4e7ff6acebe4504f788c56dca";
-      sha256 = "10jcj33sxpq18gxf3zcck5i09b2y4jm6qjggqdlwd9ss86wg3ksb";
-    }) { inherit pkgs; };
     plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
   };
 in plutusPkgs // other

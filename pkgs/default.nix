@@ -1,6 +1,4 @@
-# Generated using stack2nix 0.1.3.1.
-#
-# Only works with sufficiently recent nixpkgs, e.g. "NIX_PATH=nixpkgs=https://github.com/NixOS/nixpkgs/archive/21a8239452adae3a4717772f4e490575586b2755.tar.gz".
+# Generated using stack2nix 0.2.1.
 
 { pkgs ? (import <nixpkgs> {})
 , compiler ? pkgs.haskell.packages.ghc822
@@ -13,6 +11,7 @@ let
     self: {
 array = null;
 base = null;
+bin-package-db = null;
 binary = null;
 bytestring = null;
 containers = null;
@@ -4076,8 +4075,8 @@ homepage = "https://github.com/xmonad/X11";
 description = "A binding to the X11 graphics library";
 license = stdenv.lib.licenses.bsd3;
 
-}) {inherit (pkgs) libX11; inherit (pkgs) libXext;
-inherit (pkgs) libXrandr;};
+}) {inherit (pkgs.xorg) libXScrnSaver; inherit (pkgs.xorg) libXext;
+inherit (pkgs.xorg) libXinerama; inherit (pkgs.xorg) libXrender;};
 "X11-xft" = callPackage
 ({
   mkDerivation
@@ -4105,7 +4104,7 @@ doCheck = false;
 description = "Bindings to the Xft, X Free Type interface library, and some Xrender parts";
 license = "LGPL";
 
-}) {inherit (pkgs) libXft;};
+}) {};
 "Xauth" = callPackage
 ({
   mkDerivation
@@ -4129,7 +4128,7 @@ doCheck = false;
 description = "A binding to the X11 authentication library";
 license = stdenv.lib.licenses.bsd3;
 
-}) {inherit (pkgs) libXau;};
+}) {};
 "Yampa" = callPackage
 ({
   mkDerivation
@@ -9140,10 +9139,8 @@ doCheck = false;
 description = "Low-level bindings to GLFW OpenGL library";
 license = stdenv.lib.licenses.bsd3;
 
-}) {inherit (pkgs) libGL; inherit (pkgs) libX11;
-inherit (pkgs) libXcursor; inherit (pkgs) libXi;
-inherit (pkgs) libXinerama; inherit (pkgs) libXrandr;
-inherit (pkgs) libXxf86vm;};
+}) {inherit (pkgs) libGL; inherit (pkgs.xorg) libXext;
+inherit (pkgs.xorg) libXfixes;};
 "bindings-libzip" = callPackage
 ({
   mkDerivation
@@ -25810,6 +25807,9 @@ libraryHaskellDepends = [
 base
 markdown-unlit
 ];
+libraryToolDepends = [
+markdown-unlit
+];
 doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/soenkehahn/generics-eot#readme";
@@ -35046,6 +35046,7 @@ version = "0.9.5.2";
 sha256 = "0e4d26f8a76cbfb219851f33d31417c4a3c8f193123367a0749f047103d8bbe5";
 configureFlags = [
 "-fsystem-lua"
+"-f-use-pkgconfig"
 ];
 libraryHaskellDepends = [
 base
@@ -44430,9 +44431,13 @@ markdown-unlit
 microlens
 monad-control
 mtl
+o-clock
 text
 universum
 yaml
+];
+executableToolDepends = [
+markdown-unlit
 ];
 doHaddock = false;
 doCheck = false;
@@ -54290,6 +54295,7 @@ license = stdenv.lib.licenses.bsd3;
 , persistent
 , resource-pool
 , resourcet
+, sqlite
 , stdenv
 , text
 , time
@@ -54302,6 +54308,9 @@ mkDerivation {
 pname = "persistent-sqlite";
 version = "2.8.1.2";
 sha256 = "2f7157f3830370f60c7c36490ea49b7c52caf0f2a7349f86cf47970189f9ad0c";
+configureFlags = [
+"-fsystemlib"
+];
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
@@ -54322,13 +54331,16 @@ transformers
 unliftio-core
 unordered-containers
 ];
+librarySystemDepends = [
+sqlite
+];
 doHaddock = false;
 doCheck = false;
 homepage = "http://www.yesodweb.com/book/persistent";
 description = "Backend for the persistent library using sqlite3";
 license = stdenv.lib.licenses.mit;
 
-}) {};
+}) {inherit (pkgs) sqlite;};
 "persistent-template" = callPackage
 ({
   mkDerivation
@@ -68806,6 +68818,7 @@ src = fetchgit {
 url = "https://github.com/input-output-hk/stylish-haskell.git";
 sha256 = "0d6ylb07gxv050fpzc6siwxj8c7j1pkcry5zyzimv0xwn1wf6rfy";
 rev = "ecfd3b307d8d13a6d12aff03055f25a39a17e182";
+fetchSubmodules = true;
 
 };
 isLibrary = true;

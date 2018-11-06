@@ -23,6 +23,6 @@ scriptDir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 pushd "${scriptDir}"
 
   # Generate cardano-sl package set
-  runInShell "cabal2nix glibcLocales" "$(nix-build -A stack2nix --no-out-link -Q ../)/bin/stack2nix" --platform x86_64-linux --hackage-snapshot 2018-06-26T09:58:14Z -j8 --test --bench --no-indent ./.. > default.nix.new
+  runInShell "stack2nix" stack2nix --platform x86_64-linux --hackage-snapshot 2018-06-26T09:58:14Z -j8 --test --bench --no-indent ./.. > default.nix.new
   mv default.nix.new default.nix
 popd
