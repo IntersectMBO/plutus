@@ -4,7 +4,7 @@ module MainFrame
 
 import Ace.EditSession as Session
 import Ace.Editor as Editor
-import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery(..), aceComponent)
+import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery(..), Autocomplete(..), aceComponent)
 import Ace.Types (ACE, Editor, Annotation)
 import Action (actionsPane)
 import Bootstrap (btn, btnPrimary, col9_, col_, container_, row_)
@@ -219,7 +219,7 @@ editorPane ::
 editorPane state =
   div_
     [ slot' cpAce AceSlot
-        (aceComponent (initEditor state.editorContents) Nothing)
+        (aceComponent (initEditor state.editorContents) (Just Live))
         unit
         (input HandleAceMessage)
     , button [ classes [ btn, btnPrimary ]
