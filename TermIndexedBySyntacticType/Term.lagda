@@ -94,17 +94,9 @@ Let `x`, `y` range over variables.
 \begin{code}
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s → Int → TermCon (con integer s)
-  bytestring : ∀ s → ⊥ → TermCon (con integer s)
-  size       : ∀ s → TermCon (con size s) 
+  bytestring : ∀ s → ⊥   → TermCon (con integer s)
+  size       : ∀ s       → TermCon (con size s) 
 \end{code}
-
-## Signatures
-
-
-
-\begin{code}
-\end{code}
-
 
 ## Terms
 
@@ -116,22 +108,24 @@ open import Data.Vec hiding ([_])
 open import Data.List hiding ([_])
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat
+open import Function hiding (_∋_)
 
-Sig : Ctx → Set
-Sig Δ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
+Sig : Ctx → Ctx → Set
+Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
 
 
+data Builtin  : Set where
+  addInteger       : Builtin
+  substractInteger : Builtin
 
-data Builtin (Γ : Ctx) : Set where
+El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
+-- could have just one context so Signatures extend from ∅...
+El addInteger       Γ =
+  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
+El substractInteger Γ = 
+  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 
-El : ∀{Γ} → Builtin Γ → Sig Γ
-El ()
-
-Tel : ∀ {Γ Δ} → Sub ∥ Δ ∥  ∥ Γ ∥ → Sig Δ → Set
-
-Ran : ∀ Γ → Sig Γ → ∥ Γ ∥ ⊢⋆ *
-Ran Γ (Ms ,, C) = C
-
+Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
@@ -202,15 +196,16 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -------------------
     → Γ ⊢ con tcn s
 
-  builtin : ∀{Γ Δ}
-    → (bn : Builtin Δ)
-    → (σ : Sub ∥ Δ ∥ ∥ Γ ∥)
-    → Tel {Γ} {Δ} σ (El bn)
-      ---------------------------
-    → Γ ⊢ subst σ (Ran Δ (El bn))
+  builtin : ∀{Γ}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = El bn Γ in
+      (σ : Sub ∥ Δ ∥ ∥ Γ ∥) -- substitutes for new vars introduced by the Sig
+    → Tel Γ Δ σ As         -- a telescope of terms M_i typed in subst σ A_i
+      -----------------------------
+    → Γ ⊢ subst σ C
 
 open import Data.Unit
-Tel σ ([] ,, _)     = ⊤
-Tel {Γ}{Δ} σ ((A ∷ As) ,, C) = Γ ⊢ subst σ A × Tel {Γ} {Δ} σ (As ,, C)
+Tel Γ Δ σ [] = ⊤
+Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
 
 \end{code}
