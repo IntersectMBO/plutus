@@ -42,6 +42,7 @@ import           Wallet.Emulator.Types        (AssertionError, EmulatedWalletApi
                                                Wallet (Wallet, getWallet), runTraceChain, runTraceTxPool, walletAction)
 import           Wallet.UTXO                  (Blockchain)
 
+defaultExtensions :: [Extension]
 defaultExtensions =
   [ ExplicitForAll
   , ScopedTypeVariables
