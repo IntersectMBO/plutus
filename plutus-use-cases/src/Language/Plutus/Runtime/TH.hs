@@ -56,9 +56,9 @@ max = [| \(a :: Int) (b :: Int) -> if a > b then a else b |]
 -- | Check if a transaction was signed by a public key
 txSignedBy :: Q Exp
 txSignedBy = [|
-    \(p :: PendingTx) (PubKey k) ->
+    \(p :: PendingTx ValidatorHash) (PubKey k) ->
         let
-            PendingTx _ _ _ _ _ sigs = p
+            PendingTx _ _ _ _ _ sigs _ = p
 
             signedBy :: Signature -> Bool
             signedBy (Signature s) = s == k

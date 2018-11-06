@@ -109,7 +109,7 @@ validatorScriptHash = Runtime.plcValidatorHash . validatorScript
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted v)
-    inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
+    inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
@@ -122,7 +122,7 @@ validatorScript v = Validator val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $( TH.and )
 
-            PendingTx _ os _ _ h _ = p
+            PendingTx _ os _ _ h _ _ = p
             VestingTranche d1 a1 = vestingTranche1
             VestingTranche d2 a2 = vestingTranche2
 

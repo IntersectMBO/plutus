@@ -159,15 +159,19 @@ matchInputOutput i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => ValidationData -> InOutMatch -> m ()
+checkMatch :: ValidationMonad m => PendingTx () -> InOutMatch -> m ()
 checkMatch v = \case
     ScriptMatch vl r d a
         | a /= UTXO.scriptAddress vl d ->
                 throwError $ InvalidScriptHash d
         | otherwise ->
-            if UTXO.runScript v vl r d
-            then pure ()
-            else throwError ScriptFailure
+            let v' = ValidationData
+                    $ lifted
+                    $ v { pendingTxOwnHash = Runtime.plcValidatorHash vl }
+            in
+                if UTXO.runScript v' vl r d
+                then pure ()
+                else throwError ScriptFailure
     PubKeyMatch pk sig ->
         if sig `UTXO.signedBy` pk
         then pure ()
@@ -193,17 +197,18 @@ checkPositiveValues t =
 
 -- | Encode the current transaction and blockchain height
 --   in PLC.
-validationData :: ValidationMonad m => UTXO.Height -> Tx -> m ValidationData
+validationData :: ValidationMonad m => UTXO.Height -> Tx -> m (PendingTx ())
 validationData h tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
-    rump inputs = ValidationData $ lifted PendingTx
+    rump inputs = PendingTx
         { pendingTxInputs = inputs
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = fromIntegral $ txForge tx
         , pendingTxFee = fromIntegral $ txFee tx
         , pendingTxBlockHeight = fromIntegral h
         , pendingTxSignatures = txSignatures tx
+        , pendingTxOwnHash    = ()
         }
 
 mkOut :: TxOut' -> Runtime.PendingTxOut

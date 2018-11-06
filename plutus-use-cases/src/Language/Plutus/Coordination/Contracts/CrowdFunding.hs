@@ -34,7 +34,8 @@ import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 
 import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
+import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn (..), PubKey (..), ValidatorHash,
+                                             Value)
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
 import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
@@ -102,7 +103,7 @@ contributionScript cmp  = Validator val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = UTXO.fromPlcCode $(plutus [| (\Campaign{..} () (a :: CampaignActor) (p :: PendingTx) ->
+    inner = UTXO.fromPlcCode $(plutus [| (\Campaign{..} () (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
             -- | Check that a transaction input is signed by the private key of the given
             --   public key.
@@ -115,13 +116,13 @@ contributionScript cmp  = Validator val where
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
-            signedByT :: PendingTx -> CampaignActor -> Bool
+            signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
             signedByT = $(TH.txSignedBy)
 
-            PendingTx _ _ _ _ h _ = p
+            PendingTx _ _ _ _ h _ _ = p
 
             isValid = case p of
-                PendingTx (ps::[PendingTxIn]) _ _ _ _ _ ->
+                PendingTx (ps::[PendingTxIn]) _ _ _ _ _ _ ->
                     case ps of
                         (pt1::PendingTxIn):(ps'::[PendingTxIn]) ->
                             case ps' of
