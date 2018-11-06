@@ -114,8 +114,7 @@ test-suite plutus-playground-server-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      ServerSpec
-      Playground.InterpreterSpec
+      Playground.APISpec
       Paths_plutus_playground_server
   hs-source-dirs:
       test
