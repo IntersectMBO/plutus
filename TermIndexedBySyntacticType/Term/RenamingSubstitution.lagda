@@ -143,7 +143,10 @@ rename ρ⋆ ρ (wrap1 pat arg t) = wrap1 _ _ (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (unwrap1 t)       = unwrap1 (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
-rename {Γ}{Δ} ρ⋆ ρ (builtin {Γ'}{Δ'} bn σ X) = substEq (Δ ⊢_) (⋆.rename-subst (Ran Δ' (El bn))) (builtin bn (⋆.rename ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X))
+rename {Γ}{Δ} ρ⋆ ρ (builtin {Γ'}{Δ'} bn σ X) = substEq
+  (Δ ⊢_)
+  (⋆.rename-subst (Ran Δ' (El bn)))
+  (builtin bn (⋆.rename ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X))
 
 renameTel ρ⋆ ρ {G = []     ,, C} _ = _
 renameTel {B}{Γ}{Δ} ρ⋆ ρ {G = A ∷ As ,, C} (t ,, ts) =

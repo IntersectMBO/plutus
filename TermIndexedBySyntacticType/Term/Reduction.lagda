@@ -134,7 +134,7 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  unhandled-conversion : Progress M 
+  unhandled : Progress M 
 \end{code}
 
 These are injectivity and disjointness properties that we would get
@@ -150,9 +150,9 @@ disjoint-μΠ : ∀{K}{B : ∅ ,⋆ K ⊢⋆ *}{C : ∅ ,⋆ * ⊢⋆ *}{E : Eva
 disjoint-μΠ {E = •}      ()
 disjoint-μΠ {E = E ·E A} ()
 
-lemmaQ' : ∀{J K'}{F F' : ∅ ⊢⋆ (J ⇒ K')}{A A' : ∅ ⊢⋆ J} →
+lemma·Fun : ∀{J K'}{F F' : ∅ ⊢⋆ (J ⇒ K')}{A A' : ∅ ⊢⋆ J} →
   F _⊢⋆_.· A ≡ F' · A' → F ≡ F'
-lemmaQ' refl = refl
+lemma·Fun refl = refl
 
 lemma·Dom : ∀{J J' K}
   {F  : ∅ ⊢⋆ (J ⇒ K)}
@@ -169,7 +169,7 @@ disjoint-μμ1 : ∀{K K'}{C : ∅ ,⋆ * ⊢⋆ *}
 disjoint-μμ1 {E = •} {E' ·E x} ()
 disjoint-μμ1 {E = E ·E x} {•} ()
 disjoint-μμ1 {E = E ·E x} {E' ·E x₁} p with lemma·Dom p
-... | refl = disjoint-μμ1 (lemmaQ' p)
+... | refl = disjoint-μμ1 (lemma·Fun p)
 
 disjoint-μμ1' : ∀{K}{C : ∅ ,⋆ * ⊢⋆ *}{pat : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
  {arg : ∅ ⊢⋆ K}{E : EvalCxt ∅ _ _} → μ1 · pat · arg  ≡ E [ μ C ]E → ⊥
@@ -189,7 +189,7 @@ lemmaQ {E = •} {•} refl refl = refl
 lemmaQ {E = •} {E' ·E x} refl ()
 lemmaQ {E = E ·E x} {•} refl ()
 lemmaQ {E = E ·E x} {E' ·E x₁} refl q with lemma·Dom q
-lemmaQ {E = E ·E _} {E' ·E _} refl q | refl = lemmaQ refl (lemmaQ' q)
+lemmaQ {E = E ·E _} {E' ·E _} refl q | refl = lemmaQ refl (lemma·Fun q)
 
 -- there are several things wrong here, Q and A' are not used
 lemmaE : ∀{K}{Q : ∅ ⊢⋆ K}{A A' : ∅ ,⋆ * ⊢⋆ *}{E E' : EvalCxt ∅ * K}
@@ -199,7 +199,7 @@ lemmaE {E = •} {E' ·E x₁} ()
 lemmaE {E = E ·E x₁} {•} ()
 lemmaE {E = E ·E x₁} {E' ·E x₂} x with lemma·Dom x
 lemmaE {A = A}{A' = A'} {E ·E x₁} {E' ·E x₂} x | refl =
-  cong₂ _·E_ (lemmaE {Q = E [ μ A ]E}{A' = A'}{E = E}{E'} (lemmaQ' x)) (lemmaQ'' x)
+  cong₂ _·E_ (lemmaE {Q = E [ μ A ]E}{A' = A'}{E = E}{E'} (lemma·Fun x)) (lemmaQ'' x)
 \end{code}
 
 \begin{code}
@@ -207,12 +207,12 @@ progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progress (` ())
 progress (ƛ M)    = done V-ƛ
 progress (L · M)  with progress L
-...                   | unhandled-conversion = unhandled-conversion
+...                   | unhandled = unhandled
 ...                   | step p  = step (ξ-·₁ p)
 progress (.(ƛ _) · M) | done V-ƛ with progress M
 progress (.(ƛ _) · M) | done V-ƛ | step p = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · M) | done V-ƛ | done VM = step (β-ƛ VM)
-progress (.(ƛ _) · M) | done V-ƛ | unhandled-conversion = unhandled-conversion
+progress (.(ƛ _) · M) | done V-ƛ | unhandled = unhandled
 progress (.(wrap _ _ _ p) · M) | done (V-wrap p) with disjoint-μ⇒ p
 ... | ()
 progress (Λ M)    = done V-Λ_
@@ -221,7 +221,7 @@ progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (.(wrap _ _ _ p) ·⋆ A) | done (V-wrap p) with disjoint-μΠ p
 ... | ()
-progress (M ·⋆ A) | unhandled-conversion = unhandled-conversion
+progress (M ·⋆ A) | unhandled = unhandled
 progress (wrap A E M p) = done (V-wrap p)
 progress (unwrap E p M) with progress M
 progress (unwrap E p M) | step q = step (ξ-unwrap p q)
@@ -236,14 +236,15 @@ progress (unwrap E refl .(wrap _ E' M q)) | done (V-wrap {S = A}{E = E'} {M} q) 
 progress (unwrap E refl .(wrap _ E M refl)) | done (V-wrap {S = _} {.E} {M} refl) | refl | refl = step (β-wrap refl)
 progress (unwrap E p M) | done V-wrap1 with disjoint-μμ1 p
 progress (unwrap E p .(wrap1 _ _ _)) | done V-wrap1 | ()
-progress (unwrap E p M) | unhandled-conversion = unhandled-conversion
+progress (unwrap E p M) | unhandled = unhandled
 progress (wrap1 _ _ t) = done V-wrap1
 progress (unwrap1 t) with progress t
 progress (unwrap1 t) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap _ _ _ p)) | done (V-wrap p) with disjoint-μμ1 p
 progress (unwrap1 .(wrap _ _ _ p)) | done (V-wrap p) | ()
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
-progress (unwrap1 t) | unhandled-conversion = unhandled-conversion
-progress (conv p t) = unhandled-conversion
+progress (unwrap1 t) | unhandled = unhandled
+progress (conv p t) = unhandled
 progress (con cn)   = done (V-con cn)
+progress (builtin bn σ X) = unhandled
 \end{code}
