@@ -26,9 +26,9 @@ import           GHC.Generics                       (Generic)
 import           Language.PureScript.Bridge         (BridgePart, Language (Haskell), SumType, buildBridge, mkSumType,
                                                      stringBridge, writePSTypes)
 import           Language.PureScript.Bridge.PSTypes ()
-import           Playground.API                     (API, Evaluation, Fn, FunctionSchema, FunctionsSchema, SourceCode)
+import           Playground.API                     (API, CompilationError, Evaluation, Fn, FunctionSchema,
+                                                     FunctionsSchema, SourceCode)
 import qualified Playground.API                     as API
-import           Playground.Interpreter             (CompilationError)
 import           Servant.API                        ((:>), Capture, Get, JSON, PlainText, Post, ReqBody)
 import           Servant.PureScript                 (HasBridge, Settings, apiModuleName, defaultBridge, defaultSettings,
                                                      languageBridge, writeAPIModuleWithSettings, _generateSubscriberAPI)
@@ -48,7 +48,6 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
   [ mkSumType (Proxy @FunctionSchema)
-  , mkSumType (Proxy @FunctionsSchema)
   , mkSumType (Proxy @Fn)
   , mkSumType (Proxy @SourceCode)
   , mkSumType (Proxy @CompilationError)
@@ -61,9 +60,5 @@ mySettings =
 
 generate :: FilePath -> IO ()
 generate outputDir = do
-  writeAPIModuleWithSettings
-    mySettings
-    outputDir
-    myBridgeProxy
-    (Proxy :: Proxy ("contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] [FunctionSchema]))
+  writeAPIModuleWithSettings mySettings outputDir myBridgeProxy (Proxy @API)
   writePSTypes outputDir (buildBridge myBridge) myTypes

@@ -130,6 +130,12 @@ btnDark_ = div [ classes [ btn, btnDark ] ]
 btnInfo :: ClassName
 btnInfo = ClassName "btn-info"
 
+btnSuccess :: ClassName
+btnSuccess = ClassName "btn-success"
+
+btnDanger :: ClassName
+btnDanger = ClassName "btn-danger"
+
 btnSmall :: ClassName
 btnSmall = ClassName "btn-sm"
 
@@ -138,3 +144,15 @@ pullLeft = ClassName "pull-left"
 
 pullRight :: ClassName
 pullRight = ClassName "pull-right"
+
+listGroup :: ClassName
+listGroup = ClassName "list-group"
+
+listGroup_ :: forall i p. Array (HTML p i) -> HTML p i
+listGroup_ = div [ class_ listGroup ]
+
+listGroupItem :: ClassName
+listGroupItem = ClassName "list-group-item"
+
+listGroupItem_ :: forall i p. Array (HTML p i) -> HTML p i
+listGroupItem_ = div [ class_ listGroupItem ]

@@ -1,20 +1,17 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 module Playground.Interpreter where
 
 import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.IO.Class       (liftIO)
-import           Control.Monad.Trans.Class    (lift)
-import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
 import qualified Control.Newtype.Generics     as Newtype
 import           Data.Aeson                   (FromJSON, Result (Success), ToJSON, Value, fromJSON)
 import qualified Data.Aeson                   as JSON
-import           Data.Bifunctor               (second)
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.List                    (intercalate)
-import           Data.Maybe                   (catMaybes, fromJust)
+import           Data.Maybe                   (catMaybes, fromJust, fromMaybe)
 import           Data.Monoid                  ((<>))
 import           Data.Swagger                 (Schema)
 import           Data.Swagger.Schema          (ToSchema, declareNamedSchema, toSchema)
@@ -35,7 +32,6 @@ import qualified Playground.TH                as TH
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
-import           Text.Read                    (readMaybe)
 import qualified Type.Reflection              as TR
 import           Wallet.API                   (WalletAPI)
 import           Wallet.Emulator.Types        (AssertionError, EmulatedWalletApi, EmulatorState (emChain), Trace,
@@ -212,36 +208,3 @@ isWalletFunction f@(Fun s) = do
       then Just f
       else Nothing
 isWalletFunction _ = pure Nothing
-
-------------------------------------------------------------
-data CompilationError = CompilationError
-  { filename :: !Text
-  , row      :: !Int
-  , column   :: !Int
-  , text     :: ![Text]
-  } deriving (Show, Eq, Generic)
-
-parseErrorText :: Text -> Maybe CompilationError
-parseErrorText =
-  evalStateT $ do
-    filename <- consumeTo ":"
-    rowStr <- consumeTo ":"
-    columnStr <- consumeTo ":"
-    text <- Text.lines <$> consume
-  --
-    row <- lift $ readMaybe $ Text.unpack rowStr
-    column <- lift $ readMaybe $ Text.unpack columnStr
-    pure CompilationError {..}
-
-consumeTo :: Monad m => Text -> StateT Text m Text
-consumeTo needle = do
-  (before, after) <- breakWith needle <$> get
-  put after
-  pure before
-
-consume :: (Monad m, Monoid s) => StateT s m s
-consume = get <* put mempty
-
--- | Light `Data.Text.breakOn`, but consumes the breakpoint text (the 'needle').
-breakWith :: Text -> Text -> (Text, Text)
-breakWith needle = second (Text.drop 1) . Text.breakOn needle

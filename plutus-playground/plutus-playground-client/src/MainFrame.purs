@@ -7,20 +7,20 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery(..), Autocomplete(..), aceComponent)
 import Ace.Types (ACE, Editor, Annotation)
 import Action (actionsPane)
-import Bootstrap (btn, btnPrimary, col7_, col_, container_, row_)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, col2_, col7_, col_, container_, listGroupItem_, listGroup_, row_)
 import Control.Monad.Aff.Class (class MonadAff)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Except (ExceptT)
 import Control.Monad.Except.Trans (runExceptT)
 import Control.Monad.Reader (ReaderT)
 import Control.Monad.Reader.Class (class MonadAsk, ask)
 import Control.Monad.Reader.Trans (runReaderT)
+import Data.Array (catMaybes)
 import Data.Array as Array
-import Data.Bifunctor (bimap)
 import Data.Either (Either(..))
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
-import Data.Generic (gShow)
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Show (show)
@@ -35,18 +35,17 @@ import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Halogen.ECharts (EChartsEffects, EChartsQuery, echarts)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, div_, h1_, h3_, hr_, p_, pre_, slot', text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, br_, button, div, div_, h1_, h2_, h3_, hr_, p_, slot', text)
 import Halogen.HTML.Events (input, input_, onClick)
-import Halogen.HTML.Properties (class_, classes, href, target)
+import Halogen.HTML.Properties (class_, classes, disabled, href, target)
 import Halogen.Query (HalogenM)
+import Icons (Icon(..), icon)
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(..))
+import Network.RemoteData (RemoteData(..), isLoading)
 import Network.RemoteData as RemoteData
-import Playground.API (SourceCode(..))
-import Playground.Interpreter (CompilationError(..))
+import Playground.API (CompilationError(..), SourceCode(..))
 import Playground.Server (SPParams_, postContract)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (>>=), (>>>))
-import Servant.PureScript.Affjax (ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (<<<))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as Static
 import Types (Query(..), State, WalletId(..), _actions, _compilationResult, _editorContents, _wallets)
@@ -114,17 +113,17 @@ eval (CompileProgram next) = do
   --
   assign _compilationResult Loading
   result <- runAjax $ postContract $ SourceCode contents
-  -- TODO This is temporary, until we get real compilation errors from the backend.
-  assign _compilationResult $ case result of
-    Success v -> Success $ Right v
-    Failure _ -> Success $ Left Static.compilationErrors
-    NotAsked -> NotAsked
-    Loading -> Loading
+  assign _compilationResult result
   --
-  use _compilationResult >>= case _ of
-    Success (Left errors) -> showCompilationErrors errors
-    _ -> pure unit
+  withEditor $ showCompilationErrorAnnotations $
+    case result of
+      Success (Left errors) -> errors
+      _ -> []
   --
+  pure next
+
+eval (ScrollToRow row next) = do
+  withEditor $ Editor.scrollToLine row true true (pure unit)
   pure next
 
 eval (SendAction action next) = do
@@ -151,25 +150,35 @@ eval (RemoveWallet index next) = do
 
 ------------------------------------------------------------
 
-showCompilationErrors :: forall m eff.
+-- | Handles the messy business of running an editor command iff the
+-- editor is up and running.
+withEditor :: forall m eff.
   MonadEff (ace :: ACE | eff) m
-  => Array CompilationError
+  => (Editor -> Eff (ace :: ACE | eff) Unit)
   -> HalogenM State Query ChildQuery ChildSlot Void m Unit
-showCompilationErrors errors = do
+withEditor action = do
   mEditor <- H.query' cpAce AceSlot $ H.request GetEditor
   case mEditor of
-    Just (Just editor) -> liftEff do
-      session <- Editor.getSession editor
-      Session.setAnnotations (toAnnotation <$> errors) session
+    Just (Just editor) -> liftEff $ action editor
     _ -> pure unit
-  --
-toAnnotation :: CompilationError -> Annotation
+
+showCompilationErrorAnnotations :: forall m.
+  Array CompilationError
+  -> Editor
+  -> Eff (ace :: ACE | m) Unit
+showCompilationErrorAnnotations errors editor = do
+  session <- Editor.getSession editor
+  Session.setAnnotations (catMaybes (toAnnotation <$> errors)) session
+
+toAnnotation :: CompilationError -> Maybe Annotation
+toAnnotation (RawError _) = Nothing
 toAnnotation (CompilationError {row, column, text}) =
-  { type: "error"
-  , row
-  , column
-  , text: String.joinWith "\n" text
-  }
+  Just
+    { type: "error"
+    , row
+    , column
+    , text: String.joinWith "\n" text
+    }
 
 initEditor ∷
   forall m aff.
@@ -210,12 +219,6 @@ header =
       ]
     ]
 
-showDescription :: ErrorDescription -> String
-showDescription (UnexpectedHTTPStatus r) = r.response
-showDescription (ParsingError s) = s
-showDescription (DecodingError s) = s
-showDescription (ConnectionError s) = s
-
 editorPane ::
   forall m aff.
   MonadAff (EChartsEffects (AceEffects aff)) m
@@ -226,11 +229,41 @@ editorPane state =
         (aceComponent (initEditor state.editorContents) (Just Live))
         unit
         (input HandleAceMessage)
-    , button [ classes [ btn, btnPrimary ]
-             , onClick $ input_ CompileProgram
-             ]
-        [ text "Compile" ]
-    , pre_ [ text $ show $ bimap (runAjaxError >>> _.description >>> showDescription) gShow $ state.compilationResult ]
+    , br_
+    , row_
+        [ col2_
+            [ button [ classes [ btn
+                               , case state.compilationResult of
+                                   Success (Right _) -> btnSuccess
+                                   Success (Left _) -> btnDanger
+                                   Loading -> btnSecondary
+                                   _ -> btnPrimary
+                               ]
+                     , onClick $ input_ CompileProgram
+                     , disabled (isLoading state.compilationResult)
+                     ]
+                [ if (isLoading state.compilationResult)
+                    then icon Spinner
+                    else text "Compile"
+                ]
+            ]
+       , col_
+           [ case state.compilationResult of
+               (Success (Left errors)) ->
+                 listGroup_
+                   (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
+               _ -> text ""
+           ]
+       ]
+    ]
+
+compilationErrorPane :: forall p. CompilationError -> HTML p (Query Unit)
+compilationErrorPane (RawError error) =
+  div_ [ text error ]
+compilationErrorPane (CompilationError error) =
+  div [ onClick $ input_ $ ScrollToRow error.row ]
+    [ h2_ [ text error.filename ]
+    , div_ [ text $ String.joinWith "\n" error.text ]
     ]
 
 mockChainPane ::

@@ -2,8 +2,6 @@ module StaticData where
 
 import Types
 
-import Playground.Interpreter (CompilationError(..))
-
 wallets :: Array Wallet
 wallets =
   [ { walletId: WalletId "kris0001", balance: 10.0 }
@@ -182,27 +180,3 @@ validatorScript v = Validator val where
         in
         if isValid then () else Builtins.error () |])
 """
-
-compilationErrors :: Array CompilationError
-compilationErrors =
-  [ CompilationError
-    { filename: "Main70317-3.hs"
-    , row: 10
-    , column: 14
-    , text:
-        [ "    \8226 Could not deduce (MonadError WalletAPIError m0)"
-        , "      from the context: (MonadError WalletAPIError m, WalletAPI m)"
-        , "        bound by the type signature for:"
-        , "                   vestFunds :: forall (m :: * -> *)."
-        , "                                (MonadError WalletAPIError m, WalletAPI m) =>"
-        , "                                Vesting -> Value -> IO ()"
-        , "        at Main70317-3.hs:(76,14)-(81,12)"
-        , "      The type variable \8216m0\8217 is ambiguous"
-        , "    \8226 In the ambiguity check for \8216vestFunds\8217"
-        , "      To defer the ambiguity check to use sites, enable AllowAmbiguousTypes"
-        , "      In the type signature:"
-        , "        vestFunds :: (MonadError WalletAPIError m, WalletAPI m) =>"
-        , "                     Vesting -> Value -> IO ()"
-        ]
-    }
-  ]
