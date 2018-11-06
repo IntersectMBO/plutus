@@ -114,7 +114,7 @@ Sig : Ctx → Ctx → Set
 Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
 
 
-data Builtin  : Set where
+data Builtin : Set where
   addInteger       : Builtin
   substractInteger : Builtin
 

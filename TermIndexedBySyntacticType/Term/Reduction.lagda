@@ -13,7 +13,30 @@ open import Type.Equality
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Empty
+open import Data.Product renaming (_,_ to _,,_)
 \end{code}
+
+\begin{code}
+--VTel : Tel  
+\end{code}
+
+## BUILTIN
+
+\begin{code}
+{-
+BUILTIN : ∀{Γ Γ'}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = El bn Γ in
+      (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
+    → Tel Γ Δ σ As          
+    → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
+      -----------------------------
+    → Γ' ⊢ ⋆.subst σ' (⋆.subst σ C)
+BUILTIN addInteger       σ (m ,, n ,, _) σ' = {!!}
+BUILTIN substractInteger σ tel           σ' = {!!}
+-}
+\end{code}
+
 
 ## Values
 
@@ -43,7 +66,6 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
    → {arg : ∥ Γ ∥ ⊢⋆ K}
    → {term : Γ ⊢ pat · (μ1 · pat) · arg}
    → Value (wrap1 pat arg term)
-
 
   V-con : ∀{Γ}{s : ∥ Γ ∥ ⊢⋆ #}{tcn : TyCon}
     → (cn : TermCon (con tcn s))
@@ -112,7 +134,6 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
 
-
   -- this is a temporary hack as currently the type eq relation only has
   -- reflexivity in it.
   ξ-conv₁ : ∀{Γ J}{A : ∥ Γ ∥ ⊢⋆ J}{L : Γ ⊢ A}
@@ -120,7 +141,20 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
 
   ξ-conv₂ : ∀{Γ J}{A B : ∥ Γ ∥ ⊢⋆ J}{L L' : Γ ⊢ A}{p : A ≡β B}
     → L —→ L'
+      --------------------
     → conv p L —→ conv p L'
+
+{-
+  β-builtin : ∀{Γ Γ'}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = El bn Γ in
+      (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
+    → (tel : Tel Γ Δ σ As)
+--    → VTel tel
+    → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
+      -----------------------------
+    → builtin bn σ tel σ' —→ BUILTIN bn σ tel σ'
+-}
 \end{code}
 
 

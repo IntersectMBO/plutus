@@ -7,6 +7,7 @@ module TermIndexedBySyntacticType.Examples where
 \begin{code}
 open import Type
 import Type.RenamingSubstitution as ⋆
+open import Type.Equality
 open import TermIndexedBySyntacticType.Term
 open import TermIndexedBySyntacticType.Term.RenamingSubstitution
 open import TermIndexedBySyntacticType.Evaluation
@@ -157,14 +158,14 @@ module Scott1 where
   fortyfour : ∀{Γ} → Γ ⊢ con integer (size⋆ 10)
   fortyfour = con (integer (size⋆ 10) (pos 44))
 
+  μ0 : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
+  μ0 = ƛ (μ1 · ƛ (ƛ (` (S (S Z)) · (` (S Z) · ` Z))) · Π (` Z))
+
 {-
-  μ0 : ∀{Γ} → Γ ,⋆ * ⊢⋆ * → Γ ⊢⋆ *
-  μ0 A = {!μ1 !}
-       -- μ 1 :  _φ_1329 ⊢⋆ ((_K_1330 ⇒ *) ⇒ _K_1330 ⇒ *) ⇒ _K_1330 ⇒ *
-       -- μ0 A = μ1 . (λ f x → (λ A) (f unit)) · unit
-  wrap0 : {!μ1!} -- ∀{Γ}{A : ∥ Γ ∥ ,⋆ * ⊢⋆ *} → Γ ⊢ A ⋆.[ μ A ] → μ0 A
-  wrap0 = {!!}
+  wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ μ0 · pat
+  wrap0 M = {!!}
 -}
+
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
