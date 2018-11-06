@@ -31,6 +31,8 @@ module Language.PlutusCore
     , getNormalizedType
     , defaultVersion
     , allBuiltinNames
+    , termLoc
+    , tyLoc
     -- * Lexer
     , AlexPosn (..)
     -- * Views

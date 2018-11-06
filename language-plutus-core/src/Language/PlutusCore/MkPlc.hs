@@ -28,16 +28,16 @@ data VarDecl tyname name a = VarDecl {varDeclAnn::a, varDeclName::name a, varDec
     deriving (Functor, Show, Eq, Generic)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
-mkVar :: VarDecl tyname name () -> Term tyname name ()
-mkVar = Var () . varDeclName
+mkVar :: a -> VarDecl tyname name a -> Term tyname name a
+mkVar x = Var x . varDeclName
 
 -- | A "type variable declaration", i.e. a name and a kind for a type variable.
 data TyVarDecl tyname a = TyVarDecl {tyVarDeclAnn::a, tyVarDeclName::tyname a, tyVarDeclKind::Kind a}
     deriving (Functor, Show, Eq, Generic)
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
-mkTyVar :: TyVarDecl tyname () -> Type tyname ()
-mkTyVar = TyVar () . tyVarDeclName
+mkTyVar :: a -> TyVarDecl tyname a -> Type tyname a
+mkTyVar x = TyVar x . tyVarDeclName
 
 -- | A definition. Pretty much just a pair with more descriptive names.
 data Def var val = Def { defVar::var, defVal::val}
