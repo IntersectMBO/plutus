@@ -1,6 +1,6 @@
 module Wallet where
 
-import Bootstrap (btn, btnGroup_, btnInfo, btnLight, btnSmall, card, cardBody_, cardFooter_, cardHeader_, cardTitle_, card_, col_, pullRight, row_)
+import Bootstrap (btn, btnGroup_, btnInfo, btnLight, btnSmall, card, cardBody_, cardFooter_, cardHeader_, cardTitle_, card_, col_, col2_, pullRight, row_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Newtype (unwrap)
@@ -47,7 +47,7 @@ walletPane index wallet =
 
 addWalletPane :: forall p. HTML p Query
 addWalletPane =
-  col_
+  col2_
     [ div
         [ class_ $ ClassName "add-wallet" ]
         [ div [ class_ card

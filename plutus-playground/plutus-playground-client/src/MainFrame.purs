@@ -7,7 +7,7 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery(..), Autocomplete(..), aceComponent)
 import Ace.Types (ACE, Editor, Annotation)
 import Action (actionsPane)
-import Bootstrap (btn, btnPrimary, col9_, col_, container_, row_)
+import Bootstrap (btn, btnPrimary, col7_, col_, container_, row_)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Except (ExceptT)
@@ -45,7 +45,7 @@ import Network.RemoteData as RemoteData
 import Playground.API (SourceCode(..))
 import Playground.Interpreter (CompilationError(..))
 import Playground.Server (SPParams_, postContract)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (>>>))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (>>=), (>>>))
 import Servant.PureScript.Affjax (ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as Static
@@ -120,6 +120,10 @@ eval (CompileProgram next) = do
     Failure _ -> Success $ Left Static.compilationErrors
     NotAsked -> NotAsked
     Loading -> Loading
+  --
+  use _compilationResult >>= case _ of
+    Success (Left errors) -> showCompilationErrors errors
+    _ -> pure unit
   --
   pure next
 
@@ -236,7 +240,7 @@ mockChainPane ::
 mockChainPane state =
   div_
     [ row_
-        [ col9_ [ walletsPane state.wallets ]
+        [ col7_ [ walletsPane state.wallets ]
         , col_ [ actionsPane state.actions  ]
         ]
     , h3_ [ text "Chain" ]

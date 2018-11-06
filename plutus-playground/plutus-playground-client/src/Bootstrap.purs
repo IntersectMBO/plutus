@@ -31,6 +31,18 @@ col = ClassName "col"
 col_ :: forall p i. Array (HTML p i) -> HTML p i
 col_ = div [ class_ col ]
 
+col2 :: ClassName
+col2 = ClassName "col-2"
+
+col2_ :: forall p i. Array (HTML p i) -> HTML p i
+col2_ = div [ classes [ col, col2 ] ]
+
+col7 :: ClassName
+col7 = ClassName "col-7"
+
+col7_ :: forall p i. Array (HTML p i) -> HTML p i
+col7_ = div [ classes [ col, col7 ] ]
+
 col9 :: ClassName
 col9 = ClassName "col-9"
 
