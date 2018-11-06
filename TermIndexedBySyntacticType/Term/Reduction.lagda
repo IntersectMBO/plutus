@@ -14,28 +14,10 @@ open import Type.Equality
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
+open import Data.List hiding ([_])
+open import Data.List.All
 \end{code}
 
-\begin{code}
---VTel : Tel  
-\end{code}
-
-## BUILTIN
-
-\begin{code}
-{-
-BUILTIN : ∀{Γ Γ'}
-    → (bn : Builtin)
-    → let Δ ,, As ,, C = El bn Γ in
-      (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
-    → Tel Γ Δ σ As          
-    → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
-      -----------------------------
-    → Γ' ⊢ ⋆.subst σ' (⋆.subst σ C)
-BUILTIN addInteger       σ (m ,, n ,, _) σ' = {!!}
-BUILTIN substractInteger σ tel           σ' = {!!}
--}
-\end{code}
 
 
 ## Values
@@ -71,6 +53,30 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
     → (cn : TermCon (con tcn s))
     → Value (con {Γ} cn)
 \end{code}
+
+## BUILTIN
+
+\begin{code}
+open import Data.Unit
+VTel : ∀ Γ Δ → ⋆.Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
+VTel Γ Δ σ [] = ⊤
+VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
+
+
+{-
+BUILTIN : ∀{Γ Γ'}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = El bn Γ in
+      (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
+    → (vtel : VTel Γ Δ σ As)
+    → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
+      -----------------------------
+    → Γ' ⊢ ⋆.subst σ' (⋆.subst σ C)
+BUILTIN addInteger σ (M ,, VM ,, N ,, VN ,, _) σ' = {!!}
+BUILTIN substractInteger σ X σ' = {!!}
+-}
+\end{code}
+
 
 ## Intrinsically Type Preserving Reduction
 
@@ -153,7 +159,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
 --    → VTel tel
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
       -----------------------------
-    → builtin bn σ tel σ' —→ BUILTIN bn σ tel σ'
+    → builtin bn σ tel σ' —→ {!!} --BUILTIN bn σ tel σ'
 -}
 \end{code}
 
