@@ -41,7 +41,7 @@ newtype Environment = Environment (IntMap Loc)
 
 data Frame
     = FrameDelayedArg Closure                    -- Tells the machine that we've got back to N after evaluating M in [M N]
-    | FrameMark Environment Loc                  -- Tells the machine that we've finished evaluating a delayed term in the heap
+    | FrameMark Loc                              -- Tells the machine that we've finished evaluating a delayed term in the heap
     | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
     | FrameUnwrap                                -- ^ @(unwrap _)@
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
@@ -65,7 +65,7 @@ emptyEnvironment = Environment IntMap.empty
 updateEnvironment :: Int -> Loc -> Environment -> Environment
 updateEnvironment index cl (Environment m) = Environment (IntMap.insert index cl m)
 
-type Loc = Int -- Heap location. Will Int always be big enough?  maxBound::Int is 2^63-1
+type Loc = Int -- Heap location. Int should always be big enough: maxBound::Int is 2^63-1
 
 {- Environments map variable ids to locations, the heap maps locations
    to terms.  We really do require this indirection: there may be
@@ -111,8 +111,8 @@ modifyHeap l cl (Heap h top) =
 lookupHeap :: Loc -> Heap -> HeapEntry
 lookupHeap l (Heap h _) =
     case IntMap.lookup l h of
-      Nothing -> error $ "Missing heap location in lookupHeap: " ++ show l
       Just e  -> e
+      Nothing -> error $ "Missing heap location in lookupHeap: " ++ show l  -- This should never happen
 
 computeL ::EvaluationContext -> Heap -> Closure -> LMachineResult
 computeL ctx heap cl@(Closure t env) =
@@ -132,7 +132,7 @@ evalVar ctx heap name env =
          let l = lookupLoc name env
          in case lookupHeap l heap of
               Evaluated v    -> returnL ctx heap (Closure v env)
-              Unevaluated cl -> computeL (FrameMark env l: ctx) heap cl
+              Unevaluated cl -> computeL (FrameMark l: ctx) heap cl
               -- Reduce the entry to a value, leaving a mark on the stack so we know when we've finished
 
 
@@ -143,10 +143,8 @@ returnL (FrameDelayedArg argCl    : ctx) heap cl                           = eva
 returnL (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL ctx heap $ Closure (Wrap ann tyn ty v) env
 returnL (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL ctx heap (Closure t env)
 returnL (FrameUnwrap              : ctx) _    (Closure term _)             = throw $ MachineException NonWrapUnwrappedMachineError term
-returnL (FrameMark env' l         : ctx) heap (Closure v env)              = let heap' = modifyHeap l (Evaluated v) heap
-                                                                             in returnL ctx heap' (Closure v env')
-                                                                                -- Restore the old environment
-                                                                                -- Really? Might we need env again?
+returnL (FrameMark  l             : ctx) heap cl@(Closure v env)           = let heap' = modifyHeap l (Evaluated v) heap
+                                                                             in returnL ctx heap' cl
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -159,25 +157,33 @@ evaluateFun :: EvaluationContext -> Heap -> Closure -> Closure-> LMachineResult
 evaluateFun ctx heap (Closure fun funEnv) argCl =
     case fun of
       LamAbs _ var _ body ->
-          let  (l, heap') = insertInHeap argCl heap
-               env9 = updateEnvironment (unUnique $ nameUnique var) l funEnv -- ???
-          in computeL ctx heap' (Closure body env9)
+          let (l, heap') = insertInHeap argCl heap
+              env' = updateEnvironment (unUnique $ nameUnique var) l funEnv
+          in computeL ctx heap' (Closure body env')
+
       _ ->
+          -- Not a lambda: look for evaluation of a built-in function, possibly with some args already supplied.
           -- We have to force the arguments, which means that we need to get the new heap back as well.
           -- This bit is messy but should be much easier when we have n-ary application for builtins.
+
           case computeL [] heap argCl of
+            -- Force the argument, but only at the top level.
+            -- Can we do this on the existing stack? Probably not, because we're not in the usual compute phase here.
             Failure -> Failure
             Success (Closure arg' env') heap' ->
+                -- FIXME: we're throwing away env' here, but we have to because the builtin interface doesn't know
+                -- about environments.  Maybe we should substitute in the stuff in the enviroment to get a closed term,
+                -- but that decision will have to wait until we know what the final interface is.
+                -- See https://github.com/input-output-hk/plutus/blob/master/language-plutus-core/docs/Constant%20application.md
                 let term = Apply () fun arg'
                 in case termAsPrimIterApp term of
                      Nothing ->
                          throw $ MachineException NonPrimitiveApplicationMachineError term
-             -- "Cannot reduce a not immediately reducible application."
+                               -- "Cannot reduce a not immediately reducible application."  This message isn't too informative.
                      Just (IterApp headName spine) ->
                          case runQuote $ applyBuiltinName headName spine of
-                           ConstAppSuccess term' ->  -- trace2 ("Evaluated builtin " ++ (show headName)) $
-                                                    returnL ctx heap' (Closure term' funEnv)
-                           ConstAppStuck         -> returnL ctx heap' (Closure term funEnv) -- env???
+                           ConstAppSuccess term' -> returnL ctx heap' (Closure term' funEnv)
+                           ConstAppStuck         -> returnL ctx heap' (Closure term funEnv)
                            ConstAppFailure       -> error $ "ConstAppFailure" ++ show term
                            ConstAppError err     -> throw $ MachineException (ConstAppMachineError err) term
 
@@ -195,14 +201,13 @@ instantiateEvaluate ctx heap ty (Closure fun env) =
            then returnL ctx heap $ Closure (TyInst () fun ty) env
            else throw $ MachineException NonPrimitiveInstantiationMachineError fun
 
--- | Evaluate a term using the CEK machine. May throw a 'MachineException'.
+-- | Evaluate a term using the L machine. May throw a 'MachineException'.
 evaluateL :: Term TyName Name () -> LMachineResult
 evaluateL t = computeL [] emptyHeap (Closure t (Environment IntMap.empty))
 
--- | Run a program using the CEK machine. May throw a 'MachineException'.
--- Calls 'evaluateL' under the hood, so the same caveats apply.
+-- | Run a program using the L machine. May throw a 'MachineException'.
 runL :: Program TyName Name () -> EvaluationResult
 runL (Program _ _ term) =
     case evaluateL term of
-      Success (Closure r _) (Heap m sz) -> trace ("Heap size = " ++ show sz ++ " [" ++ show (IntMap.size m) ++ "]") $ EvaluationSuccess r
+      Success (Closure r _) (Heap _ sz) -> trace ("Heap size = " ++ show sz) $ EvaluationSuccess r
       Failure                           -> EvaluationFailure
