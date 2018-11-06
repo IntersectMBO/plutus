@@ -1,15 +1,17 @@
-{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Playground.Interpreter where
 
 import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.Trans.Class    (lift)
+import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
 import qualified Control.Newtype.Generics     as Newtype
 import           Data.Aeson                   (FromJSON, Result (Success), ToJSON, Value, fromJSON)
 import qualified Data.Aeson                   as JSON
+import           Data.Bifunctor               (second)
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.List                    (intercalate)
 import           Data.Maybe                   (catMaybes, fromJust)
@@ -33,6 +35,7 @@ import qualified Playground.TH                as TH
 import           System.Directory             (removeFile)
 import           System.IO                    (readFile)
 import           System.IO.Temp               (writeTempFile)
+import           Text.Read                    (readMaybe)
 import qualified Type.Reflection              as TR
 import           Wallet.API                   (WalletAPI)
 import           Wallet.Emulator.Types        (AssertionError, EmulatedWalletApi, EmulatorState (emChain), Trace,
@@ -211,32 +214,33 @@ isWalletFunction _ = pure Nothing
 
 ------------------------------------------------------------
 data CompilationError = CompilationError
-  { filename :: !FilePath
+  { filename :: !Text
   , row      :: !Int
   , column   :: !Int
   , text     :: ![Text]
   } deriving (Show, Eq, Generic)
 
--- | Stub. TODO
-parseErrorText :: Text -> CompilationError
-parseErrorText _ =
-  CompilationError
-    { filename = "Main70317-3.hs"
-    , row = 76
-    , column = 14
-    , text =
-        [ "    \8226 Could not deduce (MonadError WalletAPIError m0)"
-        , "      from the context: (MonadError WalletAPIError m, WalletAPI m)"
-        , "        bound by the type signature for:"
-        , "                   vestFunds :: forall (m :: * -> *)."
-        , "                                (MonadError WalletAPIError m, WalletAPI m) =>"
-        , "                                Vesting -> Value -> IO ()"
-        , "        at Main70317-3.hs:(76,14)-(81,12)"
-        , "      The type variable \8216m0\8217 is ambiguous"
-        , "    \8226 In the ambiguity check for \8216vestFunds\8217"
-        , "      To defer the ambiguity check to use sites, enable AllowAmbiguousTypes"
-        , "      In the type signature:"
-        , "        vestFunds :: (MonadError WalletAPIError m, WalletAPI m) =>"
-        , "                     Vesting -> Value -> IO ()"
-        ]
-    }
+parseErrorText :: Text -> Maybe CompilationError
+parseErrorText =
+  evalStateT $ do
+    filename <- consumeTo ":"
+    rowStr <- consumeTo ":"
+    columnStr <- consumeTo ":"
+    text <- Text.lines <$> consume
+  --
+    row <- lift $ readMaybe $ Text.unpack rowStr
+    column <- lift $ readMaybe $ Text.unpack columnStr
+    pure CompilationError {..}
+
+consumeTo :: Monad m => Text -> StateT Text m Text
+consumeTo needle = do
+  (before, after) <- breakWith needle <$> get
+  put after
+  pure before
+
+consume :: (Monad m, Monoid s) => StateT s m s
+consume = get <* put mempty
+
+-- | Light `Data.Text.breakOn`, but consumes the breakpoint text (the 'needle').
+breakWith :: Text -> Text -> (Text, Text)
+breakWith needle = second (Text.drop 1) . Text.breakOn needle
