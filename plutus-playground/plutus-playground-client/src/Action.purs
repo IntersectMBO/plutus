@@ -1,6 +1,6 @@
 module Action where
 
-import Bootstrap (bgInfo, btn, btnLight, card, cardBody_, pullRight, textWhite)
+import Bootstrap (bgInfo, btn, btnInfo, card, cardBody_, pullRight, textWhite)
 import Data.Array (mapWithIndex)
 import Data.Foldable (intercalate)
 import Data.Newtype (unwrap)
@@ -31,7 +31,7 @@ actionPane index action =
     [ div [ classes [ card, textWhite, bgInfo ] ]
       [ cardBody_
         [ button
-            [ classes [ btn, btnLight, pullRight ]
+            [ classes [ btn, btnInfo, pullRight ]
             , onClick $ input_ $ KillAction index
             ]
             [ icon Close ]

@@ -110,19 +110,19 @@ btnPrimary_ :: forall p i. Array (HTML p i) -> HTML p i
 btnPrimary_ = div [ classes [ btn, btnPrimary ] ]
 
 btnSecondary :: ClassName
-btnSecondary = ClassName "btn btn-secondary"
+btnSecondary = ClassName "btn-secondary"
 
 btnSecondary_ :: forall p i. Array (HTML p i) -> HTML p i
 btnSecondary_ = div [ classes [ btn, btnSecondary ] ]
 
 btnLight :: ClassName
-btnLight = ClassName "btn btn-light"
+btnLight = ClassName "btn-light"
 
 btnLight_ :: forall p i. Array (HTML p i) -> HTML p i
 btnLight_ = div [ classes [ btn, btnLight ] ]
 
 btnDark :: ClassName
-btnDark = ClassName "btn btn-dark"
+btnDark = ClassName "btn-dark"
 
 btnDark_ :: forall p i. Array (HTML p i) -> HTML p i
 btnDark_ = div [ classes [ btn, btnDark ] ]

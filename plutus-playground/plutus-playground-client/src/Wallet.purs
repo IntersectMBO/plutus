@@ -26,15 +26,13 @@ walletPane index wallet =
     [ div
         [class_ $ ClassName "wallet"]
         [ card_
-            [ cardHeader_
+            [ cardBody_
                 [ button
-                    [ classes [ btn, btnLight, pullRight ]
+                    [ classes [ btn, pullRight ]
                     , onClick $ input_ $ RemoveWallet index
                     ]
                     [ icon Close ]
-                ]
-            , cardBody_
-                [ cardTitle_ [walletIdPane wallet . walletId]
+                , cardTitle_ [walletIdPane wallet . walletId]
                 , div_ [text $ show wallet . balance, icon Bitcoin]
                 ]
             , cardFooter_
