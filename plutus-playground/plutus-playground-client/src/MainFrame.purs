@@ -45,11 +45,11 @@ import Network.RemoteData as RemoteData
 import Playground.API (SourceCode(..))
 import Playground.Interpreter (CompilationError(..))
 import Playground.Server (SPParams_, postContract)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (<$>), (<*>), (>>>))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (>>>))
 import Servant.PureScript.Affjax (ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as Static
-import Types (Query(HandleEChartsMessage, CompileProgram, HandleAceMessage, KillAction, SendAction), State, _actions, _compilationResult, _editorContents)
+import Types (Query(..), State, WalletId(..), _actions, _compilationResult, _editorContents, _wallets)
 import Wallet (walletsPane)
 
 initialState :: State
@@ -129,6 +129,20 @@ eval (SendAction action next) = do
 
 eval (KillAction index next) = do
   modifying _actions (fromMaybe <*> Array.deleteAt index)
+  pure next
+
+eval (AddWallet next) = do
+  count <- Array.length <$> use _wallets
+  let newWallet =
+        { walletId: WalletId (show (count + 1))
+        , balance: 10.0
+        }
+  modifying _wallets (flip Array.snoc newWallet)
+  pure next
+
+eval (RemoveWallet index next) = do
+  modifying _wallets (fromMaybe <*> Array.deleteAt index)
+  assign _actions []
   pure next
 
 ------------------------------------------------------------

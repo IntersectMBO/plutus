@@ -8,6 +8,7 @@ data Icon
   | LongArrowDown
   | Close
   | Bitcoin
+  | Plus
 
 icon :: forall p i. Icon -> HTML p i
 icon iconType =
@@ -19,3 +20,4 @@ iconClass CreditCard = ClassName "fa-credit-card"
 iconClass LongArrowDown = ClassName "fa-long-arrow-down"
 iconClass Close = ClassName "fa-close"
 iconClass Bitcoin = ClassName "fa-bitcoin"
+iconClass Plus = ClassName "fa-plus"

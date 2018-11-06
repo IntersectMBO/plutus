@@ -47,6 +47,8 @@ data Query a
   | CompileProgram a
   | SendAction Action a
   | KillAction Int a
+  | AddWallet a
+  | RemoveWallet Int a
 
 -----------------------------------------------------------
 

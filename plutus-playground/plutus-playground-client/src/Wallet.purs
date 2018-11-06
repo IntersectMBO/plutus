@@ -1,29 +1,11 @@
 module Wallet where
 
-import Bootstrap
-  ( btn
-  , btnGroup_
-  , btnInfo
-  , btnSmall
-  , cardBody_
-  , cardFooter_
-  , cardTitle_
-  , card_
-  , col_
-  , row_
-  )
+import Bootstrap (btn, btnGroup_, btnInfo, btnLight, btnSmall, card, cardBody_, cardFooter_, cardHeader_, cardTitle_, card_, col_, pullRight, row_)
+import Data.Array (mapWithIndex)
+import Data.Array as Array
 import Data.Newtype (unwrap)
 import Halogen (HTML)
-import Halogen.HTML
-  ( ClassName(ClassName)
-  , button
-  , div
-  , div_
-  , h3_
-  , span
-  , strong_
-  , text
-  )
+import Halogen.HTML (ClassName(ClassName), button, div, div_, h3_, span, strong_, text)
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
@@ -35,16 +17,23 @@ walletsPane :: forall p. Array Wallet -> HTML p Query
 walletsPane wallets =
   div_
     [ h3_ [ text "Wallets" ]
-    , row_ (walletPane <$> wallets)
+    , row_ (Array.cons addWalletPane (mapWithIndex walletPane wallets))
     ]
 
-walletPane :: forall p. Wallet -> HTML p Query
-walletPane wallet =
+walletPane :: forall p. Int -> Wallet -> HTML p Query
+walletPane index wallet =
   col_
     [ div
         [class_ $ ClassName "wallet"]
         [ card_
-            [ cardBody_
+            [ cardHeader_
+                [ button
+                    [ classes [ btn, btnLight, pullRight ]
+                    , onClick $ input_ $ RemoveWallet index
+                    ]
+                    [ icon Close ]
+                ]
+            , cardBody_
                 [ cardTitle_ [walletIdPane wallet . walletId]
                 , div_ [text $ show wallet . balance, icon Bitcoin]
                 ]
@@ -52,6 +41,20 @@ walletPane wallet =
                 [ btnGroup_
                     (actionButton wallet . walletId <$> Static.actionIds)
                 ]
+            ]
+        ]
+    ]
+
+addWalletPane :: forall p. HTML p Query
+addWalletPane =
+  col_
+    [ div
+        [ class_ $ ClassName "add-wallet" ]
+        [ div [ class_ card
+              , onClick $ input_ AddWallet
+              ]
+            [ cardBody_
+                [ icon Plus ]
             ]
         ]
     ]

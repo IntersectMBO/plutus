@@ -7,10 +7,7 @@ import Playground.Interpreter (CompilationError(..))
 wallets :: Array Wallet
 wallets =
   [ { walletId: WalletId "kris0001", balance: 10.0 }
-  , { walletId: WalletId "kris0002", balance: 5.0 }
   , { walletId: WalletId "david0001", balance: 23.0 }
-  , { walletId: WalletId "david0002", balance: 1.0 }
-  , { walletId: WalletId "manuel0001", balance: 817.0 }
   ]
 
 actionIds :: Array ActionId
@@ -187,7 +184,7 @@ validatorScript v = Validator val where
 """
 
 compilationErrors :: Array CompilationError
-compilationErrors = 
+compilationErrors =
   [ CompilationError
     { filename: "Main70317-3.hs"
     , row: 10
