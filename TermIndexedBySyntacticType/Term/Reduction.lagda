@@ -53,8 +53,7 @@ VTel : ∀ Γ Δ → ⋆.Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
-
-{-
+open import Data.Integer
 BUILTIN : ∀{Γ Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = El bn Γ in
@@ -63,9 +62,12 @@ BUILTIN : ∀{Γ Γ'}
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
       -----------------------------
     → Γ' ⊢ ⋆.subst σ' (⋆.subst σ C)
-BUILTIN addInteger σ (M ,, VM ,, N ,, VN ,, _) σ' = {!!}
-BUILTIN substractInteger σ X σ' = {!!}
--}
+BUILTIN addInteger σ
+  (._ ,, V-con (integer .(σ Z) i) ,, ._ ,, V-con (integer .(σ Z) j) ,, tt) σ'
+  = con (integer (⋆.subst σ' (σ Z)) (i + j))
+BUILTIN substractInteger σ
+  (._ ,, V-con (integer .(σ Z) i) ,, ._ ,, V-con (integer .(σ Z) j) ,, tt) σ'
+  = con (integer (⋆.subst σ' (σ Z)) (i - j))
 \end{code}
 
 
@@ -84,7 +86,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
   ξ-·₂ : ∀ {Γ A B} {V : Γ ⊢ A ⇒ B} {M M′ : Γ ⊢ A}
     → Value V
     → M —→ M′
-      --------------
+      ---------------
     → V · M —→ V · M′
 
   ξ-·⋆ : ∀ {Γ B}{L L′ : Γ ⊢ Π B}{A}
@@ -94,11 +96,11 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
-      -------------------
+      --------------------
     → (ƛ N) · W —→ N [ W ]
 
   β-Λ : ∀ {Γ}{B : ∥ Γ ∥ ,⋆ * ⊢⋆ *}{N : Γ ,⋆ * ⊢ B}{W}
-      -------------------
+      ----------------------
     → (Λ N) ·⋆ W —→ N [ W ]⋆
 
   β-wrap1 : ∀{Γ K}
@@ -114,23 +116,13 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
 
-  -- this is a temporary hack as currently the type eq relation only has
-  -- reflexivity in it.
-  ξ-conv₁ : ∀{Γ J}{A : ∥ Γ ∥ ⊢⋆ J}{L : Γ ⊢ A}
-    → conv (refl≡β A) L —→ L
-
-  ξ-conv₂ : ∀{Γ J}{A B : ∥ Γ ∥ ⊢⋆ J}{L L' : Γ ⊢ A}{p : A ≡β B}
-    → L —→ L'
-      --------------------
-    → conv p L —→ conv p L'
-
 {-
   β-builtin : ∀{Γ Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = El bn Γ in
       (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
-    → (tel : Tel Γ Δ σ As)
---    → VTel tel
+    → (tel : VTel Γ Δ σ As)
+    → VTel tel
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
       -----------------------------
     → builtin bn σ tel σ' —→ {!!} --BUILTIN bn σ tel σ'

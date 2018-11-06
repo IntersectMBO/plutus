@@ -84,7 +84,7 @@ bytestrings
 
 \begin{code}
 data TyCon : Set where
-  integer bytstring size : TyCon
+  integer bytestring size : TyCon
 \end{code}
 
 ## Types

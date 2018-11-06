@@ -80,7 +80,7 @@ Let `x`, `y` range over variables.
 \begin{code}
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s → Int → TermCon (con integer s)
-  bytestring : ∀ s → ⊥   → TermCon (con integer s)
+  bytestring : ∀ s → ⊥   → TermCon (con bytestring s)
   size       : ∀ s       → TermCon (con size s) 
 \end{code}
 
