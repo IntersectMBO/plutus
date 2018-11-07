@@ -57,7 +57,7 @@ newtype PlcCode = PlcCode { unPlc :: [Word] }
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
 instance LiftPlc PlcCode where
-    lift (getAst -> (PLC.Program () _ body)) = PLC.globalRename body
+    lift (getAst -> (PLC.Program () _ body)) = PLC.rename body
 
 getSerializedCode :: PlcCode -> BSL.ByteString
 getSerializedCode = BSL.pack . fmap fromIntegral . unPlc

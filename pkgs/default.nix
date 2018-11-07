@@ -42102,6 +42102,7 @@ license = stdenv.lib.licenses.bsd3;
 , happy
 , hedgehog
 , microlens
+, microlens-th
 , mmorph
 , mtl
 , prettyprinter
@@ -42138,6 +42139,7 @@ dependent-sum
 filepath
 hedgehog
 microlens
+microlens-th
 mmorph
 mtl
 prettyprinter

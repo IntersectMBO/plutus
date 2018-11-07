@@ -5,16 +5,16 @@ module Language.PlutusCore.Normalize
     , substituteNormalizeType
     ) where
 
-import           Language.PlutusCore.Clone
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Reader
-import           Data.IntMap               (IntMap)
-import qualified Data.IntMap               as IntMap
-import           Lens.Micro
+import           Data.Coerce.Lens
+import           Data.IntMap                 (IntMap)
+import qualified Data.IntMap                 as IntMap
 
 -- | Type environments contain
 newtype TypeEnv tyname = TypeEnv
@@ -29,16 +29,16 @@ runNormalizeTypeM a = liftQuote $ runReaderT a (TypeEnv mempty)
 
 -- | Locally extend a 'TypeEnv' in a 'NormalizeTypeM' computation.
 withExtendedTypeEnv
-    :: HasUnique (tyname ())
+    :: HasUnique (tyname ()) TypeUnique
     => tyname () -> NormalizedType tyname () -> NormalizeTypeM tyname a -> NormalizeTypeM tyname a
 withExtendedTypeEnv name ty =
-    local (TypeEnv . IntMap.insert (unUnique $ name ^. unique) ty . unTypeEnv)
+    local (TypeEnv . IntMap.insert (name ^. unique . coerced) ty . unTypeEnv)
 
 -- | Look up a @tyname@ in a 'TypeEnv'.
 lookupTyName
-    :: HasUnique (tyname ())
+    :: HasUnique (tyname ()) TypeUnique
     => tyname () -> NormalizeTypeM tyname (Maybe (NormalizedType tyname ()))
-lookupTyName name = asks $ IntMap.lookup (unUnique $ name ^. unique) . unTypeEnv
+lookupTyName name = asks $ IntMap.lookup (name ^. unique . coerced) . unTypeEnv
 
 {- Note [Normalization]
 Normalization works under the assumption that variables are globally unique.
@@ -58,7 +58,7 @@ added to environments and normalization instantiates all variables presented in 
 -- See Note [Normalization].
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
 normalizeTypeM
-    :: (HasUnique (tyname ()), Cloneable (tyname ()))
+    :: HasUnique (tyname ()) TypeUnique
     => Type tyname () -> NormalizeTypeM tyname (NormalizedType tyname ())
 normalizeTypeM (TyForall ann name kind body) = TyForall ann name kind <<$>> normalizeTypeM body
 normalizeTypeM (TyFix ann name pat)          = TyFix ann name <<$>> normalizeTypeM pat
@@ -75,7 +75,7 @@ normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyName name
     case mayTy of
         Nothing -> pure $ NormalizedType var
-        Just ty -> traverse alphaRename ty
+        Just ty -> traverse rename ty
 normalizeTypeM size@TyInt{}                  = pure $ NormalizedType size
 normalizeTypeM builtin@TyBuiltin{}           = pure $ NormalizedType builtin
 
@@ -89,7 +89,7 @@ normalized types. However we do not enforce this in the type signature, because
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
 substituteNormalizeTypeM
-    :: (HasUnique (tyname ()), Cloneable (tyname ()))
+    :: HasUnique (tyname ()) TypeUnique
     => NormalizedType tyname ()                          -- ^ @ty@
     -> tyname ()                                         -- ^ @name@
     -> Type tyname ()                                    -- ^ @body@
@@ -99,14 +99,14 @@ substituteNormalizeTypeM ty name = withExtendedTypeEnv name ty . normalizeTypeM
 -- See Note [Normalization].
 -- | Normalize a 'Type'.
 normalizeType
-    :: (HasUnique (tyname ()), Cloneable (tyname ()), MonadQuote m)
+    :: (HasUnique (tyname ()) TypeUnique, MonadQuote m)
     => Type tyname () -> m (NormalizedType tyname ())
 normalizeType = runNormalizeTypeM . normalizeTypeM
 
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize.
 substituteNormalizeType
-    :: (HasUnique (tyname ()), Cloneable (tyname ()), MonadQuote m)
+    :: (HasUnique (tyname ()) TypeUnique, MonadQuote m)
     => NormalizedType tyname ()      -- ^ @ty@
     -> tyname ()                     -- ^ @name@
     -> Type tyname ()                -- ^ @body@

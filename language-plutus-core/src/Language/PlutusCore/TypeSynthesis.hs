@@ -30,7 +30,6 @@ import           Control.Monad.State.Class
 import           Control.Monad.Trans.State          hiding (get, modify)
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
-import           Lens.Micro
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
