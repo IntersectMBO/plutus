@@ -166,5 +166,33 @@ progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (unwrap1 t) | unhandled = unhandled
 progress (conv p t) = unhandled
 progress (con cn)   = done (V-con cn)
-progress (builtin bn σ X σ') = unhandled
+progress (builtin bn σ X σ') = {!!}
+
+open import Data.Maybe
+
+-- does this lose the trace of the progress?
+-- perhaps we should instead, return either a completed VTel,
+-- or a step and the pieces, or fail, maybe inductively defined
+
+
+data TelProgress : Set where
+
+progressTel : ∀ Δ (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)(G : List (∥ Δ ∥ ⊢⋆ *))
+  → Tel ∅ Δ σ G
+  → Maybe (Σ (List (∥ Δ ∥ ⊢⋆ *)) λ G1 →
+    Σ (List (∥ Δ ∥ ⊢⋆ *)) λ G2 → 
+    G1 ++ G2 ≡ G
+    ×
+    VTel ∅ Δ σ G1
+    ×
+    Tel ∅ Δ σ G2)
+    
+progressTel Δ σ [] tt = just ([] ,, [] ,, refl ,, tt ,, tt)
+progressTel Δ σ (A ∷ G) (t ,, tel) with progress t
+progressTel Δ σ (A ∷ G) (t ,, tel) | step {N = N} p =
+  just ([] ,, A ∷ G ,, refl ,, tt ,, N ,, tel)
+progressTel Δ σ (A ∷ G) (t ,, tel) | done v with progressTel Δ σ G tel
+... | just (G1 ,, G2 ,, refl ,, vtel ,, tel') = just (A ∷ G1 ,, G2 ,, refl ,, (t ,, v ,, vtel) ,, tel')
+... | nothing = nothing
+progressTel Δ σ (x ∷ G) (t ,, tel) | unhandled = nothing
 \end{code}
