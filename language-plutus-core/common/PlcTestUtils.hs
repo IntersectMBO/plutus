@@ -1,9 +1,10 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications      #-}
 module PlcTestUtils (
     GetProgram(..),
     catchAll,
-    getProgramCatch,
+    rethrow,
     trivialProgram,
     runPlc,
     goldenPlc,
@@ -22,44 +23,43 @@ import           Control.Monad.Except
 
 import qualified Data.Text.Prettyprint.Doc                as PP
 
--- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors in the
--- process should be thrown, allowing clients to decide whether to have them terminate the test or
--- catch them.
+-- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
+-- from the process should be caught.
 class GetProgram a where
-    getProgram :: a -> Program TyName Name ()
+    getProgram :: a -> ExceptT SomeException IO (Program TyName Name ())
+
+instance GetProgram a => GetProgram (ExceptT SomeException IO  a) where
+    getProgram a = a >>= getProgram
 
 instance GetProgram (Program TyName Name ()) where
-    getProgram = id
-
-instance GetProgram (Term TyName Name ()) where
-    getProgram = trivialProgram
+    getProgram = pure
 
 catchAll :: a -> ExceptT SomeException IO a
 catchAll value = ExceptT $ try @SomeException (evaluate value)
 
-getProgramCatch :: GetProgram a => a -> ExceptT SomeException IO (Program TyName Name ())
-getProgramCatch value = catchAll $ getProgram value
+rethrow :: ExceptT SomeException IO a -> IO a
+rethrow = fmap (either throw id) . runExceptT
 
 trivialProgram :: Term TyName Name () -> Program TyName Name ()
 trivialProgram = Program () (defaultVersion ())
 
-runPlc :: GetProgram a => [a] -> EvaluationResult
-runPlc values =
-    let ps = fmap getProgram values
-        p = foldl1 applyProgram ps
-    in runCk p
+runPlc :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
+runPlc values = do
+    ps <- traverse getProgram values
+    let p = foldl1 applyProgram ps
+    catchAll $ runCk p
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
 
 goldenPlc :: GetProgram a => String -> a -> TestNested
-goldenPlc name value = nestedGoldenVsDoc name $ prettyPlcClassicDebug $ getProgram value
+goldenPlc name value = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ getProgram value)
 
 goldenPlcCatch :: GetProgram a => String -> a -> TestNested
-goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ getProgramCatch value
+goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ getProgram value
 
 goldenEval :: GetProgram a => String -> [a] -> TestNested
-goldenEval name values = nestedGoldenVsDoc name $ prettyPlcClassicDebug $ runPlc values
+goldenEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlc values)
 
 goldenEvalCatch :: GetProgram a => String -> [a] -> TestNested
-goldenEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ catchAll $ runPlc values
+goldenEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runPlc values
