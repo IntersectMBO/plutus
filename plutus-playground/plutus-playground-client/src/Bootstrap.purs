@@ -156,3 +156,12 @@ listGroupItem = ClassName "list-group-item"
 
 listGroupItem_ :: forall i p. Array (HTML p i) -> HTML p i
 listGroupItem_ = div [ class_ listGroupItem ]
+
+alert :: ClassName
+alert = ClassName "alert"
+
+alertDanger :: ClassName
+alertDanger = ClassName "alert-danger"
+
+alertDanger_ :: forall i p. Array (HTML p i) -> HTML p i
+alertDanger_ = div [ classes [ alert, alertDanger ] ]

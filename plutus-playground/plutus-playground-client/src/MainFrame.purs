@@ -7,7 +7,8 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery(..), Autocomplete(..), aceComponent)
 import Ace.Types (ACE, Editor, Annotation)
 import Action (actionsPane)
-import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, col2_, col7_, col_, container_, listGroupItem_, listGroup_, row_)
+import AjaxUtils (showAjaxError)
+import Bootstrap (alertDanger_, btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, col2_, col7_, col_, container_, listGroupItem_, listGroup_, pullRight, row_)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -35,7 +36,7 @@ import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Halogen.ECharts (EChartsEffects, EChartsQuery, echarts)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, br_, button, div, div_, h1_, h2_, h3_, hr_, p_, slot', text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, br_, button, div, div_, h1_, h3_, p_, pre_, slot', small, strong_, text)
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, classes, disabled, href, target)
 import Halogen.Query (HalogenM)
@@ -45,7 +46,7 @@ import Network.RemoteData (RemoteData(..), isLoading)
 import Network.RemoteData as RemoteData
 import Playground.API (CompilationError(..), SourceCode(..))
 import Playground.Server (SPParams_, postContract)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (<<<))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as Static
 import Types (Query(..), State, WalletId(..), _actions, _compilationResult, _editorContents, _wallets)
@@ -120,10 +121,18 @@ eval (CompileProgram next) = do
       Success (Left errors) -> errors
       _ -> []
   --
+  -- TODO We need to think about clearing out the list of actions. If
+  --   the code has changed, the actions might be invalid. But we don't
+  --   really want to kill them off unless they are invalid or it's
+  --   annoying for the user.
+  --
+  -- One option is to leave them alone and let any errors be part of
+  --   the "submit actions" feedback.
+  --
   pure next
 
-eval (ScrollToRow row next) = do
-  withEditor $ Editor.scrollToLine row true true (pure unit)
+eval (ScrollTo {row, column} next) = do
+  withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
 eval (SendAction action next) = do
@@ -198,10 +207,12 @@ render state =
   div [ class_ (ClassName "main-frame") ] $
     [ container_
       [ header
-      , hr_
+      , br_
       , editorPane state
-      , hr_
-      , mockChainPane state
+      , br_
+      , case state.compilationResult of
+          Success (Right _) -> mockChainPane state
+          _ -> text ""
       ]
     ]
 
@@ -237,6 +248,7 @@ editorPane state =
                                    Success (Right _) -> btnSuccess
                                    Success (Left _) -> btnDanger
                                    Loading -> btnSecondary
+                                   Failure _ -> btnDanger
                                    _ -> btnPrimary
                                ]
                      , onClick $ input_ CompileProgram
@@ -252,6 +264,11 @@ editorPane state =
                (Success (Left errors)) ->
                  listGroup_
                    (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
+               Failure error ->
+                 alertDanger_
+                   [ text $ showAjaxError error
+                   , text "Please try again or contact support for assistance."
+                   ]
                _ -> text ""
            ]
        ]
@@ -261,9 +278,15 @@ compilationErrorPane :: forall p. CompilationError -> HTML p (Query Unit)
 compilationErrorPane (RawError error) =
   div_ [ text error ]
 compilationErrorPane (CompilationError error) =
-  div [ onClick $ input_ $ ScrollToRow error.row ]
-    [ h2_ [ text error.filename ]
-    , div_ [ text $ String.joinWith "\n" error.text ]
+  div [ class_ $ ClassName "compilation-error"
+      , onClick $ input_ $ ScrollTo {row: error.row, column: error.column}
+      ]
+    [ small [ class_ pullRight ]
+        [ text "jump" ]
+    , strong_
+        [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":" ]
+    , pre_
+        [ text $ String.joinWith "\n" error.text ]
     ]
 
 mockChainPane ::
