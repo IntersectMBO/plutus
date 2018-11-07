@@ -21,6 +21,7 @@ import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Either.Nested (Either2)
+import Data.Foldable (traverse_)
 import Data.Functor.Coproduct.Nested (Coproduct2)
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -36,7 +37,7 @@ import Halogen.Component (ParentHTML)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2)
 import Halogen.ECharts (EChartsEffects, EChartsQuery, echarts)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, br_, button, div, div_, h1_, h3_, p_, pre_, slot', small, strong_, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, br_, button, code_, div, div_, h1_, h3_, p_, slot', small, strong_, text)
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, classes, disabled, href, target)
 import Halogen.Query (HalogenM)
@@ -48,15 +49,15 @@ import Playground.API (CompilationError(..), SourceCode(..))
 import Playground.Server (SPParams_, postContract)
 import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
-import StaticData as Static
-import Types (Query(..), State, WalletId(..), _actions, _compilationResult, _editorContents, _wallets)
+import StaticData as StaticData
+import Types (Balance, Query(..), State, WalletId(..), Transfer, _actions, _compilationResult, _editorContents, _wallets)
 import Wallet (walletsPane)
 
 initialState :: State
 initialState =
   { actions: []
-  , wallets: Static.wallets
-  , editorContents: Static.editorContents
+  , wallets: StaticData.wallets
+  , editorContents: StaticData.editorContents
   , compilationResult: NotAsked
   }
 
@@ -311,44 +312,30 @@ mockChainPane state =
         (input HandleEChartsMessage)
     ]
 
-sankeyDiagramOptions :: forall m i. Monad m => CommandsT (series :: I | i) m Unit
-sankeyDiagramOptions = do
-  E.series $ E.sankey do
-    E.buildItems do
-      E.addItem do
-        E.name "charles"
-        E.value 600.0
-      E.addItem do
-        E.name "kris"
-        E.value 10.0
-      E.addItem do
-        E.name "david"
-        E.value 15.0
-      E.addItem do
-        E.name "manuel"
-        E.value 123.0
-    E.buildLinks do
-      E.addLink do
-        E.sourceName "charles"
-        E.targetName "kris"
-        E.value 10.0
-      E.addLink do
-        E.sourceName "charles"
-        E.targetName "david"
-        E.value 10.0
-      E.addLink do
-        E.sourceName "charles"
-        E.targetName "manuel"
-        E.value 20.0
+------------------------------------------------------------
 
-      E.addLink do
-        E.sourceName "manuel"
-        E.targetName "kris"
-        E.value 5.0
-      E.addLink do
-        E.sourceName "manuel"
-        E.targetName "david"
-        E.value 5.0
+toItem :: forall m i. Monad m => Balance -> CommandsT (item :: I | i) m Unit
+toItem {name, value} =
+  E.addItem do
+    E.name name
+    E.value value
+
+toLink :: forall m i. Monad m => Transfer -> CommandsT (link :: I | i) m Unit
+toLink {source, target, value} =
+  E.addLink do
+    E.sourceName source
+    E.targetName target
+    E.value value
+
+toChartOptions :: forall m i. Monad m => Array Balance -> Array Transfer -> CommandsT (series :: I | i) m Unit
+toChartOptions balances transfers =
+  E.series $ E.sankey do
+    E.buildItems (traverse_ toItem balances)
+    E.buildLinks (traverse_ toLink transfers)
+
+sankeyDiagramOptions :: forall m i. Monad m => CommandsT (series :: I | i) m Unit
+sankeyDiagramOptions =
+  toChartOptions StaticData.balances StaticData.transfers
 
 runAjax ::
   forall m env a e.
