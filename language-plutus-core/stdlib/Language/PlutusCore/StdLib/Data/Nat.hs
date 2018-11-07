@@ -23,12 +23,11 @@ import           Language.PlutusCore.StdLib.Type
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
-getBuiltinNat :: Quote (HoledType ())
+getBuiltinNat :: Quote RecursiveType
 getBuiltinNat = do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
-    return
-        . HoledType nat $ \hole ->
+    makeRecursiveType nat $ \hole ->
           hole
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -40,7 +39,7 @@ getBuiltinNat = do
 -- > wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> z
 getBuiltinZero :: Quote (Term TyName Name ())
 getBuiltinZero = rename =<< do
-    RecursiveType wrapNat nat <- holedToRecursive =<< getBuiltinNat
+    RecursiveType wrapNat nat <- getBuiltinNat
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
@@ -55,7 +54,7 @@ getBuiltinZero = rename =<< do
 -- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
 getBuiltinSucc :: Quote (Term TyName Name ())
 getBuiltinSucc = rename =<< do
-    RecursiveType wrapNat nat <- holedToRecursive =<< getBuiltinNat
+    RecursiveType wrapNat nat <- getBuiltinNat
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
@@ -77,7 +76,7 @@ getBuiltinSucc = rename =<< do
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
 getBuiltinFoldrNat :: Quote (Term TyName Name ())
 getBuiltinFoldrNat = rename =<< do
-    RecursiveType _ nat <- holedToRecursive =<< getBuiltinNat
+    RecursiveType _ nat <- getBuiltinNat
     fix <- getBuiltinFix
     r   <- freshTyName () "r"
     f   <- freshName () "f"
@@ -105,7 +104,7 @@ getBuiltinFoldrNat = rename =<< do
 -- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
 getBuiltinFoldNat :: Quote (Term TyName Name ())
 getBuiltinFoldNat = rename =<< do
-    RecursiveType _ nat <- holedToRecursive =<< getBuiltinNat
+    RecursiveType _ nat <- getBuiltinNat
     fix <- getBuiltinFix
     r   <- freshTyName () "r"
     f   <- freshName () "f"

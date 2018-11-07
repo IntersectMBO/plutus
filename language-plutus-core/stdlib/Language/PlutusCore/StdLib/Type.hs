@@ -4,10 +4,8 @@
 {-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.StdLib.Type
-    ( HoledType(..)
-    , RecursiveType(..)
-    , holedTyApp
-    , holedToRecursive
+    ( RecursiveType (..)
+    , makeRecursiveType
     ) where
 
 import           Language.PlutusCore
@@ -102,36 +100,18 @@ getWrap ann name patBind term = rename =<< do
 
     return $ IWrap ann (ann <$ mkIterTyApp () patternFunctor [withSpine0, pat]) (ann <$ identity) term
 
--- | A type with a hole inside. The reason for having such a thing is that 'Wrap'
--- expects the pattern functor of a recursive type while in type signatures we use
--- actual recursive types. So we need a way to construct recursive types such that from
--- any such type we can easily extract its pattern functor as well as easily use the
--- type itself. 'RecursiveType' below allows to do that (except the pattern functor is
--- already supplied to 'Wrap'), but some types are actually type functions that receive
--- arguments and only then return a recursive type (see 'getBuiltinList' for example).
--- Thus we make a type with a hole where the hole can be filled by either 'TyFix' or
--- 'id', so this type, after all arguments are supplied (see 'holedTyApp'), can be
--- converted to the corresponding 'RecursiveType' (see 'holedToRecursive').
--- See "docs/Holed types.md" for more information.
-data HoledType a = HoledType
-    { _holedTypeName :: TyName a
-    , _holedTypeCont :: (Type TyName a -> Quote (Type TyName a)) -> Quote (Type TyName a)
-    }
-
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
-data RecursiveType a = RecursiveType
-    { _recursiveWrap :: Term TyName Name a -> Quote (Term TyName Name a)
-    , _recursiveType :: Type TyName a
+data RecursiveType = RecursiveType
+    { _recursiveWrap :: Term TyName Name () -> Quote (Term TyName Name ())
+    , _recursiveType :: Type TyName ()
     }
 
--- | Apply a 'HoledType' to a 'Type'.
-holedTyApp :: HoledType () -> Type TyName () -> HoledType ()
-holedTyApp (HoledType name cont) arg = HoledType name $ \hole -> TyApp () <$> cont hole <*> pure arg
-
--- | Convert a 'HoledType' to the corresponding 'RecursiveType'.
-holedToRecursive :: HoledType () -> Quote (RecursiveType ())
-holedToRecursive (HoledType name cont) = do
+makeRecursiveType
+    :: TyName ()
+    -> ((Type TyName () -> Quote (Type TyName ())) -> Quote (Type TyName ()))
+    -> Quote RecursiveType
+makeRecursiveType name cont = do
     let wrap term = cont return >>= \ty -> getWrap () name ty term
     fixedPat <- cont $ getTyFix0 () name
     return $ RecursiveType wrap fixedPat
