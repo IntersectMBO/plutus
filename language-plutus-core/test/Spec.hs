@@ -105,7 +105,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsType typeFiles
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
-    , test_PrettyReadable
+    , test_Pretty
     , test_typecheck
     , test_constant
     , test_evaluateCk

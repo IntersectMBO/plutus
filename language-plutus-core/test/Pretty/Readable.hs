@@ -1,4 +1,4 @@
-module Pretty.Readable (test_PrettyReadable) where
+module Pretty.Readable (test_Pretty) where
 
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
@@ -21,3 +21,9 @@ test_PrettyReadable :: TestTree
 test_PrettyReadable =
     runTestNestedIn ["test", "Pretty", "Golden", "Readable"] $
         foldStdLib testNested testReadable testReadable
+
+test_Pretty :: TestTree
+test_Pretty =
+    testGroup "pretty"
+        [ test_PrettyReadable
+        ]

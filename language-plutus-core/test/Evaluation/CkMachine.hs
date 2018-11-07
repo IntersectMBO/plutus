@@ -89,7 +89,7 @@ getEven = do
 
 listInt :: Quote (Type TyName ())
 listInt = do
-    RecursiveType _ list1 <- holedToRecursive =<< getBuiltinList
+    list1 <- getBuiltinList
     RecursiveType _ nat1 <- holedToRecursive =<< getBuiltinNat
     pure $ TyApp () list1 nat1
 
