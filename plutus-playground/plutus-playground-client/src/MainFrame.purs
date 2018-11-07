@@ -8,7 +8,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(..), AceQuery(..), Autocomp
 import Ace.Types (ACE, Editor, Annotation)
 import Action (actionsPane)
 import AjaxUtils (showAjaxError)
-import Bootstrap (alertDanger_, btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, col2_, col7_, col_, container_, listGroupItem_, listGroup_, pullRight, row_)
+import Bootstrap (alertDanger_, btn, btnBlock, btnDanger, btnPrimary, btnSecondary, btnSuccess, col2_, col7_, col_, container_, empty, listGroupItem_, listGroup_, pullRight, row_)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
@@ -212,7 +212,7 @@ render state =
       , br_
       , case state.compilationResult of
           Success (Right _) -> mockChainPane state
-          _ -> text ""
+          _ -> empty
       ]
     ]
 
@@ -244,35 +244,39 @@ editorPane state =
     , row_
         [ col2_
             [ button [ classes [ btn
-                               , case state.compilationResult of
-                                   Success (Right _) -> btnSuccess
-                                   Success (Left _) -> btnDanger
-                                   Loading -> btnSecondary
-                                   Failure _ -> btnDanger
-                                   _ -> btnPrimary
+                               , btnBlock
+                               , btnClass
                                ]
                      , onClick $ input_ CompileProgram
                      , disabled (isLoading state.compilationResult)
                      ]
-                [ if (isLoading state.compilationResult)
-                    then icon Spinner
-                    else text "Compile"
-                ]
+                [ btnText ]
             ]
-       , col_
-           [ case state.compilationResult of
-               (Success (Left errors)) ->
-                 listGroup_
-                   (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
-               Failure error ->
-                 alertDanger_
-                   [ text $ showAjaxError error
-                   , text "Please try again or contact support for assistance."
-                   ]
-               _ -> text ""
-           ]
-       ]
+        , col_ [ errorList ]
+        ]
     ]
+    where
+      btnClass = case state.compilationResult of
+                   Success (Right _) -> btnSuccess
+                   Success (Left _) -> btnDanger
+                   Failure _ -> btnDanger
+                   Loading -> btnSecondary
+                   NotAsked -> btnPrimary
+      btnText = case state.compilationResult of
+                   Loading -> icon Spinner
+                   _ -> text "Compile"
+      errorList = case state.compilationResult of
+                    (Success (Left errors)) ->
+                      listGroup_
+                        (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
+                    Failure error ->
+                      alertDanger_
+                        [ text $ showAjaxError error
+                        , br_
+                        , text "Please try again or contact support for assistance."
+                        ]
+                    _ -> empty
+
 
 compilationErrorPane :: forall p. CompilationError -> HTML p (Query Unit)
 compilationErrorPane (RawError error) =
@@ -285,7 +289,8 @@ compilationErrorPane (CompilationError error) =
         [ text "jump" ]
     , strong_
         [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":" ]
-    , pre_
+    , br_
+    , code_
         [ text $ String.joinWith "\n" error.text ]
     ]
 

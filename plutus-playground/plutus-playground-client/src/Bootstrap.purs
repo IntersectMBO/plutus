@@ -10,7 +10,7 @@
 -- | try it and see how it works out!)
 module Bootstrap where
 
-import Halogen.HTML (ClassName(ClassName), HTML, div)
+import Halogen.HTML (ClassName(ClassName), HTML, div, text)
 import Halogen.HTML.Properties (class_, classes)
 
 container :: ClassName
@@ -97,6 +97,9 @@ btn = ClassName "btn"
 btn_ :: forall p i. Array (HTML p i) -> HTML p i
 btn_ = div [ class_ btn ]
 
+btnBlock :: ClassName
+btnBlock = ClassName "btn-block"
+
 btnGroup :: ClassName
 btnGroup = ClassName "btn-group"
 
@@ -165,3 +168,6 @@ alertDanger = ClassName "alert-danger"
 
 alertDanger_ :: forall i p. Array (HTML p i) -> HTML p i
 alertDanger_ = div [ classes [ alert, alertDanger ] ]
+
+empty :: forall p i. HTML p i
+empty = text ""
