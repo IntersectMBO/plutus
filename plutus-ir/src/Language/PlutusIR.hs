@@ -18,6 +18,7 @@ module Language.PlutusIR (
     Recursivity (..),
     Binding (..),
     Term (..),
+    Program (..),
     prettyDef,
     embedIntoIR
     ) where
@@ -107,6 +108,9 @@ embedIntoIR = \case
     PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
     PLC.Wrap a tn ty t -> Wrap a tn ty (embedIntoIR t)
 
+-- no version as PIR is not versioned
+data Program tyname name a = Program a (Term tyname name a)
+
 -- Pretty-printing
 
 instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
@@ -151,5 +155,9 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
         Wrap _ n ty t -> parens' ("wrap" </> vsep' [ prettyBy config n, prettyBy config ty, prettyBy config t ])
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
 
-prettyDef :: Term TyName Name a -> Doc ann
+instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
+        PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name a) where
+    prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
+
+prettyDef :: (PLC.PrettyBy (PLC.PrettyConfigClassic PLC.PrettyConfigName) a) => a -> Doc ann
 prettyDef = prettyBy $ PLC.PrettyConfigClassic PLC.defPrettyConfigName
