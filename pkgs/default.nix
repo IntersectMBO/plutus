@@ -55597,6 +55597,7 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , language-plutus-core
 , microlens
+, mmorph
 , mtl
 , prettyprinter
 , stdenv
@@ -55617,6 +55618,7 @@ bytestring
 containers
 language-plutus-core
 microlens
+mmorph
 mtl
 prettyprinter
 text
@@ -55626,6 +55628,7 @@ testHaskellDepends = [
 base
 bytestring
 language-plutus-core
+mmorph
 mtl
 prettyprinter
 tasty

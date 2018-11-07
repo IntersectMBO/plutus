@@ -140,7 +140,7 @@ lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList 
 -- | Matching pair of transaction input and transaction output. The type
 --   parameter is to allow the validation data to be inserted.
 data InOutMatch =
-    ScriptMatch UTXO.Validator UTXO.Redeemer DataScript Value (UTXO.Address (Digest SHA256))
+    ScriptMatch UTXO.Validator UTXO.Redeemer DataScript (UTXO.Address (Digest SHA256))
     | PubKeyMatch PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -149,7 +149,7 @@ data InOutMatch =
 matchInputOutput :: ValidationMonad m => TxIn' -> TxOut' -> m InOutMatch
 matchInputOutput i txo = case (txInType i, txOutType txo) of
     (UTXO.ConsumeScriptAddress v r, UTXO.PayToScript _ d) ->
-        pure $ ScriptMatch v r d (txOutValue txo) (txOutAddress txo)
+        pure $ ScriptMatch v r d (txOutAddress txo)
     (UTXO.ConsumePublicKeyAddress sig, UTXO.PayToPubKey pk) ->
         pure $ PubKeyMatch pk sig
     _ -> throwError $ InOutTypeMismatch i txo
@@ -159,15 +159,19 @@ matchInputOutput i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => ValidationData -> InOutMatch -> m ()
+checkMatch :: ValidationMonad m => PendingTx () -> InOutMatch -> m ()
 checkMatch v = \case
-    ScriptMatch vl r d vv a
-        | a /= UTXO.scriptAddress vv vl d ->
+    ScriptMatch vl r d a
+        | a /= UTXO.scriptAddress vl d ->
                 throwError $ InvalidScriptHash d
         | otherwise ->
-            if UTXO.runScript v vl r d
-            then pure ()
-            else throwError ScriptFailure
+            let v' = ValidationData
+                    $ lifted
+                    $ v { pendingTxOwnHash = Runtime.plcValidatorHash vl }
+            in
+                if UTXO.runScript v' vl r d
+                then pure ()
+                else throwError ScriptFailure
     PubKeyMatch pk sig ->
         if sig `UTXO.signedBy` pk
         then pure ()
@@ -193,17 +197,18 @@ checkPositiveValues t =
 
 -- | Encode the current transaction and blockchain height
 --   in PLC.
-validationData :: ValidationMonad m => UTXO.Height -> Tx -> m ValidationData
+validationData :: ValidationMonad m => UTXO.Height -> Tx -> m (PendingTx ())
 validationData h tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
-    rump inputs = ValidationData $ lifted PendingTx
+    rump inputs = PendingTx
         { pendingTxInputs = inputs
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = fromIntegral $ txForge tx
         , pendingTxFee = fromIntegral $ txFee tx
         , pendingTxBlockHeight = fromIntegral h
         , pendingTxSignatures = txSignatures tx
+        , pendingTxOwnHash    = ()
         }
 
 mkOut :: TxOut' -> Runtime.PendingTxOut

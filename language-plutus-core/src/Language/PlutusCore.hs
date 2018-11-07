@@ -31,6 +31,8 @@ module Language.PlutusCore
     , getNormalizedType
     , defaultVersion
     , allBuiltinNames
+    , termLoc
+    , tyLoc
     -- * Lexer
     , AlexPosn (..)
     -- * Views
@@ -116,12 +118,12 @@ import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.Text                                as T
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.CBOR                 ()
+import           Language.PlutusCore.Check.Normal
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote

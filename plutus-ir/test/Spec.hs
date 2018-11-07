@@ -14,7 +14,6 @@ import           Language.PlutusIR.Compiler
 
 import qualified Language.PlutusCore                  as PLC
 import qualified Language.PlutusCore.MkPlc            as PLC
-import qualified Language.PlutusCore.Pretty           as PLC
 
 import qualified Language.PlutusCore.StdLib.Data.Bool as Bool
 import qualified Language.PlutusCore.StdLib.Data.Nat  as Nat
@@ -24,20 +23,29 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Test.Tasty
 
+import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
+import           Control.Monad.Morph
+import           Control.Monad.Reader
+
+import           Data.Functor.Identity
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 instance GetProgram (Quote (Term TyName Name ())) where
-    getProgram = trivialProgram . compileAndMaybeTypecheck False
+    getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
-goldenPir :: String -> Term TyName Name () -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
+-- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
+asIfThrown
+    :: Exception e
+    => Except e a
+    -> ExceptT SomeException IO a
+asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
-compileAndMaybeTypecheck doTypecheck pir = either (error . show . PLC.prettyPlcClassicDebug) id $ runExcept $ runQuoteT $ do
+compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name a) -> Except (CompError (Provenance a)) (PLC.Term TyName Name (Provenance a))
+compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuoteT $ do
     -- it is important we run the two computations in the same Quote together, otherwise we might make
     -- names during compilation that are not fresh
     compiled <- compileTerm =<< liftQuote pir
@@ -48,14 +56,15 @@ compileAndMaybeTypecheck doTypecheck pir = either (error . show . PLC.prettyPlcC
             PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated
     pure compiled
 
-compile :: Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
-compile = compileAndMaybeTypecheck True
+goldenPir :: String -> Term TyName Name a -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence [
     prettyprinting,
     datatypes,
-    recursion
+    recursion,
+    errors
     ]
 
 prettyprinting :: TestNested
@@ -143,14 +152,14 @@ listMatch = do
 
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
-    goldenPlc "maybe" (compile maybePir),
-    goldenPlc "listMatch" (compileAndMaybeTypecheck False listMatch),
-    goldenEval "listMatchEval" [listMatch]
+    goldenPlc "maybe" maybePir,
+    goldenPlc "listMatch" (asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch),
+    goldenEval "listMatchEval" [asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch]
     ]
 
 recursion :: TestNested
 recursion = testNested "recursion" [
-    goldenPlc "even3" (compile evenOdd),
+    goldenPlc "even3" evenOdd,
     goldenEval "even3Eval" [evenOdd]
     ]
 
@@ -196,3 +205,70 @@ evenOdd = do
                 TermBind () (VarDecl () oddd oddTy) oddF
             ] $
         Apply () (Var () evenn) (Var () arg)
+
+errors :: TestNested
+errors = testNested "errors" [
+    goldenPlcCatch "mutuallyRecursiveTypes" mutuallyRecursiveTypes,
+    goldenPlcCatch "mutuallyRecursiveValues" mutuallyRecursiveValues
+    ]
+
+mutuallyRecursiveTypes :: Quote (Term TyName Name ())
+mutuallyRecursiveTypes = do
+    tree <- freshTyName () "Tree"
+    a <- freshTyName () "a"
+    let treeA arg = TyApp () (TyVar () tree) (TyVar () arg)
+    node <- freshName () "Node"
+    matchTree <- freshName () "match_Tree"
+
+    forest <- freshTyName () "Forest"
+    a2 <- freshTyName () "a"
+    let forestA arg = TyApp () (TyVar () forest) (TyVar () arg)
+    nil <- freshName () "Nil"
+    cons <- freshName () "Cons"
+    matchForest <- freshName () "match_Forest"
+
+    unit <- Unit.getBuiltinUnit
+    pure $
+        Let ()
+            Rec
+            [
+                DatatypeBind () $
+                Datatype ()
+                    (TyVarDecl () tree (KindArrow () (Type ()) (Type ())))
+                    [
+                        TyVarDecl () a (Type ())
+                    ]
+                matchTree
+                [
+                    VarDecl () node (TyFun () (TyVar () a) (TyFun () (forestA a) (treeA a)))
+                ],
+                DatatypeBind () $
+                Datatype ()
+                    (TyVarDecl () forest (KindArrow () (Type ()) (Type ())))
+                    [
+                        TyVarDecl () a2 (Type ())
+                    ]
+                matchForest
+                [
+                    VarDecl () nil (forestA a2),
+                    VarDecl () cons (TyFun () (treeA a2) (TyFun () (forestA a2) (forestA a2)))
+                ]
+            ] $
+        TyInst () (Var () nil) unit
+
+mutuallyRecursiveValues :: Quote (Term TyName Name ())
+mutuallyRecursiveValues = do
+    x <- freshName () "x"
+    y <- freshName () "y"
+
+    unit <- Unit.getBuiltinUnit
+    unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
+
+    pure $
+        Let ()
+            Rec
+            [
+                TermBind () (VarDecl () x unit) (Var () y),
+                TermBind () (VarDecl () y unit) unitval
+            ] $
+        Var () x

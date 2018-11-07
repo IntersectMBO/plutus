@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
@@ -131,7 +132,7 @@ makePrimitiveMap :: [(TH.Name, a)] -> GHC.CoreM (Map.Map GHC.Name a)
 makePrimitiveMap associations = do
     mapped <- forM associations $ \(name, term) -> do
         ghcNameMaybe <- GHC.thNameToGhcName name
-        pure $ fmap (\ghcName -> (ghcName, term)) ghcNameMaybe
+        pure $ fmap (, term) ghcNameMaybe
     pure $ Map.fromList (catMaybes mapped)
 
 -- | Converts all the marked expressions in the given binder into PLC literals.

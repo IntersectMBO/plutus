@@ -525,28 +525,28 @@ isPayToScriptOut :: TxOut h -> Bool
 isPayToScriptOut = isJust . txOutData
 
 -- | The address of a transaction output locked by public key
-pubKeyAddress :: Value -> PubKey -> Address (Digest SHA256)
-pubKeyAddress v pk = Address $ hash h where
+pubKeyAddress :: PubKey -> Address (Digest SHA256)
+pubKeyAddress pk = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode v <> encode pk
+    e = encode pk
 
 -- | The address of a transaction output locked by a validator script
-scriptAddress :: Value -> Validator -> DataScript -> Address (Digest SHA256)
-scriptAddress v vl ds = Address $ hash h where
+scriptAddress :: Validator -> DataScript -> Address (Digest SHA256)
+scriptAddress vl ds = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode v <> encode vl <> encode ds
+    e = encode vl <> encode ds
 
 -- | Create a transaction output locked by a validator script
 scriptTxOut :: Value -> Validator -> DataScript -> TxOut'
 scriptTxOut v vl ds = TxOut a v tp where
-    a = scriptAddress v vl ds
+    a = scriptAddress vl ds
     tp = PayToScript h ds
     h :: Digest SHA256 = hash $ Write.toStrictByteString $ encode vl
 
 -- | Create a transaction output locked by a public key
 pubKeyTxOut :: Value -> PubKey -> TxOut'
 pubKeyTxOut v pk = TxOut a v tp where
-    a = pubKeyAddress v pk
+    a = pubKeyAddress pk
     tp = PayToPubKey pk
 
 instance BA.ByteArrayAccess TxOut' where
@@ -665,7 +665,7 @@ validate :: ValidationData -> TxIn' -> TxOut' -> Bool
 validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
         (ConsumeScriptAddress v r, PayToScript _ d)
-            | txOutAddress /= scriptAddress txOutValue v d -> False
+            | txOutAddress /= scriptAddress v d -> False
             | otherwise                                    -> runScript bs v r d
         (ConsumePublicKeyAddress sig, PayToPubKey pk) -> sig `signedBy` pk
         _ -> False

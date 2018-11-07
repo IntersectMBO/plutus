@@ -40,6 +40,7 @@ library
   exposed-modules:
     Language.Plutus.Coordination.Contracts
     Language.Plutus.Coordination.Contracts.CrowdFunding
+    Language.Plutus.Coordination.Contracts.Future
     Language.Plutus.Coordination.Contracts.Vesting
     Language.Plutus.Coordination.Contracts.Swap
     Language.Plutus.Runtime
@@ -56,6 +57,7 @@ test-suite plutus-use-cases-test
     main-is: Spec.hs
     other-modules:
       Spec.Crowdfunding
+      Spec.Future
       Spec.Vesting
     build-depends:
         base >=4.9 && <5,

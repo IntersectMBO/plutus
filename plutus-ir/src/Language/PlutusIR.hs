@@ -9,9 +9,12 @@ module Language.PlutusIR (
     Name (..),
     VarDecl (..),
     TyVarDecl (..),
+    varDeclNameString,
+    tyVarDeclNameString,
     Kind (..),
     Type (..),
     Datatype (..),
+    datatypeNameString,
     Recursivity (..),
     Binding (..),
     Term (..),
@@ -32,6 +35,15 @@ import           GHC.Generics               (Generic)
 
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
     deriving (Functor, Show, Eq, Generic)
+
+varDeclNameString :: VarDecl name Name a -> String
+varDeclNameString = bsToStr . PLC.nameString . varDeclName
+
+tyVarDeclNameString :: TyVarDecl TyName a -> String
+tyVarDeclNameString = bsToStr . PLC.nameString . PLC.unTyName . tyVarDeclName
+
+datatypeNameString :: Datatype TyName name a -> String
+datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 -- Bindings
 

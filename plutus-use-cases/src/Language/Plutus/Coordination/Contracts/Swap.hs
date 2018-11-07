@@ -11,7 +11,7 @@ module Language.Plutus.Coordination.Contracts.Swap(
     ) where
 
 import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
-                                             PubKey, Value)
+                                             PubKey, ValidatorHash, Value)
 import qualified Language.Plutus.Runtime.TH as TH
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
@@ -59,7 +59,7 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> Validator
 swapValidator _ = Validator result where
-    result = UTXO.fromPlcCode $(plutus [| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx) Swap{..} ->
+    result = UTXO.fromPlcCode $(plutus [| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
@@ -124,7 +124,7 @@ swapValidator _ = Validator result where
             -- NOTE: Partial match is OK because if it fails then the PLC script
             --       terminates with `error` and the validation fails (which is
             --       what we want when the number of inputs and outputs is /= 2)
-            PendingTx [t1, t2] [o1, o2] _ _ _ _ = p
+            PendingTx [t1, t2] [o1, o2] _ _ _ _ _ = p
 
             -- Each participant must deposit the margin. But we don't know
             -- which of the two participant's deposit we are currently
