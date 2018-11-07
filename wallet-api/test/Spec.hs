@@ -108,7 +108,7 @@ notifyWallet = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ blockchainActions >>= walletNotifyBlock w
     let ttl = Map.lookup w st
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownAddresses <$> ttl) == Just 100000
+    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just 100000
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
 genChainTxn = do

@@ -20,7 +20,8 @@ module Wallet.Emulator.Types(
     WalletState(..),
     emptyWalletState,
     ownKeyPair,
-    ownAddresses,
+    ownFunds,
+    watchedAddresses,
     blockHeight,
     -- ** Traces
     Trace,
@@ -72,7 +73,7 @@ import           Data.Hashable             (Hashable)
 import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
                                             signature)
 import           Wallet.UTXO               (Block, Blockchain, Height, Tx (..), TxIn (..), TxOut (..), TxOutRef (..),
-                                            TxOutRef', Value, hashTx, height, pubKeyTxIn, pubKeyTxOut, txOutPubKey)
+                                            TxOutRef', Value, hashTx, height, pubKeyTxIn, pubKeyTxOut, Address', pubKeyAddress)
 import qualified Wallet.UTXO.Index         as Index
 
 -- agents/wallets
@@ -90,8 +91,10 @@ data Notification = BlockValidated Block
 
 data WalletState = WalletState {
     walletStateKeyPair      :: KeyPair,
-    walletStateOwnAddresses :: Map TxOutRef' Value, -- ^ Addresses locked by the public key of our key pair
-    walletStateBlockHeight  :: Height -- ^  Height of the blockchain as far as the wallet is concerned
+    walletStateBlockHeight  :: Height, 
+    -- ^  Height of the blockchain as far as the wallet is concerned
+    walletStateWatchedAddresses :: Map Address' (Map TxOutRef' Value)
+    -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
     }
     deriving (Show, Eq, Ord)
 
@@ -100,36 +103,91 @@ ownKeyPair = lens g s where
     g = walletStateKeyPair
     s ws kp = ws { walletStateKeyPair = kp }
 
-ownAddresses :: Lens' WalletState (Map TxOutRef' Value)
-ownAddresses = lens g s where
-    g = walletStateOwnAddresses
-    s ws oa = ws { walletStateOwnAddresses = oa }
+ownAddress :: WalletState -> Address'
+ownAddress = pubKeyAddress . pubKey . walletStateKeyPair
+
+ownFunds :: Lens' WalletState (Map TxOutRef' Value)
+ownFunds = lens g s where
+    g ws = Map.findWithDefault Map.empty (ownAddress ws) $ walletStateWatchedAddresses ws
+    s ws oa = over watchedAddresses (Map.alter (const $ Just oa) (ownAddress ws)) ws
 
 blockHeight :: Lens' WalletState Height
 blockHeight = lens g s where
     g = walletStateBlockHeight
     s ws bh = ws { walletStateBlockHeight = bh }
 
--- | An empty wallet state with the public/private key pair for a wallet
+watchedAddresses :: Lens' WalletState (Map Address' (Map TxOutRef' Value))
+watchedAddresses = lens g s where
+    g = walletStateWatchedAddresses
+    s ws oa = ws { walletStateWatchedAddresses = oa }
+
+-- | An empty wallet state with the public/private key pair for a wallet, and the public key address
+--   for that wallet as the sole member of `walletStateWatchedAddresses`
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState (Wallet i) = WalletState (keyPair i) Map.empty 0
+emptyWalletState (Wallet i) = WalletState kp 0 oa where
+    oa = Map.singleton (pubKeyAddress $ pubKey kp) Map.empty
+    kp = keyPair i
 
 -- manually records the list of transactions to be submitted
 newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer [Tx] ))) a }
     deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx], MonadError WalletAPIError)
 
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
-handleNotifications ns = pubKey <$> myKeyPair >>= \k -> mapM_ (go k) ns where
-    go k = \case
+handleNotifications = mapM_ go where
+    go = \case
             BlockHeight h -> modify (blockHeight .~ h)
-            BlockValidated blck -> mapM_ (modify . update k) blck
+            BlockValidated blck -> mapM_ (modify . update) blck
 
-    -- | Remove spent outputs and add unspent ones that can be unlocked with our key
-    update k t@Tx{..} =
-        over ownAddresses (`Map.difference` (Map.fromSet (const ()) $ Set.map txInRef txInputs))
-        . over ownAddresses (`Map.union` (Map.fromList $ (mkUtxo $ hashTx t) <$> (filter (isOwn k) $ zip [0..] txOutputs)))
-    mkUtxo tx (i, TxOut{..}) = (TxOutRef tx i, txOutValue)
-    isOwn k = (==) (Just k) . txOutPubKey . snd
+    -- | Remove spent outputs and add unspent ones, for the addresses that we care about
+    update t = over watchedAddresses (updateAddresses t)
+
+-- | Update the list of watched addresses with the inputs and outputs of a new transaction. 
+--   `updateAddresses` does not add or remove any keys from its second argument.
+updateAddresses :: 
+    Tx 
+    -> Map Address' (Map TxOutRef' Value) 
+    -> Map Address' (Map TxOutRef' Value)
+updateAddresses tx utxo = Map.mapWithKey upd utxo where
+
+    -- adds the newly produced outputs, and removed the consumed outputs, for an address
+    upd adr mp = Map.union (produced adr) mp `Map.difference` consumed adr where
+
+    -- The following definitions are necessary because there is a
+    -- 1-n relationship between `Address'` and `TxOutRef'`, and because we cannot get the
+    -- `Address'` a `TxOutRef'` refers to from that reference alone (so we need to get
+    -- it from the map of all UTXOs that we care about: `knownAddresses`)
+    
+    -- The TxOutRefs consumed by the transaction, for a given address
+    consumed :: Address' -> Map TxOutRef' ()
+    consumed adr = maybe Map.empty (Map.fromSet (const ())) $ Map.lookup adr inputs
+
+    -- The TxOutRefs produced by the transaction, for a given address
+    produced :: Address' -> Map TxOutRef' Value
+    produced adr = Map.findWithDefault Map.empty adr outputs
+        
+    -- Addresses of all known tx out references
+    knownAddresses :: Map TxOutRef' Address'
+    knownAddresses = Map.fromList
+        $ (>>= \(a, outRefs) -> (\(rf, _) -> (rf, a)) <$> Map.toList outRefs)
+        $ Map.toList utxo
+
+    -- Outputs produced by the transaction
+    outputs :: Map Address' (Map TxOutRef' Value)
+    outputs = Map.fromListWith Map.union $ mkUtxo <$> zip [0..] (txOutputs tx)
+
+    -- Inputs consumed by the transaction, index by address
+    inputs :: Map Address' (Set.Set TxOutRef')
+    inputs = Map.fromListWith Set.union
+        $ fmap (fmap Set.singleton)
+        $ fmap swap
+        $ catMaybes
+        $ fmap ((\a -> sequence (a, Map.lookup a knownAddresses)) . txInRef)
+        $ Set.toList 
+        $ txInputs tx
+
+    swap (x, y) = (y, x)
+    mkUtxo (i, TxOut{..}) = (txOutAddress, Map.singleton (TxOutRef h i) txOutValue)
+    h = hashTx tx
 
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn = tell [txn]
@@ -137,10 +195,12 @@ instance WalletAPI EmulatedWalletApi where
     myKeyPair = gets walletStateKeyPair
 
     createPaymentWithChange vl = do
-        WalletState{..} <- get
-        let total = getSum $ foldMap Sum walletStateOwnAddresses
-            sig   = signature walletStateKeyPair
-        if total < vl || Map.null walletStateOwnAddresses
+        ws <- get
+        let fnds = ws ^. ownFunds
+            total = getSum $ foldMap Sum fnds
+            kp = walletStateKeyPair ws
+            sig   = signature kp
+        if total < vl || Map.null fnds
         then throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
         else
             -- This is the coin selection algorithm
@@ -148,10 +208,10 @@ instance WalletAPI EmulatedWalletApi where
             let funds = P.takeWhile ((vl <) . snd)
                         $ maybe [] (uncurry (P.scanl (\t v -> second (+ snd v) t)))
                         $ uncons
-                        $ Map.toList walletStateOwnAddresses
+                        $ Map.toList fnds
                 ins   = Set.fromList (flip pubKeyTxIn sig . fst <$> funds)
                 diff  = maximum (snd <$> funds) - vl
-                out   = pubKeyTxOut diff (pubKey walletStateKeyPair) in
+                out   = pubKeyTxOut diff (pubKey kp) in
 
             pure (ins, out)
 
@@ -179,7 +239,7 @@ ownFundsEqual wallet value = do
   ws <- case Map.lookup wallet $ emWalletState es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-  let total = getSum $ foldMap Sum $ walletStateOwnAddresses ws
+  let total = getSum $ foldMap Sum $ ws ^. ownFunds
   if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
