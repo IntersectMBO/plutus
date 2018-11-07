@@ -11,19 +11,19 @@ in
 
 let
   plutusPkgs = import ./. {};
-  ghc = pkgs.haskell.packages.ghc822.ghcWithPackages (ps: [
-    plutusPkgs.language-plutus-core
-    plutusPkgs.core-to-plc
-    plutusPkgs.plutus-th
-    plutusPkgs.tasty-hedgehog
-    plutusPkgs.tasty
-    plutusPkgs.tasty-golden
-    plutusPkgs.tasty-hunit
-    plutusPkgs.hedgehog
+  ghc = plutusPackages.ghcWithPackages (ps: with ps; [
+    language-plutus-core
+    core-to-plc
+    plutus-th
+    tasty-hedgehog
+    tasty
+    tasty-golden
+    tasty-hunit
+    hedgehog
   ]);
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
-    buildInputs = with pkgs; [ plutusPkgs.stylish-haskell git fd ];
+    buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
     shellHook = ''
       git diff > pre-stylish.diff
       fd --extension hs --exclude '*/dist/*' --exclude '*/docs/*' --exec stylish-haskell -i {}

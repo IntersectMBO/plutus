@@ -1,41 +1,28 @@
 let
   # Allow overriding pinned nixpkgs for debugging purposes via plutus_pkgs
-  fetchNixPkgs = let try = builtins.tryEval <plutus_pkgs>;
+  iohkNix = import (
+    let try = builtins.tryEval <iohk_nix>;
     in if try.success
-    then builtins.trace "using host <plutus_pkgs>" try.value
-    else import ./fetch-nixpkgs.nix;
-
-  maybeEnv = env: default:
-    let
-      result = builtins.getEnv env;
-    in if result != ""
-       then result
-       else default;
-
-  # Removes files within a Haskell source tree which won't change the
-  # result of building the package.
-  # This is so that cached build products can be used whenever possible.
-  # It also applies the lib.cleanSource filter from nixpkgs which
-  # removes VCS directories, emacs backup files, etc.
-  cleanSourceTree = src:
-    if (builtins.typeOf src) == "path"
-      then lib.cleanSourceWith {
-        filter = with pkgs.stdenv;
-          name: type: let baseName = baseNameOf (toString name); in ! (
-            # Filter out cabal build products.
-            baseName == "dist" || baseName == "dist-newstyle" ||
-            baseName == "cabal.project.local" ||
-            # Filter out stack build products.
-            lib.hasPrefix ".stack-work" baseName ||
-            # Filter out files which are commonly edited but don't
-            # affect the cabal build.
-            lib.hasSuffix ".nix" baseName
-          );
-        src = lib.cleanSource src;
-      } else src;
-
-  pkgs = import fetchNixPkgs {};
+    then builtins.trace "using host <iohk_nix>" try.value
+    else
+      let
+        spec = builtins.fromJSON (builtins.readFile ./iohk-nix.json);
+      in builtins.fetchTarball {
+        url = "${spec.url}/archive/${spec.rev}.tar.gz";
+        inherit (spec) sha256;
+      });
+  fetchNixpkgs = iohkNix.fetchNixpkgs ./nixpkgs-src.json;
+  pkgs = import fetchNixpkgs { config = {}; overlays = []; };
   lib = pkgs.lib;
-in lib // (rec {
-  inherit fetchNixPkgs cleanSourceTree;
-})
+  cleanSourceHaskell = iohkNix.cleanSourceHaskell pkgs;
+  getPackages = iohkNix.getPackages { inherit lib;};
+
+  importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; } // args);
+
+
+  isPlutus = name: (lib.hasPrefix "plutus" name) || (lib.hasPrefix "language-plutus" name);
+
+in lib // {
+  inherit fetchNixpkgs importPkgs cleanSourceHaskell iohkNix isPlutus getPackages;
+  inherit (iohkNix) maybeEnv;
+}
