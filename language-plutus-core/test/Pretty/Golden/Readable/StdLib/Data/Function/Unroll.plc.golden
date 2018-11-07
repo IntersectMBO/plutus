@@ -1,1 +1,1 @@
-/\(a :: *) -> \(s : (\(a :: *) -> (\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> withSpine (\(spine :: * -> *) -> ifix ((\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> \(b :: (* -> *) -> *) -> \(p :: * -> *) -> p (pat (withSpine b))) withSpine pat) spine)) (\(k :: (* -> *) -> *) -> k (\(r :: *) -> r)) (\(self :: *) -> self -> a)) a) -> unwrap s s
+/\(a :: *) -> \(s : (\(a :: *) -> ifix (\(self :: * -> *) -> \(a :: *) -> self a -> a) a) a) -> unwrap s s

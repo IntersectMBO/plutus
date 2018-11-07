@@ -16,8 +16,6 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
-import           Language.PlutusCore.StdLib.Type
-
 import           Control.Monad
 
 -- | 'const' as a PLC term.
@@ -36,19 +34,29 @@ getBuiltinConst = do
         . LamAbs () y (TyVar () b)
         $ Var () x
 
+-- | @SelfF@ as a PLC type.
+--
+-- > \(self :: * -> *) (a :: *) -> self a -> a
+getBuiltinSelfF :: Quote (Type TyName ())
+getBuiltinSelfF = do
+    self <- freshTyName () "self"
+    a    <- freshTyName () "a"
+    return
+        . TyLam () self (KindArrow () (Type ()) $ Type ())
+        . TyLam () a (Type ())
+        . TyFun () (TyApp () (TyVar () self) $ TyVar () a)
+        $ TyVar () a
+
 -- | @Self@ as a PLC type.
 --
--- > \(a :: *) -> fix \(self :: *) -> self -> a
-getBuiltinSelf :: Quote (HoledType ())
+-- > \(a :: *) -> ifix selfF a
+getBuiltinSelf :: Quote (Type TyName ())
 getBuiltinSelf = do
-    a    <- freshTyName () "a"
-    self <- freshTyName () "self"
+    selfF <- getBuiltinSelfF
+    a     <- freshTyName () "a"
     return
-        . HoledType self $ \hole ->
-          fmap (TyLam () a (Type ()))
-        . hole
-        . TyFun () (TyVar () self)
-        $ TyVar () a
+        . TyLam () a (Type ())
+        $ TyIFix () selfF (TyVar () a)
 
 -- | @unroll@ as a PLC term.
 --
@@ -58,22 +66,21 @@ getBuiltinUnroll = do
     self <- getBuiltinSelf
     a <- freshTyName () "a"
     s <- freshName () "s"
-    RecursiveType _ selfA <-
-        holedToRecursive . holedTyApp self $ TyVar () a
     return
         . TyAbs () a (Type ())
-        . LamAbs () s selfA
+        . LamAbs () s (TyApp () self $ TyVar () a)
         . Apply () (Unwrap () $ Var () s)
         $ Var () s
 
 -- | 'fix' as a PLC term.
 --
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
--- >    unroll {a -> b} (wrap \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
+-- >    unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 --
 -- See @plutus/docs/fomega/z-combinator-benchmarks@ for details.
 getBuiltinFix :: Quote (Term TyName Name ())
 getBuiltinFix = rename =<< do
+    selfF  <- getBuiltinSelfF
     self   <- getBuiltinSelf
     unroll <- getBuiltinUnroll
     a <- freshTyName () "a"
@@ -83,15 +90,13 @@ getBuiltinFix = rename =<< do
     x <- freshName () "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
         unrollFunAB = TyInst () unroll funAB
-    RecursiveType wrapSelfFunAB selfFunAB <-
-        holedToRecursive $ holedTyApp self funAB
-    fmap
-        ( TyAbs () a (Type ())
+    let selfFunAB = TyApp () self funAB
+    return
+        . TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
         . Apply () unrollFunAB
-        )
-        . wrapSelfFunAB
+        . IWrap () selfF funAB
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
         $ mkIterApp () (Var () f)
