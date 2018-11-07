@@ -79,9 +79,9 @@ rename ρ⋆ ρ (wrap1 pat arg t) = wrap1 _ _ (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (unwrap1 t)       = unwrap1 (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
-rename {Γ}{Δ} ρ⋆ ρ (builtin {Γ'} bn σ X σ') = substEq
+rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X σ') = substEq
   (Δ ⊢_)
-  (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (El bn Γ')))))
+  (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (El bn ∅)))))
   (builtin bn σ X (⋆.rename ρ⋆ ∘ σ'))
 \end{code}
 
@@ -169,9 +169,9 @@ subst σ⋆ σ (wrap1 pat arg t) = wrap1 _ _ (subst σ⋆ σ t)
 subst σ⋆ σ (unwrap1 t)       = unwrap1 (subst σ⋆ σ t)
 subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
-subst {Γ}{Δ} σ⋆ σ (builtin {Γ = Γ'} bn σ' tel σ'') = substEq
+subst {Γ}{Δ} σ⋆ σ (builtin bn σ' tel σ'') = substEq
   (Δ ⊢_)
-  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (El bn Γ')))))
+  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (El bn ∅)))))
   (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ'')) 
 \end{code}
 

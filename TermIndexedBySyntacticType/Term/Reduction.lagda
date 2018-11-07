@@ -11,7 +11,7 @@ open import TermIndexedBySyntacticType.Term
 open import TermIndexedBySyntacticType.Term.RenamingSubstitution
 open import Type.Equality
 
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
@@ -70,6 +70,20 @@ BUILTIN substractInteger σ
   = con (integer (⋆.subst σ' (σ Z)) (i - j))
 \end{code}
 
+# recontructing the telescope after a reduction step
+
+\begin{code}
+reconstTel : ∀{Δ As} Bs Ds
+    →  (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
+    → (vtel : VTel ∅ Δ σ Bs)
+    → ∀{C}(t' : ∅ ⊢ ⋆.subst σ C)
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel ∅ Δ σ Ds)
+    → Tel ∅ Δ σ As
+reconstTel [] Ds σ vtel t' refl tel' = t' ,, tel'
+reconstTel (B ∷ Bs) Ds σ (X ,, VX ,, vtel) t' refl tel' =
+  X ,, reconstTel Bs Ds σ vtel t' refl tel'
+\end{code}
 
 ## Intrinsically Type Preserving Reduction
 
@@ -116,17 +130,31 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
 
-{-
-  β-builtin : ∀{Γ Γ'}
+
+  β-builtin : ∀{Γ'}
     → (bn : Builtin)
-    → let Δ ,, As ,, C = El bn Γ in
-      (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
-    → (tel : VTel Γ Δ σ As)
-    → VTel tel
-    → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
+    → let Δ ,, As ,, C = El bn ∅ in
+      (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
+    → (tel : Tel ∅ Δ σ As)
+    → (vtel : VTel ∅ Δ σ As)
+    → (σ' : ⋆.Sub ∥ ∅ ∥ ∥ Γ' ∥)
       -----------------------------
-    → builtin bn σ tel σ' —→ {!!} --BUILTIN bn σ tel σ'
--}
+    → builtin {Γ'} bn σ tel σ' —→ BUILTIN bn σ vtel σ'
+
+  ξ-builtin : ∀{Γ'}  → (bn : Builtin)
+    → let Δ ,, As ,, C = El bn ∅ in
+      (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
+    → (tel : Tel ∅ Δ σ As)
+    → (σ' : ⋆.Sub ∥ ∅ ∥ ∥ Γ' ∥)
+    → ∀ Bs Ds
+    → (vtel : VTel ∅ Δ σ Bs)
+    → ∀{C}{t t' : ∅ ⊢ ⋆.subst σ C}
+    → t —→ t'
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel ∅ Δ σ Ds)
+    → builtin {Γ'} bn σ tel σ'
+      —→
+      builtin {Γ'} bn σ (reconstTel Bs Ds σ vtel t' p tel') σ'
 \end{code}
 
 
@@ -144,7 +172,33 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
 \end{code}
 
 \begin{code}
+
+data TelProgress {Γ}{Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥}{As : List (∥ Δ ∥ ⊢⋆ *)}(tel : Tel Γ Δ σ As) : Set where
+   done : VTel Γ Δ σ As → TelProgress tel
+   step : ∀ Bs Ds
+     → VTel Γ Δ σ Bs
+     → ∀{C}{t t' : Γ ⊢ ⋆.subst σ C}
+     → t —→ t'
+     → Bs ++ (C ∷ Ds) ≡ As
+     → Tel Γ Δ σ Ds
+     → TelProgress tel
+   unhandled : TelProgress tel
+
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
+progressTel : ∀ {Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥}{As : List (∥ Δ ∥ ⊢⋆ *)}
+  → (tel : Tel ∅ Δ σ As) → TelProgress tel
+
+progressTel {As = []}    tel = done tt
+progressTel {As = A ∷ As} (t ,, tel) with progress t
+progressTel {σ = _} {A ∷ As} (t ,, tel) | step p = step [] As tt p refl tel
+progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt with progressTel tel
+progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | done vtel =
+  done (t ,, vt ,, vtel)
+progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p refl tel' =
+  step (A ∷ Bs) Ds (t ,, vt ,, vtel) p refl tel'
+progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | unhandled = unhandled
+progressTel {σ = _} {A ∷ As} (t ,, tel) | unhandled = unhandled
+
 progress (` ())
 progress (ƛ M)    = done V-ƛ
 progress (L · M)  with progress L
@@ -166,7 +220,10 @@ progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (unwrap1 t) | unhandled = unhandled
 progress (conv p t) = unhandled
 progress (con cn)   = done (V-con cn)
-progress (builtin bn σ X σ') = {!!}
+progress (builtin bn σ X σ') with progressTel X
+progress (builtin bn σ X σ') | done VX = step (β-builtin bn σ X VX σ')
+progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' = step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
+progress (builtin bn σ X σ') | unhandled          = unhandled
 
 open import Data.Maybe
 
@@ -174,10 +231,7 @@ open import Data.Maybe
 -- perhaps we should instead, return either a completed VTel,
 -- or a step and the pieces, or fail, maybe inductively defined
 
-
-data TelProgress : Set where
-
-progressTel : ∀ Δ (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)(G : List (∥ Δ ∥ ⊢⋆ *))
+progressTelSilent : ∀ Δ (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)(G : List (∥ Δ ∥ ⊢⋆ *))
   → Tel ∅ Δ σ G
   → Maybe (Σ (List (∥ Δ ∥ ⊢⋆ *)) λ G1 →
     Σ (List (∥ Δ ∥ ⊢⋆ *)) λ G2 → 
@@ -187,12 +241,12 @@ progressTel : ∀ Δ (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)(G : List (∥ Δ ∥ 
     ×
     Tel ∅ Δ σ G2)
     
-progressTel Δ σ [] tt = just ([] ,, [] ,, refl ,, tt ,, tt)
-progressTel Δ σ (A ∷ G) (t ,, tel) with progress t
-progressTel Δ σ (A ∷ G) (t ,, tel) | step {N = N} p =
+progressTelSilent Δ σ [] tt = just ([] ,, [] ,, refl ,, tt ,, tt)
+progressTelSilent Δ σ (A ∷ G) (t ,, tel) with progress t
+progressTelSilent Δ σ (A ∷ G) (t ,, tel) | step {N = N} p =
   just ([] ,, A ∷ G ,, refl ,, tt ,, N ,, tel)
-progressTel Δ σ (A ∷ G) (t ,, tel) | done v with progressTel Δ σ G tel
+progressTelSilent Δ σ (A ∷ G) (t ,, tel) | done v with progressTelSilent Δ σ G tel
 ... | just (G1 ,, G2 ,, refl ,, vtel ,, tel') = just (A ∷ G1 ,, G2 ,, refl ,, (t ,, v ,, vtel) ,, tel')
 ... | nothing = nothing
-progressTel Δ σ (x ∷ G) (t ,, tel) | unhandled = nothing
+progressTelSilent Δ σ (x ∷ G) (t ,, tel) | unhandled = nothing
 \end{code}
