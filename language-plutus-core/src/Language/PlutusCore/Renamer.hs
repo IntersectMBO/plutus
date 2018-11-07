@@ -149,9 +149,9 @@ instance HasUniquesRenaming ScopedUniquesRenaming TermUnique where
 -- I.e. things that are capable of satisfying the global uniqueness condition.
 class Rename a where
     -- | Rename 'Unique's so that they're globally unique.
-    -- In case there are any free variables, they must be leaved untouched.
+    -- In case there are any free variables, they must be left untouched.
     -- Must always assign new names to bound variables,
-    -- so that @rename@ can be used for cloning as well.
+    -- so that @rename@ can be used for alpha renaming as well.
     rename :: MonadQuote m => a -> m a
 
 instance HasUnique (tyname a) TypeUnique => Rename (Type tyname a) where
