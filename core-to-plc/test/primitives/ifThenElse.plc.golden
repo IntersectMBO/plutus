@@ -1,9 +1,9 @@
 (program 1.0.0
   (lam
-    ds_0
+    ds_28
     [(con integer) (con 64)]
     (lam
-      ds_1
+      ds_29
       [(con integer) (con 64)]
       [
         [
@@ -11,19 +11,19 @@
             {
               [
                 (lam
-                  x_11
-                  (all Bool_matchOut_3 (type) (fun Bool_matchOut_3 (fun Bool_matchOut_3 Bool_matchOut_3)))
-                  x_11
+                  x_30
+                  (all Bool_matchOut_31 (type) (fun Bool_matchOut_31 (fun Bool_matchOut_31 Bool_matchOut_31)))
+                  x_30
                 )
-                [ [ { (con equalsInteger) (con 64) } ds_0 ] ds_1 ]
+                [ [ { (con equalsInteger) (con 64) } ds_28 ] ds_29 ]
               ]
-              (fun (all a_17 (type) (fun a_17 a_17)) [(con integer) (con 64)])
+              (fun (all a_32 (type) (fun a_32 a_32)) [(con integer) (con 64)])
             }
-            (lam thunk_18 (all a_20 (type) (fun a_20 a_20)) ds_0)
+            (lam thunk_33 (all a_34 (type) (fun a_34 a_34)) ds_28)
           ]
-          (lam thunk_21 (all a_23 (type) (fun a_23 a_23)) ds_1)
+          (lam thunk_35 (all a_36 (type) (fun a_36 a_36)) ds_29)
         ]
-        (abs a_26 (type) (lam x_27 a_26 x_27))
+        (abs a_37 (type) (lam x_38 a_37 x_38))
       ]
     )
   )

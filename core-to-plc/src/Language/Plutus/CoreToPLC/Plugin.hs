@@ -14,6 +14,8 @@ import           Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
 import           Language.Plutus.CoreToPLC.Error
+import           Language.Plutus.CoreToPLC.PIRTypes
+import           Language.Plutus.CoreToPLC.PLCTypes
 import           Language.Plutus.Lift
 
 import qualified GhcPlugins                                  as GHC
@@ -22,6 +24,9 @@ import qualified Panic                                       as GHC
 import qualified Language.PlutusCore                         as PLC
 import           Language.PlutusCore.Quote
 
+import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR.Compiler                  as PIR
+
 import           Language.Haskell.TH.Syntax                  as TH
 
 import           Codec.Serialise                             (DeserialiseFailure, Serialise, deserialiseOrFail,
@@ -29,6 +34,7 @@ import           Codec.Serialise                             (DeserialiseFailure
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
+import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy                        as BSL
 import qualified Data.Map                                    as Map
 import           Data.Maybe                                  (catMaybes)
@@ -182,11 +188,12 @@ convertExpr opts locStr origE resType = do
     primTerms <- makePrimitiveMap builtinTermAssociations
     primTys <- makePrimitiveMap builtinTypeAssociations
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
-              converted <- convExprWithDefs origE
-              when (poDoTypecheck opts) $ do
-                  annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
-                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
-              pure converted
+              (pirP::PIRProgram) <- PIR.Program () . PIR.embedIntoIR <$> convExprWithDefs origE
+              (plcP::PLCProgram) <- convertErrors (NoContext . PIRError) $ void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
+              when (poDoTypecheck opts) $ convertErrors (NoContext . PLCError) $ do
+                  annotated <- PLC.annotateProgram plcP
+                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
+              pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
             ccFlags=flags,
@@ -202,9 +209,9 @@ convertExpr opts locStr origE resType = do
             -- TODO: is this the right way to do either of these things?
             then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID resType shown -- this will blow up at runtime
             else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
-        Right term -> do
-            let program = PLC.Program () (PLC.defaultVersion ()) term
-            let serialized = serialise program
+        -- TODO: get the PIR into the PlcCode somehow (need serialization)
+        Right (_, plcP) -> do
+            let serialized = serialise plcP
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
             let (word8s :: [Word]) = fromIntegral <$> BSL.unpack serialized
             -- The flags here are so GHC can check whether the word is in range for the current platform.

@@ -4,85 +4,90 @@
       [
         {
           (abs
-            MyEnum_2
+            MyEnum_44
             (type)
             (lam
-              Enum1_10
-              MyEnum_2
+              Enum1_45
+              MyEnum_44
               (lam
-                Enum2_11
-                MyEnum_2
+                Enum2_46
+                MyEnum_44
                 (lam
-                  MyEnum_match_12
-                  (fun MyEnum_2 (all MyEnum_matchOut_13 (type) (fun MyEnum_matchOut_13 (fun MyEnum_matchOut_13 MyEnum_matchOut_13))))
+                  MyEnum_match_47
+                  (fun MyEnum_44 (all MyEnum_matchOut_48 (type) (fun MyEnum_matchOut_48 (fun MyEnum_matchOut_48 MyEnum_matchOut_48))))
                   (lam
-                    ds_14
-                    MyEnum_2
+                    ds_49
+                    MyEnum_44
                     [
                       [
                         [
                           {
                             [
-                              MyEnum_match_12 ds_14
+                              MyEnum_match_47 ds_49
                             ]
-                            (fun (all a_29 (type) (fun a_29 a_29)) [(con integer) (con 64)])
+                            (fun (all a_50 (type) (fun a_50 a_50)) [(con integer) (con 64)])
                           }
                           (lam
-                            thunk_30
-                            (all a_32 (type) (fun a_32 a_32))
+                            thunk_51
+                            (all a_52 (type) (fun a_52 a_52))
                             (con 64 ! 1)
                           )
                         ]
                         (lam
-                          thunk_37
-                          (all a_39 (type) (fun a_39 a_39))
+                          thunk_53
+                          (all a_54 (type) (fun a_54 a_54))
                           [
                             {
                               (abs
-                                e_33
+                                e_55
                                 (type)
                                 (lam
-                                  thunk_34
-                                  (all a_36 (type) (fun a_36 a_36))
-                                  (error e_33)
+                                  thunk_56
+                                  (all a_57 (type) (fun a_57 a_57))
+                                  (error e_55)
                                 )
                               )
                               [(con integer) (con 64)]
                             }
                             (abs
-                              p_matchOut_22
+                              p_matchOut_58
                               (type)
-                              (lam unit_23 p_matchOut_22 unit_23)
+                              (lam unit_59 p_matchOut_58 unit_59)
                             )
                           ]
                         )
                       ]
-                      (abs a_42 (type) (lam x_43 a_42 x_43))
+                      (abs a_60 (type) (lam x_61 a_60 x_61))
                     ]
                   )
                 )
               )
             )
           )
-          (all MyEnum_matchOut_1 (type) (fun MyEnum_matchOut_1 (fun MyEnum_matchOut_1 MyEnum_matchOut_1)))
+          (all MyEnum_matchOut_62 (type) (fun MyEnum_matchOut_62 (fun MyEnum_matchOut_62 MyEnum_matchOut_62)))
         }
         (abs
-          MyEnum_matchOut_3
+          MyEnum_matchOut_63
           (type)
-          (lam Enum1_4 MyEnum_matchOut_3 (lam Enum2_5 MyEnum_matchOut_3 Enum1_4)
+          (lam
+            Enum1_64
+            MyEnum_matchOut_63
+            (lam Enum2_65 MyEnum_matchOut_63 Enum1_64)
           )
         )
       ]
       (abs
-        MyEnum_matchOut_6
+        MyEnum_matchOut_66
         (type)
-        (lam Enum1_7 MyEnum_matchOut_6 (lam Enum2_8 MyEnum_matchOut_6 Enum2_8))
+        (lam
+          Enum1_67 MyEnum_matchOut_66 (lam Enum2_68 MyEnum_matchOut_66 Enum2_68)
+        )
       )
     ]
     (lam
-      x_9
-      (all MyEnum_matchOut_1 (type) (fun MyEnum_matchOut_1 (fun MyEnum_matchOut_1 MyEnum_matchOut_1)))
-      x_9
+      x_69
+      (all MyEnum_matchOut_70 (type) (fun MyEnum_matchOut_70 (fun MyEnum_matchOut_70 MyEnum_matchOut_70)))
+      x_69
     )
   ]
 )

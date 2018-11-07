@@ -11,6 +11,8 @@ module Language.Plutus.CoreToPLC.Error (
     , throwPlain
     , mustBeReplaced) where
 
+import qualified Language.PlutusIR.Compiler as PIR
+
 import qualified Language.PlutusCore        as PLC
 import qualified Language.PlutusCore.Pretty as PLC
 
@@ -45,6 +47,7 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             ]
 
 data Error a = PLCError (PLC.Error a)
+             | PIRError (PIR.CompError (PIR.Provenance a))
              | ConversionError T.Text
              | UnsupportedError T.Text
              | FreeVariableError T.Text
@@ -57,6 +60,7 @@ instance (PP.Pretty a) => PP.Pretty (Error a) where
 instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
     prettyBy config = \case
         PLCError e -> PLC.prettyBy config e
+        PIRError e -> PLC.prettyBy config e
         ConversionError e -> "Error during conversion:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported:" PP.<+> PP.pretty e
         FreeVariableError e -> "Used but not defined in the current conversion:" PP.<+> PP.pretty e

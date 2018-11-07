@@ -3,18 +3,18 @@
     [
       {
         (abs
-          bad_name_4
+          bad_name_21
           (fun (type) (fun (type) (type)))
           (lam
-            bad_name_14
-            (all a_15 (type) (all b_16 (type) (fun a_15 (fun b_16 [[bad_name_4 a_15] b_16]))))
+            bad_name_22
+            (all a_23 (type) (all b_24 (type) (fun a_23 (fun b_24 [[bad_name_21 a_23] b_24]))))
             (lam
-              p_match_17
-              (all a_18 (type) (all b_19 (type) (fun [[bad_name_4 a_18] b_19] (all p_matchOut_20 (type) (fun (fun a_18 (fun b_19 p_matchOut_20)) p_matchOut_20)))))
+              p_match_25
+              (all a_26 (type) (all b_27 (type) (fun [[bad_name_21 a_26] b_27] (all p_matchOut_28 (type) (fun (fun a_26 (fun b_27 p_matchOut_28)) p_matchOut_28)))))
               [
                 [
                   {
-                    { bad_name_14 [(con integer) (con 64)] }
+                    { bad_name_22 [(con integer) (con 64)] }
                     [(con integer) (con 64)]
                   }
                   (con 64 ! 1)
@@ -24,27 +24,27 @@
             )
           )
         )
-        (lam a_1 (type) (lam b_2 (type) (all p_matchOut_3 (type) (fun (fun a_1 (fun b_2 p_matchOut_3)) p_matchOut_3))))
+        (lam a_29 (type) (lam b_30 (type) (all p_matchOut_31 (type) (fun (fun a_29 (fun b_30 p_matchOut_31)) p_matchOut_31))))
       }
       (abs
-        a_5
+        a_32
         (type)
         (abs
-          b_6
+          b_33
           (type)
           (lam
-            p_arg0_9
-            a_5
+            p_arg0_34
+            a_32
             (lam
-              p_arg1_10
-              b_6
+              p_arg1_35
+              b_33
               (abs
-                p_matchOut_7
+                p_matchOut_36
                 (type)
                 (lam
-                  bad_name_8
-                  (fun a_5 (fun b_6 p_matchOut_7))
-                  [ [ bad_name_8 p_arg0_9 ] p_arg1_10 ]
+                  bad_name_37
+                  (fun a_32 (fun b_33 p_matchOut_36))
+                  [ [ bad_name_37 p_arg0_34 ] p_arg1_35 ]
                 )
               )
             )
@@ -53,15 +53,15 @@
       )
     ]
     (abs
-      a_11
+      a_38
       (type)
       (abs
-        b_12
+        b_39
         (type)
         (lam
-          x_13
-          [[(lam a_1 (type) (lam b_2 (type) (all p_matchOut_3 (type) (fun (fun a_1 (fun b_2 p_matchOut_3)) p_matchOut_3)))) a_11] b_12]
-          x_13
+          x_40
+          [[(lam a_41 (type) (lam b_42 (type) (all p_matchOut_43 (type) (fun (fun a_41 (fun b_42 p_matchOut_43)) p_matchOut_43)))) a_38] b_39]
+          x_40
         )
       )
     )

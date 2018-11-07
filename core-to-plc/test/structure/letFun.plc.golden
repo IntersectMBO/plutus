@@ -1,17 +1,17 @@
 (program 1.0.0
   (lam
-    ds_0
+    ds_3
     [(con integer) (con 64)]
     (lam
-      ds_1
+      ds_4
       [(con integer) (con 64)]
       [
         (lam
-          z_2
+          z_5
           [(con integer) (con 64)]
-          [ [ { (con equalsInteger) (con 64) } ds_0 ] z_2 ]
+          [ [ { (con equalsInteger) (con 64) } ds_3 ] z_5 ]
         )
-        ds_1
+        ds_4
       ]
     )
   )
