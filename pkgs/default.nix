@@ -44940,8 +44940,8 @@ mkDerivation {
 pname = "lrucaching";
 version = "0.3.3";
 sha256 = "aa7e5fd27963c70fc1108a7c0526ca0e05f76ccd885844bc50bdae70d5174aa4";
-revision = "4";
-editedCabalFile = "11zfnngp3blx8c3sgy5cva1g9bp69wqz7ys23gdm905i7sjjs6a9";
+revision = "5";
+editedCabalFile = "0dfrgg60nd7l7pfjar1s1g380r4591y6ccv9fyh0n34ymhizk84y";
 libraryHaskellDepends = [
 base
 base-compat
@@ -53621,6 +53621,8 @@ mkDerivation {
 pname = "pcre-heavy";
 version = "1.0.0.2";
 sha256 = "8a5cf697b7683127812450cef57d0d74ac5c1117ec80618d10509642f793cbd1";
+revision = "1";
+editedCabalFile = "14pprgwxkiaji3rqhsm0fv454wic6qxm7vy4a475yigadb1vz1ls";
 libraryHaskellDepends = [
 base
 base-compat
@@ -53633,7 +53635,7 @@ template-haskell
 doHaddock = false;
 doCheck = false;
 homepage = "https://github.com/myfreeweb/pcre-heavy";
-description = "A regexp library on top of pcre-light you can actually use";
+description = "A regexp (regex) library on top of pcre-light you can actually use";
 license = stdenv.lib.licenses.publicDomain;
 
 }) {};
@@ -55775,6 +55777,55 @@ description = "Executable for Plutus Core tools";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"plutus-ir" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, language-plutus-core
+, microlens
+, mtl
+, prettyprinter
+, stdenv
+, tasty
+, tasty-golden
+, tasty-hunit
+, text
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-ir";
+version = "0.1.0.0";
+src = ./../plutus-ir;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+language-plutus-core
+microlens
+mtl
+prettyprinter
+text
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+language-plutus-core
+mtl
+prettyprinter
+tasty
+tasty-golden
+tasty-hunit
+text
+];
+doHaddock = false;
+description = "Plutus IR language";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "plutus-playground-server" = callPackage
 ({
   mkDerivation
@@ -55791,17 +55842,22 @@ license = stdenv.lib.licenses.bsd3;
 , hspec
 , http-media
 , http-types
+, lens
 , monad-logger
 , mtl
 , network
+, newtype-generics
 , optparse-applicative
 , purescript-bridge
 , QuickCheck
 , servant
 , servant-foreign
 , servant-options
+, servant-purescript
 , servant-server
 , stdenv
+, swagger2
+, template-haskell
 , temporary
 , text
 , transformers
@@ -55832,15 +55888,20 @@ hint
 hspec
 http-media
 http-types
+lens
 monad-logger
 mtl
 network
+newtype-generics
 purescript-bridge
 QuickCheck
 servant
 servant-foreign
 servant-options
+servant-purescript
 servant-server
+swagger2
+template-haskell
 temporary
 text
 transformers
@@ -55903,55 +55964,6 @@ warp
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus-playground#readme";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
-"plutus-ir" = callPackage
-({
-  mkDerivation
-, base
-, bytestring
-, containers
-, language-plutus-core
-, microlens
-, mtl
-, prettyprinter
-, stdenv
-, tasty
-, tasty-golden
-, tasty-hunit
-, text
-, transformers
-}:
-mkDerivation {
-
-pname = "plutus-ir";
-version = "0.1.0.0";
-src = ./../plutus-ir;
-libraryHaskellDepends = [
-base
-bytestring
-containers
-language-plutus-core
-microlens
-mtl
-prettyprinter
-text
-transformers
-];
-testHaskellDepends = [
-base
-bytestring
-language-plutus-core
-mtl
-prettyprinter
-tasty
-tasty-golden
-tasty-hunit
-text
-];
-doHaddock = false;
-description = "Plutus IR language";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -58417,8 +58429,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "purescript-bridge";
-version = "0.11.1.2";
-sha256 = "9c00caff498652addaf123d4d719f7488ece06a9279a348b6a182825482f15c6";
+version = "0.13.0.0";
+sha256 = "2b1a6bbc0e1c155b20bb02356821185c7661d15cc8042ddfe12725eef2065149";
 libraryHaskellDepends = [
 base
 containers
@@ -66819,6 +66831,8 @@ mkDerivation {
 pname = "socket";
 version = "0.8.0.1";
 sha256 = "745f6d1ef2299e321ad646918b9b733c82b4ded51b3b6aab6755c85182ab09a2";
+revision = "1";
+editedCabalFile = "00339gr05amlilmz7vlfgxy18myws1pl5mvh4vzhp34xb8r2l48c";
 libraryHaskellDepends = [
 base
 bytestring
@@ -69651,8 +69665,8 @@ mkDerivation {
 pname = "symbol";
 version = "0.2.4";
 sha256 = "d074a7741f6ce0f2a604e4467c1c46e1acc2b707db107b3458395e646a9b8831";
-revision = "1";
-editedCabalFile = "01ab7600ja88wfvg9x8zmxksw44j9klmm71y9zmig7qxs1qslb25";
+revision = "2";
+editedCabalFile = "0jdbaap11pkgb6m98v57k7qnx62pqxy7pa2i7293ywa4q305qgm1";
 libraryHaskellDepends = [
 base
 containers
@@ -78869,6 +78883,7 @@ license = stdenv.lib.licenses.mit;
 , servant-server
 , stdenv
 , stm
+, swagger2
 , tasty
 , tasty-hedgehog
 , template-haskell
@@ -78916,6 +78931,7 @@ servant
 servant-client
 servant-server
 stm
+swagger2
 template-haskell
 text
 transformers
