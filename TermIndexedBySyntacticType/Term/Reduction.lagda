@@ -14,11 +14,8 @@ open import Type.Equality
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
-open import Data.List hiding ([_])
-open import Data.List.All
+open import Data.List hiding ([_]; take; drop)
 \end{code}
-
-
 
 ## Values
 
@@ -48,6 +45,20 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 ## BUILTIN
 
 \begin{code}
+open import Agda.Builtin.Int
+
+postulate
+  append : ByteString → ByteString → ByteString
+  take   : Int → ByteString → ByteString
+  drop   : Int → ByteString → ByteString
+  
+{-# COMPILE GHC append = BS.append #-}
+{-# COMPILE GHC take = BS.take #-}
+{-# COMPILE GHC drop = BS.drop #-}
+
+\end{code}
+
+\begin{code}
 open import Data.Unit
 VTel : ∀ Γ Δ → ⋆.Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
@@ -70,7 +81,13 @@ BUILTIN substractInteger σ
   = con (integer (⋆.subst σ' (σ Z)) (i - j))
 BUILTIN concatenate σ
  (._ ,, V-con (bytestring ._ x) ,, ._ ,, V-con (bytestring ._ y) ,, tt) σ'
- = con (bytestring (⋆.subst σ' (σ Z)) (append x y)) 
+ = con (bytestring (⋆.subst σ' (σ Z)) (append x y))
+BUILTIN takeByteString σ
+  (._ ,, V-con (integer ._ i) ,, ._ ,, V-con (bytestring ._ x) ,, tt) σ'
+  = con (bytestring (⋆.subst σ' (σ Z)) (take i x))
+BUILTIN dropByteString σ
+  (._ ,, V-con (integer ._ i) ,, ._ ,, V-con (bytestring ._ x) ,, tt) σ'
+  = con (bytestring (⋆.subst σ' (σ Z)) (drop i x))
 \end{code}
 
 # recontructing the telescope after a reduction step

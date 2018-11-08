@@ -81,11 +81,9 @@ Let `x`, `y` range over variables.
 \begin{code}
 postulate
   ByteString : Set
-  append : ByteString → ByteString → ByteString
 
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
-{-# COMPILE GHC append = BS.append #-}
 
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s → Int → TermCon (con integer s)
@@ -108,12 +106,34 @@ open import Function hiding (_∋_)
 Sig : Ctx → Ctx → Set
 Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
 
-
 data Builtin : Set where
   addInteger       : Builtin
   substractInteger : Builtin
-  concatenate      : Builtin
+  -- multiplyInteger          : Builtin
+  -- divideInteger            : Builtin
+  -- quotientInteger          : Builtin
+  -- remainderInteger         : Builtin
+  -- modInteger               : Builtin
+  -- lessThanInteger          : Builtin
+  -- lessThanEqualsInteger    : Builtin
+  -- greaterThanInteger       : Builtin
+  -- greaterThanEqualsInteger : Builtin
+  -- equalsInteger            : Builtin
+  -- resizeInteger            : Builtin
+  -- sizeOfInteger            : Builtin
+  -- intToByteString          : Builtin
 
+  concatenate      : Builtin
+  takeByteString   : Builtin
+  dropByteString   : Builtin
+  -- sha2_256         : Builtin
+  -- sha3_256         : Builtin
+  -- verifySignature  : Builtin
+  -- resizeByteString : Builtin
+  -- equalsByteString : Builtin
+  -- txhash           : Builtin
+  -- blocknum         : Builtin
+  
 El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 -- could have just one context so Signatures extend from ∅...
 -- going in the other direction could take a substitution as an arg and
@@ -128,6 +148,19 @@ El concatenate      Γ =
   con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
   ,,
   con bytestring (` Z)
+El takeByteString Γ =
+  (Γ ,⋆ #  ,⋆ #)
+  ,,
+  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
+  ,,
+  con bytestring (` Z)
+El dropByteString Γ =
+  (Γ ,⋆ #  ,⋆ #)
+  ,,
+  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
+  ,,
+  con bytestring (` Z)
+
 Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
