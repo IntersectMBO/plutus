@@ -47,16 +47,17 @@ import Network.RemoteData (RemoteData(..), isLoading)
 import Network.RemoteData as RemoteData
 import Playground.API (CompilationError(..), SourceCode(..))
 import Playground.Server (SPParams_, postContract)
-import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (<>))
+import Prelude (class Eq, class Monad, class Ord, type (~>), Unit, Void, bind, const, discard, flip, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (<>), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
-import Types (Balance, Query(..), State, WalletId(..), Transfer, _actions, _compilationResult, _editorContents, _wallets)
+import Types (Balance, Query(..), State, Transfer, WalletId(..), Evaluation, _actions, _compilationResult, _editorContents, _evaluation, _wallets)
 import Wallet (walletsPane)
 
 initialState :: State
 initialState =
   { actions: []
   , wallets: StaticData.wallets
+  , evaluation: NotAsked
   , editorContents: StaticData.editorContents
   , compilationResult: NotAsked
   }
@@ -103,7 +104,7 @@ eval (HandleAceMessage (TextChanged text) next) = do
   pure next
 
 eval (HandleEChartsMessage EC.Initialized next) = do
-  void $ H.query' cpECharts EChartsSlot $ H.action $ EC.Set $ interpret sankeyDiagramOptions
+  updateChartIfPossible
   pure next
 
 -- We just ignore most ECharts events.
@@ -144,6 +145,11 @@ eval (KillAction index next) = do
   modifying _actions (fromMaybe <*> Array.deleteAt index)
   pure next
 
+eval (EvaluateActions next) = do
+  assign _evaluation $ Success StaticData.evaluation
+  updateChartIfPossible
+  pure next
+
 eval (AddWallet next) = do
   count <- Array.length <$> use _wallets
   let newWallet =
@@ -157,6 +163,13 @@ eval (RemoveWallet index next) = do
   modifying _wallets (fromMaybe <*> Array.deleteAt index)
   assign _actions []
   pure next
+
+updateChartIfPossible :: forall m i o. HalogenM State i ChildQuery ChildSlot o m Unit
+updateChartIfPossible = do
+  use _evaluation >>= case _ of
+    Success evaluation ->
+      void $ H.query' cpECharts EChartsSlot $ H.action $ EC.Set $ interpret $ sankeyDiagramOptions evaluation
+    _ -> pure unit
 
 ------------------------------------------------------------
 
@@ -305,11 +318,16 @@ mockChainPane state =
         [ col7_ [ walletsPane state.wallets ]
         , col_ [ actionsPane state.actions  ]
         ]
-    , h3_ [ text "Chain" ]
-    , slot' cpECharts EChartsSlot
-        (echarts Nothing)
-        ({width: 800, height: 800} /\ unit)
-        (input HandleEChartsMessage)
+    , div_
+        case state.evaluation of
+          Success evaluation ->
+            [ h3_ [ text "Chain" ]
+            , slot' cpECharts EChartsSlot
+             (echarts Nothing)
+             ({width: 800, height: 800} /\ unit)
+             (input HandleEChartsMessage)
+            ]
+          _ -> []
     ]
 
 ------------------------------------------------------------
@@ -327,15 +345,17 @@ toLink {source, target, value} =
     E.targetName target
     E.value value
 
-toChartOptions :: forall m i. Monad m => Array Balance -> Array Transfer -> CommandsT (series :: I | i) m Unit
-toChartOptions balances transfers =
+toChartOptions :: forall m i. Monad m => Evaluation -> CommandsT (series :: I | i) m Unit
+toChartOptions {balances, transfers} =
   E.series $ E.sankey do
     E.buildItems (traverse_ toItem balances)
     E.buildLinks (traverse_ toLink transfers)
 
-sankeyDiagramOptions :: forall m i. Monad m => CommandsT (series :: I | i) m Unit
-sankeyDiagramOptions =
-  toChartOptions StaticData.balances StaticData.transfers
+sankeyDiagramOptions :: forall m i. Monad m => Evaluation -> CommandsT (series :: I | i) m Unit
+sankeyDiagramOptions {balances, transfers} =
+  E.series $ E.sankey do
+    E.buildItems (traverse_ toItem balances)
+    E.buildLinks (traverse_ toLink transfers)
 
 runAjax ::
   forall m env a e.

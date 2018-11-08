@@ -26,8 +26,7 @@ editorContents = """-- | Vesting scheme as a PLC contract
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
-module Main (
-    main,
+module Contract (
     Vesting(..),
     VestingTranche(..),
     VestingData(..),
@@ -178,44 +177,42 @@ validatorScript v = Validator val where
         if isValid then () else Builtins.error () |])
 """
 
-balances :: Array Balance
-balances =
-  [
-    { name: "charles"
-    , value: 600.0
-    },
-    { name: "kris"
-    , value: 10.0
-    },
-    { name: "david"
-    , value: 15.0
-    },
-    { name: "manuel"
-    , value: 123.0
-    }
-  ]
-
-transfers :: Array Transfer
-transfers =
-  [
-    { source: "charles"
-    , target: "kris"
-    , value: 10.0
-    },
-    { source: "charles"
-    , target: "david"
-    , value: 10.0
-    },
-    { source: "charles"
-    , target: "manuel"
-    , value: 20.0
-    },
-    { source: "manuel"
-    , target: "kris"
-    , value: 5.0
-    },
-    { source: "manuel"
-    , target: "david"
-    , value: 5.0
-    }
-  ]
+evaluation :: Evaluation
+evaluation =
+  { balances: [
+      { name: "charles"
+      , value: 600.0
+      },
+      { name: "kris"
+      , value: 10.0
+      },
+      { name: "david"
+      , value: 15.0
+      },
+      { name: "manuel"
+      , value: 123.0
+      }
+    ]
+  , transfers: [
+      { source: "charles"
+      , target: "kris"
+      , value: 10.0
+      },
+      { source: "charles"
+      , target: "david"
+      , value: 10.0
+      },
+      { source: "charles"
+      , target: "manuel"
+      , value: 20.0
+      },
+      { source: "manuel"
+      , target: "kris"
+      , value: 5.0
+      },
+      { source: "manuel"
+      , target: "david"
+      , value: 5.0
+      }
+    ]
+  }

@@ -44,6 +44,7 @@ data Query a
   = HandleAceMessage AceMessage a
   | HandleEChartsMessage EChartsMessage a
   | CompileProgram a
+  | EvaluateActions a
   | ScrollTo { row :: Int, column :: Int } a
   | SendAction Action a
   | KillAction Int a
@@ -58,6 +59,7 @@ type CompilationResult =
 type State =
   { wallets :: Array Wallet
   , actions :: Array Action
+  , evaluation :: RemoteData AjaxError Evaluation
   , editorContents :: String
   , compilationResult :: RemoteData AjaxError CompilationResult
   }
@@ -68,6 +70,9 @@ _actions = prop (SProxy :: SProxy "actions")
 _wallets :: forall s a. Lens' {wallets :: a | s} a
 _wallets = prop (SProxy :: SProxy "wallets")
 
+_evaluation :: forall s a. Lens' {evaluation :: a | s} a
+_evaluation = prop (SProxy :: SProxy "evaluation")
+
 _editorContents :: forall s a. Lens' {editorContents :: a | s} a
 _editorContents = prop (SProxy :: SProxy "editorContents")
 
@@ -75,6 +80,11 @@ _compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
 
 ------------------------------------------------------------
+
+type Evaluation =
+  { balances :: Array Balance
+  , transfers :: Array Transfer
+  }
 
 type Balance =
   { name :: String

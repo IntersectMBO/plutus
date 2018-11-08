@@ -1,11 +1,11 @@
 module Action where
 
-import Bootstrap (bgInfo, btn, btnInfo, card, cardBody_, pullRight, textWhite)
+import Bootstrap (bgInfo, btn, btnInfo, btnPrimary, btnSmall, card, cardBody_, pullRight, textWhite)
 import Data.Array (mapWithIndex)
 import Data.Foldable (intercalate)
 import Data.Newtype (unwrap)
 import Halogen (HTML)
-import Halogen.HTML (ClassName(ClassName), button, div, div_, h3_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, div, div_, h3_, text)
 import Halogen.HTML.Events (input_, onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
@@ -23,6 +23,8 @@ actionsPane actions =
           [ icon LongArrowDown ]
           (mapWithIndex (\index -> pure <<< actionPane index) actions)
       )
+    , br_
+    , evaluateActionsPane
     ]
 
 actionPane :: forall p. Int -> Action -> HTML p Query
@@ -40,3 +42,11 @@ actionPane index action =
         ]
       ]
     ]
+
+evaluateActionsPane :: forall p. HTML p Query
+evaluateActionsPane =
+  button
+    [ classes [ btn, btnPrimary, btnSmall ]
+    , onClick $ input_ EvaluateActions
+    ]
+    [ text "Evaluate" ]
