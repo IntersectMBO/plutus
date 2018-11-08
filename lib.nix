@@ -1,5 +1,6 @@
 let
-  # Allow overriding pinned nixpkgs for debugging purposes via plutus_pkgs
+  # iohk-nix can be overridden for debugging purposes by setting
+  # NIX_PATH=iohk_nix=/path/to/iohk-nix
   iohkNix = import (
     let try = builtins.tryEval <iohk_nix>;
     in if try.success
@@ -11,18 +12,31 @@ let
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
       });
+
+  # nixpkgs can be overridden for debugging purposes by setting
+  # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
   fetchNixpkgs = iohkNix.fetchNixpkgs ./nixpkgs-src.json;
   pkgs = import fetchNixpkgs { config = {}; overlays = []; };
   lib = pkgs.lib;
   cleanSourceHaskell = iohkNix.cleanSourceHaskell pkgs;
-  getPackages = iohkNix.getPackages { inherit lib;};
 
-  importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; } // args);
+  importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; config = {}; } // args);
+
+  # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
+  plutusPkgList = [
+    "core-to-plc"
+    "language-plutus-core"
+    "plutus-core-interpreter"
+    "plutus-exe"
+    "plutus-ir"
+    "plutus-th"
+    "plutus-use-cases"
+    "wallet-api"
+  ];
 
 
-  isPlutus = name: (lib.hasPrefix "plutus" name) || (lib.hasPrefix "language-plutus" name);
+  isPlutus = name: builtins.elem name plutusPkgList;
 
 in lib // {
-  inherit fetchNixpkgs importPkgs cleanSourceHaskell iohkNix isPlutus getPackages;
-  inherit (iohkNix) maybeEnv;
+  inherit fetchNixpkgs importPkgs cleanSourceHaskell iohkNix isPlutus plutusPkgList;
 }

@@ -21,17 +21,9 @@ let
   plutusPkgs = import ./. { };
   pkgs = import fixedNixpkgs { config = {}; };
   shellEnv = import ./shell.nix { };
+  haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
   platforms = {
-    haskellPackages = {
-      language-plutus-core = supportedSystems;
-      plutus-core-interpreter = supportedSystems;
-      plutus-exe = supportedSystems;
-      core-to-plc = supportedSystems;
-      plutus-ir = supportedSystems;
-      plutus-th = supportedSystems;
-      plutus-use-cases = supportedSystems;
-      wallet-api = supportedSystems;
-    };
+    inherit haskellPackages;
     # don't need to build the spec on anything other than one platform
     plutus-core-spec = [ "x86_64-linux" ];
   };

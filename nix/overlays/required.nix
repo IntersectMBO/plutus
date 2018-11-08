@@ -13,7 +13,7 @@ in
 self: super: {
 
     ########################################################################
-    # Overides of Cardano SL packages
+    # Overides of local packages
 
     ########################################################################
     language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
@@ -23,11 +23,6 @@ self: super: {
       enableLibraryProfiling = enableProfiling;
       enableExecutableProfiling = enableProfiling;
       splitCheck = true;
-      # Static linking for everything to work around
-      # https://ghc.haskell.org/trac/ghc/ticket/14444
-      # This will be the default in nixpkgs since
-      # https://github.com/NixOS/nixpkgs/issues/29011
-      enableSharedExecutables = false;
     } // pkgs.lib.optionalAttrs (args ? src) {
       src = cleanSourceHaskell args.src;
     });

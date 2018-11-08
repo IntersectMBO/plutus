@@ -1,14 +1,14 @@
 ########################################################################
 # default.nix -- The top-level nix build file for plutus.
 #
-# This file defines an attribute set of cardano-sl packages.
+# This file defines an attribute set of packages.
 #
 # It contains:
 #
 #   - pkgs -- the nixpkgs set that the build is based on.
 #   - haskellPackages.* -- the package set based on stackage
 #   - haskellPackages.ghc -- the compiler
-#   - plutusPackages -- just plutus packages
+#   - localPackages -- just local packages
 #
 #   - tests -- integration tests and linters suitable for running in a
 #              sandboxed build environment
@@ -33,7 +33,7 @@ in
 # Use a pinned version nixpkgs.
 , pkgs ? localLib.importPkgs { inherit system config; }
 
-# Disable running of tests for all cardano-sl packages.
+# Disable running of tests for all local packages.
 , forceDontCheck ? false
 
 # Enable profiling for all haskell packages.
@@ -46,7 +46,7 @@ in
 # Keeps the debug information for all haskell packages.
 , enableDebugging ? false
 
-# Build (but don't run) benchmarks for all cardano-sl packages.
+# Build (but don't run) benchmarks for all local packages.
 , enableBenchmarks ? true
 
 # Overrides all nix derivations to add build timing information in
@@ -56,7 +56,7 @@ in
 # Overrides all nix derivations to add haddock hydra output.
 , enableHaddockHydra ? true
 
-# Disables optimization in the build for all cardano-sl packages.
+# Disables optimization in the build for all local packages.
 , fasterBuild ? false
 
 }:
@@ -65,7 +65,6 @@ with pkgs.lib;
 
 let
   src = localLib.cleanSourceHaskell ./.;
-  isPlutus = (lib.hasPrefix "plutus") || (lib.hasPrefix "language-plutus");
   packages = self: ({
     inherit pkgs;
 
@@ -79,13 +78,17 @@ let
         requiredOverlay = ./nix/overlays/required.nix;
     };
 
-    plutusPackages = localLib.getPackages {
+    localPackages = localLib.getPackages {
       inherit (self) haskellPackages; filter = localLib.isPlutus;
     };
     tests = {
-      shellcheck = pkgs.callPackage ./tests/shellcheck.nix { inherit src; };
-      hlint = pkgs.callPackage ./tests/hlint.nix { inherit src; };
-      stylishHaskell = pkgs.callPackage ./tests/stylish.nix {
+      shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
+      hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
+        inherit src;
+        # TODO: when plutus-ir passes hlint, remove this.
+        projects = localLib.remove "plutus-ir" localLib.plutusPkgList;
+      };
+      stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;
         inherit src;
       };

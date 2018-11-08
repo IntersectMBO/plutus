@@ -1,10 +1,9 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -p jq -i bash -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/09195057114a0a8d112c847a9a8f52957420857d.tar.gz
+#!nix-shell -p jq hydra -i bash -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/09195057114a0a8d112c847a9a8f52957420857d.tar.gz
 
-nix-build https://github.com/NixOS/nixpkgs/archive/09195057114a0a8d112c847a9a8f52957420857d.tar.gz -A hydra
 echo '~~~ Evaluating release.nix'
 command time --format '%e' -o eval-time.txt \
-    ./result/bin/hydra-eval-jobs \
+    hydra-eval-jobs \
     --option allowed-uris "https://github.com/NixOS https://github.com/input-output-hk" \
     -I . release.nix > eval.json
 EVAL_EXIT_CODE="$?"
