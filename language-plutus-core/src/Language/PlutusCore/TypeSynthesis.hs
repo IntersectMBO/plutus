@@ -267,7 +267,6 @@ typeOf (Apply x fun arg) = do
     vFunTy <- typeOf fun
     case getNormalizedType vFunTy of
         TyFun _ vDom vCod -> do
-            typeCheckStep
             typeCheckM x arg $ NormalizedType vDom  -- Subpart of a normalized type, so normalized.
             pure $ NormalizedType vCod              -- Subpart of a normalized type, so normalized.
         _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) vFunTy)
