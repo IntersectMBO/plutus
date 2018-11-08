@@ -66,6 +66,22 @@ let
       wallet-api = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api)));
     };
   };
+  playgroundGhc = pkgs.haskell.packages.ghc822.ghcWithPackages (ps: [
+    plutusPkgs.plutus-playground-server
+    plutusPkgs.plutus-use-cases
+  ]);
+  plutus-server-invoker = pkgs.stdenv.mkDerivation {
+                        name = "plutus-server-invoker";
+                        unpackPhase = "true";
+                        buildInputs = [ playgroundGhc plutusPkgs.plutus-playground-server pkgs.makeWrapper ];
+                        buildPhase = ''
+                                   # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
+                                   mkdir $out
+                                   ln -s ${plutusPkgs.plutus-playground-server}/bin/plutus-playground-server $out/plutus-playground-server
+                                   wrapProgram $out/plutus-playground-server --set GHC_LIB_DIR "${playgroundGhc}/lib/ghc-8.2.2" --set GHC_PACKAGE_PATH "${playgroundGhc}/lib/ghc-8.2.2/package.conf.d"
+                        '';
+                        installPhase = "echo nothing to install";
+  };
   other = rec {
     tests = let
       src = localLib.cleanSourceTree ./.;
@@ -85,4 +101,4 @@ let
     }) { inherit pkgs; };
     plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
   };
-in plutusPkgs // other
+  in plutusPkgs // other // { inherit plutus-server-invoker; }

@@ -12,7 +12,6 @@
 module Playground.API where
 
 import           Control.Arrow              (left)
-import           Data.Maybe                   (catMaybes, fromJust, fromMaybe)
 import           Control.Monad.Trans.Class  (lift)
 import           Control.Monad.Trans.State  (StateT, evalStateT, get, put)
 import           Control.Newtype.Generics   (Newtype)
@@ -22,6 +21,7 @@ import           Data.Bifunctor             (second)
 import qualified Data.ByteString.Base64     as Base64
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
 import           Data.Map                   (Map)
+import           Data.Maybe                 (catMaybes, fromJust, fromMaybe)
 import           Data.Swagger               (Schema, ToSchema)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
