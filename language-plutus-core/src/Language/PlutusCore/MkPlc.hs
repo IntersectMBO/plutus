@@ -16,6 +16,7 @@ module Language.PlutusCore.MkPlc ( VarDecl (..)
                                  , mkIterInst
                                  , mkIterTyAbs
                                  , mkIterTyApp
+                                 , mkIterKindArrow
                                  ) where
 
 import           Language.PlutusCore.Type
@@ -126,3 +127,10 @@ mkIterTyLam
     -> Type tyname a
     -> Type tyname a
 mkIterTyLam x args body = foldr (\(TyVarDecl _ n k) acc -> TyLam x n k acc) body args
+
+mkIterKindArrow
+    :: a
+    -> [Kind a]
+    -> Kind a
+    -> Kind a
+mkIterKindArrow x kinds target = foldr (\kind acc -> KindArrow x kind acc) target kinds

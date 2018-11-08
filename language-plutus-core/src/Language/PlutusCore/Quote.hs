@@ -10,6 +10,8 @@ module Language.PlutusCore.Quote (
             , freshUnique
             , freshName
             , freshTyName
+            , freshNameText
+            , freshTyNameText
             , freshenName
             , freshenTyName
             , QuoteT
@@ -27,6 +29,8 @@ import           Control.Monad.State
 
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.Functor.Identity
+import qualified Data.Text                as Text
+import qualified Data.Text.Encoding       as Text
 import           Hedgehog                 (GenT)
 
 import           Language.PlutusCore.Name
@@ -87,9 +91,13 @@ freshUnique = do
     put $ Unique (unUnique nextU + 1)
     pure nextU
 
--- | Get a fresh 'Name', given the annotation an the name.
+-- | Get a fresh 'Name', given the annotation and the @ByteString@ name.
 freshName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (Name a)
 freshName ann str = Name ann str <$> freshUnique
+
+-- | Get a fresh 'Name', given the annotation and the @Text@ name.
+freshNameText :: (Monad m) => a -> Text.Text -> QuoteT m (Name a)
+freshNameText ann = freshName ann . BSL.fromStrict . Text.encodeUtf8
 
 -- | Make a copy of the given 'Name' that is distinct from the old one.
 freshenName :: (Monad m) =>  Name a -> QuoteT m (Name a)
@@ -98,6 +106,10 @@ freshenName (Name ann str _) = Name ann str <$> freshUnique
 -- | Get a fresh 'TyName', given the annotation an the name.
 freshTyName :: (Monad m) => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
+
+-- | Get a fresh 'TyName', given the annotation an the name.
+freshTyNameText :: (Monad m) => a -> Text.Text -> QuoteT m (TyName a)
+freshTyNameText = fmap TyName .* freshNameText
 
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
 freshenTyName :: (Monad m) =>  TyName a -> QuoteT m (TyName a)

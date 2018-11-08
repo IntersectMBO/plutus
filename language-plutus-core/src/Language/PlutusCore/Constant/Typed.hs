@@ -72,7 +72,6 @@ import qualified Data.ByteString.Lazy.Char8           as BSL
 import           Data.GADT.Compare
 import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
-import qualified Data.Text.Encoding                   as Text
 
 infixr 9 `TypeSchemeArrow`
 
@@ -323,8 +322,7 @@ typeSchemeToType = go 0 where
     go i (TypeSchemeArrow schA schB) =
         TyFun () <$> go i schA <*> go i schB
     go i (TypeSchemeAllSize schK)    = do
-        s <- mapTyNameString (<> BSL.fromStrict (Text.encodeUtf8 $ prettyText i)) <$>
-                freshTyName () "s"
+        s <- freshTyNameText () $ "s" <> prettyText i
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a
 

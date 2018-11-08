@@ -10,7 +10,10 @@ module Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Quote
 import           PlutusPrelude
+
+import           Data.Traversable          (for)
 
 infixr 5 ~~>
 
@@ -58,16 +61,32 @@ getTyFixN k = rename =<< do
             (mkIterTyApp () patternFunctor [TyVar () withSpine, TyVar () pat])
             (TyVar () spine)
 
-getWithSpine0 :: Quote (Type TyName ())
-getWithSpine0 = rename =<< do
+-- λ K       -> K λ R -> R
+-- λ K x y   -> K λ R -> R x y
+-- λ K x y z -> K λ R -> R x y z
+getWithSpine :: [Kind ()] -> Quote (Type TyName ())
+getWithSpine argKinds = rename =<< do
     k <- freshTyName () "k"
     r <- freshTyName () "r"
+    args <- for (zip [1 :: Int ..] argKinds) $ \(argN, argKind) -> do
+        name <- freshTyNameText () $ "x" <> prettyText argN
+        return $ TyVarDecl () name argKind
+    let rKind = mkIterKindArrow () argKinds star
 
     return
-        . TyLam () k ((star ~~> star) ~~> star)
+        . TyLam () k ((rKind ~~> star) ~~> star)
+        . mkIterTyLam () args
         . TyApp () (TyVar () k)
-        . TyLam () r star
-        $ TyVar () r
+        . TyLam () r rKind
+        . mkIterTyApp () (TyVar () r)
+        $ map (mkTyVar ()) args
+
+-- ifix (\(rec :: (k -> *) -> k -> *) (a :: k) -> ...)
+-- List (Kind ()) -> Quote (Type TyName ())
+
+-- /\ (A B C :: *) -> FixN
+--     λ (K : ((A -> B -> C -> Set) -> Set) -> Set) (x : A) (y : B) (z : C) ->
+--         K λ (R : A -> B -> C -> Set) -> R x y z
 
 -- |
 -- > Fix₀ : (Set -> Set) -> Set
@@ -75,19 +94,20 @@ getWithSpine0 = rename =<< do
 -- >     withSpine0 =
 -- >         λ (K : (Set -> Set) -> Set) ->
 -- >             K λ (R : Set) -> R
-getTyFix0 :: a -> TyName a -> Type TyName a -> Quote (Type TyName a)
-getTyFix0 ann name patBind = rename =<< do
-    withSpine0 <- getWithSpine0
-    let pat = TyLam () (void name) star (void patBind)
+getTyFix :: a -> TyName a -> [Kind ()] -> Type TyName a -> Quote (Type TyName a)
+getTyFix ann name argKinds patBody = rename =<< do
+    withSpine <- getWithSpine argKinds
+    let pat = TyLam () (void name) star (void patBody)
     tyFixN <- getTyFixN star
 
     -- First throw away annotations, then annotate everything using the same annotation. Silly.
-    return $ ann <$ mkIterTyApp () tyFixN [withSpine0, pat]
+    return $ ann <$ mkIterTyApp () tyFixN [withSpine, pat]
 
 -- IWrap (λ B P -> P (Pat (B (λ R -> R)))) (λ R -> R)
 getWrap :: a -> TyName a -> Type TyName a -> Term TyName Name a -> Quote (Term TyName Name a)
 getWrap ann name patBind term = rename =<< do
-    withSpine0 <- getWithSpine0
+    -- TODO: generalize for other cases.
+    withSpine0 <- getWithSpine []
     let pat = TyLam () (void name) star (void patBind)
     patternFunctor <- getPatternFunctor star
 
@@ -113,5 +133,5 @@ makeRecursiveType
     -> Quote RecursiveType
 makeRecursiveType name cont = do
     let wrap term = cont return >>= \ty -> getWrap () name ty term
-    fixedPat <- cont $ getTyFix0 () name
+    fixedPat <- cont $ getTyFix () name []
     return $ RecursiveType wrap fixedPat
