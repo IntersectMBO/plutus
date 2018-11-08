@@ -89,7 +89,7 @@ main = do
             let evalFn = case mode of
                     CK  -> PLC.runCk
                     CEK -> PLC.runCek mempty
-                    L   -> PLC.runL
+                    L   -> PLC.runL mempty
             case evalFn .void <$> PLC.parseScoped bsContents of
                 Left (e :: PLC.Error PLC.AlexPosn) -> do
                     T.putStrLn $ PLC.prettyPlcDefText e

@@ -29,6 +29,7 @@ module Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Dynamic.Pretty
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
@@ -51,13 +52,10 @@ dynamicBuiltinNameAsTerm = Builtin () . DynBuiltinName ()
 toBoundsInt :: Size -> (Integer, Integer)
 toBoundsInt s = (-b, b) where
     b = bit (8 * fromIntegral s - 1)  -- This is much quicker than 2^n for large n
-<<<<<<< HEAD
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1) - 1]@ bounds for integers of a given 'Size'.
 toInclusiveBoundsInt :: Size -> (Integer, Integer)
 toInclusiveBoundsInt = fmap pred . toBoundsInt
-=======
->>>>>>> Added improved size bound check for benchmarking comparisons
 
 -- | Check whether an 'Integer' is in the @[-2^(8s - 1), 2^(8s - 1))@ interval.
 checkBoundsInt :: Size -> Integer -> Bool
