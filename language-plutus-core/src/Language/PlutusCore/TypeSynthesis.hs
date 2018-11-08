@@ -123,7 +123,10 @@ runTypeCheckM (TypeCheckCfg i typeConfig) tc =
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
     (TypeCheckSt i) <- get
-    if i == 0
+    (TypeConfig normalize _) <- ask
+
+    -- we only throw an 'OutOfGas' error if we are in restricted mode
+    if i == 0 && not normalize
         then throwError OutOfGas
         else modify (over gas (subtract 1))
 

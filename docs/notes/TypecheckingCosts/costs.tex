@@ -1,0 +1,20 @@
+\documentclass{article}
+
+\begin{document}
+
+\title{Typechecking Costs in the Plutus Core Library}
+\author{Vanessa McHale}
+\maketitle
+
+\section{Costs \& Modes}
+
+The Plutus Core library typechecker has two modes; a restricted mode in which
+reductions are limited based on the size of the term, and an unrestricted mode
+for prototyping in which type reductions are unlimited and unchecked.
+
+\section{Complexity}
+
+For security purposes, the cost of typechecking in restricted mode must
+be linear in the program size.
+
+\end{document}
