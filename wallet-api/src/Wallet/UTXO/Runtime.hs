@@ -15,7 +15,6 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , ValidatorHash(..)
               , TxHash(..)
               , plcDataScriptHash
-              , plcValidatorHash
               , plcValidatorDigest
               , plcRedeemerHash
               , plcTxHash
@@ -165,9 +164,6 @@ instance LiftPlc TxHash
 
 plcDataScriptHash :: UTXO.DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcHash
-
-plcValidatorHash :: UTXO.Validator -> ValidatorHash
-plcValidatorHash = ValidatorHash . plcHash
 
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
