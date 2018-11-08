@@ -68,6 +68,9 @@ BUILTIN addInteger σ
 BUILTIN substractInteger σ
   (._ ,, V-con (integer .(σ Z) i) ,, ._ ,, V-con (integer .(σ Z) j) ,, tt) σ'
   = con (integer (⋆.subst σ' (σ Z)) (i - j))
+BUILTIN concatenate σ
+ (._ ,, V-con (bytestring ._ x) ,, ._ ,, V-con (bytestring ._ y) ,, tt) σ'
+ = con (bytestring (⋆.subst σ' (σ Z)) (append x y)) 
 \end{code}
 
 # recontructing the telescope after a reduction step

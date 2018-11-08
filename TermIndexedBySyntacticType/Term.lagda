@@ -77,11 +77,20 @@ Let `x`, `y` range over variables.
 
 ## Term Constants
 
+
 \begin{code}
+postulate
+  ByteString : Set
+  append : ByteString → ByteString → ByteString
+
+{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# COMPILE GHC ByteString = type BS.ByteString #-}
+{-# COMPILE GHC append = BS.append #-}
+
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s → Int → TermCon (con integer s)
-  bytestring : ∀ s → ⊥   → TermCon (con bytestring s)
-  size       : ∀ s       → TermCon (con size s) 
+  bytestring : ∀ s → ByteString → TermCon (con bytestring s)
+  size       : ∀ s → TermCon (con size s) 
 \end{code}
 
 ## Terms
@@ -103,6 +112,7 @@ Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
 data Builtin : Set where
   addInteger       : Builtin
   substractInteger : Builtin
+  concatenate      : Builtin
 
 El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 -- could have just one context so Signatures extend from ∅...
@@ -112,7 +122,12 @@ El addInteger       Γ =
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 El substractInteger Γ = 
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-
+El concatenate      Γ =
+  Γ ,⋆ #
+  ,,
+  con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
+  ,,
+  con bytestring (` Z)
 Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
