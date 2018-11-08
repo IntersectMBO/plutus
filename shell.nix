@@ -11,16 +11,6 @@ in
 
 let
   plutusPkgs = import ./. {};
-  ghc = plutusPkgs.ghcWithPackages (ps: with ps; [
-    language-plutus-core
-    core-to-plc
-    plutus-th
-    tasty-hedgehog
-    tasty
-    tasty-golden
-    tasty-hunit
-    hedgehog
-  ]);
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
     buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
@@ -39,12 +29,10 @@ let
       exit
     '';
   };
+  shell = plutusPkgs.haskellPackages.shellFor {
+    packages = p: (map (x: p.${x}) localLib.plutusPkgList);
+  };
 
-in
-  # This is an environment for running the deps regeneration script.
-  pkgs.stdenv.mkDerivation {
-    name = "plutus-ghc";
-    passthru = { inherit fixStylishHaskell; };
-    buildInputs = with pkgs; [ ghc ];
-    src = null;
-  }
+in shell // {
+  inherit fixStylishHaskell;
+}
