@@ -37,8 +37,8 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
    → {term : Γ ⊢ pat · (μ1 · pat) · arg}
    → Value (wrap1 pat arg term)
 
-  V-con : ∀{Γ}{s : ∥ Γ ∥ ⊢⋆ #}{tcn : TyCon}
-    → (cn : TermCon (con tcn s))
+  V-con : ∀{Γ}{n}{tcn : TyCon}
+    → (cn : TermCon (con tcn (size⋆ n)))
     → Value (con {Γ} cn)
 \end{code}
 
@@ -73,21 +73,23 @@ BUILTIN : ∀{Γ Γ'}
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
       -----------------------------
     → Γ' ⊢ ⋆.subst σ' (⋆.subst σ C)
-BUILTIN addInteger σ
-  (._ ,, V-con (integer .(σ Z) i) ,, ._ ,, V-con (integer .(σ Z) j) ,, tt) σ'
-  = con (integer (⋆.subst σ' (σ Z)) (i + j))
-BUILTIN substractInteger σ
-  (._ ,, V-con (integer .(σ Z) i) ,, ._ ,, V-con (integer .(σ Z) j) ,, tt) σ'
-  = con (integer (⋆.subst σ' (σ Z)) (i - j))
-BUILTIN concatenate σ
- (._ ,, V-con (bytestring ._ x) ,, ._ ,, V-con (bytestring ._ y) ,, tt) σ'
- = con (bytestring (⋆.subst σ' (σ Z)) (append x y))
-BUILTIN takeByteString σ
-  (._ ,, V-con (integer ._ i) ,, ._ ,, V-con (bytestring ._ x) ,, tt) σ'
-  = con (bytestring (⋆.subst σ' (σ Z)) (take i x))
-BUILTIN dropByteString σ
-  (._ ,, V-con (integer ._ i) ,, ._ ,, V-con (bytestring ._ x) ,, tt) σ'
-  = con (bytestring (⋆.subst σ' (σ Z)) (drop i x))
+BUILTIN addInteger σ X σ' with σ Z
+BUILTIN addInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
+  con (integer s (i + j))
+BUILTIN subtractInteger σ X σ' with σ Z
+BUILTIN subtractInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
+  con (integer s (i - j))
+BUILTIN concatenate σ X σ' with σ Z
+BUILTIN concatenate σ (_ ,, V-con (bytestring s b) ,, _ ,, V-con (bytestring .s b') ,, tt) σ' | .(size⋆ s) =
+  con (bytestring s (append b b'))
+BUILTIN takeByteString σ X σ' with σ Z | σ (S Z)
+BUILTIN takeByteString σ (_ ,, V-con (integer s i) ,, _ ,, V-con (bytestring s' b) ,, tt) σ'
+  | .(size⋆ s')
+  | .(size⋆ s) = con (bytestring s' (take i b))
+BUILTIN dropByteString σ X σ' with σ Z | σ (S Z) 
+BUILTIN dropByteString σ (_ ,, V-con (integer s i) ,, _ ,, V-con (bytestring s' b) ,, tt) σ'
+  | .(size⋆ s')
+  | .(size⋆ s) = con (bytestring s' (drop i b))
 \end{code}
 
 # recontructing the telescope after a reduction step
@@ -239,7 +241,9 @@ progress (unwrap1 t) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (unwrap1 t) | unhandled = unhandled
 progress (conv p t) = unhandled
-progress (con cn)   = done (V-con cn)
+progress (con (integer s i)) = done (V-con _)
+progress (con (bytestring s x)) = done (V-con _)
+progress (con (size s)) = done (V-con _)
 progress (builtin bn σ X σ') with progressTel X
 progress (builtin bn σ X σ') | done VX = step (β-builtin bn σ X VX σ')
 progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' = step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')

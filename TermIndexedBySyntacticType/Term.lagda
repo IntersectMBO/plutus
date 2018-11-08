@@ -11,6 +11,7 @@ open import Type.Equality
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
+open import Data.Integer
 open import Data.Empty
 \end{code}
 
@@ -86,9 +87,9 @@ postulate
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
-  integer    : ∀ s → Int → TermCon (con integer s)
-  bytestring : ∀ s → ByteString → TermCon (con bytestring s)
-  size       : ∀ s → TermCon (con size s) 
+  integer    : ∀ s → (i : Int) → TermCon (con integer (size⋆ s))
+  bytestring : ∀ s → ByteString → TermCon (con bytestring (size⋆ s))
+  size       : ∀ s → TermCon (con size (size⋆ s)) 
 \end{code}
 
 ## Terms
@@ -108,7 +109,7 @@ Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
 
 data Builtin : Set where
   addInteger       : Builtin
-  substractInteger : Builtin
+  subtractInteger : Builtin
   -- multiplyInteger          : Builtin
   -- divideInteger            : Builtin
   -- quotientInteger          : Builtin
@@ -140,7 +141,7 @@ El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 -- extend it appropriately...
 El addInteger       Γ =
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-El substractInteger Γ = 
+El subtractInteger Γ = 
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 El concatenate      Γ =
   Γ ,⋆ #
