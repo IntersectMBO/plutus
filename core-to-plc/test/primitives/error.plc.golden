@@ -1,6 +1,6 @@
 (program 1.0.0
   {
-    (abs e_0 (type) (lam thunk_1 (all a_3 (type) (fun a_3 a_3)) (error e_0)))
+    (abs e_4 (type) (lam thunk_5 (all a_6 (type) (fun a_6 a_6)) (error e_4)))
     [(con integer) (con 64)]
   }
 )

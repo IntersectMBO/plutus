@@ -3,42 +3,42 @@
     [
       {
         (abs
-          MyMonoRecord_2
+          MyMonoRecord_12
           (type)
           (lam
-            MyMonoRecord_8
-            (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_2))
+            MyMonoRecord_13
+            (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_12))
             (lam
-              MyMonoRecord_match_9
-              (fun MyMonoRecord_2 (all MyMonoRecord_matchOut_10 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_10)) MyMonoRecord_matchOut_10)))
-              (lam ds_11 MyMonoRecord_2 ds_11)
+              MyMonoRecord_match_14
+              (fun MyMonoRecord_12 (all MyMonoRecord_matchOut_15 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_15)) MyMonoRecord_matchOut_15)))
+              (lam ds_16 MyMonoRecord_12 ds_16)
             )
           )
         )
-        (all MyMonoRecord_matchOut_1 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_1)) MyMonoRecord_matchOut_1))
+        (all MyMonoRecord_matchOut_17 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_17)) MyMonoRecord_matchOut_17))
       }
       (lam
-        MyMonoRecord_arg0_5
+        MyMonoRecord_arg0_18
         [(con integer) (con 64)]
         (lam
-          MyMonoRecord_arg1_6
+          MyMonoRecord_arg1_19
           [(con integer) (con 64)]
           (abs
-            MyMonoRecord_matchOut_3
+            MyMonoRecord_matchOut_20
             (type)
             (lam
-              MyMonoRecord_4
-              (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_3))
-              [ [ MyMonoRecord_4 MyMonoRecord_arg0_5 ] MyMonoRecord_arg1_6 ]
+              MyMonoRecord_21
+              (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_20))
+              [ [ MyMonoRecord_21 MyMonoRecord_arg0_18 ] MyMonoRecord_arg1_19 ]
             )
           )
         )
       )
     ]
     (lam
-      x_7
-      (all MyMonoRecord_matchOut_1 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_1)) MyMonoRecord_matchOut_1))
-      x_7
+      x_22
+      (all MyMonoRecord_matchOut_23 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoRecord_matchOut_23)) MyMonoRecord_matchOut_23))
+      x_22
     )
   ]
 )
