@@ -25,6 +25,7 @@
 - ignore: {name: Move brackets to avoid $}
 # this aids clarity since you can name the parameters
 - ignore: {name: Avoid lambda}
+- ignore: {name: Avoid lambda using `infix`}
 # whether this is better is very variable
 - ignore: {name: Use infix}
 # hlint can't handle typed TH: https://github.com/haskell-suite/haskell-src-exts/issues/383

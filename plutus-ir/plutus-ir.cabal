@@ -29,6 +29,7 @@ library
         Language.PlutusIR.Compiler
         Language.PlutusIR.MkPir
         Language.PlutusIR.Value
+        Language.PlutusIR.Optimizer.DeadCode
     hs-source-dirs: src
     other-modules:
         Language.PlutusIR.Compiler.Error
@@ -70,6 +71,8 @@ test-suite plutus-ir-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        OptimizerSpec
+        TestLib
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
