@@ -21,7 +21,7 @@ import           Language.PlutusCore.StdLib.Data.Unit
 --
 -- > all (A :: *). A -> A -> A
 getBuiltinBool :: Quote (Type TyName ())
-getBuiltinBool = rename =<< do
+getBuiltinBool = do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
@@ -32,7 +32,7 @@ getBuiltinBool = rename =<< do
 --
 -- > /\(A :: *) -> \(x y : A) -> x
 getBuiltinTrue :: Quote (Value TyName Name ())
-getBuiltinTrue = rename =<< do
+getBuiltinTrue = do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
@@ -48,7 +48,7 @@ getBuiltinTrue = rename =<< do
 --
 -- > /\(A :: *) -> \(x y : A) -> y
 getBuiltinFalse :: Quote (Value TyName Name ())
-getBuiltinFalse = rename =<< do
+getBuiltinFalse = do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
