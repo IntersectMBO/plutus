@@ -32,6 +32,8 @@ library
         Language.PlutusIR.Optimizer.DeadCode
     hs-source-dirs: src
     other-modules:
+        Language.PlutusIR.Analysis.Dependencies
+        Language.PlutusIR.Analysis.Usages
         Language.PlutusIR.Compiler.Error
         Language.PlutusIR.Compiler.Term
         Language.PlutusIR.Compiler.Datatype
@@ -61,7 +63,8 @@ library
         mmorph -any,
         prettyprinter -any,
         text -any,
-        transformers -any
+        transformers -any,
+        algebraic-graphs -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

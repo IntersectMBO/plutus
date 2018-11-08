@@ -2,22 +2,17 @@
 module OptimizerSpec where
 
 import           Common
-import           PlcTestUtils
 import           TestLib
 
 import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR
-import           Language.PlutusIR.Compiler
 import           Language.PlutusIR.MkPir
 import           Language.PlutusIR.Optimizer.DeadCode
 
 import qualified Language.PlutusCore                  as PLC
-import qualified Language.PlutusCore.MkPlc            as PLC
 
 import qualified Language.PlutusCore.StdLib.Data.Unit as Unit
-
-import           Test.Tasty
 
 optimizer :: TestNested
 optimizer = testNested "optimizer" [
@@ -141,8 +136,6 @@ recBindingComplex = removeDeadBindings <$> do
     uv <- freshName () "unitval"
     unit <- Unit.getBuiltinUnit
     unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
-    -- TODO: the term binding is live but the the type binding isn't, but
-    -- we are paranoid so we keep it
     pure $ Let () Rec [
         TypeBind () (TyVarDecl () u (PLC.Type ())) unit,
         TermBind () (VarDecl () uv unit) unitVal
