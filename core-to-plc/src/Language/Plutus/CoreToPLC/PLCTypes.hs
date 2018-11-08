@@ -6,6 +6,7 @@ import qualified Language.PlutusCore.MkPlc as PLC
 type PLCKind = PLC.Kind ()
 type PLCType = PLC.Type PLC.TyName ()
 type PLCTerm = PLC.Term PLC.TyName PLC.Name ()
+type PLCProgram = PLC.Program PLC.TyName PLC.Name ()
 
 type PLCVar = PLC.VarDecl PLC.TyName PLC.Name ()
 type PLCTyVar = PLC.TyVarDecl PLC.TyName ()

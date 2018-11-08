@@ -1,21 +1,21 @@
 (program 1.0.0
   (lam
-    ds_0
+    ds_3
     [(con bytestring) (con 64)]
     (lam
-      ds_1
+      ds_4
       [(con bytestring) (con 64)]
       (lam
-        ds_2
+        ds_5
         [(con bytestring) (con 64)]
         [
           [
             [
-              { { { (con verifySignature) (con 64) } (con 64) } (con 64) } ds_0
+              { { { (con verifySignature) (con 64) } (con 64) } (con 64) } ds_3
             ]
-            ds_1
+            ds_4
           ]
-          ds_2
+          ds_5
         ]
       )
     )

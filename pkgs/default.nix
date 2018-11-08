@@ -15614,6 +15614,7 @@ license = stdenv.lib.licenses.mit;
 , microlens
 , mmorph
 , mtl
+, plutus-ir
 , prettyprinter
 , serialise
 , stdenv
@@ -15639,6 +15640,7 @@ language-plutus-core
 microlens
 mmorph
 mtl
+plutus-ir
 prettyprinter
 serialise
 template-haskell

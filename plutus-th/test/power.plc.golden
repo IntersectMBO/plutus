@@ -1,20 +1,20 @@
 (program 1.0.0
   (lam
-    ds_0
+    ds_3
     [(con integer) (con 64)]
     [
       (lam
-        y_2
+        y_4
         [(con integer) (con 64)]
-        [ [ { (con multiplyInteger) (con 64) } y_2 ] y_2 ]
+        [ [ { (con multiplyInteger) (con 64) } y_4 ] y_4 ]
       )
       [
         (lam
-          y_1
+          y_5
           [(con integer) (con 64)]
-          [ [ { (con multiplyInteger) (con 64) } y_1 ] y_1 ]
+          [ [ { (con multiplyInteger) (con 64) } y_5 ] y_5 ]
         )
-        [ [ { (con multiplyInteger) (con 64) } ds_0 ] (con 64 ! 1) ]
+        [ [ { (con multiplyInteger) (con 64) } ds_3 ] (con 64 ! 1) ]
       ]
     ]
   )

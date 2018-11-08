@@ -33,6 +33,7 @@ library
     other-modules:
         Language.Plutus.CoreToPLC.Laziness
         Language.Plutus.CoreToPLC.PLCTypes
+        Language.Plutus.CoreToPLC.PIRTypes
         Language.Plutus.CoreToPLC.Utils
         Language.Plutus.CoreToPLC.Compiler.Binders
         Language.Plutus.CoreToPLC.Compiler.Builtins
@@ -68,6 +69,7 @@ library
         mmorph -any,
         microlens -any,
         mtl -any,
+        plutus-ir -any,
         prettyprinter -any,
         serialise -any,
         template-haskell -any,
