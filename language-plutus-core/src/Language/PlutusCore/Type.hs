@@ -269,7 +269,7 @@ data TermF tyname name a x = VarF a (name a)
                            | UnwrapF a x
                            | WrapF a (tyname a) (Type tyname a) x
                            | ErrorF a (Type tyname a)
-                           deriving (Functor)
+                           deriving (Functor, Traversable, Foldable)
 
 type instance Base (Term tyname name a) = TermF tyname name a
 

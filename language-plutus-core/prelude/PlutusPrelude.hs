@@ -22,6 +22,9 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fromRight
                      , isRight
                      , void
+                     , ($>)
+                     , (<$)
+                     , through
                      , coerce
                      , Generic
                      , NFData
@@ -100,7 +103,7 @@ import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor                            (void)
+import           Data.Functor                            (void, ($>), (<$))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
@@ -200,6 +203,10 @@ prettyTextBy = docText .* prettyBy
 
 (<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
 f <<*>> a = getCompose $ Compose f <*> Compose a
+
+-- | Makes an effectful function ignore its result value and return its input value.
+through :: Functor f => (a -> f b) -> (a -> f a)
+through f x = f x $> x
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
