@@ -6,12 +6,12 @@ let
 in
 { system ? builtins.currentSystem
 , config ? {}
-, pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; })
+, pkgs ? (import (localLib.fetchNixpkgs) { inherit system config; })
 }:
 
 let
   plutusPkgs = import ./. {};
-  ghc = plutusPackages.ghcWithPackages (ps: with ps; [
+  ghc = plutusPkgs.ghcWithPackages (ps: with ps; [
     language-plutus-core
     core-to-plc
     plutus-th
