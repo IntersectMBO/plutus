@@ -27,7 +27,7 @@ getBuiltinNat :: Quote RecursiveType
 getBuiltinNat = do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
-    makeRecursiveType nat $ \hole ->
+    makeRecursiveType nat [] $ \hole ->
           hole
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -43,7 +43,7 @@ getBuiltinZero = rename =<< do
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    wrapNat
+    wrapNat []
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () nat $ TyVar () r)
@@ -62,7 +62,7 @@ getBuiltinSucc = rename =<< do
     fmap
         ( LamAbs () n nat
         )
-        . wrapNat
+        . wrapNat []
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () nat $ TyVar () r)

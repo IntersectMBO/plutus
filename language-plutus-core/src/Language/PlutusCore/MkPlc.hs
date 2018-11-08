@@ -1,8 +1,10 @@
 
 module Language.PlutusCore.MkPlc ( VarDecl (..)
                                  , TyVarDecl (..)
+                                 , TyDecl (..)
                                  , mkVar
                                  , mkTyVar
+                                 , tyDeclVar
                                  , Def (..)
                                  , TermDef
                                  , TypeDef
@@ -39,6 +41,13 @@ data TyVarDecl tyname a = TyVarDecl {tyVarDeclAnn::a, tyVarDeclName::tyname a, t
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
 mkTyVar :: a -> TyVarDecl tyname a -> Type tyname a
 mkTyVar x = TyVar x . tyVarDeclName
+
+-- | A "type declaration", i.e. a name and a kind for a type.
+data TyDecl tyname a = TyDecl {tyDeclAnn::a, tyDeclType::Type tyname a, tyDeclKind::Kind a}
+    deriving (Functor, Show, Eq, Generic)
+
+tyDeclVar :: TyVarDecl tyname a -> TyDecl tyname a
+tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind
 
 -- | A definition. Pretty much just a pair with more descriptive names.
 data Def var val = Def { defVar::var, defVal::val}
