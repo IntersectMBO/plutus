@@ -9,10 +9,10 @@ module Language.Plutus.CoreToPLC.Compiler.ValueRestriction where
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.Laziness
-import           Language.Plutus.CoreToPLC.PLCTypes
+import           Language.Plutus.CoreToPLC.PIRTypes
 
-import qualified Language.PlutusCore                      as PLC
-import           Language.PlutusCore.Quote
+import qualified Language.PlutusIR                        as PIR
+import qualified Language.PlutusIR.Value                  as PIR
 
 import           Control.Monad.Reader
 
@@ -81,19 +81,19 @@ bit of a hack, though.
 -}
 
 -- See Note [Value restriction]
-mangleTyForall :: (MonadQuote m) => PLCType -> m PLCType
+mangleTyForall :: Converting m => PIRType -> m PIRType
 mangleTyForall = \case
-    PLC.TyForall a t k body -> PLC.TyForall a t k <$> delayType body
+    PIR.TyForall a t k body -> PIR.TyForall a t k <$> delayType body
     x -> pure x
 
 -- See Note [Value restriction]
-mangleTyAbs :: (MonadQuote m) => PLCTerm -> m PLCTerm
+mangleTyAbs :: Converting m => PIRTerm -> m PIRTerm
 mangleTyAbs = \case
-    PLC.TyAbs a t k body -> PLC.TyAbs a t k <$> delay body
+    PIR.TyAbs a t k body -> PIR.TyAbs a t k <$> delay body
     x -> pure x
 
-checkTyAbsBody :: (Converting m) => PLCTerm -> m ()
+checkTyAbsBody :: Converting m => PIRTerm -> m ()
 checkTyAbsBody t = do
     ConvertingContext {ccOpts=opts} <- ask
     -- we sometimes need to turn this off, as checking for term values also checks for normalized types at the moment
-    unless (not (coCheckValueRestriction opts) || PLC.isTermValue t) $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"
+    unless (not (coCheckValueRestriction opts) || PIR.isTermValue t) $ throwPlain $ ValueRestrictionError "Type abstraction body is not a value"

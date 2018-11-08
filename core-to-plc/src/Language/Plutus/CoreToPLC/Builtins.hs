@@ -33,5 +33,35 @@ txhash = mustBeReplaced
 blocknum :: Int
 blocknum = mustBeReplaced
 
+addInteger :: Int -> Int -> Int
+addInteger = mustBeReplaced
+
+subtractInteger :: Int -> Int -> Int
+subtractInteger = mustBeReplaced
+
+multiplyInteger :: Int -> Int -> Int
+multiplyInteger = mustBeReplaced
+
+divideInteger :: Int -> Int -> Int
+divideInteger = mustBeReplaced
+
+remainderInteger :: Int -> Int -> Int
+remainderInteger = mustBeReplaced
+
+greaterThanInteger :: Int -> Int -> Bool
+greaterThanInteger = mustBeReplaced
+
+greaterThanEqInteger :: Int -> Int -> Bool
+greaterThanEqInteger = mustBeReplaced
+
+lessThanInteger :: Int -> Int -> Bool
+lessThanInteger = mustBeReplaced
+
+lessThanEqInteger :: Int -> Int -> Bool
+lessThanEqInteger = mustBeReplaced
+
+equalsInteger :: Int -> Int -> Bool
+equalsInteger = mustBeReplaced
+
 error :: () -> a
 error = mustBeReplaced

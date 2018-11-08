@@ -6,7 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
--- the simplfiier messes with things otherwise
+-- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 
@@ -81,7 +81,7 @@ primitives = testNested "primitives" [
   , goldenPlc "error" errorPlc
   , goldenPlc "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
-  , goldenPlc "blocknum" blocknumPlc
+  --, goldenPlc "blocknum" blocknumPlc
   , goldenPlc "bytestring" bytestring
   , goldenEval "bytestringApply" [ getAst bytestring, trivialProgram $ runQuote $ lift ("hello"::ByteString) ]
   , goldenPlc "verify" verify
@@ -127,8 +127,8 @@ errorPlc = plc @"errorPlc" (Builtins.error @Int)
 ifThenElse :: PlcCode
 ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
 
-blocknumPlc :: PlcCode
-blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
+--blocknumPlc :: PlcCode
+--blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
 bytestring :: PlcCode
 bytestring = plc @"bytestring" (\(x::ByteString) -> x)

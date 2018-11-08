@@ -3,45 +3,45 @@
     [
       {
         (abs
-          MyNewtype_12
+          MyNewtype_77
           (type)
           (lam
-            MyNewtype_13
-            (fun [(con integer) (con 64)] MyNewtype_12)
+            MyNewtype_78
+            (fun [(con integer) (con 64)] MyNewtype_77)
             (lam
-              MyNewtype_match_14
-              (fun MyNewtype_12 (all MyNewtype_matchOut_15 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_15) MyNewtype_matchOut_15)))
+              MyNewtype_match_79
+              (fun MyNewtype_77 (all out_MyNewtype_80 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_80) out_MyNewtype_80)))
               (lam
-                ds_16
-                MyNewtype_12
+                ds_81
+                MyNewtype_77
                 [
-                  { [ MyNewtype_match_14 ds_16 ] [(con integer) (con 64)] }
-                  (lam inner_17 [(con integer) (con 64)] inner_17)
+                  { [ MyNewtype_match_79 ds_81 ] [(con integer) (con 64)] }
+                  (lam inner_82 [(con integer) (con 64)] inner_82)
                 ]
               )
             )
           )
         )
-        (all MyNewtype_matchOut_18 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_18) MyNewtype_matchOut_18))
+        (all out_MyNewtype_83 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_83) out_MyNewtype_83))
       }
       (lam
-        MyNewtype_arg0_19
+        arg_0_84
         [(con integer) (con 64)]
         (abs
-          MyNewtype_matchOut_20
+          out_MyNewtype_85
           (type)
           (lam
-            MyNewtype_21
-            (fun [(con integer) (con 64)] MyNewtype_matchOut_20)
-            [ MyNewtype_21 MyNewtype_arg0_19 ]
+            case_MyNewtype_86
+            (fun [(con integer) (con 64)] out_MyNewtype_85)
+            [ case_MyNewtype_86 arg_0_84 ]
           )
         )
       )
     ]
     (lam
-      x_22
-      (all MyNewtype_matchOut_23 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_23) MyNewtype_matchOut_23))
-      x_22
+      x_87
+      (all out_MyNewtype_88 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_88) out_MyNewtype_88))
+      x_87
     )
   ]
 )
