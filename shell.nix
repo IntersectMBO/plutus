@@ -1,6 +1,3 @@
-# TODO: replace with shellFor once our pinned nixpkgs advances past
-# 5523ec8f3c78704c6e76b7675bfce41d24a3feb1, before which it doesn't
-# handle overridden dependencies properly
 let
   localLib = import ./lib.nix;
 in
