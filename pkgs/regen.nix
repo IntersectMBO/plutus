@@ -1,7 +1,11 @@
+let
+  localLib = import ../lib.nix;
+in
 { system ? builtins.currentSystem
 , config ? {}
 , iohkPkgs ? import ../. { inherit config system; }
 , pkgs ? iohkPkgs.pkgs
+, nixpkgsPath ? localLib.fetchNixpkgs
 
 # Update this if you need a package version recently uploaded to hackage.
 # Any timestamp works.
@@ -18,6 +22,7 @@ in
     set -euo pipefail
     export PATH=${lib.makeBinPath deps}
     export HOME=$(pwd)
+    export NIX_PATH=nixpkgs=${nixpkgsPath}
 
     echo "Using hackage snapshot from ${hackageSnapshot}"
 
