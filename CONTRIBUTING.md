@@ -25,7 +25,7 @@ You need to do a few things when adding a new package, in the following order:
     - You should just copy exactly what is there for other packages.
 - (If you want the package to be hlinted by CI) Add the project to `tests/hlint.nix`.
 
-You should at least be able to run `nix build -f default.nix <package name>` successfully at the root. You can use `nix log -f default.nix <package name>` if you want to check the build output.
+You should at least be able to run `nix build -f default.nix localPackages.<package name>` successfully at the root. You can use `nix log -f default.nix localPackages.<package name>` if you want to check the build output.
 
 ## Code style
 
