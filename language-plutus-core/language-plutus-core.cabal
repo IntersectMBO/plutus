@@ -61,7 +61,7 @@ library
         Common
         PlcTestUtils
     build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude stdlib generators common
+    hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Name
@@ -80,6 +80,7 @@ library
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
+        Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypeEvalCheck

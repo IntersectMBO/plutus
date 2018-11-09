@@ -21,6 +21,9 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
+-- TODO: move me to a separate module.
+import           Language.PlutusCore.Examples.Data.InterList
+
 -- We use 'String's for names, because this module exists for tests right now and
 -- there we have 'FilePath's which are 'String's.
 
@@ -120,6 +123,12 @@ stdLib
                 [ Named "Unit"    $ AnonStdLibType getBuiltinUnit
                 , Named "Unitval" $ AnonStdLibTerm getBuiltinUnitval
                 ]
+            , Named "InterList" $ AnonStdLibFile
+                [ Named "InterList"       $ AnonStdLibType $ _recursiveType <$> getBuiltinInterList
+                , Named "InterNil"        $ AnonStdLibTerm getBuiltinInterNil
+                , Named "InterCons"       $ AnonStdLibTerm getBuiltinInterCons
+                , Named "FoldrInterList"  $ AnonStdLibTerm getBuiltinFoldrInterList
+                ]
             ]
         , Named "Meta" $ AnonStdLibFolder
             [ Named "Data" $ AnonStdLibFolder
@@ -131,5 +140,4 @@ stdLib
                     ]
                 ]
             ]
-        ]
--- Commented out types are of the 'HoledType' form which will vanish in future.
+    ]
