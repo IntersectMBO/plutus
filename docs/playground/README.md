@@ -74,6 +74,22 @@ Products can be in the form of record datatypes with a single constructor. Walle
 
 Optionally, support for arguments of any type covered by the `Generic` class. While the type class allows us to (de)serialise those values, we need a representation that can be entered by the user. One option would be to have special UI support for the types listed above and for everything else, the user needs to enter the corresponding JSON (as a power user feature).
 
+### Backend response to a request for type checking and compilation
+
+If the provided contract modules fail to compile, the backend provides the raised error messages. If the provided contract modules do compile, the backend provides a list of all contract endpoints together with a specification of the argument types required by each of them.
+
+### Backend response to a request to replay the event sequence
+
+If one or more events are invalid (because one of the provided endpoint function arguments cannot be deserialised to the expected type), the backend provides a list of errors. If all events are valid, the backend provides (a) the final UTxO graph, (b) the final funds in each wallet (as a list of ADA values in the same order as the wallets in the request), and (c) a possibly empty set of invalid transactions. 
+
+### Representation of the UTxO graph
+
+TBD
+
+### Representation of invalid transactions
+
+TBD
+
 
 ## Contracts
 
@@ -95,3 +111,7 @@ to register the initial set of blockchain events that the contract reacts to.
 ## Open questions
 
 * We may want to require the use of `SafeHaskell` for all contract code: https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/safe_haskell.html
+* How is the UTxO graph communicated to the frontend? And what information is provided?
+* What information is provided for the set of invalid transactions?
+* Do we want to use annotations to register contract endpoints?
+* List all event registration functions.
