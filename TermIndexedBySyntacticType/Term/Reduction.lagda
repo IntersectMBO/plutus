@@ -79,6 +79,9 @@ BUILTIN addInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, 
 BUILTIN subtractInteger σ X σ' with σ Z
 BUILTIN subtractInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
   con (integer s (i - j))
+BUILTIN multiplyInteger σ X σ' with σ Z
+BUILTIN multiplyInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
+  con (integer s (_*_ i j))
 BUILTIN concatenate σ X σ' with σ Z
 BUILTIN concatenate σ (_ ,, V-con (bytestring s b) ,, _ ,, V-con (bytestring .s b') ,, tt) σ' | .(size⋆ s) =
   con (bytestring s (append b b'))

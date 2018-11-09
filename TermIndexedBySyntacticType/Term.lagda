@@ -110,7 +110,7 @@ Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
 data Builtin : Set where
   addInteger       : Builtin
   subtractInteger : Builtin
-  -- multiplyInteger          : Builtin
+  multiplyInteger          : Builtin
   -- divideInteger            : Builtin
   -- quotientInteger          : Builtin
   -- remainderInteger         : Builtin
@@ -142,6 +142,8 @@ El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 El addInteger       Γ =
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 El subtractInteger Γ = 
+  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
+El multiplyInteger Γ = 
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 El concatenate      Γ =
   Γ ,⋆ #
