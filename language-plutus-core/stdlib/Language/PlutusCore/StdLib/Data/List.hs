@@ -24,55 +24,50 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.Integer
 import           Language.PlutusCore.StdLib.Data.Unit
+import           Language.PlutusCore.StdLib.Type
 
 -- TODO: we need fix1, so that we can write
 --     fix1 \(a :: *) (list :: * -> *) -> all (r :: *). r -> (a -> list a -> r) -> r
 -- instead of the longish
 --     \(a0 :: *). ifix (\(a :: *) (list :: * -> *) -> all (r :: *). r -> (a -> list a -> r) -> r) a0
 
+-- -- | @List@ as a PLC type.
+-- --
+-- -- > \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+-- getBuiltinListF :: Quote (Type TyName ())
+-- getBuiltinListF = rename =<< do
+
 -- | @List@ as a PLC type.
 --
--- > \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
-getBuiltinListF :: Quote (Type TyName ())
-getBuiltinListF = rename =<< do
+-- > \(a0 :: *). ifix listF a0
+getBuiltinList :: Quote RecursiveType
+getBuiltinList = do
     a    <- freshTyName () "a"
     list <- freshTyName () "list"
     r    <- freshTyName () "r"
     let listA = TyApp () (TyVar () list) (TyVar () a)
-    return
-        . TyLam () list (KindArrow () (Type ()) (Type ()))
+    makeRecursiveType list [Type ()]
         . TyLam () a (Type ())
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ TyVar () r
 
--- | @List@ as a PLC type.
---
--- > \(a0 :: *). ifix listF a0
-getBuiltinList :: Quote (Type TyName ())
-getBuiltinList = do
-    a     <- freshTyName () "a"
-    listF <- getBuiltinListF
-    return
-        . TyLam () a (Type ())
-        $ TyIFix () listF (TyVar () a)
-
 -- |  '[]' as a PLC term.
 --
 -- >  /\(a :: *) -> iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
 getBuiltinNil :: Quote (Term TyName Name ())
 getBuiltinNil = rename =<< do
-    listF <- getBuiltinListF
-    list  <- getBuiltinList
+    RecursiveType wrapList list <- getBuiltinList
     a <- freshTyName () "a"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     let listA = TyApp () list (TyVar () a)
-    return
-        . TyAbs () a (Type ())
-        . IWrap () listF (TyVar () a)
+    fmap
+        ( TyAbs () a (Type ())
+        )
+        . wrapList [TyVar () a]
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
@@ -84,8 +79,7 @@ getBuiltinNil = rename =<< do
 -- >     iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
 getBuiltinCons :: Quote (Term TyName Name ())
 getBuiltinCons = rename =<< do
-    listF <- getBuiltinListF
-    list  <- getBuiltinList
+    RecursiveType wrapList list <- getBuiltinList
     a  <- freshTyName () "a"
     x  <- freshName () "x"
     xs <- freshName () "xs"
@@ -93,11 +87,12 @@ getBuiltinCons = rename =<< do
     z  <- freshName () "z"
     f  <- freshName () "f"
     let listA = TyApp () list (TyVar () a)
-    return
-        . TyAbs () a (Type ())
+    fmap
+        ( TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
         . LamAbs () xs listA
-        . IWrap () listF (TyVar () a)
+        )
+        . wrapList [TyVar () a]
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
@@ -113,7 +108,7 @@ getBuiltinCons = rename =<< do
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f (rec xs') x
 getBuiltinFoldrList :: Quote (Term TyName Name ())
 getBuiltinFoldrList = rename =<< do
-    list <- getBuiltinList
+    RecursiveType _ list <- getBuiltinList
     fix  <- getBuiltinFix
     a   <- freshTyName () "a"
     r   <- freshTyName () "r"
@@ -147,7 +142,7 @@ getBuiltinFoldrList = rename =<< do
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
 getBuiltinFoldList :: Quote (Term TyName Name ())
 getBuiltinFoldList = rename =<< do
-    list <- getBuiltinList
+    RecursiveType _ list <- getBuiltinList
     fix  <- getBuiltinFix
     a   <- freshTyName () "a"
     r   <- freshTyName () "r"
@@ -190,7 +185,7 @@ getBuiltinEnumFromTo = rename =<< do
     succInteger <- getBuiltinSuccInteger
     unit        <- getBuiltinUnit
     ifThenElse  <- getBuiltinIf
-    list        <- getBuiltinList
+    RecursiveType _ list <- getBuiltinList
     nil         <- getBuiltinNil
     cons        <- getBuiltinCons
     s <- freshTyName () "s"

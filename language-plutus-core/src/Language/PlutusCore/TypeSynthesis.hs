@@ -20,7 +20,7 @@ import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer        (annotateType)
+import           Language.PlutusCore.Renamer        (annotateType, rename)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -30,6 +30,9 @@ import           Control.Monad.State.Class
 import           Control.Monad.Trans.State          hiding (get, modify)
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
+
+-- import           Data.IntSet                        (IntSet)
+-- import qualified Data.IntSet                        as IntSet
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
@@ -254,7 +257,7 @@ typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyN
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) =
     -- Since we kind check types at lambdas, we can normalize types here without kind checking.
     -- Type normalization at each variable is inefficient and we may consider something else later.
-    normalizeTypeOpt $ void ty
+    rename ty >>= normalizeTypeOpt . void
 
 -- [check| dom :: *]    dom ~>? vDom    [infer| body : vCod]
 -- ---------------------------------------------------------

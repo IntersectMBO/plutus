@@ -51,7 +51,7 @@ propEvaluate
     :: (Term TyName Name () -> EvaluationResult)       -- ^ An evaluator.
     -> GenT Quote (TermOf (TypedBuiltinValue Size a))  -- ^ A term/value generator.
     -> Property
-propEvaluate eval genTermOfTbv = property . hoist (return . runQuote) $ do
+propEvaluate eval genTermOfTbv = withTests 200 . property . hoist (return . runQuote) $ do
     termOfTbv <- forAllNoShowT genTermOfTbv
     case runQuote . runExceptT $ typeEvalCheckBy eval termOfTbv of
         Left (TypeEvalCheckErrorIllFormed err)             -> errorPlc err

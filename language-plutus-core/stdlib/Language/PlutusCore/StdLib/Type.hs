@@ -82,7 +82,7 @@ toRecKind ann kindArgs = mkIterKindArrow ann kindArgs $ Type ann
 -- > getSpine _ [a1 :: k1, a2 :: k2] =
 -- >     \(R :: k1 -> k2 -> *) -> R a1 a2
 getSpine :: ann -> [TyDecl TyName ann] -> Quote (Type TyName ann)
-getSpine ann args = do
+getSpine ann args = rename =<< do
     r <- freshTyName ann "r"
 
     return
@@ -151,11 +151,9 @@ data RecursiveType = RecursiveType
 makeRecursiveType
     :: TyName ()
     -> [Kind ()]
-    -> ((Type TyName () -> Quote (Type TyName ())) -> Quote (Type TyName ()))
+    -> Type TyName ()
     -> Quote RecursiveType
-makeRecursiveType name argKinds cont = do
-    fixedPat <- cont $ \pat -> getTyFix () name pat argKinds
-    let wrap args term =
-            cont return >>= \patBind ->
-                getWrap () name patBind (zipWith (TyDecl ()) args argKinds) term
+makeRecursiveType name argKinds patBody = do
+    fixedPat <- getTyFix () name patBody argKinds
+    let wrap args = getWrap () name patBody $ zipWith (TyDecl ()) args argKinds
     return $ RecursiveType wrap fixedPat

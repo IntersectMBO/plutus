@@ -19,6 +19,7 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
+import           Language.PlutusCore.StdLib.Type
 
 -- We use 'String's for names, because this module exists for tests right now and
 -- there we have 'FilePath's which are 'String's.
@@ -98,7 +99,7 @@ stdLib
                 [ Named "SuccInteger" $ AnonStdLibTerm getBuiltinSuccInteger
                 ]
             , Named "List" $ AnonStdLibFile
-                [ Named "List"       $ AnonStdLibType getBuiltinList
+                [ Named "List"       $ AnonStdLibType $ _recursiveType <$> getBuiltinList
                 , Named "Nil"        $ AnonStdLibTerm getBuiltinNil
                 , Named "Cons"       $ AnonStdLibTerm getBuiltinCons
                 , Named "FoldrList"  $ AnonStdLibTerm getBuiltinFoldrList

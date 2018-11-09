@@ -27,8 +27,7 @@ getBuiltinNat :: Quote RecursiveType
 getBuiltinNat = do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
-    makeRecursiveType nat [] $ \hole ->
-          hole
+    makeRecursiveType nat []
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () nat) $ TyVar () r)
