@@ -76,6 +76,7 @@ let
         pkgsGenerated = ./pkgs;
         filter = localLib.isPlutus;
         requiredOverlay = ./nix/overlays/required.nix;
+        ghc = pkgs.haskell.compiler.ghc843;
     };
 
     localPackages = localLib.getPackages {
