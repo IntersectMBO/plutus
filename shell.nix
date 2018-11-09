@@ -6,24 +6,14 @@ let
 in
 { system ? builtins.currentSystem
 , config ? {}
-, pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; })
+, pkgs ? (import (localLib.fetchNixpkgs) { inherit system config; })
 }:
 
 let
   plutusPkgs = import ./. {};
-  ghc = pkgs.haskell.packages.ghc822.ghcWithPackages (ps: [
-    plutusPkgs.language-plutus-core
-    plutusPkgs.core-to-plc
-    plutusPkgs.plutus-th
-    plutusPkgs.tasty-hedgehog
-    plutusPkgs.tasty
-    plutusPkgs.tasty-golden
-    plutusPkgs.tasty-hunit
-    plutusPkgs.hedgehog
-  ]);
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
-    buildInputs = with pkgs; [ plutusPkgs.stylish-haskell git fd ];
+    buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
     shellHook = ''
       git diff > pre-stylish.diff
       fd --extension hs --exclude '*/dist/*' --exclude '*/docs/*' --exec stylish-haskell -i {}
@@ -39,12 +29,10 @@ let
       exit
     '';
   };
+  shell = plutusPkgs.haskellPackages.shellFor {
+    packages = p: (map (x: p.${x}) localLib.plutusPkgList);
+  };
 
-in
-  # This is an environment for running the deps regeneration script.
-  pkgs.stdenv.mkDerivation {
-    name = "plutus-ghc";
-    passthru = { inherit fixStylishHaskell; };
-    buildInputs = with pkgs; [ ghc ];
-    src = null;
-  }
+in shell // {
+  inherit fixStylishHaskell;
+}
