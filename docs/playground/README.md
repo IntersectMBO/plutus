@@ -4,9 +4,10 @@
 
 The current version of this document sets out the minimal expectations for the v1.0 launch in addition with clearly labelled optional (nice to have, but not critical) functionality for v1.0.
 
+
 ## User Interface
 
-The user interface has three main panes: (1) the *editor pane,* (2) the *wallet pane,* and (3) the *mockchain pane.*
+The user interface has three main panes: (1) the *editor pane,* (2) the *wallet pane,* and (3) the *transactions pane.*
 
 ### Editor pane
 
@@ -18,7 +19,7 @@ Optionally, this component should support editing multiple source files by havin
 
 ### Wallet pane
 
-The wallet pane has two major parts: (1) a list of wallets with funds and including controls to trigger contract endpoints (i.e., wallet endpoint functions) and (2) a list of the current sequence of wallet events that the user wants to submit for execution. The list of wallets contains at least one and at most 10 wallets. It is accompanied with a "+' button to add additional wallets (greyed out once 10 wallets are displayed). Moreover, the wallet pane contains a "Replay Events" button. It triggers execution of the event sequence on the mockchain.
+The wallet pane has two major parts: (1) a list of wallets with funds and including controls to trigger contract endpoints (i.e., wallet endpoint functions) and (2) a list of the current sequence of wallet events that the user wants to submit for execution. The list of wallets contains at least one and at most 10 wallets. It is accompanied with a "+' button to add additional wallets (greyed out once 10 wallets are displayed). Moreover, the wallet pane contains a "Replay Events" button. It triggers execution of the event sequence, generating transactions in the process.
 
 Each wallet includes the following components:
 
@@ -39,15 +40,15 @@ Optionally, the individual events in the sequence of wallet events can be reorde
 
 The wallet pane is only active after the current contract has been compiled successfully. In fact, only in this case is the correct set of wallet endpoints known. Execution of the event sequence may fail when one or more arguments to one or more events is not a legitimate value of the corresponding type of contract endpoint function. In this case, each event with malformed argument(s) ought to be tinted red, while all malformed argument(s) are highlighted.
 
-### Mockchain pane
+### Transactions pane
 
-The mockchain pane has three major parts.
+The transactions pane has three major parts.
 
-1. A visual representation of the mockchain in the form of the UTxO graph. The UTxO graph consists of nodes that represent individual (valid) transactions and edges that represent (valid) input-output connections.
+1. A visual representation of the transactions in the form of the UTxO graph. The UTxO graph consists of (a) nodes that represent individual (valid) transactions, (b) and edges between nodes that represent (valid) input-output connections, and (c) unmatched outgoing edges that represent unspent transaction outputs.
 2. The final assignment of funds to wallets. This may be a subsets of the overall funds, because some funds may be locked by scripts. Optionally, the wallets should be colour coded and edges paying funds to those wallets should use the same colour. Moreover, we may display the wallet funds as coloured bars whose relative length represents their relative (final) value.
 3. A possibly empty list of *invalid* transactions, each of which indicates the reason for why it is invalid.
 
-Optionally, provide introspection facilities for valid and invalid transactions and graph edges. In particular, to query information that helps with debugging and also includes rejected, invalid transactions and failed script execution.
+Optionally, provide introspection facilities for valid and invalid transactions and graph edges. In particular, to query information that helps with debugging and also includes rejected, invalid transactions and failed script execution. Moreover, show the points in the graph, where a blockchain trigger was activated for a wallet.
 
 
 ## Protocol between the frontend and backend
@@ -62,21 +63,24 @@ We are using a stateless architecture. Hence, the entire frontend state (that af
 
 ### Wallet events
 
-The wallet events are invocations of wallet endpoint functions (aka *contract endpoints*), where the wallet user provides arguments to the endpoint function. The user does so within the frontend UI, which requires a limit on the number and form of those arguments. We support the following types as arguments types for wallet endpoint function s:
+The wallet events are invocations of wallet endpoint functions (aka *contract endpoints*), where the wallet user provides arguments to the endpoint function. The user does so within the frontend UI, which requires a limit on the number and form of those arguments. We support the following types as arguments types for wallet endpoint functions:
 
 * `String`,
 * `PubKey`,
 * integral types, and
 * products of the above.
 
-Products can be in the form of record datatypes with a single constructor. Wallet endpoint functions can, at most, have TBD arguments.
+Products can be in the form of record datatypes with a single constructor. Wallet endpoint functions can, at most, have ten arguments.
+
+Optionally, support for arguments of any type covered by the `Generic` class. While the type class allows us to (de)serialise those values, we need a representation that can be entered by the user. One option would be to have special UI support for the types list above and for everything else, the user needs to enter the corresponding JSON (as a power user feature).
+
 
 ## Contracts
 
 Every contract includes a module `Contract` that exports a main `contract` function. The `contract` function uses 
 
 ```
-registerEndpoint :: EndpointFunction fn => fn -> IO ()
+registerEndpoint :: EndpointFunction fn => fn -> ContractInit ()
 ```
 
 to register all contract endpoint functions provided by this contract. Moreover, it uses 
@@ -88,3 +92,6 @@ TBD event registration functions
 to register the initial set of blockchain events that the contract reacts to.
 
 
+## Open questions
+
+* We may want to require the use of `SafeHaskell` for all contract code: https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/safe_haskell.html
