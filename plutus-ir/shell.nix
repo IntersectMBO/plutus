@@ -1,1 +1,1 @@
-(import ../. {}).plutus-ir.env
+(import ../. {}).localPackages.plutus-ir.env

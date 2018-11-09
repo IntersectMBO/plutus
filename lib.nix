@@ -19,6 +19,7 @@ let
   pkgs = import fetchNixpkgs { config = {}; overlays = []; };
   lib = pkgs.lib;
   cleanSourceHaskell = iohkNix.cleanSourceHaskell pkgs;
+  getPackages = iohkNix.getPackages { inherit lib;};
 
   importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; config = {}; } // args);
 
@@ -38,5 +39,5 @@ let
   isPlutus = name: builtins.elem name plutusPkgList;
 
 in lib // {
-  inherit fetchNixpkgs importPkgs cleanSourceHaskell iohkNix isPlutus plutusPkgList;
+  inherit fetchNixpkgs importPkgs cleanSourceHaskell getPackages iohkNix isPlutus plutusPkgList;
 }

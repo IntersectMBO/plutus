@@ -1,6 +1,3 @@
-# TODO: replace with shellFor once our pinned nixpkgs advances past
-# 5523ec8f3c78704c6e76b7675bfce41d24a3feb1, before which it doesn't
-# handle overridden dependencies properly
 let
   localLib = import ./lib.nix;
 in
@@ -10,7 +7,7 @@ in
 }:
 
 let
-  plutusPkgs = import ./. {};
+  localPackages = import ./. {};
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
     buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
@@ -29,7 +26,7 @@ let
       exit
     '';
   };
-  shell = plutusPkgs.haskellPackages.shellFor {
+  shell = localPackages.haskellPackages.shellFor {
     packages = p: (map (x: p.${x}) localLib.plutusPkgList);
   };
 
