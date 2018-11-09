@@ -7,7 +7,7 @@ in
 }:
 
 let
-  plutusPkgs = import ./. {};
+  localPackages = import ./. {};
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
     buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
@@ -26,7 +26,7 @@ let
       exit
     '';
   };
-  shell = plutusPkgs.haskellPackages.shellFor {
+  shell = localPackages.haskellPackages.shellFor {
     packages = p: (map (x: p.${x}) localLib.plutusPkgList);
   };
 
