@@ -28,3 +28,4 @@ result*
 *.log
 *.pdf
 *.gz
+*.synctex(busy)
