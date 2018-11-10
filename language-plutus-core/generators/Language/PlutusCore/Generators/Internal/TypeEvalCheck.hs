@@ -1,9 +1,11 @@
 -- | This module defines types and functions related to "type-eval checking".
 
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     ( TypeEvalCheckError (..)
@@ -22,6 +24,7 @@ import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Pretty
 import           PlutusPrelude
 
+import           Control.Lens.TH
 import           Control.Monad.Except
 import           Data.Traversable
 
@@ -37,6 +40,16 @@ data TypeEvalCheckError
     = TypeEvalCheckErrorIllFormed (Error ())
     | TypeEvalCheckErrorIllEvaled (Value TyName Name ()) (Value TyName Name ())
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
+makeClassyPrisms ''TypeEvalCheckError
+
+instance AsError TypeEvalCheckError () where
+    _Error = _TypeEvalCheckErrorIllFormed . _Error
+
+instance AsRenameError TypeEvalCheckError () where
+    _RenameError = _TypeEvalCheckErrorIllFormed . _RenameError
+
+instance AsTypeError TypeEvalCheckError () where
+    _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.
 data TypeEvalCheckResult = TypeEvalCheckResult
@@ -65,7 +78,7 @@ typeEvalCheckBy
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     let typecheck = annotateTerm >=> typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True mempty)
-    termTy <- convertErrors TypeEvalCheckErrorIllFormed $ typecheck term
+    termTy <- typecheck term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
         for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->

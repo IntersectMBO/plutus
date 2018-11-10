@@ -2,7 +2,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
 
 module Language.PlutusCore.TH (plcTerm, plcType, plcProgram) where
 
@@ -10,6 +9,7 @@ import           Language.Haskell.TH        hiding (Name, Type)
 import           Language.Haskell.TH.Quote
 
 import           Language.PlutusCore.Error
+import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
@@ -20,9 +20,7 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Except
-import           Control.Monad.Morph        as MM
 import qualified Data.ByteString.Lazy       as BSL
-import           Data.Functor.Identity
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 
@@ -98,8 +96,8 @@ eval c = case runExcept $ runQuoteT c of
     Left e  -> fail $ prettyPlcDefString e
     Right p -> pure p
 
-unsafeDropErrors :: Except e a -> a
-unsafeDropErrors e = case runExcept e of
+unsafeDropErrors :: Either e a -> a
+unsafeDropErrors e = case e of
     Right r -> r
     Left _  -> error "Impossible!"
 
@@ -128,10 +126,14 @@ compileTerm s = do
     [|
         let
             quoted :: Quote (Term TyName Name ())
-            quoted = do
-                -- See note [Parsing and TH stages]
-                runtimeT <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseTerm . strToBs) s
-                metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
+            quoted =
+                let
+                    -- See note [Parsing and TH stages]
+                    parsed :: Quote (Either (Error AlexPosn) (Term TyName Name ()))
+                    parsed = runExceptT $ (fmap void . parseTerm . strToBs) s
+                in do
+                    runtimeT <- unsafeDropErrors <$> parsed
+                    metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
 
@@ -143,10 +145,14 @@ compileType s = do
     [|
         let
             quoted :: Quote (Type TyName ())
-            quoted = do
-                -- See note [Parsing and TH stages]
-                runtimeTy <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseType . strToBs) s
-                metavarSubstType runtimeTy <$> $(tyMetavars)
+            quoted =
+                let
+                    -- See note [Parsing and TH stages]
+                    parsed :: Quote (Either (Error AlexPosn) (Type TyName ()))
+                    parsed = runExceptT $ (fmap void . parseType . strToBs) s
+                in do
+                    runtimeTy <- unsafeDropErrors <$> parsed
+                    metavarSubstType runtimeTy <$> $(tyMetavars)
           in quoted
       |]
 
@@ -159,10 +165,14 @@ compileProgram s = do
     [|
         let
             quoted :: Quote (Program TyName Name ())
-            quoted = do
-                -- See note [Parsing and TH stages]
-                (Program a v runtimeT) <- (fmap void . MM.hoist (Identity . unsafeDropErrors) . parseProgram . strToBs) s
-                Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
+            quoted =
+                let
+                    -- See note [Parsing and TH stages]
+                    parsed :: Quote (Either (Error AlexPosn) (Program TyName Name ()))
+                    parsed = runExceptT $ (fmap void . parseProgram . strToBs) s
+                in do
+                    (Program a v runtimeT) <- unsafeDropErrors <$> parsed
+                    Program a v . metavarSubstTerm runtimeT <$> $(tyMetavars) <*> $(termMetavars)
         in quoted
      |]
 

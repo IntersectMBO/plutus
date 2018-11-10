@@ -112,15 +112,15 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , Quotation.tests
     ]
 
-type TestFunction a = BSL.ByteString -> Either a T.Text
+type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
 
-asIO :: PrettyPlc a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
 
-asGolden :: PrettyPlc a => TestFunction a -> TestName -> TestTree
+asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
@@ -253,12 +253,15 @@ testRebindCapturedVariable =
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format cfg "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
-    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
+    [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
+    , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
+    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     , testLam @?= Right "(con integer)"
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
     ]
-    where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+    where
+        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
+        fmt = format cfg
+        cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

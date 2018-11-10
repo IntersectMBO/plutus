@@ -39,6 +39,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 , getNormalizedType
                                 ) where
 
+import           Control.Lens
 import qualified Data.ByteString.Lazy               as BSL
 import           Data.Functor.Foldable
 import qualified Data.Map                           as M
@@ -324,6 +325,7 @@ type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
     deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
+instance Wrapped (NameWithType a)
 
 instance HasUnique (NameWithType a) TermUnique where
     unique = newtypeUnique
@@ -332,6 +334,7 @@ type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
+instance Wrapped (TyNameWithKind a)
 
 instance HasUnique (TyNameWithKind a) TypeUnique where
     unique = newtypeUnique

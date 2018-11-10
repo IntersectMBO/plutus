@@ -4,6 +4,7 @@ module Language.PlutusIR.Compiler (
     compileProgram,
     Compiling,
     Error (..),
+    AsError (..),
     Provenance (..)) where
 
 import           Language.PlutusIR
@@ -18,9 +19,9 @@ import qualified Language.PlutusCore                   as PLC
 import           Control.Monad
 
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
-compileTerm :: Compiling m a => Term TyName Name a -> m (PLCTerm a)
+compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
 compileTerm = (PLC.rename <=< Term.compileTerm) . original
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
-compileProgram :: Compiling m a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))
+compileProgram :: Compiling m e a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))
 compileProgram (Program a t) = PLC.Program (Original a) (PLC.defaultVersion (Original a)) <$> compileTerm t

@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
@@ -76,7 +77,7 @@ main = do
             contents <- getInput inp
             let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
             case (PLC.runQuoteT . PLC.parseTypecheck PLC.defaultTypecheckerGas) bsContents of
-                Left e -> do
+                Left (e :: PLC.Error PLC.AlexPosn) -> do
                     T.putStrLn $ PLC.prettyPlcDefText e
                     exitFailure
                 Right ty -> do
@@ -89,7 +90,7 @@ main = do
                     CK  -> PLC.runCk
                     CEK -> PLC.runCek mempty
             case evalFn .void <$> PLC.parseScoped bsContents of
-                Left e -> do
+                Left (e :: PLC.Error PLC.AlexPosn) -> do
                     T.putStrLn $ PLC.prettyPlcDefText e
                     exitFailure
                 Right v -> do
