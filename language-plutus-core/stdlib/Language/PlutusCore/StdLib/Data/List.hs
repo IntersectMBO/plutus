@@ -57,16 +57,15 @@ getBuiltinList = do
 --
 -- >  /\(a :: *) -> iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
 getBuiltinNil :: Quote (Term TyName Name ())
-getBuiltinNil = rename =<< do
+getBuiltinNil = do
     RecursiveType wrapList list <- getBuiltinList
     a <- freshTyName () "a"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     let listA = TyApp () list (TyVar () a)
-    fmap
-        ( TyAbs () a (Type ())
-        )
+    return
+        . TyAbs () a (Type ())
         . wrapList [TyVar () a]
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
@@ -78,7 +77,7 @@ getBuiltinNil = rename =<< do
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
 getBuiltinCons :: Quote (Term TyName Name ())
-getBuiltinCons = rename =<< do
+getBuiltinCons = do
     RecursiveType wrapList list <- getBuiltinList
     a  <- freshTyName () "a"
     x  <- freshName () "x"
@@ -86,16 +85,16 @@ getBuiltinCons = rename =<< do
     r  <- freshTyName () "r"
     z  <- freshName () "z"
     f  <- freshName () "f"
-    let listA = TyApp () list (TyVar () a)
-    fmap
-        ( TyAbs () a (Type ())
+    let listA1 = TyApp () list (TyVar () a)
+    listA2 <- rename listA1
+    return
+        . TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
-        . LamAbs () xs listA
-        )
+        . LamAbs () xs listA1
         . wrapList [TyVar () a]
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
+        . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA2 $ TyVar () r)
         $ mkIterApp () (Var () f)
           [ Var () x
           , Var () xs

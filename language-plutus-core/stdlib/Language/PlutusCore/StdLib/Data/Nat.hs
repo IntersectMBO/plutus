@@ -37,12 +37,13 @@ getBuiltinNat = do
 --
 -- > wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> z
 getBuiltinZero :: Quote (Term TyName Name ())
-getBuiltinZero = rename =<< do
+getBuiltinZero = do
     RecursiveType wrapNat nat <- getBuiltinNat
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    wrapNat []
+    return
+        . wrapNat []
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () nat $ TyVar () r)
@@ -52,19 +53,19 @@ getBuiltinZero = rename =<< do
 --
 -- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
 getBuiltinSucc :: Quote (Term TyName Name ())
-getBuiltinSucc = rename =<< do
-    RecursiveType wrapNat nat <- getBuiltinNat
+getBuiltinSucc = do
+    RecursiveType wrapNat nat1 <- getBuiltinNat
+    nat2 <- rename nat1
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
-    fmap
-        ( LamAbs () n nat
-        )
+    return
+        . LamAbs () n nat1
         . wrapNat []
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () nat $ TyVar () r)
+        . LamAbs () f (TyFun () nat2 $ TyVar () r)
         . Apply () (Var () f)
         $ Var () n
 

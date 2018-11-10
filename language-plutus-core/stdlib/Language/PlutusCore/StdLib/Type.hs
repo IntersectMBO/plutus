@@ -72,6 +72,15 @@ getTyFixN k = rename =<< do
 toRecKind :: ann -> [Kind ann] -> Kind ann
 toRecKind ann kindArgs = mkIterKindArrow ann kindArgs $ Type ann
 
+getToSpine :: ann -> Quote ([TyDecl TyName ann] -> Type TyName ann)
+getToSpine ann = do
+    r <- freshTyName ann "r"
+
+    return $ \args ->
+          TyLam ann r (toRecKind ann $ map tyDeclKind args)
+        . mkIterTyApp ann (TyVar ann r)
+        $ map tyDeclType args
+
 -- |
 --
 -- > getSpine _ [a1 :: k1, a2 :: k2 ... an :: kn] =
@@ -82,13 +91,7 @@ toRecKind ann kindArgs = mkIterKindArrow ann kindArgs $ Type ann
 -- > getSpine _ [a1 :: k1, a2 :: k2] =
 -- >     \(R :: k1 -> k2 -> *) -> R a1 a2
 getSpine :: ann -> [TyDecl TyName ann] -> Quote (Type TyName ann)
-getSpine ann args = rename =<< do
-    r <- freshTyName ann "r"
-
-    return
-        . TyLam ann r (toRecKind ann $ map tyDeclKind args)
-        . mkIterTyApp ann (TyVar ann r)
-        $ map tyDeclType args
+getSpine ann args = ($ args) <$> getToSpine ann
 
 -- |
 --
@@ -120,7 +123,7 @@ closeBody :: ann -> TyName ann -> Type TyName ann -> [Kind ann] -> Type TyName a
 closeBody ann name patBody argKinds = TyLam ann name (toRecKind ann argKinds) patBody
 
 getTyFix :: ann -> TyName ann -> Type TyName ann -> [Kind ann] -> Quote (Type TyName ann)
-getTyFix ann name patBody argKinds = rename =<< do
+getTyFix ann name patBody argKinds = do
     withSpine <- getWithSpine ann argKinds
     let pat = closeBody ann name patBody argKinds
     tyFixN <- getTyFixN . void $ toRecKind ann argKinds
@@ -130,21 +133,22 @@ getWrap
     :: a
     -> TyName a
     -> Type TyName a
-    -> [TyDecl TyName a]
-    -> Term TyName Name a
-    -> Quote (Term TyName Name a)
-getWrap ann name patBody args term = rename =<< do
-    let argKinds = map tyDeclKind args
+    -> [Kind a]
+    -> Quote ([Type TyName a] -> Term TyName Name a -> Term TyName Name a)
+getWrap ann name patBody argKinds = do
+    -- TODO: the next four lines are almost identical to the ones in 'getTyFix' above.
     withSpine <- getWithSpine ann argKinds
     let pat = closeBody ann name patBody argKinds
     toPatternFunctor <- getToPatternFunctor . void $ toRecKind ann argKinds
-    spine <- getSpine ann args
-    return $ IWrap ann (mkIterTyApp ann (ann <$ toPatternFunctor) [withSpine, pat]) spine term
+    let pat1 = mkIterTyApp ann (ann <$ toPatternFunctor) [withSpine, pat]
+    toSpine <- getToSpine ann
+    -- TODO: check lengths match.
+    return $ IWrap ann pat1 . toSpine . zipWith (flip $ TyDecl ann) argKinds
 
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
 data RecursiveType = RecursiveType
-    { _recursiveWrap :: [Type TyName ()] -> Term TyName Name () -> Quote (Term TyName Name ())
+    { _recursiveWrap :: [Type TyName ()] -> Term TyName Name () -> Term TyName Name ()
     , _recursiveType :: Type TyName ()
     }
 
@@ -154,6 +158,7 @@ makeRecursiveType
     -> Type TyName ()
     -> Quote RecursiveType
 makeRecursiveType name argKinds patBody = do
+    patBody' <- rename patBody
     fixedPat <- getTyFix () name patBody argKinds
-    let wrap args = getWrap () name patBody $ zipWith (TyDecl ()) args argKinds
+    wrap <- getWrap () name patBody' argKinds
     return $ RecursiveType wrap fixedPat
