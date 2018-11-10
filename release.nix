@@ -36,15 +36,16 @@ let
   in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
   inherit (plutusPkgs) tests;
-  all-plutus-tests.x86_64-linux = makePlutusTestRuns "x86_64-linux";
+  all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);
   required = pkgs.lib.hydraJob (pkgs.releaseTools.aggregate {
     name = "plutus-required-checks";
     constituents =
       let
         allLinux = x: map (system: x.${system}) [ "x86_64-linux" ];
+        all = x: map (system: x.${system}) supportedSystems;
       in
     [
-      (builtins.concatLists (map lib.attrValues (allLinux jobsets.all-plutus-tests)))
+      (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests)))
       jobsets.tests.hlint
       jobsets.tests.shellcheck
       jobsets.tests.stylishHaskell
