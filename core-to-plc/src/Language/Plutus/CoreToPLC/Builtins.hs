@@ -1,8 +1,35 @@
 -- | Primitive names and functions for working with Plutus Core builtins.
-module Language.Plutus.CoreToPLC.Builtins where
+module Language.Plutus.CoreToPLC.Builtins (
+                                -- * Bytestring builtins
+                                concatenate
+                                , takeByteString
+                                , dropByteString
+                                , sha2_256
+                                , sha3_256
+                                , verifySignature
+                                , equalsByteString
+                                -- * Blockchain builtins
+                                , txhash
+                                , blocknum
+                                -- * Integer builtins
+                                , addInteger
+                                , subtractInteger
+                                , multiplyInteger
+                                , divideInteger
+                                , remainderInteger
+                                , greaterThanInteger
+                                , greaterThanEqInteger
+                                , lessThanInteger
+                                , lessThanEqInteger
+                                , equalsInteger
+                                -- * Error
+                                , error
+                                ) where
 
 import           Data.ByteString.Lazy
-import           Language.Plutus.CoreToPLC.Error
+import           Prelude                         hiding (error)
+
+import           Language.Plutus.CoreToPLC.Utils (mustBeReplaced)
 
 -- TODO: resizing primitives? better handling of sizes?
 

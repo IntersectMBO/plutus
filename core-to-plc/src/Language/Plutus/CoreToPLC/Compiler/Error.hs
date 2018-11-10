@@ -2,14 +2,13 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-module Language.Plutus.CoreToPLC.Error (
+module Language.Plutus.CoreToPLC.Compiler.Error (
     ConvError
     , Error (..)
     , WithContext (..)
     , withContext
     , withContextM
-    , throwPlain
-    , mustBeReplaced) where
+    , throwPlain) where
 
 import qualified Language.PlutusIR.Compiler as PIR
 
@@ -65,6 +64,3 @@ instance (PP.Pretty a) => PLC.PrettyBy PLC.PrettyConfigPlc (Error a) where
         UnsupportedError e -> "Unsupported:" PP.<+> PP.pretty e
         FreeVariableError e -> "Used but not defined in the current conversion:" PP.<+> PP.pretty e
         ValueRestrictionError e -> "Violation of the value restriction:" PP.<+> PP.pretty e
-
-mustBeReplaced :: a
-mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"
