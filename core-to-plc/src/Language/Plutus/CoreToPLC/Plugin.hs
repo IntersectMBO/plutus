@@ -27,6 +27,7 @@ import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusIR                           as PIR
 import qualified Language.PlutusIR.Compiler                  as PIR
+import qualified Language.PlutusIR.Optimizer.DeadCode        as PIR
 
 import           Language.Haskell.TH.Syntax                  as TH
 
@@ -134,11 +135,17 @@ qqMarkerType vtype = do
     (_, o) <- GHC.splitFunTy_maybe ty'
     pure o
 
-makePrimitiveMap :: [(TH.Name, a)] -> GHC.CoreM (Map.Map GHC.Name a)
-makePrimitiveMap associations = do
-    mapped <- forM associations $ \(name, term) -> do
+-- | Make a 'BuiltinNameInfo' mapping the given set of TH names to their
+-- 'GHC.TyThing's for later reference.
+makePrimitiveNameInfo :: [TH.Name] -> GHC.CoreM BuiltinNameInfo
+makePrimitiveNameInfo names = do
+    mapped <- forM names $ \name -> do
         ghcNameMaybe <- GHC.thNameToGhcName name
-        pure $ fmap (, term) ghcNameMaybe
+        case ghcNameMaybe of
+            Just n -> do
+                thing <- GHC.lookupThing n
+                pure $ Just (name, thing)
+            Nothing -> pure Nothing
     pure $ Map.fromList (catMaybes mapped)
 
 -- | Converts all the marked expressions in the given binder into PLC literals.
@@ -186,10 +193,10 @@ convertMarkedExprs opts markerName =
 convertExpr :: PluginOptions -> String -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
 convertExpr opts locStr origE resType = do
     flags <- GHC.getDynFlags
-    primTerms <- makePrimitiveMap builtinTermAssociations
-    primTys <- makePrimitiveMap builtinTypeAssociations
+    -- We need to do this out here, since it has to run in CoreM
+    nameInfo <- makePrimitiveNameInfo builtinNames
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
-              (pirP::PIRProgram) <- PIR.Program () . PIR.embedIntoIR <$> convExprWithDefs origE
+              (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> convExprWithDefs origE
               (plcP::PLCProgram) <- convertErrors (NoContext . PIRError) $ void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ convertErrors (NoContext . PLCError) $ do
                   annotated <- PLC.annotateProgram plcP
@@ -198,11 +205,10 @@ convertExpr opts locStr origE resType = do
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
             ccFlags=flags,
-            ccPrimTerms=primTerms,
-            ccPrimTypes=primTys,
+            ccBuiltinNameInfo=nameInfo,
             ccScopes=initialScopeStack
             }
-        initialState = ConvertingState Map.empty Map.empty
+        initialState = ConvertingState mempty mempty
     case runConverting context initialState result of
         Left s ->
             let shown = show $ PP.pretty s in
@@ -212,6 +218,15 @@ convertExpr opts locStr origE resType = do
             else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
         -- TODO: get the PIR into the PlcCode somehow (need serialization)
         Right (_, plcP) -> do
+            -- this is useful as debug printing until we store the PIR properly
+            {-
+            let pirPrinted = show $ PIR.prettyDef pirP
+            GHC.debugTraceMsg $
+                "Successfully converted GHC core expression:" GHC.$+$
+                GHC.ppr origE GHC.$+$
+                "Resulting PIR term is:" GHC.$+$
+                GHC.text pirPrinted
+            -}
             let serialized = serialise plcP
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
             let (word8s :: [Word]) = fromIntegral <$> BSL.unpack serialized

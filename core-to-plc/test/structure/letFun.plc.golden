@@ -1,18 +1,86 @@
 (program 1.0.0
-  (lam
-    ds_3
-    [(con integer) (con 64)]
-    (lam
-      ds_4
-      [(con integer) (con 64)]
+  [
+    [
       [
-        (lam
-          z_5
-          [(con integer) (con 64)]
-          [ [ { (con equalsInteger) (con 64) } ds_3 ] z_5 ]
+        {
+          (abs
+            Bool_78
+            (type)
+            (lam
+              True_79
+              Bool_78
+              (lam
+                False_80
+                Bool_78
+                (lam
+                  Bool_match_81
+                  (fun Bool_78 (all out_Bool_82 (type) (fun out_Bool_82 (fun out_Bool_82 out_Bool_82))))
+                  [
+                    (lam
+                      equalsInteger_83
+                      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_78))
+                      (lam
+                        ds_84
+                        [(con integer) (con 64)]
+                        (lam
+                          ds_85
+                          [(con integer) (con 64)]
+                          [
+                            (lam
+                              z_86
+                              [(con integer) (con 64)]
+                              [ [ equalsInteger_83 ds_84 ] z_86 ]
+                            )
+                            ds_85
+                          ]
+                        )
+                      )
+                    )
+                    (lam
+                      arg_87
+                      [(con integer) (con 64)]
+                      (lam
+                        arg_88
+                        [(con integer) (con 64)]
+                        [
+                          (lam
+                            b_89
+                            (all a_90 (type) (fun a_90 (fun a_90 a_90)))
+                            [ [ { b_89 Bool_78 } True_79 ] False_80 ]
+                          )
+                          [ [ { (con equalsInteger) (con 64) } arg_87 ] arg_88 ]
+                        ]
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+          )
+          (all out_Bool_91 (type) (fun out_Bool_91 (fun out_Bool_91 out_Bool_91)))
+        }
+        (abs
+          out_Bool_92
+          (type)
+          (lam
+            case_True_93
+            out_Bool_92
+            (lam case_False_94 out_Bool_92 case_True_93)
+          )
         )
-        ds_4
       ]
+      (abs
+        out_Bool_95
+        (type)
+        (lam
+          case_True_96 out_Bool_95 (lam case_False_97 out_Bool_95 case_False_97)
+        )
+      )
+    ]
+    (lam
+      x_98
+      (all out_Bool_99 (type) (fun out_Bool_99 (fun out_Bool_99 out_Bool_99)))
+      x_98
     )
-  )
+  ]
 )

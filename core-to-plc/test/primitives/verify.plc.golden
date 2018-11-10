@@ -1,23 +1,102 @@
 (program 1.0.0
-  (lam
-    ds_3
-    [(con bytestring) (con 64)]
-    (lam
-      ds_4
-      [(con bytestring) (con 64)]
-      (lam
-        ds_5
-        [(con bytestring) (con 64)]
-        [
-          [
-            [
-              { { { (con verifySignature) (con 64) } (con 64) } (con 64) } ds_3
-            ]
-            ds_4
-          ]
-          ds_5
-        ]
+  [
+    [
+      [
+        {
+          (abs
+            Bool_78
+            (type)
+            (lam
+              True_79
+              Bool_78
+              (lam
+                False_80
+                Bool_78
+                (lam
+                  Bool_match_81
+                  (fun Bool_78 (all out_Bool_82 (type) (fun out_Bool_82 (fun out_Bool_82 out_Bool_82))))
+                  [
+                    (lam
+                      verifySignature_83
+                      (fun [(con bytestring) (con 256)] (fun [(con bytestring) (con 256)] (fun [(con bytestring) (con 256)] Bool_78)))
+                      (lam
+                        ds_84
+                        [(con bytestring) (con 256)]
+                        (lam
+                          ds_85
+                          [(con bytestring) (con 256)]
+                          (lam
+                            ds_86
+                            [(con bytestring) (con 256)]
+                            [ [ [ verifySignature_83 ds_84 ] ds_85 ] ds_86 ]
+                          )
+                        )
+                      )
+                    )
+                    (lam
+                      arg_87
+                      [(con bytestring) (con 256)]
+                      (lam
+                        arg_88
+                        [(con bytestring) (con 256)]
+                        (lam
+                          arg_89
+                          [(con bytestring) (con 256)]
+                          [
+                            (lam
+                              b_90
+                              (all a_91 (type) (fun a_91 (fun a_91 a_91)))
+                              [ [ { b_90 Bool_78 } True_79 ] False_80 ]
+                            )
+                            [
+                              [
+                                [
+                                  {
+                                    {
+                                      { (con verifySignature) (con 256) }
+                                      (con 256)
+                                    }
+                                    (con 256)
+                                  }
+                                  arg_87
+                                ]
+                                arg_88
+                              ]
+                              arg_89
+                            ]
+                          ]
+                        )
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+          )
+          (all out_Bool_92 (type) (fun out_Bool_92 (fun out_Bool_92 out_Bool_92)))
+        }
+        (abs
+          out_Bool_93
+          (type)
+          (lam
+            case_True_94
+            out_Bool_93
+            (lam case_False_95 out_Bool_93 case_True_94)
+          )
+        )
+      ]
+      (abs
+        out_Bool_96
+        (type)
+        (lam
+          case_True_97 out_Bool_96 (lam case_False_98 out_Bool_96 case_False_98)
+        )
       )
+    ]
+    (lam
+      x_99
+      (all out_Bool_100 (type) (fun out_Bool_100 (fun out_Bool_100 out_Bool_100)))
+      x_99
     )
-  )
+  ]
 )

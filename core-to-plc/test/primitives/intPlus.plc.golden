@@ -1,11 +1,14 @@
 (program 1.0.0
-  (lam
-    ds_2
-    [(con integer) (con 64)]
+  [
     (lam
-      ds_3
-      [(con integer) (con 64)]
-      [ [ { (con addInteger) (con 64) } ds_2 ] ds_3 ]
+      addInteger_69
+      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+      (lam
+        ds_70
+        [(con integer) (con 64)]
+        (lam ds_71 [(con integer) (con 64)] [ [ addInteger_69 ds_70 ] ds_71 ])
+      )
     )
-  )
+    { (con addInteger) (con 64) }
+  ]
 )
