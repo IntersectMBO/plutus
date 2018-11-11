@@ -198,7 +198,8 @@
     \begin{prooftree}
         \alwaysNoLine
         \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
+        \UnaryInfC{\(D_i = \subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}\)}
         \alwaysSingleLine
         \RightLabel{builtin}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0, ..., A_m}{M_0, ..., M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}
