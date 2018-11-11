@@ -43,11 +43,11 @@ newtype Environment = Environment (IntMap Loc)
 
 data Frame
     = FrameDelayedArg Closure                    -- Tells the machine that we've got back to N after evaluating M in [M N]
-    | FrameMark Loc                              -- Tells the machine that we've finished evaluating a delayed term in the heap
     | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
     | FrameUnwrap                                -- ^ @(unwrap _)@
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
       deriving (Show)
+
 
 {- Suppose we come to [M N]: we want to save N and the current
    environment, then evaluate M to get a value (lambda/builtin) like \x.e
@@ -85,7 +85,7 @@ lookupLoc name (Environment env) =
 
 
 data HeapEntry =
-    Evaluated (Plain Term) -- Should really be Value
+    Evaluated   Closure
   | Unevaluated Closure
 
 data Heap = Heap {
@@ -116,38 +116,39 @@ lookupHeap l (Heap h _) =
       Just e  -> e
       Nothing -> error $ "Missing heap location in lookupHeap: " ++ show l  -- This should never happen
 
-computeL ::DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
+computeL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
 computeL nms ctx heap cl@(Closure t env) =
-    trace (show env) $
     case t of
-      TyInst _ fun ty      -> trace "comp: tyinst" $ computeL nms (FrameTyInstArg ty : ctx)                 heap (Closure fun env) -- fun isn't necessarily a function
-      Apply _ fun arg      -> trace ("comp: apply " ++ show fun) $ computeL nms (FrameDelayedArg (Closure arg env) : ctx) heap (Closure fun env)
-      Wrap ann tyn ty term -> trace "comp: wrap" $ computeL nms (FrameWrap ann tyn ty : ctx)              heap (Closure term env)
-      Unwrap _ term        -> trace "comp: unwrap" $ computeL nms (FrameUnwrap : ctx)                       heap (Closure term env)
-      TyAbs{}              -> trace "comp: tyabs" $ returnL  nms ctx heap cl
-      LamAbs{}             -> trace "comp: lam" $ returnL  nms ctx heap cl
-      Constant{}           -> trace ("comp: const " ++ show t) $ returnL  nms ctx heap cl
+      TyInst _ fun ty      -> computeL nms (FrameTyInstArg ty : ctx)                 heap (Closure fun env)
+      Apply _ fun arg      -> computeL nms (FrameDelayedArg (Closure arg env) : ctx) heap (Closure fun env)
+      Wrap ann tyn ty term -> computeL nms (FrameWrap ann tyn ty : ctx)              heap (Closure term env)
+      Unwrap _ term        -> computeL nms (FrameUnwrap : ctx)                       heap (Closure term env)
+      TyAbs{}              -> returnL  nms ctx heap cl
+      LamAbs{}             -> returnL  nms ctx heap cl
+      Constant{}           -> returnL  nms ctx heap cl
       Error{}              -> Failure
-      Var _ name           -> trace "comp: var" $ evalVar nms ctx heap name env
+      Var _ name           -> let l = lookupLoc name env
+                              in case lookupHeap l heap of
+                                   Evaluated cl   -> returnL nms ctx heap cl
+                                   Unevaluated cl ->
+                                       case computeL nms [] heap cl
+                                       of Success cl' heap' ->
+                                              let heap'' = modifyHeap l (Evaluated cl') heap'
+                                                  -- Leave this out to make the machine call-by-name (really slow)
+                                              in returnL nms ctx heap'' cl'
+                                          Failure           -> Failure
 
-evalVar :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Name() -> Environment -> LMachineResult
-evalVar nms ctx heap name env =
-    let l = lookupLoc name env
-    in case lookupHeap l heap of
-         Evaluated v    -> returnL nms ctx heap (Closure v env)
-         Unevaluated cl -> computeL nms (FrameMark l : ctx) heap cl -- ####### What about the environment in this case?
-         -- Reduce the entry to a value, leaving a mark on the stack so we know when we've finished
+-- | Return a closure containing a value. Ideally the fact that we've got a value would be enforced in the (Haskell) types
+-- Values still have to be contained in closures.  We could have something like v = \x.y,
+-- where y is bound in an environment.  If we ever go on to apply v, we'll need the value of x.
 
-
-returnL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult  -- The closure here should contain a value
-returnL nms [] heap res                                                        = trace "ret: success" $ Success res heap
-returnL nms (FrameTyInstArg ty        : ctx) heap cl                           = trace "ret: tyinst" $ instantiateEvaluate nms ctx heap ty cl
-returnL nms (FrameDelayedArg argCl    : ctx) heap cl                           = trace "ret: arg" $ evaluateFun nms ctx heap cl argCl
-returnL nms (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = trace "ret: wrap" $ returnL nms ctx heap $ Closure (Wrap ann tyn ty v) env
-returnL nms (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = trace "ret: unwrap" $ returnL nms ctx heap (Closure t env)
+returnL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
+returnL nms [] heap res                                                        = Success res heap
+returnL nms (FrameTyInstArg ty        : ctx) heap cl                           = instantiateEvaluate nms ctx heap ty cl
+returnL nms (FrameDelayedArg argCl    : ctx) heap cl                           = evaluateFun nms ctx heap cl argCl
+returnL nms (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL nms ctx heap $ Closure (Wrap ann tyn ty v) env
+returnL nms (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL nms ctx heap (Closure t env)
 returnL nms (FrameUnwrap              : ctx) _    (Closure term _)             = error "throw $ MachineException NonWrapUnwrappedMachineError term"
-returnL nms (FrameMark  l             : ctx) heap cl@(Closure v env)           = trace "ret: mark" $ let heap' = modifyHeap l (Evaluated v) heap
-                                                                                 in returnL nms ctx heap' cl
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -157,28 +158,23 @@ returnL nms (FrameMark  l             : ctx) heap cl@(Closure v env)           =
 -- depending on whether 'BuiltinName' is saturated or not.
 
 evaluateFun :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> Closure-> LMachineResult
-evaluateFun nms ctx heap (Closure fun funEnv) argCl =
+evaluateFun nms ctx heap (Closure fun funEnv) argCl@(Closure _ argEnv) =
     case fun of
       LamAbs _ var _ body ->
           let (l, heap') = insertInHeap argCl heap
               env' = updateEnvironment (unUnique $ nameUnique var) l funEnv
           in
-            trace ("Inserted "
-                      ++ show(nameString var)
-                      ++ "/"
-                      ++ show (unUnique $ nameUnique var)
-                      ++ " at "
-                      ++ show l) $
-          computeL nms ctx heap' (Closure body env')
+ -- nameUnique var) ++ " -> " ++ show l ++ ", env = " ++ show env') $
+                 computeL nms ctx heap' (Closure body env')
 
       _ ->
           -- Not a lambda: look for evaluation of a built-in function, possibly with some args already supplied.
           -- We have to force the arguments, which means that we need to get the new heap back as well.
           -- This bit is messy but should be much easier when we have n-ary application for builtins.
-
           case computeL nms [] heap argCl of
             -- Force the argument, but only at the top level.
-            -- Can we do this on the existing stack? Probably not, because we're not in the usual compute phase here.
+            -- This is a bit of a hack.  We're not in the main compute/return process here.
+            -- We're preserving ctx, the context at entry, and we'll use that when we return.
             Failure -> Failure
             Success (Closure arg' env') heap' ->
                 -- FIXME: we're throwing away env' here, but we have to because the builtin interface doesn't know
@@ -193,7 +189,9 @@ evaluateFun nms ctx heap (Closure fun funEnv) argCl =
                      Just (IterApp headName spine) ->
                          case runQuote $ applyStagedBuiltinName nms headName spine of
                            ConstAppSuccess term' -> returnL nms ctx heap' (Closure term' funEnv)
-                           ConstAppStuck         -> returnL nms ctx heap' (Closure term funEnv)
+                           ConstAppStuck         -> returnL nms ctx heap' (Closure term  funEnv)
+                           -- It's arguable what the env should be here. Again that depends on what the built-in can return.
+                           -- Ideally it'd always return a closed term, so the environment should be irrelevant.
                            ConstAppFailure       -> error $ "ConstAppFailure" ++ show term
                            ConstAppError err     -> error "throw $ MachineException (ConstAppMachineError err) term"
 
@@ -235,5 +233,5 @@ evaluateL nms t = computeL nms [] emptyHeap (Closure t (Environment IntMap.empty
 runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
 runL nms (Program _ _ term) =
     case evaluateL nms term of
-      Success (Closure r _) (Heap _ sz) -> trace ("Heap size = " ++ show sz) $ EvaluationSuccess r
+      Success (Closure r e) (Heap _ sz) -> trace ("Heap size = " ++ show sz ++ "\n env = " ++ show e) $ EvaluationSuccess r
       Failure                           -> EvaluationFailure
