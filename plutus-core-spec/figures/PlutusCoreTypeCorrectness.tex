@@ -6,7 +6,7 @@
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
                      &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
-                     &         &     & \Gamma, \termJ{x}{S}        & \textrm{term variable} \\
+                     &         &     & \Gamma, \termJ{x}{A}        & \textrm{term variable} \\
     \end{array}\]
 
 
@@ -20,7 +20,7 @@
 
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{S}}{\termJ{x}{S}}\)}
+        \UnaryInfC{\(\ctxni{\Gamma, \termJ{x}{A}}{\termJ{x}{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -35,14 +35,14 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{S}}\)}
-        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{S}}\)}
+        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
+        \UnaryInfC{\(\ctxni{\Gamma, \typeJ{\beta}{J}}{\termJ{x}{A}}\)}
     \end{prooftree}
 
      \begin{prooftree}
-        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{S}}\)}
+        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
         \AxiomC{\(x \not= y\)}
-        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{T}}{\termJ{x}{S}}\)}
+        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
     \end{prooftree}
 
 
@@ -63,8 +63,8 @@
     \begin{prooftree}
         \AxiomC{\(\validJ{\Gamma}\)}
         \AxiomC{$x$ is free in $\Gamma$}
-        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{S}{\typeK{}}}\)}
-        \TrinaryInfC{\(\Gamma, \termJ{x}{S}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \TrinaryInfC{\(\Gamma, \termJ{x}{A}\)}
     \end{prooftree}
 
 
