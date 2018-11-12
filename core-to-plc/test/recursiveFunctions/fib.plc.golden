@@ -393,7 +393,8 @@
                                               [
                                                 [
                                                   {
-                                                    (builtin equalsInteger) (con 64)
+                                                    (builtin equalsInteger)
+                                                    (con 64)
                                                   }
                                                   arg_224
                                                 ]
