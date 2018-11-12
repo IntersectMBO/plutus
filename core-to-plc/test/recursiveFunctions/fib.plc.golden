@@ -13,11 +13,11 @@
               (fun unit_154 (all out_unit_157 (type) (fun out_unit_157 out_unit_157)))
               [
                 (lam
-                  subtractInteger_158
+                  addInteger_158
                   (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
                   [
                     (lam
-                      addInteger_159
+                      subtractInteger_159
                       (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
                       [
                         [
@@ -330,12 +330,12 @@
                                                                     unit_154
                                                                     [
                                                                       [
-                                                                        addInteger_159
+                                                                        addInteger_158
                                                                         [
                                                                           fib_218
                                                                           [
                                                                             [
-                                                                              subtractInteger_158
+                                                                              subtractInteger_159
                                                                               n_219
                                                                             ]
                                                                             (con
@@ -348,7 +348,7 @@
                                                                         fib_218
                                                                         [
                                                                           [
-                                                                            subtractInteger_158
+                                                                            subtractInteger_159
                                                                             n_219
                                                                           ]
                                                                           (con
@@ -436,10 +436,10 @@
                         )
                       ]
                     )
-                    { (con addInteger) (con 64) }
+                    { (con subtractInteger) (con 64) }
                   ]
                 )
-                { (con subtractInteger) (con 64) }
+                { (con addInteger) (con 64) }
               ]
             )
           )
