@@ -197,7 +197,7 @@ irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mo
 atPattern :: PlcCode
 atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
 
-data MyMonoRecord = MyMonoRecord { a :: Int , b :: Int} deriving Generic
+data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int} deriving Generic
 
 monoRecord :: PlcCode
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
@@ -305,6 +305,7 @@ errors = testNested "errors" [
     goldenPlcCatch "integer" integer
     , goldenPlcCatch "free" free
     , goldenPlcCatch "valueRestriction" valueRestriction
+    , goldenPlcCatch "recordSelector" recordSelector
   ]
 
 integer :: PlcCode
@@ -317,6 +318,9 @@ free = plc @"free" (True && False)
 -- at different types to prevent the obvious specialization.
 valueRestriction :: PlcCode
 valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Int))
+
+recordSelector :: PlcCode
+recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
 
 instance LiftPlc (MyMonoData)
 instance LiftPlc (MyMonoRecord)
