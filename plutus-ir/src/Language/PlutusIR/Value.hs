@@ -11,6 +11,7 @@ isTermValue = \case
     -- Lambdas and constants are always values
     LamAbs {} -> True
     Constant {} -> True
+    Builtin {} -> True
     -- Type abstractions and wraps are values if their bodies are
     TyAbs _ _ _ t -> isTermValue t
     Wrap _ _ _ t -> isTermValue t
