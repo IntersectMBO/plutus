@@ -1,8 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
--- remove when we can use addCorePlugin
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
 
 -- | Most tests for this functionality are in the plugin package, this is mainly just checking that the wiring machinery
 -- works.
