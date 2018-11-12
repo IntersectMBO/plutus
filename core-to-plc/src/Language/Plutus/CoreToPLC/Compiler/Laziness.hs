@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Simulating laziness.
-module Language.Plutus.CoreToPLC.Laziness where
+module Language.Plutus.CoreToPLC.Compiler.Laziness where
 
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Type

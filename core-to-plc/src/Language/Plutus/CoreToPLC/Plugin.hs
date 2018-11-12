@@ -11,12 +11,13 @@
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.PLCTypes
+import           Language.Plutus.CoreToPLC.Utils
 import           Language.Plutus.Lift
 
 import qualified GhcPlugins                                  as GHC
