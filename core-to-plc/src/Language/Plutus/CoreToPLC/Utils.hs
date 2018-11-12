@@ -3,20 +3,10 @@
 
 module Language.Plutus.CoreToPLC.Utils where
 
-import qualified Language.PlutusCore  as PLC
-import qualified Language.PlutusIR    as PIR
-
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text            as T
-import qualified Data.Text.Encoding   as TE
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusIR   as PIR
 
 import           GHC.Natural
-
-strToBs :: String -> BSL.ByteString
-strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
-
-bsToStr :: BSL.ByteString -> String
-bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 instSize :: Natural -> PIR.Term tyname name () -> PIR.Term tyname name ()
 instSize n t = PIR.TyInst () t (PLC.TyInt () n)
@@ -36,3 +26,6 @@ haskellIntSize = 64
 -- This is mostly so they are compatible with the output of the SHA functions
 haskellBSSize :: Natural
 haskellBSSize = 256
+
+mustBeReplaced :: a
+mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"

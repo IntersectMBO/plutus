@@ -9,13 +9,13 @@ module Language.Plutus.CoreToPLC.Compiler.Expr (convExpr, convExprWithDefs, conv
 import           Language.Plutus.CoreToPLC.Compiler.Binders
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Definitions
+import           Language.Plutus.CoreToPLC.Compiler.Error
+import           Language.Plutus.CoreToPLC.Compiler.Laziness
 import           Language.Plutus.CoreToPLC.Compiler.Names
 import           Language.Plutus.CoreToPLC.Compiler.Primitives
 import           Language.Plutus.CoreToPLC.Compiler.Type
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Laziness
 import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.Utils
 

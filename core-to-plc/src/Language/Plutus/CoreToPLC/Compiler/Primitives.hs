@@ -9,9 +9,9 @@ module Language.Plutus.CoreToPLC.Compiler.Primitives where
 
 import qualified Language.Plutus.CoreToPLC.Builtins          as Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PIRTypes
 
 import qualified GhcPlugins                                  as GHC

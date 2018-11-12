@@ -17,13 +17,13 @@ module Language.Plutus.CoreToPLC.Compiler.Builtins (
 
 import qualified Language.Plutus.CoreToPLC.Builtins                  as Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Definitions
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Names
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Type
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
 import           Language.Plutus.CoreToPLC.Compiler.ValueRestriction
-import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.Utils
 
