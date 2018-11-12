@@ -49,6 +49,7 @@ import Language.PlutusCore.Constant.Make
     lam { LexKeyword $$ KwLam }
     fix { LexKeyword $$ KwFix }
     con { LexKeyword $$ KwCon }
+    builtin { LexKeyword $$ KwBuiltin }
     fun { LexKeyword $$ KwFun }
     all { LexKeyword $$ KwAll }
     size { LexKeyword $$ KwSize }
@@ -94,8 +95,7 @@ Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
 Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (tkNat $1) (tkNat $3) (tkNat $5) }
 
-Builtin : builtinVar { BuiltinName (loc $1) (tkBuiltin $1) }
-        | naturalLit exclamation integerLit {% handleInteger (loc $1) (tkNat $1) (tkInt $3) }
+Constant : naturalLit exclamation integerLit {% handleInteger (loc $1) (tkNat $1) (tkInt $3) }
         | naturalLit exclamation naturalLit {% handleInteger (loc $1) (tkNat $1) (fromIntegral (tkNat $3)) }
         | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (tkNat $1) (tkBytestring $3) } -- this is kinda broken but I'm waiting for a new spec
         | naturalLit { BuiltinSize (loc $1) (tkNat $1) }
@@ -109,7 +109,8 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openBrace Term some(Type) closeBrace { tyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
-     | openParen con Builtin closeParen { Constant $2 $3 }
+     | openParen con Constant closeParen { Constant $2 $3 }
+     | openParen builtin builtinVar closeParen { Builtin $2 (BuiltinName (loc $3) (tkBuiltin $3)) }
      | openParen wrap TyName Type Term closeParen { Wrap $2 $3 $4 $5 }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }

@@ -61,7 +61,7 @@ denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin t
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName :: TypedBuiltinName a r -> a -> Denotation BuiltinName size r
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name (Constant () . BuiltinName ()) meta scheme
+    Denotation name (Builtin () . BuiltinName ()) meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation :: TypedBuiltin () r -> Denotation object Size r -> DenotationContext -> DenotationContext

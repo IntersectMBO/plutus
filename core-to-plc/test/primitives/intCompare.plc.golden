@@ -42,7 +42,8 @@
                             [ [ { b_87 Bool_77 } True_78 ] False_79 ]
                           )
                           [
-                            [ { (con lessThanInteger) (con 64) } arg_85 ] arg_86
+                            [ { (builtin lessThanInteger) (con 64) } arg_85 ]
+                            arg_86
                           ]
                         ]
                       )

@@ -107,6 +107,7 @@ processTerm term = case term of
     LamAbs x n ty t -> LamAbs x n <$> processTy ty <*> processTerm t
     Apply x t1 t2 -> Apply x <$> processTerm t1 <*> processTerm t2
     Constant x c -> pure $ Constant x c
+    Builtin x bi -> pure $ Builtin x bi
     TyInst x t ty -> TyInst x <$> processTerm t <*> processTy ty
     Error x ty -> Error x <$> processTy ty
     Wrap x n ty t -> Wrap x n <$> processTy ty <*> processTerm t

@@ -49,6 +49,7 @@ checkT (Apply l t t')    = Apply l <$> checkT t <*> checkT t'
 checkT (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
 checkT t@Var{}           = pure t
 checkT t@Constant{}      = pure t
+checkT t@Builtin{}       = pure t
 
 isTermValue :: Term tyname name a -> Bool
 isTermValue = isRight . termValue

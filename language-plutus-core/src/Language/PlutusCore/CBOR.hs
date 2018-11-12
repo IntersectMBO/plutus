@@ -140,19 +140,24 @@ instance Serialise DynamicBuiltinName where
     encode (DynamicBuiltinName name) = encode name
     decode = DynamicBuiltinName <$> decode
 
-instance Serialise (Constant ()) where
-    encode (BuiltinInt _ n i)     = fold [ encodeTag 0, encode n, encodeInteger i ]
-    encode (BuiltinBS _ n bs)     = fold [ encodeTag 1, encode n, encodeBytes (BSL.toStrict bs) ]
-    encode (BuiltinSize _ n)      = encodeTag 2 <> encode n
-    encode (BuiltinName _ bn)     = encodeTag 3 <> encode bn
-    encode (DynBuiltinName _ dbn) = encodeTag 4 <> encode dbn
+instance Serialise (Builtin ()) where
+    encode (BuiltinName _ bn)     = encodeTag 0 <> encode bn
+    encode (DynBuiltinName _ dbn) = encodeTag 1 <> encode dbn
 
+    decode = go =<< decodeTag
+        where go 0 = BuiltinName () <$> decode
+              go 1 = DynBuiltinName () <$> decode
+              go _ = fail "Failed to decode Builtin ()"
+
+
+instance Serialise (Constant ()) where
+    encode (BuiltinInt _ n i) = fold [ encodeTag 0, encode n, encodeInteger i ]
+    encode (BuiltinBS _ n bs) = fold [ encodeTag 1, encode n, encodeBytes (BSL.toStrict bs) ]
+    encode (BuiltinSize _ n)  = encodeTag 2 <> encode n
     decode = go =<< decodeTag
         where go 0 = BuiltinInt () <$> decode <*> decodeInteger
               go 1 = BuiltinBS () <$> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinSize () <$> decode
-              go 3 = BuiltinName () <$> decode
-              go 4 = DynBuiltinName () <$> decode
               go _ = fail "Failed to decode Constant ()"
 
 instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname name ()) where
@@ -166,6 +171,7 @@ instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname 
         a (UnwrapF _ t)      = encodeTag 6 <> t
         a (WrapF _ tn ty t)  = encodeTag 7 <> encode tn <> encode ty <> t
         a (ErrorF _ ty)      = encodeTag 8 <> encode ty
+        a (BuiltinF _ bi)    = encodeTag 9 <> encode bi
 
     decode = go =<< decodeTag
         where go 0 = Var () <$> decode
@@ -177,6 +183,7 @@ instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname 
               go 6 = Unwrap () <$> decode
               go 7 = Wrap () <$> decode <*> decode <*> decode
               go 8 = Error () <$> decode
+              go 9 = Builtin () <$> decode
               go _ = fail "Failed to decode Term TyName Name ()"
 
 instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Program tyname name ()) where

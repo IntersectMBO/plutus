@@ -75,7 +75,7 @@
                                       )
                                       [
                                         [
-                                          { (con equalsInteger) (con 64) }
+                                          { (builtin equalsInteger) (con 64) }
                                           arg_97
                                         ]
                                         arg_98

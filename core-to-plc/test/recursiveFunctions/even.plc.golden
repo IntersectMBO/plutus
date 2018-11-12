@@ -478,7 +478,9 @@
                                           )
                                           [
                                             [
-                                              { (con equalsInteger) (con 64) }
+                                              {
+                                                (builtin equalsInteger) (con 64)
+                                              }
                                               arg_273
                                             ]
                                             arg_274
@@ -520,7 +522,7 @@
                     )
                   ]
                 )
-                { (con subtractInteger) (con 64) }
+                { (builtin subtractInteger) (con 64) }
               ]
             )
           )

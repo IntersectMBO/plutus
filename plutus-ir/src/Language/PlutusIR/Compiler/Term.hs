@@ -33,13 +33,14 @@ compileTerm = \case
     LamAbs x n ty t -> PLC.LamAbs x n ty <$> compileTerm t
     Apply x t1 t2 -> PLC.Apply x <$> compileTerm t1 <*> compileTerm t2
     Constant x c -> pure $ PLC.Constant x c
+    Builtin x bi -> pure $ PLC.Builtin x bi
     TyInst x t ty -> PLC.TyInst x <$> compileTerm t <*> pure ty
     Error x ty -> pure $ PLC.Error x ty
     Wrap x tn ty t -> PLC.Wrap x tn ty <$> compileTerm t
     Unwrap x t -> PLC.Unwrap x <$> compileTerm t
 
 compileNonRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
-compileNonRecBindings r body bs = foldM (compileSingleBinding r) body bs
+compileNonRecBindings r = foldM (compileSingleBinding r)
 
 compileRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecBindings r body bs =
