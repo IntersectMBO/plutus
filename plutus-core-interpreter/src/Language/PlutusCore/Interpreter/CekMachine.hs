@@ -94,7 +94,7 @@ lookupDynamicBuiltinName dynName = do
     case Map.lookup dynName means of
         Nothing   -> throwError $ MachineException err term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameError dynName
-            term = Constant () $ DynBuiltinName () dynName
+            term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
@@ -113,6 +113,7 @@ computeCek con (Unwrap _ term)        = computeCek (FrameUnwrap : con) term
 computeCek con tyAbs@TyAbs{}          = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}        = returnCek con lamAbs
 computeCek con constant@Constant{}    = returnCek con constant
+computeCek con bi@Builtin{} = returnCek con bi
 computeCek _   Error{}                = pure EvaluationFailure
 computeCek con (Var _ varName)        = do
     Closure newVarEnv term <- lookupVarName varName

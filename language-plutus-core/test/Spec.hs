@@ -48,6 +48,7 @@ compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == 
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Constant _ x) (Constant _ y)          = x == y
+compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
@@ -81,7 +82,7 @@ propCBOR = property $ do
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
-    let nullPosn = fmap (pure emptyPosn)
+    let nullPosn = (emptyPosn <$)
         reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
         proc = nullPosn <$> parse (reprint prog)
         compared = and (compareProgram (nullPosn prog) <$> proc)

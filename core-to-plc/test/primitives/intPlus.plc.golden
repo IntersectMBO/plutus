@@ -9,6 +9,6 @@
         (lam ds_71 [(con integer) (con 64)] [ [ addInteger_69 ds_70 ] ds_71 ])
       )
     )
-    { (con addInteger) (con 64) }
+    { (builtin addInteger) (con 64) }
   ]
 )

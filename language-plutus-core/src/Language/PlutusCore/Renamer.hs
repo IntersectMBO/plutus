@@ -82,6 +82,8 @@ annotateT (Apply x t t') =
     Apply x <$> annotateT t <*> annotateT t'
 annotateT (Constant x c) =
     pure (Constant x c)
+annotateT (Builtin x bi) =
+    pure (Builtin x bi)
 annotateT (TyInst x t ty) =
     TyInst x <$> annotateT t <*> annotateTy ty
 annotateT (Wrap x (TyName (Name x' b u@(Unique i))) ty t) = do
@@ -251,6 +253,7 @@ renameTermM (Error ann ty)             = Error ann <$> renameTypeM ty
 renameTermM (TyInst ann body ty)       = TyInst ann <$> renameTermM body <*> renameTypeM ty
 renameTermM (Var ann name)             = Var ann <$> renameNameM name
 renameTermM con@Constant{}             = pure con
+renameTermM bi@Builtin{} = pure bi
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM

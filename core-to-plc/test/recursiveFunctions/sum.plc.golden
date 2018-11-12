@@ -276,7 +276,7 @@
                         ]
                       ]
                     )
-                    { (con addInteger) (con 64) }
+                    { (builtin addInteger) (con 64) }
                   ]
                 )
               )

@@ -19,6 +19,6 @@
         ]
       )
     )
-    { (con multiplyInteger) (con 64) }
+    { (builtin multiplyInteger) (con 64) }
   ]
 )
