@@ -1,0 +1,200 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          unit_108
+          (type)
+          (lam
+            unit_109
+            unit_108
+            (lam
+              p_match_110
+              (fun unit_108 (all out_unit_111 (type) (fun out_unit_111 out_unit_111)))
+              [
+                [
+                  [
+                    [
+                      {
+                        (abs
+                          MyMonoData_112
+                          (type)
+                          (lam
+                            Mono1_113
+                            (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] MyMonoData_112))
+                            (lam
+                              Mono2_114
+                              (fun [(con integer) (con 64)] MyMonoData_112)
+                              (lam
+                                Mono3_115
+                                (fun [(con integer) (con 64)] MyMonoData_112)
+                                (lam
+                                  MyMonoData_match_116
+                                  (fun MyMonoData_112 (all out_MyMonoData_117 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] out_MyMonoData_117)) (fun (fun [(con integer) (con 64)] out_MyMonoData_117) (fun (fun [(con integer) (con 64)] out_MyMonoData_117) out_MyMonoData_117)))))
+                                  (lam
+                                    ds_118
+                                    MyMonoData_112
+                                    [
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [
+                                                MyMonoData_match_116 ds_118
+                                              ]
+                                              (fun unit_108 [(con integer) (con 64)])
+                                            }
+                                            (lam
+                                              default_arg0_119
+                                              [(con integer) (con 64)]
+                                              (lam
+                                                default_arg1_120
+                                                [(con integer) (con 64)]
+                                                (lam
+                                                  thunk_121
+                                                  unit_108
+                                                  [
+                                                    {
+                                                      (abs
+                                                        e_122
+                                                        (type)
+                                                        (lam
+                                                          thunk_123
+                                                          unit_108
+                                                          (error e_122)
+                                                        )
+                                                      )
+                                                      [(con integer) (con 64)]
+                                                    }
+                                                    unit_109
+                                                  ]
+                                                )
+                                              )
+                                            )
+                                          ]
+                                          (lam
+                                            a_124
+                                            [(con integer) (con 64)]
+                                            (lam thunk_125 unit_108 a_124)
+                                          )
+                                        ]
+                                        (lam
+                                          default_arg0_126
+                                          [(con integer) (con 64)]
+                                          (lam
+                                            thunk_127
+                                            unit_108
+                                            [
+                                              {
+                                                (abs
+                                                  e_128
+                                                  (type)
+                                                  (lam
+                                                    thunk_129
+                                                    unit_108
+                                                    (error e_128)
+                                                  )
+                                                )
+                                                [(con integer) (con 64)]
+                                              }
+                                              unit_109
+                                            ]
+                                          )
+                                        )
+                                      ]
+                                      unit_109
+                                    ]
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                        (all out_MyMonoData_130 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] out_MyMonoData_130)) (fun (fun [(con integer) (con 64)] out_MyMonoData_130) (fun (fun [(con integer) (con 64)] out_MyMonoData_130) out_MyMonoData_130))))
+                      }
+                      (lam
+                        arg_0_131
+                        [(con integer) (con 64)]
+                        (lam
+                          arg_1_132
+                          [(con integer) (con 64)]
+                          (abs
+                            out_MyMonoData_133
+                            (type)
+                            (lam
+                              case_Mono1_134
+                              (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] out_MyMonoData_133))
+                              (lam
+                                case_Mono2_135
+                                (fun [(con integer) (con 64)] out_MyMonoData_133)
+                                (lam
+                                  case_Mono3_136
+                                  (fun [(con integer) (con 64)] out_MyMonoData_133)
+                                  [ [ case_Mono1_134 arg_0_131 ] arg_1_132 ]
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    ]
+                    (lam
+                      arg_0_137
+                      [(con integer) (con 64)]
+                      (abs
+                        out_MyMonoData_138
+                        (type)
+                        (lam
+                          case_Mono1_139
+                          (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] out_MyMonoData_138))
+                          (lam
+                            case_Mono2_140
+                            (fun [(con integer) (con 64)] out_MyMonoData_138)
+                            (lam
+                              case_Mono3_141
+                              (fun [(con integer) (con 64)] out_MyMonoData_138)
+                              [ case_Mono2_140 arg_0_137 ]
+                            )
+                          )
+                        )
+                      )
+                    )
+                  ]
+                  (lam
+                    arg_0_142
+                    [(con integer) (con 64)]
+                    (abs
+                      out_MyMonoData_143
+                      (type)
+                      (lam
+                        case_Mono1_144
+                        (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] out_MyMonoData_143))
+                        (lam
+                          case_Mono2_145
+                          (fun [(con integer) (con 64)] out_MyMonoData_143)
+                          (lam
+                            case_Mono3_146
+                            (fun [(con integer) (con 64)] out_MyMonoData_143)
+                            [ case_Mono3_146 arg_0_142 ]
+                          )
+                        )
+                      )
+                    )
+                  )
+                ]
+                (lam
+                  x_147
+                  (all out_MyMonoData_148 (type) (fun (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] out_MyMonoData_148)) (fun (fun [(con integer) (con 64)] out_MyMonoData_148) (fun (fun [(con integer) (con 64)] out_MyMonoData_148) out_MyMonoData_148))))
+                  x_147
+                )
+              ]
+            )
+          )
+        )
+        (all out_unit_149 (type) (fun out_unit_149 out_unit_149))
+      }
+      (abs out_unit_150 (type) (lam case_unit_151 out_unit_150 case_unit_151))
+    ]
+    (lam x_152 (all out_unit_153 (type) (fun out_unit_153 out_unit_153)) x_152)
+  ]
+)

@@ -34,7 +34,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Data.ByteString.Lazy                           as BSL
-import           Data.List                                      (elemIndex)
+import           Data.List                                      (elem, elemIndex)
 import qualified Data.List.NonEmpty                             as NE
 import           Data.Traversable
 
@@ -102,6 +102,9 @@ convDataConRef dc =
 
         pure $ constrs !! index
 
+isErrorId :: GHC.Id -> Bool
+isErrorId ghcId = ghcId `elem` GHC.errorIds
+
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values
 already.
@@ -122,6 +125,16 @@ into this:
 
 ($fixN i$ (\choose f1 ... fi . choose b_1 ... b_i))
 (\f1 ... fi . result)
+-}
+
+{- Note [GHC runtime errors]
+GHC has a number of runtime errors for things like pattern matching failures and so on.
+
+We just translate these directly into calls to error, throwing away any other information.
+
+Annoyingly, unlike void, we can't mangle the type uniformly to make sure we are safe
+wrt the value restriction (see note [Value restriction]), so we just have to force
+our error call and hope that it doesn't end up somewhere it shouldn't.
 -}
 
 -- Expressions
@@ -158,6 +171,8 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             _ -> convNumMethod (GHC.getName n)
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
+        -- See note [GHC runtime errors]
+        GHC.App (GHC.App (GHC.App (GHC.Var (isErrorId -> True)) _) (GHC.Type t)) _ -> force =<< PIR.TyInst () <$> errorFunc <*> convType t
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just (PIR.VarDecl _ name _)) -> pure $ PIR.Var () name
         -- Special kinds of id
