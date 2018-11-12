@@ -35,7 +35,7 @@ import qualified Data.Map                                        as Map
 type Plain f = f TyName Name ()
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException = MachineException UnknownDynamicBuiltinNameError
+type CekMachineException = MachineException UnknownDynamicBuiltinError
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure

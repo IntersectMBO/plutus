@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
+                                      , DynamicBuiltinType (..)
                                       , DynamicBuiltinName (..)
                                       , StagedBuiltinName (..)
                                       , Version (..)
@@ -28,6 +29,7 @@ import           Numeric                            (showHex)
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
+                 | DynBuiltinType DynamicBuiltinType
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
@@ -89,11 +91,19 @@ which has the desired type signature:
     succInteger : forall s. integer s -> integer s
 -}
 
--- | The type of dynamic builtin functions. I.e. functions that exist on certain chains and do
+-- | The type of dynamic built-in types. I.e. types that exist on certain chains and do
+-- not exist on others. Each 'DynamicBuiltinType' has an associated kind
+-- this allows to kind check dynamic built-in types just like static ones.
+newtype DynamicBuiltinType = DynamicBuiltinType
+    { unDynamicBuiltinType :: T.Text  -- ^ The name of a dynamic built-in type.
+    } deriving (Show, Eq, Ord, Generic)
+      deriving newtype (NFData, Lift)
+
+-- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
--- this allows to type check and evaluate dynamic builtins just like static ones.
+-- this allows to type check and evaluate dynamic built-in names just like static ones.
 newtype DynamicBuiltinName = DynamicBuiltinName
-    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic builtin function.
+    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic built-in function.
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift)
 
@@ -217,6 +227,9 @@ instance Pretty BuiltinName where
     pretty BlockNum             = "blocknum"
     pretty SizeOfInteger        = "sizeOfInteger"
 
+instance Pretty DynamicBuiltinType where
+    pretty (DynamicBuiltinType n) = pretty n
+
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
 
@@ -225,9 +238,10 @@ instance Pretty StagedBuiltinName where
     pretty (DynamicStagedBuiltinName n) = pretty n
 
 instance Pretty TypeBuiltin where
-    pretty TyInteger    = "integer"
-    pretty TyByteString = "bytestring"
-    pretty TySize       = "size"
+    pretty TyInteger                                = "integer"
+    pretty TyByteString                             = "bytestring"
+    pretty TySize                                   = "size"
+    pretty (DynBuiltinType (DynamicBuiltinType ty)) = pretty ty
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

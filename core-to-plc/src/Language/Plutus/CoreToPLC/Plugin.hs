@@ -200,7 +200,7 @@ convertExpr opts locStr origE resType = do
               (plcP::PLCProgram) <- convertErrors (NoContext . PIRError) $ void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ convertErrors (NoContext . PLCError) $ do
                   annotated <- PLC.annotateProgram plcP
-                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
+                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty mempty) annotated
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

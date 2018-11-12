@@ -9,7 +9,7 @@ module Language.PlutusCore.Error
     ( ParseError (..)
     , NormalizationError (..)
     , RenameError (..)
-    , UnknownDynamicBuiltinNameError (..)
+    , UnknownDynamicBuiltinError (..)
     , InternalTypeError (..)
     , TypeError (..)
     , Error (..)
@@ -45,9 +45,9 @@ data RenameError a
     | UnboundTyVar (TyName a)
     deriving (Show, Eq, Generic, NFData)
 
--- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
-newtype UnknownDynamicBuiltinNameError
-    = UnknownDynamicBuiltinNameError DynamicBuiltinName
+-- | This error is returned whenever scope resolution of some dynamic built-in fails.
+newtype UnknownDynamicBuiltinError dyn
+    = UnknownDynamicBuiltinError dyn
     deriving (Show, Eq, Generic)
     deriving newtype (NFData)
 
@@ -61,7 +61,8 @@ data TypeError a
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
-    | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
+    | UnknownDynamicBuiltinName a (UnknownDynamicBuiltinError DynamicBuiltinName)
+    | UnknownDynamicBuiltinType a (UnknownDynamicBuiltinError DynamicBuiltinType)
     | InternalTypeError a (InternalTypeError a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
@@ -125,9 +126,9 @@ instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError 
         ". Type variable" <+> prettyBy config n <+>
         "is not in scope."
 
-instance Pretty UnknownDynamicBuiltinNameError where
-    pretty (UnknownDynamicBuiltinNameError dbn) =
-        "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
+instance Pretty dyn => Pretty (UnknownDynamicBuiltinError dyn) where
+    pretty (UnknownDynamicBuiltinError dyn) =
+        "Scope resolution failed on a dynamic built-in:" <+> pretty dyn
 
 instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
     prettyBy config (OpenTypeOfBuiltin ty con)        =
@@ -154,9 +155,12 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
     prettyBy config (InternalTypeError x err)           =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty x
-    prettyBy _      (UnknownDynamicBuiltinName x udbne) =
-        "Unknown dynamic built-in at" <+> pretty x <>
-        ":" <+> pretty udbne
+    prettyBy _      (UnknownDynamicBuiltinName x err) =
+        "Unknown dynamic built-in name at" <+> pretty x <>
+        ":" <+> pretty err
+    prettyBy _      (UnknownDynamicBuiltinType x err) =
+        "Unknown dynamic built-in type at" <+> pretty x <>
+        ":" <+> pretty err
     prettyBy _      OutOfGas                            = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where

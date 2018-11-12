@@ -145,6 +145,7 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs ->
         return $ Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
     TypedBuiltinBool         -> Just <$> makeBuiltinBool x
+--     TypedBuiltin
 
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and

@@ -62,7 +62,7 @@ module Language.PlutusCore.Constant.Typed
     , typedSizeOfInteger
     ) where
 
-import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
+import           Language.PlutusCore.Lexer.Type       hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
@@ -148,6 +148,7 @@ data Builtin size
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
+    TypedBuiltinDyn   :: Pretty dyn => DynamicBuiltinType -> TypedBuiltin size dyn
 
 -- | A 'TypedBuiltin' packaged together with a value of the type that the 'TypedBuiltin' denotes.
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
@@ -216,6 +217,7 @@ instance Pretty size => Pretty (SizeEntry size) where
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
     pretty TypedBuiltinBool           = "bool"
+    pretty (TypedBuiltinDyn ty)       = pretty ty
 
 instance size ~ Size => Pretty (TypedBuiltinValue size a) where
     pretty (TypedBuiltinValue (TypedBuiltinSized se tbs) x) =
@@ -224,6 +226,7 @@ instance size ~ Size => Pretty (TypedBuiltinValue size a) where
             TypedBuiltinSizedBS   -> prettyBytes x
             TypedBuiltinSizedSize -> pretty      x
     pretty (TypedBuiltinValue TypedBuiltinBool           b) = pretty b
+    pretty (TypedBuiltinValue (TypedBuiltinDyn _)        x) = pretty x
 
 liftOrdering :: Ordering -> GOrdering a a
 liftOrdering LT = GLT
@@ -243,6 +246,7 @@ instance Eq size => GEq (TypedBuiltin size) where
         guard $ size1 == size2
         tbs1 `geq` tbs2
     TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
+    -- A typed built-in is not equal to itself. TODO: do something about it.
     _                            `geq` _                            = Nothing
 
 instance Ord size => GCompare (TypedBuiltin size) where
@@ -256,6 +260,8 @@ instance Ord size => GCompare (TypedBuiltin size) where
     TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
     TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
     TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
+    _                            `gcompare` _                     =
+        error "Do not use me for comparing dynamic built-ins"
 
 -- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
@@ -273,6 +279,7 @@ mapSizeEntryTypedBuiltin
     :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
 mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
+mapSizeEntryTypedBuiltin _ (TypedBuiltinDyn ty)       = TypedBuiltinDyn ty
 
 -- | Alter the 'size' of a @TypedBuiltin size@.
 mapSizeTypedBuiltin
@@ -314,6 +321,8 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
+typedBuiltinToType (TypedBuiltinDyn ty)       =
+    pure . TyBuiltin () $ DynBuiltinType ty
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

@@ -14,17 +14,17 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 instance Serialise TypeBuiltin where
-    encode bi =
-        let i = case bi of
-                TyByteString -> 0
-                TyInteger    -> 1
-                TySize       -> 2
-        in encodeTag i
+    encode bi = case bi of
+        TyByteString      -> encodeTag 0
+        TyInteger         -> encodeTag 1
+        TySize            -> encodeTag 2
+        DynBuiltinType ty -> encodeTag 3 <> encode ty
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
               go 2 = pure TySize
+              go 3 = DynBuiltinType <$> decode
               go _ = fail "Failed to decode TypeBuiltin"
 
 instance Serialise BuiltinName where
@@ -135,6 +135,10 @@ instance Serialise (tyname ()) => Serialise (Type tyname ()) where
               go 6 = TyLam () <$> decode <*> decode <*> decode
               go 7 = TyApp () <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
+
+instance Serialise DynamicBuiltinType where
+    encode (DynamicBuiltinType ty) = encode ty
+    decode = DynamicBuiltinType <$> decode
 
 instance Serialise DynamicBuiltinName where
     encode (DynamicBuiltinName name) = encode name
