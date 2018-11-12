@@ -8,7 +8,8 @@ module Language.Plutus.CoreToPLC.Compiler.Error (
     , WithContext (..)
     , withContext
     , withContextM
-    , throwPlain) where
+    , throwPlain
+    , stripContext) where
 
 import qualified Language.PlutusIR.Compiler as PIR
 
@@ -36,6 +37,11 @@ withContextM mc act = do
 
 throwPlain :: MonadError (WithContext c e) m => e -> m a
 throwPlain = throwError . NoContext
+
+stripContext :: WithContext c e -> e
+stripContext = \case
+    NoContext e -> e
+    WithContext _ e -> stripContext e
 
 instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
     pretty = \case

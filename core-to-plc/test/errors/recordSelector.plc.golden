@@ -1,5 +1,1 @@
-Error: Unsupported: Record selectors, use pattern matching
-Context: Converting expr: mrA
-Context: Converting expr: mrA ds_dCsk
-Context: Converting expr: \ (ds_dCsk :: MyMonoRecord) -> mrA ds_dCsk
-Context: Converting expr at "recordSelector"
+Unsupported: Record selectors, use pattern matching
