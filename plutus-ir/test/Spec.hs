@@ -190,9 +190,10 @@ errors = testNested "errors" [
 
 mutuallyRecursiveTypes :: Quote (Term TyName Name ())
 mutuallyRecursiveTypes = do
+    unit <- Unit.getBuiltinUnit
+
     (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) <- treeForestDatatype
 
-    unit <- Unit.getBuiltinUnit
     pure $
         Let ()
             Rec
