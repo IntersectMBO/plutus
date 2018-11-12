@@ -46,7 +46,7 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             ]
 
 data Error a = PLCError (PLC.Error a)
-             | PIRError (PIR.CompError (PIR.Provenance a))
+             | PIRError (PIR.Error (PIR.Provenance a))
              | ConversionError T.Text
              | UnsupportedError T.Text
              | FreeVariableError T.Text
