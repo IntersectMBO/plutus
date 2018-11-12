@@ -86,8 +86,7 @@ let
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
         inherit src;
-        # TODO: when plutus-ir passes hlint, remove this.
-        projects = localLib.remove "plutus-ir" localLib.plutusPkgList;
+        projects = localLib.plutusPkgList;
       };
       stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
         inherit (self.haskellPackages) stylish-haskell;

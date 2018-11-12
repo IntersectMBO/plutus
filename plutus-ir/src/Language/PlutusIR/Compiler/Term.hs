@@ -39,7 +39,7 @@ compileTerm = \case
     Unwrap x t -> PLC.Unwrap x <$> compileTerm t
 
 compileNonRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
-compileNonRecBindings r body bs = foldM (compileSingleBinding r) body bs
+compileNonRecBindings r = foldM (compileSingleBinding r)
 
 compileRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecBindings r body bs =
