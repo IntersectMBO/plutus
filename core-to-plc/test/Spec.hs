@@ -162,6 +162,7 @@ monoData = testNested "monomorphic" [
   , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
   , goldenPlc "defaultCase" defaultCase
   , goldenPlc "irrefutableMatch" irrefutableMatch
+  , goldenPlc "atPattern" atPattern
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , goldenPlc "monoRecord" monoRecord
   , goldenPlc "nonValueCase" nonValueCase
@@ -192,6 +193,9 @@ defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a
 
 irrefutableMatch :: PlcCode
 irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
+
+atPattern :: PlcCode
+atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
 
 data MyMonoRecord = MyMonoRecord { a :: Int , b :: Int} deriving Generic
 
