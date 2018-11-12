@@ -13,8 +13,8 @@ module Language.Plutus.CoreToPLC.Compiler.Definitions (
     , lookupMatch
     , wrapWithDefs) where
 
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PIRTypes
 
 import qualified Language.PlutusIR                        as PIR

@@ -21,13 +21,13 @@ module Language.Plutus.CoreToPLC.Compiler.Type (
 import           Language.Plutus.CoreToPLC.Compiler.Binders
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Definitions
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Kind
+import           Language.Plutus.CoreToPLC.Compiler.Laziness
 import           Language.Plutus.CoreToPLC.Compiler.Names
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Laziness
 import           Language.Plutus.CoreToPLC.PIRTypes
 
 import qualified GhcPlugins                                     as GHC

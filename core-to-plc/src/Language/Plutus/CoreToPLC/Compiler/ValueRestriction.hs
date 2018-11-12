@@ -6,13 +6,13 @@
 -- | Functions for dealing with the Plutus Core value restriction.
 module Language.Plutus.CoreToPLC.Compiler.ValueRestriction where
 
+import           Language.Plutus.CoreToPLC.Compiler.Error
+import           Language.Plutus.CoreToPLC.Compiler.Laziness
 import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Laziness
 import           Language.Plutus.CoreToPLC.PIRTypes
 
-import qualified Language.PlutusIR                        as PIR
-import qualified Language.PlutusIR.Value                  as PIR
+import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR.Value                     as PIR
 
 import           Control.Monad.Reader
 

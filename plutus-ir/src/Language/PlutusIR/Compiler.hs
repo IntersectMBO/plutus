@@ -3,7 +3,7 @@ module Language.PlutusIR.Compiler (
     compileTerm,
     compileProgram,
     Compiling,
-    CompError (..),
+    Error (..),
     Provenance (..)) where
 
 import           Language.PlutusIR
