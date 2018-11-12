@@ -15,6 +15,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst t
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_]; take; drop)
+open import Function
 \end{code}
 
 ## Values
@@ -66,6 +67,7 @@ VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
 open import Data.Integer
+open import Data.Maybe
 BUILTIN : ∀{Γ Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = El bn Γ in
@@ -73,27 +75,27 @@ BUILTIN : ∀{Γ Γ'}
     → (vtel : VTel Γ Δ σ As)
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
       -----------------------------
-    → Γ' ⊢ ⋆.subst σ' (⋆.subst σ C)
+    → Maybe (Γ' ⊢ ⋆.subst σ' (⋆.subst σ C))
 BUILTIN addInteger σ X σ' with σ Z
 BUILTIN addInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
-  con (integer s (i + j))
+  just (con (integer s (i + j)))
 BUILTIN subtractInteger σ X σ' with σ Z
 BUILTIN subtractInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
-  con (integer s (i - j))
+  just (con (integer s (i - j)))
 BUILTIN multiplyInteger σ X σ' with σ Z
 BUILTIN multiplyInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
-  con (integer s (_*_ i j))
+  just (con (integer s (_*_ i j)))
 BUILTIN concatenate σ X σ' with σ Z
 BUILTIN concatenate σ (_ ,, V-con (bytestring s b) ,, _ ,, V-con (bytestring .s b') ,, tt) σ' | .(size⋆ s) =
-  con (bytestring s (append b b'))
+  just (con (bytestring s (append b b')))
 BUILTIN takeByteString σ X σ' with σ Z | σ (S Z)
 BUILTIN takeByteString σ (_ ,, V-con (integer s i) ,, _ ,, V-con (bytestring s' b) ,, tt) σ'
   | .(size⋆ s')
-  | .(size⋆ s) = con (bytestring s' (take i b))
+  | .(size⋆ s) = just (con (bytestring s' (take i b)))
 BUILTIN dropByteString σ X σ' with σ Z | σ (S Z) 
 BUILTIN dropByteString σ (_ ,, V-con (integer s i) ,, _ ,, V-con (bytestring s' b) ,, tt) σ'
   | .(size⋆ s')
-  | .(size⋆ s) = con (bytestring s' (drop i b))
+  | .(size⋆ s) = just (con (bytestring s' (drop i b)))
 \end{code}
 
 # recontructing the telescope after a reduction step
@@ -165,7 +167,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → (vtel : VTel ∅ Δ σ As)
     → (σ' : ⋆.Sub ∥ ∅ ∥ ∥ Γ' ∥)
       -----------------------------
-    → builtin {Γ'} bn σ tel σ' —→ BUILTIN bn σ vtel σ'
+    → builtin {Γ'} bn σ tel σ' —→ maybe id (error _) (BUILTIN bn σ vtel σ')
 
   ξ-builtin : ∀{Γ'}  → (bn : Builtin)
     → let Δ ,, As ,, C = El bn ∅ in
