@@ -51,9 +51,9 @@ renameTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     ------------------------
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.rename ρ⋆ A ))
-renameTermCon ρ⋆ (integer s i)    = integer s i
-renameTermCon ρ⋆ (bytestring s b) = bytestring s b
-renameTermCon ρ⋆ (size s)         = size s
+renameTermCon ρ⋆ (integer s i p)    = integer s i p
+renameTermCon ρ⋆ (bytestring s b p) = bytestring s b p
+renameTermCon ρ⋆ (size s)           = size s
 \end{code}
 
 \begin{code}
@@ -143,9 +143,9 @@ substTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ------------------------
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.subst σ⋆ A ))
-substTermCon σ⋆ (integer s i)    = integer s i
-substTermCon σ⋆ (bytestring s b) = bytestring s b
-substTermCon σ⋆ (size s)         = size s
+substTermCon σ⋆ (integer s i p)    = integer s i p
+substTermCon σ⋆ (bytestring s b p) = bytestring s b p
+substTermCon σ⋆ (size s)           = size s
 \end{code}
 
 

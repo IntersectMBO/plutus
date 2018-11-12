@@ -11,9 +11,10 @@ open import Type.Equality
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
-open import Data.Integer
+open import Data.Integer renaming (_*_ to _**_)
 open import Data.Empty
 open import Data.Product hiding (_,_)
+import Data.Nat as ℕ
 \end{code}
 
 ## Fixity declarations
@@ -83,16 +84,27 @@ Let `x`, `y` range over variables.
 \begin{code}
 postulate
   ByteString : Set
+  length : ByteString → ℕ.ℕ
 
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
+{-# COMPILE GHC length = type BS.length #-}
+
+-- cut-off exponentiation
+_^_ : Int → Int → Int
+x ^ negsuc n      = pos 1
+x ^ pos ℕ.zero    = pos 1
+x ^ pos (ℕ.suc n) = x ** (x ^ pos n)
 
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s
     → (i : Int)
-    -- → negsuc s < i × i < pos s
+    → (negsuc 1 ^ (pos 8 ** (s ⊖ 1))) < i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
     → TermCon (con integer (size⋆ s))
-  bytestring : ∀ s → ByteString → TermCon (con bytestring (size⋆ s))
+  bytestring : ∀ s
+    → (b : ByteString)
+    → length b ℕ.< s
+    → TermCon (con bytestring (size⋆ s))
   size       : ∀ s → TermCon (con size (size⋆ s)) 
 \end{code}
 
