@@ -105,28 +105,6 @@ convDataConRef dc =
 isErrorId :: GHC.Id -> Bool
 isErrorId ghcId = ghcId `elem` GHC.errorIds
 
-{- Note [Recursive lets]
-We need to define these with a fixpoint. We can derive a fixpoint operator for values
-already.
-
-However, we also need to work out how to encode recursion over multiple values simultaneously.
-The answer is simple - we pass them through as a tuple.
-
-Overall, the translation looks like this. We convert this:
-
-let rec
-  f_1 = b_1
-  ...
-  f_i = b_i
-in
-  result
-
-into this:
-
-($fixN i$ (\choose f1 ... fi . choose b_1 ... b_i))
-(\f1 ... fi . result)
--}
-
 {- Note [GHC runtime errors]
 GHC has a number of runtime errors for things like pattern matching failures and so on.
 
