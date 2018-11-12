@@ -1,6 +1,5 @@
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -223,7 +222,7 @@ getConstructors tc = do
 -- | Get the constructors of the given 'Type' (which must be equal to a type constructor application) as PLC terms instantiated for
     -- the type constructor argument types.
 getConstructorsInstantiated :: Converting m => GHC.Type -> m [PIRTerm]
-getConstructorsInstantiated = \case
+getConstructorsInstantiated t = withContextM (sdToTxt $ "Creating instantiated constructors for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         constrs <- getConstructors tc
 
@@ -246,7 +245,7 @@ getMatch tc = do
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
 getMatchInstantiated :: Converting m => GHC.Type -> m PIRTerm
-getMatchInstantiated = \case
+getMatchInstantiated t = withContextM (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
 
@@ -259,15 +258,15 @@ getMatchInstantiated = \case
 convAlt
     :: Converting m
     => Bool -- ^ Whether we must delay the alternative.
-    -> GHC.DataCon -- ^ The 'DataCon' for the current alternative.
+    -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> m PIRTerm
-convAlt mustDelay dc (alt, vars, body) = case alt of
+convAlt mustDelay instArgTys (alt, vars, body) = withContextM (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
         body' <- convExpr body >>= maybeDelay mustDelay
         -- need to consume the args
-        argTypes <- mapM convType $ GHC.dataConRepArgTys dc
+        argTypes <- mapM convType instArgTys
         argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" ++ show i)
         pure $ PIR.mkIterLamAbs () (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
