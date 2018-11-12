@@ -72,9 +72,9 @@ compileSingleBinding r body b =  case b of
         Rec -> compileRecTerms body [PLC.Def d rhs]
         NonRec -> local (TermBinding (varDeclNameString d)) $ do
             def <- PLC.Def d <$> compileTerm rhs
-            asks PLC.mkTermLet <*> pure def <*> pure body
+            PLC.mkTermLet <$> ask <*> pure def <*> pure body
     TypeBind x d rhs -> local (const x) $ local (TypeBinding (tyVarDeclNameString d)) $ do
         let def = PLC.Def d rhs
-        asks PLC.mkTypeLet <*> pure def <*> pure body
+        PLC.mkTypeLet <$> ask <*> pure def <*> pure body
     DatatypeBind x d -> local (const x) $ local (TypeBinding (datatypeNameString d)) $
         compileDatatype r body d
