@@ -16,6 +16,14 @@ open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_]; take; drop)
 open import Function
+open import Data.Unit hiding (_≤_; _≤?_)
+open import Data.Integer renaming (_*_ to _**_)
+open import Relation.Nullary
+open import Relation.Nullary.Decidable
+open import Relation.Binary hiding (_⇒_)
+open import Data.Maybe
+open import Agda.Builtin.Int
+open import Data.Nat hiding (_<_; _≤?_; _^_; _+_)
 \end{code}
 
 ## Values
@@ -47,8 +55,6 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 ## BUILTIN
 
 \begin{code}
-open import Agda.Builtin.Int
-
 postulate
   append : ByteString → ByteString → ByteString
   take   : Int → ByteString → ByteString
@@ -61,13 +67,10 @@ postulate
 \end{code}
 
 \begin{code}
-open import Data.Unit
 VTel : ∀ Γ Δ → ⋆.Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
-open import Data.Integer
-open import Data.Maybe
 BUILTIN : ∀{Γ Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = El bn Γ in
@@ -77,25 +80,35 @@ BUILTIN : ∀{Γ Γ'}
       -----------------------------
     → Maybe (Γ' ⊢ ⋆.subst σ' (⋆.subst σ C))
 BUILTIN addInteger σ X σ' with σ Z
-BUILTIN addInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
-  just (con (integer s (i + j)))
+BUILTIN addInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (i + j)
+BUILTIN addInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (i + j) r))
+BUILTIN addInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬r = nothing
 BUILTIN subtractInteger σ X σ' with σ Z
-BUILTIN subtractInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
-  just (con (integer s (i - j)))
+BUILTIN subtractInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (i - j)
+BUILTIN subtractInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (i - j) r))
+BUILTIN subtractInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬p = nothing
 BUILTIN multiplyInteger σ X σ' with σ Z
-BUILTIN multiplyInteger σ (_ ,, V-con (integer s i) ,, _ ,, V-con (integer .s j) ,, tt) σ' | .(size⋆ s) =
-  just (con (integer s (_*_ i j)))
+BUILTIN multiplyInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (i ** j)
+BUILTIN multiplyInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (i ** j) r))
+BUILTIN multiplyInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬p = nothing 
 BUILTIN concatenate σ X σ' with σ Z
-BUILTIN concatenate σ (_ ,, V-con (bytestring s b) ,, _ ,, V-con (bytestring .s b') ,, tt) σ' | .(size⋆ s) =
-  just (con (bytestring s (append b b')))
+BUILTIN concatenate σ (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt) σ' | .(size⋆ s) with boundedB? s (append b b')
+BUILTIN concatenate σ (.(con (bytestring s b p)) ,, V-con (bytestring s b p) ,, .(con (bytestring s b' q)) ,, V-con (bytestring .s b' q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (bytestring s (append b b') r))
+BUILTIN concatenate σ (.(con (bytestring s b p)) ,, V-con (bytestring s b p) ,, .(con (bytestring s b' q)) ,, V-con (bytestring .s b' q) ,, tt) σ' | .(size⋆ s) | no ¬r = nothing 
 BUILTIN takeByteString σ X σ' with σ Z | σ (S Z)
-BUILTIN takeByteString σ (_ ,, V-con (integer s i) ,, _ ,, V-con (bytestring s' b) ,, tt) σ'
+BUILTIN takeByteString σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt) σ'
   | .(size⋆ s')
-  | .(size⋆ s) = just (con (bytestring s' (take i b)))
+  | .(size⋆ s) with boundedB? s' (take i b)
+BUILTIN takeByteString σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (bytestring s' b q)) ,, V-con (bytestring s' b q) ,, tt) σ' | .(size⋆ s') | .(size⋆ s) | yes r = just (con (bytestring s' (take i b) r))
+BUILTIN takeByteString σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (bytestring s' b q)) ,, V-con (bytestring s' b q) ,, tt) σ' | .(size⋆ s') | .(size⋆ s) | no r = nothing
+-- ^ this is impossible but we haven't proved that take cannot increase the length
 BUILTIN dropByteString σ X σ' with σ Z | σ (S Z) 
-BUILTIN dropByteString σ (_ ,, V-con (integer s i) ,, _ ,, V-con (bytestring s' b) ,, tt) σ'
+BUILTIN dropByteString σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt) σ'
   | .(size⋆ s')
-  | .(size⋆ s) = just (con (bytestring s' (drop i b)))
+  | .(size⋆ s) with boundedB? s' (drop i b)
+BUILTIN dropByteString σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (bytestring s' b q)) ,, V-con (bytestring s' b q) ,, tt) σ' | .(size⋆ s') | .(size⋆ s) | yes r = just (con (bytestring s' (drop i b) r))
+BUILTIN dropByteString σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (bytestring s' b q)) ,, V-con (bytestring s' b q) ,, tt) σ' | .(size⋆ s') | .(size⋆ s) | no ¬r = nothing
+-- ^ this is impossible but we haven't proved that drop cannot increase the length
 \end{code}
 
 # recontructing the telescope after a reduction step
@@ -247,16 +260,16 @@ progress (unwrap1 t) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (unwrap1 t) | error = error
 progress (conv p t) = error
-progress (con (integer s i)) = done (V-con _)
-progress (con (bytestring s x)) = done (V-con _)
+progress (con (integer s i p)) = done (V-con _)
+progress (con (bytestring s x p)) = done (V-con _)
 progress (con (size s)) = done (V-con _)
 progress (builtin bn σ X σ') with progressTel X
 progress (builtin bn σ X σ') | done VX = step (β-builtin bn σ X VX σ')
-progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' = step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
+progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' =
+  step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
 progress (builtin bn σ X σ') | error          = error
 progress (error A) = error
 
-open import Data.Maybe
 
 -- does this lose the trace of the progress?
 -- perhaps we should instead, return either a completed VTel,

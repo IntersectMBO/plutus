@@ -14,6 +14,7 @@ open import Agda.Builtin.Int
 open import Data.Integer renaming (_*_ to _**_)
 open import Data.Empty
 open import Data.Product hiding (_,_)
+open import Relation.Binary hiding (_⇒_)
 import Data.Nat as ℕ
 \end{code}
 
@@ -96,14 +97,25 @@ x ^ negsuc n      = pos 1
 x ^ pos ℕ.zero    = pos 1
 x ^ pos (ℕ.suc n) = x ** (x ^ pos n)
 
+BoundedI : ∀ s i → Set
+BoundedI s i = (negsuc 1 ^ (pos 8 ** (s ⊖ 1))) ≤ i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
+
+BoundedB : ∀ s b → Set
+BoundedB s b = length b ℕ.< s
+
+-- TODO
+postulate
+  boundedI? : Decidable BoundedI
+  boundedB? : Decidable BoundedB
+  
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s
     → (i : Int)
-    → (negsuc 1 ^ (pos 8 ** (s ⊖ 1))) < i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
+    → BoundedI s i
     → TermCon (con integer (size⋆ s))
   bytestring : ∀ s
     → (b : ByteString)
-    → length b ℕ.< s
+    → BoundedB s b
     → TermCon (con bytestring (size⋆ s))
   size       : ∀ s → TermCon (con size (size⋆ s)) 
 \end{code}
