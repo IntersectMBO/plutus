@@ -13,6 +13,7 @@ open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
 open import Data.Integer
 open import Data.Empty
+open import Data.Product hiding (_,_)
 \end{code}
 
 ## Fixity declarations
@@ -87,7 +88,10 @@ postulate
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
-  integer    : ∀ s → (i : Int) → TermCon (con integer (size⋆ s))
+  integer    : ∀ s
+    → (i : Int)
+    -- → negsuc s < i × i < pos s
+    → TermCon (con integer (size⋆ s))
   bytestring : ∀ s → ByteString → TermCon (con bytestring (size⋆ s))
   size       : ∀ s → TermCon (con size (size⋆ s)) 
 \end{code}
@@ -227,6 +231,8 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
     → (σ' : Sub ∥ ∅ ∥ ∥ Γ' ∥) -- a delayed substitution applied after computation
       -----------------------------
     → Γ' ⊢ subst σ' (subst σ C)
+
+  error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *) → Γ ⊢ A
 
 open import Data.Unit
 Tel Γ Δ σ [] = ⊤

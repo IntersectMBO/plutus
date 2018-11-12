@@ -51,7 +51,7 @@ data Steps : ∀ {J}{A : ∅ ⊢⋆ J} → ∅ ⊢ A → Set where
       ----------
     → Steps L
 
-  unhandled :  ∀ {J}{A : ∅ ⊢⋆ J} {L : ∅ ⊢ A} → Steps L
+  error :  ∀ {J}{A : ∅ ⊢⋆ J} {L : ∅ ⊢ A} → Steps L
 
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.
@@ -63,9 +63,9 @@ eval : ∀ {A : ∅ ⊢⋆ *}
   → Steps M
 eval (gas zero) M = steps done out-of-gas
 eval (gas (suc n)) M with progress M
-...                  | unhandled = unhandled
+...                  | error = error
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
-...                               | unhandled = unhandled
+...                               | error = error
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (continue p ps) q
 eval (gas (suc n)) M | done vM = steps done (done _ vM)
 \end{code}

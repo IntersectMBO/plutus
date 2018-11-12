@@ -83,6 +83,7 @@ rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X σ') = substEq
   (Δ ⊢_)
   (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (El bn ∅)))))
   (builtin bn σ X (⋆.rename ρ⋆ ∘ σ'))
+rename ρ⋆ ρ (error A) = error (⋆.rename ρ⋆ A)
 \end{code}
 
 \begin{code}
@@ -172,7 +173,8 @@ subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
 subst {Γ}{Δ} σ⋆ σ (builtin bn σ' tel σ'') = substEq
   (Δ ⊢_)
   (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (El bn ∅)))))
-  (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ'')) 
+  (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ''))
+subst σ⋆ σ (error A) = error (⋆.subst σ⋆ A)
 \end{code}
 
 \begin{code}

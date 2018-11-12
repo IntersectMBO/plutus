@@ -40,6 +40,7 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
   V-con : ∀{Γ}{n}{tcn : TyCon}
     → (cn : TermCon (con tcn (size⋆ n)))
     → Value (con {Γ} cn)
+
 \end{code}
 
 ## BUILTIN
@@ -193,7 +194,7 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  unhandled : Progress M 
+  error : Progress M 
 \end{code}
 
 \begin{code}
@@ -207,7 +208,7 @@ data TelProgress {Γ}{Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥}{As : List (∥ Δ 
      → Bs ++ (C ∷ Ds) ≡ As
      → Tel Γ Δ σ Ds
      → TelProgress tel
-   unhandled : TelProgress tel
+   error : TelProgress tel
 
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progressTel : ∀ {Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥}{As : List (∥ Δ ∥ ⊢⋆ *)}
@@ -221,36 +222,37 @@ progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | done vtel =
   done (t ,, vt ,, vtel)
 progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p refl tel' =
   step (A ∷ Bs) Ds (t ,, vt ,, vtel) p refl tel'
-progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | unhandled = unhandled
-progressTel {σ = _} {A ∷ As} (t ,, tel) | unhandled = unhandled
+progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | error = error
+progressTel {σ = _} {A ∷ As} (t ,, tel) | error = error
 
 progress (` ())
 progress (ƛ M)    = done V-ƛ
 progress (L · M)  with progress L
-...                   | unhandled = unhandled
+...                   | error = error
 ...                   | step p  = step (ξ-·₁ p)
 progress (.(ƛ _) · M) | done V-ƛ with progress M
 progress (.(ƛ _) · M) | done V-ƛ | step p = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · M) | done V-ƛ | done VM = step (β-ƛ VM)
-progress (.(ƛ _) · M) | done V-ƛ | unhandled = unhandled
+progress (.(ƛ _) · M) | done V-ƛ | error = error
 progress (Λ M)    = done V-Λ_
 progress (M ·⋆ A) with progress M
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
-progress (M ·⋆ A) | unhandled = unhandled
+progress (M ·⋆ A) | error = error
 progress (wrap1 _ _ t) = done V-wrap1
 progress (unwrap1 t) with progress t
 progress (unwrap1 t) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
-progress (unwrap1 t) | unhandled = unhandled
-progress (conv p t) = unhandled
+progress (unwrap1 t) | error = error
+progress (conv p t) = error
 progress (con (integer s i)) = done (V-con _)
 progress (con (bytestring s x)) = done (V-con _)
 progress (con (size s)) = done (V-con _)
 progress (builtin bn σ X σ') with progressTel X
 progress (builtin bn σ X σ') | done VX = step (β-builtin bn σ X VX σ')
 progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' = step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
-progress (builtin bn σ X σ') | unhandled          = unhandled
+progress (builtin bn σ X σ') | error          = error
+progress (error A) = error
 
 open import Data.Maybe
 
