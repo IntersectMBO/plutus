@@ -36,11 +36,11 @@ instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance PrettyBy (PrettyConfigClassic configName) (Constant a) where
-    prettyBy _ (BuiltinInt _ s i)   = pretty s <+> "!" <+> pretty i
-    prettyBy _ (BuiltinSize _ s)    = pretty s
-    prettyBy _ (BuiltinBS _ s b)    = pretty s <+> "!" <+> prettyBytes b
-    prettyBy _ (BuiltinName    _ n) = pretty n
-    prettyBy _ (DynBuiltinName _ n) = pretty n
+    prettyBy _ (BuiltinInt _ s i)   = parens' ("con" </> pretty s <+> "!" <+> pretty i)
+    prettyBy _ (BuiltinSize _ s)    = parens' ("con" </> pretty s)
+    prettyBy _ (BuiltinBS _ s b)    = parens' ("con" </> pretty s <+> "!" <+> prettyBytes b)
+    prettyBy _ (BuiltinName    _ n) = parens' ("builtin" </> pretty n)
+    prettyBy _ (DynBuiltinName _ n) = parens' ("builtin" </> pretty n)
 
 instance PrettyClassicBy configName (tyname a) =>
         PrettyBy (PrettyConfigClassic configName) (Type tyname a) where
@@ -59,7 +59,7 @@ instance PrettyClassicBy configName (tyname a) =>
 instance (PrettyClassicBy configName (tyname a), PrettyClassicBy configName (name a)) =>
         PrettyBy (PrettyConfigClassic configName) (Term tyname name a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)    = parens' ("con" </> prettyBy config b)
+        a (ConstantF _ b)    = prettyBy config b
         a (ApplyF _ t t')    = brackets' (vsep' [t, t'])
         a (VarF _ n)         = prettyName n
         a (TyAbsF _ n k t)   = parens' ("abs" </> vsep' [prettyName n, prettyBy config k, t])
