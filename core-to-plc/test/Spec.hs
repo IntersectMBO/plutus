@@ -184,7 +184,7 @@ monoConstructed :: PlcCode
 monoConstructed = plc @"monoConstructed" (Mono2 1)
 
 monoCase :: PlcCode
-monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a; Mono3 a -> a })
+monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  Mono2 a -> a; Mono3 a -> a })
 
 defaultCase :: PlcCode
 defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
@@ -207,6 +207,7 @@ polyData :: TestNested
 polyData = testNested "polymorphic" [
     goldenPlc "polyDataType" polyDataType
   , goldenPlc "polyConstructed" polyConstructed
+  , goldenPlc "defaultCasePoly" defaultCasePoly
   ]
 
 data MyPolyData a b = Poly1 a b | Poly2 a
@@ -216,6 +217,9 @@ polyDataType = plc @"polyDataType" (\(x:: MyPolyData Int Int) -> x)
 
 polyConstructed :: PlcCode
 polyConstructed = plc @"polyConstructed" (Poly1 (1::Int) (2::Int))
+
+defaultCasePoly :: PlcCode
+defaultCasePoly = plc @"defaultCase" (\(x :: MyPolyData Int Int) -> case x of { Poly1 a _ -> a ; _ -> 2; })
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [

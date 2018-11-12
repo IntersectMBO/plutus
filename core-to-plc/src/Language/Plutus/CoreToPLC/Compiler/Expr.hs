@@ -212,13 +212,18 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
             instantiated <- PIR.TyInst () matched <$> (convType t >>= maybeDelayType lazyCase)
 
-            tc <- case GHC.splitTyConApp_maybe scrutineeType of
-                Just (tc, _) -> pure tc
+            (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
+                Just (tc, argTys) -> pure (tc, argTys)
                 Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
             dcs <- getDataCons tc
 
             branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
-                Just alt -> convAlt lazyCase dc alt
+                Just alt ->
+                    let
+                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                        -- matching on Maybe Int it is [Int] (crucially, not [a])
+                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                    in convAlt lazyCase instArgTys alt
                 Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
 
             let applied = PIR.mkIterApp () instantiated branches
