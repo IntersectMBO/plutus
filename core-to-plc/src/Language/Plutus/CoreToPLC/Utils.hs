@@ -24,11 +24,11 @@ instSize n t = PIR.TyInst () t (PLC.TyInt () n)
 appSize :: Natural -> PIR.Type tyname () -> PIR.Type tyname ()
 appSize n t = PIR.TyApp () t (PLC.TyInt () n)
 
-mkConstant :: PLC.BuiltinName -> PIR.Term tyname name ()
-mkConstant n = PIR.Constant () $ PLC.BuiltinName () n
+mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name ()
+mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
 
 mkIntFun :: PLC.BuiltinName -> PIR.Term PIR.TyName PIR.Name ()
-mkIntFun name = instSize haskellIntSize (mkConstant name)
+mkIntFun name = instSize haskellIntSize (mkBuiltin name)
 
 haskellIntSize :: Natural
 haskellIntSize = 64

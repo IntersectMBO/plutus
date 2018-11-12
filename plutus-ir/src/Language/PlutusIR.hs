@@ -90,6 +90,7 @@ data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
                         | Apply a (Term tyname name a) (Term tyname name a)
                         | Constant a (PLC.Constant a)
+                        | Builtin a (PLC.Builtin a)
                         | TyInst a (Term tyname name a) (Type tyname a)
                         | Error a (Type tyname a)
                         | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
@@ -103,6 +104,7 @@ embedIntoIR = \case
     PLC.LamAbs a n ty t -> LamAbs a n ty (embedIntoIR t)
     PLC.Apply a t1 t2 -> Apply a (embedIntoIR t1) (embedIntoIR t2)
     PLC.Constant a c ->  Constant a c
+    PLC.Builtin a bi -> Builtin a bi
     PLC.TyInst a t ty -> TyInst a (embedIntoIR t) ty
     PLC.Error a ty -> Error a ty
     PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
@@ -150,6 +152,7 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])
         Apply _ t1 t2 -> brackets' (vsep' [prettyBy config t1, prettyBy config t2])
         Constant _ c -> parens' ("con" </> prettyBy config c)
+        Builtin _ bi -> parens' ("builtin" </> prettyBy config bi)
         TyInst _ t ty -> braces' (vsep' [prettyBy config t, prettyBy config ty])
         Error _ ty -> parens' ("error" </> prettyBy config ty)
         Wrap _ n ty t -> parens' ("wrap" </> vsep' [ prettyBy config n, prettyBy config ty, prettyBy config t ])

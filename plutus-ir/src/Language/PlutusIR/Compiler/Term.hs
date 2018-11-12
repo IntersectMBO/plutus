@@ -33,13 +33,14 @@ compileTerm = \case
     LamAbs x n ty t -> PLC.LamAbs x n ty <$> compileTerm t
     Apply x t1 t2 -> PLC.Apply x <$> compileTerm t1 <*> compileTerm t2
     Constant x c -> pure $ PLC.Constant x c
+    Builtin x bi -> pure $ PLC.Builtin x bi
     TyInst x t ty -> PLC.TyInst x <$> compileTerm t <*> pure ty
     Error x ty -> pure $ PLC.Error x ty
     Wrap x tn ty t -> PLC.Wrap x tn ty <$> compileTerm t
     Unwrap x t -> PLC.Unwrap x <$> compileTerm t
 
 compileNonRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
-compileNonRecBindings r body bs = foldM (compileSingleBinding r) body bs
+compileNonRecBindings r = foldM (compileSingleBinding r)
 
 compileRecBindings :: Compiling m a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecBindings r body bs =
@@ -71,9 +72,9 @@ compileSingleBinding r body b =  case b of
         Rec -> compileRecTerms body [PLC.Def d rhs]
         NonRec -> local (TermBinding (varDeclNameString d)) $ do
             def <- PLC.Def d <$> compileTerm rhs
-            PLC.mkTermLet <$> ask <*> pure def <*> pure body
+            asks PLC.mkTermLet <*> pure def <*> pure body
     TypeBind x d rhs -> local (const x) $ local (TypeBinding (tyVarDeclNameString d)) $ do
         let def = PLC.Def d rhs
-        PLC.mkTypeLet <$> ask <*> pure def <*> pure body
+        asks PLC.mkTypeLet <*> pure def <*> pure body
     DatatypeBind x d -> local (const x) $ local (TypeBinding (datatypeNameString d)) $
         compileDatatype r body d
