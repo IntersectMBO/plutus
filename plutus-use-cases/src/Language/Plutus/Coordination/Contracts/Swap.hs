@@ -3,8 +3,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
--- Disabled until we can use the Num.(*) for `Ratio Int`
--- {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin #-}
+{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.Swap(
     Swap(..),
     swapValidator
@@ -18,8 +17,9 @@ import qualified Language.Plutus.TH         as Builtins
 import           Wallet.UTXO                (Height, Validator (..))
 import qualified Wallet.UTXO                as UTXO
 
-import           Data.Ratio                 (Ratio)
 import           Prelude                    (Bool (..), Eq (..), Int, Num (..), Ord (..))
+
+data Ratio a = a :% a  deriving Eq
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
 --  things simple, this is an interest rate swap (meaning that the cashflows are
@@ -71,6 +71,15 @@ swapValidator _ = Validator result where
             mx :: Int -> Int -> Int
             mx = $(TH.max)
 
+            timesR :: Ratio Int -> Ratio Int -> Ratio Int
+            timesR (x :% y) (x' :% y') = (x*x') :% (y*y')
+
+            plusR :: Ratio Int -> Ratio Int -> Ratio Int
+            plusR (x :% y) (x' :% y') = (x*y' + x'*y) :% (y*y')
+
+            minusR :: Ratio Int -> Ratio Int -> Ratio Int
+            minusR (x :% y) (x' :% y') = (x*y' - x'*y) :% (y*y')
+
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
             extractVerifyAt = Builtins.error ()
 
@@ -96,20 +105,20 @@ swapValidator _ = Validator result where
             rt = extractVerifyAt redeemer swapOracle swapFloatingRate swapObservationTime
 
             rtDiff :: Ratio Int
-            rtDiff = rt - swapFixedRate
+            rtDiff = rt `minusR` swapFixedRate
             amt = swapNotionalAmt
 
             amt' :: Ratio Int
             amt' = fromInt amt
 
             delta :: Ratio Int
-            delta = amt' * rtDiff
+            delta = amt' `timesR` rtDiff
 
             fixedPayment :: Int
-            fixedPayment = round (amt' + delta)
+            fixedPayment = round (amt' `plusR` delta)
 
             floatPayment :: Int
-            floatPayment = round (amt' - delta)
+            floatPayment = round (amt' `plusR` delta)
 
             -- Compute the payouts (initial margin +/- the sum of the two
             -- payments), ensuring that it is at least 0 and does not exceed
@@ -149,11 +158,11 @@ swapValidator _ = Validator result where
 
             -- True if the output is the payment of the fixed leg.
             ol1 :: PendingTxOut -> Bool
-            ol1 o = isPubKeyOutput o swapOwnersFixedLeg && pendingTxOutValue o <= fixedRemainder
+            ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && v <= fixedRemainder
 
             -- True if the output is the payment of the floating leg.
             ol2 :: PendingTxOut -> Bool
-            ol2 o = isPubKeyOutput o swapOwnersFloating && pendingTxOutValue o <= floatRemainder
+            ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && v <= floatRemainder
 
             -- NOTE: I didn't include a check that the chain height is greater
             -- than the observation time. This is because the chain height is
