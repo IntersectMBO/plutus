@@ -167,8 +167,8 @@ data Builtin : Set where
   -- greaterThanInteger       : Builtin
   -- greaterThanEqualsInteger : Builtin
   -- equalsInteger            : Builtin
-  -- resizeInteger            : Builtin
-  -- sizeOfInteger            : Builtin
+  resizeInteger            : Builtin
+  sizeOfInteger            : Builtin
   -- intToByteString          : Builtin
 
   concatenate      : Builtin
@@ -192,24 +192,6 @@ SIG subtractInteger Γ =
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
 SIG multiplyInteger Γ = 
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG concatenate      Γ =
-  Γ ,⋆ #
-  ,,
-  con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
-  ,,
-  con bytestring (` Z)
-SIG takeByteString Γ =
-  (Γ ,⋆ #  ,⋆ #)
-  ,,
-  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
-  ,,
-  con bytestring (` Z)
-SIG dropByteString Γ =
-  (Γ ,⋆ #  ,⋆ #)
-  ,,
-  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
-  ,,
-  con bytestring (` Z)
 SIG divideInteger    Γ =
   (Γ ,⋆ #)
   ,,
@@ -234,6 +216,36 @@ SIG modInteger       Γ =
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   con integer (` Z)
+SIG resizeInteger Γ =
+  (Γ ,⋆ # ,⋆ #)
+  ,,
+  (con size (` Z) ∷ con integer (` (S Z)) ∷ [])
+  ,,
+  con integer (` Z)
+SIG sizeOfInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ []
+  ,,
+  con size (` Z)
+SIG concatenate      Γ =
+  Γ ,⋆ #
+  ,,
+  con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
+  ,,
+  con bytestring (` Z)
+SIG takeByteString Γ =
+  (Γ ,⋆ #  ,⋆ #)
+  ,,
+  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
+  ,,
+  con bytestring (` Z)
+SIG dropByteString Γ =
+  (Γ ,⋆ #  ,⋆ #)
+  ,,
+  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
+  ,,
+  con bytestring (` Z)
 
 Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 
