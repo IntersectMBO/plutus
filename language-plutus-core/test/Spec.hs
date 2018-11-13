@@ -82,10 +82,9 @@ propCBOR = property $ do
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
-    let nullPosn = (emptyPosn <$)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
-        proc = nullPosn <$> parse (reprint prog)
-        compared = and (compareProgram (nullPosn prog) <$> proc)
+    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
+        proc = void <$> parse (reprint prog)
+        compared = and (compareProgram (void prog) <$> proc)
     Hedgehog.assert compared
 
 propRename :: Property
