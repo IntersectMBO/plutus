@@ -77,9 +77,9 @@ makeContribution = checkCFTrace scenario1 $ do
     let w = Wallet 2
         contribution = 600
         rest = startingBalance - fromIntegral contribution
-    blockchainActions >>= walletNotifyBlock w
+    processPending >>= walletNotifyBlock w
     contrib2 (cfCampaign scenario1) contribution
-    blockchainActions >>= walletNotifyBlock w
+    processPending >>= walletNotifyBlock w
     assertOwnFundsEq w rest
 
 -- | Run a campaign with two contributions where the campaign owner collects
@@ -199,4 +199,4 @@ checkCFTrace CFScenario{cfInitialBalances} t = property $ do
 -- | Validate all pending transactions and notify the wallets
 updateAll :: CFScenario -> Trace EmulatedWalletApi [Tx]
 updateAll CFScenario{cfWallets} =
-    blockchainActions >>= walletsNotifyBlock cfWallets
+    processPending >>= walletsNotifyBlock cfWallets

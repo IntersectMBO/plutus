@@ -154,4 +154,4 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
 -- | Validate all pending transactions and notify the wallets
 updateAll :: VestingScenario -> Trace EmulatedWalletApi [Tx]
 updateAll VestingScenario{vsWallets} =
-    blockchainActions >>= walletsNotifyBlock vsWallets
+    processPending >>= walletsNotifyBlock vsWallets

@@ -157,7 +157,7 @@ walletHandlers state =
       wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
       submitTxn :<|>
       getTransactions
-    controlApi = blockchainActions
+    controlApi = processPending
     walletControlApi = blockValidated :<|> blockHeight
     assertionsApi = assertOwnFundsEq :<|> assertIsValidated
 
@@ -228,13 +228,13 @@ runStateSTM var action = do
   writeTVar var newState
   pure res
 
-blockchainActions :: (MonadReader ServerState m, MonadIO m) => m [Tx]
-blockchainActions = do
+processPending :: (MonadReader ServerState m, MonadIO m) => m [Tx]
+processPending = do
   var <- asks getState
-  liftIO . atomically $ blockchainActionsSTM var
+  liftIO . atomically $ processPendingSTM var
 
-blockchainActionsSTM :: TVar EmulatorState -> STM [Tx]
-blockchainActionsSTM var = do
+processPendingSTM :: TVar EmulatorState -> STM [Tx]
+processPendingSTM var = do
   es <- readTVar var
   let processed = validateEm es <$> emTxPool es
       validated = catMaybes processed

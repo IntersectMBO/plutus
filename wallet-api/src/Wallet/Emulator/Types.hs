@@ -30,7 +30,7 @@ module Wallet.Emulator.Types(
     walletRecvNotifications,
     walletNotifyBlock,
     walletsNotifyBlock,
-    blockchainActions,
+    processPending,
     addBlocks,
     assertion,
     assertOwnFundsEq,
@@ -247,8 +247,9 @@ data Event n a where
     WalletAction :: Wallet -> n () -> Event n [Tx]
     -- | A wallet receiving some notifications, and reacting to them.
     WalletRecvNotification :: Wallet -> [Notification] -> Event n [Tx]
-    -- | The blockchain performing actions, resulting in a validated block.
-    BlockchainActions :: Event n Block
+    -- | The blockchain processing pending transactions, producing a new block
+    --   from the valid ones and discarding the invalid ones.
+    BlockchainProcessPending :: Event n Block
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> Event n ()
 
@@ -323,7 +324,7 @@ evalEmulated :: (MonadEmulator m) => Event EmulatedWalletApi a -> m a
 evalEmulated = \case
     WalletAction wallet action -> fst <$> liftEmulatedWallet wallet action
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
-    BlockchainActions -> do
+    BlockchainProcessPending -> do
         emState <- get
         let processed = validateEm emState <$> emTxPool emState
             validated = catMaybes processed
@@ -356,13 +357,13 @@ walletsNotifyBlock :: [Wallet] -> Block -> Trace m [Tx]
 walletsNotifyBlock wls b = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w b) [] wls
 
 -- | Validate all pending transactions
-blockchainActions :: Trace m Block
-blockchainActions = Op.singleton BlockchainActions
+processPending :: Trace m Block
+processPending = Op.singleton BlockchainProcessPending
 
 -- | Add a number of empty blocks to the blockchain, by performing
---   `blockchainActions` @n@ times.
+--   `processPending` @n@ times.
 addBlocks :: Int -> Trace m [Block]
-addBlocks i = traverse (const blockchainActions) [1..i]
+addBlocks i = traverse (const processPending) [1..i]
 
 -- | Make an assertion about the emulator state
 assertion :: Assertion -> Trace m ()

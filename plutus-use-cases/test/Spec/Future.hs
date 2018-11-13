@@ -208,4 +208,4 @@ checkTrace t = property $ do
 -- | Validate all pending transactions and notify all wallets
 updateAll :: Trace EmulatedWalletApi ()
 updateAll =
-    blockchainActions >>= void . walletsNotifyBlock [w1, w2]
+    processPending >>= void . walletsNotifyBlock [w1, w2]

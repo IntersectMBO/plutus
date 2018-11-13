@@ -11,7 +11,7 @@ module Wallet.Emulator.Client
   , getTransactions
   , blockValidated
   , blockHeight
-  , blockchainActions
+  , processPending
   , assertOwnFundsEq
   , assertIsValidated
   , process
@@ -43,12 +43,12 @@ myKeyPair' :: Wallet -> ClientM KeyPair
 createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', TxOut')
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
-blockchainActions :: ClientM [Tx]
+processPending :: ClientM [Tx]
 blockValidated :: Wallet -> Block -> ClientM ()
 blockHeight :: Wallet -> Height -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> blockchainActions  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -109,7 +109,7 @@ eval clientEnv =
       traverse
         (runWalletAction clientEnv wallet . liftWallet . handleNotification)
         trigger
-    BlockchainActions -> ExceptT $ runClientM blockchainActions clientEnv
+    BlockchainProcessPending -> ExceptT $ runClientM processPending clientEnv
     Assertion a -> ExceptT $ runClientM (assert a) clientEnv
 
 process :: ClientEnv -> Trace WalletClient a -> ExceptT ServantError IO a
