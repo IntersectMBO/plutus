@@ -93,7 +93,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{K}}\)}
-        \AxiomC{\(K \equiv \typeK{}\)}
+        \AxiomC{\(K = \typeK{}\)}
         \RightLabel{tyfix}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
     \end{prooftree}
@@ -156,7 +156,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
-        \AxiomC{\(\typeMultistep{C}{\allT{\alpha}{K}{B}}\)}
+        \AxiomC{\(C = \allT{\alpha}{K}{B}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
         \RightLabel{inst}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
@@ -174,7 +174,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
-        \AxiomC{\(\typeMultistep{C}{\fixT{\alpha}{A}}\)}
+        \AxiomC{\(C = \fixT{\alpha}{A}\)}
         \RightLabel{unwrap}
         \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\)}
     \end{prooftree}
@@ -188,7 +188,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
-        \AxiomC{\(\typeMultistep{C}{\funT{A}{B}}\)}
+        \AxiomC{\(C = \funT{A}{B}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
         \AxiomC{\(A = A'\)}
         \RightLabel{app}
