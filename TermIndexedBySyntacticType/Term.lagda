@@ -16,6 +16,12 @@ open import Data.Empty
 open import Data.Product hiding (_,_)
 open import Relation.Binary hiding (_⇒_)
 import Data.Nat as ℕ
+open import Data.Unit hiding (_≤_)
+open import Data.Vec hiding ([_]; take; drop)
+open import Data.List hiding ([_]; length; take; drop)
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.Nat hiding (_^_; _≤_; _<_)
+open import Function hiding (_∋_)
 \end{code}
 
 ## Fixity declarations
@@ -145,11 +151,6 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
-open import Data.Vec hiding ([_])
-open import Data.List hiding ([_])
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Nat
-open import Function hiding (_∋_)
 
 Sig : Ctx → Ctx → Set
 Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
@@ -313,8 +314,24 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
   error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *) → Γ ⊢ A
 
-open import Data.Unit
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
+\end{code}
 
+# Abbreviations
+\begin{code}
+unit : ∀{Γ} → Γ ⊢⋆ *
+unit = Π (` Z ⇒ ` Z)
+
+void : ∀{Γ} → Γ ⊢ unit
+void = Λ (ƛ (` Z))
+
+boolean : ∀{Γ} → Γ ⊢⋆ *
+boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
+
+true : ∀{Γ} → Γ ⊢ boolean
+true = Λ (ƛ (ƛ (` (S Z))))
+
+false : ∀{Γ} → Γ ⊢ boolean
+false = Λ (ƛ (ƛ (` Z)))
 \end{code}
