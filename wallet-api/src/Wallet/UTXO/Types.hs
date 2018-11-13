@@ -327,7 +327,7 @@ instance BA.ByteArrayAccess Redeemer where
         BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Block height
-newtype Height = Height { getHeight :: Integer }
+newtype Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving newtype (Num, Real, Integral, Serialise, FromJSON, ToJSON)
