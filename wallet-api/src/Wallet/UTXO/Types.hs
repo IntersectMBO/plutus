@@ -118,7 +118,6 @@ import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
 import           Data.Monoid                              (Sum (..))
-import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
@@ -469,7 +468,7 @@ instance BA.ByteArrayAccess TxIn' where
 
 -- | Type of transaction output.
 data TxOutType =
-    PayToScript !(Digest SHA256) !DataScript -- ^ A pay-to-script output with the hash of the validator script, and the full data script
+    PayToScript !DataScript -- ^ A pay-to-script output with the data script
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
@@ -490,8 +489,8 @@ deriving instance FromJSON TxOut'
 -- | The data script that a [[TxOut]] refers to
 txOutData :: TxOut h -> Maybe DataScript
 txOutData TxOut{txOutType = t} = case  t of
-    PayToScript _ s -> Just s
-    PayToPubKey _   -> Nothing
+    PayToScript s -> Just s
+    PayToPubKey _ -> Nothing
 
 -- | The public key that a [[TxOut]] refers to
 txOutPubKey :: TxOut h -> Maybe PubKey
@@ -531,17 +530,16 @@ pubKeyAddress pk = Address $ hash h where
     e = encode pk
 
 -- | The address of a transaction output locked by a validator script
-scriptAddress :: Validator -> DataScript -> Address (Digest SHA256)
-scriptAddress vl ds = Address $ hash h where
+scriptAddress :: Validator -> Address (Digest SHA256)
+scriptAddress vl = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode vl <> encode ds
+    e = encode vl
 
 -- | Create a transaction output locked by a validator script
 scriptTxOut :: Value -> Validator -> DataScript -> TxOut'
 scriptTxOut v vl ds = TxOut a v tp where
-    a = scriptAddress vl ds
-    tp = PayToScript h ds
-    h :: Digest SHA256 = hash $ Write.toStrictByteString $ encode vl
+    a = scriptAddress vl
+    tp = PayToScript ds
 
 -- | Create a transaction output locked by a public key
 pubKeyTxOut :: Value -> PubKey -> TxOut'
@@ -664,8 +662,8 @@ validTx v t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
 validate :: ValidationData -> TxIn' -> TxOut' -> Bool
 validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
-        (ConsumeScriptAddress v r, PayToScript _ d)
-            | txOutAddress /= scriptAddress v d -> False
+        (ConsumeScriptAddress v r, PayToScript d)
+            | txOutAddress /= scriptAddress v -> False
             | otherwise                                    -> runScript bs v r d
         (ConsumePublicKeyAddress sig, PayToPubKey pk) -> sig `signedBy` pk
         _ -> False

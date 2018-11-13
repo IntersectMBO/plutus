@@ -28,7 +28,6 @@ module PlutusPrelude ( -- * Reëxports from base
                      , Natural
                      , NonEmpty (..)
                      , Word8
-                     , Semigroup (..)
                      , Alternative (..)
                      , Exception
                      , PairT (..)
@@ -105,7 +104,6 @@ import           Data.Functor.Foldable                   (Base, Corecursive, Rec
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
-import           Data.Semigroup
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc

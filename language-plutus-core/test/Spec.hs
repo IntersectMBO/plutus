@@ -4,7 +4,6 @@ module Main ( main
             ) where
 
 import           Codec.Serialise
-import           Control.Monad
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
@@ -74,7 +73,7 @@ propCBOR = property $ do
     prog <- forAll genProgram
     let
         trip = deserialiseOrFail . serialise
-        compared = (==) <$> trip (void prog) <*> pure (void prog)
+        compared = (==) <$> trip prog <*> pure prog
     Hedgehog.assert (fromRight False compared)
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
@@ -82,10 +81,9 @@ propCBOR = property $ do
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
-    let nullPosn = (emptyPosn <$)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
-        proc = nullPosn <$> parse (reprint prog)
-        compared = and (compareProgram (nullPosn prog) <$> proc)
+    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
+        proc = void <$> parse (reprint prog)
+        compared = and (compareProgram (void prog) <$> proc)
     Hedgehog.assert compared
 
 propRename :: Property

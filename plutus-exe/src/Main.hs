@@ -10,7 +10,6 @@ import qualified Language.PlutusCore.Pretty                 as PLC
 import           Control.Monad
 
 import qualified Data.ByteString.Lazy                       as BSL
-import           Data.Semigroup                             ((<>))
 import qualified Data.Text                                  as T
 import           Data.Text.Encoding                         (encodeUtf8)
 import qualified Data.Text.IO                               as T

@@ -77595,6 +77595,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , core-to-plc
 , cryptonite
+, deriving-compat
 , errors
 , free
 , ghc
@@ -77603,6 +77604,7 @@ license = stdenv.lib.licenses.mit;
 , language-plutus-core
 , memory
 , microlens
+, microlens-ghc
 , mmorph
 , monad-stm
 , mtl
@@ -77610,6 +77612,7 @@ license = stdenv.lib.licenses.mit;
 , operational
 , plutus-th
 , prettyprinter
+, recursion-schemes
 , serialise
 , servant
 , servant-client
@@ -77642,6 +77645,7 @@ cborg
 containers
 core-to-plc
 cryptonite
+deriving-compat
 errors
 free
 ghc
@@ -77650,6 +77654,7 @@ hedgehog
 language-plutus-core
 memory
 microlens
+microlens-ghc
 mmorph
 monad-stm
 mtl
@@ -77657,6 +77662,7 @@ natural-transformation
 operational
 plutus-th
 prettyprinter
+recursion-schemes
 serialise
 servant
 servant-client

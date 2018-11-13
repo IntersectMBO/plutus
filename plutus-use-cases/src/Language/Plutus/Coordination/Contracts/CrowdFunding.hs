@@ -38,8 +38,9 @@ import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn
                                              Value)
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
-import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
-                                             pubKey, signAndSubmit)
+import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, andT,
+                                             blockHeightT, fundsAtAddressT, otherError, ownPubKeyTxOut, pubKey,
+                                             signAndSubmit)
 import           Wallet.UTXO                (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
                                              scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
@@ -157,20 +158,20 @@ contributionScript cmp  = Validator val where
 -- | Given the campaign data and the output from the contributing transaction,
 --   make a trigger that fires when the transaction can be refunded.
 refundTrigger :: Campaign -> Address' -> EventTrigger
-refundTrigger Campaign{..} t = And
-    (FundsAtAddress [t]  (GEQ 1))
-    (BlockHeightRange (GEQ $ fromIntegral $ succ campaignCollectionDeadline))
+refundTrigger Campaign{..} t = andT
+    (fundsAtAddressT t  (GEQ 1))
+    (blockHeightT (GEQ $ fromIntegral $ succ campaignCollectionDeadline))
 
 -- | Given the public key of the campaign owner, generate an event trigger that
 -- fires when the funds can be collected.
-collectFundsTrigger :: Campaign -> [Address'] -> EventTrigger
-collectFundsTrigger Campaign{..} ts = And
-    (FundsAtAddress ts $ GEQ $ UTXO.Value $ fromIntegral campaignTarget)
-    (BlockHeightRange $ fromIntegral <$> Interval campaignDeadline campaignCollectionDeadline)
+collectFundsTrigger :: Campaign -> Address' -> EventTrigger
+collectFundsTrigger Campaign{..} ts = andT
+    (fundsAtAddressT ts $ GEQ $ UTXO.Value $ fromIntegral campaignTarget)
+    (blockHeightT $ fromIntegral <$> Interval campaignDeadline campaignCollectionDeadline)
 
 refund :: (Monad m, WalletAPI m) => Campaign -> TxOutRef' -> UTXO.Value -> m ()
 refund c ref val = do
-    oo <- payToPublicKey val
+    oo <- ownPubKeyTxOut val
     let scr = contributionScript c
         i   = scriptTxIn ref scr UTXO.unitRedeemer
     signAndSubmit (Set.singleton i) [oo]
@@ -180,7 +181,7 @@ refund c ref val = do
 --
 collect :: (Monad m, WalletAPI m) => Campaign -> [(TxOutRef', UTXO.Value)] -> m ()
 collect cmp contributions = do
-    oo <- payToPublicKey value
+    oo <- ownPubKeyTxOut value
     let scr        = contributionScript cmp
         con (r, _) = scriptTxIn r scr UTXO.unitRedeemer
         ins        = con <$> contributions
