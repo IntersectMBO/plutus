@@ -87,9 +87,28 @@ postulate
   ByteString : Set
   length : ByteString → ℕ.ℕ
 
+  div  : Int → Int → Int
+  quot : Int → Int → Int
+  rem  : Int → Int → Int
+  mod  : Int → Int → Int
+
+  append : ByteString → ByteString → ByteString
+  take   : Int → ByteString → ByteString
+  drop   : Int → ByteString → ByteString
+
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = type BS.length #-}
+
+{-# COMPILE GHC div  = type div  #-}
+{-# COMPILE GHC quot = type quot #-}
+{-# COMPILE GHC rem  = type rem  #-}
+{-# COMPILE GHC mod  = type mod  #-}
+
+{-# COMPILE GHC append = BS.append #-}
+{-# COMPILE GHC take = BS.take #-}
+{-# COMPILE GHC drop = BS.drop #-}
+
 
 -- cut-off exponentiation
 _^_ : Int → Int → Int
@@ -139,10 +158,10 @@ data Builtin : Set where
   addInteger       : Builtin
   subtractInteger : Builtin
   multiplyInteger          : Builtin
-  -- divideInteger            : Builtin
-  -- quotientInteger          : Builtin
-  -- remainderInteger         : Builtin
-  -- modInteger               : Builtin
+  divideInteger            : Builtin
+  quotientInteger          : Builtin
+  remainderInteger         : Builtin
+  modInteger               : Builtin
   -- lessThanInteger          : Builtin
   -- lessThanEqualsInteger    : Builtin
   -- greaterThanInteger       : Builtin
@@ -163,34 +182,58 @@ data Builtin : Set where
   -- txhash           : Builtin
   -- blocknum         : Builtin
   
-El : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
+SIG : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 -- could have just one context so Signatures extend from ∅...
 -- going in the other direction could take a substitution as an arg and
 -- extend it appropriately...
-El addInteger       Γ =
+SIG addInteger       Γ =
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-El subtractInteger Γ = 
+SIG subtractInteger Γ = 
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-El multiplyInteger Γ = 
+SIG multiplyInteger Γ = 
   (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-El concatenate      Γ =
+SIG concatenate      Γ =
   Γ ,⋆ #
   ,,
   con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
   ,,
   con bytestring (` Z)
-El takeByteString Γ =
+SIG takeByteString Γ =
   (Γ ,⋆ #  ,⋆ #)
   ,,
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
   con bytestring (` Z)
-El dropByteString Γ =
+SIG dropByteString Γ =
   (Γ ,⋆ #  ,⋆ #)
   ,,
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
   con bytestring (` Z)
+SIG divideInteger    Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  con integer (` Z)
+SIG quotientInteger  Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  con integer (` Z)
+SIG remainderInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  con integer (` Z)
+SIG modInteger       Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  con integer (` Z)
 
 Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 
@@ -249,7 +292,7 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
   builtin : ∀{Γ'}
     → (bn : Builtin)
-    → let Δ ,, As ,, C = El bn ∅ in
+    → let Δ ,, As ,, C = SIG bn ∅ in
       (σ : Sub ∥ Δ ∥ ∥ ∅ ∥)   -- substitutes for new vars introduced by the Sig
     → Tel ∅ Δ σ As           -- a telescope of terms M_i typed in subst σ A_i
     → (σ' : Sub ∥ ∅ ∥ ∥ Γ' ∥) -- a delayed substitution applied after computation

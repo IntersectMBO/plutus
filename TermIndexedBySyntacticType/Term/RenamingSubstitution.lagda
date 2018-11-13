@@ -81,7 +81,7 @@ rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
 rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X σ') = substEq
   (Δ ⊢_)
-  (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (El bn ∅)))))
+  (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (SIG bn ∅)))))
   (builtin bn σ X (⋆.rename ρ⋆ ∘ σ'))
 rename ρ⋆ ρ (error A) = error (⋆.rename ρ⋆ A)
 \end{code}
@@ -172,7 +172,7 @@ subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
 subst {Γ}{Δ} σ⋆ σ (builtin bn σ' tel σ'') = substEq
   (Δ ⊢_)
-  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (El bn ∅)))))
+  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (SIG bn ∅)))))
   (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ''))
 subst σ⋆ σ (error A) = error (⋆.subst σ⋆ A)
 \end{code}

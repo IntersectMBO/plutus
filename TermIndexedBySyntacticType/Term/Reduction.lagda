@@ -13,7 +13,7 @@ open import Type.Equality
 
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
-open import Data.Product renaming (_,_ to _,,_)
+open import Data.Product renaming (_,_ to _,,_; ,_ to ,,_)
 open import Data.List hiding ([_]; take; drop)
 open import Function
 open import Data.Unit hiding (_≤_; _≤?_)
@@ -53,19 +53,6 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 \end{code}
 
 ## BUILTIN
-
-\begin{code}
-postulate
-  append : ByteString → ByteString → ByteString
-  take   : Int → ByteString → ByteString
-  drop   : Int → ByteString → ByteString
-  
-{-# COMPILE GHC append = BS.append #-}
-{-# COMPILE GHC take = BS.take #-}
-{-# COMPILE GHC drop = BS.drop #-}
-
-\end{code}
-
 \begin{code}
 VTel : ∀ Γ Δ → ⋆.Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
@@ -73,7 +60,7 @@ VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel �
 
 BUILTIN : ∀{Γ Γ'}
     → (bn : Builtin)
-    → let Δ ,, As ,, C = El bn Γ in
+    → let Δ ,, As ,, C = SIG bn Γ in
       (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
     → (vtel : VTel Γ Δ σ As)
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
@@ -90,7 +77,28 @@ BUILTIN subtractInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .
 BUILTIN multiplyInteger σ X σ' with σ Z
 BUILTIN multiplyInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (i ** j)
 BUILTIN multiplyInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (i ** j) r))
-BUILTIN multiplyInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬p = nothing 
+BUILTIN multiplyInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬p = nothing
+BUILTIN divideInteger σ X σ' with σ Z
+BUILTIN divideInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt) σ' | .(size⋆ s) = nothing
+BUILTIN divideInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (div i j)
+BUILTIN divideInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (div i j) r))
+BUILTIN divideInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬r = nothing
+BUILTIN quotientInteger σ X σ' with σ Z
+BUILTIN quotientInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt) σ' | .(size⋆ s) = nothing
+BUILTIN quotientInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (quot i j)
+BUILTIN quotientInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (quot i j) r))
+BUILTIN quotientInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬r = nothing
+BUILTIN remainderInteger σ X σ' with σ Z
+BUILTIN remainderInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt) σ' | .(size⋆ s) = nothing
+BUILTIN remainderInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (rem i j)
+BUILTIN remainderInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (rem i j) r))
+BUILTIN remainderInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬r = nothing
+BUILTIN modInteger σ X σ' with σ Z
+BUILTIN modInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt) σ' | .(size⋆ s) = nothing
+BUILTIN modInteger σ (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) with boundedI? s (mod i j)
+BUILTIN modInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (integer s (mod i j) r))
+BUILTIN modInteger σ (.(con (integer s i p)) ,, V-con (integer s i p) ,, .(con (integer s j q)) ,, V-con (integer .s j q) ,, tt) σ' | .(size⋆ s) | no ¬r = nothing
+
 BUILTIN concatenate σ X σ' with σ Z
 BUILTIN concatenate σ (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt) σ' | .(size⋆ s) with boundedB? s (append b b')
 BUILTIN concatenate σ (.(con (bytestring s b p)) ,, V-con (bytestring s b p) ,, .(con (bytestring s b' q)) ,, V-con (bytestring .s b' q) ,, tt) σ' | .(size⋆ s) | yes r = just (con (bytestring s (append b b') r))
@@ -174,7 +182,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
 
   β-builtin : ∀{Γ'}
     → (bn : Builtin)
-    → let Δ ,, As ,, C = El bn ∅ in
+    → let Δ ,, As ,, C = SIG bn ∅ in
       (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
     → (tel : Tel ∅ Δ σ As)
     → (vtel : VTel ∅ Δ σ As)
@@ -183,7 +191,7 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → builtin {Γ'} bn σ tel σ' —→ maybe id (error _) (BUILTIN bn σ vtel σ')
 
   ξ-builtin : ∀{Γ'}  → (bn : Builtin)
-    → let Δ ,, As ,, C = El bn ∅ in
+    → let Δ ,, As ,, C = SIG bn ∅ in
       (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
     → (tel : Tel ∅ Δ σ As)
     → (σ' : ⋆.Sub ∥ ∅ ∥ ∥ Γ' ∥)
