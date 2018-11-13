@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
+{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors -fplugin-opt Language.Plutus.CoreToPLC.Plugin:strip-context #-}
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
@@ -161,6 +161,8 @@ monoData = testNested "monomorphic" [
   , goldenPlc "monoCase" monoCase
   , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
   , goldenPlc "defaultCase" defaultCase
+  , goldenPlc "irrefutableMatch" irrefutableMatch
+  , goldenPlc "atPattern" atPattern
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , goldenPlc "monoRecord" monoRecord
   , goldenPlc "nonValueCase" nonValueCase
@@ -189,7 +191,13 @@ monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  M
 defaultCase :: PlcCode
 defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
 
-data MyMonoRecord = MyMonoRecord { a :: Int , b :: Int} deriving Generic
+irrefutableMatch :: PlcCode
+irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
+
+atPattern :: PlcCode
+atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
+
+data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int} deriving Generic
 
 monoRecord :: PlcCode
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
@@ -219,7 +227,7 @@ polyConstructed :: PlcCode
 polyConstructed = plc @"polyConstructed" (Poly1 (1::Int) (2::Int))
 
 defaultCasePoly :: PlcCode
-defaultCasePoly = plc @"defaultCase" (\(x :: MyPolyData Int Int) -> case x of { Poly1 a _ -> a ; _ -> 2; })
+defaultCasePoly = plc @"defaultCasePoly" (\(x :: MyPolyData Int Int) -> case x of { Poly1 a _ -> a ; _ -> 2; })
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [
@@ -297,6 +305,7 @@ errors = testNested "errors" [
     goldenPlcCatch "integer" integer
     , goldenPlcCatch "free" free
     , goldenPlcCatch "valueRestriction" valueRestriction
+    , goldenPlcCatch "recordSelector" recordSelector
   ]
 
 integer :: PlcCode
@@ -309,6 +318,9 @@ free = plc @"free" (True && False)
 -- at different types to prevent the obvious specialization.
 valueRestriction :: PlcCode
 valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Int))
+
+recordSelector :: PlcCode
+recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
 
 instance LiftPlc (MyMonoData)
 instance LiftPlc (MyMonoRecord)

@@ -91,8 +91,9 @@ plc :: forall (loc::Symbol) a . a -> PlcCode
 plc _ = PlcCode mustBeReplaced
 
 data PluginOptions = PluginOptions {
-    poDoTypecheck   :: Bool
-    , poDeferErrors :: Bool
+    poDoTypecheck    :: Bool
+    , poDeferErrors  :: Bool
+    , poStripContext :: Bool
     }
 
 plugin :: GHC.Plugin
@@ -104,6 +105,7 @@ install args todo =
         opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
+            , poStripContext = elem "strip-context" args
             }
     in
         pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
@@ -212,7 +214,7 @@ convertExpr opts locStr origE resType = do
         initialState = ConvertingState mempty mempty
     case runConverting context initialState result of
         Left s ->
-            let shown = show $ PP.pretty s in
+            let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
             if poDeferErrors opts
             -- TODO: is this the right way to do either of these things?
             then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID resType shown -- this will blow up at runtime
