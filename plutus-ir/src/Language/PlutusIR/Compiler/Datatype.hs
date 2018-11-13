@@ -16,7 +16,6 @@ import qualified Language.PlutusCore.Subst             as PLC
 
 import           Control.Monad.Reader
 
-import           Data.Semigroup
 import           Data.Traversable
 
 -- Utilities

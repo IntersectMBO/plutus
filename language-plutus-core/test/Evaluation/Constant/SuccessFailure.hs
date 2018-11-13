@@ -6,7 +6,6 @@ import           Language.PlutusCore.Constant
 
 import           Evaluation.Constant.Apply
 
-import           Data.Semigroup
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 

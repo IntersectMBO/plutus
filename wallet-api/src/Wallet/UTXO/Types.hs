@@ -118,7 +118,6 @@ import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
 import           Data.Monoid                              (Sum (..))
-import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
