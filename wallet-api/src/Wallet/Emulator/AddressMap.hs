@@ -7,7 +7,8 @@ module Wallet.Emulator.AddressMap(
     values,
     fromTxOutputs,
     knownAddresses,
-    updateAddresses
+    updateAddresses,
+    restrict
     ) where
 
 import           Control.Lens   (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
@@ -106,6 +107,10 @@ inputs ::
 inputs addrs = Map.fromListWith Set.union
     . fmap (fmap Set.singleton . swap)
     . mapMaybe ((\a -> sequence (a, Map.lookup a addrs)) . txInRef)
+
+-- | Restrict an [[AddressMap]] to a set of addresses.
+restrict :: AddressMap -> Set.Set Address' -> AddressMap
+restrict (AddressMap mp) = AddressMap . Map.restrictKeys mp
 
 swap :: (a, b) -> (b, a)
 swap (x, y) = (y, x)

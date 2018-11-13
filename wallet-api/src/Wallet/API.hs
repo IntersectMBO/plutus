@@ -8,6 +8,7 @@
 module Wallet.API(
     WalletAPI(..),
     Range(..),
+    BlockchainAction(..),
     KeyPair(..),
     PubKey(..),
     pubKey,
@@ -36,20 +37,21 @@ module Wallet.API(
     otherError
     ) where
 
-import           Control.Monad.Error.Class (MonadError (..))
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Eq.Deriving          (deriveEq1)
-import           Data.Functor.Foldable     (Base, Corecursive (..), Fix (..), Recursive (..))
-import qualified Data.Map                  as Map
-import           Data.Ord.Deriving         (deriveOrd1)
-import qualified Data.Set                  as Set
-import           Data.Text                 (Text)
-import           GHC.Generics              (Generic)
-import           Text.Show.Deriving        (deriveShow1)
-import           Wallet.UTXO               (Address', DataScript, Height, PubKey (..), Signature (..), Tx (..), TxIn',
-                                            TxOut (..), TxOut', TxOutType (..), Value, pubKeyTxOut)
+import           Control.Monad.Error.Class  (MonadError (..))
+import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.Eq.Deriving           (deriveEq1)
+import           Data.Functor.Foldable      (Base, Corecursive (..), Fix (..), Recursive (..))
+import qualified Data.Map                   as Map
+import           Data.Ord.Deriving          (deriveOrd1)
+import qualified Data.Set                   as Set
+import           Data.Text                  (Text)
+import           GHC.Generics               (Generic)
+import           Text.Show.Deriving         (deriveShow1)
+import           Wallet.Emulator.AddressMap (AddressMap)
+import           Wallet.UTXO                (Address', DataScript, Height, PubKey (..), Signature (..), Tx (..), TxIn',
+                                             TxOut (..), TxOut', TxOutType (..), Value, pubKeyTxOut)
 
-import           Prelude                   hiding (Ordering (..))
+import           Prelude                    hiding (Ordering (..))
 
 newtype PrivateKey = PrivateKey { getPrivateKey :: Int }
     deriving (Eq, Ord, Show)
@@ -181,6 +183,19 @@ addresses = cata adr where
 newtype EventTrigger = EventTrigger { getEventTrigger :: Fix EventTriggerF }
     deriving (Eq, Ord, Show)
 
+-- | An action than can be run in response to a blockchain event. It receives
+--   the current block height, and the unspent transaction outputs that meet
+--   the condition specified in the trigger.
+newtype BlockchainAction m = BlockchainAction { runBlockchainAction :: Height -> AddressMap -> m () }
+
+instance Monad m => Semigroup (BlockchainAction m) where
+    l <> r = BlockchainAction $ \h m ->
+        runBlockchainAction l h m >> runBlockchainAction r h m
+
+instance Monad m => Monoid (BlockchainAction m) where
+    mappend = (<>)
+    mempty = BlockchainAction $ \_ _ -> pure ()
+
 data WalletAPIError =
     InsufficientFunds Text
     | OtherError Text
@@ -198,11 +213,10 @@ class WalletAPI m where
     createPaymentWithChange :: Value -> m (Set.Set TxIn', TxOut')
 
     {- |
-    Register an action in `m ()` to be run when condition is true.
+    Register a [[BlockchainAction]] in `m ()` to be run when condition is true.
 
-    * The action will be run once for each block where the condition holds. For
-      example, `register (blockHeightT (Interval 3 6)) a` causes `a` to be run
-      at blocks 3, 4, and 5.
+    * The action will be run once for each block where the condition holds.
+      For example, `register (blockHeightT (Interval 3 6)) a` causes `a` to be run at blocks 3, 4, and 5.
 
     * Each time the wallet is notified of a new block, all triggers are checked
       and the matching ones are run in an unspecified order.
@@ -217,7 +231,7 @@ class WalletAPI m where
 
     * `register c a >> register c b = register c (a >> b)`
     -}
-    register :: EventTrigger -> m () -> m ()
+    register :: EventTrigger -> BlockchainAction m -> m ()
 
 insufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 insufficientFundsError = throwError . InsufficientFunds

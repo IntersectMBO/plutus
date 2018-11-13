@@ -120,7 +120,7 @@ eventTrace = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             blockchainActions >>= walletNotifyBlock w
-            let mkPayment = payToPubKey 100 (PubKey 2)
+            let mkPayment = BlockchainAction $ \_ _ -> payToPubKey 100 (PubKey 2)
                 trigger = blockHeightT (GEQ 3)
 
             -- schedule the `mkPayment` action to run when block height 3 is
@@ -144,7 +144,7 @@ watchFundsAtAddress = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             blockchainActions >>= walletNotifyBlock w
-            let mkPayment = payToPubKey 100 pkTarget
+            let mkPayment = BlockchainAction $ \_ _ -> payToPubKey 100 (PubKey 2)
                 t1 = blockHeightT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<

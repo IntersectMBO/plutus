@@ -70,8 +70,8 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Wallet.API                 (EventTrigger (..), KeyPair (..), WalletAPI (..), WalletAPIError (..),
-                                             addresses, checkTrigger, keyPair, pubKey, signature)
+import           Wallet.API                 (BlockchainAction (..), EventTrigger (..), KeyPair (..), WalletAPI (..),
+                                             WalletAPIError (..), addresses, checkTrigger, keyPair, pubKey, signature)
 import qualified Wallet.Emulator.AddressMap as AM
 import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxOutRef', Value, height,
                                              pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
@@ -96,7 +96,7 @@ data WalletState = WalletState {
     -- ^  Height of the blockchain as far as the wallet is concerned
     walletStateWatchedAddresses :: AM.AddressMap,
     -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
-    walletStateTriggers         :: Map EventTrigger (EmulatedWalletApi ())
+    walletStateTriggers         :: Map EventTrigger (BlockchainAction EmulatedWalletApi)
     }
 
 instance Show WalletState where
@@ -130,7 +130,7 @@ addressMap = lens g s where
     g = walletStateWatchedAddresses
     s ws oa = ws { walletStateWatchedAddresses = oa }
 
-triggers :: Lens' WalletState (Map EventTrigger (EmulatedWalletApi ()))
+triggers :: Lens' WalletState (Map EventTrigger (BlockchainAction EmulatedWalletApi))
 triggers = lens g s where
     g = walletStateTriggers
     s ws tr = ws { walletStateTriggers = tr }
@@ -155,13 +155,19 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
 
     runTriggers _ = do
         h <- gets (view blockHeight)
-        values <- gets (AM.values . view addressMap)
+        adrs <- gets (view addressMap)
         trg <- gets (view triggers)
 
-        traverse_ snd
-            $ filter fst
-            $ over _1 (checkTrigger h values)
-            <$> Map.toList trg
+        let values = AM.values adrs
+
+        -- run a blockchain action with the unspent outputs that
+        -- are relevant to its trigger condition
+        let runTrigger trigger action =
+                runBlockchainAction action h (AM.restrict adrs (Set.fromList $ addresses trigger))
+
+        traverse_ (uncurry runTrigger)
+            $ filter (checkTrigger h values . fst)
+            $ Map.toList trg
 
     -- | Remove spent outputs and add unspent ones, for the addresses that we care about
     update t = over addressMap (AM.updateAddresses t)
@@ -196,7 +202,7 @@ instance WalletAPI EmulatedWalletApi where
             pure (ins, out)
 
     register tr action =
-        modify (over triggers (Map.insertWith (>>) tr action))
+        modify (over triggers (Map.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
 -- Emulator code
