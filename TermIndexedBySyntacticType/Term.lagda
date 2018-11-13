@@ -20,7 +20,7 @@ open import Data.Unit hiding (_≤_)
 open import Data.Vec hiding ([_]; take; drop)
 open import Data.List hiding ([_]; length; take; drop)
 open import Data.Product renaming (_,_ to _,,_)
-open import Data.Nat hiding (_^_; _≤_; _<_)
+open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
 open import Function hiding (_∋_)
 \end{code}
 
@@ -132,6 +132,9 @@ BoundedB s b = length b ℕ.< s
 postulate
   boundedI? : Decidable BoundedI
   boundedB? : Decidable BoundedB
+  _<?_ : Decidable _<_
+  _>?_ : Decidable _>_
+  _≥?_ : Decidable _≥_
   
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s
@@ -143,6 +146,15 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
     → BoundedB s b
     → TermCon (con bytestring (size⋆ s))
   size       : ∀ s → TermCon (con size (size⋆ s)) 
+\end{code}
+
+## Type Abbreviations
+
+\begin{code}
+unit : ∀{Γ} → Γ ⊢⋆ *
+unit = Π (` Z ⇒ ` Z)
+boolean : ∀{Γ} → Γ ⊢⋆ *
+boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
 \end{code}
 
 ## Terms
@@ -163,11 +175,11 @@ data Builtin : Set where
   quotientInteger          : Builtin
   remainderInteger         : Builtin
   modInteger               : Builtin
-  -- lessThanInteger          : Builtin
-  -- lessThanEqualsInteger    : Builtin
-  -- greaterThanInteger       : Builtin
-  -- greaterThanEqualsInteger : Builtin
-  -- equalsInteger            : Builtin
+  lessThanInteger          : Builtin
+  lessThanEqualsInteger    : Builtin
+  greaterThanInteger       : Builtin
+  greaterThanEqualsInteger : Builtin
+  equalsInteger            : Builtin
   resizeInteger            : Builtin
   sizeOfInteger            : Builtin
   -- intToByteString          : Builtin
@@ -217,6 +229,36 @@ SIG modInteger       Γ =
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   con integer (` Z)
+SIG lessThanInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  boolean
+SIG lessThanEqualsInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  boolean
+SIG greaterThanInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  boolean
+SIG greaterThanEqualsInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  boolean
+SIG equalsInteger Γ =
+  (Γ ,⋆ #)
+  ,,
+  con integer (` Z) ∷ con integer (` Z) ∷ []
+  ,,
+  boolean
 SIG resizeInteger Γ =
   (Γ ,⋆ # ,⋆ #)
   ,,
@@ -318,16 +360,10 @@ Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
 \end{code}
 
-# Abbreviations
+# Term Abbreviations
 \begin{code}
-unit : ∀{Γ} → Γ ⊢⋆ *
-unit = Π (` Z ⇒ ` Z)
-
 void : ∀{Γ} → Γ ⊢ unit
 void = Λ (ƛ (` Z))
-
-boolean : ∀{Γ} → Γ ⊢⋆ *
-boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
 
 true : ∀{Γ} → Γ ⊢ boolean
 true = Λ (ƛ (ƛ (` (S Z))))

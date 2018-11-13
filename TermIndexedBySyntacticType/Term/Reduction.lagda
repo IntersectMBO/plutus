@@ -16,14 +16,14 @@ open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_; ,_ to ,,_)
 open import Data.List hiding ([_]; take; drop)
 open import Function
-open import Data.Unit hiding (_≤_; _≤?_)
+open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Data.Integer renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Relation.Binary hiding (_⇒_)
 open import Data.Maybe
 open import Agda.Builtin.Int
-open import Data.Nat hiding (_<_; _≤?_; _^_; _+_)
+open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
 \end{code}
 
 ## Values
@@ -153,6 +153,51 @@ BUILTIN
   with boundedI? s (mod i j)
 ... | yes r = just (con (integer s (mod i j) r))
 ... | no ¬r = nothing
+BUILTIN lessThanInteger σ vtel σ' with σ Z
+BUILTIN
+  lessThanInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ'
+  | .(size⋆ s)
+  with i <? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN lessThanEqualsInteger σ vtel σ' with σ Z
+BUILTIN
+  lessThanEqualsInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ'
+  | .(size⋆ s)
+  with i ≤? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN greaterThanInteger σ vtel σ' with σ Z
+BUILTIN
+  greaterThanInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ'
+  | .(size⋆ s)
+  with i >? j
+... | yes _ = just true
+... | no _  = just false 
+BUILTIN greaterThanEqualsInteger σ vtel σ' with σ Z
+BUILTIN
+  greaterThanEqualsInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ'
+  | .(size⋆ s)
+  with i ≥? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN equalsInteger σ vtel σ' with σ Z
+BUILTIN
+  equalsInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt) σ'
+  | .(size⋆ s)
+  with i ≟ j
+... | yes _ = just true
+... | no _  = just false
 BUILTIN resizeInteger σ vtel σ' with σ Z | σ (S Z)
 BUILTIN
   resizeInteger
@@ -185,7 +230,8 @@ BUILTIN
   with boundedB? s' (take i b)
 ... | yes r = just (con (bytestring s' (take i b) r))
 ... | no r = nothing
--- ^ this is impossible but we haven't proved that take cannot increase the length
+-- ^ this is impossible but we haven't proved that take cannot
+-- increase the length
 BUILTIN dropByteString σ vtel σ' with σ Z | σ (S Z) 
 BUILTIN
   dropByteString
@@ -195,7 +241,8 @@ BUILTIN
   | .(size⋆ s) with boundedB? s' (drop i b)
 ... | yes r = just (con (bytestring s' (drop i b) r))
 ... | no ¬r = nothing
--- ^ this is impossible but we haven't proved that drop cannot increase the length
+-- ^ this is impossible but we haven't proved that drop cannot
+-- increase the length
 \end{code}
 
 # recontructing the telescope after a reduction step
