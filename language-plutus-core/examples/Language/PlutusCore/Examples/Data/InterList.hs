@@ -47,7 +47,7 @@ getBuiltinInterList = do
 
 getBuiltinInterNil :: Quote (Term TyName Name ())
 getBuiltinInterNil = rename =<< do
-    RecursiveType wrapInterList interlist <- getBuiltinInterList
+    RecursiveType interlist wrapInterList <- getBuiltinInterList
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     r <- freshTyName () "r"
@@ -65,7 +65,7 @@ getBuiltinInterNil = rename =<< do
 
 getBuiltinInterCons :: Quote (Term TyName Name ())
 getBuiltinInterCons = rename =<< do
-    RecursiveType wrapInterList interlist <- getBuiltinInterList
+    RecursiveType interlist wrapInterList <- getBuiltinInterList
     a  <- freshTyName () "a"
     b  <- freshTyName () "b"
     x  <- freshName () "x"
@@ -74,18 +74,17 @@ getBuiltinInterCons = rename =<< do
     r  <- freshTyName () "r"
     z  <- freshName () "z"
     f  <- freshName () "f"
-    let interlistBA1 = mkIterTyApp () interlist [TyVar () b, TyVar () a]
-    interlistBA2 <- rename interlistBA1
+    let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () x (TyVar () a)
         . LamAbs () y (TyVar () b)
-        . LamAbs () xs interlistBA1
+        . LamAbs () xs interlistBA
         . wrapInterList [TyVar () a, TyVar () b]
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA2] $ TyVar () r)
+        . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ mkIterApp () (Var () f)
           [ Var () x
           , Var () y
@@ -94,7 +93,7 @@ getBuiltinInterCons = rename =<< do
 
 getBuiltinFoldrInterList :: Quote (Term TyName Name ())
 getBuiltinFoldrInterList = rename =<< do
-    RecursiveType _ interlist <- getBuiltinInterList
+    interlist <- _recursiveType <$> getBuiltinInterList
     unit    <- getBuiltinUnit
     unitval <- getBuiltinUnitval
     fix     <- getBuiltinFix

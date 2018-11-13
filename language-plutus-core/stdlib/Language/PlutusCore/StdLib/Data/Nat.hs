@@ -38,7 +38,7 @@ getBuiltinNat = do
 -- > wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
 getBuiltinZero :: Quote (Term TyName Name ())
 getBuiltinZero = rename =<< do
-    RecursiveType wrapNat nat <- getBuiltinNat
+    RecursiveType nat wrapNat <- getBuiltinNat
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
@@ -54,18 +54,17 @@ getBuiltinZero = rename =<< do
 -- > \(n : nat) -> wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
 getBuiltinSucc :: Quote (Term TyName Name ())
 getBuiltinSucc = rename =<< do
-    RecursiveType wrapNat nat1 <- getBuiltinNat
-    nat2 <- rename nat1
+    RecursiveType nat wrapNat <- getBuiltinNat
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
     return
-        . LamAbs () n nat1
+        . LamAbs () n nat
         . wrapNat []
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
-        . LamAbs () f (TyFun () nat2 $ TyVar () r)
+        . LamAbs () f (TyFun () nat $ TyVar () r)
         . Apply () (Var () f)
         $ Var () n
 
@@ -76,7 +75,7 @@ getBuiltinSucc = rename =<< do
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
 getBuiltinFoldrNat :: Quote (Term TyName Name ())
 getBuiltinFoldrNat = rename =<< do
-    RecursiveType _ nat <- getBuiltinNat
+    nat <- _recursiveType <$> getBuiltinNat
     fix <- getBuiltinFix
     r   <- freshTyName () "r"
     f   <- freshName () "f"
@@ -104,7 +103,7 @@ getBuiltinFoldrNat = rename =<< do
 -- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
 getBuiltinFoldNat :: Quote (Term TyName Name ())
 getBuiltinFoldNat = rename =<< do
-    RecursiveType _ nat <- getBuiltinNat
+    nat <- _recursiveType <$> getBuiltinNat
     fix <- getBuiltinFix
     r   <- freshTyName () "r"
     f   <- freshName () "f"

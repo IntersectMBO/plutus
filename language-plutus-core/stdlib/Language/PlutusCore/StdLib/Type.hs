@@ -153,10 +153,10 @@ getWrap ann name argKinds patBody = do
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
 data RecursiveType ann = RecursiveType
-    { _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
-      -- ^ This produces terms with duplicate names.
-    , _recursiveType :: Type TyName ann
+    { _recursiveType :: Type TyName ann
       -- ^ This is not supposed to have duplicate names.
+    , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
+      -- ^ This produces terms with duplicate names.
     }
 
 makeRecursiveType
@@ -165,7 +165,5 @@ makeRecursiveType
     -> [Kind ann]
     -> Type TyName ann
     -> Quote (RecursiveType ann)
-makeRecursiveType ann name argKinds patBody = do
-    fixedPat <- getTyFix ann name argKinds patBody
-    wrap <- getWrap ann name argKinds patBody
-    return $ RecursiveType wrap fixedPat
+makeRecursiveType ann name argKinds patBody =
+    RecursiveType <$> getTyFix ann name argKinds patBody <*> getWrap ann name argKinds patBody
