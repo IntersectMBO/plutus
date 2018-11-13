@@ -30,14 +30,14 @@ We encode the following in this module:
       go A B f (InterCons x y xs) = f x y $ go B A (flip f) xs
 -}
 
-getBuiltinInterList :: Quote RecursiveType
+getBuiltinInterList :: Quote (RecursiveType ())
 getBuiltinInterList = do
     a         <- freshTyName () "a"
     b         <- freshTyName () "b"
     interlist <- freshTyName () "interlist"
     r         <- freshTyName () "r"
     let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
-    makeRecursiveType interlist [Type (), Type ()]
+    makeRecursiveType () interlist [Type (), Type ()]
         . TyLam () a (Type ())
         . TyLam () b (Type ())
         . TyForall () r (Type ())

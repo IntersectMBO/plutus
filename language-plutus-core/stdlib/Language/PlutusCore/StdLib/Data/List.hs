@@ -26,27 +26,22 @@ import           Language.PlutusCore.StdLib.Data.Integer
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Type
 
--- TODO: we need fix1, so that we can write
---     fix1 \(a :: *) (list :: * -> *) -> all (r :: *). r -> (a -> list a -> r) -> r
--- instead of the longish
---     \(a0 :: *). ifix (\(a :: *) (list :: * -> *) -> all (r :: *). r -> (a -> list a -> r) -> r) a0
-
 -- -- | @List@ as a PLC type.
 -- --
--- -- > \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+-- -- >
 -- getBuiltinListF :: Quote (Type TyName ())
 -- getBuiltinListF = rename =<< do
 
 -- | @List@ as a PLC type.
 --
--- > \(a0 :: *). ifix listF a0
-getBuiltinList :: Quote RecursiveType
+-- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+getBuiltinList :: Quote (RecursiveType ())
 getBuiltinList = do
     a    <- freshTyName () "a"
     list <- freshTyName () "list"
     r    <- freshTyName () "r"
     let listA = TyApp () (TyVar () list) (TyVar () a)
-    makeRecursiveType list [Type ()]
+    makeRecursiveType () list [Type ()]
         . TyLam () a (Type ())
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -55,7 +50,7 @@ getBuiltinList = do
 
 -- |  '[]' as a PLC term.
 --
--- >  /\(a :: *) -> iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
+-- >  /\(a :: *) -> wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
 getBuiltinNil :: Quote (Term TyName Name ())
 getBuiltinNil = do
     RecursiveType wrapList list <- getBuiltinList
@@ -75,7 +70,7 @@ getBuiltinNil = do
 -- |  '(:)' as a PLC term.
 --
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
--- >     iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
+-- >     wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
 getBuiltinCons :: Quote (Term TyName Name ())
 getBuiltinCons = do
     RecursiveType wrapList list <- getBuiltinList

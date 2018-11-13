@@ -24,6 +24,7 @@ star :: Kind ()
 star = Type ()
 
 getToPatternFunctor :: Kind () -> Quote (Type TyName ())
+-- If I remove 'rename' I'm getting errors??????
 getToPatternFunctor k = rename =<< do
     withSpine <- freshTyName () "withSpine"
     pat       <- freshTyName () "pat"
@@ -86,7 +87,7 @@ getToSpine ann = do
 -- > getSpine _ [a1 :: k1, a2 :: k2 ... an :: kn] =
 -- >     \(R :: k1 -> k2 -> ... kn -> *) -> R a1 a2 ... an
 --
--- E.g.
+-- For example
 --
 -- > getSpine _ [a1 :: k1, a2 :: k2] =
 -- >     \(R :: k1 -> k2 -> *) -> R a1 a2
@@ -100,7 +101,7 @@ getSpine ann args = ($ args) <$> getToSpine ann
 -- >      (a1 :: k1) (a2 :: k2) ... (an :: kn) ->
 -- >          K \(R :: k1 -> k2 -> ... kn -> *) -> R a1 a2 ... an
 --
--- E.g.
+-- For example
 --
 -- > getWithSpine [k1, k2] =
 -- >     \(K : ((k1 -> k2 -> *) -> *) -> *) (a1 :: k1) (a2 :: k2) ->
@@ -119,46 +120,51 @@ getWithSpine ann argKinds = rename =<< do
         . TyApp ann (TyVar ann k)
         $ spine
 
-closeBody :: ann -> TyName ann -> Type TyName ann -> [Kind ann] -> Type TyName ann
-closeBody ann name patBody argKinds = TyLam ann name (toRecKind ann argKinds) patBody
-
-getTyFix :: ann -> TyName ann -> Type TyName ann -> [Kind ann] -> Quote (Type TyName ann)
-getTyFix ann name patBody argKinds = do
+packagePatternBodyN
+    :: (Kind () -> Quote (Type TyName ()))
+       -- ^ Some type-level function that receives @withSpine@ and a pattern functor that binds
+       -- @n + 1@ type variables (where @1@ represents the variable responsible for recursion)
+       -- using type-level lambdas.
+    -> ann              -- ^ An annotation placed everywhere we do not have annotations.
+    -> TyName ann       -- ^ The name for the @1@ varible responsible for recursion.
+    -> [Kind ann]       -- ^ A list of kinds for @n@ type variables.
+    -> Type TyName ann  -- ^ The body of a pattern functor that consequently binds type variables.
+    -> Quote (Type TyName ann)
+packagePatternBodyN getFun ann name argKinds patBody = do
     withSpine <- getWithSpine ann argKinds
-    let pat = closeBody ann name patBody argKinds
-    tyFixN <- getTyFixN . void $ toRecKind ann argKinds
-    return $ mkIterTyApp ann (ann <$ tyFixN) [withSpine, pat]
+    let pat = TyLam ann name (toRecKind ann argKinds) patBody
+    fun <- getFun . void $ toRecKind ann argKinds
+    return $ mkIterTyApp ann (ann <$ fun) [withSpine, pat]
+
+getTyFix :: ann -> TyName ann -> [Kind ann] -> Type TyName ann -> Quote (Type TyName ann)
+getTyFix = packagePatternBodyN getTyFixN
 
 getWrap
-    :: a
-    -> TyName a
-    -> Type TyName a
-    -> [Kind a]
-    -> Quote ([Type TyName a] -> Term TyName Name a -> Term TyName Name a)
-getWrap ann name patBody argKinds = do
-    -- TODO: the next four lines are almost identical to the ones in 'getTyFix' above.
-    withSpine <- getWithSpine ann argKinds
-    let pat = closeBody ann name patBody argKinds
-    toPatternFunctor <- getToPatternFunctor . void $ toRecKind ann argKinds
-    let pat1 = mkIterTyApp ann (ann <$ toPatternFunctor) [withSpine, pat]
+    :: ann
+    -> TyName ann
+    -> [Kind ann]
+    -> Type TyName ann
+    -> Quote ([Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann)
+getWrap ann name argKinds patBody = do
+    pat1 <- packagePatternBodyN getToPatternFunctor ann name argKinds patBody
     toSpine <- getToSpine ann
     -- TODO: check lengths match.
     return $ IWrap ann pat1 . toSpine . zipWith (flip $ TyDecl ann) argKinds
 
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
-data RecursiveType = RecursiveType
-    { _recursiveWrap :: [Type TyName ()] -> Term TyName Name () -> Term TyName Name ()
-    , _recursiveType :: Type TyName ()
+data RecursiveType ann = RecursiveType
+    { _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
+    , _recursiveType :: Type TyName ann
     }
 
 makeRecursiveType
-    :: TyName ()
-    -> [Kind ()]
-    -> Type TyName ()
-    -> Quote RecursiveType
-makeRecursiveType name argKinds patBody = do
-    patBody' <- rename patBody
-    fixedPat <- getTyFix () name patBody argKinds
-    wrap <- getWrap () name patBody' argKinds
+    :: ann
+    -> TyName ann
+    -> [Kind ann]
+    -> Type TyName ann
+    -> Quote (RecursiveType ann)
+makeRecursiveType ann name argKinds patBody = do
+    fixedPat <- getTyFix ann name argKinds patBody
+    wrap <- getWrap ann name argKinds =<< rename patBody
     return $ RecursiveType wrap fixedPat

@@ -23,11 +23,11 @@ import           Language.PlutusCore.StdLib.Type
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
-getBuiltinNat :: Quote RecursiveType
+getBuiltinNat :: Quote (RecursiveType ())
 getBuiltinNat = do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
-    makeRecursiveType nat []
+    makeRecursiveType () nat []
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () nat) $ TyVar () r)
@@ -35,7 +35,7 @@ getBuiltinNat = do
 
 -- |  '0' as a PLC term.
 --
--- > wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> z
+-- > wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
 getBuiltinZero :: Quote (Term TyName Name ())
 getBuiltinZero = do
     RecursiveType wrapNat nat <- getBuiltinNat
@@ -51,7 +51,7 @@ getBuiltinZero = do
 
 -- |  'succ' as a PLC term.
 --
--- > \(n : nat) -> wrap /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
+-- > \(n : nat) -> wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
 getBuiltinSucc :: Quote (Term TyName Name ())
 getBuiltinSucc = do
     RecursiveType wrapNat nat1 <- getBuiltinNat
