@@ -4,7 +4,6 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -20,7 +19,8 @@ module Wallet.Emulator.Types(
     WalletState(..),
     emptyWalletState,
     ownKeyPair,
-    ownAddresses,
+    ownFunds,
+    addressMap,
     blockHeight,
     -- ** Traces
     Trace,
@@ -52,28 +52,31 @@ module Wallet.Emulator.Types(
     ) where
 
 import           Control.Monad.Except
-import           Control.Monad.Operational as Op
+import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
 import           Control.Monad.Writer
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Bifunctor            (Bifunctor (..))
-import           Data.List                 (uncons)
-import           Data.Map                  (Map)
-import qualified Data.Map                  as Map
+import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.Bifunctor             (Bifunctor (..))
+import           Data.Foldable              (traverse_)
+import           Data.List                  (uncons)
+import           Data.Map                   (Map)
+import qualified Data.Map                   as Map
 import           Data.Maybe
-import qualified Data.Set                  as Set
-import qualified Data.Text                 as T
-import           GHC.Generics              (Generic)
+import qualified Data.Set                   as Set
+import qualified Data.Text                  as T
+import           GHC.Generics               (Generic)
 import           Lens.Micro
-import           Prelude                   as P
-import           Servant.API               (FromHttpApiData, ToHttpApiData)
+import           Lens.Micro.Extras          (view)
+import           Prelude                    as P
+import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
-import           Data.Hashable             (Hashable)
-import           Wallet.API                (KeyPair (..), WalletAPI (..), WalletAPIError (..), keyPair, pubKey,
-                                            signature)
-import           Wallet.UTXO               (Block, Blockchain, Height, Tx (..), TxIn (..), TxOut (..), TxOutRef (..),
-                                            TxOutRef', Value, hashTx, height, pubKeyTxIn, pubKeyTxOut, txOutPubKey)
-import qualified Wallet.UTXO.Index         as Index
+import           Data.Hashable              (Hashable)
+import           Wallet.API                 (EventTrigger (..), KeyPair (..), WalletAPI (..), WalletAPIError (..),
+                                             addresses, checkTrigger, keyPair, pubKey, signature)
+import qualified Wallet.Emulator.AddressMap as AM
+import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxOutRef', Value, height,
+                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
+import qualified Wallet.UTXO.Index          as Index
 
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }
@@ -89,58 +92,96 @@ data Notification = BlockValidated Block
 -- Wallet code
 
 data WalletState = WalletState {
-    walletStateKeyPair      :: KeyPair,
-    walletStateOwnAddresses :: Map TxOutRef' Value, -- ^ Addresses locked by the public key of our key pair
-    walletStateBlockHeight  :: Height -- ^  Height of the blockchain as far as the wallet is concerned
+    walletStateKeyPair          :: KeyPair,
+    walletStateBlockHeight      :: Height,
+    -- ^  Height of the blockchain as far as the wallet is concerned
+    walletStateWatchedAddresses :: AM.AddressMap,
+    -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
+    walletStateTriggers         :: Map EventTrigger (EmulatedWalletApi ())
     }
-    deriving (Show, Eq, Ord)
+
+instance Show WalletState where
+    showsPrec p (WalletState kp bh wa tr) = showParen (p > 10)
+        (showString "WalletState"
+            . showChar ' ' . showsPrec 10 kp
+            . showChar ' ' . showsPrec 10 bh
+            . showChar ' ' . showsPrec 10 wa
+            . showChar ' ' . showsPrec 10 (Map.map (const ("<..>" :: String)) tr))
 
 ownKeyPair :: Lens' WalletState KeyPair
 ownKeyPair = lens g s where
     g = walletStateKeyPair
     s ws kp = ws { walletStateKeyPair = kp }
 
-ownAddresses :: Lens' WalletState (Map TxOutRef' Value)
-ownAddresses = lens g s where
-    g = walletStateOwnAddresses
-    s ws oa = ws { walletStateOwnAddresses = oa }
+ownAddress :: WalletState -> Address'
+ownAddress = pubKeyAddress . pubKey . walletStateKeyPair
+
+ownFunds :: Lens' WalletState (Map TxOutRef' Value)
+ownFunds = lens g s where
+    g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
+    s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
 
 blockHeight :: Lens' WalletState Height
 blockHeight = lens g s where
     g = walletStateBlockHeight
     s ws bh = ws { walletStateBlockHeight = bh }
 
--- | An empty wallet state with the public/private key pair for a wallet
+addressMap :: Lens' WalletState AM.AddressMap
+addressMap = lens g s where
+    g = walletStateWatchedAddresses
+    s ws oa = ws { walletStateWatchedAddresses = oa }
+
+triggers :: Lens' WalletState (Map EventTrigger (EmulatedWalletApi ()))
+triggers = lens g s where
+    g = walletStateTriggers
+    s ws tr = ws { walletStateTriggers = tr }
+
+-- | An empty wallet state with the public/private key pair for a wallet, and the public key address
+--   for that wallet as the sole member of `walletStateWatchedAddresses`
 emptyWalletState :: Wallet -> WalletState
-emptyWalletState (Wallet i) = WalletState (keyPair i) Map.empty 0
+emptyWalletState (Wallet i) = WalletState kp 0 oa Map.empty where
+    oa = AM.addAddress ownAddr mempty
+    kp = keyPair i
+    ownAddr = pubKeyAddress $ pubKey kp
 
 -- manually records the list of transactions to be submitted
 newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer [Tx] ))) a }
     deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx], MonadError WalletAPIError)
 
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
-handleNotifications ns = pubKey <$> myKeyPair >>= \k -> mapM_ (go k) ns where
-    go k = \case
+handleNotifications = mapM_ (updateState >=> runTriggers)  where
+    updateState = \case
             BlockHeight h -> modify (blockHeight .~ h)
-            BlockValidated blck -> mapM_ (modify . update k) blck
+            BlockValidated blck -> mapM_ (modify . update) blck >> modify (blockHeight %~ succ)
 
-    -- | Remove spent outputs and add unspent ones that can be unlocked with our key
-    update k t@Tx{..} =
-        over ownAddresses (`Map.difference` (Map.fromSet (const ()) $ Set.map txInRef txInputs))
-        . over ownAddresses (`Map.union` (Map.fromList $ (mkUtxo $ hashTx t) <$> (filter (isOwn k) $ zip [0..] txOutputs)))
-    mkUtxo tx (i, TxOut{..}) = (TxOutRef tx i, txOutValue)
-    isOwn k = (==) (Just k) . txOutPubKey . snd
+    runTriggers _ = do
+        h <- gets (view blockHeight)
+        values <- gets (AM.values . view addressMap)
+        trg <- gets (view triggers)
+
+        traverse_ snd
+            $ filter fst
+            $ over _1 (checkTrigger h values)
+            <$> Map.toList trg
+
+    -- | Remove spent outputs and add unspent ones, for the addresses that we care about
+    update t = over addressMap (AM.updateAddresses t)
 
 instance WalletAPI EmulatedWalletApi where
-    submitTxn txn = tell [txn]
+    submitTxn txn =
+        let adrs = txOutAddress <$> txOutputs txn in
+        modify (over addressMap (AM.addAddresses adrs)) >>
+        tell [txn]
 
     myKeyPair = gets walletStateKeyPair
 
     createPaymentWithChange vl = do
-        WalletState{..} <- get
-        let total = getSum $ foldMap Sum walletStateOwnAddresses
-            sig   = signature walletStateKeyPair
-        if total < vl || Map.null walletStateOwnAddresses
+        ws <- get
+        let fnds = ws ^. ownFunds
+            total = getSum $ foldMap Sum fnds
+            kp = walletStateKeyPair ws
+            sig   = signature kp
+        if total < vl || Map.null fnds
         then throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
         else
             -- This is the coin selection algorithm
@@ -148,17 +189,16 @@ instance WalletAPI EmulatedWalletApi where
             let funds = P.takeWhile ((vl <) . snd)
                         $ maybe [] (uncurry (P.scanl (\t v -> second (+ snd v) t)))
                         $ uncons
-                        $ Map.toList walletStateOwnAddresses
+                        $ Map.toList fnds
                 ins   = Set.fromList (flip pubKeyTxIn sig . fst <$> funds)
                 diff  = maximum (snd <$> funds) - vl
-                out   = pubKeyTxOut diff (pubKey walletStateKeyPair) in
+                out   = pubKeyTxOut diff (pubKey kp) in
 
             pure (ins, out)
 
-    register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
-
-    payToPublicKey v = pubKeyTxOut v . pubKey <$> myKeyPair
-
+    register tr action =
+        modify (over triggers (Map.insertWith (>>) tr action))
+        >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
 -- Emulator code
 
@@ -179,7 +219,7 @@ ownFundsEqual wallet value = do
   ws <- case Map.lookup wallet $ emWalletState es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-  let total = getSum $ foldMap Sum $ walletStateOwnAddresses ws
+  let total = getSum $ foldMap Sum $ ws ^. ownFunds
   if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
