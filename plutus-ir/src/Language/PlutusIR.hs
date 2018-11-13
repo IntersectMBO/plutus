@@ -1,8 +1,10 @@
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
     TyName (..),
@@ -16,15 +18,23 @@ module Language.PlutusIR (
     Binding (..),
     Term (..),
     prettyDef,
-    embedIntoIR
+    embedIntoIR,
+    packPir,
+    serializePirTerm,
+    deserializePirTerm
     ) where
+
 
 import           PlutusPrelude
 
 import           Language.PlutusCore        (Kind, Name, TyName, Type)
 import qualified Language.PlutusCore        as PLC
+import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
+
+import           Codec.Serialise           -- (Serialise, serialise)
+import qualified Data.ByteString.Lazy       as BSL
 
 import           GHC.Generics               (Generic)
 
@@ -33,14 +43,22 @@ import           GHC.Generics               (Generic)
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
     deriving (Functor, Show, Eq, Generic)
 
+instance (Serialise (tyname ()) , Serialise (name ()) ) => Serialise (Datatype tyname name ()) 
+
 -- Bindings
 
 data Recursivity = NonRec | Rec
     deriving (Show, Eq, Generic)
+
+instance Serialise Recursivity
+
 data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
     deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise (name ()), Serialise (tyname ()) ) => Serialise (Binding tyname name ())
+
 
 -- Terms
 
@@ -83,6 +101,9 @@ data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname
                         | Unwrap a (Term tyname name a)
                         deriving (Functor, Show, Eq, Generic)
 
+instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname name ())
+
+
 embedIntoIR :: PLC.Term tyname name a -> Term tyname name a
 embedIntoIR = \case
     PLC.Var a n -> Var a n
@@ -94,6 +115,31 @@ embedIntoIR = \case
     PLC.Error a ty -> Error a ty
     PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
     PLC.Wrap a tn ty t -> Wrap a tn ty (embedIntoIR t)
+
+newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DeserialiseFailure
+    deriving Exception
+
+instance Show ImpossibleDeserialisationFailure where
+        show (ImpossibleDeserialisationFailure e) = "Failed deserialisation. This should not happen. Caused by: " ++ show e
+
+
+newtype PirCode = PirCode { unPir :: [Word] }
+    deriving Serialise
+
+packPir :: Term TyName Name () -> PirCode
+packPir term = PirCode pircode
+    where
+        serialized = serialise term
+        (pircode :: [Word]) = fromIntegral <$> BSL.unpack serialized
+
+serializePirTerm :: PirCode -> BSL.ByteString
+serializePirTerm = BSL.pack . fmap fromIntegral . unPir
+
+deserializePirTerm :: PirCode -> Term TyName Name ()
+deserializePirTerm code = case deserialiseOrFail $ serializePirTerm code of
+    Left e -> throw $ ImpossibleDeserialisationFailure e
+    Right t -> t
+
 
 -- Pretty-printing
 

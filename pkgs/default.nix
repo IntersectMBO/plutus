@@ -55597,6 +55597,7 @@ license = stdenv.lib.licenses.bsd3;
 , microlens
 , mtl
 , prettyprinter
+, serialise
 , stdenv
 , tasty
 , tasty-golden
@@ -55617,6 +55618,7 @@ language-plutus-core
 microlens
 mtl
 prettyprinter
+serialise
 text
 transformers
 ];

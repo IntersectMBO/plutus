@@ -8,6 +8,7 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
+import           Language.PlutusCore.MkPlc      (TyVarDecl(..), VarDecl(..))
 import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
@@ -182,3 +183,11 @@ instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname 
 instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Program tyname name ()) where
     encode (Program _ v t) = encode v <> encode t
     decode = Program () <$> decode <*> decode
+
+instance (Serialise (tyname ()), Serialise (name ())) => Serialise (VarDecl tyname name ()) where
+    encode (VarDecl tyname name _) = encode name <> encode tyname
+    decode = VarDecl () <$> decode <*> decode
+
+instance Serialise (tyname ())  => Serialise (TyVarDecl tyname () ) where
+    encode (TyVarDecl _ tyname kind) = encode tyname <> encode kind
+    decode = TyVarDecl () <$> decode <*> decode

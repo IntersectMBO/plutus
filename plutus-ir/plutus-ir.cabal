@@ -55,6 +55,7 @@ library
         microlens -any,
         mtl -any,
         prettyprinter -any,
+        serialise -any,
         text -any,
         transformers -any
 
@@ -75,6 +76,7 @@ test-suite plutus-ir-test
         mtl -any,
         text -any,
         prettyprinter -any,
+        serialise -any,
         tasty -any,
         tasty-hunit -any,
         tasty-golden -any
