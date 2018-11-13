@@ -149,6 +149,7 @@ getWrap ann name argKinds patBody = do
     pat1 <- packagePatternBodyN getToPatternFunctor ann name argKinds patBody
     toSpine <- getToSpine ann
     -- TODO: check lengths match.
+    -- OUCH. Such wrap can be used only once, otherwise you'll get duplicates.
     return $ IWrap ann pat1 . toSpine . zipWith (flip $ TyDecl ann) argKinds
 
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
@@ -165,6 +166,8 @@ makeRecursiveType
     -> Type TyName ann
     -> Quote (RecursiveType ann)
 makeRecursiveType ann name argKinds patBody = do
+    patBodyFr <- rename patBody
     fixedPat <- getTyFix ann name argKinds patBody
-    wrap <- getWrap ann name argKinds =<< rename patBody
+    -- Oh god. We need to rename 'name' as well. And rename i in the 'patBody'. Where it's free.
+    wrap <- getWrap ann name argKinds patBodyFr
     return $ RecursiveType wrap fixedPat
