@@ -70,7 +70,11 @@ let
   src = localLib.cleanSourceHaskell ./.;
   errorOverlay = import ./nix/overlays/force-error.nix {
     inherit pkgs;
-    filter = localLib.isPlutus;
+    # TODO: fix plutus-use-cases and plutus-exe warnings
+    #filter = localLib.isPlutus;
+    filter = let
+      pkgList = pkgs.lib.remove "plutus-use-cases" localLib.plutusPkgList;
+      in name: builtins.elem name pkgList;
   };
   customOverlays = optional forceError errorOverlay;
   packages = self: ({
