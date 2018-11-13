@@ -46,7 +46,7 @@ getBuiltinInterList = do
         $ TyVar () r
 
 getBuiltinInterNil :: Quote (Term TyName Name ())
-getBuiltinInterNil = do
+getBuiltinInterNil = rename =<< do
     RecursiveType wrapInterList interlist <- getBuiltinInterList
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -64,7 +64,7 @@ getBuiltinInterNil = do
         $ Var () z
 
 getBuiltinInterCons :: Quote (Term TyName Name ())
-getBuiltinInterCons = do
+getBuiltinInterCons = rename =<< do
     RecursiveType wrapInterList interlist <- getBuiltinInterList
     a  <- freshTyName () "a"
     b  <- freshTyName () "b"

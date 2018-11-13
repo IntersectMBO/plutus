@@ -26,12 +26,6 @@ import           Language.PlutusCore.StdLib.Data.Integer
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Type
 
--- -- | @List@ as a PLC type.
--- --
--- -- >
--- getBuiltinListF :: Quote (Type TyName ())
--- getBuiltinListF = rename =<< do
-
 -- | @List@ as a PLC type.
 --
 -- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
@@ -52,7 +46,7 @@ getBuiltinList = do
 --
 -- >  /\(a :: *) -> wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
 getBuiltinNil :: Quote (Term TyName Name ())
-getBuiltinNil = do
+getBuiltinNil = rename =<< do
     RecursiveType wrapList list <- getBuiltinList
     a <- freshTyName () "a"
     r <- freshTyName () "r"
@@ -72,7 +66,7 @@ getBuiltinNil = do
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
 getBuiltinCons :: Quote (Term TyName Name ())
-getBuiltinCons = do
+getBuiltinCons = rename =<< do
     RecursiveType wrapList list <- getBuiltinList
     a  <- freshTyName () "a"
     x  <- freshName () "x"

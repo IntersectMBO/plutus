@@ -24,8 +24,7 @@ star :: Kind ()
 star = Type ()
 
 getToPatternFunctor :: Kind () -> Quote (Type TyName ())
--- If I remove 'rename' I'm getting errors??????
-getToPatternFunctor k = rename =<< do
+getToPatternFunctor k = do
     withSpine <- freshTyName () "withSpine"
     pat       <- freshTyName () "pat"
     b         <- freshTyName () "b"
@@ -48,7 +47,7 @@ getToPatternFunctor k = rename =<< do
 -- >     withSpine λ (spine : K -> Set) -> IFix patternFunctor spine where
 -- >         patternFunctor = λ (B : (K -> Set) -> Set) (P : K -> Set) -> P (Pat (withSpine B))
 getTyFixN :: Kind () -> Quote (Type TyName ())
-getTyFixN k = rename =<< do
+getTyFixN k = do
     withSpine        <- freshTyName () "withSpine"
     pat              <- freshTyName () "pat"
     toPatternFunctor <- getToPatternFunctor k
@@ -107,7 +106,7 @@ getSpine ann args = ($ args) <$> getToSpine ann
 -- >     \(K : ((k1 -> k2 -> *) -> *) -> *) (a1 :: k1) (a2 :: k2) ->
 -- >          K \(R :: k1 -> k2 -> *) -> R a1 a2
 getWithSpine :: ann -> [Kind ann] -> Quote (Type TyName ann)
-getWithSpine ann argKinds = rename =<< do
+getWithSpine ann argKinds = do
     k <- freshTyName ann "k"
     args <- for (zip [1 :: Int ..] argKinds) $ \(argN, argKind) -> do
         name <- freshTyNameText ann $ "a" <> prettyText argN
@@ -149,14 +148,15 @@ getWrap ann name argKinds patBody = do
     pat1 <- packagePatternBodyN getToPatternFunctor ann name argKinds patBody
     toSpine <- getToSpine ann
     -- TODO: check lengths match.
-    -- OUCH. Such wrap can be used only once, otherwise you'll get duplicates.
     return $ IWrap ann pat1 . toSpine . zipWith (flip $ TyDecl ann) argKinds
 
 -- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
 data RecursiveType ann = RecursiveType
     { _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
+      -- ^ This produces terms with duplicate names.
     , _recursiveType :: Type TyName ann
+      -- ^ This is not supposed to have duplicate names.
     }
 
 makeRecursiveType
@@ -166,8 +166,6 @@ makeRecursiveType
     -> Type TyName ann
     -> Quote (RecursiveType ann)
 makeRecursiveType ann name argKinds patBody = do
-    patBodyFr <- rename patBody
     fixedPat <- getTyFix ann name argKinds patBody
-    -- Oh god. We need to rename 'name' as well. And rename i in the 'patBody'. Where it's free.
-    wrap <- getWrap ann name argKinds patBodyFr
+    wrap <- getWrap ann name argKinds patBody
     return $ RecursiveType wrap fixedPat
