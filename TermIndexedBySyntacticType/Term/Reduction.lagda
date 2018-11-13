@@ -24,6 +24,7 @@ open import Relation.Binary hiding (_⇒_)
 open import Data.Maybe
 open import Agda.Builtin.Int
 open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
+import Data.Bool as Bool
 \end{code}
 
 ## Values
@@ -211,6 +212,18 @@ BUILTIN
 BUILTIN sizeOfInteger σ vtel σ' with σ Z
 BUILTIN sizeOfInteger σ (_ ,, V-con (integer s i x) ,, tt) σ' | .(size⋆ s) =
   just (con (size s))
+BUILTIN intToByteString σ vtel σ' with σ Z | σ (S Z)
+BUILTIN
+  intToByteString
+  σ
+  (_ ,, V-con (size s) ,, _ ,, V-con (integer s' i p) ,, tt) σ'
+  | .(size⋆ s)
+  | .(size⋆ s') with boundedI? s i
+... | no _  = nothing
+... | yes q with boundedB? s (int2ByteString i)
+... | yes r = just (con (bytestring s (int2ByteString i) r))
+... | no _  = nothing
+-- ^ should be impossible if we prove something about int2ByteString
 BUILTIN concatenate σ vtel σ' with σ Z
 BUILTIN
   concatenate
@@ -243,6 +256,66 @@ BUILTIN
 ... | no ¬r = nothing
 -- ^ this is impossible but we haven't proved that drop cannot
 -- increase the length
+BUILTIN sha2-256 σ vtel σ' with σ Z
+BUILTIN
+  sha2-256
+  σ
+  (_ ,, V-con (bytestring s b p) ,, tt) σ'
+  | .(size⋆ s) with boundedB? 32 (SHA2-256 b)
+... | yes q = just (con (bytestring 32 (SHA2-256 b) q))
+... | no  _ = nothing
+-- ^ should be impossible
+BUILTIN sha3-256 σ vtel σ' with σ Z
+BUILTIN
+  sha3-256
+  σ
+  (_ ,, V-con (bytestring s b p) ,, tt) σ'
+  | .(size⋆ s) with boundedB? 32 (SHA3-256 b)
+... | yes q = just (con (bytestring 32 (SHA3-256 b) q))
+... | no  _ = nothing
+-- ^ should be impossible
+BUILTIN verifySignature σ vtel σ' with σ Z | σ (S Z) | σ (S (S Z))
+BUILTIN
+  verifySignature
+  σ
+  (  _ ,, V-con (bytestring s k p)
+  ,, _ ,, V-con (bytestring s' d p')
+  ,, _ ,, V-con (bytestring s'' c p'')
+  ,, tt)
+  σ'
+  | .(size⋆ s'')
+  | .(size⋆ s')
+  | .(size⋆ s)
+  with verifySig k d c
+... | Bool.true  = just true
+... | Bool.false = just false
+BUILTIN resizeByteString σ vtel σ' with σ Z | σ (S Z)
+BUILTIN
+  resizeByteString
+  σ
+  (_ ,, V-con (size s) ,, _ ,, V-con (bytestring s' b p) ,, tt) σ'
+  | .(size⋆ s)
+  | .(size⋆ s')
+  with boundedB? s b
+... | yes q = just (con (bytestring s b q))
+... | no  _ = nothing
+BUILTIN equalsByteString σ vtel σ' with σ Z
+BUILTIN
+  equalsByteString
+  σ
+  (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt) σ'
+  | .(size⋆ s)
+  with equals b b'
+... | Bool.true  = just true
+... | Bool.false = just false
+BUILTIN txh σ tt σ' with boundedB? 32 txhash
+... | yes p = just (con (bytestring 32 txhash p))
+... | no  _ = nothing
+-- ^ should this be impossible?
+BUILTIN blocknum σ vtel σ' with σ Z
+BUILTIN blocknum σ (_ ,, V-con (size s) ,, tt) σ' | .(size⋆ s) with boundedI? s bnum
+... | yes p = just (con (integer s bnum p))
+... | no  _ = nothing
 \end{code}
 
 # recontructing the telescope after a reduction step

@@ -22,6 +22,7 @@ open import Data.List hiding ([_]; length; take; drop)
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
 open import Function hiding (_∋_)
+import Data.Bool as Bool
 \end{code}
 
 ## Fixity declarations
@@ -91,16 +92,25 @@ Let `x`, `y` range over variables.
 \begin{code}
 postulate
   ByteString : Set
-  length : ByteString → ℕ.ℕ
+  length     : ByteString → ℕ.ℕ
 
-  div  : Int → Int → Int
-  quot : Int → Int → Int
-  rem  : Int → Int → Int
-  mod  : Int → Int → Int
+  div            : Int → Int → Int
+  quot           : Int → Int → Int
+  rem            : Int → Int → Int
+  mod            : Int → Int → Int
+  int2ByteString : Int → ByteString
 
-  append : ByteString → ByteString → ByteString
-  take   : Int → ByteString → ByteString
-  drop   : Int → ByteString → ByteString
+  append    : ByteString → ByteString → ByteString
+  take      : Int → ByteString → ByteString
+  drop      : Int → ByteString → ByteString
+  SHA2-256  : ByteString → ByteString
+  SHA3-256  : ByteString → ByteString
+  verifySig : ByteString → ByteString → ByteString → Bool.Bool
+  equals    : ByteString → ByteString → Bool.Bool
+
+  txhash : ByteString
+  bnum   : Int
+
 
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
@@ -122,8 +132,13 @@ x ^ negsuc n      = pos 1
 x ^ pos ℕ.zero    = pos 1
 x ^ pos (ℕ.suc n) = x ** (x ^ pos n)
 
+
 BoundedI : ∀ s i → Set
-BoundedI s i = (negsuc 1 ^ (pos 8 ** (s ⊖ 1))) ≤ i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
+BoundedI s i =
+  (negsuc 1 ^ (pos 8 ** (s ⊖ 1))) ≤ i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
+
+BoundedN : ∀ s i → Set
+BoundedN s i = pos 0 ≤ i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
 
 BoundedB : ∀ s b → Set
 BoundedB s b = length b ℕ.< s
@@ -135,7 +150,7 @@ postulate
   _<?_ : Decidable _<_
   _>?_ : Decidable _>_
   _≥?_ : Decidable _≥_
-  
+
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s
     → (i : Int)
@@ -182,18 +197,18 @@ data Builtin : Set where
   equalsInteger            : Builtin
   resizeInteger            : Builtin
   sizeOfInteger            : Builtin
-  -- intToByteString          : Builtin
+  intToByteString          : Builtin
 
   concatenate      : Builtin
   takeByteString   : Builtin
   dropByteString   : Builtin
-  -- sha2_256         : Builtin
-  -- sha3_256         : Builtin
-  -- verifySignature  : Builtin
-  -- resizeByteString : Builtin
-  -- equalsByteString : Builtin
-  -- txhash           : Builtin
-  -- blocknum         : Builtin
+  sha2-256         : Builtin
+  sha3-256         : Builtin
+  verifySignature  : Builtin
+  resizeByteString : Builtin
+  equalsByteString : Builtin
+  txh              : Builtin
+  blocknum         : Builtin
   
 SIG : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
 -- could have just one context so Signatures extend from ∅...
@@ -271,6 +286,12 @@ SIG sizeOfInteger Γ =
   con integer (` Z) ∷ []
   ,,
   con size (` Z)
+SIG intToByteString Γ =
+  Γ ,⋆ # ,⋆ #
+  ,,
+  con size (` Z) ∷ con integer (` (S Z)) ∷ []
+  ,,
+  con bytestring (` Z)
 SIG concatenate      Γ =
   Γ ,⋆ #
   ,,
@@ -289,6 +310,46 @@ SIG dropByteString Γ =
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
   con bytestring (` Z)
+SIG sha2-256 Γ =
+  Γ ,⋆ #
+  ,,
+  con bytestring (` Z) ∷ []
+  ,,
+  con bytestring (size⋆ 32)
+SIG sha3-256 Γ =
+  Γ ,⋆ #
+  ,,
+  con bytestring (` Z) ∷ []
+  ,,
+  con bytestring (size⋆ 32)
+SIG verifySignature Γ =
+  Γ ,⋆ # ,⋆ # ,⋆ #
+  ,,
+  con bytestring (` (S (S Z)))
+    ∷ con bytestring (` (S Z))
+    ∷ con bytestring (` Z)
+    ∷ []
+  ,,
+  boolean
+SIG resizeByteString Γ =
+  Γ ,⋆ # ,⋆ #
+  ,,
+  con size (` Z) ∷ con bytestring (` (S Z)) ∷ []
+  ,,
+  con bytestring (` Z)
+SIG equalsByteString Γ =
+  Γ ,⋆ #
+  ,,
+  con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
+  ,,
+  boolean
+SIG txh Γ = Γ ,, [] ,, con bytestring (size⋆ 32)
+SIG blocknum Γ =
+  Γ ,⋆ #
+  ,,
+  con size (` Z) ∷ []
+  ,,
+  con integer (` Z)
 
 Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
 
