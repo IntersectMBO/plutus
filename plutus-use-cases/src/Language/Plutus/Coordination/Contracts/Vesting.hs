@@ -81,7 +81,7 @@ vestFunds vst value = do
     let vs = validatorScript vst
         o = scriptTxOut v' vs (DataScript $ UTXO.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    signAndSubmit payment [o, change]
+    _ <- signAndSubmit payment [o, change]
     pure vd
 
 -- | Retrieve some of the vested funds.
@@ -100,7 +100,7 @@ retrieveFunds vs vd r vnow = do
         remaining = (fromIntegral $ totalAmount vs) - vnow
         vd' = vd {vestingDataPaidOut = fromIntegral vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val UTXO.unitRedeemer
-    signAndSubmit (Set.singleton inp) [oo, o]
+    _ <- signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash

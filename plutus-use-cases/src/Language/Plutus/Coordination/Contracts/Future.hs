@@ -24,6 +24,7 @@ module Language.Plutus.Coordination.Contracts.Future(
     validatorScript
     ) where
 
+import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
@@ -89,7 +90,7 @@ initialise long short f = do
         ds = DataScript $ UTXO.lifted $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange vl
-    signAndSubmit payment [o, change]
+    void $ signAndSubmit payment [o, change]
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -113,7 +114,7 @@ settle refs ft fd ov = do
             UTXO.pubKeyTxOut shortOut (futureDataShort fd)
             ]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    signAndSubmit (Set.fromList inp) outs
+    void $ signAndSubmit (Set.fromList inp) outs
 
 -- | Settle the position early if a margin payment has been missed.
 settleEarly :: (
@@ -129,7 +130,7 @@ settleEarly refs ft fd ov = do
         outs = [UTXO.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
         red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
-    signAndSubmit (Set.fromList inp) outs
+    void $ signAndSubmit (Set.fromList inp) outs
 
 adjustMargin :: (
     MonadError WalletAPIError m,
@@ -153,7 +154,7 @@ adjustMargin refs ft fd vl = do
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + fromIntegral (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    signAndSubmit (Set.union payment inp) [o, change]
+    void $ signAndSubmit (Set.union payment inp) [o, change]
 
 
 -- | Basic data of a futures contract. `Future` contains all values that do not

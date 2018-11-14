@@ -243,14 +243,14 @@ createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
 
 -- | Transfer some funds to an address locked by a script.
-payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
+payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
 payToScript addr v ds = do
     (i, own) <- createPaymentWithChange v
     let  other = TxOut addr v (PayToScript ds)
     signAndSubmit i [own, other]
 
 -- | Transfer some funds to an address locked by a public key
-payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
+payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
 payToPubKey v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
@@ -262,13 +262,15 @@ ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
 
 -- | Create a transaction, sign it and submit it
 --   TODO: Also compute the fee
-signAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m ()
+signAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m Tx
 signAndSubmit ins outs = do
     sig <- signature <$> myKeyPair
-    submitTxn Tx
-        { txInputs = ins
-        , txOutputs = outs
-        , txForge = 0
-        , txFee = 0
-        , txSignatures = [sig]
-        }
+    let tx = Tx
+            { txInputs = ins
+            , txOutputs = outs
+            , txForge = 0
+            , txFee = 0
+            , txSignatures = [sig]
+            }
+    submitTxn tx
+    pure tx

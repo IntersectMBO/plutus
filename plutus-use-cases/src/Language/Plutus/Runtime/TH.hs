@@ -14,6 +14,11 @@ module Language.Plutus.Runtime.TH(
     isJust,
     isNothing,
     maybe,
+    -- * Lists
+    map,
+    foldr,
+    length,
+    all,
     -- * Signatures
     txSignedBy,
     txInSignedBy,
@@ -101,6 +106,44 @@ maybe = [| \b f m ->
     case m of
         Nothing -> b
         Just a  -> f a |]
+
+map :: Q Exp
+map = [|
+    \f l ->
+        let go ls = case ls of
+                x:xs -> f x : go xs
+                _    -> []
+        in go l
+        |]
+
+foldr :: Q Exp
+foldr = [|
+    \f b l ->
+        let go cur as = case as of
+                []    -> cur
+                a:as' -> go (f a cur) as'
+        in go b l
+    |]
+
+length :: Q Exp
+length = [|
+    \l ->
+        -- it would be nice to define length in terms of foldr,
+        -- but we can't, due to staging restrictions.
+        let go lst = case lst of
+                []   -> 0::Int
+                _:xs -> 1 + go xs
+        in go l
+    |]
+
+all :: Q Exp
+all = [|
+    \pred l ->
+        let go lst = case lst of
+                []   -> True
+                x:xs -> pred x && go xs
+        in go l
+    |]
 
 -- | Returns the public key that locks the transaction output
 pubKeyOutput :: Q Exp
