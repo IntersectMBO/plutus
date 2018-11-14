@@ -90,6 +90,7 @@ import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
+import           Control.Lens
 import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
@@ -114,8 +115,6 @@ import           Data.Word                               (Word8)
 import           Debug.Trace
 import           GHC.Generics
 import           GHC.Natural                             (Natural)
-import           Lens.Micro
-import           Lens.Micro.Extras
 
 import           Data.Functor.Compose
 

@@ -47,7 +47,7 @@ constructorArgTypes = funTyArgs . varDeclType
 unveilDatatype :: Eq (tyname a) => Type tyname a -> Datatype tyname name a -> Type tyname a -> Type tyname a
 unveilDatatype dty (Datatype _ tn _ _ _) = PLC.substTy (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
 
-resultTypeName :: Compiling m a => Datatype TyName Name (Provenance a) -> m (TyName (Provenance a))
+resultTypeName :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (TyName (Provenance a))
 resultTypeName (Datatype _ tn _ _ _) = ask >>= \p -> liftQuote $ freshTyName p $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
 
 -- Datatypes
@@ -210,7 +210,7 @@ For a (self-)recursive datatype we have to change three things:
 -- See note [Scott encoding of datatypes]
 -- | Make the "Scott-encoded" type for a 'Datatype', with type variables free.
 -- @mkScottTy Maybe = forall out_Maybe. out_Maybe -> (a -> out_Maybe) -> out_Maybe@
-mkScottTy :: forall m a . Compiling m a => Datatype TyName Name (Provenance a) -> m (PLCType a)
+mkScottTy :: forall m e a . Compiling m e a => Datatype TyName Name (Provenance a) -> m (PLCType a)
 mkScottTy d@(Datatype _ _ _ _ constrs) = do
     p <- ask
     resultType <- resultTypeName d
@@ -225,7 +225,7 @@ mkScottTy d@(Datatype _ _ _ _ constrs) = do
 -- type variable for the type itself free. In the case of non-recursive datatypes this is just the
 -- datatype.
 -- @mkDatatypePatternFunctor List = \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r@
-mkDatatypePatternFunctor :: Compiling m a => Datatype TyName Name (Provenance a) -> m (PLCType a)
+mkDatatypePatternFunctor :: Compiling m e a => Datatype TyName Name (Provenance a) -> m (PLCType a)
 mkDatatypePatternFunctor d@(Datatype _ _ tvs _ _) = local (DatatypeComponent PatternFunctor) $ PLC.mkIterTyLam <$> ask <*> pure tvs <*> mkScottTy d
 
 -- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor.
@@ -234,7 +234,7 @@ mkDatatypePatternFunctor d@(Datatype _ _ tvs _ _) = local (DatatypeComponent Pat
 --         = fix list . <pattern functor of List>
 --         = fix list . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r
 -- @
-mkDatatypeType :: Compiling m a => Recursivity -> PLCType a -> Datatype TyName Name (Provenance a) -> m (PLCRecType a)
+mkDatatypeType :: Compiling m e a => Recursivity -> PLCType a -> Datatype TyName Name (Provenance a) -> m (PLCRecType a)
 mkDatatypeType r pf (Datatype _ tn _ _ _) = local (DatatypeComponent DatatypeType) $ case r of
     NonRec -> pure $ PlainType pf
     -- See note [Recursive datatypes]
@@ -249,7 +249,7 @@ mkDatatypeType r pf (Datatype _ tn _ _ _) = local (DatatypeComponent DatatypeTyp
 -- @
 --     mkConstructorType List Cons = forall (a :: *) . a -> List a -> List a
 -- @
-mkConstructorType :: Compiling m a => Datatype TyName Name (Provenance a) -> VarDecl TyName Name (Provenance a) -> m (PLCType a)
+mkConstructorType :: Compiling m e a => Datatype TyName Name (Provenance a) -> VarDecl TyName Name (Provenance a) -> m (PLCType a)
 -- this type appears *inside* the scope of the abstraction for the datatype so we can just reference the name and
 -- we don't need to do anything to the declared type
 -- see note [Abstract data types]
@@ -264,7 +264,7 @@ mkConstructorType (Datatype _ _ tvs _ _) constr = local (DatatypeComponent Const
 --             wrap <pattern functor of List> /\(out_List :: *) .
 --                 \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
 -- @
-mkConstructor :: Compiling m a => PLCRecType a -> Datatype TyName Name (Provenance a) -> Int -> m (PLCTerm a)
+mkConstructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> Int -> m (PLCTerm a)
 mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponent Constructor) $ do
     p <- ask
     resultType <- resultTypeName d
@@ -318,7 +318,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
 --        = /\(a :: *) -> \(x : (<definition of List> a)) -> unwrap x
 --        = /\(a :: *) -> \(x : (fix List . \(a :: *) -> forall (r :: *) . r -> (a -> List a -> r) -> r) a) -> unwrap x
 -- @
-mkDestructor :: Compiling m a => PLCRecType a -> Datatype TyName Name (Provenance a) -> m (PLCTerm a)
+mkDestructor :: Compiling m e a => PLCRecType a -> Datatype TyName Name (Provenance a) -> m (PLCTerm a)
 mkDestructor dty (Datatype _ _ tvs _ _) = local (DatatypeComponent Destructor) $ do
     p <- ask
 
@@ -345,7 +345,7 @@ mkDestructor dty (Datatype _ _ tvs _ _) = local (DatatypeComponent Destructor) $
 --         = forall (a :: *) . (List a) -> ((<pattern functor of List>) a)
 --         = forall (a :: *) . (List a) -> ((\(a :: *) -> forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List)) a)
 -- @
-mkDestructorTy :: Compiling m a => PLCType a -> Datatype TyName Name (Provenance a) -> m (PLCType a)
+mkDestructorTy :: Compiling m e a => PLCType a -> Datatype TyName Name (Provenance a) -> m (PLCType a)
 mkDestructorTy pf (Datatype _ tn tvs _ _) = local (DatatypeComponent DestructorType) $ do
     p <- ask
 
@@ -369,7 +369,7 @@ mkDestructorTy pf (Datatype _ tn tvs _ _) = local (DatatypeComponent DestructorT
 -- The main function
 
 -- | Compile a 'Datatype' bound with the given body.
-compileDatatype :: Compiling m a => Recursivity -> PLCTerm a -> Datatype TyName Name (Provenance a) -> m (PLCTerm a)
+compileDatatype :: Compiling m e a => Recursivity -> PLCTerm a -> Datatype TyName Name (Provenance a) -> m (PLCTerm a)
 compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
     p <- ask
 

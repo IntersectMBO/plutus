@@ -16996,7 +16996,7 @@ license = stdenv.lib.licenses.mit;
 , containers
 , ghc
 , language-plutus-core
-, microlens
+, lens
 , mmorph
 , mtl
 , plutus-ir
@@ -17022,7 +17022,7 @@ cborg
 containers
 ghc
 language-plutus-core
-microlens
+lens
 mmorph
 mtl
 plutus-ir
@@ -43161,8 +43161,7 @@ license = stdenv.lib.licenses.bsd3;
 , filepath
 , happy
 , hedgehog
-, microlens
-, microlens-th
+, lens
 , mmorph
 , mtl
 , prettyprinter
@@ -43198,8 +43197,7 @@ dependent-map
 dependent-sum
 filepath
 hedgehog
-microlens
-microlens-th
+lens
 mmorph
 mtl
 prettyprinter
@@ -55723,7 +55721,7 @@ license = stdenv.lib.licenses.bsd3;
 , bytestring
 , containers
 , language-plutus-core
-, microlens
+, lens
 , mmorph
 , mtl
 , prettyprinter
@@ -55744,7 +55742,7 @@ base
 bytestring
 containers
 language-plutus-core
-microlens
+lens
 mmorph
 mtl
 prettyprinter
@@ -55755,6 +55753,7 @@ testHaskellDepends = [
 base
 bytestring
 language-plutus-core
+lens
 mmorph
 mtl
 prettyprinter

@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 
@@ -28,9 +29,9 @@ module Language.PlutusCore.Name ( -- * Types
 
 import           PlutusPrelude
 
+import           Control.Lens
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL
-import           Data.Coerce.Lens
 import qualified Data.IntMap                as IM
 import qualified Data.Map                   as M
 import           Data.Text.Encoding         (decodeUtf8)
@@ -49,6 +50,7 @@ data Name a = Name { nameAttribute :: a
 newtype TyName a = TyName { unTyName :: Name a }
     deriving (Show, Generic, Lift)
     deriving newtype (Eq, Ord, Functor, NFData)
+instance Wrapped (TyName a)
 
 -- | Apply a function to the string representation of a 'Name'.
 mapNameString :: (BSL.ByteString -> BSL.ByteString) -> Name a -> Name a
@@ -93,9 +95,9 @@ newtype TermUnique = TermUnique
 
 -- | The default implementation of 'HasUnique' for newtypes.
 newtypeUnique
-    :: (Newtype new, HasUnique (Unwrap new) unique', Coercible unique' unique)
+    :: (Wrapped new, HasUnique (Unwrapped new) unique', Coercible unique' unique)
     => Lens' new unique
-newtypeUnique = wrapped . unique . coerced
+newtypeUnique = _Wrapped' . unique . coerced
 
 -- | Types which have a 'Unique' attached to them, mostly names.
 class Coercible Unique unique => HasUnique a unique | a -> unique where

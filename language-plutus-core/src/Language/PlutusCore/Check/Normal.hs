@@ -22,12 +22,12 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | Ensure that all terms and types are well-formed accoring to Fig. 2
-checkProgram :: (MonadError (Error a) m) => Program TyName Name a -> m ()
-checkProgram p = void $ liftEither $ convertError $ preCheck p
+checkProgram :: (AsNormalizationError e TyName Name a, MonadError e m) => Program TyName Name a -> m ()
+checkProgram p = void $ throwingEither _NormalizationError $ preCheck p
 
 -- | Ensure that all terms and types are well-formed accoring to Fig. 2
-checkTerm :: (MonadError (Error a) m) => Term TyName Name a -> m ()
-checkTerm p = void $ liftEither $ convertError $ checkTerm p
+checkTerm :: (AsNormalizationError e TyName Name a, MonadError e m) => Term TyName Name a -> m ()
+checkTerm p = void $ throwingEither _NormalizationError $ checkTerm p
 
 check :: Program tyname name a -> Maybe (NormalizationError tyname name a)
 check = go . preCheck where
