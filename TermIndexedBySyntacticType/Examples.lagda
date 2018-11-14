@@ -11,9 +11,13 @@ open import Type.Equality
 open import TermIndexedBySyntacticType.Term
 open import TermIndexedBySyntacticType.Term.RenamingSubstitution
 open import TermIndexedBySyntacticType.Evaluation
+open import Builtin.Constant.Type
+open import Builtin.Constant.Term
 
 open import Relation.Binary.PropositionalEquality
 open import Function
+open import Agda.Builtin.Int
+
 \end{code}
 
 ## Examples
@@ -40,6 +44,7 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 --
 
 \begin{code}
+{-
 module ScottE where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
@@ -100,7 +105,7 @@ module ScottE where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
-
+-}
 \end{code}
 
 
@@ -147,16 +152,9 @@ eval (gas 10000000) Scott.Two
 
 \begin{code}
 module Scott1 where
-  unit : ∀{Γ} → Γ ⊢⋆ *
-  unit = Π (` Z ⇒ ` Z)
-
-  void : ∀{Γ} → Γ ⊢ unit
-  void = Λ (ƛ (` Z))
-
-  open import Agda.Builtin.Int
 
   fortyfour : ∀{Γ} → Γ ⊢ con integer (size⋆ 10)
-  fortyfour = con (integer (size⋆ 10) (pos 44))
+  fortyfour = con (integer 10 (pos 44) {!!})
 
   μ0 : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
   μ0 = ƛ (μ1 · ƛ (ƛ (` (S (S Z)) · (` (S Z) · ` Z))) · Π (` Z))

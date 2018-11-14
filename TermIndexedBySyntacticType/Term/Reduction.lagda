@@ -57,6 +57,7 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 \end{code}
 
 ## BUILTIN
+
 \begin{code}
 VTel : ∀ Γ Δ → ⋆.Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
