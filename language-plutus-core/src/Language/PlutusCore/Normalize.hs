@@ -5,6 +5,7 @@ module Language.PlutusCore.Normalize
     , substituteNormalizeType
     ) where
 
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
@@ -12,7 +13,9 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Lens
+import           Control.Monad.Except
 import           Control.Monad.Reader
+import           Control.Monad.State
 import           Data.IntMap                 (IntMap)
 import qualified Data.IntMap                 as IntMap
 
@@ -21,23 +24,31 @@ newtype TypeEnv tyname = TypeEnv
     { unTypeEnv :: IntMap (NormalizedType tyname ())
     }
 
-type NormalizeTypeM tyname = ReaderT (TypeEnv tyname) Quote
+type NormalizeTypeM tyname a = StateT (Maybe Natural) (ReaderT (TypeEnv tyname) (ExceptT (TypeError a) Quote))
+
+normalizeTypeStep :: NormalizeTypeM tyname a ()
+normalizeTypeStep = do
+    st <- get
+    case st of
+        Just 0  -> throwError OutOfGas
+        Just _  -> modify (fmap (subtract 1))
+        Nothing -> pure ()
 
 -- | Run a 'NormalizeTypeM' computation.
-runNormalizeTypeM :: MonadQuote m => NormalizeTypeM tyname a -> m a
-runNormalizeTypeM a = liftQuote $ runReaderT a (TypeEnv mempty)
+runNormalizeTypeM :: (MonadQuote m, AsTypeError e a, MonadError e m) => Maybe Natural -> NormalizeTypeM tyname a b -> m b
+runNormalizeTypeM mn a = throwingEither _TypeError =<< (liftQuote $ runExceptT $ runReaderT (evalStateT a mn) (TypeEnv mempty))
 
 -- | Locally extend a 'TypeEnv' in a 'NormalizeTypeM' computation.
 withExtendedTypeEnv
     :: HasUnique (tyname ()) TypeUnique
-    => tyname () -> NormalizedType tyname () -> NormalizeTypeM tyname a -> NormalizeTypeM tyname a
+    => tyname () -> NormalizedType tyname () -> NormalizeTypeM tyname a b -> NormalizeTypeM tyname a b
 withExtendedTypeEnv name ty =
     local (TypeEnv . IntMap.insert (name ^. unique . coerced) ty . unTypeEnv)
 
 -- | Look up a @tyname@ in a 'TypeEnv'.
 lookupTyName
     :: HasUnique (tyname ()) TypeUnique
-    => tyname () -> NormalizeTypeM tyname (Maybe (NormalizedType tyname ()))
+    => tyname () -> NormalizeTypeM tyname a (Maybe (NormalizedType tyname ()))
 lookupTyName name = asks $ IntMap.lookup (name ^. unique . coerced) . unTypeEnv
 
 {- Note [Normalization]
@@ -59,7 +70,7 @@ added to environments and normalization instantiates all variables presented in 
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
 normalizeTypeM
     :: HasUnique (tyname ()) TypeUnique
-    => Type tyname () -> NormalizeTypeM tyname (NormalizedType tyname ())
+    => Type tyname () -> NormalizeTypeM tyname a (NormalizedType tyname ())
 normalizeTypeM (TyForall ann name kind body) = TyForall ann name kind <<$>> normalizeTypeM body
 normalizeTypeM (TyFix ann name pat)          = TyFix ann name <<$>> normalizeTypeM pat
 normalizeTypeM (TyFun ann dom cod)           =
@@ -93,22 +104,22 @@ substituteNormalizeTypeM
     => NormalizedType tyname ()                          -- ^ @ty@
     -> tyname ()                                         -- ^ @name@
     -> Type tyname ()                                    -- ^ @body@
-    -> NormalizeTypeM tyname (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
+    -> NormalizeTypeM tyname a (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
 substituteNormalizeTypeM ty name = withExtendedTypeEnv name ty . normalizeTypeM
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.
 normalizeType
-    :: (HasUnique (tyname ()) TypeUnique, MonadQuote m)
-    => Type tyname () -> m (NormalizedType tyname ())
-normalizeType = runNormalizeTypeM . normalizeTypeM
+    :: (HasUnique (tyname ()) TypeUnique, MonadQuote m, AsTypeError e a, MonadError e m)
+    => Maybe Natural -> Type tyname () -> m (NormalizedType tyname ())
+normalizeType n = runNormalizeTypeM n . normalizeTypeM
 
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize.
 substituteNormalizeType
-    :: (HasUnique (tyname ()) TypeUnique, MonadQuote m)
+    :: (HasUnique (tyname ()) TypeUnique, MonadQuote m, AsTypeError e a, MonadError e m)
     => NormalizedType tyname ()      -- ^ @ty@
     -> tyname ()                     -- ^ @name@
     -> Type tyname ()                -- ^ @body@
     -> m (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
-substituteNormalizeType ty name = runNormalizeTypeM . substituteNormalizeTypeM ty name
+substituteNormalizeType ty name = runNormalizeTypeM Nothing . substituteNormalizeTypeM ty name

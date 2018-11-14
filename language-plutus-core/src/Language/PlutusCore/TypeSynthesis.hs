@@ -12,6 +12,7 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , TypeError (..)
                                          , TypeConfig (..)
                                          , TypeCheckCfg (..)
+                                         , TypeCheckSt (..)
                                          ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -40,26 +41,24 @@ newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
 -- | Configuration of the type checker.
 data TypeConfig = TypeConfig
     { _typeConfigNormalize           :: Bool
-      -- ^ Whether to normalize type annotations. When set to 'True', the
-      -- typechecker is set to unlimited mode and will not run out of gas.
+      -- ^ Whether to normalize type annotations.
     , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
     }
 
 newtype TypeCheckSt = TypeCheckSt
-    { _gas :: Natural
+    { _gas :: Maybe Natural
     }
 
 data TypeCheckCfg = TypeCheckCfg
-    { _cfgGas        :: Natural     -- ^ Gas to be provided to the typechecker
+    { _cfgGas        :: Maybe Natural -- ^ Gas to be provided to the
+                                      -- typechecker. When set to 'Nothing', the
+                                      -- typechecker operates in unbounded mode.
     , _cfgTypeConfig :: TypeConfig
     }
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
 type TypeCheckM a = StateT TypeCheckSt (ReaderT TypeConfig (ExceptT (TypeError a) Quote))
-
-gas :: Lens' TypeCheckSt Natural
-gas f s = fmap (\x -> s { _gas = x }) (f (_gas s))
 
 sizeToType :: Kind ()
 sizeToType = KindArrow () (Size ()) (Type ())
@@ -122,17 +121,6 @@ runTypeCheckM :: TypeCheckCfg
 runTypeCheckM (TypeCheckCfg i typeConfig) tc =
     runReaderT (evalStateT tc (TypeCheckSt i)) typeConfig
 
-typeCheckStep :: TypeCheckM a ()
-typeCheckStep = do
-    (TypeCheckSt i) <- get
-    (TypeConfig norm _) <- ask
-    if not norm then
-        if i == 0
-            then throwError OutOfGas
-            else modify (over gas (subtract 1))
-        else
-            pure ()
-
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
 kindOf TyInt{} = pure (Size ())
@@ -153,7 +141,6 @@ kindOf (TyApp x fun arg) = do
     funK <- kindOf fun
     case funK of
         KindArrow _ argK resK -> do
-            typeCheckStep
             kindCheckM x arg argK
             pure resK
         _ -> throwError $ KindMismatch x (void fun) (KindArrow () dummyKind dummyKind) funK
@@ -256,7 +243,8 @@ typeOf (LamAbs x _ dom body)                     = do
 -- [infer| error ty : vTy]
 typeOf (Error x ty)                              = do
     kindCheckM x ty $ Type ()
-    normalizeType $ void ty
+    (TypeCheckSt gas) <- get
+    normalizeType gas $ void ty
 
 -- [infer| body : vBodyTy]
 -- ----------------------------------------------
@@ -276,7 +264,6 @@ typeOf (Apply x fun arg) = do
     vFunTy <- typeOf fun
     case getNormalizedType vFunTy of
         TyFun _ vDom vCod -> do
-            typeCheckStep
             typeCheckM x arg $ NormalizedType vDom  -- Subpart of a normalized type, so normalized.
             pure $ NormalizedType vCod              -- Subpart of a normalized type, so normalized.
         _ -> throwError (TypeMismatch x (void fun) (TyFun () dummyType dummyType) vFunTy)
@@ -290,7 +277,6 @@ typeOf (TyInst x body ty) = do
         TyForall _ n nK vCod -> do
             kindCheckM x ty nK
             vTy <- normalizeTypeOpt $ void ty
-            typeCheckStep
             substituteNormalizeType vTy n vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
@@ -310,7 +296,6 @@ typeOf (Wrap x n pat term) = do
     kindCheckM x pat $ Type ()
     vPat <- normalizeTypeOpt $ void pat
     vTermTy <- substituteNormalizeType (TyFix () (void n) <$> vPat) (void n) $ getNormalizedType vPat
-    typeCheckStep
     typeCheckM x term vTermTy
     pure $ TyFix () (void n) <$> vPat
 
@@ -332,6 +317,7 @@ typeCheckM x term vTy = do
 normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeOpt ty = do
     typeConfig <- ask
+    (TypeCheckSt gas) <- get
     if _typeConfigNormalize typeConfig
-        then normalizeType ty
+        then normalizeType gas ty
         else pure $ NormalizedType ty

@@ -79,6 +79,7 @@ module Language.PlutusCore
     , TypeConfig (..)
     , DynamicBuiltinNameTypes (..)
     , TypeCheckCfg (..)
+    , TypeCheckSt (..)
     , TypeCheckM
     , parseTypecheck
     -- for testing
@@ -168,7 +169,7 @@ printNormalizeType :: (AsParseError e AlexPosn, AsRenameError e AlexPosn, AsType
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
     annotated <- annotateProgram scoped
-    typecheckProgram (TypeCheckCfg 1000 $ TypeConfig norm mempty) annotated
+    typecheckProgram (TypeCheckCfg (Just 1000) $ TypeConfig norm mempty) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -183,11 +184,11 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+    => Maybe Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
 parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 
 -- | Typecheck a program.
-typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
+typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => Maybe Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline gas p = do
     checkProgram p
     typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty) =<< annotateProgram p
@@ -203,8 +204,8 @@ defaultVersion :: a -> Version a
 defaultVersion a = Version a 1 0 0
 
 -- | The default amount of gas to run the typechecker with.
-defaultTypecheckerGas :: Natural
-defaultTypecheckerGas = 1000
+defaultTypecheckerGas :: Maybe Natural
+defaultTypecheckerGas = Just 1000
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()

@@ -23,7 +23,7 @@ typecheckEvaluate
 typecheckEvaluate meanings getTerm = do
     let types = dynamicBuiltinNameMeaningsToTypes meanings
     term <- liftQuote getTerm
-    _ <- annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True types)
+    _ <- annotateTerm term >>= typecheckTerm (TypeCheckCfg (Just 1000) $ TypeConfig True types)
     return $ evaluateCek meanings term
 
 dynamicFactorialName :: DynamicBuiltinName
