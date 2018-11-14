@@ -281,26 +281,24 @@ validatorScript ft = Validator val where
 
                                 canSettle =
                                     case outs of
-                                        (o1 :: PendingTxOut):(os::[PendingTxOut]) ->
-                                            case os of
-                                                (o2 :: PendingTxOut):(_::[PendingTxOut]) ->
-                                                    let paymentsValid =
-                                                            (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
-                                                            || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
-                                                    in
-                                                        heightvalid && paymentsValid
-                                                (_::[PendingTxOut]) ->
-                                                    let
-                                                        totalMargin = marginShort + marginLong
-                                                        case2 = marginLong < requiredMargin spotPrice
-                                                                && paidOutTo totalMargin futureDataShort o1
+                                        o1:o2:_ ->
+                                            let paymentsValid =
+                                                    (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
+                                                    || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
+                                            in
+                                                heightvalid && paymentsValid
+                                        o1:_ ->
+                                            let
+                                                totalMargin = marginShort + marginLong
+                                                case2 = marginLong < requiredMargin spotPrice
+                                                        && paidOutTo totalMargin futureDataShort o1
 
-                                                        case3 = marginShort < requiredMargin spotPrice
-                                                                && paidOutTo totalMargin futureDataLong o1
+                                                case3 = marginShort < requiredMargin spotPrice
+                                                        && paidOutTo totalMargin futureDataLong o1
 
-                                                    in
-                                                        case2 || case3
-                                        (_::[PendingTxOut]) -> False
+                                            in
+                                                case2 || case3
+                                        _ -> False
 
                             in
                                canSettle
@@ -310,14 +308,14 @@ validatorScript ft = Validator val where
                         --
                         AdjustMargin ->
                             case outs of
-                                (ot :: PendingTxOut):(_::[PendingTxOut]) ->
+                                ot:_ ->
                                     case ot of
                                         PendingTxOut (Value v) (Just (vh, _)) DataTxOut ->
                                             v > marginShort + marginLong
                                             && $(TH.eqValidator) vh ownHash
                                         _ -> True
 
-                                (_::[PendingTxOut]) -> False
+                                _ -> False
             in
                 if isValid then () else Builtins.error ()
             |])

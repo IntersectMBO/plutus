@@ -65,8 +65,8 @@ txSignedBy = [|
 
             go :: [Signature] -> Bool
             go l = case l of
-                        (s :: Signature):(r::[Signature]) -> if signedBy s then True else go r
-                        ([]::[Signature])                 -> False
+                        s:r -> if signedBy s then True else go r
+                        []  -> False
         in
             go sigs
     |]
@@ -84,8 +84,8 @@ txInSignedBy = [|
 
             go :: [Signature] -> Bool
             go l = case l of
-                        (s :: Signature):(r::[Signature]) -> if signedBy s then True else go r
-                        ([]::[Signature])                 -> False
+                        s:r -> if signedBy s then True else go r
+                        []  -> False
         in go sigs
 
     |]

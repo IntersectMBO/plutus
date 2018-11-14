@@ -121,7 +121,7 @@ contributionScript cmp  = Validator val where
             signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
             signedByT = $(TH.txSignedBy)
 
-            PendingTx _ _ _ _ (Height h) _ _ = p
+            PendingTx ps _ _ _ (Height h) _ _ = p
 
             deadline :: Int
             deadline = let Height h' = campaignDeadline in h'
@@ -132,36 +132,33 @@ contributionScript cmp  = Validator val where
             target :: Int
             target = let Value v = campaignTarget in v
 
-            isValid = case p of
-                PendingTx (ps::[PendingTxIn]) _ _ _ _ _ _ ->
-                    case ps of
-                        (pt1::PendingTxIn):(ps'::[PendingTxIn]) ->
-                            case ps' of
-                                (pt2::PendingTxIn):(_::[PendingTxIn]) ->
-                                    -- the "successful campaign" branch
-                                    let
-                                        PendingTxIn _ _ (Value v1) = pt1
-                                        PendingTxIn _ _ (Value v2) = pt2
-                                        pledgedFunds = v1 + v2
+            isValid = 
+                case ps of
+                    pt1:pt2:_ ->
+                        -- the "successful campaign" branch
+                        let
+                            PendingTxIn _ _ (Value v1) = pt1
+                            PendingTxIn _ _ (Value v2) = pt2
+                            pledgedFunds = v1 + v2
 
-                                        payToOwner = h > deadline &&
-                                                    h <= collectionDeadline &&
-                                                    pledgedFunds >= target &&
-                                                    signedByT p campaignOwner
-                                    in payToOwner
-                                (_::[PendingTxIn]) -> -- the "refund" branch
-                                    let
-                                        -- Check that a refund transaction only spends the
-                                        -- amount that was pledged by the contributor
-                                        -- identified by `a :: CampaignActor`
-                                        contributorOnly = signedBy pt1 a
-                                        refundable   = h > collectionDeadline &&
-                                                                    contributorOnly &&
-                                                                    signedByT p a
-                                        -- In case of a refund, we can only collect the funds that
-                                        -- were committed by this contributor
-                                    in refundable
-                        (_::[PendingTxIn]) -> False
+                            payToOwner = h > deadline &&
+                                        h <= collectionDeadline &&
+                                        pledgedFunds >= target &&
+                                        signedByT p campaignOwner
+                        in payToOwner
+                    pt:_ -> -- the "refund" branch
+                        let
+                            -- Check that a refund transaction only spends the
+                            -- amount that was pledged by the contributor
+                            -- identified by `a :: CampaignActor`
+                            contributorOnly = signedBy pt a
+                            refundable   = h > collectionDeadline &&
+                                                        contributorOnly &&
+                                                        signedByT p a
+                            -- In case of a refund, we can only collect the funds that
+                            -- were committed by this contributor
+                        in refundable
+                    _ -> False
         in
         if isValid then () else Builtins.error ()) |])
 
