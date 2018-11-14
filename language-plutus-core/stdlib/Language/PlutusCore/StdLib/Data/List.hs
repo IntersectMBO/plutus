@@ -35,8 +35,7 @@ getBuiltinList = do
     list <- freshTyName () "list"
     r    <- freshTyName () "r"
     let listA = TyApp () (TyVar () list) (TyVar () a)
-    makeRecursiveType () list [Type ()]
-        . TyLam () a (Type ())
+    makeRecursiveType () list [TyVarDecl () a $ Type ()]
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)

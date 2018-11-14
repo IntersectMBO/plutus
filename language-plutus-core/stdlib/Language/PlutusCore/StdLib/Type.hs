@@ -15,7 +15,21 @@ import           PlutusPrelude
 
 import           Data.Traversable          (for)
 
+-- | A 'Type' that starts with a 'TyIFix' (i.e. a recursive type) packaged along with a
+-- specified 'Wrap' that allows to construct elements of this type.
+data RecursiveType ann = RecursiveType
+    { _recursiveType :: Type TyName ann
+      -- ^ This is not supposed to have duplicate names.
+    , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
+      -- ^ This produces terms with duplicate names.
+    }
+
 infixr 5 ~~>
+
+zipWithAligned :: (a -> b -> c) -> [a] -> [b] -> [c]
+zipWithAligned _ []       []       = []
+zipWithAligned f (x : xs) (y : ys) = f x y : zipWithAligned f xs ys
+zipWithAligned _ _        _        = error "Lists are not of the same length."
 
 (~~>) :: Kind () -> Kind () -> Kind ()
 (~~>) = KindArrow ()
@@ -95,27 +109,25 @@ getSpine ann args = ($ args) <$> getToSpine ann
 
 -- |
 --
--- > getWithSpine [k1, k2 ... kn] =
+-- > getWithSpine [v1 :: k1, v2 :: k2 ... vn :: kn] =
 -- >     \(K :: (((k1 -> k2 -> ... -> kn -> *) -> *) -> *)
--- >      (a1 :: k1) (a2 :: k2) ... (an :: kn) ->
--- >          K \(R :: k1 -> k2 -> ... kn -> *) -> R a1 a2 ... an
+-- >      (v1 :: k1) (v2 :: k2) ... (vn :: kn) ->
+-- >          K \(R :: k1 -> k2 -> ... kn -> *) -> R v1 v2 ... vn
 --
 -- For example
 --
--- > getWithSpine [k1, k2] =
+-- > getWithSpine [a1 :: k1, a2 :: k2] =
 -- >     \(K : ((k1 -> k2 -> *) -> *) -> *) (a1 :: k1) (a2 :: k2) ->
 -- >          K \(R :: k1 -> k2 -> *) -> R a1 a2
-getWithSpine :: ann -> [Kind ann] -> Quote (Type TyName ann)
-getWithSpine ann argKinds = do
+getWithSpine :: ann -> [TyVarDecl TyName ann] -> Quote (Type TyName ann)
+getWithSpine ann argVars = do
     k <- freshTyName ann "k"
-    args <- for (zip [1 :: Int ..] argKinds) $ \(argN, argKind) -> do
-        name <- freshTyNameText ann $ "a" <> prettyText argN
-        return $ TyVarDecl ann name argKind
-    spine <- getSpine ann $ map tyDeclVar args
+    spine <- getSpine ann $ map tyDeclVar argVars
+    let argKinds = map tyVarDeclKind argVars
 
     return
         . TyLam ann k (KindArrow ann (KindArrow ann (toRecKind ann argKinds) $ Type ann) $ Type ann)
-        . mkIterTyLam ann args
+        . mkIterTyLam ann argVars
         . TyApp ann (TyVar ann k)
         $ spine
 
@@ -124,46 +136,40 @@ packagePatternBodyN
        -- ^ Some type-level function that receives @withSpine@ and a pattern functor that binds
        -- @n + 1@ type variables (where @1@ represents the variable responsible for recursion)
        -- using type-level lambdas.
-    -> ann              -- ^ An annotation placed everywhere we do not have annotations.
-    -> TyName ann       -- ^ The name for the @1@ varible responsible for recursion.
-    -> [Kind ann]       -- ^ A list of kinds for @n@ type variables.
-    -> Type TyName ann  -- ^ The body of a pattern functor that consequently binds type variables.
+    -> ann                     -- ^ An annotation placed everywhere we do not have annotations.
+    -> TyName ann              -- ^ The name for the @1@ varible responsible for recursion.
+    -> [TyVarDecl TyName ann]  -- ^ A list of @n@ type variables.
+    -> Type TyName ann         -- ^ The body of a pattern functor
+                               -- to which the @n + 1@ type variables will be added via 'TyLam's.
     -> Quote (Type TyName ann)
-packagePatternBodyN getFun ann name argKinds patBody = do
-    withSpine <- getWithSpine ann argKinds
-    let pat = TyLam ann name (toRecKind ann argKinds) patBody
+packagePatternBodyN getFun ann name argVars patBody = do
+    withSpine <- getWithSpine ann argVars
+    let argKinds = map tyVarDeclKind argVars
+        vR  = TyVarDecl ann name $ toRecKind ann argKinds
+        pat = mkIterTyLam ann (vR : argVars) patBody
     fun <- getFun . void $ toRecKind ann argKinds
     return $ mkIterTyApp ann (ann <$ fun) [withSpine, pat]
 
-getTyFix :: ann -> TyName ann -> [Kind ann] -> Type TyName ann -> Quote (Type TyName ann)
+getTyFix :: ann -> TyName ann -> [TyVarDecl TyName ann] -> Type TyName ann -> Quote (Type TyName ann)
 getTyFix = packagePatternBodyN getTyFixN
 
 getWrap
     :: ann
     -> TyName ann
-    -> [Kind ann]
+    -> [TyVarDecl TyName ann]
     -> Type TyName ann
     -> Quote ([Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann)
-getWrap ann name argKinds patBody = do
-    pat1 <- packagePatternBodyN getToPatternFunctor ann name argKinds patBody
+getWrap ann name argVars patBody = do
+    pat1 <- packagePatternBodyN getToPatternFunctor ann name argVars patBody
     toSpine <- getToSpine ann
-    -- TODO: check lengths match.
-    return $ IWrap ann pat1 . toSpine . zipWith (flip $ TyDecl ann) argKinds
-
--- | A 'Type' that starts with a 'TyFix' (i.e. a recursive type) packaged along with a
--- specified 'Wrap' that allows to construct elements of this type.
-data RecursiveType ann = RecursiveType
-    { _recursiveType :: Type TyName ann
-      -- ^ This is not supposed to have duplicate names.
-    , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
-      -- ^ This produces terms with duplicate names.
-    }
+    let instVar var ty = TyDecl ann ty $ tyVarDeclKind var
+    return $ IWrap ann pat1 . toSpine . zipWithAligned instVar argVars
 
 makeRecursiveType
     :: ann
     -> TyName ann
-    -> [Kind ann]
+    -> [TyVarDecl TyName ann]
     -> Type TyName ann
     -> Quote (RecursiveType ann)
-makeRecursiveType ann name argKinds patBody =
-    RecursiveType <$> getTyFix ann name argKinds patBody <*> getWrap ann name argKinds patBody
+makeRecursiveType ann name argVars patBody =
+    RecursiveType <$> getTyFix ann name argVars patBody <*> getWrap ann name argVars patBody

@@ -37,9 +37,7 @@ getBuiltinInterList = do
     interlist <- freshTyName () "interlist"
     r         <- freshTyName () "r"
     let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
-    makeRecursiveType () interlist [Type (), Type ()]
-        . TyLam () a (Type ())
-        . TyLam () b (Type ())
+    makeRecursiveType () interlist [TyVarDecl () a $ Type (), TyVarDecl () b $ Type ()]
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
         . TyFun () (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
