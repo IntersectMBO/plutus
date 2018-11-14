@@ -14,7 +14,7 @@ isTermValue = \case
     Builtin {} -> True
     -- Type abstractions and wraps are values if their bodies are
     TyAbs _ _ _ t -> isTermValue t
-    Wrap _ _ _ t -> isTermValue t
+    IWrap _ _ _ t -> isTermValue t
     -- All other PLC terms are not values
     Var {} -> False
     Apply {} -> False

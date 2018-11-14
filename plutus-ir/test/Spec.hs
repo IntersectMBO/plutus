@@ -130,8 +130,8 @@ listMatch = do
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
     goldenPlc "maybe" maybePir,
-    goldenPlc "listMatch" (asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch),
-    goldenEval "listMatchEval" [asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch]
+    goldenPlc "listMatch" listMatch,
+    goldenEval "listMatchEval" [listMatch]
     ]
 
 recursion :: TestNested
@@ -142,7 +142,7 @@ recursion = testNested "recursion" [
 
 natToBool :: Quote (Type TyName ())
 natToBool = do
-    RecursiveType _ nat <- holedToRecursive <$> Nat.getBuiltinNat
+    RecursiveType nat _ <- Nat.getBuiltinNat
     TyFun () nat <$> Bool.getBuiltinBool
 
 evenOdd :: Quote (Term TyName Name ())
@@ -157,7 +157,7 @@ evenOdd = do
 
     let eoFunc b recc = do
           n <- freshName () "n"
-          RecursiveType _ nat <- holedToRecursive <$> Nat.getBuiltinNat
+          RecursiveType nat _ <- Nat.getBuiltinNat
           bool <- Bool.getBuiltinBool
           pure $
               LamAbs () n nat $
@@ -167,7 +167,7 @@ evenOdd = do
     oddF <- eoFunc false evenn
 
     arg <- freshName () "arg"
-    RecursiveType _ nat <- holedToRecursive <$> Nat.getBuiltinNat
+    RecursiveType nat _ <- Nat.getBuiltinNat
     three <- embedIntoIR <$> Meta.getBuiltinIntegerToNat 3
     pure $
         Let ()

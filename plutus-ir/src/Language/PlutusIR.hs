@@ -111,7 +111,7 @@ data Term tyname name a =
                         | Builtin a (PLC.Builtin a)
                         | TyInst a (Term tyname name a) (Type tyname a)
                         | Error a (Type tyname a)
-                        | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
+                        | IWrap a (Type tyname a) (Type tyname a) (Term tyname name a)
                         | Unwrap a (Term tyname name a)
                         deriving (Functor, Show, Eq, Generic)
 
@@ -128,7 +128,7 @@ embedIntoIR = \case
     PLC.TyInst a t ty -> TyInst a (embedIntoIR t) ty
     PLC.Error a ty -> Error a ty
     PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
-    PLC.Wrap a tn ty t -> Wrap a tn ty (embedIntoIR t)
+    PLC.IWrap a ty1 ty2 t -> IWrap a ty1 ty2 (embedIntoIR t)
 
 -- no version as PIR is not versioned
 data Program tyname name a = Program a (Term tyname name a) deriving Generic
@@ -177,7 +177,7 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
         Builtin _ bi -> parens' ("builtin" </> prettyBy config bi)
         TyInst _ t ty -> braces' (vsep' [prettyBy config t, prettyBy config ty])
         Error _ ty -> parens' ("error" </> prettyBy config ty)
-        Wrap _ n ty t -> parens' ("wrap" </> vsep' [ prettyBy config n, prettyBy config ty, prettyBy config t ])
+        IWrap _ ty1 ty2 t -> parens' ("iwrap" </> vsep' [ prettyBy config ty1, prettyBy config ty2, prettyBy config t ])
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
 
 instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>

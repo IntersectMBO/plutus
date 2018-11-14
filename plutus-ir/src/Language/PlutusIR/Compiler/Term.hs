@@ -36,7 +36,7 @@ compileTerm = \case
     Builtin x bi -> pure $ PLC.Builtin x bi
     TyInst x t ty -> PLC.TyInst x <$> compileTerm t <*> pure ty
     Error x ty -> pure $ PLC.Error x ty
-    Wrap x tn ty t -> PLC.Wrap x tn ty <$> compileTerm t
+    IWrap x tn ty t -> PLC.IWrap x tn ty <$> compileTerm t
     Unwrap x t -> PLC.Unwrap x <$> compileTerm t
 
 compileNonRecBindings :: Compiling m e a => Recursivity -> PLCTerm a -> [Binding TyName Name (Provenance a)] -> m (PLCTerm a)
