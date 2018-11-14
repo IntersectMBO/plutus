@@ -61,11 +61,9 @@ _^_ : ℕ → ℕ → ℕ
 x ^ ℕ.zero  = 1
 x ^ ℕ.suc n = x ** (x ^ n)
 
-lemma : forall x -> - (pos (2 ^ x)) ≤ pos 0
-lemma ℕ.zero = -≤+
-lemma (ℕ.suc n) with 2 ^ n
-lemma (ℕ.suc n) | zero = +≤+ z≤n
-lemma (ℕ.suc n) | ℕ.suc p = -≤+
+-≤0 : forall x -> - pos x ≤ pos 0
+-≤0 ℕ.zero = +≤+ z≤n
+-≤0 (ℕ.suc n) = -≤+
 
 _<?_ : Decidable _<_
 i <? j = Data.Integer.suc i ≤? j 
@@ -116,7 +114,7 @@ boundedN? s i | yes p | no ¬q = no (¬q ∘ proj₂)
 boundedN? s i | no ¬p | _     = no (¬p ∘ proj₁)
 
 bN2I : ∀ s i → BoundedN s i → BoundedI s i 
-bN2I s i (p , p') = trans≤Int (lemma (8 ** (s ∸ 1))) p , p'
+bN2I s i (p , p') = trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
 
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s
