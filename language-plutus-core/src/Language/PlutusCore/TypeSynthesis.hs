@@ -40,7 +40,8 @@ newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
 -- | Configuration of the type checker.
 data TypeConfig = TypeConfig
     { _typeConfigNormalize           :: Bool
-      -- ^ Whether to normalize type annotations
+      -- ^ Whether to normalize type annotations. When set to 'True', the
+      -- typechecker is set to unlimited mode and will not run out of gas.
     , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
     }
 
@@ -124,9 +125,13 @@ runTypeCheckM (TypeCheckCfg i typeConfig) tc =
 typeCheckStep :: TypeCheckM a ()
 typeCheckStep = do
     (TypeCheckSt i) <- get
-    if i == 0
-        then throwError OutOfGas
-        else modify (over gas (subtract 1))
+    (TypeConfig norm _) <- ask
+    if not norm then
+        if i == 0
+            then throwError OutOfGas
+            else modify (over gas (subtract 1))
+        else
+            pure ()
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
