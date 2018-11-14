@@ -13,6 +13,7 @@ import           Language.PlutusCore.Quote
 
 import qualified GhcPlugins                               as GHC
 
+import           Control.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
@@ -20,7 +21,6 @@ import           Control.Monad.State
 import qualified Data.List.NonEmpty                       as NE
 import qualified Data.Map                                 as Map
 import qualified Data.Set                                 as Set
-import           Lens.Micro
 
 import qualified Language.Haskell.TH.Syntax               as TH
 

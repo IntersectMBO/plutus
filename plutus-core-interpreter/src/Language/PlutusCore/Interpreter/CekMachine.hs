@@ -93,7 +93,7 @@ lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvDbnms
     case Map.lookup dynName means of
         Nothing   -> throwError $ MachineException err term where
-            err  = OtherMachineError $ UnknownDynamicBuiltinNameError dynName
+            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
             term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 

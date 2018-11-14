@@ -88,7 +88,6 @@ library
         Language.PlutusCore.Generators.Internal.Utils
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
-        Data.Coerce.Lens
     default-language: Haskell2010
     default-extensions: ScopedTypeVariables FlexibleContexts
                         DeriveGeneric StandaloneDeriving DeriveLift
@@ -114,8 +113,7 @@ library
         recursion-schemes -any,
         text -any,
         prettyprinter >=1.1.0.1,
-        microlens -any,
-        microlens-th -any,
+        lens -any,
         composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,

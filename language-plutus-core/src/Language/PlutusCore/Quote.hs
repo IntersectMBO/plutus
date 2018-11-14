@@ -19,7 +19,6 @@ module Language.PlutusCore.Quote (
             , MonadQuote
             , FreshState
             , liftQuote
-            , convertErrors
             ) where
 
 import           Control.Monad.Except
@@ -62,15 +61,6 @@ instance MonadQuote m => MonadQuote (StateT s m)
 instance MonadQuote m => MonadQuote (ExceptT e m)
 instance MonadQuote m => MonadQuote (ReaderT r m)
 instance MonadQuote m => MonadQuote (GenT m)
-
--- | Map the errors in a 'MonadError' and 'MonadQuote' context according to the given function.
--- This can be used on the functions exported from this module to change the error type.
-convertErrors :: forall a b m o .
-  (MonadError b m, MonadQuote m)
-  => (a -> b)
-  -> ExceptT a Quote o
-  -> m o
-convertErrors convert act = (liftEither . first convert) =<< (liftQuote $ runExceptT act)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
 -- be safely combined with other terms - that should happen inside 'QuoteT'.

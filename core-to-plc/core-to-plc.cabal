@@ -67,7 +67,7 @@ library
         ghc -any,
         language-plutus-core -any,
         mmorph -any,
-        microlens -any,
+        lens -any,
         mtl -any,
         plutus-ir -any,
         prettyprinter -any,

@@ -8,13 +8,12 @@ import           Language.PlutusIR
 import qualified Language.PlutusCore      as PLC
 import qualified Language.PlutusCore.Name as PLC
 
+import           Control.Lens
 import           Control.Monad
 import           Control.Monad.State
 
 import           Data.Coerce
 import qualified Data.IntMap              as IM
-
-import           Lens.Micro
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
