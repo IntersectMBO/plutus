@@ -78,8 +78,6 @@ module Language.PlutusCore
     , AsTypeError (..)
     , TypeConfig (..)
     , DynamicBuiltinNameTypes (..)
-    , TypeCheckCfg (..)
-    , TypeCheckSt (..)
     , TypeCheckM
     , parseTypecheck
     -- for testing
@@ -169,7 +167,7 @@ printNormalizeType :: (AsParseError e AlexPosn, AsRenameError e AlexPosn, AsType
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
     annotated <- annotateProgram scoped
-    typecheckProgram (TypeCheckCfg (Just 1000) $ TypeConfig norm mempty) annotated
+    typecheckProgram (TypeConfig norm mempty (Just 1000)) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -191,7 +189,7 @@ parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => Maybe Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline gas p = do
     checkProgram p
-    typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty) =<< annotateProgram p
+    typecheckProgram (TypeConfig False mempty gas) =<< annotateProgram p
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs

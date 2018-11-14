@@ -11,8 +11,6 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , TypeCheckM
                                          , TypeError (..)
                                          , TypeConfig (..)
-                                         , TypeCheckCfg (..)
-                                         , TypeCheckSt (..)
                                          ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -28,8 +26,6 @@ import           PlutusPrelude
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.State.Class
-import           Control.Monad.Trans.State          hiding (get, modify)
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
 
@@ -43,22 +39,14 @@ data TypeConfig = TypeConfig
     { _typeConfigNormalize           :: Bool
       -- ^ Whether to normalize type annotations.
     , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
-    }
-
-newtype TypeCheckSt = TypeCheckSt
-    { _gas :: Maybe Natural
-    }
-
-data TypeCheckCfg = TypeCheckCfg
-    { _cfgGas        :: Maybe Natural -- ^ Gas to be provided to the
-                                      -- typechecker. When set to 'Nothing', the
-                                      -- typechecker operates in unbounded mode.
-    , _cfgTypeConfig :: TypeConfig
+    , _typeConfigGas                 :: Maybe Natural -- ^ The upper limit on the length of type
+                                      -- reductions. If set to 'Nothing', type
+                                      -- reductions will be unbounded.
     }
 
 -- | The type checking monad contains the 'BuiltinTable' and it lets us throw
 -- 'TypeError's.
-type TypeCheckM a = StateT TypeCheckSt (ReaderT TypeConfig (ExceptT (TypeError a) Quote))
+type TypeCheckM a = ReaderT TypeConfig (ExceptT (TypeError a) Quote)
 
 sizeToType :: Kind ()
 sizeToType = KindArrow () (Size ()) (Type ())
@@ -95,31 +83,31 @@ dynamicBuiltinNameMeaningsToTypes (DynamicBuiltinNameMeanings means) =
 
 -- | Type-check a program, returning a normalized type.
 typecheckProgram :: (AsTypeError e a, MonadError e m, MonadQuote m)
-                 => TypeCheckCfg
+                 => TypeConfig
                  -> Program TyNameWithKind NameWithType a
                  -> m (NormalizedType TyNameWithKind ())
 typecheckProgram cfg (Program _ _ t) = typecheckTerm cfg t
 
 -- | Type-check a term, returning a normalized type.
 typecheckTerm :: (AsTypeError e a, MonadError e m, MonadQuote m)
-              => TypeCheckCfg
+              => TypeConfig
               -> Term TyNameWithKind NameWithType a
               -> m (NormalizedType TyNameWithKind ())
 typecheckTerm cfg t = throwingEither _TypeError =<< (liftQuote $ runExceptT $ runTypeCheckM cfg (typeOf t))
 
 -- | Kind-check a PLC type.
 kindCheck :: (AsTypeError e a, MonadError e m, MonadQuote m)
-          => TypeCheckCfg
+          => TypeConfig
           -> Type TyNameWithKind a
           -> m (Kind ())
 kindCheck cfg t = throwingEither _TypeError =<< (liftQuote $ runExceptT $ runTypeCheckM cfg (kindOf t))
 
 -- | Run the type checker with a default context.
-runTypeCheckM :: TypeCheckCfg
+runTypeCheckM :: TypeConfig
               -> TypeCheckM a b
               -> ExceptT (TypeError a) Quote b
-runTypeCheckM (TypeCheckCfg i typeConfig) tc =
-    runReaderT (evalStateT tc (TypeCheckSt i)) typeConfig
+runTypeCheckM typeConfig tc =
+    runReaderT tc typeConfig
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
@@ -243,7 +231,7 @@ typeOf (LamAbs x _ dom body)                     = do
 -- [infer| error ty : vTy]
 typeOf (Error x ty)                              = do
     kindCheckM x ty $ Type ()
-    (TypeCheckSt gas) <- get
+    (TypeConfig _ _ gas) <- ask
     normalizeType gas $ void ty
 
 -- [infer| body : vBodyTy]
@@ -317,7 +305,6 @@ typeCheckM x term vTy = do
 normalizeTypeOpt :: Type TyNameWithKind () -> TypeCheckM a (NormalizedType TyNameWithKind ())
 normalizeTypeOpt ty = do
     typeConfig <- ask
-    (TypeCheckSt gas) <- get
     if _typeConfigNormalize typeConfig
-        then normalizeType gas ty
+        then normalizeType (_typeConfigGas typeConfig) ty
         else pure $ NormalizedType ty

@@ -4,7 +4,7 @@ module Main ( main
             ) where
 
 import           Codec.Serialise
-import           Control.Monad.State          (get)
+import           Control.Monad.Reader         (ask)
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
@@ -172,8 +172,8 @@ appAppLamLam = do
             (TyBuiltin () TyInteger)
 
 testLam :: Either (TypeError ()) String
-testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg (Just 100) $ TypeConfig False mempty) $ do
-    (TypeCheckSt gas) <- get
+testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeConfig False mempty (Just 100)) $ do
+    (TypeConfig _ _ gas) <- ask
     normalizeType gas =<< appAppLamLam
 
 testEqTerm :: Bool
