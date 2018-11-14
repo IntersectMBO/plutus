@@ -13,6 +13,7 @@ module Language.PlutusCore
     , Term (..)
     , Type (..)
     , Constant (..)
+    , Builtin (..)
     , Kind (..)
     , ParseError (..)
     , Version (..)

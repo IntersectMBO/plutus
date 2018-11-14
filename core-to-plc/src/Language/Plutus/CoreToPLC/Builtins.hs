@@ -1,8 +1,35 @@
 -- | Primitive names and functions for working with Plutus Core builtins.
-module Language.Plutus.CoreToPLC.Builtins where
+module Language.Plutus.CoreToPLC.Builtins (
+                                -- * Bytestring builtins
+                                concatenate
+                                , takeByteString
+                                , dropByteString
+                                , sha2_256
+                                , sha3_256
+                                , verifySignature
+                                , equalsByteString
+                                -- * Blockchain builtins
+                                , txhash
+                                , blocknum
+                                -- * Integer builtins
+                                , addInteger
+                                , subtractInteger
+                                , multiplyInteger
+                                , divideInteger
+                                , remainderInteger
+                                , greaterThanInteger
+                                , greaterThanEqInteger
+                                , lessThanInteger
+                                , lessThanEqInteger
+                                , equalsInteger
+                                -- * Error
+                                , error
+                                ) where
 
 import           Data.ByteString.Lazy
-import           Language.Plutus.CoreToPLC.Error
+import           Prelude                         hiding (error)
+
+import           Language.Plutus.CoreToPLC.Utils (mustBeReplaced)
 
 -- TODO: resizing primitives? better handling of sizes?
 
@@ -32,6 +59,36 @@ txhash = mustBeReplaced
 
 blocknum :: Int
 blocknum = mustBeReplaced
+
+addInteger :: Int -> Int -> Int
+addInteger = mustBeReplaced
+
+subtractInteger :: Int -> Int -> Int
+subtractInteger = mustBeReplaced
+
+multiplyInteger :: Int -> Int -> Int
+multiplyInteger = mustBeReplaced
+
+divideInteger :: Int -> Int -> Int
+divideInteger = mustBeReplaced
+
+remainderInteger :: Int -> Int -> Int
+remainderInteger = mustBeReplaced
+
+greaterThanInteger :: Int -> Int -> Bool
+greaterThanInteger = mustBeReplaced
+
+greaterThanEqInteger :: Int -> Int -> Bool
+greaterThanEqInteger = mustBeReplaced
+
+lessThanInteger :: Int -> Int -> Bool
+lessThanInteger = mustBeReplaced
+
+lessThanEqInteger :: Int -> Int -> Bool
+lessThanEqInteger = mustBeReplaced
+
+equalsInteger :: Int -> Int -> Bool
+equalsInteger = mustBeReplaced
 
 error :: () -> a
 error = mustBeReplaced

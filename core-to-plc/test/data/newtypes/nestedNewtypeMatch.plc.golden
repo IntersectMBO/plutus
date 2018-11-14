@@ -3,93 +3,93 @@
     [
       {
         (abs
-          MyNewtype_4
+          MyNewtype_86
           (type)
           (lam
-            MyNewtype_9
-            (fun [(con integer) (con 64)] MyNewtype_4)
+            MyNewtype_87
+            (fun [(con integer) (con 64)] MyNewtype_86)
             (lam
-              MyNewtype_match_10
-              (fun MyNewtype_4 (all MyNewtype_matchOut_11 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_11) MyNewtype_matchOut_11)))
+              MyNewtype_match_88
+              (fun MyNewtype_86 (all out_MyNewtype_89 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_89) out_MyNewtype_89)))
               [
                 [
                   {
                     (abs
-                      MyNewtype2_12
+                      MyNewtype2_90
                       (type)
                       (lam
-                        MyNewtype2_17
-                        (fun MyNewtype_4 MyNewtype2_12)
+                        MyNewtype2_91
+                        (fun MyNewtype_86 MyNewtype2_90)
                         (lam
-                          MyNewtype2_match_18
-                          (fun MyNewtype2_12 (all MyNewtype2_matchOut_19 (type) (fun (fun MyNewtype_4 MyNewtype2_matchOut_19) MyNewtype2_matchOut_19)))
+                          MyNewtype2_match_92
+                          (fun MyNewtype2_90 (all out_MyNewtype2_93 (type) (fun (fun MyNewtype_86 out_MyNewtype2_93) out_MyNewtype2_93)))
                           (lam
-                            ds_20
-                            MyNewtype2_12
+                            ds_94
+                            MyNewtype2_90
                             [
                               {
                                 [
-                                  MyNewtype_match_10
+                                  MyNewtype_match_88
                                   [
                                     {
-                                      [ MyNewtype2_match_18 ds_20 ] MyNewtype_4
+                                      [ MyNewtype2_match_92 ds_94 ] MyNewtype_86
                                     }
-                                    (lam inner_21 MyNewtype_4 inner_21)
+                                    (lam inner_95 MyNewtype_86 inner_95)
                                   ]
                                 ]
                                 [(con integer) (con 64)]
                               }
-                              (lam inner_22 [(con integer) (con 64)] inner_22)
+                              (lam inner_96 [(con integer) (con 64)] inner_96)
                             ]
                           )
                         )
                       )
                     )
-                    (all MyNewtype2_matchOut_1 (type) (fun (fun MyNewtype_4 MyNewtype2_matchOut_1) MyNewtype2_matchOut_1))
+                    (all out_MyNewtype2_97 (type) (fun (fun MyNewtype_86 out_MyNewtype2_97) out_MyNewtype2_97))
                   }
                   (lam
-                    MyNewtype2_arg0_15
-                    MyNewtype_4
+                    arg_0_98
+                    MyNewtype_86
                     (abs
-                      MyNewtype2_matchOut_13
+                      out_MyNewtype2_99
                       (type)
                       (lam
-                        MyNewtype2_14
-                        (fun MyNewtype_4 MyNewtype2_matchOut_13)
-                        [ MyNewtype2_14 MyNewtype2_arg0_15 ]
+                        case_MyNewtype2_100
+                        (fun MyNewtype_86 out_MyNewtype2_99)
+                        [ case_MyNewtype2_100 arg_0_98 ]
                       )
                     )
                   )
                 ]
                 (lam
-                  x_16
-                  (all MyNewtype2_matchOut_1 (type) (fun (fun MyNewtype_4 MyNewtype2_matchOut_1) MyNewtype2_matchOut_1))
-                  x_16
+                  x_101
+                  (all out_MyNewtype2_102 (type) (fun (fun MyNewtype_86 out_MyNewtype2_102) out_MyNewtype2_102))
+                  x_101
                 )
               ]
             )
           )
         )
-        (all MyNewtype_matchOut_3 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_3) MyNewtype_matchOut_3))
+        (all out_MyNewtype_103 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_103) out_MyNewtype_103))
       }
       (lam
-        MyNewtype_arg0_7
+        arg_0_104
         [(con integer) (con 64)]
         (abs
-          MyNewtype_matchOut_5
+          out_MyNewtype_105
           (type)
           (lam
-            MyNewtype_6
-            (fun [(con integer) (con 64)] MyNewtype_matchOut_5)
-            [ MyNewtype_6 MyNewtype_arg0_7 ]
+            case_MyNewtype_106
+            (fun [(con integer) (con 64)] out_MyNewtype_105)
+            [ case_MyNewtype_106 arg_0_104 ]
           )
         )
       )
     ]
     (lam
-      x_8
-      (all MyNewtype_matchOut_3 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_3) MyNewtype_matchOut_3))
-      x_8
+      x_107
+      (all out_MyNewtype_108 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_108) out_MyNewtype_108))
+      x_107
     )
   ]
 )

@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
 -- | A model of the types involved in transactions. These types are intented to
 --   be used in PLC scripts.
 module Wallet.UTXO.Runtime (-- * Transactions and related types
@@ -14,7 +15,6 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , ValidatorHash(..)
               , TxHash(..)
               , plcDataScriptHash
-              , plcValidatorHash
               , plcValidatorDigest
               , plcRedeemerHash
               , plcTxHash
@@ -36,6 +36,12 @@ import           GHC.Generics         (Generic)
 import           Language.Plutus.Lift (LiftPlc (..), TypeablePlc (..))
 import           Wallet.UTXO.Types    (PubKey (..), Signature (..))
 import qualified Wallet.UTXO.Types    as UTXO
+
+-- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
+-- problems with the plugin
+--
+-- TODO: Remove annotation once `newtype Oracle = (...)` works
+{-# ANN module "HLint: ignore Use newtype instead of data" #-}
 
 data PendingTxOutType =
     PubKeyTxOut PubKey -- ^ Pub key address
@@ -75,27 +81,28 @@ instance TypeablePlc PendingTxIn
 instance LiftPlc PendingTxIn
 
 -- | A pending transaction as seen by validator scripts.
-data PendingTx = PendingTx {
+data PendingTx a = PendingTx {
     pendingTxInputs      :: [PendingTxIn], -- ^ Transaction inputs
     pendingTxOutputs     :: [PendingTxOut],
     pendingTxFee         :: Value,
     pendingTxForge       :: Value,
     pendingTxBlockHeight :: Height,
-    pendingTxSignatures  :: [Signature]
-    } deriving Generic
+    pendingTxSignatures  :: [Signature],
+    pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
+    } deriving (Functor, Generic)
 
-instance TypeablePlc PendingTx
-instance LiftPlc PendingTx
+instance TypeablePlc (PendingTx ValidatorHash)
+instance LiftPlc (PendingTx ValidatorHash)
 
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle.
-newtype OracleValue a = OracleValue (Signed (Height, a))
+data OracleValue a = OracleValue (Signed (Height, a))
     deriving Generic
 
 instance TypeablePlc a => TypeablePlc (OracleValue a)
 instance (TypeablePlc a, LiftPlc a) => LiftPlc (OracleValue a)
 
-newtype Signed a = Signed (PubKey, a)
+data Signed a = Signed (PubKey, a)
     deriving Generic
 
 instance TypeablePlc a => TypeablePlc (Signed a)
@@ -157,9 +164,6 @@ instance LiftPlc TxHash
 
 plcDataScriptHash :: UTXO.DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcHash
-
-plcValidatorHash :: UTXO.Validator -> ValidatorHash
-plcValidatorHash = ValidatorHash . plcHash
 
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest

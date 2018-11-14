@@ -1,1 +1,0 @@
-(fun [(con integer) (con 64)] (fun [(con integer) (con 64)] (all a (type) (fun a (fun a a)))))

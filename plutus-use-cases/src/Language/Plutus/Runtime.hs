@@ -39,14 +39,24 @@ I'm not sure how oracles are going to work eventually, so I'm going to use this
 definition for now:
 
 * Oracles are identified by their public key
+
 * An oracle can produce "observations", which are values annotated with time
-  (block height). These observations are signed by the oracle.
+  (block height). These observations are signed by the oracle. This means we are
+  assume a _trusted_ oracle (as opposed to services such as
+  http://www.oraclize.it/ who provide untrusted oracles). Trusting the oracle
+  makes sense when dealing with financial data: Current prices etc. are usually
+  provided by companies such as Bloomberg or Yahoo Finance, who are
+  necessarily trusted by the consumers of their data. It seems reasonable to
+  assume that similar providers will exist for Plutus, who simply sign the
+  data with a known key in the way we implemented it here.
+
 * To use an oracle value inside a validator script, it has to be provided as the
-  data script of the transaction that consumes the output locked by the
+  redeemer script of the transaction that consumes the output locked by the
   validator script.
 
-An example of this can be found in the
-Language.Plutus.Coordination.Contracts.Swap.swapValidator script.
+Examples of this can be found in the
+Language.Plutus.Coordination.Contracts.Swap.swapValidator and
+Language.Plutus.Coordination.Contracts.Future.validatorScript scripts.
 
 -}
 

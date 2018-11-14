@@ -53,7 +53,7 @@ newtype UnknownDynamicBuiltinNameError
 
 -- | An internal error occurred during type checking.
 data InternalTypeError a
-    = OpenTypeOfBuiltin (Type TyName ()) (Constant ())
+    = OpenTypeOfBuiltin (Type TyName ()) (Builtin ())
     deriving (Show, Eq, Generic, NFData)
 
 data TypeError a
@@ -130,10 +130,10 @@ instance Pretty UnknownDynamicBuiltinNameError where
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
 instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
-    prettyBy config (OpenTypeOfBuiltin ty con)        =
+    prettyBy config (OpenTypeOfBuiltin ty bi)        =
         asInternalError $
             "The type" <+> prettyBy config ty <+>
-            "of the" <+> prettyBy config con <+>
+            "of the" <+> prettyBy config bi <+>
             "built-in is open"
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where

@@ -4,7 +4,6 @@ module Main ( main
             ) where
 
 import           Codec.Serialise
-import           Control.Monad
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
@@ -48,6 +47,7 @@ compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == 
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Constant _ x) (Constant _ y)          = x == y
+compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
@@ -74,7 +74,7 @@ propCBOR = property $ do
     prog <- forAll genProgram
     let
         trip = deserialiseOrFail . serialise
-        compared = (==) <$> trip (void prog) <*> pure (void prog)
+        compared = (==) <$> trip prog <*> pure prog
     Hedgehog.assert (fromRight False compared)
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
@@ -82,10 +82,9 @@ propCBOR = property $ do
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
-    let nullPosn = fmap (pure emptyPosn)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
-        proc = nullPosn <$> parse (reprint prog)
-        compared = and (compareProgram (nullPosn prog) <$> proc)
+    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
+        proc = void <$> parse (reprint prog)
+        compared = and (compareProgram (void prog) <$> proc)
     Hedgehog.assert compared
 
 propRename :: Property
@@ -253,7 +252,7 @@ testRebindCapturedVariable =
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
+    [ format cfg "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"

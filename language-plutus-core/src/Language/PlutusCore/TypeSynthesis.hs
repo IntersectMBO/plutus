@@ -31,9 +31,6 @@ import           Control.Monad.Trans.State          hiding (get, modify)
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
 
--- import           Data.IntSet                        (IntSet)
--- import qualified Data.IntSet                        as IntSet
-
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
     { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Quote (Type TyName ()))
@@ -76,7 +73,7 @@ kindOfTypeBuiltin TySize       = sizeToType
 -- We use this for annotating types of built-ins (both static and dynamic).
 annotateClosedNormalType
     :: MonadError (TypeError a) m
-    => a -> Constant () -> Type TyName () -> m (NormalizedType TyNameWithKind ())
+    => a -> Builtin () -> Type TyName () -> m (NormalizedType TyNameWithKind ())
 annotateClosedNormalType ann con ty = case annotateType ty of
     Left  _           -> throwError . InternalTypeError ann $ OpenTypeOfBuiltin ty con
     Right annTyOfName -> pure $ NormalizedType annTyOfName
@@ -209,12 +206,14 @@ lookupDynamicBuiltinName ann name = do
             annotateClosedNormalType ann (DynBuiltinName () name) ty
 
 -- | Get the 'Type' of a 'Constant' wrapped in 'NormalizedType'.
-typeOfConstant :: Constant a -> TypeCheckM a (NormalizedType TyNameWithKind ())
-typeOfConstant (BuiltinInt  _ size _)    = pure $ applySizedNormalized TyInteger    size
-typeOfConstant (BuiltinBS   _ size _)    = pure $ applySizedNormalized TyByteString size
-typeOfConstant (BuiltinSize _ size)      = pure $ applySizedNormalized TySize       size
-typeOfConstant (BuiltinName    ann name) = normalizedAnnotatedTypeOfBuiltinName ann name
-typeOfConstant (DynBuiltinName ann name) = lookupDynamicBuiltinName ann name
+typeOfConstant :: Constant a -> NormalizedType TyNameWithKind ()
+typeOfConstant (BuiltinInt  _ size _) = applySizedNormalized TyInteger    size
+typeOfConstant (BuiltinBS   _ size _) = applySizedNormalized TyByteString size
+typeOfConstant (BuiltinSize _ size)   = applySizedNormalized TySize       size
+
+typeOfBuiltin :: Builtin a -> TypeCheckM a (NormalizedType TyNameWithKind ())
+typeOfBuiltin (BuiltinName    ann name) = normalizedAnnotatedTypeOfBuiltinName ann name
+typeOfBuiltin (DynBuiltinName ann name) = lookupDynamicBuiltinName ann name
 
 {- Note [Type rules]
 We write type rules in the bidirectional style.
@@ -281,7 +280,8 @@ typeOf (TyAbs _ n nK body)                       = TyForall () (void n) (void nK
 -- c : vTy
 -- --------------------
 -- [infer| con c : vTy]
-typeOf (Constant _ con)                          = typeOfConstant con
+typeOf (Constant _ con)                          = pure (typeOfConstant con)
+typeOf (Builtin _ bi) = typeOfBuiltin bi
 
 -- [infer| fun : vDom -> vCod]    [check| arg : vDom]
 -- --------------------------------------------------

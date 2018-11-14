@@ -5,15 +5,19 @@
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
 
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
+import           Language.Plutus.CoreToPLC.PIRTypes
+import           Language.Plutus.CoreToPLC.PLCTypes
+import           Language.Plutus.CoreToPLC.Utils
 import           Language.Plutus.Lift
 
 import qualified GhcPlugins                                  as GHC
@@ -22,6 +26,10 @@ import qualified Panic                                       as GHC
 import qualified Language.PlutusCore                         as PLC
 import           Language.PlutusCore.Quote
 
+import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR.Compiler                  as PIR
+import qualified Language.PlutusIR.Optimizer.DeadCode        as PIR
+
 import           Language.Haskell.TH.Syntax                  as TH
 
 import           Codec.Serialise                             (DeserialiseFailure, Serialise, deserialiseOrFail,
@@ -29,6 +37,7 @@ import           Codec.Serialise                             (DeserialiseFailure
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
+import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy                        as BSL
 import qualified Data.Map                                    as Map
 import           Data.Maybe                                  (catMaybes)
@@ -82,8 +91,9 @@ plc :: forall (loc::Symbol) a . a -> PlcCode
 plc _ = PlcCode mustBeReplaced
 
 data PluginOptions = PluginOptions {
-    poDoTypecheck   :: Bool
-    , poDeferErrors :: Bool
+    poDoTypecheck    :: Bool
+    , poDeferErrors  :: Bool
+    , poStripContext :: Bool
     }
 
 plugin :: GHC.Plugin
@@ -95,6 +105,7 @@ install args todo =
         opts = PluginOptions {
             poDoTypecheck = notElem "dont-typecheck" args
             , poDeferErrors = elem "defer-errors" args
+            , poStripContext = elem "strip-context" args
             }
     in
         pure (GHC.CoreDoPluginPass "Core to PLC" (pluginPass opts) : todo)
@@ -127,11 +138,17 @@ qqMarkerType vtype = do
     (_, o) <- GHC.splitFunTy_maybe ty'
     pure o
 
-makePrimitiveMap :: [(TH.Name, a)] -> GHC.CoreM (Map.Map GHC.Name a)
-makePrimitiveMap associations = do
-    mapped <- forM associations $ \(name, term) -> do
+-- | Make a 'BuiltinNameInfo' mapping the given set of TH names to their
+-- 'GHC.TyThing's for later reference.
+makePrimitiveNameInfo :: [TH.Name] -> GHC.CoreM BuiltinNameInfo
+makePrimitiveNameInfo names = do
+    mapped <- forM names $ \name -> do
         ghcNameMaybe <- GHC.thNameToGhcName name
-        pure $ fmap (\ghcName -> (ghcName, term)) ghcNameMaybe
+        case ghcNameMaybe of
+            Just n -> do
+                thing <- GHC.lookupThing n
+                pure $ Just (name, thing)
+            Nothing -> pure Nothing
     pure $ Map.fromList (catMaybes mapped)
 
 -- | Converts all the marked expressions in the given binder into PLC literals.
@@ -179,32 +196,41 @@ convertMarkedExprs opts markerName =
 convertExpr :: PluginOptions -> String -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
 convertExpr opts locStr origE resType = do
     flags <- GHC.getDynFlags
-    primTerms <- makePrimitiveMap builtinTermAssociations
-    primTys <- makePrimitiveMap builtinTypeAssociations
+    -- We need to do this out here, since it has to run in CoreM
+    nameInfo <- makePrimitiveNameInfo builtinNames
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
-              converted <- convExprWithDefs origE
-              when (poDoTypecheck opts) $ do
-                  annotated <- convertErrors (NoContext . PLCError) $ PLC.annotateTerm converted
-                  void $ convertErrors (NoContext . PLCError) $ PLC.typecheckTerm (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
-              pure converted
+              (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> convExprWithDefs origE
+              (plcP::PLCProgram) <- convertErrors (NoContext . PIRError) $ void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
+              when (poDoTypecheck opts) $ convertErrors (NoContext . PLCError) $ do
+                  annotated <- PLC.annotateProgram plcP
+                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
+              pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
             ccFlags=flags,
-            ccPrimTerms=primTerms,
-            ccPrimTypes=primTys,
+            ccBuiltinNameInfo=nameInfo,
             ccScopes=initialScopeStack
             }
-        initialState = ConvertingState Map.empty Map.empty
+        initialState = ConvertingState mempty mempty
     case runConverting context initialState result of
         Left s ->
-            let shown = show $ PP.pretty s in
+            let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
             if poDeferErrors opts
             -- TODO: is this the right way to do either of these things?
             then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID resType shown -- this will blow up at runtime
             else liftIO $ GHC.throwGhcExceptionIO (GHC.ProgramError shown) -- this will actually terminate compilation
-        Right term -> do
-            let program = PLC.Program () (PLC.defaultVersion ()) term
-            let serialized = serialise program
+        -- TODO: get the PIR into the PlcCode somehow (need serialization)
+        Right (_, plcP) -> do
+            -- this is useful as debug printing until we store the PIR properly
+            {-
+            let pirPrinted = show $ PIR.prettyDef pirP
+            GHC.debugTraceMsg $
+                "Successfully converted GHC core expression:" GHC.$+$
+                GHC.ppr origE GHC.$+$
+                "Resulting PIR term is:" GHC.$+$
+                GHC.text pirPrinted
+            -}
+            let serialized = serialise plcP
             -- The GHC api only exposes a way to make literals for Words, not Word8s, so we need to convert them
             let (word8s :: [Word]) = fromIntegral <$> BSL.unpack serialized
             -- The flags here are so GHC can check whether the word is in range for the current platform.

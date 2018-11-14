@@ -5,9 +5,9 @@
 -- | Functions for compiling GHC kinds into PlutusCore kinds.
 module Language.Plutus.CoreToPLC.Compiler.Kind (convKind) where
 
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
 
 import qualified GhcPlugins                               as GHC
 import qualified Kind                                     as GHC

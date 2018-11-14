@@ -5,7 +5,6 @@ module Language.PlutusCore.Normalize
     , substituteNormalizeType
     ) where
 
-import           Data.Coerce.Lens
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
@@ -13,6 +12,7 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Reader
+import           Data.Coerce.Lens
 import           Data.IntMap                 (IntMap)
 import qualified Data.IntMap                 as IntMap
 

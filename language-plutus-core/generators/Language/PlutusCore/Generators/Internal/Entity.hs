@@ -109,7 +109,7 @@ genBuiltinSized :: Monad m => GenT m BuiltinSized
 genBuiltinSized = Gen.element [BuiltinSizedInt, BuiltinSizedBS, BuiltinSizedSize]
 
 -- | Generate a 'Builtin'.
-genBuiltin :: Monad m => GenT m Size -> GenT m (Builtin size)
+genBuiltin :: Monad m => GenT m Size -> GenT m (BuiltinType size)
 genBuiltin genSize = Gen.choice
     [ BuiltinSized . SizeValue <$> genSize <*> genBuiltinSized
     , return BuiltinBool

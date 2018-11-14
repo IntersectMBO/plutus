@@ -1,41 +1,43 @@
 let
-  # Allow overriding pinned nixpkgs for debugging purposes via plutus_pkgs
-  fetchNixPkgs = let try = builtins.tryEval <plutus_pkgs>;
+  # iohk-nix can be overridden for debugging purposes by setting
+  # NIX_PATH=iohk_nix=/path/to/iohk-nix
+  iohkNix = import (
+    let try = builtins.tryEval <iohk_nix>;
     in if try.success
-    then builtins.trace "using host <plutus_pkgs>" try.value
-    else import ./fetch-nixpkgs.nix;
+    then builtins.trace "using host <iohk_nix>" try.value
+    else
+      let
+        spec = builtins.fromJSON (builtins.readFile ./iohk-nix.json);
+      in builtins.fetchTarball {
+        url = "${spec.url}/archive/${spec.rev}.tar.gz";
+        inherit (spec) sha256;
+      });
 
-  maybeEnv = env: default:
-    let
-      result = builtins.getEnv env;
-    in if result != ""
-       then result
-       else default;
-
-  # Removes files within a Haskell source tree which won't change the
-  # result of building the package.
-  # This is so that cached build products can be used whenever possible.
-  # It also applies the lib.cleanSource filter from nixpkgs which
-  # removes VCS directories, emacs backup files, etc.
-  cleanSourceTree = src:
-    if (builtins.typeOf src) == "path"
-      then lib.cleanSourceWith {
-        filter = with pkgs.stdenv;
-          name: type: let baseName = baseNameOf (toString name); in ! (
-            # Filter out cabal build products.
-            baseName == "dist" || baseName == "dist-newstyle" ||
-            baseName == "cabal.project.local" ||
-            # Filter out stack build products.
-            lib.hasPrefix ".stack-work" baseName ||
-            # Filter out files which are commonly edited but don't
-            # affect the cabal build.
-            lib.hasSuffix ".nix" baseName
-          );
-        src = lib.cleanSource src;
-      } else src;
-
-  pkgs = import fetchNixPkgs {};
+  # nixpkgs can be overridden for debugging purposes by setting
+  # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
+  fetchNixpkgs = iohkNix.fetchNixpkgs ./nixpkgs-src.json;
+  pkgs = import fetchNixpkgs { config = {}; overlays = []; };
   lib = pkgs.lib;
-in lib // (rec {
-  inherit fetchNixPkgs cleanSourceTree;
-})
+  cleanSourceHaskell = iohkNix.cleanSourceHaskell pkgs;
+  getPackages = iohkNix.getPackages { inherit lib;};
+
+  importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; config = {}; } // args);
+
+  # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
+  plutusPkgList = [
+    "core-to-plc"
+    "language-plutus-core"
+    "plutus-core-interpreter"
+    "plutus-exe"
+    "plutus-ir"
+    "plutus-th"
+    "plutus-use-cases"
+    "wallet-api"
+  ];
+
+
+  isPlutus = name: builtins.elem name plutusPkgList;
+
+in lib // {
+  inherit fetchNixpkgs importPkgs cleanSourceHaskell getPackages iohkNix isPlutus plutusPkgList;
+}

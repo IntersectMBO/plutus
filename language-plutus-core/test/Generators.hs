@@ -32,8 +32,11 @@ genKind = simpleRecursive nonRecursive recursive
 genBuiltinName :: MonadGen m => m BuiltinName
 genBuiltinName = Gen.element allBuiltinNames
 
-genBuiltin :: MonadGen m => m (Constant AlexPosn)
-genBuiltin = Gen.choice [BuiltinName emptyPosn <$> genBuiltinName, genInt, genSize, genBS]
+genBuiltin :: MonadGen m => m (Builtin AlexPosn)
+genBuiltin = BuiltinName emptyPosn <$> genBuiltinName
+
+genConstant :: MonadGen m => m (Constant AlexPosn)
+genConstant = Gen.choice [genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 1 10)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
@@ -63,7 +66,7 @@ genTerm = simpleRecursive nonRecursive recursive
           wrapGen = IWrap emptyPosn <$> genType <*> genType <*> genTerm
           errorGen = Error emptyPosn <$> genType
           recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-          nonRecursive = [varGen, Constant emptyPosn <$> genBuiltin, errorGen]
+          nonRecursive = [varGen, Constant emptyPosn <$> genConstant, Builtin emptyPosn <$> genBuiltin, errorGen]
 
 genProgram :: MonadGen m => m (Program TyName Name AlexPosn)
 genProgram = Program emptyPosn <$> genVersion <*> genTerm

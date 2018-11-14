@@ -2,15 +2,16 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
 
 module Language.PlutusCore.Constant.Typed
     ( BuiltinSized(..)
     , TypedBuiltinSized(..)
     , SizeEntry(..)
-    , Builtin(..)
+    , BuiltinType(..)
     , TypedBuiltin(..)
     , TypedBuiltinValue(..)
     , TypeScheme(..)
@@ -136,7 +137,7 @@ data SizeEntry size
 -- We write @SizeEntry Size@ sometimes, so this data type is not perfect, but it works fine.
 
 -- | Built-in types.
-data Builtin size
+data BuiltinType size
     = BuiltinSized (SizeEntry size) BuiltinSized
     | BuiltinBool
 
@@ -295,7 +296,7 @@ withTypedBuiltinSized BuiltinSizedBS   k = k TypedBuiltinSizedBS
 withTypedBuiltinSized BuiltinSizedSize k = k TypedBuiltinSizedSize
 
 -- | Apply a continuation to the typed version of a 'Builtin'.
-withTypedBuiltin :: Builtin size -> (forall a. TypedBuiltin size a -> c) -> c
+withTypedBuiltin :: BuiltinType size -> (forall a. TypedBuiltin size a -> c) -> c
 withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
 withTypedBuiltin BuiltinBool         k = k TypedBuiltinBool
 

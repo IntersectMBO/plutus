@@ -66,6 +66,7 @@ tokens :-
     <0> program                  { mkKeyword KwProgram }
     <0> con                      { mkKeyword KwCon }
     <0> iwrap                    { mkKeyword KwIWrap }
+    <0> builtin                  { mkKeyword KwBuiltin }
     <0> unwrap                   { mkKeyword KwUnwrap }
     <0> error                    { mkKeyword KwError }
 

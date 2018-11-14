@@ -3,40 +3,29 @@
 
 module Language.Plutus.CoreToPLC.Utils where
 
-import qualified Language.PlutusCore  as PLC
-
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text            as T
-import qualified Data.Text.Encoding   as TE
+import qualified Language.PlutusCore as PLC
+import qualified Language.PlutusIR   as PIR
 
 import           GHC.Natural
 
-strToBs :: String -> BSL.ByteString
-strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
+instSize :: Natural -> PIR.Term tyname name () -> PIR.Term tyname name ()
+instSize n t = PIR.TyInst () t (PLC.TyInt () n)
 
-bsToStr :: BSL.ByteString -> String
-bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
+appSize :: Natural -> PIR.Type tyname () -> PIR.Type tyname ()
+appSize n t = PIR.TyApp () t (PLC.TyInt () n)
 
-instSize :: Natural -> PLC.Term tyname name () -> PLC.Term tyname name ()
-instSize n t = PLC.TyInst () t (PLC.TyInt () n)
+mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name ()
+mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
 
-appSize :: Natural -> PLC.Type tyname () -> PLC.Type tyname ()
-appSize n t = PLC.TyApp () t (PLC.TyInt () n)
-
-mkConstant :: PLC.BuiltinName -> PLC.Term tyname name ()
-mkConstant n = PLC.Constant () $ PLC.BuiltinName () n
-
-mkIntFun :: PLC.BuiltinName -> PLC.Term PLC.TyName PLC.Name ()
-mkIntFun name = instSize haskellIntSize (mkConstant name)
-
-mkIntRel :: PLC.BuiltinName -> PLC.Term PLC.TyName PLC.Name ()
-mkIntRel name = instSize haskellIntSize (mkConstant name)
-
-mkBsRel :: PLC.BuiltinName -> PLC.Term PLC.TyName PLC.Name ()
-mkBsRel name = instSize haskellBSSize (mkConstant name)
+mkIntFun :: PLC.BuiltinName -> PIR.Term PIR.TyName PIR.Name ()
+mkIntFun name = instSize haskellIntSize (mkBuiltin name)
 
 haskellIntSize :: Natural
 haskellIntSize = 64
 
+-- This is mostly so they are compatible with the output of the SHA functions
 haskellBSSize :: Natural
-haskellBSSize = 64
+haskellBSSize = 256
+
+mustBeReplaced :: a
+mustBeReplaced = error "This must be replaced by the core-to-plc plugin during compilation"

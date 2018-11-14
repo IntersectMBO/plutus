@@ -1,4 +1,4 @@
-resolver: lts-11.11
+resolver: lts-12.14
 
 packages:
 - language-plutus-core
@@ -17,11 +17,8 @@ packages:
   extra-dep: true
 
 extra-deps:
-- cryptonite-0.25
-- cborg-0.2.0.0
-- serialise-0.2.0.0
+- serialise-0.2.1.0
 - monad-stm-0.1.0.2
-- tasty-hedgehog-0.2.0.0
 flags:
   language-plutus-core:
     development: true

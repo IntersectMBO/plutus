@@ -4,85 +4,115 @@
       [
         {
           (abs
-            MyEnum_2
+            MyEnum_87
             (type)
             (lam
-              Enum1_10
-              MyEnum_2
+              Enum1_88
+              MyEnum_87
               (lam
-                Enum2_11
-                MyEnum_2
+                Enum2_89
+                MyEnum_87
                 (lam
-                  MyEnum_match_12
-                  (fun MyEnum_2 (all MyEnum_matchOut_13 (type) (fun MyEnum_matchOut_13 (fun MyEnum_matchOut_13 MyEnum_matchOut_13))))
-                  (lam
-                    ds_14
-                    MyEnum_2
+                  MyEnum_match_90
+                  (fun MyEnum_87 (all out_MyEnum_91 (type) (fun out_MyEnum_91 (fun out_MyEnum_91 out_MyEnum_91))))
+                  [
                     [
-                      [
-                        [
-                          {
-                            [
-                              MyEnum_match_12 ds_14
-                            ]
-                            (fun (all a_29 (type) (fun a_29 a_29)) [(con integer) (con 64)])
-                          }
+                      {
+                        (abs
+                          unit_92
+                          (type)
                           (lam
-                            thunk_30
-                            (all a_32 (type) (fun a_32 a_32))
-                            (con 64 ! 1)
-                          )
-                        ]
-                        (lam
-                          thunk_37
-                          (all a_39 (type) (fun a_39 a_39))
-                          [
-                            {
-                              (abs
-                                e_33
-                                (type)
+                            unit_93
+                            unit_92
+                            (lam
+                              p_match_94
+                              (fun unit_92 (all out_unit_95 (type) (fun out_unit_95 out_unit_95)))
+                              [
                                 (lam
-                                  thunk_34
-                                  (all a_36 (type) (fun a_36 a_36))
-                                  (error e_33)
+                                  error_96
+                                  (all a_97 (type) (fun unit_92 a_97))
+                                  (lam
+                                    ds_98
+                                    MyEnum_87
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [
+                                              MyEnum_match_90 ds_98
+                                            ]
+                                            (fun unit_92 [(con integer) (con 64)])
+                                          }
+                                          (lam thunk_99 unit_92 (con 64 ! 1))
+                                        ]
+                                        (lam
+                                          thunk_100
+                                          unit_92
+                                          [
+                                            {
+                                              error_96 [(con integer) (con 64)]
+                                            }
+                                            unit_93
+                                          ]
+                                        )
+                                      ]
+                                      unit_93
+                                    ]
+                                  )
                                 )
-                              )
-                              [(con integer) (con 64)]
-                            }
-                            (abs
-                              p_matchOut_22
-                              (type)
-                              (lam unit_23 p_matchOut_22 unit_23)
+                                (abs
+                                  e_101
+                                  (type)
+                                  (lam thunk_102 unit_92 (error e_101))
+                                )
+                              ]
                             )
-                          ]
+                          )
                         )
-                      ]
-                      (abs a_42 (type) (lam x_43 a_42 x_43))
+                        (all out_unit_103 (type) (fun out_unit_103 out_unit_103))
+                      }
+                      (abs
+                        out_unit_104
+                        (type)
+                        (lam case_unit_105 out_unit_104 case_unit_105)
+                      )
                     ]
-                  )
+                    (lam
+                      x_106
+                      (all out_unit_107 (type) (fun out_unit_107 out_unit_107))
+                      x_106
+                    )
+                  ]
                 )
               )
             )
           )
-          (all MyEnum_matchOut_1 (type) (fun MyEnum_matchOut_1 (fun MyEnum_matchOut_1 MyEnum_matchOut_1)))
+          (all out_MyEnum_108 (type) (fun out_MyEnum_108 (fun out_MyEnum_108 out_MyEnum_108)))
         }
         (abs
-          MyEnum_matchOut_3
+          out_MyEnum_109
           (type)
-          (lam Enum1_4 MyEnum_matchOut_3 (lam Enum2_5 MyEnum_matchOut_3 Enum1_4)
+          (lam
+            case_Enum1_110
+            out_MyEnum_109
+            (lam case_Enum2_111 out_MyEnum_109 case_Enum1_110)
           )
         )
       ]
       (abs
-        MyEnum_matchOut_6
+        out_MyEnum_112
         (type)
-        (lam Enum1_7 MyEnum_matchOut_6 (lam Enum2_8 MyEnum_matchOut_6 Enum2_8))
+        (lam
+          case_Enum1_113
+          out_MyEnum_112
+          (lam case_Enum2_114 out_MyEnum_112 case_Enum2_114)
+        )
       )
     ]
     (lam
-      x_9
-      (all MyEnum_matchOut_1 (type) (fun MyEnum_matchOut_1 (fun MyEnum_matchOut_1 MyEnum_matchOut_1)))
-      x_9
+      x_115
+      (all out_MyEnum_116 (type) (fun out_MyEnum_116 (fun out_MyEnum_116 out_MyEnum_116)))
+      x_115
     )
   ]
 )

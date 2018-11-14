@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Lift (TypeablePlc (..), LiftPlc (..)) where
 
+import           PlutusPrelude                   (strToBs)
+
 import           Language.Plutus.CoreToPLC.Utils
 
 import           Language.PlutusCore

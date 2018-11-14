@@ -3,8 +3,8 @@
 
 module Language.Plutus.CoreToPLC.Compiler.Utils where
 
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Error
 
 import qualified GhcPlugins                               as GHC
 

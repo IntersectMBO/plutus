@@ -2,6 +2,7 @@
 module Main(main) where
 
 import qualified Spec.Crowdfunding
+import qualified Spec.Future
 import qualified Spec.Vesting
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (HedgehogTestLimit (..))
@@ -19,5 +20,6 @@ limit = HedgehogTestLimit (Just 30)
 tests :: TestTree
 tests = localOption limit $ testGroup "use cases" [
     Spec.Crowdfunding.tests,
-    Spec.Vesting.tests
+    Spec.Vesting.tests,
+    Spec.Future.tests
     ]

@@ -119,6 +119,7 @@ data Keyword = KwAbs
              | KwProgram
              | KwCon
              | KwIWrap
+             | KwBuiltin
              | KwUnwrap
              | KwError
              deriving (Show, Eq, Generic, NFData)
@@ -177,6 +178,7 @@ instance Pretty Keyword where
     pretty KwProgram    = "program"
     pretty KwCon        = "con"
     pretty KwIWrap      = "iwrap"
+    pretty KwBuiltin    = "builtin"
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"
 

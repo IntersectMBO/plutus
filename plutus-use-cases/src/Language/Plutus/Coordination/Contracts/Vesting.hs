@@ -27,7 +27,7 @@ import qualified Language.Plutus.Runtime.TH as TH
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
 import           Prelude                    hiding ((&&))
-import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, signAndSubmit)
+import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
 import qualified Wallet.UTXO.Runtime        as Runtime
@@ -94,7 +94,7 @@ retrieveFunds :: (
     -> UTXO.Value -- ^ Value we want to take out now
     -> m VestingData
 retrieveFunds vs vd r vnow = do
-    oo <- payToPublicKey vnow
+    oo <- ownPubKeyTxOut vnow
     let val = validatorScript vs
         o   = scriptTxOut remaining val (DataScript $ UTXO.lifted vd')
         remaining = (fromIntegral $ totalAmount vs) - vnow
@@ -104,12 +104,16 @@ retrieveFunds vs vd r vnow = do
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
-validatorScriptHash = Runtime.plcValidatorHash . validatorScript
+validatorScriptHash =
+    Runtime.plcValidatorDigest
+    . UTXO.getAddress
+    . UTXO.scriptAddress
+    . validatorScript
 
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted v)
-    inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
+    inner = UTXO.fromPlcCode $(plutus [| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
@@ -122,7 +126,7 @@ validatorScript v = Validator val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $( TH.and )
 
-            PendingTx _ os _ _ h _ = p
+            PendingTx _ os _ _ h _ _ = p
             VestingTranche d1 a1 = vestingTranche1
             VestingTranche d2 a2 = vestingTranche2
 

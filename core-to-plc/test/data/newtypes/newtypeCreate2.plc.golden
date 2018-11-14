@@ -3,38 +3,38 @@
     [
       {
         (abs
-          MyNewtype_2
+          MyNewtype_75
           (type)
           (lam
-            MyNewtype_7
-            (fun [(con integer) (con 64)] MyNewtype_2)
+            MyNewtype_76
+            (fun [(con integer) (con 64)] MyNewtype_75)
             (lam
-              MyNewtype_match_8
-              (fun MyNewtype_2 (all MyNewtype_matchOut_9 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_9) MyNewtype_matchOut_9)))
-              [ MyNewtype_7 (con 64 ! 1) ]
+              MyNewtype_match_77
+              (fun MyNewtype_75 (all out_MyNewtype_78 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_78) out_MyNewtype_78)))
+              [ MyNewtype_76 (con 64 ! 1) ]
             )
           )
         )
-        (all MyNewtype_matchOut_1 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_1) MyNewtype_matchOut_1))
+        (all out_MyNewtype_79 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_79) out_MyNewtype_79))
       }
       (lam
-        MyNewtype_arg0_5
+        arg_0_80
         [(con integer) (con 64)]
         (abs
-          MyNewtype_matchOut_3
+          out_MyNewtype_81
           (type)
           (lam
-            MyNewtype_4
-            (fun [(con integer) (con 64)] MyNewtype_matchOut_3)
-            [ MyNewtype_4 MyNewtype_arg0_5 ]
+            case_MyNewtype_82
+            (fun [(con integer) (con 64)] out_MyNewtype_81)
+            [ case_MyNewtype_82 arg_0_80 ]
           )
         )
       )
     ]
     (lam
-      x_6
-      (all MyNewtype_matchOut_1 (type) (fun (fun [(con integer) (con 64)] MyNewtype_matchOut_1) MyNewtype_matchOut_1))
-      x_6
+      x_83
+      (all out_MyNewtype_84 (type) (fun (fun [(con integer) (con 64)] out_MyNewtype_84) out_MyNewtype_84))
+      x_83
     )
   ]
 )

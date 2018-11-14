@@ -25,18 +25,19 @@ flag development
 
 library
     exposed-modules:
-        Language.Plutus.CoreToPLC.Plugin
-        Language.Plutus.CoreToPLC.Error
-        Language.Plutus.CoreToPLC.Builtins
         Language.Plutus.Lift
+        Language.Plutus.CoreToPLC.Plugin
+        Language.Plutus.CoreToPLC.Builtins
+        Language.Plutus.CoreToPLC.Compiler.Error
     hs-source-dirs: src
     other-modules:
-        Language.Plutus.CoreToPLC.Laziness
         Language.Plutus.CoreToPLC.PLCTypes
+        Language.Plutus.CoreToPLC.PIRTypes
         Language.Plutus.CoreToPLC.Utils
         Language.Plutus.CoreToPLC.Compiler.Binders
         Language.Plutus.CoreToPLC.Compiler.Builtins
         Language.Plutus.CoreToPLC.Compiler.Definitions
+        Language.Plutus.CoreToPLC.Compiler.Laziness
         Language.Plutus.CoreToPLC.Compiler.Expr
         Language.Plutus.CoreToPLC.Compiler.Names
         Language.Plutus.CoreToPLC.Compiler.Kind
@@ -68,6 +69,7 @@ library
         mmorph -any,
         microlens -any,
         mtl -any,
+        plutus-ir -any,
         prettyprinter -any,
         serialise -any,
         template-haskell -any,

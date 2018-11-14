@@ -1,9 +1,9 @@
 { stdenv, lib, texlive }:
 
 let
-  tex = texlive.combine { 
-    inherit (texlive) 
-    scheme-small 
+  tex = texlive.combine {
+    inherit (texlive)
+    scheme-small
     collection-latexextra
     collection-mathscience
     latexmk;
@@ -15,7 +15,7 @@ stdenv.mkDerivation {
   src = ./.;
   buildPhase = "latexmk -view=pdf main.tex";
   installPhase = "install -D main.pdf $out/main.pdf";
-  
+
   meta = with lib; {
     description = "Plutus Core specification";
     license = licenses.bsd3;

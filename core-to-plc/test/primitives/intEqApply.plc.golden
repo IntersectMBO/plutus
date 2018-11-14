@@ -1,1 +1,5 @@
-(abs a_3 (type) (lam x_4 a_3 (lam y_5 a_3 x_4)))
+(abs
+  out_Bool_90
+  (type)
+  (lam case_True_91 out_Bool_90 (lam case_False_92 out_Bool_90 case_True_91))
+)

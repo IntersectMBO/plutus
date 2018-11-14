@@ -43,6 +43,7 @@ library
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.Subst
+        Language.PlutusCore.Name
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -64,7 +65,6 @@ library
     hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
         Language.PlutusCore.Type
-        Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser

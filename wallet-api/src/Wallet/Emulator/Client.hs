@@ -41,7 +41,6 @@ fetchWallet :: Wallet -> ClientM Wallet
 createWallet :: Wallet -> ClientM NoContent
 myKeyPair' :: Wallet -> ClientM KeyPair
 createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', TxOut')
-payToPublicKey' :: Wallet -> Value -> ClientM TxOut'
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
 blockchainActions :: ClientM [Tx]
@@ -49,7 +48,7 @@ blockValidated :: Wallet -> Block -> ClientM ()
 blockHeight :: Wallet -> Height -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> payToPublicKey' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> blockchainActions  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> blockchainActions  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -92,7 +91,6 @@ instance WalletAPI WalletClient where
   myKeyPair = liftWallet myKeyPair'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)
   register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
-  payToPublicKey value = liftWallet (`payToPublicKey'` value)
 
 handleNotification :: Notification -> (Wallet -> ClientM ())
 handleNotification (BlockValidated block) = (`blockValidated` block)

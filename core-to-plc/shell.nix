@@ -1,1 +1,1 @@
-(import ../. {}).core-to-plc.env
+(import ../. {}).localPackages.core-to-plc.env

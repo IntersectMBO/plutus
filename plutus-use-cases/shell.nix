@@ -1,1 +1,1 @@
-(import ../. {}).plutus-use-cases.env
+(import ../. {}).localPackages.plutus-use-cases.env

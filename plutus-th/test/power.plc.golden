@@ -1,21 +1,24 @@
 (program 1.0.0
-  (lam
-    ds_0
-    [(con integer) (con 64)]
-    [
+  [
+    (lam
+      multiplyInteger_70
+      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
       (lam
-        y_2
+        ds_71
         [(con integer) (con 64)]
-        [ [ { (con multiplyInteger) (con 64) } y_2 ] y_2 ]
+        [
+          (lam
+            y_72 [(con integer) (con 64)] [ [ multiplyInteger_70 y_72 ] y_72 ]
+          )
+          [
+            (lam
+              y_73 [(con integer) (con 64)] [ [ multiplyInteger_70 y_73 ] y_73 ]
+            )
+            [ [ multiplyInteger_70 ds_71 ] (con 64 ! 1) ]
+          ]
+        ]
       )
-      [
-        (lam
-          y_1
-          [(con integer) (con 64)]
-          [ [ { (con multiplyInteger) (con 64) } y_1 ] y_1 ]
-        )
-        [ [ { (con multiplyInteger) (con 64) } ds_0 ] (con 64 ! 1) ]
-      ]
-    ]
-  )
+    )
+    { (builtin multiplyInteger) (con 64) }
+  ]
 )

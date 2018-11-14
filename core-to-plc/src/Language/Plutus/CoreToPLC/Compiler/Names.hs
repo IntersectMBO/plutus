@@ -5,11 +5,12 @@
 -- | Functions for compiling GHC names into Plutus Core names.
 module Language.Plutus.CoreToPLC.Compiler.Names where
 
+import           PlutusPrelude                            (strToBs)
+
 import           Language.Plutus.CoreToPLC.Compiler.Kind
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Type
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.PLCTypes
-import           Language.Plutus.CoreToPLC.Utils
 
 import qualified GhcPlugins                               as GHC
 
@@ -18,6 +19,7 @@ import qualified Language.PlutusCore.MkPlc                as PLC
 import           Language.PlutusCore.Quote
 
 import           Data.Char
+import           Data.List
 import qualified Data.List.NonEmpty                       as NE
 import qualified Data.Map                                 as Map
 
@@ -76,8 +78,20 @@ convTyVarFresh v = do
     t' <- convTyNameFresh $ GHC.getName v
     pure $ PLC.TyVarDecl () t' k'
 
+convTcTyVarFresh :: Converting m => GHC.TyCon -> m PLCTyVar
+convTcTyVarFresh tc = do
+    k' <- convKind $ GHC.tyConKind tc
+    t' <- convTyNameFresh $ GHC.getName tc
+    pure $ PLC.TyVarDecl () t' k'
+
 pushName :: GHC.Name -> PLCVar-> ScopeStack -> ScopeStack
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack
 
+pushNames :: [(GHC.Name, PLCVar)] -> ScopeStack -> ScopeStack
+pushNames mappings stack = foldl' (\acc (n, v) -> pushName n v acc) stack mappings
+
 pushTyName :: GHC.Name -> PLCTyVar -> ScopeStack -> ScopeStack
 pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.insert ghcName n tyns) NE.<| stack
+
+pushTyNames :: [(GHC.Name, PLCTyVar)] -> ScopeStack -> ScopeStack
+pushTyNames mappings stack = foldl' (\acc (n, v) -> pushTyName n v acc) stack mappings

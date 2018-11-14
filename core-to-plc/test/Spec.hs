@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors #-}
--- the simplfiier messes with things otherwise
+{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors -fplugin-opt Language.Plutus.CoreToPLC.Plugin:strip-context #-}
+-- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
 
@@ -35,7 +35,7 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 instance GetProgram PlcCode where
-    getProgram = getAst
+    getProgram = catchAll . getAst
 
 tests :: TestNested
 tests = testGroup "conversion" <$> sequence [
@@ -81,7 +81,7 @@ primitives = testNested "primitives" [
   , goldenPlc "error" errorPlc
   , goldenPlc "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
-  , goldenPlc "blocknum" blocknumPlc
+  --, goldenPlc "blocknum" blocknumPlc
   , goldenPlc "bytestring" bytestring
   , goldenEval "bytestringApply" [ getAst bytestring, trivialProgram $ runQuote $ lift ("hello"::ByteString) ]
   , goldenPlc "verify" verify
@@ -127,8 +127,8 @@ errorPlc = plc @"errorPlc" (Builtins.error @Int)
 ifThenElse :: PlcCode
 ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
 
-blocknumPlc :: PlcCode
-blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
+--blocknumPlc :: PlcCode
+--blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
 bytestring :: PlcCode
 bytestring = plc @"bytestring" (\(x::ByteString) -> x)
@@ -161,6 +161,8 @@ monoData = testNested "monomorphic" [
   , goldenPlc "monoCase" monoCase
   , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
   , goldenPlc "defaultCase" defaultCase
+  , goldenPlc "irrefutableMatch" irrefutableMatch
+  , goldenPlc "atPattern" atPattern
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
   , goldenPlc "monoRecord" monoRecord
   , goldenPlc "nonValueCase" nonValueCase
@@ -184,12 +186,18 @@ monoConstructed :: PlcCode
 monoConstructed = plc @"monoConstructed" (Mono2 1)
 
 monoCase :: PlcCode
-monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 a b -> b;  Mono2 a -> a; Mono3 a -> a })
+monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  Mono2 a -> a; Mono3 a -> a })
 
 defaultCase :: PlcCode
 defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
 
-data MyMonoRecord = MyMonoRecord { a :: Int , b :: Int} deriving Generic
+irrefutableMatch :: PlcCode
+irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
+
+atPattern :: PlcCode
+atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
+
+data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int} deriving Generic
 
 monoRecord :: PlcCode
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
@@ -207,6 +215,7 @@ polyData :: TestNested
 polyData = testNested "polymorphic" [
     goldenPlc "polyDataType" polyDataType
   , goldenPlc "polyConstructed" polyConstructed
+  , goldenPlc "defaultCasePoly" defaultCasePoly
   ]
 
 data MyPolyData a b = Poly1 a b | Poly2 a
@@ -216,6 +225,9 @@ polyDataType = plc @"polyDataType" (\(x:: MyPolyData Int Int) -> x)
 
 polyConstructed :: PlcCode
 polyConstructed = plc @"polyConstructed" (Poly1 (1::Int) (2::Int))
+
+defaultCasePoly :: PlcCode
+defaultCasePoly = plc @"defaultCasePoly" (\(x :: MyPolyData Int Int) -> case x of { Poly1 a _ -> a ; _ -> 2; })
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [
@@ -293,6 +305,7 @@ errors = testNested "errors" [
     goldenPlcCatch "integer" integer
     , goldenPlcCatch "free" free
     , goldenPlcCatch "valueRestriction" valueRestriction
+    , goldenPlcCatch "recordSelector" recordSelector
   ]
 
 integer :: PlcCode
@@ -306,17 +319,20 @@ free = plc @"free" (True && False)
 valueRestriction :: PlcCode
 valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Int))
 
+recordSelector :: PlcCode
+recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
+
 instance LiftPlc (MyMonoData)
 instance LiftPlc (MyMonoRecord)
 
 generics :: TestNested
 generics = testNested "generics" [
-    goldenPlc "int" (runQuote $ lift (1::Int))
-    , goldenPlc "mono" (runQuote $ lift (Mono2 2))
+    goldenPlc "int" (trivialProgram $ runQuote $ lift (1::Int))
+    , goldenPlc "mono" (trivialProgram $ runQuote $ lift (Mono2 2))
     , goldenEval "monoInterop" [ getAst monoCase, (trivialProgram $ runQuote $ lift (Mono1 1 2)) ]
-    , goldenPlc "record" (runQuote $ lift (MyMonoRecord 1 2))
+    , goldenPlc "record" (trivialProgram $ runQuote $ lift (MyMonoRecord 1 2))
     , goldenEval "boolInterop" [ getAst andPlc, (trivialProgram $ runQuote $ lift True), (trivialProgram $ runQuote $ lift True) ]
-    , goldenPlc "list" (runQuote $ lift ([1]::[Int]))
+    , goldenPlc "list" (trivialProgram $ runQuote $ lift ([1]::[Int]))
     , goldenEval "listInterop" [ getAst listMatch, (trivialProgram $ runQuote $ lift ([1]::[Int])) ]
-    , goldenPlc "liftPlc" (runQuote $ lift int)
+    , goldenPlc "liftPlc" (trivialProgram $ runQuote $ lift int)
   ]

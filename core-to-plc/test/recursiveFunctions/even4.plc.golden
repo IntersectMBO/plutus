@@ -1,5 +1,7 @@
 (abs
-  Bool_matchOut_3
+  out_Bool_280
   (type)
-  (lam True_4 Bool_matchOut_3 (lam False_5 Bool_matchOut_3 True_4))
+  (lam
+    case_True_281 out_Bool_280 (lam case_False_282 out_Bool_280 case_True_281)
+  )
 )

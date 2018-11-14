@@ -1,1 +1,1 @@
-(import ../. {}).language-plutus-core.env
+(import ../. {}).localPackages.language-plutus-core.env
