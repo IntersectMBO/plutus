@@ -8,6 +8,8 @@ module TermIndexedBySyntacticType.Term where
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
+open import Builtin.Signature
+open import Builtin.Constant.Term
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Agda.Builtin.Int
@@ -86,272 +88,14 @@ data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 \end{code}
 Let `x`, `y` range over variables.
 
-## Term Constants
-
-
-\begin{code}
-postulate
-  ByteString : Set
-  length     : ByteString → ℕ.ℕ
-
-  div            : Int → Int → Int
-  quot           : Int → Int → Int
-  rem            : Int → Int → Int
-  mod            : Int → Int → Int
-  int2ByteString : Int → ByteString
-
-  append    : ByteString → ByteString → ByteString
-  take      : Int → ByteString → ByteString
-  drop      : Int → ByteString → ByteString
-  SHA2-256  : ByteString → ByteString
-  SHA3-256  : ByteString → ByteString
-  verifySig : ByteString → ByteString → ByteString → Bool.Bool
-  equals    : ByteString → ByteString → Bool.Bool
-
-  txhash : ByteString
-  bnum   : Int
-
-
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
-{-# COMPILE GHC length = type BS.length #-}
-
-{-# COMPILE GHC div  = type div  #-}
-{-# COMPILE GHC quot = type quot #-}
-{-# COMPILE GHC rem  = type rem  #-}
-{-# COMPILE GHC mod  = type mod  #-}
-
-{-# COMPILE GHC append = BS.append #-}
-{-# COMPILE GHC take = BS.take #-}
-{-# COMPILE GHC drop = BS.drop #-}
-
-
--- cut-off exponentiation
-_^_ : Int → Int → Int
-x ^ negsuc n      = pos 1
-x ^ pos ℕ.zero    = pos 1
-x ^ pos (ℕ.suc n) = x ** (x ^ pos n)
-
-
-BoundedI : ∀ s i → Set
-BoundedI s i =
-  (negsuc 1 ^ (pos 8 ** (s ⊖ 1))) ≤ i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
-
-BoundedN : ∀ s i → Set
-BoundedN s i = pos 0 ≤ i × i < (pos 2 ^ (pos 8 ** (s ⊖ 1)))
-
-BoundedB : ∀ s b → Set
-BoundedB s b = length b ℕ.< s
-
--- TODO
-postulate
-  boundedI? : Decidable BoundedI
-  boundedB? : Decidable BoundedB
-  _<?_ : Decidable _<_
-  _>?_ : Decidable _>_
-  _≥?_ : Decidable _≥_
-
-data TermCon {Φ} : Φ ⊢⋆ * → Set where
-  integer    : ∀ s
-    → (i : Int)
-    → BoundedI s i
-    → TermCon (con integer (size⋆ s))
-  bytestring : ∀ s
-    → (b : ByteString)
-    → BoundedB s b
-    → TermCon (con bytestring (size⋆ s))
-  size       : ∀ s → TermCon (con size (size⋆ s)) 
-\end{code}
-
-## Type Abbreviations
-
-\begin{code}
-unit : ∀{Γ} → Γ ⊢⋆ *
-unit = Π (` Z ⇒ ` Z)
-boolean : ∀{Γ} → Γ ⊢⋆ *
-boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
-\end{code}
-
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
+
 \begin{code}
-
-Sig : Ctx → Ctx → Set
-Sig Δ Γ = List (∥ Δ ∥ ⊢⋆ *) × ∥ Δ ∥ ⊢⋆ *
-
-data Builtin : Set where
-  addInteger       : Builtin
-  subtractInteger : Builtin
-  multiplyInteger          : Builtin
-  divideInteger            : Builtin
-  quotientInteger          : Builtin
-  remainderInteger         : Builtin
-  modInteger               : Builtin
-  lessThanInteger          : Builtin
-  lessThanEqualsInteger    : Builtin
-  greaterThanInteger       : Builtin
-  greaterThanEqualsInteger : Builtin
-  equalsInteger            : Builtin
-  resizeInteger            : Builtin
-  sizeOfInteger            : Builtin
-  intToByteString          : Builtin
-
-  concatenate      : Builtin
-  takeByteString   : Builtin
-  dropByteString   : Builtin
-  sha2-256         : Builtin
-  sha3-256         : Builtin
-  verifySignature  : Builtin
-  resizeByteString : Builtin
-  equalsByteString : Builtin
-  txh              : Builtin
-  blocknum         : Builtin
-  
-SIG : Builtin → ∀ Γ → Σ Ctx λ Δ → Sig Δ Γ
--- could have just one context so Signatures extend from ∅...
--- going in the other direction could take a substitution as an arg and
--- extend it appropriately...
-SIG addInteger       Γ =
-  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG subtractInteger Γ = 
-  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG multiplyInteger Γ = 
-  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG divideInteger    Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  con integer (` Z)
-SIG quotientInteger  Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  con integer (` Z)
-SIG remainderInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  con integer (` Z)
-SIG modInteger       Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  con integer (` Z)
-SIG lessThanInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  boolean
-SIG lessThanEqualsInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  boolean
-SIG greaterThanInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  boolean
-SIG greaterThanEqualsInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  boolean
-SIG equalsInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ con integer (` Z) ∷ []
-  ,,
-  boolean
-SIG resizeInteger Γ =
-  (Γ ,⋆ # ,⋆ #)
-  ,,
-  (con size (` Z) ∷ con integer (` (S Z)) ∷ [])
-  ,,
-  con integer (` Z)
-SIG sizeOfInteger Γ =
-  (Γ ,⋆ #)
-  ,,
-  con integer (` Z) ∷ []
-  ,,
-  con size (` Z)
-SIG intToByteString Γ =
-  Γ ,⋆ # ,⋆ #
-  ,,
-  con size (` Z) ∷ con integer (` (S Z)) ∷ []
-  ,,
-  con bytestring (` Z)
-SIG concatenate      Γ =
-  Γ ,⋆ #
-  ,,
-  con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
-  ,,
-  con bytestring (` Z)
-SIG takeByteString Γ =
-  (Γ ,⋆ #  ,⋆ #)
-  ,,
-  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
-  ,,
-  con bytestring (` Z)
-SIG dropByteString Γ =
-  (Γ ,⋆ #  ,⋆ #)
-  ,,
-  (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
-  ,,
-  con bytestring (` Z)
-SIG sha2-256 Γ =
-  Γ ,⋆ #
-  ,,
-  con bytestring (` Z) ∷ []
-  ,,
-  con bytestring (size⋆ 32)
-SIG sha3-256 Γ =
-  Γ ,⋆ #
-  ,,
-  con bytestring (` Z) ∷ []
-  ,,
-  con bytestring (size⋆ 32)
-SIG verifySignature Γ =
-  Γ ,⋆ # ,⋆ # ,⋆ #
-  ,,
-  con bytestring (` (S (S Z)))
-    ∷ con bytestring (` (S Z))
-    ∷ con bytestring (` Z)
-    ∷ []
-  ,,
-  boolean
-SIG resizeByteString Γ =
-  Γ ,⋆ # ,⋆ #
-  ,,
-  con size (` Z) ∷ con bytestring (` (S Z)) ∷ []
-  ,,
-  con bytestring (` Z)
-SIG equalsByteString Γ =
-  Γ ,⋆ #
-  ,,
-  con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
-  ,,
-  boolean
-SIG txh Γ = Γ ,, [] ,, con bytestring (size⋆ 32)
-SIG blocknum Γ =
-  Γ ,⋆ #
-  ,,
-  con size (` Z) ∷ []
-  ,,
-  con integer (` Z)
-
-Tel : ∀ Γ Δ → Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
+Tel : ∀ Γ Δ → Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
@@ -409,7 +153,7 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
   builtin : ∀{Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn ∅ in
-      (σ : Sub ∥ Δ ∥ ∥ ∅ ∥)   -- substitutes for new vars introduced by the Sig
+      (σ : Sub Δ ∥ ∅ ∥)   -- substitutes for new vars introduced by the Sig
     → Tel ∅ Δ σ As           -- a telescope of terms M_i typed in subst σ A_i
     → (σ' : Sub ∥ ∅ ∥ ∥ Γ' ∥) -- a delayed substitution applied after computation
       -----------------------------

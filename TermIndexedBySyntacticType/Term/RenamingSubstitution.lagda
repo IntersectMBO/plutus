@@ -12,6 +12,8 @@ open import Relation.Binary.PropositionalEquality
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
+open import Builtin.Signature
+open import Builtin.Constant.Term
 open import TermIndexedBySyntacticType.Term
 \end{code}
 

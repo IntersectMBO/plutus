@@ -13,6 +13,7 @@ infix  1 _≡β_
 \begin{code}
 open import Type
 open import Type.RenamingSubstitution
+open import Builtin.Constant.Type
 
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
@@ -129,7 +130,7 @@ rename≡β ρ (con≡β p)     = con≡β (rename≡β ρ p)
 
 \begin{code}
 subst≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
-  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
+ → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
   → A ≡β B
     ----------------------------
   → subst σ A ≡β subst σ B

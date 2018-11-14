@@ -7,6 +7,7 @@ module Type.Reduction where
 \begin{code}
 open import Type
 open import Type.RenamingSubstitution
+open import Builtin.Constant.Type
 
 open import Agda.Builtin.Nat
 open import Relation.Binary.PropositionalEquality

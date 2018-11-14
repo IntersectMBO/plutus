@@ -23,6 +23,8 @@ infix  9 S
 
 \begin{code}
 open import Agda.Builtin.Nat
+
+open import Builtin.Constant.Type
 \end{code}
 
 ## Kinds
@@ -75,17 +77,6 @@ data _∋⋆_ : Ctx⋆ → Kind → Set where
 \end{code}
 
 Let `α`, `β` range over type variables.
-
-## Type constants
-
-We have three base types referred to as type constants, integer,
-bytestring, and size, size is used to limit the size of integers and
-bytestrings
-
-\begin{code}
-data TyCon : Set where
-  integer bytestring size : TyCon
-\end{code}
 
 ## Types
 
@@ -152,3 +143,13 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
 \end{code}
 
 Let `A`, `B`, `C` range over types.
+
+## Type Abbreviations
+
+\begin{code}
+unit : ∀{Γ} → Γ ⊢⋆ *
+unit = Π (` Z ⇒ ` Z)
+
+boolean : ∀{Γ} → Γ ⊢⋆ *
+boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
+\end{code}

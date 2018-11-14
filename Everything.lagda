@@ -24,6 +24,11 @@ import Type.BetaNBE.RenamingSubstitution
 -- conversion takes an equation as an argument. Evaluation only works
 -- in the absense of conversions in terms.
 
+-- Builtins
+import Builtin.Signature
+import Builtin.Constant.Type
+import Builtin.Constant.Term
+
 import TermIndexedBySyntacticType.Term
 import TermIndexedBySyntacticType.Term.RenamingSubstitution
 import TermIndexedBySyntacticType.Term.Reduction

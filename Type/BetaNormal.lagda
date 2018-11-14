@@ -15,6 +15,7 @@ infix 4 _⊢NeN⋆_
 \begin{code}
 open import Type
 open import Type.RenamingSubstitution
+open import Builtin.Constant.Type
 
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)

@@ -10,6 +10,9 @@ import Type.RenamingSubstitution as ⋆
 open import TermIndexedBySyntacticType.Term
 open import TermIndexedBySyntacticType.Term.RenamingSubstitution
 open import Type.Equality
+open import Builtin.Signature
+open import Builtin.Constant.Type
+open import Builtin.Constant.Term
 
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
@@ -55,14 +58,14 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Set where
 
 ## BUILTIN
 \begin{code}
-VTel : ∀ Γ Δ → ⋆.Sub ∥ Δ ∥ ∥ Γ ∥ → List (∥ Δ ∥ ⊢⋆ *) → Set
+VTel : ∀ Γ Δ → ⋆.Sub Δ ∥ Γ ∥ → List (Δ ⊢⋆ *) → Set
 VTel Γ Δ σ [] = ⊤
 VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ ⋆.subst σ A) λ t → Value t × VTel Γ Δ σ As
 
 BUILTIN : ∀{Γ Γ'}
     → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn Γ in
-      (σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥)
+    → let Δ ,, As ,, C = SIG bn ∥ Γ ∥ in
+      (σ : ⋆.Sub Δ ∥ Γ ∥)
     → (vtel : VTel Γ Δ σ As)
     → (σ' : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
       -----------------------------
@@ -313,8 +316,8 @@ BUILTIN txh σ tt σ' with boundedB? 32 txhash
 ... | no  _ = nothing
 -- ^ should this be impossible?
 BUILTIN blocknum σ vtel σ' with σ Z
-BUILTIN blocknum σ (_ ,, V-con (size s) ,, tt) σ' | .(size⋆ s) with boundedI? s bnum
-... | yes p = just (con (integer s bnum p))
+BUILTIN blocknum σ (_ ,, V-con (size s) ,, tt) σ' | .(size⋆ s) with boundedN? s bnum
+... | yes p = just (con (integer s bnum (bN2I s bnum p)))
 ... | no  _ = nothing
 \end{code}
 
@@ -322,7 +325,7 @@ BUILTIN blocknum σ (_ ,, V-con (size s) ,, tt) σ' | .(size⋆ s) with boundedI
 
 \begin{code}
 reconstTel : ∀{Δ As} Bs Ds
-    →  (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
+    →  (σ : ⋆.Sub Δ ∥ ∅ ∥)
     → (vtel : VTel ∅ Δ σ Bs)
     → ∀{C}(t' : ∅ ⊢ ⋆.subst σ C)
     → (p : Bs ++ (C ∷ Ds) ≡ As)
@@ -382,18 +385,18 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
   β-builtin : ∀{Γ'}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn ∅ in
-      (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
+      (σ : ⋆.Sub Δ ∅)
     → (tel : Tel ∅ Δ σ As)
     → (vtel : VTel ∅ Δ σ As)
-    → (σ' : ⋆.Sub ∥ ∅ ∥ ∥ Γ' ∥)
+    → (σ' : ⋆.Sub ∅ ∥ Γ' ∥)
       -----------------------------
     → builtin {Γ'} bn σ tel σ' —→ maybe id (error _) (BUILTIN bn σ vtel σ')
 
   ξ-builtin : ∀{Γ'}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn ∅ in
-      (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)
+      (σ : ⋆.Sub Δ ∅)
     → (tel : Tel ∅ Δ σ As)
-    → (σ' : ⋆.Sub ∥ ∅ ∥ ∥ Γ' ∥)
+    → (σ' : ⋆.Sub ∅ ∥ Γ' ∥)
     → ∀ Bs Ds
     → (vtel : VTel ∅ Δ σ Bs)
     → ∀{C}{t t' : ∅ ⊢ ⋆.subst σ C}
@@ -421,7 +424,7 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
 
 \begin{code}
 
-data TelProgress {Γ}{Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥}{As : List (∥ Δ ∥ ⊢⋆ *)}(tel : Tel Γ Δ σ As) : Set where
+data TelProgress {Γ}{Δ}{σ : ⋆.Sub Δ ∥ Γ ∥}{As : List (Δ ⊢⋆ *)}(tel : Tel Γ Δ σ As) : Set where
    done : VTel Γ Δ σ As → TelProgress tel
    step : ∀ Bs Ds
      → VTel Γ Δ σ Bs
@@ -433,17 +436,16 @@ data TelProgress {Γ}{Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ Γ ∥}{As : List (∥ Δ 
    error : TelProgress tel
 
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
-progressTel : ∀ {Δ}{σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥}{As : List (∥ Δ ∥ ⊢⋆ *)}
+progressTel : ∀ {Δ}{σ : ⋆.Sub Δ ∥ ∅ ∥}{As : List (Δ ⊢⋆ *)}
   → (tel : Tel ∅ Δ σ As) → TelProgress tel
-
 progressTel {As = []}    tel = done tt
 progressTel {As = A ∷ As} (t ,, tel) with progress t
 progressTel {σ = _} {A ∷ As} (t ,, tel) | step p = step [] As tt p refl tel
 progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt with progressTel tel
 progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | done vtel =
   done (t ,, vt ,, vtel)
-progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p refl tel' =
-  step (A ∷ Bs) Ds (t ,, vt ,, vtel) p refl tel'
+progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p q tel' =
+  step (A ∷ Bs) Ds (t ,, vt ,, vtel) p (cong (A ∷_) q) tel'
 progressTel {σ = _} {A ∷ As} (t ,, tel) | done vt | error = error
 progressTel {σ = _} {A ∷ As} (t ,, tel) | error = error
 
@@ -476,28 +478,4 @@ progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
 progress (builtin bn σ X σ') | error          = error
 progress (error A) = error
-
-
--- does this lose the trace of the progress?
--- perhaps we should instead, return either a completed VTel,
--- or a step and the pieces, or fail, maybe inductively defined
-
-progressTelSilent : ∀ Δ (σ : ⋆.Sub ∥ Δ ∥ ∥ ∅ ∥)(G : List (∥ Δ ∥ ⊢⋆ *))
-  → Tel ∅ Δ σ G
-  → Maybe (Σ (List (∥ Δ ∥ ⊢⋆ *)) λ G1 →
-    Σ (List (∥ Δ ∥ ⊢⋆ *)) λ G2 → 
-    G1 ++ G2 ≡ G
-    ×
-    VTel ∅ Δ σ G1
-    ×
-    Tel ∅ Δ σ G2)
-    
-progressTelSilent Δ σ [] tt = just ([] ,, [] ,, refl ,, tt ,, tt)
-progressTelSilent Δ σ (A ∷ G) (t ,, tel) with progress t
-progressTelSilent Δ σ (A ∷ G) (t ,, tel) | step {N = N} p =
-  just ([] ,, A ∷ G ,, refl ,, tt ,, N ,, tel)
-progressTelSilent Δ σ (A ∷ G) (t ,, tel) | done v with progressTelSilent Δ σ G tel
-... | just (G1 ,, G2 ,, refl ,, vtel ,, tel') = just (A ∷ G1 ,, G2 ,, refl ,, (t ,, v ,, vtel) ,, tel')
-... | nothing = nothing
-progressTelSilent Δ σ (x ∷ G) (t ,, tel) | unhandled = nothing
 \end{code}
