@@ -124,6 +124,12 @@ weaken⋆ x = rename _∋⋆_.S _∋_.T x
 
 ## Substitution
 \begin{code}
+Sub : ∀ Γ Δ → ⋆.Sub ∥ Γ ∥ ∥ Δ ∥ → Set
+Sub Γ Δ σ = ∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ A
+\end{code}
+
+
+\begin{code}
 exts : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
@@ -154,7 +160,7 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
-{-
+
 substTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ------------------------
@@ -171,6 +177,18 @@ subst : ∀ {Γ Δ}
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
+
+substTel : ∀ {Γ Γ' Δ}
+ → (σ⋆ : ⋆.Sub ∥ Γ ∥ ∥ Γ' ∥)
+ → Sub Γ Γ' σ⋆
+ → {σ' : ⋆.Sub Δ ∥ Γ ∥}
+ → {As : List (Δ ⊢⋆ *)}
+ → Tel Γ Δ σ' As
+ → Tel Γ' Δ (⋆.subst σ⋆ ∘ σ') As
+substTel σ⋆ σ {As = []}     _         = _
+substTel σ⋆ σ {As = A ∷ As} (M ,, Ms) =
+  substEq (_ ⊢_) (sym (⋆.subst-comp A)) (subst σ⋆ σ M) ,, substTel σ⋆ σ Ms
+
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
@@ -186,11 +204,10 @@ subst σ⋆ σ (wrap1 pat arg t) = wrap1 _ _ (subst σ⋆ σ t)
 subst σ⋆ σ (unwrap1 t)       = unwrap1 (subst σ⋆ σ t)
 subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
-subst σ⋆ σ (builtin bn σ' tel ) = {!!}
-{- substEq
-  (_ ⊢_)
-  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (SIG bn _)))))
-  (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ'')) -}
+subst {Γ}{Γ'} σ⋆ σ (builtin bn σ' tel ) = substEq
+  (Γ' ⊢_)
+  (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
+  (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
 subst σ⋆ σ (error A) = error (⋆.subst σ⋆ A)
 \end{code}
 
@@ -238,5 +255,4 @@ _[_]⋆ {J}{Γ}{K}{B} t A =
                                      (⋆.subst-rename A'))
                                      (` x)})
           t
--}
 \end{code}
