@@ -71,30 +71,24 @@ added to environments and normalization instantiates all variables presented in 
 normalizeTypeM
     :: HasUnique (tyname ()) TypeUnique
     => Type tyname () -> NormalizeTypeM tyname a (NormalizedType tyname ())
-normalizeTypeM (TyForall ann name kind body) = do
-    normalizeTypeStep
+normalizeTypeM (TyForall ann name kind body) =
     TyForall ann name kind <<$>> normalizeTypeM body
-normalizeTypeM (TyFix ann name pat)          = do
-    normalizeTypeStep
+normalizeTypeM (TyFix ann name pat)          =
     TyFix ann name <<$>> normalizeTypeM pat
-normalizeTypeM (TyFun ann dom cod)           = do
-    normalizeTypeStep
+normalizeTypeM (TyFun ann dom cod)           =
     TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
-normalizeTypeM (TyLam ann name kind body)    = do
-    normalizeTypeStep
+normalizeTypeM (TyLam ann name kind body)    =
     TyLam ann name kind <<$>> normalizeTypeM body
 normalizeTypeM (TyApp ann fun arg)           = do
-    normalizeTypeStep
     vFun <- normalizeTypeM fun
     vArg <- normalizeTypeM arg
     case getNormalizedType vFun of
         TyLam _ nArg _ body -> substituteNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
-    normalizeTypeStep
     mayTy <- lookupTyName name
     case mayTy of
-        Nothing -> pure $ NormalizedType var
+        Nothing -> normalizeTypeStep $> NormalizedType var
         Just ty -> traverse rename ty
 normalizeTypeM size@TyInt{}                  = normalizeTypeStep $> NormalizedType size
 normalizeTypeM builtin@TyBuiltin{}           = normalizeTypeStep $> NormalizedType builtin
