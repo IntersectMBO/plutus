@@ -28,16 +28,28 @@ open import Data.Unit
 
 \begin{code}
 module Builtins where
+  con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
+  con1 = con (integer 8 (pos 1) (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
   con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
   con2 = con (integer 8 (pos 2) (-≤+ ,, +≤+ (s≤s (s≤s (s≤s z≤n)))))
 
   builtin2plus2 : ∅ ⊢ con integer (size⋆ 8)
-  builtin2plus2 = builtin
+  builtin2plus2 = builtin {∅}
     addInteger
     (λ { Z → size⋆ 8 ; (S x) → ` x})
     (con2 ,, con2 ,, tt)
     λ ()
+
+  inc : ∅ ⊢ con integer (size⋆ 8) ⇒ con integer (size⋆ 8)
+  inc = ƛ (builtin {∅ , con integer (size⋆ 8)}
+    addInteger
+    (λ { Z → size⋆ 8 ; (S x) → ` x})
+    (con1 ,, ` Z ,, tt)
+    λ ())
+
+  builtininc2 : ∅ ⊢ con integer (size⋆ 8)
+  builtininc2 = inc · con2
 \end{code}
 
 

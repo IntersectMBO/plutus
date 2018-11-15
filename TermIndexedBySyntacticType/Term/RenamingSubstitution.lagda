@@ -8,6 +8,7 @@ module TermIndexedBySyntacticType.Term.RenamingSubstitution where
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
+open import Data.Unit
 
 open import Type
 import Type.RenamingSubstitution as ⋆
@@ -19,30 +20,29 @@ open import TermIndexedBySyntacticType.Term
 
 
 ## Renaming
+\begin{code}
+Ren : ∀ Γ Δ → ⋆.Ren ∥ Γ ∥ ∥ Δ ∥ → Set
+Ren Γ Δ ρ = ∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ A
+\end{code}
+
 
 \begin{code}
 ext : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ∋⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ⋆ A)
-    ---------------------------------------------------
-  → (∀ {J K } {A : ∥ Γ ∥ ⊢⋆ J} {B : ∥ Γ ∥ ⊢⋆ K}
-     → Γ , B ∋ A
-       -------------------------------
-     → Δ , ⋆.rename ρ⋆ B ∋ ⋆.rename ρ⋆ A)
+  → (ρ⋆ : ⋆.Ren ∥ Γ ∥ ∥ Δ ∥)
+  → Ren Γ Δ ρ⋆
+    ------------------------------------------------------------
+  → (∀ {K }{B : ∥ Γ ∥ ⊢⋆ K} → Ren (Γ , B) (Δ , ⋆.rename ρ⋆ B) ρ⋆)
 ext ρ⋆ ρ Z     = Z
 ext ρ⋆ ρ (S x) = S (ρ x)
 \end{code}
 
 \begin{code}
 ext⋆ : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ∋⋆ K)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ⋆ A)
-    ---------------------------------------------------
-  → (∀ {J K}{A : ∥ Γ ,⋆ K ∥ ⊢⋆ J}
-     → Γ ,⋆ K ∋ A 
-       -------------------------------
-     → Δ ,⋆ K ∋ ⋆.rename (⋆.ext ρ⋆) A )
-ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
+  → (ρ⋆ : ⋆.Ren ∥ Γ ∥ ∥ Δ ∥)
+  → Ren Γ Δ ρ⋆
+    ----------------------------------------
+  → ∀ {K} → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
+ext⋆ {Γ}{Δ} ρ⋆ ρ {K}{A} (T x) =
   substEq (λ A → Δ ,⋆ K ∋ A)
           (trans (sym (⋆.rename-comp _)) (⋆.rename-comp _))
           (T (ρ x))
@@ -51,7 +51,7 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 \begin{code}
 renameTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    ------------------------
+    -----------------------------------------------------
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.rename ρ⋆ A ))
 renameTermCon ρ⋆ (integer s i p)    = integer s i p
 renameTermCon ρ⋆ (bytestring s b p) = bytestring s b p
@@ -63,10 +63,23 @@ open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
 
 rename : ∀ {Γ Δ}
-  → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
-  → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ∋ A → Δ ∋ ⋆.rename ρ⋆ A)
+  → (ρ⋆ : ⋆.Ren ∥ Γ ∥ ∥ Δ ∥)
+  → Ren Γ Δ ρ⋆
     ------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢⋆ J} → Γ ⊢ A → Δ ⊢ ⋆.rename ρ⋆ A )
+
+renameTel : ∀ {Γ Γ' Δ}
+ → (ρ⋆ : ⋆.Ren ∥ Γ ∥ ∥ Γ' ∥)
+ → Ren Γ Γ' ρ⋆
+ → {σ : ⋆.Sub Δ ∥ Γ ∥}
+ → {As : List (Δ ⊢⋆ *)}
+ → Tel Γ Δ σ As
+ → Tel Γ' Δ (⋆.rename ρ⋆ ∘ σ) As
+
+renameTel ρ⋆ ρ {As = []}     _         = _
+renameTel ρ⋆ ρ {As = A ∷ As} (M ,, Ms) =
+  substEq (_ ⊢_) (sym (⋆.rename-subst A)) (rename ρ⋆ ρ M) ,, renameTel ρ⋆ ρ Ms
+
 rename ρ⋆ ρ (` x)    = ` (ρ x)
 rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
@@ -81,10 +94,10 @@ rename ρ⋆ ρ (wrap1 pat arg t) = wrap1 _ _ (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (unwrap1 t)       = unwrap1 (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (conv p t) = conv (rename≡β ρ⋆ p) (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
-rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X σ') = substEq
+rename {Γ} {Δ} ρ⋆ ρ (builtin bn σ X ) = substEq
   (Δ ⊢_)
-  (⋆.rename-subst (⋆.subst σ (proj₂ (proj₂ (SIG bn ∅)))))
-  (builtin bn σ X (⋆.rename ρ⋆ ∘ σ'))
+  (⋆.rename-subst (proj₂ (proj₂ (SIG bn))))
+  (builtin bn (⋆.rename ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X)) 
 rename ρ⋆ ρ (error A) = error (⋆.rename ρ⋆ A)
 \end{code}
 
@@ -141,6 +154,7 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
+{-
 substTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ------------------------
@@ -172,10 +186,11 @@ subst σ⋆ σ (wrap1 pat arg t) = wrap1 _ _ (subst σ⋆ σ t)
 subst σ⋆ σ (unwrap1 t)       = unwrap1 (subst σ⋆ σ t)
 subst σ⋆ σ (conv p t) = conv (subst≡β σ⋆ p) (subst σ⋆ σ t)
 subst σ⋆ σ (con cn) = con (substTermCon σ⋆ cn)
-subst {Γ}{Δ} σ⋆ σ (builtin bn σ' tel σ'') = substEq
-  (Δ ⊢_)
-  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (SIG bn ∅)))))
-  (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ''))
+subst σ⋆ σ (builtin bn σ' tel ) = {!!}
+{- substEq
+  (_ ⊢_)
+  (⋆.subst-comp (⋆.subst σ' (proj₂ (proj₂ (SIG bn _)))))
+  (builtin bn σ' tel (⋆.subst σ⋆ ∘ σ'')) -}
 subst σ⋆ σ (error A) = error (⋆.subst σ⋆ A)
 \end{code}
 
@@ -223,4 +238,5 @@ _[_]⋆ {J}{Γ}{K}{B} t A =
                                      (⋆.subst-rename A'))
                                      (` x)})
           t
+-}
 \end{code}

@@ -150,14 +150,13 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
       -------------------
     → Γ ⊢ con tcn s
 
-  builtin : ∀{Γ'}
+  builtin : ∀{Γ}
     → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn ∅ in
-      (σ : Sub Δ ∥ ∅ ∥)   -- substitutes for new vars introduced by the Sig
-    → Tel ∅ Δ σ As           -- a telescope of terms M_i typed in subst σ A_i
-    → (σ' : Sub ∥ ∅ ∥ ∥ Γ' ∥) -- a delayed substitution applied after computation
-      -----------------------------
-    → Γ' ⊢ subst σ' (subst σ C)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : Sub Δ ∥ Γ ∥) -- substitutes for new vars introduced by the Sig
+    → Tel Γ Δ σ As     -- a telescope of terms M_i typed in subst σ
+    -----------------------------
+    → Γ ⊢ subst σ C
 
   error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *) → Γ ⊢ A
 

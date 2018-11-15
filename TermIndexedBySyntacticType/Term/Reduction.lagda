@@ -391,7 +391,9 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → (vtel : VTel ∅ Δ σ As)
     → (σ' : ⋆.Sub ∅ ∥ Γ' ∥)
       -----------------------------
-    → builtin {Γ'} bn σ tel σ' —→ maybe id (error _) (BUILTIN bn σ vtel σ')
+    → builtin {Γ' = Γ'} bn σ tel σ'
+      —→
+      maybe id (error _) (BUILTIN bn σ vtel σ')
 
   ξ-builtin : ∀{Γ'}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn ∅ in
@@ -404,9 +406,9 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢⋆ J} → (Γ ⊢ A) → (Γ ⊢ 
     → t —→ t'
     → (p : Bs ++ (C ∷ Ds) ≡ As)
     → (tel' : Tel ∅ Δ σ Ds)
-    → builtin {Γ'} bn σ tel σ'
+    → builtin {Γ' = Γ'} bn σ tel σ'
       —→
-      builtin {Γ'} bn σ (reconstTel Bs Ds σ vtel t' p tel') σ'
+      builtin bn σ (reconstTel Bs Ds σ vtel t' p tel') σ'
 \end{code}
 
 
@@ -437,8 +439,9 @@ data TelProgress {Γ}{Δ}{σ : ⋆.Sub Δ ∥ Γ ∥}{As : List (Δ ⊢⋆ *)}(t
    error : TelProgress tel
 
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
-progressTel : ∀ {Δ}{σ : ⋆.Sub Δ ∥ ∅ ∥}{As : List (Δ ⊢⋆ *)}
-  → (tel : Tel ∅ Δ σ As) → TelProgress tel
+progressTel : ∀ {Δ}{σ : ⋆.Sub Δ ∅}{As : List (Δ ⊢⋆ *)}
+  → (tel : Tel ∅ Δ σ As) → TelProgress tel
+
 progressTel {As = []}    tel = done tt
 progressTel {As = A ∷ As} (t ,, tel) with progress t
 progressTel {σ = _} {A ∷ As} (t ,, tel) | step p = step [] As tt p refl tel
@@ -473,10 +476,11 @@ progress (conv p t) = error
 progress (con (integer s i p)) = done (V-con _)
 progress (con (bytestring s x p)) = done (V-con _)
 progress (con (size s)) = done (V-con _)
-progress (builtin bn σ X σ') with progressTel X
+progress (builtin {∅} bn σ X σ') with progressTel X
 progress (builtin bn σ X σ') | done VX = step (β-builtin bn σ X VX σ')
 progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
 progress (builtin bn σ X σ') | error          = error
+progress (builtin {Γ} {.∅} bn σ X σ') = error
 progress (error A) = error
 \end{code}

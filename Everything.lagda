@@ -31,8 +31,8 @@ import Builtin.Constant.Term
 
 import TermIndexedBySyntacticType.Term
 import TermIndexedBySyntacticType.Term.RenamingSubstitution
-import TermIndexedBySyntacticType.Term.Reduction
-import TermIndexedBySyntacticType.Evaluation
+--import TermIndexedBySyntacticType.Term.Reduction
+--import TermIndexedBySyntacticType.Evaluation
 
 import TermIndexedBySyntacticType.Examples
 

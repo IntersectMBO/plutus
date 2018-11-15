@@ -14,8 +14,8 @@ open import Data.Product renaming (_,_ to _,,_)
 
 \begin{code}
 
-Sig : Ctx⋆ → Ctx⋆ → Set
-Sig Δ Γ = List (Δ ⊢⋆ *) × Δ ⊢⋆ *
+Sig : Ctx⋆ → Set
+Sig Δ = List (Δ ⊢⋆ *) × Δ ⊢⋆ *
 
 data Builtin : Set where
   addInteger               : Builtin
@@ -45,120 +45,120 @@ data Builtin : Set where
   txh              : Builtin
   blocknum         : Builtin
   
-SIG : Builtin → ∀ Γ → Σ Ctx⋆ λ Δ → Sig Δ Γ
+SIG : Builtin → Σ Ctx⋆ λ Δ → Sig Δ
 -- could have just one context so Signatures extend from ∅...
 -- going in the other direction could take a substitution as an arg and
 -- extend it appropriately...
-SIG addInteger       Γ =
-  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG subtractInteger Γ = 
-  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG multiplyInteger Γ = 
-  (Γ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
-SIG divideInteger    Γ =
-  (Γ ,⋆ #)
+SIG addInteger =
+  (∅ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
+SIG subtractInteger = 
+  (∅ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
+SIG multiplyInteger = 
+  (∅ ,⋆ #) ,, (con integer (` Z) ∷ con integer (` Z) ∷ []) ,, con integer (` Z)
+SIG divideInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   con integer (` Z)
-SIG quotientInteger  Γ =
-  (Γ ,⋆ #)
+SIG quotientInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   con integer (` Z)
-SIG remainderInteger Γ =
-  (Γ ,⋆ #)
+SIG remainderInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   con integer (` Z)
-SIG modInteger       Γ =
-  (Γ ,⋆ #)
+SIG modInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   con integer (` Z)
-SIG lessThanInteger Γ =
-  (Γ ,⋆ #)
+SIG lessThanInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   boolean
-SIG lessThanEqualsInteger Γ =
-  (Γ ,⋆ #)
+SIG lessThanEqualsInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   boolean
-SIG greaterThanInteger Γ =
-  (Γ ,⋆ #)
+SIG greaterThanInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   boolean
-SIG greaterThanEqualsInteger Γ =
-  (Γ ,⋆ #)
+SIG greaterThanEqualsInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   boolean
-SIG equalsInteger Γ =
-  (Γ ,⋆ #)
+SIG equalsInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ con integer (` Z) ∷ []
   ,,
   boolean
-SIG resizeInteger Γ =
-  (Γ ,⋆ # ,⋆ #)
+SIG resizeInteger =
+  (∅ ,⋆ # ,⋆ #)
   ,,
   (con size (` Z) ∷ con integer (` (S Z)) ∷ [])
   ,,
   con integer (` Z)
-SIG sizeOfInteger Γ =
-  (Γ ,⋆ #)
+SIG sizeOfInteger =
+  (∅ ,⋆ #)
   ,,
   con integer (` Z) ∷ []
   ,,
   con size (` Z)
-SIG intToByteString Γ =
-  Γ ,⋆ # ,⋆ #
+SIG intToByteString =
+  ∅ ,⋆ # ,⋆ #
   ,,
   con size (` Z) ∷ con integer (` (S Z)) ∷ []
   ,,
   con bytestring (` Z)
-SIG concatenate      Γ =
-  Γ ,⋆ #
+SIG concatenate =
+  ∅ ,⋆ #
   ,,
   con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
   ,,
   con bytestring (` Z)
-SIG takeByteString Γ =
-  (Γ ,⋆ #  ,⋆ #)
+SIG takeByteString =
+  (∅ ,⋆ #  ,⋆ #)
   ,,
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
   con bytestring (` Z)
-SIG dropByteString Γ =
-  (Γ ,⋆ #  ,⋆ #)
+SIG dropByteString =
+  (∅ ,⋆ #  ,⋆ #)
   ,,
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
   con bytestring (` Z)
-SIG sha2-256 Γ =
-  Γ ,⋆ #
+SIG sha2-256 =
+  ∅ ,⋆ #
   ,,
   con bytestring (` Z) ∷ []
   ,,
   con bytestring (size⋆ 32)
-SIG sha3-256 Γ =
-  Γ ,⋆ #
+SIG sha3-256 =
+  ∅ ,⋆ #
   ,,
   con bytestring (` Z) ∷ []
   ,,
   con bytestring (size⋆ 32)
-SIG verifySignature Γ =
-  Γ ,⋆ # ,⋆ # ,⋆ #
+SIG verifySignature =
+  ∅ ,⋆ # ,⋆ # ,⋆ #
   ,,
   con bytestring (` (S (S Z)))
     ∷ con bytestring (` (S Z))
@@ -166,21 +166,21 @@ SIG verifySignature Γ =
     ∷ []
   ,,
   boolean
-SIG resizeByteString Γ =
-  Γ ,⋆ # ,⋆ #
+SIG resizeByteString =
+  ∅ ,⋆ # ,⋆ #
   ,,
   con size (` Z) ∷ con bytestring (` (S Z)) ∷ []
   ,,
   con bytestring (` Z)
-SIG equalsByteString Γ =
-  Γ ,⋆ #
+SIG equalsByteString =
+  ∅ ,⋆ #
   ,,
   con bytestring (` Z) ∷ con bytestring (` Z) ∷ []
   ,,
   boolean
-SIG txh Γ = Γ ,, [] ,, con bytestring (size⋆ 32)
-SIG blocknum Γ =
-  Γ ,⋆ #
+SIG txh = ∅ ,, [] ,, con bytestring (size⋆ 32)
+SIG blocknum =
+  ∅ ,⋆ #
   ,,
   con size (` Z) ∷ []
   ,,
