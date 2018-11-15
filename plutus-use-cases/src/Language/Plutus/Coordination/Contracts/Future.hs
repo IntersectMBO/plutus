@@ -28,7 +28,7 @@ import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
-import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Lift       (makeLift)
 import qualified Language.Plutus.Runtime.TH as TH
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
@@ -171,9 +171,6 @@ data Future = Future {
     --   payments.
     } deriving Generic
 
-instance LiftPlc Future
-instance TypeablePlc Future
-
 -- | The current "state" of the futures contract. `FutureData` contains values
 --   that may change during the lifetime of the contract. This is the data
 --   script.
@@ -189,9 +186,6 @@ data FutureData = FutureData {
     -- ^ Current balance of the margin account of the short position
     } deriving Generic
 
-instance LiftPlc FutureData
-instance TypeablePlc FutureData
-
 -- | Actions that either participant may take. This is the redeemer script.
 data FutureRedeemer =
       AdjustMargin
@@ -199,9 +193,6 @@ data FutureRedeemer =
     | Settle (OracleValue Value)
     -- ^ Settle the contract
     deriving Generic
-
-instance LiftPlc FutureRedeemer
-instance TypeablePlc FutureRedeemer
 
 validatorScript :: Future -> Validator
 validatorScript ft = Validator val where
@@ -320,3 +311,7 @@ validatorScript ft = Validator val where
             in
                 if isValid then () else Builtins.error ()
             |])
+
+makeLift ''Future
+makeLift ''FutureData
+makeLift ''FutureRedeemer

@@ -124,7 +124,7 @@ import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getSerializedCode)
-import           Language.Plutus.Lift                     (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Lift                     (LiftPir, makeLift, unsafeLiftPlc)
 import           Language.Plutus.TH                       (plutus)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
@@ -159,17 +159,14 @@ newtype PubKey = PubKey { getPubKey :: Int }
     deriving stock (Generic)
     deriving newtype (Serialise, ToJSON, FromJSON)
 
-instance LiftPlc PubKey
-instance TypeablePlc PubKey
+makeLift ''PubKey
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
     deriving newtype (Serialise, ToJSON, FromJSON)
 
-instance LiftPlc Signature
-instance TypeablePlc Signature
-
+makeLift ''Signature
 
 -- | True if the signature matches the public key
 signedBy :: Signature -> PubKey -> Bool
@@ -187,8 +184,7 @@ newtype TxId h = TxId { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
 
-instance (LiftPlc h, TypeablePlc h) => LiftPlc (TxId h)
-instance (TypeablePlc h) => TypeablePlc (TxId h)
+makeLift ''TxId
 
 type TxId' = TxId (Digest SHA256)
 
@@ -259,8 +255,8 @@ instance FromJSON Script where
       Left e  -> fail e
       Right v -> pure v
 
-lifted :: LiftPlc a => a -> Script
-lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . Language.Plutus.Lift.lift
+lifted :: LiftPir a => a -> Script
+lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . unsafeLiftPlc
 
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: Script }

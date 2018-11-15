@@ -17005,6 +17005,7 @@ license = stdenv.lib.licenses.mit;
 , tasty
 , template-haskell
 , text
+, th-abstraction
 , transformers
 }:
 mkDerivation {
@@ -17026,6 +17027,7 @@ prettyprinter
 serialise
 template-haskell
 text
+th-abstraction
 transformers
 ];
 testHaskellDepends = [
@@ -55711,6 +55713,7 @@ base
 containers
 language-plutus-core
 lens
+mmorph
 mtl
 prettyprinter
 text

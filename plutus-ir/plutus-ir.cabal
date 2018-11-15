@@ -27,6 +27,8 @@ library
     exposed-modules:
         Language.PlutusIR
         Language.PlutusIR.Compiler
+        Language.PlutusIR.Compiler.Names
+        Language.PlutusIR.Compiler.Definitions
         Language.PlutusIR.MkPir
         Language.PlutusIR.Value
         Language.PlutusIR.Optimizer.DeadCode
@@ -59,6 +61,7 @@ library
         language-plutus-core -any,
         lens -any,
         mtl -any,
+        mmorph -any,
         prettyprinter -any,
         text -any,
         transformers -any,

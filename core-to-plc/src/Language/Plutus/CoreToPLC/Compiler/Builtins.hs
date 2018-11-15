@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling Plutus Core builtins.
@@ -16,7 +17,6 @@ module Language.Plutus.CoreToPLC.Compiler.Builtins (
     , errorFunc) where
 
 import qualified Language.Plutus.CoreToPLC.Builtins                  as Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Definitions
 import           Language.Plutus.CoreToPLC.Compiler.Error
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Names
@@ -28,6 +28,8 @@ import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.Utils
 
 import qualified Language.PlutusIR                                   as PIR
+import qualified Language.PlutusIR.Compiler.Definitions              as PIR
+import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                             as PIR
 
 import qualified Language.PlutusCore                                 as PLC
@@ -43,6 +45,7 @@ import           Control.Monad.Reader
 
 import qualified Data.ByteString.Lazy                                as BSL
 import qualified Data.Map                                            as Map
+import qualified Data.Set                                            as Set
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -159,16 +162,16 @@ defineBuiltinTerm :: Converting m => TH.Name -> PIRTerm -> [GHC.Name] -> m ()
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- convVarFresh ghcId
-    defineTerm (GHC.getName ghcId) (PIR.TermBind () var term) deps
+    PIR.defineTerm (GHC.getName ghcId) (PIR.Def var term) (Set.fromList deps)
 
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: Converting m => TH.Name -> PIRType -> [GHC.Name] -> m ()
 defineBuiltinType name ty deps = do
     tc <- GHC.tyThingTyCon <$> getThing name
     var <- convTcTyVarFresh tc
-    defineType (GHC.getName tc) (PIR.TypeBind () var ty) deps
+    PIR.defineType (GHC.getName tc) (PIR.Def var ty) (Set.fromList deps)
     -- these are all aliases for now
-    recordAlias (GHC.getName tc)
+    PIR.recordAlias @GHC.Name @() (GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: Converting m => m ()
@@ -258,7 +261,7 @@ defineBuiltinTypes = do
 lookupBuiltinTerm :: Converting m => TH.Name -> m PIRTerm
 lookupBuiltinTerm name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeTerm <- lookupTermDef ghcName
+    maybeTerm <- PIR.lookupTerm () ghcName
     case maybeTerm of
         Just t  -> pure t
         Nothing -> throwSd ConversionError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
@@ -267,7 +270,7 @@ lookupBuiltinTerm name = do
 lookupBuiltinType :: Converting m => TH.Name -> m PIRType
 lookupBuiltinType name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeType <- lookupTypeDef ghcName
+    maybeType <- PIR.lookupType () ghcName
     case maybeType of
         Just t  -> pure t
         Nothing -> throwSd ConversionError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
@@ -275,14 +278,14 @@ lookupBuiltinType name = do
 -- | The function 'error :: forall a . () -> a'.
 errorFunc :: Converting m => m PIRTerm
 errorFunc = do
-    n <- liftQuote $ freshTyName () "e"
+    n <- safeFreshTyName () "e"
     -- see Note [Value restriction]
     mangleTyAbs $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
 
 -- | The type 'forall a. () -> a'.
 errorTy :: Converting m => m PIRType
 errorTy = do
-    tyname <- safeFreshTyName "a"
+    tyname <- safeFreshTyName () "a"
     mangleTyForall $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
 
 -- TODO: bind the converter to a name too. Need an appropriate GHC.Name for
@@ -309,7 +312,7 @@ wrapIntRel :: Converting m => Int -> PIRTerm -> m PIRTerm
 wrapIntRel arity term = do
     intTy <- lookupBuiltinType ''Int
     args <- replicateM arity $ do
-        name <- liftQuote $ freshName () "arg"
+        name <- safeFreshName () "arg"
         pure $ PIR.VarDecl () name intTy
 
     -- TODO: bind the converter to a name too
@@ -327,7 +330,7 @@ wrapBsRel :: Converting m => Int -> PIRTerm -> m PIRTerm
 wrapBsRel arity term = do
     bsTy <- lookupBuiltinType ''BSL.ByteString
     args <- replicateM arity $ do
-        name <- liftQuote $ freshName () "arg"
+        name <- safeFreshName () "arg"
         pure $ PIR.VarDecl () name bsTy
 
     converter <- scottBoolToHaskellBool
