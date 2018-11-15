@@ -2,8 +2,12 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
+{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE KindSignatures            #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
 
@@ -74,6 +78,7 @@ import           Data.GADT.Compare
 import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
 import qualified Data.Text.Encoding                   as Text
+import           GHC.TypeLits                         (Symbol)
 
 infixr 9 `TypeSchemeArrow`
 
@@ -148,7 +153,10 @@ data Builtin size
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
-    TypedBuiltinDyn   :: Pretty dyn => DynamicBuiltinType -> TypedBuiltin size dyn
+    TypedBuiltinDyn
+        :: KnownDynamicBuiltinType dyn sem
+        => NamedDynamicBuiltinType dyn
+        -> TypedBuiltin size sem
 
 -- | A 'TypedBuiltin' packaged together with a value of the type that the 'TypedBuiltin' denotes.
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
@@ -169,6 +177,19 @@ data TypeScheme size a r where
     -- The @r@ is rather ad hoc and needed only for tests.
     -- We could use type families to compute it instead of storing as an index.
     -- That's a TODO perhaps.
+
+newtype NamedDynamicBuiltinType (dyn :: Symbol) = NamedDynamicBuiltinType
+    { unNamedDynamicBuiltinType :: DynamicBuiltinType
+    }
+
+newtype TypedDynamicBuiltinType dyn sem = TypedDynamicBuiltinType
+    { unTypedDynamicBuiltinType :: NamedDynamicBuiltinType dyn
+    }
+
+class Pretty sem => KnownDynamicBuiltinType dyn sem | dyn -> sem where
+    dynamicBuiltinType :: TypedDynamicBuiltinType dyn sem
+    makeDynamicBuiltin :: NamedDynamicBuiltinType dyn -> sem -> Maybe (Value TyName Name ())
+    readDynamicBuiltin :: NamedDynamicBuiltinType dyn -> Value TyName Name () -> Maybe sem
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeScheme size a r)
