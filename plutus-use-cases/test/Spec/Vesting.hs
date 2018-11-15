@@ -39,8 +39,8 @@ tests = testGroup "vesting" [
 scen1 :: VestingScenario
 scen1 = VestingScenario{..} where
     vsVestingScheme = Vesting {
-        vestingTranche1 = VestingTranche 10 200,
-        vestingTranche2 = VestingTranche 20 400,
+        vestingTranche1 = VestingTranche (Runtime.Height 10) 200,
+        vestingTranche2 = VestingTranche (Runtime.Height 20) 400,
         vestingOwner    = PubKey 1 }
     vsWallets = Wallet <$> [1, 2]
     vsInitialBalances = Map.fromList [
