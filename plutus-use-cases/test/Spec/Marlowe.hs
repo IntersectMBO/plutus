@@ -33,7 +33,8 @@ newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey 
 tests :: TestTree
 tests = testGroup "Marlowe" [
         testProperty "Commit/Pay works" simplePayment,
-        testProperty "can't commit after timeout" cantCommitAfterStartTimeout
+        testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
+        testProperty "redeem after commit expired" redeemAfterCommitExpired
         ]
 
 -- | Funds available to wallets `Wallet 2` and `Wallet 3`
@@ -108,3 +109,31 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
     assertOwnFundsEq bob 777
     return ()
 
+redeemAfterCommitExpired :: Property
+redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
+    -- Init a contract
+    let alice = Wallet 1
+        bob = Wallet 2
+        update = blockchainActions >>= walletsNotifyBlock [alice, bob]
+        identCC = (IdentCC 1)
+    update
+    [tx] <- walletAction alice (createContract (CommitCash identCC (PubKey 2) 100 128 256) 12)
+    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    update
+    assertIsValidated tx
+
+    [tx] <- walletAction bob (commitCash (PubKey 2) txOut 100 256)
+    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    update
+    assertIsValidated tx
+
+    addBlocks 300
+
+    [tx] <- walletAction bob (redeem txOut identCC 100)
+    update
+    assertIsValidated tx
+
+    assertOwnFundsEq alice 988
+    assertOwnFundsEq bob 777
+    return ()
