@@ -81,6 +81,7 @@ library
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
         Language.PlutusCore.Examples.Data.InterList
+        Language.PlutusCore.Examples.Data.TreeForest
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypeEvalCheck

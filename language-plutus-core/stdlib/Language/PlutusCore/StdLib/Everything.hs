@@ -23,6 +23,7 @@ import           Language.PlutusCore.StdLib.Type
 
 -- TODO: move me to a separate module.
 import           Language.PlutusCore.Examples.Data.InterList
+import           Language.PlutusCore.Examples.Data.TreeForest
 
 -- We use 'String's for names, because this module exists for tests right now and
 -- there we have 'FilePath's which are 'String's.
@@ -124,10 +125,17 @@ stdLib
                 , Named "Unitval" $ AnonStdLibTerm getBuiltinUnitval
                 ]
             , Named "InterList" $ AnonStdLibFile
-                [ Named "InterList"       $ AnonStdLibType $ _recursiveType <$> getBuiltinInterList
-                , Named "InterNil"        $ AnonStdLibTerm getBuiltinInterNil
-                , Named "InterCons"       $ AnonStdLibTerm getBuiltinInterCons
-                , Named "FoldrInterList"  $ AnonStdLibTerm getBuiltinFoldrInterList
+                [ Named "InterList"      $ AnonStdLibType $ _recursiveType <$> getBuiltinInterList
+                , Named "InterNil"       $ AnonStdLibTerm getBuiltinInterNil
+                , Named "InterCons"      $ AnonStdLibTerm getBuiltinInterCons
+                , Named "FoldrInterList" $ AnonStdLibTerm getBuiltinFoldrInterList
+                ]
+            , Named "TreeForest" $ AnonStdLibFile
+                [ Named "Tree"       $ AnonStdLibType $ _recursiveType <$> getBuiltinTree
+                , Named "Forest"     $ AnonStdLibType $ _recursiveType <$> getBuiltinForest
+                , Named "TreeNode"   $ AnonStdLibTerm getBuiltinTreeNode
+                , Named "ForestNil"  $ AnonStdLibTerm getBuiltinForestNil
+                , Named "ForestCons" $ AnonStdLibTerm getBuiltinForestCons
                 ]
             ]
         , Named "Meta" $ AnonStdLibFolder

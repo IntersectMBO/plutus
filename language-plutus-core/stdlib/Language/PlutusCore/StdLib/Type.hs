@@ -2,18 +2,18 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.StdLib.Type
-    ( RecursiveType (..)
+    ( (~~>)
+    , star
+    , RecursiveType (..)
     , makeRecursiveType
     ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Quote
 import           PlutusPrelude
-
-import           Data.Traversable          (for)
 
 -- | A 'Type' that starts with a 'TyIFix' (i.e. a recursive type) packaged along with a
 -- specified 'Wrap' that allows to construct elements of this type.
@@ -31,8 +31,14 @@ zipWithAligned _ []       []       = []
 zipWithAligned f (x : xs) (y : ys) = f x y : zipWithAligned f xs ys
 zipWithAligned _ _        _        = error "Lists are not of the same length."
 
-(~~>) :: Kind () -> Kind () -> Kind ()
-(~~>) = KindArrow ()
+class HasArrow a where
+    (~~>) :: a -> a -> a
+
+instance a ~ () => HasArrow (Kind a) where
+    (~~>) = KindArrow ()
+
+instance a ~ () => HasArrow (Type tyname a) where
+    (~~>) = TyFun ()
 
 star :: Kind ()
 star = Type ()
