@@ -83,12 +83,12 @@ normalizeTypeM (TyApp ann fun arg)           = do
     vFun <- normalizeTypeM fun
     vArg <- normalizeTypeM arg
     case getNormalizedType vFun of
-        TyLam _ nArg _ body -> substituteNormalizeTypeM vArg nArg body
+        TyLam _ nArg _ body -> normalizeTypeStep *> substituteNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyName name
     case mayTy of
-        Nothing -> normalizeTypeStep $> NormalizedType var
+        Nothing -> pure $ NormalizedType var
         Just ty -> traverse rename ty
 normalizeTypeM size@TyInt{}                  = normalizeTypeStep $> NormalizedType size
 normalizeTypeM builtin@TyBuiltin{}           = normalizeTypeStep $> NormalizedType builtin
