@@ -9,10 +9,10 @@
 \begin{array}{lrcl}
         \textrm{Stack}          & s      & ::= & f^*\\
         \textrm{Heap locations} & l      &  & \\
-        \textrm{Heap entries}   & e      & ::= & \texttt{Unevaluated } M\quad|\quad\texttt{Evaluated } V \\
+        \textrm{Heap entries}   & e      & ::= & \texttt{Unevaluated } (M, \rho)\quad|\quad\texttt{Evaluated } (V,\rho) \\
         \textrm{Environment}    & \rho   & ::= & [x \mapsto l]^*\\
-        \textrm{Heap}           & \rho   & ::= & [l \mapsto e]^*\\
-        \textrm{State}          & \sigma & ::= & s;\rho;h \compute M \quad| \quad s;\rho;h \return V  \quad| \quad \ckerror{} \quad|\quad \square V,\rho,h     
+        \textrm{Heap}           & h      & ::= & [l \mapsto e]^*\\
+        \textrm{State}          & \sigma & ::= & s;h \compute (M,\rho) \quad| \quad s;h \return (V, \rho)  \quad| \quad \ckerror{} \quad|\quad \square (V,\rho,h)
     \end{array}
 \]
 }
@@ -31,53 +31,56 @@
       f :: = & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
              & \inWrapRightFrame{\alpha}{A}            & \textrm{right wrap}\\
              & \inUnwrapFrame{}                        & \textrm{unwrap}\\
-             & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
              & \inAppLeftFrame{M}                      & \textrm{left application}\\
              & \inAppRightFrame{V}                     & \textrm{right application}\\
-             & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+             & \texttt{(builtin \textit{bn} $A^*\ V^*\_\ M^*; \rho$)}        & \textrm{builtin}\\
+             & \texttt{(update\ $l$)}                   & \textrm{heap update marker}\\
     \end{array}
 \]
 }
 \end{subfigure}
-
-\vspace{2mm}
-\hrule
-\vspace{2.5mm}
-
-\begin{subfigure}[c]{\linewidth}   %%% ---------------- L machine transitions ---------------- %%%
+\end{figure*}
+\vfill
+\newpage
+\begin{figure*}[!ht]\ContinuedFloat
+\hspace{-2cm}\begin{subfigure}[c]{\linewidth}   %%% ---------------- L machine transitions ---------------- %%%
 {
 \small
-\caption{Transitions}
+\caption*{\hspace{3cm}(c) Transitions}
 \begin{alignat*}{2}\\
-      s;\rho;h  &\compute  \con{cn}               &{}\mapsto{}& s;\rho;h \return \con{cn}\\
-      \blue{s; \rho; h} &\bcompute \blue{x}       &{}\bmapsto{}& \blue{s;\rho \return V \quad (h[\rho[x]] = \texttt{Evaluated}\ V)}\\  %% New rule
-      \blue{s; \rho; h} &\bcompute \blue{x}       &{}\bmapsto{}& \blue{??? \quad (h[\rho[x]] = \texttt{Unevaluated}\ M)}\\  %% New rule
-      s;\rho;h  &\compute \abs{\alpha}{K}{V}      &{}\mapsto{}& s;\rho;h \return \abs{\alpha}{K}{V}\\
-      s;\rho;h &\compute \inst{M}{A}              &{}\mapsto{}& s;\rho;h \compute \inInstLeftFrame{A}{M}\\
-      s;\rho;h &\compute \wrap{\alpha}{A}{M}      &{}\mapsto{}& s;\rho;h \compute \inWrapRightFrame{\alpha}{A}{M}\\
-      s;\rho;h &\compute \unwrap{M}               &{}\mapsto{}& s;\rho;h \compute \inUnwrapFrame{}{M}\\
-      s;\rho;h &\compute \lam{x}{A}{M}            &{}\mapsto{}& s;\rho;h \return \lam{x}{A}{M}\\
-      s;\rho;h &\compute \app{M}{N}               &{}\mapsto{}& s;\rho;h \compute \inAppLeftFrame{N}{M}\\
-      s;\rho;h &\compute \builtin{bn}{\repetition{A}}{} &{}\mapsto{}& U \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
-      s;\rho;h &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &{}\mapsto{}& s;\rho \compute \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}{M}\\
-      s; \rho;h &\compute \error{A} &{}\mapsto{}& \ckerror{}\\
-      \cdot; \rho &\return V &{}\mapsto{}& \square V, \rho, h\\
-      s,\inInstLeftFrame{A}; \rho;h &\return \abs{\alpha}{K}{M} &{}\mapsto{}& s;\rho;h \compute{M} \\
-      s,\inWrapRightFrame{\alpha}{A}; \rho;h &\return V &{}\mapsto{}& s;\rho;h \return \wrap{\alpha}{A}{V}\\
-      s,\inUnwrapFrame{}; \rho;h &\return {\wrap{\alpha}{A}{V}} &{}\mapsto{}& s;\rho;h \return V\\
-      s,\inAppLeftFrame{N}; \rho;h &\return V &{}\mapsto{}& s, \inAppRightFrame{V};\rho;h \compute N\\
-      s,\inAppRightFrame{\lam{x}{A}{M}}; \rho;h &\return V &{}\mapsto{}& s;\rho[x\mapsto V];h \compute M\\
-      s,\inBuiltin
-      {bn}
-      {\repetition{A}}
-      {\repetition{V}}{\_}{}; \rho; h &\return V &{}\mapsto{}& U \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$})\\
-      s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}{}; \rho; h
-          &\return V &{}\mapsto{}& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
-%%    &\cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}}{V}}{\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}
-%%        &\cksteps{\ckbackward{s, \inBuiltin{bn} {\repetition{A}} {\repetition{V} V} {\_} {} }{V}}{U} \qquad \textit{$bn$ co    \end{array}
+      s;h  &\compute  (\con{cn}, \rho)              &{}\mapsto{}& s;h \return (\con{cn}, \rho)\\
+      \blue{s;h} &\bcompute \blue{(x, \rho)}        &{}\bmapsto{}& \blue{s;h \return (V,\rho^{\prime})  \quad (h[\rho[x]] = \texttt{Evaluated}\ (V, rho^{\prime})}\\  %% New rule
+      \blue{s;h} &\bcompute \blue{(x, \rho)}        &{}\bmapsto{}& \blue{s,\texttt{(update\ $l$)}; h \compute M \quad (h[\rho[x]] = \texttt{Unevaluated}\ M)}\\  %% New rule
+      s;h &\compute (\abs{\alpha}{K}{V}, \rho)      &{}\mapsto{}& s;h \return (\abs{\alpha}{K}{V}, \rho)\\
+      s;h &\compute (\inst{M}{A}, \rho)             &{}\mapsto{}& s,\inInstLeftFrame{A}; h \compute (M,\rho)\\
+      s;h &\compute (\wrap{\alpha}{A}{M}, \rho)     &{}\mapsto{}& s,\inWrapRightFrame{\alpha}{A};h \compute (M, \rho)\\
+      s;h &\compute (\unwrap{M}, \rho)              &{}\mapsto{}& s, \inUnwrapFrame{};h \compute (M,\rho)\\
+      s;h &\compute (\lam{x}{A}{M}, \rho)           &{}\mapsto{}& s;h \return (\lam{x}{A}{M}, \rho)\\
+      s;h &\compute (\app{M}{N}, \rho)              &{}\mapsto{}& s,\inAppLeftFrame{(N, \rho)};h \compute (M,\rho)\\
+      s;h &\compute (\builtin{bn}{\repetition{A}}{}, \rho) 
+                                                    &{}\mapsto{}& (U,\rho) \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
+      s;h &\compute (\builtin{bn}{\repetition{A}}{M \repetition{M}}, \rho) 
+                                                    &{}\mapsto{}& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}; \rho};h \compute (M, \rho)\\
+      s;h &\compute (\error{A}, \rho) &{}\mapsto{}& \ckerror{}\\
+      \cdot;h &\return (V, \rho) &{}\mapsto{}& \square(V, \rho, h)\\
+      s,\inInstLeftFrame{A};h &\return (\abs{\alpha}{K}{M},\rho) 
+                                                    &{}\mapsto{}& s;h \compute (M,\rho) \\
+      s,\inWrapRightFrame{\alpha}{A};h &\return (V, \rho) &{}\mapsto{}& s;h \return (\wrap{\alpha}{A}{V}, \rho)\\
+      s,\inUnwrapFrame{};h &\return (\wrap{\alpha}{A}{V}, \rho) 
+                                                    &{}\mapsto{}& s;h \return (V,\rho)\\
+      \blue{s,\inAppLeftFrame{(N,\rho^{\prime})};h} & \blue{\return (\lam{x}{A}{M}, \rho)} 
+                                                    &{}\bmapsto{}& \blue{s;h[l\mapsto \texttt{Unevaluated}(N,\rho^{\prime})] \compute (M, \rho[x \mapsto l])}\\
+      & & & \hspace{2cm}\blue{(\textit{$l$ a fresh heap location})}\\
+      \blue{s, \texttt{(update\ $l$)}} & \blue{\return (V, \rho)}   &{}\bmapsto{}& \blue{s;h[l\mapsto \texttt{Evaluated}(V, \rho)] \return (V,\rho)}\\
+      \blue{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}; \rho}{}; h} &\return \blue{(V , \rho^{\prime})}
+                                                    &{}\bmapsto{}& s, \blue{\inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}; \rho};h \compute (M, \rho)}\\
+      s,\inBuiltin {bn} {\repetition{A}} {\repetition{V}}{\_}{; \rho}; h &\return (V, \rho^{\prime}) 
+                                                    &{}\mapsto{}& s;h \compute (W, \rho) \quad 
+                                                    (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
 \end{alignat*}
 }
 \end{subfigure}
+
 \end{figure*}
 
 

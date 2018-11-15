@@ -68,11 +68,9 @@
       s,\inUnwrapFrame{}; \rho &\return \wrap{\alpha}{A}{V} &{}\mapsto{}& s;\rho \return V\\
       s,\inAppLeftFrame{(N,\rho^{\prime})}; \rho &\return V &{}\mapsto{}& s, \inAppRightFrame{(V,\rho)};\rho^{\prime} \compute N\\
       \blue{s,\inAppRightFrame{(\lam{x}{A}{M}, \rho^{\prime})}; \rho} &\breturn V &{}\bmapsto{}& \blue{s;\rho[x\mapsto V] \compute M}\\  %% Modified
-      s,\inBuiltin
-      {bn}
-      {\repetition{A}}
-      {\repetition{V}}{\_}{}; \rho &\return V &{}\mapsto{}& U \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$})\\
-      s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}{}; \rho&\return V &{}\mapsto{}& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
+      s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}{}; \rho&\return V &{}\mapsto{}& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}};\rho \compute M\\
+      s,\inBuiltin {bn} {\repetition{A}} {\repetition{V}}{\_}{}; \rho &\return V 
+                                                &{}\mapsto{}& s;\rho \compute W \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
 \end{alignat*}
 }
 \end{subfigure}

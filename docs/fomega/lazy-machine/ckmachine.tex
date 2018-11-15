@@ -62,8 +62,8 @@
       s,\inUnwrapFrame{} &\return {\wrap{\alpha}{A}{V}} &{}\mapsto{}& s \return V\\
       s,\inAppLeftFrame{N} &\return V                   &{}\mapsto{}& s, \inAppRightFrame{V} \compute N\\
       s,\inAppRightFrame{\lam{x}{A}{M}} &\return V      &{}\mapsto{}& s \compute \subst{V}{x}{M}\\
-      s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{} &\return V &{}\mapsto{}& U \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$})\\
       s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}} &\return V &{}\mapsto{}& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
+      s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{} &\return V &{}\mapsto{}& s \compute W \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
     \end{alignat*}
 }
 \end{subfigure}
