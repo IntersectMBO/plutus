@@ -7,8 +7,8 @@
 \[
 \begin{array}{lrcl}
         \textrm{Stack} & s      & ::= & f^*    \\
-        \textrm{Environment} & \rho & ::= & [x \mapsto V]^* \\
-        \textrm{State} & \sigma & ::= & s;\rho \compute M \quad | \quad s;\rho \return V  \quad | \quad \ckerror{} \quad | \quad \square V,\rho
+        \textrm{Environment} & \rho, \tau & ::= & [x \mapsto V]^* \\
+        \textrm{State} & \sigma & ::= & s;\rho \compute M \quad | \quad s;\rho \return V  \quad | \quad \ckerror{} \quad | \quad \square (V,\rho)
     \end{array}
 \]
 }
@@ -26,8 +26,8 @@
        f ::= & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
              & \inWrapRightFrame{\alpha}{A}            & \textrm{right wrap}\\
              & \inUnwrapFrame{}                        & \textrm{unwrap}\\
-             & \inAppLeftFrame{M}                      & \textrm{left application}\\
-             & \inAppRightFrame{V}                     & \textrm{right application}\\
+             & \inAppLeftFrame{(M,\rho)}                 & \textrm{left application}\\
+             & \inAppRightFrame{(V,\rho)}                & \textrm{right application}\\
              & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
     \end{array}
 \]
@@ -43,7 +43,8 @@
 \small
 \caption{Transitions}
     \begin{alignat*}{2}
-     \blue{s; \rho} &\bcompute \blue{x}          &{}\bmapsto{}&\blue{s;\rho \return V \quad (\rho[x] = V)}\\  % New rule
+     \blue{s; \rho} &\bcompute \blue{x}          &{}\bmapsto{}&\blue{s;\tau \return V \quad (\rho[x] = (V,\tau))}\\  % New rule
+% Continuing with tau worries me
       s; \rho &\compute \con{cn}                 &{}\mapsto{}& s;\rho \return \con{cn}\\
       % computeCek con constant@Constant{}    = returnCek con constant
       s; \rho &\compute \abs{\alpha}{K}{V}       &{}\mapsto{}& s;\rho \return \abs{\alpha}{K}{V}\\
@@ -56,17 +57,17 @@
       %computeCek con (Unwrap _ term)        = computeCek (FrameUnwrap : con) term
       s; \rho &\compute \lam{x}{A}{M}            &{}\mapsto{}& s;\rho \return \lam{x}{A}{M}\\
       % computeCek con lamAbs@LamAbs{}        = returnCek con lamAbs
-      s; \rho &\compute \app{M}{N}               &{}\mapsto{}& s,\inAppLeftFrame{N};\rho \compute M\\
+      s; \rho &\compute \app{M}{N}               &{}\mapsto{}& s,\inAppLeftFrame{(N,\rho)};\rho \compute M\\
       s; \rho &\compute \builtin{bn}{\repetition{A}}{} &{}\mapsto{}& U \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
-      s; \rho &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &{}\mapsto{}& s;\rho \compute \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}{M}\\
+      s; \rho &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &{}\mapsto{}& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}};\rho \compute M\\
       s; \rho &\compute \error{A} &{}\mapsto{}& \ckerror{}\\
       % computeCek _   Error{}                = pure EvaluationFailure
-      \cdot; \rho &\return V &{}\mapsto{}& \square V, \rho\\
+      \cdot; \rho &\return V &{}\mapsto{}& \square (V, \rho)\\
       s,\inInstLeftFrame{A}; \rho &\return \abs{\alpha}{K}{M} &{}\mapsto{}& s;\rho \compute{M} \\
       s,\inWrapRightFrame{\alpha}{A}; \rho &\return V &{}\mapsto{}& s;\rho \return \wrap{\alpha}{A}{V}\\
       s,\inUnwrapFrame{}; \rho &\return \wrap{\alpha}{A}{V} &{}\mapsto{}& s;\rho \return V\\
-      s,\inAppLeftFrame{N}; \rho &\return V &{}\mapsto{}& s, \inAppRightFrame{V};\rho \compute N\\
-      \blue{s,\inAppRightFrame{\lam{x}{A}{M}}; \rho} &\breturn V &{}\bmapsto{}& \blue{s;\rho[x\mapsto V] \compute M}\\  %% Modified
+      s,\inAppLeftFrame{(N,\rho^{\prime})}; \rho &\return V &{}\mapsto{}& s, \inAppRightFrame{(V,\rho)};\rho^{\prime} \compute N\\
+      \blue{s,\inAppRightFrame{(\lam{x}{A}{M}, \rho^{\prime})}; \rho} &\breturn V &{}\bmapsto{}& \blue{s;\rho[x\mapsto V] \compute M}\\  %% Modified
       s,\inBuiltin
       {bn}
       {\repetition{A}}

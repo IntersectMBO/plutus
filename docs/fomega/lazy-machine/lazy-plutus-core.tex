@@ -169,8 +169,31 @@ November 2018.  This is very similar to the CK machine, except that
 added to deal with the evaluation of variables, and (3) the rule
 involving lambda application has changed to replace substitution with
 the use of an extended environment. The latter two changes are
-highlighted in blue.
+highlighted in blue.)
 
+
+
+
+The rules involving \texttt{(builtin $b$\ $A_1, \ldots, A_n$
+  $M_1\ \ldots M_n'$)} are possibly not quite correct: this is because the
+interface to built-in functions has not yet been finalised.  Currently
+the machine evaluates each $M_i$ to a value $V_i$ and then evaluates
+$b\ V_1 \ldots V_n$, discarding any environments associated with the
+$V_i$.  It has to do this because built-in functions don't know about
+environments, only values; in fact, the current implementation can
+only deal with built-in functions all of whose arguments are primitive
+values (like integers or bytestrings), and supplying a non-primitive
+term as an argument will cause an error.  The precise form of
+arguments to built-in functions has not yet been finalised: eventually
+we may have to do something like supplying closures $(V_i, \rho_i)$
+and substituting the contents of each $\rho_i$ into $V_i$ to obtain
+completely concrete terms before calling $b$.  This would re-introduce
+the inefficiency of the CK machine, so it may be necessary to restrict
+the precise form of values which are allowed to be taken as arguments
+by built-in functions. Moreover the fact that we now have dynamic
+built-in functions which can be extended by other people means that
+any such restriction will have to become part of the Plutus Core
+specification.
 
 \newpage
 \input{cekmachine.tex}
@@ -237,7 +260,7 @@ detail:
 
 Why do we need closures?
 
-WHAT HAPPENS if we extend the heap with x -> l -> C and then we return up
+WHAT HAPPENS if we extend the heap with $x \mapsto l \mapsto C$ and then we return up
 the stack to get a different version of the same x?  We'll be using an
 environment which binds x to a different heap location, l', say, so
 everything will be OK.
