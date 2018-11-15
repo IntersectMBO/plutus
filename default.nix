@@ -59,20 +59,33 @@ in
 # Disables optimization in the build for all local packages.
 , fasterBuild ? false
 
+# Forces all warnings as errors
+, forceError ? true
+
 }:
 
 with pkgs.lib;
 
 let
   src = localLib.cleanSourceHaskell ./.;
+  errorOverlay = import ./nix/overlays/force-error.nix {
+    inherit pkgs;
+    # TODO: fix plutus-use-cases and plutus-exe warnings
+    #filter = localLib.isPlutus;
+    filter = let
+      pkgList = pkgs.lib.remove "plutus-use-cases" localLib.plutusPkgList;
+      in name: builtins.elem name pkgList;
+  };
+  customOverlays = optional forceError errorOverlay;
   packages = self: ({
     inherit pkgs;
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
     haskellPackages = self.callPackage localLib.iohkNix.haskellPackages {
-      inherit forceDontCheck enableProfiling enablePhaseMetrics enableHaddockHydra
-        enableBenchmarks fasterBuild enableDebugging enableSplitCheck;
+      inherit forceDontCheck enableProfiling enablePhaseMetrics
+      enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
+      enableSplitCheck customOverlays;
         pkgsGenerated = ./pkgs;
         filter = localLib.isPlutus;
         requiredOverlay = ./nix/overlays/required.nix;
