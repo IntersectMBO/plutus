@@ -424,17 +424,23 @@ data Progress {A : ∅ ⊢⋆ *} (M : ∅ ⊢ A) : Set where
 \end{code}
 
 \begin{code}
-{-
-data TelProgress {Γ}{Δ}{σ : ⋆.Sub Δ ∥ Γ ∥}{As : List (Δ ⊢⋆ *)}(tel : Tel Γ Δ σ As) : Set where
-   done : VTel Γ Δ σ As → TelProgress tel
-   step : ∀ Bs Ds
-     → VTel Γ Δ σ Bs
-     → ∀{C}{t t' : Γ ⊢ ⋆.subst σ C}
-     → t —→ t'
-     → Bs ++ (C ∷ Ds) ≡ As
-     → Tel Γ Δ σ Ds
-     → TelProgress tel
-   error : TelProgress tel
+
+data TelProgress
+  {Γ}
+  {Δ}
+  {σ : ⋆.Sub Δ ∥ Γ ∥}
+  {As : List (Δ ⊢⋆ *)}
+  (tel : Tel Γ Δ σ As)
+  : Set where
+  done : VTel Γ Δ σ As → TelProgress tel
+  step : ∀ Bs Ds
+    → VTel Γ Δ σ Bs
+    → ∀{C}{t t' : Γ ⊢ ⋆.subst σ C}
+    → t —→ t'
+    → Bs ++ (C ∷ Ds) ≡ As
+    → Tel Γ Δ σ Ds
+    → TelProgress tel
+  error : TelProgress tel
 
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progressTel : ∀ {Δ}{σ : ⋆.Sub Δ ∅}{As : List (Δ ⊢⋆ *)}
@@ -474,12 +480,10 @@ progress (conv p t) = error
 progress (con (integer s i p)) = done (V-con _)
 progress (con (bytestring s x p)) = done (V-con _)
 progress (con (size s)) = done (V-con _)
-progress (builtin {∅} bn σ X σ') with progressTel X
-progress (builtin bn σ X σ') | done VX = step (β-builtin bn σ X VX σ')
-progress (builtin bn σ X σ') | step Bs Ds vtel p q tel' =
-  step (ξ-builtin bn σ X σ' Bs Ds vtel p q tel')
-progress (builtin bn σ X σ') | error          = error
-progress (builtin {Γ} {.∅} bn σ X σ') = error
+progress (builtin bn σ X) with progressTel X
+progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
+progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
+  step (ξ-builtin bn σ X Bs Ds vtel p q tel')
+progress (builtin bn σ X) | error = error
 progress (error A) = error
--}
 \end{code}
