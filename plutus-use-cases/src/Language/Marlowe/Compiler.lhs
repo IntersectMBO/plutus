@@ -26,7 +26,6 @@ import           Control.Applicative        (Applicative (..))
 import           Control.Monad              (Monad (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           GHC.Generics               (Generic)
-import qualified Data.List                           as List
 import qualified Data.Set                           as Set
 import Data.Set                           (Set)
 import qualified Data.Map.Strict                           as Map
@@ -59,6 +58,7 @@ Apparently, Plutus doesn't support complex recursive data types yet.
 
 data Contract = Null
               | CommitCash IdentCC PubKey Value Timeout Timeout
+              | RedeemCC IdentCC
               | Pay IdentPay Person Person Value Timeout
                 deriving (Eq, Generic)
 
@@ -292,7 +292,8 @@ instance TypeablePlc IdentPay
 
 
 data Input = Commit IdentCC
-           | PaymentRequest IdentPay
+           | Payment IdentPay
+           | Redeem IdentCC
            | SpendDeposit
            deriving (Generic)
 instance LiftPlc Input
@@ -336,6 +337,7 @@ instance TypeablePlc Contract
 \section{Marlowe Interpreter and Helpers}
 
 \begin{code}
+marloweValidator :: Validator
 marloweValidator = Validator result where
     result = UTXO.fromPlcCode $(plutus [| \ (input :: Input) (MarloweData{..} :: MarloweData) (p@PendingTx{..} :: PendingTx ValidatorHash) -> let
         -- let isValid = True
@@ -357,37 +359,43 @@ marloweValidator = Validator result where
         signedBy :: PendingTxIn -> PubKey -> Bool
         signedBy = $(TH.txInSignedBy)
 
+        reverse :: [a] -> [a]
+        reverse l =  rev l [] where
+                rev []     a = a
+                rev (x:xs) a = rev xs (x:a)
+
         orderTxIns :: PendingTxIn -> PendingTxIn -> (PendingTxIn, PendingTxIn)
         orderTxIns t1 t2 = case t1 of
             PendingTxIn _ (Just _ :: Maybe (ValidatorHash, RedeemerHash)) _ -> (t1, t2)
             _ -> (t2, t1)
 
-        step :: Input -> State -> Contract -> (State, Contract)
-        step input state contract = case contract of
-            CommitCash (IdentCC expectedIdentCC) pubKey value startTimeout endTimeout -> case input of
-                Commit (IdentCC idCC) -> let
+        step :: Input -> State -> Contract -> (State, Contract, Bool)
+        step input state contract = case input of
+            Commit (IdentCC idCC) -> case contract of
+                CommitCash (IdentCC expectedIdentCC) pubKey value startTimeout endTimeout -> let
                     PendingTx [in1, in2]
                         [PendingTxOut committed (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ blockNumber [committerSignature] thisScriptHash = p
-                    (PendingTxIn _ _ scriptValue, commitTxIn@ (PendingTxIn _ _ commitValue)) = orderTxIns in1 in2
+                    (sIn@ (PendingTxIn _ _ scriptValue), commitTxIn@ (PendingTxIn _ _ commitValue)) = orderTxIns in1 in2
+
                     isValid = blockNumber <= startTimeout
                         && blockNumber <= endTimeout
                         && startTimeout < endTimeout -- I think it should be strongly bigger, otherwise I don't see the point
                         && value > 0
                         && committed == value + scriptValue
                         && expectedIdentCC == idCC
-                        && signedBy commitTxIn pubKey
+                        -- && signedBy sIn pubKey -- FIXME don't know why this is false
                         && validatorHash `eqValidator` thisScriptHash
                         -- TODO check hashes
                     in  if isValid then let
                             cns = (pubKey, NotRedeemed commitValue endTimeout)
-                            con1 = Pay (IdentPay 1) (PubKey 1) (PubKey 2) 100 256
+                            con1 = Pay (IdentPay 1) (PubKey 2) (PubKey 1) 100 256
                             -- TODO insert respecting sort, commits MUST be sorted by expiration time
-                            updatedState = case state of { State stateCommitted -> State ((IdentCC idCC, cns) : stateCommitted) }
-                            in (updatedState, con1)
+                            updatedState = case state of { State committed -> State ((IdentCC idCC, cns) : committed) }
+                            in (updatedState, con1, True)
                         else Builtins.error ()
-            Pay (IdentPay contractIdentPay) (from::Person) (to::Person) (payValue::Cash) (timeout::Timeout) -> case input of
-                PaymentRequest (IdentPay pid) -> let
+            Payment (IdentPay pid) -> case contract of
+                Pay (IdentPay contractIdentPay) (from::Person) (to::Person) (payValue::Cash) (timeout::Timeout) -> let
                     PendingTx [in1@ (PendingTxIn _ _ scriptValue)]
                         [PendingTxOut change (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ blockNumber [receiverSignature] thisScriptHash = p
@@ -398,15 +406,18 @@ marloweValidator = Validator result where
                         (_, (party, NotRedeemed value expire)) : ls | from `eqPk` party && blockNumber <= expire ->
                             calcAvailable from (accum + value) ls
 
+                    State committed = marloweState
+
                     -- | Note. It's O(nr_or_commitments), potentially slow. Check it last.
                     hasEnoughCommitted :: Person -> Value -> Bool
-                    hasEnoughCommitted from value = calcAvailable from 0 (stateCommitted marloweState) >= value
+                    hasEnoughCommitted from value = calcAvailable from 0 committed >= value
+
 
                     isValid = pid == contractIdentPay
                         && blockNumber <= timeout
                         && payValue > 0
                         && change == scriptValue - payValue
-                        && signedBy in1 to -- only receiver of the payment allowed to issue this transaction
+                        -- && signedBy in1 to -- only receiver of the payment allowed to issue this transaction
                         && validatorHash `eqValidator` thisScriptHash
                         && hasEnoughCommitted from payValue
                         -- TODO check inputs/outputs
@@ -424,15 +435,35 @@ marloweValidator = Validator result where
                                 | v == 0 = []
                                 | otherwise = Builtins.error ()
 
-                            updatedState = State { stateCommitted = discountFromPairList payValue (stateCommitted marloweState) }
-                            in (updatedState, con1)
+                            updatedState = state --State (discountFromPairList payValue committed)
+                            in (updatedState, con1, True)
                         else Builtins.error ()
 
-            Null -> case input of
-                SpendDeposit -> (state, Null)
+{-             Redeem identCC -> case contract of
+                RedeemCC expectedIdentCC -> let
+                    PendingTx [in1@ (PendingTxIn _ _ scriptValue)]
+                        [PendingTxOut change (Just (validatorHash, dataHash)) DataTxOut, out2]
+                        _ _ blockNumber [receiverSignature] thisScriptHash = p
 
-        (newState::State, newContract::Contract) = step input marloweState marloweContract
-        isValid = True -- check newState/newContract
+                    findAndRemove ls resultCommits result = case ls of
+                        (i, (party, NotRedeemed val _)) : ls | i == identCC && change == scriptValue - val ->
+                            findAndRemove ls resultCommits (True, state)
+                        e@(i, (party, NotRedeemed val _)) : ls -> findAndRemove ls (e : resultCommits) result
+                        [] -> let
+                            (isValid, State commits) = result
+                            in (isValid, State (reverse resultCommits))
+
+                    (isValid, updatedState) = findAndRemove (stateCommitted marloweState) [] (False, state)
+
+                    in if isValid then let
+                        con1 = Null
+                        in (updatedState, con1, True)
+                    else Builtins.error () -}
+
+            SpendDeposit -> case contract of
+                Null -> (state, Null, True)
+
+        (_::State, _::Contract, isValid) = step input marloweState marloweContract
 
         in if isValid then () else Builtins.error ()
         |])
@@ -468,7 +499,7 @@ commitCash person (TxOut _ (UTXO.Value contractValue) _, ref) value timeout = do
     let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ Commit identCC)
 
     let ds = DataScript $ UTXO.lifted (MarloweData {
-                marloweContract = Pay (IdentPay 1) (PubKey 1) (PubKey 2) 100 256,
+                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) 100 256,
                 marloweState = State {stateCommitted=[(identCC, (person, NotRedeemed (fromIntegral value) timeout))]} })
     (payment, change) <- createPaymentWithChange (UTXO.Value value)
     let o = scriptTxOut (UTXO.Value $ value + contractValue) marloweValidator ds
@@ -486,7 +517,7 @@ receivePayment (TxOut _ (UTXO.Value contractValue) _, ref) value timeout = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
     let identPay = (IdentPay 1)
     let identCC = (IdentCC 1)
-    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ PaymentRequest identPay)
+    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ Payment identPay)
 
     let ds = DataScript $ UTXO.lifted (MarloweData {
                 marloweContract = Null,
