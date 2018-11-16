@@ -11,7 +11,7 @@ To run the benchmarks and plot the results, you'll need:
 
 To run all of the tests, type `run-all`.  This will run each of the other run-xxx scripts and save
 the results in files in this directory.  The scripts assume that the `plc` command is somewhere 
-in your path.  If not, change the `plc` variable in to point to the correct location in each run-xxx script.
+in your path.  If not, change the `plc` variable in each run-xxx script to point to the correct location.
 
 The tests may take some time (an hour or more) and may run into
 problems if memory is limited. They ran successfully on an 8GB machine
