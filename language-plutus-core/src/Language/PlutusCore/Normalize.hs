@@ -105,9 +105,9 @@ normalized types. However we do not enforce this in the type signature, because
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
 substituteNormalizeTypeM
     :: HasUnique (tyname ()) TypeUnique
-    => NormalizedType tyname ()                          -- ^ @ty@
-    -> tyname ()                                         -- ^ @name@
-    -> Type tyname ()                                    -- ^ @body@
+    => NormalizedType tyname ()                            -- ^ @ty@
+    -> tyname ()                                           -- ^ @name@
+    -> Type tyname ()                                      -- ^ @body@
     -> NormalizeTypeM tyname a (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
 substituteNormalizeTypeM ty name = withExtendedTypeEnv name ty . normalizeTypeM
 
