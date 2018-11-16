@@ -56,7 +56,7 @@ compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuo
     when doTypecheck $ void $ do
         annotated <- PLC.annotateTerm compiled
         -- need our own typechecker pipeline to allow normalized types
-        PLC.typecheckTerm (PLC.TypeConfig True mempty PLC.defaultTypecheckerGas) annotated
+        PLC.typecheckTerm (PLC.TypeConfig True mempty Nothing) annotated
     pure compiled
 
 tests :: TestNested
