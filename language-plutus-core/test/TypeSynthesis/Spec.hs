@@ -29,7 +29,7 @@ typecheckQuoted
     => Quote (Term TyName Name ()) -> m (Term TyName Name ())
 typecheckQuoted getTerm = do
     term <- liftQuote getTerm
-    _ <- annotateTerm term >>= typecheckTerm (TypeConfig True mempty (Just 1000))
+    _ <- annotateTerm term >>= typecheckTerm (TypeConfig True mempty Nothing)
     return term
 
 -- | Assert a 'Type' is well-kinded.
