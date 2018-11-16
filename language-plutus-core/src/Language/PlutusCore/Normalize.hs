@@ -91,8 +91,8 @@ normalizeTypeM var@(TyVar _ name)            = do
     case mayTy of
         Nothing -> pure $ NormalizedType var
         Just ty -> traverse rename ty
-normalizeTypeM size@TyInt{}                  = normalizeTypeStep $> NormalizedType size
-normalizeTypeM builtin@TyBuiltin{}           = normalizeTypeStep $> NormalizedType builtin
+normalizeTypeM size@TyInt{}                  = pure $ NormalizedType size
+normalizeTypeM builtin@TyBuiltin{}           = pure $ NormalizedType builtin
 
 {- Note [Normalizing substitution]
 @substituteNormalize[M]@ is only ever used as normalizing substitution that receives two already
