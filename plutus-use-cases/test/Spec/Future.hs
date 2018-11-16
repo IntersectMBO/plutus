@@ -64,8 +64,8 @@ settle = checkTrace $ do
         im = fromIntegral initMargin
         cur = FutureData (PubKey 1) (PubKey 2) im im
         spotPrice = 1124
-        delta = fromIntegral $ units * (spotPrice - forwardPrice)
-        ov  = OracleValue (Signed (oracle, (10, spotPrice)))
+        delta = fromIntegral $ units * (Runtime.getValue $ spotPrice - forwardPrice)
+        ov  = OracleValue (Signed (oracle, (Runtime.Height 10, spotPrice)))
 
     -- advance the clock to block height 10
     void $ addBlocks 8
@@ -89,7 +89,7 @@ settleEarly = checkTrace $ do
         -- up with the variation margin.
         (_, upper) = marginRange
         spotPrice = upper + 1
-        ov  = OracleValue (Signed (oracle, (8, spotPrice)))
+        ov  = OracleValue (Signed (oracle, (Runtime.Height 8, spotPrice)))
 
     -- advance the clock to block height 8
     void $ addBlocks 6
@@ -129,8 +129,8 @@ increaseMargin = checkTrace $ do
         -- settleEarly above)
         spotPrice = upper + 1
 
-        delta = fromIntegral $ units * (spotPrice - forwardPrice)
-        ov  = OracleValue (Signed (oracle, (10, spotPrice)))
+        delta = fromIntegral $ units * (Runtime.getValue $ spotPrice - forwardPrice)
+        ov  = OracleValue (Signed (oracle, (Runtime.Height 10, spotPrice)))
 
     void $ walletAction w2 (F.settle [ins'] contract cur' ov)
     updateAll
@@ -147,14 +147,14 @@ increaseMargin = checkTrace $ do
 --   10 blocks.
 contract :: Future
 contract = Future {
-    futureDeliveryDate  = 10,
+    futureDeliveryDate  = Runtime.Height 10,
     futureUnits         = units,
     futureUnitPrice     = forwardPrice,
     futureInitialMargin = im,
     futurePriceOracle   = oracle,
     futureMarginPenalty = penalty
     } where
-        im = penalty + (units * forwardPrice `div` 20) -- 5%
+        im = penalty + (Runtime.Value units * forwardPrice `div` 20) -- 5%
 
 -- | Margin penalty
 penalty :: Runtime.Value

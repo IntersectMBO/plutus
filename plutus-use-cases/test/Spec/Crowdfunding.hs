@@ -57,9 +57,9 @@ collect w c  = walletAction w . CF.collect c
 scenario1 :: CFScenario
 scenario1 = CFScenario{..} where
     cfCampaign = Campaign {
-        campaignDeadline = 10,
+        campaignDeadline = Runtime.Height 10,
         campaignTarget   = 1000,
-        campaignCollectionDeadline = 15,
+        campaignCollectionDeadline = Runtime.Height 15,
         campaignOwner              = PubKey 1
         }
     cfWallets = Wallet <$> [1..3]

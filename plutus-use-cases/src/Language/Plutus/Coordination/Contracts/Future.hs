@@ -35,8 +35,8 @@ import           Wallet.API                 (WalletAPI (..), WalletAPIError, oth
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
 
-import           Language.Plutus.Runtime    (Height, OracleValue (..), PendingTx (..), PendingTxOut (..),
-                                             PendingTxOutType (..), PubKey, Signed (..), ValidatorHash, Value)
+import           Language.Plutus.Runtime    (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
+                                             PendingTxOutType (..), PubKey, Signed (..), ValidatorHash, Value (..))
 
 import           Prelude                    hiding ((&&), (||))
 
@@ -104,7 +104,7 @@ settle refs ft fd ov = do
     let
         forwardPrice = futureUnitPrice ft
         OracleValue (Signed (_, (_, spotPrice))) = ov
-        delta = futureUnits ft * (spotPrice - forwardPrice)
+        delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = fromIntegral $ futureDataMarginLong fd + delta
         shortOut = fromIntegral $ futureDataMarginShort fd - delta
         red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
@@ -209,7 +209,7 @@ validatorScript ft = Validator val where
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
-                PendingTx _ outs _ _ height _ ownHash = p
+                PendingTx _ outs _ _ (Height height) _ ownHash = p
 
                 eqPk :: PubKey -> PubKey -> Bool
                 eqPk = $(TH.eqPubKey)
@@ -222,22 +222,37 @@ validatorScript ft = Validator val where
                 (||) :: Bool -> Bool -> Bool
                 (||) = $(TH.or)
 
+                forwardPrice :: Int
+                forwardPrice = let Value v = futureUnitPrice in v
+
+                marginShort :: Int
+                marginShort = let Value v = futureDataMarginShort in v
+
+                marginLong :: Int
+                marginLong = let Value v = futureDataMarginLong in v
+
+                penalty :: Int
+                penalty = let Value v = futureMarginPenalty in v
+
+                deliveryDate :: Int
+                deliveryDate = let Height h = futureDeliveryDate in h
+
                 -- Compute the required margin from the current price of the
                 -- underlying asset.
-                requiredMargin :: Value -> Value
+                requiredMargin :: Int -> Int
                 requiredMargin spotPrice =
                     let
-                        delta  = futureUnits * (spotPrice - futureUnitPrice)
+                        delta  = futureUnits * (spotPrice - forwardPrice)
                     in
-                        futureMarginPenalty + delta
+                        penalty + delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
                 isPubKeyOutput o k = $(TH.maybe) False ($(TH.eqPubKey) k) ($(TH.pubKeyOutput) o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and value
-                paidOutTo :: Value -> PubKey -> PendingTxOut -> Bool
+                paidOutTo :: Int -> PubKey -> PendingTxOut -> Bool
                 paidOutTo vl pk txo =
-                    let PendingTxOut vl' _ _ = txo in
+                    let PendingTxOut (Value vl') _ _ = txo in
                     isPubKeyOutput txo pk && vl == vl'
 
                 verifyOracle :: OracleValue a -> (Height, a)
@@ -249,7 +264,7 @@ validatorScript ft = Validator val where
 
                         -- Settling the contract is allowed if any of three conditions hold:
                         --
-                        -- 1. The `futureDeliveryDate` has been reached. In this case both parties get what is left of their margin
+                        -- 1. The `deliveryDate` has been reached. In this case both parties get what is left of their margin
                         -- plus/minus the difference between spot and forward price.
                         -- 2. The owner of the long position has failed to make a margin payment. In this case the owner of the short position gets both margins.
                         -- 3. The owner of the short position has failed to make a margin payment. In this case the owner of the long position gets both margins.
@@ -258,11 +273,11 @@ validatorScript ft = Validator val where
 
                         Settle ov ->
                             let
-                                (_, spotPrice) = verifyOracle ov
-                                delta  = futureUnits *  (spotPrice - futureUnitPrice)
-                                expShort = futureDataMarginShort - delta
-                                expLong  = futureDataMarginLong + delta
-                                heightvalid = height >= futureDeliveryDate
+                                (_, Value spotPrice) = verifyOracle ov
+                                delta  = futureUnits *  (spotPrice - forwardPrice)
+                                expShort = marginShort - delta
+                                expLong  = marginLong + delta
+                                heightvalid = height >= deliveryDate
 
                                 canSettle =
                                     case outs of
@@ -276,11 +291,11 @@ validatorScript ft = Validator val where
                                                         heightvalid && paymentsValid
                                                 (_::[PendingTxOut]) ->
                                                     let
-                                                        totalMargin = futureDataMarginShort + futureDataMarginLong
-                                                        case2 = futureDataMarginLong < requiredMargin spotPrice
+                                                        totalMargin = marginShort + marginLong
+                                                        case2 = marginLong < requiredMargin spotPrice
                                                                 && paidOutTo totalMargin futureDataShort o1
 
-                                                        case3 = futureDataMarginShort < requiredMargin spotPrice
+                                                        case3 = marginShort < requiredMargin spotPrice
                                                                 && paidOutTo totalMargin futureDataLong o1
 
                                                     in
@@ -297,8 +312,8 @@ validatorScript ft = Validator val where
                             case outs of
                                 (ot :: PendingTxOut):(_::[PendingTxOut]) ->
                                     case ot of
-                                        PendingTxOut v (Just (vh, _)) DataTxOut ->
-                                            v > futureDataMarginShort + futureDataMarginLong
+                                        PendingTxOut (Value v) (Just (vh, _)) DataTxOut ->
+                                            v > marginShort + marginLong
                                             && $(TH.eqValidator) vh ownHash
                                         _ -> True
 

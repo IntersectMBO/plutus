@@ -206,7 +206,7 @@ validationData h tx = rump <$> ins where
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = fromIntegral $ txForge tx
         , pendingTxFee = fromIntegral $ txFee tx
-        , pendingTxBlockHeight = fromIntegral h
+        , pendingTxBlockHeight = Runtime.Height $ fromIntegral h
         , pendingTxSignatures = txSignatures tx
         , pendingTxOwnHash    = ()
         }

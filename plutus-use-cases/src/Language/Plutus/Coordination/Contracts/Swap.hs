@@ -10,7 +10,7 @@ module Language.Plutus.Coordination.Contracts.Swap(
     ) where
 
 import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
-                                             PubKey, ValidatorHash, Value)
+                                             PubKey, ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
@@ -106,7 +106,9 @@ swapValidator _ = Validator result where
 
             rtDiff :: Ratio Int
             rtDiff = rt `minusR` swapFixedRate
-            amt = swapNotionalAmt
+
+            amt = let Value v = swapNotionalAmt in v
+            margin = let Value v = swapMargin in v
 
             amt' :: Ratio Int
             amt' = fromInt amt
@@ -124,9 +126,9 @@ swapValidator _ = Validator result where
             -- payments), ensuring that it is at least 0 and does not exceed
             -- the total amount of money at stake (2 * margin)
             clamp :: Int -> Int
-            clamp x = mn 0 (mx (2 * swapMargin) x)
-            fixedRemainder = clamp (swapMargin - fixedPayment + floatPayment)
-            floatRemainder = clamp (swapMargin - floatPayment + fixedPayment)
+            clamp x = mn 0 (mx (2 * margin) x)
+            fixedRemainder = clamp (margin - fixedPayment + floatPayment)
+            floatRemainder = clamp (margin - floatPayment + fixedPayment)
 
             -- The transaction must have one input from each of the
             -- participants.
@@ -143,12 +145,12 @@ swapValidator _ = Validator result where
             -- True if the transaction input is the margin payment of the
             -- fixed leg
             iP1 :: PendingTxIn -> Bool
-            iP1 t@(PendingTxIn _ _ v) = signedBy t swapOwnersFixedLeg && v == swapMargin
+            iP1 t@(PendingTxIn _ _ (Value v)) = signedBy t swapOwnersFixedLeg && v == margin
 
             -- True if the transaction input is the margin payment of the
             -- floating leg
             iP2 :: PendingTxIn -> Bool
-            iP2 t@(PendingTxIn _ _ v) = signedBy t swapOwnersFloating && v == swapMargin
+            iP2 t@(PendingTxIn _ _ (Value v)) = signedBy t swapOwnersFloating && v == margin
 
             inConditions = (iP1 t1  && iP2 t2) || (iP1 t2 && iP2 t1)
 
@@ -158,11 +160,11 @@ swapValidator _ = Validator result where
 
             -- True if the output is the payment of the fixed leg.
             ol1 :: PendingTxOut -> Bool
-            ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && v <= fixedRemainder
+            ol1 o@(PendingTxOut (Value v) _ _) = isPubKeyOutput o swapOwnersFixedLeg && v <= fixedRemainder
 
             -- True if the output is the payment of the floating leg.
             ol2 :: PendingTxOut -> Bool
-            ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && v <= floatRemainder
+            ol2 o@(PendingTxOut (Value v) _ _) = isPubKeyOutput o swapOwnersFloating && v <= floatRemainder
 
             -- NOTE: I didn't include a check that the chain height is greater
             -- than the observation time. This is because the chain height is

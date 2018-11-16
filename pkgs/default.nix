@@ -55717,6 +55717,7 @@ license = stdenv.lib.licenses.bsd3;
 "plutus-ir" = callPackage
 ({
   mkDerivation
+, algebraic-graphs
 , base
 , bytestring
 , containers
@@ -55738,6 +55739,7 @@ pname = "plutus-ir";
 version = "0.1.0.0";
 src = .././plutus-ir;
 libraryHaskellDepends = [
+algebraic-graphs
 base
 bytestring
 containers
