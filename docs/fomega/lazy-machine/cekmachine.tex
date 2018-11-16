@@ -1,4 +1,4 @@
-\begin{figure*}[!ht]
+\begin{figure}[!ht]
 \caption{The CEK Machine}\label{fig:cek-machine}
 
 \begin{subfigure}[c]{\linewidth}        %%% ---------------- CEK machine states ---------------- %%%
@@ -7,16 +7,16 @@
 \[
 \begin{array}{lrcl}
         \textrm{Stack} & s      & ::= & f^*    \\
-        \textrm{Environment} & \rho, \tau & ::= & [x \mapsto V]^* \\
+ \blue{       \textrm{Environment}} & \rho, \tau & ::= & [x \mapsto V]^* \\
         \textrm{State} & \sigma & ::= & s;\rho \compute M \quad | \quad s;\rho \return V  \quad | \quad \ckerror{} \quad | \quad \square (V,\rho)
     \end{array}
 \]
 }
 \end{subfigure}
 
-\vspace{3mm}
+\vspace{1mm}
 \hrule
-\vspace{3mm}
+\vspace{2mm}
 
 \begin{subfigure}[c]{\linewidth}  %%% ---------------- CEK machine frames ---------------- %%%
 {\small
@@ -33,11 +33,9 @@
 \]
 }
 \end{subfigure}
-
-\vspace{3mm}
+\vspace{1mm}
 \hrule
-\vspace{3mm}
-
+\vspace{2mm}
 \begin{subfigure}[c]{\linewidth}  %%% ---------------- CEK machine transitions ---------------- %%%
 {
 \small
@@ -46,22 +44,15 @@
      \blue{s; \rho} &\bcompute \blue{x}          &{}\bmapsto{}&\blue{s;\tau \return V \quad (\rho[x] = (V,\tau))}\\  % New rule
 % Continuing with tau worries me
       s; \rho &\compute \con{cn}                 &{}\mapsto{}& s;\rho \return \con{cn}\\
-      % computeCek con constant@Constant{}    = returnCek con constant
       s; \rho &\compute \abs{\alpha}{K}{V}       &{}\mapsto{}& s;\rho \return \abs{\alpha}{K}{V}\\
-      % computeCek con tyAbs@TyAbs{}          = returnCek con tyAbs
       s; \rho &\compute \inst{M}{A}              &{}\mapsto{}& s,\inInstLeftFrame{A};\rho \compute M\\
-      % ?? computeCek con (TyInst _ body ty)     = computeCek (FrameTyInstArg ty : con) body
       s; \rho &\compute \wrap{\alpha}{A}{M}      &{}\mapsto{}& s,\inWrapRightFrame{\alpha}{A};\rho  \compute M\\ 
-      % ?? computeCek con (Wrap ann tyn ty term) = computeCek (FrameWrap ann tyn ty : con) term
       s; \rho &\compute \unwrap{M}               &{}\mapsto{}& s,\inUnwrapFrame{};\rho  \compute M\\
-      %computeCek con (Unwrap _ term)        = computeCek (FrameUnwrap : con) term
       s; \rho &\compute \lam{x}{A}{M}            &{}\mapsto{}& s;\rho \return \lam{x}{A}{M}\\
-      % computeCek con lamAbs@LamAbs{}        = returnCek con lamAbs
       s; \rho &\compute \app{M}{N}               &{}\mapsto{}& s,\inAppLeftFrame{(N,\rho)};\rho \compute M\\
       s; \rho &\compute \builtin{bn}{\repetition{A}}{} &{}\mapsto{}& U \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
       s; \rho &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &{}\mapsto{}& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}};\rho \compute M\\
       s; \rho &\compute \error{A} &{}\mapsto{}& \ckerror{}\\
-      % computeCek _   Error{}                = pure EvaluationFailure
       \cdot; \rho &\return V &{}\mapsto{}& \square (V, \rho)\\
       s,\inInstLeftFrame{A}; \rho &\return \abs{\alpha}{K}{M} &{}\mapsto{}& s;\rho \compute{M} \\
       s,\inWrapRightFrame{\alpha}{A}; \rho &\return V &{}\mapsto{}& s;\rho \return \wrap{\alpha}{A}{V}\\
@@ -74,7 +65,7 @@
 \end{alignat*}
 }
 \end{subfigure}
-\end{figure*}
+\end{figure}
 
 
 \begin{comment}

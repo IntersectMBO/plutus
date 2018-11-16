@@ -1,9 +1,9 @@
 DOC=lazy-plutus-core
-
-SRC = ${DOC}.tex ckmachine.tex cekmachine.tex lmachine.tex
-
 PDF=${DOC}.pdf
 BIB=${DOC}.bib
+
+SRC = ${DOC}.tex ckmachine.tex cekmachine.tex lmachine.tex ${BIB}
+
 
 FIGS=./figs
 
