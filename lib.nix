@@ -11,17 +11,13 @@ let
       in builtins.fetchTarball {
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
-      });
+      }) {};
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
-  fetchNixpkgs = iohkNix.fetchNixpkgs ./nixpkgs-src.json;
-  pkgs = import fetchNixpkgs { config = {}; overlays = []; };
+  pkgs = iohkNix.pkgs;
   lib = pkgs.lib;
-  cleanSourceHaskell = iohkNix.cleanSourceHaskell pkgs;
   getPackages = iohkNix.getPackages { inherit lib;};
-
-  importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; config = {}; } // args);
 
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
@@ -39,5 +35,5 @@ let
   isPlutus = name: builtins.elem name plutusPkgList;
 
 in lib // {
-  inherit fetchNixpkgs importPkgs cleanSourceHaskell getPackages iohkNix isPlutus plutusPkgList;
+  inherit getPackages iohkNix isPlutus plutusPkgList pkgs;
 }
