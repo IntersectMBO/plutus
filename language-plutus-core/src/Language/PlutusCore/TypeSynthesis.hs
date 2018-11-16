@@ -231,8 +231,7 @@ typeOf (LamAbs x _ dom body)                     = do
 -- [infer| error ty : vTy]
 typeOf (Error x ty)                              = do
     kindCheckM x ty $ Type ()
-    (TypeConfig _ _ gas) <- ask
-    normalizeType gas $ void ty
+    normalizeTypeOpt $ void ty
 
 -- [infer| body : vBodyTy]
 -- ----------------------------------------------
