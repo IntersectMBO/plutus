@@ -84,7 +84,7 @@ normalizeTypeM (TyApp ann fun arg)           = do
     vArg <- normalizeTypeM arg
     case getNormalizedType vFun of
         -- TODO: we should check nArg more thoroughly for non-normal types
-        TyLam _ nArg _ body -> normalizeTypeStep *> substituteNormalizeTypeM vArg nArg body
+        TyLam _ nArg _ body -> substituteNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyName name
@@ -109,7 +109,7 @@ substituteNormalizeTypeM
     -> tyname ()                                         -- ^ @name@
     -> Type tyname ()                                    -- ^ @body@
     -> NormalizeTypeM tyname a (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
-substituteNormalizeTypeM ty name = withExtendedTypeEnv name ty . normalizeTypeM
+substituteNormalizeTypeM ty name = (normalizeTypeStep *>) . withExtendedTypeEnv name ty . normalizeTypeM
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.
@@ -122,8 +122,9 @@ normalizeType n = runNormalizeTypeM n . normalizeTypeM
 -- | Substitute a type for a variable in a type and normalize.
 substituteNormalizeType
     :: (HasUnique (tyname ()) TypeUnique, MonadQuote m, AsTypeError e a, MonadError e m)
-    => NormalizedType tyname ()      -- ^ @ty@
+    => Maybe Natural
+    -> NormalizedType tyname ()      -- ^ @ty@
     -> tyname ()                     -- ^ @name@
     -> Type tyname ()                -- ^ @body@
     -> m (NormalizedType tyname ())  -- ^ @NORM ([ty / name] body)@
-substituteNormalizeType ty name = runNormalizeTypeM Nothing . substituteNormalizeTypeM ty name
+substituteNormalizeType gas ty name = runNormalizeTypeM gas . substituteNormalizeTypeM ty name

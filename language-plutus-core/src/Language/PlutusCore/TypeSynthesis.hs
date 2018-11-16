@@ -265,7 +265,8 @@ typeOf (TyInst x body ty) = do
         TyForall _ n nK vCod -> do
             kindCheckM x ty nK
             vTy <- normalizeTypeOpt $ void ty
-            substituteNormalizeType vTy n vCod
+            (TypeConfig _ _ gas) <- ask
+            substituteNormalizeType gas vTy n vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
 -- [infer| term : fix n vPat]    [fix n vPat / n] vPat ~> vRes
@@ -274,7 +275,9 @@ typeOf (TyInst x body ty) = do
 typeOf (Unwrap x term) = do
     vTermTy <- typeOf term
     case getNormalizedType vTermTy of
-        TyFix _ n vPat -> substituteNormalizeType vTermTy n vPat
+        TyFix _ n vPat -> do
+            (TypeConfig _ _ gas) <- ask
+            substituteNormalizeType gas vTermTy n vPat
         _              -> throwError (TypeMismatch x (void term) (TyFix () dummyTyName dummyType) vTermTy)
 
 -- [check| pat :: *]    pat ~>? vPat    [fix n vPat / n] vPat ~> vTermTy'    [check| term : vTermTy]
@@ -283,7 +286,8 @@ typeOf (Unwrap x term) = do
 typeOf (Wrap x n pat term) = do
     kindCheckM x pat $ Type ()
     vPat <- normalizeTypeOpt $ void pat
-    vTermTy <- substituteNormalizeType (TyFix () (void n) <$> vPat) (void n) $ getNormalizedType vPat
+    (TypeConfig _ _ gas) <- ask
+    vTermTy <- substituteNormalizeType gas (TyFix () (void n) <$> vPat) (void n) $ getNormalizedType vPat
     typeCheckM x term vTermTy
     pure $ TyFix () (void n) <$> vPat
 
