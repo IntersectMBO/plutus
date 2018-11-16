@@ -40,14 +40,21 @@ module Builtins where
     (λ { Z → size⋆ 8 ; (S x) → ` x})
     (con2 ,, con2 ,, tt)
 
-  inc : ∅ ⊢ con integer (size⋆ 8) ⇒ con integer (size⋆ 8)
-  inc = ƛ (builtin
+  inc8 : ∅ ⊢ con integer (size⋆ 8) ⇒ con integer (size⋆ 8)
+  inc8 = ƛ (builtin
     addInteger
     (λ { Z → size⋆ 8 ; (S x) → ` x})
     (con1 ,, ` Z ,, tt))
 
   builtininc2 : ∅ ⊢ con integer (size⋆ 8)
-  builtininc2 = inc · con2
+  builtininc2 = inc8 · con2
+
+  inc : ∅ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
+  inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S Z) → size⋆ 8 ; (S (S x)) → ` (S x)}) (builtin sizeOfInteger ` (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
+
+  builtininc2' : ∅ ⊢ con integer (size⋆ 8)
+  builtininc2' = (inc ·⋆ size⋆ 8) · con2
+
 \end{code}
 
 
