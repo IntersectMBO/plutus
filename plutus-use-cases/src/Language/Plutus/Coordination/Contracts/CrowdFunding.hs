@@ -34,8 +34,8 @@ import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 
 import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn (..), PubKey (..), ValidatorHash,
-                                             Value)
+import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PubKey (..), ValidatorHash,
+                                             Value (..), getHeight)
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
 import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, andT,
@@ -46,7 +46,8 @@ import           Wallet.UTXO                (Address', DataScript (..), TxOutRef
 import qualified Wallet.UTXO                as UTXO
 
 import qualified Language.Plutus.Runtime.TH as TH
-import           Prelude                    (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.), (<$>))
+import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fromIntegral, snd, succ, ($), (.),
+                                             (<$>))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -120,7 +121,16 @@ contributionScript cmp  = Validator val where
             signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
             signedByT = $(TH.txSignedBy)
 
-            PendingTx _ _ _ _ h _ _ = p
+            PendingTx _ _ _ _ (Height h) _ _ = p
+
+            deadline :: Int
+            deadline = let Height h' = campaignDeadline in h'
+
+            collectionDeadline :: Int
+            collectionDeadline = let Height h' = campaignCollectionDeadline in h'
+
+            target :: Int
+            target = let Value v = campaignTarget in v
 
             isValid = case p of
                 PendingTx (ps::[PendingTxIn]) _ _ _ _ _ _ ->
@@ -130,13 +140,13 @@ contributionScript cmp  = Validator val where
                                 (pt2::PendingTxIn):(_::[PendingTxIn]) ->
                                     -- the "successful campaign" branch
                                     let
-                                        PendingTxIn _ _ v1 = pt1
-                                        PendingTxIn _ _ v2 = pt2
+                                        PendingTxIn _ _ (Value v1) = pt1
+                                        PendingTxIn _ _ (Value v2) = pt2
                                         pledgedFunds = v1 + v2
 
-                                        payToOwner = h > campaignDeadline &&
-                                                    h <= campaignCollectionDeadline &&
-                                                    pledgedFunds >= campaignTarget &&
+                                        payToOwner = h > deadline &&
+                                                    h <= collectionDeadline &&
+                                                    pledgedFunds >= target &&
                                                     signedByT p campaignOwner
                                     in payToOwner
                                 (_::[PendingTxIn]) -> -- the "refund" branch
@@ -145,7 +155,7 @@ contributionScript cmp  = Validator val where
                                         -- amount that was pledged by the contributor
                                         -- identified by `a :: CampaignActor`
                                         contributorOnly = signedBy pt1 a
-                                        refundable   = h > campaignCollectionDeadline &&
+                                        refundable   = h > collectionDeadline &&
                                                                     contributorOnly &&
                                                                     signedByT p a
                                         -- In case of a refund, we can only collect the funds that
@@ -160,14 +170,14 @@ contributionScript cmp  = Validator val where
 refundTrigger :: Campaign -> Address' -> EventTrigger
 refundTrigger Campaign{..} t = andT
     (fundsAtAddressT t  (GEQ 1))
-    (blockHeightT (GEQ $ fromIntegral $ succ campaignCollectionDeadline))
+    (blockHeightT (GEQ $ fromIntegral $ succ $ getHeight campaignCollectionDeadline))
 
 -- | Given the public key of the campaign owner, generate an event trigger that
 -- fires when the funds can be collected.
 collectFundsTrigger :: Campaign -> Address' -> EventTrigger
 collectFundsTrigger Campaign{..} ts = andT
     (fundsAtAddressT ts $ GEQ $ UTXO.Value $ fromIntegral campaignTarget)
-    (blockHeightT $ fromIntegral <$> Interval campaignDeadline campaignCollectionDeadline)
+    (blockHeightT $ fromIntegral . getHeight <$> Interval campaignDeadline campaignCollectionDeadline)
 
 refund :: (Monad m, WalletAPI m) => Campaign -> TxOutRef' -> UTXO.Value -> m ()
 refund c ref val = do
