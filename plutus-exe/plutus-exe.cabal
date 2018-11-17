@@ -35,7 +35,6 @@ executable plc
         plutus-core-interpreter -any,
         bytestring -any,
         text -any,
-        mtl -any,
         optparse-applicative -any
 
     if (flag(development) && impl(ghc <8.4))
