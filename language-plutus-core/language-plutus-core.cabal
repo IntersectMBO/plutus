@@ -143,12 +143,7 @@ executable language-plutus-core-generate-evaluation-test
     build-depends:
         base -any,
         language-plutus-core -any,
-        bytestring -any,
-        serialise -any,
-        text -any,
-        prettyprinter -any,
-        mmorph -any,
-        hedgehog -any
+        text -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

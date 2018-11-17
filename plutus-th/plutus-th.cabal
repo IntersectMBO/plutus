@@ -52,8 +52,4 @@ test-suite plutus-th-frontend
         core-to-plc -any,
         plutus-th -any,
         template-haskell -any,
-        bytestring -any,
-        text -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-golden -any
+        tasty -any
