@@ -1,6 +1,4 @@
-
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module DynamicBuiltins.Common
     ( typecheckEvaluate

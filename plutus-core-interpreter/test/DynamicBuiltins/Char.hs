@@ -7,7 +7,6 @@ module DynamicBuiltins.Char (test_onChar) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           PlutusPrelude
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
