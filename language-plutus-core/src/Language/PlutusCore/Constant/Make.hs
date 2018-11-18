@@ -21,6 +21,7 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinBool
     , makeBuiltin
     , unsafeMakeBuiltin
+    , unsafeMakeDynamicBuiltin
     , makeSizedConstantNOCHECK
     , makeBuiltinNOCHECK
     ) where
@@ -154,6 +155,11 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
 unsafeMakeBuiltin :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Value TyName Name ())
 unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
     err = error $ "unsafeMakeBuiltin: can't convert to Plutus Core: " ++ prettyString tbv
+
+unsafeMakeDynamicBuiltin
+    :: (KnownDynamicBuiltinType dyn, PrettyDynamic dyn) => dyn -> Term TyName Name ()
+unsafeMakeDynamicBuiltin x = fromMaybe err $ makeDynamicBuiltin x where
+    err = error $ "unsafeMakeBuiltin: can't convert to Plutus Core: " ++ docString (prettyDynamic x)
 
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- without checking constraints (e.g. an 'Integer' is in appropriate bounds).

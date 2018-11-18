@@ -4,8 +4,9 @@
 
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 
-module DynamicBuiltins.Char (test_onChar) where
+module DynamicBuiltins.Char (test_onEach) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
@@ -17,8 +18,7 @@ import           Control.Monad                              (replicateM)
 import           Control.Monad.IO.Class                     (liftIO)
 import           Data.Char
 import           Data.IORef
-import           Data.Maybe                                 (fromMaybe)
-import           Hedgehog
+import           Hedgehog                                   hiding (Size)
 import qualified Hedgehog.Gen                               as Gen
 import qualified Hedgehog.Range                             as Range
 import           System.IO.Unsafe
@@ -34,23 +34,22 @@ instance KnownDynamicBuiltinType Char where
     readDynamicBuiltin (Constant () (BuiltinInt () 4 int)) = Just . chr $ fromIntegral int
     readDynamicBuiltin _                                   = Nothing
 
-dynamicOnCharName :: DynamicBuiltinName
-dynamicOnCharName = DynamicBuiltinName "onChar"
+instance PrettyDynamic Char
 
-dynamicOnCharAssign :: (Char -> IO ()) -> DynamicBuiltinNameDefinition
-dynamicOnCharAssign f =
-    DynamicBuiltinNameDefinition dynamicOnCharName $ DynamicBuiltinNameMeaning sch sem where
-        sch :: TypeScheme size (Char -> ()) ()
+dynamicOnEachName :: DynamicBuiltinName
+dynamicOnEachName = DynamicBuiltinName "onEach"
+
+dynamicOnEachAssign
+    :: (forall size. TypedBuiltin size a) -> (a -> IO ()) -> DynamicBuiltinNameDefinition
+dynamicOnEachAssign tb f =
+    DynamicBuiltinNameDefinition dynamicOnEachName $ DynamicBuiltinNameMeaning sch sem where
         sch =
-            TypeSchemeBuiltin TypedBuiltinDyn `TypeSchemeArrow`
+            TypeSchemeBuiltin tb `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 1) TypedBuiltinSizedSize)  -- Hacky-hacky.
         sem = unsafePerformIO . f
 
-dynamicOnChar :: Term tyname name ()
-dynamicOnChar = dynamicBuiltinNameAsTerm dynamicOnCharName
-
-charToTerm :: Char -> Term TyName Name ()
-charToTerm = fromMaybe (error "charToTerm: failed") . makeDynamicBuiltin
+dynamicOnEach :: Term tyname name ()
+dynamicOnEach = dynamicBuiltinNameAsTerm dynamicOnEachName
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that prepends a char to
@@ -58,15 +57,15 @@ charToTerm = fromMaybe (error "charToTerm: failed") . makeDynamicBuiltin
 -- that you got the exact same sequence of 'Char's that was originally generated.
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only handle
 -- pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
-test_onChar :: TestTree
-test_onChar = testProperty "collect chars" . property $ do
+test_onEach :: TestTree
+test_onEach = testProperty "collect chars" . property $ do
     len <- forAll . Gen.integral $ Range.linear 0 20
     charsVar <- liftIO $ newIORef []
     chars <- replicateM len $ do
         char <- forAll Gen.unicode
-        let onChar = dynamicOnCharAssign $ \c -> modifyIORef' charsVar (c :)
-            env    = insertDynamicBuiltinNameDefinition onChar mempty
-            term   = Apply () dynamicOnChar $ charToTerm char
+        let onEach = dynamicOnEachAssign TypedBuiltinDyn $ \c -> modifyIORef' charsVar (c :)
+            env    = insertDynamicBuiltinNameDefinition onEach mempty
+            term   = Apply () dynamicOnEach $ unsafeMakeDynamicBuiltin char
         _ <- liftIO . evaluate $ evaluateCek env term
         return char
     chars' <- liftIO $ reverse <$> readIORef charsVar
