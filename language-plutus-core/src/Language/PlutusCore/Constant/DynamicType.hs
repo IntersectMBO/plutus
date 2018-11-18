@@ -18,7 +18,7 @@ import qualified Data.ByteString.Lazy.Char8     as BSL
 We only allow dynamic built-in types that
 
 1. can be represented using static types in PLC. For example Haskell's 'Char' can be represented as
-@integer 8@ in PLC. This restriction makes the dynamic built-in types machinery somewhat similar to
+@integer 4@ in PLC. This restriction makes the dynamic built-in types machinery somewhat similar to
 the @newtype@ machinery in Haskell. The reason for this restriction is that storing values of arbitrary
 types of a host language in the AST of a target language is commonly far from being trivial, hence we
 do not support this right now, but we plan to figure out a way to allow such extensions to the AST
