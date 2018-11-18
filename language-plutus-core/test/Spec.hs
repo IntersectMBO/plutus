@@ -172,7 +172,7 @@ appAppLamLam = do
             (TyBuiltin () TyInteger)
 
 testLam :: Either (TypeError ()) String
-testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty mempty) $
+testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty) $
     normalizeType =<< appAppLamLam
 
 testEqTerm :: Bool

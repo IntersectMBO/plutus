@@ -3,16 +3,26 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module DynamicBuiltins.Char (test_putChar) where
+module DynamicBuiltins.Char (test_onChar) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           PlutusPrelude
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
+import           Control.Exception                          (evaluate)
+import           Control.Monad                              (replicateM)
+import           Control.Monad.IO.Class                     (liftIO)
 import           Data.Char
-import           Data.Maybe
+import           Data.IORef
+import           Data.Maybe                                 (fromMaybe)
+import           Hedgehog
+import qualified Hedgehog.Gen                               as Gen
+import qualified Hedgehog.Range                             as Range
 import           System.IO.Unsafe
+import           Test.Tasty
+import           Test.Tasty.Hedgehog
 
 instance KnownDynamicBuiltinType Char where
     dynamicBuiltinType = TypedDynamicBuiltinType $ DynamicBuiltinType "char"
@@ -22,42 +32,34 @@ instance KnownDynamicBuiltinType Char where
     readDynamicBuiltin (Constant () (BuiltinInt () 4 int)) = Just . chr $ fromIntegral int
     readDynamicBuiltin _                                   = Nothing
 
-dynamicIntegerToCharName :: DynamicBuiltinName
-dynamicIntegerToCharName = DynamicBuiltinName "integerToChar"
+dynamicOnCharName :: DynamicBuiltinName
+dynamicOnCharName = DynamicBuiltinName "onChar"
 
-dynamicIntegerToCharDefinition :: DynamicBuiltinNameDefinition
-dynamicIntegerToCharDefinition =
-    DynamicBuiltinNameDefinition dynamicIntegerToCharName $ DynamicBuiltinNameMeaning sch sem where
-        sch :: TypeScheme size (Integer -> Char) Char
-        sch =
-            TypeSchemeAllSize $ \s ->
-                TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-                TypeSchemeBuiltin TypedBuiltinDyn
-        sem = chr . fromIntegral
-
-dynamicIntegerToChar :: Term tyname name ()
-dynamicIntegerToChar = dynamicBuiltinNameAsTerm dynamicIntegerToCharName
-
-dynamicPutCharName :: DynamicBuiltinName
-dynamicPutCharName = DynamicBuiltinName "putChar"
-
-dynamicPutCharDefinition :: DynamicBuiltinNameDefinition
-dynamicPutCharDefinition =
-    DynamicBuiltinNameDefinition dynamicPutCharName $ DynamicBuiltinNameMeaning sch sem where
+dynamicOnCharAssign :: (Char -> IO ()) -> DynamicBuiltinNameDefinition
+dynamicOnCharAssign f =
+    DynamicBuiltinNameDefinition dynamicOnCharName $ DynamicBuiltinNameMeaning sch sem where
         sch :: TypeScheme size (Char -> ()) ()
         sch =
             TypeSchemeBuiltin TypedBuiltinDyn `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 1) TypedBuiltinSizedSize)  -- Hacky-hacky.
-        sem = unsafePerformIO . print
+        sem = unsafePerformIO . f
 
-dynamicPutChar :: Term tyname name ()
-dynamicPutChar = dynamicBuiltinNameAsTerm dynamicPutCharName
+dynamicOnChar :: Term tyname name ()
+dynamicOnChar = dynamicBuiltinNameAsTerm dynamicOnCharName
 
 charToTerm :: Char -> Term TyName Name ()
-charToTerm = fromMaybe (error "'charToTerm': failed") . makeDynamicBuiltin
+charToTerm = fromMaybe (error "charToTerm: failed") . makeDynamicBuiltin
 
-examplePutChar :: Term TyName Name ()
-examplePutChar = Apply () dynamicPutChar $ charToTerm 'a'
-
-test_putChar :: EvaluationResult
-test_putChar = evaluateCek mempty examplePutChar
+test_onChar :: TestTree
+test_onChar = testProperty "collect chars" . property $ do
+    len <- forAll . Gen.integral $ Range.linear 0 20
+    charsVar <- liftIO $ newIORef []
+    chars <- replicateM len $ do
+        char <- forAll Gen.unicode
+        let onChar = dynamicOnCharAssign $ \c -> modifyIORef' charsVar (c :)
+            env    = insertDynamicBuiltinNameDefinition onChar mempty
+            term   = Apply () dynamicOnChar $ charToTerm char
+        _ <- liftIO . evaluate $ evaluateCek env term
+        return char
+    chars' <- liftIO $ reverse <$> readIORef charsVar
+    chars === chars'

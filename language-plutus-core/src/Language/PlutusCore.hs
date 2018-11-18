@@ -161,7 +161,7 @@ printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString 
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- liftEither . convertError . parseScoped $ bs
     annotated <- annotateProgram scoped
-    typecheckProgram (TypeCheckCfg 1000 $ TypeConfig norm mempty mempty) annotated
+    typecheckProgram (TypeCheckCfg 1000 $ TypeConfig norm mempty) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -176,7 +176,7 @@ parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline gas p = do
     checkProgram p
-    typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty mempty) =<< annotateProgram p
+    typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty) =<< annotateProgram p
 
 formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs

@@ -32,11 +32,6 @@ import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
-newtype DynamicBuiltinTypeKinds = DynamicBuiltinTypeKinds
-    { unDynamicBuiltinTypeKinds :: Map DynamicBuiltinType (Kind ())
-    } deriving (Semigroup, Monoid)
-
--- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
     { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Quote (Type TyName ()))
     } deriving (Semigroup, Monoid)
@@ -45,7 +40,6 @@ newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
 data TypeConfig = TypeConfig
     { _typeConfigNormalize           :: Bool
       -- ^ Whether to normalize type annotations
-    , _typeConfigDynBuiltinTypeKinds :: DynamicBuiltinTypeKinds
     , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
     }
 
@@ -85,15 +79,6 @@ lookupDynamicBuiltinName ann name = do
         Just quoTy -> do
             ty <- liftQuote quoTy
             annotateClosedNormalType ann (DynBuiltinName () name) ty
-
--- | Look up a 'DynamicBuiltinType' in the 'DynBuiltinTypeKinds' environment.
-lookupDynamicBuiltinType :: a -> DynamicBuiltinType -> TypeCheckM a (Kind ())
-lookupDynamicBuiltinType ann ty = do
-    dbnts <- asks $ unDynamicBuiltinTypeKinds . _typeConfigDynBuiltinTypeKinds
-    case Map.lookup ty dbnts of
-        Nothing   ->
-            throwError $ UnknownDynamicBuiltinType ann (UnknownDynamicBuiltinError ty)
-        Just kind -> pure kind
 
 -- | Annotate the type of a 'BuiltinName' and return it wrapped in 'NormalizedType'.
 normalizedAnnotatedTypeOfBuiltinName
@@ -148,11 +133,11 @@ sizeToType :: Kind ()
 sizeToType = KindArrow () (Size ()) (Type ())
 
 -- | Get the 'Kind' of a 'TypeBuiltin'.
-kindOfTypeBuiltin :: ann -> TypeBuiltin -> TypeCheckM ann (Kind ())
-kindOfTypeBuiltin _   TyInteger           = pure sizeToType
-kindOfTypeBuiltin _   TyByteString        = pure sizeToType
-kindOfTypeBuiltin _   TySize              = pure sizeToType
-kindOfTypeBuiltin ann (DynBuiltinType ty) = lookupDynamicBuiltinType ann ty
+kindOfTypeBuiltin :: TypeBuiltin -> Kind ()
+kindOfTypeBuiltin TyInteger          = sizeToType
+kindOfTypeBuiltin TyByteString       = sizeToType
+kindOfTypeBuiltin TySize             = sizeToType
+kindOfTypeBuiltin (DynBuiltinType _) = Type ()
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
@@ -166,7 +151,7 @@ kindOf (TyForall x _ _ ty) = do
     pure $ Type ()
 kindOf (TyLam _ _ argK body) = KindArrow () (void argK) <$> kindOf body
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
-kindOf (TyBuiltin x b) = kindOfTypeBuiltin x b
+kindOf (TyBuiltin _ b) = pure $ kindOfTypeBuiltin b
 kindOf (TyFix x _ pat) = do
     kindCheckM x pat $ Type ()
     pure $ Type ()

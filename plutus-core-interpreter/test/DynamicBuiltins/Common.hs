@@ -18,6 +18,5 @@ typecheckEvaluate
     => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
 typecheckEvaluate meanings term = do
     let types = dynamicBuiltinNameMeaningsToTypes meanings
-        kinds = undefined
-    _ <- annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True kinds types)
+    _ <- annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True types)
     return $ evaluateCek meanings term
