@@ -94,7 +94,6 @@ which has the desired type signature:
 -- | The type of dynamic built-in types. I.e. types that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinType' has an associated kind --
 -- this allows to kind check dynamic built-in types just like static ones.
--- Right now the dynamic built-in types machinery is equivalent to the `newtype` machinery in Haskell.
 newtype DynamicBuiltinType = DynamicBuiltinType
     { unDynamicBuiltinType :: T.Text  -- ^ The name of a dynamic built-in type.
     } deriving (Show, Eq, Ord, Generic)
@@ -104,7 +103,7 @@ newtype DynamicBuiltinType = DynamicBuiltinType
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
 -- this allows to type check and evaluate dynamic built-in names just like static ones.
 newtype DynamicBuiltinName = DynamicBuiltinName
-    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic built-in function.
+    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic built-in name.
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift)
 

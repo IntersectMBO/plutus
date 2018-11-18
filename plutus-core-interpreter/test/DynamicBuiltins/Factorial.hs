@@ -1,3 +1,5 @@
+-- | A dynamic built-in name test.
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module DynamicBuiltins.Factorial

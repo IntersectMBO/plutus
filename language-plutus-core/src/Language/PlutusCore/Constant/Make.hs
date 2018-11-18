@@ -25,6 +25,7 @@ module Language.PlutusCore.Constant.Make
     , makeBuiltinNOCHECK
     ) where
 
+import           Language.PlutusCore.Constant.DynamicType
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -33,8 +34,8 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Data.Bits                            (bit)
-import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Bits                                (bit)
+import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Maybe
 
 -- | Lift a 'BuiltinName' to 'Term'.

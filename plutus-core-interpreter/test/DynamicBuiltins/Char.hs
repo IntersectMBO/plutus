@@ -1,3 +1,5 @@
+-- | A dynamic built-in type test.
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleContexts  #-}
@@ -23,8 +25,9 @@ import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
+-- Encode 'Char' from Haskell as @integer 4@ from PLC.
 instance KnownDynamicBuiltinType Char where
-    dynamicBuiltinType = TypedDynamicBuiltinType $ DynamicBuiltinType "char"
+    dynamicBuiltinType _ = DynamicBuiltinType "char"
 
     makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
 
@@ -49,6 +52,12 @@ dynamicOnChar = dynamicBuiltinNameAsTerm dynamicOnCharName
 charToTerm :: Char -> Term TyName Name ()
 charToTerm = fromMaybe (error "charToTerm: failed") . makeDynamicBuiltin
 
+-- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
+-- each of these terms such that being evaluated it calls a Haskell function that prepends a char to
+-- the contents of an external 'IORef'. In the end read the 'IORef', reverse its contents and check
+-- that you got the exact same sequence of 'Char's that was originally generated.
+-- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only handle
+-- pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
 test_onChar :: TestTree
 test_onChar = testProperty "collect chars" . property $ do
     len <- forAll . Gen.integral $ Range.linear 0 20
