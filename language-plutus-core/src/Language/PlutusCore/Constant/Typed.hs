@@ -19,6 +19,7 @@ module Language.PlutusCore.Constant.Typed
     , TypedDynamicBuiltinType(..)
     , KnownDynamicBuiltinType(..)
     , TypedBuiltinName(..)
+    , DynamicBuiltinTypeDefinition(..)
     , DynamicBuiltinNameMeaning(..)
     , DynamicBuiltinNameDefinition(..)
     , DynamicBuiltinNameMeanings(..)
@@ -186,6 +187,12 @@ class KnownDynamicBuiltinType dyn where
 dynamicBuiltinTypeOf :: KnownDynamicBuiltinType dyn => proxy dyn -> TypedDynamicBuiltinType dyn
 dynamicBuiltinTypeOf _ = dynamicBuiltinType
 
+-- | The definition of a dynamic built-in type is a @TypedDynamicBuiltinType dyn@ such that
+-- @dyn@ is a 'KnownDynamicBuiltinType'.
+data DynamicBuiltinTypeDefinition =
+    forall dyn. KnownDynamicBuiltinType dyn =>
+       DynamicBuiltinTypeDefinition (TypedDynamicBuiltinType dyn)
+
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeScheme size a r)
 -- I attempted to unify various typed things, but sometimes type variables must be universally
@@ -203,7 +210,7 @@ of course. Therefore a typed thing has to go before the corresponding untyped th
 final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
 -}
 
--- | The meaning of of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
+-- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning =
     forall a r. DynamicBuiltinNameMeaning (forall size. TypeScheme size a r) a

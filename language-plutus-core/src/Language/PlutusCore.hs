@@ -23,6 +23,7 @@ module Language.PlutusCore
     , Size
     , Value
     , BuiltinName (..)
+    , DynamicBuiltinType (..)
     , DynamicBuiltinName (..)
     , StagedBuiltinName (..)
     , TypeBuiltin (..)
