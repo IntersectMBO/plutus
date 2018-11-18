@@ -35,7 +35,7 @@ import qualified Data.Map                                        as Map
 type Plain f = f TyName Name ()
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException = MachineException (UnknownDynamicBuiltinError DynamicBuiltinName)
+type CekMachineException = MachineException UnknownDynamicBuiltinNameError
 
 -- | A 'Value' packed together with the environment it's defined in.
 data Closure = Closure
@@ -93,8 +93,8 @@ lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvDbnms
     case Map.lookup dynName means of
         Nothing   -> throwError $ MachineException err term where
-            err  = OtherMachineError $ UnknownDynamicBuiltinError dynName
-            term = Constant () $ DynBuiltinName () dynName
+            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+            term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
@@ -113,6 +113,7 @@ computeCek con (Unwrap _ term)        = computeCek (FrameUnwrap : con) term
 computeCek con tyAbs@TyAbs{}          = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}        = returnCek con lamAbs
 computeCek con constant@Constant{}    = returnCek con constant
+computeCek con bi@Builtin{} = returnCek con bi
 computeCek _   Error{}                = pure EvaluationFailure
 computeCek con (Var _ varName)        = do
     Closure newVarEnv term <- lookupVarName varName

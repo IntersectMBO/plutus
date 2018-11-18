@@ -5,8 +5,10 @@
 --   be used in PLC scripts.
 module Wallet.UTXO.Runtime (-- * Transactions and related types
                 PubKey(..)
-              , Value
-              , Height
+              , Value(..)
+              , getValue
+              , Height(..)
+              , getHeight
               , PendingTxOutRef(..)
               , Signature(..)
               -- ** Hashes (see note [Hashes in validator scripts])
@@ -15,7 +17,6 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , ValidatorHash(..)
               , TxHash(..)
               , plcDataScriptHash
-              , plcValidatorHash
               , plcValidatorDigest
               , plcRedeemerHash
               , plcTxHash
@@ -112,7 +113,33 @@ instance (TypeablePlc a, LiftPlc a) => LiftPlc (Signed a)
 -- | Ada value
 --
 -- TODO: Use [[Wallet.UTXO.Types.Value]] when Integer is supported
-type Value = Int
+data Value = Value Int
+    deriving (Eq, Ord, Show, Generic)
+
+instance TypeablePlc Value
+instance LiftPlc Value
+
+getValue :: Value -> Int
+getValue (Value i) = i
+
+instance Enum Value where
+    toEnum = Value
+    fromEnum = getValue
+
+instance Num Value where
+    (Value l) + (Value r) = Value (l + r)
+    (Value l) * (Value r) = Value (l * r)
+    abs (Value v)         = Value (abs v)
+    signum (Value v)      = Value (signum v)
+    fromInteger           = Value . fromInteger
+    negate (Value v)      = Value (negate v)
+
+instance Real Value where
+    toRational (Value v) = toRational v
+
+instance Integral Value where
+    quotRem (Value l) (Value r) = let (l', r') = quotRem l r in (Value l', Value r')
+    toInteger (Value i) = toInteger i
 
 {- Note [Hashes in validator scripts]
 
@@ -166,9 +193,6 @@ instance LiftPlc TxHash
 plcDataScriptHash :: UTXO.DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcHash
 
-plcValidatorHash :: UTXO.Validator -> ValidatorHash
-plcValidatorHash = ValidatorHash . plcHash
-
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
@@ -188,4 +212,11 @@ plcDigest = serialise
 
 -- | Blockchain height
 --   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported
-type Height = Int
+data Height = Height Int
+    deriving (Eq, Ord, Show, Generic)
+
+instance TypeablePlc Height
+instance LiftPlc Height
+
+getHeight :: Height -> Int
+getHeight (Height h) = h

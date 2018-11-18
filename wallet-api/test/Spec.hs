@@ -1,6 +1,8 @@
 module Main(main) where
 
+import           Control.Monad       (void)
 import           Data.Either         (isLeft, isRight)
+import           Data.Foldable       (traverse_)
 import qualified Data.Map            as Map
 import           Data.Monoid         (Sum (..))
 import           Hedgehog            (Property, forAll, property)
@@ -35,7 +37,9 @@ tests = testGroup "all tests" [
     testGroup "traces" [
         testProperty "accept valid txn" validTrace,
         testProperty "reject invalid txn" invalidTrace,
-        testProperty "notify wallet" notifyWallet
+        testProperty "notify wallet" notifyWallet,
+        testProperty "react to blockchain events" eventTrace,
+        testProperty "watch funds at an address" notifyWallet
         ],
     testGroup "Etc." [
         testProperty "splitVal" splitVal
@@ -108,10 +112,60 @@ notifyWallet = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ blockchainActions >>= walletNotifyBlock w
     let ttl = Map.lookup w st
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownAddresses <$> ttl) == Just 100000
+    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just initialBalance
+
+eventTrace :: Property
+eventTrace = property $ do
+    let w = Wallet 1
+    (e, EmulatorState{ emWalletState = st }) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ do
+            blockchainActions >>= walletNotifyBlock w
+            let mkPayment = payToPubKey 100 (PubKey 2)
+                trigger = blockHeightT (GEQ 3)
+
+            -- schedule the `mkPayment` action to run when block height 3 is
+            -- reached.
+            b1 <- walletAction (Wallet 1) $ register trigger mkPayment
+            walletNotifyBlock w b1
+
+            -- advance the clock to trigger `mkPayment`
+            addBlocks 2 >>= traverse_ (walletNotifyBlock w)
+            void (blockchainActions >>= walletNotifyBlock w)
+    let ttl = Map.lookup w st
+
+    -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
+    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 100)
+
+watchFundsAtAddress :: Property
+watchFundsAtAddress = property $ do
+    let w = Wallet 1
+        pkTarget = PubKey 2
+    (e, EmulatorState{ emWalletState = st }) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ do
+            blockchainActions >>= walletNotifyBlock w
+            let mkPayment = payToPubKey 100 pkTarget
+                t1 = blockHeightT (Interval 3 4)
+                t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
+            walletNotifyBlock w =<<
+                (walletAction (Wallet 1) $ do
+                    register t1 mkPayment
+                    register t2 mkPayment)
+
+            -- after 3 blocks, t1 should fire, triggering the first payment of 100 to PubKey 2
+            -- after 4 blocks, t2 should fire, triggering the second payment of 100
+            addBlocks 3 >>= traverse_ (walletNotifyBlock w)
+            void (blockchainActions >>= walletNotifyBlock w)
+    let ttl = Map.lookup w st
+    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 200)
+
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
 genChainTxn = do
     m <- Gen.genMockchain
     txn <- Gen.genValidTransaction m
     pure (m, txn)
+
+initialBalance :: Value
+initialBalance = 100000

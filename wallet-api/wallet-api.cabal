@@ -31,11 +31,6 @@ executable emulator
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base <5,
-        containers -any,
-        memory -any,
-        stm -any,
-        unordered-containers -any,
-        wai -any,
         wallet-api -any,
         warp -any
 
@@ -43,6 +38,7 @@ library
     exposed-modules:
         Wallet.API
         Wallet.Emulator
+        Wallet.Emulator.AddressMap
         Wallet.Emulator.Client
         Wallet.Emulator.Http
         Wallet.Emulator.Types
@@ -69,37 +65,30 @@ library
         base >=4.9 && <5,
         aeson -any,
         base64-bytestring -any,
-        bifunctors -any,
         bytestring -any,
         cborg -any,
         containers -any,
         core-to-plc -any,
         cryptonite >=0.25,
-        errors -any,
-        free -any,
-        ghc -any,
         hashable -any,
         hedgehog -any,
         language-plutus-core -any,
         memory -any,
         microlens -any,
-        mmorph -any,
-        monad-stm -any,
+        microlens-ghc -any,
         mtl -any,
         natural-transformation -any,
         operational -any,
         plutus-th -any,
-        prettyprinter -any,
         serialise -any,
         servant -any,
         servant-client -any,
         servant-server -any,
         stm -any,
-        template-haskell -any,
-        text -any,
         text -any,
         transformers -any,
-        unordered-containers -any
+        recursion-schemes -any,
+        deriving-compat -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -115,6 +104,5 @@ test-suite wallet-api-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
-        text -any,
         wallet-api -any,
         microlens -any

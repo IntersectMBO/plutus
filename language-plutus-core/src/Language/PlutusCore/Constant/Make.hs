@@ -39,11 +39,11 @@ import           Data.Maybe
 
 -- | Lift a 'BuiltinName' to 'Term'.
 builtinNameAsTerm :: BuiltinName -> Term tyname name ()
-builtinNameAsTerm = Constant () . BuiltinName ()
+builtinNameAsTerm = Builtin () . BuiltinName ()
 
 -- | Lift a 'DynamicBuiltinName' to 'Term'.
 dynamicBuiltinNameAsTerm :: DynamicBuiltinName -> Term tyname name ()
-dynamicBuiltinNameAsTerm = Constant () . DynBuiltinName ()
+dynamicBuiltinNameAsTerm = Builtin () . DynBuiltinName ()
 
 -- | Return the @[-2^(8s - 1), 2^(8s - 1))@ bounds for integers of a given 'Size'.
 toBoundsInt :: Size -> (Integer, Integer)

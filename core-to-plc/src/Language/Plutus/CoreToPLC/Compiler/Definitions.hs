@@ -13,8 +13,8 @@ module Language.Plutus.CoreToPLC.Compiler.Definitions (
     , lookupMatch
     , wrapWithDefs) where
 
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PIRTypes
 
 import qualified Language.PlutusIR                        as PIR
@@ -22,14 +22,13 @@ import qualified Language.PlutusIR.MkPir                  as PIR
 
 import qualified GhcPlugins                               as GHC
 
+import           Control.Lens
 import           Control.Monad.Except
 import           Control.Monad.State
 
 import qualified Data.Graph                               as Graph
 import qualified Data.Map                                 as Map
 import qualified Data.Set                                 as Set
-
-import           Lens.Micro
 
 defineType :: Converting m => GHC.Name -> PIRBinding -> [GHC.Name] -> m ()
 defineType name def deps = modify $ over defs (Map.insert name (def, deps))

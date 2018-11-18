@@ -13,6 +13,7 @@ module Language.PlutusCore
     , Term (..)
     , Type (..)
     , Constant (..)
+    , Builtin (..)
     , Kind (..)
     , ParseError (..)
     , Version (..)
@@ -48,6 +49,7 @@ module Language.PlutusCore
     , annotateTerm
     , annotateType
     , RenameError (..)
+    , AsRenameError (..)
     , TyNameWithKind (..)
     , NameWithType (..)
     , TypeState (..)
@@ -74,6 +76,7 @@ module Language.PlutusCore
     , printNormalizeType
     , InternalTypeError (..)
     , TypeError (..)
+    , AsTypeError (..)
     , TypeConfig (..)
     , DynamicBuiltinNameTypes (..)
     , TypeCheckCfg (..)
@@ -86,8 +89,8 @@ module Language.PlutusCore
     , defaultTypecheckerGas
     -- * Errors
     , Error (..)
-    , IsError (..)
-    , UnknownDynamicBuiltinError (..)
+    , AsError (..)
+    , UnknownDynamicBuiltinNameError (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -98,7 +101,6 @@ module Language.PlutusCore
     , runQuoteT
     , MonadQuote
     , liftQuote
-    , convertErrors
     -- * Name generation
     , freshUnique
     , freshName
@@ -141,47 +143,60 @@ fileType :: FilePath -> IO T.Text
 fileType = fileNormalizeType False
 
 fileNormalizeType :: Bool -> FilePath -> IO T.Text
-fileNormalizeType norm = fmap (either prettyPlcDefText id . printNormalizeType norm) . BSL.readFile
+fileNormalizeType norm = fmap (either prettyErr id . printNormalizeType norm) . BSL.readFile
+    where
+        prettyErr :: Error AlexPosn -> T.Text
+        prettyErr = prettyPlcDefText
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
 -- information.
 fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
-fileTypeCfg cfg = fmap (either (prettyTextBy cfg) id . printType) . BSL.readFile
+fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
+    where
+        prettyErr :: Error AlexPosn -> T.Text
+        prettyErr = prettyTextBy cfg
 
 checkFile :: FilePath -> IO (Maybe T.Text)
 checkFile = fmap (either (pure . prettyText) id . fmap (fmap prettyPlcDefText . check) . parse) . BSL.readFile
 
 -- | Print the type of a program contained in a 'ByteString'
-printType :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m T.Text
+printType :: (AsParseError e AlexPosn, AsRenameError e AlexPosn, AsTypeError e AlexPosn, MonadError e m) => BSL.ByteString -> m T.Text
 printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
-printNormalizeType :: (MonadError (Error AlexPosn) m) => Bool -> BSL.ByteString -> m T.Text
+printNormalizeType :: (AsParseError e AlexPosn, AsRenameError e AlexPosn, AsTypeError e AlexPosn, MonadError e m) => Bool -> BSL.ByteString -> m T.Text
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
-    scoped <- liftEither . convertError . parseScoped $ bs
+    scoped <- parseScoped bs
     annotated <- annotateProgram scoped
     typecheckProgram (TypeCheckCfg 1000 $ TypeConfig norm mempty) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
-parseScoped :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
+parseScoped :: (AsParseError e AlexPosn, MonadError e m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
 parseScoped str = runQuoteT $ parseProgram str >>= rename
 
 -- | Parse a program and typecheck it.
-parseTypecheck :: (MonadError (Error AlexPosn) m, MonadQuote m) => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+parseTypecheck
+    :: (AsParseError e AlexPosn,
+        AsNormalizationError e TyName Name AlexPosn,
+        AsRenameError e AlexPosn,
+        AsTypeError e AlexPosn,
+        MonadError e m,
+        MonadQuote m)
+    => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
 parseTypecheck gas = typecheckPipeline gas <=< parseScoped
 
 -- | Typecheck a program.
-typecheckPipeline :: (MonadError (Error a) m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
+typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline gas p = do
     checkProgram p
     typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty) =<< annotateProgram p
 
-formatDoc :: (MonadError (Error AlexPosn) m) => BSL.ByteString -> m (Doc a)
+formatDoc :: (AsParseError e AlexPosn, MonadError e m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs
 
-format :: (MonadError (Error AlexPosn) m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+format :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
 format cfg = fmap (prettyTextBy cfg) . parseScoped
 
 -- | The default version of Plutus Core supported by this library.

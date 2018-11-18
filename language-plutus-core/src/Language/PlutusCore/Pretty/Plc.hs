@@ -74,6 +74,7 @@ instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlc a where
 
 instance PrettyBy PrettyConfigPlc (Kind a)
 instance PrettyBy PrettyConfigPlc (Constant a)
+instance PrettyBy PrettyConfigPlc (Builtin a)
 instance DefaultPrettyPlcStrategy (Type tyname a) =>
     PrettyBy PrettyConfigPlc (Type tyname a)
 instance DefaultPrettyPlcStrategy (Term tyname name a) =>

@@ -9,13 +9,13 @@ module Language.Plutus.CoreToPLC.Compiler.Expr (convExpr, convExprWithDefs, conv
 import           Language.Plutus.CoreToPLC.Compiler.Binders
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Definitions
+import           Language.Plutus.CoreToPLC.Compiler.Error
+import           Language.Plutus.CoreToPLC.Compiler.Laziness
 import           Language.Plutus.CoreToPLC.Compiler.Names
 import           Language.Plutus.CoreToPLC.Compiler.Primitives
 import           Language.Plutus.CoreToPLC.Compiler.Type
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Error
-import           Language.Plutus.CoreToPLC.Laziness
 import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.Utils
 
@@ -34,7 +34,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Data.ByteString.Lazy                           as BSL
-import           Data.List                                      (elemIndex)
+import           Data.List                                      (elem, elemIndex)
 import qualified Data.List.NonEmpty                             as NE
 import           Data.Traversable
 
@@ -102,26 +102,25 @@ convDataConRef dc =
 
         pure $ constrs !! index
 
-{- Note [Recursive lets]
-We need to define these with a fixpoint. We can derive a fixpoint operator for values
-already.
+isErrorId :: GHC.Id -> Bool
+isErrorId ghcId = ghcId `elem` GHC.errorIds
 
-However, we also need to work out how to encode recursion over multiple values simultaneously.
-The answer is simple - we pass them through as a tuple.
+{- Note [GHC runtime errors]
+GHC has a number of runtime errors for things like pattern matching failures and so on.
 
-Overall, the translation looks like this. We convert this:
+We just translate these directly into calls to error, throwing away any other information.
 
-let rec
-  f_1 = b_1
-  ...
-  f_i = b_i
-in
-  result
+Annoyingly, unlike void, we can't mangle the type uniformly to make sure we are safe
+with respect to the value restriction (see note [Value restriction]), so we just have to force
+our error call and hope that it doesn't end up somewhere it shouldn't.
+-}
 
-into this:
+{- Note [At patterns]
+GHC handles @-patterns by adding a variable to each case expression representing the scrutinee
+of the expression.
 
-($fixN i$ (\choose f1 ... fi . choose b_1 ... b_i))
-(\f1 ... fi . result)
+We handle this by simply let-binding that variable outside our generated case. In the instances
+where it's not used, the PIR dead-binding pass will remove it.
 -}
 
 -- Expressions
@@ -158,11 +157,23 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
             _ -> convNumMethod (GHC.getName n)
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
+        -- See note [GHC runtime errors]
+        GHC.App (GHC.App (GHC.App
+                -- error function
+                (GHC.Var (isErrorId -> True))
+                -- runtime rep
+                _)
+                -- type of overall expression
+                (GHC.Type t))
+            _ -> force =<< PIR.TyInst () <$> errorFunc <*> convType t
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just (PIR.VarDecl _ name _)) -> pure $ PIR.Var () name
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> convPrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> convDataConRef dc
+        -- TODO: support record selectors. AFAICT GHC doesn't make a pattern-matching function that we can call, so we'd
+        -- have to make the pattern match ourselves
+        GHC.Var (GHC.idDetails -> GHC.RecSelId{}) -> throwPlain $ UnsupportedError "Record selectors, use pattern matching"
         GHC.Var n -> do
             -- Defined names, including builtin names
             maybeDef <- lookupTermDef (GHC.getName n)
@@ -197,33 +208,44 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 body' <- convExpr body
                 pure $ PIR.Let () PIR.Rec binds body'
         GHC.Case scrutinee b t alts -> do
+            -- See Note [At patterns]
+            scrutinee' <- convExpr scrutinee
             let scrutineeType = GHC.varType b
 
-            -- See Note [Case expressions and laziness]
-            isValueAlt <- mapM (\(_, vars, body) -> if null vars then PIR.isTermValue <$> convExpr body else pure True) alts
-            let lazyCase = not $ and isValueAlt
+            -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
+            withVarScoped b $ \v -> do
+                -- See Note [Case expressions and laziness]
+                isValueAlt <- forM alts (\(_, vars, body) -> if null vars then PIR.isTermValue <$> convExpr body else pure True)
+                let lazyCase = not $ and isValueAlt
 
-            scrutinee' <- convExpr scrutinee
+                match <- getMatchInstantiated scrutineeType
+                let matched = PIR.Apply () match scrutinee'
 
-            match <- getMatchInstantiated scrutineeType
-            let matched = PIR.Apply () match scrutinee'
+                -- See Note [Scott encoding of datatypes]
+                -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
+                instantiated <- PIR.TyInst () matched <$> (convType t >>= maybeDelayType lazyCase)
 
-            -- See Note [Scott encoding of datatypes]
-            -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-            instantiated <- PIR.TyInst () matched <$> (convType t >>= maybeDelayType lazyCase)
+                (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
+                    Just (tc, argTys) -> pure (tc, argTys)
+                    Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
+                dcs <- getDataCons tc
 
-            tc <- case GHC.splitTyConApp_maybe scrutineeType of
-                Just (tc, _) -> pure tc
-                Nothing      -> throwPlain $ ConversionError "Scrutinee's type was not a type constructor application"
-            dcs <- getDataCons tc
+                branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
+                    Just alt ->
+                        let
+                            -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                            -- matching on Maybe Int it is [Int] (crucially, not [a])
+                            instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                        in convAlt lazyCase instArgTys alt
+                    Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
 
-            branches <- forM dcs $ \dc -> case GHC.findAlt (GHC.DataAlt dc) alts of
-                Just alt -> convAlt lazyCase dc alt
-                Nothing  -> throwPlain $ ConversionError "No case matched and no default case"
+                let applied = PIR.mkIterApp () instantiated branches
+                -- See Note [Case expressions and laziness]
+                mainCase <- maybeForce lazyCase applied
 
-            let applied = PIR.mkIterApp () instantiated branches
-            -- See Note [Case expressions and laziness]
-            maybeForce lazyCase applied
+                -- See Note [At patterns]
+                let binds = [ PIR.TermBind () v scrutinee' ]
+                pure $ PIR.Let () PIR.NonRec binds mainCase
         -- ignore annotation
         GHC.Tick _ body -> convExpr body
         GHC.Cast body coerce -> do

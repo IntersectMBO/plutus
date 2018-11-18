@@ -17,13 +17,13 @@ module Language.Plutus.CoreToPLC.Compiler.Builtins (
 
 import qualified Language.Plutus.CoreToPLC.Builtins                  as Builtins
 import           Language.Plutus.CoreToPLC.Compiler.Definitions
+import           Language.Plutus.CoreToPLC.Compiler.Error
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Names
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Type
 import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
 import           Language.Plutus.CoreToPLC.Compiler.ValueRestriction
-import           Language.Plutus.CoreToPLC.Error
 import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.Utils
 
@@ -180,19 +180,19 @@ defineBuiltinTerms = do
 
     -- Bytestring builtins
     do
-        let term = instSize haskellBSSize $ mkConstant PLC.Concatenate
+        let term = instSize haskellBSSize $ mkBuiltin PLC.Concatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]
     do
-        let term = instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PLC.TakeByteString
+        let term = instSize haskellBSSize $ instSize haskellIntSize $ mkBuiltin PLC.TakeByteString
         defineBuiltinTerm 'Builtins.takeByteString term [int, bs]
     do
-        let term = instSize haskellBSSize $ instSize haskellIntSize $ mkConstant PLC.DropByteString
+        let term = instSize haskellBSSize $ instSize haskellIntSize $ mkBuiltin PLC.DropByteString
         defineBuiltinTerm 'Builtins.dropByteString term [int, bs]
     do
-        let term = instSize haskellBSSize $ mkConstant PLC.SHA2
+        let term = instSize haskellBSSize $ mkBuiltin PLC.SHA2
         defineBuiltinTerm 'Builtins.sha2_256 term [bs]
     do
-        let term = instSize haskellBSSize $ mkConstant PLC.SHA3
+        let term = instSize haskellBSSize $ mkBuiltin PLC.SHA3
         defineBuiltinTerm 'Builtins.sha3_256 term [bs]
     do
         term <- mkBsRel PLC.EqByteString
@@ -232,10 +232,10 @@ defineBuiltinTerms = do
 
     -- Blockchain builtins
     do
-        let term = mkConstant PLC.TxHash
+        let term = mkBuiltin PLC.TxHash
         defineBuiltinTerm 'Builtins.txhash term [bs]
     do
-        term <- wrapBsRel 3 $ instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkConstant PLC.VerifySignature
+        term <- wrapBsRel 3 $ instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkBuiltin PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
     -- TODO: blocknum, this is annoying because we want to actually apply it to a size, which currently crashes in the evaluator
     -- as it's unimplemented
@@ -320,7 +320,7 @@ wrapIntRel arity term = do
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 mkIntRel :: Converting m => PLC.BuiltinName -> m PIRTerm
-mkIntRel name = wrapIntRel 2 $ instSize haskellIntSize (mkConstant name)
+mkIntRel name = wrapIntRel 2 $ instSize haskellIntSize (mkBuiltin name)
 
 -- | Wrap an bytestring relation of arity @n@ that produces a Scott boolean.
 wrapBsRel :: Converting m => Int -> PIRTerm -> m PIRTerm
@@ -337,4 +337,4 @@ wrapBsRel arity term = do
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 mkBsRel :: Converting m => PLC.BuiltinName -> m PIRTerm
-mkBsRel name = wrapBsRel 2 $ instSize haskellBSSize (mkConstant name)
+mkBsRel name = wrapBsRel 2 $ instSize haskellBSSize (mkBuiltin name)

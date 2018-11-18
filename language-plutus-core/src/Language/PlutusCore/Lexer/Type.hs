@@ -129,6 +129,7 @@ data Keyword = KwAbs
              | KwType
              | KwProgram
              | KwCon
+             | KwBuiltin
              | KwWrap
              | KwUnwrap
              | KwError
@@ -187,6 +188,7 @@ instance Pretty Keyword where
     pretty KwType       = "type"
     pretty KwProgram    = "program"
     pretty KwCon        = "con"
+    pretty KwBuiltin    = "builtin"
     pretty KwWrap       = "wrap"
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"

@@ -53,7 +53,7 @@
                                 [
                                   {
                                     {
-                                      { (con verifySignature) (con 256) }
+                                      { (builtin verifySignature) (con 256) }
                                       (con 256)
                                     }
                                     (con 256)

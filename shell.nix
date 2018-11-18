@@ -28,6 +28,7 @@ let
   };
   shell = localPackages.haskellPackages.shellFor {
     packages = p: (map (x: p.${x}) localLib.plutusPkgList);
+    nativeBuildInputs = [ pkgs.cabal-install pkgs.haskellPackages.ghcid ];
   };
 
 in shell // {

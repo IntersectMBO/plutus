@@ -48,7 +48,10 @@
                             (all a_90 (type) (fun a_90 (fun a_90 a_90)))
                             [ [ { b_89 Bool_78 } True_79 ] False_80 ]
                           )
-                          [ [ { (con equalsInteger) (con 64) } arg_87 ] arg_88 ]
+                          [
+                            [ { (builtin equalsInteger) (con 64) } arg_87 ]
+                            arg_88
+                          ]
                         ]
                       )
                     )
