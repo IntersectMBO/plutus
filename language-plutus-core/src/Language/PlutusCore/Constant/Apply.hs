@@ -39,6 +39,8 @@ data ConstAppError
       -- constant application is supposed to be computed as soon as there are enough arguments.
     | SizedNonConstantConstAppError (Value TyName Name ())
       -- ^ An argument of a sized type is not a constant.
+    | UnreadableBuiltinConstAppError (Value TyName Name ())
+      -- ^ A built-in couldn't be converted from Plutus Core to Haskell.
     deriving (Show, Eq)
 
 -- | The type of constant applications results.
@@ -46,7 +48,7 @@ data ConstAppResult
     = ConstAppSuccess (Value TyName Name ())
       -- ^ Successfully computed a value.
     | ConstAppFailure
-      -- ^ Not enough fuel.
+      -- ^ Not enough gas.
     | ConstAppStuck
       -- ^ Not enough arguments.
     | ConstAppError ConstAppError
@@ -77,6 +79,10 @@ instance ( PrettyBy config (Constant ())
         ]
     prettyBy config (SizedNonConstantConstAppError arg)     = fold
         [ "A non-constant argument of a sized type: "
+        , prettyBy config arg
+        ]
+    prettyBy config (UnreadableBuiltinConstAppError arg)    = fold
+        [ "A built-in couldn't be converted from Plutus Core to Haskell:", "\n"
         , prettyBy config arg
         ]
 
@@ -145,6 +151,9 @@ extractBuiltin TypedBuiltinBool                  _                  _     =
     -- Plan: evaluate the 'value' to a dynamically typed Church-encoded 'Bool'
     -- specialized to 'Bool' and coerce it to an actual 'Bool'.
     error "Not implemented."
+extractBuiltin TypedBuiltinDyn                   sizeValues         value =
+    maybe (Left $ UnreadableBuiltinConstAppError value) (\x -> Right (x, sizeValues)) $
+        readDynamicBuiltin value
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given type and there are no size mismatches.

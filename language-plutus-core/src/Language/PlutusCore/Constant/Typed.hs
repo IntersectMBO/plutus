@@ -2,12 +2,9 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DefaultSignatures         #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE KindSignatures            #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
 
@@ -19,10 +16,13 @@ module Language.PlutusCore.Constant.Typed
     , TypedBuiltin(..)
     , TypedBuiltinValue(..)
     , TypeScheme(..)
+    , TypedDynamicBuiltinType(..)
+    , KnownDynamicBuiltinType(..)
     , TypedBuiltinName(..)
     , DynamicBuiltinNameMeaning(..)
     , DynamicBuiltinNameDefinition(..)
     , DynamicBuiltinNameMeanings(..)
+    , PrettyDynamic(..)
     , flattenSizeEntry
     , eraseTypedBuiltinSized
     , mapSizeEntryTypedBuiltin
@@ -78,7 +78,6 @@ import           Data.GADT.Compare
 import           Data.Map                             (Map)
 import qualified Data.Map                             as Map
 import qualified Data.Text.Encoding                   as Text
-import           GHC.TypeLits                         (Symbol)
 
 infixr 9 `TypeSchemeArrow`
 
@@ -153,10 +152,7 @@ data Builtin size
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
-    TypedBuiltinDyn
-        :: KnownDynamicBuiltinType dyn sem
-        => NamedDynamicBuiltinType dyn
-        -> TypedBuiltin size sem
+    TypedBuiltinDyn   :: KnownDynamicBuiltinType dyn => TypedBuiltin size dyn
 
 -- | A 'TypedBuiltin' packaged together with a value of the type that the 'TypedBuiltin' denotes.
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
@@ -178,18 +174,17 @@ data TypeScheme size a r where
     -- We could use type families to compute it instead of storing as an index.
     -- That's a TODO perhaps.
 
-newtype NamedDynamicBuiltinType (dyn :: Symbol) = NamedDynamicBuiltinType
-    { unNamedDynamicBuiltinType :: DynamicBuiltinType
+newtype TypedDynamicBuiltinType dyn = TypedDynamicBuiltinType
+    { unTypedDynamicBuiltinType :: DynamicBuiltinType
     }
 
-newtype TypedDynamicBuiltinType dyn sem = TypedDynamicBuiltinType
-    { unTypedDynamicBuiltinType :: NamedDynamicBuiltinType dyn
-    }
+class KnownDynamicBuiltinType dyn where
+    dynamicBuiltinType :: TypedDynamicBuiltinType dyn
+    makeDynamicBuiltin :: dyn -> Maybe (Value TyName Name ())
+    readDynamicBuiltin :: Value TyName Name () -> Maybe dyn
 
-class Pretty sem => KnownDynamicBuiltinType dyn sem | dyn -> sem where
-    dynamicBuiltinType :: TypedDynamicBuiltinType dyn sem
-    makeDynamicBuiltin :: NamedDynamicBuiltinType dyn -> sem -> Maybe (Value TyName Name ())
-    readDynamicBuiltin :: NamedDynamicBuiltinType dyn -> Value TyName Name () -> Maybe sem
+dynamicBuiltinTypeOf :: KnownDynamicBuiltinType dyn => proxy dyn -> TypedDynamicBuiltinType dyn
+dynamicBuiltinTypeOf _ = dynamicBuiltinType
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
 data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeScheme size a r)
@@ -223,6 +218,16 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
+class PrettyDynamic a where
+    prettyDynamic :: a -> Doc ann
+    default prettyDynamic :: Pretty a => a -> Doc ann
+    prettyDynamic = pretty
+
+instance PrettyDynamic Integer
+instance PrettyDynamic BSL.ByteString where prettyDynamic = prettyBytes
+instance PrettyDynamic ()
+instance PrettyDynamic Bool
+
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
     pretty BuiltinSizedBS   = "bytestring"
@@ -238,16 +243,15 @@ instance Pretty size => Pretty (SizeEntry size) where
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
     pretty TypedBuiltinBool           = "bool"
-    pretty (TypedBuiltinDyn ty)       = pretty ty
+    pretty dyn@TypedBuiltinDyn        = pretty $ dynamicBuiltinTypeOf dyn
 
-instance size ~ Size => Pretty (TypedBuiltinValue size a) where
-    pretty (TypedBuiltinValue (TypedBuiltinSized se tbs) x) =
-        pretty se <+> "!" <+> case tbs of
-            TypedBuiltinSizedInt  -> pretty      x
-            TypedBuiltinSizedBS   -> prettyBytes x
-            TypedBuiltinSizedSize -> pretty      x
-    pretty (TypedBuiltinValue TypedBuiltinBool           b) = pretty b
-    pretty (TypedBuiltinValue (TypedBuiltinDyn _)        x) = pretty x
+instance (size ~ Size, PrettyDynamic a) => Pretty (TypedBuiltinValue size a) where
+    pretty (TypedBuiltinValue (TypedBuiltinSized se _) x) = pretty se <+> "!" <+> prettyDynamic x
+    pretty (TypedBuiltinValue TypedBuiltinBool         b) = prettyDynamic b
+    pretty (TypedBuiltinValue TypedBuiltinDyn          x) = prettyDynamic x
+
+instance Pretty (TypedDynamicBuiltinType dyn) where
+    pretty (TypedDynamicBuiltinType ty) = pretty ty
 
 liftOrdering :: Ordering -> GOrdering a a
 liftOrdering LT = GLT
@@ -300,7 +304,7 @@ mapSizeEntryTypedBuiltin
     :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
 mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
-mapSizeEntryTypedBuiltin _ (TypedBuiltinDyn ty)       = TypedBuiltinDyn ty
+mapSizeEntryTypedBuiltin _ TypedBuiltinDyn            = TypedBuiltinDyn
 
 -- | Alter the 'size' of a @TypedBuiltin size@.
 mapSizeTypedBuiltin
@@ -342,8 +346,8 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
-typedBuiltinToType (TypedBuiltinDyn ty)       =
-    pure . TyBuiltin () $ DynBuiltinType ty
+typedBuiltinToType dyn@TypedBuiltinDyn        =
+    pure . TyBuiltin () . DynBuiltinType . unTypedDynamicBuiltinType $ dynamicBuiltinTypeOf dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

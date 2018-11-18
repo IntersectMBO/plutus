@@ -145,14 +145,14 @@ makeBuiltin (TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs ->
         return $ Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
     TypedBuiltinBool         -> Just <$> makeBuiltinBool x
---     TypedBuiltin
+    TypedBuiltinDyn          -> return $ makeDynamicBuiltin x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
-unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+unsafeMakeBuiltin :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Value TyName Name ())
 unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
-    err = error $ "unsafeMakeBuiltin: out of bounds: " ++ prettyString tbv
+    err = error $ "unsafeMakeBuiltin: can't convert to Plutus Core: " ++ prettyString tbv
 
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- without checking constraints (e.g. an 'Integer' is in appropriate bounds).
@@ -167,8 +167,9 @@ makeSizedConstantNOCHECK size TypedBuiltinSizedSize ()  = BuiltinSize () size
 -- (e.g. an 'Integer' is in appropriate bounds).
 -- This function allows to fake a 'Value' with a wrong size and thus it's highly unsafe
 -- and should be used with great caution.
-makeBuiltinNOCHECK :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
-makeBuiltinNOCHECK (TypedBuiltinValue tb x) = case tb of
+makeBuiltinNOCHECK :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+makeBuiltinNOCHECK tbv@(TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs ->
         return . Constant () $ makeSizedConstantNOCHECK (flattenSizeEntry se) tbs x
     TypedBuiltinBool         -> makeBuiltinBool x
+    TypedBuiltinDyn          -> unsafeMakeBuiltin tbv
