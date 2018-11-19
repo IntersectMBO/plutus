@@ -17,7 +17,7 @@ let
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
   pkgs = iohkNix.pkgs;
   lib = pkgs.lib;
-  getPackages = iohkNix.getPackages { inherit lib;};
+  getPackages = iohkNix.getPackages;
 
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
