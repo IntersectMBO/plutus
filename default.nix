@@ -31,7 +31,7 @@ in
 , config ? {}  # The nixpkgs configuration file
 
 # Use a pinned version nixpkgs.
-, pkgs ? localLib.importPkgs { inherit system config; }
+, pkgs ? localLib.pkgs
 
 # Disable running of tests for all local packages.
 , forceDontCheck ? false
@@ -67,7 +67,7 @@ in
 with pkgs.lib;
 
 let
-  src = localLib.cleanSourceHaskell ./.;
+  src = localLib.iohkNix.cleanSourceHaskell ./.;
   errorOverlay = import ./nix/overlays/force-error.nix {
     inherit pkgs;
     # TODO: fix plutus-use-cases and plutus-exe warnings
