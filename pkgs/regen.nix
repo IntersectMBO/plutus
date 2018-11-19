@@ -5,7 +5,7 @@ in
 , config ? {}
 , iohkPkgs ? import ../. { inherit config system; }
 , pkgs ? iohkPkgs.pkgs
-, nixpkgsPath ? localLib.fetchNixpkgs
+, nixpkgsPath ? localLib.iohkNix.nixpkgs
 
 # Update this if you need a package version recently uploaded to hackage.
 # Any timestamp works.
