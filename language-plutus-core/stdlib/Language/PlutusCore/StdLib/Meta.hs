@@ -5,16 +5,13 @@ module Language.PlutusCore.StdLib.Meta
     ( getBuiltinIntegerToNat
     , getBuiltinNatSum
     , getListToBuiltinList
-    )
+    ) where
 
-where
+import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Type
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
@@ -27,7 +24,7 @@ getBuiltinIntegerToNat n
 
 -- | @sumNat@ as a PLC term.
 getBuiltinNatSum :: Natural -> Quote (Term TyName Name ())
-getBuiltinNatSum s = do
+getBuiltinNatSum s = rename =<< do
     foldList <- getBuiltinFoldList
     let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
     let add = TyInst () (Builtin () (BuiltinName () AddInteger)) $ TyInt () s
@@ -52,7 +49,7 @@ getBuiltinNatSum s = do
 
 -- | Convert a Haskell list of 'Term's to a PLC @list@.
 getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Quote (Term TyName Name ())
-getListToBuiltinList ty ts = do
+getListToBuiltinList ty ts = rename =<< do
     builtinNil  <- getBuiltinNil
     builtinCons <- getBuiltinCons
     return $ foldr

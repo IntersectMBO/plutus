@@ -6,10 +6,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 
-module DynamicBuiltins.OnEach
-    ( dynamicOnEachName
-    , dynamicOnEachAssign
-    , dynamicOnEach
+module DynamicBuiltins.Call
+    ( dynamicCallName
+    , dynamicCallAssign
+    , dynamicCall
     ) where
 
 import           Language.PlutusCore
@@ -17,17 +17,17 @@ import           Language.PlutusCore.Constant
 
 import           System.IO.Unsafe
 
-dynamicOnEachName :: DynamicBuiltinName
-dynamicOnEachName = DynamicBuiltinName "onEach"
+dynamicCallName :: DynamicBuiltinName
+dynamicCallName = DynamicBuiltinName "onEach"
 
-dynamicOnEachAssign
+dynamicCallAssign
     :: (forall size. TypedBuiltin size a) -> (a -> IO ()) -> DynamicBuiltinNameDefinition
-dynamicOnEachAssign tb f =
-    DynamicBuiltinNameDefinition dynamicOnEachName $ DynamicBuiltinNameMeaning sch sem where
+dynamicCallAssign tb f =
+    DynamicBuiltinNameDefinition dynamicCallName $ DynamicBuiltinNameMeaning sch sem where
         sch =
             TypeSchemeBuiltin tb `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 1) TypedBuiltinSizedSize)  -- Hacky-hacky.
         sem = unsafePerformIO . f
 
-dynamicOnEach :: Term tyname name ()
-dynamicOnEach = dynamicBuiltinNameAsTerm dynamicOnEachName
+dynamicCall :: Term tyname name ()
+dynamicCall = dynamicBuiltinNameAsTerm dynamicCallName

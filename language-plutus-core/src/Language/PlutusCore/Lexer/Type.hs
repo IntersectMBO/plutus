@@ -229,6 +229,7 @@ instance Pretty BuiltinName where
     pretty BlockNum             = "blocknum"
     pretty SizeOfInteger        = "sizeOfInteger"
 
+-- TODO: we should indicate the two things below are special during pretty-printing.
 instance Pretty DynamicBuiltinType where
     pretty (DynamicBuiltinType n) = pretty n
 

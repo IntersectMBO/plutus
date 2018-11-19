@@ -5,6 +5,7 @@
 module Language.PlutusCore.Constant.DynamicType
     ( KnownDynamicBuiltinType (..)
     , PrettyDynamic (..)
+    , dynamicBuiltinTypeAsType
     ) where
 
 import           Language.PlutusCore.Lexer.Type
@@ -88,3 +89,7 @@ instance PrettyDynamic Integer
 instance PrettyDynamic BSL.ByteString where prettyDynamic = prettyBytes
 instance PrettyDynamic ()
 instance PrettyDynamic Bool
+
+-- | Get a 'DynamicBuiltinType' via 'dynamicBuiltinType' and wrap it to 'Type'.
+dynamicBuiltinTypeAsType :: KnownDynamicBuiltinType dyn => proxy dyn -> Type tyname ()
+dynamicBuiltinTypeAsType = TyBuiltin () . DynBuiltinType . dynamicBuiltinType

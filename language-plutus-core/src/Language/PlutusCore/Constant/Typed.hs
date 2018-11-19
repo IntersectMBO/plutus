@@ -318,8 +318,7 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
-typedBuiltinToType dyn@TypedBuiltinDyn        =
-    pure . TyBuiltin () . DynBuiltinType $ dynamicBuiltinType dyn
+typedBuiltinToType dyn@TypedBuiltinDyn        = pure $ dynamicBuiltinTypeAsType dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

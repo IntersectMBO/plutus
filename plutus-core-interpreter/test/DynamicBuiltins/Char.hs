@@ -7,7 +7,7 @@
 {-# LANGUAGE RankNTypes        #-}
 
 module DynamicBuiltins.Char
-    ( test_onEachChar
+    ( test_collectChars
     ) where
 
 import           Language.PlutusCore
@@ -15,7 +15,7 @@ import           Language.PlutusCore.Constant
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
-import           DynamicBuiltins.OnEach
+import           DynamicBuiltins.Call
 
 import           Control.Exception                          (evaluate)
 import           Control.Monad                              (replicateM)
@@ -32,7 +32,7 @@ import           Test.Tasty.Hedgehog
 instance KnownDynamicBuiltinType Char where
     dynamicBuiltinType _ = DynamicBuiltinType "char"
 
-    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
+    makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
 
     readDynamicBuiltin (Constant () (BuiltinInt () 4 int)) = Just . chr $ fromIntegral int
     readDynamicBuiltin _                                   = Nothing
@@ -45,15 +45,15 @@ instance PrettyDynamic Char
 -- that you got the exact same sequence of 'Char's that was originally generated.
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only handle
 -- pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
-test_onEachChar :: TestTree
-test_onEachChar = testProperty "collect chars" . property $ do
+test_collectChars :: TestTree
+test_collectChars = testProperty "collect chars" . property $ do
     len <- forAll . Gen.integral $ Range.linear 0 20
     charsVar <- liftIO $ newIORef []
     chars <- replicateM len $ do
         char <- forAll Gen.unicode
-        let onEachChar = dynamicOnEachAssign TypedBuiltinDyn $ \c -> modifyIORef' charsVar (c :)
-            env        = insertDynamicBuiltinNameDefinition onEachChar mempty
-            term       = Apply () dynamicOnEach $ unsafeMakeDynamicBuiltin char
+        let collectChar = dynamicCallAssign TypedBuiltinDyn $ \c -> modifyIORef' charsVar (c :)
+            env         = insertDynamicBuiltinNameDefinition collectChar mempty
+            term        = Apply () dynamicCall . runQuote $ unsafeMakeDynamicBuiltin char
         _ <- liftIO . evaluate $ evaluateCek env term
         return char
     chars' <- liftIO $ reverse <$> readIORef charsVar
