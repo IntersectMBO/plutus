@@ -39,6 +39,14 @@ Since type classes are globally coherent by design, we also have global coherenc
 types for free. Any dynamic built-in type means the same thing regardless of the blockchain it's
 added to. It may prove to be restrictive, but it's a good property to start with, because less things
 can silently stab you in the back.
+
+Values of dynamic built-in types are constructed by 'makeDynamicBuiltin' in PLC and
+by 'readDynamicBuiltin' in Haskell. The functions are ought to constitute an isomorphism
+(modulo 'Quote' and 'Maybe'). An @KnownDynamicBuiltinType dyn@ instance provides
+
+1. a way to encode @dyn@ as a PLC type ('getTypeEncoding')
+2. a function that encodes values of type @dyn@ as PLC terms ('makeDynamicBuiltin')
+3. a function that decodes PLC terms back to Haskell values ('readDynamicBuiltin')
 -}
 
 -- See Note [Semantics of dynamic built-in types].

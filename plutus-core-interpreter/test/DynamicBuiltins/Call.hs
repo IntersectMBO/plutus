@@ -1,5 +1,5 @@
--- | A dynamic built-in name that allows to call an arbitrary 'IO' action over a
--- PLC value of a built-in type (including dynamic built-in types).
+-- | A dynamic built-in name that allows to call arbitrary 'IO' actions over
+-- PLC values of a built-in types (including dynamic built-in types).
 
 {-# LANGUAGE RankNTypes #-}
 

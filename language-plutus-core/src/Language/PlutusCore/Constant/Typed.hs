@@ -150,6 +150,9 @@ data BuiltinType size
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
+    -- Any type that implements 'KnownDynamicBuiltinType' can be lifted to a 'TypedBuiltin',
+    -- because any such type has a PLC representation and provides conversions back and forth
+    -- between Haskell and PLC and that's all we need.
     TypedBuiltinDyn   :: KnownDynamicBuiltinType dyn => TypedBuiltin size dyn
 
 -- | A 'TypedBuiltin' packaged together with a value of the type that the 'TypedBuiltin' denotes.
@@ -241,12 +244,16 @@ instance GEq TypedBuiltinSized where
     TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
     _                     `geq` _                     = Nothing
 
+comparedDynamicBuiltinTypesError :: a
+comparedDynamicBuiltinTypesError = error "Dynamic built-in types cannot be compared"
+
 instance Eq size => GEq (TypedBuiltin size) where
     TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
         guard $ size1 == size2
         tbs1 `geq` tbs2
     TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
-    -- A typed built-in is not equal to itself. TODO: do something about it.
+    TypedBuiltinDyn              `geq` _                            = comparedDynamicBuiltinTypesError
+    _                            `geq` TypedBuiltinDyn              = comparedDynamicBuiltinTypesError
     _                            `geq` _                            = Nothing
 
 instance Ord size => GCompare (TypedBuiltin size) where
@@ -260,8 +267,8 @@ instance Ord size => GCompare (TypedBuiltin size) where
     TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
     TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
     TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
-    _                            `gcompare` _                     =
-        error "Do not use me for comparing dynamic built-ins"
+    TypedBuiltinDyn              `gcompare` _                     = comparedDynamicBuiltinTypesError
+    _                            `gcompare` TypedBuiltinDyn       = comparedDynamicBuiltinTypesError
 
 -- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized

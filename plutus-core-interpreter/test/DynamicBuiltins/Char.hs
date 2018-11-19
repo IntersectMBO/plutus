@@ -37,9 +37,9 @@ instance PrettyDynamic Char
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
--- the contents of an external 'IORef' and assemble all the resulting terms together into a single term
+-- the contents of an external 'IORef' and assemble all the resulting terms together in a single term
 -- where all characters are passed to lambdas and ignored, so that only 'unitval' is returned in the end.
--- After evaluation of the CEK machine finished, read the 'IORef' and check that you got the exact same
+-- After evaluation of the CEK machine finishes, read the 'IORef' and check that you got the exact same
 -- sequence of 'Char's that was originally generated.
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only handle
 -- pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
