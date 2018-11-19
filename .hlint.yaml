@@ -1,6 +1,6 @@
 ---
 - functions:
-  - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, DynamicBuiltins.Char, Language.Plutus.CoreToPLC.Plugin]}
+  - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, DynamicBuiltins.OnEach, Language.Plutus.CoreToPLC.Plugin]}
   - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Constant.Typed, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.Utils, Language.PlutusCore.Constant.Make, DynamicBuiltins.Char, Language.PlutusCore.TH, Language.Plutus.CoreToPLC.Utils, Language.PlutusIR.Compiler.Datatype]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.Plutus.Lift]}
   - {name: fromJust, within: [Language.Plutus.Lift]}

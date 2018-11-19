@@ -6,6 +6,7 @@ module DynamicBuiltins.Common
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+
 import           Language.PlutusCore.Interpreter.CekMachine
 
 import           Control.Monad.Except
