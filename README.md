@@ -10,7 +10,7 @@ For example:
 nix build -f default.nix localPackages.language-plutus-core
 ```
 
-The Plutus Core specification is also built this way, as the attribute `plutus-core-spec`.
+The Plutus Core specification is also built this way, as the attribute `docs.plutus-core-spec`.
 
 ### Binary caches
 

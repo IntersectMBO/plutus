@@ -22,10 +22,11 @@ let
   pkgs = import fixedNixpkgs { config = {}; };
   shellEnv = import ./shell.nix { };
   haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
+  # don't need to build the docs on anything other than one platform
+  docs = map (name: lib.nameValuePair name [ "x86_64-linux" ]) (builtins.attrNames plutusPkgs.docs);
   platforms = {
     inherit haskellPackages;
-    # don't need to build the spec on anything other than one platform
-    plutus-core-spec = [ "x86_64-linux" ];
+    inherit docs;
   };
   mapped = mapTestOn platforms;
   makePlutusTestRuns = system:
