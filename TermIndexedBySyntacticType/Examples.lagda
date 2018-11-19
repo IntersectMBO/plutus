@@ -259,7 +259,7 @@ module Scott1 where
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
   M : ∀{Γ} → Γ ⊢⋆ *
-  M {Γ} = μ1 {K = *} · ƛ (ƛ (ƛ G · (` (S Z) · ` Z))) · unit
+  M {Γ} = μ0' · ƛ G
 
   N : ∀{Γ} → Γ ⊢⋆ *
   N  =  G ⋆.[ M ]
@@ -267,9 +267,13 @@ module Scott1 where
   Zero : ∀{Γ} → Γ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
 
+  -- succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
+  -- : N → N
+
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ {!`!}))) -- ƛ (Λ (ƛ (ƛ (` Z · wrap0 (` (S (S (T Z)))) ?))))
-{-  
+  Succ = ƛ (Λ (ƛ (ƛ
+    (` Z · (wrap0' (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
+
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
   
@@ -281,7 +285,7 @@ module Scott1 where
 
   Four : ∅ ⊢ N
   Four = Succ · Three
-
+{-
   case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
   case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
