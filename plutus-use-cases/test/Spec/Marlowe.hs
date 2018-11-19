@@ -60,7 +60,7 @@ simplePayment = checkMarloweTrace (MarloweScenario {
         bob = Wallet 2
         update = blockchainActions >>= walletsNotifyBlock [alice, bob]
     update
-    [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) 100 128 256) 12)
+    [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256) 12)
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
@@ -94,7 +94,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
         bob = Wallet 2
         update = blockchainActions >>= walletsNotifyBlock [alice, bob]
     update
-    [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) 100 128 256) 12)
+    [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256) 12)
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
@@ -118,7 +118,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
         update = blockchainActions >>= walletsNotifyBlock [alice, bob]
         identCC = (IdentCC 1)
     update
-    [tx] <- walletAction alice (createContract (CommitCash identCC (PubKey 2) 100 128 256) 12)
+    [tx] <- walletAction alice (createContract (CommitCash identCC (PubKey 2) (Value 100) 128 256) 12)
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
