@@ -121,7 +121,7 @@ eventTrace = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    BlockchainAction $ \_ _ -> void $ payToPubKey 100 (PubKey 2)
+                    EventHandler $ \_ -> void $ payToPubKey 100 (PubKey 2)
                 trigger = blockHeightT (GEQ 3)
 
             -- schedule the `mkPayment` action to run when block height 3 is
@@ -146,7 +146,7 @@ watchFundsAtAddress = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    BlockchainAction $ \_ _ -> void $ payToPubKey 100 (PubKey 2)
+                    EventHandler $ \_ -> void $ payToPubKey 100 (PubKey 2)
                 t1 = blockHeightT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<

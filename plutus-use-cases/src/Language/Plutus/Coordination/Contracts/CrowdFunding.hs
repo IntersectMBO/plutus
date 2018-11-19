@@ -39,7 +39,7 @@ import           Language.Plutus.Runtime    (Height (..), PendingTx (..), Pendin
                                              ValidatorHash, Value (..))
 import           Language.Plutus.TH         (plutus)
 import qualified Language.Plutus.TH         as Builtins
-import           Wallet.API                 (BlockchainAction (..), EventTrigger (..), Range (..), WalletAPI (..),
+import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                              WalletAPIError, andT, blockHeightT, fundsAtAddressT, otherError,
                                              ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxId', Validator (..), scriptTxIn)
@@ -87,10 +87,11 @@ contribute cmp value = do
 
     register (refundTrigger cmp) (refund (UTXO.hashTx tx) cmp)
 
--- | Register a [[BlockchainAction]] to collect all the funds of a campaign
+-- | Register a [[EventHandler]] to collect all the funds of a campaign
 --
 collect :: (Monad m, WalletAPI m) => Campaign -> m ()
-collect cmp = register (collectFundsTrigger cmp) $ BlockchainAction $ \_ am -> do
+collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
+        am <- watchedAddresses
         let scr        = contributionScript cmp
             contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
             red        = UTXO.Redeemer $ UTXO.lifted Collect
@@ -197,8 +198,9 @@ collectFundsTrigger c = andT
     (blockHeightT $ fromIntegral . getHeight <$> Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
 -- | Claim a refund of our campaign contribution
-refund :: (Monad m, WalletAPI m) => TxId' -> Campaign -> BlockchainAction m
-refund txid cmp = BlockchainAction $ \_ am -> do
+refund :: (Monad m, WalletAPI m) => TxId' -> Campaign -> EventHandler m
+refund txid cmp = EventHandler $ \_ -> do
+    am <- watchedAddresses
     let adr     = campaignAddress cmp
         utxo    = fromMaybe Map.empty $ am ^. at adr
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == UTXO.txOutRefId k) utxo

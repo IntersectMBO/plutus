@@ -70,8 +70,9 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Wallet.API                 (BlockchainAction (..), EventTrigger (..), KeyPair (..), WalletAPI (..),
-                                             WalletAPIError (..), addresses, checkTrigger, keyPair, pubKey, signature)
+import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
+                                             WalletAPIError (..), addresses, annTruthValue, getAnnot, keyPair, pubKey,
+                                             signature)
 import qualified Wallet.Emulator.AddressMap as AM
 import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxOutRef', Value, height,
                                              pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
@@ -96,7 +97,7 @@ data WalletState = WalletState {
     -- ^  Height of the blockchain as far as the wallet is concerned
     walletStateWatchedAddresses :: AM.AddressMap,
     -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
-    walletStateTriggers         :: Map EventTrigger (BlockchainAction EmulatedWalletApi)
+    walletStateTriggers         :: Map EventTrigger (EventHandler EmulatedWalletApi)
     }
 
 instance Show WalletState where
@@ -120,8 +121,8 @@ ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
 
-blockHeight :: Lens' WalletState Height
-blockHeight = lens g s where
+walletBlockHeight :: Lens' WalletState Height
+walletBlockHeight = lens g s where
     g = walletStateBlockHeight
     s ws bh = ws { walletStateBlockHeight = bh }
 
@@ -130,7 +131,7 @@ addressMap = lens g s where
     g = walletStateWatchedAddresses
     s ws oa = ws { walletStateWatchedAddresses = oa }
 
-triggers :: Lens' WalletState (Map EventTrigger (BlockchainAction EmulatedWalletApi))
+triggers :: Lens' WalletState (Map EventTrigger (EventHandler EmulatedWalletApi))
 triggers = lens g s where
     g = walletStateTriggers
     s ws tr = ws { walletStateTriggers = tr }
@@ -150,24 +151,25 @@ newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (Excep
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
     updateState = \case
-            BlockHeight h -> modify (blockHeight .~ h)
-            BlockValidated blck -> mapM_ (modify . update) blck >> modify (blockHeight %~ succ)
+            BlockHeight h -> modify (walletBlockHeight .~ h)
+            BlockValidated blck -> mapM_ (modify . update) blck >> modify (walletBlockHeight %~ succ)
 
     runTriggers _ = do
-        h <- gets (view blockHeight)
+        h <- gets (view walletBlockHeight)
         adrs <- gets (view addressMap)
         trg <- gets (view triggers)
 
         let values = AM.values adrs
+            annotate = annTruthValue h values
 
-        -- run a blockchain action with the unspent outputs that
-        -- are relevant to its trigger condition
-        let runTrigger trigger action =
-                runBlockchainAction action h (AM.restrict adrs (Set.fromList $ addresses trigger))
+        let runIfTrue annotTr action =
+                if getAnnot annotTr -- get the top-level annotation (just like `checkTrigger`, but here we need to hold on to the `annotTr` value to pass it to the handler)
+                then runEventHandler action annotTr
+                else pure ()
 
-        traverse_ (uncurry runTrigger)
-            $ filter (checkTrigger h values . fst)
-            $ Map.toList trg
+        traverse_ (uncurry runIfTrue)
+            $ first annotate
+            <$> Map.toList trg
 
     -- | Remove spent outputs and add unspent ones, for the addresses that we care about
     update t = over addressMap (AM.updateAddresses t)
@@ -204,6 +206,10 @@ instance WalletAPI EmulatedWalletApi where
     register tr action =
         modify (over triggers (Map.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
+
+    watchedAddresses = gets walletStateWatchedAddresses
+
+    blockHeight = gets walletStateBlockHeight
 
 -- Emulator code
 
@@ -277,7 +283,7 @@ txPool = lens g s where
 walletStates :: Lens' EmulatorState  (Map Wallet WalletState)
 walletStates = lens g s where
     g = emWalletState
-    s es ws = es { emWalletState = ws }
+    s es ws  = es { emWalletState = ws }
 
 index :: Lens' EmulatorState Index.UtxoIndex
 index = lens g s where

@@ -1,5 +1,7 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TypeFamilies       #-}
 module Wallet.Emulator.AddressMap(
     AddressMap(..),
     addAddress,
@@ -11,20 +13,49 @@ module Wallet.Emulator.AddressMap(
     restrict
     ) where
 
-import           Control.Lens   (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
-import           Data.Map       (Map)
-import qualified Data.Map       as Map
-import           Data.Maybe     (mapMaybe)
-import           Data.Monoid    (Monoid (..), Sum (..))
-import           Data.Semigroup (Semigroup (..))
-import qualified Data.Set       as Set
+import qualified Codec.CBOR.Write       as Write
+import           Codec.Serialise        (deserialiseOrFail)
+import           Codec.Serialise.Class  (Serialise, encode)
+import           Control.Lens           (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
+import           Data.Aeson             (FromJSON (..), ToJSON (..), withText)
+import qualified Data.Aeson             as JSON
+import           Data.Bifunctor         (first)
+import qualified Data.ByteString.Base64 as Base64
+import qualified Data.ByteString.Lazy   as BSL
+import           Data.Map               (Map)
+import qualified Data.Map               as Map
+import           Data.Maybe             (mapMaybe)
+import           Data.Monoid            (Monoid (..), Sum (..))
+import           Data.Semigroup         (Semigroup (..))
+import qualified Data.Set               as Set
+import qualified Data.Text.Encoding     as TE
+import           GHC.Generics           (Generic)
 
-import           Wallet.UTXO    (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef', Value,
-                                 hashTx)
+import           Wallet.UTXO            (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef',
+                                         Value, hashTx)
 
 -- | A map of [[Address']]es and their unspent outputs
 newtype AddressMap = AddressMap { getAddressMap :: Map Address' (Map TxOutRef' Value) }
     deriving Show
+    deriving stock (Generic)
+    deriving newtype (Serialise)
+
+-- NB: The ToJSON and FromJSON instance for AddressMap use the `Serialise`
+-- instance with a base64 encoding, similar to the instances in Types.hs.
+-- I chose this approach over the generic deriving mechanism because that would
+-- have required `ToJSONKey` and `FromJSONKey` instances for `Address'` and
+-- `TxOutRef'` which ultimately would have introduced more boilerplate code
+-- than what we have here.
+
+instance ToJSON AddressMap where
+    toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . Write.toStrictByteString . encode
+
+instance FromJSON AddressMap where
+    parseJSON = withText "AddressMap" $ \s -> do
+        let ev = do
+                eun64 <- Base64.decode . TE.encodeUtf8 $ s
+                first show $ deserialiseOrFail $ BSL.fromStrict eun64
+        either fail pure ev
 
 instance Semigroup AddressMap where
     (AddressMap l) <> (AddressMap r) = AddressMap (Map.unionWith add l r) where
