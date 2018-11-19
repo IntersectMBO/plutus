@@ -57,6 +57,7 @@ data RenderContext = RenderContext
 data PrettyConfigReadable configName = PrettyConfigReadable
     { _pcrConfigName    :: configName
     , _pcrRenderContext :: RenderContext
+    , _pcrShowKinds     :: Bool
     }
 
 instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigReadable configName) where
@@ -94,11 +95,11 @@ topApp :: Fixity
 topApp = Fixity 13 NonAssociative
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'topApp'.
-topPrettyConfigReadable :: configName -> PrettyConfigReadable configName
+topPrettyConfigReadable :: configName -> Bool -> PrettyConfigReadable configName
 topPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext topApp Forward
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'botApp'.
-botPrettyConfigReadable :: configName -> PrettyConfigReadable configName
+botPrettyConfigReadable :: configName -> Bool -> PrettyConfigReadable configName
 botPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext botApp Forward
 
 -- | Set the 'RenderContext' of a 'PrettyConfigReadable'.
@@ -204,6 +205,14 @@ arrowDoc
 arrowDoc config a b =
     compoundDoc config arrowApp $ \arrLeft arrRight -> arrLeft a <+> "->" <+> arrRight b
 
+prettyTypeBinding
+    :: PrettyReadableBy configName (tyname a)
+    => PrettyConfigReadable configName -> tyname a -> Kind a -> Doc ann
+prettyTypeBinding config name kind
+    | _pcrShowKinds config = parens $ prName <+> "::" <+> prettyInBotBy config kind
+    | otherwise            = prName
+    where prName = prettyBy config name
+
 instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
     prettyBy config = \case
         Type{}          -> unitaryDoc config "*"
@@ -231,16 +240,15 @@ instance PrettyReadableBy configName (tyname a) =>
         TyIFix _ pat arg        -> compoundDoc @_ @(Type tyname a) config juxtApp $ \_ juxtRight ->
             "ifix" <+> inMiddle pat <+> juxtRight arg
         TyForall _ name kind ty -> bind $ \bindBody ->
-            "all" <+> parens (prettyName name <+> "::" <+> inBot kind) <> "." <+> bindBody ty
+            "all" <+> prettyTypeBinding config name kind <> "." <+> bindBody ty
         TyBuiltin _ builtin     -> unit $ pretty builtin
         TyInt _ size            -> unit $ pretty size
         TyLam _ name kind ty    -> bind $ \bindBody ->
-            "\\" <> parens (prettyName name <+> "::" <+> inBot kind) <+> "->" <+> bindBody ty
+            "\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody ty
       where
         prettyName = prettyBy config
         unit = unitaryDoc config
         bind = binderDoc  config
-        inBot = prettyInBotBy config
         inMiddle = prettyInMiddleBy config
 
 instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (name a)) =>
@@ -251,7 +259,7 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
         Apply _ fun arg        -> applicationDoc config fun arg
         Var _ name             -> unit $ prettyName name
         TyAbs _ name kind body -> bind $ \bindBody ->
-            "/\\" <> parens (prettyName name <+> "::" <+> inBot kind) <+> "->" <+> bindBody body
+            "/\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody body
         TyInst _ fun ty        -> comp juxtApp $ \juxtLeft _ -> juxtLeft fun <+> inBraces ty
         LamAbs _ name ty body  -> bind $ \bindBody ->
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
@@ -260,14 +268,11 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
             "wrap" <+> inMiddle pat <+> inMiddle arg <+> juxtRight term
         Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
-        -- Annoyingly, @TypeFamilies@ break type inference.
-        prettyName :: PrettyReadableBy configName n => n -> Doc ann
         prettyName = prettyBy config
         unit = unitaryDoc  config
         bind = binderDoc   config
         comp = compoundDoc config
-        inBot :: PrettyReadableBy configName b => b -> Doc ann
-        inBot = prettyInBotBy config
+        inBot    = prettyInBotBy config
         inMiddle = prettyInMiddleBy config
         inBraces = enclose "{" "}" . inBot
 

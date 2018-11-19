@@ -106,13 +106,13 @@ debugPrettyConfigPlcClassic opts =
 -- use the refined view and print neither 'Unique's, nor name attachments.
 defPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
 defPrettyConfigPlcReadable opts =
-    PrettyConfigPlc opts . PrettyConfigPlcReadable $ topPrettyConfigReadable defPrettyConfigName
+    PrettyConfigPlc opts . PrettyConfigPlcReadable $ topPrettyConfigReadable defPrettyConfigName True
 
 -- | The 'PrettyConfigPlc' used for debugging and readability:
 -- use the refined view and print 'Unique's, but not name attachments.
 debugPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
 debugPrettyConfigPlcReadable opts =
-    PrettyConfigPlc opts . PrettyConfigPlcReadable $ topPrettyConfigReadable debugPrettyConfigName
+    PrettyConfigPlc opts . PrettyConfigPlcReadable $ topPrettyConfigReadable debugPrettyConfigName True
 
 -- | Pretty-print a value in the default mode using the classic view.
 prettyPlcClassicDef :: PrettyPlc a => a -> Doc ann

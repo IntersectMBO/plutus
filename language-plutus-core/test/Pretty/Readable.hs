@@ -12,7 +12,7 @@ prettyConfigReadable :: PrettyConfigPlc
 prettyConfigReadable
     = PrettyConfigPlc defPrettyConfigPlcOptions
     . PrettyConfigPlcReadable
-    $ botPrettyConfigReadable defPrettyConfigName
+    $ botPrettyConfigReadable defPrettyConfigName True
 
 testReadable :: PrettyPlc a => TestName -> Quote a -> TestNested
 testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable . runQuote

@@ -156,7 +156,7 @@ getBuiltinForest = do
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
 getBuiltinTreeNode :: Quote (Term TyName Name ())
-getBuiltinTreeNode = rename =<< do
+getBuiltinTreeNode = normalizeTypesIn =<< rename =<< do
     RecursiveType _      wrapTree <- getBuiltinTree
     RecursiveType forest _        <- getBuiltinForest
     a  <- freshTyName () "a"
@@ -183,7 +183,7 @@ getBuiltinTreeNode = rename =<< do
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
 getBuiltinForestNil :: Quote (Term TyName Name ())
-getBuiltinForestNil = rename =<< do
+getBuiltinForestNil = normalizeTypesIn =<< rename =<< do
     RecursiveType tree   _          <- getBuiltinTree
     RecursiveType forest wrapForest <- getBuiltinForest
     a <- freshTyName () "a"
@@ -207,7 +207,7 @@ getBuiltinForestNil = rename =<< do
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
 getBuiltinForestCons :: Quote (Term TyName Name ())
-getBuiltinForestCons = rename =<< do
+getBuiltinForestCons = normalizeTypesIn =<< rename =<< do
     RecursiveType tree   _          <- getBuiltinTree
     RecursiveType forest wrapForest <- getBuiltinForest
     a  <- freshTyName () "a"
