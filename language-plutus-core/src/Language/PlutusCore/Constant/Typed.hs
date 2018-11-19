@@ -65,6 +65,7 @@ module Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Constant.DynamicType
 import           Language.PlutusCore.Lexer.Type           hiding (name)
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
@@ -218,7 +219,9 @@ instance Pretty size => Pretty (SizeEntry size) where
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
     pretty TypedBuiltinBool           = "bool"
-    pretty dyn@TypedBuiltinDyn        = pretty $ dynamicBuiltinType dyn
+    -- Do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
+    -- This is just used in errors, so we probably do not care much.
+    pretty dyn@TypedBuiltinDyn        = prettyPlcDef . runQuote $ getTypeEncoding dyn
 
 instance (size ~ Size, PrettyDynamic a) => Pretty (TypedBuiltinValue size a) where
     pretty (TypedBuiltinValue (TypedBuiltinSized se _) x) = pretty se <+> "!" <+> prettyDynamic x
@@ -318,7 +321,7 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
-typedBuiltinToType dyn@TypedBuiltinDyn        = pure $ dynamicBuiltinTypeAsType dyn
+typedBuiltinToType dyn@TypedBuiltinDyn        = getTypeEncoding dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

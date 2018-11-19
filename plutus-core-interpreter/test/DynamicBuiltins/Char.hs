@@ -18,7 +18,6 @@ import           DynamicBuiltins.Common
 
 import           Control.Monad.IO.Class               (liftIO)
 import           Data.Char
-import           Data.Proxy
 import           Hedgehog                             hiding (Size, Var)
 import qualified Hedgehog.Gen                         as Gen
 import qualified Hedgehog.Range                       as Range
@@ -27,15 +26,12 @@ import           Test.Tasty.Hedgehog
 
 -- Encode 'Char' from Haskell as @integer 4@ from PLC.
 instance KnownDynamicBuiltinType Char where
-    dynamicBuiltinType _ = DynamicBuiltinType "char"
+    getTypeEncoding _ = return $ TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
 
     makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
 
     readDynamicBuiltin (Constant () (BuiltinInt () 4 int)) = Just . chr $ fromIntegral int
     readDynamicBuiltin _                                   = Nothing
-
-builtinChar :: Type tyname ()
-builtinChar = dynamicBuiltinTypeAsType (Proxy :: Proxy Char)
 
 instance PrettyDynamic Char
 
@@ -52,19 +48,20 @@ test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
     (str', errOrRes) <- liftIO . withEmitTypecheckEvaluate TypedBuiltinDyn $ \emit ->
         runQuote $ do
-            chars <- traverse unsafeMakeDynamicBuiltin str
-            unit    <- getBuiltinUnit
-            unitval <- getBuiltinUnitval
+            unit        <- getBuiltinUnit
+            unitval     <- getBuiltinUnitval
             ignore <- do
                 x <- freshName () "x"
                 y <- freshName () "y"
                 return
-                    . LamAbs () x builtinChar
+                    . LamAbs () x (TyApp () (TyBuiltin () TySize) (TyInt () 1))
                     . LamAbs () y unit
                     $ Var () y
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
+            chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
     case errOrRes of
-        Left err -> error $ prettyPlcDefString err
-        Right _  -> return ()
+        Left err                    -> error $ prettyPlcDefString err
+        Right EvaluationFailure     -> error "failure"
+        Right (EvaluationSuccess _) -> return ()
     str === str'

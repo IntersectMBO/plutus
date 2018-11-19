@@ -42,5 +42,6 @@ withEmitTypecheckEvaluate
 withEmitTypecheckEvaluate tb toTerm =
     withEmit $ \emit ->
         let name = DynamicBuiltinName "emit"
-            env = insertDynamicBuiltinNameDefinition (dynamicCallAssign tb name emit) mempty
-            in evaluate . runQuote . runExceptT . typecheckEvaluate env . toTerm $ dynamicCall name
+            env  = insertDynamicBuiltinNameDefinition (dynamicCallAssign tb name emit) mempty
+            term = toTerm $ dynamicCall name
+            in traverse evaluate . runQuote . runExceptT $ typecheckEvaluate env term

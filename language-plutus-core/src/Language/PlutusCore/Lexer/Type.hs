@@ -3,7 +3,6 @@
 {-# LANGUAGE OverloadedStrings  #-}
 
 module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
-                                      , DynamicBuiltinType (..)
                                       , DynamicBuiltinName (..)
                                       , StagedBuiltinName (..)
                                       , Version (..)
@@ -29,7 +28,6 @@ import           Numeric                            (showHex)
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
-                 | DynBuiltinType DynamicBuiltinType
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
@@ -90,14 +88,6 @@ which has the desired type signature:
 
     succInteger : forall s. integer s -> integer s
 -}
-
--- | The type of dynamic built-in types. I.e. types that exist on certain chains and do
--- not exist on others. Each 'DynamicBuiltinType' is of kind @*@,
--- i.e. you can have @list bool@, but not @list@.
-newtype DynamicBuiltinType = DynamicBuiltinType
-    { unDynamicBuiltinType :: T.Text  -- ^ The name of a dynamic built-in type.
-    } deriving (Show, Eq, Ord, Generic)
-      deriving newtype (NFData, Lift)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -229,10 +219,6 @@ instance Pretty BuiltinName where
     pretty BlockNum             = "blocknum"
     pretty SizeOfInteger        = "sizeOfInteger"
 
--- TODO: we should indicate the two things below are special during pretty-printing.
-instance Pretty DynamicBuiltinType where
-    pretty (DynamicBuiltinType n) = pretty n
-
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
 
@@ -241,10 +227,9 @@ instance Pretty StagedBuiltinName where
     pretty (DynamicStagedBuiltinName n) = pretty n
 
 instance Pretty TypeBuiltin where
-    pretty TyInteger                                = "integer"
-    pretty TyByteString                             = "bytestring"
-    pretty TySize                                   = "size"
-    pretty (DynBuiltinType (DynamicBuiltinType ty)) = pretty ty
+    pretty TyInteger    = "integer"
+    pretty TyByteString = "bytestring"
+    pretty TySize       = "size"
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

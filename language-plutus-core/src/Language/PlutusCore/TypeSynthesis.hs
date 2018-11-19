@@ -65,10 +65,9 @@ sizeToType = KindArrow () (Size ()) (Type ())
 
 -- | Get the 'Kind' of a 'TypeBuiltin'.
 kindOfTypeBuiltin :: TypeBuiltin -> Kind ()
-kindOfTypeBuiltin TyInteger          = sizeToType
-kindOfTypeBuiltin TyByteString       = sizeToType
-kindOfTypeBuiltin TySize             = sizeToType
-kindOfTypeBuiltin (DynBuiltinType _) = Type ()
+kindOfTypeBuiltin TyInteger    = sizeToType
+kindOfTypeBuiltin TyByteString = sizeToType
+kindOfTypeBuiltin TySize       = sizeToType
 
 -- | Annotate a 'Type'. Invariant: the type must be in normal form. The invariant is not checked.
 -- In case a type is open, an 'OpenTypeOfBuiltin' is returned.

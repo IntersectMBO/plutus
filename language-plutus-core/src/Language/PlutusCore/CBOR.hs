@@ -39,16 +39,14 @@ for testing.
 
 instance Serialise TypeBuiltin where
     encode bi = case bi of
-        TyByteString      -> encodeTag 0
-        TyInteger         -> encodeTag 1
-        TySize            -> encodeTag 2
-        DynBuiltinType ty -> encodeTag 3 <> encode ty
+        TyByteString -> encodeTag 0
+        TyInteger    -> encodeTag 1
+        TySize       -> encodeTag 2
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
               go 2 = pure TySize
-              go 3 = DynBuiltinType <$> decode
               go _ = fail "Failed to decode TypeBuiltin"
 
 instance Serialise BuiltinName where
@@ -159,10 +157,6 @@ instance (Serialise a, Serialise (tyname a)) => Serialise (Type tyname a) where
               go 6 = TyLam <$> decode <*> decode <*> decode <*> decode
               go 7 = TyApp <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
-
-instance Serialise DynamicBuiltinType where
-    encode (DynamicBuiltinType ty) = encode ty
-    decode = DynamicBuiltinType <$> decode
 
 instance Serialise DynamicBuiltinName where
     encode (DynamicBuiltinName name) = encode name
