@@ -40,10 +40,26 @@
         \UnaryInfC{\(\typeStep{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
     \end{prooftree}
 
-
-
     \caption{Type Reduction via Contextual Dynamics}
     \label{fig:Plutus_core_type_reduction}
+\end{figure*}
+
+
+
+\begin{figure*}[t]
+	\judgmentdef{\(A = A'\)}{Type $A$ is equal to type $A'$}
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeMultistep{A}{S}\)}
+		\AxiomC{\(\typeMultistep{A'}{S'}\)}
+		\AxiomC{\(S \equiv S'\)}
+		\TrinaryInfC{\(A = A'\)}
+	\end{prooftree}
+	
+	\judgmentdef{\(A \equiv A'\)}{Type $A$ is syntactically identical to type $A'$ modulo $\alpha$ conversion. (Inductive definition omitted.)}
+	
+	\caption{Type Equality and Equivalence}
+	\label{fig:Plutus_core_type_equality_and_equivalence}
 \end{figure*}
 
 
@@ -61,7 +77,7 @@
                        %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
                        &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
                        &   &     & \inAppRightFrame{V}                     & \textrm{right app}\\
-                       &   &     & \inBuiltin{bn}{A*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
     \end{array}\]
     \caption{Grammar of Reduction Frames}
     \label{fig:Plutus_core_reduction_frames}
