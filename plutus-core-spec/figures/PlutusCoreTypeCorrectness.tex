@@ -92,10 +92,9 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{K}}\)}
-        \AxiomC{\(\kindEqual{K}{\typeK{}}\)}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{tyfix}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
