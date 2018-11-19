@@ -55592,6 +55592,7 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , bytestring
+, cborg
 , containers
 , language-plutus-core
 , microlens
@@ -55613,6 +55614,7 @@ src = ./../plutus-ir;
 libraryHaskellDepends = [
 base
 bytestring
+cborg
 containers
 language-plutus-core
 microlens

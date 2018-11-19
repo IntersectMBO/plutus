@@ -1,11 +1,12 @@
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# OPTIONS_GHC -Wno-orphans       #-}
+{-# OPTIONS_GHC -Wno-orphans -ddump-deriv      #-}
 module Language.PlutusIR (
     TyName (..),
     Name (..),
@@ -17,47 +18,108 @@ module Language.PlutusIR (
     Recursivity (..),
     Binding (..),
     Term (..),
+    BindingList (..),
+    PirCode (..),
     prettyDef,
     embedIntoIR,
     packPir,
     serializePirTerm,
-    deserializePirTerm
+    deserializePirTerm,
     ) where
 
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type)
+import           Language.PlutusCore        (Kind, Name, TyName, Type(..))
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
+import qualified Language.PlutusCore.StdLib.Meta as Meta
 
 import           Codec.Serialise           -- (Serialise, serialise)
+import           Codec.CBOR.Encoding
+import           Codec.CBOR.Decoding
+import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BSL
+
 
 import           GHC.Generics               (Generic)
 
+
+basic2 :: Term TyName Name ()
+basic2 = PLC.runQuote $ do
+    a <- PLC.freshTyName () "a"
+    x <- PLC.freshName () "x"
+    pure $
+        Unwrap () $
+        TyAbs () a (PLC.Type ()) $
+        LamAbs () x (TyVar () a) $
+        Var () x
+simpleLet :: Term TyName Name ()
+simpleLet = PLC.runQuote $ do
+    a <- PLC.freshTyName () "a"
+    m <- PLC.freshTyName () "b"
+    x <- PLC.freshName () "x"
+    three <- embedIntoIR <$> Meta.getBuiltinIntegerToNat 3
+    let ma = PLC.TyApp () (PLC.TyVar () m) (TyVar () a)
+    pure $ Let ()
+            NonRec (BindingList [TermBind () (VarDecl () x ma) three])
+            $ three
+
+testTerm  :: Term TyName Name ()
+testTerm = PLC.runQuote $ do
+    a <- PLC.freshTyName () "a"
+    m <- PLC.freshTyName () "b"
+    x <- PLC.freshName () "x"
+    let ma = PLC.TyApp () (PLC.TyVar () m) (TyVar () a)
+    three <- embedIntoIR <$> Meta.getBuiltinIntegerToNat 3
+--    let t = runQuote natToBool
+    pure $ Let ()
+            NonRec (BindingList [ TermBind () (VarDecl () x ma) three ] )
+        $
+        TyAbs () a (PLC.Type ()) $
+        LamAbs () x (TyVar () a) $
+        Var () x
 -- Datatypes
 
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
     deriving (Functor, Show, Eq, Generic)
 
-instance (Serialise (tyname ()) , Serialise (name ()) ) => Serialise (Datatype tyname name ()) 
+instance (Serialise (tyname ()) , Serialise (name ()) ) => Serialise (Datatype tyname name ()) --where 
+--        encode (Datatype () tvd tvds n vds) = 
 
 -- Bindings
 
 data Recursivity = NonRec | Rec
     deriving (Show, Eq, Generic)
 
-instance Serialise Recursivity
+instance Serialise Recursivity where
+    encode NonRec = encodeTag 0
+    encode Rec = encodeTag 1
+    decode = go =<< decodeTag
+        where
+            go 0 = pure $ NonRec
+            go 1 = pure $ Rec
+            go _ = fail "Failed to decode Recursivity"
 
 data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
     deriving (Functor, Show, Eq, Generic)
 
-instance (Serialise (name ()), Serialise (tyname ()) ) => Serialise (Binding tyname name ())
+
+instance (Serialise (name ()), Serialise (tyname ()) ) => Serialise (Binding tyname name ()) where
+    encode (TermBind _ vd t) = encodeTag 0 <> encode vd <> encode t
+    encode (TypeBind _ tvd ty) = encodeTag 1 <> encode tvd <> encode ty
+    encode (DatatypeBind _ dt) = encodeTag 2 <> encode dt
+
+    decode = go =<< decodeTag
+        where
+            go 0 = TermBind () <$> decode <*> decode 
+            go 1 = TypeBind () <$> decode <*> decode
+            go 2 = DatatypeBind () <$> decode 
+            go _ = fail "Failed to decode Binding"
 
 
 -- Terms
@@ -87,9 +149,25 @@ It would be nice to resolve the inconsistency, but this would probably require c
 Plutus Core to use reified declarations.
 -}
 
+newtype BindingList tyname name a = BindingList {unBl :: [Binding tyname name a] }
+    deriving (Functor, Show, Eq, Generic)
+
+deriving instance (Serialise (name ()), Serialise (tyname ()) ) => Serialise (BindingList tyname name ()) 
+{-
+    encode (BindingList bl) = encodeListLen 2 <> encodeTag 0 <> encode bl
+    decode = do
+        len <- decodeListLen
+        tag <- decodeTag 
+        case (len, tag) of
+            (2, 0) -> BindingList <$> decode <*> decode 
+            _      -> fail "Failed to decode BindingList"
+            -}
+
+
 -- See note [PIR as a PLC extension]
-data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname name a)
+data Term tyname name a = 
                         -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
+                          Let a Recursivity (BindingList tyname name a) (Term tyname name a)
                         | Var a (name a)
                         | TyAbs a (tyname a) (Kind a) (Term tyname name a)
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
@@ -101,7 +179,12 @@ data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname
                         | Unwrap a (Term tyname name a)
                         deriving (Functor, Show, Eq, Generic)
 
-instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname name ())
+deriving instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Term tyname name ()) --where
+--    encode (Var a (name a) = encodeTag 0 <> encode 
+--
+--   
+
+
 
 
 embedIntoIR :: PLC.Term tyname name a -> Term tyname name a
@@ -123,20 +206,17 @@ instance Show ImpossibleDeserialisationFailure where
         show (ImpossibleDeserialisationFailure e) = "Failed deserialisation. This should not happen. Caused by: " ++ show e
 
 
-newtype PirCode = PirCode { unPir :: [Word] }
-    deriving Serialise
+newtype PirCode = PirCode { unPir :: BS.ByteString }
+    deriving (Show, Generic, Serialise)
 
-packPir :: Term TyName Name () -> PirCode
-packPir term = PirCode pircode
-    where
-        serialized = serialise term
-        (pircode :: [Word]) = fromIntegral <$> BSL.unpack serialized
+packPir :: PirCode -> BSL.ByteString
+packPir = BSL.fromStrict . unPir
 
-serializePirTerm :: PirCode -> BSL.ByteString
-serializePirTerm = BSL.pack . fmap fromIntegral . unPir
+serializePirTerm :: Term TyName Name () -> PirCode
+serializePirTerm term = PirCode (BSL.toStrict $ serialise term)
 
 deserializePirTerm :: PirCode -> Term TyName Name ()
-deserializePirTerm code = case deserialiseOrFail $ serializePirTerm code of
+deserializePirTerm code = case deserialiseOrFail $ packPir code of
     Left e -> throw $ ImpossibleDeserialisationFailure e
     Right t -> t
 
@@ -174,7 +254,7 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
 instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
         PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name a) where
     prettyBy config = \case
-        Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' $ fmap (prettyBy config) bs, prettyBy config t])
+        Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' $ fmap (prettyBy config) (unBl bs), prettyBy config t])
         Var _ n -> prettyBy config n
         TyAbs _ tn k t -> parens' ("abs" </> vsep' [prettyBy config tn, prettyBy config k, prettyBy config t])
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])

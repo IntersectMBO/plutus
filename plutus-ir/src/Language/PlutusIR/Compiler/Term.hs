@@ -24,8 +24,8 @@ compileTerm = \case
     Let _ r bs body -> do
         body' <- compileTerm body
         case r of
-            NonRec -> compileNonRecBindings r body' bs
-            Rec    -> compileRecBindings r body' bs
+            NonRec -> compileNonRecBindings r body' ( unBl bs)
+            Rec    -> compileRecBindings r body' ( unBl bs)
     Var _ n -> pure $ PLC.Var () n
     TyAbs _ n k t -> PLC.TyAbs () n k <$> compileTerm t
     LamAbs _ n ty t -> PLC.LamAbs () n ty <$> compileTerm t
