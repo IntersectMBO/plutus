@@ -240,6 +240,21 @@ module Scott1 where
                         (⋆.subst-rename (⋆.weaken (⋆.weaken pat)))))))))
             (conv (·≡β (refl≡β _) (β≡β _ _)) X)))))
 
+  μ0' : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
+  μ0' = ƛ (μ1 {K = * ⇒ *} · ƛ (ƛ (` Z · (` (S Z) · ` Z))) · ` Z)
+
+  wrap0' : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ pat ·  (μ0' · pat) → Γ ⊢ μ0' · pat
+  wrap0' {Γ} pat X = conv
+    (sym≡β (β≡β _ _))
+    (wrap1
+      (ƛ (ƛ (` Z · (` (S Z) · ` Z))))
+      pat
+      (conv
+        (trans≡β
+          (trans≡β (·≡β (refl≡β _) (β≡β _ _)) (sym≡β (β≡β _ _)))
+          (·≡β (sym≡β (β≡β _ _)) (refl≡β _)))
+        X))
+
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
@@ -251,10 +266,10 @@ module Scott1 where
 
   Zero : ∀{Γ} → Γ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
-{-  
+
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G • (` (S (S (T Z)))) refl))))
-  
+  Succ = ƛ (Λ (ƛ (ƛ {!`!}))) -- ƛ (Λ (ƛ (ƛ (` Z · wrap0 (` (S (S (T Z)))) ?))))
+{-  
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
   
