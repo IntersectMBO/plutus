@@ -26,13 +26,16 @@ import           Control.Applicative        (Applicative (..))
 import           Control.Monad              (Monad (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           GHC.Generics               (Generic)
+import qualified Data.Maybe                           as Maybe
 import qualified Data.Set                           as Set
 import Data.Set                           (Set)
 import qualified Data.Map.Strict                           as Map
 import Data.Map.Strict                           (Map)
 
 import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.Runtime
+import           Language.Plutus.Runtime    (PendingTxOutType(..), PendingTx(..), PendingTxIn(..),
+                                            PendingTxOut(..), RedeemerHash, ValidatorHash, PubKey(..), Height,)
+import qualified Language.Plutus.Runtime    as Plutus
 import           Language.Plutus.TH                 (plutus)
 import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
                                              pubKey, signAndSubmit, payToPubKey, ownPubKeyTxOut)
@@ -259,10 +262,38 @@ squarednode/.style={rectangle, draw=orange!60, fill=orange!5, very thick, minimu
 
 \section{Types and Data Representation}
 
+
+\subsection{Value}
+
+
+Value is a set of contract primitives that represent constants,
+functions, and variables that can be evaluated as an amount
+of money.
+
+\begin{code}
+
+
+data Value = Committed IdentCC |
+             Value Int |
+            {-  AddValue Value Value |
+             MulValue Value Value |
+             DivValue Value Value Value | -- divident, divisor, default value (when divisor evaluates to 0) -}
+             ValueFromChoice IdentChoice Person {- Value -} |
+             ValueFromOracle PubKey {- Value -}
+                    deriving (Eq, Generic)
+
+instance LiftPlc Value
+instance TypeablePlc Value
+
+
+
+\end{code}
+
+
 \begin{code}
 
 type Timeout = Height
-type Cash = Value
+type Cash = Int
 
 type Person      = PubKey
 
@@ -337,11 +368,14 @@ instance TypeablePlc Contract
 \section{Marlowe Interpreter and Helpers}
 
 \begin{code}
+
+
 marloweValidator :: Validator
 marloweValidator = Validator result where
     result = UTXO.fromPlcCode $(plutus [| \ (input :: Input) (MarloweData{..} :: MarloweData) (p@PendingTx{..} :: PendingTx ValidatorHash) -> let
-        -- let isValid = True
-
+        {-
+            Marlowe Prelude
+        -}
         eqPk :: PubKey -> PubKey -> Bool
         eqPk = $(TH.eqPubKey)
 
@@ -364,6 +398,34 @@ marloweValidator = Validator result where
                 rev []     a = a
                 rev (x:xs) a = rev xs (x:a)
 
+        findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> Maybe CCStatus
+        findCommit i@(IdentCC searchId) commits = case commits of
+            (IdentCC id, status) : _ | id == searchId -> Just status
+            _ : xs -> findCommit i xs
+
+
+        {-
+            Marlowe Interpreter
+        -}
+
+        evalValue :: State -> Value -> Int
+        evalValue (State committed) value = case value of
+            Committed ident ->
+                case findCommit ident committed of
+                    Just (_, NotRedeemed c _) -> c
+                    _ -> Builtins.error ()
+            Value v -> v
+            {- AddValue lhs rhs -> evalValue state os lhs + evalValue state os rhs
+            MulValue lhs rhs -> evalValue state os lhs * evalValue state os rhs
+            DivValue lhs rhs def -> do
+                let divident = evalValue state os lhs
+                let divisor  = evalValue state os rhs
+                let defVal   = evalValue state os def
+                if divisor == 0 then defVal else div divident divisor -}
+            -- ValueFromChoice ident per {- def -} -> Maybe.fromMaybe (evalValue state (Value 0) {- FIXME should be def -}) (Map.lookup (ident, per) (sch state))
+            -- ValueFromOracle name {- def -} -> Maybe.fromMaybe (evalValue state os def) (Map.lookup name (oracles os))
+
+
         orderTxIns :: PendingTxIn -> PendingTxIn -> (PendingTxIn, PendingTxIn)
         orderTxIns t1 t2 = case t1 of
             PendingTxIn _ (Just _ :: Maybe (ValidatorHash, RedeemerHash)) _ -> (t1, t2)
@@ -377,49 +439,50 @@ marloweValidator = Validator result where
                         [PendingTxOut committed (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ blockNumber [committerSignature] thisScriptHash = p
                     (sIn@ (PendingTxIn _ _ scriptValue), commitTxIn@ (PendingTxIn _ _ commitValue)) = orderTxIns in1 in2
-
+                    vv = evalValue state value
                     isValid = blockNumber <= startTimeout
                         && blockNumber <= endTimeout
                         && startTimeout < endTimeout -- I think it should be strongly bigger, otherwise I don't see the point
-                        && value > 0
-                        && committed == value + scriptValue
+                        && vv > 0
+                        && committed == vv + scriptValue
                         && expectedIdentCC == idCC
                         && signedBy pubKey
                         && validatorHash `eqValidator` thisScriptHash
                         -- TODO check hashes
                     in  if isValid then let
                             cns = (pubKey, NotRedeemed commitValue endTimeout)
-                            con1 = Pay (IdentPay 1) (PubKey 2) (PubKey 1) 100 256
+                            con1 = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Value 100) 256
                             -- TODO insert respecting sort, commits MUST be sorted by expiration time
                             updatedState = case state of { State committed -> State ((IdentCC idCC, cns) : committed) }
                             in (updatedState, con1, True)
                         else Builtins.error ()
             Payment (IdentPay pid) -> case contract of
-                Pay (IdentPay contractIdentPay) (from::Person) (to::Person) (payValue::Cash) (timeout::Timeout) -> let
+                Pay (IdentPay contractIdentPay) (from::Person) (to::Person) (payValue::Value) (timeout::Timeout) -> let
                     PendingTx [in1@ (PendingTxIn _ _ scriptValue)]
                         [PendingTxOut change (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ blockNumber [receiverSignature] thisScriptHash = p
 
-                    calcAvailable :: Person -> Value -> [(IdentCC, CCStatus)] -> Value
+                    calcAvailable :: Person -> Cash -> [(IdentCC, CCStatus)] -> Cash
                     calcAvailable from accum commits = case commits of
                         [] -> accum
-                        (_, (party, NotRedeemed value expire)) : ls | from `eqPk` party && blockNumber <= expire ->
-                            calcAvailable from (accum + value) ls
+                        (_, (party, NotRedeemed value expire)) : ls | from `eqPk` party && blockNumber <= expire -> let
+                            in calcAvailable from (accum + value) ls
 
                     State committed = marloweState
 
                     -- | Note. It's O(nr_or_commitments), potentially slow. Check it last.
-                    hasEnoughCommitted :: Person -> Value -> Bool
+                    hasEnoughCommitted :: Person -> Cash -> Bool
                     hasEnoughCommitted from value = calcAvailable from 0 committed >= value
 
+                    pv = evalValue state payValue
 
                     isValid = pid == contractIdentPay
                         && blockNumber <= timeout
-                        && payValue > 0
-                        && change == scriptValue - payValue
+                        && pv > 0
+                        && change == scriptValue - pv
                         && signedBy to -- only receiver of the payment allowed to issue this transaction
                         && validatorHash `eqValidator` thisScriptHash
-                        && hasEnoughCommitted from payValue
+                        && hasEnoughCommitted from pv
                         -- TODO check inputs/outputs
                     in  if isValid then let
                             con1 = Null
@@ -499,7 +562,7 @@ createContract :: (
     MonadError WalletAPIError m,
     WalletAPI m)
     => Contract
-    -> Value
+    -> Integer
     -> m ()
 createContract contract value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
@@ -525,7 +588,7 @@ commitCash person (TxOut _ (UTXO.Value contractValue) _, ref) value timeout = do
     let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ Commit identCC)
 
     let ds = DataScript $ UTXO.lifted (MarloweData {
-                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) 100 256,
+                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Value 100) 256,
                 marloweState = State {stateCommitted=[(identCC, (person, NotRedeemed (fromIntegral value) timeout))]} })
     (payment, change) <- createPaymentWithChange (UTXO.Value value)
     let o = scriptTxOut (UTXO.Value $ value + contractValue) marloweValidator ds
