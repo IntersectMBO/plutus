@@ -46,7 +46,7 @@ An @KnownDynamicBuiltinType dyn@ instance provides
 2. a function that encodes values of type @dyn@ as PLC terms ('makeDynamicBuiltin')
 3. a function that decodes PLC terms back to Haskell values ('readDynamicBuiltin')
 
-The last two are ought to constitute an isomorphism (modulo 'Quote' and 'Maybe')
+The last two are ought to constitute an isomorphism (modulo 'Quote' and 'Maybe').
 -}
 
 -- See Note [Semantics of dynamic built-in types].
