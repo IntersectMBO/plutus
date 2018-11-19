@@ -41,7 +41,7 @@ data ConstAppError
     | SizedNonConstantConstAppError (Value TyName Name ())
       -- ^ An argument of a sized type is not a constant.
     | UnreadableBuiltinConstAppError (Value TyName Name ())
-      -- ^ A built-in couldn't be converted from Plutus Core to Haskell.
+      -- ^ Could not construct denotation for a built-in.
     deriving (Show, Eq)
 
 -- | The type of constant applications results.
@@ -83,7 +83,7 @@ instance ( PrettyBy config (Constant ())
         , prettyBy config arg
         ]
     prettyBy config (UnreadableBuiltinConstAppError arg)    = fold
-        [ "A built-in couldn't be converted from Plutus Core to Haskell:", "\n"
+        [ "Could not construct denotation for a built-in:", "\n"
         , prettyBy config arg
         ]
 
