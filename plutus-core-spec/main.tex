@@ -762,6 +762,25 @@ The basic way that validation is done in Plutus Core is somewhat similar to what
 
 
 
+\section{Unrestricted Algorithmic Type System}
+
+For implementation purposes, it's useful to have a variant of the type system that is more algorithmic in its presentation. We give this here, showing the figures that have been changed (relative to the declarative version above), and highlighting the specific parts of each rule that is different, where possible.
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
+
+
+
+\section{Restricted Algorithmic Type System}
+
+For blockchain purposes, it is useful to not only have an algorithmic system, but to require that no un-normalized types are present in programs, so as to reduce the amount of computation necessary to typecheck a program. It's also useful to have a way of bounding the amount of computation that can be done in type checking, for security purposes. To that end, we present a restricted grammar and type reduction, and a type system that reflects these. The figures below are additions with respect to the unrestricted version, and show only the new or changed figures and their respective highlighted differences.
+
+\subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
+
+
 
 
 
