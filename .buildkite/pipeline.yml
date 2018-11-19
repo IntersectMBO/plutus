@@ -3,3 +3,7 @@ steps:
     command: 'ci/check-hydra.sh'
     agents:
       system: x86_64-linux
+  - label: 'bazel-test'
+    command: 'ci/bazel-test.sh'
+    agents:
+      system: x86_64-linux
