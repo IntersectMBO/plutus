@@ -14,12 +14,15 @@ import           Data.Foldable                                       (traverse_)
 import qualified Data.Map                                            as Map
 import           Hedgehog                                            (Property, forAll, property)
 import qualified Hedgehog
+import qualified Hedgehog.Gen        as Gen
+import qualified Hedgehog.Range      as Range
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                                 (testProperty)
+import           Test.Tasty.Hedgehog                                 (testProperty, HedgehogTestLimit(..))
 
 import           Wallet.API                                          (PubKey (..))
 import           Wallet.Emulator                                     hiding (Value)
 import qualified Wallet.Generators                                   as Gen
+import           Wallet.UTXO.Runtime                           (OracleValue (..), Signed (..))
 
 import qualified Language.Plutus.Runtime                             as Runtime
 import           Language.Plutus.TH
@@ -31,8 +34,9 @@ import qualified Debug.Trace as Debug
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey UTXO.Value }
 
 tests :: TestTree
-tests = testGroup "Marlowe" [
+tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
         testProperty "Commit/Pay works" simplePayment,
+        testProperty "Oracle Commit/Pay works" oraclePayment,
         testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
         testProperty "redeem after commit expired" redeemAfterCommitExpired
         ]
@@ -136,4 +140,44 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
 
     assertOwnFundsEq alice 988
     assertOwnFundsEq bob 777
+    return ()
+
+oraclePayment :: Property
+oraclePayment = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
+    -- Init a contract
+    let alice = Wallet 1
+        bob = Wallet 2
+        oracle = PubKey 42
+        update = blockchainActions >>= walletsNotifyBlock [alice, bob]
+    update
+
+    let contract = CommitCash (IdentCC 1) (PubKey 2) (ValueFromOracle oracle) 128 256
+
+    let oracleValue = OracleValue (Signed (oracle, (2, 100)))
+
+    [tx] <- walletAction alice (createContract contract 12)
+    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    update
+    assertIsValidated tx
+    [tx] <- walletAction bob (commitCash2 (PubKey 2) txOut [oracleValue] 100 256)
+    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    update
+    assertIsValidated tx
+    [tx] <- walletAction alice (receivePayment txOut 100 256)
+    let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    update
+    assertIsValidated tx
+
+    let (PayToScript (DataScript script)) = txOutType txo
+    --Debug.traceM $ show $ getAst script
+
+
+    [tx] <- walletAction alice (endContract txOut)
+    update
+    assertIsValidated tx
+    assertOwnFundsEq alice 1100
+    assertOwnFundsEq bob 677
+    -- Debug.traceM $ show txs1
+    -- walletAction w ()
     return ()

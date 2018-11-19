@@ -34,7 +34,8 @@ import Data.Map.Strict                           (Map)
 
 import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
 import           Language.Plutus.Runtime    (PendingTxOutType(..), PendingTx(..), PendingTxIn(..),
-                                            PendingTxOut(..), RedeemerHash, ValidatorHash, PubKey(..), Height,)
+                                            PendingTxOut(..), RedeemerHash, ValidatorHash, PubKey(..), Height,
+                                            OracleValue (..), Signed(..))
 import qualified Language.Plutus.Runtime    as Plutus
 import           Language.Plutus.TH                 (plutus)
 import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
@@ -322,11 +323,16 @@ instance LiftPlc IdentPay
 instance TypeablePlc IdentPay
 
 
-data Input = Commit IdentCC
+data InputCommand = Commit IdentCC
            | Payment IdentPay
            | Redeem IdentCC
            | SpendDeposit
            deriving (Generic)
+instance LiftPlc InputCommand
+instance TypeablePlc InputCommand
+
+data Input = Input InputCommand [OracleValue Int] [(IdentChoice, ConcreteChoice)]
+             deriving Generic
 instance LiftPlc Input
 instance TypeablePlc Input
 
@@ -372,7 +378,7 @@ instance TypeablePlc Contract
 
 marloweValidator :: Validator
 marloweValidator = Validator result where
-    result = UTXO.fromPlcCode $(plutus [| \ (input :: Input) (MarloweData{..} :: MarloweData) (p@PendingTx{..} :: PendingTx ValidatorHash) -> let
+    result = UTXO.fromPlcCode $(plutus [| \ (Input input oracles choices :: Input) (MarloweData{..} :: MarloweData) (p@PendingTx{..} :: PendingTx ValidatorHash) -> let
         {-
             Marlowe Prelude
         -}
@@ -403,6 +409,11 @@ marloweValidator = Validator result where
             (IdentCC id, status) : _ | id == searchId -> Just status
             _ : xs -> findCommit i xs
 
+        fromOracle :: PubKey -> Height -> [OracleValue Int] -> Int
+        fromOracle pubKey blockNumber oracles = case oracles of
+            OracleValue (Signed (pk, (bn, value))) : _ | pk `eqPk` pubKey && bn == blockNumber -> value
+            _ : rest -> fromOracle pubKey blockNumber rest
+            _ -> Builtins.error ()
 
         {-
             Marlowe Interpreter
@@ -423,7 +434,7 @@ marloweValidator = Validator result where
                 let defVal   = evalValue state os def
                 if divisor == 0 then defVal else div divident divisor -}
             -- ValueFromChoice ident per {- def -} -> Maybe.fromMaybe (evalValue state (Value 0) {- FIXME should be def -}) (Map.lookup (ident, per) (sch state))
-            -- ValueFromOracle name {- def -} -> Maybe.fromMaybe (evalValue state os def) (Map.lookup name (oracles os))
+            ValueFromOracle pubKey -> fromOracle pubKey pendingTxBlockHeight oracles
 
 
         orderTxIns :: PendingTxIn -> PendingTxIn -> (PendingTxIn, PendingTxIn)
@@ -431,7 +442,7 @@ marloweValidator = Validator result where
             PendingTxIn _ (Just _ :: Maybe (ValidatorHash, RedeemerHash)) _ -> (t1, t2)
             _ -> (t2, t1)
 
-        step :: Input -> State -> Contract -> (State, Contract, Bool)
+        step :: InputCommand -> State -> Contract -> (State, Contract, Bool)
         step input state contract = case input of
             Commit (IdentCC idCC) -> case contract of
                 CommitCash (IdentCC expectedIdentCC) pubKey value startTimeout endTimeout -> let
@@ -451,7 +462,7 @@ marloweValidator = Validator result where
                         -- TODO check hashes
                     in  if isValid then let
                             cns = (pubKey, NotRedeemed commitValue endTimeout)
-                            con1 = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Value 100) 256
+                            con1 = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256
                             -- TODO insert respecting sort, commits MUST be sorted by expiration time
                             updatedState = case state of { State committed -> State ((IdentCC idCC, cns) : committed) }
                             in (updatedState, con1, True)
@@ -585,15 +596,40 @@ commitCash :: (
 commitCash person (TxOut _ (UTXO.Value contractValue) _, ref) value timeout = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
     let identCC = (IdentCC 1)
-    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ Commit identCC)
+    let input = Input (Commit identCC) [] []
+    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
 
     let ds = DataScript $ UTXO.lifted (MarloweData {
-                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Value 100) 256,
+                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256,
                 marloweState = State {stateCommitted=[(identCC, (person, NotRedeemed (fromIntegral value) timeout))]} })
     (payment, change) <- createPaymentWithChange (UTXO.Value value)
     let o = scriptTxOut (UTXO.Value $ value + contractValue) marloweValidator ds
 
     signAndSubmit (Set.insert i payment) [o, change]
+
+commitCash2 :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => Person
+    -> (TxOut', TxOutRef')
+    -> [OracleValue Int]
+    -> Integer
+    -> Timeout
+    -> m ()
+commitCash2 person (TxOut _ (UTXO.Value contractValue) _, ref) oracles value timeout = do
+    _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
+    let identCC = (IdentCC 1)
+    let input = Input (Commit identCC) oracles []
+    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
+
+    let ds = DataScript $ UTXO.lifted (MarloweData {
+                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256,
+                marloweState = State {stateCommitted=[(identCC, (person, NotRedeemed (fromIntegral value) timeout))]} })
+    (payment, change) <- createPaymentWithChange (UTXO.Value value)
+    let o = scriptTxOut (UTXO.Value $ value + contractValue) marloweValidator ds
+
+    signAndSubmit (Set.insert i payment) [o, change]
+
 
 receivePayment :: (
     MonadError WalletAPIError m,
@@ -606,7 +642,8 @@ receivePayment (TxOut _ (UTXO.Value contractValue) _, ref) value timeout = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
     let identPay = (IdentPay 1)
     let identCC = (IdentCC 1)
-    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ Payment identPay)
+    let input = Input (Payment identPay) [] []
+    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
 
     let ds = DataScript $ UTXO.lifted (MarloweData {
                 marloweContract = Null,
@@ -625,7 +662,8 @@ redeem :: (
     -> m ()
 redeem (TxOut _ (UTXO.Value contractValue) _, ref) identCC value = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
-    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted $ Redeem identCC)
+    let input = Input (Redeem identCC) [] []
+    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
 
     let ds = DataScript $ UTXO.lifted (MarloweData {
                 marloweContract = Null,
@@ -641,7 +679,8 @@ endContract :: (Monad m, WalletAPI m) => (TxOut', TxOutRef') -> m ()
 endContract (TxOut _ val _, ref) = do
     oo <- ownPubKeyTxOut val
     let scr = marloweValidator
-        i   = scriptTxIn ref scr $ UTXO.Redeemer $ UTXO.lifted $ SpendDeposit
+    let input = Input SpendDeposit [] []
+        i   = scriptTxIn ref scr $ UTXO.Redeemer $ UTXO.lifted input
     signAndSubmit (Set.singleton i) [oo]
 
 
