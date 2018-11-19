@@ -68,26 +68,22 @@ simplePayment = checkMarloweTrace (MarloweScenario {
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
-    [tx] <- walletAction bob (commitCash (PubKey 2) txOut 100 256)
+    [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
-    [tx] <- walletAction alice (receivePayment txOut 100 256)
+    [tx] <- walletAction alice (receivePayment txOut 100)
     let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
 
     let (PayToScript (DataScript script)) = txOutType txo
-    --Debug.traceM $ show $ getAst script
-
 
     [tx] <- walletAction alice (endContract txOut)
     update
     assertIsValidated tx
     assertOwnFundsEq alice 1100
     assertOwnFundsEq bob 677
-    -- Debug.traceM $ show txs1
-    -- walletAction w ()
     return ()
 
 cantCommitAfterStartTimeout :: Property
@@ -105,7 +101,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
 
     addBlocks 200
 
-    [tx] <- walletAction bob (commitCash (PubKey 2) txOut 100 256)
+    [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
     update
     -- assertIsValidated tx
 
@@ -127,7 +123,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
     update
     assertIsValidated tx
 
-    [tx] <- walletAction bob (commitCash (PubKey 2) txOut 100 256)
+    [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
@@ -154,30 +150,26 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
 
     let contract = CommitCash (IdentCC 1) (PubKey 2) (ValueFromOracle oracle) 128 256
 
-    let oracleValue = OracleValue (Signed (oracle, (2, 100)))
+    let oracleValue = OracleValue (Signed (oracle, (Runtime.Height 2, 100)))
 
     [tx] <- walletAction alice (createContract contract 12)
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
-    [tx] <- walletAction bob (commitCash2 (PubKey 2) txOut [oracleValue] 100 256)
+    [tx] <- walletAction bob $ commit (PubKey 2) txOut [oracleValue] [] 100 256
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
-    [tx] <- walletAction alice (receivePayment txOut 100 256)
+    [tx] <- walletAction alice (receivePayment txOut 100)
     let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
     update
     assertIsValidated tx
 
-    let (PayToScript (DataScript script)) = txOutType txo
-    --Debug.traceM $ show $ getAst script
-
+    let (PayToScript (DataScript _)) = txOutType txo
 
     [tx] <- walletAction alice (endContract txOut)
     update
     assertIsValidated tx
     assertOwnFundsEq alice 1100
     assertOwnFundsEq bob 677
-    -- Debug.traceM $ show txs1
-    -- walletAction w ()
     return ()
