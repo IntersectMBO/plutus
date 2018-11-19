@@ -15,7 +15,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term
 open import Builtin.Signature
 
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
 open import Function
 open import Agda.Builtin.Int
 open import Data.Integer
@@ -50,11 +50,10 @@ module Builtins where
   builtininc2 = inc8 · con2
 
   inc : ∅ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
-  inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S Z) → size⋆ 8 ; (S (S x)) → ` (S x)}) (builtin sizeOfInteger ` (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
+  inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S Z) → size⋆ 8 ; (S (S ()))}) (builtin sizeOfInteger ` (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
 
   builtininc2' : ∅ ⊢ con integer (size⋆ 8)
   builtininc2' = (inc ·⋆ size⋆ 8) · con2
-
 \end{code}
 
 
@@ -198,6 +197,48 @@ module Scott1 where
   wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ μ0 · pat
   wrap0 M = {!!}
 -}
+
+  wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ pat ·  (μ0 · pat) → Γ ⊢ μ0 · pat
+  wrap0 {Γ} pat X = conv
+    (sym≡β (β≡β _ _))
+    (wrap1
+      (ƛ (ƛ (⋆.weaken (⋆.weaken pat) · (` (S Z) · ` Z))))
+      (Π (` Z))
+      (conv
+        (·≡β (sym≡β (β≡β _ _)) (refl≡β _))
+        (conv
+          (sym≡β (β≡β _ _))
+          (substEq
+            (Γ ⊢_)
+            (cong₂
+              _·_
+              (trans
+                (trans
+                  (trans (sym (⋆.subst-id pat)) (⋆.subst-rename pat))
+                  (⋆.subst-rename (⋆.weaken pat)))
+                (⋆.subst-comp (⋆.weaken (⋆.weaken pat))))
+              (cong
+                (λ x → μ1 · x · Π (` Z))
+                (cong
+                  ƛ
+                  (cong
+                    ƛ
+                    (cong
+                      (_· (` (S Z) · ` Z))
+                      (trans
+                        (trans
+                          (trans
+                            (trans
+                              (trans
+                                (sym (⋆.rename-comp pat))
+                                (sym
+                                  (⋆.subst-id (⋆.rename (λ x → S (S x)) pat))))
+                              (sym
+                                (⋆.subst-rename {g = λ x → S (S x)}{`} pat)))
+                            (⋆.subst-rename pat))
+                          (⋆.subst-rename (⋆.weaken pat)))
+                        (⋆.subst-rename (⋆.weaken (⋆.weaken pat)))))))))
+            (conv (·≡β (refl≡β _) (β≡β _ _)) X)))))
 
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
