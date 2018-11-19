@@ -93,7 +93,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{K}}\)}
-        \AxiomC{\(K = \typeK{}\)}
+        \AxiomC{\(\kindEqual{K}{\typeK{}}\)}
         \RightLabel{tyfix}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
     \end{prooftree}
@@ -156,7 +156,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
-        \AxiomC{\(C = \allT{\alpha}{K}{B}\)}
+        \AxiomC{\(\typeEquiv{C}{\allT{\alpha}{K}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
         \RightLabel{inst}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
@@ -174,7 +174,7 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
-        \AxiomC{\(C = \fixT{\alpha}{A}\)}
+        \AxiomC{\(\typeEquiv{C}{\fixT{\alpha}{A}}\)}
         \RightLabel{unwrap}
         \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\)}
     \end{prooftree}
@@ -188,9 +188,9 @@
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
-        \AxiomC{\(C = \funT{A}{B}\)}
+        \AxiomC{\(\typeEquiv{C}{\funT{A}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
-        \AxiomC{\(A = A'\)}
+        \AxiomC{\(\typeEquiv{A}{A'}\)}
         \RightLabel{app}
         \QuaternaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{B}}\)}
     \end{prooftree}
@@ -199,7 +199,7 @@
         \alwaysNoLine
         \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
-        \UnaryInfC{\(D_i = \subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}\)}
+        \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
         \RightLabel{builtin}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}

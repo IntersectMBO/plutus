@@ -47,19 +47,26 @@
 
 
 \begin{figure*}[t]
-	\judgmentdef{\(A = A'\)}{Type $A$ is equal to type $A'$}
+	\judgmentdef{\(\kindEqual{K}{K'}\)}{Kind $K$ is syntactically identical to kind $K'$. (Inductive definition omitted.)}
+	\vspace{2em}
+	
+	\judgmentdef{\(\typeEqual{A}{A'}\)}{Type $A$ is syntactically identical to type $A'$ modulo $\alpha$ conversion. (Inductive definition omitted.)}
+	\vspace{2em}
+	
+	
+	\judgmentdef{\(\typeEquiv{A}{A'}\)}{Type $A$ is equivalent to type $A'$ modulo $\beta$ reduction}
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeMultistep{A}{S}\)}
 		\AxiomC{\(\typeMultistep{A'}{S'}\)}
-		\AxiomC{\(S \equiv S'\)}
-		\TrinaryInfC{\(A = A'\)}
+		\AxiomC{\(\typeEqual{S}{S'}\)}
+		\TrinaryInfC{\(\typeEquiv{A}{A'}\)}
 	\end{prooftree}
 	
-	\judgmentdef{\(A \equiv A'\)}{Type $A$ is syntactically identical to type $A'$ modulo $\alpha$ conversion. (Inductive definition omitted.)}
 	
-	\caption{Type Equality and Equivalence}
-	\label{fig:Plutus_core_type_equality_and_equivalence}
+	
+	\caption{Equalities and Equivalences}
+	\label{fig:Plutus_core_equalities_and_equivalences}
 \end{figure*}
 
 
