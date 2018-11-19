@@ -155,12 +155,12 @@ instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
             "built-in is open"
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')            =
+    prettyBy config (KindMismatch x ty k k')          =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty')           =
+    prettyBy config (TypeMismatch x t ty ty')         =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -169,13 +169,13 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (InternalTypeErrorE x err)           =
+    prettyBy config (InternalTypeErrorE x err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty x
-    prettyBy _      (UnknownDynamicBuiltinName x udbne) =
-        "Unknown dynamic built-in at" <+> pretty x <>
-        ":" <+> pretty udbne
-    prettyBy _      OutOfGas                            = "Type checker ran out of gas."
+    prettyBy _      (UnknownDynamicBuiltinName x err) =
+        "Unknown dynamic built-in name at" <+> pretty x <>
+        ":" <+> pretty err
+    prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseErrorE e)         = pretty e

@@ -15,17 +15,18 @@ module Language.PlutusCore.Constant.Apply
     , applyBuiltinName
     ) where
 
+import           Language.PlutusCore.Constant.DynamicType
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type     (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type           (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.IntMap.Strict                 (IntMap)
-import qualified Data.IntMap.Strict                 as IntMap
+import qualified Data.ByteString.Lazy                     as BSL
+import           Data.IntMap.Strict                       (IntMap)
+import qualified Data.IntMap.Strict                       as IntMap
 
 -- | The type of constant applications errors.
 data ConstAppError
@@ -39,6 +40,8 @@ data ConstAppError
       -- constant application is supposed to be computed as soon as there are enough arguments.
     | SizedNonConstantConstAppError (Value TyName Name ())
       -- ^ An argument of a sized type is not a constant.
+    | UnreadableBuiltinConstAppError (Value TyName Name ())
+      -- ^ Could not construct denotation for a built-in.
     deriving (Show, Eq)
 
 -- | The type of constant applications results.
@@ -46,7 +49,7 @@ data ConstAppResult
     = ConstAppSuccess (Value TyName Name ())
       -- ^ Successfully computed a value.
     | ConstAppFailure
-      -- ^ Not enough fuel.
+      -- ^ Not enough gas.
     | ConstAppStuck
       -- ^ Not enough arguments.
     | ConstAppError ConstAppError
@@ -77,6 +80,10 @@ instance ( PrettyBy config (Constant ())
         ]
     prettyBy config (SizedNonConstantConstAppError arg)     = fold
         [ "A non-constant argument of a sized type: "
+        , prettyBy config arg
+        ]
+    prettyBy config (UnreadableBuiltinConstAppError arg)    = fold
+        [ "Could not construct denotation for a built-in:", "\n"
         , prettyBy config arg
         ]
 
@@ -145,6 +152,9 @@ extractBuiltin TypedBuiltinBool                  _                  _     =
     -- Plan: evaluate the 'value' to a dynamically typed Church-encoded 'Bool'
     -- specialized to 'Bool' and coerce it to an actual 'Bool'.
     error "Not implemented."
+extractBuiltin TypedBuiltinDyn                   sizeValues         value =
+    maybe (Left $ UnreadableBuiltinConstAppError value) (\x -> Right (x, sizeValues)) $
+        readDynamicBuiltin value
 
 -- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
 -- Checks that the constant is of a given type and there are no size mismatches.
