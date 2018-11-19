@@ -172,9 +172,9 @@ makeSizedConstantNOCHECK size TypedBuiltinSizedSize ()  = BuiltinSize () size
 
 -- | Convert a Haskell value to the corresponding PLC value without checking constraints
 -- (e.g. an 'Integer' is in appropriate bounds).
--- This function allows to fake a 'Value' with a wrong size and thus it's highly unsafe
+-- This function allows to fake a 'Term' with a wrong size and thus it's highly unsafe
 -- and should be used with great caution.
-makeBuiltinNOCHECK :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+makeBuiltinNOCHECK :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Term TyName Name ())
 makeBuiltinNOCHECK tbv@(TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs ->
         return . Constant () $ makeSizedConstantNOCHECK (flattenSizeEntry se) tbs x

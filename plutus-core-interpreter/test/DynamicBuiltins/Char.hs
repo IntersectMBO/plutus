@@ -12,19 +12,17 @@ module DynamicBuiltins.Char
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-
-import           Language.PlutusCore.Interpreter.CekMachine
+import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.StdLib.Data.Unit
 
 import           DynamicBuiltins.Call
 
-import           Control.Exception                          (evaluate)
-import           Control.Monad                              (replicateM)
-import           Control.Monad.IO.Class                     (liftIO)
+import           Control.Monad.IO.Class               (liftIO)
 import           Data.Char
-import           Data.IORef
-import           Hedgehog                                   hiding (Size)
-import qualified Hedgehog.Gen                               as Gen
-import qualified Hedgehog.Range                             as Range
+import           Data.Proxy
+import           Hedgehog                             hiding (Size, Var)
+import qualified Hedgehog.Gen                         as Gen
+import qualified Hedgehog.Range                       as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
@@ -37,24 +35,34 @@ instance KnownDynamicBuiltinType Char where
     readDynamicBuiltin (Constant () (BuiltinInt () 4 int)) = Just . chr $ fromIntegral int
     readDynamicBuiltin _                                   = Nothing
 
+builtinChar :: Type tyname ()
+builtinChar = dynamicBuiltinTypeAsType (Proxy :: Proxy Char)
+
 instance PrettyDynamic Char
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
--- each of these terms such that being evaluated it calls a Haskell function that prepends a char to
--- the contents of an external 'IORef'. In the end read the 'IORef', reverse its contents and check
--- that you got the exact same sequence of 'Char's that was originally generated.
+-- each of these terms such that being evaluated it calls a Haskell function that appends a char to
+-- the contents of an external 'IORef' and assemble all the resulting terms together into a single term
+-- where all characters are passed to lambdas and ignored, so that only 'unitval' is returned in the end.
+-- After evaluation of the CEK machine finished, read the 'IORef' and check that you got the exact same
+-- sequence of 'Char's that was originally generated.
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only handle
 -- pure things and 'unsafePerformIO' is the way to pretend an effecful thing is pure.
 test_collectChars :: TestTree
-test_collectChars = testProperty "collect chars" . property $ do
-    len <- forAll . Gen.integral $ Range.linear 0 20
-    charsVar <- liftIO $ newIORef []
-    chars <- replicateM len $ do
-        char <- forAll Gen.unicode
-        let collectChar = dynamicCallAssign TypedBuiltinDyn $ \c -> modifyIORef' charsVar (c :)
-            env         = insertDynamicBuiltinNameDefinition collectChar mempty
-            term        = Apply () dynamicCall . runQuote $ unsafeMakeDynamicBuiltin char
-        _ <- liftIO . evaluate $ evaluateCek env term
-        return char
-    chars' <- liftIO $ reverse <$> readIORef charsVar
-    chars === chars'
+test_collectChars = testProperty "collectChars" . property $ do
+    str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
+    (str', _) <- liftIO . withEmitEvaluateCek TypedBuiltinDyn $ \emit ->
+        runQuote $ rename =<< do
+            chars <- traverse unsafeMakeDynamicBuiltin str
+            unit    <- getBuiltinUnit
+            unitval <- getBuiltinUnitval
+            ignore <- do
+                x <- freshName () "x"
+                y <- freshName () "y"
+                return
+                    . LamAbs () x builtinChar
+                    . LamAbs () y unit
+                    $ Var () y
+            let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
+            return $ foldr step unitval chars
+    str === str'
