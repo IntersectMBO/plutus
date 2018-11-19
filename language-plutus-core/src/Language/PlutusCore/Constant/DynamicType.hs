@@ -9,6 +9,7 @@ module Language.PlutusCore.Constant.DynamicType
 
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -70,11 +71,11 @@ class KnownDynamicBuiltinType dyn where
 
     -- | Convert a Haskell value to the corresponding PLC value.
     -- 'Nothing' represents a conversion failure.
-    makeDynamicBuiltin :: dyn -> Maybe (Value TyName Name ())
+    makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
 
     -- | Convert a PLC value to the corresponding Haskell value.
     -- 'Nothing' represents a conversion failure.
-    readDynamicBuiltin :: Value TyName Name () -> Maybe dyn
+    readDynamicBuiltin :: Term TyName Name () -> Maybe dyn
 
 -- | Same as the 'Pretty' class, but is specifically for dynamic built-in types as their
 -- pretty-printing can be rather weird (see the @PrettyDynamic BSL.ByteString@ instance for example).
