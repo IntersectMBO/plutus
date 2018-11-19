@@ -92,8 +92,8 @@ which has the desired type signature:
 -}
 
 -- | The type of dynamic built-in types. I.e. types that exist on certain chains and do
--- not exist on others. Each 'DynamicBuiltinType' has an associated kind --
--- this allows to kind check dynamic built-in types just like static ones.
+-- not exist on others. Each 'DynamicBuiltinType' is of kind @*@,
+-- i.e. you can have @list bool@, but not @list@.
 newtype DynamicBuiltinType = DynamicBuiltinType
     { unDynamicBuiltinType :: T.Text  -- ^ The name of a dynamic built-in type.
     } deriving (Show, Eq, Ord, Generic)
