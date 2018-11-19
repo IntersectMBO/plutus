@@ -102,7 +102,7 @@ addition there is an error state $\blacklozenge$ which halts execution
 with an error, and a stop state $\square$ which halts execution and
 returns a value to the outside world. 
 
-The presentation has been simplfied slightly. For example, the
+The presentation has been simplified slightly. For example, the
 evaluators now take a table of dynamic built-in functions as a
 parameter: we've omitted this because it's effectively a global
 variable that's only used when calling builtins.
@@ -349,9 +349,14 @@ supporting both strict and lazy evaluation\footnote{It's tempting to
 
 \noindent The obvious problem here is that if we want to perform a
 strict application $[M N]$ then $N$ might contain lazy variables; for
-example, we might have $N = \langle P\, Q \rangle$.  Presumably the solution to
-this would be to introduce an operation to force all of the lazy
-variables in $N$, analogous to Haskell's \texttt{deepseq}.
+example, we might have $N = \langle P\, Q \rangle$.  Presumably the
+solution to this would be to introduce an operation to force all of
+the lazy variables in $N$, analogous to Haskell's \texttt{deepseq}.
+In the blockchain context, a possible problem with this approach (and
+also with laziness in general) is that forcing a term with many lazy
+subterms could cause a sudden large spike in gas consumption which
+might not be expected by the user.
+
 
 
 
