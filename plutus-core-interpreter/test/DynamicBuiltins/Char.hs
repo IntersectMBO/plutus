@@ -2,9 +2,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
 
 module DynamicBuiltins.Char
     ( test_collectChars
@@ -13,9 +11,10 @@ module DynamicBuiltins.Char
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           DynamicBuiltins.Call
+import           DynamicBuiltins.Common
 
 import           Control.Monad.IO.Class               (liftIO)
 import           Data.Char
@@ -51,8 +50,8 @@ instance PrettyDynamic Char
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', _) <- liftIO . withEmitEvaluateCek TypedBuiltinDyn $ \emit ->
-        runQuote $ rename =<< do
+    (str', errOrRes) <- liftIO . withEmitTypecheckEvaluate TypedBuiltinDyn $ \emit ->
+        runQuote $ do
             chars <- traverse unsafeMakeDynamicBuiltin str
             unit    <- getBuiltinUnit
             unitval <- getBuiltinUnitval
@@ -65,4 +64,7 @@ test_collectChars = testProperty "collectChars" . property $ do
                     $ Var () y
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
             return $ foldr step unitval chars
+    case errOrRes of
+        Left err -> error $ prettyPlcDefString err
+        Right _  -> return ()
     str === str'
