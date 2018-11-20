@@ -34,7 +34,7 @@ import TermIndexedBySyntacticType.Term.RenamingSubstitution
 import TermIndexedBySyntacticType.Term.Reduction
 import TermIndexedBySyntacticType.Evaluation
 
---import TermIndexedBySyntacticType.Examples
+import TermIndexedBySyntacticType.Examples
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
@@ -43,5 +43,5 @@ import TermIndexedByNormalType.Term
 import TermIndexedByNormalType.Term.RenamingSubstitution
 import TermIndexedByNormalType.Term.Reduction
 import TermIndexedByNormalType.Evaluation
---import TermIndexedByNormalType.Examples
+-- import TermIndexedByNormalType.Examples
 \end{code}

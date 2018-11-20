@@ -18,7 +18,7 @@ open import Relation.Nullary
 open import Function
 \end{code}
 
-## Term Constants
+## Abstract semantics of builtins
 
 \begin{code}
 postulate
@@ -41,8 +41,11 @@ postulate
 
   txhash : ByteString
   bnum   : Int
+\end{code}
 
+# What builtin operations should be compiled to if we compile to Haskell
 
+\begin{code}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = type BS.length #-}
@@ -55,7 +58,12 @@ postulate
 {-# COMPILE GHC append = BS.append #-}
 {-# COMPILE GHC take = BS.take #-}
 {-# COMPILE GHC drop = BS.drop #-}
+\end{code}
 
+# Some integer operations missing from the standard library
+
+
+\begin{code}
 -- cut-off exponentiation
 _^_ : ℕ → ℕ → ℕ
 x ^ ℕ.zero  = 1
@@ -83,7 +91,11 @@ trans≤Int -≤+ (+≤+ q) = -≤+
 trans≤Int (-≤- p) -≤+ = -≤+
 trans≤Int (-≤- p) (-≤- q) = -≤- (trans≤Nat q p)
 trans≤Int (+≤+ p) (+≤+ q) = +≤+ (trans≤Nat p q)
+\end{code}
 
+# Bounded integers and bytestrings
+
+\begin{code}
 BoundedI : ∀ s i → Set
 BoundedI s i = 
   - (pos (2 ^ (8 ** (s ∸ 1)))) ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
@@ -115,7 +127,11 @@ boundedN? s i | no ¬p | _     = no (¬p ∘ proj₁)
 
 bN2I : ∀ s i → BoundedN s i → BoundedI s i 
 bN2I s i (p , p') = trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
+\end{code}
 
+## Term Constants
+
+\begin{code}
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    : ∀ s
     → (i : Int)

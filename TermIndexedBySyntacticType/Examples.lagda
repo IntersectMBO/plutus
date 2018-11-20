@@ -242,11 +242,10 @@ module Scott1 where
 
   Four : ∅ ⊢ N
   Four = Succ · Three
-
+{-
   case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
   case = {!!} -- ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
-{-
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
   -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x)) 

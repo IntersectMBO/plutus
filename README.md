@@ -19,11 +19,23 @@ The formalisation requires Agda version 2.5.4.1 or higher.
 
 ## Status
 
-The formalisation currently covers System F omega with iso-recursive
-types: the core of Plutus Core. Progress has been proven. Preservation
-holds inherently, and it is possible to run small examples using the
-evaluator. Current work is focused on scaling up the formalisation to
-full Plutus Core.
+The formalisation currently covers System F omega with (deep)
+iso-recursive types and builtin-types for sized integers and sized
+bytestrings. Progress and preservation have been shown to hold for the
+small-step semantics and an evaluator can be used to execute small
+examples.
+
+### Current status
+* deep iso-recursive types are implemented but not fully tested;
+* builtins are covered only in the syntactic typed version so far;
+* builtins integers are modelled as Agda integers and could,
+  potentially, be compiled to Haskell integers. Only a subset of the
+  integer operations map to real Agda implementations, the rest are treated
+  abstractly. It is possible to, for example, increment an arbitrarily
+  sized integer;
+* builtin bytestrings are modelled abstractly in Agda and could,
+  potentially, be compiled to Haskell bytestrings;
+* abstract machines/erasure are not yet covered.
 
 ## Structure
 
@@ -98,6 +110,24 @@ which currently requires a postulate in Agda. In this formalisation
 the (object) type level programs and their proofs appear in (object)
 terms. Appealing to a postulate in type level proofs would stop term
 level programs computing.
+
+## Builtins
+
+There are builtin types of integers and bytestrings. They are both
+sized: max/min values for integers and max length for bytestrings.
+
+1. [Builtin.Constant.Type](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Type.html)
+contains the enumeration of the type constants.
+2. [Builtin.Constant.Term](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Term.html)
+contains the enumeration of the sized term constants at the bottom.
+3. [Builtin.Signature](https://input-output-hk.github.io/plutus-metatheory/Builtin.Signature.html)
+contains the list of builtin operations and their type signatures. In
+the specification this information is contained in the large builtin
+table.
+
+The rest of the Builtin machinery: telescopes, and the semantics of
+builtins are contained in
+[TermIndexedBySyntacticType.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Term.Reduction.html).
 
 ## Terms indexed by syntactic types
 
