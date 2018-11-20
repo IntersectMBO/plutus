@@ -191,60 +191,10 @@ eval (gas 10000000) Scott.Two
 module Scott1 where
 
   μ0 : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
-  μ0 = ƛ (μ1 · ƛ (ƛ (` (S (S Z)) · (` (S Z) · ` Z))) · Π (` Z))
-
-{-
-  wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ μ0 · pat
-  wrap0 M = {!!}
--}
+  μ0 = ƛ (μ1 · ƛ (ƛ (` Z · (` (S Z) · ` Z))) · ` Z)
 
   wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ pat ·  (μ0 · pat) → Γ ⊢ μ0 · pat
   wrap0 {Γ} pat X = conv
-    (sym≡β (β≡β _ _))
-    (wrap1
-      (ƛ (ƛ (⋆.weaken (⋆.weaken pat) · (` (S Z) · ` Z))))
-      (Π (` Z))
-      (conv
-        (·≡β (sym≡β (β≡β _ _)) (refl≡β _))
-        (conv
-          (sym≡β (β≡β _ _))
-          (substEq
-            (Γ ⊢_)
-            (cong₂
-              _·_
-              (trans
-                (trans
-                  (trans (sym (⋆.subst-id pat)) (⋆.subst-rename pat))
-                  (⋆.subst-rename (⋆.weaken pat)))
-                (⋆.subst-comp (⋆.weaken (⋆.weaken pat))))
-              (cong
-                (λ x → μ1 · x · Π (` Z))
-                (cong
-                  ƛ
-                  (cong
-                    ƛ
-                    (cong
-                      (_· (` (S Z) · ` Z))
-                      (trans
-                        (trans
-                          (trans
-                            (trans
-                              (trans
-                                (sym (⋆.rename-comp pat))
-                                (sym
-                                  (⋆.subst-id (⋆.rename (λ x → S (S x)) pat))))
-                              (sym
-                                (⋆.subst-rename {g = λ x → S (S x)}{`} pat)))
-                            (⋆.subst-rename pat))
-                          (⋆.subst-rename (⋆.weaken pat)))
-                        (⋆.subst-rename (⋆.weaken (⋆.weaken pat)))))))))
-            (conv (·≡β (refl≡β _) (β≡β _ _)) X)))))
-
-  μ0' : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
-  μ0' = ƛ (μ1 {K = * ⇒ *} · ƛ (ƛ (` Z · (` (S Z) · ` Z))) · ` Z)
-
-  wrap0' : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ pat ·  (μ0' · pat) → Γ ⊢ μ0' · pat
-  wrap0' {Γ} pat X = conv
     (sym≡β (β≡β _ _))
     (wrap1
       (ƛ (ƛ (` Z · (` (S Z) · ` Z))))
@@ -255,11 +205,18 @@ module Scott1 where
           (·≡β (sym≡β (β≡β _ _)) (refl≡β _)))
         X))
 
+  unwrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *)→ Γ ⊢ μ0 · pat  → Γ ⊢ pat ·  (μ0 · pat) 
+  unwrap0 {Γ} pat X = conv
+    (trans≡β
+      (·≡β (β≡β _ _) (refl≡β _))
+      (trans≡β (β≡β _ _) (·≡β (refl≡β _) (sym≡β (β≡β _ _)))))
+    (unwrap1 (conv (β≡β _ _) X))
+ 
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
   M : ∀{Γ} → Γ ⊢⋆ *
-  M {Γ} = μ0' · ƛ G
+  M {Γ} = μ0 · ƛ G
 
   N : ∀{Γ} → Γ ⊢⋆ *
   N  =  G ⋆.[ M ]
@@ -272,7 +229,7 @@ module Scott1 where
 
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
   Succ = ƛ (Λ (ƛ (ƛ
-    (` Z · (wrap0' (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
+    (` Z · (wrap0 (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
 
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
@@ -285,10 +242,11 @@ module Scott1 where
 
   Four : ∅ ⊢ N
   Four = Succ · Three
-{-
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
+  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  case = {!!} -- ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
+
+{-
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
   -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x)) 
