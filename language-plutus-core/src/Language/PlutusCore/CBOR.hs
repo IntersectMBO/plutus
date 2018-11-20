@@ -38,12 +38,10 @@ for testing.
 -}
 
 instance Serialise TypeBuiltin where
-    encode bi =
-        let i = case bi of
-                TyByteString -> 0
-                TyInteger    -> 1
-                TySize       -> 2
-        in encodeTag i
+    encode bi = case bi of
+        TyByteString -> encodeTag 0
+        TyInteger    -> encodeTag 1
+        TySize       -> encodeTag 2
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString

@@ -9,7 +9,7 @@ test_Cek :: TestTree
 test_Cek =
     testGroup "Cek"
         [ test_evaluateCek
-        , test_dynamicFactorial
+        , test_dynamicBuiltins
         ]
 
 main :: IO ()

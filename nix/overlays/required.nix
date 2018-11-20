@@ -21,7 +21,7 @@ self: super: {
 
     mkDerivation = args: super.mkDerivation (args //
       pkgs.lib.optionalAttrs (args ? src) {
-        src = cleanSourceHaskell args.src;
+        src = iohkNix.cleanSourceHaskell args.src;
     });
 
     # stack2nix doesn't have the right set of GHC base packages nulled out for 8.4, as

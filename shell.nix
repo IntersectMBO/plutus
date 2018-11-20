@@ -3,7 +3,7 @@ let
 in
 { system ? builtins.currentSystem
 , config ? {}
-, pkgs ? (import (localLib.fetchNixpkgs) { inherit system config; })
+, pkgs ? (import (localLib.iohkNix.nixpkgs) { inherit system config; })
 }:
 
 let

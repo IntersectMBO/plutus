@@ -7,7 +7,7 @@
 
 -- | Terms which currently fail the typechecker, but which should work in future.
 -- In a separate file so we can give different options to the plugin.
-module IllTyped where
+module Plugin.IllTyped where
 
 import           Language.Plutus.CoreToPLC.Plugin
 

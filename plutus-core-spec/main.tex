@@ -362,6 +362,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{bussproofs,amsmath,amssymb}
 \usepackage{listings}
+\usepackage{xcolor}
 
 
 %\subfile{PlutusDefinitions}
@@ -377,6 +378,7 @@
 
 %%% General Misc. Definitions
 
+\newcommand{\diffbox}[1]{\text{\colorbox{lightgray}{\(#1\)}}}
 \newcommand{\judgmentdef}[2]{\fbox{#1}
 
 \vspace{0.5em}
@@ -448,10 +450,15 @@
 
 \newcommand{\ctxsubst}[2]{#1\{#2\}}
 \newcommand{\typeStep}[2]{#1 ~ \rightarrow_{ty} ~ #2}
+\newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
+\newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
 \newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
 \newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
 \newcommand{\normalform}[1]{\lfloor #1 \rfloor}
 \newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
+\newcommand{\typeEqual}[2]{#1 =_{\mathit{ty}} #2}
+\newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
 
 
 \newcommand{\inConT}[2]{\conT{#1}{#2}}
@@ -753,6 +760,25 @@ The basic way that validation is done in Plutus Core is somewhat similar to what
 
 
 
+
+
+\section{Unrestricted Algorithmic Type System}
+
+For implementation purposes, it's useful to have a variant of the type system that is more algorithmic in its presentation. We give this here, showing the figures that have been changed (relative to the declarative version above), and highlighting the specific parts of each rule that is different, where possible.
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
+
+
+
+\section{Restricted Algorithmic Type System}
+
+For blockchain purposes, it is useful to not only have an algorithmic system, but to require that no un-normalized types are present in programs, so as to reduce the amount of computation necessary to typecheck a program. It's also useful to have a way of bounding the amount of computation that can be done in type checking, for security purposes. To that end, we present a restricted grammar and type reduction, and a type system that reflects these. The figures below are additions with respect to the unrestricted version, and show only the new or changed figures and their respective highlighted differences.
+
+\subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
 
 
 
