@@ -1,14 +1,14 @@
 cabal-version: 1.18
-name: plutus-th
+name: plutus-tx
 version: 0.1.0.0
 license: BSD3
 license-file: LICENSE
 copyright: Copyright: (c) 2018 Input Output
 maintainer: michael.peyton-jones@iohk.io
 author: Michael Peyton Jones
-synopsis: TH frontend to the Plutus compiler
+synopsis: The PlutusTx compiler frontend
 description:
-    TH frontend to the plutus compiler
+    The PlutusTx compiler frontend
 category: Language
 build-type: Simple
 extra-doc-files: README.md
@@ -37,9 +37,9 @@ library
     build-depends:
         base >=4.9 && <5,
         template-haskell >=2.13.0.0,
-        core-to-plc -any
+        plutus-tx-plugin -any
 
-test-suite plutus-th-frontend
+test-suite plutus-tx-tests
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -49,7 +49,7 @@ test-suite plutus-th-frontend
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
-        core-to-plc -any,
-        plutus-th -any,
+        plutus-tx-plugin -any,
+        plutus-tx -any,
         template-haskell -any,
         tasty -any

@@ -16987,60 +16987,6 @@ description = "HTTP cookie parsing and rendering";
 license = stdenv.lib.licenses.mit;
 
 }) {};
-"core-to-plc" = callPackage
-({
-  mkDerivation
-, base
-, bytestring
-, cborg
-, containers
-, ghc
-, language-plutus-core
-, lens
-, mtl
-, plutus-ir
-, prettyprinter
-, serialise
-, stdenv
-, tasty
-, template-haskell
-, text
-, th-abstraction
-, transformers
-}:
-mkDerivation {
-
-pname = "core-to-plc";
-version = "0.1.0.0";
-src = .././core-to-plc;
-libraryHaskellDepends = [
-base
-bytestring
-cborg
-containers
-ghc
-language-plutus-core
-lens
-mtl
-plutus-ir
-prettyprinter
-serialise
-template-haskell
-text
-th-abstraction
-transformers
-];
-testHaskellDepends = [
-base
-bytestring
-language-plutus-core
-tasty
-];
-doHaddock = false;
-description = "GHC Core to Plutus Core compiler";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
 "countable" = callPackage
 ({
   mkDerivation
@@ -55731,35 +55677,89 @@ description = "Plutus IR language";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
-"plutus-th" = callPackage
+"plutus-tx" = callPackage
 ({
   mkDerivation
 , base
-, core-to-plc
 , language-plutus-core
+, plutus-tx-plugin
 , stdenv
 , tasty
 , template-haskell
 }:
 mkDerivation {
 
-pname = "plutus-th";
+pname = "plutus-tx";
 version = "0.1.0.0";
-src = .././plutus-th;
+src = .././plutus-tx;
 libraryHaskellDepends = [
 base
-core-to-plc
+plutus-tx-plugin
 template-haskell
 ];
 testHaskellDepends = [
 base
-core-to-plc
 language-plutus-core
+plutus-tx-plugin
 tasty
 template-haskell
 ];
 doHaddock = false;
-description = "TH frontend to the Plutus compiler";
+description = "The PlutusTx compiler frontend";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"plutus-tx-plugin" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, cborg
+, containers
+, ghc
+, language-plutus-core
+, lens
+, mtl
+, plutus-ir
+, prettyprinter
+, serialise
+, stdenv
+, tasty
+, template-haskell
+, text
+, th-abstraction
+, transformers
+}:
+mkDerivation {
+
+pname = "plutus-tx-plugin";
+version = "0.1.0.0";
+src = .././plutus-tx-plugin;
+libraryHaskellDepends = [
+base
+bytestring
+cborg
+containers
+ghc
+language-plutus-core
+lens
+mtl
+plutus-ir
+prettyprinter
+serialise
+template-haskell
+text
+th-abstraction
+transformers
+];
+testHaskellDepends = [
+base
+bytestring
+language-plutus-core
+tasty
+];
+doHaddock = false;
+description = "PlutusTx compiler plugin";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -55768,11 +55768,11 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , containers
-, core-to-plc
 , hedgehog
 , lens
 , mtl
-, plutus-th
+, plutus-tx
+, plutus-tx-plugin
 , stdenv
 , tasty
 , tasty-hedgehog
@@ -55788,19 +55788,19 @@ src = .././plutus-use-cases;
 libraryHaskellDepends = [
 base
 containers
-core-to-plc
 lens
 mtl
-plutus-th
+plutus-tx
+plutus-tx-plugin
 template-haskell
 wallet-api
 ];
 testHaskellDepends = [
 base
 containers
-core-to-plc
 hedgehog
-plutus-th
+plutus-tx
+plutus-tx-plugin
 tasty
 tasty-hedgehog
 template-haskell
@@ -77543,7 +77543,6 @@ license = stdenv.lib.licenses.mit;
 , bytestring
 , cborg
 , containers
-, core-to-plc
 , cryptonite
 , deriving-compat
 , hashable
@@ -77554,7 +77553,8 @@ license = stdenv.lib.licenses.mit;
 , mtl
 , natural-transformation
 , operational
-, plutus-th
+, plutus-tx
+, plutus-tx-plugin
 , recursion-schemes
 , serialise
 , servant
@@ -77582,7 +77582,6 @@ base64-bytestring
 bytestring
 cborg
 containers
-core-to-plc
 cryptonite
 deriving-compat
 hashable
@@ -77593,7 +77592,8 @@ memory
 mtl
 natural-transformation
 operational
-plutus-th
+plutus-tx
+plutus-tx-plugin
 recursion-schemes
 serialise
 servant

@@ -4,9 +4,9 @@ packages:
 - language-plutus-core
 - plutus-core-interpreter
 - plutus-exe
-- core-to-plc
 - plutus-ir
-- plutus-th
+- plutus-tx
+- plutus-tx-plugin
 - plutus-use-cases
 - wallet-api
 
@@ -24,7 +24,7 @@ flags:
     development: true
   wallet-api:
     development: true
-  core-to-plc:
+  plutus-tx-plugin:
     development: true
   plutus-exe:
     development: true
