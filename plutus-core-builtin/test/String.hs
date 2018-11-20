@@ -1,11 +1,9 @@
--- | A dynamic built-in type test.
-
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- | Tests of dynamic strings and characters.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module DynamicBuiltins.Char
-    ( test_collectChars
+module String
+    ( test_dynamicStrings
     ) where
 
 import           Language.PlutusCore
@@ -14,26 +12,20 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           DynamicBuiltins.Common
+import           Language.PlutusCore.Builtin
 
 import           Control.Monad.IO.Class               (liftIO)
-import           Data.Char
 import           Hedgehog                             hiding (Size, Var)
 import qualified Hedgehog.Gen                         as Gen
 import qualified Hedgehog.Range                       as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
--- Encode 'Char' from Haskell as @integer 4@ from PLC.
-instance KnownDynamicBuiltinType Char where
-    getTypeEncoding _ = return $ TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
-
-    makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
-
-    readDynamicBuiltin (Constant () (BuiltinInt () 4 int)) = Just . chr $ fromIntegral int
-    readDynamicBuiltin _                                   = Nothing
-
-instance PrettyDynamic Char
+test_stringRoundtrip :: TestTree
+test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
+    str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
+    let mayStr' = runQuote (makeDynamicBuiltin str) >>= readDynamicBuiltin
+    Just str === mayStr'
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -54,7 +46,7 @@ test_collectChars = testProperty "collectChars" . property $ do
                 x <- freshName () "x"
                 y <- freshName () "y"
                 return
-                    . LamAbs () x (TyApp () (TyBuiltin () TySize) (TyInt () 1))
+                    . LamAbs () x unit
                     . LamAbs () y unit
                     $ Var () y
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
@@ -65,3 +57,11 @@ test_collectChars = testProperty "collectChars" . property $ do
         Right EvaluationFailure     -> error "failure"
         Right (EvaluationSuccess _) -> return ()
     str === str'
+
+
+test_dynamicStrings :: TestTree
+test_dynamicStrings =
+    testGroup "Dynamic strings"
+        [ test_stringRoundtrip
+        , test_collectChars
+        ]

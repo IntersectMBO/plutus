@@ -3,12 +3,12 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module DynamicBuiltins.Spec
-    ( test_dynamicBuiltins
+module Main
+    ( main
     ) where
 
-import           DynamicBuiltins.Char      (test_collectChars)
-import           DynamicBuiltins.Factorial (test_dynamicFactorial)
+import           Factorial  (test_dynamicFactorial)
+import           String     (test_dynamicStrings)
 
 import           Test.Tasty
 
@@ -16,5 +16,8 @@ test_dynamicBuiltins :: TestTree
 test_dynamicBuiltins =
     testGroup "Dynamic built-ins"
         [ test_dynamicFactorial
-        , test_collectChars
+        , test_dynamicStrings
         ]
+
+main :: IO ()
+main = defaultMain test_dynamicBuiltins

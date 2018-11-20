@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 
-module DynamicBuiltins.Common
+module Language.PlutusCore.Builtin.Common
     ( typecheckEvaluate
     , withEmitTypecheckEvaluate
     ) where
@@ -12,7 +12,7 @@ import           Language.PlutusCore.Constant
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
-import           DynamicBuiltins.Call
+import           Language.PlutusCore.Builtin.Call
 
 import           Control.Exception                          (evaluate)
 import           Control.Monad.Except
@@ -24,7 +24,11 @@ typecheckEvaluate
     => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
 typecheckEvaluate meanings term = do
     let types = dynamicBuiltinNameMeaningsToTypes meanings
-    _ <- annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True types)
+        typecheckConfig = TypeCheckCfg 1000 $ TypeConfig True types
+        typecheck = rename >=> annotateTerm >=> typecheckTerm typecheckConfig
+    _ <- typecheck term
+    -- We do not rename terms before evaluating them, because the evaluator must work correctly over
+    -- terms with duplicate names, because it produces such terms during evaluation.
     return $ evaluateCek meanings term
 
 withEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)

@@ -1,5 +1,5 @@
 cabal-version: 2.0
-name: plutus-core-interpreter
+name: plutus-core-builtin
 version: 0.1.0.0
 license: BSD3
 license-file: LICENSE
@@ -7,7 +7,7 @@ copyright: Copyright: (c) 2018 Input Output
 maintainer: Plutus team
 author: Plutus team
 tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
-synopsis: Virtual machine for Plutus Core
+synopsis: Builtins for Plutus Core
 category: Language
 build-type: Simple
 extra-doc-files: README.md
@@ -30,7 +30,11 @@ flag development
 
 library
     exposed-modules:
-        Language.PlutusCore.Interpreter.CekMachine
+        Language.PlutusCore.Builtin
+    other-modules:
+        Language.PlutusCore.Builtin.Call
+        Language.PlutusCore.Builtin.Common
+        Language.PlutusCore.Builtin.Instances
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -46,10 +50,11 @@ library
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
     build-depends:
+        language-plutus-core -any,
+        plutus-core-interpreter -any,
         base >=4.9 && <5,
         containers -any,
-        mtl -any,
-        language-plutus-core -any
+        mtl -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -62,21 +67,23 @@ test-suite plutus-core-interpreter-test
     main-is: Main.hs
     hs-source-dirs: test
     other-modules:
-        CekMachine
+        Factorial
+        String
     default-language: Haskell2010
     other-extensions: OverloadedStrings
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
     build-depends:
-        base -any,
         language-plutus-core -any,
         plutus-core-interpreter -any,
+        plutus-core-builtin -any,
+        base -any,
+        mtl -any,
         hedgehog -any,
         tasty -any,
         tasty-hunit -any,
-        tasty-hedgehog -any,
-        mtl -any
+        tasty-hedgehog -any
 
     if flag(eventlog)
         ghc-options: -eventlog

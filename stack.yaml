@@ -3,6 +3,7 @@ resolver: lts-12.14
 packages:
 - language-plutus-core
 - plutus-core-interpreter
+- plutus-core-builtin
 - plutus-exe
 - core-to-plc
 - plutus-ir
