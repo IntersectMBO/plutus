@@ -57,3 +57,9 @@ convNumMethod name
     | GHC.getOccString name == "+" = lookupBuiltinTerm 'Builtins.addInteger
     | GHC.getOccString name == "*" = lookupBuiltinTerm 'Builtins.multiplyInteger
     | otherwise = throwSd UnsupportedError $ "Num method:" GHC.<+> GHC.ppr name
+
+convIntegralMethod :: (Converting m) => GHC.Name -> m PIRTerm
+convIntegralMethod name
+    | GHC.getOccString name == "div" = lookupBuiltinTerm 'Builtins.divideInteger
+    | GHC.getOccString name == "rem" = lookupBuiltinTerm 'Builtins.remainderInteger
+    | otherwise = throwSd UnsupportedError $ "Integral method:" GHC.<+> GHC.ppr name

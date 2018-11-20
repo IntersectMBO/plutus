@@ -71,6 +71,7 @@ primitives = testNested "primitives" [
   , goldenEval "intEqApply" [ intEq, int, int ]
   , goldenPlc "void" void
   , goldenPlc "intPlus" intPlus
+  , goldenPlc "intDiv" intDiv
   , goldenEval "intPlusApply" [ intPlus, int, int2 ]
   , goldenPlc "error" errorPlc
   , goldenPlc "ifThenElse" ifThenElse
@@ -114,6 +115,9 @@ void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True
 
 intPlus :: PlcCode
 intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> x + y)
+
+intDiv :: PlcCode
+intDiv = plc @"intDiv" (\(x::Int) (y::Int) -> x `div` y)
 
 errorPlc :: PlcCode
 errorPlc = plc @"errorPlc" (Builtins.error @Int)
