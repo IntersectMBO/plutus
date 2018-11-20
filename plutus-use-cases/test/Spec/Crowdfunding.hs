@@ -30,6 +30,7 @@ tests = testGroup "crowdfunding" [
         testProperty "make contributions and collect" successfulCampaign,
         testProperty "cannot collect money too early" cantCollectEarly,
         testProperty "cannot collect money too late" cantCollectLate,
+        testProperty "cannot collect unless notified" cantCollectUnlessNotified,
         testProperty "can claim a refund" canRefund
         ]
 
@@ -123,6 +124,36 @@ cantCollectEarly = checkCFTrace scenario1 $ do
     processPending >>= notifyBlock
 
     traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, startingBalance)]
+
+-- | Check that a campaign results in a refund if the `collect` trigger is
+--   registered too late (that is, after the contributions have already been
+--   made)
+cantCollectUnlessNotified :: Property
+cantCollectUnlessNotified = checkCFTrace scenario1 $ do
+    contrib2 600
+    processPending >>= notifyBlock
+
+    -- By performing `collect w1` only now, after `contrib2 600` is through,
+    -- `w1` misses the first contribution and so never knows that enough funds
+    -- have been sent to the campaign address
+    collect w1
+    processPending >>= notifyBlock
+
+    -- `contrib3 800` is the only contribution that `w1` sees
+    contrib3 800
+    processPending >>= notifyBlock
+
+    addBlocks 10 >>= notifyBlocks
+
+    -- At this point there are enough funds at the campaign address,
+    -- and the block height is in the desired range. However, w1 is not aware
+    -- of the first contribution, so its `collectFunds` trigger never fires and
+    -- the funds remain locked. (They can be claimed back by w2 and w3 later,
+    -- as demonstrated in `canRefund`)
+    traverse_ (uncurry assertOwnFundsEq) [
+        (w1, startingBalance),
+        (w2, startingBalance - 600),
+        (w3, startingBalance - 800)]
 
 
 -- | Check that the campaign owner cannot collect the monies after the
