@@ -68,7 +68,9 @@ added to environments and normalization instantiates all variables presented in 
 
 {- Note [Costs]
 Typechecking costs are relatively simple: it costs 1 gas to perform
-a substitution. Costs are reset every time we enter 'NormalizeTypeM'.
+a reduction. Substitution does not in general cost anything.
+
+Costs are reset every time we enter 'NormalizeTypeM'.
 
 In unlimited mode, gas is not tracked and we do not fail even on large numbers
 of reductions.
