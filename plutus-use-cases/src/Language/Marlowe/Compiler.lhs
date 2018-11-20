@@ -48,7 +48,7 @@ import qualified Wallet.UTXO                        as UTXO
 import qualified Language.Plutus.Runtime.TH         as TH
 import           Language.Plutus.Lift       (makeLift)
 import           Prelude                            (Int, Integer, Bool (..), Num (..), Show(..), Read(..), Ord (..), Eq (..),
-                    fromIntegral, succ, sum, ($), (<$>), (++), otherwise, Maybe(..))
+                    fromIntegral, succ, sum, ($), (<$>), (++), div, otherwise, Maybe(..))
 
 \end{code}
 
@@ -324,9 +324,9 @@ of money.
 
 data Value = Committed IdentCC |
              Value Int |
-            {-  AddValue Value Value |
+             AddValue Value Value |
              MulValue Value Value |
-             DivValue Value Value Value | -- divident, divisor, default value (when divisor evaluates to 0) -}
+             DivValue Value Value Value | -- divident, divisor, default value (when divisor evaluates to 0)
              ValueFromChoice IdentChoice Person {- Value -} |
              ValueFromOracle PubKey {- Value -}
                     deriving (Eq, Generic)
@@ -336,9 +336,9 @@ makeLift ''Value
 
 
 data Contract = Null
-              | CommitCash IdentCC PubKey Value Timeout Timeout
-              | RedeemCC IdentCC
-              | Pay IdentPay Person Person Value Timeout
+              | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
+              | RedeemCC IdentCC Contract
+              | Pay IdentPay Person Person Value Timeout Contract
                 deriving (Eq, Generic)
 
 makeLift ''Contract
@@ -414,18 +414,18 @@ marloweValidator = Validator result where
         -}
 
         evalValue :: State -> Value -> Int
-        evalValue (State committed choices) value = case value of
+        evalValue state@(State committed choices) value = case value of
             Committed ident -> let
                 (_, NotRedeemed c _) = findCommit ident committed
                 in c
             Value v -> v
-            {- AddValue lhs rhs -> evalValue state os lhs + evalValue state os rhs
-            MulValue lhs rhs -> evalValue state os lhs * evalValue state os rhs
-            DivValue lhs rhs def -> do
-                let divident = evalValue state os lhs
-                let divisor  = evalValue state os rhs
-                let defVal   = evalValue state os def
-                if divisor == 0 then defVal else div divident divisor -}
+            AddValue lhs rhs -> evalValue state lhs + evalValue state rhs
+            MulValue lhs rhs -> evalValue state lhs * evalValue state rhs
+            {- DivValue lhs rhs def -> do
+                let divident = evalValue state lhs
+                let divisor  = evalValue state rhs
+                let defVal   = evalValue state def
+                if divisor == (0::Int) then defVal else divident `div` divisor -}
             ValueFromChoice ident pubKey {- def -} -> fromChoices ident pubKey choices
             ValueFromOracle pubKey -> fromOracle pubKey pendingTxBlockHeight inputOracles
 
@@ -435,34 +435,47 @@ marloweValidator = Validator result where
             PendingTxIn _ (Just _ :: Maybe (ValidatorHash, RedeemerHash)) _ -> (t1, t2)
             _ -> (t2, t1)
 
+        -- | FIXME. Make contract progress in case of expired timeouts.
+        rewindForward :: Int -> Contract -> Contract
+        rewindForward blockNumber contract = case contract of
+            CommitCash _ _ _ startTimeout endTimeout _ con2 ->
+                if blockNumber >= startTimeout || blockNumber >= endTimeout
+                then con2
+                else contract
+            _ -> contract
+
         step :: InputCommand -> State -> Contract -> (State, Contract, Bool)
         step input state contract = case input of
-            Commit (IdentCC idCC) -> case contract of
-                CommitCash (IdentCC expectedIdentCC) pubKey value startTimeout endTimeout -> let
-                    PendingTx [in1, in2]
-                        [PendingTxOut (Plutus.Value committed) (Just (validatorHash, dataHash)) DataTxOut, out2]
-                        _ _ (Plutus.Height blockNumber) [committerSignature] thisScriptHash = p
-                    (sIn@ (PendingTxIn _ _ (Plutus.Value scriptValue)),
-                        commitTxIn@ (PendingTxIn _ _ (Plutus.Value commitValue))) = orderTxIns in1 in2
-                    vv = evalValue state value
-                    isValid = blockNumber <= startTimeout
-                        && blockNumber <= endTimeout
-                        && startTimeout < endTimeout -- I think it should be strongly bigger, otherwise I don't see the point
-                        && vv > 0
-                        && committed == vv + scriptValue
-                        && expectedIdentCC == idCC
-                        && signedBy pubKey
-                        && validatorHash `eqValidator` thisScriptHash
-                        -- TODO check hashes
-                    in  if isValid then let
-                            cns = (pubKey, NotRedeemed commitValue endTimeout)
-                            con1 = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256
-                            -- TODO insert respecting sort, commits MUST be sorted by expiration time
-                            updatedState = case state of { State committed choices -> State ((IdentCC idCC, cns) : committed) choices }
-                            in (updatedState, con1, True)
-                        else Builtins.error ()
+            Commit (IdentCC idCC) -> let
+                PendingTx [in1, in2]
+                    [PendingTxOut (Plutus.Value committed) (Just (validatorHash, dataHash)) DataTxOut, out2]
+                    _ _ (Plutus.Height blockNumber) [committerSignature] thisScriptHash = p
+
+                (sIn@ (PendingTxIn _ _ (Plutus.Value scriptValue)),
+                    commitTxIn@ (PendingTxIn _ _ (Plutus.Value commitValue))) = orderTxIns in1 in2
+
+                relevantContract = rewindForward blockNumber contract
+
+                in case relevantContract of
+                    CommitCash (IdentCC expectedIdentCC) pubKey value startTimeout endTimeout con1 con2 -> let
+
+                        vv = evalValue state value
+
+                        isValid = blockNumber < startTimeout
+                            && vv > 0
+                            && committed == vv + scriptValue
+                            && expectedIdentCC == idCC
+                            && signedBy pubKey
+                            && validatorHash `eqValidator` thisScriptHash
+                            -- TODO check hashes
+                        in  if isValid then let
+                                cns = (pubKey, NotRedeemed commitValue endTimeout)
+                                -- TODO insert respecting sort, commits MUST be sorted by expiration time
+                                updatedState = case state of { State committed choices -> State ((IdentCC idCC, cns) : committed) choices }
+                                in (updatedState, con1, True)
+                            else Builtins.error ()
             Payment (IdentPay pid) -> case contract of
-                Pay (IdentPay contractIdentPay) (from::Person) (to::Person) (payValue::Value) (timeout::Timeout) -> let
+                Pay (IdentPay contractIdentPay) from to payValue timeout con -> let
                     PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
                         [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ (Plutus.Height blockNumber) [receiverSignature] thisScriptHash = p
@@ -490,8 +503,6 @@ marloweValidator = Validator result where
                         && hasEnoughCommitted from pv
                         -- TODO check inputs/outputs
                     in  if isValid then let
-                            con1 = Null
-
                             -- Discounts the Cash from an initial segment of the list of pairs.
 
                             discountFromPairList :: Cash -> [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)]
@@ -504,11 +515,11 @@ marloweValidator = Validator result where
                                 | otherwise = Builtins.error ()
 
                             updatedState = state --State (discountFromPairList payValue committed)
-                            in (updatedState, con1, True)
+                            in (updatedState, con, True)
                         else Builtins.error ()
 
             Redeem (IdentCC identCC) -> case contract of
-                RedeemCC expectedIdentCC -> let
+                RedeemCC expectedIdentCC con -> let
                     PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
                         [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ blockNumber [receiverSignature] thisScriptHash = p
@@ -526,9 +537,8 @@ marloweValidator = Validator result where
 
                     (isValid, updatedState) = findAndRemove committed [] (False, state)
 
-                    in if isValid then let
-                        con1 = Null
-                        in (updatedState, con1, True)
+                    in if isValid
+                    then (updatedState, con, True)
                     else Builtins.error ()
                 _ -> let
                     PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
@@ -601,7 +611,7 @@ commit person txOut oracles choices value timeout = do
     let i   = scriptTxIn ref marloweValidator $ UTXO.Redeemer (UTXO.lifted input)
 
     let ds = DataScript $ UTXO.lifted MarloweData {
-                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256,
+                marloweContract = Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null,
                 marloweState = State {
                     stateCommitted = [(identCC, (person, NotRedeemed (fromIntegral value) timeout))],
                     stateChoices = [] }
