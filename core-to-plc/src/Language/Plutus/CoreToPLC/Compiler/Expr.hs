@@ -155,6 +155,13 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 (GHC.Type (GHC.eqType GHC.intTy -> True)))
             -- last arg is typeclass dictionary
             _ -> convNumMethod (GHC.getName n)
+        GHC.App (GHC.App
+                -- integral class method
+                (GHC.Var n@(GHC.idDetails -> GHC.ClassOpId ((==) GHC.integralClassName . GHC.getName -> True)))
+                -- we only support applying to int
+                (GHC.Type (GHC.eqType GHC.intTy -> True)))
+            -- last arg is typeclass dictionary
+            _ -> convIntegralMethod (GHC.getName n)
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
         -- See note [GHC runtime errors]
