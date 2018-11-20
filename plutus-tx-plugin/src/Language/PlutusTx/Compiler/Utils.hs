@@ -1,17 +1,17 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Language.Plutus.CoreToPLC.Compiler.Utils where
+module Language.PlutusTx.Compiler.Utils where
 
-import           Language.Plutus.CoreToPLC.Compiler.Error
-import           Language.Plutus.CoreToPLC.Compiler.Types
+import           Language.PlutusTx.Compiler.Error
+import           Language.PlutusTx.Compiler.Types
 
-import qualified GhcPlugins                               as GHC
+import qualified GhcPlugins                       as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.Text                                as T
+import qualified Data.Text                        as T
 
 sdToTxt :: (MonadReader ConvertingContext m) => GHC.SDoc -> m T.Text
 sdToTxt sd = do

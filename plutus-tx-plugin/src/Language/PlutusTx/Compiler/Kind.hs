@@ -3,16 +3,16 @@
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC kinds into PlutusCore kinds.
-module Language.Plutus.CoreToPLC.Compiler.Kind (convKind) where
+module Language.PlutusTx.Compiler.Kind (convKind) where
 
-import           Language.Plutus.CoreToPLC.Compiler.Error
-import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Compiler.Utils
+import           Language.PlutusTx.Compiler.Error
+import           Language.PlutusTx.Compiler.Types
+import           Language.PlutusTx.Compiler.Utils
 
-import qualified GhcPlugins                               as GHC
-import qualified Kind                                     as GHC
+import qualified GhcPlugins                       as GHC
+import qualified Kind                             as GHC
 
-import qualified Language.PlutusCore                      as PLC
+import qualified Language.PlutusCore              as PLC
 
 convKind :: Converting m => GHC.Kind -> m (PLC.Kind ())
 convKind k = withContextM (sdToTxt $ "Converting kind:" GHC.<+> GHC.ppr k) $ case k of

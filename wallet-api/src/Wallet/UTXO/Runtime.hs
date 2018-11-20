@@ -32,14 +32,14 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , OracleValue(..)
               ) where
 
-import           Codec.Serialise      (serialise)
-import           Crypto.Hash          (Digest, SHA256, hash)
-import qualified Data.ByteArray       as BA
-import qualified Data.ByteString.Lazy as BSL
-import           GHC.Generics         (Generic)
-import           Language.Plutus.Lift (makeLift)
-import           Wallet.UTXO.Types    (PubKey (..), Signature (..))
-import qualified Wallet.UTXO.Types    as UTXO
+import           Codec.Serialise        (serialise)
+import           Crypto.Hash            (Digest, SHA256, hash)
+import qualified Data.ByteArray         as BA
+import qualified Data.ByteString.Lazy   as BSL
+import           GHC.Generics           (Generic)
+import           Language.PlutusTx.Lift (makeLift)
+import           Wallet.UTXO.Types      (PubKey (..), Signature (..))
+import qualified Wallet.UTXO.Types      as UTXO
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin

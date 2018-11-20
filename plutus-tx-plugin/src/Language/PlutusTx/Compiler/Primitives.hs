@@ -5,18 +5,18 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 -- | Functions for compiling GHC primitives into Plutus Core primitives.
-module Language.Plutus.CoreToPLC.Compiler.Primitives where
+module Language.PlutusTx.Compiler.Primitives where
 
-import qualified Language.Plutus.CoreToPLC.Builtins          as Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Error
-import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.PIRTypes
+import qualified Language.PlutusTx.Builtins          as Builtins
+import           Language.PlutusTx.Compiler.Builtins
+import           Language.PlutusTx.Compiler.Error
+import           Language.PlutusTx.Compiler.Types
+import           Language.PlutusTx.Compiler.Utils
+import           Language.PlutusTx.PIRTypes
 
-import qualified GhcPlugins                                  as GHC
-import qualified PrelNames                                   as GHC
-import qualified PrimOp                                      as GHC
+import qualified GhcPlugins                          as GHC
+import qualified PrelNames                           as GHC
+import qualified PrimOp                              as GHC
 
 -- These never seem to come up, rather we get the typeclass operations. Not sure if we need them.
 convPrimitiveOp :: (Converting m) => GHC.PrimOp -> m PIRTerm

@@ -10,7 +10,7 @@ import           Common
 
 import           TestTH
 
-import           Language.Plutus.TH
+import           Language.PlutusTx.TH
 
 import qualified Language.PlutusCore.Pretty as PLC
 

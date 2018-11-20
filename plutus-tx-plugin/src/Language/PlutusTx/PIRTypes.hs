@@ -1,4 +1,4 @@
-module Language.Plutus.CoreToPLC.PIRTypes where
+module Language.PlutusTx.PIRTypes where
 
 import qualified Language.PlutusIR as PIR
 

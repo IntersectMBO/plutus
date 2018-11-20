@@ -11,7 +11,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE ViewPatterns       #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Wallet.UTXO.Types(
     -- * Basic types
@@ -123,12 +123,12 @@ import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 
-import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getSerializedCode)
-import           Language.Plutus.Lift                     (LiftPir, makeLift, unsafeLiftPlc)
-import           Language.Plutus.TH                       (plutus)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlc)
+import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
+import           Language.PlutusTx.TH                     (plutus)
 
 {- Note [Serialisation and hashing]
 

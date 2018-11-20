@@ -7,7 +7,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling Plutus Core builtins.
-module Language.Plutus.CoreToPLC.Compiler.Builtins (
+module Language.PlutusTx.Compiler.Builtins (
     builtinNames
     , defineBuiltinTypes
     , defineBuiltinTerms
@@ -16,36 +16,36 @@ module Language.Plutus.CoreToPLC.Compiler.Builtins (
     , errorTy
     , errorFunc) where
 
-import qualified Language.Plutus.CoreToPLC.Builtins                  as Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Error
-import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
-import           Language.Plutus.CoreToPLC.Compiler.Names
-import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Type
-import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.Compiler.ValueRestriction
-import           Language.Plutus.CoreToPLC.PIRTypes
-import           Language.Plutus.CoreToPLC.Utils
+import qualified Language.PlutusTx.Builtins                  as Builtins
+import           Language.PlutusTx.Compiler.Error
+import {-# SOURCE #-} Language.PlutusTx.Compiler.Expr
+import           Language.PlutusTx.Compiler.Names
+import {-# SOURCE #-} Language.PlutusTx.Compiler.Type
+import           Language.PlutusTx.Compiler.Types
+import           Language.PlutusTx.Compiler.Utils
+import           Language.PlutusTx.Compiler.ValueRestriction
+import           Language.PlutusTx.PIRTypes
+import           Language.PlutusTx.Utils
 
-import qualified Language.PlutusIR                                   as PIR
-import qualified Language.PlutusIR.Compiler.Definitions              as PIR
+import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR.Compiler.Definitions      as PIR
 import           Language.PlutusIR.Compiler.Names
-import qualified Language.PlutusIR.MkPir                             as PIR
+import qualified Language.PlutusIR.MkPir                     as PIR
 
-import qualified Language.PlutusCore                                 as PLC
+import qualified Language.PlutusCore                         as PLC
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Bool                as Bool
+import qualified Language.PlutusCore.StdLib.Data.Bool        as Bool
 
-import qualified GhcPlugins                                          as GHC
+import qualified GhcPlugins                                  as GHC
 
-import qualified Language.Haskell.TH.Syntax                          as TH
+import qualified Language.Haskell.TH.Syntax                  as TH
 
 import           Control.Monad
 import           Control.Monad.Reader
 
-import qualified Data.ByteString.Lazy                                as BSL
-import qualified Data.Map                                            as Map
-import qualified Data.Set                                            as Set
+import qualified Data.ByteString.Lazy                        as BSL
+import qualified Data.Map                                    as Map
+import qualified Data.Set                                    as Set
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.

@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 -- the simplfiier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 
@@ -9,7 +9,7 @@
 -- In a separate file so we can give different options to the plugin.
 module Plugin.IllTyped where
 
-import           Language.Plutus.CoreToPLC.Plugin
+import           Language.PlutusTx.Plugin
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}

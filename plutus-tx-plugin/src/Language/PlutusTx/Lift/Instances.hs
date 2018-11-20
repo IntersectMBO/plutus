@@ -5,15 +5,16 @@
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Language.Plutus.Lift.Instances () where
+module Language.PlutusTx.Lift.Instances () where
 
-import qualified Language.PlutusCore             as PLC
+import qualified Language.PlutusCore            as PLC
 
-import           Language.Plutus.CoreToPLC.Utils
-import           Language.Plutus.Lift.LiftPir
+import           Language.PlutusTx.Lift.LiftPir
+import           Language.PlutusTx.Utils
+
 import           Language.PlutusIR
 
-import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.Proxy
 
 -- Derived instances

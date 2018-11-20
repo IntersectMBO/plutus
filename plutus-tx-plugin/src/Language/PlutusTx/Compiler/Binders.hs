@@ -2,16 +2,16 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- | Convenient functions for compiling binders.
-module Language.Plutus.CoreToPLC.Compiler.Binders where
+module Language.PlutusTx.Compiler.Binders where
 
-import           Language.Plutus.CoreToPLC.Compiler.Names
-import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Compiler.ValueRestriction
-import           Language.Plutus.CoreToPLC.PIRTypes
+import           Language.PlutusTx.Compiler.Names
+import           Language.PlutusTx.Compiler.Types
+import           Language.PlutusTx.Compiler.ValueRestriction
+import           Language.PlutusTx.PIRTypes
 
-import qualified GhcPlugins                                          as GHC
+import qualified GhcPlugins                                  as GHC
 
-import qualified Language.PlutusIR                                   as PIR
+import qualified Language.PlutusIR                           as PIR
 
 import           Control.Monad.Reader
 

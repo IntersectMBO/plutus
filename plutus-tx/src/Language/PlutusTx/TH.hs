@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
-module Language.Plutus.TH (
+module Language.PlutusTx.TH (
     module Builtins,
     plutus,
     plutusUntyped,
@@ -9,16 +9,16 @@ module Language.Plutus.TH (
     getSerializedCode,
     getAst) where
 
-import           Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.CoreToPLC.Plugin
+import           Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Plugin
 
-import qualified Language.Haskell.TH                as TH
-import qualified Language.Haskell.TH.Syntax         as TH
+import qualified Language.Haskell.TH        as TH
+import qualified Language.Haskell.TH.Syntax as TH
 
 -- | Covert a quoted Haskell expression into a corresponding Plutus Core program.
 plutus :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp PlcCode)
 plutus e = do
-    TH.addCorePlugin "Language.Plutus.CoreToPLC.Plugin"
+    TH.addCorePlugin "Language.PlutusTx.Plugin"
     loc <- TH.location
     let locStr = TH.pprint loc
     -- See note [Typed TH]

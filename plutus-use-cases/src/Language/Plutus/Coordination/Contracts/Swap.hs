@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.Swap(
     Swap(..),
     swapValidator
@@ -12,8 +12,8 @@ module Language.Plutus.Coordination.Contracts.Swap(
 import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
                                              PubKey, ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
-import           Language.Plutus.TH         (plutusUntyped)
-import qualified Language.Plutus.TH         as Builtins
+import           Language.PlutusTx.TH       (plutusUntyped)
+import qualified Language.PlutusTx.TH       as Builtins
 import           Wallet.UTXO                (Height, Validator (..))
 import qualified Wallet.UTXO                as UTXO
 

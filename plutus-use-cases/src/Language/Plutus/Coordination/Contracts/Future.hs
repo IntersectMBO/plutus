@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 -- | A futures contract in Plutus. This example illustrates three concepts.
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
@@ -28,10 +28,10 @@ import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
-import           Language.Plutus.Lift       (makeLift)
 import qualified Language.Plutus.Runtime.TH as TH
-import           Language.Plutus.TH         (plutusUntyped)
-import qualified Language.Plutus.TH         as Builtins
+import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.TH       (plutusUntyped)
+import qualified Language.PlutusTx.TH       as Builtins
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO

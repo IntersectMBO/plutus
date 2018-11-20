@@ -1,5 +1,5 @@
 -- | Primitive names and functions for working with Plutus Core builtins.
-module Language.Plutus.CoreToPLC.Builtins (
+module Language.PlutusTx.Builtins (
                                 -- * Bytestring builtins
                                 concatenate
                                 , takeByteString
@@ -27,9 +27,9 @@ module Language.Plutus.CoreToPLC.Builtins (
                                 ) where
 
 import           Data.ByteString.Lazy
-import           Prelude                         hiding (error)
+import           Prelude                 hiding (error)
 
-import           Language.Plutus.CoreToPLC.Utils (mustBeReplaced)
+import           Language.PlutusTx.Utils (mustBeReplaced)
 
 -- TODO: resizing primitives? better handling of sizes?
 

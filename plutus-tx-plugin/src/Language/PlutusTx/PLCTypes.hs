@@ -1,4 +1,4 @@
-module Language.Plutus.CoreToPLC.PLCTypes where
+module Language.PlutusTx.PLCTypes where
 
 import qualified Language.PlutusCore       as PLC
 import qualified Language.PlutusCore.MkPlc as PLC

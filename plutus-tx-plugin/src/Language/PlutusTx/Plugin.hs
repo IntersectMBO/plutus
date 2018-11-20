@@ -8,46 +8,45 @@
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
-module Language.Plutus.CoreToPLC.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
+module Language.PlutusTx.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
 
-import           Language.Plutus.CoreToPLC.Compiler.Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Error
-import           Language.Plutus.CoreToPLC.Compiler.Expr
-import           Language.Plutus.CoreToPLC.Compiler.Types
-import           Language.Plutus.CoreToPLC.Compiler.Utils
-import           Language.Plutus.CoreToPLC.PIRTypes
-import           Language.Plutus.CoreToPLC.PLCTypes
-import           Language.Plutus.CoreToPLC.Utils
-import           Language.Plutus.Lift
+import           Language.PlutusTx.Compiler.Builtins
+import           Language.PlutusTx.Compiler.Error
+import           Language.PlutusTx.Compiler.Expr
+import           Language.PlutusTx.Compiler.Types
+import           Language.PlutusTx.Compiler.Utils
+import           Language.PlutusTx.Lift
+import           Language.PlutusTx.PIRTypes
+import           Language.PlutusTx.PLCTypes
+import           Language.PlutusTx.Utils
 
-import qualified GhcPlugins                                  as GHC
-import qualified Panic                                       as GHC
+import qualified GhcPlugins                             as GHC
+import qualified Panic                                  as GHC
 
-import qualified Language.PlutusCore                         as PLC
+import qualified Language.PlutusCore                    as PLC
 import           Language.PlutusCore.Quote
 
-import qualified Language.PlutusIR                           as PIR
-import qualified Language.PlutusIR.Compiler                  as PIR
-import qualified Language.PlutusIR.Compiler.Definitions      as PIR
-import qualified Language.PlutusIR.Optimizer.DeadCode        as PIR
+import qualified Language.PlutusIR                      as PIR
+import qualified Language.PlutusIR.Compiler             as PIR
+import qualified Language.PlutusIR.Compiler.Definitions as PIR
+import qualified Language.PlutusIR.Optimizer.DeadCode   as PIR
 
-import           Language.Haskell.TH.Syntax                  as TH
+import           Language.Haskell.TH.Syntax             as TH
 
-import           Codec.Serialise                             (DeserialiseFailure, Serialise, deserialiseOrFail,
-                                                              serialise)
+import           Codec.Serialise                        (DeserialiseFailure, Serialise, deserialiseOrFail, serialise)
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.ByteString                             as BS
-import qualified Data.ByteString.Lazy                        as BSL
-import qualified Data.ByteString.Unsafe                      as BSUnsafe
-import qualified Data.Map                                    as Map
-import qualified Data.Text.Prettyprint.Doc                   as PP
+import qualified Data.ByteString                        as BS
+import qualified Data.ByteString.Lazy                   as BSL
+import qualified Data.ByteString.Unsafe                 as BSUnsafe
+import qualified Data.Map                               as Map
+import qualified Data.Text.Prettyprint.Doc              as PP
 
 import           GHC.TypeLits
-import           System.IO.Unsafe                            (unsafePerformIO)
+import           System.IO.Unsafe                       (unsafePerformIO)
 
 {- Note [Constructing the final program]
 Our final type is a simple newtype wrapper. However, constructing *anything* in Core

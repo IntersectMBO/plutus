@@ -10,8 +10,8 @@ import           Plugin.Spec
 import           Common
 import           PlcTestUtils
 
-import           Language.Plutus.CoreToPLC.Plugin
-import qualified Language.Plutus.Lift             as Lift
+import qualified Language.PlutusTx.Lift    as Lift
+import           Language.PlutusTx.Plugin
 
 import           Language.PlutusCore.Quote
 

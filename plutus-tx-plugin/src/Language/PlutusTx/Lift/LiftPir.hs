@@ -8,9 +8,9 @@
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
-module Language.Plutus.Lift.LiftPir (TypeablePir (..),  LiftPir (..), makeTypeablePir, makeLiftPir)where
+module Language.PlutusTx.Lift.LiftPir (TypeablePir (..),  LiftPir (..), makeTypeablePir, makeLiftPir)where
 
-import           Language.Plutus.Lift.THUtils
+import           Language.PlutusTx.Lift.THUtils
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Definitions

@@ -1,7 +1,7 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Language.Plutus.CoreToPLC.Utils where
+module Language.PlutusTx.Utils where
 
 import qualified Language.PlutusCore as PLC
 import qualified Language.PlutusIR   as PIR

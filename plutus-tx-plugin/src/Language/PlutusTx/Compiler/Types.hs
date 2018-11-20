@@ -3,24 +3,24 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types        #-}
 
-module Language.Plutus.CoreToPLC.Compiler.Types where
+module Language.PlutusTx.Compiler.Types where
 
-import           Language.Plutus.CoreToPLC.Compiler.Error
-import           Language.Plutus.CoreToPLC.PLCTypes
+import           Language.PlutusTx.Compiler.Error
+import           Language.PlutusTx.PLCTypes
 
 import           Language.PlutusIR.Compiler.Definitions
 
 import           Language.PlutusCore.Quote
 
-import qualified GhcPlugins                               as GHC
+import qualified GhcPlugins                             as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
-import qualified Data.List.NonEmpty                       as NE
-import qualified Data.Map                                 as Map
+import qualified Data.List.NonEmpty                     as NE
+import qualified Data.Map                               as Map
 
-import qualified Language.Haskell.TH.Syntax               as TH
+import qualified Language.Haskell.TH.Syntax             as TH
 
 type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 

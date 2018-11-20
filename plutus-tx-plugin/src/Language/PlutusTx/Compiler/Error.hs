@@ -5,7 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
-module Language.Plutus.CoreToPLC.Compiler.Error (
+module Language.PlutusTx.Compiler.Error (
     ConvError
     , Error (..)
     , WithContext (..)

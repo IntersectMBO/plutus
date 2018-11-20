@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Language.Plutus.Lift (module Lift, makeLift, liftPlc, unsafeLiftPlc) where
+module Language.PlutusTx.Lift (module Lift, makeLift, liftPlc, unsafeLiftPlc) where
 
-import           Language.Plutus.Lift.Instances         ()
-import           Language.Plutus.Lift.LiftPir           as Lift
+import           Language.PlutusTx.Lift.Instances       ()
+import           Language.PlutusTx.Lift.LiftPir         as Lift
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler

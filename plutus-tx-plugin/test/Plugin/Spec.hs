@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:defer-errors -fplugin-opt Language.Plutus.CoreToPLC.Plugin:strip-context #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:strip-context #-}
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
@@ -17,9 +17,9 @@ import           Plugin.IllTyped
 import           Common
 import           PlcTestUtils
 
-import qualified Language.Plutus.CoreToPLC.Builtins as Builtins
-import           Language.Plutus.CoreToPLC.Plugin
-import           Language.Plutus.Lift
+import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Lift
+import           Language.PlutusTx.Plugin
 
 import           Language.PlutusCore
 
