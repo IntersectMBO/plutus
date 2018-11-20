@@ -51,6 +51,7 @@ module Wallet.Emulator.Types(
     processEmulated
     ) where
 
+import           Control.Lens               hiding (index, uncons)
 import           Control.Monad.Except
 import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
@@ -65,8 +66,6 @@ import           Data.Maybe
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
 import           GHC.Generics               (Generic)
-import           Lens.Micro
-import           Lens.Micro.Extras          (view)
 import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 

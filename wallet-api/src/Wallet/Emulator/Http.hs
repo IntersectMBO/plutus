@@ -14,6 +14,7 @@ module Wallet.Emulator.Http
 
 import           Control.Concurrent.STM     (STM, TVar, atomically, modifyTVar, newTVar, readTVar, readTVarIO,
                                              writeTVar)
+import           Control.Lens               (over, set, to, view)
 import           Control.Monad.Error.Class  (MonadError)
 import           Control.Monad.Except       (ExceptT, liftEither, runExceptT)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -26,8 +27,6 @@ import           Data.Maybe                 (catMaybes)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
-import           Lens.Micro                 (over, set, to)
-import           Lens.Micro.Extras          (view)
 import           Servant                    (Application, Handler, ServantErr (errBody), Server, err404, err500,
                                              hoistServer, serve, throwError)
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
