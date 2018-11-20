@@ -1,5 +1,6 @@
 module Main(main) where
 
+import           Control.Lens
 import           Control.Monad       (void)
 import           Data.Either         (isLeft, isRight)
 import           Data.Foldable       (traverse_)
@@ -9,8 +10,6 @@ import           Hedgehog            (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen        as Gen
 import qualified Hedgehog.Range      as Range
-import           Lens.Micro
-import           Lens.Micro.Extras   (view)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
