@@ -26,12 +26,9 @@ library
     containers -any,
     mtl -any,
     template-haskell -any,
-    transformers -any,
     plutus-th -any,
-    language-plutus-core -any,
     core-to-plc -any,
-    wallet-api -any,
-    microlens -any
+    wallet-api -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift

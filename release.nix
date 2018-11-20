@@ -1,6 +1,6 @@
 let
   fixedLib     = import ./lib.nix;
-  fixedNixpkgs = fixedLib.fetchNixpkgs;
+  fixedNixpkgs = fixedLib.iohkNix.nixpkgs;
 in
   { supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
   , scrubJobs ? true

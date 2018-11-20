@@ -18,11 +18,11 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Control.Lens.TH
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Lazy
 import qualified Data.IntMap               as IM
-import           Lens.Micro.TH
 
 data TypeState a = TypeState { _terms :: IM.IntMap (RenamedType a), _types :: IM.IntMap (Kind a) }
 
@@ -42,16 +42,16 @@ instance Monoid (TypeState a) where
 type TypeM a = StateT (TypeState a) (Either (RenameError a))
 
 -- | Annotate a PLC program, so that all names are annotated with their types/kinds.
-annotateProgram :: (MonadError (Error a) m) => Program TyName Name a -> m (Program TyNameWithKind NameWithType a)
+annotateProgram :: (AsRenameError e a, MonadError e m) => Program TyName Name a -> m (Program TyNameWithKind NameWithType a)
 annotateProgram (Program a v t) = Program a v <$> annotateTerm t
 
 -- | Annotate a PLC term, so that all names are annotated with their types/kinds.
-annotateTerm :: (MonadError (Error a) m) => Term TyName Name a -> m (Term TyNameWithKind NameWithType a)
-annotateTerm t = fmap fst $ liftEither $ convertError $ runStateT (annotateT t) mempty
+annotateTerm :: (AsRenameError e a, MonadError e m) => Term TyName Name a -> m (Term TyNameWithKind NameWithType a)
+annotateTerm t = fmap fst $ throwingEither _RenameError $ runStateT (annotateT t) mempty
 
 -- | Annotate a PLC type, so that all names are annotated with their types/kinds.
-annotateType :: (MonadError (Error a) m) => Type TyName a -> m (Type TyNameWithKind a)
-annotateType t = fmap fst $ liftEither $ convertError $ runStateT (annotateTy t) mempty
+annotateType :: (AsRenameError e a, MonadError e m) => Type TyName a -> m (Type TyNameWithKind a)
+annotateType t = fmap fst $ throwingEither _RenameError $ runStateT (annotateTy t) mempty
 
 insertType :: Int -> Type TyNameWithKind a -> TypeM a ()
 insertType = modify .* over terms .* IM.insert

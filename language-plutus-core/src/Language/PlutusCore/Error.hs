@@ -1,20 +1,30 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE UndecidableInstances   #-}
+-- appears in the generated instances
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module Language.PlutusCore.Error
     ( ParseError (..)
+    , AsParseError (..)
     , NormalizationError (..)
+    , AsNormalizationError (..)
     , RenameError (..)
+    , AsRenameError (..)
     , UnknownDynamicBuiltinNameError (..)
+    , AsUnknownDynamicBuiltinNameError (..)
     , InternalTypeError (..)
+    , AsInternalTypeError (..)
     , TypeError (..)
+    , AsTypeError (..)
     , Error (..)
-    , IsError (..)
-    , convertError
+    , AsError (..)
+    , throwingEither
     ) where
 
 import           Language.PlutusCore.Lexer.Type
@@ -23,8 +33,18 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Control.Lens
+import           Control.Monad.Error.Lens
+import           Control.Monad.Except
+
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+
+-- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
+throwingEither :: MonadError e m => AReview e t -> Either t a -> m a
+throwingEither r e = case e of
+    Left t  -> throwing r t
+    Right v -> pure v
 
 -- | An error encountered during parsing.
 data ParseError a
@@ -32,11 +52,13 @@ data ParseError a
     | Unexpected (Token a)
     | Overflow a Natural Integer
     deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''ParseError
 
 data NormalizationError tyname name a
     = BadType a (Type tyname a) T.Text
     | BadTerm a (Term tyname name a) T.Text
     deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''NormalizationError
 
 -- | A 'RenameError' is thrown when a free variable is encountered during
 -- rewriting.
@@ -44,17 +66,20 @@ data RenameError a
     = UnboundVar (Name a)
     | UnboundTyVar (TyName a)
     deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''RenameError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
 newtype UnknownDynamicBuiltinNameError
-    = UnknownDynamicBuiltinNameError DynamicBuiltinName
+    = UnknownDynamicBuiltinNameErrorE DynamicBuiltinName
     deriving (Show, Eq, Generic)
     deriving newtype (NFData)
+makeClassyPrisms ''UnknownDynamicBuiltinNameError
 
 -- | An internal error occurred during type checking.
 data InternalTypeError a
     = OpenTypeOfBuiltin (Type TyName ()) (Builtin ())
     deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''InternalTypeError
 
 data TypeError a
     = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
@@ -62,42 +87,35 @@ data TypeError a
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
     | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
-    | InternalTypeError a (InternalTypeError a)
+    | InternalTypeErrorE a (InternalTypeError a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''TypeError
 
 data Error a
-    = ParseError (ParseError a)
-    | RenameError (RenameError a)
-    | TypeError (TypeError a)
-    | NormalizationError (NormalizationError TyName Name a)
+    = ParseErrorE (ParseError a)
+    | RenameErrorE (RenameError a)
+    | TypeErrorE (TypeError a)
+    | NormalizationErrorE (NormalizationError TyName Name a)
     deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''Error
+
+instance AsParseError (Error a) a where
+    _ParseError = _ParseErrorE
+
+instance AsRenameError (Error a) a where
+    _RenameError = _RenameErrorE
+
+instance AsTypeError (Error a) a where
+    _TypeError = _TypeErrorE
+
+instance AsNormalizationError (Error a) TyName Name a where
+    _NormalizationError = _NormalizationErrorE
 
 asInternalError :: Doc ann -> Doc ann
 asInternalError doc =
     "An internal error has occurred:" <+> doc <> hardline <>
     "Please report this as a bug."
-
-class IsError f where
-    asError :: f a -> Error a
-
-convertError :: IsError f => Either (f a) b -> Either (Error a) b
-convertError = first asError
-
-instance IsError Error where
-    asError = id
-
-instance IsError ParseError where
-    asError = ParseError
-
-instance IsError RenameError where
-    asError = RenameError
-
-instance IsError TypeError where
-    asError = TypeError
-
-instance IsError (NormalizationError TyName Name) where
-    asError = NormalizationError
 
 instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
@@ -126,7 +144,7 @@ instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError 
         "is not in scope."
 
 instance Pretty UnknownDynamicBuiltinNameError where
-    pretty (UnknownDynamicBuiltinNameError dbn) =
+    pretty (UnknownDynamicBuiltinNameErrorE dbn) =
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
 instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
@@ -137,12 +155,12 @@ instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
             "built-in is open"
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')            =
+    prettyBy config (KindMismatch x ty k k')          =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty')           =
+    prettyBy config (TypeMismatch x t ty ty')         =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -151,16 +169,16 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (InternalTypeError x err)           =
+    prettyBy config (InternalTypeErrorE x err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty x
-    prettyBy _      (UnknownDynamicBuiltinName x udbne) =
-        "Unknown dynamic built-in at" <+> pretty x <>
-        ":" <+> pretty udbne
-    prettyBy _      OutOfGas                            = "Type checker ran out of gas."
+    prettyBy _      (UnknownDynamicBuiltinName x err) =
+        "Unknown dynamic built-in name at" <+> pretty x <>
+        ":" <+> pretty err
+    prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
-    prettyBy _      (ParseError e)         = pretty e
-    prettyBy config (RenameError e)        = prettyBy config e
-    prettyBy config (TypeError e)          = prettyBy config e
-    prettyBy config (NormalizationError e) = prettyBy config e
+    prettyBy _      (ParseErrorE e)         = pretty e
+    prettyBy config (RenameErrorE e)        = prettyBy config e
+    prettyBy config (TypeErrorE e)          = prettyBy config e
+    prettyBy config (NormalizationErrorE e) = prettyBy config e

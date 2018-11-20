@@ -65,7 +65,8 @@ instance (PrettyBy config a, PrettyBy config (Term TyName Name ())) =>
         PrettyBy config (TermOf a) where
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
-attachCoercedTerm :: MonadQuote m => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
+attachCoercedTerm
+    :: (MonadQuote m, PrettyDynamic a) => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
 attachCoercedTerm tb genX = do
     x <- genX
     -- Previously we used 'unsafeMakeBuiltin' here, however it didn't allow to generate
@@ -80,7 +81,7 @@ attachCoercedTerm tb genX = do
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
-    :: MonadQuote m
+    :: (MonadQuote m, PrettyDynamic a)
     => TypedBuiltin Size a  -- ^ A generator of which built-in to overwrite.
     -> GenT m a             -- ^ A new generator.
     -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.
@@ -91,7 +92,7 @@ updateTypedBuiltinGen tbNew genX genTb tbOld
 
 -- | Update a sized typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGenSized
-    :: MonadQuote m
+    :: (MonadQuote m, PrettyDynamic a)
     => TypedBuiltinSized a  -- ^ A generator of which sized built-in to overwrite.
     -> (Size -> GenT m a)   -- ^ A function that computes new generator from a 'Size'.
     -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.

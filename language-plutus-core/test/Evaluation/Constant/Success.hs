@@ -11,7 +11,6 @@ import           Evaluation.Constant.Apply
 import           Control.Monad.Morph
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Maybe
-import           Data.Semigroup
 import           Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog

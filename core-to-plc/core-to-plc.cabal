@@ -66,8 +66,7 @@ library
         containers -any,
         ghc -any,
         language-plutus-core -any,
-        mmorph -any,
-        microlens -any,
+        lens -any,
         mtl -any,
         plutus-ir -any,
         prettyprinter -any,
@@ -84,16 +83,13 @@ test-suite core-to-plc-plugin
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        IllTyped
+        Lift.Spec
+        Plugin.Spec
+        Plugin.IllTyped
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         core-to-plc -any,
         language-plutus-core -any,
         bytestring -any,
-        mtl -any,
-        text -any,
-        prettyprinter -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-golden -any
+        tasty -any

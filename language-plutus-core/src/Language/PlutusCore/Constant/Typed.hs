@@ -62,18 +62,20 @@ module Language.PlutusCore.Constant.Typed
     , typedSizeOfInteger
     ) where
 
-import           Language.PlutusCore.Lexer.Type       (BuiltinName (..), TypeBuiltin (..), prettyBytes)
+import           Language.PlutusCore.Constant.DynamicType
+import           Language.PlutusCore.Lexer.Type           hiding (name)
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy.Char8           as BSL
+import qualified Data.ByteString.Lazy.Char8               as BSL
 import           Data.GADT.Compare
-import           Data.Map                             (Map)
-import qualified Data.Map                             as Map
-import qualified Data.Text.Encoding                   as Text
+import           Data.Map                                 (Map)
+import qualified Data.Map                                 as Map
+import qualified Data.Text.Encoding                       as Text
 
 infixr 9 `TypeSchemeArrow`
 
@@ -148,6 +150,10 @@ data BuiltinType size
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
     TypedBuiltinBool  :: TypedBuiltin size Bool
+    -- Any type that implements 'KnownDynamicBuiltinType' can be lifted to a 'TypedBuiltin',
+    -- because any such type has a PLC representation and provides conversions back and forth
+    -- between Haskell and PLC and that's all we need.
+    TypedBuiltinDyn   :: KnownDynamicBuiltinType dyn => TypedBuiltin size dyn
 
 -- | A 'TypedBuiltin' packaged together with a value of the type that the 'TypedBuiltin' denotes.
 data TypedBuiltinValue size a = TypedBuiltinValue (TypedBuiltin size a) a
@@ -186,7 +192,7 @@ of course. Therefore a typed thing has to go before the corresponding untyped th
 final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
 -}
 
--- | The meaning of of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
+-- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
 data DynamicBuiltinNameMeaning =
     forall a r. DynamicBuiltinNameMeaning (forall size. TypeScheme size a r) a
@@ -216,14 +222,14 @@ instance Pretty size => Pretty (SizeEntry size) where
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
     pretty TypedBuiltinBool           = "bool"
+    -- Do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
+    -- This is just used in errors, so we probably do not care much.
+    pretty dyn@TypedBuiltinDyn        = prettyPlcDef . runQuote $ getTypeEncoding dyn
 
-instance size ~ Size => Pretty (TypedBuiltinValue size a) where
-    pretty (TypedBuiltinValue (TypedBuiltinSized se tbs) x) =
-        pretty se <+> "!" <+> case tbs of
-            TypedBuiltinSizedInt  -> pretty      x
-            TypedBuiltinSizedBS   -> prettyBytes x
-            TypedBuiltinSizedSize -> pretty      x
-    pretty (TypedBuiltinValue TypedBuiltinBool           b) = pretty b
+instance (size ~ Size, PrettyDynamic a) => Pretty (TypedBuiltinValue size a) where
+    pretty (TypedBuiltinValue (TypedBuiltinSized se _) x) = pretty se <+> "!" <+> prettyDynamic x
+    pretty (TypedBuiltinValue TypedBuiltinBool         b) = prettyDynamic b
+    pretty (TypedBuiltinValue TypedBuiltinDyn          x) = prettyDynamic x
 
 liftOrdering :: Ordering -> GOrdering a a
 liftOrdering LT = GLT
@@ -238,11 +244,16 @@ instance GEq TypedBuiltinSized where
     TypedBuiltinSizedSize `geq` TypedBuiltinSizedSize = Just Refl
     _                     `geq` _                     = Nothing
 
+comparedDynamicBuiltinTypesError :: a
+comparedDynamicBuiltinTypesError = error "Dynamic built-in types cannot be compared"
+
 instance Eq size => GEq (TypedBuiltin size) where
     TypedBuiltinSized size1 tbs1 `geq` TypedBuiltinSized size2 tbs2 = do
         guard $ size1 == size2
         tbs1 `geq` tbs2
     TypedBuiltinBool             `geq` TypedBuiltinBool             = Just Refl
+    TypedBuiltinDyn              `geq` _                            = comparedDynamicBuiltinTypesError
+    _                            `geq` TypedBuiltinDyn              = comparedDynamicBuiltinTypesError
     _                            `geq` _                            = Nothing
 
 instance Ord size => GCompare (TypedBuiltin size) where
@@ -256,6 +267,8 @@ instance Ord size => GCompare (TypedBuiltin size) where
     TypedBuiltinBool             `gcompare` TypedBuiltinBool      = GEQ
     TypedBuiltinSized _ _        `gcompare` TypedBuiltinBool      = GLT
     TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
+    TypedBuiltinDyn              `gcompare` _                     = comparedDynamicBuiltinTypesError
+    _                            `gcompare` TypedBuiltinDyn       = comparedDynamicBuiltinTypesError
 
 -- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
 eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
@@ -273,6 +286,7 @@ mapSizeEntryTypedBuiltin
     :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
 mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
 mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
+mapSizeEntryTypedBuiltin _ TypedBuiltinDyn            = TypedBuiltinDyn
 
 -- | Alter the 'size' of a @TypedBuiltin size@.
 mapSizeTypedBuiltin
@@ -314,6 +328,7 @@ typedBuiltinToType (TypedBuiltinSized se tbs) =
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
 typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
+typedBuiltinToType dyn@TypedBuiltinDyn        = getTypeEncoding dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

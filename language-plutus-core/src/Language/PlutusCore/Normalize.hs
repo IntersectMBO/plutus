@@ -11,8 +11,8 @@ import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Control.Lens
 import           Control.Monad.Reader
-import           Data.Coerce.Lens
 import           Data.IntMap                 (IntMap)
 import qualified Data.IntMap                 as IntMap
 
