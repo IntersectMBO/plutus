@@ -47,12 +47,6 @@ in pkgs.lib.fix (jobsets:  mapped // {
       in
     [
       (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests)))
-      # TODO: generify to just add everything in tests and docs
-      jobsets.tests.hlint
-      jobsets.tests.shellcheck
-      jobsets.tests.stylishHaskell
-      jobsets.docs.plutus-core-spec
-      jobsets.docs.lazy-machine
-    ];
+    ] ++ (builtins.attrValues jobsets.tests) ++ (builtins.attrValues jobsets.docs);
   });
 })
