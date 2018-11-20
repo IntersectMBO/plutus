@@ -66,6 +66,14 @@ do so, because picked values cannot contain uninstantiated variables as only nor
 added to environments and normalization instantiates all variables presented in an environment.
 -}
 
+{- Note [Costs]
+Typechecking costs are relatively simple: it costs 1 gas to perform
+a substitution. Costs are reset every time we enter 'NormalizeTypeM'.
+
+In unlimited mode, gas is not tracked and we do not fail even on large numbers
+of reductions.
+-}
+
 -- See Note [Normalization].
 -- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
 normalizeTypeM
