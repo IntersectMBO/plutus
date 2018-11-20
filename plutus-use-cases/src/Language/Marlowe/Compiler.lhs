@@ -333,7 +333,20 @@ data Value = Committed IdentCC |
 
 makeLift ''Value
 
+-- Representation of observations over observables and the state.
+-- Rendered into predicates by interpretObs.
 
+data Observation =  BelowTimeout Int | -- are we still on time for something that expires on Timeout?
+                    AndObs Observation Observation |
+                    OrObs Observation Observation |
+                    NotObs Observation |
+                    PersonChoseThis IdentChoice Person ConcreteChoice |
+                    PersonChoseSomething IdentChoice Person |
+                    ValueGE Value Value | -- is first amount is greater or equal than the second?
+                    TrueObs |
+                    FalseObs
+                    deriving (Eq, Generic)
+makeLift ''Observation
 
 data Contract = Null
               | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
@@ -370,6 +383,9 @@ marloweValidator = Validator result where
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
         eqValidator = $(TH.eqValidator)
 
+        not :: Bool -> Bool
+        not = $(TH.not)
+
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
         (&&) = $(TH.and)
@@ -390,6 +406,12 @@ marloweValidator = Validator result where
         concat l =  go (reverse l) where
                 go []     a = a
                 go (x:xs) a = go xs (x:a)
+
+        isJust :: Maybe a -> Bool
+        isJust = $(TH.isJust)
+
+        maybe :: r -> (a -> r) -> Maybe a -> r
+        maybe = $(TH.maybe)
 
         findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> CCStatus
         findCommit i@(IdentCC searchId) commits = case commits of
@@ -428,6 +450,26 @@ marloweValidator = Validator result where
                 if divisor == (0::Int) then defVal else divident `div` divisor -}
             ValueFromChoice ident pubKey {- def -} -> fromChoices ident pubKey choices
             ValueFromOracle pubKey -> fromOracle pubKey pendingTxBlockHeight inputOracles
+
+        interpretObs :: Int -> [OracleValue Int] -> State -> Observation -> Bool
+        interpretObs blockNumber oracles state@(State _ choices) obs = case obs of
+            BelowTimeout n -> blockNumber <= n
+            AndObs obs1 obs2 -> go obs1 && go obs2
+            OrObs obs1 obs2 -> go obs1 || go obs2
+            NotObs obs -> not (go obs)
+            PersonChoseThis choice_id person reference_choice -> maybe False (== reference_choice) (find choice_id person choices)
+            PersonChoseSomething choice_id person -> isJust (find choice_id person choices)
+            ValueGE a b -> evalValue state a >= evalValue state b
+            TrueObs -> True
+            FalseObs -> False
+            where
+                go = interpretObs blockNumber oracles state
+
+                find choiceId@(IdentChoice cid) person choices = case choices of
+                    (((IdentChoice id, party), choice) : cs) | cid == id && party `eqPk` person -> Just choice
+                    (_ : cs) -> find choiceId person cs
+                    _ -> Nothing
+
 
 
         orderTxIns :: PendingTxIn -> PendingTxIn -> (PendingTxIn, PendingTxIn)
