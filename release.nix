@@ -36,7 +36,7 @@ let
     f = name: value: value.testrun;
   in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
-  inherit (plutusPkgs) tests;
+  inherit (plutusPkgs) tests docs;
   all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);
   required = pkgs.lib.hydraJob (pkgs.releaseTools.aggregate {
     name = "plutus-required-checks";
@@ -47,9 +47,12 @@ in pkgs.lib.fix (jobsets:  mapped // {
       in
     [
       (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests)))
+      # TODO: generify to just add everything in tests and docs
       jobsets.tests.hlint
       jobsets.tests.shellcheck
       jobsets.tests.stylishHaskell
+      jobsets.docs.plutus-core-spec
+      jobsets.docs.lazy-machine
     ];
   });
 })
