@@ -106,7 +106,10 @@ let
         inherit src;
       };
     };
-    plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
+    docs = {
+      plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
+      lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
+    };
     inherit (pkgs) stack2nix;
   });
 
