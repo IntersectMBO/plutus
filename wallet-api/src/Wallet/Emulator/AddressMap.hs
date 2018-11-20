@@ -10,18 +10,16 @@ module Wallet.Emulator.AddressMap(
     updateAddresses
     ) where
 
-import           Data.Map            (Map)
-import qualified Data.Map            as Map
-import           Data.Maybe          (mapMaybe)
-import           Data.Monoid         (Monoid (..), Sum (..))
-import           Data.Semigroup      (Semigroup (..))
-import qualified Data.Set            as Set
-import           Lens.Micro          (lens, (&), (.~), (^.))
-import           Lens.Micro.GHC      ()
-import           Lens.Micro.Internal (At (..), Index, IxValue, Ixed (..))
+import           Control.Lens   (At (..), Index, IxValue, Ixed (..), lens, (&), (.~), (^.))
+import           Data.Map       (Map)
+import qualified Data.Map       as Map
+import           Data.Maybe     (mapMaybe)
+import           Data.Monoid    (Monoid (..), Sum (..))
+import           Data.Semigroup (Semigroup (..))
+import qualified Data.Set       as Set
 
-import           Wallet.UTXO         (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef', Value,
-                                      hashTx)
+import           Wallet.UTXO    (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef', Value,
+                                 hashTx)
 
 -- | A map of [[Address']]es and their unspent outputs
 newtype AddressMap = AddressMap { getAddressMap :: Map Address' (Map TxOutRef' Value) }

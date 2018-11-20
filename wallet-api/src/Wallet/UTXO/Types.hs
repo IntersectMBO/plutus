@@ -102,6 +102,7 @@ module Wallet.UTXO.Types(
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (deserialise, deserialiseOrFail, serialise)
 import           Codec.Serialise.Class                    (Serialise, decode, encode)
+import           Control.Lens                             hiding (lifted)
 import           Control.Monad                            (join)
 import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
 import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON), withText)
@@ -121,7 +122,6 @@ import           Data.Monoid                              (Sum (..))
 import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
-import           Lens.Micro
 
 import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getSerializedCode)
 import           Language.Plutus.Lift                     (LiftPlc (..), TypeablePlc (..))
