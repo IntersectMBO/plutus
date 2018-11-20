@@ -58,7 +58,6 @@ test_collectChars = testProperty "collectChars" . property $ do
         Right (EvaluationSuccess _) -> return ()
     str === str'
 
-
 test_dynamicStrings :: TestTree
 test_dynamicStrings =
     testGroup "Dynamic strings"
