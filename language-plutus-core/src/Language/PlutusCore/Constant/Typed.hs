@@ -60,6 +60,17 @@ module Language.PlutusCore.Constant.Typed
     , typedTxHash
     , typedBlockNum
     , typedSizeOfInteger
+
+
+    , unionDynamicBuiltinNameMeanings
+
+    , Evaluator
+    , Evaluate
+    , runEvaluate
+    , withEvaluator
+
+    , KnownDynamicBuiltinType (..)
+    , readDynamicBuiltinM
     ) where
 
 import           Language.PlutusCore.Constant.DynamicType
@@ -76,6 +87,15 @@ import           Data.GADT.Compare
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import qualified Data.Text.Encoding                       as Text
+
+
+
+import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.StdLib.Data.Unit
+
+import           Control.Monad.Reader
+
+
 
 infixr 9 `TypeSchemeArrow`
 
@@ -564,3 +584,57 @@ typedSizeOfInteger =
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize)
+
+
+
+
+
+
+
+
+unionDynamicBuiltinNameMeanings
+    :: DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
+unionDynamicBuiltinNameMeanings
+    (DynamicBuiltinNameMeanings means1) (DynamicBuiltinNameMeanings means2) =
+        DynamicBuiltinNameMeanings $ Map.union means1 means2
+
+type Evaluator f = DynamicBuiltinNameMeanings -> f TyName Name () -> EvaluationResult
+
+type Evaluate = Reader (Evaluator Term)
+
+runEvaluate :: Evaluator Term -> Evaluate a -> a
+runEvaluate = flip runReader
+
+withEvaluator :: (Evaluator Term -> a) -> Evaluate a
+withEvaluator = asks
+
+-- See Note [Semantics of dynamic built-in types].
+-- | Haskell types known to exist on the PLC side.
+class KnownDynamicBuiltinType dyn where
+    -- | The type representing @dyn@ used on the PLC side.
+    getTypeEncoding :: proxy dyn -> Quote (Type TyName ())
+
+    -- | Convert a Haskell value to the corresponding PLC value.
+    -- 'Nothing' represents a conversion failure.
+    makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
+
+    -- | Convert a PLC value to the corresponding Haskell value.
+    -- 'Nothing' represents a conversion failure.
+    readDynamicBuiltin :: Evaluator Term -> Term TyName Name () -> Maybe dyn
+
+readDynamicBuiltinM :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Evaluate (Maybe dyn)
+readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
+
+-- Encode '()' from Haskell as @all r. r -> r@ from PLC.
+-- This is a special instance, because it's used to define other instances,
+-- so we keep it in this file.
+instance KnownDynamicBuiltinType () where
+    getTypeEncoding _ = getBuiltinUnit
+
+    -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
+    -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
+    -- for side effects the evaluation may cause.
+    makeDynamicBuiltin () = Just <$> getBuiltinUnitval
+
+    -- We do not check here that the term is indeed @unitval@. TODO: check.
+    readDynamicBuiltin _ _ = Just ()

@@ -3,10 +3,10 @@
 {-# LANGUAGE DefaultSignatures #-}
 
 module Language.PlutusCore.Constant.DynamicType
-    ( KnownDynamicBuiltinType (..)
-    , PrettyDynamic (..)
+    ( PrettyDynamic (..)
     ) where
 
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -14,7 +14,7 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy.Char8           as BSL
+import qualified Data.ByteString.Lazy.Char8            as BSL
 
 {- Note [Semantics of dynamic built-in types]
 We only allow dynamic built-in types that
@@ -49,34 +49,6 @@ An @KnownDynamicBuiltinType dyn@ instance provides
 
 The last two are ought to constitute an isomorphism (modulo 'Quote' and 'Maybe').
 -}
-
--- See Note [Semantics of dynamic built-in types].
--- | Haskell types known to exist on the PLC side.
-class KnownDynamicBuiltinType dyn where
-    -- | The type representing @dyn@ used on the PLC side.
-    getTypeEncoding :: proxy dyn -> Quote (Type TyName ())
-
-    -- | Convert a Haskell value to the corresponding PLC value.
-    -- 'Nothing' represents a conversion failure.
-    makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
-
-    -- | Convert a PLC value to the corresponding Haskell value.
-    -- 'Nothing' represents a conversion failure.
-    readDynamicBuiltin :: Term TyName Name () -> Maybe dyn
-
--- Encode '()' from Haskell as @all r. r -> r@ from PLC.
--- This is a special instance, because it's used to define other instances,
--- so we keep it in this file.
-instance KnownDynamicBuiltinType () where
-    getTypeEncoding _ = getBuiltinUnit
-
-    -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
-    -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
-    -- for side effects the evaluation may cause.
-    makeDynamicBuiltin () = Just <$> getBuiltinUnitval
-
-    -- We do not check here that the term is indeed @unitval@. TODO: check.
-    readDynamicBuiltin _ = Just ()
 
 -- | Same as the 'Pretty' class, but is specifically for dynamic built-in types as their
 -- pretty-printing can be rather weird (see the @PrettyDynamic BSL.ByteString@ instance for example).

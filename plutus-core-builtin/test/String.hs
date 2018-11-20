@@ -27,6 +27,12 @@ test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
     let mayStr' = runQuote (makeDynamicBuiltin str) >>= readDynamicBuiltin
     Just str === mayStr'
 
+test_listOfStringsRoundtrip :: TestTree
+test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
+    strs <- forAll . Gen.list (Range.linear 0 20) $ Gen.string (Range.linear 0 20) Gen.unicode
+    let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= readDynamicBuiltin
+    Just strs === mayStrs'
+
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
 -- the contents of an external 'IORef' and assemble all the resulting terms together in a single term
@@ -53,7 +59,7 @@ test_collectChars = testProperty "collectChars" . property $ do
             chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
     case errOrRes of
-        Left err                    -> error $ prettyPlcDefString err
+        Left err                    -> error . docString $ prettyPlcClassicDebug err
         Right EvaluationFailure     -> error "failure"
         Right (EvaluationSuccess _) -> return ()
     str === str'
@@ -62,5 +68,6 @@ test_dynamicStrings :: TestTree
 test_dynamicStrings =
     testGroup "Dynamic strings"
         [ test_stringRoundtrip
+        , test_listOfStringsRoundtrip
         , test_collectChars
         ]

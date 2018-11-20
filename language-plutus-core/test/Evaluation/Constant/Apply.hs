@@ -13,12 +13,13 @@ module Evaluation.Constant.Apply
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Generators
 
 import           Control.Monad.Morph
 import           Data.Foldable
 import           Data.List
-import           Hedgehog                       hiding (Size, Var)
+import           Hedgehog                                 hiding (Size, Var)
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
@@ -47,7 +48,7 @@ prop_applyBuiltinName getFinal tbn op allTbs = property . hoist (pure . runQuote
     IterAppValue _ iterApp tbv <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
         TypedBuiltinValue tb y = tbv
-        app = runQuote . applyBuiltinName name
+        app = applyEvaluateCkBuiltinName name
     final <- forAllPrettyPlcT $ getFinal tb y
     traverse_ (\prefix -> app prefix === ConstAppStuck) . init $ inits spine
     app spine === final

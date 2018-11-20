@@ -3,12 +3,14 @@
 {-# LANGUAGE RankNTypes        #-}
 
 module Language.PlutusCore.Builtin.Common
-    ( typecheckEvaluate
-    , withEmitTypecheckEvaluate
+    ( typecheckEvaluateBy
+    , withEmit
+--     , withEmitTypecheckEvaluateBy
     ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Result
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
@@ -19,14 +21,14 @@ import           Control.Monad.Except
 import           Data.IORef
 
 -- | Type check and evaluate a term that can contain dynamic built-ins.
-typecheckEvaluate
-    :: (MonadError (Error ()) m, MonadQuote m)
-    => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
-typecheckEvaluate meanings term = do
-    let types = dynamicBuiltinNameMeaningsToTypes meanings
-        typecheckConfig = TypeCheckCfg 1000 $ TypeConfig True types
-        typecheck = rename >=> annotateTerm >=> typecheckTerm typecheckConfig
-    _ <- typecheck term
+typecheckEvaluateBy
+    :: (MonadError (Error ()) m) -- , MonadQuote m)
+    => Evaluator Term -> DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
+typecheckEvaluateBy eval meanings term = -- do
+    -- let types = dynamicBuiltinNameMeaningsToTypes meanings
+    --     typecheckConfig = TypeCheckCfg 1000 $ TypeConfig True types
+    --     typecheck = rename >=> annotateTerm >=> typecheckTerm typecheckConfig
+    -- _ <- typecheck term
     -- We do not rename terms before evaluating them, because the evaluator must work correctly over
     -- terms with duplicate names, because it produces such terms during evaluation.
     return $ evaluateCek meanings term
@@ -39,13 +41,14 @@ withEmit k = do
     ds <- readIORef xsVar
     return (ds [], y)
 
-withEmitTypecheckEvaluate
-    :: (forall size. TypedBuiltin size a)
-    -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], Either (Error ()) EvaluationResult)
-withEmitTypecheckEvaluate tb toTerm =
-    withEmit $ \emit ->
-        let name = DynamicBuiltinName "emit"
-            env  = insertDynamicBuiltinNameDefinition (dynamicCallAssign tb name emit) mempty
-            term = toTerm $ dynamicCall name
-            in traverse evaluate . runQuote . runExceptT $ typecheckEvaluate env term
+-- withEmitTypecheckEvaluateBy
+--     :: (forall size. TypedBuiltin size a)
+--     -> Evaluator Term
+--     -> (Term TyName Name () -> Term TyName Name ())
+--     -> IO ([a], Either (Error ()) EvaluationResult)
+-- withEmitTypecheckEvaluateBy eval tb toTerm =
+--     withEmit $ \emit ->
+--         let name = DynamicBuiltinName "emit"
+--             -- env  = insertDynamicBuiltinNameDefinition (dynamicCallAssign tb name emit) mempty
+--             term = toTerm $ dynamicCall name
+--             in traverse evaluate . runQuote . runExceptT $ typecheckEvaluateBy eval env term

@@ -54,7 +54,8 @@ library
         plutus-core-interpreter -any,
         base >=4.9 && <5,
         containers -any,
-        mtl -any
+        mtl -any,
+        prettyprinter -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

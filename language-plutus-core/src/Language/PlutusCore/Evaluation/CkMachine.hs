@@ -6,11 +6,13 @@ module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
     , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
     , EvaluationResult
+    , applyEvaluateCkBuiltinName
     , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
@@ -133,12 +135,16 @@ applyEvaluate stack fun                    arg =
             Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
             Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                case runQuote $ applyBuiltinName name spine of
+                case applyEvaluateCkBuiltinName name spine of
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
+
+applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
+applyEvaluateCkBuiltinName name =
+    runEvaluate (const evaluateCk) . runQuoteT . applyBuiltinName name
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:
