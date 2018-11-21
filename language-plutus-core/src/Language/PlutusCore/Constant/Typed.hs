@@ -225,7 +225,69 @@ An @KnownDynamicBuiltinType dyn@ instance provides
 The last two are ought to constitute an isomorphism (modulo 'Quote' and 'Maybe').
 -}
 
+{- Note [Converting PLC values to Haskell values]
+The first thought that comes to mind when you asked to convert a PLC value to the corresponding Haskell
+value is "just match on the AST". This works nicely for simple things like 'Char's which we encode as
+@integer@s, see the @KnownDynamicBuiltinType Char@ instance below.
+
+But how to convert something more complicated like lists? A PLC list gets passed as argument to
+a built-in after it gets evaluated to WHNF. We can't just match on the AST here, because after
+the initial lambda it can be anything there: function applications, other built-ins, recursive data,
+anything. "Well, just normalize it" -- not so fast: for one, we did not have a term normalization
+procedure at the moment this note was written, for two, it's not something that can be easily done,
+because you have to carefully handle uniques (we generate new terms during evaluation) and perform type
+substitutions, because types must be preserved.
+
+Besides, matching on the AST becomes really complicated: you have to ensure that a term does have
+an expected semantics by looking at the term's syntax. Huge pattern matches followed by multiple
+checks that variables have equal names in right places and have distinct names otherwise. Making a
+mistake is absolutely trivial here. Of course, one could just omit checks and hope it'll work alright,
+but eventually it'll break and debugging won't be fun at all.
+
+So instead of dealing with syntax of terms, we deal with their semantics. Namely, we evaluate terms
+using some evaluator (normally, the CEK machine). For the temporary lack of ability to put values of
+arbitrary Haskell types into the Plutus Core AST, we convert PLC values to Haskell values and "emit"
+the latter via a combination of 'unsafePerformIO' and 'IORef'. For example, we fold a PLC list with
+a dynamic built-in name (called `emit`) that calls 'unsafePerformIO' over a Haskell function that
+appends an element to the list stored in an 'IORef':
+
+    plcListToHaskellList list =
+        evaluateCek anEnvironment (foldList {dyn} {unit} (\(r : unit) -> emit) unitval list)
+
+After evaluation finishes, we read a Haskell list from the 'IORef'
+(which requires another 'unsafePerformIO') and return it.
+-}
+
+{- Note [Evaluators]
+A dynamic built-in name can be applied to something that contains uninstantiated variables. There are
+several possible ways to handle that:
+
+1. each evaluator is required to perform substitutions to instantiate all variables in arguments to
+built-ins. The drawback is that this can be inefficient in cases when there are many applications of
+built-ins and arguments are of non-primitive types. Besides, substitution is tricky and is trivial to
+screw up
+2. we can break encapsulation and pass environments to the built-ins application machinery, so that it
+knows how to instantiate variables. This would work for the strict CEK machine, but the lazy
+CEK machine also has a heap and there can be other evaluators that have their internal state that
+can't just be thrown away and it's impossible for the built-ins application machinery to handle states
+of all possible evaluators beforehand
+3. or we can just require to pass the current evaluator with its encapsulated state to functions that
+evaluate built-in applications. The type of evaluators is this then:
+
+    type Evaluator f = DynamicBuiltinNameMeanings -> f TyName Name () -> EvaluationResult
+
+so @Evaluator Term@ receives a map with meanings of dynamic built-in names which extends the map the
+evaluator already has (this is needed, because we add new dynamic built-in names during conversion of
+PLC values to Haskell values, see Note [Converting PLC values to Haskell values]), a 'Term' to evaluate
+and returns an 'EvaluationResult' (we may want to later add handling of errors here). Thus, whenever
+we want to resume evaluation during computation of a dynamic built-in application, we just call the
+received evaluator
+
+(3) seems best, so it's what is implemented.
+-}
+
 -- See Note [Semantics of dynamic built-in types].
+-- See Note [Converting PLC values to Haskell values].
 -- | Haskell types known to exist on the PLC side.
 class KnownDynamicBuiltinType dyn where
     -- | The type representing @dyn@ used on the PLC side.
@@ -235,6 +297,7 @@ class KnownDynamicBuiltinType dyn where
     -- 'Nothing' represents a conversion failure.
     makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
 
+    -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
     -- 'Nothing' represents a conversion failure.
     readDynamicBuiltin :: Evaluator Term -> Term TyName Name () -> Maybe dyn
