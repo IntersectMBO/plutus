@@ -30,7 +30,7 @@ test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
 
 test_listOfStringsRoundtrip :: TestTree
 test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
-    strs <- forAll . Gen.list (Range.linear 0 20) $ Gen.string (Range.linear 0 20) Gen.unicode
+    strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 10) Gen.unicode
     let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= readDynamicBuiltinCek
     Just strs === mayStrs'
 

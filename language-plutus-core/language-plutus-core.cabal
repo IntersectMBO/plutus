@@ -69,8 +69,11 @@ library
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
-        Language.PlutusCore.Constant.DynamicType
+        Language.PlutusCore.Constant.DynamicInstances
+        Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
+        Language.PlutusCore.Constant.Name
+        Language.PlutusCore.Constant.PrettyDynamic
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.Pretty.Classic

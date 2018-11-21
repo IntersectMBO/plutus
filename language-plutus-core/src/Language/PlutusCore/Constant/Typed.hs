@@ -19,83 +19,28 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeaning(..)
     , DynamicBuiltinNameDefinition(..)
     , DynamicBuiltinNameMeanings(..)
-    , flattenSizeEntry
-    , eraseTypedBuiltinSized
-    , mapSizeEntryTypedBuiltin
-    , mapSizeTypedBuiltin
-    , closeTypedBuiltin
-    , typedBuiltinSizedToType
-    , withTypedBuiltinSized
-    , withTypedBuiltin
-    , typeSchemeResult
-    , typedBuiltinToType
-    , typeSchemeToType
-    , dynamicBuiltinNameMeaningToType
-    , insertDynamicBuiltinNameDefinition
-    , withTypedBuiltinName
-    , typeOfTypedBuiltinName
-    , typeOfBuiltinName
-    , typedAddInteger
-    , typedSubtractInteger
-    , typedMultiplyInteger
-    , typedDivideInteger
-    , typedQuotientInteger
-    , typedModInteger
-    , typedRemainderInteger
-    , typedLessThanInteger
-    , typedLessThanEqInteger
-    , typedGreaterThanInteger
-    , typedGreaterThanEqInteger
-    , typedEqInteger
-    , typedResizeInteger
-    , typedIntToByteString
-    , typedConcatenate
-    , typedTakeByteString
-    , typedDropByteString
-    , typedSHA2
-    , typedSHA3
-    , typedVerifySignature
-    , typedResizeByteString
-    , typedEqByteString
-    , typedTxHash
-    , typedBlockNum
-    , typedSizeOfInteger
-
-
-    , unionDynamicBuiltinNameMeanings
-
     , Evaluator
     , Evaluate
+    , KnownDynamicBuiltinType (..)
+    , eraseTypedBuiltinSized
     , runEvaluate
     , withEvaluator
-
-    , KnownDynamicBuiltinType (..)
     , readDynamicBuiltinM
     ) where
 
-import           Language.PlutusCore.Constant.DynamicType
-import           Language.PlutusCore.Lexer.Type           hiding (name)
+import           Language.PlutusCore.Constant.PrettyDynamic
+import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy.Char8               as BSL
-import           Data.GADT.Compare
-import           Data.Map                                 (Map)
-import qualified Data.Map                                 as Map
-import qualified Data.Text.Encoding                       as Text
-
-
-
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.StdLib.Data.Unit
-
 import           Control.Monad.Reader
-
-
+import qualified Data.ByteString.Lazy.Char8                 as BSL
+import           Data.GADT.Compare
+import           Data.Map                                   (Map)
 
 infixr 9 `TypeSchemeArrow`
 
@@ -169,6 +114,8 @@ data BuiltinType size
 -- and is not primitive.
 data TypedBuiltin size a where
     TypedBuiltinSized :: SizeEntry size -> TypedBuiltinSized a -> TypedBuiltin size a
+    -- TODO: this is now more or less obsolete and should be removed,
+    -- because 'TypedBuiltinDyn' is enough.
     TypedBuiltinBool  :: TypedBuiltin size Bool
     -- Any type that implements 'KnownDynamicBuiltinType' can be lifted to a 'TypedBuiltin',
     -- because any such type has a PLC representation and provides conversions back and forth
@@ -200,6 +147,12 @@ data TypedBuiltinName a r = TypedBuiltinName BuiltinName (forall size. TypeSchem
 -- I attempted to unify various typed things, but sometimes type variables must be universally
 -- quantified, sometimes they must be existentially quatified. And those are distinct type variables.
 
+-- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
+eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
+eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt
+eraseTypedBuiltinSized TypedBuiltinSizedBS   = BuiltinSizedBS
+eraseTypedBuiltinSized TypedBuiltinSizedSize = BuiltinSizedSize
+
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
 We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
@@ -226,6 +179,67 @@ data DynamicBuiltinNameDefinition =
 newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
+
+type Evaluator f = DynamicBuiltinNameMeanings -> f TyName Name () -> EvaluationResult
+
+type Evaluate = Reader (Evaluator Term)
+
+runEvaluate :: Evaluator Term -> Evaluate a -> a
+runEvaluate = flip runReader
+
+withEvaluator :: (Evaluator Term -> a) -> Evaluate a
+withEvaluator = asks
+
+{- Note [Semantics of dynamic built-in types]
+We only allow dynamic built-in types that
+
+1. can be represented using static types in PLC. For example Haskell's 'Char' can be represented as
+@integer 4@ in PLC. This restriction makes the dynamic built-in types machinery somewhat similar to
+type aliases in Haskell (defined via the @type@ keyword). The reason for this restriction is that
+storing values of arbitrary types of a host language in the AST of a target language is commonly far
+from being trivial, hence we do not support this right now, but we plan to figure out a way to allow
+such extensions to the AST
+2. are of kind @*@. Dynamic built-in types that are not of kind @*@ can be encoded via recursive
+instances. For example:
+
+    instance KnownDynamicBuiltinType dyn => KnownDynamicBuiltinType [dyn] where
+        ...
+
+This is due to the fact that we use Haskell classes to assign semantics to dynamic built-in types and
+since it's anyway impossible to assign a meaning to an open PLC type, because you'd have to somehow
+interpret free variables, we're only interested in closed PLC types and those can be handled by
+recursive instances as shown above.
+
+Since type classes are globally coherent by design, we also have global coherence for dynamic built-in
+types for free. Any dynamic built-in type means the same thing regardless of the blockchain it's
+added to. It may prove to be restrictive, but it's a good property to start with, because less things
+can silently stab you in the back.
+
+An @KnownDynamicBuiltinType dyn@ instance provides
+
+1. a way to encode @dyn@ as a PLC type ('getTypeEncoding')
+2. a function that encodes values of type @dyn@ as PLC terms ('makeDynamicBuiltin')
+3. a function that decodes PLC terms back to Haskell values ('readDynamicBuiltin')
+
+The last two are ought to constitute an isomorphism (modulo 'Quote' and 'Maybe').
+-}
+
+-- See Note [Semantics of dynamic built-in types].
+-- | Haskell types known to exist on the PLC side.
+class KnownDynamicBuiltinType dyn where
+    -- | The type representing @dyn@ used on the PLC side.
+    getTypeEncoding :: proxy dyn -> Quote (Type TyName ())
+
+    -- | Convert a Haskell value to the corresponding PLC value.
+    -- 'Nothing' represents a conversion failure.
+    makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
+
+    -- | Convert a PLC value to the corresponding Haskell value.
+    -- 'Nothing' represents a conversion failure.
+    readDynamicBuiltin :: Evaluator Term -> Term TyName Name () -> Maybe dyn
+
+readDynamicBuiltinM :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Evaluate (Maybe dyn)
+readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
 instance Pretty BuiltinSized where
     pretty BuiltinSizedInt  = "integer"
@@ -289,352 +303,3 @@ instance Ord size => GCompare (TypedBuiltin size) where
     TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
     TypedBuiltinDyn              `gcompare` _                     = comparedDynamicBuiltinTypesError
     _                            `gcompare` TypedBuiltinDyn       = comparedDynamicBuiltinTypesError
-
--- | Convert a 'TypedBuiltinSized' to its untyped counterpart.
-eraseTypedBuiltinSized :: TypedBuiltinSized a -> BuiltinSized
-eraseTypedBuiltinSized TypedBuiltinSizedInt  = BuiltinSizedInt
-eraseTypedBuiltinSized TypedBuiltinSizedBS   = BuiltinSizedBS
-eraseTypedBuiltinSized TypedBuiltinSizedSize = BuiltinSizedSize
-
--- | Extract the 'Size' from a 'SizeEntry'.
-flattenSizeEntry :: SizeEntry Size -> Size
-flattenSizeEntry (SizeValue size) = size
-flattenSizeEntry (SizeBound size) = size
-
--- | Alter the 'SizeEntry' of a 'TypedBuiltin'.
-mapSizeEntryTypedBuiltin
-    :: (SizeEntry size -> SizeEntry size') -> TypedBuiltin size a -> TypedBuiltin size' a
-mapSizeEntryTypedBuiltin f (TypedBuiltinSized se tbs) = TypedBuiltinSized (f se) tbs
-mapSizeEntryTypedBuiltin _ TypedBuiltinBool           = TypedBuiltinBool
-mapSizeEntryTypedBuiltin _ TypedBuiltinDyn            = TypedBuiltinDyn
-
--- | Alter the 'size' of a @TypedBuiltin size@.
-mapSizeTypedBuiltin
-    :: (size -> size') -> TypedBuiltin size a -> TypedBuiltin size' a
-mapSizeTypedBuiltin = mapSizeEntryTypedBuiltin . fmap
-
--- | Map each 'SizeBound' to 'SizeValue'.
-closeTypedBuiltin :: TypedBuiltin Size a -> TypedBuiltin b a
-closeTypedBuiltin = mapSizeEntryTypedBuiltin $ SizeValue . flattenSizeEntry
-
--- | Convert a 'TypedBuiltinSized' to the corresponding 'TypeBuiltin' and
--- wrap the result in 'TyBuiltin' to get a 'Type'.
-typedBuiltinSizedToType :: TypedBuiltinSized a -> Type TyName ()
-typedBuiltinSizedToType TypedBuiltinSizedInt  = TyBuiltin () TyInteger
-typedBuiltinSizedToType TypedBuiltinSizedBS   = TyBuiltin () TyByteString
-typedBuiltinSizedToType TypedBuiltinSizedSize = TyBuiltin () TySize
-
--- | Apply a continuation to the typed version of a 'BuiltinSized'.
-withTypedBuiltinSized :: BuiltinSized -> (forall a. TypedBuiltinSized a -> c) -> c
-withTypedBuiltinSized BuiltinSizedInt  k = k TypedBuiltinSizedInt
-withTypedBuiltinSized BuiltinSizedBS   k = k TypedBuiltinSizedBS
-withTypedBuiltinSized BuiltinSizedSize k = k TypedBuiltinSizedSize
-
--- | Apply a continuation to the typed version of a 'Builtin'.
-withTypedBuiltin :: BuiltinType size -> (forall a. TypedBuiltin size a -> c) -> c
-withTypedBuiltin (BuiltinSized se b) k = withTypedBuiltinSized b $ k . TypedBuiltinSized se
-withTypedBuiltin BuiltinBool         k = k TypedBuiltinBool
-
--- | The resulting 'TypedBuiltin' of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme () a r -> TypedBuiltin () r
-typeSchemeResult (TypeSchemeBuiltin tb)   = tb
-typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
-typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK ())
-
--- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
-typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Quote (Type TyName ())
-typedBuiltinToType (TypedBuiltinSized se tbs) =
-    return . TyApp () (typedBuiltinSizedToType tbs) $ case se of
-        SizeValue size -> TyInt () size
-        SizeBound ty   -> ty
-typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
-typedBuiltinToType dyn@TypedBuiltinDyn        = getTypeEncoding dyn
-
--- | Convert a 'TypeScheme' to the corresponding 'Type'.
--- Basically, a map from the PHOAS representation to the FOAS one.
-typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
-typeSchemeToType = go 0 where
-    go :: Int -> TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
-    go _ (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
-    go i (TypeSchemeArrow schA schB) =
-        TyFun () <$> go i schA <*> go i schB
-    go i (TypeSchemeAllSize schK)    = do
-        s <- mapTyNameString (<> BSL.fromStrict (Text.encodeUtf8 $ prettyText i)) <$>
-                freshTyName () "s"
-        a <- go (succ i) . schK $ TyVar () s
-        return $ TyForall () s (Size ()) a
-
--- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
--- convert it to the corresponding 'Type'.
-dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Quote (Type TyName ())
-dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
-
--- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
-insertDynamicBuiltinNameDefinition
-    :: DynamicBuiltinNameDefinition -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
-insertDynamicBuiltinNameDefinition
-    (DynamicBuiltinNameDefinition name mean) (DynamicBuiltinNameMeanings nameMeans) =
-        DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
-
--- | Apply a continuation to the typed version of a 'BuiltinName'.
-withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
-withTypedBuiltinName AddInteger           k = k typedAddInteger
-withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
-withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
-withTypedBuiltinName DivideInteger        k = k typedDivideInteger
-withTypedBuiltinName QuotientInteger      k = k typedQuotientInteger
-withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
-withTypedBuiltinName ModInteger           k = k typedModInteger
-withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
-withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
-withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
-withTypedBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
-withTypedBuiltinName EqInteger            k = k typedEqInteger
-withTypedBuiltinName ResizeInteger        k = k typedResizeInteger
-withTypedBuiltinName IntToByteString      k = k typedIntToByteString
-withTypedBuiltinName Concatenate          k = k typedConcatenate
-withTypedBuiltinName TakeByteString       k = k typedTakeByteString
-withTypedBuiltinName DropByteString       k = k typedDropByteString
-withTypedBuiltinName SHA2                 k = k typedSHA2
-withTypedBuiltinName SHA3                 k = k typedSHA3
-withTypedBuiltinName VerifySignature      k = k typedVerifySignature
-withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
-withTypedBuiltinName EqByteString         k = k typedEqByteString
-withTypedBuiltinName TxHash               k = k typedTxHash
-withTypedBuiltinName BlockNum             k = k typedBlockNum
-withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
-
--- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
-typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
-
--- | Return the 'Type' of a 'BuiltinName'.
-typeOfBuiltinName :: BuiltinName -> Quote (Type TyName ())
-typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
-
-sizeIntIntInt :: TypeScheme size (Integer -> Integer -> Integer) Integer
-sizeIntIntInt =
-    TypeSchemeAllSize $ \s ->
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
-
-sizeIntIntBool :: TypeScheme size (Integer -> Integer -> Bool) Bool
-sizeIntIntBool =
-    TypeSchemeAllSize $ \s ->
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-        TypeSchemeBuiltin TypedBuiltinBool
-
--- | Typed 'AddInteger'.
-typedAddInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedAddInteger = TypedBuiltinName AddInteger sizeIntIntInt
-
--- | Typed 'SubtractInteger'.
-typedSubtractInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedSubtractInteger = TypedBuiltinName SubtractInteger sizeIntIntInt
-
--- | Typed 'MultiplyInteger'.
-typedMultiplyInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedMultiplyInteger = TypedBuiltinName MultiplyInteger sizeIntIntInt
-
--- | Typed 'DivideInteger'.
-typedDivideInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedDivideInteger = TypedBuiltinName DivideInteger sizeIntIntInt
-
--- | Typed 'QuotientInteger'
-typedQuotientInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedQuotientInteger = TypedBuiltinName QuotientInteger sizeIntIntInt
-
--- | Typed 'RemainderInteger'.
-typedRemainderInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedRemainderInteger = TypedBuiltinName RemainderInteger sizeIntIntInt
-
--- | Typed 'ModInteger'
-typedModInteger :: TypedBuiltinName (Integer -> Integer -> Integer) Integer
-typedModInteger = TypedBuiltinName ModInteger sizeIntIntInt
-
--- | Typed 'LessThanInteger'.
-typedLessThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedLessThanInteger = TypedBuiltinName LessThanInteger sizeIntIntBool
-
--- | Typed 'LessThanEqInteger'.
-typedLessThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedLessThanEqInteger = TypedBuiltinName LessThanEqInteger sizeIntIntBool
-
--- | Typed 'GreaterThanInteger'.
-typedGreaterThanInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedGreaterThanInteger = TypedBuiltinName GreaterThanInteger sizeIntIntBool
-
--- | Typed 'GreaterThanEqInteger'.
-typedGreaterThanEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedGreaterThanEqInteger = TypedBuiltinName GreaterThanEqInteger sizeIntIntBool
-
--- | Typed 'EqInteger'.
-typedEqInteger :: TypedBuiltinName (Integer -> Integer -> Bool) Bool
-typedEqInteger = TypedBuiltinName EqInteger sizeIntIntBool
-
--- | Typed 'ResizeInteger'.
-typedResizeInteger :: TypedBuiltinName (() -> Integer -> Integer) Integer
-typedResizeInteger =
-    TypedBuiltinName ResizeInteger $
-        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedSize) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedInt)
-
--- | Typed 'IntToByteString'.
-typedIntToByteString :: TypedBuiltinName (() -> Integer -> BSL.ByteString) BSL.ByteString
-typedIntToByteString =
-    TypedBuiltinName IntToByteString $
-        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedSize) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
-
--- | Typed 'Concatenate'.
-typedConcatenate :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedConcatenate =
-    TypedBuiltinName Concatenate $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS)
-
--- | Typed 'TakeByteString'.
-typedTakeByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedTakeByteString =
-    TypedBuiltinName TakeByteString $
-        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
-
--- | Typed 'DropByteString'.
-typedDropByteString :: TypedBuiltinName (Integer -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedDropByteString =
-    TypedBuiltinName DropByteString $
-        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
-
--- | Typed 'SHA2'.
-typedSHA2 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedSHA2 =
-    TypedBuiltinName SHA2 $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
-
--- | Typed 'SHA3'.
-typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedSHA3 =
-    TypedBuiltinName SHA3 $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
-
--- | Typed 'VerifySignature'.
-typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Bool) Bool
-typedVerifySignature =
-    TypedBuiltinName VerifySignature $
-        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 -> TypeSchemeAllSize $ \s2 ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s2) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin TypedBuiltinBool
-
--- | Typed 'ResizeByteString'.
-typedResizeByteString :: TypedBuiltinName (() -> BSL.ByteString -> BSL.ByteString) BSL.ByteString
-typedResizeByteString =
-    TypedBuiltinName ResizeByteString $
-        TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedSize) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s0) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s1) TypedBuiltinSizedBS)
-
--- | Typed 'EqByteString'.
-typedEqByteString :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> Bool) Bool
-typedEqByteString =
-    TypedBuiltinName EqByteString $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin TypedBuiltinBool
-
--- | Typed 'TxHash'.
-typedTxHash :: TypedBuiltinName BSL.ByteString BSL.ByteString
-typedTxHash =
-    TypedBuiltinName TxHash $
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
-
--- | Typed 'BlockNum'.
-typedBlockNum :: TypedBuiltinName (() -> Integer) Integer
-typedBlockNum =
-    TypedBuiltinName BlockNum $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
-
--- | Typed 'SizeOfInteger'.
-typedSizeOfInteger :: TypedBuiltinName (Integer -> ()) ()
-typedSizeOfInteger =
-    TypedBuiltinName SizeOfInteger $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize)
-
-
-
-
-
-
-
-
-unionDynamicBuiltinNameMeanings
-    :: DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
-unionDynamicBuiltinNameMeanings
-    (DynamicBuiltinNameMeanings means1) (DynamicBuiltinNameMeanings means2) =
-        DynamicBuiltinNameMeanings $ Map.union means1 means2
-
-type Evaluator f = DynamicBuiltinNameMeanings -> f TyName Name () -> EvaluationResult
-
-type Evaluate = Reader (Evaluator Term)
-
-runEvaluate :: Evaluator Term -> Evaluate a -> a
-runEvaluate = flip runReader
-
-withEvaluator :: (Evaluator Term -> a) -> Evaluate a
-withEvaluator = asks
-
--- See Note [Semantics of dynamic built-in types].
--- | Haskell types known to exist on the PLC side.
-class KnownDynamicBuiltinType dyn where
-    -- | The type representing @dyn@ used on the PLC side.
-    getTypeEncoding :: proxy dyn -> Quote (Type TyName ())
-
-    -- | Convert a Haskell value to the corresponding PLC value.
-    -- 'Nothing' represents a conversion failure.
-    makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
-
-    -- | Convert a PLC value to the corresponding Haskell value.
-    -- 'Nothing' represents a conversion failure.
-    readDynamicBuiltin :: Evaluator Term -> Term TyName Name () -> Maybe dyn
-
-readDynamicBuiltinM :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Evaluate (Maybe dyn)
-readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
-
--- Encode '()' from Haskell as @all r. r -> r@ from PLC.
--- This is a special instance, because it's used to define other instances,
--- so we keep it in this file.
-instance KnownDynamicBuiltinType () where
-    getTypeEncoding _ = getBuiltinUnit
-
-    -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
-    -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
-    -- for side effects the evaluation may cause.
-    makeDynamicBuiltin () = Just <$> getBuiltinUnitval
-
-    -- We do not check here that the term is indeed @unitval@. TODO: check.
-    readDynamicBuiltin _ _ = Just ()

@@ -14,13 +14,13 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , TypeCheckCfg (..)
                                          ) where
 
-import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type     hiding (name)
+import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer        (annotateType)
+import           Language.PlutusCore.Renamer    (annotateType)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -28,9 +28,9 @@ import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Class
-import           Control.Monad.Trans.State          hiding (get, modify)
-import           Data.Map                           (Map)
-import qualified Data.Map                           as Map
+import           Control.Monad.Trans.State      hiding (get, modify)
+import           Data.Map                       (Map)
+import qualified Data.Map                       as Map
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
