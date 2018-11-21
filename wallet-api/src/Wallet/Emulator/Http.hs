@@ -23,7 +23,6 @@ import           Control.Monad.State        (State, runState)
 import           Control.Natural            (type (~>))
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Map                   as Map
-import           Data.Maybe                 (catMaybes)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
@@ -37,7 +36,7 @@ import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
                                              EmulatorState (emWalletState), Notification (BlockHeight, BlockValidated),
                                              Wallet, WalletState, assert, chain, emTxPool, emptyEmulatorState,
-                                             emptyWalletState, liftEmulatedWallet, txPool, validateEm, walletStates)
+                                             emptyWalletState, liftEmulatedWallet, txPool, walletStates)
 
 import qualified Wallet.Emulator.Types      as Types
 import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
@@ -250,9 +249,7 @@ processPending = do
 processPendingSTM :: TVar EmulatorState -> STM [Tx]
 processPendingSTM var = do
   es <- readTVar var
-  let processed = validateEm es <$> emTxPool es
-      validated = catMaybes processed
-      block = validated
+  let (block, _) = Types.validateBlock es (emTxPool es)
       newState = addBlock block . emptyPool $ es
   writeTVar var newState
   pure block

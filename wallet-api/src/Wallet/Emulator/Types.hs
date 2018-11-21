@@ -46,6 +46,7 @@ module Wallet.Emulator.Types(
     index,
     MonadEmulator,
     validateEm,
+    validateBlock,
     liftEmulatedWallet,
     evalEmulated,
     processEmulated
@@ -74,8 +75,9 @@ import           Wallet.API                 (EventHandler (..), EventTrigger, Ke
                                              WalletAPIError (..), addresses, annTruthValue, getAnnot, keyPair, pubKey,
                                              signature)
 import qualified Wallet.Emulator.AddressMap as AM
-import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxOutRef', Value, height,
-                                             pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
+import qualified Wallet.Emulator.Log        as Log
+import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxOutRef', Value, hashTx,
+                                             height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
 import qualified Wallet.UTXO.Index          as Index
 
 -- agents/wallets
@@ -267,7 +269,8 @@ data EmulatorState = EmulatorState {
     emChain       :: Blockchain,
     emTxPool      :: TxPool,
     emWalletState :: Map Wallet WalletState,
-    emIndex       :: Index.UtxoIndex
+    emIndex       :: Index.UtxoIndex,
+    emLog         :: [Log.EmulatorEvent] -- ^ emulator events, newest first
     } deriving (Show)
 
 chain :: Lens' EmulatorState Blockchain
@@ -295,7 +298,8 @@ emptyEmulatorState = EmulatorState {
     emChain = [],
     emTxPool = [],
     emWalletState = Map.empty,
-    emIndex = Index.empty
+    emIndex = Index.empty,
+    emLog = []
     }
 
 -- | Initialise the emulator state with a blockchain
@@ -309,20 +313,22 @@ emulatorState' tp = emptyEmulatorState { emTxPool = tp }
 type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
 -- | Validate a transaction in the current emulator state
-validateEm :: EmulatorState -> Tx -> Maybe Tx
+validateEm :: EmulatorState -> Tx -> Maybe Index.ValidationError
 validateEm EmulatorState{emIndex=idx, emChain = ch} txn =
     let h = height ch
         result = Index.runValidation (Index.validateTransaction h txn) idx in
-    either (const Nothing) (const $ Just txn) result
+    either Just (const Nothing) result
 
 liftEmulatedWallet :: (MonadState EmulatorState m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ emWalletState emState
-    let ((out, newState), txns) = runWriter $ runStateT (runExceptT (runEmulatedWalletApi act)) walletState
+        ((out, newState), txns) = runWriter $ runStateT (runExceptT (runEmulatedWalletApi act)) walletState
+        events = Log.TxnSubmit . hashTx <$> txns
     put emState {
         emTxPool = txns ++ emTxPool emState,
-        emWalletState = Map.insert wallet newState $ emWalletState emState
+        emWalletState = Map.insert wallet newState $ emWalletState emState,
+        emLog = events ++ emLog emState
         }
     pure (txns, out)
 
@@ -332,16 +338,30 @@ evalEmulated = \case
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
     BlockchainProcessPending -> do
         emState <- get
-        let processed = validateEm emState <$> emTxPool emState
-            validated = catMaybes processed
-            block = validated
+        let (block, events) = validateBlock emState (emTxPool emState)
+            newChain = block : emChain emState
         put emState {
-            emChain = block : emChain emState,
+            emChain = newChain,
             emTxPool = [],
-            emIndex = Index.insertBlock block (emIndex emState)
+            emIndex = Index.insertBlock block (emIndex emState),
+            emLog   = Log.BlockAdd (height newChain) : events ++ emLog emState
             }
         pure block
     Assertion a -> assert a
+
+-- | Validate a block in an [[EmulatorState]], returning the valid transactions
+--   and all success/failure events
+validateBlock :: EmulatorState -> [Tx] -> ([Tx], [Log.EmulatorEvent])
+validateBlock emState txns = (block, events) where
+    processed = (\tx -> (tx, validateEm emState tx)) <$> txns
+    validTxns = fst <$> filter (isNothing . snd) processed
+    block = validTxns
+    mkEvent (t, result) =
+        case result of
+            Nothing  -> Log.TxnValidate (hashTx t)
+            Just err -> Log.TxnValidationFail (hashTx t) err
+    events = mkEvent <$> processed
+
 
 processEmulated :: (MonadEmulator m) => Trace EmulatedWalletApi a -> m a
 processEmulated = interpretWithMonad evalEmulated
