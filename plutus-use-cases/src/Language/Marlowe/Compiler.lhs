@@ -16,14 +16,13 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE FlexibleContexts    #-}
--- {-# LANGUAGE StrictData    #-} -- doesn't work yet with current Plutus Compiler
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Language.Marlowe.Compiler where
 import           Control.Applicative        (Applicative (..))
-import           Control.Monad              (Monad (..))
+import           Control.Monad              (Monad (..), void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           GHC.Generics               (Generic)
 import qualified Data.Maybe                           as Maybe
@@ -327,8 +326,8 @@ data Value = Committed IdentCC |
              AddValue Value Value |
              MulValue Value Value |
              DivValue Value Value Value | -- divident, divisor, default value (when divisor evaluates to 0)
-             ValueFromChoice IdentChoice Person {- Value -} |
-             ValueFromOracle PubKey {- Value -}
+             ValueFromChoice IdentChoice Person Value |
+             ValueFromOracle PubKey Value
                     deriving (Eq, Generic)
 
 makeLift ''Value
@@ -352,6 +351,9 @@ data Contract = Null
               | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
               | RedeemCC IdentCC Contract
               | Pay IdentPay Person Person Value Timeout Contract
+              | Both Contract Contract
+              | Choice Observation Contract Contract
+              | When Observation Timeout Contract Contract
                 deriving (Eq, Generic)
 
 makeLift ''Contract
@@ -380,6 +382,9 @@ marloweValidator = Validator result where
         eqPk :: PubKey -> PubKey -> Bool
         eqPk = $(TH.eqPubKey)
 
+        eqIdentCC :: IdentCC -> IdentCC -> Bool
+        eqIdentCC (IdentCC a) (IdentCC b) = a == b
+
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
         eqValidator = $(TH.eqValidator)
 
@@ -397,6 +402,10 @@ marloweValidator = Validator result where
         signedBy :: PubKey -> Bool
         signedBy = $(TH.txSignedBy) p
 
+        null :: [a] -> Bool
+        null [] = True
+        null _  = False
+
         reverse :: [a] -> [a]
         reverse l =  rev l [] where
                 rev []     a = a
@@ -413,23 +422,27 @@ marloweValidator = Validator result where
         maybe :: r -> (a -> r) -> Maybe a -> r
         maybe = $(TH.maybe)
 
-        findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> CCStatus
+        nullContract :: Contract -> Bool
+        nullContract Null = True
+        nullContract _    = False
+
+        findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> Maybe CCStatus
         findCommit i@(IdentCC searchId) commits = case commits of
-            (IdentCC id, status) : _ | id == searchId -> status
+            (IdentCC id, status) : _ | id == searchId -> Just status
             _ : xs -> findCommit i xs
-            _ -> Builtins.error ()
+            _ -> Nothing
 
-        fromOracle :: PubKey -> Height -> [OracleValue Int] -> Int
+        fromOracle :: PubKey -> Height -> [OracleValue Int] -> Maybe Int
         fromOracle pubKey h@(Plutus.Height blockNumber) oracles = case oracles of
-            OracleValue (Signed (pk, (Plutus.Height bn, value))) : _ | pk `eqPk` pubKey && bn == blockNumber -> value
+            OracleValue (Signed (pk, (Plutus.Height bn, value))) : _ | pk `eqPk` pubKey && bn == blockNumber -> Just value
             _ : rest -> fromOracle pubKey h rest
-            _ -> Builtins.error ()
+            _ -> Nothing
 
-        fromChoices :: IdentChoice -> PubKey -> [Choice] -> ConcreteChoice
+        fromChoices :: IdentChoice -> PubKey -> [Choice] -> Maybe ConcreteChoice
         fromChoices identChoice@(IdentChoice id) pubKey choices = case choices of
-            ((IdentChoice i, party), value) : _ | id == i && party `eqPk` pubKey -> value
+            ((IdentChoice i, party), value) : _ | id == i && party `eqPk` pubKey -> Just value
             _ : rest -> fromChoices identChoice pubKey rest
-            _ -> Builtins.error ()
+            _ -> Nothing
 
         {-
             Marlowe Interpreter
@@ -437,9 +450,9 @@ marloweValidator = Validator result where
 
         evalValue :: State -> Value -> Int
         evalValue state@(State committed choices) value = case value of
-            Committed ident -> let
-                (_, NotRedeemed c _) = findCommit ident committed
-                in c
+            Committed ident -> case findCommit ident committed of
+                Just (_, NotRedeemed c _) -> c
+                _ -> 0
             Value v -> v
             AddValue lhs rhs -> evalValue state lhs + evalValue state rhs
             MulValue lhs rhs -> evalValue state lhs * evalValue state rhs
@@ -448,8 +461,12 @@ marloweValidator = Validator result where
                 let divisor  = evalValue state rhs
                 let defVal   = evalValue state def
                 if divisor == (0::Int) then defVal else divident `div` divisor -}
-            ValueFromChoice ident pubKey {- def -} -> fromChoices ident pubKey choices
-            ValueFromOracle pubKey -> fromOracle pubKey pendingTxBlockHeight inputOracles
+            ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
+                Just v -> v
+                _ -> evalValue state def
+            ValueFromOracle pubKey def -> case fromOracle pubKey pendingTxBlockHeight inputOracles of
+                Just v -> v
+                _ -> evalValue state def
 
         interpretObs :: Int -> [OracleValue Int] -> State -> Observation -> Bool
         interpretObs blockNumber oracles state@(State _ choices) obs = case obs of
@@ -477,143 +494,139 @@ marloweValidator = Validator result where
             PendingTxIn _ (Just _ :: Maybe (ValidatorHash, RedeemerHash)) _ -> (t1, t2)
             _ -> (t2, t1)
 
-        -- | FIXME. Make contract progress in case of expired timeouts.
-        rewindForward :: Int -> Contract -> Contract
-        rewindForward blockNumber contract = case contract of
-            CommitCash _ _ _ startTimeout endTimeout _ con2 ->
-                if blockNumber >= startTimeout || blockNumber >= endTimeout
-                then con2
-                else contract
-            _ -> contract
+        currentBlockNumber :: Int
+        currentBlockNumber = let Plutus.Height blockNumber = pendingTxBlockHeight in blockNumber
 
-        step :: InputCommand -> State -> Contract -> (State, Contract, Bool)
-        step input state contract = case input of
-            Commit (IdentCC idCC) -> let
+        eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
+        eval input state@(State commits oracles) contract = case (contract, input) of
+            (When obs timeout con con2, _)
+                | currentBlockNumber > timeout -> eval input state con2
+                | interpretObs currentBlockNumber inputOracles state obs -> eval input state con
+
+            (Choice obs conT conF, _) -> if interpretObs currentBlockNumber inputOracles state obs
+                then eval input state conT
+                else eval input state conF
+
+            (Both con1 con2, _) -> (st2, result, isValid1 || isValid2)
+                where
+                    result  | nullContract res1 = res2
+                            | nullContract res2 = res1
+                            | True =  Both res1 res2
+                    (st1, res1, isValid1) = eval input state con1
+                    (st2, res2, isValid2) = eval input st1 con2
+
+            -- expired CommitCash
+            (CommitCash _ _ _ startTimeout endTimeout _ con2, _)
+                | currentBlockNumber > startTimeout || currentBlockNumber > endTimeout -> eval input state con2
+            --
+            (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2) | id1 `eqIdentCC` id2 -> let
                 PendingTx [in1, in2]
-                    [PendingTxOut (Plutus.Value committed) (Just (validatorHash, dataHash)) DataTxOut, out2]
-                    _ _ (Plutus.Height blockNumber) [committerSignature] thisScriptHash = p
+                    [PendingTxOut (Plutus.Value committed) (Just (validatorHash, _)) DataTxOut, _]
+                    _ _ (Plutus.Height blockNumber) _ thisScriptHash = p
 
                 (sIn@ (PendingTxIn _ _ (Plutus.Value scriptValue)),
                     commitTxIn@ (PendingTxIn _ _ (Plutus.Value commitValue))) = orderTxIns in1 in2
 
-                relevantContract = rewindForward blockNumber contract
+                vv = evalValue state value
 
-                in case relevantContract of
-                    CommitCash (IdentCC expectedIdentCC) pubKey value startTimeout endTimeout con1 con2 -> let
+                isValid = vv > 0
+                    && committed == vv + scriptValue
+                    && signedBy pubKey
+                    && validatorHash `eqValidator` thisScriptHash
+                in  if isValid then let
+                        cns = (pubKey, NotRedeemed commitValue endTimeout)
+                        -- TODO insert respecting sort, commits MUST be sorted by expiration time
+                        updatedState = let State committed choices = state
+                            in State ((id1, cns) : committed) choices
+                        in (updatedState, con1, True)
+                    else (state, contract, False)
 
-                        vv = evalValue state value
+            (Pay _ _ _ _ timeout con, _)
+                | currentBlockNumber > timeout -> eval input state con
 
-                        isValid = blockNumber < startTimeout
-                            && vv > 0
-                            && committed == vv + scriptValue
-                            && expectedIdentCC == idCC
-                            && signedBy pubKey
-                            && validatorHash `eqValidator` thisScriptHash
-                            -- TODO check hashes
-                        in  if isValid then let
-                                cns = (pubKey, NotRedeemed commitValue endTimeout)
-                                -- TODO insert respecting sort, commits MUST be sorted by expiration time
-                                updatedState = case state of { State committed choices -> State ((IdentCC idCC, cns) : committed) choices }
-                                in (updatedState, con1, True)
-                            else Builtins.error ()
-            Payment (IdentPay pid) -> case contract of
-                Pay (IdentPay contractIdentPay) from to payValue timeout con -> let
-                    PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
-                        [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
-                        _ _ (Plutus.Height blockNumber) [receiverSignature] thisScriptHash = p
+            (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid)) -> let
+                PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
+                    [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
+                    _ _ (Plutus.Height blockNumber) [receiverSignature] thisScriptHash = p
 
-                    calcAvailable :: Person -> Cash -> [(IdentCC, CCStatus)] -> Cash
-                    calcAvailable from accum commits = case commits of
-                        [] -> accum
-                        (_, (party, NotRedeemed value expire)) : ls | from `eqPk` party && blockNumber <= expire -> let
-                            in calcAvailable from (accum + value) ls
+                pv = evalValue state payValue
 
-                    State committed _ = marloweState
+                isValid = pid == contractIdentPay
+                    && pv > 0
+                    && change == scriptValue - pv
+                    && signedBy to -- only receiver of the payment allowed to issue this transaction
+                    && validatorHash `eqValidator` thisScriptHash
+                in  if isValid then let
+                    -- Discounts the Cash from an initial segment of the list of pairs.
+                    discountFromPairList :: [(IdentCC, CCStatus)] -> Int -> [(IdentCC, CCStatus)] -> Maybe [(IdentCC, CCStatus)]
+                    discountFromPairList acc value commits = case commits of
+                        (ident, (p, NotRedeemed available expire)) : rest | currentBlockNumber <= expire ->
+                            if available > value then let
+                                change = available - value
+                                updatedCommit = (ident, (p, NotRedeemed change expire))
+                                in discountFromPairList (updatedCommit : acc) 0 rest
+                            else discountFromPairList acc (value - available) rest
+                        commit : rest -> discountFromPairList (commit : acc) value rest
+                        [] -> if value == 0 then Just acc else Nothing
 
-                    -- | Note. It's O(nr_or_commitments), potentially slow. Check it last.
-                    hasEnoughCommitted :: Person -> Cash -> Bool
-                    hasEnoughCommitted from value = calcAvailable from 0 committed >= value
-
-                    pv = evalValue state payValue
-
-                    isValid = pid == contractIdentPay
-                        && blockNumber <= timeout
-                        && pv > 0
-                        && change == scriptValue - pv
-                        && signedBy to -- only receiver of the payment allowed to issue this transaction
-                        && validatorHash `eqValidator` thisScriptHash
-                        && hasEnoughCommitted from pv
-                        -- TODO check inputs/outputs
-                    in  if isValid then let
-                            -- Discounts the Cash from an initial segment of the list of pairs.
-
-                            discountFromPairList :: Cash -> [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)]
-                            discountFromPairList v ((ident, (p, NotRedeemed ve e)):t)
-                                | v <= ve = [(ident, (p, NotRedeemed (ve - v) e))]
-                                | ve < v = (ident, (p, NotRedeemed 0 e)) : discountFromPairList (v - ve) t
-                            discountFromPairList _ (_:t) = t
-                            discountFromPairList v []
-                                | v == 0 = []
-                                | otherwise = Builtins.error ()
-
-                            updatedState = state --State (discountFromPairList payValue committed)
+                    in case discountFromPairList [] pv commits of
+                        Just updatedCommits -> let
+                            updatedState = State (reverse updatedCommits) oracles
                             in (updatedState, con, True)
-                        else Builtins.error ()
+                        Nothing -> (state, contract, False)
+                else (state, contract, False)
 
-            Redeem (IdentCC identCC) -> case contract of
-                RedeemCC expectedIdentCC con -> let
-                    PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
-                        [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
-                        _ _ blockNumber [receiverSignature] thisScriptHash = p
+            (RedeemCC id1 con, Redeem id2) | id1 `eqIdentCC` id2 -> let
+                PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
+                    [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
+                    _ _ blockNumber [receiverSignature] thisScriptHash = p
 
-                    State committed _ = marloweState
+                findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
+                findAndRemove ls resultCommits result = case ls of
+                    (i, (party, NotRedeemed val _)) : ls | i `eqIdentCC` id1 && change == scriptValue - val ->
+                        findAndRemove ls resultCommits (True, state)
+                    e@(i, (party, NotRedeemed val _)) : ls -> findAndRemove ls (e : resultCommits) result
+                    [] -> let
+                        (isValid, State commits choices) = result
+                        in (isValid, State (reverse resultCommits) choices)
 
-                    findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
-                    findAndRemove ls resultCommits result = case ls of
-                        (IdentCC i, (party, NotRedeemed val _)) : ls | i == identCC && change == scriptValue - val ->
-                            findAndRemove ls resultCommits (True, state)
-                        e@(i, (party, NotRedeemed val _)) : ls -> findAndRemove ls (e : resultCommits) result
-                        [] -> let
-                            (isValid, State commits choices) = result
-                            in (isValid, State (reverse resultCommits) choices)
+                (isValid, updatedState) = findAndRemove commits [] (False, state)
 
-                    (isValid, updatedState) = findAndRemove committed [] (False, state)
+                in if isValid
+                then (updatedState, con, True)
+                else (state, contract, False)
 
-                    in if isValid
-                    then (updatedState, con, True)
-                    else Builtins.error ()
-                _ -> let
+            (_, Redeem identCC) -> let
                     PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
                         [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
                         _ _ (Plutus.Height blockNumber) [receiverSignature] thisScriptHash = p
-
-                    State committed _ = marloweState
 
                     findAndRemoveExpired :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
                     findAndRemoveExpired ls resultCommits result = case ls of
-                        (IdentCC i, (party, NotRedeemed val expire)) : ls |
-                            i == identCC && change == scriptValue - val && blockNumber >= expire ->
+                        (i, (party, NotRedeemed val expire)) : ls |
+                            i `eqIdentCC` identCC && change == scriptValue - val && blockNumber > expire ->
                                 findAndRemoveExpired ls resultCommits (True, state)
                         e : ls -> findAndRemoveExpired ls (e : resultCommits) result
                         [] -> let
                             (isValid, State _ choices) = result
                             in (isValid, State (reverse resultCommits) choices)
 
-                    (isValid, updatedState) = findAndRemoveExpired committed [] (False, state)
+                    (isValid, updatedState) = findAndRemoveExpired commits [] (False, state)
 
-                    in if isValid then let
-                        con1 = Null
-                        in (updatedState, con1, True)
-                    else Builtins.error ()
+                    in if isValid
+                    then (updatedState, contract, True)
+                    else (state, contract, False)
 
-            SpendDeposit -> case contract of
-                Null -> (state, Null, True)
+            (Null, SpendDeposit) | null commits -> (state, Null, True)
+
+            _ -> (state, Null, False)
 
         -- record Choices from Input into State
         updatedState = let
             State commits choices = marloweState
             in State commits (concat inputChoices choices)
-        (_::State, _::Contract, isValid) = step inputCommand updatedState marloweContract
+
+        (_::State, _::Contract, isValid) = eval inputCommand updatedState marloweContract
 
         in if isValid then () else Builtins.error ()
         |])
@@ -632,7 +645,7 @@ createContract contract value = do
     (payment, change) <- createPaymentWithChange v'
     let o = scriptTxOut v' marloweValidator ds
 
-    signAndSubmit payment [o, change]
+    void $ signAndSubmit payment [o, change]
 
 
 commit :: (
@@ -661,7 +674,7 @@ commit person txOut oracles choices value timeout = do
     (payment, change) <- createPaymentWithChange (UTXO.Value value)
     let o = scriptTxOut (UTXO.Value $ value + contractValue) marloweValidator ds
 
-    signAndSubmit (Set.insert i payment) [o, change]
+    void $ signAndSubmit (Set.insert i payment) [o, change]
 
 
 receivePayment :: (
@@ -683,7 +696,7 @@ receivePayment (TxOut _ (UTXO.Value contractValue) _, ref) value = do
     let o = scriptTxOut (UTXO.Value $ contractValue - value) marloweValidator ds
     oo <- ownPubKeyTxOut (UTXO.Value value)
 
-    signAndSubmit (Set.singleton i) [o, oo]
+    void $ signAndSubmit (Set.singleton i) [o, oo]
 
 redeem :: (
     MonadError WalletAPIError m,
@@ -704,7 +717,7 @@ redeem (TxOut _ (UTXO.Value contractValue) _, ref) identCC value = do
     let o = scriptTxOut (UTXO.Value $ contractValue - value) marloweValidator ds
     oo <- ownPubKeyTxOut (UTXO.Value value)
 
-    signAndSubmit (Set.singleton i) [o, oo]
+    void $ signAndSubmit (Set.singleton i) [o, oo]
 
 
 
@@ -714,7 +727,7 @@ endContract (TxOut _ val _, ref) = do
     let scr = marloweValidator
     let input = Input SpendDeposit [] []
         i   = scriptTxIn ref scr $ UTXO.Redeemer $ UTXO.lifted input
-    signAndSubmit (Set.singleton i) [oo]
+    void $ signAndSubmit (Set.singleton i) [oo]
 
 
 \end{code}

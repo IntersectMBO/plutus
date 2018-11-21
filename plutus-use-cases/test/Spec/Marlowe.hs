@@ -10,6 +10,7 @@ module Spec.Marlowe(tests) where
 
 import           Data.Bifunctor                                      (Bifunctor (..))
 import           Data.Either                                         (isRight)
+import           Control.Monad                                        (void)
 import           Data.Foldable                                       (traverse_)
 import qualified Data.Map                                            as Map
 import           Hedgehog                                            (Property, forAll, property)
@@ -62,7 +63,7 @@ simplePayment = checkMarloweTrace (MarloweScenario {
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
-        update = blockchainActions >>= walletsNotifyBlock [alice, bob]
+        update = processPending >>= void . walletsNotifyBlock [alice, bob]
     update
     let contract = CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256
             (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
@@ -95,7 +96,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
-        update = blockchainActions >>= walletsNotifyBlock [alice, bob]
+        update = processPending >>= void . walletsNotifyBlock [alice, bob]
     update
     [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256 Null Null) 12)
     let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
@@ -118,7 +119,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
-        update = blockchainActions >>= walletsNotifyBlock [alice, bob]
+        update = processPending >>= void . walletsNotifyBlock [alice, bob]
         identCC = (IdentCC 1)
     update
     [tx] <- walletAction alice (createContract (CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null) 12)
@@ -148,10 +149,10 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
     let alice = Wallet 1
         bob = Wallet 2
         oracle = PubKey 42
-        update = blockchainActions >>= walletsNotifyBlock [alice, bob]
+        update = processPending >>= void . walletsNotifyBlock [alice, bob]
     update
 
-    let contract = CommitCash (IdentCC 1) (PubKey 2) (ValueFromOracle oracle) 128 256
+    let contract = CommitCash (IdentCC 1) (PubKey 2) (ValueFromOracle oracle (Value 0)) 128 256
             (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
             Null
 
