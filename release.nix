@@ -22,10 +22,11 @@ let
   pkgs = import fixedNixpkgs { config = {}; };
   shellEnv = import ./shell.nix { };
   haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
+  # don't need to build the docs on anything other than one platform
+  docs = map (name: lib.nameValuePair name [ "x86_64-linux" ]) (builtins.attrNames plutusPkgs.docs);
   platforms = {
     inherit haskellPackages;
-    # don't need to build the spec on anything other than one platform
-    plutus-core-spec = [ "x86_64-linux" ];
+    inherit docs;
   };
   mapped = mapTestOn platforms;
   makePlutusTestRuns = system:
@@ -35,7 +36,7 @@ let
     f = name: value: value.testrun;
   in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
-  inherit (plutusPkgs) tests;
+  inherit (plutusPkgs) tests docs;
   all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);
   required = pkgs.lib.hydraJob (pkgs.releaseTools.aggregate {
     name = "plutus-required-checks";
@@ -46,9 +47,6 @@ in pkgs.lib.fix (jobsets:  mapped // {
       in
     [
       (builtins.concatLists (map lib.attrValues (all jobsets.all-plutus-tests)))
-      jobsets.tests.hlint
-      jobsets.tests.shellcheck
-      jobsets.tests.stylishHaskell
-    ];
+    ] ++ (builtins.attrValues jobsets.tests) ++ (builtins.attrValues jobsets.docs);
   });
 })

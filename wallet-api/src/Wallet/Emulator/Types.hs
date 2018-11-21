@@ -30,7 +30,7 @@ module Wallet.Emulator.Types(
     walletRecvNotifications,
     walletNotifyBlock,
     walletsNotifyBlock,
-    blockchainActions,
+    processPending,
     addBlocks,
     assertion,
     assertOwnFundsEq,
@@ -51,6 +51,7 @@ module Wallet.Emulator.Types(
     processEmulated
     ) where
 
+import           Control.Lens               hiding (index, uncons)
 import           Control.Monad.Except
 import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
@@ -65,14 +66,13 @@ import           Data.Maybe
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
 import           GHC.Generics               (Generic)
-import           Lens.Micro
-import           Lens.Micro.Extras          (view)
 import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Wallet.API                 (EventTrigger (..), KeyPair (..), WalletAPI (..), WalletAPIError (..),
-                                             addresses, checkTrigger, keyPair, pubKey, signature)
+import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
+                                             WalletAPIError (..), addresses, annTruthValue, getAnnot, keyPair, pubKey,
+                                             signature)
 import qualified Wallet.Emulator.AddressMap as AM
 import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxOutRef', Value, height,
                                              pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
@@ -97,7 +97,7 @@ data WalletState = WalletState {
     -- ^  Height of the blockchain as far as the wallet is concerned
     walletStateWatchedAddresses :: AM.AddressMap,
     -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
-    walletStateTriggers         :: Map EventTrigger (EmulatedWalletApi ())
+    walletStateTriggers         :: Map EventTrigger (EventHandler EmulatedWalletApi)
     }
 
 instance Show WalletState where
@@ -121,8 +121,8 @@ ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
 
-blockHeight :: Lens' WalletState Height
-blockHeight = lens g s where
+walletBlockHeight :: Lens' WalletState Height
+walletBlockHeight = lens g s where
     g = walletStateBlockHeight
     s ws bh = ws { walletStateBlockHeight = bh }
 
@@ -131,7 +131,7 @@ addressMap = lens g s where
     g = walletStateWatchedAddresses
     s ws oa = ws { walletStateWatchedAddresses = oa }
 
-triggers :: Lens' WalletState (Map EventTrigger (EmulatedWalletApi ()))
+triggers :: Lens' WalletState (Map EventTrigger (EventHandler EmulatedWalletApi))
 triggers = lens g s where
     g = walletStateTriggers
     s ws tr = ws { walletStateTriggers = tr }
@@ -151,17 +151,24 @@ newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (Excep
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
     updateState = \case
-            BlockHeight h -> modify (blockHeight .~ h)
-            BlockValidated blck -> mapM_ (modify . update) blck >> modify (blockHeight %~ succ)
+            BlockHeight h -> modify (walletBlockHeight .~ h)
+            BlockValidated blck -> mapM_ (modify . update) blck >> modify (walletBlockHeight %~ succ)
 
     runTriggers _ = do
-        h <- gets (view blockHeight)
-        values <- gets (AM.values . view addressMap)
+        h <- gets (view walletBlockHeight)
+        adrs <- gets (view addressMap)
         trg <- gets (view triggers)
 
-        traverse_ snd
-            $ filter fst
-            $ over _1 (checkTrigger h values)
+        let values = AM.values adrs
+            annotate = annTruthValue h values
+
+        let runIfTrue annotTr action =
+                if getAnnot annotTr -- get the top-level annotation (just like `checkTrigger`, but here we need to hold on to the `annotTr` value to pass it to the handler)
+                then runEventHandler action annotTr
+                else pure ()
+
+        traverse_ (uncurry runIfTrue)
+            $ first annotate
             <$> Map.toList trg
 
     -- | Remove spent outputs and add unspent ones, for the addresses that we care about
@@ -197,8 +204,12 @@ instance WalletAPI EmulatedWalletApi where
             pure (ins, out)
 
     register tr action =
-        modify (over triggers (Map.insertWith (>>) tr action))
+        modify (over triggers (Map.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
+
+    watchedAddresses = gets walletStateWatchedAddresses
+
+    blockHeight = gets walletStateBlockHeight
 
 -- Emulator code
 
@@ -242,8 +253,9 @@ data Event n a where
     WalletAction :: Wallet -> n () -> Event n [Tx]
     -- | A wallet receiving some notifications, and reacting to them.
     WalletRecvNotification :: Wallet -> [Notification] -> Event n [Tx]
-    -- | The blockchain performing actions, resulting in a validated block.
-    BlockchainActions :: Event n Block
+    -- | The blockchain processing pending transactions, producing a new block
+    --   from the valid ones and discarding the invalid ones.
+    BlockchainProcessPending :: Event n Block
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> Event n ()
 
@@ -271,7 +283,7 @@ txPool = lens g s where
 walletStates :: Lens' EmulatorState  (Map Wallet WalletState)
 walletStates = lens g s where
     g = emWalletState
-    s es ws = es { emWalletState = ws }
+    s es ws  = es { emWalletState = ws }
 
 index :: Lens' EmulatorState Index.UtxoIndex
 index = lens g s where
@@ -318,7 +330,7 @@ evalEmulated :: (MonadEmulator m) => Event EmulatedWalletApi a -> m a
 evalEmulated = \case
     WalletAction wallet action -> fst <$> liftEmulatedWallet wallet action
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
-    BlockchainActions -> do
+    BlockchainProcessPending -> do
         emState <- get
         let processed = validateEm emState <$> emTxPool emState
             validated = catMaybes processed
@@ -351,13 +363,13 @@ walletsNotifyBlock :: [Wallet] -> Block -> Trace m [Tx]
 walletsNotifyBlock wls b = foldM (\ts w -> (ts ++) <$> walletNotifyBlock w b) [] wls
 
 -- | Validate all pending transactions
-blockchainActions :: Trace m Block
-blockchainActions = Op.singleton BlockchainActions
+processPending :: Trace m Block
+processPending = Op.singleton BlockchainProcessPending
 
 -- | Add a number of empty blocks to the blockchain, by performing
---   `blockchainActions` @n@ times.
+--   `processPending` @n@ times.
 addBlocks :: Int -> Trace m [Block]
-addBlocks i = traverse (const blockchainActions) [1..i]
+addBlocks i = traverse (const processPending) [1..i]
 
 -- | Make an assertion about the emulator state
 assertion :: Assertion -> Trace m ()

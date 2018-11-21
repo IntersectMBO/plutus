@@ -14,6 +14,7 @@ module Wallet.Emulator.Http
 
 import           Control.Concurrent.STM     (STM, TVar, atomically, modifyTVar, newTVar, readTVar, readTVarIO,
                                              writeTVar)
+import           Control.Lens               (over, set, to, view)
 import           Control.Monad.Error.Class  (MonadError)
 import           Control.Monad.Except       (ExceptT, liftEither, runExceptT)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -26,14 +27,13 @@ import           Data.Maybe                 (catMaybes)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
-import           Lens.Micro                 (over, set, to)
-import           Lens.Micro.Extras          (view)
-import           Servant                    (Application, Handler, ServantErr (errBody), Server, err404, err500,
+import           Servant                    (Application, Handler, ServantErr (errBody), Server, err404, err500, err501,
                                              hoistServer, serve, throwError)
 import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get, JSON, NoContent (NoContent), Post,
                                              ReqBody)
 import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
+import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
                                              EmulatorState (emWalletState), Notification (BlockHeight, BlockValidated),
                                              Wallet, WalletState, assert, chain, emTxPool, emptyEmulatorState,
@@ -47,13 +47,14 @@ type WalletAPI
      :<|> "wallets" :> Capture "walletid" Wallet :> Get '[ JSON] Wallet
      :<|> "wallets" :> ReqBody '[ JSON] Wallet :> Post '[ JSON] NoContent
      :<|> "wallets" :> Capture "walletid" Wallet :> "my-key-pair" :> Get '[ JSON] KeyPair
-     :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] ( Set TxIn'
-                                                                                                          , TxOut')
+     :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn', TxOut')
 -- This is where the line between wallet API and control API is crossed
 -- Returning the [Tx] only makes sense when running a WalletAPI m => m () inside a Trace, but not on the wallet API on its own,
 --   otherwise the signature of submitTxn would be submitTxn :: Tx -> m [Tx]
 -- Unfortunately we need to return the Tx here because we have to reference it later. So I can't see a way around this change.
      :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] [Tx]
+     :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> Get '[JSON] AddressMap
+     :<|> "wallets" :> Capture "walletid" Wallet :> "block-height" :> Get '[JSON] Height
      :<|> "wallets" :> "transactions" :> Get '[ JSON] [Tx]
 
 type WalletControlAPI
@@ -133,6 +134,16 @@ getTransactions = do
   states <- liftIO $ readTVarIO var
   view (txPool . to pure) states
 
+getWatchedAddresses :: MonadError ServantErr m
+  => Wallet
+  -> m AddressMap
+getWatchedAddresses _ = throwError err501 -- not implemented
+
+getBlockHeight :: MonadError ServantErr m
+  => Wallet
+  -> m Height
+getBlockHeight _ = throwError err501 -- not implemented
+
 -- | Concrete monad stack for server server
 newtype AppM a = AppM
   { unM :: ReaderT ServerState (ExceptT ServantErr IO) a
@@ -157,8 +168,10 @@ walletHandlers state =
     walletApi =
       wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
       submitTxn :<|>
+      getWatchedAddresses :<|>
+      getBlockHeight :<|>
       getTransactions
-    controlApi = blockchainActions
+    controlApi = processPending
     walletControlApi = blockValidated :<|> blockHeight
     assertionsApi = assertOwnFundsEq :<|> assertIsValidated
 
@@ -229,13 +242,13 @@ runStateSTM var action = do
   writeTVar var newState
   pure res
 
-blockchainActions :: (MonadReader ServerState m, MonadIO m) => m [Tx]
-blockchainActions = do
+processPending :: (MonadReader ServerState m, MonadIO m) => m [Tx]
+processPending = do
   var <- asks getState
-  liftIO . atomically $ blockchainActionsSTM var
+  liftIO . atomically $ processPendingSTM var
 
-blockchainActionsSTM :: TVar EmulatorState -> STM [Tx]
-blockchainActionsSTM var = do
+processPendingSTM :: TVar EmulatorState -> STM [Tx]
+processPendingSTM var = do
   es <- readTVar var
   let processed = validateEm es <$> emTxPool es
       validated = catMaybes processed

@@ -56,3 +56,6 @@ sumViaFold = plc (let fold :: (a -> b -> a) -> a -> [b] -> a
                       sum = fold (+) 0
                   in sum)
 -}
+
+data Tree a = NodeTree a (Forest a)
+data Forest a = NilForest | ConsForest (Tree a) (Forest a)

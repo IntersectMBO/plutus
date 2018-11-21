@@ -19,18 +19,18 @@
                     [
                       {
                         (abs
-                          unit_92
+                          Unit_92
                           (type)
                           (lam
-                            unit_93
-                            unit_92
+                            Unit_93
+                            Unit_92
                             (lam
-                              p_match_94
-                              (fun unit_92 (all out_unit_95 (type) (fun out_unit_95 out_unit_95)))
+                              Unit_match_94
+                              (fun Unit_92 (all out_Unit_95 (type) (fun out_Unit_95 out_Unit_95)))
                               [
                                 (lam
                                   error_96
-                                  (all a_97 (type) (fun unit_92 a_97))
+                                  (all a_97 (type) (fun Unit_92 a_97))
                                   (lam
                                     ds_98
                                     MyEnum_87
@@ -41,45 +41,45 @@
                                             [
                                               MyEnum_match_90 ds_98
                                             ]
-                                            (fun unit_92 [(con integer) (con 64)])
+                                            (fun Unit_92 [(con integer) (con 64)])
                                           }
-                                          (lam thunk_99 unit_92 (con 64 ! 1))
+                                          (lam thunk_99 Unit_92 (con 64 ! 1))
                                         ]
                                         (lam
                                           thunk_100
-                                          unit_92
+                                          Unit_92
                                           [
                                             {
                                               error_96 [(con integer) (con 64)]
                                             }
-                                            unit_93
+                                            Unit_93
                                           ]
                                         )
                                       ]
-                                      unit_93
+                                      Unit_93
                                     ]
                                   )
                                 )
                                 (abs
                                   e_101
                                   (type)
-                                  (lam thunk_102 unit_92 (error e_101))
+                                  (lam thunk_102 Unit_92 (error e_101))
                                 )
                               ]
                             )
                           )
                         )
-                        (all out_unit_103 (type) (fun out_unit_103 out_unit_103))
+                        (all out_Unit_103 (type) (fun out_Unit_103 out_Unit_103))
                       }
                       (abs
-                        out_unit_104
+                        out_Unit_104
                         (type)
-                        (lam case_unit_105 out_unit_104 case_unit_105)
+                        (lam case_Unit_105 out_Unit_104 case_Unit_105)
                       )
                     ]
                     (lam
                       x_106
-                      (all out_unit_107 (type) (fun out_unit_107 out_unit_107))
+                      (all out_Unit_107 (type) (fun out_Unit_107 out_Unit_107))
                       x_106
                     )
                   ]

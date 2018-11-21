@@ -20,7 +20,7 @@ module Language.Plutus.Coordination.Contracts.Vesting (
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
-import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Lift       (makeLift)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                              PubKey (..), ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
@@ -38,8 +38,7 @@ data VestingTranche = VestingTranche {
     vestingTrancheAmount :: Value
     } deriving Generic
 
-instance LiftPlc VestingTranche
-instance TypeablePlc VestingTranche
+makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (block height) after which an additional amount of money can be spent.
@@ -49,8 +48,7 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     } deriving Generic
 
-instance LiftPlc Vesting
-instance TypeablePlc Vesting
+makeLift ''Vesting
 
 -- | The total amount of money vested
 totalAmount :: Vesting -> Value
@@ -63,8 +61,7 @@ data VestingData = VestingData {
     vestingDataPaidOut :: Value -- ^ How much of the vested value has already been retrieved
     } deriving (Eq, Generic)
 
-instance LiftPlc VestingData
-instance TypeablePlc VestingData
+makeLift ''VestingData
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
@@ -81,7 +78,7 @@ vestFunds vst value = do
     let vs = validatorScript vst
         o = scriptTxOut v' vs (DataScript $ UTXO.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    signAndSubmit payment [o, change]
+    _ <- signAndSubmit payment [o, change]
     pure vd
 
 -- | Retrieve some of the vested funds.
@@ -100,7 +97,7 @@ retrieveFunds vs vd r vnow = do
         remaining = (fromIntegral $ totalAmount vs) - vnow
         vd' = vd {vestingDataPaidOut = fromIntegral vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val UTXO.unitRedeemer
-    signAndSubmit (Set.singleton inp) [oo, o]
+    _ <- signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
@@ -134,9 +131,9 @@ validatorScript v = Validator val where
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
             amountSpent :: Int
             amountSpent = case os of
-                ((PendingTxOut (Value v') _ (PubKeyTxOut pk))::PendingTxOut):(_::[PendingTxOut])
+                PendingTxOut (Value v') _ (PubKeyTxOut pk):_
                     | pk `eqPk` vestingOwner -> v'
-                (_::[PendingTxOut]) -> Builtins.error ()
+                _ -> Builtins.error ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
@@ -149,7 +146,7 @@ validatorScript v = Validator val where
                 -- Nothing has been released yet
                 else 0
 
-            paidOut = let Value v = vestingDataPaidOut in v
+            paidOut = let Value v' = vestingDataPaidOut in v'
             newAmount = paidOut + amountSpent
 
             -- Verify that the amount taken out, plus the amount already taken
@@ -160,9 +157,9 @@ validatorScript v = Validator val where
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
-                (_::PendingTxOut):(PendingTxOut _ (Just (vl', _))  DataTxOut::PendingTxOut):(_::[PendingTxOut]) ->
+                _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
                     vl' `eqBs` vestingDataHash
-                (_::[PendingTxOut]) -> Builtins.error ()
+                _ -> Builtins.error ()
 
             isValid = amountsValid && txnOutputsValid
         in

@@ -16997,17 +16997,15 @@ license = stdenv.lib.licenses.mit;
 , ghc
 , language-plutus-core
 , lens
-, mmorph
 , mtl
 , plutus-ir
 , prettyprinter
 , serialise
 , stdenv
 , tasty
-, tasty-golden
-, tasty-hunit
 , template-haskell
 , text
+, th-abstraction
 , transformers
 }:
 mkDerivation {
@@ -17023,25 +17021,20 @@ containers
 ghc
 language-plutus-core
 lens
-mmorph
 mtl
 plutus-ir
 prettyprinter
 serialise
 template-haskell
 text
+th-abstraction
 transformers
 ];
 testHaskellDepends = [
 base
 bytestring
 language-plutus-core
-mtl
-prettyprinter
 tasty
-tasty-golden
-tasty-hunit
-text
 ];
 doHaddock = false;
 description = "GHC Core to Plutus Core compiler";
@@ -43217,11 +43210,6 @@ happy
 ];
 executableHaskellDepends = [
 base
-bytestring
-hedgehog
-mmorph
-prettyprinter
-serialise
 text
 ];
 testHaskellDepends = [
@@ -55633,19 +55621,14 @@ license = stdenv.lib.licenses.mit;
 ({
   mkDerivation
 , base
-, bytestring
 , containers
 , hedgehog
 , language-plutus-core
-, mmorph
 , mtl
-, prettyprinter
 , stdenv
 , tasty
-, tasty-golden
 , tasty-hedgehog
 , tasty-hunit
-, text
 }:
 mkDerivation {
 
@@ -55654,27 +55637,18 @@ version = "0.1.0.0";
 src = .././plutus-core-interpreter;
 libraryHaskellDepends = [
 base
-bytestring
 containers
 language-plutus-core
 mtl
-prettyprinter
-text
 ];
 testHaskellDepends = [
 base
-bytestring
-containers
 hedgehog
 language-plutus-core
-mmorph
 mtl
-prettyprinter
 tasty
-tasty-golden
 tasty-hedgehog
 tasty-hunit
-text
 ];
 doHaddock = false;
 description = "Virtual machine for Plutus Core";
@@ -55687,7 +55661,6 @@ license = stdenv.lib.licenses.bsd3;
 , base
 , bytestring
 , language-plutus-core
-, mtl
 , optparse-applicative
 , plutus-core-interpreter
 , stdenv
@@ -55704,7 +55677,6 @@ executableHaskellDepends = [
 base
 bytestring
 language-plutus-core
-mtl
 optparse-applicative
 plutus-core-interpreter
 text
@@ -55719,7 +55691,6 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , algebraic-graphs
 , base
-, bytestring
 , containers
 , language-plutus-core
 , lens
@@ -55728,8 +55699,6 @@ license = stdenv.lib.licenses.bsd3;
 , prettyprinter
 , stdenv
 , tasty
-, tasty-golden
-, tasty-hunit
 , text
 , transformers
 }:
@@ -55741,7 +55710,6 @@ src = .././plutus-ir;
 libraryHaskellDepends = [
 algebraic-graphs
 base
-bytestring
 containers
 language-plutus-core
 lens
@@ -55753,16 +55721,10 @@ transformers
 ];
 testHaskellDepends = [
 base
-bytestring
 language-plutus-core
-lens
 mmorph
 mtl
-prettyprinter
 tasty
-tasty-golden
-tasty-hunit
-text
 ];
 doHaddock = false;
 description = "Plutus IR language";
@@ -55773,15 +55735,11 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
-, bytestring
 , core-to-plc
 , language-plutus-core
 , stdenv
 , tasty
-, tasty-golden
-, tasty-hunit
 , template-haskell
-, text
 }:
 mkDerivation {
 
@@ -55795,14 +55753,10 @@ template-haskell
 ];
 testHaskellDepends = [
 base
-bytestring
 core-to-plc
 language-plutus-core
 tasty
-tasty-golden
-tasty-hunit
 template-haskell
-text
 ];
 doHaddock = false;
 description = "TH frontend to the Plutus compiler";
@@ -55816,8 +55770,7 @@ license = stdenv.lib.licenses.bsd3;
 , containers
 , core-to-plc
 , hedgehog
-, language-plutus-core
-, microlens
+, lens
 , mtl
 , plutus-th
 , stdenv
@@ -55825,7 +55778,6 @@ license = stdenv.lib.licenses.bsd3;
 , tasty-hedgehog
 , template-haskell
 , text
-, transformers
 , wallet-api
 }:
 mkDerivation {
@@ -55837,12 +55789,10 @@ libraryHaskellDepends = [
 base
 containers
 core-to-plc
-language-plutus-core
-microlens
+lens
 mtl
 plutus-th
 template-haskell
-transformers
 wallet-api
 ];
 testHaskellDepends = [
@@ -55850,7 +55800,6 @@ base
 containers
 core-to-plc
 hedgehog
-microlens
 plutus-th
 tasty
 tasty-hedgehog
@@ -77591,29 +77540,21 @@ license = stdenv.lib.licenses.mit;
 , aeson
 , base
 , base64-bytestring
-, bifunctors
 , bytestring
 , cborg
 , containers
 , core-to-plc
 , cryptonite
 , deriving-compat
-, errors
-, free
-, ghc
 , hashable
 , hedgehog
 , language-plutus-core
+, lens
 , memory
-, microlens
-, microlens-ghc
-, mmorph
-, monad-stm
 , mtl
 , natural-transformation
 , operational
 , plutus-th
-, prettyprinter
 , recursion-schemes
 , serialise
 , servant
@@ -77623,11 +77564,8 @@ license = stdenv.lib.licenses.mit;
 , stm
 , tasty
 , tasty-hedgehog
-, template-haskell
 , text
 , transformers
-, unordered-containers
-, wai
 , warp
 }:
 mkDerivation {
@@ -77641,57 +77579,41 @@ libraryHaskellDepends = [
 aeson
 base
 base64-bytestring
-bifunctors
 bytestring
 cborg
 containers
 core-to-plc
 cryptonite
 deriving-compat
-errors
-free
-ghc
 hashable
 hedgehog
 language-plutus-core
+lens
 memory
-microlens
-microlens-ghc
-mmorph
-monad-stm
 mtl
 natural-transformation
 operational
 plutus-th
-prettyprinter
 recursion-schemes
 serialise
 servant
 servant-client
 servant-server
 stm
-template-haskell
 text
 transformers
-unordered-containers
 ];
 executableHaskellDepends = [
 base
-containers
-memory
-stm
-unordered-containers
-wai
 warp
 ];
 testHaskellDepends = [
 base
 containers
 hedgehog
-microlens
+lens
 tasty
 tasty-hedgehog
-text
 ];
 doHaddock = false;
 description = "Wallet API";
