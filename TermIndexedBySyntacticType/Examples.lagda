@@ -193,7 +193,7 @@ module Scott1 where
   μ0 : ∀{Γ} → Γ ⊢⋆ (* ⇒ *) ⇒ *
   μ0 = ƛ (μ1 · ƛ (ƛ (` Z · (` (S Z) · ` Z))) · ` Z)
 
-  wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ pat ·  (μ0 · pat) → Γ ⊢ μ0 · pat
+  wrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ pat · (μ0 · pat) → Γ ⊢ μ0 · pat
   wrap0 {Γ} pat X = conv
     (sym≡β (β≡β _ _))
     (wrap1
@@ -205,7 +205,7 @@ module Scott1 where
           (·≡β (sym≡β (β≡β _ _)) (refl≡β _)))
         X))
 
-  unwrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *)→ Γ ⊢ μ0 · pat  → Γ ⊢ pat ·  (μ0 · pat) 
+  unwrap0 : ∀{Γ}(pat : ∥ Γ ∥ ⊢⋆ * ⇒ *) → Γ ⊢ μ0 · pat  → Γ ⊢ pat ·  (μ0 · pat) 
   unwrap0 {Γ} pat X = conv
     (trans≡β
       (·≡β (β≡β _ _) (refl≡β _))
@@ -242,10 +242,11 @@ module Scott1 where
 
   Four : ∅ ⊢ N
   Four = Succ · Three
-{-
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
-  case = {!!} -- ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
+  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z))) ·⋆ ` Z · ` (S Z) · ƛ (` (S Z) · conv (β≡β _ _) (unwrap0 _ (` Z)))))))
+
+{-
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
   -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x)) 
@@ -255,19 +256,17 @@ module Scott1 where
 
   -- Z : ((a -> b) -> a -> b) -> a -> b
   -- Z f = (\r. f (\x. r r x)) (\r. f (\x. r r x))
-  -- Z f = (\r : mu x. x -> a -> b. (\x : a. r r x)) (\r : mu x. x -> a -> b. (\x : a. r r x))
-
+  -- Z f = (\r : mu x. x -> a -> b. f (\x : a. r r x)) (\r : mu x. x -> a -> b. f (\x : a. r r x))
+-}
   Z-comb : ∀{Γ} →
     Γ ⊢ Π {- a -} (Π {- b -} (((` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z))
-  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z)) · wrap (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z)) • (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z))) refl)))
+  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (conv (β≡β _ _) (unwrap0 (ƛ (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)) · wrap0 _ (conv (sym≡β (β≡β _ _)) (ƛ {- r -} (` (S Z) · ƛ (conv (β≡β _ _) (unwrap0 (ƛ (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)))))))
 
   TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
   TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   TwoPlusOne : ∅ ⊢ N
-  -- TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
   TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
-
 
   -- Roman's more efficient version
   Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
@@ -275,7 +274,7 @@ module Scott1 where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
--}
+
 \end{code}
 
 
