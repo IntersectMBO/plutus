@@ -47,11 +47,6 @@ data _⊢NeN⋆_ : Ctx⋆ → Kind → Set where
       ------
     → Φ ⊢NeN⋆ J
 
-  μ : ∀{φ K}
-    → φ ,⋆ K ⊢Nf⋆ K
-      -----------
-    → φ ⊢NeN⋆ K
-
   μ1 : ∀{φ K}
      ---------------------------------
     → φ ⊢NeN⋆ ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
@@ -110,7 +105,6 @@ renameNf ρ (con tcn s) = con tcn (renameNf ρ s)
 
 renameNeN ρ (` x)   = ` (ρ x)
 renameNeN ρ (A · x) = renameNeN ρ A · renameNf ρ x
-renameNeN ρ (μ B)   = μ (renameNf (ext ρ) B)
 renameNeN ρ μ1      = μ1
 \end{code}
 
@@ -145,7 +139,6 @@ renameNf-cong p (con tcn s) = cong (con tcn) (renameNf-cong p s)
 
 renameNeN-cong p (` x)   = cong ` (p x)
 renameNeN-cong p (A · B) = cong₂ _·_ (renameNeN-cong p A) (renameNf-cong p B)
-renameNeN-cong p (μ A)   = cong μ (renameNf-cong (ext-cong p) A)
 renameNeN-cong p μ1      = refl
 \end{code}
 
@@ -173,7 +166,6 @@ renameNf-id (con tcn s) = cong (con tcn) (renameNf-id s)
 
 renameNeN-id (` x)    = refl
 renameNeN-id (n · n') = cong₂ _·_ (renameNeN-id n) (renameNf-id n')
-renameNeN-id (μ n)    = cong μ (trans (renameNf-cong ext-id n) (renameNf-id n))
 renameNeN-id μ1       = refl
 \end{code}
 
@@ -202,8 +194,6 @@ renameNf-comp (con tcn s) = cong (con tcn) (renameNf-comp s)
 
 renameNeN-comp (` x) = cong ` refl
 renameNeN-comp (A · x) = cong₂ _·_ (renameNeN-comp A) (renameNf-comp x)
-renameNeN-comp (μ B) =
-  cong μ (trans (renameNf-cong ext-comp B) (renameNf-comp B))
 renameNeN-comp μ1    = refl
 \end{code}
 
@@ -222,7 +212,6 @@ embNf (con tcn s) = con tcn (embNf s)
 
 embNeN (` x)   = ` x
 embNeN (A · B) = embNeN A · embNf B
-embNeN (μ B)   = μ (embNf B)
 embNeN μ1      = μ1
 \end{code}
 
@@ -250,6 +239,5 @@ rename-embNf ρ (con tcn s) = cong (con tcn) (rename-embNf ρ s)
 
 rename-embNeN ρ (` x)    = refl
 rename-embNeN ρ (n · n') = cong₂ _·_ (rename-embNeN ρ n) (rename-embNf ρ n')
-rename-embNeN ρ (μ B)    = cong μ (rename-embNf (ext ρ) B)
 rename-embNeN ρ μ1       = refl
 \end{code}

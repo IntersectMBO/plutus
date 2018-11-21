@@ -206,7 +206,6 @@ evalSR (ƛ B)   {σ}{η}          p =
                     (subst-rename (subst (exts σ) B)))
              (evalSR B (SR,,⋆ (renSR ρ ∘ p) q)) )
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
-evalSR (μ B)       p = reflectSR (μ≡β (reifySR (evalSR B (SRweak p))))
 evalSR μ1          p = refl≡β _
 evalSR (size⋆ n)   p = refl≡β _
 evalSR (con tcn s) p = con≡β (evalSR s p)

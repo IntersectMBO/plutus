@@ -13,7 +13,7 @@ open import TermIndexedByNormalType.Term
 open import TermIndexedByNormalType.Term.RenamingSubstitution
 open import TermIndexedByNormalType.Evaluation
 
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
 \end{code}
 
 ## Examples
@@ -41,13 +41,35 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 
 \begin{code}
 module Scott where
+  open import Type.BetaNBE
+  open import Type.BetaNBE.Stability
 
+  _·Nf_ : ∀{Γ}{K J}
+    → Γ ⊢Nf⋆ K ⇒ J
+    → Γ ⊢Nf⋆ K
+    → Γ ⊢Nf⋆ J
+  f ·Nf a = nf (embNf f · embNf a)
+
+  μ0 : ∀{Γ} → Γ ⊢Nf⋆ (* ⇒ *) ⇒ *
+  μ0 = ƛ (ne (μ1 · ƛ (ƛ (ne (` Z · ne (` (S Z) · ne (` Z))))) · ne (` Z)))
+
+  wrap0 : ∀{Γ}
+    → (pat : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
+    → Γ ⊢ pat ·Nf (μ0 ·Nf pat)
+    → Γ ⊢ μ0 ·Nf pat
+  wrap0 pat X rewrite stability pat = wrap1 _ pat X
+
+  unwrap0 : ∀{Γ}
+    → (pat : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
+    → Γ ⊢ μ0 ·Nf pat
+    → Γ ⊢ pat ·Nf (μ0 ·Nf pat)
+  unwrap0 pat X rewrite stability pat = unwrap1 X
+  
   G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
   G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
   
-
   M : ∀{Γ} → Γ ⊢Nf⋆ *
-  M = ne (μ G)
+  M = μ0 ·Nf ƛ G
 
   N : ∀{Γ} → Γ ⊢Nf⋆ *
   N  =  G [ M ]Nf
@@ -57,7 +79,7 @@ module Scott where
 
 
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G • (` (S (S (T Z)))) refl))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap0 (ƛ G) (` (S (S (T Z))))))))
 
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
@@ -72,16 +94,15 @@ module Scott where
   Four = Succ · Three
 
   case : ∀{Γ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
+  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
 
-
+{-
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
   Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) · wrap (ne (` Z) ⇒ ne (` (S Z))) • (ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) refl ))
-
+-}
   Z-comb : ∀{Γ} →
     Γ ⊢ Π {- a -} (Π {- b -} (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
-  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z)) · wrap (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))) • (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z))) refl)))
-
+  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap0  (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
 
   OnePlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
   OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
@@ -95,7 +116,6 @@ module Scott where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
-
 \end{code}
 
 eval (gas 10000000) Scott.Four

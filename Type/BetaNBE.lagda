@@ -131,7 +131,6 @@ eval (Π B)       η = Π (reify (eval B (exte η)))
 eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
 eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renameVal ρ ∘ η) ,,⋆ v)
 eval (A · B)     η = eval A η ·V eval B η
-eval (μ B)       η = reflect (μ (reify (eval B (exte η))))
 eval μ1          η = inj₁ μ1
 eval (size⋆ n)   η = size⋆ n
 eval (con tcn s) η = con tcn (reify (eval s η))

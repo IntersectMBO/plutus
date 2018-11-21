@@ -43,10 +43,5 @@ stabilityNeN (` α)    = refl
 stabilityNeN (n · n') =
   trans (cong (_·V (eval (embNf n') (idEnv _))) (stabilityNeN n))
         (cong (λ n'' → reflect (n · n'')) (stability n'))
-stabilityNeN (μ B)    =
-  cong (reflect ∘ μ)
-       (trans (reifyCR (idext (λ { Z → reflectCR refl
-                                 ; (S x) → renameVal-reflect S (` x)}) (embNf B)))
-              (stability B))
 stabilityNeN μ1      = refl
 \end{code}

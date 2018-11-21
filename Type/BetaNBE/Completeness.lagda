@@ -311,8 +311,6 @@ idext p (ƛ B)       =
   ,
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
 idext p (A · B)     = AppCR (idext p A) (idext p B)
-idext p (μ B)       =
-  reflectCR (cong μ (reifyCR (idext (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) B)))
 idext p μ1          = refl
 idext p (size⋆ n)   = refl
 idext p (con tcn s) = cong (con tcn) (idext p s)
@@ -350,17 +348,6 @@ renameVal-eval (ƛ B) {η}{η'} p ρ =
 renameVal-eval (A · B) p ρ = transCR
   (renameVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renameVal-eval A p ρ) (renameVal-eval B p ρ))
-renameVal-eval (μ B) p ρ = transCR
-  (renameVal-reflect ρ _)
-  (reflectCR (cong μ (trans
-    (rename-reify
-      (idext (CR,,⋆ (renCR S ∘ reflCR ∘ p) (reflectCR refl)) B)
-      (ext ρ))
-    (reifyCR (transCR
-      (renameVal-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (ext ρ))
-      (idext (λ { Z → renameVal-reflect (ext ρ) (` Z)
-                ; (S x) → transCR (symCR (renameVal-comp S (ext ρ) (p x)))
-                                  (renameVal-comp ρ S (p x)) }) B))))))
 renameVal-eval μ1          p ρ = refl
 renameVal-eval (size⋆ n)   p ρ = refl
 renameVal-eval (con tcn s) p ρ = cong (con tcn) (renameVal-eval s p ρ)
@@ -403,14 +390,6 @@ rename-eval (ƛ B) p ρ =
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B)
 rename-eval (A · B) p ρ = AppCR (rename-eval A p ρ) (rename-eval B p ρ)
-rename-eval (μ B)   p ρ = reflectCR
-  (cong
-    μ
-    (reifyCR (transCR
-      (rename-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (ext ρ))
-      (idext (λ { Z     → reflectCR refl
-                ; (S x) → renCR S ((reflCR ∘ symCR ∘ p) (ρ x))})
-             B))))
 rename-eval μ1          p ρ = refl
 rename-eval (size⋆ n)   p ρ = refl
 rename-eval (con tcn s) p ρ = cong (con tcn) (rename-eval s p ρ)
@@ -460,15 +439,6 @@ subst-eval (ƛ B)      p σ =
                    (symCR (renameVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
            B)
 subst-eval (A · B)    p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (μ B)      p σ = reflectCR (cong μ (reifyCR (transCR
-  (subst-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (exts σ))
-  (idext (λ { Z     → reflectCR refl
-            ; (S x) → transCR
-                 (rename-eval
-                   (σ x)
-                   (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR refl))
-                   S)
-                 (symCR (renameVal-eval (σ x) (reflCR ∘ symCR ∘ p) S))}) B))))
 subst-eval μ1          p ρ = refl                 
 subst-eval (size⋆ n)   p ρ = refl
 subst-eval (con tcn s) p ρ = cong (con tcn) (subst-eval s p ρ)
@@ -502,8 +472,6 @@ fund p (ƛ≡β {B = B}{B'} q) =
   ,
   λ ρ r → fund (CR,,⋆ (renCR ρ ∘ p) r) q
 fund p (·≡β q r) = AppCR (fund p q) (fund p r)
-fund p (μ≡β q)   =
-  reflectCR (cong μ (reifyCR (fund (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) q)))
 fund p (β≡β B A) =
   transCR (idext (λ { Z     → idext (reflCR ∘ p) A
                     ; (S x) → renameVal-id (reflCR (p x))})

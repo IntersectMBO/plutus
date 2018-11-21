@@ -76,11 +76,6 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
       --------------------
     → A · B ≡β A' · B'
     
-  μ≡β : ∀{K}{B B' : Γ ,⋆ K ⊢⋆ K}
-    → B ≡β B'
-      ---------------
-    → μ B ≡β μ B'
-
   -- no μ1 rule is needed
   -- no size⋆ rule is needed
 
@@ -116,7 +111,6 @@ rename≡β ρ (⇒≡β p q)     = ⇒≡β (rename≡β ρ p) (rename≡β ρ 
 rename≡β ρ (Π≡β p)       = Π≡β (rename≡β (ext ρ) p)
 rename≡β ρ (ƛ≡β p)       = ƛ≡β (rename≡β (ext ρ) p)
 rename≡β ρ (·≡β p q)     = ·≡β (rename≡β ρ p) (rename≡β ρ q)
-rename≡β ρ (μ≡β p)       = μ≡β (rename≡β (ext ρ) p)
 rename≡β ρ (β≡β B A)     =
   substEq (rename ρ ((ƛ B) · A) ≡β_)
           (trans (sym (subst-rename B))
@@ -141,7 +135,6 @@ subst≡β σ (⇒≡β p q)     = ⇒≡β (subst≡β σ p) (subst≡β σ q)
 subst≡β σ (Π≡β p)       = Π≡β (subst≡β (exts σ) p)
 subst≡β σ (ƛ≡β p)       = ƛ≡β (subst≡β (exts σ) p)
 subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
-subst≡β σ (μ≡β p)       = μ≡β (subst≡β (exts σ) p)
 subst≡β σ (β≡β B A)     =
   substEq (subst σ ((ƛ B) · A) ≡β_)
           (trans (trans (sym (subst-comp B))

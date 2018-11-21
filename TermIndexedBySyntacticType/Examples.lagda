@@ -15,7 +15,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term
 open import Builtin.Signature
 
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
+open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
 open import Agda.Builtin.Int
 open import Data.Integer
@@ -211,7 +211,7 @@ module Scott1 where
       (·≡β (β≡β _ _) (refl≡β _))
       (trans≡β (β≡β _ _) (·≡β (refl≡β _) (sym≡β (β≡β _ _)))))
     (unwrap1 (conv (β≡β _ _) X))
- 
+
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
   
@@ -274,7 +274,6 @@ module Scott1 where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
-
 \end{code}
 
 
