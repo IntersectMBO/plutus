@@ -20,10 +20,10 @@
                     Bool_77
                     [
                       [
-                        { [ Bool_match_80 ds_82 ] [(con integer) (con 64)] }
-                        (con 64 ! 1)
+                        { [ Bool_match_80 ds_82 ] [(con integer) (con 8)] }
+                        (con 8 ! 1)
                       ]
-                      (con 64 ! 2)
+                      (con 8 ! 2)
                     ]
                   )
                 )

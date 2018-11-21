@@ -18,17 +18,17 @@
                   [
                     (lam
                       equalsInteger_83
-                      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_78))
+                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_78))
                       (lam
                         ds_84
-                        [(con integer) (con 64)]
+                        [(con integer) (con 8)]
                         (lam
                           ds_85
-                          [(con integer) (con 64)]
+                          [(con integer) (con 8)]
                           [
                             (lam
                               z_86
-                              [(con integer) (con 64)]
+                              [(con integer) (con 8)]
                               [ [ equalsInteger_83 ds_84 ] z_86 ]
                             )
                             ds_85
@@ -38,10 +38,10 @@
                     )
                     (lam
                       arg_87
-                      [(con integer) (con 64)]
+                      [(con integer) (con 8)]
                       (lam
                         arg_88
-                        [(con integer) (con 64)]
+                        [(con integer) (con 8)]
                         [
                           (lam
                             b_89
@@ -49,7 +49,7 @@
                             [ [ { b_89 Bool_78 } True_79 ] False_80 ]
                           )
                           [
-                            [ { (builtin equalsInteger) (con 64) } arg_87 ]
+                            [ { (builtin equalsInteger) (con 8) } arg_87 ]
                             arg_88
                           ]
                         ]

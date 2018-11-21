@@ -30,13 +30,13 @@
                               [
                                 (lam
                                   equalsInteger_93
-                                  (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_88))
+                                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_88))
                                   (lam
                                     ds_94
-                                    [(con integer) (con 64)]
+                                    [(con integer) (con 8)]
                                     (lam
                                       ds_95
-                                      [(con integer) (con 64)]
+                                      [(con integer) (con 8)]
                                       [
                                         [
                                           [
@@ -48,7 +48,7 @@
                                                   ds_95
                                                 ]
                                               ]
-                                              (fun Unit_84 [(con integer) (con 64)])
+                                              (fun Unit_84 [(con integer) (con 8)])
                                             }
                                             (lam thunk_96 Unit_84 ds_94)
                                           ]
@@ -61,10 +61,10 @@
                                 )
                                 (lam
                                   arg_98
-                                  [(con integer) (con 64)]
+                                  [(con integer) (con 8)]
                                   (lam
                                     arg_99
-                                    [(con integer) (con 64)]
+                                    [(con integer) (con 8)]
                                     [
                                       (lam
                                         b_100
@@ -75,7 +75,7 @@
                                       )
                                       [
                                         [
-                                          { (builtin equalsInteger) (con 64) }
+                                          { (builtin equalsInteger) (con 8) }
                                           arg_98
                                         ]
                                         arg_99

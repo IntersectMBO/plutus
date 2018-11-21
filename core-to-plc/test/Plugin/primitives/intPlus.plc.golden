@@ -2,13 +2,13 @@
   [
     (lam
       addInteger_69
-      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
       (lam
         ds_70
-        [(con integer) (con 64)]
-        (lam ds_71 [(con integer) (con 64)] [ [ addInteger_69 ds_70 ] ds_71 ])
+        [(con integer) (con 8)]
+        (lam ds_71 [(con integer) (con 8)] [ [ addInteger_69 ds_70 ] ds_71 ])
       )
     )
-    { (builtin addInteger) (con 64) }
+    { (builtin addInteger) (con 8) }
   ]
 )

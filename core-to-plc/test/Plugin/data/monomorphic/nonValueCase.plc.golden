@@ -41,17 +41,15 @@
                                             [
                                               MyEnum_match_90 ds_98
                                             ]
-                                            (fun Unit_92 [(con integer) (con 64)])
+                                            (fun Unit_92 [(con integer) (con 8)])
                                           }
-                                          (lam thunk_99 Unit_92 (con 64 ! 1))
+                                          (lam thunk_99 Unit_92 (con 8 ! 1))
                                         ]
                                         (lam
                                           thunk_100
                                           Unit_92
                                           [
-                                            {
-                                              error_96 [(con integer) (con 64)]
-                                            }
+                                            { error_96 [(con integer) (con 8)] }
                                             Unit_93
                                           ]
                                         )

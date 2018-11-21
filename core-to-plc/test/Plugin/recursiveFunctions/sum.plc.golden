@@ -18,15 +18,15 @@
                   [
                     (lam
                       addInteger_163
-                      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
                       [
                         (lam
                           tuple_164
-                          [(lam t_0_165 (type) (all r_166 (type) (fun (fun t_0_165 r_166) r_166))) (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])]
+                          [(lam t_0_165 (type) (all r_166 (type) (fun (fun t_0_165 r_166) r_166))) (fun [List_154 [(con integer) (con 8)]] [(con integer) (con 8)])]
                           [
                             (lam
                               sum_167
-                              (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])
+                              (fun [List_154 [(con integer) (con 8)]] [(con integer) (con 8)])
                               sum_167
                             )
                             [
@@ -43,7 +43,7 @@
                                     ]
                                   )
                                 )
-                                (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])
+                                (fun [List_154 [(con integer) (con 8)]] [(con integer) (con 8)])
                               }
                               tuple_164
                             ]
@@ -223,44 +223,44 @@
                                   ]
                                 )
                               )
-                              [List_154 [(con integer) (con 64)]]
+                              [List_154 [(con integer) (con 8)]]
                             }
-                            [(con integer) (con 64)]
+                            [(con integer) (con 8)]
                           }
                           (abs
                             Q_214
                             (type)
                             (lam
                               choose_215
-                              (fun (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)]) Q_214)
+                              (fun (fun [List_154 [(con integer) (con 8)]] [(con integer) (con 8)]) Q_214)
                               (lam
                                 sum_216
-                                (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])
+                                (fun [List_154 [(con integer) (con 8)]] [(con integer) (con 8)])
                                 [
                                   choose_215
                                   (lam
                                     ds_217
-                                    [List_154 [(con integer) (con 64)]]
+                                    [List_154 [(con integer) (con 8)]]
                                     [
                                       [
                                         {
                                           [
                                             {
                                               Nil_match_159
-                                              [(con integer) (con 64)]
+                                              [(con integer) (con 8)]
                                             }
                                             ds_217
                                           ]
-                                          [(con integer) (con 64)]
+                                          [(con integer) (con 8)]
                                         }
-                                        (con 64 ! 0)
+                                        (con 8 ! 0)
                                       ]
                                       (lam
                                         x_218
-                                        [(con integer) (con 64)]
+                                        [(con integer) (con 8)]
                                         (lam
                                           xs_219
-                                          [List_154 [(con integer) (con 64)]]
+                                          [List_154 [(con integer) (con 8)]]
                                           [
                                             [ addInteger_163 x_218 ]
                                             [ sum_216 xs_219 ]
@@ -276,7 +276,7 @@
                         ]
                       ]
                     )
-                    { (builtin addInteger) (con 64) }
+                    { (builtin addInteger) (con 8) }
                   ]
                 )
               )

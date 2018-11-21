@@ -15,7 +15,7 @@
                 (lam
                   Nil_match_87
                   (all a_88 (type) (fun [List_82 a_88] [(lam a_89 (type) (all out_List_90 (type) (fun out_List_90 (fun (fun a_89 (fun [List_82 a_89] out_List_90)) out_List_90)))) a_88]))
-                  { Nil_83 [(con integer) (con 64)] }
+                  { Nil_83 [(con integer) (con 8)] }
                 )
               )
             )

@@ -30,13 +30,13 @@
                               [
                                 (lam
                                   equalsInteger_119
-                                  (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_114))
+                                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_114))
                                   (lam
                                     ds_120
-                                    [(con integer) (con 64)]
+                                    [(con integer) (con 8)]
                                     (lam
                                       ds_121
-                                      [(con integer) (con 64)]
+                                      [(con integer) (con 8)]
                                       [
                                         (lam
                                           eta_122
@@ -157,10 +157,10 @@
                                 )
                                 (lam
                                   arg_138
-                                  [(con integer) (con 64)]
+                                  [(con integer) (con 8)]
                                   (lam
                                     arg_139
-                                    [(con integer) (con 64)]
+                                    [(con integer) (con 8)]
                                     [
                                       (lam
                                         b_140
@@ -172,7 +172,7 @@
                                       )
                                       [
                                         [
-                                          { (builtin equalsInteger) (con 64) }
+                                          { (builtin equalsInteger) (con 8) }
                                           arg_138
                                         ]
                                         arg_139

@@ -17,10 +17,9 @@
                   (all a_21 (type) (fun [GHC_Types_List_15 a_21] [(lam a_22 (type) (all out_GHC_Types_List_23 (type) (fun out_GHC_Types_List_23 (fun (fun a_22 (fun [GHC_Types_List_15 a_22] out_GHC_Types_List_23)) out_GHC_Types_List_23)))) a_21]))
                   [
                     [
-                      { GHC_Types_Cons_18 [(con integer) (con 64)] }
-                      (con 64 ! 1)
+                      { GHC_Types_Cons_18 [(con integer) (con 8)] } (con 8 ! 1)
                     ]
-                    { GHC_Types_Nil_16 [(con integer) (con 64)] }
+                    { GHC_Types_Nil_16 [(con integer) (con 8)] }
                   ]
                 )
               )

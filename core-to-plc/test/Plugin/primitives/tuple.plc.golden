@@ -14,12 +14,12 @@
               [
                 [
                   {
-                    { Tuple2_79 [(con integer) (con 64)] }
-                    [(con integer) (con 64)]
+                    { Tuple2_79 [(con integer) (con 8)] }
+                    [(con integer) (con 8)]
                   }
-                  (con 64 ! 1)
+                  (con 8 ! 1)
                 ]
-                (con 64 ! 2)
+                (con 8 ! 2)
               ]
             )
           )

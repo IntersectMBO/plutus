@@ -18,23 +18,23 @@
                   [
                     (lam
                       lessThanInteger_82
-                      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_77))
+                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_77))
                       (lam
                         ds_83
-                        [(con integer) (con 64)]
+                        [(con integer) (con 8)]
                         (lam
                           ds_84
-                          [(con integer) (con 64)]
+                          [(con integer) (con 8)]
                           [ [ lessThanInteger_82 ds_83 ] ds_84 ]
                         )
                       )
                     )
                     (lam
                       arg_85
-                      [(con integer) (con 64)]
+                      [(con integer) (con 8)]
                       (lam
                         arg_86
-                        [(con integer) (con 64)]
+                        [(con integer) (con 8)]
                         [
                           (lam
                             b_87
@@ -42,7 +42,7 @@
                             [ [ { b_87 Bool_77 } True_78 ] False_79 ]
                           )
                           [
-                            [ { (builtin lessThanInteger) (con 64) } arg_85 ]
+                            [ { (builtin lessThanInteger) (con 8) } arg_85 ]
                             arg_86
                           ]
                         ]

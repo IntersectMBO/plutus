@@ -29,22 +29,22 @@
                               (all a_113 (type) (fun [B_107 a_113] [(lam a_114 (type) (all out_B_115 (type) (fun (fun a_114 out_B_115) (fun (fun [B_107 [[Tuple2_97 a_114] a_114]] out_B_115) out_B_115)))) a_113]))
                               (lam
                                 ds_116
-                                [B_107 [(con integer) (con 64)]]
+                                [B_107 [(con integer) (con 8)]]
                                 [
                                   [
                                     {
                                       [
-                                        { B_match_112 [(con integer) (con 64)] }
+                                        { B_match_112 [(con integer) (con 8)] }
                                         ds_116
                                       ]
-                                      [(con integer) (con 64)]
+                                      [(con integer) (con 8)]
                                     }
-                                    (lam a_117 [(con integer) (con 64)] a_117)
+                                    (lam a_117 [(con integer) (con 8)] a_117)
                                   ]
                                   (lam
                                     ds_118
-                                    [B_107 [[Tuple2_97 [(con integer) (con 64)]] [(con integer) (con 64)]]]
-                                    (con 64 ! 2)
+                                    [B_107 [[Tuple2_97 [(con integer) (con 8)]] [(con integer) (con 8)]]]
+                                    (con 8 ! 2)
                                   )
                                 ]
                               )
