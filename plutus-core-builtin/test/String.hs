@@ -9,28 +9,29 @@ module String
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Language.PlutusCore.Builtin
 
-import           Control.Monad.IO.Class               (liftIO)
-import           Hedgehog                             hiding (Size, Var)
-import qualified Hedgehog.Gen                         as Gen
-import qualified Hedgehog.Range                       as Range
+import           Language.PlutusCore.Interpreter.CekMachine
+
+import           Control.Monad.IO.Class                     (liftIO)
+import           Hedgehog                                   hiding (Size, Var)
+import qualified Hedgehog.Gen                               as Gen
+import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    let mayStr' = runQuote (makeDynamicBuiltin str) >>= readDynamicBuiltin
+    let mayStr' = runQuote (makeDynamicBuiltin str) >>= readDynamicBuiltinCek
     Just str === mayStr'
 
 test_listOfStringsRoundtrip :: TestTree
 test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 20) $ Gen.string (Range.linear 0 20) Gen.unicode
-    let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= readDynamicBuiltin
+    let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= readDynamicBuiltinCek
     Just strs === mayStrs'
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
@@ -44,7 +45,7 @@ test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitTypecheckEvaluate TypedBuiltinDyn $ \emit ->
+    (str', res) <- liftIO . withEmitEvaluateBy evaluateCek TypedBuiltinDyn $ \emit ->
         runQuote $ do
             unit        <- getBuiltinUnit
             unitval     <- getBuiltinUnitval
@@ -58,10 +59,9 @@ test_collectChars = testProperty "collectChars" . property $ do
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
             chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
-    case errOrRes of
-        Left err                    -> error . docString $ prettyPlcClassicDebug err
-        Right EvaluationFailure     -> error "failure"
-        Right (EvaluationSuccess _) -> return ()
+    case res of
+        EvaluationFailure   -> failure
+        EvaluationSuccess _ -> return ()
     str === str'
 
 test_dynamicStrings :: TestTree

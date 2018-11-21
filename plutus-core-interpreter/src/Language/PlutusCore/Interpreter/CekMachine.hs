@@ -17,6 +17,7 @@ module Language.PlutusCore.Interpreter.CekMachine
     , EvaluationResult
     , evaluateCekCatch
     , evaluateCek
+    , readDynamicBuiltinCek
     , runCek
     ) where
 
@@ -211,6 +212,9 @@ evaluateCekCatch means = runCekM (CekEnv means $ VarEnv IntMap.empty) . computeC
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
 evaluateCek = either throw id .* evaluateCekCatch
+
+readDynamicBuiltinCek :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Maybe dyn
+readDynamicBuiltinCek = readDynamicBuiltin evaluateCek
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.
