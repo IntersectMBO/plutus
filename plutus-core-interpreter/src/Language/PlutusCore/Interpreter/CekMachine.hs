@@ -85,11 +85,12 @@ extendVarEnv argName arg argVarEnv (VarEnv oldVarEnv) =
     VarEnv $ IntMap.insert (unUnique $ nameUnique argName) (Closure argVarEnv arg) oldVarEnv
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name () -> VarEnv -> Closure
-lookupVarName varName (VarEnv varEnv) =
+lookupVarName :: Name () -> CekM Closure
+lookupVarName varName = do
+    VarEnv varEnv <- getVarEnv
     case IntMap.lookup (unUnique $ nameUnique varName) varEnv of
-        Nothing   -> error "throwError $ MachineException OpenTermEvaluatedMachineError (Var () varName)"
-        Just clos -> clos
+        Nothing   -> throwError $ MachineException OpenTermEvaluatedMachineError (Var () varName)
+        Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM DynamicBuiltinNameMeaning
@@ -126,30 +127,34 @@ computeCek con (Var _ varName)        = do
 -- | The returning part of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
 -- from the context and either
--- 1. performs reduction and calls 'computeCek env nms' ('FrameTyInstArg', 'FrameApplyFun', 'FrameUnwrap')
--- 2. performs a constant application and calls 'returnCek env nms' ('FrameTyInstArg', 'FrameApplyFun')
+-- 1. performs reduction and calls 'computeCek' ('FrameTyInstArg', 'FrameApplyFun', 'FrameUnwrap')
+-- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
-returnCek :: VarEnv -> DynamicBuiltinNameMeanings -> Context -> Plain Value -> EvaluationResult
-returnCek env nms []                                  res = EvaluationSuccess res
-returnCek env nms (FrameTyInstArg ty           : con) fun = instantiateEvaluate env nms con ty fun
-returnCek env nms (FrameApplyArg argVarEnv arg : con) fun = computeCek argVarEnv nms (FrameApplyFun env fun : con) arg
-returnCek env nms (FrameApplyFun funVarEnv fun : con) arg = applyEvaluate nms funVarEnv env con fun arg
-returnCek env nms (FrameWrap ann tyn ty        : con) val = returnCek env nms con $ Wrap ann tyn ty val
-returnCek env nms (FrameUnwrap                 : con) dat = case dat of
-    Wrap _ _ _ term -> returnCek env nms con term
-    term            -> error "throwError $ MachineException NonWrapUnwrappedMachineError term"
+returnCek :: Context -> Plain Value -> CekM EvaluationResult
+returnCek []                                  res = pure $ EvaluationSuccess res
+returnCek (FrameTyInstArg ty           : con) fun = instantiateEvaluate con ty fun
+returnCek (FrameApplyArg argVarEnv arg : con) fun = do
+    funVarEnv <- getVarEnv
+    withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : con) arg
+returnCek (FrameApplyFun funVarEnv fun : con) arg = do
+    argVarEnv <- getVarEnv
+    applyEvaluate funVarEnv argVarEnv con fun arg
+returnCek (FrameWrap ann tyn ty        : con) val = returnCek con $ Wrap ann tyn ty val
+returnCek (FrameUnwrap                 : con) dat = case dat of
+    Wrap _ _ _ term -> returnCek con term
+    term            -> throwError $ MachineException NonWrapUnwrappedMachineError term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: VarEnv -> DynamicBuiltinNameMeanings -> Context -> Type TyName () -> Plain Term -> EvaluationResult
-instantiateEvaluate env nms con _  (TyAbs _ _ _ body) = computeCek env nms con body
-instantiateEvaluate env nms con ty fun
-    | isJust $ termAsPrimIterApp fun = returnCek env nms con $ TyInst () fun ty
+instantiateEvaluate :: Context -> Type TyName () -> Plain Term -> CekM EvaluationResult
+instantiateEvaluate con _  (TyAbs _ _ _ body) = computeCek con body
+instantiateEvaluate con ty fun
+    | isJust $ termAsPrimIterApp fun = returnCek con $ TyInst () fun ty
     | otherwise                      =
-        error "throwError $ MachineException NonPrimitiveInstantiationMachineError fun"
+        throwError $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -158,10 +163,10 @@ instantiateEvaluate env nms con ty fun
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate
-    :: DynamicBuiltinNameMeanings -> VarEnv -> VarEnv -> Context -> Plain Value -> Plain Value -> EvaluationResult
-applyEvaluate nms funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
-    let env' = extendVarEnv name arg argVarEnv funVarEnv in computeCek env' nms con body
-applyEvaluate nms funVarEnv _         con fun                    arg =
+    :: VarEnv -> VarEnv -> Context -> Plain Value -> Plain Value -> CekM EvaluationResult
+applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
+    withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
+applyEvaluate funVarEnv _         con fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
             Nothing                       ->
@@ -201,7 +206,7 @@ evaluateCekCatch means = evaluateCekCatchIn (CekEnv means $ VarEnv IntMap.empty)
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
-evaluateCek = evaluateCekCatch
+evaluateCek = either throw id .* evaluateCekCatch
 
 readDynamicBuiltinCek
     :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Either CekMachineException (Maybe dyn)
