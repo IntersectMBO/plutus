@@ -11,6 +11,8 @@
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
     , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
@@ -27,6 +29,7 @@ import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.View
 import           PlutusPrelude                                   hiding (hoist)
 
+import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Morph                             (hoist)
 import           Control.Monad.Reader
@@ -68,12 +71,10 @@ data Frame
 
 type Context = [Frame]
 
+makeLenses ''CekEnv
+
 runCekM :: CekEnv -> CekM a -> Either CekMachineException a
 runCekM = flip runReaderT
-
--- TODO: use lenses ffs.
-modifyCekEnvMeans :: (DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings) -> CekEnv -> CekEnv
-modifyCekEnvMeans f cekEnv = cekEnv { _cekEnvMeans = f $ _cekEnvMeans cekEnv }
 
 -- | Get the current 'VarEnv'.
 getVarEnv :: CekM VarEnv
@@ -81,7 +82,7 @@ getVarEnv = asks _cekEnvVarEnv
 
 -- | Set a new 'VarEnv' and proceed.
 withVarEnv :: VarEnv -> CekM a -> CekM a
-withVarEnv env = local $ \cekEnv -> cekEnv { _cekEnvVarEnv = env }
+withVarEnv = local . set cekEnvVarEnv
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
@@ -188,10 +189,8 @@ applyEvaluate funVarEnv _         con fun                    arg =
 evaluateInCekM :: Evaluate (Either CekMachineException) a -> CekM a
 evaluateInCekM a =
     ReaderT $ \cekEnv ->
-        -- TODO: 'evaluateCekCatch' is similar, do something about it.
-        let eval means'
-                = runCekM (modifyCekEnvMeans (unionDynamicBuiltinNameMeanings means') cekEnv)
-                . computeCek []
+        let eval means' = evaluateCekCatchIn $
+                cekEnv & cekEnvMeans %~ unionDynamicBuiltinNameMeanings means'
             in runEvaluate eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
@@ -202,10 +201,15 @@ applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
     hoist evaluateInCekM $ applyBuiltinName name args
 
+-- | Evaluate a term in an environment using the CEK machine.
+evaluateCekCatchIn
+    :: CekEnv -> Plain Term -> Either CekMachineException EvaluationResult
+evaluateCekCatchIn cekEnv = runCekM cekEnv . computeCek []
+
 -- | Evaluate a term using the CEK machine.
 evaluateCekCatch
     :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResult
-evaluateCekCatch means = runCekM (CekEnv means $ VarEnv IntMap.empty) . computeCek []
+evaluateCekCatch means = evaluateCekCatchIn (CekEnv means $ VarEnv IntMap.empty)
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult

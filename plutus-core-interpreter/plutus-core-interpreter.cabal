@@ -50,6 +50,7 @@ library
         containers -any,
         mtl -any,
         mmorph -any,
+        lens -any,
         language-plutus-core -any
 
     if (flag(development) && impl(ghc <8.4))
