@@ -2,39 +2,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 
-module Language.PlutusCore.Builtin.Common
-    ( typecheckEvaluate
-    , withEmit
+module Language.PlutusCore.Constant.Dynamic.Emit
+    ( withEmit
     , withEmitEvaluateBy
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Dynamic.Call
+import           Language.PlutusCore.Constant.Function
+import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Type
 
-import           Language.PlutusCore.Interpreter.CekMachine
-
-import           Language.PlutusCore.Builtin.Call
-
-import           Control.Exception                          (evaluate)
-import           Control.Monad.Except
+import           Control.Exception                         (evaluate)
 import           Data.IORef
-import           System.IO.Unsafe                           (unsafePerformIO)
-
--- | Type check and evaluate a term that can contain dynamic built-ins.
--- Does not support nested dynamic built-in types, so do not use it for terms
--- that may caontain such types.
-typecheckEvaluate
-    :: (MonadError (Error ()) m, MonadQuote m)
-    => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
-typecheckEvaluate meanings term = do
-    let types = dynamicBuiltinNameMeaningsToTypes meanings
-        typecheckConfig = TypeCheckCfg 1000 $ TypeConfig True types
-        typecheck = rename >=> annotateTerm >=> typecheckTerm typecheckConfig
-    _ <- typecheck term
-    -- We do not rename terms before evaluating them, because the evaluator must work correctly over
-    -- terms with duplicate names, because it produces such terms during evaluation.
-    return $ evaluateCek meanings term
+import           System.IO.Unsafe                          (unsafePerformIO)
 
 withEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)
 withEmit k = do

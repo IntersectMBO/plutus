@@ -6,7 +6,7 @@ module Language.PlutusCore.StdLib.Data.Integer
     ( getBuiltinSuccInteger
     ) where
 
-import           Language.PlutusCore.Constant (makeDynBuiltinIntSizedAs)
+import           Language.PlutusCore.Constant.Make (makeDynBuiltinIntSizedAs)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote

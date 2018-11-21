@@ -2,7 +2,7 @@
 
 {-# LANGUAGE DefaultSignatures #-}
 
-module Language.PlutusCore.Constant.PrettyDynamic
+module Language.PlutusCore.Constant.Dynamic.Pretty
     ( PrettyDynamic (..)
     ) where
 

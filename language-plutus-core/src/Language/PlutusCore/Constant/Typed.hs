@@ -28,19 +28,20 @@ module Language.PlutusCore.Constant.Typed
     , readDynamicBuiltinM
     ) where
 
-import           Language.PlutusCore.Constant.PrettyDynamic
+import           Language.PlutusCore.Constant.Dynamic.Pretty
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy.Char8                 as BSL
+import qualified Data.ByteString.Lazy.Char8                  as BSL
 import           Data.GADT.Compare
-import           Data.Map                                   (Map)
+import           Data.Map                                    (Map)
 
 infixr 9 `TypeSchemeArrow`
 
@@ -303,3 +304,17 @@ instance Ord size => GCompare (TypedBuiltin size) where
     TypedBuiltinBool             `gcompare` TypedBuiltinSized _ _ = GGT
     TypedBuiltinDyn              `gcompare` _                     = comparedDynamicBuiltinTypesError
     _                            `gcompare` TypedBuiltinDyn       = comparedDynamicBuiltinTypesError
+
+-- Encode '()' from Haskell as @all r. r -> r@ from PLC.
+-- This is a very special instance, because it's used to define functions that are needed for
+-- other instances, so we keep it here.
+instance KnownDynamicBuiltinType () where
+    getTypeEncoding _ = getBuiltinUnit
+
+    -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
+    -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
+    -- for side effects the evaluation may cause.
+    makeDynamicBuiltin () = Just <$> getBuiltinUnitval
+
+    -- We do not check here that the term is indeed @unitval@. TODO: check.
+    readDynamicBuiltin _ _ = Just ()

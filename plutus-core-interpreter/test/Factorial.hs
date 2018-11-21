@@ -12,7 +12,7 @@ import           Language.PlutusCore.Generators.Interesting
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
-import           Language.PlutusCore.Builtin
+import           Common
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

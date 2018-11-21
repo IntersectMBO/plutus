@@ -11,8 +11,6 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           Language.PlutusCore.Builtin
-
 import           Language.PlutusCore.Interpreter.CekMachine
 
 import           Control.Monad.IO.Class                     (liftIO)
@@ -66,7 +64,7 @@ test_collectChars = testProperty "collectChars" . property $ do
 
 test_dynamicStrings :: TestTree
 test_dynamicStrings =
-    testGroup "Dynamic strings"
+    testGroup "dynamicStrings"
         [ test_stringRoundtrip
         , test_listOfStringsRoundtrip
         , test_collectChars

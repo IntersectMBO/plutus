@@ -1,32 +1,28 @@
--- | A dynamic built-in type test.
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
 
-module Language.PlutusCore.Builtin.Instances
+module Language.PlutusCore.Constant.Dynamic.Instances
     () where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Dynamic.Emit
+import           Language.PlutusCore.Constant.Dynamic.Pretty
+import           Language.PlutusCore.Constant.Make
+import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
 import           Language.PlutusCore.StdLib.Type
-
-import           Language.PlutusCore.Interpreter.CekMachine
-
-import           Language.PlutusCore.Builtin.Common
+import           Language.PlutusCore.Type
 
 import           Data.Char
-import           Data.Functor.Compose                       (Compose (..))
+import           Data.Functor.Compose                        (Compose (..))
 import           Data.Proxy
-import qualified Data.Text.Prettyprint.Doc                  as Doc
-import           System.IO.Unsafe                           (unsafePerformIO)
+import qualified Data.Text.Prettyprint.Doc                   as Doc
+import           System.IO.Unsafe                            (unsafePerformIO)
 
 argumentProxy :: proxy (f a) -> Proxy a
 argumentProxy _ = Proxy

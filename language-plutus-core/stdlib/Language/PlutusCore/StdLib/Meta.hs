@@ -7,11 +7,14 @@ module Language.PlutusCore.StdLib.Meta
     , getListToBuiltinList
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Type
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
