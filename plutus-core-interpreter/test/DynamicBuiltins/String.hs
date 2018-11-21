@@ -23,14 +23,14 @@ import           Test.Tasty.Hedgehog
 test_stringRoundtrip :: TestTree
 test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    let mayStr' = runQuote (makeDynamicBuiltin str) >>= readDynamicBuiltinCek
-    Just str === mayStr'
+    let mayStr' = runQuote (makeDynamicBuiltin str) >>= sequence . readDynamicBuiltinCek
+    Just (Right str) === mayStr'
 
 test_listOfStringsRoundtrip :: TestTree
 test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 10) Gen.unicode
-    let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= readDynamicBuiltinCek
-    Just strs === mayStrs'
+    let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= sequence . readDynamicBuiltinCek
+    Just (Right strs) === mayStrs'
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -43,7 +43,7 @@ test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', res) <- liftIO . withEmitEvaluateBy evaluateCek TypedBuiltinDyn $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy evaluateCekCatch TypedBuiltinDyn $ \emit ->
         runQuote $ do
             unit        <- getBuiltinUnit
             unitval     <- getBuiltinUnitval
@@ -57,9 +57,10 @@ test_collectChars = testProperty "collectChars" . property $ do
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
             chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
-    case res of
-        EvaluationFailure   -> failure
-        EvaluationSuccess _ -> return ()
+    case errOrRes of
+        Left err                    -> failure
+        Right EvaluationFailure     -> failure
+        Right (EvaluationSuccess _) -> return ()
     str === str'
 
 test_dynamicStrings :: TestTree

@@ -185,16 +185,14 @@ applyEvaluate funVarEnv _         con fun                    arg =
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) term
 
--- TODO: we must catch exceptions here. Or maybe reflect them in the `KnownDynamicBuiltinType` class.
-evaluateInCekM :: Evaluate a -> CekM a
+evaluateInCekM :: Evaluate (Either CekMachineException) a -> CekM a
 evaluateInCekM a =
     ReaderT $ \cekEnv ->
         -- TODO: 'evaluateCekCatch' is similar, do something about it.
         let eval means'
-                = either throw id
-                . runCekM (modifyCekEnvMeans (unionDynamicBuiltinNameMeanings means') cekEnv)
+                = runCekM (modifyCekEnvMeans (unionDynamicBuiltinNameMeanings means') cekEnv)
                 . computeCek []
-            in pure $ runEvaluate eval a
+            in runEvaluate eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> QuoteT CekM ConstAppResult
@@ -213,8 +211,9 @@ evaluateCekCatch means = runCekM (CekEnv means $ VarEnv IntMap.empty) . computeC
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
 evaluateCek = either throw id .* evaluateCekCatch
 
-readDynamicBuiltinCek :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Maybe dyn
-readDynamicBuiltinCek = readDynamicBuiltin evaluateCek
+readDynamicBuiltinCek
+    :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Either CekMachineException (Maybe dyn)
+readDynamicBuiltinCek = readDynamicBuiltin evaluateCekCatch
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.

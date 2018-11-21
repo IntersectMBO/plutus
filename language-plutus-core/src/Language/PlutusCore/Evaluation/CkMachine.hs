@@ -21,6 +21,8 @@ import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
+import           Data.Functor.Identity
+
 infix 4 |>, <|
 
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
@@ -144,7 +146,7 @@ applyEvaluate stack fun                    arg =
 
 applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
 applyEvaluateCkBuiltinName name =
-    runEvaluate (const evaluateCk) . runQuoteT . applyBuiltinName name
+    runIdentity . runEvaluate (const $ Identity . evaluateCk) . runQuoteT . applyBuiltinName name
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

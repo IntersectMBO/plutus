@@ -138,10 +138,11 @@ substSizeVar = mapSizeTypedBuiltin . flip sizeAt
 -- Updates 'SizeValues' along the way, so if a new size variable is encountered,
 -- it'll be added to 'SizeValues' along with its value.
 extractBuiltin
-    :: TypedBuiltin SizeVar a
+    :: Monad m
+    => TypedBuiltin SizeVar a
     -> SizeValues
     -> Value TyName Name ()
-    -> Evaluate (Either ConstAppError (a, SizeValues))
+    -> Evaluate m (Either ConstAppError (a, SizeValues))
 extractBuiltin (TypedBuiltinSized sizeEntry tbs) (SizeValues sizes) value = return $ case value of
     Constant () constant -> case sizeEntry of
         SizeValue size                ->
@@ -162,10 +163,11 @@ extractBuiltin TypedBuiltinDyn                   sizeValues         value =
 -- Updates 'SizeValues' along the way, so if a new size variable is encountered,
 -- it'll be added to 'SizeValues' along with its value.
 extractSchemed
-    :: TypeScheme SizeVar a r
+    :: Monad m
+    => TypeScheme SizeVar a r
     -> SizeValues
     -> Value TyName Name ()
-    -> Evaluate (Either ConstAppError (a, SizeValues))
+    -> Evaluate m (Either ConstAppError (a, SizeValues))
 extractSchemed (TypeSchemeBuiltin a) sizeValues value = extractBuiltin a sizeValues value
 extractSchemed (TypeSchemeArrow _ _) _          _     = error "Not implemented."
 extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
@@ -173,15 +175,17 @@ extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyTypeSchemed
-    :: TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> QuoteT Evaluate ConstAppResult
+    :: Monad m
+    => TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
 applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
     go
-        :: TypeScheme SizeVar a r
+        :: Monad m
+        => TypeScheme SizeVar a r
         -> SizeVar
         -> SizeValues
         -> a
         -> [Value TyName Name ()]
-        -> QuoteT Evaluate ConstAppResult
+        -> QuoteT (Evaluate m) ConstAppResult
     go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
         -- This is where all the size checks prescribed by the specification happen.
         -- We instantiate the size variable of a final 'TypedBuiltin' to its value and call
@@ -208,12 +212,15 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyTypedBuiltinName
-    :: TypedBuiltinName a r -> a -> [Value TyName Name ()] -> QuoteT Evaluate ConstAppResult
+    :: Monad m
+    => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types and there are no size mismatches.
-applyBuiltinName :: BuiltinName -> [Value TyName Name ()] -> QuoteT Evaluate ConstAppResult
+applyBuiltinName
+    :: Monad m
+    => BuiltinName -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
 applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)

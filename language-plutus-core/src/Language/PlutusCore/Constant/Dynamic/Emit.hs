@@ -37,10 +37,10 @@ nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (i, succ i)
 -- We do not type check terms here, because type checking of nested dynamic built-in types simply
 -- does not work. The type checker can't be quickly repaired, so we keep it like this for now.
 withEmitEvaluateBy
-    :: Evaluator Term
+    :: Evaluator Term m
     -> (forall size. TypedBuiltin size a)
     -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], EvaluationResult)
+    -> IO ([a], m EvaluationResult)
 withEmitEvaluateBy eval tb toTerm =
     withEmit $ \emit -> do
         counter <- nextGlobalUnique

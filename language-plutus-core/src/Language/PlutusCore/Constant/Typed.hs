@@ -181,15 +181,15 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
-type Evaluator f = DynamicBuiltinNameMeanings -> f TyName Name () -> EvaluationResult
+type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
 
-type Evaluate = Reader (Evaluator Term)
+type Evaluate m = ReaderT (Evaluator Term m) m
 
-runEvaluate :: Evaluator Term -> Evaluate a -> a
-runEvaluate = flip runReader
+runEvaluate :: Evaluator Term m -> Evaluate m a -> m a
+runEvaluate = flip runReaderT
 
-withEvaluator :: (Evaluator Term -> a) -> Evaluate a
-withEvaluator = asks
+withEvaluator :: (Evaluator Term m -> m a) -> Evaluate m a
+withEvaluator = ReaderT
 
 {- Note [Semantics of dynamic built-in types]
 We only allow dynamic built-in types that
@@ -300,9 +300,11 @@ class KnownDynamicBuiltinType dyn where
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
     -- 'Nothing' represents a conversion failure.
-    readDynamicBuiltin :: Evaluator Term -> Term TyName Name () -> Maybe dyn
+    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Maybe dyn)
 
-readDynamicBuiltinM :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Evaluate (Maybe dyn)
+readDynamicBuiltinM
+    :: (Monad m, KnownDynamicBuiltinType dyn)
+    => Term TyName Name () -> Evaluate m (Maybe dyn)
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
 instance Pretty BuiltinSized where
@@ -380,4 +382,4 @@ instance KnownDynamicBuiltinType () where
     makeDynamicBuiltin () = Just <$> getBuiltinUnitval
 
     -- We do not check here that the term is indeed @unitval@. TODO: check.
-    readDynamicBuiltin _ _ = Just ()
+    readDynamicBuiltin _ _ = return $ Just ()
