@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module String
+module DynamicBuiltins.String
     ( test_dynamicStrings
     ) where
 

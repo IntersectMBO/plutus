@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module Common
+module DynamicBuiltins.Common
     ( typecheckEvaluate
     ) where
 

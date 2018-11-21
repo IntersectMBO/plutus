@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Factorial
+module DynamicBuiltins.Factorial
     ( test_dynamicFactorial
     ) where
 
@@ -12,7 +12,7 @@ import           Language.PlutusCore.Generators.Interesting
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
-import           Common
+import           DynamicBuiltins.Common
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
