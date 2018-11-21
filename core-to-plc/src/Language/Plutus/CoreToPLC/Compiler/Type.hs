@@ -19,7 +19,6 @@ module Language.Plutus.CoreToPLC.Compiler.Type (
 
 import           Language.Plutus.CoreToPLC.Compiler.Binders
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Definitions
 import           Language.Plutus.CoreToPLC.Compiler.Error
 import {-# SOURCE #-} Language.Plutus.CoreToPLC.Compiler.Expr
 import           Language.Plutus.CoreToPLC.Compiler.Kind
@@ -29,23 +28,22 @@ import           Language.Plutus.CoreToPLC.Compiler.Types
 import           Language.Plutus.CoreToPLC.Compiler.Utils
 import           Language.Plutus.CoreToPLC.PIRTypes
 
-import qualified GhcPlugins                                     as GHC
-import qualified Pair                                           as GHC
-import qualified PrelNames                                      as GHC
-import qualified TysPrim                                        as GHC
+import qualified GhcPlugins                                  as GHC
+import qualified Pair                                        as GHC
+import qualified PrelNames                                   as GHC
+import qualified TysPrim                                     as GHC
 
-import qualified Language.PlutusIR                              as PIR
-import qualified Language.PlutusIR.MkPir                        as PIR
-
-import qualified Language.PlutusCore                            as PLC
-import qualified Language.PlutusCore.MkPlc                      as PLC
+import qualified Language.PlutusIR                           as PIR
+import qualified Language.PlutusIR.Compiler.Definitions      as PIR
+import           Language.PlutusIR.Compiler.Names
+import qualified Language.PlutusIR.MkPir                     as PIR
 
 import           Control.Monad.Reader
 
-import qualified Data.List.NonEmpty                             as NE
+import           Data.List                                   (reverse, sortBy)
+import qualified Data.List.NonEmpty                          as NE
+import qualified Data.Set                                    as Set
 import           Data.Traversable
-
-import           Data.List                                      (reverse, sortBy)
 
 -- Types
 
@@ -56,9 +54,9 @@ convType t = withContextM (sdToTxt $ "Converting type:" GHC.<+> GHC.ppr t) $ do
     let top = NE.head stack
     case t of
         -- in scope type name
-        (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.getName -> Just (PLC.TyVarDecl _ name _))) -> pure $ PLC.TyVar () name
+        (GHC.getTyVar_maybe -> Just (lookupTyName top . GHC.getName -> Just (PIR.TyVarDecl _ name _))) -> pure $ PIR.TyVar () name
         (GHC.getTyVar_maybe -> Just v) -> throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
-        (GHC.splitFunTy_maybe -> Just (i, o)) -> PLC.TyFun () <$> convType i <*> convType o
+        (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun () <$> convType i <*> convType o
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> convTyConApp tc ts
         (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (convType tpe)
         -- I think it's safe to ignore the coercion here
@@ -76,12 +74,12 @@ convTyConApp tc ts
     | otherwise = do
         tc' <- convTyCon tc
         args' <- mapM convType ts
-        pure $ PLC.mkIterTyApp () tc' args'
+        pure $ PIR.mkIterTyApp () tc' args'
 
 convTyCon :: (Converting m) => GHC.TyCon -> m PIRType
 convTyCon tc = do
     let tcName = GHC.getName tc
-    maybeDef <- lookupTypeDef tcName
+    maybeDef <- PIR.lookupType () tcName
     case maybeDef of
         Just ty -> pure ty
         Nothing -> do
@@ -90,8 +88,10 @@ convTyCon tc = do
             let deps = fmap GHC.getName usedTcs ++ fmap GHC.getName dcs
 
             tvd <- convTcTyVarFresh tc
+            matchName <- safeFreshName () $ (GHC.getOccString $ GHC.getName tc) ++ "_match"
 
-            defineType tcName (PIR.TypeBind () tvd (PIR.mkTyVar () tvd)) []
+            let fakeDatatype = PIR.Datatype () tvd [] matchName []
+            PIR.defineDatatype tcName (PIR.Def tvd fakeDatatype) Set.empty
 
             -- type variables are in scope for the rest of the definition
             withTyVarsScoped (GHC.tyConTyVars tc) $ \tvs -> do
@@ -100,11 +100,9 @@ convTyCon tc = do
                     ty <- mkConstructorType dc
                     pure $ PIR.VarDecl () name ty
 
-                matchName <- safeFreshName $ (GHC.getOccString $ GHC.getName tc) ++ "_match"
-
                 let datatype = PIR.Datatype () tvd tvs matchName constructors
 
-                defineType tcName (PIR.DatatypeBind () datatype) deps
+                PIR.defineDatatype tcName (PIR.Def tvd datatype) (Set.fromList deps)
 
             pure $ PIR.mkTyVar () tvd
 
@@ -207,14 +205,14 @@ mkConstructorType dc =
             args <- mapM convType argTys
             resultType <- convType (GHC.dataConOrigResTy dc)
             -- t_c_i_1 -> ... -> t_c_i_j -> resultType
-            pure $ PLC.mkIterTyFun () args resultType
+            pure $ PIR.mkIterTyFun () args resultType
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: Converting m => GHC.TyCon -> m [PIRTerm]
 getConstructors tc = do
     -- make sure the constructors have been created
     _ <- convTyCon tc
-    maybeConstrs <- lookupConstructors (GHC.getName tc)
+    maybeConstrs <- PIR.lookupConstructors () (GHC.getName tc)
     case maybeConstrs of
         Just constrs -> pure constrs
         Nothing      -> throwPlain $ ConversionError "Constructors have not been converted"
@@ -237,7 +235,7 @@ getMatch :: Converting m => GHC.TyCon -> m PIRTerm
 getMatch tc = do
     -- ensure the tycon has been converted, which will create the matcher
     _ <- convTyCon tc
-    maybeMatch <- lookupMatch (GHC.getName tc)
+    maybeMatch <- PIR.lookupDestructor () (GHC.getName tc)
     case maybeMatch of
         Just match -> pure match
         Nothing    -> throwPlain $ ConversionError "Match has not been converted"
@@ -267,7 +265,7 @@ convAlt mustDelay instArgTys (alt, vars, body) = withContextM (sdToTxt $ "Creati
         body' <- convExpr body >>= maybeDelay mustDelay
         -- need to consume the args
         argTypes <- mapM convType instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" ++ show i)
+        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" ++ show i)
         pure $ PIR.mkIterLamAbs () (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.

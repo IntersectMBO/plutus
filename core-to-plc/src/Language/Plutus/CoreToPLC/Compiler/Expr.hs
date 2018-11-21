@@ -8,7 +8,6 @@ module Language.Plutus.CoreToPLC.Compiler.Expr (convExpr, convExprWithDefs, conv
 
 import           Language.Plutus.CoreToPLC.Compiler.Binders
 import           Language.Plutus.CoreToPLC.Compiler.Builtins
-import           Language.Plutus.CoreToPLC.Compiler.Definitions
 import           Language.Plutus.CoreToPLC.Compiler.Error
 import           Language.Plutus.CoreToPLC.Compiler.Laziness
 import           Language.Plutus.CoreToPLC.Compiler.Names
@@ -19,23 +18,24 @@ import           Language.Plutus.CoreToPLC.Compiler.Utils
 import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.Utils
 
-import qualified CoreUtils                                      as GHC
-import qualified GhcPlugins                                     as GHC
-import qualified MkId                                           as GHC
-import qualified PrelNames                                      as GHC
+import qualified CoreUtils                                     as GHC
+import qualified GhcPlugins                                    as GHC
+import qualified MkId                                          as GHC
+import qualified PrelNames                                     as GHC
 
-import qualified Language.PlutusIR                              as PIR
-import qualified Language.PlutusIR.MkPir                        as PIR
-import qualified Language.PlutusIR.Value                        as PIR
+import qualified Language.PlutusIR                             as PIR
+import qualified Language.PlutusIR.Compiler.Definitions        as PIR
+import           Language.PlutusIR.Compiler.Names
+import qualified Language.PlutusIR.MkPir                       as PIR
+import qualified Language.PlutusIR.Value                       as PIR
 
-import qualified Language.PlutusCore                            as PLC
+import qualified Language.PlutusCore                           as PLC
 
 import           Control.Monad.Reader
-import           Control.Monad.State
 
-import qualified Data.ByteString.Lazy                           as BSL
-import           Data.List                                      (elem, elemIndex)
-import qualified Data.List.NonEmpty                             as NE
+import qualified Data.ByteString.Lazy                          as BSL
+import           Data.List                                     (elem, elemIndex)
+import qualified Data.List.NonEmpty                            as NE
 import           Data.Traversable
 
 {- Note [System FC and System FW]
@@ -166,7 +166,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
         GHC.Var (GHC.idDetails -> GHC.RecSelId{}) -> throwPlain $ UnsupportedError "Record selectors, use pattern matching"
         GHC.Var n -> do
             -- Defined names, including builtin names
-            maybeDef <- lookupTermDef (GHC.getName n)
+            maybeDef <- PIR.lookupTerm () (GHC.getName n)
             case maybeDef of
                 Just term -> pure term
                 -- the term we get must be closed - we don't resolve most references
@@ -246,7 +246,7 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                     -- unwrap by doing a "trivial match" - instantiate to the inner type and apply the identity
                     inner' <- convType inner
                     let instantiated = PIR.TyInst () (PIR.Apply () match body') inner'
-                    name <- safeFreshName "inner"
+                    name <- safeFreshName () "inner"
                     let identity = PIR.LamAbs () name inner' (PIR.Var () name)
                     pure $ PIR.Apply () instantiated identity
                 Just (Wrap _ outer) -> do
@@ -260,6 +260,4 @@ convExprWithDefs :: Converting m => GHC.CoreExpr -> m PIRTerm
 convExprWithDefs e = do
     defineBuiltinTypes
     defineBuiltinTerms
-    converted <- convExpr e
-    ds <- gets csDefs
-    wrapWithDefs ds converted
+    convExpr e

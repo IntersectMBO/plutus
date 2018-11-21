@@ -6,21 +6,19 @@
 module Language.Plutus.CoreToPLC.Compiler.Types where
 
 import           Language.Plutus.CoreToPLC.Compiler.Error
-import           Language.Plutus.CoreToPLC.PIRTypes
 import           Language.Plutus.CoreToPLC.PLCTypes
+
+import           Language.PlutusIR.Compiler.Definitions
 
 import           Language.PlutusCore.Quote
 
 import qualified GhcPlugins                               as GHC
 
-import           Control.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.State
 
 import qualified Data.List.NonEmpty                       as NE
 import qualified Data.Map                                 as Map
-import qualified Data.Set                                 as Set
 
 import qualified Language.Haskell.TH.Syntax               as TH
 
@@ -35,28 +33,8 @@ data ConvertingContext = ConvertingContext {
     ccScopes          :: ScopeStack
     }
 
-type DefMap key def = Map.Map key (def, [key])
-
-data ConvertingState = ConvertingState {
-    csDefs    :: DefMap GHC.Name PIRBinding,
-    csAliases :: Set.Set GHC.Name
-    }
-
-defs :: Lens' ConvertingState (DefMap GHC.Name PIRBinding)
-defs = lens g s where
-    g = csDefs
-    s cs tds = cs { csDefs = tds }
-
-aliases :: Lens' ConvertingState (Set.Set GHC.Name)
-aliases = lens g s where
-    g = csAliases
-    s cs tds = cs { csAliases = tds }
-
 -- See Note [Scopes]
-type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadState ConvertingState m)
-
-runConverting :: ConvertingContext -> ConvertingState -> ReaderT ConvertingContext (StateT ConvertingState (QuoteT (Except ConvError))) a -> Either ConvError a
-runConverting context initialState = runExcept . runQuoteT . flip evalStateT initialState . flip runReaderT context
+type Converting m = (Monad m, MonadError ConvError m, MonadQuote m, MonadReader ConvertingContext m, MonadDefs GHC.Name () m)
 
 {- Note [Scopes]
 We need a notion of scope, because we have to make sure that if we convert a GHC

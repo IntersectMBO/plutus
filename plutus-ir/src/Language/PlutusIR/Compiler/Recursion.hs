@@ -6,6 +6,7 @@ module Language.PlutusIR.Compiler.Recursion where
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
+import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import {-# SOURCE #-} Language.PlutusIR.Compiler.Term
 import           Language.PlutusIR.Compiler.Types
@@ -77,7 +78,7 @@ mkFixpoint bs = do
         t -> throwing _Error $ CompilationError (PLC.tyLoc t) "Recursive values must be of function type. You may need to manually add unit arguments."
 
     q <- liftQuote $ freshTyName p "Q"
-    choose <- liftQuote $ freshName p "choose"
+    choose <- safeFreshName p "choose"
     let chooseTy = PLC.mkIterTyFun p tys (PLC.TyVar p q)
 
     -- \f1 ... fn -> choose b1 ... bn
@@ -110,7 +111,7 @@ mkTupleBinder body vars = do
         ntuple <- setProvenance p <$> Tuple.getBuiltinTuple (length tys)
         pure $ PLC.mkIterTyApp p ntuple tys
 
-    tupleArg <- liftQuote $ freshName p "tuple"
+    tupleArg <- safeFreshName p "tuple"
 
     -- _i tuple
     accesses <- forM [0..(length tys -1)] $ \i -> do

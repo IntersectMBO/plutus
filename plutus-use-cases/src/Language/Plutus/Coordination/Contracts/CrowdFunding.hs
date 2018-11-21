@@ -34,7 +34,7 @@ import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 
-import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Lift       (makeLift)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, PubKey (..),
                                              ValidatorHash, Value (..))
 import           Language.Plutus.TH         (plutus)
@@ -59,14 +59,12 @@ data Campaign = Campaign
 
 type CampaignActor = PubKey
 
-instance LiftPlc Campaign
-instance TypeablePlc Campaign
+makeLift ''Campaign
 
 data CampaignAction = Collect | Refund
     deriving Generic
 
-instance LiftPlc CampaignAction
-instance TypeablePlc CampaignAction
+makeLift ''CampaignAction
 
 -- | Contribute funds to the campaign (contributor)
 --

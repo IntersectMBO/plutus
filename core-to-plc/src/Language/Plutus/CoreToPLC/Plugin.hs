@@ -24,9 +24,11 @@ import qualified GhcPlugins                                  as GHC
 import qualified Panic                                       as GHC
 
 import qualified Language.PlutusCore                         as PLC
+import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusIR                           as PIR
 import qualified Language.PlutusIR.Compiler                  as PIR
+import qualified Language.PlutusIR.Compiler.Definitions      as PIR
 import qualified Language.PlutusIR.Optimizer.DeadCode        as PIR
 
 import           Language.Haskell.TH.Syntax                  as TH
@@ -67,8 +69,8 @@ newtype PlcCode = PlcCode { unPlc :: BS.ByteString }
 
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
-instance LiftPlc PlcCode where
-    lift (getAst -> (PLC.Program () _ body)) = PLC.rename body
+instance LiftPir PlcCode where
+    lift (getAst -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
 
 getSerializedCode :: PlcCode -> BSL.ByteString
 getSerializedCode = BSL.fromStrict . unPlc
@@ -243,7 +245,7 @@ convertExpr opts locStr origE resType = do
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
-              (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> convExprWithDefs origE
+              (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ do
                   annotated <- PLC.annotateProgram plcP
@@ -255,8 +257,7 @@ convertExpr opts locStr origE resType = do
             ccBuiltinNameInfo=nameInfo,
             ccScopes=initialScopeStack
             }
-        initialState = ConvertingState mempty mempty
-    case runConverting context initialState result of
+    case runExcept . runQuoteT . flip runReaderT context $ result of
         Left s ->
             let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
             if poDeferErrors opts

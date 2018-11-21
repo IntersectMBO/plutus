@@ -4,17 +4,17 @@
       [
         {
           (abs
-            list_154
+            List_154
             (fun (type) (type))
             (lam
-              list_155
-              (all a_156 (type) [list_154 a_156])
+              Nil_155
+              (all a_156 (type) [List_154 a_156])
               (lam
-                cons_157
-                (all a_158 (type) (fun a_158 (fun [list_154 a_158] [list_154 a_158])))
+                Cons_157
+                (all a_158 (type) (fun a_158 (fun [List_154 a_158] [List_154 a_158])))
                 (lam
-                  p_match_159
-                  (all a_160 (type) (fun [list_154 a_160] [(lam a_161 (type) (all out_list_162 (type) (fun out_list_162 (fun (fun a_161 (fun [list_154 a_161] out_list_162)) out_list_162)))) a_160]))
+                  Nil_match_159
+                  (all a_160 (type) (fun [List_154 a_160] [(lam a_161 (type) (all out_List_162 (type) (fun out_List_162 (fun (fun a_161 (fun [List_154 a_161] out_List_162)) out_List_162)))) a_160]))
                   [
                     (lam
                       addInteger_163
@@ -22,11 +22,11 @@
                       [
                         (lam
                           tuple_164
-                          [(lam t_0_165 (type) (all r_166 (type) (fun (fun t_0_165 r_166) r_166))) (fun [list_154 [(con integer) (con 64)]] [(con integer) (con 64)])]
+                          [(lam t_0_165 (type) (all r_166 (type) (fun (fun t_0_165 r_166) r_166))) (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])]
                           [
                             (lam
                               sum_167
-                              (fun [list_154 [(con integer) (con 64)]] [(con integer) (con 64)])
+                              (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])
                               sum_167
                             )
                             [
@@ -43,7 +43,7 @@
                                     ]
                                   )
                                 )
-                                (fun [list_154 [(con integer) (con 64)]] [(con integer) (con 64)])
+                                (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])
                               }
                               tuple_164
                             ]
@@ -223,7 +223,7 @@
                                   ]
                                 )
                               )
-                              [list_154 [(con integer) (con 64)]]
+                              [List_154 [(con integer) (con 64)]]
                             }
                             [(con integer) (con 64)]
                           }
@@ -232,21 +232,21 @@
                             (type)
                             (lam
                               choose_215
-                              (fun (fun [list_154 [(con integer) (con 64)]] [(con integer) (con 64)]) Q_214)
+                              (fun (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)]) Q_214)
                               (lam
                                 sum_216
-                                (fun [list_154 [(con integer) (con 64)]] [(con integer) (con 64)])
+                                (fun [List_154 [(con integer) (con 64)]] [(con integer) (con 64)])
                                 [
                                   choose_215
                                   (lam
                                     ds_217
-                                    [list_154 [(con integer) (con 64)]]
+                                    [List_154 [(con integer) (con 64)]]
                                     [
                                       [
                                         {
                                           [
                                             {
-                                              p_match_159
+                                              Nil_match_159
                                               [(con integer) (con 64)]
                                             }
                                             ds_217
@@ -260,7 +260,7 @@
                                         [(con integer) (con 64)]
                                         (lam
                                           xs_219
-                                          [list_154 [(con integer) (con 64)]]
+                                          [List_154 [(con integer) (con 64)]]
                                           [
                                             [ addInteger_163 x_218 ]
                                             [ sum_216 xs_219 ]
@@ -282,24 +282,24 @@
               )
             )
           )
-          (fix list_220 (lam a_221 (type) (all out_list_222 (type) (fun out_list_222 (fun (fun a_221 (fun [list_220 a_221] out_list_222)) out_list_222)))))
+          (fix List_220 (lam a_221 (type) (all out_List_222 (type) (fun out_List_222 (fun (fun a_221 (fun [List_220 a_221] out_List_222)) out_List_222)))))
         }
         (abs
           a_223
           (type)
           (wrap
-            list_224
-            (lam a_225 (type) (all out_list_226 (type) (fun out_list_226 (fun (fun a_225 (fun [list_224 a_225] out_list_226)) out_list_226))))
+            List_224
+            (lam a_225 (type) (all out_List_226 (type) (fun out_List_226 (fun (fun a_225 (fun [List_224 a_225] out_List_226)) out_List_226))))
             (abs
-              out_list_227
+              out_List_227
               (type)
               (lam
-                case_list_228
-                out_list_227
+                case_Nil_228
+                out_List_227
                 (lam
-                  case_cons_229
-                  (fun a_223 (fun [list_224 a_223] out_list_227))
-                  case_list_228
+                  case_Cons_229
+                  (fun a_223 (fun [List_224 a_223] out_List_227))
+                  case_Nil_228
                 )
               )
             )
@@ -314,20 +314,20 @@
           a_230
           (lam
             arg_1_232
-            [(fix list_233 (lam a_234 (type) (all out_list_235 (type) (fun out_list_235 (fun (fun a_234 (fun [list_233 a_234] out_list_235)) out_list_235))))) a_230]
+            [(fix List_233 (lam a_234 (type) (all out_List_235 (type) (fun out_List_235 (fun (fun a_234 (fun [List_233 a_234] out_List_235)) out_List_235))))) a_230]
             (wrap
-              list_236
-              (lam a_237 (type) (all out_list_238 (type) (fun out_list_238 (fun (fun a_237 (fun [list_236 a_237] out_list_238)) out_list_238))))
+              List_236
+              (lam a_237 (type) (all out_List_238 (type) (fun out_List_238 (fun (fun a_237 (fun [List_236 a_237] out_List_238)) out_List_238))))
               (abs
-                out_list_239
+                out_List_239
                 (type)
                 (lam
-                  case_list_240
-                  out_list_239
+                  case_Nil_240
+                  out_List_239
                   (lam
-                    case_cons_241
-                    (fun a_230 (fun [list_236 a_230] out_list_239))
-                    [ [ case_cons_241 arg_0_231 ] arg_1_232 ]
+                    case_Cons_241
+                    (fun a_230 (fun [List_236 a_230] out_List_239))
+                    [ [ case_Cons_241 arg_0_231 ] arg_1_232 ]
                   )
                 )
               )
@@ -341,7 +341,7 @@
       (type)
       (lam
         x_243
-        [(fix list_244 (lam a_245 (type) (all out_list_246 (type) (fun out_list_246 (fun (fun a_245 (fun [list_244 a_245] out_list_246)) out_list_246))))) a_242]
+        [(fix List_244 (lam a_245 (type) (all out_List_246 (type) (fun out_List_246 (fun (fun a_245 (fun [List_244 a_245] out_List_246)) out_List_246))))) a_242]
         (unwrap x_243)
       )
     )

@@ -34,9 +34,11 @@ library
         Language.Plutus.CoreToPLC.PLCTypes
         Language.Plutus.CoreToPLC.PIRTypes
         Language.Plutus.CoreToPLC.Utils
+        Language.Plutus.Lift.LiftPir
+        Language.Plutus.Lift.THUtils
+        Language.Plutus.Lift.Instances
         Language.Plutus.CoreToPLC.Compiler.Binders
         Language.Plutus.CoreToPLC.Compiler.Builtins
-        Language.Plutus.CoreToPLC.Compiler.Definitions
         Language.Plutus.CoreToPLC.Compiler.Laziness
         Language.Plutus.CoreToPLC.Compiler.Expr
         Language.Plutus.CoreToPLC.Compiler.Names
@@ -72,6 +74,7 @@ library
         prettyprinter -any,
         serialise -any,
         template-haskell -any,
+        th-abstraction -any,
         text -any,
         transformers -any
 

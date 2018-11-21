@@ -20,7 +20,7 @@ module Language.Plutus.Coordination.Contracts.Vesting (
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
-import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
+import           Language.Plutus.Lift       (makeLift)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                              PubKey (..), ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
@@ -38,8 +38,7 @@ data VestingTranche = VestingTranche {
     vestingTrancheAmount :: Value
     } deriving Generic
 
-instance LiftPlc VestingTranche
-instance TypeablePlc VestingTranche
+makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (block height) after which an additional amount of money can be spent.
@@ -49,8 +48,7 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     } deriving Generic
 
-instance LiftPlc Vesting
-instance TypeablePlc Vesting
+makeLift ''Vesting
 
 -- | The total amount of money vested
 totalAmount :: Vesting -> Value
@@ -63,8 +61,7 @@ data VestingData = VestingData {
     vestingDataPaidOut :: Value -- ^ How much of the vested value has already been retrieved
     } deriving (Eq, Generic)
 
-instance LiftPlc VestingData
-instance TypeablePlc VestingData
+makeLift ''VestingData
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
