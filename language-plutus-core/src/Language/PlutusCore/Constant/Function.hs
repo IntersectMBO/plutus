@@ -16,7 +16,6 @@ module Language.PlutusCore.Constant.Function
     , typeSchemeToType
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
-    , unionDynamicBuiltinNameMeanings
     , withTypedBuiltinName
     , typeOfTypedBuiltinName
     , typeOfBuiltinName
@@ -114,13 +113,6 @@ insertDynamicBuiltinNameDefinition
 insertDynamicBuiltinNameDefinition
     (DynamicBuiltinNameDefinition name mean) (DynamicBuiltinNameMeanings nameMeans) =
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
-
--- | Union two 'DynamicBuiltinNameMeanings's.
-unionDynamicBuiltinNameMeanings
-    :: DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings -> DynamicBuiltinNameMeanings
-unionDynamicBuiltinNameMeanings
-    (DynamicBuiltinNameMeanings means1) (DynamicBuiltinNameMeanings means2) =
-        DynamicBuiltinNameMeanings $ Map.union means1 means2
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName :: BuiltinName -> (forall a r. TypedBuiltinName a r -> c) -> c
