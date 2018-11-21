@@ -63,13 +63,13 @@ txnValid = property $ do
 txnIndex :: Property
 txnIndex = property $ do
     (m, txn) <- forAll genChainTxn
-    let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
+    let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
     Hedgehog.assert (Index.initialise (emChain st) == emIndex st)
 
 txnIndexValid :: Property
 txnIndexValid = property $ do
     (m, txn) <- forAll genChainTxn
-    let (result, st) = Gen.runTrace m blockchainActions
+    let (result, st) = Gen.runTrace m processPending
         idx = emIndex st
     Hedgehog.assert (Right () == Index.runValidation (Index.validateTransaction 0 txn) idx)
 
@@ -78,13 +78,13 @@ txnIndexValid = property $ do
 simpleTrace :: Tx -> Trace EmulatedWalletApi ()
 simpleTrace txn = do
     [txn'] <- walletAction (Wallet 1) $ submitTxn txn
-    block <- blockchainActions
+    block <- processPending
     assertIsValidated txn'
 
 validTrace :: Property
 validTrace = property $ do
     (m, txn) <- forAll genChainTxn
-    let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
+    let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
     Hedgehog.assert (isRight result)
     Hedgehog.assert ([] == emTxPool st)
 
@@ -109,7 +109,7 @@ notifyWallet = property $ do
     let w = Wallet 1
     (e, EmulatorState{ emWalletState = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
-        $ blockchainActions >>= walletNotifyBlock w
+        $ processPending >>= walletNotifyBlock w
     let ttl = Map.lookup w st
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just initialBalance
 
@@ -119,8 +119,9 @@ eventTrace = property $ do
     (e, EmulatorState{ emWalletState = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
-            blockchainActions >>= walletNotifyBlock w
-            let mkPayment = payToPubKey 100 (PubKey 2)
+            processPending >>= walletNotifyBlock w
+            let mkPayment =
+                    EventHandler $ \_ -> void $ payToPubKey 100 (PubKey 2)
                 trigger = blockHeightT (GEQ 3)
 
             -- schedule the `mkPayment` action to run when block height 3 is
@@ -130,7 +131,7 @@ eventTrace = property $ do
 
             -- advance the clock to trigger `mkPayment`
             addBlocks 2 >>= traverse_ (walletNotifyBlock w)
-            void (blockchainActions >>= walletNotifyBlock w)
+            void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
 
     -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
@@ -143,8 +144,9 @@ watchFundsAtAddress = property $ do
     (e, EmulatorState{ emWalletState = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
-            blockchainActions >>= walletNotifyBlock w
-            let mkPayment = payToPubKey 100 pkTarget
+            processPending >>= walletNotifyBlock w
+            let mkPayment =
+                    EventHandler $ \_ -> void $ payToPubKey 100 (PubKey 2)
                 t1 = blockHeightT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<
@@ -155,7 +157,7 @@ watchFundsAtAddress = property $ do
             -- after 3 blocks, t1 should fire, triggering the first payment of 100 to PubKey 2
             -- after 4 blocks, t2 should fire, triggering the second payment of 100
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
-            void (blockchainActions >>= walletNotifyBlock w)
+            void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 200)
 

@@ -6,9 +6,7 @@
 module Wallet.UTXO.Runtime (-- * Transactions and related types
                 PubKey(..)
               , Value(..)
-              , getValue
               , Height(..)
-              , getHeight
               , PendingTxOutRef(..)
               , Signature(..)
               -- ** Hashes (see note [Hashes in validator scripts])
@@ -113,14 +111,11 @@ instance (TypeablePlc a, LiftPlc a) => LiftPlc (Signed a)
 -- | Ada value
 --
 -- TODO: Use [[Wallet.UTXO.Types.Value]] when Integer is supported
-data Value = Value Int
+data Value = Value { getValue ::  Int }
     deriving (Eq, Ord, Show, Generic)
 
 instance TypeablePlc Value
 instance LiftPlc Value
-
-getValue :: Value -> Int
-getValue (Value i) = i
 
 instance Enum Value where
     toEnum = Value
@@ -212,11 +207,8 @@ plcDigest = serialise
 
 -- | Blockchain height
 --   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported
-data Height = Height Int
+data Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Generic)
 
 instance TypeablePlc Height
 instance LiftPlc Height
-
-getHeight :: Height -> Int
-getHeight (Height h) = h
