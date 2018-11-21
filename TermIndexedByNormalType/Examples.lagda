@@ -54,16 +54,16 @@ module Scott where
   μ0 = ƛ (ne (μ1 · ƛ (ƛ (ne (` Z · ne (` (S Z) · ne (` Z))))) · ne (` Z)))
 
   wrap0 : ∀{Γ}
-    → (pat : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
-    → Γ ⊢ pat ·Nf (μ0 ·Nf pat)
-    → Γ ⊢ μ0 ·Nf pat
-  wrap0 pat X rewrite stability pat = wrap1 _ pat X
+    → (A : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
+    → Γ ⊢ A ·Nf (μ0 ·Nf A)
+    → Γ ⊢ μ0 ·Nf A
+  wrap0 A X rewrite stability A = wrap1 _ A X
 
   unwrap0 : ∀{Γ}
-    → (pat : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
-    → Γ ⊢ μ0 ·Nf pat
-    → Γ ⊢ pat ·Nf (μ0 ·Nf pat)
-  unwrap0 pat X rewrite stability pat = unwrap1 X
+    → (A : ∥ Γ ∥ ⊢Nf⋆ * ⇒ *)
+    → Γ ⊢ μ0 ·Nf A
+    → Γ ⊢ A ·Nf (μ0 ·Nf A)
+  unwrap0 A X rewrite stability A = unwrap1 X
   
   G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
   G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))

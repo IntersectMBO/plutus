@@ -48,16 +48,16 @@ postulate
 \begin{code}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
-{-# COMPILE GHC length = type BS.length #-}
+{-# COMPILE GHC length = toInteger . BS.length #-}
 
-{-# COMPILE GHC div  = type div  #-}
-{-# COMPILE GHC quot = type quot #-}
-{-# COMPILE GHC rem  = type rem  #-}
-{-# COMPILE GHC mod  = type mod  #-}
+{-# COMPILE GHC div  = div  #-}
+{-# COMPILE GHC quot = quot #-}
+{-# COMPILE GHC rem  = rem  #-}
+{-# COMPILE GHC mod  = mod  #-}
 
 {-# COMPILE GHC append = BS.append #-}
-{-# COMPILE GHC take = BS.take #-}
-{-# COMPILE GHC drop = BS.drop #-}
+{-# COMPILE GHC take = BS.take . fromIntegral #-}
+{-# COMPILE GHC drop = BS.drop . fromIntegral #-}
 \end{code}
 
 # Some integer operations missing from the standard library
