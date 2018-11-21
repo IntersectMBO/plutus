@@ -58,7 +58,7 @@ test_collectChars = testProperty "collectChars" . property $ do
             chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
     case errOrRes of
-        Left err                    -> failure
+        Left _                      -> failure
         Right EvaluationFailure     -> failure
         Right (EvaluationSuccess _) -> return ()
     str === str'
