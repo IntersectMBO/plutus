@@ -676,7 +676,7 @@ runScript (ValidationData valData) (Validator validator) (Redeemer redeemer) (Da
 
 -- | () as a data script
 unitData :: DataScript
-unitData = DataScript $ fromPlcCode $(plutus [| () |])
+unitData = DataScript $ fromPlcCode $$(plutus [|| () ||])
 
 -- | \() () () -> () as a validator
 --
@@ -689,15 +689,15 @@ unitData = DataScript $ fromPlcCode $(plutus [| () |])
 --       you need to provide `unitData`, `unitRedeemer` and
 --       `unitValidationData` to consume it.
 emptyValidator :: Validator
-emptyValidator = Validator $ fromPlcCode $(plutus [| \() () () -> () |])
+emptyValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> () ||])
 
 -- | () as a redeemer
 unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $ fromPlcCode $(plutus [| () |])
+unitRedeemer = Redeemer $ fromPlcCode $$(plutus [|| () ||])
 
 -- | () as validation data
 unitValidationData :: ValidationData
-unitValidationData = ValidationData $ fromPlcCode $(plutus [| () |])
+unitValidationData = ValidationData $ fromPlcCode $$(plutus [|| () ||])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut'

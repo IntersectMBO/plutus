@@ -12,7 +12,7 @@ module Language.Plutus.Coordination.Contracts.Swap(
 import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
                                              PubKey, ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
-import           Language.Plutus.TH         (plutus)
+import           Language.Plutus.TH         (plutusUntyped)
 import qualified Language.Plutus.TH         as Builtins
 import           Wallet.UTXO                (Height, Validator (..))
 import qualified Wallet.UTXO                as UTXO
@@ -59,7 +59,7 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> Validator
 swapValidator _ = Validator result where
-    result = UTXO.fromPlcCode $(plutus [| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
+    result = UTXO.fromPlcCode $(plutusUntyped [| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool

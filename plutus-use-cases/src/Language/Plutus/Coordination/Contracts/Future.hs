@@ -30,7 +30,7 @@ import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 import           Language.Plutus.Lift       (makeLift)
 import qualified Language.Plutus.Runtime.TH as TH
-import           Language.Plutus.TH         (plutus)
+import           Language.Plutus.TH         (plutusUntyped)
 import qualified Language.Plutus.TH         as Builtins
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
@@ -197,7 +197,7 @@ data FutureRedeemer =
 validatorScript :: Future -> Validator
 validatorScript ft = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted ft)
-    inner = UTXO.fromPlcCode $(plutus [|
+    inner = UTXO.fromPlcCode $(plutusUntyped [|
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
