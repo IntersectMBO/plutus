@@ -53,3 +53,29 @@ test-suite plutus-tx-tests
         plutus-tx -any,
         template-haskell -any,
         tasty -any
+
+test-suite plutus-tx-readme
+    type: exitcode-stdio-1.0
+    main-is: README.lhs
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        language-plutus-core -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
+        template-haskell -any,
+        markdown-unlit -any
+    build-tool-depends: markdown-unlit:markdown-unlit
+    ghc-options: -pgmL markdown-unlit
+
+test-suite plutus-tx-doctests
+    type: exitcode-stdio-1.0
+    main-is: doctests.hs
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-tx -any,
+        markdown-unlit -any,
+        doctest -any
+    build-tool-depends: markdown-unlit:markdown-unlit
+    ghc-options: -pgmL markdown-unlit
