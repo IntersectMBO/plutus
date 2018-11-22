@@ -61,6 +61,19 @@ termValue (Wrap l tn ty t)  = Wrap l tn ty <$> termValue t
 termValue (TyAbs l tn k t)  = TyAbs l tn k <$> termValue t
 termValue t                 = builtinValue t
 
+{- Note [Builtin applications and values]
+An older version of the specification had a special case for builtin applications being
+term values. This is important, because they obviously can't be reduced before runtime.
+However, it was missing a corresponding case for builtin *type* applications, which
+resulted in types like `[(con integer) (con 64)]` not being considered normalized, which
+effectively prevents you using integers anywhere.
+
+The current version of the specification has moved to fully saturated builtins and builtin types,
+but the implementation is not there. Consequently we include the special cases for builtin applications
+and also consider builtin types and type level integers to be neutral types.
+-}
+
+-- See note [Builtin applications and values]
 builtinValue :: Term tyname name a -> Either (NormalizationError tyname name a) (Term tyname name a)
 builtinValue t@Constant{}    = pure t
 builtinValue (TyInst l t ty) = TyInst l <$> builtinValue t <*> pure ty
@@ -92,8 +105,11 @@ neutralType = cataM aM where
     aM ty | isNeutralType ty = pure (embed ty)
           | otherwise        = Left (BadType (tyLocF ty) (embed ty) "neutral type")
 
-    isNeutralType TyVarF{} = True
-    isNeutralType TyAppF{} = True
-    isNeutralType _        = False
+    isNeutralType TyVarF{}     = True
+    isNeutralType TyAppF{}     = True
+    -- See note [Builtin applications and values]
+    isNeutralType TyBuiltinF{} = True
+    isNeutralType TyIntF{}     = True
+    isNeutralType _            = False
 
     tyLocF = tyLoc . embed
