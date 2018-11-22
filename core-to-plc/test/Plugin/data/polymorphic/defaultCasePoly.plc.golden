@@ -17,28 +17,26 @@
                   (all a_97 (type) (all b_98 (type) (fun [[MyPolyData_89 a_97] b_98] [[(lam a_99 (type) (lam b_100 (type) (all out_MyPolyData_101 (type) (fun (fun a_99 (fun b_100 out_MyPolyData_101)) (fun (fun a_99 out_MyPolyData_101) out_MyPolyData_101))))) a_97] b_98])))
                   (lam
                     ds_102
-                    [[MyPolyData_89 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                    [[MyPolyData_89 [(con integer) (con 8)]] [(con integer) (con 8)]]
                     [
                       [
                         {
                           [
                             {
-                              { MyPolyData_match_96 [(con integer) (con 64)] }
-                              [(con integer) (con 64)]
+                              { MyPolyData_match_96 [(con integer) (con 8)] }
+                              [(con integer) (con 8)]
                             }
                             ds_102
                           ]
-                          [(con integer) (con 64)]
+                          [(con integer) (con 8)]
                         }
                         (lam
                           a_103
-                          [(con integer) (con 64)]
-                          (lam ds_104 [(con integer) (con 64)] a_103)
+                          [(con integer) (con 8)]
+                          (lam ds_104 [(con integer) (con 8)] a_103)
                         )
                       ]
-                      (lam
-                        default_arg0_105 [(con integer) (con 64)] (con 64 ! 2)
-                      )
+                      (lam default_arg0_105 [(con integer) (con 8)] (con 8 ! 2))
                     ]
                   )
                 )

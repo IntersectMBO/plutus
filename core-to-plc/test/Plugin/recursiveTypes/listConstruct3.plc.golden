@@ -16,12 +16,12 @@
                   Nil_match_87
                   (all a_88 (type) (fun [List_82 a_88] [(lam a_89 (type) (all out_List_90 (type) (fun out_List_90 (fun (fun a_89 (fun [List_82 a_89] out_List_90)) out_List_90)))) a_88]))
                   [
-                    [ { Cons_85 [(con integer) (con 64)] } (con 64 ! 1) ]
+                    [ { Cons_85 [(con integer) (con 8)] } (con 8 ! 1) ]
                     [
-                      [ { Cons_85 [(con integer) (con 64)] } (con 64 ! 2) ]
+                      [ { Cons_85 [(con integer) (con 8)] } (con 8 ! 2) ]
                       [
-                        [ { Cons_85 [(con integer) (con 64)] } (con 64 ! 3) ]
-                        { Nil_83 [(con integer) (con 64)] }
+                        [ { Cons_85 [(con integer) (con 8)] } (con 8 ! 3) ]
+                        { Nil_83 [(con integer) (con 8)] }
                       ]
                     ]
                   ]

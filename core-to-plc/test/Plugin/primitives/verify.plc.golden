@@ -18,16 +18,16 @@
                   [
                     (lam
                       verifySignature_83
-                      (fun [(con bytestring) (con 256)] (fun [(con bytestring) (con 256)] (fun [(con bytestring) (con 256)] Bool_78)))
+                      (fun [(con bytestring) (con 32)] (fun [(con bytestring) (con 32)] (fun [(con bytestring) (con 32)] Bool_78)))
                       (lam
                         ds_84
-                        [(con bytestring) (con 256)]
+                        [(con bytestring) (con 32)]
                         (lam
                           ds_85
-                          [(con bytestring) (con 256)]
+                          [(con bytestring) (con 32)]
                           (lam
                             ds_86
-                            [(con bytestring) (con 256)]
+                            [(con bytestring) (con 32)]
                             [ [ [ verifySignature_83 ds_84 ] ds_85 ] ds_86 ]
                           )
                         )
@@ -35,13 +35,13 @@
                     )
                     (lam
                       arg_87
-                      [(con bytestring) (con 256)]
+                      [(con bytestring) (con 32)]
                       (lam
                         arg_88
-                        [(con bytestring) (con 256)]
+                        [(con bytestring) (con 32)]
                         (lam
                           arg_89
-                          [(con bytestring) (con 256)]
+                          [(con bytestring) (con 32)]
                           [
                             (lam
                               b_90
@@ -53,10 +53,10 @@
                                 [
                                   {
                                     {
-                                      { (builtin verifySignature) (con 256) }
-                                      (con 256)
+                                      { (builtin verifySignature) (con 32) }
+                                      (con 32)
                                     }
-                                    (con 256)
+                                    (con 32)
                                   }
                                   arg_87
                                 ]

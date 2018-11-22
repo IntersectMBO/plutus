@@ -17,7 +17,7 @@
                   (all a_93 (type) (all b_94 (type) (fun [[MyPolyData_85 a_93] b_94] [[(lam a_95 (type) (lam b_96 (type) (all out_MyPolyData_97 (type) (fun (fun a_95 (fun b_96 out_MyPolyData_97)) (fun (fun a_95 out_MyPolyData_97) out_MyPolyData_97))))) a_93] b_94])))
                   (lam
                     ds_98
-                    [[MyPolyData_85 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                    [[MyPolyData_85 [(con integer) (con 8)]] [(con integer) (con 8)]]
                     ds_98
                   )
                 )

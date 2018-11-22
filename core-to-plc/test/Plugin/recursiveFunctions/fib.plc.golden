@@ -14,11 +14,11 @@
               [
                 (lam
                   addInteger_161
-                  (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
                   [
                     (lam
                       subtractInteger_162
-                      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
                       [
                         [
                           [
@@ -38,15 +38,15 @@
                                       [
                                         (lam
                                           equalsInteger_168
-                                          (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_163))
+                                          (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_163))
                                           [
                                             (lam
                                               tuple_169
-                                              [(lam t_0_170 (type) (all r_171 (type) (fun (fun t_0_170 r_171) r_171))) (fun [(con integer) (con 64)] [(con integer) (con 64)])]
+                                              [(lam t_0_170 (type) (all r_171 (type) (fun (fun t_0_170 r_171) r_171))) (fun [(con integer) (con 8)] [(con integer) (con 8)])]
                                               [
                                                 (lam
                                                   fib_172
-                                                  (fun [(con integer) (con 64)] [(con integer) (con 64)])
+                                                  (fun [(con integer) (con 8)] [(con integer) (con 8)])
                                                   fib_172
                                                 )
                                                 [
@@ -67,7 +67,7 @@
                                                         ]
                                                       )
                                                     )
-                                                    (fun [(con integer) (con 64)] [(con integer) (con 64)])
+                                                    (fun [(con integer) (con 8)] [(con integer) (con 8)])
                                                   }
                                                   tuple_169
                                                 ]
@@ -256,24 +256,24 @@
                                                       ]
                                                     )
                                                   )
-                                                  [(con integer) (con 64)]
+                                                  [(con integer) (con 8)]
                                                 }
-                                                [(con integer) (con 64)]
+                                                [(con integer) (con 8)]
                                               }
                                               (abs
                                                 Q_219
                                                 (type)
                                                 (lam
                                                   choose_220
-                                                  (fun (fun [(con integer) (con 64)] [(con integer) (con 64)]) Q_219)
+                                                  (fun (fun [(con integer) (con 8)] [(con integer) (con 8)]) Q_219)
                                                   (lam
                                                     fib_221
-                                                    (fun [(con integer) (con 64)] [(con integer) (con 64)])
+                                                    (fun [(con integer) (con 8)] [(con integer) (con 8)])
                                                     [
                                                       choose_220
                                                       (lam
                                                         n_222
-                                                        [(con integer) (con 64)]
+                                                        [(con integer) (con 8)]
                                                         [
                                                           [
                                                             [
@@ -285,15 +285,15 @@
                                                                       equalsInteger_168
                                                                       n_222
                                                                     ]
-                                                                    (con 64 ! 0)
+                                                                    (con 8 ! 0)
                                                                   ]
                                                                 ]
-                                                                (fun Unit_157 [(con integer) (con 64)])
+                                                                (fun Unit_157 [(con integer) (con 8)])
                                                               }
                                                               (lam
                                                                 thunk_223
                                                                 Unit_157
-                                                                (con 64 ! 0)
+                                                                (con 8 ! 0)
                                                               )
                                                             ]
                                                             (lam
@@ -311,17 +311,16 @@
                                                                             n_222
                                                                           ]
                                                                           (con
-                                                                            64 ! 1
+                                                                            8 ! 1
                                                                           )
                                                                         ]
                                                                       ]
-                                                                      (fun Unit_157 [(con integer) (con 64)])
+                                                                      (fun Unit_157 [(con integer) (con 8)])
                                                                     }
                                                                     (lam
                                                                       thunk_225
                                                                       Unit_157
-                                                                      (con
-                                                                        64 ! 1
+                                                                      (con 8 ! 1
                                                                       )
                                                                     )
                                                                   ]
@@ -339,7 +338,7 @@
                                                                               n_222
                                                                             ]
                                                                             (con
-                                                                              64 ! 1
+                                                                              8 ! 1
                                                                             )
                                                                           ]
                                                                         ]
@@ -352,7 +351,7 @@
                                                                             n_222
                                                                           ]
                                                                           (con
-                                                                            64 ! 2
+                                                                            8 ! 2
                                                                           )
                                                                         ]
                                                                       ]
@@ -375,10 +374,10 @@
                                         )
                                         (lam
                                           arg_227
-                                          [(con integer) (con 64)]
+                                          [(con integer) (con 8)]
                                           (lam
                                             arg_228
-                                            [(con integer) (con 64)]
+                                            [(con integer) (con 8)]
                                             [
                                               (lam
                                                 b_229
@@ -394,7 +393,7 @@
                                                 [
                                                   {
                                                     (builtin equalsInteger)
-                                                    (con 64)
+                                                    (con 8)
                                                   }
                                                   arg_227
                                                 ]
@@ -437,10 +436,10 @@
                         )
                       ]
                     )
-                    { (builtin subtractInteger) (con 64) }
+                    { (builtin subtractInteger) (con 8) }
                   ]
                 )
-                { (builtin addInteger) (con 64) }
+                { (builtin addInteger) (con 8) }
               ]
             )
           )
