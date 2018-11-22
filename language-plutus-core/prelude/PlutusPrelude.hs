@@ -40,6 +40,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , view
                      , (.~)
                      , set
+                     , (%~)
                      , over
                      -- * Debugging
                      , traceShowId

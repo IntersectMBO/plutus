@@ -1,15 +1,18 @@
 -- | A dynamic built-in name that allows to call arbitrary 'IO' actions over
 -- PLC values of a built-in types (including dynamic built-in types).
 
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE TypeApplications #-}
 
-module DynamicBuiltins.Call
+module Language.PlutusCore.Constant.Dynamic.Call
     ( dynamicCallAssign
     , dynamicCall
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Make
+import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Lexer.Type     hiding (name)
+import           Language.PlutusCore.Type
 
 import           System.IO.Unsafe
 
@@ -20,10 +23,7 @@ dynamicCallAssign
     -> DynamicBuiltinNameDefinition
 dynamicCallAssign tb name f =
     DynamicBuiltinNameDefinition name $ DynamicBuiltinNameMeaning sch sem where
-        sch =
-            TypeSchemeBuiltin tb `TypeSchemeArrow`
-            -- @TypedBuiltinUnit@ should be added and this should be removed.
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 1) TypedBuiltinSizedSize)
+        sch = TypeSchemeBuiltin tb `TypeSchemeArrow` TypeSchemeBuiltin (TypedBuiltinDyn @())
         sem = unsafePerformIO . f
 
 dynamicCall :: DynamicBuiltinName -> Term tyname name ()

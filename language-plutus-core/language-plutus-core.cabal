@@ -40,6 +40,7 @@ library
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Constant
+        Language.PlutusCore.Constant.Dynamic
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.Subst
@@ -69,8 +70,14 @@ library
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
-        Language.PlutusCore.Constant.DynamicType
+        Language.PlutusCore.Constant.Dynamic.Call
+        Language.PlutusCore.Constant.Dynamic.Emit
+        Language.PlutusCore.Constant.Dynamic.Instances
+        Language.PlutusCore.Constant.Dynamic.OnChain
+        Language.PlutusCore.Constant.Dynamic.Pretty
+        Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
+        Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.Pretty.Classic

@@ -1,7 +1,7 @@
 module Main (main) where
 
-import           CekMachine
-import           DynamicBuiltins.Spec
+import           CekMachine           (test_evaluateCek)
+import           DynamicBuiltins.Spec (test_dynamicBuiltins)
 
 import           Test.Tasty
 
