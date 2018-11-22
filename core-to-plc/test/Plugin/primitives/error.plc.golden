@@ -15,7 +15,7 @@
                 (lam
                   error_75
                   (all a_76 (type) (fun Unit_71 a_76))
-                  { error_75 [(con integer) (con 64)] }
+                  { error_75 [(con integer) (con 8)] }
                 )
                 (abs e_77 (type) (lam thunk_78 Unit_71 (error e_77)))
               ]

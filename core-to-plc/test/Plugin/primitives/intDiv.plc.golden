@@ -2,14 +2,13 @@
   [
     (lam
       divideInteger_69
-      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
       (lam
         ds_70
-        [(con integer) (con 64)]
-        (lam ds_71 [(con integer) (con 64)] [ [ divideInteger_69 ds_70 ] ds_71 ]
-        )
+        [(con integer) (con 8)]
+        (lam ds_71 [(con integer) (con 8)] [ [ divideInteger_69 ds_70 ] ds_71 ])
       )
     )
-    { (builtin divideInteger) (con 64) }
+    { (builtin divideInteger) (con 8) }
   ]
 )

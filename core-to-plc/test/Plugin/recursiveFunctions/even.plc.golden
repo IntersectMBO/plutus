@@ -14,7 +14,7 @@
               [
                 (lam
                   subtractInteger_189
-                  (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
                   [
                     [
                       [
@@ -34,19 +34,19 @@
                                   [
                                     (lam
                                       equalsInteger_195
-                                      (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] Bool_190))
+                                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_190))
                                       [
                                         (lam
                                           tuple_196
-                                          [[(lam t_0_197 (type) (lam t_1_198 (type) (all r_199 (type) (fun (fun t_0_197 (fun t_1_198 r_199)) r_199)))) (fun [(con integer) (con 64)] Bool_190)] (fun [(con integer) (con 64)] Bool_190)]
+                                          [[(lam t_0_197 (type) (lam t_1_198 (type) (all r_199 (type) (fun (fun t_0_197 (fun t_1_198 r_199)) r_199)))) (fun [(con integer) (con 8)] Bool_190)] (fun [(con integer) (con 8)] Bool_190)]
                                           [
                                             (lam
                                               odd_200
-                                              (fun [(con integer) (con 64)] Bool_190)
+                                              (fun [(con integer) (con 8)] Bool_190)
                                               [
                                                 (lam
                                                   even_201
-                                                  (fun [(con integer) (con 64)] Bool_190)
+                                                  (fun [(con integer) (con 8)] Bool_190)
                                                   even_201
                                                 )
                                                 [
@@ -79,9 +79,9 @@
                                                           )
                                                         )
                                                       )
-                                                      (fun [(con integer) (con 64)] Bool_190)
+                                                      (fun [(con integer) (con 8)] Bool_190)
                                                     }
-                                                    (fun [(con integer) (con 64)] Bool_190)
+                                                    (fun [(con integer) (con 8)] Bool_190)
                                                   }
                                                   tuple_196
                                                 ]
@@ -114,9 +114,9 @@
                                                       )
                                                     )
                                                   )
-                                                  (fun [(con integer) (con 64)] Bool_190)
+                                                  (fun [(con integer) (con 8)] Bool_190)
                                                 }
-                                                (fun [(con integer) (con 64)] Bool_190)
+                                                (fun [(con integer) (con 8)] Bool_190)
                                               }
                                               tuple_196
                                             ]
@@ -343,11 +343,11 @@
                                                       )
                                                     )
                                                   )
-                                                  [(con integer) (con 64)]
+                                                  [(con integer) (con 8)]
                                                 }
                                                 Bool_190
                                               }
-                                              [(con integer) (con 64)]
+                                              [(con integer) (con 8)]
                                             }
                                             Bool_190
                                           }
@@ -356,19 +356,19 @@
                                             (type)
                                             (lam
                                               choose_266
-                                              (fun (fun [(con integer) (con 64)] Bool_190) (fun (fun [(con integer) (con 64)] Bool_190) Q_265))
+                                              (fun (fun [(con integer) (con 8)] Bool_190) (fun (fun [(con integer) (con 8)] Bool_190) Q_265))
                                               (lam
                                                 odd_267
-                                                (fun [(con integer) (con 64)] Bool_190)
+                                                (fun [(con integer) (con 8)] Bool_190)
                                                 (lam
                                                   even_268
-                                                  (fun [(con integer) (con 64)] Bool_190)
+                                                  (fun [(con integer) (con 8)] Bool_190)
                                                   [
                                                     [
                                                       choose_266
                                                       (lam
                                                         n_269
-                                                        [(con integer) (con 64)]
+                                                        [(con integer) (con 8)]
                                                         [
                                                           [
                                                             [
@@ -380,7 +380,7 @@
                                                                       equalsInteger_195
                                                                       n_269
                                                                     ]
-                                                                    (con 64 ! 0)
+                                                                    (con 8 ! 0)
                                                                   ]
                                                                 ]
                                                                 (fun Unit_185 Bool_190)
@@ -401,7 +401,7 @@
                                                                     subtractInteger_189
                                                                     n_269
                                                                   ]
-                                                                  (con 64 ! 1)
+                                                                  (con 8 ! 1)
                                                                 ]
                                                               ]
                                                             )
@@ -412,7 +412,7 @@
                                                     ]
                                                     (lam
                                                       n_272
-                                                      [(con integer) (con 64)]
+                                                      [(con integer) (con 8)]
                                                       [
                                                         [
                                                           [
@@ -424,7 +424,7 @@
                                                                     equalsInteger_195
                                                                     n_272
                                                                   ]
-                                                                  (con 64 ! 0)
+                                                                  (con 8 ! 0)
                                                                 ]
                                                               ]
                                                               (fun Unit_185 Bool_190)
@@ -445,7 +445,7 @@
                                                                   subtractInteger_189
                                                                   n_272
                                                                 ]
-                                                                (con 64 ! 1)
+                                                                (con 8 ! 1)
                                                               ]
                                                             ]
                                                           )
@@ -463,10 +463,10 @@
                                     )
                                     (lam
                                       arg_275
-                                      [(con integer) (con 64)]
+                                      [(con integer) (con 8)]
                                       (lam
                                         arg_276
-                                        [(con integer) (con 64)]
+                                        [(con integer) (con 8)]
                                         [
                                           (lam
                                             b_277
@@ -479,7 +479,7 @@
                                           [
                                             [
                                               {
-                                                (builtin equalsInteger) (con 64)
+                                                (builtin equalsInteger) (con 8)
                                               }
                                               arg_275
                                             ]
@@ -522,7 +522,7 @@
                     )
                   ]
                 )
-                { (builtin subtractInteger) (con 64) }
+                { (builtin subtractInteger) (con 8) }
               ]
             )
           )

@@ -35,46 +35,46 @@
                                       (type)
                                       (lam
                                         Lift_Spec_NestedRecord_53
-                                        (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]] Lift_Spec_NestedRecord_52)
+                                        (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]] Lift_Spec_NestedRecord_52)
                                         (lam
                                           match_Lift_Spec_NestedRecord_54
-                                          (fun Lift_Spec_NestedRecord_52 (all out_Lift_Spec_NestedRecord_55 (type) (fun (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]] out_Lift_Spec_NestedRecord_55) out_Lift_Spec_NestedRecord_55)))
+                                          (fun Lift_Spec_NestedRecord_52 (all out_Lift_Spec_NestedRecord_55 (type) (fun (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_55) out_Lift_Spec_NestedRecord_55)))
                                           [
                                             Lift_Spec_NestedRecord_53
                                             [
                                               {
                                                 GHC_Base_Just_44
-                                                [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                                                [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]
                                               }
                                               [
                                                 [
                                                   {
                                                     {
                                                       GHC_Tuple_Tuple2_34
-                                                      [(con integer) (con 64)]
+                                                      [(con integer) (con 8)]
                                                     }
-                                                    [(con integer) (con 64)]
+                                                    [(con integer) (con 8)]
                                                   }
-                                                  (con 64 ! 1)
+                                                  (con 8 ! 1)
                                                 ]
-                                                (con 64 ! 2)
+                                                (con 8 ! 2)
                                               ]
                                             ]
                                           ]
                                         )
                                       )
                                     )
-                                    (all out_Lift_Spec_NestedRecord_56 (type) (fun (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]] out_Lift_Spec_NestedRecord_56) out_Lift_Spec_NestedRecord_56))
+                                    (all out_Lift_Spec_NestedRecord_56 (type) (fun (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_56) out_Lift_Spec_NestedRecord_56))
                                   }
                                   (lam
                                     arg_0_57
-                                    [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]]
+                                    [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]]
                                     (abs
                                       out_Lift_Spec_NestedRecord_58
                                       (type)
                                       (lam
                                         case_Lift_Spec_NestedRecord_59
-                                        (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]] out_Lift_Spec_NestedRecord_58)
+                                        (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_58)
                                         [
                                           case_Lift_Spec_NestedRecord_59
                                           arg_0_57
@@ -85,7 +85,7 @@
                                 ]
                                 (lam
                                   x_60
-                                  (all out_Lift_Spec_NestedRecord_61 (type) (fun (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 64)]] [(con integer) (con 64)]]] out_Lift_Spec_NestedRecord_61) out_Lift_Spec_NestedRecord_61))
+                                  (all out_Lift_Spec_NestedRecord_61 (type) (fun (fun [GHC_Base_Maybe_43 [[GHC_Tuple_Tuple2_33 [(con integer) (con 8)]] [(con integer) (con 8)]]] out_Lift_Spec_NestedRecord_61) out_Lift_Spec_NestedRecord_61))
                                   x_60
                                 )
                               ]

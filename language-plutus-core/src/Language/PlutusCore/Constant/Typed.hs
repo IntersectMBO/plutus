@@ -505,7 +505,7 @@ typedSHA2 =
     TypedBuiltinName SHA2 $
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 32) TypedBuiltinSizedBS)
 
 -- | Typed 'SHA3'.
 typedSHA3 :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString) BSL.ByteString
@@ -513,7 +513,7 @@ typedSHA3 =
     TypedBuiltinName SHA3 $
         TypeSchemeAllSize $ \s ->
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 32) TypedBuiltinSizedBS)
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Bool) Bool
@@ -547,7 +547,7 @@ typedEqByteString =
 typedTxHash :: TypedBuiltinName BSL.ByteString BSL.ByteString
 typedTxHash =
     TypedBuiltinName TxHash $
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 256) TypedBuiltinSizedBS)
+        TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 32) TypedBuiltinSizedBS)
 
 -- | Typed 'BlockNum'.
 typedBlockNum :: TypedBuiltinName (() -> Integer) Integer

@@ -14,31 +14,31 @@
               [
                 (lam
                   addInteger_96
-                  (fun [(con integer) (con 64)] (fun [(con integer) (con 64)] [(con integer) (con 64)]))
+                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
                   (lam
                     t_97
-                    [[Tuple2_86 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                    [[Tuple2_86 [(con integer) (con 8)]] [(con integer) (con 8)]]
                     [
                       (lam
                         wild_98
-                        [[Tuple2_86 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                        [[Tuple2_86 [(con integer) (con 8)]] [(con integer) (con 8)]]
                         [
                           {
                             [
                               {
-                                { Tuple2_match_90 [(con integer) (con 64)] }
-                                [(con integer) (con 64)]
+                                { Tuple2_match_90 [(con integer) (con 8)] }
+                                [(con integer) (con 8)]
                               }
                               t_97
                             ]
-                            [(con integer) (con 64)]
+                            [(con integer) (con 8)]
                           }
                           (lam
                             ds_99
-                            [(con integer) (con 64)]
+                            [(con integer) (con 8)]
                             (lam
                               ds_100
-                              [(con integer) (con 64)]
+                              [(con integer) (con 8)]
                               [
                                 [
                                   addInteger_96 ds_100
@@ -46,26 +46,25 @@
                                 [
                                   (lam
                                     ds_101
-                                    [[Tuple2_86 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                                    [[Tuple2_86 [(con integer) (con 8)]] [(con integer) (con 8)]]
                                     [
                                       {
                                         [
                                           {
                                             {
                                               Tuple2_match_90
-                                              [(con integer) (con 64)]
+                                              [(con integer) (con 8)]
                                             }
-                                            [(con integer) (con 64)]
+                                            [(con integer) (con 8)]
                                           }
                                           ds_101
                                         ]
-                                        [(con integer) (con 64)]
+                                        [(con integer) (con 8)]
                                       }
                                       (lam
                                         a_102
-                                        [(con integer) (con 64)]
-                                        (lam
-                                          b_103 [(con integer) (con 64)] a_102
+                                        [(con integer) (con 8)]
+                                        (lam b_103 [(con integer) (con 8)] a_102
                                         )
                                       )
                                     ]
@@ -81,7 +80,7 @@
                     ]
                   )
                 )
-                { (builtin addInteger) (con 64) }
+                { (builtin addInteger) (con 8) }
               ]
             )
           )

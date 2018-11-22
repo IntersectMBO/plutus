@@ -29,52 +29,52 @@
                               (all a_109 (type) (fun [B_103 a_109] [(lam a_110 (type) (all out_B_111 (type) (fun (fun a_110 out_B_111) (fun (fun [B_103 [[Tuple2_93 a_110] a_110]] out_B_111) out_B_111)))) a_109]))
                               [
                                 {
-                                  Two_106 [(con integer) (con 64)]
+                                  Two_106 [(con integer) (con 8)]
                                 }
                                 [
                                   {
                                     Two_106
-                                    [[Tuple2_93 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                                    [[Tuple2_93 [(con integer) (con 8)]] [(con integer) (con 8)]]
                                   }
                                   [
                                     {
                                       One_104
-                                      [[Tuple2_93 [[Tuple2_93 [(con integer) (con 64)]] [(con integer) (con 64)]]] [[Tuple2_93 [(con integer) (con 64)]] [(con integer) (con 64)]]]
+                                      [[Tuple2_93 [[Tuple2_93 [(con integer) (con 8)]] [(con integer) (con 8)]]] [[Tuple2_93 [(con integer) (con 8)]] [(con integer) (con 8)]]]
                                     }
                                     [
                                       [
                                         {
                                           {
                                             Tuple2_94
-                                            [[Tuple2_93 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                                            [[Tuple2_93 [(con integer) (con 8)]] [(con integer) (con 8)]]
                                           }
-                                          [[Tuple2_93 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                                          [[Tuple2_93 [(con integer) (con 8)]] [(con integer) (con 8)]]
                                         }
                                         [
                                           [
                                             {
                                               {
                                                 Tuple2_94
-                                                [(con integer) (con 64)]
+                                                [(con integer) (con 8)]
                                               }
-                                              [(con integer) (con 64)]
+                                              [(con integer) (con 8)]
                                             }
-                                            (con 64 ! 1)
+                                            (con 8 ! 1)
                                           ]
-                                          (con 64 ! 2)
+                                          (con 8 ! 2)
                                         ]
                                       ]
                                       [
                                         [
                                           {
                                             {
-                                              Tuple2_94 [(con integer) (con 64)]
+                                              Tuple2_94 [(con integer) (con 8)]
                                             }
-                                            [(con integer) (con 64)]
+                                            [(con integer) (con 8)]
                                           }
-                                          (con 64 ! 3)
+                                          (con 8 ! 3)
                                         ]
-                                        (con 64 ! 4)
+                                        (con 8 ! 4)
                                       ]
                                     ]
                                   ]

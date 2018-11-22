@@ -17,19 +17,19 @@
                   (all a_92 (type) (fun [List_86 a_92] [(lam a_93 (type) (all out_List_94 (type) (fun out_List_94 (fun (fun a_93 (fun [List_86 a_93] out_List_94)) out_List_94)))) a_92]))
                   (lam
                     ds_95
-                    [List_86 [(con integer) (con 64)]]
+                    [List_86 [(con integer) (con 8)]]
                     [
                       [
                         {
-                          [ { Nil_match_91 [(con integer) (con 64)] } ds_95 ]
-                          [(con integer) (con 64)]
+                          [ { Nil_match_91 [(con integer) (con 8)] } ds_95 ]
+                          [(con integer) (con 8)]
                         }
-                        (con 64 ! 0)
+                        (con 8 ! 0)
                       ]
                       (lam
                         x_96
-                        [(con integer) (con 64)]
-                        (lam ds_97 [List_86 [(con integer) (con 64)]] x_96)
+                        [(con integer) (con 8)]
+                        (lam ds_97 [List_86 [(con integer) (con 8)]] x_96)
                       )
                     ]
                   )

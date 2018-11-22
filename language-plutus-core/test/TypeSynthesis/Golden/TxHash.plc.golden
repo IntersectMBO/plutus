@@ -1,1 +1,1 @@
-[(con bytestring) (con 256)]
+[(con bytestring) (con 32)]

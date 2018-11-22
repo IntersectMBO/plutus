@@ -13,22 +13,22 @@
               (all a_87 (type) (all b_88 (type) (fun [[Tuple2_82 a_87] b_88] [[(lam a_89 (type) (lam b_90 (type) (all out_Tuple2_91 (type) (fun (fun a_89 (fun b_90 out_Tuple2_91)) out_Tuple2_91)))) a_87] b_88])))
               (lam
                 ds_92
-                [[Tuple2_82 [(con integer) (con 64)]] [(con integer) (con 64)]]
+                [[Tuple2_82 [(con integer) (con 8)]] [(con integer) (con 8)]]
                 [
                   {
                     [
                       {
-                        { Tuple2_match_86 [(con integer) (con 64)] }
-                        [(con integer) (con 64)]
+                        { Tuple2_match_86 [(con integer) (con 8)] }
+                        [(con integer) (con 8)]
                       }
                       ds_92
                     ]
-                    [(con integer) (con 64)]
+                    [(con integer) (con 8)]
                   }
                   (lam
                     a_93
-                    [(con integer) (con 64)]
-                    (lam b_94 [(con integer) (con 64)] a_93)
+                    [(con integer) (con 8)]
+                    (lam b_94 [(con integer) (con 8)] a_93)
                   )
                 ]
               )
