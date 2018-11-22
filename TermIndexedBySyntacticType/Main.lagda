@@ -8,6 +8,7 @@ postulate
   putStrLn : String → IO ⊤
 
 {-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
+{-# FOREIGN GHC import qualified Data.Text as T #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
 open import Builtin.Constant.Term
@@ -32,17 +33,42 @@ open import Data.Product renaming (_,_ to _,,_)
 lemma : length empty ≡ 0
 lemma = primTrustMe
 
+postulate
+  str1 : ByteString
+  str2 : ByteString
+
+  printByteString : ByteString -> String
+
+{-# FOREIGN GHC import qualified Data.ByteString.Char8 as BS #-}
+{-# COMPILE GHC str1 = BS.pack "Hello, " #-}
+{-# COMPILE GHC str2 = BS.pack "world"   #-}
+{-# COMPILE GHC printByteString = T.pack . BS.unpack #-}
+
+lemma1 : length str1 ≡ 16
+lemma1 = primTrustMe 
+lemma2 : length str2 ≡ 16
+lemma2 = primTrustMe
+
+constr1 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
+constr1 = con (bytestring 16 str1 _)
+
+constr2 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
+constr2 = con (bytestring 16 str2 _)
+
 conE : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 8)
-conE = con (bytestring 8 empty (subst (λ n → Data.Nat.suc n Data.Nat.≤ 8) (sym lemma) (s≤s z≤n)))
+conE = con (bytestring 8 empty _)
 
 appendE : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 8)
 appendE = builtin concatenate (λ { Z → size⋆ 8 ; (S ())}) (conE ,, conE ,, tt)
 
+append12 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
+append12 = builtin concatenate (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
+
 con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-con1 = con (integer 8 (pos 1) (-≤+ ,, (+≤+ (s≤s (s≤s z≤n))))) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
+con1 = con (integer 8 (pos 1) _)
 
 con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-con2 = con (integer 8 (pos 2) (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n)))))) -- (-≤+ ,, +≤+ (s≤s (s≤s (s≤s z≤n)))))
+con2 = con (integer 8 (pos 2) _)
 
 builtin2plus2 : ∅ ⊢ con integer (size⋆ 8)
 builtin2plus2 = builtin
@@ -65,12 +91,24 @@ inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S 
 builtininc2' : ∅ ⊢ con integer (size⋆ 8)
 builtininc2' = (inc ·⋆ size⋆ 8) · con2
 
-printCon : (x : ∅ ⊢ con integer (size⋆ 8)) → Value x → ℤ
-printCon .(con (integer 8 i x)) (V-con (integer .8 i x)) = i
+printInt : (x : ∅ ⊢ con integer (size⋆ 8)) → Value x → ℤ
+printInt .(con (integer 8 i x)) (V-con (integer .8 i x)) = i
+
+printBS : (x : ∅ ⊢ con bytestring (size⋆ 16)) → Value x → String
+printBS .(con (bytestring 16 b x)) (V-con (bytestring .16 b x)) =
+  printByteString b
+
+help :  (M : ∅ ⊢ con integer (size⋆ 8)) → Steps M → String
+help M (steps x (done n v)) = show (printInt n v)
+help M (steps x out-of-gas) = "out of gas..."
+help M error = "something went wrong"
+
+helpB :  (M : ∅ ⊢ con bytestring (size⋆ 16)) → Steps M → String
+helpB M (steps x (done n v)) = printBS n v
+helpB M (steps x out-of-gas) = "out of gas..."
+helpB M error = "something went wrong"
+
 
 main : IO ⊤
-main with eval (gas 100) builtin2plus2
-main | steps x (done n v) = putStrLn (show (printCon n v))
-main | steps x out-of-gas = putStrLn "out of gas..."
-main | error              = putStrLn "something went wrong..."
+main = putStrLn (helpB _ (eval (gas 100) append12))
 \end{code}

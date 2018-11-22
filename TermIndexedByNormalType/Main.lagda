@@ -8,6 +8,9 @@ open import Type
 open import Type.BetaNormal
 open import TermIndexedByNormalType.Term
 open import TermIndexedByNormalType.Evaluation
+open import Builtin.Constant.Type
+open import Builtin.Constant.Term
+
 postulate
   putStrLn : String → IO ⊤
 

@@ -52,7 +52,6 @@ data Steps : ∀ {J}{A : ∅ ⊢⋆ J} → ∅ ⊢ A → Set where
     → Steps L
 
   error :  ∀ {J}{A : ∅ ⊢⋆ J} {L : ∅ ⊢ A} → Steps L
-
 \end{code}
 The evaluator takes gas and a term and returns the corresponding steps.
 \begin{code}
