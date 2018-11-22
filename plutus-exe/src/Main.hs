@@ -75,7 +75,7 @@ main = do
         Typecheck (TypecheckOptions inp) -> do
             contents <- getInput inp
             let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-            case (PLC.runQuoteT . PLC.parseTypecheck PLC.defaultTypecheckerGas) bsContents of
+            case (PLC.runQuoteT . PLC.parseTypecheck PLC.defaultTypecheckerCfg) bsContents of
                 Left (e :: PLC.Error PLC.AlexPosn) -> do
                     T.putStrLn $ PLC.prettyPlcDefText e
                     exitFailure

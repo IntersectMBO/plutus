@@ -86,6 +86,7 @@ module Language.PlutusCore
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
+    , defaultTypecheckerCfg
     -- * Errors
     , Error (..)
     , AsError (..)
@@ -183,14 +184,14 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
-parseTypecheck gas = typecheckPipeline gas <=< parseScoped
+    => TypeCheckCfg -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
-typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
-typecheckPipeline gas p = do
-    checkProgram p
-    typecheckProgram (TypeCheckCfg gas $ TypeConfig False mempty) =<< annotateProgram p
+typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => TypeCheckCfg -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
+typecheckPipeline cfg p = do
+    unless (_typeConfigNormalize $ _cfgTypeConfig cfg) $ checkProgram p
+    typecheckProgram cfg =<< annotateProgram p
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => BSL.ByteString -> m (Doc a)
 formatDoc bs = runQuoteT $ prettyPlcDef <$> parseProgram bs
@@ -205,6 +206,9 @@ defaultVersion a = Version a 1 0 0
 -- | The default amount of gas to run the typechecker with.
 defaultTypecheckerGas :: Natural
 defaultTypecheckerGas = 1000
+
+defaultTypecheckerCfg :: TypeCheckCfg
+defaultTypecheckerCfg = TypeCheckCfg defaultTypecheckerGas $ TypeConfig False mempty
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
