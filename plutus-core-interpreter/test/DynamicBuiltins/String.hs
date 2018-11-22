@@ -8,6 +8,7 @@ module DynamicBuiltins.String
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.Unit
 

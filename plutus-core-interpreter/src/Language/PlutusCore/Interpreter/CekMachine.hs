@@ -20,7 +20,6 @@ module Language.PlutusCore.Interpreter.CekMachine
     , evaluateCekCatch
     , evaluateCek
     , readDynamicBuiltinCek
-    , evaluateCekCatchLog
     , runCek
     ) where
 
@@ -210,13 +209,6 @@ evaluateCekCatchIn cekEnv = runCekM cekEnv . computeCek []
 evaluateCekCatch
     :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResult
 evaluateCekCatch means = evaluateCekCatchIn (CekEnv means $ VarEnv IntMap.empty)
-
--- | Supply a logger to a function and evaluate the resulting using the CEK machine.
--- Logged 'String's are returned as the first element of the resulting tuple.
-evaluateCekCatchLog
-    :: (Term TyName Name () -> Term TyName Name ())
-    -> IO ([String], Either CekMachineException EvaluationResult)
-evaluateCekCatchLog = withEmitEvaluateBy evaluateCekCatch TypedBuiltinDyn
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult

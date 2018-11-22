@@ -67,6 +67,7 @@ test-suite plutus-core-interpreter-test
         CekMachine
         DynamicBuiltins.Common
         DynamicBuiltins.Factorial
+        DynamicBuiltins.Logging
         DynamicBuiltins.String
         DynamicBuiltins.Spec
     default-language: Haskell2010
