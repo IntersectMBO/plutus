@@ -56,10 +56,6 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 -- introduce neutral terms.
 
 data Neutral⋆ where
-  N-μ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ K}
-      ----------------------------
-    → Neutral⋆ (μ N)
-
   N-μ1 : ∀ {Φ K}
       ----------------------------
     → Neutral⋆ (μ1 {Φ}{K})
@@ -140,7 +136,6 @@ data Progress⋆ {K} (M : ∅ ⊢⋆ K) : Set where
 \begin{code}
 progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` ())
-progress⋆ (μ M)   = done (N- N-μ)
 progress⋆ μ1      = done (N- N-μ1)
 progress⋆ (Π M)   = done V-Π_
 progress⋆ (M ⇒ N) = done _V-⇒_
@@ -182,7 +177,6 @@ renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
 renameValue⋆ ρ V-size    = V-size
 renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)
 
-renameNeutral⋆ ρ N-μ       = N-μ
 renameNeutral⋆ ρ N-μ1      = N-μ1
 renameNeutral⋆ ρ (N-· N V) = N-· (renameNeutral⋆ ρ N) (renameValue⋆ ρ V)
 \end{code}
@@ -209,7 +203,6 @@ substValue⋆ σ (N- N)    = N- (substNeutral⋆ σ N)
 substValue⋆ σ  V-size   = V-size
 substValue⋆ σ (V-con s) = V-con (substValue⋆ σ s)
 
-substNeutral⋆ σ N-μ      = N-μ
 substNeutral⋆ σ N-μ1     = N-μ1
 substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
 \end{code}

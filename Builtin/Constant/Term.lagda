@@ -41,6 +41,8 @@ postulate
 
   txhash : ByteString
   bnum   : Int
+
+  empty : ByteString
 \end{code}
 
 # What builtin operations should be compiled to if we compile to Haskell
@@ -58,6 +60,8 @@ postulate
 {-# COMPILE GHC append = BS.append #-}
 {-# COMPILE GHC take = BS.take . fromIntegral #-}
 {-# COMPILE GHC drop = BS.drop . fromIntegral #-}
+
+{-# COMPILE GHC empty = BS.empty #-}
 \end{code}
 
 # Some integer operations missing from the standard library
@@ -96,37 +100,43 @@ trans≤Int (+≤+ p) (+≤+ q) = +≤+ (trans≤Nat p q)
 # Bounded integers and bytestrings
 
 \begin{code}
-BoundedI : ∀ s i → Set
-BoundedI s i = 
-  - (pos (2 ^ (8 ** (s ∸ 1)))) ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
+open import Data.Unit hiding (_≤_;_≤?_)
+BoundedI : ∀ (s : ℕ)(i : Int)  → Set
+BoundedI s i = - (pos s) ≤ i × i < pos s
+--  - (pos (2 ^ (8 ** (s ∸ 1)))) ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
 
 BoundedN : ∀ s i → Set
-BoundedN s i = pos 0 ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
+BoundedN s i = pos 0 ≤ i × i < pos s -- pos (2 ^ (8 ** (s ∸ 1)))
 
 BoundedB : ∀ s b → Set
 BoundedB s b = length b Data.Nat.< s
 
 boundedI? : Decidable BoundedI
+boundedI? s i with - (pos s) ≤? i | i <? pos s
+boundedI? s i | yes p | yes p₁ = yes (p , p₁)
+boundedI? s i | yes p | no ¬p = no (¬p ∘ proj₂)
+boundedI? s i | no ¬p | q = no (¬p ∘ proj₁)
+{-
 boundedI? s i
   with (- pos (2 ^ (8 ** (s ∸ 1)))) ≤? i
   | i <? pos (2 ^ (8 ** (s ∸ 1)))
 boundedI? s i | yes p | yes q = yes (p , q)
 boundedI? s i | yes p | no ¬q = no (¬q ∘ proj₂)
 boundedI? s i | no ¬p | _     = no (¬p ∘ proj₁)
-
+-}
 boundedB? : Decidable BoundedB
 boundedB? s b = Data.Nat.suc (length b) Data.Nat.≤? s
 
 boundedN? : Decidable BoundedN
 boundedN? s i
   with pos 0 ≤? i
-  | i <? pos (2 ^ (8 ** (s ∸ 1)))
+  | i <? pos s --(2 ^ (8 ** (s ∸ 1)))
 boundedN? s i | yes p | yes q = yes (p , q)
 boundedN? s i | yes p | no ¬q = no (¬q ∘ proj₂)
 boundedN? s i | no ¬p | _     = no (¬p ∘ proj₁)
 
 bN2I : ∀ s i → BoundedN s i → BoundedI s i 
-bN2I s i (p , p') = trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
+bN2I s i (p , p') = (trans≤Int (-≤0 s) p) , p' -- trans≤Int (-≤0 (2 ^ (8 ** (s ∸ 1)))) p , p'
 \end{code}
 
 ## Term Constants

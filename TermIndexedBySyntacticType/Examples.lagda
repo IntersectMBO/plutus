@@ -54,6 +54,7 @@ module Builtins where
 
   builtininc2' : ∅ ⊢ con integer (size⋆ 8)
   builtininc2' = (inc ·⋆ size⋆ 8) · con2
+
 \end{code}
 
 

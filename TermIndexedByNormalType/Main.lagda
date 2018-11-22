@@ -14,23 +14,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
-N : ∀{Γ} → Γ ⊢Nf⋆ *
-N = Π ((ne (` Z)) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ (ne (` Z)))
-
-Zero : ∅ ⊢ N
-Zero = Λ (ƛ (ƛ (` (S Z))))
-
-Succ : ∅ ⊢ N ⇒ N
-Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
-
-One : ∅ ⊢ N
-One = Succ · Zero
-
-Two : ∅ ⊢ N
-Two = Succ · One
-
-TwoPlusTwo' : ∅ ⊢ N
-TwoPlusTwo' = Two ·⋆ N · Two · Succ
+open import TermIndexedByNormalType.Examples
 
 main : IO ⊤
 main with eval (gas 100) TwoPlusTwo'
