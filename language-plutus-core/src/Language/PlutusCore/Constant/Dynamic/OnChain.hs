@@ -34,19 +34,31 @@ import           Data.Proxy
 import qualified Data.Text                                      as Text
 import           GHC.TypeLits
 
--- The thing about dynamic built-in names is that they really can denote arbitrary effects.
--- This means we can't just initialize an evaluator with a 'DynamicBuiltinNameMeanings', because
--- some of these 'DynamicBuiltinNameMeaning's may be initializable in monads, some of them may call
--- effectful functions during evaluation (but we use 'unsafePerformIO' to handle this case for now),
--- but what's worth is that some of them may require finalization. This means we can't even pass a
--- @m DynamicBuiltinNameMeaning@ to an evaluator, we have to do something *after* evaluation finishes.
--- And of course the evaluator can't know everything we may want to do. In general, we want a way to
--- interpret dynamic built-in names in such a way that intepretation alters the process of evaluation.
--- Like if you want logging, then you need to open something to write logs in before evaluation starts
--- and to read the logs after evaluation finishes. But it is also the case that many dynamic built-in
--- names are perfectly pure, so we need an interface that allows to compose various kinds of handlers
--- of dynamic built-in names. And "handler" is a very right word, because what we do in this file is
--- very similar to how handlers of algebraic effects work.
+{- Note [Interpretation of names]
+The thing about dynamic built-in names is that they really can denote arbitrary effects.
+This means we can't just initialize an evaluator with a 'DynamicBuiltinNameMeanings', because
+some of these 'DynamicBuiltinNameMeaning's may be initializable in monads, some of them may call
+effectful functions during evaluation (but we use 'unsafePerformIO' to handle this case for now),
+but what's worth is that some of them may require finalization. This means we can't even pass a
+@m DynamicBuiltinNameMeaning@ to an evaluator, we have to do something *after* evaluation finishes.
+And of course the evaluator can't know everything we may want to do. In general, we want a way to
+interpret dynamic built-in names in such a way that intepretation alters the process of evaluation.
+Like if you want logging, then you need to open something to write logs in before evaluation starts
+and to read the logs after evaluation finishes. But it is also the case that many dynamic built-in
+names are perfectly pure, so we need an interface that allows to compose various kinds of handlers
+of dynamic built-in names. And "handler" is a very right word, because what we do in this file is
+very similar to how handlers of algebraic effects work.
+-}
+
+{- Note [Names at the type-level]
+Due to the fact that the interpretation of a dynamic built-in name is an arbitrary effect, we must know
+beforehand names that a term contains, because the type of the result of evaluation depends on them.
+An on-chain evaluator knows how to evaluate certain names, but terms are generated off-chain meaning
+the on-chain evaluator and the off-chain generator must have consensus on which names what mean.
+For this reason we index an on-chain term by a list of dynamic built-in names it can contain.
+Any generator targeting a certain blockchain must produce terms indexed by names the blockchain is able
+to evaluate.
+-}
 
 -- Well that's ugly.
 newtype OnChain (names :: [Symbol]) f (tyname :: * -> *) (name :: * -> *) ann = OnChain
@@ -78,6 +90,8 @@ mangleOnChain = coerce
 -- We should connect names with their meanings at the type level: @DynamicBuiltinNameMeaningOf name@.
 -- Maybe we should even use dependent maps in abstract machines. Though, they are probably
 -- not as optimized.
+-- | Interpret a 'DynamicBuiltinNameMeaning' as an 'OnChainHandler' that doesn't change
+-- the resulting type of evaluation.
 handleDynamicByMeaning
     :: forall name f r. KnownSymbol name
     => DynamicBuiltinNameMeaning -> OnChainHandler name f r r
