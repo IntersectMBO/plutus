@@ -242,6 +242,7 @@ data Builtin a = BuiltinName a BuiltinName
 data Constant a = BuiltinInt a Natural Integer
                 | BuiltinBS a Natural BSL.ByteString
                 | BuiltinSize a Natural
+                | BuiltinStr a String
                 deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
 -- TODO make this parametric in tyname as well

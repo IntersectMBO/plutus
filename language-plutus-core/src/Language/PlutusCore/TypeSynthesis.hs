@@ -68,6 +68,7 @@ kindOfTypeBuiltin :: TypeBuiltin -> Kind ()
 kindOfTypeBuiltin TyInteger    = sizeToType
 kindOfTypeBuiltin TyByteString = sizeToType
 kindOfTypeBuiltin TySize       = sizeToType
+kindOfTypeBuiltin TyString     = Type ()
 
 -- | Annotate a 'Type'. Invariant: the type must be in normal form. The invariant is not checked.
 -- In case a type is open, an 'OpenTypeOfBuiltin' is returned.
@@ -193,6 +194,7 @@ typeOfConstant :: Constant a -> NormalizedType TyNameWithKind ()
 typeOfConstant (BuiltinInt  _ size _) = applySizedNormalized TyInteger    size
 typeOfConstant (BuiltinBS   _ size _) = applySizedNormalized TyByteString size
 typeOfConstant (BuiltinSize _ size)   = applySizedNormalized TySize       size
+typeOfConstant (BuiltinStr _ _)       = NormalizedType $ TyBuiltin () TyString
 
 typeOfBuiltin :: Builtin a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOfBuiltin (BuiltinName    ann name) = normalizedAnnotatedTypeOfBuiltinName ann name

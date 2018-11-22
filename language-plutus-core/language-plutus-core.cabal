@@ -70,6 +70,7 @@ library
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
+        Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call
         Language.PlutusCore.Constant.Dynamic.Emit
         Language.PlutusCore.Constant.Dynamic.Instances

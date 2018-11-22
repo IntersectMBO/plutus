@@ -15,20 +15,21 @@ module Language.PlutusCore.Constant.Apply
     , applyBuiltinName
     ) where
 
+import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Lexer.Type        (BuiltinName (..))
+import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Monad.Trans.Class             (lift)
-import qualified Data.ByteString.Lazy                  as BSL
-import           Data.IntMap.Strict                    (IntMap)
-import qualified Data.IntMap.Strict                    as IntMap
+import           Control.Monad.Trans.Class                      (lift)
+import qualified Data.ByteString.Lazy                           as BSL
+import           Data.IntMap.Strict                             (IntMap)
+import qualified Data.IntMap.Strict                             as IntMap
 
 -- | The type of constant applications errors.
 data ConstAppError
