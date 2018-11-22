@@ -39,7 +39,7 @@ The thing about dynamic built-in names is that they really can denote arbitrary 
 This means we can't just initialize an evaluator with a 'DynamicBuiltinNameMeanings', because
 some of these 'DynamicBuiltinNameMeaning's may be initializable in monads, some of them may call
 effectful functions during evaluation (but we use 'unsafePerformIO' to handle this case for now),
-but what's worth is that some of them may require finalization. This means we can't even pass a
+but what's worse is that some of them may require finalization. This means we can't even pass a
 @m DynamicBuiltinNameMeaning@ to an evaluator, we have to do something *after* evaluation finishes.
 And of course the evaluator can't know everything we may want to do. In general, we want a way to
 interpret dynamic built-in names in such a way that intepretation alters the process of evaluation.
