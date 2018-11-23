@@ -28,6 +28,7 @@ module Wallet.UTXO.Index(
 import           Control.Monad.Except (MonadError (..), liftEither)
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
+import           Data.Aeson           (FromJSON, ToJSON)
 import           Data.Foldable        (foldl', traverse_)
 import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
@@ -85,7 +86,10 @@ data ValidationError =
     -- ^ The transaction produces an output with a negative value
     | ScriptFailure
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Ord, Show, Generic)
+
+instance FromJSON ValidationError
+instance ToJSON ValidationError
 
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
     deriving (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
