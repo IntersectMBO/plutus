@@ -45,6 +45,7 @@ library
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
+        Language.PlutusCore.Check.Uniques
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -89,6 +90,7 @@ library
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
         Language.PlutusCore.CBOR
+        Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypeEvalCheck
@@ -174,6 +176,7 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Resize
         Generators
         Pretty.Readable
+        Check.Spec
         TypeSynthesis.Spec
         Quotation.Spec
     default-language: Haskell2010
