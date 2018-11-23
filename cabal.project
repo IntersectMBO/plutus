@@ -1,15 +1,15 @@
 packages: language-plutus-core
           plutus-core-interpreter
           plutus-exe
-          core-to-plc
           wallet-api
-          plutus-th
+          plutus-tx
+          plutus-tx-plugin
           plutus-use-cases
           plutus-ir
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
-           , core-to-plc +development
+           , plutus-tx-plugin +development
            , plutus-exe +development
            , plutus-core-interpreter +development
            , plutus-ir +development

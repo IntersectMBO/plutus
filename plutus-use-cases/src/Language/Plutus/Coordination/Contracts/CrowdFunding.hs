@@ -11,7 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
@@ -34,11 +34,11 @@ import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 
-import           Language.Plutus.Lift       (makeLift)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, PubKey (..),
                                              ValidatorHash, Value (..))
-import           Language.Plutus.TH         (plutusUntyped)
-import qualified Language.Plutus.TH         as Builtins
+import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.TH       (plutusUntyped)
+import qualified Language.PlutusTx.TH       as Builtins
 import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                              WalletAPIError, andT, blockHeightT, fundsAtAddressT, otherError,
                                              ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)

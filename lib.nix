@@ -21,12 +21,12 @@ let
 
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
-    "core-to-plc"
     "language-plutus-core"
     "plutus-core-interpreter"
     "plutus-exe"
     "plutus-ir"
-    "plutus-th"
+    "plutus-tx"
+    "plutus-tx-plugin"
     "plutus-use-cases"
     "wallet-api"
   ];

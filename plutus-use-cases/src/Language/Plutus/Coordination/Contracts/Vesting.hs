@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.Vesting (
     Vesting(..),
     VestingTranche(..),
@@ -20,12 +20,12 @@ module Language.Plutus.Coordination.Contracts.Vesting (
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
-import           Language.Plutus.Lift       (makeLift)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                              PubKey (..), ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
-import           Language.Plutus.TH         (plutusUntyped)
-import qualified Language.Plutus.TH         as Builtins
+import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.TH       (plutusUntyped)
+import qualified Language.PlutusTx.TH       as Builtins
 import           Prelude                    hiding ((&&))
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
