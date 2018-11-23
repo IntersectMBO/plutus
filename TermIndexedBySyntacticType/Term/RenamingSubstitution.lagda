@@ -14,6 +14,7 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
 open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import TermIndexedBySyntacticType.Term
 \end{code}
@@ -160,7 +161,6 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
-
 substTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ------------------------

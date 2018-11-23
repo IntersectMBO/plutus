@@ -9,6 +9,8 @@ open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq; [_] to [_]≅)
 open import Data.Sum
+open import Data.List hiding ([_])
+open import Data.Product renaming (_,_ to _,,_)
 
 open import Type
 open import Type.Equality
@@ -20,8 +22,12 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
-open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import TermIndexedByNormalType.Term
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
+
+
 \end{code}
 
 
@@ -88,6 +94,15 @@ rename : ∀ {Γ Δ}
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
     ------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ renameNf ρ⋆ A )
+
+renameTel : ∀ {Γ Γ' Δ}
+ → (ρ⋆ : ⋆.Ren ∥ Γ ∥ ∥ Γ' ∥)
+ → (ρ :  ∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Γ' ∋ renameNf ρ⋆ A)
+ → {σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K}
+ → {As : List (Δ ⊢Nf⋆ *)}
+ → Tel Γ Δ σ As
+ → Tel Γ' Δ (renameNf ρ⋆ ∘ σ) As
+
 rename ρ⋆ ρ (` x)    = ` (ρ x)
 rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
@@ -116,6 +131,42 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
     (sym (rename-nf {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
   (unwrap1 (rename ρ⋆ ρ term))
 rename ρ⋆ ρ (con c) = con (renameTermCon ρ⋆ c)
+rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in substEq
+  (Δ ⊢_)
+  (trans
+    (trans
+      (trans
+        (evalCRSubst idCR (⋆.subst-cong (rename-embNf ρ⋆ ∘ σ) (embNf A)))
+        (trans
+          (subst-eval (embNf A) idCR (⋆.rename ρ⋆ ∘ embNf ∘ σ))
+          (idext
+            (λ α → transCR
+              (rename-eval (embNf (σ α)) idCR ρ⋆)
+              (idext (symCR ∘ renameVal-reflect ρ⋆ ∘ `) (embNf (σ α))))
+            (embNf A))))
+      (sym (subst-eval (embNf A) (renCR ρ⋆ ∘ idCR) (embNf ∘ σ))))
+    (sym (renameVal-eval  (⋆.subst (embNf ∘ σ) (embNf A)) idCR ρ⋆)))
+  (builtin bn (renameNf ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X))
+rename ρ⋆ ρ (error A) = error (renameNf ρ⋆ A)
+
+renameTel ρ⋆ ρ {As = []}     _         = _
+renameTel {Γ}{Δ} ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
+  substEq
+    (Δ ⊢_)
+    (trans
+      (renameVal-eval (⋆.subst (embNf ∘ σ) (embNf A)) idCR ρ⋆)
+      (trans
+        (subst-eval (embNf A) (renCR ρ⋆ ∘ idCR) (embNf ∘ σ))
+        (trans
+          (idext (λ α → transCR
+            (transCR
+              (idext (renameVal-reflect ρ⋆ ∘ `) (embNf (σ α)))
+              (symCR (rename-eval (embNf (σ α)) idCR ρ⋆)))
+            (symCR (evalCRSubst idCR (rename-embNf ρ⋆ (σ α))))) (embNf A))
+          (sym (subst-eval (embNf A) idCR (embNf ∘ renameNf ρ⋆ ∘ σ))))))
+    (rename ρ⋆ ρ M)
+  ,,
+  renameTel ρ⋆ ρ Ms
 \end{code}
 
 \begin{code}
@@ -232,6 +283,8 @@ subst {Γ}{Δ} σ⋆ σ (unwrap1 {pat = pat}{arg} term)       = substEq
          (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg)))))))
   (unwrap1 (subst σ⋆ σ term))
 subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
+subst {Γ}{Δ} σ⋆ x (builtin bn σ X) = error _ -- TODO
+subst σ⋆ x (error A) = error (substNf σ⋆ A)
 \end{code}
 
 \begin{code}

@@ -69,10 +69,12 @@ printBS .(con (bytestring 16 b x)) (V-con (bytestring .16 b x)) =
 help :  (M : ∅ ⊢ con integer (size⋆ 8)) → Steps M → String
 help M (steps x (done n v)) = show (printInt n v)
 help M (steps x out-of-gas) = "out of gas..."
+help M error                = "something went wrong..."
 
 helpB :  (M : ∅ ⊢ con bytestring (size⋆ 16)) → Steps M → String
 helpB M (steps x (done n v)) = printBS n v
 helpB M (steps x out-of-gas) = "out of gas..."
+helpB M error                = "something went wrong..."
 
 main : IO ⊤
 main = putStrLn (help _ (eval (gas 100) con2))

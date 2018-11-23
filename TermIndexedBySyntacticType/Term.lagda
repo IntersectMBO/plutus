@@ -9,6 +9,7 @@ open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
 open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)

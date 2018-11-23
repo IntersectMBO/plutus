@@ -121,6 +121,7 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
+  error : Progress M
 \end{code}
 
 \begin{code}
@@ -128,18 +129,24 @@ progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
 progress (` ())
 progress (ƛ M) = done V-ƛ
 progress (M · N) with progress M
-progress (M · N) | step p = step (ξ-·₁ p)
+...                   | error  = error
+progress (M · N)      | step p = step (ξ-·₁ p)
 progress (.(ƛ _) · N) | done V-ƛ with progress N
-progress (.(ƛ _) · N) | done V-ƛ | step p = step (ξ-·₂ V-ƛ p)
+...                              | error  = error
+progress (.(ƛ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
 progress (Λ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
+...               | error  = error
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (wrap1 pat arg term) = done V-wrap1
 progress (unwrap1 term)       with progress term
+...                     | error  = error
 progress (unwrap1 term) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (con (integer s i x))    = done (V-con _)
 progress (con (bytestring s b x)) = done (V-con _)
 progress (con (TermCon.size s))   = done (V-con _)
+progress (builtin bn σ X) = error
+progress (error A)        = error

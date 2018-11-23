@@ -5,14 +5,26 @@ module TermIndexedByNormalType.Term where
 ## Imports
 
 \begin{code}
+open import Function hiding (_∋_)
+
+
+
 open import Type
 open import Type.BetaNormal
+
+booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
+booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
+
+
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
+open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
-
-
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.Unit
 \end{code}
 
 ## Fixity declarations
@@ -82,6 +94,8 @@ A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, or a type
 application.
 \begin{code}
+Tel : ∀ Γ Δ → (∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
+
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
 
   ` : ∀ {Γ J} {A : ∥ Γ ∥ ⊢Nf⋆ J}
@@ -129,4 +143,18 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → TermCon (con tcn s)
       -------------------
     → Γ ⊢ con tcn s
+
+  builtin : ∀{Γ}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J)
+    → Tel Γ Δ σ As
+      ----------------------------------
+    → Γ ⊢ substNf σ C
+
+  error : ∀{Γ} → (A : ∥ Γ ∥ ⊢Nf⋆ *) → Γ ⊢ A
+
+Tel Γ Δ σ [] = ⊤
+Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
+
 \end{code}

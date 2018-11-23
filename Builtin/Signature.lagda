@@ -1,12 +1,26 @@
 \begin{code}
-module Builtin.Signature where
+open import Builtin.Constant.Type
+open import Data.Nat
+
+module Builtin.Signature
+  (Ctx⋆ Kind : Set)
+  (∅ : Ctx⋆)
+  (_,⋆_ : Ctx⋆ → Kind → Ctx⋆)
+  (* # : Kind)
+  (_∋⋆_ : Ctx⋆ → Kind → Set)
+  (Z : ∀ {Φ J} → (Φ ,⋆ J) ∋⋆ J)
+  (S : ∀ {Φ J K} → Φ ∋⋆ J → (Φ ,⋆ K) ∋⋆ J)
+  (_⊢⋆_ : Ctx⋆ → Kind → Set)
+  (` : ∀ {Φ J} → Φ ∋⋆ J → Φ ⊢⋆ J)
+  (con : ∀{φ} → TyCon → φ ⊢⋆ # → φ ⊢⋆ *)
+  (boolean : ∀{Γ} → Γ ⊢⋆ *)
+  (size⋆ : ∀{φ} → ℕ → φ ⊢⋆ #)
+  where
 \end{code}
 
 ## Imports
 
 \begin{code}
-open import Type
-open import Builtin.Constant.Type
 
 open import Data.List
 open import Data.Product renaming (_,_ to _,,_)
@@ -110,7 +124,7 @@ SIG equalsInteger =
   ,,
   boolean
 SIG resizeInteger =
-  (∅ ,⋆ # ,⋆ #)
+  ((∅ ,⋆ #) ,⋆ #)
   ,,
   (con size (` Z) ∷ con integer (` (S Z)) ∷ [])
   ,,
@@ -122,7 +136,7 @@ SIG sizeOfInteger =
   ,,
   con size (` Z)
 SIG intToByteString =
-  ∅ ,⋆ # ,⋆ #
+  (∅ ,⋆ #) ,⋆ #
   ,,
   con size (` Z) ∷ con integer (` (S Z)) ∷ []
   ,,
@@ -134,13 +148,13 @@ SIG concatenate =
   ,,
   con bytestring (` Z)
 SIG takeByteString =
-  (∅ ,⋆ #  ,⋆ #)
+  (∅ ,⋆ #)  ,⋆ #
   ,,
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
   con bytestring (` Z)
 SIG dropByteString =
-  (∅ ,⋆ #  ,⋆ #)
+  (∅ ,⋆ #)  ,⋆ #
   ,,
   (con integer (` (S Z)) ∷ con bytestring (` Z) ∷ [])
   ,,
@@ -158,7 +172,7 @@ SIG sha3-256 =
   ,,
   con bytestring (size⋆ 32)
 SIG verifySignature =
-  ∅ ,⋆ # ,⋆ # ,⋆ #
+  ((∅ ,⋆ #) ,⋆ #) ,⋆ #
   ,,
   con bytestring (` (S (S Z)))
     ∷ con bytestring (` (S Z))
@@ -167,7 +181,7 @@ SIG verifySignature =
   ,,
   boolean
 SIG resizeByteString =
-  ∅ ,⋆ # ,⋆ #
+  (∅ ,⋆ #) ,⋆ #
   ,,
   con size (` Z) ∷ con bytestring (` (S Z)) ∷ []
   ,,
