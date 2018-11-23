@@ -39,6 +39,7 @@ Let's write some code!
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+module README where
 import Language.PlutusTx.TH
 import Language.PlutusTx.Lift
 import Language.PlutusCore
@@ -79,7 +80,7 @@ mostly won't want to look at the output of the compiler. However, it's instructi
 look at it here just to get a vague idea of what's going on.
 
 We can already see a few features of Plutus Core here:
-- We have a *versioned* program. This ensures that we always know how to handle
+- The program includes the *language version*. This ensures that we always know how to handle
   programs once they're on the chain.
 - Integers have *sizes*, in this case 8 bytes (64 bits).
 
@@ -145,6 +146,18 @@ This works for your own datatypes too! (See [Haskell language support](#haskell-
 for some caveats.) Unlike functions, datatypes do not need to be defined inside the
 expression, hence why we can use types like `Maybe` from the `Prelude`.
 
+Here's a small example with a datatype of our own representing a potentially open-ended
+end date.
+```haskell
+data EndDate = Fixed Int | Never
+
+shouldEnd :: PlcCode
+shouldEnd = $$(plutus [|| \(end::EndDate) (current::Int) -> case end of
+    Fixed n -> n <= current
+    Never -> False
+   ||])
+```
+
 ### Using PlutusTx builtins
 
 PlutusTx has some builtin types and functions available, both for working with primitive
@@ -198,7 +211,7 @@ addOneToN n =
         addOne = $$(plutus [|| \(x:: Int) -> x + 1 ||])
         -- TODO: This looks terrible
         arg = Program () (defaultVersion ()) (runQuote $ unsafeLiftPlc n)
-    in applyProgram (getAst addOne) arg
+    in (getAst addOne) `applyProgram` arg
 ```
 
 Here we have lifted the Haskell value `4` into a Plutus Core term at runtime.
@@ -212,17 +225,25 @@ The combined program just applies the compiled lambda to the lifted value
 into a builtin). We've then used the CK evaluator for Plutus Core to evaluate
 the program and check that the result was what we expected
 
-This is more or less all you need to get started - from here on it should mostly
-be like writing normal Haskell.
+Here's an example with our custom datatype. The mysterious output is the encoded version of `False`.
 
 ```haskell
-main :: IO ()
-main = do
-    _ <- traverse (putStrLn . show . prettyPlcDef . getAst) [
-        integerOne,
-        integerIdentity,
-        functions,
-        matchMaybe
-        ]
-    putStrLn . show . prettyPlcDef $ runCk $ addOneToN 4
+makeLift ''EndDate
+
+-- |
+-- >>> let program = shouldEndAt Never 5
+-- >>> prettyPlcDef $ runCk program
+-- (abs
+--   out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
+-- )
+shouldEndAt :: EndDate -> Int -> Program TyName Name ()
+shouldEndAt end current =
+    let
+        -- TODO: This looks terrible
+        endP = Program () (defaultVersion ()) (runQuote $ unsafeLiftPlc end)
+        currentP = Program () (defaultVersion ()) (runQuote $ unsafeLiftPlc current)
+    in (getAst shouldEnd) `applyProgram` endP `applyProgram` currentP
 ```
+
+This is more or less all you need to get started - from here on it should mostly
+be like writing normal Haskell.
