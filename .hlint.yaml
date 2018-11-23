@@ -38,6 +38,8 @@
 - ignore: {name: Redundant if, within: [Language.Plutus.Coordination.Contracts.CrowdFunding, Language.Plutus.Coordination.Contracts.Vesting, Language.Plutus.Runtime.TH]}
 # This is rarely better, and often more confusing
 - ignore: {name: Use asks}
+# It seems clearer to use case than fromMaybe
+- ignore: {name: fromMaybe}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***
