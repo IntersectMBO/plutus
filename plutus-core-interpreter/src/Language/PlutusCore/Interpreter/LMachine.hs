@@ -54,7 +54,7 @@ data Closure = Closure
     } deriving (Show)
 
 -- | L machine environments
--- Each row is a mapping from the 'Unique' representing a variable to a heap location
+-- Each entry is a mapping from the 'Unique' representing a variable to a heap location
 newtype Environment = Environment (IntMap HeapLoc)
     deriving (Show)
 
