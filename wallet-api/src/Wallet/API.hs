@@ -8,6 +8,7 @@
 -- | Interface between wallet and Plutus client
 module Wallet.API(
     WalletAPI(..),
+    WalletDiagnostics(..),
     Range(..),
     EventHandler(..),
     KeyPair(..),
@@ -39,7 +40,9 @@ module Wallet.API(
     -- * Error handling
     WalletAPIError(..),
     insufficientFundsError,
-    otherError
+    otherError,
+    -- * Logging
+    WalletLog(..)
     ) where
 
 import           Control.Monad.Error.Class  (MonadError (..))
@@ -194,6 +197,17 @@ data WalletAPIError =
 
 instance FromJSON WalletAPIError
 instance ToJSON WalletAPIError
+
+newtype WalletLog = WalletLog { getWalletLog :: [Text] }
+    deriving (Eq, Ord, Show, Generic, Semigroup, Monoid)
+
+instance FromJSON WalletLog
+instance ToJSON WalletLog
+
+-- | The ability to log messages and throw errors
+class MonadError WalletAPIError m => WalletDiagnostics m where
+    -- | Write some information to the log
+    logMsg :: Text -> m ()
 
 -- | Used by Plutus client to interact with wallet
 class WalletAPI m where
