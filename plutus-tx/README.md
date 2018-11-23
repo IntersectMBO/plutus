@@ -36,9 +36,9 @@ Not supported, and support not planned:
 Let's write some code!
 
 ```haskell
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 import Language.PlutusTx.TH
 import Language.PlutusTx.Lift
 import Language.PlutusCore
