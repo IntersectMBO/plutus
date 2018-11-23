@@ -4,8 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances
-    ( PlcChar (..)
-    , PlcList (..)
+    ( PlcList (..)
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Emit
@@ -41,22 +40,16 @@ instance KnownDynamicBuiltinType [Char] where
     readDynamicBuiltin _ (Constant () (BuiltinStr () s)) = return $ Just s
     readDynamicBuiltin _ _                               = return Nothing
 
-newtype PlcChar = PlcChar
-    { unPlcChar :: Char
-    } deriving (Eq, Show)
-
--- Encode 'PlcChar' from Haskell as @integer 4@ from PLC.
-instance KnownDynamicBuiltinType PlcChar where
+-- Encode 'Char' from Haskell as @integer 4@ from PLC.
+instance KnownDynamicBuiltinType Char where
     getTypeEncoding _ = return $ TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
 
-    makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord . unPlcChar
+    makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
 
-    readDynamicBuiltin _ (Constant () (BuiltinInt () 4 int)) =
-        return . Just . PlcChar . chr $ fromIntegral int
+    readDynamicBuiltin _ (Constant () (BuiltinInt () 4 int)) = return . Just . chr $ fromIntegral int
     readDynamicBuiltin _ _                                   = return Nothing
 
-instance PrettyDynamic PlcChar where
-    prettyDynamic = Doc.pretty . unPlcChar
+instance PrettyDynamic Char
 
 newtype PlcList a = PlcList
     { unPlcList :: [a]
