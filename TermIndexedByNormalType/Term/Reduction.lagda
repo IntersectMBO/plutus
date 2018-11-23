@@ -12,6 +12,8 @@ open import Type.BetaNBE
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
+open import Builtin.Constant.Type
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Empty
@@ -40,6 +42,11 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
    → Value (wrap1 pat arg term)
+
+  V-con : ∀{Γ}{n}{tcn : TyCon}
+    → (cn : TermCon (con tcn (size⋆ n)))
+    → Value (con {Γ} cn)
+
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -133,4 +140,6 @@ progress (wrap1 pat arg term) = done V-wrap1
 progress (unwrap1 term)       with progress term
 progress (unwrap1 term) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
-
+progress (con (integer s i x))    = done (V-con _)
+progress (con (bytestring s b x)) = done (V-con _)
+progress (con (TermCon.size s))   = done (V-con _)

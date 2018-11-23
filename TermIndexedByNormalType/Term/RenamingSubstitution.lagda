@@ -20,6 +20,7 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import TermIndexedByNormalType.Term
 \end{code}
 
@@ -70,8 +71,18 @@ rename-nf A ρ⋆ = trans
       (symCR (rename-eval A idCR ρ⋆))))
 \end{code}
 
-\begin{code}
 
+\begin{code}
+renameTermCon : ∀ {Φ Ψ}
+  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
+    -----------------------------------------------------
+  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renameNf ρ⋆ A ))
+renameTermCon ρ⋆ (integer s i p)    = integer s i p
+renameTermCon ρ⋆ (bytestring s b p) = bytestring s b p
+renameTermCon ρ⋆ (size s)           = size s
+\end{code}
+
+\begin{code}
 rename : ∀ {Γ Δ}
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ∋ renameNf ρ⋆ A)
@@ -104,6 +115,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
              (rename-embNf ρ⋆ arg))
     (sym (rename-nf {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
   (unwrap1 (rename ρ⋆ ρ term))
+rename ρ⋆ ρ (con c) = con (renameTermCon ρ⋆ c)
 \end{code}
 
 \begin{code}
@@ -159,6 +171,16 @@ exts⋆ {Γ}{Δ} σ⋆ σ {J}{K}(T {A = A} x) =
 \end{code}
 
 \begin{code}
+substTermCon : ∀ {Φ Ψ}
+  → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
+    ------------------------------------------------------
+  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (substNf σ⋆ A ))
+substTermCon σ⋆ (integer s i p)    = integer s i p
+substTermCon σ⋆ (bytestring s b p) = bytestring s b p
+substTermCon σ⋆ (size s)           = size s
+\end{code}
+
+\begin{code}
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
@@ -209,6 +231,7 @@ subst {Γ}{Δ} σ⋆ σ (unwrap1 {pat = pat}{arg} term)       = substEq
                (completeness (soundness (⋆.subst (embNf ∘ σ⋆) (embNf pat)))))))
          (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg)))))))
   (unwrap1 (subst σ⋆ σ term))
+subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
 \end{code}
 
 \begin{code}

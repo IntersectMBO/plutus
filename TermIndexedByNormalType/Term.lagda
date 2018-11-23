@@ -9,6 +9,8 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
+
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
 \end{code}
@@ -122,4 +124,9 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
     → (term : Γ ⊢ ne (μ1 · pat · arg))
     → Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)
+
+  con : ∀{Γ s tcn}
+    → TermCon (con tcn s)
+      -------------------
+    → Γ ⊢ con tcn s
 \end{code}
