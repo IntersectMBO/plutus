@@ -25,8 +25,7 @@ module Language.Plutus.Coordination.Contracts.CrowdFunding (
 
 import           Control.Applicative        (Applicative (..))
 import           Control.Lens
-import           Control.Monad              (Monad (..), void)
-import           Control.Monad.Error.Class  (MonadError (..))
+import           Control.Monad              (void)
 import           Data.Foldable              (foldMap)
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (fromMaybe)
@@ -40,7 +39,7 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.TH       (plutusUntyped)
 import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
-                                             WalletAPIError, andT, blockHeightT, fundsAtAddressT, otherError,
+                                             WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
                                              ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxId', Validator (..), scriptTxIn)
 import qualified Wallet.UTXO                as UTXO
@@ -68,9 +67,7 @@ makeLift ''CampaignAction
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
+contribute :: (WalletAPI m, WalletDiagnostics m)
     => Campaign
     -> Value
     -> m ()
@@ -82,13 +79,16 @@ contribute cmp value = do
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
     tx <- payToScript (campaignAddress cmp) v' ds
+    logMsg "Submitted contribution"
 
     register (refundTrigger cmp) (refund (UTXO.hashTx tx) cmp)
+    logMsg "Registered refund trigger"
 
 -- | Register a [[EventHandler]] to collect all the funds of a campaign
 --
-collect :: (Monad m, WalletAPI m) => Campaign -> m ()
+collect :: (WalletAPI m, WalletDiagnostics m) => Campaign -> m ()
 collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
+        logMsg "Collecting funds"
         am <- watchedAddresses
         let scr        = contributionScript cmp
             contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
@@ -196,8 +196,9 @@ collectFundsTrigger c = andT
     (blockHeightT $ fromIntegral . getHeight <$> Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
 -- | Claim a refund of our campaign contribution
-refund :: (Monad m, WalletAPI m) => TxId' -> Campaign -> EventHandler m
+refund :: (WalletAPI m, WalletDiagnostics m) => TxId' -> Campaign -> EventHandler m
 refund txid cmp = EventHandler $ \_ -> do
+    logMsg "Claiming refund"
     am <- watchedAddresses
     let adr     = campaignAddress cmp
         utxo    = fromMaybe Map.empty $ am ^. at adr

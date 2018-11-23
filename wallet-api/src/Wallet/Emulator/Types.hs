@@ -1,10 +1,12 @@
-{-# LANGUAGE ConstraintKinds    #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -74,8 +76,8 @@ import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
-                                             WalletAPIError (..), addresses, annTruthValue, getAnnot, keyPair, pubKey,
-                                             signature)
+                                             WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
+                                             annTruthValue, getAnnot, keyPair, pubKey, signature)
 import qualified Wallet.Emulator.AddressMap as AM
 import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxId', TxOutRef', Value,
                                              hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
@@ -93,8 +95,14 @@ data Notification = BlockValidated Block
                   deriving (Show, Eq, Ord)
 
 -- manually records the list of transactions to be submitted
-newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer [Tx] ))) a }
-    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx], MonadError WalletAPIError)
+newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer (WalletLog, [Tx])))) a }
+    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadError WalletAPIError, MonadWriter (WalletLog, [Tx]))
+
+instance WalletDiagnostics EmulatedWalletApi where
+    logMsg t = tell (WalletLog [t], [])
+
+tellTx :: [Tx] -> EmulatedWalletApi ()
+tellTx tx = EmulatedWalletApi $ tell (mempty, tx)
 
 -- Wallet code
 
@@ -146,6 +154,8 @@ data EmulatorEvent =
     -- ^ A block has been added to the blockchain
     | WalletError Wallet WalletAPIError
     -- ^ A `WalletAPI` action produced an error
+    | WalletInfo Wallet T.Text
+    -- ^ Debug information produced by a wallet
     deriving (Eq, Ord, Show, Generic)
 
 instance FromJSON EmulatorEvent
@@ -182,7 +192,7 @@ instance WalletAPI EmulatedWalletApi where
     submitTxn txn =
         let adrs = txOutAddress <$> txOutputs txn in
         modifying addressMap (AM.addAddresses adrs) >>
-        tell [txn]
+        tellTx [txn]
 
     myKeyPair = use ownKeyPair
 
@@ -310,8 +320,8 @@ liftEmulatedWallet :: (MonadState EmulatorState m) => Wallet -> EmulatedWalletAp
 liftEmulatedWallet wallet act = do
     emState <- get
     let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ _walletStates emState
-        ((out, newState), txns) = runWriter $ runStateT (runExceptT (runEmulatedWalletApi act)) walletState
-        events = TxnSubmit . hashTx <$> txns
+        ((out, newState), (msgs, txns)) = runWriter $ runStateT (runExceptT (runEmulatedWalletApi act)) walletState
+        events = (TxnSubmit . hashTx <$> txns) ++ (WalletInfo wallet <$> getWalletLog msgs)
     put emState {
         _txPool = txns ++ _txPool emState,
         _walletStates = Map.insert wallet newState $ _walletStates emState,
