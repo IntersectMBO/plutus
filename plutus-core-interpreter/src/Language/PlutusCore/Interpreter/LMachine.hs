@@ -30,16 +30,22 @@ module Language.PlutusCore.Interpreter.LMachine
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
-import           Data.IntMap                                     (IntMap)
-import qualified Data.IntMap                                     as IntMap
-import qualified Data.Map                                        as Map
+import           Data.IntMap                  (IntMap)
+import qualified Data.IntMap                  as IntMap
+import qualified Data.Map                     as Map
 
 type Plain f = f TyName Name ()
 
+-- Let's just throw exceptions for the time being: error handling is changeable at the moment
+data LMachineException =
+    LMachineException String (Plain Term)
+  | LMachineStringException String
+    deriving (Show, Typeable)
+
+instance Exception LMachineException
 
 -- | A term together with an enviroment mapping free variables to heap locations
 data Closure = Closure
@@ -102,11 +108,8 @@ updateEnvironment index cl (Environment m) = Environment (IntMap.insert index cl
 lookupHeapLoc :: Name () -> Environment -> HeapLoc
 lookupHeapLoc name (Environment env) =
     case IntMap.lookup (unUnique $ nameUnique name) env of
-      Nothing  -> error $ "Name not found in environment: " ++ show (nameString name) ++ "/" ++ show (unUnique $ nameUnique name)
-                  -- or maybe throw $ MachineException OpenTermEvaluatedMachineError var
-                  -- This might be a bit misleading if the error's not due to an open term.
+      Nothing  -> throw $ LMachineStringException ("Name " ++ show (nameString name) ++ " missing from environment")
       Just loc -> loc
-
 
 emptyHeap :: Heap
 emptyHeap = Heap IntMap.empty 0
@@ -135,28 +138,28 @@ lookupHeap l (Heap h _) =
 computeL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
 computeL dbnms ctx heap cl@(Closure term env) =
     case term of
-      TyInst _ fun ty      -> computeL dbnms (FrameTyInstArg ty : ctx)                 heap (Closure fun env)
-      Apply _ fun arg      -> computeL dbnms (FrameAppArg (Closure arg env) : ctx)     heap (Closure fun env)
-      Wrap ann tyn ty term -> computeL dbnms (FrameWrap ann tyn ty : ctx)              heap (Closure term env)
-      Unwrap _ term        -> computeL dbnms (FrameUnwrap : ctx)                       heap (Closure term env)
-      TyAbs{}              -> returnL  dbnms ctx heap cl
-      LamAbs{}             -> returnL  dbnms ctx heap cl
-      Builtin{}            -> returnL  dbnms ctx heap cl
-      Constant{}           -> returnL  dbnms ctx heap cl
-      Error{}              -> Failure
-      Var _ name           -> let l = lookupHeapLoc name env
+      TyInst _ fun ty       -> computeL dbnms (FrameTyInstArg ty : ctx)                 heap (Closure fun env)
+      Apply _ fun arg       -> computeL dbnms (FrameAppArg (Closure arg env) : ctx)     heap (Closure fun env)
+      Wrap ann tyn ty term' -> computeL dbnms (FrameWrap ann tyn ty : ctx)              heap (Closure term' env)
+      Unwrap _ term'        -> computeL dbnms (FrameUnwrap : ctx)                       heap (Closure term' env)
+      TyAbs{}               -> returnL  dbnms ctx heap cl
+      LamAbs{}              -> returnL  dbnms ctx heap cl
+      Builtin{}             -> returnL  dbnms ctx heap cl
+      Constant{}            -> returnL  dbnms ctx heap cl
+      Error{}               -> Failure
+      Var _ name            -> let l = lookupHeapLoc name env
                               in case lookupHeap l heap of
                                    Evaluated cl'   -> returnL dbnms ctx heap cl'
                                    Unevaluated cl' -> computeL dbnms (FrameHeapUpdate l : ctx) heap cl'
 
 
 -- | Return a closure containing a value. Ideally the fact that we've
--- got a value would be enforced in the (Haskell) types Values still
--- have to be contained in closures.  We could have something like @v
--- = \x.y@, where @y@y is bound in an environment.  If we ever go on
--- to apply @v@, we'll need the value of @x@.
+-- got a value would be enforced in the (Haskell) type. Values still
+-- have to be contained in closures.  We could have something like
+-- @v= \x.y@, where @y@ is bound in an environment.  If we ever go on
+-- to apply @v@, we'll need the value of @y@.
 returnL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
-returnL _ [] heap res                                                          = Success res heap
+returnL _ [] heap res                                                            = Success res heap
 returnL dbnms (FrameTyInstArg ty        : ctx) heap cl                           = instantiateEvaluate dbnms ctx heap ty cl
 returnL dbnms (FrameAppArg argClosure   : ctx) heap cl                           = evaluateFun dbnms ctx heap cl argClosure
 returnL dbnms (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL dbnms ctx heap $ Closure (Wrap ann tyn ty v) env
@@ -164,7 +167,7 @@ returnL dbnms (FrameHeapUpdate l        : ctx) heap cl                          
                                                                                    where heap' = updateHeap l (Evaluated cl) heap
                                                                                       -- Leave this out to make the machine call-by-name (really slow)
 returnL dbnms (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL dbnms ctx heap (Closure t env)
-returnL     _ (FrameUnwrap              : _)      _ (Closure term env)           = throw $ MachineException NonWrapUnwrappedMachineError term
+returnL     _ (FrameUnwrap              : _)      _ (Closure term _)             = throw $ LMachineException "Attemtping to unwrap non-wrapped term" term
 
 
 -- | Apply a function to an argument and proceed.
@@ -200,32 +203,30 @@ evaluateFun dbnms ctx heap (Closure fun funEnv) argClosure =
                 let term = Apply () fun arg'
                 in case termAsPrimIterApp term of
                      Nothing ->
-                         error "throw $ MachineException NonPrimitiveApplicationMachineError term"
-                               -- "Cannot reduce a not immediately reducible application."  This message isn't too informative.
+                         throw $ LMachineException "Trying to apply invalid term" term
+                         -- "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
                      Just (IterApp headName spine) ->
                          case runQuote $ applyStagedBuiltinName dbnms headName spine of
                            ConstAppSuccess term' -> returnL dbnms ctx heap' (Closure term' funEnv)
                            ConstAppStuck         -> returnL dbnms ctx heap' (Closure term  funEnv)
                            -- It's arguable what the env should be here. Again that depends on what the built-in can return.
                            -- Ideally it'd always return a closed term, so the environment should be irrelevant.
-                           ConstAppFailure       -> error $ "ConstAppFailure" ++ show term
-                           ConstAppError _err    -> error "throw $ MachineException (ConstAppMachineError err) term"
+                           ConstAppFailure       -> throw $ LMachineException "ConstAppFailure" term
+                           ConstAppError _err    -> throw $ LMachineException "ConstAppError" term
 
 -- | Look up a 'DynamicBuiltinName'
 lookupDynamicBuiltinName :: DynamicBuiltinNameMeanings -> DynamicBuiltinName -> DynamicBuiltinNameMeaning
 lookupDynamicBuiltinName dbnms dynName =
     case Map.lookup dynName (unDynamicBuiltinNameMeanings dbnms) of
-        Nothing   -> error "throw $ MachineException err term" {- where
-            err  = OtherMachineError $ UnknownDynamicBuiltinNameError dynName
-            term = Constant () $ DynBuiltinName () dynName-}
-        Just mean -> mean
+        Nothing      -> throw $ LMachineStringException ("Unknown dynamic name " ++ show dynName)
+        Just meaning -> meaning
 
 -- | Apply a staged built-in name to a list of values
-applyStagedBuiltinName :: DynamicBuiltinNameMeanings -> StagedBuiltinName -> [Plain Value] -> Quote ConstAppResult
+applyStagedBuiltinName :: DynamicBuiltinNameMeanings -> StagedBuiltinName -> [Plain Value] -> (Quote ConstAppResult)
 applyStagedBuiltinName dbnms (DynamicStagedBuiltinName name) args =
-    case lookupDynamicBuiltinName dbnms name of
-      DynamicBuiltinNameMeaning sch x -> applyTypeSchemed sch x args
-applyStagedBuiltinName _dbnms (StaticStagedBuiltinName  name) args = applyBuiltinName name args
+    case lookupDynamicBuiltinName dbnms name
+    of DynamicBuiltinNameMeaning sch x -> applyTypeSchemed sch x args
+applyStagedBuiltinName _ (StaticStagedBuiltinName  name) args = applyBuiltinName name args
 
 
 -- | Instantiate a term with a type and proceed.
@@ -239,7 +240,7 @@ instantiateEvaluate dbnms ctx heap ty (Closure fun env) =
           computeL dbnms ctx heap (Closure body env)
       _ -> if isJust $ termAsPrimIterApp fun
            then returnL dbnms ctx heap $ Closure (TyInst () fun ty) env
-           else error "throw $ MachineException NonPrimitiveInstantiationMachineError fun"
+           else throw $ LMachineException "Attempting to instantiate invalid term" fun
 
 -- | Evaluate a term using the L machine. This internal version returns a result
 -- containing the final heap and environment, which you might need to know. For example,
@@ -249,9 +250,10 @@ instantiateEvaluate dbnms ctx heap ty (Closure fun env) =
 evaluateL_internal :: DynamicBuiltinNameMeanings -> Term TyName Name () -> LMachineResult
 evaluateL_internal dbnms t = computeL dbnms [] emptyHeap (Closure t (Environment IntMap.empty))
 
--- | Evaluate a term using the L machine. May throw a 'MachineException'.
+-- | Evaluate a term using the L machine. May throw an 'LMachineException'.
 evaluateL :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
-evaluateL dbnms t = case evaluateL_internal dbnms t of
+evaluateL dbnms t =
+    case evaluateL_internal dbnms t of
       Success (Closure r _) (Heap _ _) -> EvaluationSuccess r
       Failure                          -> EvaluationFailure
 
