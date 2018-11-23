@@ -4,115 +4,115 @@
       [
         {
           (abs
-            MyEnum_92
+            MyEnum_93
             (type)
             (lam
-              Enum1_93
-              MyEnum_92
+              Enum1_94
+              MyEnum_93
               (lam
-                Enum2_94
-                MyEnum_92
+                Enum2_95
+                MyEnum_93
                 (lam
-                  MyEnum_match_95
-                  (fun MyEnum_92 (all out_MyEnum_96 (type) (fun out_MyEnum_96 (fun out_MyEnum_96 out_MyEnum_96))))
+                  MyEnum_match_96
+                  (fun MyEnum_93 (all out_MyEnum_97 (type) (fun out_MyEnum_97 (fun out_MyEnum_97 out_MyEnum_97))))
                   [
                     [
                       {
                         (abs
-                          Unit_97
+                          Unit_98
                           (type)
                           (lam
+                            Unit_99
                             Unit_98
-                            Unit_97
                             (lam
-                              Unit_match_99
-                              (fun Unit_97 (all out_Unit_100 (type) (fun out_Unit_100 out_Unit_100)))
+                              Unit_match_100
+                              (fun Unit_98 (all out_Unit_101 (type) (fun out_Unit_101 out_Unit_101)))
                               [
                                 (lam
-                                  error_101
-                                  (all a_102 (type) (fun Unit_97 a_102))
+                                  error_102
+                                  (all a_103 (type) (fun Unit_98 a_103))
                                   (lam
-                                    ds_103
-                                    MyEnum_92
+                                    ds_104
+                                    MyEnum_93
                                     [
                                       [
                                         [
                                           {
                                             [
-                                              MyEnum_match_95 ds_103
+                                              MyEnum_match_96 ds_104
                                             ]
-                                            (fun Unit_97 [(con integer) (con 8)])
+                                            (fun Unit_98 [(con integer) (con 8)])
                                           }
-                                          (lam thunk_104 Unit_97 (con 8 ! 1))
+                                          (lam thunk_105 Unit_98 (con 8 ! 1))
                                         ]
                                         (lam
-                                          thunk_105
-                                          Unit_97
+                                          thunk_106
+                                          Unit_98
                                           [
                                             {
-                                              error_101 [(con integer) (con 8)]
+                                              error_102 [(con integer) (con 8)]
                                             }
-                                            Unit_98
+                                            Unit_99
                                           ]
                                         )
                                       ]
-                                      Unit_98
+                                      Unit_99
                                     ]
                                   )
                                 )
                                 (abs
-                                  e_106
+                                  e_107
                                   (type)
-                                  (lam thunk_107 Unit_97 (error e_106))
+                                  (lam thunk_108 Unit_98 (error e_107))
                                 )
                               ]
                             )
                           )
                         )
-                        (all out_Unit_108 (type) (fun out_Unit_108 out_Unit_108))
+                        (all out_Unit_109 (type) (fun out_Unit_109 out_Unit_109))
                       }
                       (abs
-                        out_Unit_109
+                        out_Unit_110
                         (type)
-                        (lam case_Unit_110 out_Unit_109 case_Unit_110)
+                        (lam case_Unit_111 out_Unit_110 case_Unit_111)
                       )
                     ]
                     (lam
-                      x_111
-                      (all out_Unit_112 (type) (fun out_Unit_112 out_Unit_112))
-                      x_111
+                      x_112
+                      (all out_Unit_113 (type) (fun out_Unit_113 out_Unit_113))
+                      x_112
                     )
                   ]
                 )
               )
             )
           )
-          (all out_MyEnum_113 (type) (fun out_MyEnum_113 (fun out_MyEnum_113 out_MyEnum_113)))
+          (all out_MyEnum_114 (type) (fun out_MyEnum_114 (fun out_MyEnum_114 out_MyEnum_114)))
         }
         (abs
-          out_MyEnum_114
+          out_MyEnum_115
           (type)
           (lam
-            case_Enum1_115
-            out_MyEnum_114
-            (lam case_Enum2_116 out_MyEnum_114 case_Enum1_115)
+            case_Enum1_116
+            out_MyEnum_115
+            (lam case_Enum2_117 out_MyEnum_115 case_Enum1_116)
           )
         )
       ]
       (abs
-        out_MyEnum_117
+        out_MyEnum_118
         (type)
         (lam
-          case_Enum1_118
-          out_MyEnum_117
-          (lam case_Enum2_119 out_MyEnum_117 case_Enum2_119)
+          case_Enum1_119
+          out_MyEnum_118
+          (lam case_Enum2_120 out_MyEnum_118 case_Enum2_120)
         )
       )
     ]
     (lam
-      x_120
-      (all out_MyEnum_121 (type) (fun out_MyEnum_121 (fun out_MyEnum_121 out_MyEnum_121)))
-      x_120
+      x_121
+      (all out_MyEnum_122 (type) (fun out_MyEnum_122 (fun out_MyEnum_122 out_MyEnum_122)))
+      x_121
     )
   ]
 )

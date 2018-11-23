@@ -156,6 +156,8 @@ builtinNames = [
     , 'Builtins.appendString
     , 'Builtins.emptyString
     , 'Builtins.charToString
+
+    , 'Builtins.trace
     ]
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
@@ -189,6 +191,8 @@ defineBuiltinTerms = do
     int <- GHC.getName <$> getThing ''Int
     bool <- GHC.getName <$> getThing ''Bool
     unit <- GHC.getName <$> getThing ''()
+    str <- GHC.getName <$> getThing ''Builtins.String
+    char <- GHC.getName <$> getThing ''Char
 
     -- Bytestring builtins
     do
@@ -260,13 +264,16 @@ defineBuiltinTerms = do
     -- Strings and chars
     do
         let term = mkDynBuiltin PLC.dynamicAppendName
-        defineBuiltinTerm 'Builtins.appendString term []
+        defineBuiltinTerm 'Builtins.appendString term [str]
     do
         let term = PIR.Constant () $ PLC.BuiltinStr () ""
-        defineBuiltinTerm 'Builtins.emptyString term []
+        defineBuiltinTerm 'Builtins.emptyString term [str]
     do
         let term = mkDynBuiltin PLC.dynamicCharToStringName
-        defineBuiltinTerm 'Builtins.charToString term []
+        defineBuiltinTerm 'Builtins.charToString term [char, str]
+    do
+        let term = mkDynBuiltin PLC.dynamicTraceName
+        defineBuiltinTerm 'Builtins.trace term [str, unit]
 
 defineBuiltinTypes :: Converting m => m ()
 defineBuiltinTypes = do
