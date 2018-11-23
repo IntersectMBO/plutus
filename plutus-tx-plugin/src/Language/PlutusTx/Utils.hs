@@ -17,6 +17,9 @@ appSize n t = PIR.TyApp () t (PLC.TyInt () n)
 mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name ()
 mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
 
+mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name ()
+mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
+
 mkIntFun :: PLC.BuiltinName -> PIR.Term PIR.TyName PIR.Name ()
 mkIntFun name = instSize haskellIntSize (mkBuiltin name)
 

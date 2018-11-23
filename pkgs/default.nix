@@ -55688,6 +55688,8 @@ license = stdenv.lib.licenses.bsd3;
 , doctest
 , language-plutus-core
 , markdown-unlit
+, mtl
+, plutus-core-interpreter
 , plutus-tx-plugin
 , stdenv
 , tasty
@@ -55708,6 +55710,8 @@ base
 doctest
 language-plutus-core
 markdown-unlit
+mtl
+plutus-core-interpreter
 plutus-tx-plugin
 tasty
 template-haskell
