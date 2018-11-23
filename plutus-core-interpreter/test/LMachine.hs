@@ -16,5 +16,5 @@ test_evaluateL :: TestTree
 test_evaluateL =
     testGroup "evaluateL"
         [ testGroup "props" $ fromInterestingTermGens $ \name ->
-            testProperty name . propEvaluate (evaluateL mempty)
+            testProperty name . propEvaluate evaluateL
         ]
