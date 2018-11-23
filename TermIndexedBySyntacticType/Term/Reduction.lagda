@@ -75,7 +75,7 @@ BUILTIN
   addInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (i + j)
 ... | yes r = just (con (integer s (i + j) r))
 ... | no ¬r = nothing
@@ -84,7 +84,7 @@ BUILTIN
   subtractInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (i - j)
 ... | yes r = just (con (integer s (i - j) r))
 ... | no ¬p = nothing
@@ -93,7 +93,7 @@ BUILTIN
   multiplyInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (i ** j)
 ... | yes r = just (con (integer s (i ** j) r))
 ... | no ¬p = nothing
@@ -102,13 +102,13 @@ BUILTIN
   divideInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   = nothing
 BUILTIN
   divideInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (div i j)
 ... | yes r = just (con (integer s (div i j) r))
 ... | no ¬r = nothing
@@ -117,13 +117,13 @@ BUILTIN
   quotientInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   = nothing
 BUILTIN
   quotientInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (quot i j)
 ... | yes r = just (con (integer s (quot i j) r))
 ... | no ¬r = nothing
@@ -132,13 +132,13 @@ BUILTIN
   remainderInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   = nothing
 BUILTIN
   remainderInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (rem i j)
 ... | yes r = just (con (integer s (rem i j) r))
 ... | no ¬r = nothing
@@ -147,13 +147,13 @@ BUILTIN
   modInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   = nothing
 BUILTIN
   modInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedI? s (mod i j)
 ... | yes r = just (con (integer s (mod i j) r))
 ... | no ¬r = nothing
@@ -162,7 +162,7 @@ BUILTIN
   lessThanInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with i <? j
 ... | yes _ = just true
 ... | no _  = just false
@@ -171,7 +171,7 @@ BUILTIN
   lessThanEqualsInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with i ≤? j
 ... | yes _ = just true
 ... | no _  = just false
@@ -180,7 +180,7 @@ BUILTIN
   greaterThanInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with i >? j
 ... | yes _ = just true
 ... | no _  = just false 
@@ -189,7 +189,7 @@ BUILTIN
   greaterThanEqualsInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with i ≥? j
 ... | yes _ = just true
 ... | no _  = just false
@@ -198,7 +198,7 @@ BUILTIN
   equalsInteger
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with i ≟ j
 ... | yes _ = just true
 ... | no _  = just false
@@ -207,8 +207,8 @@ BUILTIN
   resizeInteger
   σ
   (_ ,, V-con (size s') ,, _ ,, V-con (integer s i p) ,, tt)
-  | .(size⋆ s')
-  | .(size⋆ s)
+  | size⋆ s'
+  | size⋆ s
   with boundedI? s' i
 ... | yes r = just (con (integer s' i r))
 ... | no ¬r = nothing
@@ -220,8 +220,8 @@ BUILTIN
   intToByteString
   σ
   (_ ,, V-con (size s) ,, _ ,, V-con (integer s' i p) ,, tt)
-  | .(size⋆ s)
-  | .(size⋆ s') with boundedI? s i
+  | size⋆ s
+  | size⋆ s' with boundedI? s i
 ... | no _  = nothing
 ... | yes q with boundedB? s (int2ByteString i)
 ... | yes r = just (con (bytestring s (int2ByteString i) r))
@@ -232,17 +232,18 @@ BUILTIN
   concatenate
   σ
   (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedB? s (append b b')
 ... | yes r = just (con (bytestring s (append b b') r))
 ... | no ¬r = nothing 
+
 BUILTIN takeByteString σ vtel with σ Z | σ (S Z)
 BUILTIN
   takeByteString
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt)
   | .(size⋆ s')
-  | .(size⋆ s)
+  | size⋆ s
   with boundedB? s' (take i b)
 ... | yes r = just (con (bytestring s' (take i b) r))
 ... | no r = nothing
@@ -253,8 +254,8 @@ BUILTIN
   dropByteString
   σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt)
-  | .(size⋆ s')
-  | .(size⋆ s) with boundedB? s' (drop i b)
+  | size⋆ s'
+  | size⋆ s with boundedB? s' (drop i b)
 ... | yes r = just (con (bytestring s' (drop i b) r))
 ... | no ¬r = nothing
 -- ^ this is impossible but we haven't proved that drop cannot
@@ -264,7 +265,7 @@ BUILTIN
   sha2-256
   σ
   (_ ,, V-con (bytestring s b p) ,, tt)
-  | .(size⋆ s) with boundedB? 32 (SHA2-256 b)
+  | size⋆ s with boundedB? 32 (SHA2-256 b)
 ... | yes q = just (con (bytestring 32 (SHA2-256 b) q))
 ... | no  _ = nothing
 -- ^ should be impossible
@@ -273,7 +274,7 @@ BUILTIN
   sha3-256
   σ
   (_ ,, V-con (bytestring s b p) ,, tt)
-  | .(size⋆ s) with boundedB? 32 (SHA3-256 b)
+  | size⋆ s with boundedB? 32 (SHA3-256 b)
 ... | yes q = just (con (bytestring 32 (SHA3-256 b) q))
 ... | no  _ = nothing
 -- ^ should be impossible
@@ -285,9 +286,9 @@ BUILTIN
   ,, _ ,, V-con (bytestring s' d p')
   ,, _ ,, V-con (bytestring s'' c p'')
   ,, tt)
-  | .(size⋆ s'')
-  | .(size⋆ s')
-  | .(size⋆ s)
+  | size⋆ s''
+  | size⋆ s'
+  | size⋆ s
   with verifySig k d c
 ... | Bool.true  = just true
 ... | Bool.false = just false
@@ -296,8 +297,8 @@ BUILTIN
   resizeByteString
   σ
   (_ ,, V-con (size s) ,, _ ,, V-con (bytestring s' b p) ,, tt)
-  | .(size⋆ s)
-  | .(size⋆ s')
+  | size⋆ s
+  | size⋆ s'
   with boundedB? s b
 ... | yes q = just (con (bytestring s b q))
 ... | no  _ = nothing
@@ -306,7 +307,7 @@ BUILTIN
   equalsByteString
   σ
   (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with equals b b'
 ... | Bool.true  = just true
 ... | Bool.false = just false
@@ -319,7 +320,7 @@ BUILTIN
   blocknum
   σ
   (_ ,, V-con (size s) ,, tt)
-  | .(size⋆ s)
+  | size⋆ s
   with boundedN? s bnum
 ... | yes p = just (con (integer s bnum (bN2I s bnum p)))
 ... | no  _ = nothing
