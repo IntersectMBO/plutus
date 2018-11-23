@@ -185,7 +185,7 @@ instance (Serialise (tyname ()), Serialise (name ())) => Serialise (Program tyna
     decode = Program () <$> decode <*> decode
 
 instance (Serialise (tyname ()), Serialise (name ())) => Serialise (VarDecl tyname name ()) where
-    encode (VarDecl tyname name _) = encode name <> encode tyname
+    encode (VarDecl _ name tyname ) = encode name <> encode tyname
     decode = VarDecl () <$> decode <*> decode
 
 instance Serialise (tyname ())  => Serialise (TyVarDecl tyname () ) where

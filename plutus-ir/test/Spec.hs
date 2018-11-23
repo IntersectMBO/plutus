@@ -68,7 +68,7 @@ prettyprinting = testNested "prettyprinting" [
     , goldenPir "maybe" (runQuote maybePir)
     ]
 
- 
+
 basic :: Term TyName Name ()
 basic = runQuote $ do
     a <- freshTyName () "a"
@@ -77,32 +77,7 @@ basic = runQuote $ do
         TyAbs () a (Type ()) $
         LamAbs () x (TyVar () a) $
         Var () x
- 
 
-basic2 :: Term TyName Name ()
-basic2 = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
-    pure $ 
-        Unwrap () $ 
-        TyAbs () a (Type ()) $
-        LamAbs () x (TyVar () a) $
-        Var () x
-
-testTerm  :: Term TyName Name ()
-testTerm = runQuote $ do
-    a <- freshTyName () "a"
-    m <- freshTyName () "b"
-    x <- freshName () "x"
-    let ma = TyApp () (TyVar () m) (TyVar () a)
-    three <- embedIntoIR <$> Meta.getBuiltinIntegerToNat 3
---    let t = runQuote natToBool
-    pure $ Let () 
-            NonRec (BindingList [ TermBind () (VarDecl () x ma) three ] )
-        $
-        TyAbs () a (Type ()) $
-        LamAbs () x (TyVar () a) $
-        Var () x
 
 maybePir :: Quote (Term TyName Name ())
 maybePir = do
@@ -116,7 +91,7 @@ maybePir = do
     pure $
         Let ()
             NonRec
-            (BindingList [
+            ([
                 DatatypeBind () $
                 Datatype ()
                     (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
@@ -128,7 +103,7 @@ maybePir = do
                     VarDecl () nothing (TyApp () (TyVar () m) (TyVar () a)),
                     VarDecl () just (TyFun () (TyVar () a) (TyApp () (TyVar () m) (TyVar () a)))
                 ]
-            ]) $
+             ]) $
         Apply () (TyInst () (Var () just) unit) unitval
 
 listMatch :: Quote (Term TyName Name ())
@@ -150,7 +125,7 @@ listMatch = do
     pure $
         Let ()
             Rec
-            (BindingList [
+            ([
                 DatatypeBind () $
                 Datatype ()
                     (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
@@ -162,7 +137,7 @@ listMatch = do
                     VarDecl () nil ma,
                     VarDecl () cons (TyFun () (TyVar () a) (TyFun () ma ma))
                 ]
-            ]) $
+             ]) $
             -- embed so we can use PLC construction functions
             embedIntoIR $ PLC.mkIterApp () (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit)
                 [
@@ -217,27 +192,24 @@ evenOdd = do
     pure $
         Let ()
             NonRec
-            (BindingList [
+            ([
                 TermBind () (VarDecl () arg nat) three
-            ]) $
+             ]) $
         Let ()
             Rec
-            (BindingList [
+            ([
                 TermBind () (VarDecl () evenn evenTy) evenF,
                 TermBind () (VarDecl () oddd oddTy) oddF
-            ]) $
+             ]) $
         Apply () (Var () evenn) (Var () arg)
 
 serialization :: TestNested
 serialization = testNested "serialization" [
-    goldenPir "serializeBasic" serializeBasic ,
-    goldenPir "serializeTestTerm" (serializeTestTerm testTerm), 
-    goldenPir "serializeTestTerm2" (serializeTestTerm  basic2)
+    goldenPir "serializeBasic" (roundTripPirTerm basic),
+    goldenPir "serializeMaybePirTerm" (roundTripPirTerm $ runQuote maybePir),
+    goldenPir "serializeEvenOdd" (roundTripPirTerm $ runQuote evenOdd),
+    goldenPir "serializeListMatch" (roundTripPirTerm $ runQuote listMatch)
     ]
 
-serializeTestTerm :: Term TyName Name () -> Term TyName Name ()
-serializeTestTerm tt = deserialise $ BSL.fromStrict (unPir (serializePirTerm tt) )
-
-serializeBasic :: Term TyName Name ()
---serializeBasic = deserializePirTerm $ ((serializePirTerm basic) :: PirCode)
-serializeBasic = deserialise $ BSL.fromStrict (unPir (serializePirTerm basic) )
+roundTripPirTerm :: Term TyName Name () -> Term TyName Name ()
+roundTripPirTerm tt = deserialise $ serialise tt
