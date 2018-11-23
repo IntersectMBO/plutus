@@ -285,6 +285,8 @@ makeLift ''CCRedeemStatus
 
 type Choice = ((IdentChoice, Person), ConcreteChoice)
 
+type Commit = (IdentCC, CCStatus)
+
 data InputCommand = Commit IdentCC
            | Payment IdentPay
            | Redeem IdentCC
@@ -299,7 +301,7 @@ makeLift ''Input
 
 
 data State = State {
-                stateCommitted  :: [(IdentCC, CCStatus)],
+                stateCommitted  :: [Commit],
                 -- ^ commits MUST be sorted by expiration time, ascending
                 stateChoices :: [Choice]
             } deriving (Eq, Ord, Generic)
@@ -456,11 +458,11 @@ marloweValidator = Validator result where
             Value v -> v
             AddValue lhs rhs -> evalValue state lhs + evalValue state rhs
             MulValue lhs rhs -> evalValue state lhs * evalValue state rhs
-            {- DivValue lhs rhs def -> do
+            DivValue lhs rhs def -> do
                 let divident = evalValue state lhs
                 let divisor  = evalValue state rhs
                 let defVal   = evalValue state def
-                if divisor == (0::Int) then defVal else divident `div` divisor -}
+                if divisor == 0 then defVal else divident `div` divisor
             ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
                 Just v -> v
                 _ -> evalValue state def
@@ -535,9 +537,15 @@ marloweValidator = Validator result where
                     && validatorHash `eqValidator` thisScriptHash
                 in  if isValid then let
                         cns = (pubKey, NotRedeemed commitValue endTimeout)
-                        -- TODO insert respecting sort, commits MUST be sorted by expiration time
+
+                        insertCommit :: Commit -> [Commit] -> [Commit]
+                        insertCommit commit@(_, (pubKey, NotRedeemed commitValue endTimeout)) commits = case commits of
+                            [] -> [commit]
+                            (_, (pk, NotRedeemed _ t)) : cs | pk `eqPk` pubKey && endTimeout < t -> commit : commits
+                            c : cs -> c : insertCommit commit cs
+
                         updatedState = let State committed choices = state
-                            in State ((id1, cns) : committed) choices
+                            in State (insertCommit (id1, cns) committed) choices
                         in (updatedState, con1, True)
                     else (state, contract, False)
 
