@@ -14,7 +14,6 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
 import           Wallet.Emulator
-import qualified Wallet.Emulator.Log as Log
 import           Wallet.Generators   (Mockchain (..))
 import qualified Wallet.Generators   as Gen
 import           Wallet.UTXO         (unitValidationData)
@@ -98,8 +97,8 @@ invalidTrace = property $ do
     Hedgehog.assert ([] == emTxPool st)
     Hedgehog.assert (not (null $ emLog st))
     Hedgehog.assert (case emLog st of
-        Log.BlockAdd _ : Log.TxnValidationFail _ _ : _ -> True
-        _                                              -> False)
+        BlockAdd _ : TxnValidationFail _ _ : _ -> True
+        _                                      -> False)
 
 splitVal :: Property
 splitVal = property $ do
