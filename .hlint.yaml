@@ -39,7 +39,7 @@
 # This is rarely better, and often more confusing
 - ignore: {name: Use asks}
 # It seems clearer to use case than fromMaybe
-- ignore: {name: fromMaybe}
+- ignore: {name: Use fromMaybe}
 
 - fixity: infixr 8 .*
 - fixity: infixr 3 ***
