@@ -11,10 +11,10 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
-open import Builtin.Constant.Term
-open import Builtin.Constant.Type
-open import Builtin.Signature
 open import Type
+open import Builtin.Constant.Type
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
+open import Builtin.Signature
 open import TermIndexedBySyntacticType.Term
 open import TermIndexedBySyntacticType.Evaluation
 open import TermIndexedBySyntacticType.Term.Reduction
@@ -111,5 +111,5 @@ helpB M error = "something went wrong"
 
 
 main : IO ⊤
-main = putStrLn (helpB _ (eval (gas 100) append12))
+main = putStrLn (help _ (eval (gas 100) builtininc2'))
 \end{code}

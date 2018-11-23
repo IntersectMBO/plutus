@@ -12,7 +12,7 @@ open import TermIndexedBySyntacticType.Term.RenamingSubstitution
 open import Type.Equality
 open import Builtin.Signature
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty

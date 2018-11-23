@@ -14,7 +14,7 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
 open import Builtin.Signature
-open import Builtin.Constant.Term
+open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import TermIndexedBySyntacticType.Term
 \end{code}
 
