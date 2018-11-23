@@ -30,7 +30,6 @@ library
         Wallet.Emulator.AddressMap
         Wallet.Emulator.Client
         Wallet.Emulator.Http
-        Wallet.Emulator.Log
         Wallet.Emulator.Types
         Wallet.Generators
         Wallet.UTXO

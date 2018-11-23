@@ -190,7 +190,10 @@ instance Monad m => Monoid (EventHandler m) where
 data WalletAPIError =
     InsufficientFunds Text
     | OtherError Text
-    deriving (Show)
+    deriving (Show, Eq, Ord, Generic)
+
+instance FromJSON WalletAPIError
+instance ToJSON WalletAPIError
 
 -- | Used by Plutus client to interact with wallet
 class WalletAPI m where
