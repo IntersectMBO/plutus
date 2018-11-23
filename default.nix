@@ -87,7 +87,10 @@ let
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays;
         pkgsGenerated = ./pkgs;
-        filter = localLib.isPlutus;
+        # split check is broken for things with test tool dependencies
+        filter = let
+          pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
+          in name: builtins.elem name pkgList;
         requiredOverlay = ./nix/overlays/required.nix;
         ghc = pkgs.haskell.compiler.ghc843;
     };
