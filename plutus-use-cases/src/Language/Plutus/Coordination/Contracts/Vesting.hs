@@ -23,9 +23,9 @@ import           GHC.Generics               (Generic)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                              PubKey (..), ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.TH       (plutusUntyped)
-import qualified Language.PlutusTx.TH       as Builtins
 import           Prelude                    hiding ((&&))
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)

@@ -36,9 +36,9 @@ import           GHC.Generics               (Generic)
 
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, PubKey (..),
                                              ValidatorHash, Value (..))
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.TH       (plutusUntyped)
-import qualified Language.PlutusTx.TH       as Builtins
 import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                              WalletAPIError, andT, blockHeightT, fundsAtAddressT, otherError,
                                              ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)

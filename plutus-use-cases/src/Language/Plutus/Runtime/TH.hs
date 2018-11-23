@@ -32,11 +32,11 @@ module Language.Plutus.Runtime.TH(
     eqTx
     ) where
 
-import           Language.Haskell.TH  (Exp, Q)
-import qualified Language.PlutusTx.TH as Builtins
+import           Language.Haskell.TH        (Exp, Q)
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Wallet.UTXO.Runtime
 
-import           Prelude              (Bool (..), Eq (..), Int, Maybe (..))
+import           Prelude                    (Bool (..), Eq (..), Int, Maybe (..))
 
 -- | Logical AND
 and :: Q Exp

@@ -2,14 +2,12 @@
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 module Language.PlutusTx.TH (
-    module Builtins,
     plutus,
     plutusUntyped,
     PlcCode,
     getSerializedCode,
     getAst) where
 
-import           Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Plugin
 
 import qualified Language.Haskell.TH        as TH
