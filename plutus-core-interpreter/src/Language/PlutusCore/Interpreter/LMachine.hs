@@ -134,7 +134,7 @@ lookupHeap :: HeapLoc -> Heap -> HeapEntry
 lookupHeap l (Heap h _) =
     case IntMap.lookup l h of
       Just e  -> e
-      Nothing -> error $ "Missing heap location in lookupHeap: " ++ show l  -- This should never happen
+      Nothing -> throw $ LMachineStringException ("Missing heap location in lookupHeap: " ++ show l)  -- This should never happen
 
 
 -- | The basic computation step of the L machine.  Search down the AST looking for a value, saving surrounding contexts on the stack.
@@ -221,7 +221,7 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
 -- | This is a workaround (thanks to Roman) to get things working while the dynamic builtins interface is under development.
 applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName Name ()] -> ConstAppResult
 applyEvaluateBuiltinName heap env name =
-    runIdentity . runEvaluate (const $ Identity . (evalL heap env)) . runQuoteT . applyBuiltinName name
+    runIdentity . runEvaluate (const $ Identity . evalL heap env) . runQuoteT . applyBuiltinName name
 
 evalL :: Heap -> Environment -> Plain Term -> EvaluationResult
 evalL heap env term = translateResult $ computeL [] heap (Closure term env)
@@ -258,8 +258,8 @@ instantiateEvaluate ctx heap ty (Closure fun env) =
 -- want to know how big the heap is.  Also, if we want to return a
 -- value to whatever has invoked the machine we may want to fully
 -- expand it, and you'd need the environment and heap to do that.
-evaluateL_internal :: Term TyName Name () -> LMachineResult
-evaluateL_internal t = computeL [] emptyHeap (Closure t emptyEnvironment)
+internalEvaluateL :: Term TyName Name () -> LMachineResult
+internalEvaluateL t = computeL [] emptyHeap (Closure t emptyEnvironment)
 
 
 -- | Convert an L machine result into the standard result type for communication with the outside world.
@@ -270,7 +270,7 @@ translateResult r = case r of
 
 -- | Evaluate a term using the L machine. May throw an 'LMachineException'.
 evaluateL :: Term TyName Name () -> EvaluationResult
-evaluateL term = translateResult $  evaluateL_internal term
+evaluateL term = translateResult $  internalEvaluateL term
 
 -- | Run a program using the L machine. May throw a 'MachineException'.
 -- We're not using the dynamic names at the moment, but we'll require them eventually
