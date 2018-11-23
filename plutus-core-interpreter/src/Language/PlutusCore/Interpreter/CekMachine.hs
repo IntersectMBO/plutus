@@ -76,6 +76,12 @@ makeLenses ''CekEnv
 runCekM :: CekEnv -> CekM a -> Either CekMachineException a
 runCekM = flip runReaderT
 
+-- | Get the current 'VarEnv'.
+getVarEnv :: CekM VarEnv
+getVarEnv = asks _cekEnvVarEnv
+
+-- | Set a new 'VarEnv' and proceed.
+withVarEnv :: VarEnv -> CekM a -> CekM a
 withVarEnv = local . set cekEnvVarEnv
 
 -- | Extend an environment with a variable name, the value the variable stands for
