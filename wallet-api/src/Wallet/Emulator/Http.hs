@@ -34,9 +34,10 @@ import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
-                                             EmulatorState (emWalletState), Notification (BlockHeight, BlockValidated),
-                                             Wallet, WalletState, assert, chain, emTxPool, emptyEmulatorState,
-                                             emptyWalletState, liftEmulatedWallet, txPool, walletStates)
+                                             EmulatorState (_txPool, _walletStates),
+                                             Notification (BlockHeight, BlockValidated), Wallet, WalletState, assert,
+                                             chain, emptyEmulatorState, emptyWalletState, liftEmulatedWallet, txPool,
+                                             walletStates)
 
 import qualified Wallet.Emulator.Types      as Types
 import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
@@ -83,7 +84,7 @@ wallets ::
 wallets = do
   var <- asks getState
   ws <- liftIO $ readTVarIO var
-  pure . Map.keys . emWalletState $ ws
+  pure . Map.keys . _walletStates $ ws
 
 fetchWallet ::
      (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
@@ -92,7 +93,7 @@ fetchWallet ::
 fetchWallet wallet = do
   var <- asks getState
   ws <- liftIO $ readTVarIO var
-  if Map.member wallet . emWalletState $ ws
+  if Map.member wallet . _walletStates $ ws
     then pure wallet
     else throwError err404
 
@@ -249,7 +250,7 @@ processPending = do
 processPendingSTM :: TVar EmulatorState -> STM [Tx]
 processPendingSTM var = do
   es <- readTVar var
-  let (block, _) = Types.validateBlock es (emTxPool es)
+  let (block, _) = Types.validateBlock es (_txPool es)
       newState = addBlock block . emptyPool $ es
   writeTVar var newState
   pure block

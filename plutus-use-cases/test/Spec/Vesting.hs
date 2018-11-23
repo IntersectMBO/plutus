@@ -149,7 +149,7 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = vsInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify the wallets
 updateAll :: VestingScenario -> Trace EmulatedWalletApi [Tx]

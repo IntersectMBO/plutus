@@ -203,7 +203,7 @@ checkTrace t = property $ do
         model = Gen.generatorModel { Gen.gmInitialBalance = ib }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify all wallets
 updateAll :: Trace EmulatedWalletApi ()

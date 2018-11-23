@@ -214,7 +214,7 @@ checkCFTrace CFScenario{cfInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = cfInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model (processPending >>= notifyBlock >> t)
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 -- | Notify all wallets in the campaign of the new blocks.
 notifyBlocks :: [Block] -> Trace EmulatedWalletApi ()

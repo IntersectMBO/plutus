@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 module Wallet.Emulator.Types(
     -- * Wallets
     Wallet(..),
@@ -91,15 +92,19 @@ data Notification = BlockValidated Block
                   | BlockHeight Height
                   deriving (Show, Eq, Ord)
 
+-- manually records the list of transactions to be submitted
+newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer [Tx] ))) a }
+    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx], MonadError WalletAPIError)
+
 -- Wallet code
 
 data WalletState = WalletState {
-    walletStateKeyPair          :: KeyPair,
-    walletStateBlockHeight      :: Height,
+    _ownKeyPair        :: KeyPair,
+    _walletBlockHeight :: Height,
     -- ^  Height of the blockchain as far as the wallet is concerned
-    walletStateWatchedAddresses :: AM.AddressMap,
+    _addressMap        :: AM.AddressMap,
     -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
-    walletStateTriggers         :: Map EventTrigger (EventHandler EmulatedWalletApi)
+    _triggers          :: Map EventTrigger (EventHandler EmulatedWalletApi)
     }
 
 instance Show WalletState where
@@ -110,33 +115,16 @@ instance Show WalletState where
             . showChar ' ' . showsPrec 10 wa
             . showChar ' ' . showsPrec 10 (Map.map (const ("<..>" :: String)) tr))
 
-ownKeyPair :: Lens' WalletState KeyPair
-ownKeyPair = lens g s where
-    g = walletStateKeyPair
-    s ws kp = ws { walletStateKeyPair = kp }
+makeLenses ''WalletState
 
 ownAddress :: WalletState -> Address'
-ownAddress = pubKeyAddress . pubKey . walletStateKeyPair
+ownAddress = pubKeyAddress . pubKey . view ownKeyPair
 
 ownFunds :: Lens' WalletState (Map TxOutRef' Value)
 ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
 
-walletBlockHeight :: Lens' WalletState Height
-walletBlockHeight = lens g s where
-    g = walletStateBlockHeight
-    s ws bh = ws { walletStateBlockHeight = bh }
-
-addressMap :: Lens' WalletState AM.AddressMap
-addressMap = lens g s where
-    g = walletStateWatchedAddresses
-    s ws oa = ws { walletStateWatchedAddresses = oa }
-
-triggers :: Lens' WalletState (Map EventTrigger (EventHandler EmulatedWalletApi))
-triggers = lens g s where
-    g = walletStateTriggers
-    s ws tr = ws { walletStateTriggers = tr }
 
 -- | An empty wallet state with the public/private key pair for a wallet, and the public key address
 --   for that wallet as the sole member of `walletStateWatchedAddresses`
@@ -163,9 +151,6 @@ data EmulatorEvent =
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
 
--- manually records the list of transactions to be submitted
-newtype EmulatedWalletApi a = EmulatedWalletApi { runEmulatedWalletApi :: (ExceptT WalletAPIError (StateT WalletState (Writer [Tx] ))) a }
-    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadWriter [Tx], MonadError WalletAPIError)
 
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
@@ -196,16 +181,16 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
 instance WalletAPI EmulatedWalletApi where
     submitTxn txn =
         let adrs = txOutAddress <$> txOutputs txn in
-        modify (over addressMap (AM.addAddresses adrs)) >>
+        modifying addressMap (AM.addAddresses adrs) >>
         tell [txn]
 
-    myKeyPair = gets walletStateKeyPair
+    myKeyPair = use ownKeyPair
 
     createPaymentWithChange vl = do
         ws <- get
         let fnds = ws ^. ownFunds
             total = getSum $ foldMap Sum fnds
-            kp = walletStateKeyPair ws
+            kp = view ownKeyPair ws
             sig   = signature kp
         if total < vl || Map.null fnds
         then throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
@@ -226,9 +211,9 @@ instance WalletAPI EmulatedWalletApi where
         modify (over triggers (Map.insertWith (<>) tr action))
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
-    watchedAddresses = gets walletStateWatchedAddresses
+    watchedAddresses = use addressMap
 
-    blockHeight = gets walletStateBlockHeight
+    blockHeight = use walletBlockHeight
 
 -- Emulator code
 
@@ -238,31 +223,6 @@ data Assertion
 
 newtype AssertionError = AssertionError T.Text
     deriving Show
-
-assert :: (MonadEmulator m) => Assertion -> m ()
-assert (IsValidated txn)            = isValidated txn
-assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
-
-ownFundsEqual :: (MonadEmulator m) => Wallet -> Value -> m ()
-ownFundsEqual wallet value = do
-  es <- get
-  ws <- case Map.lookup wallet $ emWalletState es of
-        Nothing -> throwError $ AssertionError "Wallet not found"
-        Just ws -> pure ws
-  let total = getSum $ foldMap Sum $ ws ^. ownFunds
-  if value == total
-    then pure ()
-    else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
-  where
-    tshow :: Show a => a -> T.Text
-    tshow = T.pack . show
-
-isValidated :: (MonadEmulator m) => Tx -> m ()
-isValidated txn = do
-    emState <- get
-    if notElem txn (join $ emChain emState)
-      then throwError $ AssertionError $ "Txn not validated: " <> T.pack (show txn)
-      else pure ()
 
 -- | The type of events in the emulator. @n@ is the type (usually a monad) in which wallet actions
 -- take place.
@@ -283,60 +243,65 @@ data Event n a where
 type Trace m = Op.Program (Event m)
 
 data EmulatorState = EmulatorState {
-    emChain       :: Blockchain,
-    emTxPool      :: TxPool,
-    emWalletState :: Map Wallet WalletState,
-    emIndex       :: Index.UtxoIndex,
-    emLog         :: [EmulatorEvent] -- ^ emulator events, newest first
+    _chain        :: Blockchain,
+    _txPool       :: TxPool,
+    _walletStates :: Map Wallet WalletState,
+    _index        :: Index.UtxoIndex,
+    _emulatorLog  :: [EmulatorEvent] -- ^ emulator events, newest first
     } deriving (Show)
 
-chain :: Lens' EmulatorState Blockchain
-chain = lens g s where
-    g = emChain
-    s es ch = es { emChain = ch }
-
-txPool :: Lens' EmulatorState TxPool
-txPool = lens g s where
-    g = emTxPool
-    s es tp = es { emTxPool = tp }
-
-walletStates :: Lens' EmulatorState  (Map Wallet WalletState)
-walletStates = lens g s where
-    g = emWalletState
-    s es ws  = es { emWalletState = ws }
-
-index :: Lens' EmulatorState Index.UtxoIndex
-index = lens g s where
-    g = emIndex
-    s es i = es { emIndex = i }
-
-emulatorLog :: Lens' EmulatorState [EmulatorEvent]
-emulatorLog = lens g s where
-    g = emLog
-    s es lg = es { emLog = lg }
-
-emptyEmulatorState :: EmulatorState
-emptyEmulatorState = EmulatorState {
-    emChain = [],
-    emTxPool = [],
-    emWalletState = Map.empty,
-    emIndex = Index.empty,
-    emLog = []
-    }
-
--- | Initialise the emulator state with a blockchain
-emulatorState :: Blockchain -> EmulatorState
-emulatorState bc = emptyEmulatorState { emChain = bc, emIndex = Index.initialise bc }
-
--- | Initialise the emulator state with a pool of pending transactions
-emulatorState' :: TxPool -> EmulatorState
-emulatorState' tp = emptyEmulatorState { emTxPool = tp }
+makeLenses ''EmulatorState
 
 type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
+emptyEmulatorState :: EmulatorState
+emptyEmulatorState = EmulatorState {
+    _chain = [],
+    _txPool = [],
+    _walletStates = Map.empty,
+    _index = Index.empty,
+    _emulatorLog = []
+    }
+
+assert :: (MonadEmulator m) => Assertion -> m ()
+assert (IsValidated txn)            = isValidated txn
+assert (OwnFundsEqual wallet value) = ownFundsEqual wallet value
+
+ownFundsEqual :: (MonadEmulator m) => Wallet -> Value -> m ()
+ownFundsEqual wallet value = do
+    es <- get
+    ws <- case Map.lookup wallet $ _walletStates es of
+        Nothing -> throwError $ AssertionError "Wallet not found"
+        Just ws -> pure ws
+    let total = getSum $ foldMap Sum $ ws ^. ownFunds
+    if value == total
+    then pure ()
+    else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]
+    where
+    tshow :: Show a => a -> T.Text
+    tshow = T.pack . show
+
+isValidated :: (MonadEmulator m) => Tx -> m ()
+isValidated txn = do
+    emState <- get
+    if notElem txn (join $ _chain emState)
+        then throwError $ AssertionError $ "Txn not validated: " <> T.pack (show txn)
+        else pure ()
+
+-- | Initialise the emulator state with a blockchain
+emulatorState :: Blockchain -> EmulatorState
+emulatorState bc = emptyEmulatorState
+    & chain .~ bc
+    & index .~ Index.initialise bc
+
+-- | Initialise the emulator state with a pool of pending transactions
+emulatorState' :: TxPool -> EmulatorState
+emulatorState' tp = emptyEmulatorState
+    & txPool .~ tp
+
 -- | Validate a transaction in the current emulator state
 validateEm :: EmulatorState -> Tx -> Maybe Index.ValidationError
-validateEm EmulatorState{emIndex=idx, emChain = ch} txn =
+validateEm EmulatorState{_index=idx, _chain = ch} txn =
     let h = height ch
         result = Index.runValidation (Index.validateTransaction h txn) idx in
     either Just (const Nothing) result
@@ -344,13 +309,13 @@ validateEm EmulatorState{emIndex=idx, emChain = ch} txn =
 liftEmulatedWallet :: (MonadState EmulatorState m) => Wallet -> EmulatedWalletApi a -> m ([Tx], Either WalletAPIError a)
 liftEmulatedWallet wallet act = do
     emState <- get
-    let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ emWalletState emState
+    let walletState = fromMaybe (emptyWalletState wallet) $ Map.lookup wallet $ _walletStates emState
         ((out, newState), txns) = runWriter $ runStateT (runExceptT (runEmulatedWalletApi act)) walletState
         events = TxnSubmit . hashTx <$> txns
     put emState {
-        emTxPool = txns ++ emTxPool emState,
-        emWalletState = Map.insert wallet newState $ emWalletState emState,
-        emLog = events ++ emLog emState
+        _txPool = txns ++ _txPool emState,
+        _walletStates = Map.insert wallet newState $ _walletStates emState,
+        _emulatorLog = events ++ _emulatorLog emState
         }
     pure (txns, out)
 
@@ -366,13 +331,13 @@ evalEmulated = \case
     WalletRecvNotification wallet trigger -> fst <$> liftEmulatedWallet wallet (handleNotifications trigger)
     BlockchainProcessPending -> do
         emState <- get
-        let (block, events) = validateBlock emState (emTxPool emState)
-            newChain = block : emChain emState
+        let (block, events) = validateBlock emState (_txPool emState)
+            newChain = block : _chain emState
         put emState {
-            emChain = newChain,
-            emTxPool = [],
-            emIndex = Index.insertBlock block (emIndex emState),
-            emLog   = BlockAdd (height newChain) : events ++ emLog emState
+            _chain = newChain,
+            _txPool = [],
+            _index = Index.insertBlock block (_index emState),
+            _emulatorLog   = BlockAdd (height newChain) : events ++ _emulatorLog emState
             }
         pure block
     Assertion a -> assert a
