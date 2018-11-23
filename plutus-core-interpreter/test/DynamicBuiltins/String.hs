@@ -27,9 +27,9 @@ test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
     let mayStr' = runQuote (makeDynamicBuiltin str) >>= sequence . readDynamicBuiltinCek
     Just (Right str) === mayStr'
 
-test_listOfStringsRoundtrip :: TestTree
-test_listOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
-    strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 10) Gen.unicode
+test_plcListOfStringsRoundtrip :: TestTree
+test_plcListOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
+    strs <- forAll . fmap PlcList . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 10) Gen.unicode
     let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= sequence . readDynamicBuiltinCek
     Just (Right strs) === mayStrs'
 
@@ -56,18 +56,18 @@ test_collectChars = testProperty "collectChars" . property $ do
                     . LamAbs () y unit
                     $ Var () y
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
-            chars <- traverse unsafeMakeDynamicBuiltin str
+            chars <- traverse (unsafeMakeDynamicBuiltin . PlcChar) str
             return $ foldr step unitval chars
     case errOrRes of
         Left _                      -> failure
         Right EvaluationFailure     -> failure
         Right (EvaluationSuccess _) -> return ()
-    str === str'
+    str === map unPlcChar str'
 
 test_dynamicStrings :: TestTree
 test_dynamicStrings =
     testGroup "dynamicStrings"
         [ test_stringRoundtrip
-        , test_listOfStringsRoundtrip
+        , test_plcListOfStringsRoundtrip
         , test_collectChars
         ]

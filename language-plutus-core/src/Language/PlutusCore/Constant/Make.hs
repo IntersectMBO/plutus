@@ -17,6 +17,7 @@ module Language.PlutusCore.Constant.Make
     , makeDynBuiltinIntSizedAs
     , makeBuiltinInt
     , makeBuiltinBS
+    , makeBuiltinStr
     , makeSizedConstant
     , makeBuiltinBool
     , makeBuiltin
@@ -129,6 +130,9 @@ makeBuiltinInt size int = checkBoundsInt size int ? BuiltinInt () size int
 -- | Check whether a 'ByteString' is in bounds (see 'checkBoundsBS') and return it as a 'Constant'.
 makeBuiltinBS :: Size -> BSL.ByteString -> Maybe (Constant ())
 makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
+
+makeBuiltinStr :: String -> Constant ()
+makeBuiltinStr = BuiltinStr ()
 
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.

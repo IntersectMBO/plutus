@@ -42,11 +42,13 @@ instance Serialise TypeBuiltin where
         TyByteString -> encodeTag 0
         TyInteger    -> encodeTag 1
         TySize       -> encodeTag 2
+        TyString     -> encodeTag 3
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
               go 2 = pure TySize
+              go 3 = pure TyString
               go _ = fail "Failed to decode TypeBuiltin"
 
 instance Serialise BuiltinName where
@@ -176,10 +178,12 @@ instance Serialise a => Serialise (Constant a) where
     encode (BuiltinInt x n i) = fold [ encodeTag 0, encode x, encode n, encodeInteger i ]
     encode (BuiltinBS x n bs) = fold [ encodeTag 1, encode x, encode n, encodeBytes (BSL.toStrict bs) ]
     encode (BuiltinSize x n)  = encodeTag 2 <> encode x <> encode n
+    encode (BuiltinStr x s)   = encodeTag 3 <> encode x <> encode s
     decode = go =<< decodeTag
         where go 0 = BuiltinInt <$> decode <*> decode <*> decodeInteger
               go 1 = BuiltinBS <$> decode <*> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinSize <$> decode <*> decode
+              go 3 = BuiltinStr <$> decode <*> decode
               go _ = fail "Failed to decode Constant ()"
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a) where

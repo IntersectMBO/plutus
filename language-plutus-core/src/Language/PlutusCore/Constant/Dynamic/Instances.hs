@@ -1,9 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances
-    () where
+    ( PlcChar (..)
+    , PlcList (..)
+    ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Dynamic.Pretty
@@ -30,25 +33,43 @@ argumentProxy _ = Proxy
 withResultProxyM :: (Proxy a -> m (result a)) -> m (result a)
 withResultProxyM k = k Proxy
 
--- Encode 'Char' from Haskell as @integer 4@ from PLC.
-instance KnownDynamicBuiltinType Char where
+instance KnownDynamicBuiltinType [Char] where
+    getTypeEncoding _ = return $ TyBuiltin () TyString
+
+    makeDynamicBuiltin = return . Just . Constant () . makeBuiltinStr
+
+    readDynamicBuiltin _ (Constant () (BuiltinStr () s)) = return $ Just s
+    readDynamicBuiltin _ _                               = return Nothing
+
+newtype PlcChar = PlcChar
+    { unPlcChar :: Char
+    } deriving (Eq, Show)
+
+-- Encode 'PlcChar' from Haskell as @integer 4@ from PLC.
+instance KnownDynamicBuiltinType PlcChar where
     getTypeEncoding _ = return $ TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
 
-    makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
+    makeDynamicBuiltin = pure . fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord . unPlcChar
 
-    readDynamicBuiltin _ (Constant () (BuiltinInt () 4 int)) = return . Just . chr $ fromIntegral int
+    readDynamicBuiltin _ (Constant () (BuiltinInt () 4 int)) =
+        return . Just . PlcChar . chr $ fromIntegral int
     readDynamicBuiltin _ _                                   = return Nothing
 
-instance PrettyDynamic Char
+instance PrettyDynamic PlcChar where
+    prettyDynamic = Doc.pretty . unPlcChar
 
-instance KnownDynamicBuiltinType dyn => KnownDynamicBuiltinType [dyn] where
+newtype PlcList a = PlcList
+    { unPlcList :: [a]
+    } deriving (Eq, Show)
+
+instance KnownDynamicBuiltinType dyn => KnownDynamicBuiltinType (PlcList dyn) where
     getTypeEncoding proxyListDyn =
         fmap (_recursiveType . holedToRecursive) $
             holedTyApp <$> getBuiltinList <*> getTypeEncoding (argumentProxy proxyListDyn)
 
-    makeDynamicBuiltin xs = do
+    makeDynamicBuiltin (PlcList xs) = do
         mayDyns <- getCompose $ traverse (Compose . makeDynamicBuiltin) xs
-        argTy <- getTypeEncoding xs  -- Here we use '[]' as a @proxy@. Don't judge me, I'm only human.
+        argTy <- getTypeEncoding xs  -- Here we use 'PlcList' as a @proxy@.
         traverse (getListToBuiltinList argTy) mayDyns
 
     readDynamicBuiltin eval list = withResultProxyM $ \proxyListDyn -> do
@@ -64,7 +85,7 @@ instance KnownDynamicBuiltinType dyn => KnownDynamicBuiltinType [dyn] where
                         [LamAbs () u unit emit, unitval, list]
         let (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
         res <- getRes
-        return $ xs <$ evaluationResultToMaybe res
+        return $ PlcList xs <$ evaluationResultToMaybe res
 
-instance PrettyDynamic a => PrettyDynamic [a] where
-    prettyDynamic = Doc.list . map prettyDynamic
+instance PrettyDynamic a => PrettyDynamic (PlcList a) where
+    prettyDynamic = Doc.list . map prettyDynamic . unPlcList

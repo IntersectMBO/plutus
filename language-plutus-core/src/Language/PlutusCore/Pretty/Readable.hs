@@ -214,6 +214,7 @@ instance PrettyBy (PrettyConfigReadable configName) (Constant a) where
         BuiltinInt _ size int -> pretty size <> "!" <> pretty int
         BuiltinSize _ size    -> pretty size
         BuiltinBS _ size bs   -> pretty size <> "!" <> prettyBytes bs
+        BuiltinStr _ str      -> pretty str
 
 instance PrettyBy (PrettyConfigReadable configName) (Builtin a) where
     prettyBy config = unitaryDoc config . \case
