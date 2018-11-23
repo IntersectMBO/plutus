@@ -33,9 +33,9 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
+import           Control.Monad.Identity
 import           Data.IntMap                  (IntMap)
 import qualified Data.IntMap                  as IntMap
-import qualified Data.Map                     as Map
 
 type Plain f = f TyName Name ()
 
@@ -100,6 +100,9 @@ data LMachineResult
     = Success Closure Heap  -- We need both the environment and the heap to see what the value "really" is.
     | Failure
 
+emptyEnvironment :: Environment
+emptyEnvironment = Environment IntMap.empty
+
 -- | Extend an environment with a new binding
 updateEnvironment :: Int -> HeapLoc -> Environment -> Environment
 updateEnvironment index cl (Environment m) = Environment (IntMap.insert index cl m)
@@ -135,22 +138,22 @@ lookupHeap l (Heap h _) =
 
 
 -- | The basic computation step of the L machine.  Search down the AST looking for a value, saving surrounding contexts on the stack.
-computeL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
-computeL dbnms ctx heap cl@(Closure term env) =
+computeL :: EvaluationContext -> Heap -> Closure -> LMachineResult
+computeL ctx heap cl@(Closure term env) =
     case term of
-      TyInst _ fun ty       -> computeL dbnms (FrameTyInstArg ty : ctx)                 heap (Closure fun env)
-      Apply _ fun arg       -> computeL dbnms (FrameAppArg (Closure arg env) : ctx)     heap (Closure fun env)
-      Wrap ann tyn ty term' -> computeL dbnms (FrameWrap ann tyn ty : ctx)              heap (Closure term' env)
-      Unwrap _ term'        -> computeL dbnms (FrameUnwrap : ctx)                       heap (Closure term' env)
-      TyAbs{}               -> returnL  dbnms ctx heap cl
-      LamAbs{}              -> returnL  dbnms ctx heap cl
-      Builtin{}             -> returnL  dbnms ctx heap cl
-      Constant{}            -> returnL  dbnms ctx heap cl
+      TyInst _ fun ty       -> computeL (FrameTyInstArg ty : ctx)                 heap (Closure fun env)
+      Apply _ fun arg       -> computeL (FrameAppArg (Closure arg env) : ctx)     heap (Closure fun env)
+      Wrap ann tyn ty term' -> computeL (FrameWrap ann tyn ty : ctx)              heap (Closure term' env)
+      Unwrap _ term'        -> computeL (FrameUnwrap : ctx)                       heap (Closure term' env)
+      TyAbs{}               -> returnL  ctx heap cl
+      LamAbs{}              -> returnL  ctx heap cl
+      Builtin{}             -> returnL  ctx heap cl
+      Constant{}            -> returnL  ctx heap cl
       Error{}               -> Failure
       Var _ name            -> let l = lookupHeapLoc name env
-                              in case lookupHeap l heap of
-                                   Evaluated cl'   -> returnL dbnms ctx heap cl'
-                                   Unevaluated cl' -> computeL dbnms (FrameHeapUpdate l : ctx) heap cl'
+                               in case lookupHeap l heap of
+                                    Evaluated cl'   -> returnL ctx heap cl'
+                                    Unevaluated cl' -> computeL (FrameHeapUpdate l : ctx) heap cl'
 
 
 -- | Return a closure containing a value. Ideally the fact that we've
@@ -158,16 +161,16 @@ computeL dbnms ctx heap cl@(Closure term env) =
 -- have to be contained in closures.  We could have something like
 -- @v= \x.y@, where @y@ is bound in an environment.  If we ever go on
 -- to apply @v@, we'll need the value of @y@.
-returnL :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> LMachineResult
-returnL _ [] heap res                                                            = Success res heap
-returnL dbnms (FrameTyInstArg ty        : ctx) heap cl                           = instantiateEvaluate dbnms ctx heap ty cl
-returnL dbnms (FrameAppArg argClosure   : ctx) heap cl                           = evaluateFun dbnms ctx heap cl argClosure
-returnL dbnms (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL dbnms ctx heap $ Closure (Wrap ann tyn ty v) env
-returnL dbnms (FrameHeapUpdate l        : ctx) heap cl                           = returnL dbnms ctx heap' cl
+returnL :: EvaluationContext -> Heap -> Closure -> LMachineResult
+returnL [] heap res                                                        = Success res heap
+returnL (FrameTyInstArg ty        : ctx) heap cl                           = instantiateEvaluate ctx heap ty cl
+returnL (FrameAppArg argClosure   : ctx) heap cl                           = evaluateFun ctx heap cl argClosure
+returnL (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL ctx heap $ Closure (Wrap ann tyn ty v) env
+returnL (FrameHeapUpdate l        : ctx) heap cl                           = returnL ctx heap' cl
                                                                                    where heap' = updateHeap l (Evaluated cl) heap
                                                                                       -- Leave this out to make the machine call-by-name (really slow)
-returnL dbnms (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL dbnms ctx heap (Closure t env)
-returnL     _ (FrameUnwrap              : _)      _ (Closure term _)             = throw $ LMachineException "Attemtping to unwrap non-wrapped term" term
+returnL (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL ctx heap (Closure t env)
+returnL (FrameUnwrap              : _)      _ (Closure term _)             = throw $ LMachineException "Attemtping to unwrap non-wrapped term" term
 
 
 -- | Apply a function to an argument and proceed.
@@ -177,86 +180,99 @@ returnL     _ (FrameUnwrap              : _)      _ (Closure term _)            
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 
-evaluateFun :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Closure -> Closure-> LMachineResult
-evaluateFun dbnms ctx heap (Closure fun funEnv) argClosure =
+evaluateFun :: EvaluationContext -> Heap -> Closure -> Closure-> LMachineResult
+evaluateFun ctx heap (Closure fun funEnv) argClosure =
     case fun of
       LamAbs _ var _ body ->
           let (l, heap') = insertInHeap argClosure heap
               env' = updateEnvironment (unUnique $ nameUnique var) l funEnv
-          in  computeL dbnms ctx heap' (Closure body env')
+          in  computeL ctx heap' (Closure body env')
 
       _ ->
           -- Not a lambda: look for evaluation of a built-in function, possibly with some args already supplied.
           -- We have to force the arguments, which means that we need to get the new heap back as well.
           -- This bit is messy but should be much easier when we have n-ary application for builtins.
-          case computeL dbnms [] heap argClosure of
+          case computeL [] heap argClosure of
             -- Force the argument, but only at the top level.
             -- This is a bit of a hack.  We're not in the main compute/return process here.
             -- We're preserving ctx, the context at entry, and we'll use that when we return.
-            -- We could also add a new type of stack frame for this.
+            -- We could also add a new type of stack frame for this.  Exactly what we do will
+            -- depend on the final interface to builtins.
             Failure -> Failure
-            Success (Closure arg' _env') heap' ->
-                -- FIXME: we're throwing away env' here, but we have to because the builtin interface doesn't know
-                -- about environments.  Maybe we should substitute in the stuff in the enviroment to get a closed term,
-                -- but that decision will have to wait until we know what the final interface is.
-                -- See https://github.com/input-output-hk/plutus/blob/master/language-plutus-core/docs/Constant%20application.md
+            Success (Closure arg' env') heap' ->
                 let term = Apply () fun arg'
                 in case termAsPrimIterApp term of
                      Nothing ->
                          throw $ LMachineException "Trying to apply invalid term" term
-                         -- "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
-                     Just (IterApp headName spine) ->
-                         case runQuote $ applyStagedBuiltinName dbnms headName spine of
-                           ConstAppSuccess term' -> returnL dbnms ctx heap' (Closure term' funEnv)
-                           ConstAppStuck         -> returnL dbnms ctx heap' (Closure term  funEnv)
-                           -- It's arguable what the env should be here. Again that depends on what the built-in can return.
+                         -- Was "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
+                     Just (IterApp (StaticStagedBuiltinName name) spine) ->
+                         case applyEvaluateBuiltinName heap' env' name spine of
+                           ConstAppSuccess term' -> returnL ctx heap' (Closure term' funEnv)
+                           ConstAppStuck         -> returnL ctx heap' (Closure term  funEnv)
+                           -- It's arguable what the env should be here. That depends on what the built-in can return.
                            -- Ideally it'd always return a closed term, so the environment should be irrelevant.
                            ConstAppFailure       -> throw $ LMachineException "ConstAppFailure" term
                            ConstAppError _err    -> throw $ LMachineException "ConstAppError" term
 
--- | Look up a 'DynamicBuiltinName'
-lookupDynamicBuiltinName :: DynamicBuiltinNameMeanings -> DynamicBuiltinName -> DynamicBuiltinNameMeaning
-lookupDynamicBuiltinName dbnms dynName =
-    case Map.lookup dynName (unDynamicBuiltinNameMeanings dbnms) of
-        Nothing      -> throw $ LMachineStringException ("Unknown dynamic name " ++ show dynName)
-        Just meaning -> meaning
+                     Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+                         throw $ LMachineException "Dynamic builtins not supported yet" term
 
--- | Apply a staged built-in name to a list of values
-applyStagedBuiltinName :: DynamicBuiltinNameMeanings -> StagedBuiltinName -> [Plain Value] -> (Quote ConstAppResult)
-applyStagedBuiltinName dbnms (DynamicStagedBuiltinName name) args =
-    case lookupDynamicBuiltinName dbnms name
-    of DynamicBuiltinNameMeaning sch x -> applyTypeSchemed sch x args
-applyStagedBuiltinName _ (StaticStagedBuiltinName  name) args = applyBuiltinName name args
+
+-- | This is a workaround (thanks to Roman) to get things working while the dynamic builtins interface is under development.
+applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName Name ()] -> ConstAppResult
+applyEvaluateBuiltinName heap env name =
+    runIdentity . runEvaluate (const $ Identity . (evalL heap env)) . runQuoteT . applyBuiltinName name
+
+evalL :: Heap -> Environment -> Plain Term -> EvaluationResult
+evalL heap env term = translateResult $ computeL [] heap (Closure term env)
+-- I'm not sure if this is doing quite the right thing.  The current
+-- strategy of the dynamic interface is that it when you're evaluating
+-- a builtin, you also pass the current PLC evaluator along with its
+-- state so that the builtin can evaluate terms properly (for example,
+-- it may need to look up a variable in an environment).  It's
+-- possible that this could update the heap, but in this case we're
+-- not getting the new heap back.  I think this is harmless, but
+-- perhaps inefficient (we may have to re-evaluate something that
+-- we've already evaluated).  We could solve this by putting the heap
+-- in a suitable monad, but let's wait until the interface has
+-- stabilised first.  I think the version above is OK for simple
+-- builtins for the time being.
 
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: DynamicBuiltinNameMeanings -> EvaluationContext -> Heap -> Type TyName () -> Closure -> LMachineResult
-instantiateEvaluate dbnms ctx heap ty (Closure fun env) =
+instantiateEvaluate :: EvaluationContext -> Heap -> Type TyName () -> Closure -> LMachineResult
+instantiateEvaluate ctx heap ty (Closure fun env) =
     case fun of
       TyAbs _ _ _ body ->
-          computeL dbnms ctx heap (Closure body env)
+          computeL ctx heap (Closure body env)
       _ -> if isJust $ termAsPrimIterApp fun
-           then returnL dbnms ctx heap $ Closure (TyInst () fun ty) env
+           then returnL ctx heap $ Closure (TyInst () fun ty) env
            else throw $ LMachineException "Attempting to instantiate invalid term" fun
 
--- | Evaluate a term using the L machine. This internal version returns a result
--- containing the final heap and environment, which you might need to know. For example,
--- it could be useful for testing to know how big the heap is.  Also, if we want to
--- return a value to whatever has invoked the machine we may want to fully expand it,
--- and you'd need the environment and heap to do that.
-evaluateL_internal :: DynamicBuiltinNameMeanings -> Term TyName Name () -> LMachineResult
-evaluateL_internal dbnms t = computeL dbnms [] emptyHeap (Closure t (Environment IntMap.empty))
+-- | Evaluate a term using the L machine. This internal version
+-- returns a result containing the final heap and environment, which
+-- it mightbe useful to know (for example, if we're testing we might
+-- want to know how big the heap is.  Also, if we want to return a
+-- value to whatever has invoked the machine we may want to fully
+-- expand it, and you'd need the environment and heap to do that.
+evaluateL_internal :: Term TyName Name () -> LMachineResult
+evaluateL_internal t = computeL [] emptyHeap (Closure t emptyEnvironment)
 
--- | Evaluate a term using the L machine. May throw an 'LMachineException'.
-evaluateL :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
-evaluateL dbnms t =
-    case evaluateL_internal dbnms t of
-      Success (Closure r _) (Heap _ _) -> EvaluationSuccess r
+
+-- | Convert an L machine result into the standard result type for communication with the outside world.
+translateResult :: LMachineResult -> EvaluationResult
+translateResult r = case r of
+      Success (Closure t _) (Heap _ _) -> EvaluationSuccess t
       Failure                          -> EvaluationFailure
 
+-- | Evaluate a term using the L machine. May throw an 'LMachineException'.
+evaluateL :: Term TyName Name () -> EvaluationResult
+evaluateL term = translateResult $  evaluateL_internal term
+
 -- | Run a program using the L machine. May throw a 'MachineException'.
+-- We're not using the dynamic names at the moment, but we'll require them eventually
 runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
-runL dbnms (Program _ _ term) = evaluateL dbnms term
+runL _ (Program _ _ term) = evaluateL term
