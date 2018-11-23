@@ -30,11 +30,11 @@ tests = testGroup "plutus-th" <$> sequence [
   ]
 
 simple :: PlcCode
-simple = $(plutus [| \(x::Bool) -> if x then (1::Int) else (2::Int) |])
+simple = $$(plutus [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
 powerPlc :: PlcCode
-powerPlc = $(plutus [| $(power (4::Int)) |])
+powerPlc = $$(plutus [|| $$(power (4::Int)) ||])
 
 andPlc :: PlcCode
-andPlc = $(plutus [| $(andTH) True False |])
+andPlc = $$(plutus [|| $$(andTH) True False ||])

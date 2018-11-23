@@ -4,6 +4,7 @@
 module Language.Plutus.TH (
     module Builtins,
     plutus,
+    plutusUntyped,
     PlcCode,
     getSerializedCode,
     getAst) where
@@ -14,18 +15,27 @@ import           Language.Plutus.CoreToPLC.Plugin
 import qualified Language.Haskell.TH                as TH
 import qualified Language.Haskell.TH.Syntax         as TH
 
--- | Covert a quoted Haskell expression into a corresponding Plutus Core program. Produces an expression of type
--- 'PlcCode'.
-plutus :: TH.Q TH.Exp -> TH.Q TH.Exp
+-- | Covert a quoted Haskell expression into a corresponding Plutus Core program.
+plutus :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp PlcCode)
 plutus e = do
     TH.addCorePlugin "Language.Plutus.CoreToPLC.Plugin"
     loc <- TH.location
     let locStr = TH.pprint loc
-    [| plc @($(TH.litT $ TH.strTyLit locStr)) $(e) |]
+    -- See note [Typed TH]
+    let
+        partial :: TH.Q (TH.TExp (a -> PlcCode))
+        partial = TH.unsafeTExpCoerce [| \a -> plc @($(TH.litT $ TH.strTyLit locStr)) a |]
+    [|| $$(partial) $$(e) ||]
 
 {- Note [Typed TH]
-It would be nice to have a typed TH version of `plutus`. However, this is hard to do because the singleton type
-is not known until TH runtime.
+It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we want to make a type literal,
+and there's no way to do that properly with typed TH.
 
-We could cheat and use `unsafeTExpCoerce`, but I'd prefer not to do that unless we have to.
+However, we can isolate the badness into as small a box as possible, and then use unsafeTExpCoerce.
 -}
+
+-- | Covert a quoted Haskell expression into a corresponding Plutus Core program.
+plutusUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
+-- Just force our typed version to accept it and then turn it back into an untyped one. This means it will
+-- get typechecked again later, which is good because we lied about knowing the type of the argument.
+plutusUntyped e = TH.unType <$> plutus (TH.unsafeTExpCoerce e)

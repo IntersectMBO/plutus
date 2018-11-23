@@ -37,7 +37,7 @@ import           GHC.Generics               (Generic)
 import           Language.Plutus.Lift       (makeLift)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, PubKey (..),
                                              ValidatorHash, Value (..))
-import           Language.Plutus.TH         (plutus)
+import           Language.Plutus.TH         (plutusUntyped)
 import qualified Language.Plutus.TH         as Builtins
 import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                              WalletAPIError, andT, blockHeightT, fundsAtAddressT, otherError,
@@ -128,7 +128,7 @@ contributionScript cmp  = Validator val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = UTXO.fromPlcCode $(plutus [| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = UTXO.fromPlcCode $(plutusUntyped [| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
 
             infixr 3 &&
