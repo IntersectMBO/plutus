@@ -4,6 +4,7 @@
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
+    , withLazyEmit
     , withEmitEvaluateBy
     ) where
 
@@ -17,7 +18,10 @@ import           Language.PlutusCore.Type
 
 import           Control.Exception                         (evaluate)
 import           Data.IORef
-import           System.IO.Unsafe                          (unsafePerformIO)
+import           Data.Functor                              (void)
+import           Control.Concurrent.MVar
+import           Control.Concurrent
+import           System.IO.Unsafe                          (unsafePerformIO, unsafeInterleaveIO)
 
 withEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)
 withEmit k = do
@@ -26,6 +30,41 @@ withEmit k = do
     y <- k $ \x -> modifyIORef xsVar $ \ds -> ds . (x :)
     ds <- readIORef xsVar
     return (ds [], y)
+
+-- | Take 'Just's from an 'MVar' until a 'Nothing' pops up and
+-- collect values 'Just's store into a list.
+readLazyListMVar :: MVar (Maybe a) -> IO [a]
+readLazyListMVar mayXVar = go where
+    go = unsafeInterleaveIO $ do
+        mayX <- takeMVar mayXVar
+        case mayX of
+            Nothing -> return []
+            Just x  -> (x :) <$> go
+
+-- | Same as 'withEmit', but streams emitted elements to the outside lazily.
+-- Unsafe w.r.t. async exceptions (Ctrl-c does not kill the spawned threads).
+withLazyEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)
+withLazyEmit k = do
+    -- A variable to store emitted elements in.
+    mayXVar <- newEmptyMVar
+    -- A variable to store the result of the main computation.
+    resVar <- newEmptyMVar
+    void . forkIO $ do
+        -- The main computation. Put each emitted element in an 'MVar'.
+        y <- k $ putMVar mayXVar . Just
+        -- Signal that elements are over in order to let 'readLazyListMVar' finish.
+        putMVar mayXVar Nothing
+        -- Record the result of the computation.
+        putMVar resVar y
+    -- Read emitted elements lazily.
+    xs <- readLazyListMVar mayXVar
+    -- Force the list in a separate thread in order to call @takeMVar mayXVar@
+    -- in order to ublock @putMVar mayXVar@. This should also perhaps be GC-friendly.
+    void . forkIO . void . evaluate $ length xs
+    -- Lazily read the result of the main computation.
+    -- Docs of 'fixIO' suggest to use @unsafeDupableInterleaveIO . readMVar@ here, but whatever.
+    y <- unsafeInterleaveIO $ takeMVar resVar
+    return (xs, y)
 
 globalUniqueVar :: IORef Int
 globalUniqueVar = unsafePerformIO $ newIORef 0
