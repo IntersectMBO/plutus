@@ -13,7 +13,10 @@ open import Function
 open import Data.Integer renaming (_*_ to _**_)
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
-
+open import Data.Unit hiding (_≤_; _≤?_; _≟_)
+open import Data.List hiding ([_]; take; drop)
+import Data.Bool as Bool
+open import Data.Nat hiding (_<_; _≤?_; _^_; _+_; _≟_)
 open import Type
 open import TermIndexedByNormalType.Term
 open import TermIndexedByNormalType.Term.RenamingSubstitution
@@ -54,8 +57,6 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
-open import Data.Unit
-open import Data.List hiding ([_])
 open import Data.Maybe
 
 VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
@@ -77,7 +78,230 @@ BUILTIN
   | size⋆ s with boundedI? s (i + j)
 ... | yes r = just (con (integer s (i + j) r))
 ... | no ¬r = nothing
-BUILTIN bn σ vtel = nothing
+BUILTIN subtractInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  subtractInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with boundedI? s (i - j)
+... | yes r = just (con (integer s (i - j) r))
+... | no ¬p = nothing
+BUILTIN multiplyInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  multiplyInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with boundedI? s (i ** j)
+... | yes r = just (con (integer s (i ** j) r))
+... | no ¬p = nothing
+BUILTIN divideInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  divideInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with boundedI? s (div i j)
+... | yes r = just (con (integer s (div i j) r))
+... | no ¬r = nothing
+BUILTIN quotientInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  quotientInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with boundedI? s (quot i j)
+... | yes r = just (con (integer s (quot i j) r))
+... | no ¬r = nothing
+BUILTIN remainderInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  remainderInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with boundedI? s (rem i j)
+... | yes r = just (con (integer s (rem i j) r))
+... | no ¬r = nothing
+BUILTIN modInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  modInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with boundedI? s (mod i j)
+... | yes r = just (con (integer s (mod i j) r))
+... | no ¬r = nothing
+BUILTIN lessThanInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  lessThanInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with i <? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN lessThanEqualsInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  lessThanEqualsInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with i ≤? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN greaterThanInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  greaterThanInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with i >? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN greaterThanEqualsInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  greaterThanEqualsInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with i ≥? j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN equalsInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  equalsInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s
+  with i ≟ j
+... | yes _ = just true
+... | no _  = just false
+BUILTIN resizeInteger σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
+BUILTIN
+  resizeInteger
+  σ
+  (_ ,, V-con (size s') ,, _ ,, V-con (integer s i p) ,, tt)
+  | size⋆ s'
+  | size⋆ s
+  with boundedI? s' i
+... | yes r = just (con (integer s' i r))
+... | no ¬r = nothing
+BUILTIN sizeOfInteger σ vtel with nf (embNf (σ Z))
+BUILTIN sizeOfInteger σ (_ ,, V-con (integer s i x) ,, tt) | .(size⋆ s) =
+  just (con (size s))
+BUILTIN intToByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
+BUILTIN
+  intToByteString
+  σ
+  (_ ,, V-con (size s) ,, _ ,, V-con (integer s' i p) ,, tt)
+  | size⋆ s
+  | size⋆ s' with boundedI? s i
+... | no _  = nothing
+... | yes q with boundedB? s (int2ByteString i)
+... | yes r = just (con (bytestring s (int2ByteString i) r))
+... | no _  = nothing
+-- ^ should be impossible if we prove something about int2ByteString
+BUILTIN concatenate σ vtel with nf (embNf (σ Z))
+BUILTIN
+  concatenate
+  σ
+  (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt)
+  | size⋆ s
+  with boundedB? s (append b b')
+... | yes r = just (con (bytestring s (append b b') r))
+... | no ¬r = nothing 
+
+BUILTIN takeByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
+BUILTIN
+  takeByteString
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt)
+  | .(size⋆ s')
+  | size⋆ s
+  with boundedB? s' (take i b)
+... | yes r = just (con (bytestring s' (take i b) r))
+... | no r = nothing
+-- ^ this is impossible but we haven't proved that take cannot
+-- increase the length
+BUILTIN dropByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
+BUILTIN
+  dropByteString
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (bytestring s' b q) ,, tt)
+  | size⋆ s'
+  | size⋆ s with boundedB? s' (drop i b)
+... | yes r = just (con (bytestring s' (drop i b) r))
+... | no ¬r = nothing
+-- ^ this is impossible but we haven't proved that drop cannot
+-- increase the length
+BUILTIN sha2-256 σ vtel with nf (embNf (σ Z))
+BUILTIN
+  sha2-256
+  σ
+  (_ ,, V-con (bytestring s b p) ,, tt)
+  | size⋆ s with boundedB? 32 (SHA2-256 b)
+... | yes q = just (con (bytestring 32 (SHA2-256 b) q))
+... | no  _ = nothing
+-- ^ should be impossible
+BUILTIN sha3-256 σ vtel with nf (embNf (σ Z))
+BUILTIN
+  sha3-256
+  σ
+  (_ ,, V-con (bytestring s b p) ,, tt)
+  | size⋆ s with boundedB? 32 (SHA3-256 b)
+... | yes q = just (con (bytestring 32 (SHA3-256 b) q))
+... | no  _ = nothing
+-- ^ should be impossible
+BUILTIN verifySignature σ vtel with
+  nf (embNf (σ Z))
+  | nf (embNf (σ (S Z)))
+  | nf (embNf (σ (S (S Z))))
+BUILTIN
+  verifySignature
+  σ
+  (  _ ,, V-con (bytestring s k p)
+  ,, _ ,, V-con (bytestring s' d p')
+  ,, _ ,, V-con (bytestring s'' c p'')
+  ,, tt)
+  | size⋆ s''
+  | size⋆ s'
+  | size⋆ s
+  with verifySig k d c
+... | Bool.true  = just true
+... | Bool.false = just false
+BUILTIN resizeByteString σ vtel with nf (embNf (σ Z)) | nf (embNf (σ (S Z)))
+BUILTIN
+  resizeByteString
+  σ
+  (_ ,, V-con (size s) ,, _ ,, V-con (bytestring s' b p) ,, tt)
+  | size⋆ s
+  | size⋆ s'
+  with boundedB? s b
+... | yes q = just (con (bytestring s b q))
+... | no  _ = nothing
+BUILTIN equalsByteString σ vtel with nf (embNf (σ Z))
+BUILTIN
+  equalsByteString
+  σ
+  (_ ,, V-con (bytestring s b p) ,, _ ,, V-con (bytestring .s b' q) ,, tt)
+  | size⋆ s
+  with equals b b'
+... | Bool.true  = just true
+... | Bool.false = just false
+BUILTIN txh σ tt with boundedB? 32 txhash
+... | yes p = just (con (bytestring 32 txhash p))
+... | no  _ = nothing
+-- ^ should this be impossible?
+BUILTIN blocknum σ vtel with nf (embNf (σ Z))
+BUILTIN
+  blocknum
+  σ
+  (_ ,, V-con (size s) ,, tt)
+  | size⋆ s
+  with boundedN? s bnum
+... | yes p = just (con (integer s bnum (bN2I s bnum p)))
+... | no  _ = nothing
 \end{code}
 
 

@@ -73,7 +73,6 @@ inc = Λ (ƛ (builtin addInteger (ne ∘ `) ((builtin resizeInteger (λ { Z → 
 builtininc2' : ∅ ⊢ con integer (size⋆ 8)
 builtininc2' = (inc ·⋆ size⋆ 8) · con2
 
-
 printInt : (x : ∅ ⊢ con integer (size⋆ 8)) → Value x → ℤ
 printInt .(con (integer 8 i x)) (V-con (integer .8 i x)) = i
 

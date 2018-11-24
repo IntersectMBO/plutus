@@ -102,12 +102,6 @@ BUILTIN divideInteger σ vtel with σ Z
 BUILTIN
   divideInteger
   σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | size⋆ s
-  = nothing
-BUILTIN
-  divideInteger
-  σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
   | size⋆ s
   with boundedI? s (div i j)
@@ -117,24 +111,12 @@ BUILTIN quotientInteger σ vtel with σ Z
 BUILTIN
   quotientInteger
   σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | size⋆ s
-  = nothing
-BUILTIN
-  quotientInteger
-  σ
   (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
   | size⋆ s
   with boundedI? s (quot i j)
 ... | yes r = just (con (integer s (quot i j) r))
 ... | no ¬r = nothing
 BUILTIN remainderInteger σ vtel with σ Z
-BUILTIN
-  remainderInteger
-  σ
-  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s (pos 0) q) ,, tt)
-  | size⋆ s
-  = nothing
 BUILTIN
   remainderInteger
   σ

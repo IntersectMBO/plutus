@@ -15,7 +15,6 @@ open import Type.BetaNormal
 booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
 booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
 
-
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin.Signature
@@ -157,4 +156,16 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
 
+\end{code}
+
+# Term Abbreviations
+\begin{code}
+--void : ∀{Γ} → Γ ⊢ unitNf
+--void = Λ (ƛ (` Z))
+
+true : ∀{Γ} → Γ ⊢ booleanNf
+true = Λ (ƛ (ƛ (` (S Z))))
+
+false : ∀{Γ} → Γ ⊢ booleanNf
+false = Λ (ƛ (ƛ (` Z)))
 \end{code}
