@@ -12,7 +12,9 @@ open import TermIndexedByNormalType.Term.Reduction
 open import TermIndexedByNormalType.Evaluation
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term
+open import Builtin.Signature
 
+open import Function
 open import Agda.Builtin.Nat
 open import Data.Nat
 open import Agda.Builtin.Int
@@ -59,6 +61,19 @@ con1 = con (integer 8 (pos 1) (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
 con2 = con (integer 8 (pos 2) (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
 
+builtin2plus2 : ∅ ⊢ con integer (size⋆ 8)
+builtin2plus2 = builtin
+  addInteger
+  (λ { Z → size⋆ 8 ; (S x) → ne (` x)})
+  (con2 ,, con2 ,, tt)
+
+inc : ∅ ⊢ Π (con integer (ne (` Z)) ⇒ con integer (ne (` Z)))
+inc = Λ (ƛ (builtin addInteger (ne ∘ `) ((builtin resizeInteger (λ { Z → (ne (` Z)) ; (S Z) → size⋆ 8 ; (S (S ()))}) (builtin sizeOfInteger (ne ∘ `) (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
+
+builtininc2' : ∅ ⊢ con integer (size⋆ 8)
+builtininc2' = (inc ·⋆ size⋆ 8) · con2
+
+
 printInt : (x : ∅ ⊢ con integer (size⋆ 8)) → Value x → ℤ
 printInt .(con (integer 8 i x)) (V-con (integer .8 i x)) = i
 
@@ -77,6 +92,6 @@ helpB M (steps x out-of-gas) = "out of gas..."
 helpB M error                = "something went wrong..."
 
 main : IO ⊤
-main = putStrLn (help _ (eval (gas 100) con2))
+main = putStrLn (help _ (eval (gas 100) builtin2plus2))
 
 \end{code}

@@ -139,14 +139,14 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
 \end{code}
 
 \begin{code}
-data _—↠_ {J Γ} : {A : ∥ Γ ∥ ⊢Nf⋆ J}{A' : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
+data _—↠_ {J Γ} : {A : ∥ Γ ∥ ⊢Nf⋆ J}{A' : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Γ ⊢ A' → Set
+  where
 
   refl—↠ : ∀{A}{M : Γ ⊢ A}
       --------
     → M —↠ M
 
-  trans—↠ : {A : ∥ Γ ∥ ⊢Nf⋆ J}
-    {M  M' M'' : Γ ⊢ A}
+  trans—↠ : {A : ∥ Γ ∥ ⊢Nf⋆ J}{M  M' M'' : Γ ⊢ A}
     → M —→ M'
     → M' —↠ M''
       ---------
@@ -167,7 +167,45 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
 \end{code}
 
 \begin{code}
+data TelProgress
+  {Γ}
+  {Δ}
+  {σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K}
+  {As : List (Δ ⊢Nf⋆ *)}
+  (tel : Tel Γ Δ σ As)
+  : Set where
+  done : VTel Γ Δ σ As → TelProgress tel
+  step : ∀ Bs Ds
+    → VTel Γ Δ σ Bs
+    → ∀{C}{t t' : Γ ⊢ substNf σ C}
+    → t —→ t'
+    → Bs ++ (C ∷ Ds) ≡ As
+    → Tel Γ Δ σ Ds
+    → TelProgress tel
+  error : TelProgress tel
+\end{code}
+
+\begin{code}
 progress : ∀ {A} → (M : ∅ ⊢ A) → Progress M
+
+progressTel : ∀ {Δ}
+  → {σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}
+  → {As : List (Δ ⊢Nf⋆ *)}
+  → (tel : Tel ∅ Δ σ As)
+  → TelProgress tel
+
+progressTel {As = []}     _   = done _
+progressTel {As = A ∷ As} (t ,, tel) with progress t
+progressTel {As = A ∷ As} (t ,, tel) | error   = error
+progressTel {As = A ∷ As} (t ,, tel) | step p  = error
+progressTel {As = A ∷ As} (t ,, tel) | done vt with progressTel tel
+progressTel {As = A ∷ As} (t ,, tel) | done vt | done vtel =
+  done (t ,, vt ,, vtel)
+progressTel {As = A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p q tel' =
+  error
+progressTel {As = A ∷ As} (t ,, tel) | done vt | error = error
+
+
 progress (` ())
 progress (ƛ M) = done V-ƛ
 progress (M · N) with progress M
@@ -190,5 +228,8 @@ progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (con (integer s i x))    = done (V-con _)
 progress (con (bytestring s b x)) = done (V-con _)
 progress (con (TermCon.size s))   = done (V-con _)
-progress (builtin bn σ X) = error
+progress (builtin bn σ X) with progressTel X
+progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
+progress (builtin bn σ X) | step Bs Ds vtel p q tel' = error
+progress (builtin bn σ X) | error = error
 progress (error A)        = error
