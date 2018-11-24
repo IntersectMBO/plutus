@@ -133,7 +133,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
 rename ρ⋆ ρ (con c) = con (renameTermCon ρ⋆ c)
 rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in substEq
   (Δ ⊢_)
-  (trans
+  (trans -- renameNf-substNf lemma?
     (trans
       (trans
         (evalCRSubst idCR (⋆.subst-cong (rename-embNf ρ⋆ ∘ σ) (embNf A)))
@@ -153,7 +153,7 @@ renameTel ρ⋆ ρ {As = []}     _         = _
 renameTel {Γ}{Δ} ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
   substEq
     (Δ ⊢_)
-    (trans
+    (trans -- renameNf-substNf lemma?
       (renameVal-eval (⋆.subst (embNf ∘ σ) (embNf A)) idCR ρ⋆)
       (trans
         (subst-eval (embNf A) (renCR ρ⋆ ∘ idCR) (embNf ∘ σ))
@@ -232,11 +232,26 @@ substTermCon σ⋆ (size s)           = size s
 \end{code}
 
 \begin{code}
+substTel : ∀ {Γ Γ' Δ}
+ → (σ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Γ' ∥ ⊢Nf⋆ J)
+ → (σ :  ∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Γ' ⊢ substNf σ⋆ A)
+ → {σ' : ∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J}
+ → {As : List (Δ ⊢Nf⋆ *)}
+ → Tel Γ Δ σ' As
+ → Tel Γ' Δ (substNf σ⋆ ∘ σ') As
+
 subst : ∀ {Γ Δ}
   → (σ⋆ : ∀ {K} → ∥ Γ ∥ ∋⋆ K → ∥ Δ ∥ ⊢Nf⋆ K)
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
     ---------------------------------------------------
   → (∀ {J} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
+
+substTel σ⋆ σ {As = []}     _         = _
+substTel {Γ}{Γ'} σ⋆ σ {σ'} {As = A ∷ As} (M ,, Ms) =
+  substEq (Γ' ⊢_) (sym (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M)
+  ,,
+  substTel σ⋆ σ Ms
+
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
@@ -283,7 +298,10 @@ subst {Γ}{Δ} σ⋆ σ (unwrap1 {pat = pat}{arg} term)       = substEq
          (fund idCR (soundness (⋆.subst (embNf ∘ σ⋆) (embNf arg)))))))
   (unwrap1 (subst σ⋆ σ term))
 subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
-subst {Γ}{Δ} σ⋆ x (builtin bn σ X) = error _ -- TODO
+subst {Γ}{Δ} σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in substEq
+  (Δ ⊢_)
+  (substNf-comp σ' σ⋆ A)
+  (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
 subst σ⋆ x (error A) = error (substNf σ⋆ A)
 \end{code}
 
