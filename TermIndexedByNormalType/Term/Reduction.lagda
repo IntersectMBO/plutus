@@ -5,6 +5,15 @@ module TermIndexedByNormalType.Term.Reduction where
 ## Imports
 
 \begin{code}
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.Empty
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.Sum
+open import Function
+open import Data.Integer renaming (_*_ to _**_)
+open import Relation.Nullary
+open import Relation.Nullary.Decidable
+
 open import Type
 open import TermIndexedByNormalType.Term
 open import TermIndexedByNormalType.Term.RenamingSubstitution
@@ -14,13 +23,8 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
-
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.Empty
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Sum
-open import Function
-
+open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
 \end{code}
 
 ## Values
@@ -48,6 +52,34 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
     → Value (con {Γ} cn)
 
 \end{code}
+
+\begin{code}
+open import Data.Unit
+open import Data.List hiding ([_])
+open import Data.Maybe
+
+VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
+VTel Γ Δ σ [] = ⊤
+VTel Γ Δ σ (A ∷ As) = Σ (Γ ⊢ substNf σ A) λ t → Value t × VTel Γ Δ σ As
+
+BUILTIN : ∀{Γ}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (vtel : VTel Γ Δ σ As)
+      -----------------------------
+    → Maybe (Γ ⊢ substNf σ C)
+BUILTIN addInteger σ vtel with nf (embNf (σ Z))
+BUILTIN
+  addInteger
+  σ
+  (_ ,, V-con (integer s i p) ,, _ ,, V-con (integer .s j q) ,, tt)
+  | size⋆ s with boundedI? s (i + j)
+... | yes r = just (con (integer s (i + j) r))
+... | no ¬r = nothing
+BUILTIN bn σ vtel = nothing
+\end{code}
+
 
 ## Intrinsically Type Preserving Reduction
 
@@ -93,6 +125,16 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
+
+  β-builtin : ∀{Γ}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → (vtel : VTel Γ Δ σ As)
+      -----------------------------
+    → builtin bn σ tel —→ maybe id (error _) (BUILTIN bn σ vtel)
+
 
 \end{code}
 
