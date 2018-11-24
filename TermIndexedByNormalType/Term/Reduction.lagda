@@ -305,6 +305,22 @@ BUILTIN
 \end{code}
 
 
+# recontructing the telescope after a reduction step
+
+\begin{code}
+reconstTel : ∀{Γ Δ As} Bs Ds
+    → (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (vtel : VTel Γ Δ σ Bs)
+    → ∀{C}(t' : Γ ⊢ substNf σ C)
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel Γ Δ σ Ds)
+    → Tel Γ Δ σ As
+reconstTel [] Ds σ vtel t' refl tel' = t' ,, tel'
+reconstTel (B ∷ Bs) Ds σ (X ,, VX ,, vtel) t' refl tel' =
+  X ,, reconstTel Bs Ds σ vtel t' refl tel'
+\end{code}
+
+
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
@@ -359,6 +375,19 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
       -----------------------------
     → builtin bn σ tel —→ maybe id (error _) (BUILTIN bn σ vtel)
 
+  ξ-builtin : ∀{Γ}  → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → ∀ Bs Ds
+    → (vtel : VTel Γ Δ σ Bs)
+    → ∀{C}{t t' : Γ ⊢ substNf σ C}
+    → t —→ t'
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel Γ Δ σ Ds)
+    → builtin bn σ tel
+      —→
+      builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
 
 \end{code}
 
@@ -421,12 +450,12 @@ progressTel : ∀ {Δ}
 progressTel {As = []}     _   = done _
 progressTel {As = A ∷ As} (t ,, tel) with progress t
 progressTel {As = A ∷ As} (t ,, tel) | error   = error
-progressTel {As = A ∷ As} (t ,, tel) | step p  = error
+progressTel {As = A ∷ As} (t ,, tel) | step p  = step [] As tt p refl tel
 progressTel {As = A ∷ As} (t ,, tel) | done vt with progressTel tel
 progressTel {As = A ∷ As} (t ,, tel) | done vt | done vtel =
   done (t ,, vt ,, vtel)
 progressTel {As = A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p q tel' =
-  error
+  step (A ∷ Bs) Ds (t ,, vt ,, vtel) p (cong (A ∷_) q) tel'
 progressTel {As = A ∷ As} (t ,, tel) | done vt | error = error
 
 
@@ -454,6 +483,7 @@ progress (con (bytestring s b x)) = done (V-con _)
 progress (con (TermCon.size s))   = done (V-con _)
 progress (builtin bn σ X) with progressTel X
 progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
-progress (builtin bn σ X) | step Bs Ds vtel p q tel' = error
+progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
+  step (ξ-builtin bn σ X Bs Ds vtel p q tel')
 progress (builtin bn σ X) | error = error
 progress (error A)        = error

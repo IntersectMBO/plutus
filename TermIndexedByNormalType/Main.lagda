@@ -55,6 +55,9 @@ constr1 = con (bytestring 16 str1 (subst (λ x → x Data.Nat.≤ 16) (sym lemma
 constr2 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
 constr2 = con (bytestring 16 str2 (subst (λ x → x Data.Nat.≤ 16) (sym lemma2) (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s (s≤s z≤n)))))))))
 
+append12 : ∀{Γ} → Γ ⊢ con bytestring (size⋆ 16)
+append12 = builtin concatenate (λ { Z → size⋆ 16 ; (S ())}) (constr1 ,, constr2 ,, tt)
+
 con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
 con1 = con (integer 8 (pos 1) (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
 
@@ -80,6 +83,12 @@ printBS : (x : ∅ ⊢ con bytestring (size⋆ 16)) → Value x → String
 printBS .(con (bytestring 16 b x)) (V-con (bytestring .16 b x)) =
   printByteString b
 
+
+helpX :  ∀{A : ∅ ⊢Nf⋆ *}(M : ∅ ⊢ A) → Steps M → String
+helpX M (steps x (done n v)) = "it terminated"
+helpX M (steps x out-of-gas) = "out of gas..."
+helpX M error                = "something went wrong..."
+
 help :  (M : ∅ ⊢ con integer (size⋆ 8)) → Steps M → String
 help M (steps x (done n v)) = show (printInt n v)
 help M (steps x out-of-gas) = "out of gas..."
@@ -91,6 +100,6 @@ helpB M (steps x out-of-gas) = "out of gas..."
 helpB M error                = "something went wrong..."
 
 main : IO ⊤
-main = putStrLn (help _ (eval (gas 100) builtin2plus2))
+main = putStrLn (helpX _ (eval (gas 100) Church.TwoPlusTwo'))
 
 \end{code}
