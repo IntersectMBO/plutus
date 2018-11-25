@@ -1,7 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | The L machine
 -- A lazy machine based on the L machine of Friedman et al. [Improving the Lazy Krivine Machine]
 -- For more details see the document in plutus/docs/fomega/lazy-machine
 -- The code here's closely based on the CEK machine implementation.
+
+-- ## Things to fix soon.
+--  # Generalise the machine return type so that we can return extra information,
+--    like the environment and/or heap.  These are just discarded at the moment.
+--  # Deal properly with dynamic builtins.
+--  # Monadify some things (heap, dbnms)
+--  # Remove the bit where it tries to force arguments to builtins;
+--    Roman's new infrastructure should be able to handle this.
+--  # Use something more efficient for the heap, like a mutable vector.
 
 -- The main difference from the CEK machine is that we have a heap
 -- containing closures containing evaluated/unevaluated function
@@ -22,8 +33,7 @@
 
 
 module Language.PlutusCore.Interpreter.LMachine
-    ( LMachineException
-    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    ( EvaluationResultF (EvaluationSuccess, EvaluationFailure)
     , EvaluationResult
     , evaluateL
     , runL
@@ -31,23 +41,43 @@ module Language.PlutusCore.Interpreter.LMachine
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Control.Monad.Identity
-import           Data.IntMap                  (IntMap)
-import qualified Data.IntMap                  as IntMap
+import           Data.IntMap                                     (IntMap)
+import qualified Data.IntMap                                     as IntMap
 
 type Plain f = f TyName Name ()
 
--- Let's just throw exceptions for the time being: error handling is changeable at the moment
--- FIXME: use the existing PLC exception infrastructure
-data LMachineException =
-    LMachineException String (Plain Term)
-  | LMachineStringException String
-    deriving (Show, Typeable)
 
-instance Exception LMachineException
+-- The MachineException type requires a Term, but in some cases we don't have one.
+-- Eventually it'll change to Maybe Term, but to work around this in the meantime,
+-- here's a fake term to use instead.
+fakeTerm :: Plain Term
+fakeTerm = Var () (Name () "-" (Unique (-1)))
+
+
+-- | Errors specific to the L machine
+data LMachineError
+    = LocationNotInHeap HeapLoc
+    | VariableNotInHeap
+    | NoDynamicBuiltinsYet  -- Temporary
+
+instance Pretty LMachineError where
+    pretty (LocationNotInHeap l) = "Location" <+> pretty l <+> "does not exist in the heap"
+    pretty VariableNotInHeap     = "Variable not found in the heap"
+    pretty NoDynamicBuiltinsYet  = "The L machine cannot currently deal with dynamic built-in functions."
+
+
+-- | Throw an 'LMachineException'. This function is needed because it constrains 'MachinerError'
+-- to be parametrized by an LMachineError which is required in order to disambiguate
+-- @throw .* MachineException@.  If you just use @throw@ you get compilation errors
+-- because the type is too general to be Typeable (I think).
+throwLMachineException
+    :: MachineError LMachineError -> Term TyName Name () -> a
+throwLMachineException = throw .* MachineException
 
 -- | A term together with an enviroment mapping free variables to heap locations
 data Closure = Closure
@@ -57,10 +87,12 @@ data Closure = Closure
 
 -- | L machine environments
 -- Each entry is a mapping from the 'Unique' representing a variable to a heap location
+-- Some kind of vector might be more efficient than a map.
 newtype Environment = Environment (IntMap HeapLoc)
     deriving (Show)
 
--- | Heap location. Int should always be big enough: maxBound::Int is 2^63-1
+-- | Heap location. Int gives us at least 2^32 = 4,294,967,296 different values
+-- (and 2^64 on a 64-bit machine) which should be big enough.
 type HeapLoc = Int
 
 -- | Heap entries: unevaluated and evaluated lazy function arguments.
@@ -73,7 +105,7 @@ data HeapEntry =
 -- @_top@ which serves as the current heap location.
 data Heap = Heap {
       _heap :: IntMap HeapEntry
-    , _top  :: Int
+    , _top  :: HeapLoc
 }
 
 {- Environments map variable ids to locations, the heap maps locations
@@ -113,7 +145,7 @@ updateEnvironment index cl (Environment m) = Environment (IntMap.insert index cl
 lookupHeapLoc :: Name () -> Environment -> HeapLoc
 lookupHeapLoc name (Environment env) =
     case IntMap.lookup (unUnique $ nameUnique name) env of
-      Nothing  -> throw $ LMachineStringException ("Name " ++ show (nameString name) ++ " missing from environment")
+      Nothing  -> throwLMachineException (OtherMachineError VariableNotInHeap) (Var () name)
       Just loc -> loc
 
 emptyHeap :: Heap
@@ -136,7 +168,7 @@ lookupHeap :: HeapLoc -> Heap -> HeapEntry
 lookupHeap l (Heap h _) =
     case IntMap.lookup l h of
       Just e  -> e
-      Nothing -> throw $ LMachineStringException ("Missing heap location in lookupHeap: " ++ show l)  -- This should never happen
+      Nothing -> throwLMachineException (OtherMachineError $ LocationNotInHeap l) fakeTerm -- This should never happen
 
 
 -- | The basic computation step of the L machine.  Search down the AST looking for a value, saving surrounding contexts on the stack.
@@ -164,15 +196,16 @@ computeL ctx heap cl@(Closure term env) =
 -- @v= \x.y@, where @y@ is bound in an environment.  If we ever go on
 -- to apply @v@, we'll need the value of @y@.
 returnL :: EvaluationContext -> Heap -> Closure -> LMachineResult
-returnL [] heap res                                                        = Success res heap
-returnL (FrameTyInstArg ty        : ctx) heap cl                           = instantiateEvaluate ctx heap ty cl
-returnL (FrameAppArg argClosure   : ctx) heap cl                           = evaluateFun ctx heap cl argClosure
-returnL (FrameWrap ann tyn ty     : ctx) heap (Closure v env)              = returnL ctx heap $ Closure (Wrap ann tyn ty v) env
-returnL (FrameHeapUpdate l        : ctx) heap cl                           = returnL ctx heap' cl
-                                                                                   where heap' = updateHeap l (Evaluated cl) heap
-                                                                                      -- Leave this out to make the machine call-by-name (really slow)
-returnL (FrameUnwrap              : ctx) heap (Closure (Wrap _ _ _ t) env) = returnL ctx heap (Closure t env)
-returnL (FrameUnwrap              : _)      _ (Closure term _)             = throw $ LMachineException "Attemtping to unwrap non-wrapped term" term
+returnL [] heap res = Success res heap
+returnL (frame : ctx) heap result@(Closure v env) =
+    case frame of
+      FrameHeapUpdate l      -> returnL ctx heap' result where heap' = updateHeap l (Evaluated result) heap
+      FrameAppArg argClosure -> evaluateFun ctx heap result argClosure
+      FrameTyInstArg ty      -> instantiateEvaluate ctx heap ty result
+      FrameWrap ann tyn ty   -> returnL ctx heap $ Closure (Wrap ann tyn ty v) env
+      FrameUnwrap            -> case v of
+                                  Wrap _ _ _ t -> returnL ctx heap (Closure t env)
+                                  _            -> throwLMachineException NonWrapUnwrappedMachineError v
 
 
 -- | Apply a function to an argument and proceed.
@@ -205,19 +238,20 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
                 let term = Apply () fun arg'
                 in case termAsPrimIterApp term of
                      Nothing ->
-                         throw $ LMachineException "Trying to apply invalid term" term
+                         throwLMachineException NonPrimitiveInstantiationMachineError term
                          -- Was "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
                      Just (IterApp (StaticStagedBuiltinName name) spine) ->
                          case applyEvaluateBuiltinName heap' env' name spine of
-                           ConstAppSuccess term' -> returnL ctx heap' (Closure term' funEnv)
+                           ConstAppSuccess term' -> computeL ctx heap' (Closure term' funEnv)
+                           -- The spec has return above, but compute seems more sensible.
                            ConstAppStuck         -> returnL ctx heap' (Closure term  funEnv)
                            -- It's arguable what the env should be here. That depends on what the built-in can return.
                            -- Ideally it'd always return a closed term, so the environment should be irrelevant.
                            ConstAppFailure       -> Failure
-                           ConstAppError _err    -> throw $ LMachineException "ConstAppError" term
+                           ConstAppError err     -> throwLMachineException (ConstAppMachineError err) fun
 
                      Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
-                         throw $ LMachineException "Dynamic builtins not supported yet" term
+                         throwLMachineException (OtherMachineError NoDynamicBuiltinsYet) term
 
 
 -- | This is a workaround (thanks to Roman) to get things working while the dynamic builtins interface is under development.
@@ -252,7 +286,7 @@ instantiateEvaluate ctx heap ty (Closure fun env) =
           computeL ctx heap (Closure body env)
       _ -> if isJust $ termAsPrimIterApp fun
            then returnL ctx heap $ Closure (TyInst () fun ty) env
-           else throw $ LMachineException "Attempting to instantiate invalid term" fun
+           else throwLMachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Evaluate a term using the L machine. This internal version
 -- returns a result containing the final heap and environment, which
@@ -270,15 +304,12 @@ translateResult r = case r of
       Success (Closure t _) (Heap _ _) -> EvaluationSuccess t
       Failure                          -> EvaluationFailure
 
--- | Evaluate a term using the L machine. May throw an 'LMachineException'.
+-- | Evaluate a term using the L machine. May throw an 'MachineException'.
 evaluateL :: Term TyName Name () -> EvaluationResult
 evaluateL term = translateResult $  internalEvaluateL term
 
 -- | Run a program using the L machine. May throw a 'MachineException'.
--- We're not using the dynamic names at the moment, but we'll require them eventually
--- I'm catching the errors here because the CI thing generates deliberately failing
--- programs and doesn't like exceptions.  I wasn't aware of this, so let's just
--- catch the exceptions and ignore them.
+-- We're not using the dynamic names at the moment, but we'll require them eventually.
 runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
 runL _ (Program _ _ term) = evaluateL term
 
