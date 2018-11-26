@@ -2,10 +2,10 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Constant.Dynamic.BuiltinName
-    ( dynamicIntToStringName
-    , dynamicIntToStringMeaning
-    , dynamicIntToStringDefinition
-    , dynamicIntToString
+    ( dynamicCharToStringName
+    , dynamicCharToStringMeaning
+    , dynamicCharToStringDefinition
+    , dynamicCharToString
     , dynamicAppendName
     , dynamicAppendMeaning
     , dynamicAppendDefinition
@@ -18,22 +18,21 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Type
 
-dynamicIntToStringName :: DynamicBuiltinName
-dynamicIntToStringName = DynamicBuiltinName "intToString"
+dynamicCharToStringName :: DynamicBuiltinName
+dynamicCharToStringName = DynamicBuiltinName "charToString"
 
-dynamicIntToStringMeaning :: DynamicBuiltinNameMeaning
-dynamicIntToStringMeaning = DynamicBuiltinNameMeaning sch show where
+dynamicCharToStringMeaning :: DynamicBuiltinNameMeaning
+dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure where
     sch =
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinDyn @String)
+        TypeSchemeBuiltin (TypedBuiltinDyn @Char) `TypeSchemeArrow`
+        TypeSchemeBuiltin (TypedBuiltinDyn @String)
 
-dynamicIntToStringDefinition :: DynamicBuiltinNameDefinition
-dynamicIntToStringDefinition =
-    DynamicBuiltinNameDefinition dynamicIntToStringName dynamicIntToStringMeaning
+dynamicCharToStringDefinition :: DynamicBuiltinNameDefinition
+dynamicCharToStringDefinition =
+    DynamicBuiltinNameDefinition dynamicCharToStringName dynamicCharToStringMeaning
 
-dynamicIntToString :: Term tyname name ()
-dynamicIntToString = dynamicBuiltinNameAsTerm dynamicIntToStringName
+dynamicCharToString :: Term tyname name ()
+dynamicCharToString = dynamicBuiltinNameAsTerm dynamicCharToStringName
 
 dynamicAppendName :: DynamicBuiltinName
 dynamicAppendName = DynamicBuiltinName "append"

@@ -31,7 +31,7 @@ let
   mapped = mapTestOn platforms;
   makePlutusTestRuns = system:
   let
-    pred = name: value: fixedLib.isPlutus name && value ? testrun;
+    pred = name: value: fixedLib.isPlutus name && value ? testdata;
     plutusPkgs = import ./. { inherit system; };
     f = name: value: value.testrun;
   in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);

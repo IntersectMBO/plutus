@@ -33,6 +33,8 @@ import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                     as PIR
 
 import qualified Language.PlutusCore                         as PLC
+import qualified Language.PlutusCore.Constant                as PLC
+import qualified Language.PlutusCore.Constant.Dynamic        as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Bool        as Bool
 
@@ -45,6 +47,7 @@ import           Control.Monad.Reader
 
 import qualified Data.ByteString.Lazy                        as BSL
 import qualified Data.Map                                    as Map
+import           Data.Proxy
 import qualified Data.Set                                    as Set
 
 {- Note [Mapping builtins]
@@ -147,6 +150,12 @@ builtinNames = [
     , 'Builtins.equalsInteger
 
     , 'Builtins.error
+
+    , ''Builtins.String
+    , ''Char
+    , 'Builtins.appendString
+    , 'Builtins.emptyString
+    , 'Builtins.charToString
     ]
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
@@ -248,6 +257,17 @@ defineBuiltinTerms = do
         term <- errorFunc
         defineBuiltinTerm 'Builtins.error term [unit]
 
+    -- Strings and chars
+    do
+        let term = mkDynBuiltin PLC.dynamicAppendName
+        defineBuiltinTerm 'Builtins.appendString term []
+    do
+        let term = PIR.Constant () $ PLC.BuiltinStr () ""
+        defineBuiltinTerm 'Builtins.emptyString term []
+    do
+        let term = mkDynBuiltin PLC.dynamicCharToStringName
+        defineBuiltinTerm 'Builtins.charToString term []
+
 defineBuiltinTypes :: Converting m => m ()
 defineBuiltinTypes = do
     do
@@ -256,6 +276,14 @@ defineBuiltinTypes = do
     do
         let ty = appSize haskellIntSize (PLC.TyBuiltin () PLC.TyInteger)
         defineBuiltinType ''Int ty []
+
+    -- Strings and chars
+    do
+        ty <- liftQuote $ PLC.getTypeEncoding (Proxy @String)
+        defineBuiltinType ''Builtins.String ty []
+    do
+        ty <- liftQuote $ PLC.getTypeEncoding (Proxy @Char)
+        defineBuiltinType ''Char ty []
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: Converting m => TH.Name -> m PIRTerm

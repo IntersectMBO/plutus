@@ -1,14 +1,14 @@
 (program 1.0.0
   [
     (lam
-      addInteger_74
+      divideInteger_74
       (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
       (lam
         ds_75
         [(con integer) (con 8)]
-        (lam ds_76 [(con integer) (con 8)] [ [ addInteger_74 ds_75 ] ds_76 ])
+        (lam ds_76 [(con integer) (con 8)] [ [ divideInteger_74 ds_75 ] ds_76 ])
       )
     )
-    { (builtin addInteger) (con 8) }
+    { (builtin divideInteger) (con 8) }
   ]
 )

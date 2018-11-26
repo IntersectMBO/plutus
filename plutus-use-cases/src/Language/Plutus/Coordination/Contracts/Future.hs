@@ -29,9 +29,9 @@ import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 import qualified Language.Plutus.Runtime.TH as TH
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.TH       (plutusUntyped)
-import qualified Language.PlutusTx.TH       as Builtins
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
@@ -85,11 +85,10 @@ initialise :: (
 initialise long short f = do
     let
         im = futureInitialMargin f
-        vl = fromIntegral im
-        o = scriptTxOut vl (validatorScript f) ds
+        o = scriptTxOut im (validatorScript f) ds
         ds = DataScript $ UTXO.lifted $ FutureData long short im im
 
-    (payment, change) <- createPaymentWithChange vl
+    (payment, change) <- createPaymentWithChange im
     void $ signAndSubmit payment [o, change]
 
 -- | Close the position by extracting the payment
@@ -106,8 +105,8 @@ settle refs ft fd ov = do
         forwardPrice = futureUnitPrice ft
         OracleValue (Signed (_, (_, spotPrice))) = ov
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
-        longOut = fromIntegral $ futureDataMarginLong fd + delta
-        shortOut = fromIntegral $ futureDataMarginShort fd - delta
+        longOut = futureDataMarginLong fd + delta
+        shortOut = futureDataMarginShort fd - delta
         red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
         outs = [
             UTXO.pubKeyTxOut longOut (futureDataLong fd),
@@ -126,7 +125,7 @@ settleEarly :: (
     -> OracleValue Value
     -> m ()
 settleEarly refs ft fd ov = do
-    let totalVal = fromIntegral $ futureDataMarginLong fd + futureDataMarginShort fd
+    let totalVal = futureDataMarginLong fd + futureDataMarginShort fd
         outs = [UTXO.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
         red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
@@ -144,15 +143,15 @@ adjustMargin refs ft fd vl = do
     pk <- pubKey <$> myKeyPair
     (payment, change) <- createPaymentWithChange vl
     fd' <- let fd''
-                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = fromIntegral vl + futureDataMarginLong fd  }
-                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = fromIntegral vl + futureDataMarginShort fd }
+                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
+                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
                 | otherwise = otherError "Private key is not part of futures contrat"
             in fd''
     let
         red = UTXO.Redeemer $ UTXO.lifted AdjustMargin
         ds  = DataScript $ UTXO.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
-        outVal = vl + fromIntegral (futureDataMarginLong fd + futureDataMarginShort fd)
+        outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
     void $ signAndSubmit (Set.union payment inp) [o, change]
 

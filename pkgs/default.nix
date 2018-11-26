@@ -55570,6 +55570,8 @@ license = stdenv.lib.licenses.mit;
 , containers
 , hedgehog
 , language-plutus-core
+, lens
+, mmorph
 , mtl
 , stdenv
 , tasty
@@ -55585,6 +55587,8 @@ libraryHaskellDepends = [
 base
 containers
 language-plutus-core
+lens
+mmorph
 mtl
 ];
 testHaskellDepends = [
@@ -55685,7 +55689,11 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, doctest
 , language-plutus-core
+, markdown-unlit
+, mtl
+, plutus-core-interpreter
 , plutus-tx-plugin
 , stdenv
 , tasty
@@ -55703,10 +55711,17 @@ template-haskell
 ];
 testHaskellDepends = [
 base
+doctest
 language-plutus-core
+markdown-unlit
+mtl
+plutus-core-interpreter
 plutus-tx-plugin
 tasty
 template-haskell
+];
+testToolDepends = [
+markdown-unlit
 ];
 doHaddock = false;
 description = "The PlutusTx compiler frontend";

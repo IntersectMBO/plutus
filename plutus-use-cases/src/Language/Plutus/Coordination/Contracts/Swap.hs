@@ -12,8 +12,8 @@ module Language.Plutus.Coordination.Contracts.Swap(
 import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
                                              PubKey, ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.TH       (plutusUntyped)
-import qualified Language.PlutusTx.TH       as Builtins
 import           Wallet.UTXO                (Height, Validator (..))
 import qualified Wallet.UTXO                as UTXO
 

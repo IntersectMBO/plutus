@@ -4,21 +4,21 @@
       [
         {
           (abs
-            MyPolyData_84
+            MyPolyData_89
             (fun (type) (fun (type) (type)))
             (lam
-              Poly1_85
-              (all a_86 (type) (all b_87 (type) (fun a_86 (fun b_87 [[MyPolyData_84 a_86] b_87]))))
+              Poly1_90
+              (all a_91 (type) (all b_92 (type) (fun a_91 (fun b_92 [[MyPolyData_89 a_91] b_92]))))
               (lam
-                Poly2_88
-                (all a_89 (type) (all b_90 (type) (fun a_89 [[MyPolyData_84 a_89] b_90])))
+                Poly2_93
+                (all a_94 (type) (all b_95 (type) (fun a_94 [[MyPolyData_89 a_94] b_95])))
                 (lam
-                  MyPolyData_match_91
-                  (all a_92 (type) (all b_93 (type) (fun [[MyPolyData_84 a_92] b_93] [[(lam a_94 (type) (lam b_95 (type) (all out_MyPolyData_96 (type) (fun (fun a_94 (fun b_95 out_MyPolyData_96)) (fun (fun a_94 out_MyPolyData_96) out_MyPolyData_96))))) a_92] b_93])))
+                  MyPolyData_match_96
+                  (all a_97 (type) (all b_98 (type) (fun [[MyPolyData_89 a_97] b_98] [[(lam a_99 (type) (lam b_100 (type) (all out_MyPolyData_101 (type) (fun (fun a_99 (fun b_100 out_MyPolyData_101)) (fun (fun a_99 out_MyPolyData_101) out_MyPolyData_101))))) a_97] b_98])))
                   [
                     [
                       {
-                        { Poly1_85 [(con integer) (con 8)] }
+                        { Poly1_90 [(con integer) (con 8)] }
                         [(con integer) (con 8)]
                       }
                       (con 8 ! 1)
@@ -29,30 +29,30 @@
               )
             )
           )
-          (lam a_97 (type) (lam b_98 (type) (all out_MyPolyData_99 (type) (fun (fun a_97 (fun b_98 out_MyPolyData_99)) (fun (fun a_97 out_MyPolyData_99) out_MyPolyData_99)))))
+          (lam a_102 (type) (lam b_103 (type) (all out_MyPolyData_104 (type) (fun (fun a_102 (fun b_103 out_MyPolyData_104)) (fun (fun a_102 out_MyPolyData_104) out_MyPolyData_104)))))
         }
         (abs
-          a_100
+          a_105
           (type)
           (abs
-            b_101
+            b_106
             (type)
             (lam
-              arg_0_102
-              a_100
+              arg_0_107
+              a_105
               (lam
-                arg_1_103
-                b_101
+                arg_1_108
+                b_106
                 (abs
-                  out_MyPolyData_104
+                  out_MyPolyData_109
                   (type)
                   (lam
-                    case_Poly1_105
-                    (fun a_100 (fun b_101 out_MyPolyData_104))
+                    case_Poly1_110
+                    (fun a_105 (fun b_106 out_MyPolyData_109))
                     (lam
-                      case_Poly2_106
-                      (fun a_100 out_MyPolyData_104)
-                      [ [ case_Poly1_105 arg_0_102 ] arg_1_103 ]
+                      case_Poly2_111
+                      (fun a_105 out_MyPolyData_109)
+                      [ [ case_Poly1_110 arg_0_107 ] arg_1_108 ]
                     )
                   )
                 )
@@ -62,24 +62,24 @@
         )
       ]
       (abs
-        a_107
+        a_112
         (type)
         (abs
-          b_108
+          b_113
           (type)
           (lam
-            arg_0_109
-            a_107
+            arg_0_114
+            a_112
             (abs
-              out_MyPolyData_110
+              out_MyPolyData_115
               (type)
               (lam
-                case_Poly1_111
-                (fun a_107 (fun b_108 out_MyPolyData_110))
+                case_Poly1_116
+                (fun a_112 (fun b_113 out_MyPolyData_115))
                 (lam
-                  case_Poly2_112
-                  (fun a_107 out_MyPolyData_110)
-                  [ case_Poly2_112 arg_0_109 ]
+                  case_Poly2_117
+                  (fun a_112 out_MyPolyData_115)
+                  [ case_Poly2_117 arg_0_114 ]
                 )
               )
             )
@@ -88,15 +88,15 @@
       )
     ]
     (abs
-      a_113
+      a_118
       (type)
       (abs
-        b_114
+        b_119
         (type)
         (lam
-          x_115
-          [[(lam a_116 (type) (lam b_117 (type) (all out_MyPolyData_118 (type) (fun (fun a_116 (fun b_117 out_MyPolyData_118)) (fun (fun a_116 out_MyPolyData_118) out_MyPolyData_118))))) a_113] b_114]
-          x_115
+          x_120
+          [[(lam a_121 (type) (lam b_122 (type) (all out_MyPolyData_123 (type) (fun (fun a_121 (fun b_122 out_MyPolyData_123)) (fun (fun a_121 out_MyPolyData_123) out_MyPolyData_123))))) a_118] b_119]
+          x_120
         )
       )
     )

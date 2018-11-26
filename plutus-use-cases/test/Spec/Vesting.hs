@@ -118,7 +118,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
 
     -- Wallet 1 now has control of all the funds that were locked in the
     -- vesting scheme.
-    traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + fromIntegral total)]
+    traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + total)]
 
 -- | Vesting scenario with test parameters
 data VestingScenario = VestingScenario {
@@ -136,7 +136,7 @@ startingBalance = 1000
 -- | Amount of money left in wallet `Wallet 2` after committing funds to the
 --   vesting scheme
 w2Funds :: UTXO.Value
-w2Funds = startingBalance - fromIntegral total
+w2Funds = startingBalance - total
 
 -- | Total amount of money vested in the scheme `scen1`
 total :: Runtime.Value
@@ -149,7 +149,7 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = vsInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify the wallets
 updateAll :: VestingScenario -> Trace EmulatedWalletApi [Tx]

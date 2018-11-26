@@ -56,13 +56,13 @@ test_collectChars = testProperty "collectChars" . property $ do
                     . LamAbs () y unit
                     $ Var () y
             let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
-            chars <- traverse (unsafeMakeDynamicBuiltin . PlcChar) str
+            chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
     case errOrRes of
         Left _                      -> failure
         Right EvaluationFailure     -> failure
         Right (EvaluationSuccess _) -> return ()
-    str === map unPlcChar str'
+    str === str'
 
 test_dynamicStrings :: TestTree
 test_dynamicStrings =

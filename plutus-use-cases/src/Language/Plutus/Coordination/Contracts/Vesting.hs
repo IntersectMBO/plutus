@@ -23,9 +23,9 @@ import           GHC.Generics               (Generic)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                              PubKey (..), ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.TH       (plutusUntyped)
-import qualified Language.PlutusTx.TH       as Builtins
 import           Prelude                    hiding ((&&))
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
@@ -73,10 +73,9 @@ vestFunds :: (
     -> m VestingData
 vestFunds vst value = do
     _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
-    let v' = UTXO.Value $ fromIntegral value
-    (payment, change) <- createPaymentWithChange v'
+    (payment, change) <- createPaymentWithChange value
     let vs = validatorScript vst
-        o = scriptTxOut v' vs (DataScript $ UTXO.lifted vd)
+        o = scriptTxOut value vs (DataScript $ UTXO.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
     _ <- signAndSubmit payment [o, change]
     pure vd
@@ -94,8 +93,8 @@ retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
     let val = validatorScript vs
         o   = scriptTxOut remaining val (DataScript $ UTXO.lifted vd')
-        remaining = (fromIntegral $ totalAmount vs) - vnow
-        vd' = vd {vestingDataPaidOut = fromIntegral vnow + vestingDataPaidOut vd }
+        remaining = totalAmount vs - vnow
+        vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val UTXO.unitRedeemer
     _ <- signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module DynamicBuiltins.Logging
     ( test_logging
@@ -18,6 +19,19 @@ import           Control.Monad.IO.Class
 import           Data.Functor.Identity
 import           Test.Tasty
 import           Test.Tasty.HUnit
+
+dynamicIntToStringName :: DynamicBuiltinName
+dynamicIntToStringName = DynamicBuiltinName "intToString"
+
+dynamicIntToStringMeaning :: DynamicBuiltinNameMeaning
+dynamicIntToStringMeaning = DynamicBuiltinNameMeaning sch show where
+    sch =
+        TypeSchemeAllSize $ \s ->
+            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt) `TypeSchemeArrow`
+            TypeSchemeBuiltin (TypedBuiltinDyn @String)
+
+dynamicIntToString :: Term tyname name ()
+dynamicIntToString = dynamicBuiltinNameAsTerm dynamicIntToStringName
 
 handleDynamicIntToString :: OnChainHandler "intToString" f r r
 handleDynamicIntToString = handleDynamicByMeaning dynamicIntToStringMeaning

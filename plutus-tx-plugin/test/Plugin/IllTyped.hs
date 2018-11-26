@@ -14,6 +14,9 @@ import           Language.PlutusTx.Plugin
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}
 
+string :: PlcCode
+string = plc @"string" "test"
+
 listConstruct :: PlcCode
 listConstruct = plc @"listConstruct" ([]::[Int])
 

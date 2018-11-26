@@ -14,7 +14,6 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog (testProperty)
 
 import           Wallet.Emulator
-import qualified Wallet.Emulator.Log as Log
 import           Wallet.Generators   (Mockchain (..))
 import qualified Wallet.Generators   as Gen
 import           Wallet.UTXO         (unitValidationData)
@@ -65,13 +64,13 @@ txnIndex :: Property
 txnIndex = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
-    Hedgehog.assert (Index.initialise (emChain st) == emIndex st)
+    Hedgehog.assert (Index.initialise (_chain st) == _index st)
 
 txnIndexValid :: Property
 txnIndexValid = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m processPending
-        idx = emIndex st
+        idx = _index st
     Hedgehog.assert (Right () == Index.runValidation (Index.validateTransaction 0 txn) idx)
 
 -- | Submit a transaction to the blockchain and assert that it has been
@@ -87,7 +86,7 @@ validTrace = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 invalidTrace :: Property
 invalidTrace = property $ do
@@ -95,11 +94,11 @@ invalidTrace = property $ do
     let invalidTxn = txn { txFee = 0 }
         (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
-    Hedgehog.assert ([] == emTxPool st)
-    Hedgehog.assert (not (null $ emLog st))
-    Hedgehog.assert (case emLog st of
-        Log.BlockAdd _ : Log.TxnValidationFail _ _ : _ -> True
-        _                                              -> False)
+    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert (not (null $ _emulatorLog st))
+    Hedgehog.assert (case _emulatorLog st of
+        BlockAdd _ : TxnValidationFail _ _ : _ -> True
+        _                                      -> False)
 
 splitVal :: Property
 splitVal = property $ do
@@ -112,7 +111,7 @@ splitVal = property $ do
 notifyWallet :: Property
 notifyWallet = property $ do
     let w = Wallet 1
-    (e, EmulatorState{ emWalletState = st }) <- forAll
+    (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ processPending >>= walletNotifyBlock w
     let ttl = Map.lookup w st
@@ -121,7 +120,7 @@ notifyWallet = property $ do
 eventTrace :: Property
 eventTrace = property $ do
     let w = Wallet 1
-    (e, EmulatorState{ emWalletState = st }) <- forAll
+    (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             processPending >>= walletNotifyBlock w
@@ -146,7 +145,7 @@ watchFundsAtAddress :: Property
 watchFundsAtAddress = property $ do
     let w = Wallet 1
         pkTarget = PubKey 2
-    (e, EmulatorState{ emWalletState = st }) <- forAll
+    (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             processPending >>= walletNotifyBlock w

@@ -20,6 +20,7 @@ source-repository head
 library
     exposed-modules:
         Language.PlutusTx.TH
+        Language.PlutusTx.Prelude
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -49,7 +50,21 @@ test-suite plutus-tx-tests
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
+        plutus-core-interpreter -any,
         plutus-tx-plugin -any,
         plutus-tx -any,
+        mtl -any,
         template-haskell -any,
         tasty -any
+
+test-suite plutus-tx-doctests
+    type: exitcode-stdio-1.0
+    main-is: doctests.hs
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-tx -any,
+        markdown-unlit -any,
+        doctest -any
+    build-tool-depends: markdown-unlit:markdown-unlit
+    ghc-options: -pgmL markdown-unlit
