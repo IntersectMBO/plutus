@@ -161,7 +161,6 @@ data EmulatorEvent =
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
 
-
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
     updateState = \case

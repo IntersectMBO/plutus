@@ -114,7 +114,6 @@ import qualified Data.ByteString.Base64                   as Base64
 import qualified Data.ByteString.Char8                    as BS8
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (foldMap)
-import           Data.Functor                             (void)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
@@ -124,7 +123,7 @@ import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 
 import qualified Language.PlutusCore                      as PLC
-import           Language.PlutusCore.Evaluation.CkMachine (runCk)
+import           Language.PlutusTx.Evaluation             (evaluateCekLog)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlc)
 import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
@@ -242,8 +241,8 @@ applyScript :: Script -> Script -> Script
 -- TODO: this is a bit inefficient
 applyScript (getAst -> s1) (getAst -> s2) = Script $ serialise $ s1 `PLC.applyProgram` s2
 
-evaluateScript :: Script -> Maybe ()
-evaluateScript (getAst -> s) = void $ evaluationResultToMaybe $ runCk s
+evaluateScript :: Script -> ([String], Bool)
+evaluateScript (getAst -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekLog s
 
 instance ToJSON Script where
   toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
@@ -662,17 +661,17 @@ validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
         (ConsumeScriptAddress v r, PayToScript d)
             | txOutAddress /= scriptAddress v -> False
-            | otherwise                                    -> runScript bs v r d
+            | otherwise                       -> snd $ runScript bs v r d
         (ConsumePublicKeyAddress sig, PayToPubKey pk) -> sig `signedBy` pk
         _ -> False
 
 -- | Evaluate a validator script with the given inputs
-runScript :: ValidationData -> Validator -> Redeemer -> DataScript -> Bool
+runScript :: ValidationData -> Validator -> Redeemer -> DataScript -> ([String], Bool)
 runScript (ValidationData valData) (Validator validator) (Redeemer redeemer) (DataScript dataScript) =
     let
         applied = ((validator `applyScript` redeemer) `applyScript` dataScript) `applyScript` valData
         -- TODO: do something with the error
-    in isJust $ evaluateScript applied
+    in evaluateScript applied
         -- TODO: Enable type checking of the program
         -- void typecheck
 
