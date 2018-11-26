@@ -3,45 +3,45 @@
     [
       {
         (abs
-          MyNewtype_77
+          MyNewtype_82
           (type)
           (lam
-            MyNewtype_78
-            (fun [(con integer) (con 8)] MyNewtype_77)
+            MyNewtype_83
+            (fun [(con integer) (con 8)] MyNewtype_82)
             (lam
-              MyNewtype_match_79
-              (fun MyNewtype_77 (all out_MyNewtype_80 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_80) out_MyNewtype_80)))
+              MyNewtype_match_84
+              (fun MyNewtype_82 (all out_MyNewtype_85 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_85) out_MyNewtype_85)))
               (lam
-                ds_81
-                MyNewtype_77
+                ds_86
+                MyNewtype_82
                 [
-                  { [ MyNewtype_match_79 ds_81 ] [(con integer) (con 8)] }
-                  (lam inner_82 [(con integer) (con 8)] inner_82)
+                  { [ MyNewtype_match_84 ds_86 ] [(con integer) (con 8)] }
+                  (lam inner_87 [(con integer) (con 8)] inner_87)
                 ]
               )
             )
           )
         )
-        (all out_MyNewtype_83 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_83) out_MyNewtype_83))
+        (all out_MyNewtype_88 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_88) out_MyNewtype_88))
       }
       (lam
-        arg_0_84
+        arg_0_89
         [(con integer) (con 8)]
         (abs
-          out_MyNewtype_85
+          out_MyNewtype_90
           (type)
           (lam
-            case_MyNewtype_86
-            (fun [(con integer) (con 8)] out_MyNewtype_85)
-            [ case_MyNewtype_86 arg_0_84 ]
+            case_MyNewtype_91
+            (fun [(con integer) (con 8)] out_MyNewtype_90)
+            [ case_MyNewtype_91 arg_0_89 ]
           )
         )
       )
     ]
     (lam
-      x_87
-      (all out_MyNewtype_88 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_88) out_MyNewtype_88))
-      x_87
+      x_92
+      (all out_MyNewtype_93 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_93) out_MyNewtype_93))
+      x_92
     )
   ]
 )

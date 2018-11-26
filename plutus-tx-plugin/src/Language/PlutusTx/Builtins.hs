@@ -24,10 +24,15 @@ module Language.PlutusTx.Builtins (
                                 , equalsInteger
                                 -- * Error
                                 , error
+                                -- * Strings
+                                , String
+                                , appendString
+                                , emptyString
+                                , charToString
                                 ) where
 
-import           Data.ByteString.Lazy
-import           Prelude                 hiding (error)
+import           Data.ByteString.Lazy    hiding (append)
+import           Prelude                 hiding (String, error)
 
 import           Language.PlutusTx.Utils (mustBeReplaced)
 
@@ -92,3 +97,15 @@ equalsInteger = mustBeReplaced
 
 error :: () -> a
 error = mustBeReplaced
+
+-- | An opaque type representing PLC strings.
+data String
+
+appendString :: String -> String -> String
+appendString = mustBeReplaced
+
+emptyString :: String
+emptyString = mustBeReplaced
+
+charToString :: Char -> String
+charToString = mustBeReplaced

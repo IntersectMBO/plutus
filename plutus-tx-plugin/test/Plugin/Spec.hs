@@ -82,9 +82,6 @@ primitives = testNested "primitives" [
   , goldenPlc "verify" verify
   ]
 
-string :: PlcCode
-string = plc @"string" "test"
-
 int :: PlcCode
 int = plc @"int" (1::Int)
 
