@@ -38,7 +38,7 @@ import qualified Data.ByteArray         as BA
 import qualified Data.ByteString.Lazy   as BSL
 import           GHC.Generics           (Generic)
 import           Language.PlutusTx.Lift (makeLift)
-import           Wallet.UTXO.Types      (PubKey (..), Signature (..))
+import           Wallet.UTXO.Types      (PubKey (..), Signature (..), Value (..))
 import qualified Wallet.UTXO.Types      as UTXO
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
@@ -90,31 +90,6 @@ data OracleValue a = OracleValue (Signed (Height, a))
 
 data Signed a = Signed (PubKey, a)
     deriving Generic
-
--- | Ada value
---
--- TODO: Use [[Wallet.UTXO.Types.Value]] when Integer is supported
-data Value = Value { getValue ::  Int }
-    deriving (Eq, Ord, Show, Generic)
-
-instance Enum Value where
-    toEnum = Value
-    fromEnum = getValue
-
-instance Num Value where
-    (Value l) + (Value r) = Value (l + r)
-    (Value l) * (Value r) = Value (l * r)
-    abs (Value v)         = Value (abs v)
-    signum (Value v)      = Value (signum v)
-    fromInteger           = Value . fromInteger
-    negate (Value v)      = Value (negate v)
-
-instance Real Value where
-    toRational (Value v) = toRational v
-
-instance Integral Value where
-    quotRem (Value l) (Value r) = let (l', r') = quotRem l r in (Value l', Value r')
-    toInteger (Value i) = toInteger i
 
 {- Note [Hashes in validator scripts]
 
@@ -185,7 +160,6 @@ makeLift ''PendingTxIn
 makeLift ''PendingTx
 makeLift ''OracleValue
 makeLift ''Signed
-makeLift ''Value
 makeLift ''ValidatorHash
 makeLift ''DataScriptHash
 makeLift ''RedeemerHash
