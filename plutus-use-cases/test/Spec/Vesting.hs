@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Spec.Vesting(tests) where
 
 import           Control.Monad                                  (void)
@@ -39,8 +39,8 @@ tests = testGroup "vesting" [
 scen1 :: VestingScenario
 scen1 = VestingScenario{..} where
     vsVestingScheme = Vesting {
-        vestingTranche1 = VestingTranche 10 200,
-        vestingTranche2 = VestingTranche 20 400,
+        vestingTranche1 = VestingTranche (Runtime.Height 10) 200,
+        vestingTranche2 = VestingTranche (Runtime.Height 20) 400,
         vestingOwner    = PubKey 1 }
     vsWallets = Wallet <$> [1, 2]
     vsInitialBalances = Map.fromList [
@@ -154,4 +154,4 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
 -- | Validate all pending transactions and notify the wallets
 updateAll :: VestingScenario -> Trace EmulatedWalletApi [Tx]
 updateAll VestingScenario{vsWallets} =
-    blockchainActions >>= walletsNotifyBlock vsWallets
+    processPending >>= walletsNotifyBlock vsWallets

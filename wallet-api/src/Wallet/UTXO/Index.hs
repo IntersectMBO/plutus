@@ -28,6 +28,7 @@ module Wallet.UTXO.Index(
 import           Control.Monad.Except (MonadError (..), liftEither)
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
+import           Data.Aeson           (FromJSON, ToJSON)
 import           Data.Foldable        (foldl', traverse_)
 import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
@@ -85,7 +86,10 @@ data ValidationError =
     -- ^ The transaction produces an output with a negative value
     | ScriptFailure
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Ord, Show, Generic)
+
+instance FromJSON ValidationError
+instance ToJSON ValidationError
 
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
     deriving (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
@@ -140,7 +144,7 @@ lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList 
 -- | Matching pair of transaction input and transaction output. The type
 --   parameter is to allow the validation data to be inserted.
 data InOutMatch =
-    ScriptMatch UTXO.Validator UTXO.Redeemer DataScript Value (UTXO.Address (Digest SHA256))
+    ScriptMatch UTXO.Validator UTXO.Redeemer DataScript (UTXO.Address (Digest SHA256))
     | PubKeyMatch PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -148,8 +152,8 @@ data InOutMatch =
 --   both are of the same type (pubkey or pay-to-script)
 matchInputOutput :: ValidationMonad m => TxIn' -> TxOut' -> m InOutMatch
 matchInputOutput i txo = case (txInType i, txOutType txo) of
-    (UTXO.ConsumeScriptAddress v r, UTXO.PayToScript _ d) ->
-        pure $ ScriptMatch v r d (txOutValue txo) (txOutAddress txo)
+    (UTXO.ConsumeScriptAddress v r, UTXO.PayToScript d) ->
+        pure $ ScriptMatch v r d (txOutAddress txo)
     (UTXO.ConsumePublicKeyAddress sig, UTXO.PayToPubKey pk) ->
         pure $ PubKeyMatch pk sig
     _ -> throwError $ InOutTypeMismatch i txo
@@ -159,15 +163,19 @@ matchInputOutput i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => ValidationData -> InOutMatch -> m ()
+checkMatch :: ValidationMonad m => PendingTx () -> InOutMatch -> m ()
 checkMatch v = \case
-    ScriptMatch vl r d vv a
-        | a /= UTXO.scriptAddress vv vl d ->
+    ScriptMatch vl r d a
+        | a /= UTXO.scriptAddress vl ->
                 throwError $ InvalidScriptHash d
         | otherwise ->
-            if UTXO.runScript v vl r d
-            then pure ()
-            else throwError ScriptFailure
+            let v' = ValidationData
+                    $ lifted
+                    $ v { pendingTxOwnHash = Runtime.plcValidatorDigest (UTXO.getAddress a) }
+            in
+                if UTXO.runScript v' vl r d
+                then pure ()
+                else throwError ScriptFailure
     PubKeyMatch pk sig ->
         if sig `UTXO.signedBy` pk
         then pure ()
@@ -193,26 +201,27 @@ checkPositiveValues t =
 
 -- | Encode the current transaction and blockchain height
 --   in PLC.
-validationData :: ValidationMonad m => UTXO.Height -> Tx -> m ValidationData
+validationData :: ValidationMonad m => UTXO.Height -> Tx -> m (PendingTx ())
 validationData h tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
-    rump inputs = ValidationData $ lifted PendingTx
+    rump inputs = PendingTx
         { pendingTxInputs = inputs
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = fromIntegral $ txForge tx
         , pendingTxFee = fromIntegral $ txFee tx
-        , pendingTxBlockHeight = fromIntegral h
+        , pendingTxBlockHeight = Runtime.Height $ fromIntegral h
         , pendingTxSignatures = txSignatures tx
+        , pendingTxOwnHash    = ()
         }
 
 mkOut :: TxOut' -> Runtime.PendingTxOut
 mkOut t = Runtime.PendingTxOut (fromIntegral $ txOutValue t) d tp where
     (d, tp) = case txOutType t of
-        UTXO.PayToScript vh scrpt ->
+        UTXO.PayToScript scrpt ->
             let
                 dataScriptHash = Runtime.plcDataScriptHash scrpt
-                validatorHash  = Runtime.plcValidatorDigest vh
+                validatorHash  = Runtime.plcValidatorDigest (UTXO.getAddress $ txOutAddress t)
             in
                 (Just (validatorHash, dataScriptHash), Runtime.DataTxOut)
         UTXO.PayToPubKey pk -> (Nothing, Runtime.PubKeyTxOut pk)
@@ -226,7 +235,8 @@ mkIn i = Runtime.PendingTxIn <$> ref <*> pure red <*> vl where
             Runtime.PendingTxOutRef hash idx <$> lkpSigs (UTXO.txInRef i)
     red = case txInType i of
         UTXO.ConsumeScriptAddress v r  ->
-            Just (Runtime.plcValidatorHash v, Runtime.plcRedeemerHash r)
+            let h = UTXO.getAddress $ UTXO.scriptAddress v in
+            Just (Runtime.plcValidatorDigest h, Runtime.plcRedeemerHash r)
         UTXO.ConsumePublicKeyAddress _ ->
             Nothing
     vl = fromIntegral <$> valueOf i

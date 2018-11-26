@@ -10,7 +10,7 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinNatToInteger
     ) where
 
-import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -138,7 +138,7 @@ getBuiltinNatToInteger = rename =<< do
     foldNat <- getBuiltinFoldNat
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
-    let addInteger = Constant () $ BuiltinName () AddInteger
+    let addInteger = Builtin () $ BuiltinName () AddInteger
         sv  = TyVar () s
         ssv = Var () ss
     return

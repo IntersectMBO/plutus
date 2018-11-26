@@ -41,9 +41,11 @@ library
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
+        Language.PlutusCore.Constant.Dynamic
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.Subst
+        Language.PlutusCore.Name
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -65,14 +67,21 @@ library
     hs-source-dirs: src prelude stdlib generators common
     other-modules:
         Language.PlutusCore.Type
-        Language.PlutusCore.Clone
-        Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
+        Language.PlutusCore.Constant.Dynamic.BuiltinName
+        Language.PlutusCore.Constant.Dynamic.Call
+        Language.PlutusCore.Constant.Dynamic.Emit
+        Language.PlutusCore.Constant.Dynamic.Instances
+        Language.PlutusCore.Constant.Dynamic.OnChain
+        Language.PlutusCore.Constant.Dynamic.Pretty
+        Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
+        Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.Check.Normal
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable
@@ -112,7 +121,7 @@ library
         recursion-schemes -any,
         text -any,
         prettyprinter >=1.1.0.1,
-        microlens -any,
+        lens -any,
         composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,
@@ -143,12 +152,7 @@ executable language-plutus-core-generate-evaluation-test
     build-depends:
         base -any,
         language-plutus-core -any,
-        bytestring -any,
-        serialise -any,
-        text -any,
-        prettyprinter -any,
-        mmorph -any,
-        hedgehog -any
+        text -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

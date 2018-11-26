@@ -66,7 +66,7 @@ You can install the executables described below via either `stack` or `nix`.
 
 ##### Via `nix`
 
-Run `nix build -f default.nix plutus-exe` being in the `plutus` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
+Run `nix build -f default.nix localPackages.plutus-exe` being in the `plutus` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
 
 ##### Via `stack`
 

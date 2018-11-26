@@ -1,29 +1,16 @@
-# TODO: replace with shellFor once our pinned nixpkgs advances past
-# 5523ec8f3c78704c6e76b7675bfce41d24a3feb1, before which it doesn't
-# handle overridden dependencies properly
 let
   localLib = import ./lib.nix;
 in
 { system ? builtins.currentSystem
 , config ? {}
-, pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; })
+, pkgs ? (import (localLib.iohkNix.nixpkgs) { inherit system config; })
 }:
 
 let
-  plutusPkgs = import ./. {};
-  ghc = pkgs.haskell.packages.ghc822.ghcWithPackages (ps: [
-    plutusPkgs.language-plutus-core
-    plutusPkgs.core-to-plc
-    plutusPkgs.plutus-th
-    plutusPkgs.tasty-hedgehog
-    plutusPkgs.tasty
-    plutusPkgs.tasty-golden
-    plutusPkgs.tasty-hunit
-    plutusPkgs.hedgehog
-  ]);
+  localPackages = import ./. {};
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
-    buildInputs = with pkgs; [ plutusPkgs.stylish-haskell git fd ];
+    buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
     shellHook = ''
       git diff > pre-stylish.diff
       fd --extension hs --exclude '*/dist/*' --exclude '*/docs/*' --exec stylish-haskell -i {}
@@ -39,12 +26,11 @@ let
       exit
     '';
   };
+  shell = localPackages.haskellPackages.shellFor {
+    packages = p: (map (x: p.${x}) localLib.plutusPkgList);
+    nativeBuildInputs = [ pkgs.cabal-install pkgs.haskellPackages.ghcid ];
+  };
 
-in
-  # This is an environment for running the deps regeneration script.
-  pkgs.stdenv.mkDerivation {
-    name = "plutus-ghc";
-    passthru = { inherit fixStylishHaskell; };
-    buildInputs = with pkgs; [ ghc ];
-    src = null;
-  }
+in shell // {
+  inherit fixStylishHaskell;
+}

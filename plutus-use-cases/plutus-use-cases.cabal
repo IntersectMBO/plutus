@@ -26,12 +26,10 @@ library
     containers -any,
     mtl -any,
     template-haskell -any,
-    transformers -any,
-    plutus-th -any,
-    language-plutus-core -any,
-    core-to-plc -any,
+    plutus-tx -any,
+    plutus-tx-plugin -any,
     wallet-api -any,
-    microlens -any
+    lens -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -40,6 +38,7 @@ library
   exposed-modules:
     Language.Plutus.Coordination.Contracts
     Language.Plutus.Coordination.Contracts.CrowdFunding
+    Language.Plutus.Coordination.Contracts.Future
     Language.Plutus.Coordination.Contracts.Vesting
     Language.Plutus.Coordination.Contracts.Swap
     Language.Plutus.Runtime
@@ -56,6 +55,7 @@ test-suite plutus-use-cases-test
     main-is: Spec.hs
     other-modules:
       Spec.Crowdfunding
+      Spec.Future
       Spec.Vesting
     build-depends:
         base >=4.9 && <5,
@@ -66,9 +66,8 @@ test-suite plutus-use-cases-test
         text -any,
         wallet-api -any,
         plutus-use-cases,
-        plutus-th -any,
-        microlens -any,
-        core-to-plc -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
         template-haskell -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances

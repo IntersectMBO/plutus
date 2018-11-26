@@ -1,0 +1,31 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          Unit_71
+          (type)
+          (lam
+            Unit_72
+            Unit_71
+            (lam
+              Unit_match_73
+              (fun Unit_71 (all out_Unit_74 (type) (fun out_Unit_74 out_Unit_74)))
+              [
+                (lam
+                  error_75
+                  (all a_76 (type) (fun Unit_71 a_76))
+                  { error_75 [(con integer) (con 8)] }
+                )
+                (abs e_77 (type) (lam thunk_78 Unit_71 (error e_77)))
+              ]
+            )
+          )
+        )
+        (all out_Unit_79 (type) (fun out_Unit_79 out_Unit_79))
+      }
+      (abs out_Unit_80 (type) (lam case_Unit_81 out_Unit_80 case_Unit_81))
+    ]
+    (lam x_82 (all out_Unit_83 (type) (fun out_Unit_83 out_Unit_83)) x_82)
+  ]
+)

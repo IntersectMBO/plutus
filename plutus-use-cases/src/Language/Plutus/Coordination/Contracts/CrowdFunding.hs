@@ -10,41 +10,44 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.Plutus.Coordination.Contracts.CrowdFunding (
     -- * Campaign parameters
     Campaign(..)
     , CampaignActor
     -- * Functionality for campaign contributors
     , contribute
-    , contributionScript
-    , refund
-    , refundTrigger
     -- * Functionality for campaign owners
     , collect
-    , collectFundsTrigger
+    , campaignAddress
     ) where
 
 import           Control.Applicative        (Applicative (..))
-import           Control.Monad              (Monad (..))
+import           Control.Lens
+import           Control.Monad              (Monad (..), void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Foldable              (foldMap)
+import qualified Data.Map                   as Map
+import           Data.Maybe                 (fromMaybe)
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 
-import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.Runtime    (Height, PendingTx (..), PendingTxIn (..), PubKey (..), Value)
-import           Language.Plutus.TH         (plutus)
-import qualified Language.Plutus.TH         as Builtins
-import           Wallet.API                 (EventTrigger (..), Range (..), WalletAPI (..), WalletAPIError, otherError,
-                                             pubKey, signAndSubmit)
-import           Wallet.UTXO                (Address', DataScript (..), TxOutRef', Validator (..), scriptTxIn,
-                                             scriptTxOut)
+import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, PubKey (..),
+                                             ValidatorHash, Value (..))
+import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.TH       (plutusUntyped)
+import qualified Language.PlutusTx.TH       as Builtins
+import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
+                                             WalletAPIError, andT, blockHeightT, fundsAtAddressT, otherError,
+                                             ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
+import           Wallet.UTXO                (DataScript (..), TxId', Validator (..), scriptTxIn)
 import qualified Wallet.UTXO                as UTXO
 
 import qualified Language.Plutus.Runtime.TH as TH
-import           Prelude                    (Bool (..), Num (..), Ord (..), fromIntegral, snd, succ, ($), (.), (<$>))
+import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fromIntegral, fst, snd, succ, ($), (.),
+                                             (<$>), (==))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -56,8 +59,12 @@ data Campaign = Campaign
 
 type CampaignActor = PubKey
 
-instance LiftPlc Campaign
-instance TypeablePlc Campaign
+makeLift ''Campaign
+
+data CampaignAction = Collect | Refund
+    deriving Generic
+
+makeLift ''CampaignAction
 
 -- | Contribute funds to the campaign (contributor)
 --
@@ -74,10 +81,29 @@ contribute cmp value = do
     -- TODO: Remove duplicate definition of Value
     --       (Value = Integer in Haskell land but Value = Int in PLC land)
     let v' = UTXO.Value $ fromIntegral value
-    (payment, change) <- createPaymentWithChange v'
-    let o = scriptTxOut v' (contributionScript cmp) ds
+    tx <- payToScript (campaignAddress cmp) v' ds
 
-    signAndSubmit payment [o, change]
+    register (refundTrigger cmp) (refund (UTXO.hashTx tx) cmp)
+
+-- | Register a [[EventHandler]] to collect all the funds of a campaign
+--
+collect :: (Monad m, WalletAPI m) => Campaign -> m ()
+collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
+        am <- watchedAddresses
+        let scr        = contributionScript cmp
+            contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
+            red        = UTXO.Redeemer $ UTXO.lifted Collect
+            con (r, _) = scriptTxIn r scr red
+            ins        = con <$> contributions
+            value = getSum $ foldMap (Sum . snd) contributions
+
+        oo <- ownPubKeyTxOut value
+        void $ signAndSubmit (Set.fromList ins) [oo]
+
+
+-- | The address of a [[Campaign]]
+campaignAddress :: Campaign -> UTXO.Address'
+campaignAddress = UTXO.scriptAddress . contributionScript
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
@@ -102,12 +128,8 @@ contributionScript cmp  = Validator val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = UTXO.fromPlcCode $(plutus [| (\Campaign{..} () (a :: CampaignActor) (p :: PendingTx) ->
+    inner = UTXO.fromPlcCode $(plutusUntyped [| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
-            -- | Check that a transaction input is signed by the private key of the given
-            --   public key.
-            signedBy :: PendingTxIn -> CampaignActor -> Bool
-            signedBy = $(TH.txInSignedBy)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
@@ -115,74 +137,76 @@ contributionScript cmp  = Validator val where
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
-            signedByT :: PendingTx -> CampaignActor -> Bool
+            signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
             signedByT = $(TH.txSignedBy)
 
-            PendingTx _ _ _ _ h _ = p
+            PendingTx ps outs _ _ (Height h) _ _ = p
 
-            isValid = case p of
-                PendingTx (ps::[PendingTxIn]) _ _ _ _ _ ->
-                    case ps of
-                        (pt1::PendingTxIn):(ps'::[PendingTxIn]) ->
-                            case ps' of
-                                (pt2::PendingTxIn):(_::[PendingTxIn]) ->
-                                    -- the "successful campaign" branch
-                                    let
-                                        PendingTxIn _ _ v1 = pt1
-                                        PendingTxIn _ _ v2 = pt2
-                                        pledgedFunds = v1 + v2
+            deadline :: Int
+            deadline = let Height h' = campaignDeadline in h'
 
-                                        payToOwner = h > campaignDeadline &&
-                                                    h <= campaignCollectionDeadline &&
-                                                    pledgedFunds >= campaignTarget &&
-                                                    signedByT p campaignOwner
-                                    in payToOwner
-                                (_::[PendingTxIn]) -> -- the "refund" branch
-                                    let
-                                        -- Check that a refund transaction only spends the
-                                        -- amount that was pledged by the contributor
-                                        -- identified by `a :: CampaignActor`
-                                        contributorOnly = signedBy pt1 a
-                                        refundable   = h > campaignCollectionDeadline &&
-                                                                    contributorOnly &&
-                                                                    signedByT p a
-                                        -- In case of a refund, we can only collect the funds that
-                                        -- were committed by this contributor
-                                    in refundable
-                        (_::[PendingTxIn]) -> False
+            collectionDeadline :: Int
+            collectionDeadline = let Height h' = campaignCollectionDeadline in h'
+
+            target :: Int
+            target = let Value v = campaignTarget in v
+
+            -- | The total value of all contributions
+            totalInputs :: Int
+            totalInputs =
+                let v (PendingTxIn _ _ (Value vl)) = vl in
+                $(TH.foldr) (\i total -> total + v i) 0 ps
+
+            isValid = case act of
+                Refund -> -- the "refund" branch
+                    let
+                        -- Check that all outputs are paid to the public key
+                        -- of the contributor (that is, to the `a` argument of the data script)
+
+                        contributorTxOut :: PendingTxOut -> Bool
+                        contributorTxOut o = $(TH.maybe) False (\pk -> $(TH.eqPubKey) pk a) ($(TH.pubKeyOutput) o)
+
+                        contributorOnly = $(TH.all) contributorTxOut outs
+
+                        refundable   = h > collectionDeadline &&
+                                                    contributorOnly &&
+                                                    signedByT p a
+
+                    in refundable
+                Collect -> -- the "successful campaign" branch
+                    let
+                        payToOwner = h > deadline &&
+                                    h <= collectionDeadline &&
+                                    totalInputs >= target &&
+                                    signedByT p campaignOwner
+                    in payToOwner
         in
         if isValid then () else Builtins.error ()) |])
 
--- | Given the campaign data and the output from the contributing transaction,
---   make a trigger that fires when the transaction can be refunded.
-refundTrigger :: Campaign -> Address' -> EventTrigger
-refundTrigger Campaign{..} t = And
-    (FundsAtAddress [t]  (GEQ 1))
-    (BlockHeightRange (GEQ $ fromIntegral $ succ campaignCollectionDeadline))
+-- | An event trigger that fires when a refund of campaign contributions can be claimed
+refundTrigger :: Campaign -> EventTrigger
+refundTrigger c = andT
+    (fundsAtAddressT (campaignAddress c) $ GEQ 1)
+    (blockHeightT (GEQ $ fromIntegral $ succ $ getHeight $ campaignCollectionDeadline c))
 
--- | Given the public key of the campaign owner, generate an event trigger that
--- fires when the funds can be collected.
-collectFundsTrigger :: Campaign -> [Address'] -> EventTrigger
-collectFundsTrigger Campaign{..} ts = And
-    (FundsAtAddress ts $ GEQ $ UTXO.Value $ fromIntegral campaignTarget)
-    (BlockHeightRange $ fromIntegral <$> Interval campaignDeadline campaignCollectionDeadline)
+-- | An event trigger that fires when the funds for a campaign can be collected
+collectFundsTrigger :: Campaign -> EventTrigger
+collectFundsTrigger c = andT
+    (fundsAtAddressT (campaignAddress c) $ GEQ $ UTXO.Value $ fromIntegral $ campaignTarget c)
+    (blockHeightT $ fromIntegral . getHeight <$> Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
-refund :: (Monad m, WalletAPI m) => Campaign -> TxOutRef' -> UTXO.Value -> m ()
-refund c ref val = do
-    oo <- payToPublicKey val
-    let scr = contributionScript c
-        i   = scriptTxIn ref scr UTXO.unitRedeemer
-    signAndSubmit (Set.singleton i) [oo]
+-- | Claim a refund of our campaign contribution
+refund :: (Monad m, WalletAPI m) => TxId' -> Campaign -> EventHandler m
+refund txid cmp = EventHandler $ \_ -> do
+    am <- watchedAddresses
+    let adr     = campaignAddress cmp
+        utxo    = fromMaybe Map.empty $ am ^. at adr
+        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == UTXO.txOutRefId k) utxo
+        scr   = contributionScript cmp
+        red   = UTXO.Redeemer $ UTXO.lifted Refund
+        i ref = scriptTxIn ref scr red
+        inputs = Set.fromList $ i . fst <$> ourUtxo
+        value  = getSum $ foldMap (Sum . snd) ourUtxo
 
--- | Collect all campaign funds (campaign owner)
---
---
-collect :: (Monad m, WalletAPI m) => Campaign -> [(TxOutRef', UTXO.Value)] -> m ()
-collect cmp contributions = do
-    oo <- payToPublicKey value
-    let scr        = contributionScript cmp
-        con (r, _) = scriptTxIn r scr UTXO.unitRedeemer
-        ins        = con <$> contributions
-    signAndSubmit (Set.fromList ins) [oo]
-    where
-      value = getSum $ foldMap (Sum . snd) contributions
+    out <- ownPubKeyTxOut value
+    void $ signAndSubmit inputs [out]

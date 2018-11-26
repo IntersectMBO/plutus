@@ -238,7 +238,7 @@ getBuiltinFixN n = do
                 Apply () (TyInst () (Var () k) (TyVar () b)) $
                 mkIterLamAbs () fs $
                 -- this is an ugly but straightforward way of getting the right fi
-                Apply () (mkVar (fs !! i)) (Var () x)
+                Apply () (mkVar () (fs !! i)) (Var () x)
 
     -- a list of all the branches
     branches <- forM (zip asbs [0..]) $ uncurry branch

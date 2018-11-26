@@ -1,5 +1,0 @@
-(abs
-  Bool_matchOut_3
-  (type)
-  (lam True_4 Bool_matchOut_3 (lam False_5 Bool_matchOut_3 True_4))
-)

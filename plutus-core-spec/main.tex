@@ -362,226 +362,106 @@
 \usepackage[T1]{fontenc}
 \usepackage{bussproofs,amsmath,amssymb}
 \usepackage{listings}
+\usepackage{xcolor}
 
 
 %\subfile{PlutusDefinitions}
 
 
+
+
+
+
 % *** DEFINITIONS FOR PLUTUS LANGUAGE ***
 
+
+
+%%% General Misc. Definitions
+
+\newcommand{\diffbox}[1]{\text{\colorbox{lightgray}{\(#1\)}}}
 \newcommand{\judgmentdef}[2]{\fbox{#1}
 
 \vspace{0.5em}
 
 #2}
-
 \newcommand{\hyphen}{\operatorname{-}}
-\newcommand{\apostrophe}{\operatorname{'}}
-\newcommand{\vect}[2]{(#2)_{#1}}
 \newcommand{\repetition}[1]{\overline{#1}}
-\newcommand{\unrepetition}[1]{\underline{#1}}
-\newcommand{\every}[2]{\forall #1(#2)}
-\newcommand{\some}[2]{\exists #1(#2)}
-\newcommand{\lpar}{\texttt{(}}
-\newcommand{\rpar}{\texttt{)}}
-\newcommand{\iffbecause}[1]{\Leftrightarrow~\textrm{\{#1\}}}
-\newcommand{\qed}{\square}
-\newcommand{\qedbecause}[1]{\square~\textrm{\{#1\}}}
 \newcommand{\Fomega}{F$^{\omega}$}
-
 \newcommand{\keyword}[1]{\texttt{#1}}
-\newcommand{\size}[1]{\texttt{#1}}
-\newcommand{\name}[1]{\texttt{#1}}
-%\newcommand{\qual}[2]{(\keyword{qual} ~ \name{#1} ~ \name{#2})}
-\newcommand{\qual}[2]{#1\texttt{.}#2}
-%\newcommand{\qualcon}[2]{(\keyword{qualcon} ~ \name{#1} ~ \name{#2})}
-\newcommand{\qualcon}[2]{#1\texttt{.}#2}
-\newcommand{\metatycon}{\kappa}
-\newcommand{\metaqualtycon}{\hat{\kappa}}
-\newcommand{\metatyname}{\nu}
-\newcommand{\metaqualtyname}{\hat{\nu}}
-\newcommand{\metacon}{c}
-\newcommand{\metaqualcon}{\hat{c}}
-\newcommand{\metaname}{n}
-\newcommand{\metaqualname}{\hat{n}}
-\newcommand{\variable}[1]{\texttt{#1}}
-\newcommand{\multiplearg}[2]{#1 \keyword{;} \texttt{\ldots} \keyword{;} #2}
-\newcommand{\listarg}[2]{#1 \keyword{,} \texttt{\ldots} \keyword{,} #2}
-\newcommand{\emptylist}{\keyword{\epsilon}}
-\newcommand{\listargelement}[1]{\texttt{\ldots} \keyword{,} #1 \keyword{,} \texttt{\ldots}}
-\newcommand{\altarg}[2]{#1 ~\keyword{|}~ \texttt{\ldots} ~\keyword{|}~ #2}
-\newcommand{\sizeTermToSize}[1]{\lfloor #1 \rfloor}
-
 \newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
-%\newcommand{\scope}[2]{(\keyword{scope} ~ (#1) ~ #2)}
-%\newcommand{\decname}[1]{(\keyword{decname} ~ #1)}
-\newcommand{\decname}[1]{\texttt{#1}}
-\newcommand{\isa}[2]{\construct{\keyword{isa} ~ #1 ~ #2}}
-\newcommand{\letrec}[4]{\construct{\keyword{letrec} ~ #1 ~ #2 ~ #3 ~ #4}}
-\newcommand{\lettype}[3]{\construct{\keyword{lettype} ~ #1 ~ #2 ~ #3}}
-\newcommand{\sizeterm}[1]{\texttt{\$#1}}
+
+
+
+%%% Term Grammar
+
+\newcommand{\sig}[3]{[#1](#2)#3}
+\newcommand{\constsig}[2]{#1,#2}
 \newcommand{\con}[1]{\construct{\keyword{con} ~ #1}}
 \newcommand{\abs}[3]{\construct{\keyword{abs} ~ #1 ~ #2 ~ #3}}
 \newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
 \newcommand{\lam}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
-\newcommand{\lamE}[2]{\construct{\keyword{lam} ~ #1 ~ #2}}
-%\newcommand{\app}[2]{(\keyword{app} ~ #1 ~ #2)}
 \newcommand{\app}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
-\newcommand{\appE}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
-\newcommand{\fix}[3]{\construct{\keyword{fix} ~ #1 ~ #2 ~ #3}}
-\newcommand{\run}[1]{\construct{\keyword{run} ~ #1}}
-\newcommand{\fixE}[2]{\construct{\keyword{fix} ~ #1 ~ #2}}
 \newcommand{\wrap}[3]{\construct{\keyword{wrap} ~ #1 ~ #2 ~ #3}}
 \newcommand{\unwrap}[1]{\construct{\keyword{unwrap} ~ #1}}
-\newcommand{\conNullary}[1]{\construct{\keyword{con} ~ #1}}
-\newcommand{\case}[2]{\construct{\keyword{case} ~ #1 ~ #2}}
-\newcommand{\cl}[3]{\construct{#1 ~ \texttt{(} #2 \texttt{)} ~ #3}}
-\newcommand{\varpat}{\keyword{varpat}}
-\newcommand{\conpat}[1]{\construct{\keyword{conpat} ~ #1}}
-\newcommand{\success}[1]{\construct{\keyword{success} ~ #1}}
-\newcommand{\failure}{\construct{\keyword{failure}}}
-\newcommand{\compbuiltin}[1]{\construct{\keyword{compbuiltin} ~ #1}}
-\newcommand{\txhash}{\construct{\keyword{txhash}}}
-\newcommand{\blocknum}{\construct{\keyword{blocknum}}}
-\newcommand{\blocktime}{\construct{\keyword{blocktime}}}
-\newcommand{\bind}[3]{\construct{\keyword{bind} ~ #1 ~ #2 ~ #3}}
 \newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
-\newcommand{\conE}[1]{\construct{\keyword{con} ~ #1}}
 \newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
-\newcommand{\errorE}{\construct{\keyword{error}}}
 \newcommand{\sizedBuiltin}[2]{#1\keyword{!}#2}
-\newcommand{\prim}[1]{\construct{\keyword{prim} ~ #1}}
-%\newcommand{\primInt}[1]{(\keyword{primInteger} ~ #1)}
-\newcommand{\primInt}[1]{\texttt{#1}}
-%\newcommand{\primFloat}[1]{(\keyword{primFloat} ~ #1)}
-\newcommand{\primFloat}[1]{\texttt{#1}}
-%\newcommand{\primByteString}[1]{(\keyword{primByteString} ~ #1)}
-\newcommand{\primByteString}[1]{\texttt{#1}}
-\newcommand{\isFun}[1]{\construct{\keyword{isFun} ~ #1}}
-\newcommand{\isCon}[1]{\construct{\keyword{isCon} ~ #1}}
-\newcommand{\isConName}[2]{\construct{\keyword{isConName} ~ #1 ~ #2}}
-\newcommand{\isInt}[1]{\construct{\keyword{isInteger} ~ #1}}
-\newcommand{\isFloat}[1]{\construct{\keyword{isFloat} ~ #1}}
-\newcommand{\isByteString}[1]{\construct{\keyword{isByteString} ~ #1}}
-\newcommand{\version}[2]{\construct{\keyword{version} ~ #1 ~ #2}}
-\newcommand{\prg}[1]{\construct{\keyword{program} ~ #1}}
-\newcommand{\mdle}[4]{\construct{\keyword{module} ~ #1 ~ #2 ~ #3 ~ #4}}
-\newcommand{\impd}[1]{\construct{\keyword{import} ~ #1}}
-\newcommand{\expd}[2]{\construct{\keyword{export} ~ \construct{#1} ~ \construct{#2}}}
-\newcommand{\dataexport}[2]{\construct{#1 ~ \construct{#2}}}
-\newcommand{\typeexp}[2]{\construct{#1 ~ \construct{#2}}}
-\newcommand{\datadecl}[3]{\construct{\keyword{data} ~ #1 ~ \construct{#2} ~ #3}}
-\newcommand{\typedecl}[2]{\construct{\keyword{type} ~ #1 ~ #2}}
-\newcommand{\termdecl}[2]{\construct{\keyword{declare} ~ #1 ~ #2}}
-%\newcommand{\expt}[2]{(\keyword{exp} ~ \name{#1} ~ #2)}
-%\newcommand{\loc}[2]{(\keyword{loc} ~ \name{#1} ~ #2)}
-%\newcommand{\exptcon}[2]{(\keyword{expcon} ~ \name{#1} ~ #2)}
-%\newcommand{\loccon}[2]{(\keyword{loccon} ~ \name{#1} ~ #2)}
-\newcommand{\defdecl}[2]{\construct{\keyword{define} ~ #1 ~ #2}}
+
+
+
+%%%  Type Grammar
+
 \newcommand{\funT}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
-\newcommand{\recT}[1]{\construct{\keyword{rec} ~ #1}}
 \newcommand{\fixT}[2]{\construct{\keyword{fix} ~ #1 ~ #2}}
-\newcommand{\compT}[1]{\construct{\keyword{comp} ~ #1}}
 \newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
-\newcommand{\bytestringT}[1]{\construct{\keyword{bytestring} ~ #1}}
-\newcommand{\integerT}[1]{\construct{\keyword{integer} ~ #1}}
 \newcommand{\conIntegerType}[1]{\keyword{integer}}
 \newcommand{\conBytestringType}[1]{\keyword{bytestring}}
 \newcommand{\conSizeType}[1]{\keyword{size}}
 \newcommand{\builtinT}[2]{\construct{\keyword{builtin} ~ #1 ~ #2}}
 \newcommand{\conT}[2]{\construct{\keyword{con} ~ #1 ~ #2}}
-\newcommand{\floatT}[1]{\construct{\keyword{float} ~ #1}}
-\newcommand{\sizeT}[1]{\construct{\keyword{size} ~ #1}}
 \newcommand{\lamT}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
 \newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+
 \newcommand{\typeK}{\construct{\keyword{type}}}
 \newcommand{\funK}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
 \newcommand{\sizeK}{\construct{\keyword{size}}}
-\newcommand{\sig}[3]{[#1](#2)#3}
-\newcommand{\kindsig}[2]{(#1)#2}
-\newcommand{\constsig}[2]{#1,#2}
-\newcommand{\conaritydec}[3]{\construct{\keyword{conarity} ~ #1 ~ \construct{#2} ~ \construct{#3}}}
-\newcommand{\conarity}[3]{\construct{\construct{#1} ~ \construct{#2} ~ #3}}
-\newcommand{\tyconaritydec}[2]{\construct{\keyword{tyconarity} ~ #1 ~ \construct{#2}}}
-\newcommand{\tyconarity}[1]{\construct{#1}}
-\newcommand{\typesignature}[2]{\construct{#1 ~ #2}}
-\newcommand{\kindsignature}[2]{\construct{#1 ~ #2}}
-\newcommand{\erase}[1]{\lfloor #1 \rfloor}
 
-\newcommand{\istermJ}[2]{#1 : #2}
-\newcommand{\checkJ}[2]{#1 \ni #2}
-\newcommand{\synthJ}[2]{#1 \in #2}
-\newcommand{\synthsplittopJ}[2]{#1 \vdash #2}
-\newcommand{\synthsplitbottomJ}[1]{\in #1}
-\newcommand{\conSig}[5]{#1 ~ \textrm{is} ~ \allT{#2}{#3}{\funT{#4}{#5}}}
-\newcommand{\compbuiltinSig}[2]{#1 ~ \textrm{is} ~ #2}
-\newcommand{\subtypeJ}[2]{#1 ~ \sqsubseteq ~ #2}
-\newcommand{\clause}[4]{#1 ; #2 \vdash ~ #3 ~ \mathrm{clause} ~ #4}
-%\newcommand{\decl}[4]{#1 ~ \vdash ~ #2 ~ decl ~ \name{#3} ~ \dashv ~ #4}
-\newcommand{\edecl}[4]{#1 ~ \vdash ~ #2 ~ \mathrm{edecl} ~ #3 ~ \dashv ~ #4}
-\newcommand{\edeclsplit}[4]{\begin{array}{ll}#1 ~ \vdash ~ #2 ~ \mathrm{edecl} ~ #3\\\qquad\dashv ~ #4\end{array}}
-\newcommand{\ldecl}[4]{#1 ~ \vdash ~ #2 ~ \mathrm{ldecl} ~ #3 ~ \dashv ~ #4}
-\newcommand{\ldeclsplit}[4]{\begin{array}{ll}#1 ~ \vdash ~ #2 ~ \mathrm{ldecl} ~ #3\\\qquad\dashv ~ #4\end{array}}
-\newcommand{\defs}[3]{#1 ~ \vdash ~ #2 ~ \mathrm{defs} ~ #3}
 
-\newcommand{\modJ}[1]{\mathrm{mod} ~ #1}
-\newcommand{\exportedtypeJ}[2]{\mathrm{exptype} ~ #1.#2}
-\newcommand{\exportedtermJ}[2]{\mathrm{expterm} ~ #1.#2}
-\newcommand{\termnameJ}[2]{#1 : #2}
-\newcommand{\defJ}[2]{#1 = #2}
-\newcommand{\typenameJ}[3]{#1 = #2 :: #3}
-\newcommand{\tyconJ}[2]{#1 :: \funK{#2}{\typeK{}}}
-\newcommand{\conJ}[5]{#1 : \allT{#2}{#3}{\funT{#4}{\appT{#5}{#2}}}}
-\newcommand{\ctxni}[2]{#1 \ni #2}
-\newcommand{\ctxnotni}[2]{#1 \not\ni #2}
-\newcommand{\permits}[3]{#1 \vdash #2 : #3}
-\newcommand{\permitstype}[3]{#1 \vdash #2 :: #3}
-\newcommand{\permitscon}[6]{#1 \vdash #2 : \allT{#3}{#4}{\funT{#5}{\appT{#6}{#3}}}}
-\newcommand{\permitstycon}[3]{#1 \vdash #2 :: \funK{#3}{\typeK{}}}
-\newcommand{\exportsToNominalContext}[2]{\lfloor #2 \rfloor_{#1}}
-\newcommand{\exportsToNominalContextType}[2]{\lfloor #2 \rfloor^{T}_{#1}}
-\newcommand{\exportsToNominalContextAlt}[2]{\lfloor #2 \rfloor^{alt}_{#1}}
-\newcommand{\exportsToNominalContextTerm}[2]{\lfloor #2 \rfloor^{M}_{#1}}
 
-\newcommand{\validJ}[1]{#1 \ \operatorname{valid}}
+%%% Program Grammar
+
+\newcommand{\version}[2]{\construct{\keyword{version} ~ #1 ~ #2}}
+
+
+
+%%% Judgments
+
 \newcommand{\hypJ}[2]{#1 \vdash #2}
+\newcommand{\ctxni}[2]{#1 \ni #2}
+\newcommand{\validJ}[1]{#1 \ \operatorname{valid}}
 \newcommand{\termJ}[2]{#1 : #2}
 \newcommand{\typeJ}[2]{#1 :: #2}
+\newcommand{\istermJ}[2]{#1 : #2}
 \newcommand{\istypeJ}[2]{#1 :: #2}
-\newcommand{\unifiesJ}[3]{#1 ~ / ~ #2 ~ \triangleright ~ #3}
-\newcommand{\extractsJ}[4]{#1 ~ \mathrm{on} ~ #2 ~ \mathrm{extracts} ~ #3 ~ \triangleright ~ #4}
-\newcommand{\clauseJ}[3]{#1 \ni #2 ~ \mathrm{clause} \in #3}
-\newcommand{\hypclauseJ}[4]{#1 ; #2 \vdash #3 \ni #4}
-\newcommand{\programJ}[1]{\vdash #1}
-\newcommand{\moduleJ}[2]{#1 \vdash #2}
-%\newcommand{\moduleJsplit}[3]{\begin{array}{ll}#1 ~ ~ \vdash ~ #2 ~ \mathrm{module}\\\qquad\dashv #3\end{array}}
-\newcommand{\modulesplitJ}[7]{\begin{array}{c}#1 ~ \vdash ~ \keyword{(module} ~ #2 ~ #3 ~ #4 \\ #5 ~ #6 \keyword{)} ~ \mathrm{module} ~ \dashv #7\end{array}}
-\newcommand{\declJ}[2]{#1 \vdash #2}
-\newcommand{\alt}[2]{\construct{#1 ~ #2}}
-\newcommand{\altNullary}[1]{\construct{#1}}
-\newcommand{\exptdeclJ}[4]{#1 ~ \vdash ~ #2 ~ \mathrm{expdecl} ~ #3 ~ \dashv ~ #4}
-\newcommand{\locdeclJ}[4]{#1 ~ \vdash ~ #2 ~ \mathrm{locdecl} ~ #3 ~ \dashv ~ #4}
-\newcommand{\exptaltJ}[6]{#1 ~ \vdash ~ #2 ~ \mathrm{expalt} ~ #3 ~ \mathrm{on} ~ #4 ~ \mathrm{in} ~ #5 ~ \dashv ~ #6}
-\newcommand{\exptaltsplitJ}[6]{\begin{array}{c}#1 ~ \vdash ~ #2 ~ \mathrm{expalt} ~ #3 ~ \mathrm{on} ~ #4 ~ \mathrm{in} ~ #5\\\dashv ~ #6\end{array}}
-\newcommand{\localtsplitJ}[6]{\begin{array}{c}#1 ~ \vdash ~ #2 ~ \mathrm{localt} ~ #3 ~ \mathrm{on} ~ #4 ~ \mathrm{in} ~ #5\\\dashv ~ #6\end{array}}
-\newcommand{\altsplitJ}[6]{\begin{array}{c}#1 ~ \vdash ~ #2 ~ \mathrm{alt} ~ #3 ~ \mathrm{on} ~ #4 ~ \mathrm{in} ~ #5\\\dashv ~ #6\end{array}}
-\newcommand{\localtJ}[6]{#1 ~ \vdash ~ #2 ~ \mathrm{localt} ~ #3 ~ \mathrm{on} ~ #4 ~ \mathrm{in} ~ #5 ~ \dashv ~ #6}
-\newcommand{\altJ}[2]{#1 \vdash #2 ~ \mathrm{alt}}
-\newcommand{\defineJ}[4]{#1 ~ \vdash ~ #2 ~ \mathrm{define} ~ #3 ~ \dashv ~ #4}
-\newcommand{\valJ}[1]{#1 ~ \mathrm{val}}
-\newcommand{\tyvalJ}[1]{#1 ~ \mathrm{tyval}}
-\newcommand{\coeqJ}[2]{#1 \sim #2}
-\newcommand{\coeqF}[3]{\mathbf{coeq} ~ #1 ~ #2 ~ #3}
 
-\newcommand{\declenv}[1]{\lfloor{}#1\rfloor{}}
 
-\newcommand{\decgen}[2]{#1 ~>\!\!>\!\!>~ #2}
-\newcommand{\decgenmodule}[2]{#1 ~>\!\!>~ #2}
-\newcommand{\ok}[1]{\texttt{(} \keyword{ok} ~ #1 \texttt{)}}
-\newcommand{\err}{\keyword{err}}
-\newcommand{\hole}{\circ}
+
+%%% Contextual Normalization
+
+\newcommand{\ctxsubst}[2]{#1\{#2\}}
+\newcommand{\typeStep}[2]{#1 ~ \rightarrow_{ty} ~ #2}
+\newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
+\newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
+\newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
+\newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
+\newcommand{\normalform}[1]{\lfloor #1 \rfloor}
+\newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
+\newcommand{\typeEqual}[2]{#1 =_{\mathit{ty}} #2}
+\newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
+
+
 \newcommand{\inConT}[2]{\conT{#1}{#2}}
-\newcommand{\inRecT}[1]{\recT{#1}}
 \newcommand{\inAppTLeft}[2]{\appT{#1}{#2}}
 \newcommand{\inAppTRight}[2]{\appT{#1}{#2}}
 \newcommand{\inFunTLeft}[2]{\funT{#1}{#2}}
@@ -589,111 +469,26 @@
 \newcommand{\inAllT}[3]{\allT{#1}{#2}{#3}}
 \newcommand{\inFixT}[2]{\fixT{#1}{#2}}
 \newcommand{\inLamT}[3]{\lamT{#1}{#2}{#3}}
-\newcommand{\inCompT}[1]{\compT{#1}}
-\newcommand{\typeReduces}[2]{#1 ~ \Rightarrow_{ty} ~ #2}
-\newcommand{\typeStep}[2]{#1 ~ \rightarrow_{ty} ~ #2}
-\newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^* ~ #2}
-\newcommand{\inAnnLeft}[2]{\isa{#1}{#2}}
-\newcommand{\inInstLeft}[2]{\inst{#1}{#2}}
-\newcommand{\inInstRight}[2]{\inst{#1}{#2}}
-\newcommand{\inAppLeft}[2]{\app{#1}{#2}}
-\newcommand{\inAppRight}[2]{\app{#1}{#2}}
-\newcommand{\inCon}[2]{\con{#1}{#2}}
-\newcommand{\inCase}[2]{\case{#1}{#2}}
-\newcommand{\caseValue}[2]{\mathrm{case\ on} ~ #1 ~ \mathrm{of} ~ #2}
-\newcommand{\inSuccess}[1]{\success{#1}}
-\newcommand{\inBind}[3]{\bind{#1}{#2}{#3}}
+
 \newcommand{\inBuiltin}[5]{\builtin{#1}{#2}{#3 #4 #5}}
-\newcommand{\ctxsubst}[2]{#1\{#2\}}
-\newcommand{\reduces}[2]{#1 ~ \Rightarrow ~ #2}
-\newcommand{\conReduces}[3]{#1 ~ \mathrm{on} ~ #2 ~ \mathrm{reduces ~ to} ~ #3}
-\newcommand{\conValue}[2]{#1 ~ \mathrm{on} ~ #2}
-\newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
-\newcommand{\multistep}[2]{#1 ~ \rightarrow^* ~ #2}
-\newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
-\newcommand{\normalform}[1]{\lfloor #1 \rfloor}
-\newcommand{\evalprog}[2]{#1 ~\Longrightarrow~ #2}
-\newcommand{\evalsto}[3]{#2 ~\Downarrow_{#1}~ #3}
-\newcommand{\coneval}[3]{\mathrm{built-in} ~ \name{#1} ~ \mathrm{evals ~ on} ~ #2 ~ \mathrm{to} ~ #3}
-\newcommand{\matches}[4]{#1 , #2 ~\sim~ #3 ~\triangleright~ #4}
-\newcommand{\subst}[3]{[#1/#2]#3}
-\newcommand{\substmulti}[2]{[#1]#2}
-\newcommand{\executes}[3]{#2 ~\rightsquigarrow^*_{#1}~ #3}
-\newcommand{\executesIndexed}[4]{#2 ~\rightsquigarrow^{#3}_{#1}~ #4}
+
+
+
+%%% CK Machine Normalization
+
 \newcommand{\cksteps}[2]{#1 ~\mapsto~ #2}
-\newcommand{\inAnnLeftFrame}[1]{\isa{\_}{#1}}
-\newcommand{\inRunFrame}{\run{\_}}
-\newcommand{\inFixFrame}[2]{\fix{#1}{\_}{#2}}
-\newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
-\newcommand{\inInstRightFrame}[1]{\inst{#1}{\_}}
-\newcommand{\inWrapLeftFrame}[2]{\wrap{#1}{\_}{#2}}
-\newcommand{\inWrapRightFrame}[2]{\wrap{#1}{#2}{\_}}
-\newcommand{\inUnwrapFrame}{\unwrap{\_}}
-\newcommand{\inLamLeftFrame}[2]{\lam{#1}{\_}{#2}}
-\newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
-\newcommand{\inAppELeftFrame}[1]{\app{\_}{#1}}
-\newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
-\newcommand{\inAppERightFrame}[1]{\app{#1}{\_}}
-\newcommand{\inConFrame}[3]{\con{#1}{#2 ~ \_ ~ #3}}
-\newcommand{\inCaseFrame}[1]{\case{\_}{#1}}
-\newcommand{\inSuccessFrame}{\success{\_}}
-\newcommand{\inBindFrame}[2]{\bind{\_}{#1}{#2}}
-\newcommand{\inBuiltinFrame}[3]{\con{#1}{#2 ~ \_ ~ #3}}
 \newcommand{\ckforward}[2]{#1 \triangleright #2}
 \newcommand{\ckbackward}[2]{#1 \triangleleft #2}
 \newcommand{\ckerror}{\blacklozenge}
 
-\newcommand{\sldecname}[1]{\name{#1}}
-\newcommand{\slann}[2]{#1 ~\keyword{:}~ #2}
-\newcommand{\sllet}[2]{\keyword{let} ~ \keyword{\{} ~ #1 ~ \keyword{\} ~ in} ~ #2}
-\newcommand{\slletdec}[3]{\variable{#1}  ~ \keyword{:}  ~ #2  ~ \keyword{\{} ~  #3 ~ \keyword{\}}}
-\newcommand{\sllam}[2]{\keyword{\lambda} \variable{#1}  ~ \keyword{\to}  ~ #2}
-\newcommand{\slapp}[2]{#1  ~ #2}
-\newcommand{\slcon}[2]{\name{#1}  ~ #2}
-\newcommand{\slconnullary}[1]{\name{#1}}
-\newcommand{\slcase}[2]{\keyword{case}  ~ #1  ~ \keyword{of  ~ \{}  ~ #2  ~ \keyword{\}}}
-\newcommand{\slsuccess}[1]{\keyword{success} ~ #1}
-\newcommand{\slfailure}{\keyword{failure}}
-\newcommand{\slbind}[3]{\keyword{do  ~ \{}  ~ #1 ~ \keyword{\leftarrow} ~ #2  ~ \keyword{;} ~ #3 ~ \keyword{\}}}
-\newcommand{\slbuiltin}[2]{\keyword{!}\name{#1} ~ #2}
-\newcommand{\slcl}[2]{#1  ~ \keyword{\to}  ~ #2}
-\newcommand{\sltydec}[2]{\keyword{data}  ~ #1  ~ \keyword{=}  ~ #2}
-\newcommand{\sltycon}[2]{\name{#1} ~ #2}
-\newcommand{\sltyconnullary}[1]{\name{#1}}
-\newcommand{\slarr}[2]{#1  ~ \keyword{\to}  ~ #2}
-\newcommand{\slforall}[2]{\keyword{\forall} #1\keyword{.} ~ #2}
-\newcommand{\slcomp}[1]{\name{Comp} ~ #1}
-\newcommand{\sltmdec}[3]{\name{#1}  ~ \keyword{:}  ~ #2  ~ \keyword{\{} ~  #3 ~ \keyword{\}}}
-\newcommand{\sltmdecclauses}[3]{\name{#1}  ~ \keyword{:}  ~ #2  ~ #3}
-\newcommand{\sltmcl}[3]{\name{#1} ~ #2 ~ \keyword{=} ~ #3}
+\newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
+\newcommand{\inWrapRightFrame}[2]{\wrap{#1}{#2}{\_}}
+\newcommand{\inUnwrapFrame}{\unwrap{\_}}
+\newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
+\newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
 
-\newcommand{\tyconsig}[1]{\keyword{\star}^#1}
-\newcommand{\consig}[3]{\keyword{[} \variable{#1} \keyword{](} #2 \keyword{)} #3}
-\newcommand{\elabprog}[5]{#1;#2 ~\vdash~ #3 ~\dashv~ #4;#5}
-\newcommand{\elabtydec}[4]{#1 ~\vdash~ \textit{type}  ~ #2  ~ \textit{alts}  ~ #3 ~\dashv~ #4}
-\newcommand{\elabalt}[4]{#1 ~\vdash~ #2  ~ \textit{alt}  ~ #3 ~\dashv~ #4}
-\newcommand{\elabaltsplit}[4]{\begin{array}{c}#1 ~\vdash~ #2  ~ \textit{alt}  ~ #3\\\dashv~ #4\end{array}}
-\newcommand{\elabtmdec}[6]{#1;#2 ~\vdash~ \textit{term}  ~ \name{#3}  ~ \textit{type} ~ #4  ~ \textit{def}  ~ #5 ~\dashv~ #6}
-\newcommand{\elabtmdecpartial}[5]{#1 ~\vdash~ \textit{term}  ~ \name{#2}  ~ \textit{type} ~ #3  ~ \textit{def}  ~ #4 ~\dashv~ #5}
-\newcommand{\chkfull}[6]{#1 ~;~ #2 ~;~ #3 ~\vdash~ #4 ~\ni~ #5 ~\triangleright~ #6}
-\newcommand{\synfull}[6]{#1 ~;~ #2 ~;~ #3 ~\vdash~ #4 ~\triangleright~ #5 ~\in~ #6}
-\newcommand{\chkpartial}[4]{#1 ~\vdash~ #2 ~\ni~ #3 ~\triangleright~ #4}
-\newcommand{\synpartial}[4]{#1 ~\vdash~ #2 ~\triangleright~ #3 ~\in~ #4}
-\newcommand{\chk}[3]{#1 ~\ni~ #2 ~\triangleright~ #3}
-\newcommand{\syn}[3]{#1 ~\triangleright~ #2 ~\in~ #3}
-\newcommand{\synsplit}[3]{\begin{array}{c}#1 ~\triangleright\\#2 ~\in~ #3\end{array}}
-%\newcommand{\ctxni}[3]{#1 ~\ni~ \variable{#2} ~:~ #3}
-\newcommand{\declni}[3]{#1 ~\ni~ \name{#2} ~:~ #3}
-\newcommand{\signi}[3]{#1 ~\ni~ \name{#2} ~:~ #3}
-\newcommand{\isty}[1]{#1  ~ type}
-\newcommand{\chktypartial}[2]{#1 ~\vdash~ \isty{#2}}
-\newcommand{\subtype}[2]{#1 ~\sqsubseteq~ #2}
-\newcommand{\chkclause}[6]{\slcl{#1}{#2} ~\triangleright~ \slcl{#3}{#4} ~ \textit{from}  ~ #5 ~ \textit{to} ~ #6}
-\newcommand{\chkclausefull}[9]{#1;#2;#3 ~\vdash~ \chkclause{#4}{#5}{#6}{#7}{#8}{#9}}
-\newcommand{\chkclausefullsplit}[9]{\begin{array}{c}#1;#2;#3 ~\vdash~ \slcl{#4}{#5} ~\triangleright\\ \slcl{#6}{#7} ~ \textit{from}  ~ #8 ~ \textit{to} ~ #9\end{array}}
-\newcommand{\chktyfull}[3]{#1;#2 ~\vdash~ \isty{#3}}
-\newcommand{\chkpatfull}[5]{#1 ~\vdash~ #2  ~ \textit{pattern} ~ #3 ~\triangleright~ #4 ~\dashv~ #5}
-\newcommand{\chkpatfullsplit}[5]{\begin{array}{c}#1 ~\vdash~ #2  ~ \textit{pattern} ~ #3 ~\triangleright\\ #4 ~\dashv~ #5\end{array}}
+
+
 
 
 
@@ -965,6 +760,25 @@ The basic way that validation is done in Plutus Core is somewhat similar to what
 
 
 
+
+
+\section{Unrestricted Algorithmic Type System}
+
+For implementation purposes, it's useful to have a variant of the type system that is more algorithmic in its presentation. We give this here, showing the figures that have been changed (relative to the declarative version above), and highlighting the specific parts of each rule that is different, where possible.
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
+
+
+
+\section{Restricted Algorithmic Type System}
+
+For blockchain purposes, it is useful to not only have an algorithmic system, but to require that no un-normalized types are present in programs, so as to reduce the amount of computation necessary to typecheck a program. It's also useful to have a way of bounding the amount of computation that can be done in type checking, for security purposes. To that end, we present a restricted grammar and type reduction, and a type system that reflects these. The figures below are additions with respect to the unrestricted version, and show only the new or changed figures and their respective highlighted differences.
+
+\subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
 
 
 

@@ -14,6 +14,11 @@ module Language.Plutus.Runtime.TH(
     isJust,
     isNothing,
     maybe,
+    -- * Lists
+    map,
+    foldr,
+    length,
+    all,
     -- * Signatures
     txSignedBy,
     txInSignedBy,
@@ -27,11 +32,11 @@ module Language.Plutus.Runtime.TH(
     eqTx
     ) where
 
-import           Language.Haskell.TH (Exp, Q)
-import qualified Language.Plutus.TH  as Builtins
+import           Language.Haskell.TH  (Exp, Q)
+import qualified Language.PlutusTx.TH as Builtins
 import           Wallet.UTXO.Runtime
 
-import           Prelude             (Bool (..), Eq (..), Int, Maybe (..))
+import           Prelude              (Bool (..), Eq (..), Int, Maybe (..))
 
 -- | Logical AND
 and :: Q Exp
@@ -56,17 +61,17 @@ max = [| \(a :: Int) (b :: Int) -> if a > b then a else b |]
 -- | Check if a transaction was signed by a public key
 txSignedBy :: Q Exp
 txSignedBy = [|
-    \(p :: PendingTx) (PubKey k) ->
+    \(p :: PendingTx ValidatorHash) (PubKey k) ->
         let
-            PendingTx _ _ _ _ _ sigs = p
+            PendingTx _ _ _ _ _ sigs _ = p
 
             signedBy :: Signature -> Bool
             signedBy (Signature s) = s == k
 
             go :: [Signature] -> Bool
             go l = case l of
-                        (s :: Signature):(r::[Signature]) -> if signedBy s then True else go r
-                        ([]::[Signature])                 -> False
+                        s:r -> if signedBy s then True else go r
+                        []  -> False
         in
             go sigs
     |]
@@ -84,8 +89,8 @@ txInSignedBy = [|
 
             go :: [Signature] -> Bool
             go l = case l of
-                        (s :: Signature):(r::[Signature]) -> if signedBy s then True else go r
-                        ([]::[Signature])                 -> False
+                        s:r -> if signedBy s then True else go r
+                        []  -> False
         in go sigs
 
     |]
@@ -101,6 +106,44 @@ maybe = [| \b f m ->
     case m of
         Nothing -> b
         Just a  -> f a |]
+
+map :: Q Exp
+map = [|
+    \f l ->
+        let go ls = case ls of
+                x:xs -> f x : go xs
+                _    -> []
+        in go l
+        |]
+
+foldr :: Q Exp
+foldr = [|
+    \f b l ->
+        let go cur as = case as of
+                []    -> cur
+                a:as' -> go (f a cur) as'
+        in go b l
+    |]
+
+length :: Q Exp
+length = [|
+    \l ->
+        -- it would be nice to define length in terms of foldr,
+        -- but we can't, due to staging restrictions.
+        let go lst = case lst of
+                []   -> 0::Int
+                _:xs -> 1 + go xs
+        in go l
+    |]
+
+all :: Q Exp
+all = [|
+    \pred l ->
+        let go lst = case lst of
+                []   -> True
+                x:xs -> pred x && go xs
+        in go l
+    |]
 
 -- | Returns the public key that locks the transaction output
 pubKeyOutput :: Q Exp

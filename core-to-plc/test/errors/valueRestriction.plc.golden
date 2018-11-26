@@ -1,8 +1,0 @@
-Error: Violation of the value restriction: Type abstraction body is not a value
-Context: Converting expr: \ (@ a) -> error @ a ()
-Context: Converting expr: let {
-                            f :: forall a. a
-                            [LclId]
-                            f = \ (@ a) -> error @ a () } in
-                          (f @ Bool, f @ Int)
-Context: Converting expr at "valueRestriction"

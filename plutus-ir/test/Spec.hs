@@ -6,15 +6,18 @@ module Main (main) where
 
 import           Common
 import           PlcTestUtils
+import           TestLib
+
+import           OptimizerSpec
 
 import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler
+import           Language.PlutusIR.MkPir
 
 import qualified Language.PlutusCore                  as PLC
 import qualified Language.PlutusCore.MkPlc            as PLC
-import qualified Language.PlutusCore.Pretty           as PLC
 
 import qualified Language.PlutusCore.StdLib.Data.Bool as Bool
 import qualified Language.PlutusCore.StdLib.Data.Nat  as Nat
@@ -24,9 +27,17 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Test.Tasty
 
+<<<<<<< HEAD
 import           Codec.Serialise
+=======
+import           Control.Exception
+>>>>>>> master
 import           Control.Monad
 import           Control.Monad.Except
+import           Control.Monad.Morph
+import           Control.Monad.Reader
+
+import           Data.Functor.Identity
 
 import           Data.ByteString.Lazy                 as BSL
 
@@ -34,25 +45,25 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 instance GetProgram (Quote (Term TyName Name ())) where
-    getProgram = trivialProgram . compileAndMaybeTypecheck False
+    getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
-goldenPir :: String -> Term TyName Name () -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
+-- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
+asIfThrown
+    :: Exception e
+    => Except e a
+    -> ExceptT SomeException IO a
+asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
-compileAndMaybeTypecheck doTypecheck pir = either (error . show . PLC.prettyPlcClassicDebug) id $ runExcept $ runQuoteT $ do
+compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name a) -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
+compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuoteT $ do
     -- it is important we run the two computations in the same Quote together, otherwise we might make
     -- names during compilation that are not fresh
     compiled <- compileTerm =<< liftQuote pir
-    when doTypecheck $ void $
-        convertErrors PLCError $ do
-            annotated <- PLC.annotateTerm compiled
-            -- need our own typechecker pipeline to allow normalized types
-            PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated
+    when doTypecheck $ void $ do
+        annotated <- PLC.annotateTerm compiled
+        -- need our own typechecker pipeline to allow normalized types
+        PLC.typecheckTerm (PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig True mempty) annotated
     pure compiled
-
-compile :: Quote (Term TyName Name ()) -> PLC.Term TyName Name ()
-compile = compileAndMaybeTypecheck True
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence [
@@ -60,6 +71,8 @@ tests = testGroup "plutus-ir" <$> sequence [
     datatypes,
     recursion,
     serialization
+    errors,
+    optimizer
     ]
 
 prettyprinting :: TestNested
@@ -81,82 +94,58 @@ basic = runQuote $ do
 
 maybePir :: Quote (Term TyName Name ())
 maybePir = do
-    m <- freshTyName () "Maybe"
-    a <- freshTyName () "a"
-    match <- freshName () "match_Maybe"
-    nothing <- freshName () "Nothing"
-    just <- freshName () "Just"
+    mb@(Datatype _ _ _ _ [_, just]) <- maybeDatatype
+
     unit <- Unit.getBuiltinUnit
     unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
+
     pure $
         Let ()
             NonRec
-            ([
-                DatatypeBind () $
-                Datatype ()
-                    (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
-                    [
-                        TyVarDecl () a (Type ())
-                    ]
-                match
-                [
-                    VarDecl () nothing (TyApp () (TyVar () m) (TyVar () a)),
-                    VarDecl () just (TyFun () (TyVar () a) (TyApp () (TyVar () m) (TyVar () a)))
-                ]
-             ]) $
-        Apply () (TyInst () (Var () just) unit) unitval
+
+            [
+                DatatypeBind () mb
+            ] $
+        Apply () (TyInst () (mkVar () just) unit) unitval
 
 listMatch :: Quote (Term TyName Name ())
 listMatch = do
-    m <- freshTyName () "List"
-    a <- freshTyName () "a"
-    let ma = TyApp () (TyVar () m) (TyVar () a)
-    match <- freshName () "match_List"
-    nil <- freshName () "Nil"
-    cons <- freshName () "Cons"
+    lb@(Datatype _ l _ match [nil, _]) <- listDatatype
+
     unit <- Unit.getBuiltinUnit
-    unitval <- Unit.getBuiltinUnitval
+    unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
 
     h <- freshName () "head"
     t <- freshName () "tail"
 
-    let unitMatch = PLC.TyInst () (PLC.Var () match) unit
-    let unitNil = PLC.TyInst () (PLC.Var () nil) unit
+    let unitMatch = TyInst () (Var () match) unit
+    let unitNil = TyInst () (mkVar () nil) unit
+
     pure $
         Let ()
             Rec
-            ([
-                DatatypeBind () $
-                Datatype ()
-                    (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
-                    [
-                        TyVarDecl () a (Type ())
-                    ]
-                match
-                [
-                    VarDecl () nil ma,
-                    VarDecl () cons (TyFun () (TyVar () a) (TyFun () ma ma))
-                ]
-             ]) $
-            -- embed so we can use PLC construction functions
-            embedIntoIR $ PLC.mkIterApp () (PLC.TyInst () (PLC.Apply () unitMatch unitNil) unit)
+
+            [
+                DatatypeBind () lb
+            ] $
+            mkIterApp () (TyInst () (Apply () unitMatch unitNil) unit)
                 [
                     -- nil case
                     unitval,
                     -- cons case
-                    PLC.mkIterLamAbs () [PLC.VarDecl () h unit, PLC.VarDecl () t (PLC.TyApp () (PLC.TyVar () m) unit)] $ PLC.Var () h
+                    mkIterLamAbs () [VarDecl () h unit, VarDecl () t (TyApp () (mkTyVar () l) unit)] $ Var () h
                 ]
 
 datatypes :: TestNested
 datatypes = testNested "datatypes" [
-    goldenPlc "maybe" (compile maybePir),
-    goldenPlc "listMatch" (compileAndMaybeTypecheck False listMatch),
-    goldenEval "listMatchEval" [listMatch]
+    goldenPlc "maybe" maybePir,
+    goldenPlc "listMatch" (asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch),
+    goldenEval "listMatchEval" [asIfThrown $ trivialProgram . void <$> compileAndMaybeTypecheck False listMatch]
     ]
 
 recursion :: TestNested
 recursion = testNested "recursion" [
-    goldenPlc "even3" (compile evenOdd),
+    goldenPlc "even3" evenOdd,
     goldenEval "even3Eval" [evenOdd]
     ]
 
@@ -213,3 +202,41 @@ serialization = testNested "serialization" [
 
 roundTripPirTerm :: Term TyName Name () -> Term TyName Name ()
 roundTripPirTerm tt = deserialise $ serialise tt
+
+errors :: TestNested
+errors = testNested "errors" [
+    goldenPlcCatch "mutuallyRecursiveTypes" mutuallyRecursiveTypes,
+    goldenPlcCatch "mutuallyRecursiveValues" mutuallyRecursiveValues
+    ]
+
+mutuallyRecursiveTypes :: Quote (Term TyName Name ())
+mutuallyRecursiveTypes = do
+    unit <- Unit.getBuiltinUnit
+
+    (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) <- treeForestDatatype
+
+    pure $
+        Let ()
+            Rec
+            [
+                DatatypeBind () treeDt,
+                DatatypeBind () forestDt
+            ] $
+        TyInst () (mkVar () nil) unit
+
+mutuallyRecursiveValues :: Quote (Term TyName Name ())
+mutuallyRecursiveValues = do
+    x <- freshName () "x"
+    y <- freshName () "y"
+
+    unit <- Unit.getBuiltinUnit
+    unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
+
+    pure $
+        Let ()
+            Rec
+            [
+                TermBind () (VarDecl () x unit) (Var () y),
+                TermBind () (VarDecl () y unit) unitval
+            ] $
+        Var () x

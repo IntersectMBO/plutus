@@ -11,7 +11,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE ViewPatterns       #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Wallet.UTXO.Types(
     -- * Basic types
@@ -102,6 +102,7 @@ module Wallet.UTXO.Types(
 import qualified Codec.CBOR.Write                         as Write
 import           Codec.Serialise                          (deserialise, deserialiseOrFail, serialise)
 import           Codec.Serialise.Class                    (Serialise, decode, encode)
+import           Control.Lens                             hiding (lifted)
 import           Control.Monad                            (join)
 import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
 import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON), withText)
@@ -118,18 +119,16 @@ import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
 import           Data.Monoid                              (Sum (..))
-import           Data.Semigroup                           (Semigroup (..))
 import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
-import           Lens.Micro
 
-import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getSerializedCode)
-import           Language.Plutus.Lift                     (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.TH                       (plutus)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusCore.Evaluation.CkMachine (runCk)
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlc)
+import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
+import           Language.PlutusTx.TH                     (plutus)
 
 {- Note [Serialisation and hashing]
 
@@ -160,17 +159,14 @@ newtype PubKey = PubKey { getPubKey :: Int }
     deriving stock (Generic)
     deriving newtype (Serialise, ToJSON, FromJSON)
 
-instance LiftPlc PubKey
-instance TypeablePlc PubKey
+makeLift ''PubKey
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
     deriving newtype (Serialise, ToJSON, FromJSON)
 
-instance LiftPlc Signature
-instance TypeablePlc Signature
-
+makeLift ''Signature
 
 -- | True if the signature matches the public key
 signedBy :: Signature -> PubKey -> Bool
@@ -188,8 +184,7 @@ newtype TxId h = TxId { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
 
-instance (LiftPlc h, TypeablePlc h) => LiftPlc (TxId h)
-instance (TypeablePlc h) => TypeablePlc (TxId h)
+makeLift ''TxId
 
 type TxId' = TxId (Digest SHA256)
 
@@ -260,8 +255,8 @@ instance FromJSON Script where
       Left e  -> fail e
       Right v -> pure v
 
-lifted :: LiftPlc a => a -> Script
-lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . Language.Plutus.Lift.lift
+lifted :: LiftPir a => a -> Script
+lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . unsafeLiftPlc
 
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: Script }
@@ -327,7 +322,7 @@ instance BA.ByteArrayAccess Redeemer where
         BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Block height
-newtype Height = Height { getHeight :: Integer }
+newtype Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving newtype (Num, Real, Integral, Serialise, FromJSON, ToJSON)
@@ -469,7 +464,7 @@ instance BA.ByteArrayAccess TxIn' where
 
 -- | Type of transaction output.
 data TxOutType =
-    PayToScript !(Digest SHA256) !DataScript -- ^ A pay-to-script output with the hash of the validator script, and the full data script
+    PayToScript !DataScript -- ^ A pay-to-script output with the data script
     | PayToPubKey !PubKey -- ^ A pay-to-pubkey output
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
@@ -490,8 +485,8 @@ deriving instance FromJSON TxOut'
 -- | The data script that a [[TxOut]] refers to
 txOutData :: TxOut h -> Maybe DataScript
 txOutData TxOut{txOutType = t} = case  t of
-    PayToScript _ s -> Just s
-    PayToPubKey _   -> Nothing
+    PayToScript s -> Just s
+    PayToPubKey _ -> Nothing
 
 -- | The public key that a [[TxOut]] refers to
 txOutPubKey :: TxOut h -> Maybe PubKey
@@ -525,28 +520,27 @@ isPayToScriptOut :: TxOut h -> Bool
 isPayToScriptOut = isJust . txOutData
 
 -- | The address of a transaction output locked by public key
-pubKeyAddress :: Value -> PubKey -> Address (Digest SHA256)
-pubKeyAddress v pk = Address $ hash h where
+pubKeyAddress :: PubKey -> Address (Digest SHA256)
+pubKeyAddress pk = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode v <> encode pk
+    e = encode pk
 
 -- | The address of a transaction output locked by a validator script
-scriptAddress :: Value -> Validator -> DataScript -> Address (Digest SHA256)
-scriptAddress v vl ds = Address $ hash h where
+scriptAddress :: Validator -> Address (Digest SHA256)
+scriptAddress vl = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    e = encode v <> encode vl <> encode ds
+    e = encode vl
 
 -- | Create a transaction output locked by a validator script
 scriptTxOut :: Value -> Validator -> DataScript -> TxOut'
 scriptTxOut v vl ds = TxOut a v tp where
-    a = scriptAddress v vl ds
-    tp = PayToScript h ds
-    h :: Digest SHA256 = hash $ Write.toStrictByteString $ encode vl
+    a = scriptAddress vl
+    tp = PayToScript ds
 
 -- | Create a transaction output locked by a public key
 pubKeyTxOut :: Value -> PubKey -> TxOut'
 pubKeyTxOut v pk = TxOut a v tp where
-    a = pubKeyAddress v pk
+    a = pubKeyAddress pk
     tp = PayToPubKey pk
 
 instance BA.ByteArrayAccess TxOut' where
@@ -664,8 +658,8 @@ validTx v t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
 validate :: ValidationData -> TxIn' -> TxOut' -> Bool
 validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
-        (ConsumeScriptAddress v r, PayToScript _ d)
-            | txOutAddress /= scriptAddress txOutValue v d -> False
+        (ConsumeScriptAddress v r, PayToScript d)
+            | txOutAddress /= scriptAddress v -> False
             | otherwise                                    -> runScript bs v r d
         (ConsumePublicKeyAddress sig, PayToPubKey pk) -> sig `signedBy` pk
         _ -> False
@@ -682,7 +676,7 @@ runScript (ValidationData valData) (Validator validator) (Redeemer redeemer) (Da
 
 -- | () as a data script
 unitData :: DataScript
-unitData = DataScript $ fromPlcCode $(plutus [| () |])
+unitData = DataScript $ fromPlcCode $$(plutus [|| () ||])
 
 -- | \() () () -> () as a validator
 --
@@ -695,15 +689,15 @@ unitData = DataScript $ fromPlcCode $(plutus [| () |])
 --       you need to provide `unitData`, `unitRedeemer` and
 --       `unitValidationData` to consume it.
 emptyValidator :: Validator
-emptyValidator = Validator $ fromPlcCode $(plutus [| \() () () -> () |])
+emptyValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> () ||])
 
 -- | () as a redeemer
 unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $ fromPlcCode $(plutus [| () |])
+unitRedeemer = Redeemer $ fromPlcCode $$(plutus [|| () ||])
 
 -- | () as validation data
 unitValidationData :: ValidationData
-unitValidationData = ValidationData $ fromPlcCode $(plutus [| () |])
+unitValidationData = ValidationData $ fromPlcCode $$(plutus [|| () ||])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut'

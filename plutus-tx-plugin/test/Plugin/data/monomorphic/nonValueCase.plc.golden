@@ -1,0 +1,116 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            MyEnum_87
+            (type)
+            (lam
+              Enum1_88
+              MyEnum_87
+              (lam
+                Enum2_89
+                MyEnum_87
+                (lam
+                  MyEnum_match_90
+                  (fun MyEnum_87 (all out_MyEnum_91 (type) (fun out_MyEnum_91 (fun out_MyEnum_91 out_MyEnum_91))))
+                  [
+                    [
+                      {
+                        (abs
+                          Unit_92
+                          (type)
+                          (lam
+                            Unit_93
+                            Unit_92
+                            (lam
+                              Unit_match_94
+                              (fun Unit_92 (all out_Unit_95 (type) (fun out_Unit_95 out_Unit_95)))
+                              [
+                                (lam
+                                  error_96
+                                  (all a_97 (type) (fun Unit_92 a_97))
+                                  (lam
+                                    ds_98
+                                    MyEnum_87
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [
+                                              MyEnum_match_90 ds_98
+                                            ]
+                                            (fun Unit_92 [(con integer) (con 8)])
+                                          }
+                                          (lam thunk_99 Unit_92 (con 8 ! 1))
+                                        ]
+                                        (lam
+                                          thunk_100
+                                          Unit_92
+                                          [
+                                            { error_96 [(con integer) (con 8)] }
+                                            Unit_93
+                                          ]
+                                        )
+                                      ]
+                                      Unit_93
+                                    ]
+                                  )
+                                )
+                                (abs
+                                  e_101
+                                  (type)
+                                  (lam thunk_102 Unit_92 (error e_101))
+                                )
+                              ]
+                            )
+                          )
+                        )
+                        (all out_Unit_103 (type) (fun out_Unit_103 out_Unit_103))
+                      }
+                      (abs
+                        out_Unit_104
+                        (type)
+                        (lam case_Unit_105 out_Unit_104 case_Unit_105)
+                      )
+                    ]
+                    (lam
+                      x_106
+                      (all out_Unit_107 (type) (fun out_Unit_107 out_Unit_107))
+                      x_106
+                    )
+                  ]
+                )
+              )
+            )
+          )
+          (all out_MyEnum_108 (type) (fun out_MyEnum_108 (fun out_MyEnum_108 out_MyEnum_108)))
+        }
+        (abs
+          out_MyEnum_109
+          (type)
+          (lam
+            case_Enum1_110
+            out_MyEnum_109
+            (lam case_Enum2_111 out_MyEnum_109 case_Enum1_110)
+          )
+        )
+      ]
+      (abs
+        out_MyEnum_112
+        (type)
+        (lam
+          case_Enum1_113
+          out_MyEnum_112
+          (lam case_Enum2_114 out_MyEnum_112 case_Enum2_114)
+        )
+      )
+    ]
+    (lam
+      x_115
+      (all out_MyEnum_116 (type) (fun out_MyEnum_116 (fun out_MyEnum_116 out_MyEnum_116)))
+      x_115
+    )
+  ]
+)

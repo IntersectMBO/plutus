@@ -1,5 +1,0 @@
-(abs
-  Bool_matchOut_6
-  (type)
-  (lam True_7 Bool_matchOut_6 (lam False_8 Bool_matchOut_6 False_8))
-)

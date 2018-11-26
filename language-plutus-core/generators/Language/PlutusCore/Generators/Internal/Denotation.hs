@@ -22,7 +22,6 @@ import qualified Data.ByteString.Lazy         as BSL
 import           Data.Dependent.Map           (DMap)
 import qualified Data.Dependent.Map           as DMap
 import           Data.Functor.Compose
-import           Data.Semigroup
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
 data Denotation object size r = forall a. Denotation
@@ -61,7 +60,7 @@ denoteVariable name tb meta = Denotation name (Var ()) meta (TypeSchemeBuiltin t
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName :: TypedBuiltinName a r -> a -> Denotation BuiltinName size r
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name (Constant () . BuiltinName ()) meta scheme
+    Denotation name (Builtin () . BuiltinName ()) meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation :: TypedBuiltin () r -> Denotation object Size r -> DenotationContext -> DenotationContext

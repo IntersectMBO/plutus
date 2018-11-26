@@ -48,17 +48,17 @@ genOverapplication = do
     TermOf ti2 i2 <- genTypedBuiltinSmall typedInt1
     TermOf tj1 j1 <- genTypedBuiltinSmall typedInt2
     TermOf tj2 j2 <- genTypedBuiltinSmall typedInt2
-    let term =
-            mkIterApp ()
-                (TyInst ()
-                    (mkIterApp ()
-                        (TyInst ()
-                            (builtinNameAsTerm LessThanInteger)
-                            (TyInt () s1))
-                        [ti1, ti2])
-                    int2)
-                [tj1, tj2]
-        value = TypedBuiltinValue typedInt2 $ if i1 < i2 then j1 else j2
+    term <- rename $
+        mkIterApp ()
+            (TyInst ()
+                (mkIterApp ()
+                    (TyInst ()
+                        (builtinNameAsTerm LessThanInteger)
+                        (TyInt () s1))
+                    [ti1, ti2])
+                int2)
+            [tj1, tj2]
+    let value = TypedBuiltinValue typedInt2 $ if i1 < i2 then j1 else j2
     return $ TermOf term value
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
@@ -67,7 +67,7 @@ genOverapplication = do
 --     let ss = sizeOfInteger {s} i in
 --         product {s} ss (enumFromTo {s} (resizeInteger {1} {s} ss 1!1) i)
 getBuiltinFactorial :: Quote (Term TyName Name ())
-getBuiltinFactorial = do
+getBuiltinFactorial = rename =<< do
     product'    <- getBuiltinProduct
     enumFromTo' <- getBuiltinEnumFromTo
     s <- freshTyName () "s"
@@ -101,7 +101,7 @@ genFactorial = do
         sizev = sizeOfInteger $ product [1..m]
         typedIntSized = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     iv <- Gen.integral $ Range.linear 1 m
-    term <- lift $ do
+    term <- lift $ rename =<< do
         factorial <- getBuiltinFactorial
         return $ applyFactorial factorial sizev iv
     return . TermOf term . TypedBuiltinValue typedIntSized $ product [1..iv]
@@ -131,7 +131,7 @@ genListSum = do
     let typedIntSized = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
     intSized <- lift $ typedBuiltinToType typedIntSized
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinSmall typedIntSized
-    term <- lift $ do
+    term <- lift $ rename =<< do
         builtinSum <- getBuiltinSum
         list <- getListToBuiltinList intSized $ map _termOfTerm ps
         return
@@ -157,10 +157,10 @@ genIfIntegers = do
     builtinIf    <- lift getBuiltinIf
     let builtinConstSpec =
             Apply () $ mkIterInst () builtinConst [intSized, builtinUnit]
-        term = mkIterApp ()
-            (TyInst () builtinIf intSized)
-            [b, builtinConstSpec i, builtinConstSpec j]
         value = if bv then iv else jv
+    term <- rename $ mkIterApp ()
+                (TyInst () builtinIf intSized)
+                [b, builtinConstSpec i, builtinConstSpec j]
     return . TermOf term $ TypedBuiltinValue typedIntSized value
 
 -- | Apply a function to all interesting generators and collect the results.

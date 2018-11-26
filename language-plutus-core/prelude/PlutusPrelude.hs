@@ -1,9 +1,12 @@
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude ( -- * Reëxports from base
-                       (&&&)
+                       (&)
+                     , (&&&)
                      , toList
                      , bool
                      , first
@@ -19,16 +22,26 @@ module PlutusPrelude ( -- * Reëxports from base
                      , fromRight
                      , isRight
                      , void
+                     , coerce
                      , Generic
                      , NFData
                      , Natural
                      , NonEmpty (..)
                      , Word8
-                     , Semigroup (..)
                      , Alternative (..)
                      , Exception
                      , PairT (..)
+                     , Coercible
                      , Typeable
+                     -- * Lens
+                     , Lens'
+                     , lens
+                     , (^.)
+                     , view
+                     , (.~)
+                     , set
+                     , (%~)
+                     , over
                      -- * Debugging
                      , traceShowId
                      , trace
@@ -78,10 +91,12 @@ import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
+import           Control.Lens
 import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
 import qualified Data.ByteString.Lazy                    as BSL
+import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
@@ -90,7 +105,6 @@ import           Data.Functor.Foldable                   (Base, Corecursive, Rec
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
-import           Data.Semigroup
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc
@@ -100,7 +114,7 @@ import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
 import           Data.Typeable                           (Typeable)
 import           Data.Word                               (Word8)
 import           Debug.Trace
-import           GHC.Generics                            (Generic)
+import           GHC.Generics
 import           GHC.Natural                             (Natural)
 
 import           Data.Functor.Compose

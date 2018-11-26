@@ -1,0 +1,104 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            List_86
+            (fun (type) (type))
+            (lam
+              Nil_87
+              (all a_88 (type) [List_86 a_88])
+              (lam
+                Cons_89
+                (all a_90 (type) (fun a_90 (fun [List_86 a_90] [List_86 a_90])))
+                (lam
+                  Nil_match_91
+                  (all a_92 (type) (fun [List_86 a_92] [(lam a_93 (type) (all out_List_94 (type) (fun out_List_94 (fun (fun a_93 (fun [List_86 a_93] out_List_94)) out_List_94)))) a_92]))
+                  (lam
+                    ds_95
+                    [List_86 [(con integer) (con 8)]]
+                    [
+                      [
+                        {
+                          [ { Nil_match_91 [(con integer) (con 8)] } ds_95 ]
+                          [(con integer) (con 8)]
+                        }
+                        (con 8 ! 0)
+                      ]
+                      (lam
+                        x_96
+                        [(con integer) (con 8)]
+                        (lam ds_97 [List_86 [(con integer) (con 8)]] x_96)
+                      )
+                    ]
+                  )
+                )
+              )
+            )
+          )
+          (fix List_98 (lam a_99 (type) (all out_List_100 (type) (fun out_List_100 (fun (fun a_99 (fun [List_98 a_99] out_List_100)) out_List_100)))))
+        }
+        (abs
+          a_101
+          (type)
+          (wrap
+            List_102
+            (lam a_103 (type) (all out_List_104 (type) (fun out_List_104 (fun (fun a_103 (fun [List_102 a_103] out_List_104)) out_List_104))))
+            (abs
+              out_List_105
+              (type)
+              (lam
+                case_Nil_106
+                out_List_105
+                (lam
+                  case_Cons_107
+                  (fun a_101 (fun [List_102 a_101] out_List_105))
+                  case_Nil_106
+                )
+              )
+            )
+          )
+        )
+      ]
+      (abs
+        a_108
+        (type)
+        (lam
+          arg_0_109
+          a_108
+          (lam
+            arg_1_110
+            [(fix List_111 (lam a_112 (type) (all out_List_113 (type) (fun out_List_113 (fun (fun a_112 (fun [List_111 a_112] out_List_113)) out_List_113))))) a_108]
+            (wrap
+              List_114
+              (lam a_115 (type) (all out_List_116 (type) (fun out_List_116 (fun (fun a_115 (fun [List_114 a_115] out_List_116)) out_List_116))))
+              (abs
+                out_List_117
+                (type)
+                (lam
+                  case_Nil_118
+                  out_List_117
+                  (lam
+                    case_Cons_119
+                    (fun a_108 (fun [List_114 a_108] out_List_117))
+                    [ [ case_Cons_119 arg_0_109 ] arg_1_110 ]
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_120
+      (type)
+      (lam
+        x_121
+        [(fix List_122 (lam a_123 (type) (all out_List_124 (type) (fun out_List_124 (fun (fun a_123 (fun [List_122 a_123] out_List_124)) out_List_124))))) a_120]
+        (unwrap x_121)
+      )
+    )
+  ]
+)

@@ -1,0 +1,108 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          Unit_90
+          (type)
+          (lam
+            Unit_91
+            Unit_90
+            (lam
+              Unit_match_92
+              (fun Unit_90 (all out_Unit_93 (type) (fun out_Unit_93 out_Unit_93)))
+              [
+                [
+                  [
+                    {
+                      (abs
+                        Bool_94
+                        (type)
+                        (lam
+                          True_95
+                          Bool_94
+                          (lam
+                            False_96
+                            Bool_94
+                            (lam
+                              Bool_match_97
+                              (fun Bool_94 (all out_Bool_98 (type) (fun out_Bool_98 (fun out_Bool_98 out_Bool_98))))
+                              (lam
+                                ds_99
+                                Bool_94
+                                (lam
+                                  ds_100
+                                  Bool_94
+                                  [
+                                    [
+                                      [
+                                        {
+                                          [ Bool_match_97 ds_99 ]
+                                          (fun Unit_90 Bool_94)
+                                        }
+                                        (lam
+                                          thunk_101
+                                          Unit_90
+                                          [
+                                            [
+                                              [
+                                                {
+                                                  [ Bool_match_97 ds_100 ]
+                                                  (fun Unit_90 Bool_94)
+                                                }
+                                                (lam thunk_102 Unit_90 True_95)
+                                              ]
+                                              (lam thunk_103 Unit_90 False_96)
+                                            ]
+                                            Unit_91
+                                          ]
+                                        )
+                                      ]
+                                      (lam thunk_104 Unit_90 False_96)
+                                    ]
+                                    Unit_91
+                                  ]
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                      (all out_Bool_105 (type) (fun out_Bool_105 (fun out_Bool_105 out_Bool_105)))
+                    }
+                    (abs
+                      out_Bool_106
+                      (type)
+                      (lam
+                        case_True_107
+                        out_Bool_106
+                        (lam case_False_108 out_Bool_106 case_True_107)
+                      )
+                    )
+                  ]
+                  (abs
+                    out_Bool_109
+                    (type)
+                    (lam
+                      case_True_110
+                      out_Bool_109
+                      (lam case_False_111 out_Bool_109 case_False_111)
+                    )
+                  )
+                ]
+                (lam
+                  x_112
+                  (all out_Bool_113 (type) (fun out_Bool_113 (fun out_Bool_113 out_Bool_113)))
+                  x_112
+                )
+              ]
+            )
+          )
+        )
+        (all out_Unit_114 (type) (fun out_Unit_114 out_Unit_114))
+      }
+      (abs out_Unit_115 (type) (lam case_Unit_116 out_Unit_115 case_Unit_116))
+    ]
+    (lam x_117 (all out_Unit_118 (type) (fun out_Unit_118 out_Unit_118)) x_117)
+  ]
+)

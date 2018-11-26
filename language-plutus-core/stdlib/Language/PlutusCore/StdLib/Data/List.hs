@@ -13,7 +13,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinProduct
     ) where
 
-import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -186,7 +186,7 @@ getBuiltinEnumFromTo = rename =<< do
     rec <- freshName () "rec"
     n'  <- freshName () "n'"
     u   <- freshName () "u"
-    let gtInteger  = Constant () $ BuiltinName () GreaterThanInteger
+    let gtInteger  = Builtin () $ BuiltinName () GreaterThanInteger
         int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
         RecursiveType _ listInt =
             holedToRecursive $ holedTyApp list int
@@ -224,7 +224,7 @@ getBuiltinSum = rename =<< do
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        add = TyInst () (Constant () (BuiltinName () AddInteger)) sv
+        add = TyInst () (Builtin () (BuiltinName () AddInteger)) sv
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
@@ -244,7 +244,7 @@ getBuiltinProduct = rename =<< do
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        mul = TyInst () (Constant () (BuiltinName () MultiplyInteger)) sv
+        mul = TyInst () (Builtin () (BuiltinName () MultiplyInteger)) sv
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)

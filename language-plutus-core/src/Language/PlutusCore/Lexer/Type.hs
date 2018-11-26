@@ -28,6 +28,7 @@ import           Numeric                            (showHex)
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
+                 | TyString
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
@@ -89,11 +90,11 @@ which has the desired type signature:
     succInteger : forall s. integer s -> integer s
 -}
 
--- | The type of dynamic builtin functions. I.e. functions that exist on certain chains and do
+-- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
--- this allows to type check and evaluate dynamic builtins just like static ones.
+-- this allows to type check and evaluate dynamic built-in names just like static ones.
 newtype DynamicBuiltinName = DynamicBuiltinName
-    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic builtin function.
+    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic built-in name.
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift)
 
@@ -118,6 +119,7 @@ data Keyword = KwAbs
              | KwType
              | KwProgram
              | KwCon
+             | KwBuiltin
              | KwWrap
              | KwUnwrap
              | KwError
@@ -176,6 +178,7 @@ instance Pretty Keyword where
     pretty KwType       = "type"
     pretty KwProgram    = "program"
     pretty KwCon        = "con"
+    pretty KwBuiltin    = "builtin"
     pretty KwWrap       = "wrap"
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"
@@ -228,6 +231,7 @@ instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
     pretty TyByteString = "bytestring"
     pretty TySize       = "size"
+    pretty TyString     = "string"
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

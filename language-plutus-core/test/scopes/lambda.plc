@@ -1,1 +1,1 @@
-(program 0.1.0 (lam x y (lam x z [(con addInteger) x x])))
+(program 0.1.0 (lam x y (lam x z [(builtin addInteger) x x])))

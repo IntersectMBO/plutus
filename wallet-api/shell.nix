@@ -1,1 +1,1 @@
-(import ../. {}).wallet-api.env
+(import ../. {}).localPackages.wallet-api.env

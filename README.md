@@ -7,10 +7,10 @@ This repository contains the various components and some documentation for the P
 `default.nix` defines a package set containing all the packages in this repository. These can be built directly.
 For example:
 ```
-nix build -f default.nix language-plutus-core
+nix build -f default.nix localPackages.language-plutus-core
 ```
 
-The Plutus Core specification is also built this way, as the attribute `plutus-core-spec`.
+The Plutus Core specification is also built this way, as the attribute `docs.plutus-core-spec`.
 
 ### Binary caches
 
@@ -30,5 +30,5 @@ https://hydra.iohk.io/job/serokell/plutus/language-plutus-core.x86_64-linux/late
 
 You can also build the docs yourself locally. For example:
 ```
-nix build -f default.nix language-plutus-core.doc
+nix build -f default.nix localPackages.language-plutus-core.doc
 ```

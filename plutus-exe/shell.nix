@@ -1,1 +1,1 @@
-(import ../. {}).plutus-exe.env
+(import ../. {}).localPackages.plutus-exe.env

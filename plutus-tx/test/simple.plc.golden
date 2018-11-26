@@ -1,0 +1,59 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Bool_77
+            (type)
+            (lam
+              True_78
+              Bool_77
+              (lam
+                False_79
+                Bool_77
+                (lam
+                  Bool_match_80
+                  (fun Bool_77 (all out_Bool_81 (type) (fun out_Bool_81 (fun out_Bool_81 out_Bool_81))))
+                  (lam
+                    ds_82
+                    Bool_77
+                    [
+                      [
+                        { [ Bool_match_80 ds_82 ] [(con integer) (con 8)] }
+                        (con 8 ! 1)
+                      ]
+                      (con 8 ! 2)
+                    ]
+                  )
+                )
+              )
+            )
+          )
+          (all out_Bool_83 (type) (fun out_Bool_83 (fun out_Bool_83 out_Bool_83)))
+        }
+        (abs
+          out_Bool_84
+          (type)
+          (lam
+            case_True_85
+            out_Bool_84
+            (lam case_False_86 out_Bool_84 case_True_85)
+          )
+        )
+      ]
+      (abs
+        out_Bool_87
+        (type)
+        (lam
+          case_True_88 out_Bool_87 (lam case_False_89 out_Bool_87 case_False_89)
+        )
+      )
+    ]
+    (lam
+      x_90
+      (all out_Bool_91 (type) (fun out_Bool_91 (fun out_Bool_91 out_Bool_91)))
+      x_90
+    )
+  ]
+)
