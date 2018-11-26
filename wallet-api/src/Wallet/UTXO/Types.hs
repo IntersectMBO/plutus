@@ -123,7 +123,7 @@ import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 
 import qualified Language.PlutusCore                      as PLC
-import           Language.PlutusTx.Evaluation             (evaluateCekLog)
+import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlc)
 import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
@@ -242,7 +242,7 @@ applyScript :: Script -> Script -> Script
 applyScript (getAst -> s1) (getAst -> s2) = Script $ serialise $ s1 `PLC.applyProgram` s2
 
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (getAst -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekLog s
+evaluateScript (getAst -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise

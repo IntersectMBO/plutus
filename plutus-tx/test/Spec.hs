@@ -39,17 +39,17 @@ runPlcCek values = do
      let p = foldl1 applyProgram ps
      ExceptT $ try @SomeException $ evaluate $ evaluateCek p
 
-runPlcCekLog :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResult)
-runPlcCekLog values = do
+runPlcCekTrace :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResult)
+runPlcCekTrace values = do
      ps <- traverse getProgram values
      let p = foldl1 applyProgram ps
-     ExceptT $ try @SomeException $ evaluate $ evaluateCekLog p
+     ExceptT $ try @SomeException $ evaluate $ evaluateCekTrace p
 
 goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
 
 goldenEvalCekLog :: GetProgram a => String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . fst) <$> (rethrow $ runPlcCekLog values)
+goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . fst) <$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
 tests = testGroup "plutus-th" <$> sequence [

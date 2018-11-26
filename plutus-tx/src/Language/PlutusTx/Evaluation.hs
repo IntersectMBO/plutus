@@ -1,4 +1,4 @@
-module Language.PlutusTx.Evaluation (evaluateCek, evaluateCekLog) where
+module Language.PlutusTx.Evaluation (evaluateCek, evaluateCekTrace) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
@@ -23,10 +23,10 @@ evaluateCek p = unsafePerformIO $ evaluate $ runCek stringBuiltins p
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins and tracing, additionally
 -- returning the trace output.
-evaluateCekLog
+evaluateCekTrace
     :: Program TyName Name ()
     -> ([String], EvaluationResult)
-evaluateCekLog p =
+evaluateCekTrace p =
     unsafePerformIO $ withEmit $ \emit -> do
         let logName       = dynamicTraceName
             logDefinition = dynamicCallAssign TypedBuiltinDyn logName emit
