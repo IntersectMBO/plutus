@@ -21,6 +21,7 @@ library
     exposed-modules:
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
+        Language.PlutusTx.Evaluation
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -38,6 +39,8 @@ library
     build-depends:
         base >=4.9 && <5,
         template-haskell >=2.13.0.0,
+        language-plutus-core -any,
+        plutus-core-interpreter -any,
         plutus-tx-plugin -any
 
 test-suite plutus-tx-tests

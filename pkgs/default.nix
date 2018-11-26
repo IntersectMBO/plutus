@@ -55702,6 +55702,8 @@ version = "0.1.0.0";
 src = .././plutus-tx;
 libraryHaskellDepends = [
 base
+language-plutus-core
+plutus-core-interpreter
 plutus-tx-plugin
 template-haskell
 ];
@@ -77568,6 +77570,7 @@ license = stdenv.lib.licenses.mit;
 , mtl
 , natural-transformation
 , operational
+, plutus-core-interpreter
 , plutus-tx
 , plutus-tx-plugin
 , recursion-schemes
@@ -77607,6 +77610,7 @@ memory
 mtl
 natural-transformation
 operational
+plutus-core-interpreter
 plutus-tx
 plutus-tx-plugin
 recursion-schemes

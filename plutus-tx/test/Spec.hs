@@ -17,15 +17,13 @@ import           TestTH
 import           Language.PlutusTx.TH
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.Evaluation
 
-import           Language.PlutusCore.Interpreter.CekMachine
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Constant
 
-import Control.Monad.Except
-import Control.Exception
+import           Control.Monad.Except
+import           Control.Exception
 
 import           Test.Tasty
 
@@ -35,31 +33,17 @@ main = defaultMain $ runTestNestedIn ["test"] tests
 instance GetProgram PlcCode where
     getProgram = catchAll . getAst
 
-stringBuiltins :: DynamicBuiltinNameMeanings
-stringBuiltins =
-    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
-
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
 runPlcCek values = do
      ps <- traverse getProgram values
      let p = foldl1 applyProgram ps
-     catchAll $ runCek stringBuiltins p
+     ExceptT $ try @SomeException $ evaluate $ evaluateCek p
 
 runPlcCekLog :: GetProgram a => [a] -> ExceptT SomeException IO ([String], EvaluationResult)
 runPlcCekLog values = do
      ps <- traverse getProgram values
      let p = foldl1 applyProgram ps
-     ExceptT $ try @SomeException $ evaluateCekLog p
-
-evaluateCekLog
-    :: Program TyName Name ()
-    -> IO ([String], EvaluationResult)
-evaluateCekLog p =
-    withEmit $ \emit -> do
-        let logName       = dynamicTraceName
-            logDefinition = dynamicCallAssign TypedBuiltinDyn logName emit
-            env  = insertDynamicBuiltinNameDefinition logDefinition stringBuiltins
-        evaluate $ runCek env p
+     ExceptT $ try @SomeException $ evaluate $ evaluateCekLog p
 
 goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
