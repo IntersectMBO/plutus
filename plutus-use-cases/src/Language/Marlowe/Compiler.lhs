@@ -446,9 +446,36 @@ marloweValidator = Validator result where
             _ : rest -> fromChoices identChoice pubKey rest
             _ -> Nothing
 
+        elem :: (a -> a -> Bool) -> [a] -> a -> Bool
+        elem = realElem
+          where
+            realElem eq (e : ls) a = a `eq` e || realElem eq ls a
+            realElem eq [] a = False
+
+        notElem :: (a -> a -> Bool) -> [a] -> a -> Bool
+        notElem eq as a = not (elem eq as a)
+
         {-
             Marlowe Interpreter
         -}
+
+        validateContract :: [IdentCC] -> [IdentPay] -> Contract -> Bool
+        validateContract ccIds payIds contract = case contract of
+            Null -> True
+            CommitCash ident _ _ _ _ c1 c2 -> notInCCs ident &&
+                let ids = ident : ccIds
+                in validateContract ids payIds c1 && validateContract ids payIds c2
+            RedeemCC ident c -> notInCCs ident && validateContract (ident : ccIds) payIds c
+            Pay ident _ _ _ _ c -> notInPays ident && validateContract ccIds (ident : payIds) c
+            Both c1 c2 -> validateContract ccIds payIds c1 && validateContract ccIds payIds c2
+            Choice obs c1 c2 -> validateContract ccIds payIds c1 && validateContract ccIds payIds c2
+            When obs _ c1 c2 -> validateContract ccIds payIds c1 && validateContract ccIds payIds c2
+          where
+            notInCCs :: IdentCC -> Bool
+            notInCCs  = notElem eqIdentCC ccIds
+            notInPays :: IdentPay -> Bool
+            notInPays = notElem (\(IdentPay a) (IdentPay b) -> a == b) payIds
+
 
         evalValue :: State -> Value -> Int
         evalValue state@(State committed choices) value = case value of
@@ -629,14 +656,18 @@ marloweValidator = Validator result where
 
             _ -> (state, Null, False)
 
+        contractIsValid = validateContract [] [] marloweContract
+
         -- record Choices from Input into State
         updatedState = let
             State commits choices = marloweState
             in State commits (concat inputChoices choices)
 
-        (_::State, _::Contract, isValid) = eval inputCommand updatedState marloweContract
-
-        in if isValid then () else Builtins.error ()
+        (_::State, _::Contract, allowTransaction) = eval inputCommand updatedState marloweContract
+        -- if a contract is not valid we allow a contract creator to spend its initial deposit
+        -- otherwise, if the contract IS valid we check the contract allows this transaction
+        in if not contractIsValid || allowTransaction then ()
+        else Builtins.error ()
         |])
 
 

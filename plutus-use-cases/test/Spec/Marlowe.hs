@@ -36,8 +36,8 @@ newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey 
 
 tests :: TestTree
 tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
-        testProperty "Commit/Pay works" simplePayment,
         testProperty "Oracle Commit/Pay works" oraclePayment,
+        testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC,
         testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
         testProperty "redeem after commit expired" redeemAfterCommitExpired
         ]
@@ -56,36 +56,58 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     Hedgehog.assert ([] == emTxPool st)
 
 
+updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
-simplePayment :: Property
-simplePayment = checkMarloweTrace (MarloweScenario {
+getScriptOutFromTx :: Tx -> (TxOut', TxOutRef')
+getScriptOutFromTx tx = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+
+withContract
+    :: [Wallet]
+    -> Contract
+    -> ((TxOut', TxOutRef') -> Trace EmulatedWalletApi (TxOut', TxOutRef'))
+    -> Trace EmulatedWalletApi ()
+withContract wallets contract f = do
+    [tx] <- walletAction creator (createContract contract 12)
+    let txOut = getScriptOutFromTx tx
+    update
+    assertIsValidated tx
+
+    tx1Out <- f txOut
+
+    [tx] <- walletAction creator (endContract tx1Out)
+    update
+    assertIsValidated tx
+  where
+    creator = head wallets
+    update  = updateAll wallets
+
+oraclePayment :: Property
+oraclePayment = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
-        update = processPending >>= void . walletsNotifyBlock [alice, bob]
+        oracle = PubKey 42
+        update = updateAll [alice, bob]
     update
-    let contract = CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256
+
+    let contract = CommitCash (IdentCC 1) (PubKey 2) (ValueFromOracle oracle (Value 0)) 128 256
             (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
             Null
-    [tx] <- walletAction alice (createContract contract 12)
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
-    update
-    assertIsValidated tx
-    [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
-    update
-    assertIsValidated tx
-    [tx] <- walletAction alice (receivePayment txOut 100)
-    let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
-    update
-    assertIsValidated tx
 
-    let (PayToScript (DataScript script)) = txOutType txo
+    let oracleValue = OracleValue (Signed (oracle, (Runtime.Height 2, 100)))
 
-    [tx] <- walletAction alice (endContract txOut)
-    update
-    assertIsValidated tx
+    withContract [alice, bob] contract $ \txOut -> do
+        [tx] <- walletAction bob $ commit (PubKey 2) txOut [oracleValue] [] 100 256
+        let txOut = getScriptOutFromTx tx
+        update
+        assertIsValidated tx
+        [tx] <- walletAction alice (receivePayment txOut 100)
+        let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+        update
+        assertIsValidated tx
+        return txOut
+
     assertOwnFundsEq alice 1100
     assertOwnFundsEq bob 677
     return ()
@@ -96,10 +118,10 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
-        update = processPending >>= void . walletsNotifyBlock [alice, bob]
+        update = updateAll [alice, bob]
     update
     [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256 Null Null) 12)
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    let txOut = getScriptOutFromTx tx
     update
     assertIsValidated tx
 
@@ -113,22 +135,41 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
     assertOwnFundsEq bob 777
     return ()
 
+duplicateIdentCC :: Property
+duplicateIdentCC = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
+    -- Init a contract
+    let alice = Wallet 1
+        bob = Wallet 2
+        update = updateAll [alice, bob]
+    update
+
+    let contract = CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256
+            (CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256 Null Null)
+            Null
+
+    withContract [alice, bob] contract $ \txOut -> return txOut
+
+    assertOwnFundsEq alice 1000
+    assertOwnFundsEq bob 777
+    return ()
+
 redeemAfterCommitExpired :: Property
 redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
-        update = processPending >>= void . walletsNotifyBlock [alice, bob]
+        update = updateAll [alice, bob]
         identCC = (IdentCC 1)
     update
     [tx] <- walletAction alice (createContract (CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null) 12)
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    let txOut = getScriptOutFromTx tx
     update
     assertIsValidated tx
 
     [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+    let txOut = getScriptOutFromTx tx
     update
     assertIsValidated tx
 
@@ -140,42 +181,4 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
 
     assertOwnFundsEq alice 988
     assertOwnFundsEq bob 777
-    return ()
-
-oraclePayment :: Property
-oraclePayment = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
-    -- Init a contract
-    let alice = Wallet 1
-        bob = Wallet 2
-        oracle = PubKey 42
-        update = processPending >>= void . walletsNotifyBlock [alice, bob]
-    update
-
-    let contract = CommitCash (IdentCC 1) (PubKey 2) (ValueFromOracle oracle (Value 0)) 128 256
-            (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
-            Null
-
-    let oracleValue = OracleValue (Signed (oracle, (Runtime.Height 2, 100)))
-
-    [tx] <- walletAction alice (createContract contract 12)
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
-    update
-    assertIsValidated tx
-    [tx] <- walletAction bob $ commit (PubKey 2) txOut [oracleValue] [] 100 256
-    let txOut = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
-    update
-    assertIsValidated tx
-    [tx] <- walletAction alice (receivePayment txOut 100)
-    let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
-    update
-    assertIsValidated tx
-
-    let (PayToScript (DataScript _)) = txOutType txo
-
-    [tx] <- walletAction alice (endContract txOut)
-    update
-    assertIsValidated tx
-    assertOwnFundsEq alice 1100
-    assertOwnFundsEq bob 677
     return ()
