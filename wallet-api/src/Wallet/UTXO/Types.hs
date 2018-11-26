@@ -174,10 +174,12 @@ signedBy (Signature k) (PubKey s) = k == s
 
 -- | Cryptocurrency value
 --
-newtype Value = Value { getValue :: Integer }
+newtype Value = Value { getValue :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving newtype (Num, Integral, Real, Serialise, ToJSON, FromJSON)
+
+makeLift ''Value
 
 -- | Transaction ID (double SHA256 hash of the transaction)
 newtype TxId h = TxId { getTxId :: h }
@@ -329,7 +331,7 @@ newtype Height = Height { getHeight :: Int }
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
-height = Height . fromIntegral . length
+height = Height . length
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {

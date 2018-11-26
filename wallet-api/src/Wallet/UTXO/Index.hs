@@ -208,15 +208,15 @@ validationData h tx = rump <$> ins where
     rump inputs = PendingTx
         { pendingTxInputs = inputs
         , pendingTxOutputs = mkOut <$> txOutputs tx
-        , pendingTxForge = fromIntegral $ txForge tx
-        , pendingTxFee = fromIntegral $ txFee tx
+        , pendingTxForge = txForge tx
+        , pendingTxFee = txFee tx
         , pendingTxBlockHeight = Runtime.Height $ fromIntegral h
         , pendingTxSignatures = txSignatures tx
         , pendingTxOwnHash    = ()
         }
 
 mkOut :: TxOut' -> Runtime.PendingTxOut
-mkOut t = Runtime.PendingTxOut (fromIntegral $ txOutValue t) d tp where
+mkOut t = Runtime.PendingTxOut (txOutValue t) d tp where
     (d, tp) = case txOutType t of
         UTXO.PayToScript scrpt ->
             let
@@ -239,7 +239,7 @@ mkIn i = Runtime.PendingTxIn <$> ref <*> pure red <*> vl where
             Just (Runtime.plcValidatorDigest h, Runtime.plcRedeemerHash r)
         UTXO.ConsumePublicKeyAddress _ ->
             Nothing
-    vl = fromIntegral <$> valueOf i
+    vl = valueOf i
 
 valueOf :: ValidationMonad m => UTXO.TxIn' -> m Value
 valueOf = lkpValue . txInRef

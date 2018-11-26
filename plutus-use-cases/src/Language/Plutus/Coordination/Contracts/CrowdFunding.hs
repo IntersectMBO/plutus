@@ -75,10 +75,7 @@ contribute cmp value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
     ds <- DataScript . UTXO.lifted . pubKey <$> myKeyPair
 
-    -- TODO: Remove duplicate definition of Value
-    --       (Value = Integer in Haskell land but Value = Int in PLC land)
-    let v' = UTXO.Value $ fromIntegral value
-    tx <- payToScript (campaignAddress cmp) v' ds
+    tx <- payToScript (campaignAddress cmp) value ds
     logMsg "Submitted contribution"
 
     register (refundTrigger cmp) (refund (UTXO.hashTx tx) cmp)
@@ -192,7 +189,7 @@ refundTrigger c = andT
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ GEQ $ UTXO.Value $ fromIntegral $ campaignTarget c)
+    (fundsAtAddressT (campaignAddress c) $ GEQ $ campaignTarget c)
     (blockHeightT $ fromIntegral . getHeight <$> Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
 -- | Claim a refund of our campaign contribution
