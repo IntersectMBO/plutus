@@ -25,7 +25,7 @@ import           Language.Plutus.Runtime    (Height (..), PendingTx (..), Pendin
 import qualified Language.Plutus.Runtime.TH as TH
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.TH       (plutusUntyped)
+import           Language.PlutusTx.TH       (plutus)
 import           Prelude                    hiding ((&&))
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
@@ -109,18 +109,18 @@ validatorScriptHash =
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted v)
-    inner = UTXO.fromPlcCode $(plutusUntyped [| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
+    inner = UTXO.fromPlcCode $$(plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $(TH.eqValidator)
+            eqBs = $$(TH.eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk = $(TH.eqPubKey)
+            eqPk = $$(TH.eqPubKey)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $( TH.and )
+            (&&) = $$(TH.and)
 
             PendingTx _ os _ _ (Height h) _ _ = p
             VestingTranche (Height d1) (Value a1) = vestingTranche1
@@ -162,4 +162,4 @@ validatorScript v = Validator val where
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else Builtins.error () |])
+        if isValid then () else Builtins.error () ||])
