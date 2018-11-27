@@ -37,7 +37,7 @@ import           Language.Plutus.Runtime    (Height (..), PendingTx (..), Pendin
                                              ValidatorHash, Value (..))
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.TH       (plutusUntyped)
+import           Language.PlutusTx.TH       (plutus)
 import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                              WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
                                              ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
@@ -125,17 +125,17 @@ contributionScript cmp  = Validator val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = UTXO.fromPlcCode $(plutusUntyped [| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = UTXO.fromPlcCode $$(plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $(TH.and)
+            (&&) = $$(TH.and)
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
-            signedByT = $(TH.txSignedBy)
+            signedByT = $$(TH.txSignedBy)
 
             PendingTx ps outs _ _ (Height h) _ _ = p
 
@@ -152,7 +152,7 @@ contributionScript cmp  = Validator val where
             totalInputs :: Int
             totalInputs =
                 let v (PendingTxIn _ _ (Value vl)) = vl in
-                $(TH.foldr) (\i total -> total + v i) 0 ps
+                $$(TH.foldr) (\i total -> total + v i) 0 ps
 
             isValid = case act of
                 Refund -> -- the "refund" branch
@@ -161,9 +161,9 @@ contributionScript cmp  = Validator val where
                         -- of the contributor (that is, to the `a` argument of the data script)
 
                         contributorTxOut :: PendingTxOut -> Bool
-                        contributorTxOut o = $(TH.maybe) False (\pk -> $(TH.eqPubKey) pk a) ($(TH.pubKeyOutput) o)
+                        contributorTxOut o = $$(TH.maybe) False (\pk -> $$(TH.eqPubKey) pk a) ($$(TH.pubKeyOutput) o)
 
-                        contributorOnly = $(TH.all) contributorTxOut outs
+                        contributorOnly = $$(TH.all) contributorTxOut outs
 
                         refundable   = h > collectionDeadline &&
                                                     contributorOnly &&
@@ -178,7 +178,7 @@ contributionScript cmp  = Validator val where
                                     signedByT p campaignOwner
                     in payToOwner
         in
-        if isValid then () else Builtins.error ()) |])
+        if isValid then () else Builtins.error ()) ||])
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
