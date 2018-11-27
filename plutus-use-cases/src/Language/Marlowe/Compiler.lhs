@@ -581,7 +581,7 @@ marloweValidator = Validator result where
 
             (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid)) -> let
                 PendingTx [in1@ (PendingTxIn _ _ (Plutus.Value scriptValue))]
-                    [PendingTxOut (Plutus.Value change) (Just (validatorHash, dataHash)) DataTxOut, out2]
+                    [PendingTxOut (Plutus.Value change) (Just (validatorHash, _)) DataTxOut, _]
                     _ _ (Plutus.Height blockNumber) [receiverSignature] thisScriptHash = p
 
                 pv = evalValue state payValue
@@ -589,7 +589,6 @@ marloweValidator = Validator result where
                 isValid = pid == contractIdentPay
                     && pv > 0
                     && change == scriptValue - pv
-                    && signedBy to -- only receiver of the payment allowed to issue this transaction
                     && validatorHash `eqValidator` thisScriptHash
                 in  if isValid then let
                     -- Discounts the Cash from an initial segment of the list of pairs.
@@ -736,6 +735,34 @@ receivePayment (TxOut _ (UTXO.Value contractValue) _, ref) value = do
     oo <- ownPubKeyTxOut (UTXO.Value value)
 
     void $ signAndSubmit (Set.singleton i) [o, oo]
+
+receivePayment2 :: (
+    MonadError WalletAPIError m,
+    WalletAPI m)
+    => (TxOut', TxOutRef')
+    -> [OracleValue Int]
+    -> [Choice]
+    -> IdentPay
+    -> Integer
+    -> State
+    -> Contract
+    -> m ()
+receivePayment2 txOut oracles choices identPay value expectedState expectedCont = do
+    _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
+    let (TxOut _ (UTXO.Value contractValue) _, ref) = txOut
+    let input = Input (Payment identPay) oracles choices
+    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
+
+    let ds = DataScript $ UTXO.lifted MarloweData {
+                marloweContract = expectedCont,
+                marloweState = expectedState
+            }
+    let o = scriptTxOut (UTXO.Value $ contractValue - value) marloweValidator ds
+    oo <- ownPubKeyTxOut (UTXO.Value value)
+
+    void $ signAndSubmit (Set.singleton i) [o, oo]
+
+
 
 redeem :: (
     MonadError WalletAPIError m,

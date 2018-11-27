@@ -29,6 +29,7 @@ import qualified Language.Plutus.Runtime                             as Runtime
 import           Language.Plutus.TH
                           (plutus)
 import           Language.Marlowe.Compiler
+import qualified Language.Marlowe.Escrow                            as Escrow
 import qualified Wallet.UTXO                                         as UTXO
 import qualified Debug.Trace as Debug
 
@@ -37,6 +38,7 @@ newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey 
 tests :: TestTree
 tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
         testProperty "Oracle Commit/Pay works" oraclePayment,
+        testProperty "Escrow Contract" escrowTest,
         testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC,
         testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
         testProperty "redeem after commit expired" redeemAfterCommitExpired
@@ -103,7 +105,7 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
         update
         assertIsValidated tx
         [tx] <- walletAction alice (receivePayment txOut 100)
-        let txOut@(txo, _) = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+        let txOut = getScriptOutFromTx tx
         update
         assertIsValidated tx
         return txOut
@@ -181,4 +183,43 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
 
     assertOwnFundsEq alice 988
     assertOwnFundsEq bob 777
+    return ()
+
+escrowTest :: Property
+escrowTest = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777), (PubKey 3, 555)  ] }) $ do
+    -- Init a contract
+    let alice = Wallet 1
+        alicePK = PubKey 1
+        bob = Wallet 2
+        bobPK = PubKey 2
+        carol = Wallet 3
+        carolPK = PubKey 3
+        update = updateAll [alice, bob, carol]
+    update
+
+    let contract = Escrow.escrowContract
+
+    withContract [alice, bob, carol] contract $ \txOut -> do
+        [tx] <- walletAction alice $ commit (PubKey 1) txOut [] [] 450 100
+        let txOut = getScriptOutFromTx tx
+        update
+        addBlocks 50
+        assertIsValidated tx
+        let choices = [((IdentChoice 1, alicePK), 1), ((IdentChoice 2, bobPK), 1), ((IdentChoice 3, carolPK), 1)]
+        [tx] <- walletAction bob $ receivePayment2 txOut
+            []
+            choices
+            (IdentPay 1)
+            450
+            (State [] choices)
+            Null
+        let txOut = getScriptOutFromTx tx
+        update
+        assertIsValidated tx
+        return txOut
+
+    assertOwnFundsEq alice 550
+    assertOwnFundsEq bob 1227
+    assertOwnFundsEq carol 555
     return ()
