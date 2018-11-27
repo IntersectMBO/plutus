@@ -113,13 +113,15 @@ invalidScript = property $ do
     (m, txn1) <- forAll genChainTxn
 
     -- modify one of the outputs to be a script output
-    index <- forAll $ Gen.int (Range.linear 0 (length $ txOutputs txn1))
+    index <- forAll $ Gen.int (Range.linear 0 ((length $ txOutputs txn1) -1))
     let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitData
+    Hedgehog.annotateShow (scriptTxn)
     let outToSpend = (txOutRefs scriptTxn) !! index
     let totalVal = txOutValue (fst outToSpend)
 
     -- try and spend the script output
     invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
+    Hedgehog.annotateShow (invalidTxn)
 
     let (result, st) = Gen.runTrace m $ do
             processPending
