@@ -77570,7 +77570,6 @@ license = stdenv.lib.licenses.mit;
 , mtl
 , natural-transformation
 , operational
-, plutus-core-interpreter
 , plutus-tx
 , plutus-tx-plugin
 , recursion-schemes
@@ -77610,7 +77609,6 @@ memory
 mtl
 natural-transformation
 operational
-plutus-core-interpreter
 plutus-tx
 plutus-tx-plugin
 recursion-schemes
@@ -77631,6 +77629,8 @@ base
 containers
 hedgehog
 lens
+plutus-tx
+plutus-tx-plugin
 tasty
 tasty-hedgehog
 ];

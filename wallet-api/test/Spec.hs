@@ -1,23 +1,30 @@
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeApplications #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Main(main) where
 
 import           Control.Lens
-import           Control.Monad       (void)
-import           Data.Either         (isLeft, isRight)
-import           Data.Foldable       (traverse_)
-import qualified Data.Map            as Map
-import           Data.Monoid         (Sum (..))
-import           Hedgehog            (Property, forAll, property)
+import           Control.Monad              (void)
+import           Data.Either                (isLeft, isRight)
+import           Data.Foldable              (traverse_)
+import qualified Data.Map                   as Map
+import qualified Data.Set                   as Set
+import           Data.Monoid                (Sum (..))
+import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen        as Gen
-import qualified Hedgehog.Range      as Range
+import qualified Hedgehog.Gen               as Gen
+import qualified Hedgehog.Range             as Range
 import           Test.Tasty
-import           Test.Tasty.Hedgehog (testProperty)
+import           Test.Tasty.Hedgehog        (testProperty)
+import           Language.PlutusTx.TH       (plutus)
+import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Prelude
 
 import           Wallet.Emulator
-import           Wallet.Generators   (Mockchain (..))
-import qualified Wallet.Generators   as Gen
-import           Wallet.UTXO         (unitValidationData)
-import qualified Wallet.UTXO.Index   as Index
+import           Wallet.Generators          (Mockchain (..))
+import qualified Wallet.Generators          as Gen
+import qualified Wallet.UTXO.Index          as Index
 
 main :: IO ()
 main = defaultMain tests
@@ -38,7 +45,8 @@ tests = testGroup "all tests" [
         testProperty "reject invalid txn" invalidTrace,
         testProperty "notify wallet" notifyWallet,
         testProperty "react to blockchain events" eventTrace,
-        testProperty "watch funds at an address" notifyWallet
+        testProperty "watch funds at an address" notifyWallet,
+        testProperty "log script validation failures" invalidScript
         ],
     testGroup "Etc." [
         testProperty "splitVal" splitVal
@@ -99,6 +107,40 @@ invalidTrace = property $ do
     Hedgehog.assert (case _emulatorLog st of
         BlockAdd _ : TxnValidationFail _ _ : _ -> True
         _                                      -> False)
+
+invalidScript :: Property
+invalidScript = property $ do
+    (m, txn1) <- forAll genChainTxn
+
+    -- modify one of the outputs to be a script output
+    index <- forAll $ Gen.int (Range.linear 0 (length $ txOutputs txn1))
+    let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitData
+    let outToSpend = (txOutRefs scriptTxn) !! index
+    let totalVal = txOutValue (fst outToSpend)
+
+    -- try and spend the script output
+    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
+
+    let (result, st) = Gen.runTrace m $ do
+            processPending
+            walletAction (Wallet 1) $ submitTxn scriptTxn
+            processPending
+            walletAction (Wallet 1) $ submitTxn invalidTxn
+            processPending
+
+    Hedgehog.assert (isRight result)
+    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert (not (null $ _emulatorLog st))
+    Hedgehog.annotateShow (_emulatorLog st)
+    Hedgehog.assert $ case _emulatorLog st of
+        BlockAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
+            -> True
+        _
+            -> False
+
+    where
+        failValidator :: Validator
+        failValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> $$(traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do

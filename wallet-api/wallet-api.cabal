@@ -104,4 +104,6 @@ test-suite wallet-api-test
         tasty -any,
         tasty-hedgehog -any,
         wallet-api -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
         lens -any
