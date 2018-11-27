@@ -66,3 +66,19 @@ haskell_test(
         ":plutus-th",
     ],
 )
+
+sh_test(
+    name = "hlint",
+    srcs = ["//:hlint.sh"],
+    args = ["."],
+    deps = ["//:hlint_lib"],
+    data = glob(["**/*.hs"], exclude = ["**/.stack-work/**"]),
+)
+
+sh_test(
+    name = "stylish",
+    srcs = ["//:stylish-haskell.sh"],
+    args = ["plutus-th"],
+    deps = ["//:stylish_haskell_lib"],
+    data = glob(["**/*.hs"], exclude = ["**/.stack-work/**"]),
+)

@@ -1,8 +1,19 @@
+package(default_visibility = ["//visibility:public"])
+
+sh_library(
+    name = "lib",
+    srcs = [
+        "lib.nix",
+        "iohk-nix.json",
+    ],
+)
 
 exports_files([
     "pkgs/default.nix",
     "nix/overlays/required.nix",
     "criterion.sh",
+    "hlint.sh",
+    "stylish-haskell.sh"
 ])
 
 load(
@@ -14,4 +25,27 @@ haskell_toolchain(
     name = "ghc",
     tools = "@ghc//:bin",
     version = "8.4.3",
+)
+
+sh_library(
+    name = "hlint_lib",
+    srcs = [
+        ".hlint.yaml",
+    ],
+    deps = [ "//:lib"],
+)
+
+sh_library(
+    name = "stylish_haskell_lib",
+    srcs = [
+        ".stylish-haskell.yaml",
+    ],
+    deps = [ "//:lib"],
+)
+
+sh_test(
+    name = "shellcheck",
+    srcs = ["shellcheck.sh"],
+    data = glob(["*.sh", "ci/*.sh", "pkgs/*.sh"]),
+    deps = [ "//:lib"],
 )
