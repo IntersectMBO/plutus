@@ -44,6 +44,7 @@ library
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
     Language.Marlowe.Compiler
+    Language.Marlowe.Escrow
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
