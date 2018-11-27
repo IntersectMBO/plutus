@@ -86,13 +86,16 @@ let
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays;
-        pkgsGenerated = ./pkgs;
+      pkgsGenerated = ./pkgs;
+      filter = name: builtins.elem name localLib.plutusPkgList; 
+      filterOverrides = {
         # split check is broken for things with test tool dependencies
-        filter = let
+        splitCheck = let
           pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
           in name: builtins.elem name pkgList;
-        requiredOverlay = ./nix/overlays/required.nix;
-        ghc = pkgs.haskell.compiler.ghc843;
+      };
+      requiredOverlay = ./nix/overlays/required.nix;
+      ghc = pkgs.haskell.compiler.ghc843;
     };
 
     localPackages = localLib.getPackages {
