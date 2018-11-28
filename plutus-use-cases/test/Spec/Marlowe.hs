@@ -1,22 +1,15 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
 module Spec.Marlowe(tests) where
 
-import           Data.Bifunctor                                      (Bifunctor (..))
 import           Data.Either                                         (isRight)
 import           Control.Monad                                        (void)
-import           Data.Foldable                                       (traverse_)
 import qualified Data.Map                                            as Map
 import           Hedgehog                                            (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen        as Gen
-import qualified Hedgehog.Range      as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                                 (testProperty, HedgehogTestLimit(..))
 
@@ -26,12 +19,9 @@ import qualified Wallet.Generators                                   as Gen
 import           Wallet.UTXO.Runtime                           (OracleValue (..), Signed (..))
 
 import qualified Language.Plutus.Runtime                             as Runtime
-import           Language.Plutus.TH
-                          (plutus)
 import           Language.Marlowe.Compiler
 import qualified Language.Marlowe.Escrow                            as Escrow
 import qualified Wallet.UTXO                                         as UTXO
-import qualified Debug.Trace as Debug
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey UTXO.Value }
 
@@ -44,10 +34,6 @@ tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
         testProperty "redeem after commit expired" redeemAfterCommitExpired
         ]
 
--- | Funds available to wallets `Wallet 2` and `Wallet 3`
-startingBalance :: UTXO.Value
-startingBalance = 1000
-
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
 checkMarloweTrace :: MarloweScenario -> Trace EmulatedWalletApi () -> Property
@@ -55,13 +41,21 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 
+updateAll :: [Wallet] -> Trace EmulatedWalletApi ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 getScriptOutFromTx :: Tx -> (TxOut', TxOutRef')
 getScriptOutFromTx tx = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
+
+perform :: Wallet -> m () -> Trace m (TxOut', TxOutRef')
+perform actor action = do
+    [tx] <- walletAction actor action
+    processPending >>= void . walletsNotifyBlock [actor]
+    assertIsValidated tx
+    return $ getScriptOutFromTx tx
 
 withContract
     :: [Wallet]
@@ -100,15 +94,20 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
     let oracleValue = OracleValue (Signed (oracle, (Runtime.Height 2, 100)))
 
     withContract [alice, bob] contract $ \txOut -> do
-        [tx] <- walletAction bob $ commit (PubKey 2) txOut [oracleValue] [] 100 256
-        let txOut = getScriptOutFromTx tx
-        update
-        assertIsValidated tx
-        [tx] <- walletAction alice (receivePayment txOut 100)
-        let txOut = getScriptOutFromTx tx
-        update
-        assertIsValidated tx
-        return txOut
+        txOut <- bob `perform` commit
+            txOut
+            [oracleValue] []
+            (IdentCC 1)
+            100
+            (State [(IdentCC 1, (PubKey 2, NotRedeemed 100 256))] [])
+            (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
+
+        alice `perform` receivePayment txOut
+            [] []
+            (IdentPay 1)
+            100
+            (State [] [])
+            Null
 
     assertOwnFundsEq alice 1100
     assertOwnFundsEq bob 677
@@ -122,18 +121,24 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
         bob = Wallet 2
         update = updateAll [alice, bob]
     update
-    [tx] <- walletAction alice (createContract (CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256 Null Null) 12)
-    let txOut = getScriptOutFromTx tx
-    update
-    assertIsValidated tx
 
-    addBlocks 200
+    let contract = CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256 Null Null
 
-    [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
-    update
-    -- assertIsValidated tx
+    withContract [alice, bob] contract $ \txOut -> do
 
-    assertOwnFundsEq alice 988
+        addBlocks 200
+
+        walletAction bob $ commit
+            txOut
+            [] []
+            (IdentCC 1)
+            100
+            (State [(IdentCC 1, (PubKey 2, NotRedeemed 100 256))] [])
+            Null
+        update
+        return txOut
+
+    assertOwnFundsEq alice 1000
     assertOwnFundsEq bob 777
     return ()
 
@@ -165,23 +170,22 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
         update = updateAll [alice, bob]
         identCC = (IdentCC 1)
     update
-    [tx] <- walletAction alice (createContract (CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null) 12)
-    let txOut = getScriptOutFromTx tx
-    update
-    assertIsValidated tx
+    let contract = CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null
+    withContract [alice, bob] contract $ \txOut -> do
 
-    [tx] <- walletAction bob $ commit (PubKey 2) txOut [] [] 100 256
-    let txOut = getScriptOutFromTx tx
-    update
-    assertIsValidated tx
+        txOut <- bob `perform` commit
+            txOut
+            [] []
+            (IdentCC 1)
+            100
+            (State [(identCC, (PubKey 2, NotRedeemed 100 256))] [])
+            Null
 
-    addBlocks 300
+        addBlocks 300
 
-    [tx] <- walletAction bob (redeem txOut identCC 100)
-    update
-    assertIsValidated tx
+        bob `perform` redeem txOut [] [] identCC 100 (State [] []) Null
 
-    assertOwnFundsEq alice 988
+    assertOwnFundsEq alice 1000
     assertOwnFundsEq bob 777
     return ()
 
@@ -201,23 +205,24 @@ escrowTest = checkMarloweTrace (MarloweScenario {
     let contract = Escrow.escrowContract
 
     withContract [alice, bob, carol] contract $ \txOut -> do
-        [tx] <- walletAction alice $ commit (PubKey 1) txOut [] [] 450 100
-        let txOut = getScriptOutFromTx tx
-        update
+        txOut <- alice `perform` commit
+            txOut
+            [] []
+            (IdentCC 1)
+            450
+            (State [(IdentCC 1, (PubKey 1, NotRedeemed 450 100))] [])
+            (Pay (IdentPay 1) (PubKey 1) (PubKey 2) (Committed (IdentCC 1)) 100 Null)
+
         addBlocks 50
-        assertIsValidated tx
+
         let choices = [((IdentChoice 1, alicePK), 1), ((IdentChoice 2, bobPK), 1), ((IdentChoice 3, carolPK), 1)]
-        [tx] <- walletAction bob $ receivePayment2 txOut
+        bob `perform` receivePayment txOut
             []
             choices
             (IdentPay 1)
             450
             (State [] choices)
             Null
-        let txOut = getScriptOutFromTx tx
-        update
-        assertIsValidated tx
-        return txOut
 
     assertOwnFundsEq alice 550
     assertOwnFundsEq bob 1227
