@@ -1,9 +1,19 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.PlutusTx.Prelude where
+module Language.PlutusTx.Prelude (
+    -- * String and tracing functions
+    toPlutusString,
+    trace,
+    traceH,
+    -- error is the only builtin that people are likely to want to use directly
+    -- * Re-exported builtins
+    error) where
+
+import           Prelude                    hiding (error)
 
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Language.PlutusTx.Builtins (error)
 
-import Language.Haskell.TH
+import           Language.Haskell.TH
 
 -- | Convert a Haskell 'String' into a 'Builtins.String'.
 toPlutusString :: Q (TExp (String -> Builtins.String))

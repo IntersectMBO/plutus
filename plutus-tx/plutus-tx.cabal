@@ -19,6 +19,7 @@ source-repository head
 
 library
     exposed-modules:
+        Language.PlutusTx
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
