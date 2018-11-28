@@ -26,10 +26,9 @@ let
       exit
     '';
   };
-  shell = localPackages.haskellPackages.shellFor {
+  shell = localLib.withDevTools (localPackages.haskellPackages.shellFor {
     packages = p: (map (x: p.${x}) localLib.plutusPkgList);
-    nativeBuildInputs = [ pkgs.cabal-install pkgs.haskellPackages.ghcid ];
-  };
+  });
 
 in shell // {
   inherit fixStylishHaskell;

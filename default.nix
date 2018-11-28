@@ -78,7 +78,7 @@ let
   };
   customOverlays = optional forceError errorOverlay;
   packages = self: ({
-    inherit pkgs;
+    inherit pkgs localLib;
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
