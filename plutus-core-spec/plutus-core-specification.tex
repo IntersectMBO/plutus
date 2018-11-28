@@ -197,7 +197,7 @@ declaration to do. Precisely which combinators one defines is up to
 the user, but as Plutus itself is eagerly reduced, some of them will
 lead to looping behavior, including Y. Libraries can of course
 be defined with various combinators provided as a convenient way to
-gain access to recursion.~\cite{Pierce:TAPL, Harper:PFPL}.
+gain access to recursion.
 
 %Plutus Core is a typed, strict, eagerly-reduced $\lambda$-calculus design to run as a transaction validation scripting language on blockchain systems. It's designed to be simple and easy to reason about using mechanized proof assistants and automated theorem provers. The grammar of the language is given in Figures \ref{fig:Plutus_core_grammar} and \ref{fig:Plutus_core_lexical_grammar}, using a modified s-expression format. The language can be described as a higher-kinded Church-style/intrinsically-typed System F variant with fixedpoint terms, equirecursive fixedpoint types, constant terms, constant types, and size-indexed types. As such, we have the following syntactic constructs at the term level: variables, type annotation, type abstraction, type instantiation, $\lambda$ abstraction, application, term-level fixed points, and term constants. At the type level, we have the following syntactic constructs: variables, polymorphic types, function types, fixedpoint types, $\lambda$ abstraction, application, and constant types. Additionally we have the following kind-level constructs: type kind, function kind, and size kind. The language also explicitly tracks versions for tracking which version of the normalizer is to be run.
 
@@ -291,9 +291,26 @@ Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}$) is given in t
 
 \section{Reduction and Execution}
 
-In figure \ref{fig:Plutus_core_reduction}, we define a standard eager, small-step contextual semantics for Plutus Core in terms of the reduction relation for types (\(\typeStep{A}{A'}\)) and terms (\(\step{M}{M'}\)), which incorporates both $\beta$ reduction and contextual congruence. We make use of the transitive closure of these stepping relations via the usual Kleene star notation.  This is based on the CK machine of Felleisen and Friedman~\cite{Felleisen-CK-CEK}
+In figure \ref{fig:Plutus_core_reduction}, we define a standard eager,
+small-step contextual semantics for Plutus Core in terms of the
+reduction relation for types (\(\typeStep{A}{A'}\)) and terms
+(\(\step{M}{M'}\)), which incorporates both $\beta$ reduction and
+contextual congruence. We make use of the transitive closure of these
+stepping relations via the usual Kleene star notation.
 
-In the context of a blockchain system, it can be useful to also have a step indexed version of stepping, indicated by a superscript count of steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent transaction validation from looping indefinitely, or from simply taking an inordinate amount of time, which would be a serious security flaw in the blockchain system, we can use step indexing to put an upper bound on the number of computational steps that a program can have. In this setting, we would pick some upper bound $\mathit{max}$ and then perform steps of terms $M$ by computing which $M'$ is such that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
+This is based on the CK machine of Felleisen and Friedman~\cite{Felleisen-CK-CEK}
+
+
+In the context of a blockchain system, it can be useful to also have a
+step indexed version of stepping, indicated by a superscript count of
+steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
+transaction validation from looping indefinitely, or from simply
+taking an inordinate amount of time, which would be a serious security
+flaw in the blockchain system, we can use step indexing to put an
+upper bound on the number of computational steps that a program can
+have. In this setting, we would pick some upper bound $\mathit{max}$
+and then perform steps of terms $M$ by computing which $M'$ is such
+that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
 
 
 
