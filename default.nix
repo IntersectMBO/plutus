@@ -85,7 +85,7 @@ let
       filterOverrides = {
         # split check is broken for things with test tool dependencies
         splitCheck = let
-          pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
+          pkgList = pkgs.lib.remove "plutus-use-cases" (pkgs.lib.remove "plutus-tx" localLib.plutusPkgList);
           in name: builtins.elem name pkgList;
       };
       requiredOverlay = ./nix/overlays/required.nix;

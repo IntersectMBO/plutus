@@ -11,7 +11,7 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (Height, PubKey, Validator (..), Value (..))
+import           Ledger                       (Height, PubKey, ValidatorScript (..), Value (..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
                                               ValidatorHash)
@@ -56,8 +56,8 @@ type SwapOracle = OracleValue (Ratio Int)
 --   See note [Swap Transactions]
 --   See note [Contracts and Validator Scripts] in
 --       Language.Plutus.Coordination.Contracts
-swapValidator :: Swap -> Validator
-swapValidator _ = Validator result where
+swapValidator :: Swap -> ValidatorScript
+swapValidator _ = ValidatorScript result where
     result = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
         let
             infixr 3 &&
