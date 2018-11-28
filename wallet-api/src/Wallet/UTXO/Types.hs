@@ -157,14 +157,16 @@ especially because we only need one direction (to binary).
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Serialise)
 
 makeLift ''PubKey
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Serialise)
 
 makeLift ''Signature
 
@@ -177,7 +179,8 @@ signedBy (Signature k) (PubKey s) = k == s
 newtype Value = Value { getValue :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving newtype (Num, Integral, Real, Serialise, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Num, Integral, Real, Serialise)
 
 makeLift ''Value
 
@@ -191,8 +194,8 @@ makeLift ''TxId
 type TxId' = TxId (Digest SHA256)
 
 deriving newtype instance Serialise TxId'
-deriving newtype instance ToJSON TxId'
-deriving newtype instance FromJSON TxId'
+deriving anyclass instance ToJSON TxId'
+deriving anyclass instance FromJSON TxId'
 
 instance Serialise (Digest SHA256) where
   encode = encode . BA.unpack
@@ -224,8 +227,8 @@ newtype Address h = Address { getAddress :: h }
 type Address' = Address (Digest SHA256)
 
 deriving newtype instance Serialise Address'
-deriving newtype instance ToJSON Address'
-deriving newtype instance FromJSON Address'
+deriving anyclass instance ToJSON Address'
+deriving anyclass instance FromJSON Address'
 
 -- | Script
 newtype Script = Script { getSerialized :: BSL.ByteString }
@@ -262,7 +265,9 @@ lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQu
 
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: Script }
-  deriving newtype (Serialise, ToJSON, FromJSON)
+  deriving stock (Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise)
 
 instance Show Validator where
     show = const "Validator { <script> }"
@@ -283,7 +288,9 @@ instance BA.ByteArrayAccess Validator where
 
 -- | Data script (supplied by producer of the transaction output)
 newtype DataScript = DataScript { getDataScript :: Script  }
-  deriving newtype (Serialise, ToJSON, FromJSON)
+  deriving stock (Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
@@ -304,7 +311,9 @@ instance BA.ByteArrayAccess DataScript where
 
 -- | Redeemer (supplied by consumer of the transaction output)
 newtype Redeemer = Redeemer { getRedeemer :: Script }
-  deriving newtype (Serialise, ToJSON, FromJSON)
+  deriving stock (Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise)
 
 instance Show Redeemer where
     show = const "Redeemer { <script> }"
@@ -327,7 +336,8 @@ instance BA.ByteArrayAccess Redeemer where
 newtype Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving newtype (Num, Real, Integral, Serialise, FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON)
+    deriving newtype (Num, Real, Integral, Serialise)
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
@@ -617,7 +627,8 @@ data BlockchainState = BlockchainState {
 --   for now we have to construct it at compilation time (in the test suite)
 --   and pass it to the validator.
 newtype ValidationData = ValidationData Script
-    deriving newtype (ToJSON, FromJSON)
+    deriving stock (Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Show ValidationData where
     show = const "ValidationData { <script> }"
