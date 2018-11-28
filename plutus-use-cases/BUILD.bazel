@@ -11,7 +11,7 @@ haskell_packages = [
     "mtl",
     "template-haskell",
     "transformers",
-    "microlens",
+    "lens",
 ]
 
 test_packages = [
@@ -21,7 +21,6 @@ test_packages = [
     "tasty",
     "tasty-hedgehog",
     "text",
-    "microlens",
     "template-haskell",
 ]
 
@@ -49,9 +48,9 @@ haskell_library(
     src_strip_prefix = "src",
     deps = [":" + name for name in haskell_packages] + [
         "//language-plutus-core:language-plutus-core",
-        "//plutus-th:plutus-th",
+        "//plutus-tx:plutus-tx",
         "//wallet-api:wallet-api",
-        "//core-to-plc:core-to-plc",
+        "//plutus-tx-plugin:plutus-tx-plugin",
     ],
 )
 haskell_test(
@@ -63,8 +62,8 @@ haskell_test(
     src_strip_prefix = "test",
     visibility = ["//visibility:public"],
     deps = [":" + name for name in test_packages] + [
-        "//core-to-plc:core-to-plc",
-        "//plutus-th:plutus-th",
+        "//plutus-tx-plugin:plutus-tx-plugin",
+        "//plutus-tx:plutus-tx",
         "//wallet-api:wallet-api",
         ":plutus-use-cases",
     ],

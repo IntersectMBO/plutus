@@ -72,8 +72,8 @@ haskell_library(
     visibility = ["//visibility:public"],
     deps = [":" + name for name in haskell_packages] + [
         "//language-plutus-core:language-plutus-core",
-        "//core-to-plc:core-to-plc",
-        "//plutus-th:plutus-th",
+        "//plutus-tx-plugin:plutus-tx-plugin",
+        "//plutus-tx:plutus-tx",
     ],
 )
 

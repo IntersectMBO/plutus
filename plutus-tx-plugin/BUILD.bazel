@@ -18,6 +18,7 @@ haskell_packages = [
     "prettyprinter",
     "serialise",
     "template-haskell",
+    "th-abstraction",
     "text",
     "transformers",
 ]
@@ -28,7 +29,7 @@ haskell_packages = [
 ]
 
 haskell_library(
-    name = "core-to-plc",
+    name = "plutus-tx-plugin",
     srcs = glob([
         "src/**/*.hs",
         "src/**/*.hs-boot",
@@ -63,7 +64,7 @@ sh_test(
 sh_test(
     name = "stylish",
     srcs = ["//:stylish-haskell.sh"],
-    args = ["core-to-plc"],
+    args = ["plutus-tx-plugin"],
     deps = ["//:stylish_haskell_lib"],
     data = glob(["**/*.hs"], exclude = ["**/.stack-work/**"]),
 )

@@ -7,26 +7,19 @@ load(
 
 haskell_packages = [
     "base",
-    "bytestring",
     "containers",
     "mtl",
-    "prettyprinter",
-    "text",
+    "mmorph",
+    "lens",
 ]
 
 test_packages = [
     "base",
-    "bytestring",
-    "containers",
     "hedgehog",
-    "mmorph",
     "mtl",
-    "prettyprinter",
     "tasty",
-    "tasty-golden",
     "tasty-hedgehog",
     "tasty-hunit",
-    "text",
 ]
 
 [

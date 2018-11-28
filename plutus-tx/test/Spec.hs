@@ -8,6 +8,8 @@
 -- works.
 module Main (main) where
 
+import qualified Bazel.Runfiles             as Runfiles
+import           System.FilePath            ((</>))
 import           Common
 import           PlcTestUtils
 
@@ -28,7 +30,12 @@ import Control.Exception
 import           Test.Tasty
 
 main :: IO ()
-main = defaultMain $ runTestNestedIn ["test"] tests
+main = do
+    mr <- Runfiles.createMaybe
+    let testDir = case mr of
+          Just r  -> Runfiles.rlocation r "plutus/plutus-tx/"
+          Nothing -> "."
+    defaultMain $ runTestNestedIn [testDir, "test"] tests
 
 instance GetProgram PlcCode where
     getProgram = catchAll . getAst
@@ -47,7 +54,7 @@ goldenEvalCek :: GetProgram a => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
 
 tests :: TestNested
-tests = testGroup "plutus-th" <$> sequence [
+tests = testGroup "plutus-tx" <$> sequence [
     goldenPlc "simple" simple
     , goldenPlc "power" powerPlc
     , goldenPlc "and" andPlc
