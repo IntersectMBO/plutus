@@ -8,9 +8,9 @@ copyright: Copyright: (c) 2018 Input Output
 maintainer: jann.mueller@iohk.io
 stability: experimental
 author: Manuel M T Chakravarty, Jann Müller
-synopsis: 
+synopsis:
   Collection of smart contracts to develop the plutus/wallet interface
-description: 
+description:
   Collection of smart contracts to develop the plutus/wallet interface.
 category: Language
 extra-doc-files: README.md
@@ -43,6 +43,7 @@ library
     Language.PlutusTx.Coordination.Contracts.Game
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
+    Language.Marlowe.Compiler
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -58,6 +59,7 @@ test-suite plutus-use-cases-test
       Spec.Future
       Spec.Game
       Spec.Vesting
+      Spec.Marlowe
     build-depends:
         base >=4.9 && <5,
         containers -any,
