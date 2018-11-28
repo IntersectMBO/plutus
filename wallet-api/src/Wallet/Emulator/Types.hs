@@ -161,7 +161,6 @@ data EmulatorEvent =
 instance FromJSON EmulatorEvent
 instance ToJSON EmulatorEvent
 
-
 handleNotifications :: [Notification] -> EmulatedWalletApi ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
     updateState = \case
@@ -364,7 +363,6 @@ validateBlock emState txns = (block, events) where
             Nothing  -> TxnValidate (hashTx t)
             Just err -> TxnValidationFail (hashTx t) err
     events = mkEvent <$> processed
-
 
 processEmulated :: (MonadEmulator m) => Trace EmulatedWalletApi a -> m a
 processEmulated = interpretWithMonad evalEmulated

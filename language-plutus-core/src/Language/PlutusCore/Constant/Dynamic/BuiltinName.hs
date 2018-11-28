@@ -10,6 +10,7 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicAppendMeaning
     , dynamicAppendDefinition
     , dynamicAppend
+    , dynamicTraceName
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
@@ -50,3 +51,6 @@ dynamicAppendDefinition =
 
 dynamicAppend :: Term tyname name ()
 dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
+
+dynamicTraceName :: DynamicBuiltinName
+dynamicTraceName = DynamicBuiltinName "trace"

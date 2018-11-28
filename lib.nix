@@ -34,6 +34,7 @@ let
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
+  withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusPkgList pkgs;
+  inherit getPackages iohkNix isPlutus plutusPkgList withDevTools pkgs;
 }
