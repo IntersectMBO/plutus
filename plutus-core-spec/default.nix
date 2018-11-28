@@ -13,8 +13,8 @@ stdenv.mkDerivation {
   name = "plutus-core-spec";
   buildInputs = [ tex ];
   src = ./.;
-  buildPhase = "latexmk -view=pdf main.tex";
-  installPhase = "install -D main.pdf $out/main.pdf";
+  buildPhase = "latexmk -view=pdf plutus-core-specification.tex";
+  installPhase = "install -D main.pdf $out/plutus-core-specification.pdf";
 
   meta = with lib; {
     description = "Plutus Core specification";
