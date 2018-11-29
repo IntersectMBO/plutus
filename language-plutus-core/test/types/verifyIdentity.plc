@@ -1,0 +1,27 @@
+(program 0.1.0
+  (lam pubkey [(con bytestring) (con 256)]
+    (lam signed [(con bytestring) (con 32)]
+      [ 
+        (abs a (type)
+          (lam b (all a (type) (fun a (fun a a)))
+            (lam t (fun (all a (type) (fun a a)) a)
+              (lam f (fun (all a (type) (fun a a)) a)
+                [
+                  [ { b (fun (all a (type) (fun a a)) a) } t f ]
+                  (abs a (type) (lam x a x))
+                ]
+              )
+            )
+          )
+        )
+        [ {(builtin verifySignature) (con 32) (con 32) (con 256)} signed (builtin txhash) pubkey ]
+        (lam u (all a (type) (fun a a))
+          (abs a (type) (lam x a x))
+        )
+        (lam u (all a (type) (fun a a))
+          (error (all a (type) (fun a a)))
+        )
+      ]
+    )
+  )
+)
