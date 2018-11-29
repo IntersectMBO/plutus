@@ -82,7 +82,7 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-    let cfg = PLC.TypeCheckCfg PLC.defaultTypecheckerGas $ PLC.TypeConfig (case mode of {NotRequired -> True; Required -> False}) mempty
+    let cfg = PLC.TypeConfig (case mode of {NotRequired -> True; Required -> False}) mempty PLC.defaultTypecheckerGas
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
         Left (e :: PLC.Error PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e

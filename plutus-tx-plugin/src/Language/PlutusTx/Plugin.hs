@@ -265,11 +265,7 @@ convertExpr opts locStr origE resType = do
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ do
                   annotated <- PLC.annotateProgram plcP
-<<<<<<< HEAD:core-to-plc/src/Language/Plutus/CoreToPLC/Plugin.hs
                   void $ PLC.typecheckProgram (PLC.TypeConfig True mempty (Just 1000)) annotated
-=======
-                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 (PLC.TypeConfig True stringBuiltinTypes)) annotated
->>>>>>> bdfa2cce876b3fe04e75dade973b663804428d18:plutus-tx-plugin/src/Language/PlutusTx/Plugin.hs
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

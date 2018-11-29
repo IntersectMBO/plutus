@@ -19,13 +19,9 @@ typecheckEvaluate
     => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
 typecheckEvaluate meanings term = do
     let types = dynamicBuiltinNameMeaningsToTypes meanings
-<<<<<<< HEAD
-    _ <- annotateTerm term >>= typecheckTerm (TypeConfig True types Nothing)
-=======
-        typecheckConfig = TypeCheckCfg 1000 $ TypeConfig True types
+        typecheckConfig = TypeConfig True types Nothing
         typecheck = rename >=> annotateTerm >=> typecheckTerm typecheckConfig
     _ <- typecheck term
     -- We do not rename terms before evaluating them, because the evaluator must work correctly over
     -- terms with duplicate names, because it produces such terms during evaluation.
->>>>>>> bdfa2cce876b3fe04e75dade973b663804428d18
     return $ evaluateCek meanings term
