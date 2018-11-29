@@ -72,7 +72,7 @@ txnIndex :: Property
 txnIndex = property $ do
     (m, txn) <- forAll genChainTxn
     let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
-    Hedgehog.assert (Index.initialise (_chain st) == _index st)
+    Hedgehog.assert (Index.initialise (_chainNewestFirst st) == _index st)
 
 txnIndexValid :: Property
 txnIndexValid = property $ do
