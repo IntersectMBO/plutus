@@ -54,7 +54,7 @@
       s &\compute \builtin{bn}{\repetition{A}}{} &{}\mapsto{}& 
                                       U \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
       s &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &{}\mapsto{}& 
-                                      s \compute \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}{M}\\
+                                      s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}} \compute {M}\\
       s &\compute \error{A} &{}\mapsto{}& \ckerror{}\\
       \cdot &\return V &{}\mapsto{}& \square V\\
       s,\inInstLeftFrame{A} &\return \abs{\alpha}{K}{M} &{}\mapsto{}& s \compute{M} \\
