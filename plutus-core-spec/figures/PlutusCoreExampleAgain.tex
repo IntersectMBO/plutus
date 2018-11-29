@@ -60,13 +60,13 @@ verifyIdentity :
 verifyIdentity =
   (lam $pubkey$ [(con bytestring) (con 256)]
   (lam $signed$ [(con bytestring) (con 32)]
-    [ case [ {verifySignature (con 32)
-                              (con 32)
-                              (con 256)}
-               $signed$
-               $txhash$
-               $pubkey$
-           ]
+    [ { case $unit$ } [ {verifySignature (con 32)
+                                      (con 32)
+                                      (con 256)}
+                      $signed$
+                      $txhash$
+                      $pubkey$
+                      ]
       (lam u $unit$ one)
       (lam u $unit$ (error $unit$))
     ]))
