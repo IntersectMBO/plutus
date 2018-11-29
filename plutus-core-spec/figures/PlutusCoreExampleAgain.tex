@@ -22,7 +22,7 @@ true = (abs $a$ (type)
 and similarly
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 false : $boolean$
-false = (abs $a$ (type) 
+false = (abs $a$ (type)
         (lam $x$ $a$
         (lam $y$ $a$
           $y$ )))
@@ -40,17 +40,17 @@ case = (abs $a$ (type)
          [
            [ {$b$ (fun $unit$ $a$)} t f ]
            $one$
-         ] 
+         ]
        ))))
 \end{lstlisting}
 The reader is encouraged to verify that
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 [{case a} true (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ x
-\end{lstlisting}  
+\end{lstlisting}
 and
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 [{case a} false (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ y
-\end{lstlisting}  
+\end{lstlisting}
 
 We can use \texttt{case} to define the following function:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
@@ -58,9 +58,9 @@ verifyIdentity :
   (fun [(con bytestring) (con 256)]
   (fun [(con bytestring) (con 32)] unit))
 verifyIdentity =
-  (lam $pubkey$ [(con bytestring) (con 256)]                  
+  (lam $pubkey$ [(con bytestring) (con 256)]
   (lam $signed$ [(con bytestring) (con 32)]
-    [ case [ {verifySignature (con 32) 
+    [ case [ {verifySignature (con 32)
                               (con 32)
                               (con 256)}
                $signed$
@@ -80,13 +80,13 @@ With minimal modification we might turn our function into one that verifies a si
   [{$blocknum$ (con 16)} 16]
 ]
 \end{lstlisting}
-Notice that we must supply $blocknum$ with the size we wish to use to store the result twice, once at the type level and again at the term level. This is necessary because we want to have the size information available both at the type level, to facilitate gas calculations, and at the term level, so that once types are erased the runtime will know how much memory to allocate. This quirk is present in a number of the built in functions. 
+Notice that we must supply $blocknum$ with the size we wish to use to store the result twice, once at the type level and again at the term level. This is necessary because we want to have the size information available both at the type level, to facilitate gas calculations, and at the term level, so that once types are erased the runtime will know how much memory to allocate. This quirk is present in a number of the built in functions.
 
 \begin{figure*}
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
   [
     (lam $prog$
-      (fun $unit$ 
+      (fun $unit$
       (fun $boolean$
       (fun $boolean$
       (fun (all $a$ (type) (fun $boolean$ (fun $a$ (fun $a$ $a$))))
