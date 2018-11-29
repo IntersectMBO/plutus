@@ -24,7 +24,7 @@ node =
     -- The `node` constructor receives an `a` and a `forest a`
     \(x : a) -> \(fr : forest a) ->
         -- and constructs a `tree` (note the `treeTag`)
-        wrap (treeForestF a) treeTag
+        iwrap (treeForestF a) treeTag
             -- Here we encode `case`. Since `tree` has only one constructor
             -- of type `a -> forest a -> tree a`, we eliminate it with a single function
             -- of type `a -> forest a -> r`:
@@ -33,7 +33,7 @@ node =
 nil =
     /\(a :: *) ->
         -- The `nil` constructor does not receive anything and constructrs a `forest`
-        wrap (treeForestF a) forestTag
+        iwrap (treeForestF a) forestTag
             -- Here we encode `case`. Since `forest` has two constructors:
             -- `nil : forest a` and `cons : tree a -> forest a -> forest a`,
             -- we eliminate them with two values of types
@@ -47,7 +47,7 @@ cons =
     -- The `cons` constructor receives a `tree` and a `forest`
     \(tr : tree a) -> \(fr : forest a) ->
         -- and constructs a `forest`
-        wrap (treeForestF a) forestTag
+        iwrap (treeForestF a) forestTag
             -- Same reasoning as in the `nil` example above
             (/\(r :: *) -> \(z : r) -> \(f : tree a -> forest a -> r) ->
                 -- Since we're encoding `cons` here, we return the value that eliminates `cons`.
@@ -56,11 +56,11 @@ cons =
 
 This encoding is not what we use in practice, because manipulating pattern functors is very inconvenient to the user that generates Plutus Core and the user that writes it directly. Instead, we have a representation that doesn't expose any pattern functors to the user and exposes some higher-level primitives instead. It is more complicated though, so we show the simpler version here.
 
-But in any case this is a true encoding of a family of mutually recursive data types and there is no mention of spines whatsoever. This encoding works in both the `ifix` and the head-spine form settings without any additional tricks. We only need to provide these simple definitions in the head-spine form setting (omitting kinds for clarity):
+But in any case this is a true encoding of a family of mutually recursive data types and there is no mention of spines whatsoever. This encoding works in both the `ifix` and the head-spine form settings without any additional tricks. We only need to provide these simple definitions in the head-spine form setting:
 
 ```
-ifix = \f a -> fix f [a]
-wrap = /\f a -> wrap f [a]
+ifix  =  \(f :: (k -> *) -> k -> *) (a :: k) -> Spines.fix  f [a]
+iwrap = /\(f :: (k -> *) -> k -> *) (a :: k) -> Spines.wrap f [a]
 ```
 
 And nothing else is required. This proves that the topics of mutual type-level recursion and ways to get higher-kinded `fix` are completely orthogonal and shouldn't be conflated.
