@@ -11,7 +11,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE ViewPatterns       #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Wallet.UTXO.Types(
     -- * Basic types
@@ -114,7 +114,6 @@ import qualified Data.ByteString.Base64                   as Base64
 import qualified Data.ByteString.Char8                    as BS8
 import qualified Data.ByteString.Lazy                     as BSL
 import           Data.Foldable                            (foldMap)
-import           Data.Functor                             (void)
 import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
@@ -123,12 +122,12 @@ import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
 
-import           Language.Plutus.CoreToPLC.Plugin         (PlcCode, getSerializedCode)
-import           Language.Plutus.Lift                     (LiftPlc (..), TypeablePlc (..))
-import           Language.Plutus.TH                       (plutus)
 import qualified Language.PlutusCore                      as PLC
-import           Language.PlutusCore.Evaluation.CkMachine (runCk)
+import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlc)
+import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
+import           Language.PlutusTx.TH                     (plutus)
 
 {- Note [Serialisation and hashing]
 
@@ -157,19 +156,18 @@ especially because we only need one direction (to binary).
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Serialise)
 
-instance LiftPlc PubKey
-instance TypeablePlc PubKey
+makeLift ''PubKey
 
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving newtype (Serialise, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Serialise)
 
-instance LiftPlc Signature
-instance TypeablePlc Signature
-
+makeLift ''Signature
 
 -- | True if the signature matches the public key
 signedBy :: Signature -> PubKey -> Bool
@@ -177,24 +175,26 @@ signedBy (Signature k) (PubKey s) = k == s
 
 -- | Cryptocurrency value
 --
-newtype Value = Value { getValue :: Integer }
+newtype Value = Value { getValue :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving newtype (Num, Integral, Real, Serialise, ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Num, Integral, Real, Serialise)
+
+makeLift ''Value
 
 -- | Transaction ID (double SHA256 hash of the transaction)
 newtype TxId h = TxId { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
 
-instance (LiftPlc h, TypeablePlc h) => LiftPlc (TxId h)
-instance (TypeablePlc h) => TypeablePlc (TxId h)
+makeLift ''TxId
 
 type TxId' = TxId (Digest SHA256)
 
 deriving newtype instance Serialise TxId'
-deriving newtype instance ToJSON TxId'
-deriving newtype instance FromJSON TxId'
+deriving anyclass instance ToJSON TxId'
+deriving anyclass instance FromJSON TxId'
 
 instance Serialise (Digest SHA256) where
   encode = encode . BA.unpack
@@ -226,8 +226,8 @@ newtype Address h = Address { getAddress :: h }
 type Address' = Address (Digest SHA256)
 
 deriving newtype instance Serialise Address'
-deriving newtype instance ToJSON Address'
-deriving newtype instance FromJSON Address'
+deriving anyclass instance ToJSON Address'
+deriving anyclass instance FromJSON Address'
 
 -- | Script
 newtype Script = Script { getSerialized :: BSL.ByteString }
@@ -244,8 +244,8 @@ applyScript :: Script -> Script -> Script
 -- TODO: this is a bit inefficient
 applyScript (getAst -> s1) (getAst -> s2) = Script $ serialise $ s1 `PLC.applyProgram` s2
 
-evaluateScript :: Script -> Maybe ()
-evaluateScript (getAst -> s) = void $ evaluationResultToMaybe $ runCk s
+evaluateScript :: Script -> ([String], Bool)
+evaluateScript (getAst -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise
@@ -259,12 +259,14 @@ instance FromJSON Script where
       Left e  -> fail e
       Right v -> pure v
 
-lifted :: LiftPlc a => a -> Script
-lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . Language.Plutus.Lift.lift
+lifted :: LiftPir a => a -> Script
+lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . unsafeLiftPlc
 
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: Script }
-  deriving newtype (Serialise, ToJSON, FromJSON)
+  deriving stock (Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise)
 
 instance Show Validator where
     show = const "Validator { <script> }"
@@ -285,7 +287,9 @@ instance BA.ByteArrayAccess Validator where
 
 -- | Data script (supplied by producer of the transaction output)
 newtype DataScript = DataScript { getDataScript :: Script  }
-  deriving newtype (Serialise, ToJSON, FromJSON)
+  deriving stock (Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
@@ -306,7 +310,9 @@ instance BA.ByteArrayAccess DataScript where
 
 -- | Redeemer (supplied by consumer of the transaction output)
 newtype Redeemer = Redeemer { getRedeemer :: Script }
-  deriving newtype (Serialise, ToJSON, FromJSON)
+  deriving stock (Generic)
+  deriving anyclass (ToJSON, FromJSON)
+  deriving newtype (Serialise)
 
 instance Show Redeemer where
     show = const "Redeemer { <script> }"
@@ -329,11 +335,12 @@ instance BA.ByteArrayAccess Redeemer where
 newtype Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving newtype (Num, Real, Integral, Serialise, FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON)
+    deriving newtype (Num, Real, Integral, Serialise)
 
 -- | The height of a blockchain
 height :: Blockchain -> Height
-height = Height . fromIntegral . length
+height = Height . length
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
@@ -619,7 +626,8 @@ data BlockchainState = BlockchainState {
 --   for now we have to construct it at compilation time (in the test suite)
 --   and pass it to the validator.
 newtype ValidationData = ValidationData Script
-    deriving newtype (ToJSON, FromJSON)
+    deriving stock (Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Show ValidationData where
     show = const "ValidationData { <script> }"
@@ -664,23 +672,23 @@ validate bs TxIn{ txInType = ti } TxOut{..} =
     case (ti, txOutType) of
         (ConsumeScriptAddress v r, PayToScript d)
             | txOutAddress /= scriptAddress v -> False
-            | otherwise                                    -> runScript bs v r d
+            | otherwise                       -> snd $ runScript bs v r d
         (ConsumePublicKeyAddress sig, PayToPubKey pk) -> sig `signedBy` pk
         _ -> False
 
 -- | Evaluate a validator script with the given inputs
-runScript :: ValidationData -> Validator -> Redeemer -> DataScript -> Bool
+runScript :: ValidationData -> Validator -> Redeemer -> DataScript -> ([String], Bool)
 runScript (ValidationData valData) (Validator validator) (Redeemer redeemer) (DataScript dataScript) =
     let
         applied = ((validator `applyScript` redeemer) `applyScript` dataScript) `applyScript` valData
         -- TODO: do something with the error
-    in isJust $ evaluateScript applied
+    in evaluateScript applied
         -- TODO: Enable type checking of the program
         -- void typecheck
 
 -- | () as a data script
 unitData :: DataScript
-unitData = DataScript $ fromPlcCode $(plutus [| () |])
+unitData = DataScript $ fromPlcCode $$(plutus [|| () ||])
 
 -- | \() () () -> () as a validator
 --
@@ -693,15 +701,15 @@ unitData = DataScript $ fromPlcCode $(plutus [| () |])
 --       you need to provide `unitData`, `unitRedeemer` and
 --       `unitValidationData` to consume it.
 emptyValidator :: Validator
-emptyValidator = Validator $ fromPlcCode $(plutus [| \() () () -> () |])
+emptyValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> () ||])
 
 -- | () as a redeemer
 unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $ fromPlcCode $(plutus [| () |])
+unitRedeemer = Redeemer $ fromPlcCode $$(plutus [|| () ||])
 
 -- | () as validation data
 unitValidationData :: ValidationData
-unitValidationData = ValidationData $ fromPlcCode $(plutus [| () |])
+unitValidationData = ValidationData $ fromPlcCode $$(plutus [|| () ||])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut'

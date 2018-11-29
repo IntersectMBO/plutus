@@ -1,0 +1,49 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Bool_81
+            (type)
+            (lam
+              True_82
+              Bool_81
+              (lam
+                False_83
+                Bool_81
+                (lam
+                  Bool_match_84
+                  (fun Bool_81 (all out_Bool_85 (type) (fun out_Bool_85 (fun out_Bool_85 out_Bool_85))))
+                  True_82
+                )
+              )
+            )
+          )
+          (all out_Bool_86 (type) (fun out_Bool_86 (fun out_Bool_86 out_Bool_86)))
+        }
+        (abs
+          out_Bool_87
+          (type)
+          (lam
+            case_True_88
+            out_Bool_87
+            (lam case_False_89 out_Bool_87 case_True_88)
+          )
+        )
+      ]
+      (abs
+        out_Bool_90
+        (type)
+        (lam
+          case_True_91 out_Bool_90 (lam case_False_92 out_Bool_90 case_False_92)
+        )
+      )
+    ]
+    (lam
+      x_93
+      (all out_Bool_94 (type) (fun out_Bool_94 (fun out_Bool_94 out_Bool_94)))
+      x_93
+    )
+  ]
+)

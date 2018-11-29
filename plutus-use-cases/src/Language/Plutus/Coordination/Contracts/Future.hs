@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS -fplugin=Language.Plutus.CoreToPLC.Plugin -fplugin-opt Language.Plutus.CoreToPLC.Plugin:dont-typecheck #-}
+{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 -- | A futures contract in Plutus. This example illustrates three concepts.
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
@@ -24,13 +24,12 @@ module Language.Plutus.Coordination.Contracts.Future(
     validatorScript
     ) where
 
+import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
-import           Language.Plutus.Lift       (LiftPlc (..), TypeablePlc (..))
 import qualified Language.Plutus.Runtime.TH as TH
-import           Language.Plutus.TH         (plutus)
-import qualified Language.Plutus.TH         as Builtins
+import qualified Language.PlutusTx          as PlutusTx 
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
@@ -84,12 +83,11 @@ initialise :: (
 initialise long short f = do
     let
         im = futureInitialMargin f
-        vl = fromIntegral im
-        o = scriptTxOut vl (validatorScript f) ds
+        o = scriptTxOut im (validatorScript f) ds
         ds = DataScript $ UTXO.lifted $ FutureData long short im im
 
-    (payment, change) <- createPaymentWithChange vl
-    signAndSubmit payment [o, change]
+    (payment, change) <- createPaymentWithChange im
+    void $ signAndSubmit payment [o, change]
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -105,15 +103,15 @@ settle refs ft fd ov = do
         forwardPrice = futureUnitPrice ft
         OracleValue (Signed (_, (_, spotPrice))) = ov
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
-        longOut = fromIntegral $ futureDataMarginLong fd + delta
-        shortOut = fromIntegral $ futureDataMarginShort fd - delta
+        longOut = futureDataMarginLong fd + delta
+        shortOut = futureDataMarginShort fd - delta
         red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
         outs = [
             UTXO.pubKeyTxOut longOut (futureDataLong fd),
             UTXO.pubKeyTxOut shortOut (futureDataShort fd)
             ]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    signAndSubmit (Set.fromList inp) outs
+    void $ signAndSubmit (Set.fromList inp) outs
 
 -- | Settle the position early if a margin payment has been missed.
 settleEarly :: (
@@ -125,11 +123,11 @@ settleEarly :: (
     -> OracleValue Value
     -> m ()
 settleEarly refs ft fd ov = do
-    let totalVal = fromIntegral $ futureDataMarginLong fd + futureDataMarginShort fd
+    let totalVal = futureDataMarginLong fd + futureDataMarginShort fd
         outs = [UTXO.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
         red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
-    signAndSubmit (Set.fromList inp) outs
+    void $ signAndSubmit (Set.fromList inp) outs
 
 adjustMargin :: (
     MonadError WalletAPIError m,
@@ -143,17 +141,17 @@ adjustMargin refs ft fd vl = do
     pk <- pubKey <$> myKeyPair
     (payment, change) <- createPaymentWithChange vl
     fd' <- let fd''
-                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = fromIntegral vl + futureDataMarginLong fd  }
-                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = fromIntegral vl + futureDataMarginShort fd }
+                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
+                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
                 | otherwise = otherError "Private key is not part of futures contrat"
             in fd''
     let
         red = UTXO.Redeemer $ UTXO.lifted AdjustMargin
         ds  = DataScript $ UTXO.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
-        outVal = vl + fromIntegral (futureDataMarginLong fd + futureDataMarginShort fd)
+        outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    signAndSubmit (Set.union payment inp) [o, change]
+    void $ signAndSubmit (Set.union payment inp) [o, change]
 
 
 -- | Basic data of a futures contract. `Future` contains all values that do not
@@ -170,9 +168,6 @@ data Future = Future {
     --   payments.
     } deriving Generic
 
-instance LiftPlc Future
-instance TypeablePlc Future
-
 -- | The current "state" of the futures contract. `FutureData` contains values
 --   that may change during the lifetime of the contract. This is the data
 --   script.
@@ -188,9 +183,6 @@ data FutureData = FutureData {
     -- ^ Current balance of the margin account of the short position
     } deriving Generic
 
-instance LiftPlc FutureData
-instance TypeablePlc FutureData
-
 -- | Actions that either participant may take. This is the redeemer script.
 data FutureRedeemer =
       AdjustMargin
@@ -199,28 +191,25 @@ data FutureRedeemer =
     -- ^ Settle the contract
     deriving Generic
 
-instance LiftPlc FutureRedeemer
-instance TypeablePlc FutureRedeemer
-
 validatorScript :: Future -> Validator
 validatorScript ft = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted ft)
-    inner = UTXO.fromPlcCode $(plutus [|
+    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
                 PendingTx _ outs _ _ (Height height) _ ownHash = p
 
                 eqPk :: PubKey -> PubKey -> Bool
-                eqPk = $(TH.eqPubKey)
+                eqPk = $$(TH.eqPubKey)
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $(TH.and)
+                (&&) = $$(TH.and)
 
                 infixr 3 ||
                 (||) :: Bool -> Bool -> Bool
-                (||) = $(TH.or)
+                (||) = $$(TH.or)
 
                 forwardPrice :: Int
                 forwardPrice = let Value v = futureUnitPrice in v
@@ -247,7 +236,7 @@ validatorScript ft = Validator val where
                         penalty + delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = $(TH.maybe) False ($(TH.eqPubKey) k) ($(TH.pubKeyOutput) o)
+                isPubKeyOutput o k = $$(TH.maybe) False ($$(TH.eqPubKey) k) ($$(TH.pubKeyOutput) o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and value
                 paidOutTo :: Int -> PubKey -> PendingTxOut -> Bool
@@ -257,7 +246,7 @@ validatorScript ft = Validator val where
 
                 verifyOracle :: OracleValue a -> (Height, a)
                 verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else Builtins.error ()
+                    if pk `eqPk` futurePriceOracle then t else PlutusTx.error ()
 
                 isValid =
                     case r of
@@ -281,26 +270,24 @@ validatorScript ft = Validator val where
 
                                 canSettle =
                                     case outs of
-                                        (o1 :: PendingTxOut):(os::[PendingTxOut]) ->
-                                            case os of
-                                                (o2 :: PendingTxOut):(_::[PendingTxOut]) ->
-                                                    let paymentsValid =
-                                                            (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
-                                                            || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
-                                                    in
-                                                        heightvalid && paymentsValid
-                                                (_::[PendingTxOut]) ->
-                                                    let
-                                                        totalMargin = marginShort + marginLong
-                                                        case2 = marginLong < requiredMargin spotPrice
-                                                                && paidOutTo totalMargin futureDataShort o1
+                                        o1:o2:_ ->
+                                            let paymentsValid =
+                                                    (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
+                                                    || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
+                                            in
+                                                heightvalid && paymentsValid
+                                        o1:_ ->
+                                            let
+                                                totalMargin = marginShort + marginLong
+                                                case2 = marginLong < requiredMargin spotPrice
+                                                        && paidOutTo totalMargin futureDataShort o1
 
-                                                        case3 = marginShort < requiredMargin spotPrice
-                                                                && paidOutTo totalMargin futureDataLong o1
+                                                case3 = marginShort < requiredMargin spotPrice
+                                                        && paidOutTo totalMargin futureDataLong o1
 
-                                                    in
-                                                        case2 || case3
-                                        (_::[PendingTxOut]) -> False
+                                            in
+                                                case2 || case3
+                                        _ -> False
 
                             in
                                canSettle
@@ -310,14 +297,18 @@ validatorScript ft = Validator val where
                         --
                         AdjustMargin ->
                             case outs of
-                                (ot :: PendingTxOut):(_::[PendingTxOut]) ->
+                                ot:_ ->
                                     case ot of
                                         PendingTxOut (Value v) (Just (vh, _)) DataTxOut ->
                                             v > marginShort + marginLong
-                                            && $(TH.eqValidator) vh ownHash
+                                            && $$(TH.eqValidator) vh ownHash
                                         _ -> True
 
-                                (_::[PendingTxOut]) -> False
+                                _ -> False
             in
-                if isValid then () else Builtins.error ()
-            |])
+                if isValid then () else PlutusTx.error ()
+            ||])
+
+PlutusTx.makeLift ''Future
+PlutusTx.makeLift ''FutureData
+PlutusTx.makeLift ''FutureRedeemer

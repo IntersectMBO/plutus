@@ -13,13 +13,13 @@ module Language.PlutusCore.TypeSynthesis ( typecheckProgram
                                          , TypeConfig (..)
                                          ) where
 
-import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Error
-import           Language.PlutusCore.Lexer.Type     hiding (name)
+import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer        (annotateType)
+import           Language.PlutusCore.Renamer    (annotateType)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -28,6 +28,8 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Map                           (Map)
 import qualified Data.Map                           as Map
+import           Control.Monad.State.Class
+import           Control.Monad.Trans.State      hiding (get, modify)
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
@@ -56,16 +58,18 @@ kindOfTypeBuiltin :: TypeBuiltin -> Kind ()
 kindOfTypeBuiltin TyInteger    = sizeToType
 kindOfTypeBuiltin TyByteString = sizeToType
 kindOfTypeBuiltin TySize       = sizeToType
+kindOfTypeBuiltin TyString     = Type ()
 
 -- | Annotate a 'Type'. Invariant: the type must be in normal form. The invariant is not checked.
 -- In case a type is open, an 'OpenTypeOfBuiltin' is returned.
 -- We use this for annotating types of built-ins (both static and dynamic).
-annotateClosedNormalType
-    :: (AsTypeError e a, MonadError e m)
+annotateNormalizeType
+    :: (AsTypeError e a, MonadError e m, MonadQuote m)
     => a -> Builtin () -> Type TyName () -> m (NormalizedType TyNameWithKind ())
-annotateClosedNormalType ann con ty = case annotateType ty of
+annotateNormalizeType ann con ty = case annotateType ty of
     Left  (_::RenameError ()) -> throwing _TypeError $ InternalTypeErrorE ann $ OpenTypeOfBuiltin ty con
-    Right annTyOfName         -> pure $ NormalizedType annTyOfName
+    -- That's quite inefficient, but is there anything we can do about that?
+    Right annTyOfName         -> normalizeType annTyOfName
 
 -- | Annotate the type of a 'BuiltinName' and return it wrapped in 'NormalizedType'.
 normalizedAnnotatedTypeOfBuiltinName
@@ -73,7 +77,8 @@ normalizedAnnotatedTypeOfBuiltinName
     => a -> BuiltinName -> m (NormalizedType TyNameWithKind ())
 normalizedAnnotatedTypeOfBuiltinName ann name = do
     tyOfName <- liftQuote $ typeOfBuiltinName name
-    annotateClosedNormalType ann (BuiltinName () name) tyOfName
+    -- Types of built-in names are already normalized.
+    annotateNormalizeType ann (BuiltinName () name) tyOfName
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.
@@ -164,13 +169,14 @@ lookupDynamicBuiltinName ann name = do
             throwError $ UnknownDynamicBuiltinName ann (UnknownDynamicBuiltinNameErrorE name)
         Just quoTy -> do
             ty <- liftQuote quoTy
-            annotateClosedNormalType ann (DynBuiltinName () name) ty
+            annotateNormalizeType ann (DynBuiltinName () name) ty
 
 -- | Get the 'Type' of a 'Constant' wrapped in 'NormalizedType'.
 typeOfConstant :: Constant a -> NormalizedType TyNameWithKind ()
 typeOfConstant (BuiltinInt  _ size _) = applySizedNormalized TyInteger    size
 typeOfConstant (BuiltinBS   _ size _) = applySizedNormalized TyByteString size
 typeOfConstant (BuiltinSize _ size)   = applySizedNormalized TySize       size
+typeOfConstant (BuiltinStr _ _)       = NormalizedType $ TyBuiltin () TyString
 
 typeOfBuiltin :: Builtin a -> TypeCheckM a (NormalizedType TyNameWithKind ())
 typeOfBuiltin (BuiltinName    ann name) = normalizedAnnotatedTypeOfBuiltinName ann name
@@ -242,7 +248,7 @@ typeOf (TyAbs _ n nK body)                       = TyForall () (void n) (void nK
 -- --------------------
 -- [infer| con c : vTy]
 typeOf (Constant _ con)                          = pure (typeOfConstant con)
-typeOf (Builtin _ bi) = typeOfBuiltin bi
+typeOf (Builtin _ bi)                            = typeOfBuiltin bi
 
 -- [infer| fun : vDom -> vCod]    [check| arg : vDom]
 -- --------------------------------------------------

@@ -28,6 +28,7 @@ module Wallet.UTXO.Index(
 import           Control.Monad.Except (MonadError (..), liftEither)
 import           Control.Monad.Reader (MonadReader (..), ReaderT (..), ask)
 import           Crypto.Hash          (Digest, SHA256)
+import           Data.Aeson           (FromJSON, ToJSON)
 import           Data.Foldable        (foldl', traverse_)
 import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
@@ -83,9 +84,12 @@ data ValidationError =
     -- ^ The amount spent by the transaction differs from the amount consumed by it
     | NegativeValue Tx
     -- ^ The transaction produces an output with a negative value
-    | ScriptFailure
+    | ScriptFailure [String]
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Ord, Show, Generic)
+
+instance FromJSON ValidationError
+instance ToJSON ValidationError
 
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
     deriving (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
@@ -168,10 +172,11 @@ checkMatch v = \case
             let v' = ValidationData
                     $ lifted
                     $ v { pendingTxOwnHash = Runtime.plcValidatorDigest (UTXO.getAddress a) }
+                (logOut, success) = UTXO.runScript v' vl r d
             in
-                if UTXO.runScript v' vl r d
+                if success
                 then pure ()
-                else throwError ScriptFailure
+                else throwError $ ScriptFailure logOut
     PubKeyMatch pk sig ->
         if sig `UTXO.signedBy` pk
         then pure ()
@@ -204,15 +209,15 @@ validationData h tx = rump <$> ins where
     rump inputs = PendingTx
         { pendingTxInputs = inputs
         , pendingTxOutputs = mkOut <$> txOutputs tx
-        , pendingTxForge = fromIntegral $ txForge tx
-        , pendingTxFee = fromIntegral $ txFee tx
+        , pendingTxForge = txForge tx
+        , pendingTxFee = txFee tx
         , pendingTxBlockHeight = Runtime.Height $ fromIntegral h
         , pendingTxSignatures = txSignatures tx
         , pendingTxOwnHash    = ()
         }
 
 mkOut :: TxOut' -> Runtime.PendingTxOut
-mkOut t = Runtime.PendingTxOut (fromIntegral $ txOutValue t) d tp where
+mkOut t = Runtime.PendingTxOut (txOutValue t) d tp where
     (d, tp) = case txOutType t of
         UTXO.PayToScript scrpt ->
             let
@@ -235,7 +240,7 @@ mkIn i = Runtime.PendingTxIn <$> ref <*> pure red <*> vl where
             Just (Runtime.plcValidatorDigest h, Runtime.plcRedeemerHash r)
         UTXO.ConsumePublicKeyAddress _ ->
             Nothing
-    vl = fromIntegral <$> valueOf i
+    vl = valueOf i
 
 valueOf :: ValidationMonad m => UTXO.TxIn' -> m Value
 valueOf = lkpValue . txInRef

@@ -26,9 +26,10 @@ library
     containers -any,
     mtl -any,
     template-haskell -any,
-    plutus-th -any,
-    core-to-plc -any,
-    wallet-api -any
+    plutus-tx -any,
+    plutus-tx-plugin -any,
+    wallet-api -any,
+    lens -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -65,9 +66,8 @@ test-suite plutus-use-cases-test
         text -any,
         wallet-api -any,
         plutus-use-cases,
-        plutus-th -any,
-        microlens -any,
-        core-to-plc -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
         template-haskell -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances

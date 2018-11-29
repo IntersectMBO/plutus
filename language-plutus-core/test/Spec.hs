@@ -3,8 +3,13 @@
 module Main ( main
             ) where
 
+import qualified Check.Spec                   as Check
 import           Codec.Serialise
+<<<<<<< HEAD
 import           Control.Monad.Reader         (ask)
+=======
+import           Control.Monad.Except
+>>>>>>> bdfa2cce876b3fe04e75dade973b663804428d18
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
@@ -109,6 +114,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , test_constant
     , test_evaluateCk
     , Quotation.tests
+    , Check.tests
     ]
 
 type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
@@ -255,13 +261,13 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
+    , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
     ]
     where
-        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
+        fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

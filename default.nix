@@ -78,7 +78,7 @@ let
   };
   customOverlays = optional forceError errorOverlay;
   packages = self: ({
-    inherit pkgs;
+    inherit pkgs localLib;
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
@@ -86,10 +86,16 @@ let
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays;
-        pkgsGenerated = ./pkgs;
-        filter = localLib.isPlutus;
-        requiredOverlay = ./nix/overlays/required.nix;
-        ghc = pkgs.haskell.compiler.ghc843;
+      pkgsGenerated = ./pkgs;
+      filter = name: builtins.elem name localLib.plutusPkgList; 
+      filterOverrides = {
+        # split check is broken for things with test tool dependencies
+        splitCheck = let
+          pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
+          in name: builtins.elem name pkgList;
+      };
+      requiredOverlay = ./nix/overlays/required.nix;
+      ghc = pkgs.haskell.compiler.ghc843;
     };
 
     localPackages = localLib.getPackages {

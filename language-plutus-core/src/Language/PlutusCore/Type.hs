@@ -242,6 +242,7 @@ data Builtin a = BuiltinName a BuiltinName
 data Constant a = BuiltinInt a Natural Integer
                 | BuiltinBS a Natural BSL.ByteString
                 | BuiltinSize a Natural
+                | BuiltinStr a String
                 deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
 -- TODO make this parametric in tyname as well
@@ -268,7 +269,7 @@ data TermF tyname name a x = VarF a (name a)
                            | UnwrapF a x
                            | WrapF a (tyname a) (Type tyname a) x
                            | ErrorF a (Type tyname a)
-                           deriving (Functor)
+                           deriving (Functor, Traversable, Foldable)
 
 type instance Base (Term tyname name a) = TermF tyname name a
 

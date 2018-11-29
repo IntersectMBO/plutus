@@ -1,4 +1,0 @@
-(program 1.0.0
-  (lam ds_69 [(con integer) (con 64)] (lam ds_70 [(con integer) (con 64)] ds_69)
-  )
-)

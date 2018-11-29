@@ -1,0 +1,349 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            List_160
+            (fun (type) (type))
+            (lam
+              Nil_161
+              (all a_162 (type) [List_160 a_162])
+              (lam
+                Cons_163
+                (all a_164 (type) (fun a_164 (fun [List_160 a_164] [List_160 a_164])))
+                (lam
+                  Nil_match_165
+                  (all a_166 (type) (fun [List_160 a_166] [(lam a_167 (type) (all out_List_168 (type) (fun out_List_168 (fun (fun a_167 (fun [List_160 a_167] out_List_168)) out_List_168)))) a_166]))
+                  [
+                    (lam
+                      addInteger_169
+                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+                      [
+                        (lam
+                          tuple_170
+                          [(lam t_0_171 (type) (all r_172 (type) (fun (fun t_0_171 r_172) r_172))) (fun [List_160 [(con integer) (con 8)]] [(con integer) (con 8)])]
+                          [
+                            (lam
+                              sum_173
+                              (fun [List_160 [(con integer) (con 8)]] [(con integer) (con 8)])
+                              sum_173
+                            )
+                            [
+                              {
+                                (abs
+                                  t_0_174
+                                  (type)
+                                  (lam
+                                    tuple_175
+                                    [(lam t_0_176 (type) (all r_177 (type) (fun (fun t_0_176 r_177) r_177))) t_0_174]
+                                    [
+                                      { tuple_175 t_0_174 }
+                                      (lam arg_0_178 t_0_174 arg_0_178)
+                                    ]
+                                  )
+                                )
+                                (fun [List_160 [(con integer) (con 8)]] [(con integer) (con 8)])
+                              }
+                              tuple_170
+                            ]
+                          ]
+                        )
+                        [
+                          {
+                            {
+                              (abs
+                                a_179
+                                (type)
+                                (abs
+                                  b_180
+                                  (type)
+                                  [
+                                    {
+                                      (abs
+                                        F_181
+                                        (fun (type) (type))
+                                        (lam
+                                          by_182
+                                          (fun (all Q_183 (type) (fun [F_181 Q_183] Q_183)) (all Q_184 (type) (fun [F_181 Q_184] Q_184)))
+                                          [
+                                            {
+                                              {
+                                                (abs
+                                                  a_185
+                                                  (type)
+                                                  (abs
+                                                    b_186
+                                                    (type)
+                                                    (lam
+                                                      f_187
+                                                      (fun (fun a_185 b_186) (fun a_185 b_186))
+                                                      [
+                                                        {
+                                                          (abs
+                                                            a_188
+                                                            (type)
+                                                            (lam
+                                                              s_189
+                                                              [(lam a_190 (type) (fix self_191 (fun self_191 a_190))) a_188]
+                                                              [
+                                                                (unwrap s_189)
+                                                                s_189
+                                                              ]
+                                                            )
+                                                          )
+                                                          (fun a_185 b_186)
+                                                        }
+                                                        (wrap
+                                                          self_192
+                                                          [(lam a_193 (type) (fun self_192 a_193)) (fun a_185 b_186)]
+                                                          (lam
+                                                            s_194
+                                                            [(lam a_195 (type) (fix self_196 (fun self_196 a_195))) (fun a_185 b_186)]
+                                                            (lam
+                                                              x_197
+                                                              a_185
+                                                              [
+                                                                [
+                                                                  f_187
+                                                                  [
+                                                                    {
+                                                                      (abs
+                                                                        a_198
+                                                                        (type)
+                                                                        (lam
+                                                                          s_199
+                                                                          [(lam a_200 (type) (fix self_201 (fun self_201 a_200))) a_198]
+                                                                          [
+                                                                            (unwrap
+                                                                              s_199
+                                                                            )
+                                                                            s_199
+                                                                          ]
+                                                                        )
+                                                                      )
+                                                                      (fun a_185 b_186)
+                                                                    }
+                                                                    s_194
+                                                                  ]
+                                                                ]
+                                                                x_197
+                                                              ]
+                                                            )
+                                                          )
+                                                        )
+                                                      ]
+                                                    )
+                                                  )
+                                                )
+                                                (all Q_202 (type) (fun [F_181 Q_202] [F_181 Q_202]))
+                                              }
+                                              (all Q_203 (type) (fun [F_181 Q_203] Q_203))
+                                            }
+                                            (lam
+                                              rec_204
+                                              (fun (all Q_205 (type) (fun [F_181 Q_205] [F_181 Q_205])) (all Q_206 (type) (fun [F_181 Q_206] Q_206)))
+                                              (lam
+                                                h_207
+                                                (all Q_208 (type) (fun [F_181 Q_208] [F_181 Q_208]))
+                                                (abs
+                                                  R_209
+                                                  (type)
+                                                  (lam
+                                                    fr_210
+                                                    [F_181 R_209]
+                                                    [
+                                                      {
+                                                        [
+                                                          by_182
+                                                          (abs
+                                                            Q_211
+                                                            (type)
+                                                            (lam
+                                                              fq_212
+                                                              [F_181 Q_211]
+                                                              [
+                                                                {
+                                                                  [
+                                                                    rec_204
+                                                                    h_207
+                                                                  ]
+                                                                  Q_211
+                                                                }
+                                                                [
+                                                                  {
+                                                                    h_207 Q_211
+                                                                  }
+                                                                  fq_212
+                                                                ]
+                                                              ]
+                                                            )
+                                                          )
+                                                        ]
+                                                        R_209
+                                                      }
+                                                      fr_210
+                                                    ]
+                                                  )
+                                                )
+                                              )
+                                            )
+                                          ]
+                                        )
+                                      )
+                                      (lam X_213 (type) (fun (fun a_179 b_180) X_213))
+                                    }
+                                    (lam
+                                      k_214
+                                      (all Q_215 (type) (fun (fun (fun a_179 b_180) Q_215) Q_215))
+                                      (abs
+                                        S_216
+                                        (type)
+                                        (lam
+                                          h_217
+                                          (fun (fun a_179 b_180) S_216)
+                                          [
+                                            h_217
+                                            (lam
+                                              x_218
+                                              a_179
+                                              [
+                                                { k_214 b_180 }
+                                                (lam
+                                                  f_219
+                                                  (fun a_179 b_180)
+                                                  [ f_219 x_218 ]
+                                                )
+                                              ]
+                                            )
+                                          ]
+                                        )
+                                      )
+                                    )
+                                  ]
+                                )
+                              )
+                              [List_160 [(con integer) (con 8)]]
+                            }
+                            [(con integer) (con 8)]
+                          }
+                          (abs
+                            Q_220
+                            (type)
+                            (lam
+                              choose_221
+                              (fun (fun [List_160 [(con integer) (con 8)]] [(con integer) (con 8)]) Q_220)
+                              (lam
+                                sum_222
+                                (fun [List_160 [(con integer) (con 8)]] [(con integer) (con 8)])
+                                [
+                                  choose_221
+                                  (lam
+                                    ds_223
+                                    [List_160 [(con integer) (con 8)]]
+                                    [
+                                      [
+                                        {
+                                          [
+                                            {
+                                              Nil_match_165
+                                              [(con integer) (con 8)]
+                                            }
+                                            ds_223
+                                          ]
+                                          [(con integer) (con 8)]
+                                        }
+                                        (con 8 ! 0)
+                                      ]
+                                      (lam
+                                        x_224
+                                        [(con integer) (con 8)]
+                                        (lam
+                                          xs_225
+                                          [List_160 [(con integer) (con 8)]]
+                                          [
+                                            [ addInteger_169 x_224 ]
+                                            [ sum_222 xs_225 ]
+                                          ]
+                                        )
+                                      )
+                                    ]
+                                  )
+                                ]
+                              )
+                            )
+                          )
+                        ]
+                      ]
+                    )
+                    { (builtin addInteger) (con 8) }
+                  ]
+                )
+              )
+            )
+          )
+          (fix List_226 (lam a_227 (type) (all out_List_228 (type) (fun out_List_228 (fun (fun a_227 (fun [List_226 a_227] out_List_228)) out_List_228)))))
+        }
+        (abs
+          a_229
+          (type)
+          (wrap
+            List_230
+            (lam a_231 (type) (all out_List_232 (type) (fun out_List_232 (fun (fun a_231 (fun [List_230 a_231] out_List_232)) out_List_232))))
+            (abs
+              out_List_233
+              (type)
+              (lam
+                case_Nil_234
+                out_List_233
+                (lam
+                  case_Cons_235
+                  (fun a_229 (fun [List_230 a_229] out_List_233))
+                  case_Nil_234
+                )
+              )
+            )
+          )
+        )
+      ]
+      (abs
+        a_236
+        (type)
+        (lam
+          arg_0_237
+          a_236
+          (lam
+            arg_1_238
+            [(fix List_239 (lam a_240 (type) (all out_List_241 (type) (fun out_List_241 (fun (fun a_240 (fun [List_239 a_240] out_List_241)) out_List_241))))) a_236]
+            (wrap
+              List_242
+              (lam a_243 (type) (all out_List_244 (type) (fun out_List_244 (fun (fun a_243 (fun [List_242 a_243] out_List_244)) out_List_244))))
+              (abs
+                out_List_245
+                (type)
+                (lam
+                  case_Nil_246
+                  out_List_245
+                  (lam
+                    case_Cons_247
+                    (fun a_236 (fun [List_242 a_236] out_List_245))
+                    [ [ case_Cons_247 arg_0_237 ] arg_1_238 ]
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_248
+      (type)
+      (lam
+        x_249
+        [(fix List_250 (lam a_251 (type) (all out_List_252 (type) (fun out_List_252 (fun (fun a_251 (fun [List_250 a_251] out_List_252)) out_List_252))))) a_248]
+        (unwrap x_249)
+      )
+    )
+  ]
+)

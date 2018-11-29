@@ -29,12 +29,13 @@ data MachineError err
     | ConstAppMachineError ConstAppError
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | OtherMachineError err
+    deriving (Eq)
 
 -- | The type of exceptions an abstract machine can throw.
 data MachineException err = MachineException
     { _machineExceptionError :: MachineError err     -- ^ An error.
     , _machineExceptionCause :: Term TyName Name ()  -- ^ A 'Term' that caused the error.
-    }
+    } deriving (Eq)
 
 instance ( PrettyBy config (Constant ())
          , PrettyBy config (Value TyName Name ())

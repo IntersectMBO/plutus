@@ -39,6 +39,7 @@ instance PrettyBy (PrettyConfigClassic configName) (Constant a) where
     prettyBy _ (BuiltinInt _ s i) = pretty s <+> "!" <+> pretty i
     prettyBy _ (BuiltinSize _ s)  = pretty s
     prettyBy _ (BuiltinBS _ s b)  = pretty s <+> "!" <+> prettyBytes b
+    prettyBy _ (BuiltinStr _ s)   = pretty s
 
 instance PrettyBy (PrettyConfigClassic configName) (Builtin a) where
     prettyBy _ (BuiltinName    _ n) = pretty n

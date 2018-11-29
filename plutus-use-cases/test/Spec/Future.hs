@@ -61,10 +61,10 @@ settle :: Property
 settle = checkTrace $ do
     ins <- initBoth
     let
-        im = fromIntegral initMargin
+        im = initMargin
         cur = FutureData (PubKey 1) (PubKey 2) im im
         spotPrice = 1124
-        delta = fromIntegral $ units * (Runtime.getValue $ spotPrice - forwardPrice)
+        delta = fromIntegral units * (spotPrice - forwardPrice)
         ov  = OracleValue (Signed (oracle, (Runtime.Height 10, spotPrice)))
 
     -- advance the clock to block height 10
@@ -79,7 +79,7 @@ settleEarly :: Property
 settleEarly = checkTrace $ do
     ins <- initBoth
     let
-        im = fromIntegral initMargin
+        im = initMargin
         cur = FutureData (PubKey 1) (PubKey 2) im im
 
         -- In this example, the price moves up (in favour of the long position)
@@ -103,7 +103,7 @@ increaseMargin :: Property
 increaseMargin = checkTrace $ do
     ins <- initBoth
     let
-        im = fromIntegral initMargin
+        im = initMargin
         cur = FutureData (PubKey 1) (PubKey 2) im im
         increase = fromIntegral units * 5
 
@@ -120,7 +120,7 @@ increaseMargin = checkTrace $ do
     -- Now the contract has ended successfully and wallet 2 gets some of its
     -- margin back.
     let
-        im' = fromIntegral $ initMargin + increase
+        im' = initMargin + increase
         cur' = cur { futureDataMarginShort = im' }
 
         (_, upper) = marginRange
@@ -129,7 +129,7 @@ increaseMargin = checkTrace $ do
         -- settleEarly above)
         spotPrice = upper + 1
 
-        delta = fromIntegral $ units * (Runtime.getValue $ spotPrice - forwardPrice)
+        delta = fromIntegral units * (spotPrice - forwardPrice)
         ov  = OracleValue (Signed (oracle, (Runtime.Height 10, spotPrice)))
 
     void $ walletAction w2 (F.settle [ins'] contract cur' ov)
@@ -188,7 +188,7 @@ oracle :: PubKey
 oracle = PubKey 17
 
 initMargin :: UTXO.Value
-initMargin = fromIntegral $ futureInitialMargin contract
+initMargin = futureInitialMargin contract
 
 -- | Funds available to wallets at the beginning.
 startingBalance :: UTXO.Value
@@ -203,9 +203,9 @@ checkTrace t = property $ do
         model = Gen.generatorModel { Gen.gmInitialBalance = ib }
     (result, st) <- forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify all wallets
 updateAll :: Trace EmulatedWalletApi ()
 updateAll =
-    blockchainActions >>= void . walletsNotifyBlock [w1, w2]
+    processPending >>= void . walletsNotifyBlock [w1, w2]

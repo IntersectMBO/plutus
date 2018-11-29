@@ -1,0 +1,69 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          Tuple2_84
+          (fun (type) (fun (type) (type)))
+          (lam
+            Tuple2_85
+            (all a_86 (type) (all b_87 (type) (fun a_86 (fun b_87 [[Tuple2_84 a_86] b_87]))))
+            (lam
+              Tuple2_match_88
+              (all a_89 (type) (all b_90 (type) (fun [[Tuple2_84 a_89] b_90] [[(lam a_91 (type) (lam b_92 (type) (all out_Tuple2_93 (type) (fun (fun a_91 (fun b_92 out_Tuple2_93)) out_Tuple2_93)))) a_89] b_90])))
+              [
+                [
+                  {
+                    { Tuple2_85 [(con integer) (con 8)] }
+                    [(con integer) (con 8)]
+                  }
+                  (con 8 ! 1)
+                ]
+                (con 8 ! 2)
+              ]
+            )
+          )
+        )
+        (lam a_94 (type) (lam b_95 (type) (all out_Tuple2_96 (type) (fun (fun a_94 (fun b_95 out_Tuple2_96)) out_Tuple2_96))))
+      }
+      (abs
+        a_97
+        (type)
+        (abs
+          b_98
+          (type)
+          (lam
+            arg_0_99
+            a_97
+            (lam
+              arg_1_100
+              b_98
+              (abs
+                out_Tuple2_101
+                (type)
+                (lam
+                  case_Tuple2_102
+                  (fun a_97 (fun b_98 out_Tuple2_101))
+                  [ [ case_Tuple2_102 arg_0_99 ] arg_1_100 ]
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_103
+      (type)
+      (abs
+        b_104
+        (type)
+        (lam
+          x_105
+          [[(lam a_106 (type) (lam b_107 (type) (all out_Tuple2_108 (type) (fun (fun a_106 (fun b_107 out_Tuple2_108)) out_Tuple2_108)))) a_103] b_104]
+          x_105
+        )
+      )
+    )
+  ]
+)

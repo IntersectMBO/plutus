@@ -12,6 +12,8 @@ module Wallet.Generators(
     constantFee,
     genValidTransaction,
     genValidTransaction',
+    genValidTransactionSpending,
+    genValidTransactionSpending',
     genInitialTransaction,
     -- * Assertions
     assertValid,
@@ -134,9 +136,24 @@ genValidTransaction' g f (Mockchain bc ops) = do
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
         totalVal = sum (map (txOutValue . snd) inUTXO)
-        fee = estimateFee f (length ins) 3
         di a = (a, a)
         mkSig (PubKey i) = Signature i
+    genValidTransactionSpending' g f ins totalVal
+
+genValidTransactionSpending :: MonadGen m
+    => Set.Set TxIn'
+    -> Value
+    -> m Tx
+genValidTransactionSpending = genValidTransactionSpending' generatorModel (constantFee 1)
+
+genValidTransactionSpending' :: MonadGen m
+    => GeneratorModel
+    -> FeeEstimator
+    -> Set.Set TxIn'
+    -> Value
+    -> m Tx
+genValidTransactionSpending' g f ins totalVal = do
+    let fee = estimateFee f (length ins) 3
         numOut = Set.size $ gmPubKeys g
     if fee < totalVal
         then do

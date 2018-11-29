@@ -1,0 +1,104 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Plugin_Spec_MyPolyData_17
+            (fun (type) (fun (type) (type)))
+            (lam
+              Plugin_Spec_Poly1_18
+              (all a_19 (type) (all b_20 (type) (fun a_19 (fun b_20 [[Plugin_Spec_MyPolyData_17 a_19] b_20]))))
+              (lam
+                Plugin_Spec_Poly2_21
+                (all a_22 (type) (all b_23 (type) (fun a_22 [[Plugin_Spec_MyPolyData_17 a_22] b_23])))
+                (lam
+                  match_Plugin_Spec_MyPolyData_24
+                  (all a_25 (type) (all b_26 (type) (fun [[Plugin_Spec_MyPolyData_17 a_25] b_26] [[(lam a_27 (type) (lam b_28 (type) (all out_Plugin_Spec_MyPolyData_29 (type) (fun (fun a_27 (fun b_28 out_Plugin_Spec_MyPolyData_29)) (fun (fun a_27 out_Plugin_Spec_MyPolyData_29) out_Plugin_Spec_MyPolyData_29))))) a_25] b_26])))
+                  [
+                    [
+                      {
+                        { Plugin_Spec_Poly1_18 [(con integer) (con 8)] }
+                        [(con integer) (con 8)]
+                      }
+                      (con 8 ! 1)
+                    ]
+                    (con 8 ! 2)
+                  ]
+                )
+              )
+            )
+          )
+          (lam a_30 (type) (lam b_31 (type) (all out_Plugin_Spec_MyPolyData_32 (type) (fun (fun a_30 (fun b_31 out_Plugin_Spec_MyPolyData_32)) (fun (fun a_30 out_Plugin_Spec_MyPolyData_32) out_Plugin_Spec_MyPolyData_32)))))
+        }
+        (abs
+          a_33
+          (type)
+          (abs
+            b_34
+            (type)
+            (lam
+              arg_0_35
+              a_33
+              (lam
+                arg_1_36
+                b_34
+                (abs
+                  out_Plugin_Spec_MyPolyData_37
+                  (type)
+                  (lam
+                    case_Plugin_Spec_Poly1_38
+                    (fun a_33 (fun b_34 out_Plugin_Spec_MyPolyData_37))
+                    (lam
+                      case_Plugin_Spec_Poly2_39
+                      (fun a_33 out_Plugin_Spec_MyPolyData_37)
+                      [ [ case_Plugin_Spec_Poly1_38 arg_0_35 ] arg_1_36 ]
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      ]
+      (abs
+        a_40
+        (type)
+        (abs
+          b_41
+          (type)
+          (lam
+            arg_0_42
+            a_40
+            (abs
+              out_Plugin_Spec_MyPolyData_43
+              (type)
+              (lam
+                case_Plugin_Spec_Poly1_44
+                (fun a_40 (fun b_41 out_Plugin_Spec_MyPolyData_43))
+                (lam
+                  case_Plugin_Spec_Poly2_45
+                  (fun a_40 out_Plugin_Spec_MyPolyData_43)
+                  [ case_Plugin_Spec_Poly2_45 arg_0_42 ]
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_46
+      (type)
+      (abs
+        b_47
+        (type)
+        (lam
+          x_48
+          [[(lam a_49 (type) (lam b_50 (type) (all out_Plugin_Spec_MyPolyData_51 (type) (fun (fun a_49 (fun b_50 out_Plugin_Spec_MyPolyData_51)) (fun (fun a_49 out_Plugin_Spec_MyPolyData_51) out_Plugin_Spec_MyPolyData_51))))) a_46] b_47]
+          x_48
+        )
+      )
+    )
+  ]
+)

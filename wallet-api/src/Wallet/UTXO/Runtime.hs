@@ -1,14 +1,16 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 -- | A model of the types involved in transactions. These types are intented to
 --   be used in PLC scripts.
 module Wallet.UTXO.Runtime (-- * Transactions and related types
                 PubKey(..)
               , Value(..)
-              , getValue
               , Height(..)
-              , getHeight
               , PendingTxOutRef(..)
               , Signature(..)
               -- ** Hashes (see note [Hashes in validator scripts])
@@ -30,14 +32,14 @@ module Wallet.UTXO.Runtime (-- * Transactions and related types
               , OracleValue(..)
               ) where
 
-import           Codec.Serialise      (serialise)
-import           Crypto.Hash          (Digest, SHA256, hash)
-import qualified Data.ByteArray       as BA
-import qualified Data.ByteString.Lazy as BSL
-import           GHC.Generics         (Generic)
-import           Language.Plutus.Lift (LiftPlc (..), TypeablePlc (..))
-import           Wallet.UTXO.Types    (PubKey (..), Signature (..))
-import qualified Wallet.UTXO.Types    as UTXO
+import           Codec.Serialise        (serialise)
+import           Crypto.Hash            (Digest, SHA256, hash)
+import qualified Data.ByteArray         as BA
+import qualified Data.ByteString.Lazy   as BSL
+import           GHC.Generics           (Generic)
+import           Language.PlutusTx.Lift (makeLift)
+import           Wallet.UTXO.Types      (PubKey (..), Signature (..), Value (..))
+import qualified Wallet.UTXO.Types      as UTXO
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -50,9 +52,6 @@ data PendingTxOutType =
     | DataTxOut -- ^ The data script of the pending transaction output (see note [Script types in pending transactions])
     deriving Generic
 
-instance TypeablePlc PendingTxOutType
-instance LiftPlc PendingTxOutType
-
 -- | Output of a pending transaction.
 data PendingTxOut = PendingTxOut {
     pendingTxOutValue  :: Value,
@@ -60,17 +59,11 @@ data PendingTxOut = PendingTxOut {
     pendingTxOutData   :: PendingTxOutType
     } deriving Generic
 
-instance TypeablePlc PendingTxOut
-instance LiftPlc PendingTxOut
-
 data PendingTxOutRef = PendingTxOutRef {
     pendingTxOutRefId  :: TxHash, -- ^ Transaction whose outputs are consumed
     pendingTxOutRefIdx :: Int, -- ^ Index into the referenced transaction's list of outputs
     pendingTxOutSigs   :: [Signature]
     } deriving Generic
-
-instance TypeablePlc PendingTxOutRef
-instance LiftPlc PendingTxOutRef
 
 -- | Input of a pending transaction.
 data PendingTxIn = PendingTxIn {
@@ -78,9 +71,6 @@ data PendingTxIn = PendingTxIn {
     pendingTxInRefHashes :: Maybe (ValidatorHash, RedeemerHash), -- ^ Hashes of validator and redeemer scripts
     pendingTxInValue     :: Value -- ^ Value consumed by this txn input
     } deriving Generic
-
-instance TypeablePlc PendingTxIn
-instance LiftPlc PendingTxIn
 
 -- | A pending transaction as seen by validator scripts.
 data PendingTx a = PendingTx {
@@ -93,53 +83,13 @@ data PendingTx a = PendingTx {
     pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
     } deriving (Functor, Generic)
 
-instance TypeablePlc (PendingTx ValidatorHash)
-instance LiftPlc (PendingTx ValidatorHash)
-
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle.
 data OracleValue a = OracleValue (Signed (Height, a))
     deriving Generic
 
-instance TypeablePlc a => TypeablePlc (OracleValue a)
-instance (TypeablePlc a, LiftPlc a) => LiftPlc (OracleValue a)
-
 data Signed a = Signed (PubKey, a)
     deriving Generic
-
-instance TypeablePlc a => TypeablePlc (Signed a)
-instance (TypeablePlc a, LiftPlc a) => LiftPlc (Signed a)
-
--- | Ada value
---
--- TODO: Use [[Wallet.UTXO.Types.Value]] when Integer is supported
-data Value = Value Int
-    deriving (Eq, Ord, Show, Generic)
-
-instance TypeablePlc Value
-instance LiftPlc Value
-
-getValue :: Value -> Int
-getValue (Value i) = i
-
-instance Enum Value where
-    toEnum = Value
-    fromEnum = getValue
-
-instance Num Value where
-    (Value l) + (Value r) = Value (l + r)
-    (Value l) * (Value r) = Value (l * r)
-    abs (Value v)         = Value (abs v)
-    signum (Value v)      = Value (signum v)
-    fromInteger           = Value . fromInteger
-    negate (Value v)      = Value (negate v)
-
-instance Real Value where
-    toRational (Value v) = toRational v
-
-instance Integral Value where
-    quotRem (Value l) (Value r) = let (l', r') = quotRem l r in (Value l', Value r')
-    toInteger (Value i) = toInteger i
 
 {- Note [Hashes in validator scripts]
 
@@ -169,26 +119,14 @@ them from the correct types in Haskell, and for comparing them (in
 newtype ValidatorHash = ValidatorHash BSL.ByteString
     deriving (Eq, Generic)
 
-instance TypeablePlc ValidatorHash
-instance LiftPlc ValidatorHash
-
 newtype DataScriptHash = DataScriptHash BSL.ByteString
     deriving (Eq, Generic)
-
-instance TypeablePlc DataScriptHash
-instance LiftPlc DataScriptHash
 
 newtype RedeemerHash = RedeemerHash BSL.ByteString
     deriving (Eq, Generic)
 
-instance TypeablePlc RedeemerHash
-instance LiftPlc RedeemerHash
-
 newtype TxHash = TxHash BSL.ByteString
     deriving (Eq, Generic)
-
-instance TypeablePlc TxHash
-instance LiftPlc TxHash
 
 plcDataScriptHash :: UTXO.DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcHash
@@ -212,11 +150,18 @@ plcDigest = serialise
 
 -- | Blockchain height
 --   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported
-data Height = Height Int
+data Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Generic)
 
-instance TypeablePlc Height
-instance LiftPlc Height
-
-getHeight :: Height -> Int
-getHeight (Height h) = h
+makeLift ''PendingTxOutType
+makeLift ''PendingTxOut
+makeLift ''PendingTxOutRef
+makeLift ''PendingTxIn
+makeLift ''PendingTx
+makeLift ''OracleValue
+makeLift ''Signed
+makeLift ''ValidatorHash
+makeLift ''DataScriptHash
+makeLift ''RedeemerHash
+makeLift ''TxHash
+makeLift ''Height

@@ -14,6 +14,8 @@ module Language.PlutusCore.Error
     , AsParseError (..)
     , NormalizationError (..)
     , AsNormalizationError (..)
+    , UniqueError (..)
+    , AsUniqueError (..)
     , RenameError (..)
     , AsRenameError (..)
     , UnknownDynamicBuiltinNameError (..)
@@ -33,7 +35,7 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Lens
+import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 
@@ -53,6 +55,13 @@ data ParseError a
     | Overflow a Natural Integer
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
+
+data UniqueError a
+    = MultiplyDefined Unique a a
+    | IncoherentUsage Unique a a
+    | FreeVariable Unique a
+    deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''UniqueError
 
 data NormalizationError tyname name a
     = BadType a (Type tyname a) T.Text
@@ -94,6 +103,7 @@ makeClassyPrisms ''TypeError
 
 data Error a
     = ParseErrorE (ParseError a)
+    | UniqueCoherencyErrorE (UniqueError a)
     | RenameErrorE (RenameError a)
     | TypeErrorE (TypeError a)
     | NormalizationErrorE (NormalizationError TyName Name a)
@@ -102,6 +112,9 @@ makeClassyPrisms ''Error
 
 instance AsParseError (Error a) a where
     _ParseError = _ParseErrorE
+
+instance AsUniqueError (Error a) a where
+    _UniqueError = _UniqueCoherencyErrorE
 
 instance AsRenameError (Error a) a where
     _RenameError = _RenameErrorE
@@ -121,6 +134,14 @@ instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
     pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+
+instance Pretty a => Pretty (UniqueError a) where
+    pretty (MultiplyDefined u def redef) =
+        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+> "is redefined at" <+> pretty redef
+    pretty (IncoherentUsage u def use) =
+        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+> "is used in a different scope at" <+> pretty use
+    pretty (FreeVariable u use) =
+        "Variable" <+> pretty u <+> "is free at" <+> pretty use
 
 instance (Pretty a, PrettyBy config (Type tyname a), PrettyBy config (Term tyname name a)) =>
         PrettyBy config (NormalizationError tyname name a) where
@@ -178,7 +199,8 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
     prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
-    prettyBy _      (ParseErrorE e)         = pretty e
-    prettyBy config (RenameErrorE e)        = prettyBy config e
-    prettyBy config (TypeErrorE e)          = prettyBy config e
-    prettyBy config (NormalizationErrorE e) = prettyBy config e
+    prettyBy _      (ParseErrorE e)           = pretty e
+    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
+    prettyBy config (RenameErrorE e)          = prettyBy config e
+    prettyBy config (TypeErrorE e)            = prettyBy config e
+    prettyBy config (NormalizationErrorE e)   = prettyBy config e

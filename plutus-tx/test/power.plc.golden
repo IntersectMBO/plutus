@@ -1,0 +1,23 @@
+(program 1.0.0
+  [
+    (lam
+      multiplyInteger_76
+      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+      (lam
+        ds_77
+        [(con integer) (con 8)]
+        [
+          (lam y_78 [(con integer) (con 8)] [ [ multiplyInteger_76 y_78 ] y_78 ]
+          )
+          [
+            (lam
+              y_79 [(con integer) (con 8)] [ [ multiplyInteger_76 y_79 ] y_79 ]
+            )
+            [ [ multiplyInteger_76 ds_77 ] (con 8 ! 1) ]
+          ]
+        ]
+      )
+    )
+    { (builtin multiplyInteger) (con 8) }
+  ]
+)

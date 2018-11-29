@@ -28,6 +28,7 @@ import           Numeric                            (showHex)
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
+                 | TyString
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
@@ -230,6 +231,7 @@ instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
     pretty TyByteString = "bytestring"
     pretty TySize       = "size"
+    pretty TyString     = "string"
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

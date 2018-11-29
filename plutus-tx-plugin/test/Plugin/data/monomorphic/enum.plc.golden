@@ -1,0 +1,51 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            MyEnum_85
+            (type)
+            (lam
+              Enum1_86
+              MyEnum_85
+              (lam
+                Enum2_87
+                MyEnum_85
+                (lam
+                  MyEnum_match_88
+                  (fun MyEnum_85 (all out_MyEnum_89 (type) (fun out_MyEnum_89 (fun out_MyEnum_89 out_MyEnum_89))))
+                  Enum1_86
+                )
+              )
+            )
+          )
+          (all out_MyEnum_90 (type) (fun out_MyEnum_90 (fun out_MyEnum_90 out_MyEnum_90)))
+        }
+        (abs
+          out_MyEnum_91
+          (type)
+          (lam
+            case_Enum1_92
+            out_MyEnum_91
+            (lam case_Enum2_93 out_MyEnum_91 case_Enum1_92)
+          )
+        )
+      ]
+      (abs
+        out_MyEnum_94
+        (type)
+        (lam
+          case_Enum1_95
+          out_MyEnum_94
+          (lam case_Enum2_96 out_MyEnum_94 case_Enum2_96)
+        )
+      )
+    ]
+    (lam
+      x_97
+      (all out_MyEnum_98 (type) (fun out_MyEnum_98 (fun out_MyEnum_98 out_MyEnum_98)))
+      x_97
+    )
+  ]
+)

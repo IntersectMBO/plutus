@@ -1,0 +1,40 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          MyNewtype_82
+          (type)
+          (lam
+            MyNewtype_83
+            (fun [(con integer) (con 8)] MyNewtype_82)
+            (lam
+              MyNewtype_match_84
+              (fun MyNewtype_82 (all out_MyNewtype_85 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_85) out_MyNewtype_85)))
+              (lam ds_86 [(con integer) (con 8)] [ MyNewtype_83 ds_86 ])
+            )
+          )
+        )
+        (all out_MyNewtype_87 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_87) out_MyNewtype_87))
+      }
+      (lam
+        arg_0_88
+        [(con integer) (con 8)]
+        (abs
+          out_MyNewtype_89
+          (type)
+          (lam
+            case_MyNewtype_90
+            (fun [(con integer) (con 8)] out_MyNewtype_89)
+            [ case_MyNewtype_90 arg_0_88 ]
+          )
+        )
+      )
+    ]
+    (lam
+      x_91
+      (all out_MyNewtype_92 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_92) out_MyNewtype_92))
+      x_91
+    )
+  ]
+)

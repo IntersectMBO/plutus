@@ -113,8 +113,8 @@
         \texttt{dropByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_01i, s_1!b     & s_1!(drop \ i \  b)\\
         %&&\\
 
-        \texttt{sha2$\_256$}         &  \sig{s :: size}{str_s}{str_{256}}  & s &   s!b           & 256!(sha2\_256 \  b)\\
-        \texttt{sha3$\_256$}         &  \sig{s :: size}{str_s}{str_{256}}  & s &   s!b           & 256!(sha3\_256\  b)\\
+        \texttt{sha2$\_256$}         &  \sig{s :: size}{str_s}{str_{32}}  & s &   s!b           & 32!(sha2\_256 \  b)\\
+        \texttt{sha3$\_256$}         &  \sig{s :: size}{str_s}{str_{32}}  & s &   s!b           & 32!(sha3\_256\  b)\\
         %&&\\
 
         \texttt{verifySignature}   &  \sig{s_0, s_1, s_2 :: size}{str_{s_0},str_{s_1},str_{s_2}}{boolean}  &   s_0, s_1, s_2 & k, d, s           & \text{$true$ if the private key}\\
@@ -129,7 +129,7 @@
         \texttt{equalsByteString}  &   \sig{s :: size}{str_s,str_s}{boolean}   &   s & b_0 , b_1   & b_0 == b_1\\
         %&&\\
 
-        \texttt{txhash}^{\dagger}   &   \sig{}{}{str_{256}}   &   & \textrm{---}  & 256!txh\\
+        \texttt{txhash}^{\dagger}   &   \sig{}{}{str_{32}}   &   & \textrm{---}  & 32!txh\\
         %&&\\
 
         \texttt{blocknum}  &  \sig{s :: size}{size_s}{integer_s}  & s & z & s!bnum & 0 \leq bnum < 2^{8s-1}\\

@@ -1,0 +1,91 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Bool_84
+            (type)
+            (lam
+              True_85
+              Bool_84
+              (lam
+                False_86
+                Bool_84
+                (lam
+                  Bool_match_87
+                  (fun Bool_84 (all out_Bool_88 (type) (fun out_Bool_88 (fun out_Bool_88 out_Bool_88))))
+                  [
+                    (lam
+                      equalsInteger_89
+                      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_84))
+                      (lam
+                        ds_90
+                        [(con integer) (con 8)]
+                        (lam
+                          ds_91
+                          [(con integer) (con 8)]
+                          [
+                            (lam
+                              z_92
+                              [(con integer) (con 8)]
+                              [ [ equalsInteger_89 ds_90 ] z_92 ]
+                            )
+                            ds_91
+                          ]
+                        )
+                      )
+                    )
+                    (lam
+                      arg_93
+                      [(con integer) (con 8)]
+                      (lam
+                        arg_94
+                        [(con integer) (con 8)]
+                        [
+                          (lam
+                            b_95
+                            (all a_96 (type) (fun a_96 (fun a_96 a_96)))
+                            [ [ { b_95 Bool_84 } True_85 ] False_86 ]
+                          )
+                          [
+                            [ { (builtin equalsInteger) (con 8) } arg_93 ]
+                            arg_94
+                          ]
+                        ]
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+          )
+          (all out_Bool_97 (type) (fun out_Bool_97 (fun out_Bool_97 out_Bool_97)))
+        }
+        (abs
+          out_Bool_98
+          (type)
+          (lam
+            case_True_99
+            out_Bool_98
+            (lam case_False_100 out_Bool_98 case_True_99)
+          )
+        )
+      ]
+      (abs
+        out_Bool_101
+        (type)
+        (lam
+          case_True_102
+          out_Bool_101
+          (lam case_False_103 out_Bool_101 case_False_103)
+        )
+      )
+    ]
+    (lam
+      x_104
+      (all out_Bool_105 (type) (fun out_Bool_105 (fun out_Bool_105 out_Bool_105)))
+      x_104
+    )
+  ]
+)

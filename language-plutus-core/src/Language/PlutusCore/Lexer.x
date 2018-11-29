@@ -123,6 +123,7 @@ tokens :-
 deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
 deriving instance Lift AlexPosn
+deriving instance Ord AlexPosn
 
 instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col

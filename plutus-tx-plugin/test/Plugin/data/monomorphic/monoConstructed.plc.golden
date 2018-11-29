@@ -1,0 +1,106 @@
+(program 1.0.0
+  [
+    [
+      [
+        [
+          {
+            (abs
+              MyMonoData_96
+              (type)
+              (lam
+                Mono1_97
+                (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] MyMonoData_96))
+                (lam
+                  Mono2_98
+                  (fun [(con integer) (con 8)] MyMonoData_96)
+                  (lam
+                    Mono3_99
+                    (fun [(con integer) (con 8)] MyMonoData_96)
+                    (lam
+                      MyMonoData_match_100
+                      (fun MyMonoData_96 (all out_MyMonoData_101 (type) (fun (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_MyMonoData_101)) (fun (fun [(con integer) (con 8)] out_MyMonoData_101) (fun (fun [(con integer) (con 8)] out_MyMonoData_101) out_MyMonoData_101)))))
+                      [ Mono2_98 (con 8 ! 1) ]
+                    )
+                  )
+                )
+              )
+            )
+            (all out_MyMonoData_102 (type) (fun (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_MyMonoData_102)) (fun (fun [(con integer) (con 8)] out_MyMonoData_102) (fun (fun [(con integer) (con 8)] out_MyMonoData_102) out_MyMonoData_102))))
+          }
+          (lam
+            arg_0_103
+            [(con integer) (con 8)]
+            (lam
+              arg_1_104
+              [(con integer) (con 8)]
+              (abs
+                out_MyMonoData_105
+                (type)
+                (lam
+                  case_Mono1_106
+                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_MyMonoData_105))
+                  (lam
+                    case_Mono2_107
+                    (fun [(con integer) (con 8)] out_MyMonoData_105)
+                    (lam
+                      case_Mono3_108
+                      (fun [(con integer) (con 8)] out_MyMonoData_105)
+                      [ [ case_Mono1_106 arg_0_103 ] arg_1_104 ]
+                    )
+                  )
+                )
+              )
+            )
+          )
+        ]
+        (lam
+          arg_0_109
+          [(con integer) (con 8)]
+          (abs
+            out_MyMonoData_110
+            (type)
+            (lam
+              case_Mono1_111
+              (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_MyMonoData_110))
+              (lam
+                case_Mono2_112
+                (fun [(con integer) (con 8)] out_MyMonoData_110)
+                (lam
+                  case_Mono3_113
+                  (fun [(con integer) (con 8)] out_MyMonoData_110)
+                  [ case_Mono2_112 arg_0_109 ]
+                )
+              )
+            )
+          )
+        )
+      ]
+      (lam
+        arg_0_114
+        [(con integer) (con 8)]
+        (abs
+          out_MyMonoData_115
+          (type)
+          (lam
+            case_Mono1_116
+            (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_MyMonoData_115))
+            (lam
+              case_Mono2_117
+              (fun [(con integer) (con 8)] out_MyMonoData_115)
+              (lam
+                case_Mono3_118
+                (fun [(con integer) (con 8)] out_MyMonoData_115)
+                [ case_Mono3_118 arg_0_114 ]
+              )
+            )
+          )
+        )
+      )
+    ]
+    (lam
+      x_119
+      (all out_MyMonoData_120 (type) (fun (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] out_MyMonoData_120)) (fun (fun [(con integer) (con 8)] out_MyMonoData_120) (fun (fun [(con integer) (con 8)] out_MyMonoData_120) out_MyMonoData_120))))
+      x_119
+    )
+  ]
+)

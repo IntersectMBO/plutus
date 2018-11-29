@@ -21,12 +21,12 @@ let
 
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
-    "core-to-plc"
     "language-plutus-core"
     "plutus-core-interpreter"
     "plutus-exe"
     "plutus-ir"
-    "plutus-th"
+    "plutus-tx"
+    "plutus-tx-plugin"
     "plutus-use-cases"
     "wallet-api"
   ];
@@ -34,6 +34,7 @@ let
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
+  withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusPkgList pkgs;
+  inherit getPackages iohkNix isPlutus plutusPkgList withDevTools pkgs;
 }

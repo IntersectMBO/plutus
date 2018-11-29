@@ -1,20 +1,14 @@
--- | Dynamic built-ins tests.
+module DynamicBuiltins.Spec (test_dynamicBuiltins) where
 
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
-
-module DynamicBuiltins.Spec
-    ( test_dynamicBuiltins
-    ) where
-
-import           DynamicBuiltins.Char      (test_collectChars)
 import           DynamicBuiltins.Factorial (test_dynamicFactorial)
-
+import           DynamicBuiltins.Logging   (test_logging)
+import           DynamicBuiltins.String    (test_dynamicStrings)
 import           Test.Tasty
 
 test_dynamicBuiltins :: TestTree
 test_dynamicBuiltins =
-    testGroup "Dynamic built-ins"
+    testGroup "dynamicBuiltins"
         [ test_dynamicFactorial
-        , test_collectChars
+        , test_dynamicStrings
+        , test_logging
         ]
