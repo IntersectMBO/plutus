@@ -67,8 +67,8 @@ verifyIdentity =
                $txhash$
                $pubkey$
            ]
-      (lam $unit$ u one)
-      (lam $unit$ (error $unit$))
+      (lam u $unit$ one)
+      (lam u $unit$ (error $unit$))
     ]))
 \end{lstlisting}
 the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) (con 32)]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
@@ -91,7 +91,8 @@ Notice that we must supply $blocknum$ with the size we wish to use to store the 
       (fun $boolean$
       (fun (all $a$ (type) (fun $boolean$ (fun $a$ (fun $a$ $a$))))
       (fun [(con bytestring) (con 32)]
-      (fun [(con bytestring) (con 256)] (fun [(con bytestring) (con 32)] $unit$)))))))))
+      (fun [(con bytestring) (con 256)]
+      (fun [(con bytestring) (con 32)] $unit$)))))))))
       [{$prog$ (all $a$ (type) (fun $a$ $a$))
            (all $a$ (type) (fun (fun $unit$ $a$) (fun (fun $unit$ $a$) $a$)))}
            (abs $a$ (type) (lam $x$ $a$ $x$))
@@ -110,7 +111,7 @@ Notice that we must supply $blocknum$ with the size we wish to use to store the 
                 (lam $unit$ u (error $unit$))]))))))))
   ]
 \end{lstlisting}
-\caption{Example of Section VII written out in full}
+\caption{Example of Section 5 written out in full}
 \label{fig:Continuized_Let_Example}
 \end{figure*}
 
