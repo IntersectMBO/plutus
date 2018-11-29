@@ -35,9 +35,7 @@ import           GHC.Generics               (Generic)
 
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, PubKey (..),
                                              ValidatorHash, Value (..))
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.TH       (plutus)
+import qualified Language.PlutusTx          as PlutusTx
 import           Wallet.API                 (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                              WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
                                              ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
@@ -58,12 +56,12 @@ data Campaign = Campaign
 
 type CampaignActor = PubKey
 
-makeLift ''Campaign
+PlutusTx.makeLift ''Campaign
 
 data CampaignAction = Collect | Refund
     deriving Generic
 
-makeLift ''CampaignAction
+PlutusTx.makeLift ''CampaignAction
 
 -- | Contribute funds to the campaign (contributor)
 --
@@ -125,7 +123,7 @@ contributionScript cmp  = Validator val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = UTXO.fromPlcCode $$(plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
 
             infixr 3 &&
@@ -178,7 +176,7 @@ contributionScript cmp  = Validator val where
                                     signedByT p campaignOwner
                     in payToOwner
         in
-        if isValid then () else Builtins.error ()) ||])
+        if isValid then () else PlutusTx.error ()) ||])
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger

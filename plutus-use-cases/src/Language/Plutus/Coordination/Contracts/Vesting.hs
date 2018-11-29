@@ -23,9 +23,7 @@ import           GHC.Generics               (Generic)
 import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                              PubKey (..), ValidatorHash, Value (..))
 import qualified Language.Plutus.Runtime.TH as TH
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.TH       (plutus)
+import qualified Language.PlutusTx          as PlutusTx
 import           Prelude                    hiding ((&&))
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
@@ -38,7 +36,7 @@ data VestingTranche = VestingTranche {
     vestingTrancheAmount :: Value
     } deriving Generic
 
-makeLift ''VestingTranche
+PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
 --   (block height) after which an additional amount of money can be spent.
@@ -48,7 +46,7 @@ data Vesting = Vesting {
     vestingOwner    :: PubKey
     } deriving Generic
 
-makeLift ''Vesting
+PlutusTx.makeLift ''Vesting
 
 -- | The total amount of money vested
 totalAmount :: Vesting -> Value
@@ -61,7 +59,7 @@ data VestingData = VestingData {
     vestingDataPaidOut :: Value -- ^ How much of the vested value has already been retrieved
     } deriving (Eq, Generic)
 
-makeLift ''VestingData
+PlutusTx.makeLift ''VestingData
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
@@ -109,7 +107,7 @@ validatorScriptHash =
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted v)
-    inner = UTXO.fromPlcCode $$(plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
+    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
@@ -132,7 +130,7 @@ validatorScript v = Validator val where
             amountSpent = case os of
                 PendingTxOut (Value v') _ (PubKeyTxOut pk):_
                     | pk `eqPk` vestingOwner -> v'
-                _ -> Builtins.error ()
+                _ -> PlutusTx.error ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
@@ -158,8 +156,8 @@ validatorScript v = Validator val where
             txnOutputsValid = case os of
                 _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
                     vl' `eqBs` vestingDataHash
-                _ -> Builtins.error ()
+                _ -> PlutusTx.error ()
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else Builtins.error () ||])
+        if isValid then () else PlutusTx.error () ||])

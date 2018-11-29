@@ -29,9 +29,7 @@ import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 import qualified Language.Plutus.Runtime.TH as TH
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.TH       (plutus)
+import qualified Language.PlutusTx          as PlutusTx 
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
@@ -196,7 +194,7 @@ data FutureRedeemer =
 validatorScript :: Future -> Validator
 validatorScript ft = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted ft)
-    inner = UTXO.fromPlcCode $$(plutus [||
+    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
@@ -248,7 +246,7 @@ validatorScript ft = Validator val where
 
                 verifyOracle :: OracleValue a -> (Height, a)
                 verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else Builtins.error ()
+                    if pk `eqPk` futurePriceOracle then t else PlutusTx.error ()
 
                 isValid =
                     case r of
@@ -308,9 +306,9 @@ validatorScript ft = Validator val where
 
                                 _ -> False
             in
-                if isValid then () else Builtins.error ()
+                if isValid then () else PlutusTx.error ()
             ||])
 
-makeLift ''Future
-makeLift ''FutureData
-makeLift ''FutureRedeemer
+PlutusTx.makeLift ''Future
+PlutusTx.makeLift ''FutureData
+PlutusTx.makeLift ''FutureRedeemer
