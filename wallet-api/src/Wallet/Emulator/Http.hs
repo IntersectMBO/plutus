@@ -36,8 +36,8 @@ import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
                                              EmulatorState (_txPool, _walletStates),
                                              Notification (BlockHeight, BlockValidated), Wallet, WalletState, assert,
-                                             chain, emptyEmulatorState, emptyWalletState, liftEmulatedWallet, txPool,
-                                             walletStates)
+                                             chainNewestFirst, emptyEmulatorState, emptyWalletState, liftEmulatedWallet,
+                                             txPool, walletStates)
 
 import qualified Wallet.Emulator.Types      as Types
 import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
@@ -255,7 +255,7 @@ processPendingSTM var = do
   writeTVar var newState
   pure block
   where
-    addBlock block = over chain ((:) block)
+    addBlock block = over chainNewestFirst ((:) block)
     emptyPool = set txPool []
 
 api :: Proxy API

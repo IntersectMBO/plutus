@@ -44,7 +44,8 @@ module Wallet.Emulator.Types(
     EmulatorState(..),
     emptyEmulatorState,
     emulatorState,
-    chain,
+    chainNewestFirst,
+    chainOldestFirst,
     txPool,
     walletStates,
     index,
@@ -252,20 +253,25 @@ data Event n a where
 type Trace m = Op.Program (Event m)
 
 data EmulatorState = EmulatorState {
-    _chain        :: Blockchain,
-    _txPool       :: TxPool,
-    _walletStates :: Map Wallet WalletState,
-    _index        :: Index.UtxoIndex,
-    _emulatorLog  :: [EmulatorEvent] -- ^ emulator events, newest first
+    _chainNewestFirst :: Blockchain,
+    _txPool           :: TxPool,
+    _walletStates     :: Map Wallet WalletState,
+    _index            :: Index.UtxoIndex,
+    _emulatorLog      :: [EmulatorEvent] -- ^ emulator events, newest first
     } deriving (Show)
 
 makeLenses ''EmulatorState
+
+-- | The blockchain as a list of blocks, starting with the oldest (genesis)
+--   block
+chainOldestFirst :: Lens' EmulatorState Blockchain
+chainOldestFirst = chainNewestFirst . reversed
 
 type MonadEmulator m = (MonadState EmulatorState m, MonadError AssertionError m)
 
 emptyEmulatorState :: EmulatorState
 emptyEmulatorState = EmulatorState {
-    _chain = [],
+    _chainNewestFirst = [],
     _txPool = [],
     _walletStates = Map.empty,
     _index = Index.empty,
@@ -293,14 +299,14 @@ ownFundsEqual wallet value = do
 isValidated :: (MonadEmulator m) => Tx -> m ()
 isValidated txn = do
     emState <- get
-    if notElem txn (join $ _chain emState)
+    if notElem txn (join $ _chainNewestFirst emState)
         then throwError $ AssertionError $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
 
 -- | Initialise the emulator state with a blockchain
 emulatorState :: Blockchain -> EmulatorState
 emulatorState bc = emptyEmulatorState
-    & chain .~ bc
+    & chainNewestFirst .~ bc
     & index .~ Index.initialise bc
 
 -- | Initialise the emulator state with a pool of pending transactions
@@ -310,7 +316,7 @@ emulatorState' tp = emptyEmulatorState
 
 -- | Validate a transaction in the current emulator state
 validateEm :: EmulatorState -> Tx -> Maybe Index.ValidationError
-validateEm EmulatorState{_index=idx, _chain = ch} txn =
+validateEm EmulatorState{_index=idx, _chainNewestFirst = ch} txn =
     let h = height ch
         result = Index.runValidation (Index.validateTransaction h txn) idx in
     either Just (const Nothing) result
@@ -341,9 +347,9 @@ evalEmulated = \case
     BlockchainProcessPending -> do
         emState <- get
         let (block, events) = validateBlock emState (_txPool emState)
-            newChain = block : _chain emState
+            newChain = block : _chainNewestFirst emState
         put emState {
-            _chain = newChain,
+            _chainNewestFirst = newChain,
             _txPool = [],
             _index = Index.insertBlock block (_index emState),
             _emulatorLog   = BlockAdd (height newChain) : events ++ _emulatorLog emState
