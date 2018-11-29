@@ -60,9 +60,9 @@ verifyIdentity :
 verifyIdentity =
   (lam $pubkey$ [(con bytestring) (con 256)]
   (lam $signed$ [(con bytestring) (con 32)]
-    [ { case $unit$ } [ {verifySignature (con 32)
-                                      (con 32)
-                                      (con 256)}
+    [ { case $unit$ } [ {(builtin verifySignature) (con 32)
+                                                (con 32)
+                                                (con 256)}
                       $signed$
                       $txhash$
                       $pubkey$
