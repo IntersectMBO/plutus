@@ -197,17 +197,7 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-<<<<<<< HEAD
-    => Maybe Natural -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
-parseTypecheck gas = typecheckPipeline gas <=< parseScoped
-
--- | Typecheck a program.
-typecheckPipeline :: (AsNormalizationError e TyName Name a, AsRenameError e a, AsTypeError e a, MonadError e m, MonadQuote m) => Maybe Natural -> Program TyName Name a -> m (NormalizedType TyNameWithKind ())
-typecheckPipeline gas p = do
-    checkProgram p
-    typecheckProgram (TypeConfig False mempty gas) =<< annotateProgram p
-=======
-    => TypeCheckCfg -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+    => TypeConfig -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -217,14 +207,13 @@ typecheckPipeline
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckCfg
+    => TypeConfig
     -> Program TyName Name a
     -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline cfg =
     typecheckProgram cfg
     <=< annotateProgram
-    <=< through (unless (_typeConfigNormalize $ _cfgTypeConfig cfg) . checkProgram)
->>>>>>> bdfa2cce876b3fe04e75dade973b663804428d18
+    <=< through (unless (_typeConfigNormalize cfg) . checkProgram)
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
@@ -242,8 +231,8 @@ defaultVersion a = Version a 1 0 0
 defaultTypecheckerGas :: Maybe Natural
 defaultTypecheckerGas = Just 1000
 
-defaultTypecheckerCfg :: TypeCheckCfg
-defaultTypecheckerCfg = TypeCheckCfg defaultTypecheckerGas $ TypeConfig False mempty
+defaultTypecheckerCfg :: TypeConfig
+defaultTypecheckerCfg = TypeConfig False mempty defaultTypecheckerGas
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()

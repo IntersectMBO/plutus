@@ -5,11 +5,8 @@ module Main ( main
 
 import qualified Check.Spec                   as Check
 import           Codec.Serialise
-<<<<<<< HEAD
-import           Control.Monad.Reader         (ask)
-=======
 import           Control.Monad.Except
->>>>>>> bdfa2cce876b3fe04e75dade973b663804428d18
+import           Control.Monad.Reader         (ask)
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T

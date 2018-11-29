@@ -3,6 +3,7 @@
 module Language.PlutusCore.Normalize
     ( normalizeType
     , substituteNormalizeType
+    , GasInit
     ) where
 
 import           Language.PlutusCore.Error
@@ -24,7 +25,9 @@ newtype TypeEnv tyname = TypeEnv
     { unTypeEnv :: IntMap (NormalizedType tyname ())
     }
 
-type NormalizeTypeM tyname a = StateT (Maybe Natural) (ReaderT (TypeEnv tyname) (ExceptT (TypeError a) Quote))
+type NormalizeTypeM tyname a = StateT GasInit (ReaderT (TypeEnv tyname) (ExceptT (TypeError a) Quote))
+
+type GasInit = Maybe Natural
 
 normalizeTypeStep :: NormalizeTypeM tyname a ()
 normalizeTypeStep = do
@@ -35,7 +38,7 @@ normalizeTypeStep = do
         Nothing -> pure ()
 
 -- | Run a 'NormalizeTypeM' computation.
-runNormalizeTypeM :: (MonadQuote m, AsTypeError e a, MonadError e m) => Maybe Natural -> NormalizeTypeM tyname a b -> m b
+runNormalizeTypeM :: (MonadQuote m, AsTypeError e a, MonadError e m) => GasInit -> NormalizeTypeM tyname a b -> m b
 runNormalizeTypeM mn a = throwingEither _TypeError =<< (liftQuote $ runExceptT $ runReaderT (evalStateT a mn) (TypeEnv mempty))
 
 -- | Locally extend a 'TypeEnv' in a 'NormalizeTypeM' computation.
@@ -125,14 +128,14 @@ substituteNormalizeTypeM ty name = withExtendedTypeEnv name ty . normalizeTypeM
 -- | Normalize a 'Type'.
 normalizeType
     :: (HasUnique (tyname ()) TypeUnique, MonadQuote m, AsTypeError e a, MonadError e m)
-    => Maybe Natural -> Type tyname () -> m (NormalizedType tyname ())
+    => GasInit -> Type tyname () -> m (NormalizedType tyname ())
 normalizeType n = runNormalizeTypeM n . normalizeTypeM
 
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize.
 substituteNormalizeType
     :: (HasUnique (tyname ()) TypeUnique, MonadQuote m, AsTypeError e a, MonadError e m)
-    => Maybe Natural
+    => GasInit
     -> NormalizedType tyname ()      -- ^ @ty@
     -> tyname ()                     -- ^ @name@
     -> Type tyname ()                -- ^ @body@

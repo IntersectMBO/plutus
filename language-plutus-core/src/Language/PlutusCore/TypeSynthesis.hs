@@ -26,10 +26,8 @@ import           PlutusPrelude
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                           (Map)
-import qualified Data.Map                           as Map
-import           Control.Monad.State.Class
-import           Control.Monad.Trans.State      hiding (get, modify)
+import           Data.Map                       (Map)
+import qualified Data.Map                       as Map
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
@@ -41,7 +39,7 @@ data TypeConfig = TypeConfig
     { _typeConfigNormalize           :: Bool
       -- ^ Whether to normalize type annotations.
     , _typeConfigDynBuiltinNameTypes :: DynamicBuiltinNameTypes
-    , _typeConfigGas                 :: Maybe Natural -- ^ The upper limit on the length of type
+    , _typeConfigGas                 :: GasInit -- ^ The upper limit on the length of type
                                       -- reductions. If set to 'Nothing', type
                                       -- reductions will be unbounded.
     }
@@ -64,16 +62,18 @@ kindOfTypeBuiltin TyString     = Type ()
 -- In case a type is open, an 'OpenTypeOfBuiltin' is returned.
 -- We use this for annotating types of built-ins (both static and dynamic).
 annotateNormalizeType
-    :: (AsTypeError e a, MonadError e m, MonadQuote m)
+    :: (AsTypeError e a, MonadError e m, MonadQuote m, MonadReader TypeConfig m)
     => a -> Builtin () -> Type TyName () -> m (NormalizedType TyNameWithKind ())
 annotateNormalizeType ann con ty = case annotateType ty of
     Left  (_::RenameError ()) -> throwing _TypeError $ InternalTypeErrorE ann $ OpenTypeOfBuiltin ty con
     -- That's quite inefficient, but is there anything we can do about that?
-    Right annTyOfName         -> normalizeType annTyOfName
+    Right annTyOfName         -> do
+        (TypeConfig _ _ gas) <- ask
+        normalizeType gas annTyOfName
 
 -- | Annotate the type of a 'BuiltinName' and return it wrapped in 'NormalizedType'.
 normalizedAnnotatedTypeOfBuiltinName
-    :: (MonadError (TypeError a) m, MonadQuote m)
+    :: (MonadError (TypeError a) m, MonadQuote m, MonadReader TypeConfig m)
     => a -> BuiltinName -> m (NormalizedType TyNameWithKind ())
 normalizedAnnotatedTypeOfBuiltinName ann name = do
     tyOfName <- liftQuote $ typeOfBuiltinName name
