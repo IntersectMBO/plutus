@@ -20,7 +20,7 @@ import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer    (annotateType)
+import           Language.PlutusCore.Renamer    (annotateType, rename)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -241,7 +241,10 @@ typeOf :: Term TyNameWithKind NameWithType a -> TypeCheckM a (NormalizedType TyN
 typeOf (Var _ (NameWithType (Name (_, ty) _ _))) =
     -- Since we kind check types at lambdas, we can normalize types here without kind checking.
     -- Type normalization at each variable is inefficient and we may consider something else later.
-    normalizeTypeOpt $ void ty
+    -- We 'rename' the type of a variable here before normalizing it. Otherwise we would get duplicate
+    -- names, because the annotation machinery takes the type at a lambda and duplicates it for each
+    -- usage of the variable the lambda binds.
+    rename ty >>= normalizeTypeOpt . void
 
 -- [check| dom :: *]    dom ~>? vDom    [infer| body : vCod]
 -- ---------------------------------------------------------
