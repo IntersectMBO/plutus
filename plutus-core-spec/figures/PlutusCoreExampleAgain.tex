@@ -71,7 +71,7 @@ verifyIdentity =
       (lam $unit$ (error $unit$))
     ]))
 \end{lstlisting}
-the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) 32]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
+the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) (con 32)]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
 
 With minimal modification we might turn our function into one that verifies a signature of the current block number. Specifically, by replacing $txhash$ with
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
