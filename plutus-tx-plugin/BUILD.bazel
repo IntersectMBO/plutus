@@ -55,7 +55,7 @@ haskell_library(
 
 sh_test(
     name = "hlint",
-    srcs = ["//:hlint.sh"],
+    srcs = ["@hlint//:bin/run.sh"],
     args = ["."],
     deps = ["//:hlint_lib"],
     data = glob(["**/*.hs"], exclude = ["**/.stack-work/**"]),
@@ -63,7 +63,7 @@ sh_test(
 
 sh_test(
     name = "stylish",
-    srcs = ["//:stylish-haskell.sh"],
+    srcs = ["@stylish-haskell//:bin/run.sh"],
     args = ["plutus-tx-plugin"],
     deps = ["//:stylish_haskell_lib"],
     data = glob(["**/*.hs"], exclude = ["**/.stack-work/**"]),

@@ -45,7 +45,7 @@ sh_library(
 
 sh_test(
     name = "shellcheck",
-    srcs = ["shellcheck.sh"],
+    srcs = ["@shellcheck//:bin/run.sh"],
     data = glob(["*.sh", "ci/*.sh", "pkgs/*.sh"]),
     deps = [ "//:lib"],
 )

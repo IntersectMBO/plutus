@@ -14,8 +14,8 @@ haskell_repositories()
 
 http_archive(
     name = "io_tweag_rules_nixpkgs",
-    strip_prefix = "rules_nixpkgs-0.3.1",
-    urls = ["https://github.com/tweag/rules_nixpkgs/archive/v0.3.1.tar.gz"],
+    strip_prefix = "rules_nixpkgs-0.4.1",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/v0.4.1.tar.gz"],
 )
 
 load(
@@ -97,10 +97,97 @@ nixpkgs_package(
         "@//:lib.nix",
         "@//:default.nix",
     ],
-    repositories = { 
+    repositories = {
       "pkgsGenerated" : "//:pkgs/default.nix",
       "requiredOverlay" : "//:nix/overlays/required.nix",
       "errorOverlay" : "//:nix/overlays/force-error.nix",
+    }
+)
+
+nixpkgs_package(
+    name = "hlint",
+    nix_file_content = """
+      with import ./lib.nix;
+      let
+        localPackages = import ./. { pkgsGenerated = <pkgsGenerated>; };
+        pkgs = localPackages.pkgs;
+        script = (import iohkNix.tests.hlintScript {inherit pkgs;});
+      in
+        pkgs.stdenv.mkDerivation {
+          name = "hlintScript";
+          unpackPhase = "true";
+          buildInputs = [];
+          buildPhase = "";
+          installPhase = ''
+            mkdir -p $out/bin
+            cp ${script} $out/bin/run.sh
+          '';
+        }
+      """,
+    nix_file_deps = [
+        "@//:lib.nix",
+        "@//:default.nix",
+    ],
+    repositories = {
+        "pkgsGenerated" : "//:pkgs/default.nix",
+    }
+)
+
+nixpkgs_package(
+    name = "stylish-haskell",
+    nix_file_content = """
+      with import ./lib.nix;
+      let
+        localPackages = import ./. { pkgsGenerated = <pkgsGenerated>; };
+        pkgs = localPackages.pkgs;
+        script = (import iohkNix.tests.stylishHaskellScript {inherit pkgs;});
+      in
+        pkgs.stdenv.mkDerivation {
+          name = "stylishHaskellScript";
+          unpackPhase = "true";
+          buildInputs = [];
+          buildPhase = "";
+          installPhase = ''
+            mkdir -p $out/bin
+            cp ${script} $out/bin/run.sh
+          '';
+        }
+      """,
+    nix_file_deps = [
+        "@//:lib.nix",
+        "@//:default.nix",
+    ],
+    repositories = {
+        "pkgsGenerated" : "//:pkgs/default.nix",
+    }
+)
+
+nixpkgs_package(
+    name = "shellcheck",
+    nix_file_content = """
+      with import ./lib.nix;
+      let
+        localPackages = import ./. { pkgsGenerated = <pkgsGenerated>; };
+        pkgs = localPackages.pkgs;
+        script = (import iohkNix.tests.shellcheckScript {inherit pkgs;});
+      in
+        pkgs.stdenv.mkDerivation {
+          name = "shellcheckScript";
+          unpackPhase = "true";
+          buildInputs = [];
+          buildPhase = "";
+          installPhase = ''
+            mkdir -p $out/bin
+            cp ${script} $out/bin/run.sh
+          '';
+        }
+      """,
+    nix_file_deps = [
+        "@//:lib.nix",
+        "@//:default.nix",
+    ],
+    repositories = {
+        "pkgsGenerated" : "//:pkgs/default.nix",
     }
 )
 
