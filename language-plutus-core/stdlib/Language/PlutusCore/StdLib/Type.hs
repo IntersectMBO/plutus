@@ -54,22 +54,22 @@ instance a ~ () => HasArrow (Type tyname a) where
 star :: Kind ()
 star = Type ()
 
-getToPatternFunctor :: Kind () -> Quote (Type TyName ())
-getToPatternFunctor k = do
-    withSpine <- freshTyName () "withSpine"
-    pat       <- freshTyName () "pat"
-    b         <- freshTyName () "b"
-    p         <- freshTyName () "p"
+-- > \(withSpine :: ((k -> *) -> *) -> k) (pat :: k -> k) ->
+-- >     \(b :: (k -> *) -> *) (p :: k -> *) -> p (pat (withSpine b))
+getPatternFunctor :: ann -> Type TyName ann -> Type TyName ann -> Kind ann -> Quote (Type TyName ann)
+getPatternFunctor ann withSpine pat k = do
+    b <- freshTyName ann "b"
+    p <- freshTyName ann "p"
+    let star  = Type ann
+        (~~>) = KindArrow ann
 
     return
-        . TyLam () withSpine (((k ~~> star) ~~> star) ~~> k)
-        . TyLam () pat (k ~~> k)
-        . TyLam () b ((k ~~> star) ~~> star)
-        . TyLam () p (k ~~> star)
-        . TyApp () (TyVar () p)
-        . TyApp () (TyVar () pat)
-        . TyApp () (TyVar () withSpine)
-        $ TyVar () b
+        . TyLam ann b ((k ~~> star) ~~> star)
+        . TyLam ann p (k ~~> star)
+        . TyApp ann (TyVar ann p)
+        . TyApp ann pat
+        . TyApp ann withSpine
+        $ TyVar ann b
 
 -- |
 --
@@ -77,21 +77,17 @@ getToPatternFunctor k = do
 -- > FixN {K} withSpine Pat =
 -- >     withSpine λ (spine : K -> Set) -> IFix patternFunctor spine where
 -- >         patternFunctor = λ (B : (K -> Set) -> Set) (P : K -> Set) -> P (Pat (withSpine B))
-getTyFixN :: Kind () -> Quote (Type TyName ())
-getTyFixN k = do
-    withSpine        <- freshTyName () "withSpine"
-    pat              <- freshTyName () "pat"
-    toPatternFunctor <- getToPatternFunctor k
-    spine            <- freshTyName () "spine"
+getTyFixN :: ann -> Type TyName ann -> Type TyName ann -> Kind ann -> Quote (Type TyName ann)
+getTyFixN ann withSpine pat k = do
+    patF  <- getPatternFunctor ann withSpine pat k
+    spine <- freshTyName ann "spine"
+    let star  = Type ann
+        (~~>) = KindArrow ann
 
     return
-        . TyLam () withSpine (((k ~~> star) ~~> star) ~~> k)
-        . TyLam () pat (k ~~> k)
-        . TyApp () (TyVar () withSpine)
-        . TyLam () spine (k ~~> star)
-        $ TyIFix ()
-            (mkIterTyApp () toPatternFunctor [TyVar () withSpine, TyVar () pat])
-            (TyVar () spine)
+        . TyApp ann withSpine
+        . TyLam ann spine (k ~~> star)
+        $ TyIFix ann patF (TyVar ann spine)
 
 -- > Fix₀ : (Set -> Set) -> Set
 -- > Fix₀ = FixN withSpine0 where
@@ -149,7 +145,7 @@ getWithSpine ann argVars = do
         $ spine
 
 packagePatternBodyN
-    :: (Kind () -> Quote (Type TyName ()))
+    :: (ann -> Type TyName ann -> Type TyName ann -> Kind ann -> Quote (Type TyName ann))
        -- ^ Some type-level function that receives @withSpine@ and a pattern functor that binds
        -- @n + 1@ type variables (where @1@ represents the variable responsible for recursion)
        -- using type-level lambdas.
@@ -164,8 +160,7 @@ packagePatternBodyN getFun ann name argVars patBody = do
     let argKinds = map tyVarDeclKind argVars
         vR  = TyVarDecl ann name $ toRecKind ann argKinds
         pat = mkIterTyLam ann (vR : argVars) patBody
-    fun <- getFun . void $ toRecKind ann argKinds
-    return $ mkIterTyApp ann (ann <$ fun) [withSpine, pat]
+    getFun ann withSpine pat $ toRecKind ann argKinds
 
 getTyFix :: ann -> TyName ann -> [TyVarDecl TyName ann] -> Type TyName ann -> Quote (Type TyName ann)
 getTyFix = packagePatternBodyN getTyFixN
@@ -177,7 +172,7 @@ getWrap
     -> Type TyName ann
     -> Quote ([Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann)
 getWrap ann name argVars patBody = do
-    pat1 <- packagePatternBodyN getToPatternFunctor ann name argVars patBody
+    pat1 <- packagePatternBodyN getPatternFunctor ann name argVars patBody
     toSpine <- getToSpine ann
     let instVar var ty = TyDecl ann ty $ tyVarDeclKind var
     return $ \args ->
