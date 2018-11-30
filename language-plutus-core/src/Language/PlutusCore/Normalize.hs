@@ -96,7 +96,6 @@ normalizeTypeM (TyApp ann fun arg)           = do
     vFun <- normalizeTypeM fun
     vArg <- normalizeTypeM arg
     case getNormalizedType vFun of
-        -- TODO: we should check nArg more thoroughly for non-normal types
         TyLam _ nArg _ body -> normalizeTypeStep *> substituteNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
