@@ -99,7 +99,7 @@ runEval (EvalOptions inp mode) = do
             CK  -> PLC.runCk
             CEK -> PLC.runCek mempty
             L   -> PLC.runL mempty
-    case evalFn .void <$> PLC.parseScoped bsContents of
+    case evalFn . void <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (e :: PLC.Error PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
             exitFailure

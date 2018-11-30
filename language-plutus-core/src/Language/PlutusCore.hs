@@ -182,11 +182,11 @@ printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped
-    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, MonadError e m)
+    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, MonadError e m, MonadQuote m)
     => BSL.ByteString
     -> m (Program TyName Name AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = runQuoteT . (through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram)
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck
