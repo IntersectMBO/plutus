@@ -1,6 +1,6 @@
 let
-  fixedLib     = import ./lib.nix;
-  fixedNixpkgs = fixedLib.iohkNix.nixpkgs;
+  fixedLib     = import ./lib.nix { };
+  fixedNixpkgs = fixedLib.nixpkgs;
 in
   { supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
   , scrubJobs ? true
@@ -19,7 +19,7 @@ with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
 
 let
   plutusPkgs = import ./. { };
-  pkgs = import fixedNixpkgs { config = {}; };
+  pkgs = import fixedNixpkgs { };
   shellEnv = import ./shell.nix { };
   haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
   # don't need to build the docs on anything other than one platform
