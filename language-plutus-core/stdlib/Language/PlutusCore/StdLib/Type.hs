@@ -12,6 +12,7 @@ module Language.PlutusCore.StdLib.Type
     ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.MkPlc
 import           PlutusPrelude
 
@@ -24,12 +25,22 @@ data RecursiveType ann = RecursiveType
       -- ^ This produces terms with duplicate names.
     }
 
-infixr 5 ~~>
+data IndicesLengthsMismatchError = IndicesLengthsMismatchError
+    { _indicesLengthsMismatchErrorExpected :: Int
+    , _indicesLengthsMismatchErrorActual   :: Int
+    , _indicesLengthsMismatchErrorTyName   :: TyName ()
+    } deriving (Typeable)
 
-zipWithAligned :: (a -> b -> c) -> [a] -> [b] -> [c]
-zipWithAligned _ []       []       = []
-zipWithAligned f (x : xs) (y : ys) = f x y : zipWithAligned f xs ys
-zipWithAligned _ _        _        = error "Lists are not of the same length."
+instance Show IndicesLengthsMismatchError where
+    show (IndicesLengthsMismatchError expected actual tyName) = concat
+        [ "Wrong number of elements\n"
+        , "expected: ", show expected, " , actual: ", show actual, "\n"
+        , "while constructing a ", prettyPlcDefString tyName
+        ]
+
+instance Exception IndicesLengthsMismatchError
+
+infixr 5 ~~>
 
 class HasArrow a where
     (~~>) :: a -> a -> a
@@ -169,7 +180,12 @@ getWrap ann name argVars patBody = do
     pat1 <- packagePatternBodyN getToPatternFunctor ann name argVars patBody
     toSpine <- getToSpine ann
     let instVar var ty = TyDecl ann ty $ tyVarDeclKind var
-    return $ IWrap ann pat1 . toSpine . zipWithAligned instVar argVars
+    return $ \args ->
+        let argVarsLen = length argVars
+            argsLen = length args
+            in if argVarsLen == argsLen
+                then IWrap ann pat1 . toSpine $ zipWith instVar argVars args
+                else throw . IndicesLengthsMismatchError argVarsLen argsLen $ void name
 
 makeRecursiveType
     :: ann
