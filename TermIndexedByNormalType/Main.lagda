@@ -100,6 +100,6 @@ helpB M (steps x out-of-gas) = "out of gas..."
 helpB M error                = "something went wrong..."
 
 main : IO ⊤
-main = putStrLn (helpX _ (eval (gas 100) Church.TwoPlusTwo'))
+main = putStrLn (help _ (eval (gas 100) builtininc2'))
 
 \end{code}

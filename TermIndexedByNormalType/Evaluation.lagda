@@ -57,7 +57,7 @@ eval : ∀ {A : ∅ ⊢Nf⋆ *}
   → Steps M
 eval (gas zero) M = steps refl—↠ out-of-gas
 eval (gas (suc n)) M with progress M
-...                  | error   = error
+...                  | error p   = error
 eval (gas (suc n)) M | step {N} p  with eval (gas n) N
 ...                               | error = error
 eval (gas (suc n)) M | step {N} p | steps ps q = steps (trans—↠ p ps) q

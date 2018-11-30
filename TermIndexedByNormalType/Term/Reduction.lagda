@@ -57,6 +57,11 @@ data Value :  ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
+data Error :  ∀ {Γ} {A : ∥ Γ ∥ ⊢Nf⋆ *} → Γ ⊢ A → Set where
+  E-error : ∀{Γ}{A : ∥ Γ ∥ ⊢Nf⋆ *} → Error (error {Γ} A)
+\end{code}
+
+\begin{code}
 open import Data.Maybe
 
 VTel : ∀ Γ Δ → (∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K) → List (Δ ⊢Nf⋆ *) → Set
@@ -338,11 +343,26 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → M —→ M′
       --------------
     → V · M —→ V · M′
-    
+
+  E-·₁ : ∀ {Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+    → Error L
+      -----------------
+    → L · M —→ error _
+
+  E-·₂ : ∀ {Γ A B} {L : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+    → Error M
+      -----------------
+    → L · M —→ error _
+
   ξ-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L L′ : Γ ⊢ Π B}{A}
     → L —→ L′
       -----------------
     → L ·⋆ A —→ L′ ·⋆ A
+
+  E-·⋆ : ∀ {Γ K}{B : ∥ Γ ∥ ,⋆ K ⊢Nf⋆ *}{L : Γ ⊢ Π B}{A}
+    → Error L
+      -----------------
+    → L ·⋆ A —→ error _
 
   β-ƛ : ∀ {Γ A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A}
     → Value W
@@ -366,6 +386,14 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → M —→ M'
     → unwrap1 M —→ unwrap1 M'
 
+  E-unwrap1 : ∀{Γ K}
+    → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
+    → {M : Γ ⊢ ne (μ1 · pat · arg)}
+    → Error M
+    → unwrap1 M —→ error _
+
+
   β-builtin : ∀{Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -388,6 +416,21 @@ data _—→_ : ∀ {J Γ} {A : ∥ Γ ∥ ⊢Nf⋆ J} → (Γ ⊢ A) → (Γ �
     → builtin bn σ tel
       —→
       builtin bn σ (reconstTel Bs Ds σ vtel t' p tel')
+
+  E-builtin : ∀{Γ}  → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → ∥ Γ ∥ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → ∀ Bs Ds
+    → (vtel : VTel Γ Δ σ Bs)
+    → ∀{C}{t : Γ ⊢ substNf σ C}
+    → Error t
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel' : Tel Γ Δ σ Ds)
+    → builtin bn σ tel
+      —→
+      error _
+
 
 \end{code}
 
@@ -416,7 +459,10 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       Value M
       ----------
     → Progress M
-  error : Progress M
+  error :
+      Error M
+      -------
+    → Progress M
 \end{code}
 
 \begin{code}
@@ -435,7 +481,15 @@ data TelProgress
     → Bs ++ (C ∷ Ds) ≡ As
     → Tel Γ Δ σ Ds
     → TelProgress tel
-  error : TelProgress tel
+  error : ∀ Bs Ds
+    → VTel Γ Δ σ Bs
+    → ∀{C}{t  : Γ ⊢ substNf σ C}
+    → Error t
+    → Bs ++ (C ∷ Ds) ≡ As
+    → Tel Γ Δ σ Ds
+    → TelProgress tel
+   
+    
 \end{code}
 
 \begin{code}
@@ -449,34 +503,34 @@ progressTel : ∀ {Δ}
 
 progressTel {As = []}     _   = done _
 progressTel {As = A ∷ As} (t ,, tel) with progress t
-progressTel {As = A ∷ As} (t ,, tel) | error   = error
+progressTel {As = A ∷ As} (t ,, tel) | error E = error [] As tt E refl tel
 progressTel {As = A ∷ As} (t ,, tel) | step p  = step [] As tt p refl tel
 progressTel {As = A ∷ As} (t ,, tel) | done vt with progressTel tel
 progressTel {As = A ∷ As} (t ,, tel) | done vt | done vtel =
   done (t ,, vt ,, vtel)
 progressTel {As = A ∷ As} (t ,, tel) | done vt | step Bs Ds vtel p q tel' =
   step (A ∷ Bs) Ds (t ,, vt ,, vtel) p (cong (A ∷_) q) tel'
-progressTel {As = A ∷ As} (t ,, tel) | done vt | error = error
+progressTel {As = A ∷ As} (t ,, tel) | done vt | error Bs Ds vtel E q tel' = error (A ∷ Bs) Ds (t ,, vt ,, vtel) E (cong (A ∷_) q) tel'
 
 
 progress (` ())
 progress (ƛ M) = done V-ƛ
 progress (M · N) with progress M
-...                   | error  = error
+...                   | error EM  = step (E-·₁ EM)
 progress (M · N)      | step p = step (ξ-·₁ p)
 progress (.(ƛ _) · N) | done V-ƛ with progress N
-...                              | error  = error
+...                              | error EN  = step (E-·₂ EN)
 progress (.(ƛ _) · N) | done V-ƛ | step p  = step (ξ-·₂ V-ƛ p)
 progress (.(ƛ _) · N) | done V-ƛ | done VN = step (β-ƛ VN)
 progress (Λ M) = done V-Λ_
 progress (M ·⋆ A) with progress M
-...               | error  = error
+...               | error EM  = step (E-·⋆ EM)
 progress (M ·⋆ A) | step p = step (ξ-·⋆ p)
 progress (.(Λ _) ·⋆ A) | done V-Λ_ = step β-Λ
 progress (wrap1 pat arg term) = done V-wrap1
-progress (unwrap1 term)       with progress term
-...                     | error  = error
-progress (unwrap1 term) | step p = step (ξ-unwrap1 p)
+progress (unwrap1 M)       with progress M
+...                  | error EM  = step (E-unwrap1 EM)
+progress (unwrap1 M) | step p = step (ξ-unwrap1 p)
 progress (unwrap1 .(wrap1 _ _ _)) | done V-wrap1 = step β-wrap1
 progress (con (integer s i x))    = done (V-con _)
 progress (con (bytestring s b x)) = done (V-con _)
@@ -485,5 +539,6 @@ progress (builtin bn σ X) with progressTel X
 progress (builtin bn σ X) | done VX = step (β-builtin bn σ X VX)
 progress (builtin bn σ X) | step Bs Ds vtel p q tel' =
   step (ξ-builtin bn σ X Bs Ds vtel p q tel')
-progress (builtin bn σ X) | error = error
-progress (error A)        = error
+progress (builtin bn σ X) | error Bs Ds vtel p q tel' =
+  step (E-builtin bn σ X Bs Ds vtel p q tel')
+progress (error A)        = error E-error
