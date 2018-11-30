@@ -20,7 +20,6 @@ with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
 let
   plutusPkgs = import ./. { };
   pkgs = import fixedNixpkgs { };
-  shellEnv = import ./shell.nix { };
   haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
   # don't need to build the docs on anything other than one platform
   docs = map (name: lib.nameValuePair name [ "x86_64-linux" ]) (builtins.attrNames plutusPkgs.docs);
