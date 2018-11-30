@@ -29,11 +29,11 @@ let
   };
   mapped = mapTestOn platforms;
   makePlutusTestRuns = system:
-  let
-    pred = name: value: fixedLib.isPlutus name && value ? testdata;
-    plutusPkgs = import ./. { inherit system; };
-    f = name: value: value.testrun;
-  in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
+    let
+      pred = name: value: fixedLib.isPlutus name && value ? testdata;
+      plutusPkgs = import ./. { inherit system; };
+      f = name: value: value.testrun;
+    in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
   inherit (plutusPkgs) tests docs;
   all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);
