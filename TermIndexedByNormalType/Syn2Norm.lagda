@@ -121,6 +121,30 @@ lemμ' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _)
   substEq (_⊢Nf⋆ *) p (ne (μ1 · pat · arg))
 lemμ' refl pat arg = refl
 
+
+lem[] : ∀{Γ Γ' K}(p : Γ ≡ Γ')(q : Γ ,⋆ K ≡ Γ' ,⋆ K)(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
+  (substEq (_⊢Nf⋆ *) q B [ substEq (_⊢Nf⋆ K) p A ]Nf)
+  ≡ substEq (_⊢Nf⋆ *) p (nf (subst (subst-cons ` (embNf A)) (embNf B)))
+lem[] refl refl A B =  evalCRSubst idCR (subst-cong (λ { Z → refl ; (S α) → refl}) (embNf B)) 
+
+lem[]' : ∀{Γ K}(A : Syn.∥ Γ ∥ ⊢⋆ K)(B : Syn.∥ Γ ∥ ,⋆ K ⊢⋆ *) → (substEq (_⊢Nf⋆ *) (cong (_,⋆ K) (nfCtx∥ Γ))
+ (eval B (exte (idEnv Syn.∥ Γ ∥)))
+ [ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A) ]Nf)
+  ≡ substEq (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf (subst (subst-cons ` A) B))
+lem[]' {Γ} A B = trans
+  (lem[] (nfCtx∥ Γ) (cong (_,⋆ _) (nfCtx∥ Γ)) (nf A) (eval B (exte (idEnv _))))
+  (cong
+    (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ))
+    (trans
+      (trans
+        (subst-eval (embNf (eval B (exte (idEnv _)))) idCR (subst-cons ` (embNf (nf A))))
+        (trans
+          (fund (λ x → idext idCR (subst-cons ` (embNf (nf A)) x)) (sym≡β (evalSR B (SRweak idSR))))
+          (trans
+            (subst-eval B (λ x → idext idCR (subst-cons ` (embNf (nf A)) x)) (exts `))
+            (idext (λ { Z → symCR (fund idCR (soundness A)) ; (S α) → idCR α}) B))))
+      (sym (subst-eval B idCR (subst-cons ` A)))))
+
 nfType : ∀{Γ K}
   → {A : Syn.∥ Γ ∥ ⊢⋆ K}
   → Γ Syn.⊢ A
@@ -139,9 +163,9 @@ nfType {Γ} (Syn.Λ {B = B} t)    = subst⊢
       (nf B))
     (cong (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ)) (lemΠnf B)))
   (Norm.Λ (nfType t))
-nfType {Γ} (t Syn.·⋆ A) = subst⊢
+nfType {Γ} (Syn._·⋆_ {B = B} t A) = subst⊢
   refl
-  {!!}
+  (lem[]' {Γ} A B)
   (subst⊢ refl (sym (lemΠ (nfCtx∥ Γ) (cong (_,⋆ _) (nfCtx∥ Γ)) _)) (nfType t)
   Norm.·⋆
   -- is there another version where this is just nf A?
