@@ -93,15 +93,26 @@ lemμ : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _) 
        · embNf (substEq (_⊢Nf⋆ K) p arg))
 lemμ refl pat arg = refl
 
-{-
-need this:
-substEq (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf (pat · (μ1 · pat) · arg)) ≡
-nf
-(embNf (substEq (_⊢Nf⋆ (.K ⇒ *) ⇒ .K ⇒ *) (nfCtx∥ Γ) (nf pat)) ·
- (μ1 ·
-  embNf (substEq (_⊢Nf⋆ (.K ⇒ *) ⇒ .K ⇒ *) (nfCtx∥ Γ) (nf pat)))
- · embNf (substEq (_⊢Nf⋆ .K) (nfCtx∥ Γ) (nf arg)))
--}
+lemX : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _) →
+  substEq (_⊢Nf⋆ *) p (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+  ≡
+  nf (embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat) · (μ1 · embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) p pat)) · embNf (substEq (_⊢Nf⋆ K) p arg))
+lemX refl pat arg = refl
+
+open import Type.Equality
+open import Type.BetaNBE.Soundness
+
+lemXX : ∀{Γ K}(pat : Syn.∥ Γ ∥ ⊢⋆ _)(arg : Syn.∥ Γ ∥ ⊢⋆ _) →
+  substEq (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf (pat · (μ1 · pat) · arg)) ≡
+  nf
+  (embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) (nfCtx∥ Γ) (nf pat)) ·
+   (μ1 ·
+    embNf (substEq (_⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *) (nfCtx∥ Γ) (nf pat)))
+   · embNf (substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf arg)))
+lemXX {Γ} pat arg = trans
+  (cong (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ))  (completeness (·≡β (·≡β (soundness pat) (·≡β (refl≡β μ1) (soundness pat))) (soundness arg))))
+  (lemX (nfCtx∥ Γ) (nf pat) (nf arg))
+
 open import Type.BetaNBE.Stability
 
 lemμ' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ _)(arg : Γ ⊢Nf⋆ _) →
@@ -136,17 +147,11 @@ nfType {Γ} (t Syn.·⋆ A) = subst⊢
   -- is there another version where this is just nf A?
   substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf A)) 
 nfType {Γ} (Syn.wrap1 pat arg t) =
-  subst⊢ refl (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg)) (Norm.wrap1 (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ ) (nf pat)) (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf arg)) (subst⊢ refl {!lemμ (nfCtx∥ Γ) (nf pat) (nf arg)!} (nfType t)))
-nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢ refl {!lemμ !} (Norm.unwrap1 (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
+  subst⊢ refl (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg)) (Norm.wrap1 (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ ) (nf pat)) (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf arg)) (subst⊢ refl (lemXX {Γ} pat arg) (nfType t)))
+nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢ refl (sym (lemXX {Γ} pat arg)) (Norm.unwrap1 (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
 nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
 nfType (Syn.con t) = subst⊢ refl {!!} (Norm.con {!t!})
 nfType (Syn.builtin bn σ x) = Norm.builtin {!!} {!!} {!!}
 nfType {Γ} (Syn.error A) = Norm.error (substEq  (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf A))
 \end{code}
 
-substEq (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf (pat · (μ1 · pat) · arg)) ≡
-nf
-(embNf (substEq (_⊢Nf⋆ (.K ⇒ *) ⇒ .K ⇒ *) (nfCtx∥ Γ) (nf pat)) ·
- (μ1 ·
-  embNf (substEq (_⊢Nf⋆ (.K ⇒ *) ⇒ .K ⇒ *) (nfCtx∥ Γ) (nf pat)))
- · embNf (substEq (_⊢Nf⋆ .K) (nfCtx∥ Γ) (nf arg)))
