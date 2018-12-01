@@ -145,6 +145,32 @@ lem[]' {Γ} A B = trans
             (idext (λ { Z → symCR (fund idCR (soundness A)) ; (S α) → idCR α}) B))))
       (sym (subst-eval B idCR (subst-cons ` A)))))
 
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
+  as SSig
+import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con Norm.booleanNf size⋆
+  as NSig
+
+import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆ as STermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆ as NTermCon 
+
+
+nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
+nfTypeTC (STermCon.integer s i p)    = NTermCon.integer s i p
+nfTypeTC (STermCon.bytestring s b p) = NTermCon.bytestring s b p 
+nfTypeTC (STermCon.size s)           = NTermCon.size s
+
+open import Builtin.Constant.Type
+
+lemcon : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)(s : Γ ⊢Nf⋆ #)
+  → con tcn (substEq (_⊢Nf⋆ #) p s) ≡ substEq (_⊢Nf⋆ *) p (con tcn s)
+lemcon refl tcn s = refl
+
+substTC : ∀{Γ Γ'}(p : Γ ≡ Γ')(s : Γ ⊢Nf⋆ #)(tcn : TyCon)
+  → NTermCon.TermCon (con tcn s)
+  → NTermCon.TermCon (con tcn (substEq (_⊢Nf⋆ #) p s))
+substTC refl s tcn t = t
+
 nfType : ∀{Γ K}
   → {A : Syn.∥ Γ ∥ ⊢⋆ K}
   → Γ Syn.⊢ A
@@ -174,8 +200,11 @@ nfType {Γ} (Syn.wrap1 pat arg t) =
   subst⊢ refl (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg)) (Norm.wrap1 (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ ) (nf pat)) (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf arg)) (subst⊢ refl (lemXX {Γ} pat arg) (nfType t)))
 nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢ refl (sym (lemXX {Γ} pat arg)) (Norm.unwrap1 (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
 nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
-nfType (Syn.con t) = subst⊢ refl {!!} (Norm.con {!t!})
-nfType (Syn.builtin bn σ x) = Norm.builtin {!!} {!!} {!!}
+nfType {Γ} (Syn.con {s = s}{tcn = tcn} t) = subst⊢
+  refl
+  (lemcon (nfCtx∥ Γ) tcn (nf s))
+  (Norm.con (substTC (nfCtx∥ Γ) (nf s) tcn (nfTypeTC t) ))
+nfType (Syn.builtin bn σ x) = {!Norm.builtin bn!}
 nfType {Γ} (Syn.error A) = Norm.error (substEq  (_⊢Nf⋆ *) (nfCtx∥ Γ) (nf A))
 \end{code}
 
