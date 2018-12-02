@@ -24,40 +24,14 @@ module Builtin.Signature
 
 open import Data.List
 open import Data.Product renaming (_,_ to _,,_)
+
+open import Builtin
 \end{code}
 
 \begin{code}
 
 Sig : Ctx⋆ → Set
 Sig Δ = List (Δ ⊢⋆ *) × Δ ⊢⋆ *
-
-data Builtin : Set where
-  addInteger               : Builtin
-  subtractInteger          : Builtin
-  multiplyInteger          : Builtin
-  divideInteger            : Builtin
-  quotientInteger          : Builtin
-  remainderInteger         : Builtin
-  modInteger               : Builtin
-  lessThanInteger          : Builtin
-  lessThanEqualsInteger    : Builtin
-  greaterThanInteger       : Builtin
-  greaterThanEqualsInteger : Builtin
-  equalsInteger            : Builtin
-  resizeInteger            : Builtin
-  sizeOfInteger            : Builtin
-  intToByteString          : Builtin
-
-  concatenate      : Builtin
-  takeByteString   : Builtin
-  dropByteString   : Builtin
-  sha2-256         : Builtin
-  sha3-256         : Builtin
-  verifySignature  : Builtin
-  resizeByteString : Builtin
-  equalsByteString : Builtin
-  txh              : Builtin
-  blocknum         : Builtin
   
 SIG : Builtin → Σ Ctx⋆ λ Δ → Sig Δ
 -- could have just one context so Signatures extend from ∅...
