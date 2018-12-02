@@ -19,11 +19,10 @@ module PlutusPrelude ( -- * Reëxports from base
                      , throw
                      , join
                      , (<=<)
+                     , ($>)
                      , fromRight
                      , isRight
                      , void
-                     , ($>)
-                     , (<$)
                      , through
                      , coerce
                      , Generic
@@ -103,7 +102,7 @@ import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor                            (void, ($>), (<$))
+import           Data.Functor                            (void, ($>))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
