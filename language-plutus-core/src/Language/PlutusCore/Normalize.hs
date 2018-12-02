@@ -44,7 +44,7 @@ runNormalizeTypeM mn a = throwingEither _TypeError =<< (liftQuote $ runExceptT $
 -- | Locally extend a 'TypeEnv' in a 'NormalizeTypeM' computation.
 withExtendedTypeEnv
     :: HasUnique (tyname ()) TypeUnique
-    => tyname () -> NormalizedType tyname () -> NormalizeTypeM tyname a b -> NormalizeTypeM tyname a b
+    => tyname () -> NormalizedType tyname () -> NormalizeTypeM tyname ann a -> NormalizeTypeM tyname ann a
 withExtendedTypeEnv name ty =
     local (TypeEnv . IntMap.insert (name ^. unique . coerced) ty . unTypeEnv)
 
