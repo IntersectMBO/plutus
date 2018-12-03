@@ -23,7 +23,6 @@ module Language.PlutusIR (
     embedIntoIR
     ) where
 
-
 import           PlutusPrelude
 
 import           Language.PlutusCore        (Kind, Name, TyName, Type(..))
