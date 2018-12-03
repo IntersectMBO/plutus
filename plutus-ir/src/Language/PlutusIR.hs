@@ -23,9 +23,6 @@ module Language.PlutusIR (
     Program (..),
     prettyDef,
     embedIntoIR,
-    packPir,
-    serializePirTerm,
-    deserializePirTerm,
     ) where
 
 
@@ -37,12 +34,7 @@ import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
-import           Codec.Serialise           -- (Serialise, serialise)
-import           Codec.CBOR.Encoding
-import           Codec.CBOR.Decoding
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Lazy       as BSL
-
+import           Codec.Serialise            (Serialise, serialise)
 
 import           GHC.Generics               (Generic)
 
@@ -75,7 +67,7 @@ data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname nam
                            | DatatypeBind a (Datatype tyname name a)
     deriving (Functor, Show, Eq, Generic)
 
-instance (Serialise (name ()), Serialise (tyname ()) ) => Serialise (Binding tyname name ()) 
+instance (Serialise (name ()), Serialise (tyname ()) ) => Serialise (Binding tyname name ())
 
 -- Terms
 

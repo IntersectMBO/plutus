@@ -27,11 +27,8 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Test.Tasty
 
-<<<<<<< HEAD
 import           Codec.Serialise
-=======
 import           Control.Exception
->>>>>>> master
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Morph
@@ -39,7 +36,6 @@ import           Control.Monad.Reader
 
 import           Data.Functor.Identity
 
-import           Data.ByteString.Lazy                 as BSL
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
@@ -70,7 +66,7 @@ tests = testGroup "plutus-ir" <$> sequence [
     prettyprinting,
     datatypes,
     recursion,
-    serialization
+    serialization,
     errors,
     optimizer
     ]

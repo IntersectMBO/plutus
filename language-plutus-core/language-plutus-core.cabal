@@ -90,7 +90,6 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
-        Language.PlutusCore.CBOR
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity

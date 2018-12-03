@@ -55651,6 +55651,8 @@ license = stdenv.lib.licenses.bsd3;
 , serialise
 , stdenv
 , tasty
+, tasty-golden
+, tasty-hunit
 , text
 , transformers
 }:
@@ -55678,7 +55680,12 @@ base
 language-plutus-core
 mmorph
 mtl
+prettyprinter
+serialise
 tasty
+tasty-golden
+tasty-hunit
+text
 ];
 doHaddock = false;
 description = "Plutus IR language";
