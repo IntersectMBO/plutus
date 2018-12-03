@@ -125,7 +125,7 @@ import           GHC.Generics                             (Generic)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlc)
+import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlcProgram)
 import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
 import           Language.PlutusTx.TH                     (plutus)
 
@@ -260,7 +260,7 @@ instance FromJSON Script where
       Right v -> pure v
 
 lifted :: LiftPir a => a -> Script
-lifted = Script . serialise . PLC.Program () (PLC.defaultVersion ()) . PLC.runQuote . unsafeLiftPlc
+lifted = Script . serialise . unsafeLiftPlcProgram
 
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: Script }
