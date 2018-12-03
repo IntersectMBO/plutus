@@ -1,3 +1,4 @@
+{ system ? builtins.currentSystem, config ? {} }:
 let
   # iohk-nix can be overridden for debugging purposes by setting
   # NIX_PATH=iohk_nix=/path/to/iohk-nix
@@ -11,11 +12,12 @@ let
       in builtins.fetchTarball {
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
-      }) {};
+      }) { inherit config system; };
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
   pkgs = iohkNix.pkgs;
+  nixpkgs = iohkNix.nixpkgs;
   lib = pkgs.lib;
   getPackages = iohkNix.getPackages;
 
@@ -36,5 +38,5 @@ let
 
   withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusPkgList withDevTools pkgs;
+  inherit getPackages iohkNix isPlutus plutusPkgList withDevTools pkgs nixpkgs;
 }

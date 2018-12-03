@@ -24,14 +24,11 @@
 #
 ########################################################################
 
-let
-  localLib = import ./lib.nix;
-in
 { system ? builtins.currentSystem
 , config ? {}  # The nixpkgs configuration file
 
 # Use a pinned version nixpkgs.
-, pkgs ? localLib.pkgs
+, pkgs ? (import ./lib.nix { inherit config system; }).pkgs
 
 # Disable running of tests for all local packages.
 , forceDontCheck ? false
@@ -67,6 +64,7 @@ in
 with pkgs.lib;
 
 let
+  localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   errorOverlay = import ./nix/overlays/force-error.nix {
     inherit pkgs;
@@ -116,7 +114,6 @@ let
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
     };
-    inherit (pkgs) stack2nix;
   });
 
 in
