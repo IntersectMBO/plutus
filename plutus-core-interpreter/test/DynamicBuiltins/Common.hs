@@ -19,7 +19,7 @@ typecheckEvaluate
     => DynamicBuiltinNameMeanings -> Term TyName Name () -> m EvaluationResult
 typecheckEvaluate meanings term = do
     let types = dynamicBuiltinNameMeaningsToTypes meanings
-        typecheckConfig = TypeCheckCfg 1000 $ TypeConfig True types
+        typecheckConfig = TypeConfig True types Nothing
         typecheck = rename >=> annotateTerm >=> typecheckTerm typecheckConfig
     _ <- typecheck term
     -- We do not rename terms before evaluating them, because the evaluator must work correctly over

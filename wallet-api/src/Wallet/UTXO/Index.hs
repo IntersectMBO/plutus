@@ -84,7 +84,7 @@ data ValidationError =
     -- ^ The amount spent by the transaction differs from the amount consumed by it
     | NegativeValue Tx
     -- ^ The transaction produces an output with a negative value
-    | ScriptFailure
+    | ScriptFailure [String]
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
     deriving (Eq, Ord, Show, Generic)
 
@@ -172,10 +172,11 @@ checkMatch v = \case
             let v' = ValidationData
                     $ lifted
                     $ v { pendingTxOwnHash = Runtime.plcValidatorDigest (UTXO.getAddress a) }
+                (logOut, success) = UTXO.runScript v' vl r d
             in
-                if UTXO.runScript v' vl r d
+                if success
                 then pure ()
-                else throwError ScriptFailure
+                else throwError $ ScriptFailure logOut
     PubKeyMatch pk sig ->
         if sig `UTXO.signedBy` pk
         then pure ()

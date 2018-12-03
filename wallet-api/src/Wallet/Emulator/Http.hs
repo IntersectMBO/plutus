@@ -33,11 +33,11 @@ import           Servant.API                ((:<|>) ((:<|>)), (:>), Capture, Get
 import           Wallet.API                 (KeyPair)
 import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.AddressMap (AddressMap)
-import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), EmulatedWalletApi,
-                                             EmulatorState (_txPool, _walletStates),
+import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual),
+                                             EmulatorState (_txPool, _walletStates), MockWallet,
                                              Notification (BlockHeight, BlockValidated), Wallet, WalletState, assert,
-                                             chain, emptyEmulatorState, emptyWalletState, liftEmulatedWallet, txPool,
-                                             walletStates)
+                                             chainNewestFirst, emptyEmulatorState, emptyWalletState, liftMockWallet,
+                                             txPool, walletStates)
 
 import qualified Wallet.Emulator.Types      as Types
 import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
@@ -206,9 +206,9 @@ blockHeight wallet height = handleNotifications wallet [BlockHeight height]
 runWalletAction ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
-  -> EmulatedWalletApi a
+  -> MockWallet a
   -> m a
-runWalletAction wallet = runServerState . fmap snd . liftEmulatedWallet wallet
+runWalletAction wallet = runServerState . fmap snd . liftMockWallet wallet
 
 runAssertion ::
      (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
@@ -255,7 +255,7 @@ processPendingSTM var = do
   writeTVar var newState
   pure block
   where
-    addBlock block = over chain ((:) block)
+    addBlock block = over chainNewestFirst ((:) block)
     emptyPool = set txPool []
 
 api :: Proxy API

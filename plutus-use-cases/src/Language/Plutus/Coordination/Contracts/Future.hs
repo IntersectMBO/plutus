@@ -29,9 +29,7 @@ import           Control.Monad.Error.Class  (MonadError (..))
 import qualified Data.Set                   as Set
 import           GHC.Generics               (Generic)
 import qualified Language.Plutus.Runtime.TH as TH
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.TH       (plutusUntyped)
+import qualified Language.PlutusTx          as PlutusTx 
 import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
 import qualified Wallet.UTXO                as UTXO
@@ -196,22 +194,22 @@ data FutureRedeemer =
 validatorScript :: Future -> Validator
 validatorScript ft = Validator val where
     val = UTXO.applyScript inner (UTXO.lifted ft)
-    inner = UTXO.fromPlcCode $(plutusUntyped [|
+    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
                 PendingTx _ outs _ _ (Height height) _ ownHash = p
 
                 eqPk :: PubKey -> PubKey -> Bool
-                eqPk = $(TH.eqPubKey)
+                eqPk = $$(TH.eqPubKey)
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $(TH.and)
+                (&&) = $$(TH.and)
 
                 infixr 3 ||
                 (||) :: Bool -> Bool -> Bool
-                (||) = $(TH.or)
+                (||) = $$(TH.or)
 
                 forwardPrice :: Int
                 forwardPrice = let Value v = futureUnitPrice in v
@@ -238,7 +236,7 @@ validatorScript ft = Validator val where
                         penalty + delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = $(TH.maybe) False ($(TH.eqPubKey) k) ($(TH.pubKeyOutput) o)
+                isPubKeyOutput o k = $$(TH.maybe) False ($$(TH.eqPubKey) k) ($$(TH.pubKeyOutput) o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and value
                 paidOutTo :: Int -> PubKey -> PendingTxOut -> Bool
@@ -248,7 +246,7 @@ validatorScript ft = Validator val where
 
                 verifyOracle :: OracleValue a -> (Height, a)
                 verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else Builtins.error ()
+                    if pk `eqPk` futurePriceOracle then t else PlutusTx.error ()
 
                 isValid =
                     case r of
@@ -303,14 +301,14 @@ validatorScript ft = Validator val where
                                     case ot of
                                         PendingTxOut (Value v) (Just (vh, _)) DataTxOut ->
                                             v > marginShort + marginLong
-                                            && $(TH.eqValidator) vh ownHash
+                                            && $$(TH.eqValidator) vh ownHash
                                         _ -> True
 
                                 _ -> False
             in
-                if isValid then () else Builtins.error ()
-            |])
+                if isValid then () else PlutusTx.error ()
+            ||])
 
-makeLift ''Future
-makeLift ''FutureData
-makeLift ''FutureRedeemer
+PlutusTx.makeLift ''Future
+PlutusTx.makeLift ''FutureData
+PlutusTx.makeLift ''FutureRedeemer

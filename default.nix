@@ -24,14 +24,11 @@
 #
 ########################################################################
 
-let
-  localLib = import ./lib.nix;
-in
 { system ? builtins.currentSystem
 , config ? {}  # The nixpkgs configuration file
 
 # Use a pinned version nixpkgs.
-, pkgs ? localLib.pkgs
+, pkgs ? (import ./lib.nix { inherit config system; }).pkgs
 
 # Disable running of tests for all local packages.
 , forceDontCheck ? false
@@ -67,6 +64,7 @@ in
 with pkgs.lib;
 
 let
+  localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   errorOverlay = import ./nix/overlays/force-error.nix {
     inherit pkgs;
@@ -78,7 +76,7 @@ let
   };
   customOverlays = optional forceError errorOverlay;
   packages = self: ({
-    inherit pkgs;
+    inherit pkgs localLib;
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
@@ -86,13 +84,16 @@ let
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays;
-        pkgsGenerated = ./pkgs;
+      pkgsGenerated = ./pkgs;
+      filter = name: builtins.elem name localLib.plutusPkgList; 
+      filterOverrides = {
         # split check is broken for things with test tool dependencies
-        filter = let
+        splitCheck = let
           pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
           in name: builtins.elem name pkgList;
-        requiredOverlay = ./nix/overlays/required.nix;
-        ghc = pkgs.haskell.compiler.ghc843;
+      };
+      requiredOverlay = ./nix/overlays/required.nix;
+      ghc = pkgs.haskell.compiler.ghc843;
     };
 
     localPackages = localLib.getPackages {
@@ -113,7 +114,6 @@ let
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
     };
-    inherit (pkgs) stack2nix;
   });
 
 in

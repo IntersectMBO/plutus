@@ -1,6 +1,6 @@
 let
-  fixedLib     = import ./lib.nix;
-  fixedNixpkgs = fixedLib.iohkNix.nixpkgs;
+  fixedLib     = import ./lib.nix { };
+  fixedNixpkgs = fixedLib.nixpkgs;
 in
   { supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
   , scrubJobs ? true
@@ -19,8 +19,7 @@ with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
 
 let
   plutusPkgs = import ./. { };
-  pkgs = import fixedNixpkgs { config = {}; };
-  shellEnv = import ./shell.nix { };
+  pkgs = import fixedNixpkgs { };
   haskellPackages = map (name: lib.nameValuePair name supportedSystems) fixedLib.plutusPkgList;
   # don't need to build the docs on anything other than one platform
   docs = map (name: lib.nameValuePair name [ "x86_64-linux" ]) (builtins.attrNames plutusPkgs.docs);
@@ -30,11 +29,11 @@ let
   };
   mapped = mapTestOn platforms;
   makePlutusTestRuns = system:
-  let
-    pred = name: value: fixedLib.isPlutus name && value ? testdata;
-    plutusPkgs = import ./. { inherit system; };
-    f = name: value: value.testrun;
-  in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
+    let
+      pred = name: value: fixedLib.isPlutus name && value ? testdata;
+      plutusPkgs = import ./. { inherit system; };
+      f = name: value: value.testrun;
+    in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
   inherit (plutusPkgs) tests docs;
   all-plutus-tests = builtins.listToAttrs (map (arch: { name = arch; value = makePlutusTestRuns arch; }) supportedSystems);

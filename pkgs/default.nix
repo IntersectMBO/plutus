@@ -55706,6 +55706,8 @@ version = "0.1.0.0";
 src = .././plutus-tx;
 libraryHaskellDepends = [
 base
+language-plutus-core
+plutus-core-interpreter
 plutus-tx-plugin
 template-haskell
 ];
@@ -77631,6 +77633,8 @@ base
 containers
 hedgehog
 lens
+plutus-tx
+plutus-tx-plugin
 tasty
 tasty-hedgehog
 ];

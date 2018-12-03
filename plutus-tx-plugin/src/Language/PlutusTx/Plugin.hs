@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TupleSections              #-}
+{-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.PlutusTx.Plugin (PlcCode, getSerializedCode, getAst, plugin, plc) where
@@ -24,6 +25,8 @@ import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
 
 import qualified Language.PlutusCore                    as PLC
+import qualified Language.PlutusCore.Constant           as PLC
+import qualified Language.PlutusCore.Constant.Dynamic   as PLC
 import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusIR                      as PIR
@@ -237,6 +240,20 @@ convertMarkedExprs opts markerName =
       e@(GHC.Var _) -> pure e
       e@(GHC.Type _) -> pure e
 
+-- TODO: move this somewhere common
+stringBuiltins :: PLC.DynamicBuiltinNameMeanings
+stringBuiltins =
+    PLC.insertDynamicBuiltinNameDefinition PLC.dynamicCharToStringDefinition $
+    PLC.insertDynamicBuiltinNameDefinition PLC.dynamicAppendDefinition mempty
+
+-- TODO: this whole thing seems painful, since we don't have the definition of trace yet
+stringBuiltinTypes :: PLC.DynamicBuiltinNameTypes
+stringBuiltinTypes =
+    let normalStringBuiltinTypes = PLC.unDynamicBuiltinNameTypes $ PLC.dynamicBuiltinNameMeaningsToTypes stringBuiltins
+        traceType = PLC.typeSchemeToType $ PLC.dynamicCallTypeScheme (PLC.TypedBuiltinDyn @String)
+        allStringBuiltinTypes = Map.insert PLC.dynamicTraceName traceType normalStringBuiltinTypes
+    in PLC.DynamicBuiltinNameTypes allStringBuiltinTypes
+
 -- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
 convertExpr :: PluginOptions -> String -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
 convertExpr opts locStr origE resType = do
@@ -248,7 +265,7 @@ convertExpr opts locStr origE resType = do
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ do
                   annotated <- PLC.annotateProgram plcP
-                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 $ PLC.TypeConfig True mempty) annotated
+                  void $ PLC.typecheckProgram (PLC.TypeConfig True stringBuiltinTypes (Just 1000)) annotated
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

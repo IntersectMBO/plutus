@@ -1,11 +1,8 @@
 # Developing the code
 
-An appropriate environment for developing a package can be entered using the `env` attribute of the package. For example:
-```
-nix-shell default.nix -A language-plutus-core.env
-```
-
-There are also `shell.nix` files in the package subdirectories.
+An appropriate environment for developing a package can be entered using `nix-shell` in the package directory. This
+includes all the dependencies for the package and `cabal`, so you should be able to `cabal build` a package after
+doing this.
 
 ## Updating the generated Haskell package set
 

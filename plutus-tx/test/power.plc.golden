@@ -1,19 +1,19 @@
 (program 1.0.0
   [
     (lam
-      multiplyInteger_75
+      multiplyInteger_76
       (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
       (lam
-        ds_76
+        ds_77
         [(con integer) (con 8)]
         [
-          (lam y_77 [(con integer) (con 8)] [ [ multiplyInteger_75 y_77 ] y_77 ]
+          (lam y_78 [(con integer) (con 8)] [ [ multiplyInteger_76 y_78 ] y_78 ]
           )
           [
             (lam
-              y_78 [(con integer) (con 8)] [ [ multiplyInteger_75 y_78 ] y_78 ]
+              y_79 [(con integer) (con 8)] [ [ multiplyInteger_76 y_79 ] y_79 ]
             )
-            [ [ multiplyInteger_75 ds_76 ] (con 8 ! 1) ]
+            [ [ multiplyInteger_76 ds_77 ] (con 8 ! 1) ]
           ]
         ]
       )

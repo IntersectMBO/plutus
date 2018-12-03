@@ -29,6 +29,8 @@ module Language.PlutusTx.Builtins (
                                 , appendString
                                 , emptyString
                                 , charToString
+                                -- * Tracing
+                                , trace
                                 ) where
 
 import           Data.ByteString.Lazy    hiding (append)
@@ -109,3 +111,6 @@ emptyString = mustBeReplaced
 
 charToString :: Char -> String
 charToString = mustBeReplaced
+
+trace :: String -> ()
+trace = mustBeReplaced

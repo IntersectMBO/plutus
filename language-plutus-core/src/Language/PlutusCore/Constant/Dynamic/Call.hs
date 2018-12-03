@@ -6,6 +6,7 @@
 
 module Language.PlutusCore.Constant.Dynamic.Call
     ( dynamicCallAssign
+    , dynamicCallTypeScheme
     , dynamicCall
     ) where
 
@@ -23,8 +24,11 @@ dynamicCallAssign
     -> DynamicBuiltinNameDefinition
 dynamicCallAssign tb name f =
     DynamicBuiltinNameDefinition name $ DynamicBuiltinNameMeaning sch sem where
-        sch = TypeSchemeBuiltin tb `TypeSchemeArrow` TypeSchemeBuiltin (TypedBuiltinDyn @())
+        sch = dynamicCallTypeScheme tb
         sem = unsafePerformIO . f
+
+dynamicCallTypeScheme :: (forall size. TypedBuiltin size a) -> (forall size .TypeScheme size (a -> ()) ())
+dynamicCallTypeScheme tb = TypeSchemeBuiltin tb `TypeSchemeArrow` TypeSchemeBuiltin (TypedBuiltinDyn @())
 
 dynamicCall :: DynamicBuiltinName -> Term tyname name ()
 dynamicCall = dynamicBuiltinNameAsTerm

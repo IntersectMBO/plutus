@@ -67,7 +67,7 @@ library
         serialise -any,
         text -any,
         transformers -any,
-        algebraic-graphs -any
+        algebraic-graphs <0.3
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
