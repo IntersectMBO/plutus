@@ -1,11 +1,11 @@
 { system ? builtins.currentSystem
 , config ? {}
-, localPackages ? import ./. { inherit config system; },
+, localPackages ? import ./. { inherit config system; }
 , pkgs ? localPackages.pkgs
 }:
 
 let
-  localLib = import ./lib.nix { inherit config system };
+  localLib = import ./lib.nix { inherit config system; };
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
     buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
