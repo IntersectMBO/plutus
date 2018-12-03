@@ -13,7 +13,7 @@
 {-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Wallet.UTXO.Types(
+module Ledger.Types(
     -- * Basic types
     Value(..),
     Height(..),

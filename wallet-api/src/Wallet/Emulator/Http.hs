@@ -39,8 +39,8 @@ import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqu
                                              chainNewestFirst, emptyEmulatorState, emptyWalletState, liftMockWallet,
                                              txPool, walletStates)
 
+import           Ledger                     (Block, Height, Tx, TxIn', TxOut', Value)
 import qualified Wallet.Emulator.Types      as Types
-import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
 
 type WalletAPI
    = "wallets" :> Get '[ JSON] [Wallet]

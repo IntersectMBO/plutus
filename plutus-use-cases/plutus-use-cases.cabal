@@ -36,13 +36,14 @@ library
                       GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                       DeriveTraversable
   exposed-modules:
-    Language.Plutus.Coordination.Contracts
-    Language.Plutus.Coordination.Contracts.CrowdFunding
-    Language.Plutus.Coordination.Contracts.Future
-    Language.Plutus.Coordination.Contracts.Vesting
-    Language.Plutus.Coordination.Contracts.Swap
-    Language.Plutus.Runtime
-    Language.Plutus.Runtime.TH
+    Language.PlutusTx.Coordination.Contracts
+    Language.PlutusTx.Coordination.Contracts.CrowdFunding
+    Language.PlutusTx.Coordination.Contracts.Future
+    Language.PlutusTx.Coordination.Contracts.Vesting
+    Language.PlutusTx.Coordination.Contracts.Swap
+    Language.PlutusTx.Validation
+  other-modules:
+    Language.PlutusTx.Validation.TH
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

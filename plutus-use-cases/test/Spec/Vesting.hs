@@ -7,23 +7,23 @@
 {-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Spec.Vesting(tests) where
 
-import           Control.Monad                                  (void)
-import           Data.Either                                    (isRight)
-import           Data.Foldable                                  (traverse_)
-import qualified Data.Map                                       as Map
-import           Hedgehog                                       (Property, forAll, property)
+import           Control.Monad                                    (void)
+import           Data.Either                                      (isRight)
+import           Data.Foldable                                    (traverse_)
+import qualified Data.Map                                         as Map
+import           Hedgehog                                         (Property, forAll, property)
 import qualified Hedgehog
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                            (testProperty)
+import           Test.Tasty.Hedgehog                              (testProperty)
 
-import           Language.Plutus.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
-                                                                 retrieveFunds, totalAmount, validatorScriptHash,
-                                                                 vestFunds)
-import qualified Language.Plutus.Runtime                        as Runtime
-import           Wallet.API                                     (PubKey (..))
-import           Wallet.Emulator                                hiding (Value)
-import qualified Wallet.Generators                              as Gen
-import qualified Wallet.UTXO                                    as UTXO
+import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
+                                                                   retrieveFunds, totalAmount, validatorScriptHash,
+                                                                   vestFunds)
+import qualified Ledger
+import qualified Ledger.Validation                                as Validation
+import           Wallet                                           (PubKey (..))
+import           Wallet.Emulator
+import qualified Wallet.Generators                                as Gen
 
 tests :: TestTree
 tests = testGroup "vesting" [
@@ -39,8 +39,8 @@ tests = testGroup "vesting" [
 scen1 :: VestingScenario
 scen1 = VestingScenario{..} where
     vsVestingScheme = Vesting {
-        vestingTranche1 = VestingTranche (Runtime.Height 10) 200,
-        vestingTranche2 = VestingTranche (Runtime.Height 20) 400,
+        vestingTranche1 = VestingTranche (Validation.Height 10) 200,
+        vestingTranche2 = VestingTranche (Validation.Height 20) 400,
         vestingOwner    = PubKey 1 }
     vsWallets = Wallet <$> [1, 2]
     vsInitialBalances = Map.fromList [
@@ -51,9 +51,9 @@ scen1 = VestingScenario{..} where
 -- | Commit some funds from a wallet to a vesting scheme. Returns the reference
 --   to the transaction output that is locked by the schemes's validator
 --   script (and can be collected by the scheme's owner)
-commit :: Wallet -> Vesting -> Runtime.Value -> Trace MockWallet  TxOutRef'
+commit :: Wallet -> Vesting -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef'
 commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
-    exScriptOut = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
+    exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
 secureFunds :: Property
 secureFunds = checkVestingTrace scen1 $ do
@@ -124,22 +124,22 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
 data VestingScenario = VestingScenario {
     vsVestingScheme   :: Vesting,
     vsWallets         :: [Wallet],
-    vsInitialBalances :: Map.Map PubKey UTXO.Value,
-    vsScriptHash      :: Runtime.ValidatorHash -- Hash of validator script for this scenario
+    vsInitialBalances :: Map.Map PubKey Ledger.Value,
+    vsScriptHash      :: Validation.ValidatorHash -- Hash of validator script for this scenario
     }
 
 -- | Funds available to each wallet after the initial transaction on the
 --   mockchain
-startingBalance :: UTXO.Value
+startingBalance :: Ledger.Value
 startingBalance = 1000
 
 -- | Amount of money left in wallet `Wallet 2` after committing funds to the
 --   vesting scheme
-w2Funds :: UTXO.Value
+w2Funds :: Ledger.Value
 w2Funds = startingBalance - total
 
 -- | Total amount of money vested in the scheme `scen1`
-total :: Runtime.Value
+total :: Ledger.Value
 total = totalAmount $ vsVestingScheme scen1
 
 -- | Run a trace with the given scenario and check that the emulator finished
@@ -152,6 +152,6 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
     Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify the wallets
-updateAll :: VestingScenario -> Trace MockWallet [Tx]
+updateAll :: VestingScenario -> Trace MockWallet [Ledger.Tx]
 updateAll VestingScenario{vsWallets} =
     processPending >>= walletsNotifyBlock vsWallets

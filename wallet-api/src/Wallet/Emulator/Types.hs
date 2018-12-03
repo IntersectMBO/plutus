@@ -77,13 +77,13 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
+import           Ledger                     (Address', Block, Blockchain, Height, Tx (..), TxId', TxOutRef', Value,
+                                             hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
+import qualified Ledger.Index               as Index
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
                                              annTruthValue, getAnnot, keyPair, pubKey, signature)
 import qualified Wallet.Emulator.AddressMap as AM
-import           Wallet.UTXO                (Address', Block, Blockchain, Height, Tx (..), TxId', TxOutRef', Value,
-                                             hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
-import qualified Wallet.UTXO.Index          as Index
 
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }

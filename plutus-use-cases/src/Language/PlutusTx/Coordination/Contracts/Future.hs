@@ -10,7 +10,7 @@
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
 --   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.Plutus.Runtime)
 --   3. Using the redeemer script to model actions that the participants in the contract may take.
-module Language.Plutus.Coordination.Contracts.Future(
+module Language.PlutusTx.Coordination.Contracts.Future(
     -- * Data types
     Future(..),
     FutureData(..),
@@ -24,20 +24,19 @@ module Language.Plutus.Coordination.Contracts.Future(
     validatorScript
     ) where
 
-import           Control.Monad              (void)
-import           Control.Monad.Error.Class  (MonadError (..))
-import qualified Data.Set                   as Set
-import           GHC.Generics               (Generic)
-import qualified Language.Plutus.Runtime.TH as TH
-import qualified Language.PlutusTx          as PlutusTx 
-import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
-import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
-import qualified Wallet.UTXO                as UTXO
+import           Control.Monad                (void)
+import           Control.Monad.Error.Class    (MonadError (..))
+import qualified Data.Set                     as Set
+import           GHC.Generics                 (Generic)
+import qualified Language.PlutusTx            as PlutusTx 
+import qualified Language.PlutusTx.Validation as PlutusTx
+import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), Validator (..), scriptTxIn, scriptTxOut)
+import qualified Ledger                       as Ledger
+import           Ledger.Validation            (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
+                                              PendingTxOutType (..), Signed (..), ValidatorHash)
+import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 
-import           Language.Plutus.Runtime    (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
-                                             PendingTxOutType (..), PubKey, Signed (..), ValidatorHash, Value (..))
-
-import           Prelude                    hiding ((&&), (||))
+import           Prelude                      hiding ((&&), (||))
 
 {- note [Futures in Plutus]
 
@@ -84,7 +83,7 @@ initialise long short f = do
     let
         im = futureInitialMargin f
         o = scriptTxOut im (validatorScript f) ds
-        ds = DataScript $ UTXO.lifted $ FutureData long short im im
+        ds = DataScript $ Ledger.lifted $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange im
     void $ signAndSubmit payment [o, change]
@@ -105,10 +104,10 @@ settle refs ft fd ov = do
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = futureDataMarginLong fd + delta
         shortOut = futureDataMarginShort fd - delta
-        red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
+        red = Ledger.Redeemer $ Ledger.lifted $ Settle ov
         outs = [
-            UTXO.pubKeyTxOut longOut (futureDataLong fd),
-            UTXO.pubKeyTxOut shortOut (futureDataShort fd)
+            Ledger.pubKeyTxOut longOut (futureDataLong fd),
+            Ledger.pubKeyTxOut shortOut (futureDataShort fd)
             ]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
     void $ signAndSubmit (Set.fromList inp) outs
@@ -124,9 +123,9 @@ settleEarly :: (
     -> m ()
 settleEarly refs ft fd ov = do
     let totalVal = futureDataMarginLong fd + futureDataMarginShort fd
-        outs = [UTXO.pubKeyTxOut totalVal (futureDataLong fd)]
+        outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        red = UTXO.Redeemer $ UTXO.lifted $ Settle ov
+        red = Ledger.Redeemer $ Ledger.lifted $ Settle ov
     void $ signAndSubmit (Set.fromList inp) outs
 
 adjustMargin :: (
@@ -135,7 +134,7 @@ adjustMargin :: (
     => [TxOutRef']
     -> Future
     -> FutureData
-    -> UTXO.Value
+    -> Ledger.Value
     -> m ()
 adjustMargin refs ft fd vl = do
     pk <- pubKey <$> myKeyPair
@@ -146,8 +145,8 @@ adjustMargin refs ft fd vl = do
                 | otherwise = otherError "Private key is not part of futures contrat"
             in fd''
     let
-        red = UTXO.Redeemer $ UTXO.lifted AdjustMargin
-        ds  = DataScript $ UTXO.lifted fd'
+        red = Ledger.Redeemer $ Ledger.lifted AdjustMargin
+        ds  = DataScript $ Ledger.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
@@ -193,23 +192,23 @@ data FutureRedeemer =
 
 validatorScript :: Future -> Validator
 validatorScript ft = Validator val where
-    val = UTXO.applyScript inner (UTXO.lifted ft)
-    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [||
+    val = Ledger.applyScript inner (Ledger.lifted ft)
+    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
                 PendingTx _ outs _ _ (Height height) _ ownHash = p
 
                 eqPk :: PubKey -> PubKey -> Bool
-                eqPk = $$(TH.eqPubKey)
+                eqPk = $$(PlutusTx.eqPubKey)
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
-                (&&) = $$(TH.and)
+                (&&) = $$(PlutusTx.and)
 
                 infixr 3 ||
                 (||) :: Bool -> Bool -> Bool
-                (||) = $$(TH.or)
+                (||) = $$(PlutusTx.or)
 
                 forwardPrice :: Int
                 forwardPrice = let Value v = futureUnitPrice in v
@@ -236,7 +235,7 @@ validatorScript ft = Validator val where
                         penalty + delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = $$(TH.maybe) False ($$(TH.eqPubKey) k) ($$(TH.pubKeyOutput) o)
+                isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(PlutusTx.eqPubKey) k) ($$(PlutusTx.pubKeyOutput) o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and value
                 paidOutTo :: Int -> PubKey -> PendingTxOut -> Bool
@@ -301,7 +300,7 @@ validatorScript ft = Validator val where
                                     case ot of
                                         PendingTxOut (Value v) (Just (vh, _)) DataTxOut ->
                                             v > marginShort + marginLong
-                                            && $$(TH.eqValidator) vh ownHash
+                                            && $$(PlutusTx.eqValidator) vh ownHash
                                         _ -> True
 
                                 _ -> False

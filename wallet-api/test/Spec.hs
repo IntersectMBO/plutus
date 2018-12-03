@@ -19,12 +19,14 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
 import           Language.PlutusTx.TH       (plutus)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx.Prelude  as PlutusTx
 
+import           Wallet
 import           Wallet.Emulator
 import           Wallet.Generators          (Mockchain (..))
 import qualified Wallet.Generators          as Gen
-import qualified Wallet.UTXO.Index          as Index
+import           Ledger
+import qualified Ledger.Index          as Index
 
 main :: IO ()
 main = defaultMain tests
@@ -142,7 +144,7 @@ invalidScript = property $ do
 
     where
         failValidator :: Validator
-        failValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> $$(traceH) "I always fail everything" (Builtins.error @()) ||])
+        failValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do

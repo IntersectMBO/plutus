@@ -35,8 +35,8 @@ import           Hedgehog
 import qualified Hedgehog.Gen    as Gen
 import qualified Hedgehog.Range  as Range
 
+import           Ledger
 import           Wallet.Emulator as Emulator
-import           Wallet.UTXO     (unitValidationData)
 
 data GeneratorModel = GeneratorModel {
     gmInitialBalance :: Map PubKey Value,
@@ -62,7 +62,7 @@ constantFee = FeeEstimator . const . const
 -- | Blockchain for testing the emulator implementation and traces.
 --
 --   To avoid having to rely on functions from the implementation of
---   wallet-api (in particular, `Wallet.UTXO.Types.unspentOutputs`) we note the
+--   wallet-api (in particular, `Ledger.Types.unspentOutputs`) we note the
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
     mockchainInitialBlock :: Block,

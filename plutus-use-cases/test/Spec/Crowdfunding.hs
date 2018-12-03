@@ -6,23 +6,23 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
-import           Control.Monad                                       (void)
-import           Data.Either                                         (isRight)
-import           Data.Foldable                                       (traverse_)
-import qualified Data.Map                                            as Map
-import           Hedgehog                                            (Property, forAll, property)
+import           Control.Monad                                         (void)
+import           Data.Either                                           (isRight)
+import           Data.Foldable                                         (traverse_)
+import qualified Data.Map                                              as Map
+import           Hedgehog                                              (Property, forAll, property)
 import qualified Hedgehog
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                                 (testProperty)
+import           Test.Tasty.Hedgehog                                   (testProperty)
 
-import           Wallet.API                                          (PubKey (..))
-import           Wallet.Emulator                                     hiding (Value)
-import qualified Wallet.Generators                                   as Gen
+import           Wallet                                                (PubKey (..))
+import           Wallet.Emulator
+import qualified Wallet.Generators                                     as Gen
 
-import           Language.Plutus.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
-import qualified Language.Plutus.Coordination.Contracts.CrowdFunding as CF
-import qualified Language.Plutus.Runtime                             as Runtime
-import qualified Wallet.UTXO                                         as UTXO
+import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
+import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
+import qualified Ledger
+import qualified Ledger.Validation                                     as Validation
 
 tests :: TestTree
 tests = testGroup "crowdfunding" [
@@ -37,16 +37,16 @@ tests = testGroup "crowdfunding" [
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
-contrib :: Wallet -> Runtime.Value -> Trace MockWallet ()
+contrib :: Wallet -> Ledger.Value -> Trace MockWallet ()
 contrib w v = void $ walletAction w (contribute cmp v) where
     cmp = cfCampaign scenario1
 
 -- | Make a contribution from wallet 2
-contrib2 :: Runtime.Value -> Trace MockWallet ()
+contrib2 :: Ledger.Value -> Trace MockWallet ()
 contrib2 = contrib (Wallet 2)
 
 -- | Make a contribution from wallet 3
-contrib3 :: Runtime.Value -> Trace MockWallet ()
+contrib3 :: Ledger.Value -> Trace MockWallet ()
 contrib3 = contrib (Wallet 3)
 
 -- | Collect the contributions of a crowdfunding campaign
@@ -59,9 +59,9 @@ collect w = void $ walletAction w $ CF.collect $ cfCampaign scenario1
 scenario1 :: CFScenario
 scenario1 = CFScenario{..} where
     cfCampaign = Campaign {
-        campaignDeadline = Runtime.Height 10,
+        campaignDeadline = Validation.Height 10,
         campaignTarget   = 1000,
-        campaignCollectionDeadline = Runtime.Height 15,
+        campaignCollectionDeadline = Validation.Height 15,
         campaignOwner              = PubKey 1
         }
     cfWallets = [w1, w2, w3]
@@ -200,11 +200,11 @@ canRefund = checkCFTrace scenario1 $ do
 data CFScenario = CFScenario {
     cfCampaign        :: Campaign,
     cfWallets         :: [Wallet],
-    cfInitialBalances :: Map.Map PubKey UTXO.Value
+    cfInitialBalances :: Map.Map PubKey Ledger.Value
     }
 
 -- | Funds available to wallets `Wallet 2` and `Wallet 3`
-startingBalance :: UTXO.Value
+startingBalance :: Ledger.Value
 startingBalance = 1000
 
 -- | Run a trace with the given scenario and check that the emulator finished
@@ -217,9 +217,9 @@ checkCFTrace CFScenario{cfInitialBalances} t = property $ do
     Hedgehog.assert ([] == _txPool st)
 
 -- | Notify all wallets in the campaign of the new blocks.
-notifyBlocks :: [Block] -> Trace MockWallet ()
+notifyBlocks :: [Ledger.Block] -> Trace MockWallet ()
 notifyBlocks = traverse_ notifyBlock
 
 -- | Notify all wallets in the campaign of a new block
-notifyBlock :: Block -> Trace MockWallet ()
+notifyBlock :: Ledger.Block -> Trace MockWallet ()
 notifyBlock = void . walletsNotifyBlock [w1, w2, w3]
