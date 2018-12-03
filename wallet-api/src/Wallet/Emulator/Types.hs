@@ -54,7 +54,8 @@ module Wallet.Emulator.Types(
     validateBlock,
     liftMockWallet,
     evalEmulated,
-    processEmulated
+    processEmulated,
+    fundsDistribution
     ) where
 
 import           Control.Lens               hiding (index, uncons)
@@ -261,6 +262,9 @@ data EmulatorState = EmulatorState {
     } deriving (Show)
 
 makeLenses ''EmulatorState
+
+fundsDistribution :: EmulatorState -> Map Wallet Value
+fundsDistribution = Map.map (getSum . foldMap Sum . view ownFunds) . view walletStates
 
 -- | The blockchain as a list of blocks, starting with the oldest (genesis)
 --   block
