@@ -1,6 +1,6 @@
 ## The Encoding of `tree` and `forest`
 
-How to arrive at this representation is described in great detail in the [`MutualData`](https://github.com/input-output-hk/plutus/blob/master/docs/fomega/mutual-type-level-recursion/MutualData.agda) document. The representation itself:
+How to arrive at this representation is described in great detail in the [`MutualData`](../mutual-type-level-recursion/MutualData.agda) document. The representation itself:
 
 ```
 treeTag   = \(t f :: *) -> t
@@ -59,8 +59,8 @@ This encoding is not what we use in practice, because manipulating pattern funct
 But in any case this is a true encoding of a family of mutually recursive data types and there is no mention of spines whatsoever. This encoding works in both the `ifix` and the head-spine form settings without any additional tricks. We only need to provide these simple definitions in the head-spine form setting:
 
 ```
-ifix  =  \(f :: (k -> *) -> k -> *) (a :: k) -> Spines.fix  f [a]
-iwrap = /\(f :: (k -> *) -> k -> *) (a :: k) -> Spines.wrap f [a]
+ifix  =  \(f :: (k -> *) -> k -> *) (a :: k) ->                        Spines.fix  f [a]
+iwrap = /\(f :: (k -> *) -> k -> *) (a :: k) -> \(t : f (ifix f) a) -> Spines.wrap f [a] t
 ```
 
 And nothing else is required. This proves that the topics of mutual type-level recursion and ways to get higher-kinded `fix` are completely orthogonal and shouldn't be conflated.
