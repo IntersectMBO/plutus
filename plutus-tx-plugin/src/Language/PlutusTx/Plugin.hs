@@ -265,7 +265,7 @@ convertExpr opts locStr origE resType = do
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ do
                   annotated <- PLC.annotateProgram plcP
-                  void $ PLC.typecheckProgram (PLC.TypeCheckCfg 1000 (PLC.TypeConfig True stringBuiltinTypes)) annotated
+                  void $ PLC.typecheckProgram (PLC.TypeConfig True stringBuiltinTypes (Just 1000)) annotated
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

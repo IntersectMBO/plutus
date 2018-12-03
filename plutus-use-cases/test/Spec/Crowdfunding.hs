@@ -37,20 +37,20 @@ tests = testGroup "crowdfunding" [
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
-contrib :: Wallet -> Runtime.Value -> Trace EmulatedWalletApi ()
+contrib :: Wallet -> Runtime.Value -> Trace MockWallet ()
 contrib w v = void $ walletAction w (contribute cmp v) where
     cmp = cfCampaign scenario1
 
 -- | Make a contribution from wallet 2
-contrib2 :: Runtime.Value -> Trace EmulatedWalletApi ()
+contrib2 :: Runtime.Value -> Trace MockWallet ()
 contrib2 = contrib (Wallet 2)
 
 -- | Make a contribution from wallet 3
-contrib3 :: Runtime.Value -> Trace EmulatedWalletApi ()
+contrib3 :: Runtime.Value -> Trace MockWallet ()
 contrib3 = contrib (Wallet 3)
 
 -- | Collect the contributions of a crowdfunding campaign
-collect :: Wallet -> Trace EmulatedWalletApi ()
+collect :: Wallet -> Trace MockWallet ()
 collect w = void $ walletAction w $ CF.collect $ cfCampaign scenario1
 
 -- | The scenario used in the property tests. In includes a campaign
@@ -209,7 +209,7 @@ startingBalance = 1000
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkCFTrace :: CFScenario -> Trace EmulatedWalletApi () -> Property
+checkCFTrace :: CFScenario -> Trace MockWallet () -> Property
 checkCFTrace CFScenario{cfInitialBalances} t = property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = cfInitialBalances }
     (result, st) <- forAll $ Gen.runTraceOn model (processPending >>= notifyBlock >> t)
@@ -217,9 +217,9 @@ checkCFTrace CFScenario{cfInitialBalances} t = property $ do
     Hedgehog.assert ([] == _txPool st)
 
 -- | Notify all wallets in the campaign of the new blocks.
-notifyBlocks :: [Block] -> Trace EmulatedWalletApi ()
+notifyBlocks :: [Block] -> Trace MockWallet ()
 notifyBlocks = traverse_ notifyBlock
 
 -- | Notify all wallets in the campaign of a new block
-notifyBlock :: Block -> Trace EmulatedWalletApi ()
+notifyBlock :: Block -> Trace MockWallet ()
 notifyBlock = void . walletsNotifyBlock [w1, w2, w3]

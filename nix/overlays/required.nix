@@ -1,7 +1,6 @@
 { pkgs }:
 
-with import ../../lib.nix;
-
+with import ../../lib.nix { inherit (pkgs) system config; };
 with pkgs.haskell.lib;
 
 let

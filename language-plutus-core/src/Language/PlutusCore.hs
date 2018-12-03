@@ -78,7 +78,6 @@ module Language.PlutusCore
     , AsTypeError (..)
     , TypeConfig (..)
     , DynamicBuiltinNameTypes (..)
-    , TypeCheckCfg (..)
     , TypeCheckM
     , parseTypecheck
     -- for testing
@@ -178,7 +177,7 @@ printNormalizeType
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
     annotated <- annotateProgram scoped
-    typecheckProgram (TypeCheckCfg 1000 $ TypeConfig norm mempty) annotated
+    typecheckProgram (TypeConfig norm mempty (Just 1000)) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -198,7 +197,7 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckCfg -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+    => TypeConfig -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -208,13 +207,13 @@ typecheckPipeline
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckCfg
+    => TypeConfig
     -> Program TyName Name a
     -> m (NormalizedType TyNameWithKind ())
 typecheckPipeline cfg =
     typecheckProgram cfg
     <=< annotateProgram
-    <=< through (unless (_typeConfigNormalize $ _cfgTypeConfig cfg) . checkProgram)
+    <=< through (unless (_typeConfigNormalize cfg) . checkProgram)
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
@@ -229,11 +228,11 @@ defaultVersion :: a -> Version a
 defaultVersion a = Version a 1 0 0
 
 -- | The default amount of gas to run the typechecker with.
-defaultTypecheckerGas :: Natural
-defaultTypecheckerGas = 1000
+defaultTypecheckerGas :: Maybe Natural
+defaultTypecheckerGas = Just 1000
 
-defaultTypecheckerCfg :: TypeCheckCfg
-defaultTypecheckerCfg = TypeCheckCfg defaultTypecheckerGas $ TypeConfig False mempty
+defaultTypecheckerCfg :: TypeConfig
+defaultTypecheckerCfg = TypeConfig False mempty defaultTypecheckerGas
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()

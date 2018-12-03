@@ -1,11 +1,8 @@
-let
-  localLib = import ../lib.nix;
-in
 { system ? builtins.currentSystem
 , config ? {}
-, iohkPkgs ? import ../. { inherit config system; }
-, pkgs ? iohkPkgs.pkgs
-, nixpkgsPath ? localLib.iohkNix.nixpkgs
+, iohkNix ? (import ../lib.nix { inherit config system; }).iohkNix
+, pkgs ? iohkNix.pkgs
+, nixpkgsPath ? iohkNix.nixpkgs
 
 # Update this if you need a package version recently uploaded to hackage.
 # Any timestamp works.
@@ -15,7 +12,7 @@ in
 with pkgs;
 
 let
-  deps = [ nixStable coreutils git findutils cabal2nix glibcLocales stack cabal-install iohkPkgs.stack2nix ];
+  deps = [ nixStable coreutils git findutils cabal2nix glibcLocales stack cabal-install stack2nix ];
 in
   writeScript "generate.sh" ''
     #!${stdenv.shell}
