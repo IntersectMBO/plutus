@@ -36,7 +36,6 @@ import           Control.Monad.Reader
 
 import           Data.Functor.Identity
 
-
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
@@ -77,16 +76,14 @@ prettyprinting = testNested "prettyprinting" [
     , goldenPir "maybe" (runQuote maybePir)
     ]
 
-
 basic :: Term TyName Name ()
 basic = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
-    pure $ 
+    pure $
         TyAbs () a (Type ()) $
         LamAbs () x (TyVar () a) $
         Var () x
-
 
 maybePir :: Quote (Term TyName Name ())
 maybePir = do
@@ -98,7 +95,6 @@ maybePir = do
     pure $
         Let ()
             NonRec
-
             [
                 DatatypeBind () mb
             ] $
@@ -120,7 +116,6 @@ listMatch = do
     pure $
         Let ()
             Rec
-
             [
                 DatatypeBind () lb
             ] $
@@ -177,15 +172,15 @@ evenOdd = do
     pure $
         Let ()
             NonRec
-            ([
+            [
                 TermBind () (VarDecl () arg nat) three
-             ]) $
+            ] $
         Let ()
             Rec
-            ([
+            [
                 TermBind () (VarDecl () evenn evenTy) evenF,
                 TermBind () (VarDecl () oddd oddTy) oddF
-             ]) $
+            ] $
         Apply () (Var () evenn) (Var () arg)
 
 serialization :: TestNested

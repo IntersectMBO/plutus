@@ -66,7 +66,6 @@ data Recursivity = NonRec | Rec
 
 instance Serialise Recursivity
 
-
 data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
@@ -101,7 +100,6 @@ It would be nice to resolve the inconsistency, but this would probably require c
 Plutus Core to use reified declarations.
 -}
 
-
 -- See note [PIR as a PLC extension]
 data Term tyname name a =
                         -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
@@ -120,7 +118,6 @@ data Term tyname name a =
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a)
 
-
 embedIntoIR :: PLC.Term tyname name a -> Term tyname name a
 embedIntoIR = \case
     PLC.Var a n -> Var a n
@@ -133,7 +130,6 @@ embedIntoIR = \case
     PLC.Error a ty -> Error a ty
     PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
     PLC.Wrap a tn ty t -> Wrap a tn ty (embedIntoIR t)
-
 
 -- no version as PIR is not versioned
 data Program tyname name a = Program a (Term tyname name a)
