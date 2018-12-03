@@ -30,11 +30,11 @@ tests = testGroup "futures" [
     testProperty "increase the margin" increaseMargin
     ]
 
-init :: Wallet -> Trace EmulatedWalletApi TxOutRef'
+init :: Wallet -> Trace MockWallet TxOutRef'
 init w = outp <$> walletAction w (F.initialise (PubKey 1) (PubKey 2) contract) where
     outp = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
 
-adjustMargin :: Wallet -> [TxOutRef'] -> FutureData -> UTXO.Value -> Trace EmulatedWalletApi TxOutRef'
+adjustMargin :: Wallet -> [TxOutRef'] -> FutureData -> UTXO.Value -> Trace MockWallet TxOutRef'
 adjustMargin w refs fd vl =
     outp <$> walletAction w (F.adjustMargin refs contract fd vl) where
         outp = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
@@ -42,7 +42,7 @@ adjustMargin w refs fd vl =
 -- | Initialise the futures contract with contributions from wallets 1 and 2,
 --   and update all wallets. Running `initBoth` will increase the block height
 --   by 2.
-initBoth :: Trace EmulatedWalletApi [TxOutRef']
+initBoth :: Trace MockWallet [TxOutRef']
 initBoth = do
     updateAll
     ins <- traverse init [w1, w2]
@@ -196,7 +196,7 @@ startingBalance = 1000000
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkTrace :: Trace EmulatedWalletApi () -> Property
+checkTrace :: Trace MockWallet () -> Property
 checkTrace t = property $ do
     let
         ib = Map.fromList [(PubKey 1, startingBalance), (PubKey 2, startingBalance)]
@@ -206,6 +206,6 @@ checkTrace t = property $ do
     Hedgehog.assert ([] == _txPool st)
 
 -- | Validate all pending transactions and notify all wallets
-updateAll :: Trace EmulatedWalletApi ()
+updateAll :: Trace MockWallet ()
 updateAll =
     processPending >>= void . walletsNotifyBlock [w1, w2]
