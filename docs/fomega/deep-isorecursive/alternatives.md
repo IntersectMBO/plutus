@@ -43,9 +43,17 @@ In general, each recursive data type is a `fix` applied to a pattern functor and
 
 ## Replace `fix :: (* -> *) -> *` by `ifix :: ((k -> *) -> k -> *) -> k -> *`
 
-The least invasive approach. We only need to replace `fix :: (* -> *) -> *` by `ifix :: ((k -> *) -> k -> *) -> k -> *`. The original `fix` [can be easily recovered](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d#file-ifixnat-agda).
+The least invasive approach. We only need to replace `fix :: (* -> *) -> *` by `ifix :: ((k -> *) -> k -> *) -> k -> *`. The original `fix` can be easily recovered as
 
-The rules:
+```
+origF = \(r :: (* -> *) -> *) (f :: * -> *) -> f (r f)
+fix   =  \(f :: * -> *) ->                     ifix  origF f
+wrap  = /\(f :: * -> *) -> \(t : f (fix f)) -> iwrap origF f t
+```
+
+(the encoding of `nat`, for example, then remains the same).
+
+The type rules:
 
 ```
 [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]
@@ -74,17 +82,7 @@ cons  = /\(a :: *) -> \(x : a) (xs : list a) ->
             iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
 ```
 
-This is basically the same encoding as with the head-spine form approach, except `a` is provided directly rather than via a single-element list. Of course, since we do not have spines now, we can't straightforwardly define the `nat` data type anymore: you have to put some argument into `ifix` and `iwrap`. We can put a dummy argument there, though, for example `all (a :: *). a`. The encoding then look like this:
-
-```
-dummy = all (a :: *). a
-natF  = \(nat :: * -> *) (dum :: *) -> all r. r -> (nat dum -> r) -> r
-nat   = ifix natF dummy
-zero  = iwrap natF dummy /\(r :: *) -> \(z : r) (f : nat -> r) -> z
-succ  = \(n : nat) -> iwrap natF dummy /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
-```
-
-That `dummy` argument is never used and is just passed around for the sole reason that we need to apply `ifix` and `iwrap` to some type argument.
+This is basically the same encoding as with the head-spine form approach, except `a` is provided directly rather than via a single-element list.
 
 However we also need to cover the generic n-ary case. With kind-level products we could write `fix f (a1, a2, ... an)`. We do not have kind-level products, but we can just Church-encode spines:
 
@@ -92,7 +90,7 @@ However we also need to cover the generic n-ary case. With kind-level products w
 ifix f (\(r :: k1 -> k2 -> ... -> kn -> *) -> r a1 a2 ... an)
 ```
 
-which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case ([an illustration](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d#file-ifixn-agda)).
+which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case (see [this illustration](TreeForest.md)).
 
 What is implemented right now performs this Church-encoding and the resulting machinery looks very much like the head-spine form approach for the user. Our examples become
 
@@ -121,19 +119,20 @@ As shown in the end of the previous section there is no big difference to the us
 
 Regardless of the approach, `unwrap` is always used the same way. Even with elimination contexts or without higher kinds at all `unwrap` was used in the same way. The usages of `unwrap` in the Plutus Core codebase have never changed basically.
 
-It also does not matter which approach we choose from the encoding of mutual recursion perspective. This is because for encoding mutual recursion we use [ifix](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d) which we have out of the box in the `ifix` approach and which we can get trivially in the head-spine form approach:
+It also does not matter which approach we choose from the encoding of mutual recursion perspective. This is because for encoding mutual recursion we use [ifix](../mutual-type-level-recursion/MutualData.agda) which we have out of the box in the `ifix` approach and which we can get trivially in the head-spine form approach:
 
 ```
-ifix = \(f :: ((k -> *) -> k -> *) -> k -> *) (a :: k) -> fix f [a]
-iwrap = /\(f :: ((k -> *) -> k -> *) -> k -> *) (a :: k) -> wrap f [a]
+ifix  =  \(f :: (k -> *) -> k -> *) (a :: k) ->                        Spines.fix  f [a]
+iwrap = /\(f :: (k -> *) -> k -> *) (a :: k) -> \(t : f (ifix f) a) -> Spines.wrap f [a] t
 ```
 
-I.e. the only thing we need is just to use a single-element spine.
+(where `Spines.fix` and `Spines.wrap` are the corresponding primitives in the head-spine approach). I.e. the only thing we need is just to use a single-element spine.
 
 There are only two notable differences between the approaches:
 
-1. the head-spine form solution is expected to be more efficient, because it does not Church-encode spines or and does not pass dummy arguments around. The exact performance penalty is not clear right now and will be investigated
-2. the `ifix` solution requires much less changes to the Plutus Core AST and thus is more convervative
+1. the head-spine form solution may be more efficient, because it does not Church-encode spines. The exact performance penalty is not clear right now and will be investigated
+2. the `ifix` solution requires much less changes to the Plutus Core AST and thus is more conservative
+3. it's not immediately clear how to specify the rules for the head-spine form solution (which is why they're not present in this document)
 
 These are all the trade-offs known at the moment.
 
