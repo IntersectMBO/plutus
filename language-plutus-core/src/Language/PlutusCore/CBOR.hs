@@ -213,13 +213,13 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (T
               go 9 = Builtin <$> decode <*> decode
               go _ = fail "Failed to decode Term TyName Name ()"
 
-instance (Serialise (tyname ()), Serialise (name ())) => Serialise (VarDecl tyname name ()) where
-    encode (VarDecl _ name tyname ) = encode name <> encode tyname
-    decode = VarDecl () <$> decode <*> decode
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (VarDecl tyname name a) where
+    encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
+    decode = VarDecl <$> decode <*> decode <*> decode
 
-instance Serialise (tyname ())  => Serialise (TyVarDecl tyname () ) where
-    encode (TyVarDecl _ tyname kind) = encode tyname <> encode kind
-    decode = TyVarDecl () <$> decode <*> decode
+instance (Serialise a, Serialise (tyname a))  => Serialise (TyVarDecl tyname a) where
+    encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
+    decode = TyVarDecl <$> decode <*> decode <*> decode
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a) where
     encode (Program x v t) = encode x <> encode v <> encode t
