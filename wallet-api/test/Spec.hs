@@ -19,7 +19,7 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
 import           Language.PlutusTx.TH       (plutus)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude
+import qualified Language.PlutusTx.Prelude  as PlutusTx
 
 import           Wallet
 import           Wallet.Emulator
@@ -144,7 +144,7 @@ invalidScript = property $ do
 
     where
         failValidator :: Validator
-        failValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> $$(traceH) "I always fail everything" (Builtins.error @()) ||])
+        failValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do
