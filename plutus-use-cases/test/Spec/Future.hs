@@ -11,7 +11,7 @@ import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
 
-import qualified Ledger                                          as Ledger
+import qualified Ledger
 import           Ledger.Validation                               (OracleValue (..), Signed (..))
 import qualified Ledger.Validation                               as Validation
 import           Prelude                                         hiding (init)

@@ -21,7 +21,7 @@ import qualified Wallet.Generators                                     as Gen
 
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
-import qualified Ledger                                                as Ledger
+import qualified Ledger
 import qualified Ledger.Validation                                     as Validation
 
 tests :: TestTree

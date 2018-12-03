@@ -19,7 +19,7 @@ import           Test.Tasty.Hedgehog                              (testProperty)
 import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..), VestingData (..), VestingTranche (..),
                                                                    retrieveFunds, totalAmount, validatorScriptHash,
                                                                    vestFunds)
-import qualified Ledger                                           as Ledger
+import qualified Ledger
 import qualified Ledger.Validation                                as Validation
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
