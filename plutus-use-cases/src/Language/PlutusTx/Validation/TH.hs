@@ -21,7 +21,7 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Ledger
 import           Ledger.Validation
 
-import           Prelude                    (Bool (..), Eq (..), Int, Maybe (..), (<), (>), (+))
+import           Prelude                    (Bool (..), Eq (..), Maybe (..))
 
 -- | Check if a transaction was signed by a public key
 txSignedBy :: Q (TExp (PendingTx ValidatorHash -> PubKey -> Bool))
@@ -30,12 +30,12 @@ txSignedBy = [||
         let
             PendingTx _ _ _ _ _ sigs _ = p
 
-            signedBy :: Signature -> Bool
-            signedBy (Signature s) = s == k
+            signedBy' :: Signature -> Bool
+            signedBy' (Signature s) = s == k
 
             go :: [Signature] -> Bool
             go l = case l of
-                        s:r -> if signedBy s then True else go r
+                        s:r -> if signedBy' s then True else go r
                         []  -> False
         in
             go sigs
@@ -49,12 +49,12 @@ txInSignedBy = [||
             PendingTxIn ref _ _      = i
             PendingTxOutRef _ _ sigs = ref
 
-            signedBy :: Signature -> Bool
-            signedBy (Signature i') = i' == k
+            signedBy' :: Signature -> Bool
+            signedBy' (Signature i') = i' == k
 
             go :: [Signature] -> Bool
             go l = case l of
-                        s:r -> if signedBy s then True else go r
+                        s:r -> if signedBy' s then True else go r
                         []  -> False
         in go sigs
 

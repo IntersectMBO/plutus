@@ -68,11 +68,7 @@ let
   src = localLib.iohkNix.cleanSourceHaskell ./.;
   errorOverlay = import ./nix/overlays/force-error.nix {
     inherit pkgs;
-    # TODO: fix plutus-use-cases and plutus-exe warnings
-    #filter = localLib.isPlutus;
-    filter = let
-      pkgList = pkgs.lib.remove "plutus-use-cases" localLib.plutusPkgList;
-      in name: builtins.elem name pkgList;
+    filter = localLib.isPlutus;
   };
   customOverlays = optional forceError errorOverlay;
   packages = self: ({
@@ -85,7 +81,7 @@ let
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays;
       pkgsGenerated = ./pkgs;
-      filter = name: builtins.elem name localLib.plutusPkgList; 
+      filter = localLib.isPlutus;
       filterOverrides = {
         # split check is broken for things with test tool dependencies
         splitCheck = let
