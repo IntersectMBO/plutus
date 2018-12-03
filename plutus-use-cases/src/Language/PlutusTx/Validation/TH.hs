@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 -- | Useful functions for validator scripts, in the form of quoted expressions
-module Language.Plutus.Runtime.TH(
+module Language.PlutusTx.Validation.TH(
     -- * Boolean operators
     and,
     or,
@@ -34,7 +34,8 @@ module Language.Plutus.Runtime.TH(
 
 import           Language.Haskell.TH        (Q, TExp)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Wallet.UTXO.Runtime
+import           Ledger
+import           Ledger.Validation
 
 import           Prelude                    (Bool (..), Eq (..), Int, Maybe (..), (<), (>), (+))
 

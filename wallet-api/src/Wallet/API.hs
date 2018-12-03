@@ -55,10 +55,10 @@ import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
+import           Ledger                     (Address', DataScript, Height, PubKey (..), Signature (..), Tx (..), TxIn',
+                                             TxOut (..), TxOut', TxOutType (..), Value, pubKeyTxOut)
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
-import           Wallet.UTXO                (Address', DataScript, Height, PubKey (..), Signature (..), Tx (..), TxIn',
-                                             TxOut (..), TxOut', TxOutType (..), Value, pubKeyTxOut)
 
 import           Prelude                    hiding (Ordering (..))
 

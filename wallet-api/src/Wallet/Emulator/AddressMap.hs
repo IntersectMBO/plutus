@@ -31,7 +31,7 @@ import qualified Data.Set               as Set
 import qualified Data.Text.Encoding     as TE
 import           GHC.Generics           (Generic)
 
-import           Wallet.UTXO            (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef',
+import           Ledger                 (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef',
                                          Value, hashTx)
 
 -- | A map of [[Address']]es and their unspent outputs

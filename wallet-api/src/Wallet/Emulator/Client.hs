@@ -25,6 +25,7 @@ import           Control.Monad.Writer       (MonadWriter, WriterT, runWriterT, t
 import           Data.Foldable              (fold)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
+import           Ledger                     (Block, Height, Tx, TxIn', TxOut', Value)
 import           Servant.API                ((:<|>) ((:<|>)), NoContent)
 import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
 import           Wallet.API                 (KeyPair, WalletAPI (..))
@@ -32,7 +33,6 @@ import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Http       (API)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), Event (..),
                                              Notification (BlockHeight, BlockValidated), Trace, Wallet)
-import           Wallet.UTXO                (Block, Height, Tx, TxIn', TxOut', Value)
 
 api :: Proxy API
 api = Proxy

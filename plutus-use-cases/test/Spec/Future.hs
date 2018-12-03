@@ -2,25 +2,25 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Spec.Future(tests) where
 
-import           Control.Monad                                 (void)
-import           Data.Either                                   (isRight)
-import           Data.Foldable                                 (traverse_)
-import qualified Data.Map                                      as Map
-import           Hedgehog                                      (Property, forAll, property)
+import           Control.Monad                                   (void)
+import           Data.Either                                     (isRight)
+import           Data.Foldable                                   (traverse_)
+import qualified Data.Map                                        as Map
+import           Hedgehog                                        (Property, forAll, property)
 import qualified Hedgehog
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                           (testProperty)
+import           Test.Tasty.Hedgehog                             (testProperty)
 
-import           Prelude                                       hiding (init)
-import           Wallet.API                                    (PubKey (..))
-import           Wallet.Emulator                               hiding (Value)
-import qualified Wallet.Generators                             as Gen
-import qualified Wallet.UTXO                                   as UTXO
-import           Wallet.UTXO.Runtime                           (OracleValue (..), Signed (..))
-import qualified Wallet.UTXO.Runtime                           as Runtime
+import qualified Ledger                                          as Ledger
+import           Ledger.Validation                               (OracleValue (..), Signed (..))
+import qualified Ledger.Validation                               as Validation
+import           Prelude                                         hiding (init)
+import           Wallet.API                                      (PubKey (..))
+import           Wallet.Emulator
+import qualified Wallet.Generators                               as Gen
 
-import           Language.Plutus.Coordination.Contracts.Future (Future (..), FutureData (..))
-import qualified Language.Plutus.Coordination.Contracts.Future as F
+import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))
+import qualified Language.PlutusTx.Coordination.Contracts.Future as F
 
 tests :: TestTree
 tests = testGroup "futures" [
@@ -30,19 +30,19 @@ tests = testGroup "futures" [
     testProperty "increase the margin" increaseMargin
     ]
 
-init :: Wallet -> Trace MockWallet TxOutRef'
+init :: Wallet -> Trace MockWallet Ledger.TxOutRef'
 init w = outp <$> walletAction w (F.initialise (PubKey 1) (PubKey 2) contract) where
-    outp = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
+    outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
-adjustMargin :: Wallet -> [TxOutRef'] -> FutureData -> UTXO.Value -> Trace MockWallet TxOutRef'
+adjustMargin :: Wallet -> [Ledger.TxOutRef'] -> FutureData -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef'
 adjustMargin w refs fd vl =
     outp <$> walletAction w (F.adjustMargin refs contract fd vl) where
-        outp = snd . head . filter (isPayToScriptOut . fst) . txOutRefs . head
+        outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
 -- | Initialise the futures contract with contributions from wallets 1 and 2,
 --   and update all wallets. Running `initBoth` will increase the block height
 --   by 2.
-initBoth :: Trace MockWallet [TxOutRef']
+initBoth :: Trace MockWallet [Ledger.TxOutRef']
 initBoth = do
     updateAll
     ins <- traverse init [w1, w2]
@@ -65,7 +65,7 @@ settle = checkTrace $ do
         cur = FutureData (PubKey 1) (PubKey 2) im im
         spotPrice = 1124
         delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue (Signed (oracle, (Runtime.Height 10, spotPrice)))
+        ov  = OracleValue (Signed (oracle, (Validation.Height 10, spotPrice)))
 
     -- advance the clock to block height 10
     void $ addBlocks 8
@@ -89,7 +89,7 @@ settleEarly = checkTrace $ do
         -- up with the variation margin.
         (_, upper) = marginRange
         spotPrice = upper + 1
-        ov  = OracleValue (Signed (oracle, (Runtime.Height 8, spotPrice)))
+        ov  = OracleValue (Signed (oracle, (Validation.Height 8, spotPrice)))
 
     -- advance the clock to block height 8
     void $ addBlocks 6
@@ -130,7 +130,7 @@ increaseMargin = checkTrace $ do
         spotPrice = upper + 1
 
         delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue (Signed (oracle, (Runtime.Height 10, spotPrice)))
+        ov  = OracleValue (Signed (oracle, (Validation.Height 10, spotPrice)))
 
     void $ walletAction w2 (F.settle [ins'] contract cur' ov)
     updateAll
@@ -147,28 +147,28 @@ increaseMargin = checkTrace $ do
 --   10 blocks.
 contract :: Future
 contract = Future {
-    futureDeliveryDate  = Runtime.Height 10,
+    futureDeliveryDate  = Validation.Height 10,
     futureUnits         = units,
     futureUnitPrice     = forwardPrice,
     futureInitialMargin = im,
     futurePriceOracle   = oracle,
     futureMarginPenalty = penalty
     } where
-        im = penalty + (Runtime.Value units * forwardPrice `div` 20) -- 5%
+        im = penalty + (Ledger.Value units * forwardPrice `div` 20) -- 5%
 
 -- | Margin penalty
-penalty :: Runtime.Value
+penalty :: Ledger.Value
 penalty = 1000
 
 -- | The forward price agreed at the beginning of the contract.
-forwardPrice :: Runtime.Value
+forwardPrice :: Ledger.Value
 forwardPrice = 1123
 
 -- | Range within which the underlying asset's price can move before the first
 --   margin payment is necessary.
 --   If the price approaches the lower range, then the buyer (long position,
 --   Wallet 1) has to increase their margin, and vice versa.
-marginRange :: (Runtime.Value, Runtime.Value)
+marginRange :: (Ledger.Value, Ledger.Value)
 marginRange = (forwardPrice - delta, forwardPrice + delta) where
     delta = forwardPrice `div` 20
 
@@ -187,11 +187,11 @@ w2 = Wallet 2
 oracle :: PubKey
 oracle = PubKey 17
 
-initMargin :: UTXO.Value
+initMargin :: Ledger.Value
 initMargin = futureInitialMargin contract
 
 -- | Funds available to wallets at the beginning.
-startingBalance :: UTXO.Value
+startingBalance :: Ledger.Value
 startingBalance = 1000000
 
 -- | Run a trace with the given scenario and check that the emulator finished

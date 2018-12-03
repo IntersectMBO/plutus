@@ -4,17 +4,17 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
-module Language.Plutus.Coordination.Contracts.Swap(
+module Language.PlutusTx.Coordination.Contracts.Swap(
     Swap(..),
     swapValidator
     ) where
 
-import           Language.Plutus.Runtime    (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
-                                             PubKey, ValidatorHash, Value (..))
-import qualified Language.Plutus.Runtime.TH as TH
-import qualified Language.PlutusTx          as PlutusTx
-import           Wallet.UTXO                (Height, Validator (..))
-import qualified Wallet.UTXO                as UTXO
+import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx.Validation as PlutusTx
+import           Ledger                       (Height, PubKey, Validator (..), Value (..))
+import qualified Ledger                       as Ledger
+import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
+                                              ValidatorHash)
 
 import           Prelude                    (Bool (..), Eq (..), Int, Num (..), Ord (..))
 
@@ -58,17 +58,17 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> Validator
 swapValidator _ = Validator result where
-    result = UTXO.fromPlcCode $$(PlutusTx.plutus [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
+    result = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(TH.and)
+            (&&) = $$(PlutusTx.and)
 
             mn :: Int -> Int -> Int
-            mn = $$(TH.min)
+            mn = $$(PlutusTx.min)
 
             mx :: Int -> Int -> Int
-            mx = $$(TH.max)
+            mx = $$(PlutusTx.max)
 
             timesR :: Ratio Int -> Ratio Int -> Ratio Int
             timesR (x :% y) (x' :% y') = (x*x') :% (y*y')
@@ -90,14 +90,14 @@ swapValidator _ = Validator result where
             fromInt = PlutusTx.error ()
 
             signedBy :: PendingTxIn -> PubKey -> Bool
-            signedBy = $$(TH.txInSignedBy)
+            signedBy = $$(PlutusTx.txInSignedBy)
 
             infixr 3 ||
             (||) :: Bool -> Bool -> Bool
-            (||) = $$(TH.or)
+            (||) = $$(PlutusTx.or)
 
             isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-            isPubKeyOutput o k = $$(TH.maybe) False ($$(TH.eqPubKey) k) ($$(TH.pubKeyOutput) o)
+            isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(PlutusTx.eqPubKey) k) ($$(PlutusTx.pubKeyOutput) o)
 
             -- Verify the authenticity of the oracle value and compute
             -- the payments.

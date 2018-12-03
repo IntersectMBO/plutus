@@ -21,10 +21,12 @@ import           Language.PlutusTx.TH       (plutus)
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
 
+import           Wallet
 import           Wallet.Emulator
 import           Wallet.Generators          (Mockchain (..))
 import qualified Wallet.Generators          as Gen
-import qualified Wallet.UTXO.Index          as Index
+import           Ledger
+import qualified Ledger.Index          as Index
 
 main :: IO ()
 main = defaultMain tests

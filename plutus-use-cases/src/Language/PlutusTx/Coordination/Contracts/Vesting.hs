@@ -6,7 +6,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
-module Language.Plutus.Coordination.Contracts.Vesting (
+module Language.PlutusTx.Coordination.Contracts.Vesting (
     Vesting(..),
     VestingTranche(..),
     VestingData(..),
@@ -17,18 +17,18 @@ module Language.Plutus.Coordination.Contracts.Vesting (
     validatorScriptHash
     ) where
 
-import           Control.Monad.Error.Class  (MonadError (..))
-import qualified Data.Set                   as Set
-import           GHC.Generics               (Generic)
-import           Language.Plutus.Runtime    (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
-                                             PubKey (..), ValidatorHash, Value (..))
-import qualified Language.Plutus.Runtime.TH as TH
-import qualified Language.PlutusTx          as PlutusTx
-import           Prelude                    hiding ((&&))
-import           Wallet.API                 (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
-import           Wallet.UTXO                (DataScript (..), TxOutRef', Validator (..), scriptTxIn, scriptTxOut)
-import qualified Wallet.UTXO                as UTXO
-import qualified Wallet.UTXO.Runtime        as Runtime
+import           Control.Monad.Error.Class    (MonadError (..))
+import qualified Data.Set                     as Set
+import           GHC.Generics                 (Generic)
+import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
+                                              ValidatorHash)
+import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx.Validation as PlutusTx
+import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', Validator (..), Value (..), scriptTxIn, scriptTxOut)
+import qualified Ledger                       as Ledger
+import qualified Ledger.Validation            as Validation
+import           Prelude                      hiding ((&&))
+import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -73,7 +73,7 @@ vestFunds vst value = do
     _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
     let vs = validatorScript vst
-        o = scriptTxOut value vs (DataScript $ UTXO.lifted vd)
+        o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
     _ <- signAndSubmit payment [o, change]
     pure vd
@@ -85,40 +85,40 @@ retrieveFunds :: (
     => Vesting
     -> VestingData -- ^ Value that has already been taken out
     -> TxOutRef'  -- ^ Transaction output locked by the vesting validator script
-    -> UTXO.Value -- ^ Value we want to take out now
+    -> Ledger.Value -- ^ Value we want to take out now
     -> m VestingData
 retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
     let val = validatorScript vs
-        o   = scriptTxOut remaining val (DataScript $ UTXO.lifted vd')
+        o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
         remaining = totalAmount vs - vnow
         vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
-        inp = scriptTxIn r val UTXO.unitRedeemer
+        inp = scriptTxIn r val Ledger.unitRedeemer
     _ <- signAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
-    Runtime.plcValidatorDigest
-    . UTXO.getAddress
-    . UTXO.scriptAddress
+    Validation.plcValidatorDigest
+    . Ledger.getAddress
+    . Ledger.scriptAddress
     . validatorScript
 
 validatorScript :: Vesting -> Validator
 validatorScript v = Validator val where
-    val = UTXO.applyScript inner (UTXO.lifted v)
-    inner = UTXO.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
+    val = Ledger.applyScript inner (Ledger.lifted v)
+    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(TH.eqValidator)
+            eqBs = $$(PlutusTx.eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk = $$(TH.eqPubKey)
+            eqPk = $$(PlutusTx.eqPubKey)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(TH.and)
+            (&&) = $$(PlutusTx.and)
 
             PendingTx _ os _ _ (Height h) _ _ = p
             VestingTranche (Height d1) (Value a1) = vestingTranche1

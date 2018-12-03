@@ -25,6 +25,7 @@ flag development
 
 library
     exposed-modules:
+        Wallet
         Wallet.API
         Wallet.Emulator
         Wallet.Emulator.AddressMap
@@ -32,10 +33,10 @@ library
         Wallet.Emulator.Http
         Wallet.Emulator.Types
         Wallet.Generators
-        Wallet.UTXO
-        Wallet.UTXO.Types
-        Wallet.UTXO.Runtime
-        Wallet.UTXO.Index
+        Ledger 
+        Ledger.Types
+        Ledger.Validation
+        Ledger.Index
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables

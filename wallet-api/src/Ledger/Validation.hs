@@ -5,14 +5,11 @@
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
--- | A model of the types involved in transactions. These types are intented to
+-- | A model of the types involved in validating transactions. These types are intented to
 --   be used in PLC scripts.
-module Wallet.UTXO.Runtime (-- * Transactions and related types
-                PubKey(..)
-              , Value(..)
-              , Height(..)
+module Ledger.Validation (-- * Transactions and related types
+                Height(..)
               , PendingTxOutRef(..)
-              , Signature(..)
               -- ** Hashes (see note [Hashes in validator scripts])
               , DataScriptHash(..)
               , RedeemerHash(..)
@@ -38,8 +35,8 @@ import qualified Data.ByteArray         as BA
 import qualified Data.ByteString.Lazy   as BSL
 import           GHC.Generics           (Generic)
 import           Language.PlutusTx.Lift (makeLift)
-import           Wallet.UTXO.Types      (PubKey (..), Signature (..), Value (..))
-import qualified Wallet.UTXO.Types      as UTXO
+import           Ledger.Types           (PubKey (..), Signature (..), Value (..))
+import qualified Ledger.Types           as Ledger
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
@@ -100,8 +97,8 @@ We need to deal with hashes of four different things in a validator script:
 3. Data scripts
 4. Redeemer scripts
 
-The mockchain code in [[Wallet.UTXO.Types]] only deals with the hashes of(1)
-and (2), and uses the [[Wallet.UTXO.Types.TxId']] and `Digest SHA256` types for
+The mockchain code in [[Ledger.Types]] only deals with the hashes of(1)
+and (2), and uses the [[Ledger.TxId']] and `Digest SHA256` types for
 them.
 
 In PLC validator scripts the situation is different: First, they need to work
@@ -128,17 +125,17 @@ newtype RedeemerHash = RedeemerHash BSL.ByteString
 newtype TxHash = TxHash BSL.ByteString
     deriving (Eq, Generic)
 
-plcDataScriptHash :: UTXO.DataScript -> DataScriptHash
+plcDataScriptHash :: Ledger.DataScript -> DataScriptHash
 plcDataScriptHash = DataScriptHash . plcHash
 
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
-plcRedeemerHash :: UTXO.Redeemer -> RedeemerHash
+plcRedeemerHash :: Ledger.Redeemer -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcHash
 
-plcTxHash :: UTXO.TxId' -> TxHash
-plcTxHash = TxHash . plcDigest . UTXO.getTxId
+plcTxHash :: Ledger.TxId' -> TxHash
+plcTxHash = TxHash . plcDigest . Ledger.getTxId
 
 -- | PLC-compatible hash of a hashable value
 plcHash :: BA.ByteArrayAccess a => a -> BSL.ByteString
@@ -149,7 +146,7 @@ plcDigest :: Digest SHA256 -> BSL.ByteString
 plcDigest = serialise
 
 -- | Blockchain height
---   TODO: Use [[Wallet.UTXO.Height]] when Integer is supported
+--   TODO: Use [[Ledger.Height]] when Integer is supported
 data Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Generic)
 
