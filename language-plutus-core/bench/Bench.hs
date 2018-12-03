@@ -29,22 +29,25 @@ main =
                       , bench "parse (stringLiteral)" $ nf parse g
                       ]
 
-                , env largeTypeFiles $ \ ~(f, g) ->
+                , env largeTypeFiles $ \ ~(f, g, h) ->
                    bgroup "type-check"
                       [ bench "printType" $ nf (printType :: BSL.ByteString -> Either (Error AlexPosn) T.Text) f
                       , bench "printType" $ nf (printType :: BSL.ByteString -> Either (Error AlexPosn) T.Text) g
+                      , bench "printType" $ nf (printType :: BSL.ByteString -> Either (Error AlexPosn) T.Text) h
                       ]
 
-                , env largeTypeFiles $ \ ~(f, g) ->
+                , env largeTypeFiles $ \ ~(f, g, h) ->
                    bgroup "normal-form check"
                       [ bench "check" $ nf (fmap check) (parse f)
                       , bench "check" $ nf (fmap check) (parse g)
+                      , bench "check" $ nf (fmap check) (parse h)
                       ]
 
-                , env largeTypeFiles $ \ ~(f, g) ->
+                , env largeTypeFiles $ \ ~(f, g, h) ->
                     bgroup "CBOR"
                       [ bench "writeProgram" $ nf (fmap (serialise . void)) $ parse f
                       , bench "writeProgram" $ nf (fmap (serialise . void)) $ parse g
+                      , bench "writeProgram" $ nf (fmap (serialise . void)) $ parse h
                       ]
 
                 ]
@@ -54,7 +57,8 @@ main =
           files = (,) <$> envFile <*> stringFile
           largeTypeFile0 = BSL.readFile "test/types/negation.plc"
           largeTypeFile1 = BSL.readFile "test/types/tail.plc"
-          largeTypeFiles = (,) <$> largeTypeFile0 <*> largeTypeFile1
+          largeTypeFile2 = BSL.readFile "test/types/verifyIdentity.plc"
+          largeTypeFiles = (,,) <$> largeTypeFile0 <*> largeTypeFile1 <*> largeTypeFile2
           cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
