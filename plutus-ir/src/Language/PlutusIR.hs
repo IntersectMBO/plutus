@@ -40,6 +40,14 @@ import           GHC.Generics               (Generic)
 
 -- Datatypes
 
+{- Note: [Serialization of PIR]
+-  The serialized version of Plutus-IR will be included in  the final
+-  executable for helping debugging and testing and providing better error
+-  reporting. It is not meant to be stored on the chain, which means that
+-  the underlying representation can vary. The `Generic` instances of the
+-  terms can thus be used as backwards compatibility is not required.
+-}
+
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
     deriving (Functor, Show, Eq, Generic)
 
