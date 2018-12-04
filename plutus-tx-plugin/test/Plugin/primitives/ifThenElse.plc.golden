@@ -1,128 +1,65 @@
-(program 1.0.0
-  [
-    [
-      {
-        (abs
-          Unit_90
-          (type)
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (let
+      (nonrec)
+      (datatypebind
+        (datatype
+          (tyvardecl Bool (type))
+          
+          Bool_match
+          (vardecl True Bool) (vardecl False Bool)
+        )
+      )
+      (let
+        (nonrec)
+        (termbind
+          (vardecl
+            equalsInteger
+            (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool))
+          )
           (lam
-            Unit_91
-            Unit_90
+            arg
+            [(con integer) (con 8)]
             (lam
-              Unit_match_92
-              (fun Unit_90 (all out_Unit_93 (type) (fun out_Unit_93 out_Unit_93)))
+              arg
+              [(con integer) (con 8)]
               [
-                [
-                  [
-                    {
-                      (abs
-                        Bool_94
-                        (type)
-                        (lam
-                          True_95
-                          Bool_94
-                          (lam
-                            False_96
-                            Bool_94
-                            (lam
-                              Bool_match_97
-                              (fun Bool_94 (all out_Bool_98 (type) (fun out_Bool_98 (fun out_Bool_98 out_Bool_98))))
-                              [
-                                (lam
-                                  equalsInteger_99
-                                  (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] Bool_94))
-                                  (lam
-                                    ds_100
-                                    [(con integer) (con 8)]
-                                    (lam
-                                      ds_101
-                                      [(con integer) (con 8)]
-                                      [
-                                        [
-                                          [
-                                            {
-                                              [
-                                                Bool_match_97
-                                                [
-                                                  [ equalsInteger_99 ds_100 ]
-                                                  ds_101
-                                                ]
-                                              ]
-                                              (fun Unit_90 [(con integer) (con 8)])
-                                            }
-                                            (lam thunk_102 Unit_90 ds_100)
-                                          ]
-                                          (lam thunk_103 Unit_90 ds_101)
-                                        ]
-                                        Unit_91
-                                      ]
-                                    )
-                                  )
-                                )
-                                (lam
-                                  arg_104
-                                  [(con integer) (con 8)]
-                                  (lam
-                                    arg_105
-                                    [(con integer) (con 8)]
-                                    [
-                                      (lam
-                                        b_106
-                                        (all a_107 (type) (fun a_107 (fun a_107 a_107)))
-                                        [
-                                          [ { b_106 Bool_94 } True_95 ] False_96
-                                        ]
-                                      )
-                                      [
-                                        [
-                                          { (builtin equalsInteger) (con 8) }
-                                          arg_104
-                                        ]
-                                        arg_105
-                                      ]
-                                    ]
-                                  )
-                                )
-                              ]
-                            )
-                          )
-                        )
-                      )
-                      (all out_Bool_108 (type) (fun out_Bool_108 (fun out_Bool_108 out_Bool_108)))
-                    }
-                    (abs
-                      out_Bool_109
-                      (type)
-                      (lam
-                        case_True_110
-                        out_Bool_109
-                        (lam case_False_111 out_Bool_109 case_True_110)
-                      )
-                    )
-                  ]
-                  (abs
-                    out_Bool_112
-                    (type)
-                    (lam
-                      case_True_113
-                      out_Bool_112
-                      (lam case_False_114 out_Bool_112 case_False_114)
-                    )
-                  )
-                ]
                 (lam
-                  x_115
-                  (all out_Bool_116 (type) (fun out_Bool_116 (fun out_Bool_116 out_Bool_116)))
-                  x_115
+                  b
+                  (all a (type) (fun a (fun a a)))
+                  [ [ { b Bool } True ] False ]
                 )
+                [ [ { (builtin equalsInteger) (con 8) } arg ] arg ]
               ]
             )
           )
         )
-        (all out_Unit_117 (type) (fun out_Unit_117 out_Unit_117))
-      }
-      (abs out_Unit_118 (type) (lam case_Unit_119 out_Unit_118 case_Unit_119))
-    ]
-    (lam x_120 (all out_Unit_121 (type) (fun out_Unit_121 out_Unit_121)) x_120)
-  ]
+        (lam
+          ds
+          [(con integer) (con 8)]
+          (lam
+            ds
+            [(con integer) (con 8)]
+            [
+              [
+                [
+                  {
+                    [ Bool_match [ [ equalsInteger ds ] ds ] ]
+                    (fun Unit [(con integer) (con 8)])
+                  }
+                  (lam thunk Unit ds)
+                ]
+                (lam thunk Unit ds)
+              ]
+              Unit
+            ]
+          )
+        )
+      )
+    )
+  )
 )

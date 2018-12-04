@@ -1,40 +1,14 @@
-(program 1.0.0
-  [
-    [
-      {
-        (abs
-          MyNewtype_81
-          (type)
-          (lam
-            MyNewtype_82
-            (fun [(con integer) (con 8)] MyNewtype_81)
-            (lam
-              MyNewtype_match_83
-              (fun MyNewtype_81 (all out_MyNewtype_84 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_84) out_MyNewtype_84)))
-              [ MyNewtype_82 (con 8 ! 1) ]
-            )
-          )
-        )
-        (all out_MyNewtype_85 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_85) out_MyNewtype_85))
-      }
-      (lam
-        arg_0_86
-        [(con integer) (con 8)]
-        (abs
-          out_MyNewtype_87
-          (type)
-          (lam
-            case_MyNewtype_88
-            (fun [(con integer) (con 8)] out_MyNewtype_87)
-            [ case_MyNewtype_88 arg_0_86 ]
-          )
-        )
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyNewtype (type))
+        
+        MyNewtype_match
+        (vardecl MyNewtype (fun [(con integer) (con 8)] MyNewtype))
       )
-    ]
-    (lam
-      x_89
-      (all out_MyNewtype_90 (type) (fun (fun [(con integer) (con 8)] out_MyNewtype_90) out_MyNewtype_90))
-      x_89
     )
-  ]
+    [ MyNewtype (con 8 ! 1) ]
+  )
 )

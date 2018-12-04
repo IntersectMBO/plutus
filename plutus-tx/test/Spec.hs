@@ -19,6 +19,8 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Evaluation
 
+import qualified Language.PlutusIR          as PIR
+
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore
 
@@ -31,7 +33,10 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 instance GetProgram PlcCode where
-    getProgram = catchAll . getAst
+    getProgram = catchAll . getPlc
+
+goldenPir :: String -> PlcCode -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
 
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
 runPlcCek values = do
@@ -53,9 +58,9 @@ goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . fst) <$> (ret
 
 tests :: TestNested
 tests = testGroup "plutus-th" <$> sequence [
-    goldenPlc "simple" simple
-    , goldenPlc "power" powerPlc
-    , goldenPlc "and" andPlc
+    goldenPir "simple" simple
+    , goldenPir "power" powerPlc
+    , goldenPir "and" andPlc
     , goldenEvalCek "convertString" [convertString]
     , goldenEvalCekLog "traceDirect" [traceDirect]
     , goldenEvalCekLog "tracePrelude" [tracePrelude]

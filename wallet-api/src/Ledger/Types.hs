@@ -126,7 +126,7 @@ import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlcProgram)
-import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedCode)
+import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedPlc)
 import           Language.PlutusTx.TH                     (plutus)
 
 {- Note [Serialisation and hashing]
@@ -235,17 +235,17 @@ newtype Script = Script { getSerialized :: BSL.ByteString }
 
 -- TODO: possibly this belongs with PlcCode
 fromPlcCode :: PlcCode -> Script
-fromPlcCode = Script . getSerializedCode
+fromPlcCode = Script . getSerializedPlc
 
-getAst :: Script -> PLC.Program PLC.TyName PLC.Name ()
-getAst = deserialise . getSerialized
+getPlc :: Script -> PLC.Program PLC.TyName PLC.Name ()
+getPlc = deserialise . getSerialized
 
 applyScript :: Script -> Script -> Script
 -- TODO: this is a bit inefficient
-applyScript (getAst -> s1) (getAst -> s2) = Script $ serialise $ s1 `PLC.applyProgram` s2
+applyScript (getPlc -> s1) (getPlc -> s2) = Script $ serialise $ s1 `PLC.applyProgram` s2
 
 evaluateScript :: Script -> ([String], Bool)
-evaluateScript (getAst -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
+evaluateScript (getPlc -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
 
 instance ToJSON Script where
   toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . BSL.toStrict . serialise

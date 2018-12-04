@@ -1,118 +1,40 @@
-(program 1.0.0
-  [
-    [
-      [
-        {
-          (abs
-            MyEnum_93
-            (type)
-            (lam
-              Enum1_94
-              MyEnum_93
-              (lam
-                Enum2_95
-                MyEnum_93
-                (lam
-                  MyEnum_match_96
-                  (fun MyEnum_93 (all out_MyEnum_97 (type) (fun out_MyEnum_97 (fun out_MyEnum_97 out_MyEnum_97))))
-                  [
-                    [
-                      {
-                        (abs
-                          Unit_98
-                          (type)
-                          (lam
-                            Unit_99
-                            Unit_98
-                            (lam
-                              Unit_match_100
-                              (fun Unit_98 (all out_Unit_101 (type) (fun out_Unit_101 out_Unit_101)))
-                              [
-                                (lam
-                                  error_102
-                                  (all a_103 (type) (fun Unit_98 a_103))
-                                  (lam
-                                    ds_104
-                                    MyEnum_93
-                                    [
-                                      [
-                                        [
-                                          {
-                                            [
-                                              MyEnum_match_96 ds_104
-                                            ]
-                                            (fun Unit_98 [(con integer) (con 8)])
-                                          }
-                                          (lam thunk_105 Unit_98 (con 8 ! 1))
-                                        ]
-                                        (lam
-                                          thunk_106
-                                          Unit_98
-                                          [
-                                            {
-                                              error_102 [(con integer) (con 8)]
-                                            }
-                                            Unit_99
-                                          ]
-                                        )
-                                      ]
-                                      Unit_99
-                                    ]
-                                  )
-                                )
-                                (abs
-                                  e_107
-                                  (type)
-                                  (lam thunk_108 Unit_98 (error e_107))
-                                )
-                              ]
-                            )
-                          )
-                        )
-                        (all out_Unit_109 (type) (fun out_Unit_109 out_Unit_109))
-                      }
-                      (abs
-                        out_Unit_110
-                        (type)
-                        (lam case_Unit_111 out_Unit_110 case_Unit_111)
-                      )
-                    ]
-                    (lam
-                      x_112
-                      (all out_Unit_113 (type) (fun out_Unit_113 out_Unit_113))
-                      x_112
-                    )
-                  ]
-                )
-              )
-            )
-          )
-          (all out_MyEnum_114 (type) (fun out_MyEnum_114 (fun out_MyEnum_114 out_MyEnum_114)))
-        }
-        (abs
-          out_MyEnum_115
-          (type)
-          (lam
-            case_Enum1_116
-            out_MyEnum_115
-            (lam case_Enum2_117 out_MyEnum_115 case_Enum1_116)
-          )
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyEnum (type))
+        
+        MyEnum_match
+        (vardecl Enum1 MyEnum) (vardecl Enum2 MyEnum)
+      )
+    )
+    (let
+      (nonrec)
+      (datatypebind
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      )
+      (let
+        (nonrec)
+        (termbind
+          (vardecl error (all a (type) (fun Unit a)))
+          (abs e (type) (lam thunk Unit (error e)))
         )
-      ]
-      (abs
-        out_MyEnum_118
-        (type)
         (lam
-          case_Enum1_119
-          out_MyEnum_118
-          (lam case_Enum2_120 out_MyEnum_118 case_Enum2_120)
+          ds
+          MyEnum
+          [
+            [
+              [
+                { [ MyEnum_match ds ] (fun Unit [(con integer) (con 8)]) }
+                (lam thunk Unit (con 8 ! 1))
+              ]
+              (lam thunk Unit [ { error [(con integer) (con 8)] } Unit ])
+            ]
+            Unit
+          ]
         )
       )
-    ]
-    (lam
-      x_121
-      (all out_MyEnum_122 (type) (fun out_MyEnum_122 (fun out_MyEnum_122 out_MyEnum_122)))
-      x_121
     )
-  ]
+  )
 )

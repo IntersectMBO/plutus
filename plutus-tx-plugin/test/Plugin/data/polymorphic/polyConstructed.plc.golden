@@ -1,104 +1,21 @@
-(program 1.0.0
-  [
-    [
-      [
-        {
-          (abs
-            MyPolyData_90
-            (fun (type) (fun (type) (type)))
-            (lam
-              Poly1_91
-              (all a_92 (type) (all b_93 (type) (fun a_92 (fun b_93 [[MyPolyData_90 a_92] b_93]))))
-              (lam
-                Poly2_94
-                (all a_95 (type) (all b_96 (type) (fun a_95 [[MyPolyData_90 a_95] b_96])))
-                (lam
-                  MyPolyData_match_97
-                  (all a_98 (type) (all b_99 (type) (fun [[MyPolyData_90 a_98] b_99] [[(lam a_100 (type) (lam b_101 (type) (all out_MyPolyData_102 (type) (fun (fun a_100 (fun b_101 out_MyPolyData_102)) (fun (fun a_100 out_MyPolyData_102) out_MyPolyData_102))))) a_98] b_99])))
-                  [
-                    [
-                      {
-                        { Poly1_91 [(con integer) (con 8)] }
-                        [(con integer) (con 8)]
-                      }
-                      (con 8 ! 1)
-                    ]
-                    (con 8 ! 2)
-                  ]
-                )
-              )
-            )
-          )
-          (lam a_103 (type) (lam b_104 (type) (all out_MyPolyData_105 (type) (fun (fun a_103 (fun b_104 out_MyPolyData_105)) (fun (fun a_103 out_MyPolyData_105) out_MyPolyData_105)))))
-        }
-        (abs
-          a_106
-          (type)
-          (abs
-            b_107
-            (type)
-            (lam
-              arg_0_108
-              a_106
-              (lam
-                arg_1_109
-                b_107
-                (abs
-                  out_MyPolyData_110
-                  (type)
-                  (lam
-                    case_Poly1_111
-                    (fun a_106 (fun b_107 out_MyPolyData_110))
-                    (lam
-                      case_Poly2_112
-                      (fun a_106 out_MyPolyData_110)
-                      [ [ case_Poly1_111 arg_0_108 ] arg_1_109 ]
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      ]
-      (abs
-        a_113
-        (type)
-        (abs
-          b_114
-          (type)
-          (lam
-            arg_0_115
-            a_113
-            (abs
-              out_MyPolyData_116
-              (type)
-              (lam
-                case_Poly1_117
-                (fun a_113 (fun b_114 out_MyPolyData_116))
-                (lam
-                  case_Poly2_118
-                  (fun a_113 out_MyPolyData_116)
-                  [ case_Poly2_118 arg_0_115 ]
-                )
-              )
-            )
-          )
-        )
-      )
-    ]
-    (abs
-      a_119
-      (type)
-      (abs
-        b_120
-        (type)
-        (lam
-          x_121
-          [[(lam a_122 (type) (lam b_123 (type) (all out_MyPolyData_124 (type) (fun (fun a_122 (fun b_123 out_MyPolyData_124)) (fun (fun a_122 out_MyPolyData_124) out_MyPolyData_124))))) a_119] b_120]
-          x_121
-        )
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyPolyData (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        MyPolyData_match
+        (vardecl Poly1 (fun a (fun b [[MyPolyData a] b])))
+        (vardecl Poly2 (fun a [[MyPolyData a] b]))
       )
     )
-  ]
+    [
+      [
+        { { Poly1 [(con integer) (con 8)] } [(con integer) (con 8)] }
+        (con 8 ! 1)
+      ]
+      (con 8 ! 2)
+    ]
+  )
 )
