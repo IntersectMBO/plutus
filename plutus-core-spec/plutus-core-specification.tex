@@ -298,8 +298,6 @@ reduction relation for types (\(\typeStep{A}{A'}\)) and terms
 contextual congruence. We make use of the transitive closure of these
 stepping relations via the usual Kleene star notation.
 
-This is based on the CK machine of Felleisen and Friedman~\cite{Felleisen-CK-CEK}
-
 
 In the context of a blockchain system, it can be useful to also have a
 step indexed version of stepping, indicated by a superscript count of
@@ -315,6 +313,12 @@ that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
 
 
 \subfile{figures/PlutusCoreReduction}
+This is based on the CK machine of Felleisen and Friedman~\cite{Felleisen-CK-CEK}
+
+
+\subsection{An abstract machine for evaluating Plutus Core programs}
+
+\subfile{figures/PlutusCoreCkMachine}
 
 \subfile{figures/PlutusCoreBuiltins}
 

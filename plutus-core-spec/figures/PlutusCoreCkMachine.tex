@@ -1,0 +1,54 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Stack} & s      & ::= & f^*                               & \textrm{stacks}\\
+        \textrm{State} & \sigma & ::= & \ckforward{s}{M}                  & \textrm{computing a term}\\
+                       %&        &     & \ckforward{s}{A}                  & \textrm{computing a type}\\
+                       &        &     & \ckbackward{s}{V}                 & \textrm{returning a term value}\\
+                       %&        &     & \ckbackward{s}{S}                 & \textrm{returning a type value}\\
+                       &        &     & \square V                         & \textrm{halt and return a value}\\
+                       &        &     & \ckerror{}                        & \textrm{throwing an error}
+    \end{array}\]
+
+    \caption{Grammar of CK Machine States}
+    \label{fig:Plutus_core_ck_frames}
+\end{figure*}
+
+
+
+\begin{figure*}[t]
+    \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine state $\sigma$ transitions in one step to machine state $\sigma'$}
+%% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
+\begin{alignat*}{2}
+        \cksteps{\ckforward{s&}{\con{cn}}&} {&\ckbackward{s}{\con{cn}}}\\
+        \cksteps{\ckforward{s&}{\abs{\alpha}{K}{V}}&} {&\ckbackward{s}{\abs{\alpha}{K}{V}}}\\
+        \cksteps{\ckforward{s&}{\inst{M}{A}}&} {&\ckforward{s, \inInstLeftFrame{A}}{M}}\\
+        \cksteps{\ckforward{s&}{\wrap{\alpha}{A}{M}}&} {&\ckforward{s, \inWrapRightFrame{\alpha}{A}}{M}}\\
+        \cksteps{\ckforward{s&}{\unwrap{M}}&} {&\ckforward{s, \inUnwrapFrame{}}{M}}\\
+        \cksteps{\ckforward{s&}{\lam{x}{A}{M}}&} {&\ckbackward{s}{\lam{x}{A}{M}}}\\
+        \cksteps{\ckforward{s&}{\app{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
+        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&U} \qquad (\textit{$bn$ computes on $\repetition{A}$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
+        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
+        \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
+        \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
+        \cksteps{\ckbackward{\cdot&}{V}&} {&\square V}\\
+        \cksteps{\ckbackward{s, \inInstLeftFrame{A}&}{\abs{\alpha}{K}{M}}&} {&\ckforward{s}{M}}\\
+        \cksteps{\ckbackward{s, \inWrapRightFrame{\alpha}{A}&}{V}&} {&\ckbackward{s}{\wrap{\alpha}{A}{V}}}\\
+        \cksteps{\ckbackward{s, \inUnwrapFrame{}&}{\wrap{\alpha}{A}{V}}&} {&\ckbackward{s}{V}}\\
+        \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
+        \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
+        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&U} \qquad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
+        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
+    \end{alignat*}
+
+    \caption{CK Machine}
+    \label{fig:Plutus_core_ck_machine}
+\end{figure*}
+
+
+
+\end{document}
