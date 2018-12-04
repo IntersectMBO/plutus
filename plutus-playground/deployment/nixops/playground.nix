@@ -21,6 +21,19 @@
       imports = [ (defaultMachine node pkgs)
                 ];
 
+  security.sudo = {
+    enable = true;
+    extraRules = {
+      users = [ "plutus" ];
+      commands = [
+        "systemctl status plutus"
+        "systemctl stop plutus"
+        "systemctl start plutus"
+      ];
+      options = [ "NOPASSWD" ];
+    };
+  };
+
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 80 8080 ];

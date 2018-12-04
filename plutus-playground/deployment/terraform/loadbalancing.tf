@@ -42,7 +42,7 @@ resource "aws_security_group" "public_alb" {
 }
 
 data "aws_acm_certificate" "kevm_private" {
-  domain      = "*.plutus.iohkdev.io"
+  domain      = "*.playground.plutus.iohkdev.io"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -93,8 +93,8 @@ resource "aws_elb" "plutus" {
 }
 
 resource "aws_route53_record" "alb" {
-  zone_id = "ZBC2AQBA8QH4G"
-  name    = "${var.env}.plutus.iohkdev.io"
+  zone_id = "Z3HMYGFV3CT1GJ"
+  name    = "${var.env}.playground.plutus.iohkdev.io"
   type    = "A"
 
   alias {
@@ -169,8 +169,8 @@ resource "aws_route53_record" "alb" {
 #}
 #
 #resource "aws_route53_record" "alb" {
-#  zone_id = "Z2YDMO25KPZVPP"
-#  name    = "${var.env}.plutus.iohkdev.io"
+#  zone_id = "Z3HMYGFV3CT1GJ"
+#  name    = "${var.env}.playground.plutus.iohkdev.io"
 #  type    = "A"
 #
 #  alias {
