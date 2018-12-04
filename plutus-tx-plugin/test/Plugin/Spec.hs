@@ -78,7 +78,7 @@ primitives = testNested "primitives" [
   , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
   --, goldenPlc "blocknum" blocknumPlc
   , goldenPlc "bytestring" bytestring
-  , goldenEval "bytestringApply" [ getAst bytestring, trivialProgram $ runQuote $ unsafeLiftPlc ("hello"::ByteString) ]
+  , goldenEval "bytestringApply" [ getAst bytestring, unsafeLiftPlcProgram ("hello"::ByteString) ]
   , goldenPlc "verify" verify
   ]
 

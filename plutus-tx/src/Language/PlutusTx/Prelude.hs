@@ -1,4 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell     #-}
+-- this is in the default extensions, but for some reason when loading it during doctests it gets
+-- confused if we don't have it
+{-# LANGUAGE ScopedTypeVariables #-}
 module Language.PlutusTx.Prelude (
     -- * String and tracing functions
     toPlutusString,
