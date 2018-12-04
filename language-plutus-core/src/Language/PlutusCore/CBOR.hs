@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
 import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type hiding (name)
+import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -211,6 +212,14 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (T
               go 8 = Error <$> decode <*> decode
               go 9 = Builtin <$> decode <*> decode
               go _ = fail "Failed to decode Term TyName Name ()"
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (VarDecl tyname name a) where
+    encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
+    decode = VarDecl <$> decode <*> decode <*> decode
+
+instance (Serialise a, Serialise (tyname a))  => Serialise (TyVarDecl tyname a) where
+    encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
+    decode = TyVarDecl <$> decode <*> decode <*> decode
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a) where
     encode (Program x v t) = encode x <> encode v <> encode t

@@ -39,6 +39,7 @@ library
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
+        Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
         Language.PlutusCore.Pretty
@@ -89,7 +90,6 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Normalize
-        Language.PlutusCore.CBOR
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity

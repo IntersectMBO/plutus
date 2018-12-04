@@ -57,12 +57,14 @@ library
                  -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
+        bytestring -any,
         containers -any,
         language-plutus-core -any,
         lens -any,
         mtl -any,
         mmorph -any,
         prettyprinter -any,
+        serialise -any,
         text -any,
         transformers -any,
         algebraic-graphs <0.3
@@ -84,4 +86,9 @@ test-suite plutus-ir-test
         language-plutus-core -any,
         mtl -any,
         mmorph -any,
-        tasty -any
+        prettyprinter -any,
+        serialise -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-golden -any,
+        text -any

@@ -55641,14 +55641,18 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , algebraic-graphs
 , base
+, bytestring
 , containers
 , language-plutus-core
 , lens
 , mmorph
 , mtl
 , prettyprinter
+, serialise
 , stdenv
 , tasty
+, tasty-golden
+, tasty-hunit
 , text
 , transformers
 }:
@@ -55660,12 +55664,14 @@ src = .././plutus-ir;
 libraryHaskellDepends = [
 algebraic-graphs
 base
+bytestring
 containers
 language-plutus-core
 lens
 mmorph
 mtl
 prettyprinter
+serialise
 text
 transformers
 ];
@@ -55674,7 +55680,12 @@ base
 language-plutus-core
 mmorph
 mtl
+prettyprinter
+serialise
 tasty
+tasty-golden
+tasty-hunit
+text
 ];
 doHaddock = false;
 description = "Plutus IR language";

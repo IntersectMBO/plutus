@@ -25,17 +25,29 @@ module Language.PlutusIR (
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type)
+import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
+import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
+import           Codec.Serialise            (Serialise)
 import           GHC.Generics               (Generic)
 
 -- Datatypes
 
+{- Note: [Serialization of PIR]
+The serialized version of Plutus-IR will be included in  the final
+executable for helping debugging and testing and providing better error
+reporting. It is not meant to be stored on the chain, which means that
+the underlying representation can vary. The `Generic` instances of the
+terms can thus be used as backwards compatibility is not required.
+-}
+
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
     deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise a, Serialise (tyname a) , Serialise (name a)) => Serialise (Datatype tyname name a)
 
 varDeclNameString :: VarDecl name Name a -> String
 varDeclNameString = bsToStr . PLC.nameString . varDeclName
@@ -50,10 +62,15 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 data Recursivity = NonRec | Rec
     deriving (Show, Eq, Generic)
+
+instance Serialise Recursivity
+
 data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
     deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Binding tyname name a)
 
 -- Terms
 
@@ -83,8 +100,9 @@ Plutus Core to use reified declarations.
 -}
 
 -- See note [PIR as a PLC extension]
-data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname name a)
+data Term tyname name a =
                         -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
+                          Let a Recursivity [Binding tyname name a] (Term tyname name a)
                         | Var a (name a)
                         | TyAbs a (tyname a) (Kind a) (Term tyname name a)
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
@@ -96,6 +114,8 @@ data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname
                         | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
                         | Unwrap a (Term tyname name a)
                         deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a)
 
 embedIntoIR :: PLC.Term tyname name a -> Term tyname name a
 embedIntoIR = \case

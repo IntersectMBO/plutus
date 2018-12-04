@@ -27,6 +27,7 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Test.Tasty
 
+import           Codec.Serialise
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
@@ -64,6 +65,7 @@ tests = testGroup "plutus-ir" <$> sequence [
     prettyprinting,
     datatypes,
     recursion,
+    serialization,
     errors,
     optimizer
     ]
@@ -180,6 +182,17 @@ evenOdd = do
                 TermBind () (VarDecl () oddd oddTy) oddF
             ] $
         Apply () (Var () evenn) (Var () arg)
+
+serialization :: TestNested
+serialization = testNested "serialization" [
+    goldenPir "serializeBasic" (roundTripPirTerm basic),
+    goldenPir "serializeMaybePirTerm" (roundTripPirTerm $ runQuote maybePir),
+    goldenPir "serializeEvenOdd" (roundTripPirTerm $ runQuote evenOdd),
+    goldenPir "serializeListMatch" (roundTripPirTerm $ runQuote listMatch)
+    ]
+
+roundTripPirTerm :: Term TyName Name () -> Term TyName Name ()
+roundTripPirTerm tt = deserialise $ serialise tt
 
 errors :: TestNested
 errors = testNested "errors" [

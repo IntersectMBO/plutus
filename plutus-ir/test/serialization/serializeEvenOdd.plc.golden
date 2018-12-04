@@ -1,0 +1,132 @@
+(let
+  (nonrec
+  )
+  (termbind
+    (vardecl arg (fix nat (all r (type) (fun r (fun (fun nat r) r)))))
+    [
+      (lam
+        n
+        (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+        (wrap
+          nat
+          (all r (type) (fun r (fun (fun nat r) r)))
+          (abs
+            r
+            (type)
+            (lam
+              z
+              r
+              (lam
+                f
+                (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+                [ f n ]
+              )
+            )
+          )
+        )
+      )
+      [
+        (lam
+          n
+          (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+          (wrap
+            nat
+            (all r (type) (fun r (fun (fun nat r) r)))
+            (abs
+              r
+              (type)
+              (lam
+                z
+                r
+                (lam
+                  f
+                  (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+                  [ f n ]
+                )
+              )
+            )
+          )
+        )
+        [
+          (lam
+            n
+            (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+            (wrap
+              nat
+              (all r (type) (fun r (fun (fun nat r) r)))
+              (abs
+                r
+                (type)
+                (lam
+                  z
+                  r
+                  (lam
+                    f
+                    (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+                    [ f n ]
+                  )
+                )
+              )
+            )
+          )
+          (wrap
+            nat
+            (all r (type) (fun r (fun (fun nat r) r)))
+            (abs
+              r
+              (type)
+              (lam
+                z
+                r
+                (lam
+                  f
+                  (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) r)
+                  z
+                )
+              )
+            )
+          )
+        ]
+      ]
+    ]
+  )
+  (let
+    (rec
+    )
+    (termbind
+      (vardecl
+        even
+        (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+      )
+      (lam
+        n
+        (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+        [
+          [
+            { (unwrap n) (all a (type) (fun a (fun a a))) }
+            (abs a (type) (lam x a (lam y a x)))
+          ]
+          odd
+        ]
+      )
+    )
+    (termbind
+      (vardecl
+        odd
+        (fun (fix nat (all r (type) (fun r (fun (fun nat r) r)))) (all a (type) (fun a (fun a a))))
+      )
+      (lam
+        n
+        (fix nat (all r (type) (fun r (fun (fun nat r) r))))
+        [
+          [
+            { (unwrap n) (all a (type) (fun a (fun a a))) }
+            (abs a (type) (lam x a (lam y a y)))
+          ]
+          even
+        ]
+      )
+    )
+    [ even arg ]
+  )
+)
