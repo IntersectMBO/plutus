@@ -55684,6 +55684,7 @@ base
 language-plutus-core
 mmorph
 mtl
+prettyprinter
 serialise
 tasty
 ];
@@ -55950,6 +55951,7 @@ license = stdenv.lib.licenses.bsd3;
 , plutus-core-interpreter
 , plutus-ir
 , plutus-tx-plugin
+, prettyprinter
 , stdenv
 , tasty
 , template-haskell
@@ -55974,6 +55976,7 @@ language-plutus-core
 mtl
 plutus-ir
 plutus-tx-plugin
+prettyprinter
 tasty
 template-haskell
 ];

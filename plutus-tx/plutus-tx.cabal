@@ -76,4 +76,5 @@ test-suite plutus-tx-tutorial-doctests
         plutus-tx -any,
         plutus-tx-plugin -any,
         language-plutus-core -any,
+        prettyprinter -any,
         doctest -any

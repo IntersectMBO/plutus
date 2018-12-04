@@ -27,6 +27,7 @@ module Language.PlutusCore.Pretty.Plc
     , prettyPlcCondensedErrorBy
     ) where
 
+import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.Readable
