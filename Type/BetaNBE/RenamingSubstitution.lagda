@@ -56,6 +56,23 @@ substNf-id : ∀ {Φ J}
 substNf-id n = trans (cong nf (subst-id (embNf n))) (stability n)
 \end{code}
 
+This version of the first monad law might be η compatible as it doesn't rely
+on subst-id
+
+\begin{code}
+substNf-id' : ∀ {Φ J}
+  → (n : Φ ⊢Nf⋆ J)
+  → substNf (nf ∘ `) n ≡ n
+substNf-id' n = trans
+  (reifyCR
+    (transCR
+      (subst-eval (embNf n) idCR (embNf ∘ nf ∘ `))
+      (idext
+        (λ α → evalCRSubst idCR (cong embNf (stability (ne (` α)))))
+        (embNf n))))
+  (stability n)
+\end{code}
+
 Second monad law for substNf
 This is often holds definitionally for substitution (e.g. subst) but not here.
 
@@ -171,7 +188,7 @@ renameNf-substNf : ∀{Φ Ψ Θ}
   → {g : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K}
   → {f : Ren Ψ Θ}
   → ∀{J}(A : Φ ⊢Nf⋆ J)
-    -----------------------------------------------------
+   -----------------------------------------------------
   → substNf (renameNf f ∘ g) A ≡ renameNf f (substNf g A)
 renameNf-substNf {g = g}{f} A = trans
   (reifyCR

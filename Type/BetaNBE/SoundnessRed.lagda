@@ -31,7 +31,7 @@ SR #       A v        = A —↠⋆ embNf (reify v)
 SR *       A v        = A —↠⋆ embNf (reify v)
 SR (K ⇒ J) A (inj₁ n) = A —↠⋆ embNeN n
 SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
-  (A —→⋆ ƛ B) -- this bit of indirection is needed as we have only β not βη
+  (A —↠⋆ ƛ B) -- this bit of indirection is needed as we have only β not βη
   ×
   ∀{Ψ}
     → (ρ : Ren _ Ψ)
@@ -63,7 +63,7 @@ reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
 reifySR {K = *}                  p            = p
 reifySR {K = #}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
-reifySR {K = K ⇒ J} {A = A}{v = inj₂ f} (X , Y , p )= trans—↠⋆ _ Y (β—↠⋆ (substEq (λ B → B —↠⋆ embNf (reify (f S fresh))) (trans (sym (subst-rename X)) (trans (subst-cong (λ { Z → refl ; (S x) → refl}) X) (subst-id X))) (reifySR {K = J} (p S (reflectSR (refl—↠⋆ {M = ` Z})))))) 
+reifySR {K = K ⇒ J} {A = A}{v = inj₂ f} (X , Y , p )= trans—↠⋆' Y (ƛ—↠⋆ (substEq (λ B → B —↠⋆ embNf (reify (f S fresh))) (trans (sym (subst-rename X)) (trans (subst-cong (λ { Z → refl ; (S x) → refl}) X) (subst-id X))) (reifySR {K = J} (p S (reflectSR (refl—↠⋆ {M = ` Z})))))) 
 \end{code}
 
 Lifting SR from ⊢⋆/Val to Sub/Env
@@ -88,7 +88,6 @@ SR,,⋆ p q (S α) = p α
 renaming for SR
 
 \begin{code}
-{-
 renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K A v
     ---------------------------------
@@ -102,21 +101,21 @@ renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite rename-embNeN ρ n =
 renSR ρ {K ⇒ J} {A} {inj₂ f} (A' , p , q) =
   rename (ext ρ) A'
   ,
-  rename—→⋆ ρ p
+  rename—↠⋆ ρ p
   ,
-  λ ρ' {u}{v} r → substEq (λ A → SR J (ƛ A · u) (f (ρ' ∘ ρ) v))
-                          (trans (rename-cong ext-comp A') (rename-comp A'))
-                          (q (ρ' ∘ ρ) r)
--}
+  λ ρ' {u}{v} p' → substEq
+    (λ A → SR J (A [ u ]) (f (ρ' ∘ ρ) v))
+    (trans (rename-cong ext-comp A') (rename-comp A'))
+    (q (ρ' ∘ ρ) p') 
 \end{code}
 
 Extending via exts is the same the same as weakening and cons on ` Z
 
 \begin{code}
-{-
 exts-subst-cons : ∀{Φ Ψ K J}
   → (σ : Sub Φ Ψ)
   → (α : Φ ,⋆ J ∋⋆ K)
+    ------------------------------------------
   → exts σ α ≡ subst-cons (weaken ∘ σ) (` Z) α
 exts-subst-cons σ Z     = refl
 exts-subst-cons σ (S _) = refl
@@ -138,14 +137,15 @@ SREnv is closed under exts/extending the env
 (note: would this be cleaner if we used exte?)
 
 \begin{code}
+
 SRweak : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → ∀ {K}
     -------------------------------------------------------
   → SREnv (exts σ) ((renameVal S ∘ η) ,,⋆ fresh {σ = K})
-SRweak p = {!!}
---substSREnv (sym ∘ exts-subst-cons _)
---                      (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z)))) 
+SRweak p = substSREnv
+  (sym ∘ exts-subst-cons _)
+  (SR,,⋆ (renSR S ∘ p) (reflectSR refl—↠⋆) )
 \end{code}
 
 SR is closed under ≡β
@@ -157,15 +157,16 @@ substSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
   → SR K A v
     ---------------------------
   → SR K A' v
-substSR {K = #}     p          q            = {!!} -- trans≡β p q
-substSR {K = *}     p          q            = {!!} -- trans≡β p q
-substSR {K = K ⇒ J} p {inj₁ n} q            = {!!} -- trans≡β p q
-substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = {!!} -- _ , trans≡β p q , r
+substSR {K = #}     p          q            = trans—↠⋆' p q
+substSR {K = *}     p          q            = trans—↠⋆' p q
+substSR {K = K ⇒ J} p {inj₁ n} q            = trans—↠⋆' p q
+substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = A' , trans—↠⋆' p q , r
 \end{code}
 
 SR is closed under ·V
 
 \begin{code}
+{-
 SRApp : ∀{Φ K J}
   → {A : Φ ⊢⋆ (K ⇒ J)}
   → {f : Val Φ (K ⇒ J)}
