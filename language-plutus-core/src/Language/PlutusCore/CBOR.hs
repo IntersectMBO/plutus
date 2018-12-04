@@ -10,9 +10,9 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
-import           Language.PlutusCore.MkPlc      (TyVarDecl(..), VarDecl(..))
 import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type hiding (name)
+import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude

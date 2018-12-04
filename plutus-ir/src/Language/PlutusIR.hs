@@ -25,7 +25,7 @@ module Language.PlutusIR (
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type(..))
+import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
 import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
