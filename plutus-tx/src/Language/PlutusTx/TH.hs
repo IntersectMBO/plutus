@@ -5,8 +5,10 @@ module Language.PlutusTx.TH (
     plutus,
     plutusUntyped,
     PlcCode,
-    getSerializedCode,
-    getAst) where
+    getSerializedPlc,
+    getSerializedPir,
+    getPlc,
+    getPir) where
 
 import           Language.PlutusTx.Plugin
 

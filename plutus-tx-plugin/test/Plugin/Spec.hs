@@ -21,7 +21,7 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
 
-import           Language.PlutusCore
+import qualified Language.PlutusIR          as PIR
 
 import           Data.ByteString.Lazy
 import           GHC.Generics
@@ -30,7 +30,10 @@ import           GHC.Generics
 {-# ANN module ("HLint: ignore"::String) #-}
 
 instance GetProgram PlcCode where
-    getProgram = catchAll . getAst
+    getProgram = catchAll . getPlc
+
+goldenPir :: String -> PlcCode -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
 
 tests :: TestNested
 tests = testNested "Plugin" [
@@ -57,29 +60,29 @@ monoK = plc @"monoK" (\(i :: Int) -> \(j :: Int) -> i)
 
 primitives :: TestNested
 primitives = testNested "primitives" [
-    goldenPlc "string" string
-  , goldenPlc "int" int
-  , goldenPlc "int2" int
-  , goldenPlc "bool" bool
-  , goldenPlc "and" andPlc
+    goldenPir "string" string
+  , goldenPir "int" int
+  , goldenPir "int2" int
+  , goldenPir "bool" bool
+  , goldenPir "and" andPlc
   , goldenEval "andApply" [ andPlc, plc @"T" True, plc @"F" False ]
-  , goldenPlc "tuple" tuple
-  , goldenPlc "tupleMatch" tupleMatch
+  , goldenPir "tuple" tuple
+  , goldenPir "tupleMatch" tupleMatch
   , goldenEval "tupleConstDest" [ tupleMatch, tuple ]
-  , goldenPlc "intCompare" intCompare
-  , goldenPlc "intEq" intEq
+  , goldenPir "intCompare" intCompare
+  , goldenPir "intEq" intEq
   , goldenEval "intEqApply" [ intEq, int, int ]
-  , goldenPlc "void" void
-  , goldenPlc "intPlus" intPlus
-  , goldenPlc "intDiv" intDiv
+  , goldenPir "void" void
+  , goldenPir "intPlus" intPlus
+  , goldenPir "intDiv" intDiv
   , goldenEval "intPlusApply" [ intPlus, int, int2 ]
-  , goldenPlc "error" errorPlc
-  , goldenPlc "ifThenElse" ifThenElse
+  , goldenPir "error" errorPlc
+  , goldenPir "ifThenElse" ifThenElse
   , goldenEval "ifThenElseApply" [ ifThenElse, int, int2 ]
   --, goldenPlc "blocknum" blocknumPlc
-  , goldenPlc "bytestring" bytestring
-  , goldenEval "bytestringApply" [ getAst bytestring, unsafeLiftPlcProgram ("hello"::ByteString) ]
-  , goldenPlc "verify" verify
+  , goldenPir "bytestring" bytestring
+  , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftPlcProgram ("hello"::ByteString) ]
+  , goldenPir "verify" verify
   ]
 
 int :: PlcCode
@@ -149,19 +152,19 @@ datat = testNested "data" [
 
 monoData :: TestNested
 monoData = testNested "monomorphic" [
-    goldenPlc "enum" basicEnum
-  , goldenPlc "monoDataType" monoDataType
-  , goldenPlc "monoConstructor" monoConstructor
-  , goldenPlc "monoConstructed" monoConstructed
-  , goldenPlc "monoCase" monoCase
+    goldenPir "enum" basicEnum
+  , goldenPir "monoDataType" monoDataType
+  , goldenPir "monoConstructor" monoConstructor
+  , goldenPir "monoConstructed" monoConstructed
+  , goldenPir "monoCase" monoCase
   , goldenEval "monoConstDest" [ monoCase, monoConstructed ]
-  , goldenPlc "defaultCase" defaultCase
-  , goldenPlc "irrefutableMatch" irrefutableMatch
-  , goldenPlc "atPattern" atPattern
+  , goldenPir "defaultCase" defaultCase
+  , goldenPir "irrefutableMatch" irrefutableMatch
+  , goldenPir "atPattern" atPattern
   , goldenEval "monoConstDestDefault" [ monoCase, monoConstructed ]
-  , goldenPlc "monoRecord" monoRecord
-  , goldenPlc "nonValueCase" nonValueCase
-  , goldenPlc "synonym" synonym
+  , goldenPir "monoRecord" monoRecord
+  , goldenPir "nonValueCase" nonValueCase
+  , goldenPir "synonym" synonym
   ]
 
 data MyEnum = Enum1 | Enum2
@@ -208,9 +211,9 @@ synonym = plc @"synonym" (1::Synonym)
 
 polyData :: TestNested
 polyData = testNested "polymorphic" [
-    goldenPlc "polyDataType" polyDataType
-  , goldenPlc "polyConstructed" polyConstructed
-  , goldenPlc "defaultCasePoly" defaultCasePoly
+    goldenPir "polyDataType" polyDataType
+  , goldenPir "polyConstructed" polyConstructed
+  , goldenPir "defaultCasePoly" defaultCasePoly
   ]
 
 data MyPolyData a b = Poly1 a b | Poly2 a
@@ -226,11 +229,11 @@ defaultCasePoly = plc @"defaultCasePoly" (\(x :: MyPolyData Int Int) -> case x o
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [
-    goldenPlc "basicNewtype" basicNewtype
-   , goldenPlc "newtypeMatch" newtypeMatch
-   , goldenPlc "newtypeCreate" newtypeCreate
-   , goldenPlc "newtypeCreate2" newtypeCreate2
-   , goldenPlc "nestedNewtypeMatch" nestedNewtypeMatch
+    goldenPir "basicNewtype" basicNewtype
+   , goldenPir "newtypeMatch" newtypeMatch
+   , goldenPir "newtypeCreate" newtypeCreate
+   , goldenPir "newtypeCreate2" newtypeCreate2
+   , goldenPir "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ newtypeMatch, newtypeCreate2 ]
    ]
 
@@ -255,27 +258,27 @@ nestedNewtypeMatch = plc @"nestedNewtypeMatch" (\(MyNewtype2 (MyNewtype x)) -> x
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursiveTypes" [
-    goldenPlc "listConstruct" listConstruct
-    , goldenPlc "listConstruct2" listConstruct2
-    , goldenPlc "listConstruct3" listConstruct3
-    , goldenPlc "listMatch" listMatch
+    goldenPir "listConstruct" listConstruct
+    , goldenPir "listConstruct2" listConstruct2
+    , goldenPir "listConstruct3" listConstruct3
+    , goldenPir "listMatch" listMatch
     , goldenEval "listConstDest" [ listMatch, listConstruct ]
     , goldenEval "listConstDest2" [ listMatch, listConstruct2 ]
-    , goldenPlc "ptreeConstruct" ptreeConstruct
-    , goldenPlc "ptreeMatch" ptreeMatch
+    , goldenPir "ptreeConstruct" ptreeConstruct
+    , goldenPir "ptreeMatch" ptreeMatch
     , goldenEval "ptreeConstDest" [ ptreeMatch, ptreeConstruct ]
   ]
 
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
     -- currently broken, will come back to this later
-    goldenPlc "fib" fib
+    goldenPir "fib" fib
     , goldenEval "fib4" [ fib, plc @"4" (4::Int) ]
-    , goldenPlc "sum" sumDirect
+    , goldenPir "sum" sumDirect
     , goldenEval "sumList" [ sumDirect, listConstruct3 ]
     --, golden "sumFold" sumViaFold
     --, goldenEval "sumFoldList" [ sumViaFold, listConstruct3 ]
-    , goldenPlc "even" evenMutual
+    , goldenPir "even" evenMutual
     , goldenEval "even3" [ evenMutual, plc @"3" (3::Int) ]
     , goldenEval "even4" [ evenMutual, plc @"4" (4::Int) ]
   ]

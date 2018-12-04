@@ -131,7 +131,9 @@ embedIntoIR = \case
     PLC.Wrap a tn ty t -> Wrap a tn ty (embedIntoIR t)
 
 -- no version as PIR is not versioned
-data Program tyname name a = Program a (Term tyname name a)
+data Program tyname name a = Program a (Term tyname name a) deriving Generic
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a)
 
 -- Pretty-printing
 

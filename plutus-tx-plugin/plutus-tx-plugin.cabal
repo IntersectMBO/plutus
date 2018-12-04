@@ -93,6 +93,7 @@ test-suite plutus-tx-plugin-tests
     build-depends:
         base >=4.9 && <5,
         plutus-tx-plugin -any,
+        plutus-ir -any,
         language-plutus-core -any,
         bytestring -any,
         tasty -any

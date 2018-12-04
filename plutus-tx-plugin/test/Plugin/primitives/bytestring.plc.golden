@@ -1,3 +1,1 @@
-(program 1.0.0
-  (lam ds_74 [(con bytestring) (con 32)] ds_74)
-)
+(program (lam ds [(con bytestring) (con 32)] ds))

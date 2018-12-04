@@ -1,23 +1,32 @@
-(program 1.0.0
-  [
+(program
+  (let
+    (nonrec
+    )
+    (termbind
+      (vardecl
+        multiplyInteger
+        (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+      )
+      { (builtin multiplyInteger) (con 8) }
+    )
     (lam
-      multiplyInteger_76
-      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
-      (lam
-        ds_77
-        [(con integer) (con 8)]
-        [
-          (lam y_78 [(con integer) (con 8)] [ [ multiplyInteger_76 y_78 ] y_78 ]
-          )
-          [
-            (lam
-              y_79 [(con integer) (con 8)] [ [ multiplyInteger_76 y_79 ] y_79 ]
+      ds
+      [(con integer) (con 8)]
+      (let
+        (nonrec)
+        (termbind
+          (vardecl y [(con integer) (con 8)])
+          (let
+            (nonrec)
+            (termbind
+              (vardecl y [(con integer) (con 8)])
+              [ [ multiplyInteger ds ] (con 8 ! 1) ]
             )
-            [ [ multiplyInteger_76 ds_77 ] (con 8 ! 1) ]
-          ]
-        ]
+            [ [ multiplyInteger y ] y ]
+          )
+        )
+        [ [ multiplyInteger y ] y ]
       )
     )
-    { (builtin multiplyInteger) (con 8) }
-  ]
+  )
 )

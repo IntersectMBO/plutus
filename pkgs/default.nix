@@ -55701,6 +55701,7 @@ license = stdenv.lib.licenses.bsd3;
 , markdown-unlit
 , mtl
 , plutus-core-interpreter
+, plutus-ir
 , plutus-tx-plugin
 , stdenv
 , tasty
@@ -55725,6 +55726,7 @@ language-plutus-core
 markdown-unlit
 mtl
 plutus-core-interpreter
+plutus-ir
 plutus-tx-plugin
 tasty
 template-haskell
@@ -55784,6 +55786,7 @@ testHaskellDepends = [
 base
 bytestring
 language-plutus-core
+plutus-ir
 tasty
 ];
 doHaddock = false;

@@ -1,14 +1,18 @@
-(program 1.0.0
-  [
-    (lam
-      addInteger_75
-      (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
-      (lam
-        ds_76
-        [(con integer) (con 8)]
-        (lam ds_77 [(con integer) (con 8)] [ [ addInteger_75 ds_76 ] ds_77 ])
-      )
+(program
+  (let
+    (nonrec
     )
-    { (builtin addInteger) (con 8) }
-  ]
+    (termbind
+      (vardecl
+        addInteger
+        (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+      )
+      { (builtin addInteger) (con 8) }
+    )
+    (lam
+      ds
+      [(con integer) (con 8)]
+      (lam ds [(con integer) (con 8)] [ [ addInteger ds ] ds ])
+    )
+  )
 )

@@ -30,7 +30,7 @@ Here's the most basic program we can write: one that just evaluates to the integ
 
 ```haskell
 -- |
--- >>> prettyPlcDef $ getAst integerOne
+-- >>> prettyPlcDef $ getPlc integerOne
 -- (program 1.0.0
 --   (con 8 ! 1)
 -- )
@@ -55,7 +55,7 @@ Here's a slightly more complex program, namely the identity function on integers
 
 ```haskell
 -- |
--- >>> prettyPlcDef $ getAst integerIdentity
+-- >>> prettyPlcDef $ getPlc integerIdentity
 -- (program 1.0.0
 --   (lam ds [(con integer) (con 8)] ds)
 -- )
@@ -172,7 +172,7 @@ very simple example, let's write an add-one function.
 addOneToN :: Int -> Program TyName Name ()
 addOneToN n =
     let addOne = $$(plutus [|| \(x:: Int) -> x + 1 ||])
-    in (getAst addOne) `applyProgram` unsafeLiftPlcProgram n
+    in (getPlc addOne) `applyProgram` unsafeLiftPlcProgram n
 ```
 
 Here we have lifted the Haskell value `4` into a Plutus Core term at runtime.
@@ -202,7 +202,7 @@ makeLift ''EndDate
 -- )
 shouldEndAt :: EndDate -> Int -> Program TyName Name ()
 shouldEndAt end current =
-    (getAst shouldEnd)
+    (getPlc shouldEnd)
     `applyProgram`
     unsafeLiftPlcProgram end
     `applyProgram`

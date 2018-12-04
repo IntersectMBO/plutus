@@ -1,3 +1,1 @@
-(program 1.0.0
-  (con 8 ! 1)
-)
+(program (con 8 ! 1))
