@@ -10,6 +10,7 @@ open import TermIndexedByNormalType.Term
 open import TermIndexedByNormalType.Term.Reduction
 
 open import TermIndexedByNormalType.Evaluation
+open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term
 open import Builtin.Signature

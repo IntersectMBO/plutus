@@ -24,6 +24,7 @@ open import Type.BetaNBE
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNormal
+open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import Builtin.Signature

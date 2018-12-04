@@ -12,6 +12,7 @@ postulate
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
 open import Type
+open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import Builtin.Signature

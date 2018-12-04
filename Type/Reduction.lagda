@@ -78,7 +78,7 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → S ⇒ T —→⋆ S' ⇒ T
 
   ξ-⇒₂ : ∀ {Φ} {S : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
-    → Value⋆ S
+ --   → Value⋆ S
     → T —→⋆ T'
       -----------------------------------
     → S ⇒ T —→⋆ S ⇒ T'
@@ -89,7 +89,7 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → L · M —→⋆ L′ · M
 
   ξ-·₂ : ∀ {Γ K J} {V : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
-    → Value⋆ V
+ --   → Value⋆ V
     → M —→⋆ M′
       --------------
     → V · M —→⋆ V · M′
@@ -101,8 +101,14 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       ------------------
     → con tcn s —→⋆ con tcn s'
 
+  ξ-Π : ∀ {Γ K} {M M′ : Γ ,⋆ K ⊢⋆ *}
+    → M —→⋆ M′
+      -----------------
+    → Π M —→⋆ Π M′
+
+
   β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
-    → Value⋆ W
+ --   → Value⋆ W
       -------------------
     → ƛ N · W —→⋆ N [ W ]
 \end{code}
@@ -120,7 +126,34 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       ---------
     → L —↠⋆ N
 
+-- TODO: prove these
 postulate ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
+postulate Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *} → M —↠⋆ N → Π M —↠⋆ Π N
+postulate
+  ξ-⇒' : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
+    → S —↠⋆ S'
+    → T —↠⋆ T'
+      -----------------------------------
+    → (S ⇒ T) —↠⋆ (S' ⇒ T')
+postulate
+  ξ-·₁' : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
+    → L —↠⋆ L′
+      -----------------
+    → (L · M) —↠⋆ (L′ · M) -- TODO: operator presidence
+postulate
+  ξ-·₂' : ∀ {Γ K J} {L : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
+    → M —↠⋆ M′
+      -----------------
+    → (L · M) —↠⋆ (L · M′) -- TODO: operator presidence
+postulate
+  ξ-con' : ∀{Φ}
+    → {tcn : TyCon}
+    → {s s' : Φ ⊢⋆ #}
+    → s —↠⋆ s'
+      ------------------
+    → con tcn s —↠⋆ con tcn s'
+
+
 postulate trans—↠⋆' : ∀{Γ J}{L M N : Γ ⊢⋆ J} → L —↠⋆ M → M —↠⋆ N → L —↠⋆ N
 
 \end{code}
@@ -147,8 +180,8 @@ progress⋆ (ƛ M)   = done V-ƛ_
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
 ...                    | done vM with progress⋆ N
-...                                | step p = step (ξ-·₂ vM p)
-progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step (β-ƛ vN)
+...                                | step p = step (ξ-·₂ p)
+progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step β-ƛ
 progress⋆ (M · N) | done (N- {∅} {K ⇒ K₁} x₁) | done x = done (N- (N-· x₁ x))
 progress⋆ (size⋆ n)   = done V-size
 progress⋆ (con tcn s) with progress⋆ s
@@ -218,15 +251,16 @@ rename—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
     -------------------------
   → rename ρ A —→⋆ rename ρ B
 rename—→⋆ ρ (ξ-⇒₁ p)               = ξ-⇒₁ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-⇒₂ VS p)            = ξ-⇒₂ (renameValue⋆ ρ VS) (rename—→⋆ ρ p)
+rename—→⋆ ρ (ξ-⇒₂ p)            = ξ-⇒₂ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-·₂ V p)             = ξ-·₂ (renameValue⋆ ρ V) (rename—→⋆ ρ p)
-rename—→⋆ ρ (β-ƛ {N = M}{W = N} V) =
+rename—→⋆ ρ (ξ-·₂ p)             = ξ-·₂ (rename—→⋆ ρ p)
+rename—→⋆ ρ (ξ-Π p)             = ξ-Π (rename—→⋆ (ext ρ) p)
+rename—→⋆ ρ (β-ƛ {N = M}{W = N}) =
   substEq (λ X → rename ρ ((ƛ M) · N) —→⋆ X)
           (trans (sym (subst-rename M))
                  (trans (subst-cong (rename-subst-cons ρ N) M)
                         (rename-subst M)))
-          (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N} (renameValue⋆ ρ V))
+          (β-ƛ {N = rename (ext ρ) M}{W = rename ρ N})
 rename—→⋆ ρ (ξ-con p)              = ξ-con (rename—→⋆ ρ p)
 \end{code}
 
@@ -237,15 +271,16 @@ subst—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
     ----------------------------
   → subst σ A —→⋆ subst σ B
 subst—→⋆ σ (ξ-⇒₁ p)               = ξ-⇒₁ (subst—→⋆ σ p)
-subst—→⋆ σ (ξ-⇒₂ VS p)            = ξ-⇒₂ (substValue⋆ σ VS) (subst—→⋆ σ p)
+subst—→⋆ σ (ξ-⇒₂ p)            = ξ-⇒₂ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-·₁ p)               = ξ-·₁ (subst—→⋆ σ p)
-subst—→⋆ σ (ξ-·₂ V p)             = ξ-·₂ (substValue⋆ σ V) (subst—→⋆ σ p)
-subst—→⋆ σ (β-ƛ {N = M}{W = N} V) =
+subst—→⋆ σ (ξ-·₂ p)             = ξ-·₂ (subst—→⋆ σ p)
+subst—→⋆ σ (ξ-Π p)             = ξ-Π (subst—→⋆ (exts σ) p)
+subst—→⋆ σ (β-ƛ {N = M}{W = N}) =
   substEq (λ X → subst σ ((ƛ M) · N) —→⋆ X)
           (trans (sym (subst-comp M))
                  (trans (subst-cong (subst-subst-cons σ N) M)
                         (subst-comp  M)))
-          (β-ƛ {N = subst (exts σ) M}{W = subst σ N} (substValue⋆ σ V))
+          (β-ƛ {N = subst (exts σ) M}{W = subst σ N})
 subst—→⋆ ρ (ξ-con p)              = ξ-con (subst—→⋆ ρ p)
 \end{code}
 
