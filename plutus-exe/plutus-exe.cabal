@@ -33,8 +33,10 @@ executable plc
         base <5,
         language-plutus-core -any,
         plutus-core-interpreter -any,
+        transformers -any,
         bytestring -any,
         text -any,
+        prettyprinter -any,
         optparse-applicative -any
 
     if (flag(development) && impl(ghc <8.4))
