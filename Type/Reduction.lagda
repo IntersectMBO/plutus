@@ -119,6 +119,9 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → M —↠⋆ N
       ---------
     → L —↠⋆ N
+
+postulate β—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
+
 \end{code}
 
 \begin{code}

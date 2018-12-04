@@ -1,5 +1,5 @@
 \begin{code}
-module Type.BetaNBE.Soundness where
+module Type.BetaNBE.SoundnessRed where
 \end{code}
 
 \begin{code}
@@ -24,25 +24,32 @@ is related to a value if when we reach ground kind (# or *) then the
 type is beta-eta-equal to the result of reifying the value.
 
 \begin{code}
+open import Type.Reduction
+
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
-SR #       A v        = A ≡β embNf (reify v)
-SR *       A v        = A ≡β embNf (reify v)
-SR (K ⇒ J) A (inj₁ n) = A ≡β embNeN n
+SR #       A v        = A —↠⋆ embNf (reify v)
+SR *       A v        = A —↠⋆ embNf (reify v)
+SR (K ⇒ J) A (inj₁ n) = A —↠⋆ embNeN n
 SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
-  (A ≡β ƛ B) -- this bit of indirection is needed as we have only β not βη
+  (A —→⋆ ƛ B) -- this bit of indirection is needed as we have only β not βη
   ×
   ∀{Ψ}
     → (ρ : Ren _ Ψ)
     → {u : Ψ ⊢⋆ K}
     → {v : Val Ψ K}
     → SR K u v
+--    → ∀ t
+--    → t —↠⋆ (rename ρ A · u)
       -----------------------------------------------------
-    → SR J (rename ρ (ƛ B) · u) (renameVal ρ (inj₂ f) ·V v)
+--    → SR J (rename ρ (ƛ B) · u) (renameVal ρ (inj₂ f) ·V v)
+    → SR J ( rename (ext ρ) B [ u ]) (renameVal ρ (inj₂ f) ·V v)
+
 \end{code}
 
 \begin{code}
+
 reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢NeN⋆ K}
-  → A ≡β embNeN n
+  → A —↠⋆ embNeN n
     ------------------
   → SR K A (reflect n)
 reflectSR {K = #}     p = p
@@ -52,18 +59,11 @@ reflectSR {K = K ⇒ J} p = p
 reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K A v
     --------------------
-  → A ≡β embNf (reify v)
+  → A —↠⋆ embNf (reify v)
 reifySR {K = *}                  p            = p
 reifySR {K = #}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
-reifySR {K = K ⇒ J} {v = inj₂ f} (A' , p , q) =
-  trans≡β p (substEq (λ B → ƛ B ≡β ƛ (embNf (reify (f S fresh))))
-                     (trans (sym (subst-rename A'))
-                            (trans (subst-cong (λ { Z → refl
-                                                  ; (S x) → refl}) A')
-                                   (subst-id A')))
-                     (ƛ≡β (trans≡β (sym≡β (β≡β _ _))
-                                   (reifySR (q S (reflectSR (refl≡β (` Z))))))))
+reifySR {K = K ⇒ J} {A = A}{v = inj₂ f} (X , Y , p )= trans—↠⋆ _ Y (β—↠⋆ (substEq (λ B → B —↠⋆ embNf (reify (f S fresh))) (trans (sym (subst-rename X)) (trans (subst-cong (λ { Z → refl ; (S x) → refl}) X) (subst-id X))) (reifySR {K = J} (p S (reflectSR (refl—↠⋆ {M = ` Z})))))) 
 \end{code}
 
 Lifting SR from ⊢⋆/Val to Sub/Env
@@ -88,28 +88,32 @@ SR,,⋆ p q (S α) = p α
 renaming for SR
 
 \begin{code}
+{-
 renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K A v
     ---------------------------------
   → SR K (rename ρ A) (renameVal ρ v)
-renSR ρ {#}{A}{n} p = 
-  substEq (rename ρ A ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
-renSR ρ {*}{A}{n} p = 
-  substEq (rename ρ A ≡β_) (sym (rename-embNf ρ n)) (rename≡β ρ p)
-renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite rename-embNeN ρ n = rename≡β ρ p  
+renSR ρ {#}{A}{n} p =
+  substEq (rename ρ A —↠⋆_) (sym (rename-embNf ρ n)) (rename—↠⋆ ρ p)
+renSR ρ {*}{A}{n} p =
+  substEq (rename ρ A —↠⋆_) (sym (rename-embNf ρ n)) (rename—↠⋆ ρ p)
+renSR ρ {K ⇒ J} {A} {inj₁ n} p rewrite rename-embNeN ρ n =
+ rename—↠⋆ ρ p
 renSR ρ {K ⇒ J} {A} {inj₂ f} (A' , p , q) =
   rename (ext ρ) A'
   ,
-  rename≡β ρ p
+  rename—→⋆ ρ p
   ,
   λ ρ' {u}{v} r → substEq (λ A → SR J (ƛ A · u) (f (ρ' ∘ ρ) v))
                           (trans (rename-cong ext-comp A') (rename-comp A'))
                           (q (ρ' ∘ ρ) r)
+-}
 \end{code}
 
 Extending via exts is the same the same as weakening and cons on ` Z
 
 \begin{code}
+{-
 exts-subst-cons : ∀{Φ Ψ K J}
   → (σ : Sub Φ Ψ)
   → (α : Φ ,⋆ J ∋⋆ K)
@@ -139,23 +143,24 @@ SRweak : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → ∀ {K}
     -------------------------------------------------------
   → SREnv (exts σ) ((renameVal S ∘ η) ,,⋆ fresh {σ = K})
-SRweak p = substSREnv (sym ∘ exts-subst-cons _)
-                      (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z)))) 
+SRweak p = {!!}
+--substSREnv (sym ∘ exts-subst-cons _)
+--                      (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z)))) 
 \end{code}
 
 SR is closed under ≡β
 
 \begin{code}
 substSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
-  → A' ≡β A
+  → A' —↠⋆ A
   → {v : Val Φ K}
   → SR K A v
     ---------------------------
   → SR K A' v
-substSR {K = #}     p          q            = trans≡β p q
-substSR {K = *}     p          q            = trans≡β p q
-substSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
-substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
+substSR {K = #}     p          q            = {!!} -- trans≡β p q
+substSR {K = *}     p          q            = {!!} -- trans≡β p q
+substSR {K = K ⇒ J} p {inj₁ n} q            = {!!} -- trans≡β p q
+substSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = {!!} -- _ , trans≡β p q , r
 \end{code}
 
 SR is closed under ·V
@@ -170,14 +175,16 @@ SRApp : ∀{Φ K J}
   → SR K u v
     ---------------------
   → SR J (A · u) (f ·V v)
-SRApp {f = inj₁ n} p            q = reflectSR (·≡β (reflectSR p) (reifySR q))
-SRApp {f = inj₂ f} (A' , p , q) r =
+SRApp {f = inj₁ n} p            q = {!!} -- reflectSR (·≡β (reflectSR p) (reifySR q))
+SRApp {f = inj₂ f} (A' , p , q) r = {!!}
+{-
   substSR (·≡β (substEq
                  (λ B → _ ≡β ƛ B)
                  (trans (sym (rename-id A')) (rename-cong (sym ∘ ext-id) A'))
                  p)
                (refl≡β _))
           (q id r)
+-}
 \end{code}
 
 Fundamental Theorem of Logical Relations for SR
@@ -187,9 +194,10 @@ evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (subst σ A) (eval A η)
 evalSR (` α)                   p = p α
-evalSR (Π B)                   p = Π≡β (evalSR B (SRweak p))
-evalSR (A ⇒ B)                 p = ⇒≡β (evalSR A p) (evalSR B p)
-evalSR (ƛ B)   {σ}{η}          p =
+evalSR (Π B)                   p = {!!} -- Π≡β (evalSR B (SRweak p))
+evalSR (A ⇒ B)                 p = {!!} -- ⇒≡β (evalSR A p) (evalSR B p)
+evalSR (ƛ B)   {σ}{η}          p = {!!}
+{-
   subst (exts σ) B
   ,
   refl≡β _
@@ -204,23 +212,24 @@ evalSR (ƛ B)   {σ}{η}          p =
                                (subst-rename (σ x))}) B)
                            (subst-comp B))
                     (subst-rename (subst (exts σ) B)))
-             (evalSR B (SR,,⋆ (renSR ρ ∘ p) q)) )
+             (evalSR B (SR,,⋆ (renSR ρ ∘ p) q)) ) -}
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
-evalSR μ1          p = refl≡β _
-evalSR (size⋆ n)   p = refl≡β _
-evalSR (con tcn s) p = con≡β (evalSR s p)
+evalSR μ1          p = {!!} -- refl≡β _
+evalSR (size⋆ n)   p = {!!} -- refl≡β _
+evalSR (con tcn s) p = {!!} -- con≡β (evalSR s p)
 \end{code}
 
 Identity SREnv
 
 \begin{code}
 idSR : ∀{Φ} → SREnv ` (idEnv Φ)
-idSR = reflectSR ∘ refl≡β ∘ `
+idSR = reflectSR ∘ {!!} -- refl≡β ∘ `
 \end{code}
 
 Soundness Result
 
 \begin{code}
-soundness : ∀ {Φ J} → (A : Φ ⊢⋆ J) → A ≡β embNf (nf A)
-soundness A = substEq (_≡β embNf (nf A)) (subst-id A) (reifySR (evalSR A idSR))
+soundness : ∀ {Φ J} → (A : Φ ⊢⋆ J) → A —↠⋆ embNf (nf A)
+soundness A = {!!} -- substEq (_≡β embNf (nf A)) (subst-id A) (reifySR (evalSR A idSR))
+-}
 \end{code}
