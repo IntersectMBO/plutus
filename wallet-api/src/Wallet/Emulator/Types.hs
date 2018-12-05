@@ -229,6 +229,8 @@ instance WalletAPI MockWallet where
 
     watchedAddresses = use addressMap
 
+    startWatching = modifying addressMap . AM.addAddress
+
     blockHeight = use walletBlockHeight
 
 -- Emulator code

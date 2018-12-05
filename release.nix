@@ -30,9 +30,11 @@ let
   mapped = mapTestOn platforms;
   makePlutusTestRuns = system:
     let
-      pred = name: value: fixedLib.isPlutus name && value ? testdata;
+      pred = name: value: fixedLib.isPlutus name;
       plutusPkgs = import ./. { inherit system; };
-      f = name: value: value.testrun;
+      # for things which are split-check then take the test run, otherwise
+      # use the main derivation which will have the tests as part of it
+      f = name: value: if value ? testdata then value.testrun else value;
     in pkgs.lib.mapAttrs f (lib.filterAttrs pred plutusPkgs.haskellPackages);
 in pkgs.lib.fix (jobsets:  mapped // {
   inherit (plutusPkgs) tests docs;

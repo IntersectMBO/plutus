@@ -56012,8 +56012,10 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , containers
+, doctest
 , hedgehog
 , lens
+, markdown-unlit
 , mtl
 , plutus-tx
 , plutus-tx-plugin
@@ -56042,7 +56044,9 @@ wallet-api
 testHaskellDepends = [
 base
 containers
+doctest
 hedgehog
+markdown-unlit
 plutus-tx
 plutus-tx-plugin
 tasty
@@ -56050,6 +56054,9 @@ tasty-hedgehog
 template-haskell
 text
 wallet-api
+];
+testToolDepends = [
+markdown-unlit
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";

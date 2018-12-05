@@ -24,7 +24,7 @@ import           Ledger.Validation            (Height (..), PendingTx (..), Pend
                                               ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', Validator (..), Value (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
@@ -104,8 +104,8 @@ validatorScriptHash =
     . Ledger.scriptAddress
     . validatorScript
 
-validatorScript :: Vesting -> Validator
-validatorScript v = Validator val where
+validatorScript :: Vesting -> ValidatorScript
+validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
     inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
