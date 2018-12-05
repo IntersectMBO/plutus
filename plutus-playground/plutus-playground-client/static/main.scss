@@ -96,17 +96,14 @@ h2 {
         text-align: left;
         margin-bottom: 30px;
 
-        .form-group {
+        label {
+            margin-bottom: 0;
+        }
+
+        input {
+            padding-left: 0;
+            padding-right: 0;
             margin-bottom: 2rem;
-
-            label {
-                margin-bottom: 0;
-            }
-
-            input {
-                padding-left: inherit;
-                padding-right: inherit;
-            }
         }
 
         .nested {
