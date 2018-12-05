@@ -18,9 +18,9 @@ import Data.Maybe (Maybe(Nothing))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple, fst, snd)
 import Data.Tuple.Nested ((/\))
-import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, buildItems, buildLinks, color, grid, itemStyle, items, label, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, sankey, series, sourceName, targetName, value, xAxis, yAxis) as E
+import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, buildItems, buildLinks, color, grid, itemStyle, items, label, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, sankey, series, sourceName, targetName, tooltip, trigger, value, xAxis, yAxis) as E
 import ECharts.Monad (CommandsT, DSL, set') as E
-import ECharts.Types (AxisType(Value, Category), numItem, strItem) as E
+import ECharts.Types (AxisType(Value, Category), TooltipTrigger(ItemTrigger), numItem, strItem) as E
 import ECharts.Types.Phantom (I)
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
@@ -65,7 +65,7 @@ evaluationPane (EvaluationResult {emulatorLog}) =
         [ h3_ [ text "Chain" ]
         , slot' cpMockchainChart MockchainChartSlot
             (echarts Nothing)
-            ({width: 760, height: 500} /\ unit)
+            ({width: 960, height: 768} /\ unit)
             (input HandleMockchainChartMessage)
         ]
     , br_
@@ -126,10 +126,14 @@ mockchainChartOptions ::
   forall m.
   Monad m
   => FlowGraph
-  -> E.CommandsT (series :: I) m Unit
+  -> E.CommandsT (series :: I, tooltip :: I ) m Unit
 mockchainChartOptions (FlowGraph {flowGraphLinks, flowGraphNodes}) = do
+  E.tooltip $ do
+    E.trigger E.ItemTrigger
   E.series do
     E.sankey do
+      E.set' "focusNodeAdjacency" $ toForeign "allEdges"
+      E.set' "orient" $ toForeign "vertical"
       -- E.orient E.Vertical
       E.buildLinks $ traverse_ toEchartLink flowGraphLinks
       E.buildItems $ traverse_ toEchartItem flowGraphNodes
