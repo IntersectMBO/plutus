@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -32,21 +32,21 @@ module Ledger.Validation
   , OracleValue(..)
   ) where
 
-import           Codec.Serialise              (Serialise, serialise, deserialiseOrFail)
+import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
 import           Crypto.Hash                  (Digest, SHA256, hash)
-import           Data.Aeson                   (FromJSON, ToJSON(toJSON), withText)
+import           Data.Aeson                   (FromJSON, ToJSON (toJSON), withText)
 import qualified Data.Aeson                   as JSON
 import           Data.Bifunctor               (first)
 import qualified Data.ByteArray               as BA
-import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.ByteString.Base64       as Base64
-import           Data.Proxy                   (Proxy(Proxy))
-import           Data.Swagger.Internal.Schema (ToSchema(declareNamedSchema), plain, paramSchemaToSchema)
+import qualified Data.ByteString.Lazy         as BSL
+import           Data.Proxy                   (Proxy (Proxy))
+import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
+import qualified Data.Text.Encoding           as TE
 import           GHC.Generics                 (Generic)
 import           Language.PlutusTx.Lift       (makeLift)
 import           Ledger.Types                 (PubKey (..), Signature (..), Value (..))
 import qualified Ledger.Types                 as Ledger
-import qualified Data.Text.Encoding           as TE
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
