@@ -2,15 +2,6 @@
 -- logAMessage produces a log message from a wallet
 -- submitInvalidTxn submits an invalid txn which should result in a "Validation failed" message
 -- throwWalletAPIError throws an error from a wallet (client)
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.PlutusTx.Coordination.Contracts.Messages where
 
 import           Control.Applicative          (Applicative (..))

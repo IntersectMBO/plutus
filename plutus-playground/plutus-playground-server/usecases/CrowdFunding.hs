@@ -2,15 +2,6 @@
 -- This is the fully parallel version that collects all contributions
 -- in a single transaction. This is, of course, limited by the maximum
 -- number of inputs a transaction can have.
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding where
 
 import           Control.Applicative          (Applicative (..))
@@ -26,7 +17,7 @@ import           Playground.Contract
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxId', Validator (..), Value (..), scriptTxIn, Tx)
+import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Tx)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
@@ -74,7 +65,7 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
         am <- watchedAddresses
         let scr        = contributionScript cmp
             contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
-            red        = Ledger.Redeemer $ Ledger.lifted Collect
+            red        = Ledger.RedeemerScript $ Ledger.lifted Collect
             con (r, _) = scriptTxIn r scr red
             ins        = con <$> contributions
             value = getSum $ foldMap (Sum . snd) contributions
@@ -104,8 +95,8 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 --   2. Refund. In this case each contributor creates a transaction with a
 --      single input claiming back their part of the funds. This case is
 --      covered by the `refundable` branch.
-contributionScript :: Campaign -> Validator
-contributionScript cmp  = Validator val where
+contributionScript :: Campaign -> ValidatorScript
+contributionScript cmp  = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted cmp)
 
     --   See note [Contracts and Validator Scripts] in
@@ -186,7 +177,7 @@ refund txid cmp = EventHandler $ \_ -> do
         utxo    = fromMaybe Map.empty $ am ^. at adr
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         scr   = contributionScript cmp
-        red   = Ledger.Redeemer $ Ledger.lifted Refund
+        red   = Ledger.RedeemerScript $ Ledger.lifted Refund
         i ref = scriptTxIn ref scr red
         inputs = Set.fromList $ i . fst <$> ourUtxo
         value  = getSum $ foldMap (Sum . snd) ourUtxo

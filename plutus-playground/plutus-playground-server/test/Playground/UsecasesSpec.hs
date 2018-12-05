@@ -18,7 +18,7 @@ spec = do
     vestingSpec
     gameSpec
     messagesSpec
-    -- crowdfundingSpec
+    crowdfundingSpec
 
 vestingSpec :: Spec
 vestingSpec =
@@ -35,10 +35,10 @@ messagesSpec =
     describe "messages" $
     it "should compile" $ compile messages >>= (`shouldSatisfy` isRight)
 
--- crowdfundingSpec :: Spec
--- crowdfundingSpec =
---     describe "crowdfunding" $
---     it "should compile" $ compile crowdfunding >>= (`shouldSatisfy` isRight)
+crowdfundingSpec :: Spec
+crowdfundingSpec =
+    describe "crowdfunding" $
+    it "should compile" $ compile crowdfunding >>= (`shouldSatisfy` isRight)
 
 compile :: BSC.ByteString -> IO (Either PlaygroundError [FunctionSchema Schema])
 compile usecase = do
