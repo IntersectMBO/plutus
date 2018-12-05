@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE AutoDeriveTypeable    #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -16,6 +17,9 @@ module PSGenerator
 import           Control.Applicative                       ((<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Reader.Class                (MonadReader)
+import qualified Data.ByteString              as BS
+import qualified Data.ByteString.Char8        as BSC
+import           Data.FileEmbed                            (embedFile)
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
@@ -182,6 +186,20 @@ mySettings =
     (defaultSettings & set apiModuleName "Playground.Server")
         {_generateSubscriberAPI = False}
 
+vestingUsecase :: BS.ByteString
+vestingUsecase = $(embedFile "./Vesting.hs")
+
+-- multilineString :: String -> String -> String
+-- multilineString name value = "\n\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
+
+-- psModule :: String -> String -> String
+-- psModule name body = "module " <> name <> " where" <> body
+
+writeUsecases :: FilePath -> IO ()
+writeUsecases outputDir = do
+  putStrLn . BSC.unpack $ vestingUsecase
+  putStrLn outputDir
+
 generate :: FilePath -> IO ()
 generate outputDir = do
     writeAPIModuleWithSettings
@@ -190,6 +208,7 @@ generate outputDir = do
         myBridgeProxy
         (Proxy @API.API)
     writePSTypes outputDir (buildBridge myBridge) myTypes
+    writeUsecases outputDir
 
 k :: IO ()
 k = generate "/Users/kris/Work/Clients/IOHK/plutus/plutus-playground/plutus-playground-client/src"

@@ -55840,9 +55840,11 @@ warp
 executableHaskellDepends = [
 aeson
 base
+bytestring
 containers
 cryptonite
 data-default-class
+file-embed
 gitrev
 hspec
 http-media
