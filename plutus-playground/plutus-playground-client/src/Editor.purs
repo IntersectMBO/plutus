@@ -67,7 +67,7 @@ editorPane state =
                         (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
                     Failure error ->
                       alertDanger_
-                        [ text $ showAjaxError error
+                        [ showAjaxError error
                         , br_
                         , text "Please try again or contact support for assistance."
                         ]
