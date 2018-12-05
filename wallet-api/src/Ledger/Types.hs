@@ -104,6 +104,7 @@ import           Codec.Serialise                          (deserialise, deserial
 import           Codec.Serialise.Class                    (Serialise, decode, encode)
 import           Control.Lens                             hiding (lifted)
 import           Control.Monad                            (join)
+import           Control.Newtype.Generics     (Newtype)
 import           Crypto.Hash                              (Digest, SHA256, digestFromByteString, hash)
 import           Data.Aeson                               (FromJSON (parseJSON), ToJSON (toJSON), withText)
 import qualified Data.Aeson                               as JSON
@@ -118,10 +119,11 @@ import           Data.Map                                 (Map)
 import qualified Data.Map                                 as Map
 import           Data.Maybe                               (fromMaybe, isJust, listToMaybe)
 import           Data.Monoid                              (Sum (..))
+import           Data.Proxy                               (Proxy(Proxy))
 import qualified Data.Set                                 as Set
 import qualified Data.Text.Encoding                       as TE
 import           GHC.Generics                             (Generic)
-
+import           Data.Swagger.Internal.Schema             (ToSchema(declareNamedSchema), plain, paramSchemaToSchema)
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
@@ -156,7 +158,7 @@ especially because we only need one direction (to binary).
 newtype PubKey = PubKey { getPubKey :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToSchema, ToJSON, FromJSON, Newtype)
     deriving newtype (Serialise)
 
 makeLift ''PubKey
@@ -164,7 +166,7 @@ makeLift ''PubKey
 newtype Signature = Signature { getSignature :: Int }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToSchema, ToJSON, FromJSON)
     deriving newtype (Serialise)
 
 makeLift ''Signature
@@ -178,7 +180,7 @@ signedBy (Signature k) (PubKey s) = k == s
 newtype Value = Value { getValue :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToSchema, ToJSON, FromJSON)
     deriving newtype (Num, Integral, Real, Serialise)
 
 makeLift ''Value
@@ -193,8 +195,9 @@ makeLift ''TxId
 type TxId' = TxId (Digest SHA256)
 
 deriving newtype instance Serialise TxId'
-deriving anyclass instance ToJSON TxId'
-deriving anyclass instance FromJSON TxId'
+deriving anyclass instance ToJSON a => ToJSON (TxId a)
+deriving anyclass instance FromJSON a => FromJSON (TxId a)
+deriving anyclass instance ToSchema a => ToSchema (TxId a)
 
 instance Serialise (Digest SHA256) where
   encode = encode . BA.unpack
@@ -207,6 +210,9 @@ instance Serialise (Digest SHA256) where
 
 instance ToJSON (Digest SHA256) where
   toJSON = JSON.String . TE.decodeUtf8 . Base64.encode . Write.toStrictByteString . encode
+
+instance ToSchema (Digest SHA256) where
+  declareNamedSchema _ = plain . paramSchemaToSchema $ (Proxy :: Proxy String)
 
 instance FromJSON (Digest SHA256) where
   parseJSON = withText "SHA256" $ \s -> do
@@ -265,8 +271,8 @@ lifted = Script . serialise . unsafeLiftPlcProgram
 -- | A validator is a PLC script.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
-  deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise)
+  deriving anyclass (ToJSON, FromJSON)
 
 instance Show Validator where
     show = const "Validator { <script> }"
@@ -288,8 +294,8 @@ instance BA.ByteArrayAccess Validator where
 -- | Data script (supplied by producer of the transaction output)
 newtype DataScript = DataScript { getDataScript :: Script  }
   deriving stock (Generic)
-  deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise)
+  deriving anyclass (ToJSON, FromJSON)
 
 instance Show DataScript where
     show = const "DataScript { <script> }"
@@ -311,8 +317,8 @@ instance BA.ByteArrayAccess DataScript where
 -- | Redeemer (supplied by consumer of the transaction output)
 newtype Redeemer = Redeemer { getRedeemer :: Script }
   deriving stock (Generic)
-  deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise)
+  deriving anyclass (ToJSON, FromJSON)
 
 instance Show Redeemer where
     show = const "Redeemer { <script> }"
@@ -335,7 +341,7 @@ instance BA.ByteArrayAccess Redeemer where
 newtype Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (ToSchema, FromJSON, ToJSON)
     deriving newtype (Num, Real, Integral, Serialise)
 
 -- | The height of a blockchain
@@ -413,6 +419,7 @@ type TxOutRef' = TxOutRef (Digest SHA256)
 deriving instance Serialise TxOutRef'
 deriving instance ToJSON TxOutRef'
 deriving instance FromJSON TxOutRef'
+deriving instance ToSchema TxOutRef'
 
 -- | A list of a transaction's outputs paired with their [[TxOutRef']]s
 txOutRefs :: Tx -> [(TxOut', TxOutRef')]

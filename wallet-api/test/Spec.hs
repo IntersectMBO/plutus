@@ -57,7 +57,7 @@ tests = testGroup "all tests" [
 
 initialTxnValid :: Property
 initialTxnValid = property $ do
-    (i, _) <- forAll $ Gen.genInitialTransaction Gen.generatorModel
+    (i, _) <- forAll . pure $ Gen.genInitialTransaction Gen.generatorModel
     Gen.assertValid i Gen.emptyChain
 
 utxo :: Property

@@ -1,0 +1,224 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+@import 'variables.scss';
+
+@import './node_modules/bootstrap/scss/functions';
+@import './node_modules/bootstrap/scss/variables';
+@import './node_modules/bootstrap/scss/mixins';
+@import './node_modules/bootstrap/scss/root';
+@import './node_modules/bootstrap/scss/reboot';
+@import './node_modules/bootstrap/scss/type';
+@import './node_modules/bootstrap/scss/images';
+@import './node_modules/bootstrap/scss/code';
+@import './node_modules/bootstrap/scss/grid';
+//  @import './node_modules/bootstrap/scss/tables';
+@import './node_modules/bootstrap/scss/forms';
+@import './node_modules/bootstrap/scss/buttons';
+@import './node_modules/bootstrap/scss/transitions';
+@import './node_modules/bootstrap/scss/dropdown';
+//  @import './node_modules/bootstrap/scss/button-group';
+//  @import './node_modules/bootstrap/scss/input-group';
+//  @import './node_modules/bootstrap/scss/custom-forms';
+@import './node_modules/bootstrap/scss/nav';
+@import './node_modules/bootstrap/scss/navbar';
+@import './node_modules/bootstrap/scss/card';
+//  @import './node_modules/bootstrap/scss/breadcrumb';
+//  @import './node_modules/bootstrap/scss/pagination';
+@import './node_modules/bootstrap/scss/badge';
+//  @import './node_modules/bootstrap/scss/jumbotron';
+@import './node_modules/bootstrap/scss/alert';
+//  @import './node_modules/bootstrap/scss/progress';
+//  @import './node_modules/bootstrap/scss/media';
+@import './node_modules/bootstrap/scss/list-group';
+@import './node_modules/bootstrap/scss/close';
+@import './node_modules/bootstrap/scss/modal';
+//  @import './node_modules/bootstrap/scss/tooltip';
+//  @import './node_modules/bootstrap/scss/popover';
+//  @import './node_modules/bootstrap/scss/carousel';
+@import './node_modules/bootstrap/scss/utilities';
+@import './node_modules/bootstrap/scss/print';
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background:#121326;
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+
+p, a, button,  i, b, strong, em {
+    color:rgba(255, 255, 255, 0.7);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.22rem;
+}
+
+.main-title {
+    font-size:1.5rem;
+}
+
+.main-frame {
+    .container {
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+
+    .stripe {
+        background-color: #19192c;
+    }
+}
+.ace_editor, .ace_content {
+    min-height: 20rem;
+}
+
+.wallet {
+    margin-bottom: 30px;
+
+    .action-button {
+        margin-top: 5px;
+        margin-right: 5px;
+    }
+}
+
+.wallet-id {
+}
+
+.add-wallet, .add-wait-action {
+    text-align: center;
+}
+
+.actions {
+    .action {
+        text-align: left;
+        margin-bottom: 30px;
+    }
+}
+
+.action, .wallet {
+    h1, h2, h3, h4 {
+        color: $lightPurple;
+    }
+
+    input {
+        color: rgba(255, 255, 255, 0.7);
+        background: $input-bg;
+        border: $input-border-color;
+        outline:none;
+        border-bottom:1px solid $purple05;
+
+        &.error {
+            color: $red;
+            border-bottom:1px solid $red;
+        }
+    }
+}
+
+.compilation-error {
+    cursor: pointer;
+
+    pre {
+        margin-top: 1rem;
+    }
+}
+
+.btn {
+    border-radius: 1.5rem;
+}
+
+.fa-close {
+    font-size:26px;
+    &:before {
+        content: '\00d7';
+    }
+}
+
+.fa-plus {
+    cursor:pointer;
+    font-size:32px;
+    transform:rotate(45deg);
+    &:before {
+        content: '\00d7';
+    }
+}
+
+.logs {
+    font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    word-wrap: break-word;
+
+    .info {
+        &:before {
+            content: "- ";
+        }
+        &:after {
+            content: " -";
+        }
+        color: $lightPurple;
+        text-indent: 1rem;
+    }
+
+    .error {
+        color: $red;
+    }
+}
+
+.badge-action {
+    $badge-width: 4rem;
+    padding: 0.25rem 1.75rem 0.25rem 1.5rem;
+    width: $badge-width;
+    font-size: 100%;
+    background: $lightPurple;
+    border-radius: 1.5rem;
+    color: #1e1f30;
+    line-height: inherit;
+    position: absolute;
+    top: -1rem;
+    left: calc(50% - #{$badge-width / 2});
+}
+
+.card {
+    .btn.pull-right, .btn.pull-right:focus {
+        border:none;
+        background:none;
+        outline:0;
+        box-shadow: none;
+    }
+    button.pull-right {
+        margin:-0.5rem 0 0 0;
+        padding:0;
+    }
+    span.pull-right {
+        .fa-plus {
+            font-size:1rem;
+            margin-left: 1rem;
+        }
+    }
+    div:not(:last-child) {
+        margin-bottom: 0.5rem;
+    }
+}
+
+.card-footer {
+    padding: $card-spacer-y $card-spacer-x;
+    background-color: $card-bg !important;
+    border-top: $card-border-width solid $card-border-color;
+}
+
+.ace-monokai {
+    background: #1e1f30;
+    .ace_gutter, .ace_marker-layer .ace_active-line {
+        background:#1a1b2c;
+    }
+    .ace_entity.ace_name.ace_tag, .ace_keyword, .ace_meta.ace_tag, .ace_storage {
+        color:#eabdfd;
+    }
+    .ace_entity.ace_name.ace_function, .ace_entity.ace_other, .ace_entity.ace_other.ace_attribute-name, .ace_variable {
+        color:#fd9fa6;
+    }
+    .ace_storage.ace_type, .ace_support.ace_class, .ace_support.ace_type {
+        color:#9bfbfa;
+    }
+}
