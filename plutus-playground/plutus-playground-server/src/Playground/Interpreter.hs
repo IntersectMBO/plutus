@@ -11,7 +11,10 @@ import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Control.Newtype.Generics     as Newtype
 import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.Aeson                   as JSON
+import qualified Data.ByteString              as BS
+import qualified Data.ByteString.Char8        as BSC
 import qualified Data.ByteString.Lazy.Char8   as BSL
+import           Data.FileEmbed               (embedFile)
 import           Data.List                    (intercalate)
 import           Data.Maybe                   (catMaybes)
 import           Data.Monoid                  ((<>))
@@ -35,6 +38,9 @@ import           System.IO.Temp               (writeSystemTempFile)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
 $(TH.mkFunction 'payToPubKey)
+
+usecase :: BS.ByteString
+usecase = $(embedFile "./Contract.hs")
 
 defaultExtensions :: [Extension]
 defaultExtensions =
@@ -77,6 +83,11 @@ addGhcOptions = Newtype.over SourceCode (mappend opts)
 
 writeTempSource :: MonadIO m => SourceCode -> m FilePath
 writeTempSource s = liftIO $ writeSystemTempFile "Contract.hs" (Text.unpack . Newtype.unpack . addGhcOptions $ s)
+
+warmup  ::
+       (MonadInterpreter m, MonadError PlaygroundError m)
+    => m [FunctionSchema Schema]
+warmup = compile . SourceCode . Text.pack . BSC.unpack $ usecase
 
 compile ::
        (MonadInterpreter m, MonadError PlaygroundError m)

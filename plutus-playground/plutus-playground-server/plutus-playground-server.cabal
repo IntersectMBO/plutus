@@ -38,6 +38,7 @@ library
     , data-default-class
     , directory
     , exceptions
+    , file-embed
     , gitrev
     , hint >= 0.9.0
     , bifunctors

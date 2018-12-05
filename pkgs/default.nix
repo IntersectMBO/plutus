@@ -55613,8 +55613,10 @@ license = stdenv.lib.licenses.bsd3;
 , language-plutus-core
 , optparse-applicative
 , plutus-core-interpreter
+, prettyprinter
 , stdenv
 , text
+, transformers
 }:
 mkDerivation {
 
@@ -55629,7 +55631,9 @@ bytestring
 language-plutus-core
 optparse-applicative
 plutus-core-interpreter
+prettyprinter
 text
+transformers
 ];
 doHaddock = false;
 description = "Executable for Plutus Core tools";
@@ -55641,7 +55645,6 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , algebraic-graphs
 , base
-, bytestring
 , containers
 , language-plutus-core
 , lens
@@ -55651,8 +55654,6 @@ license = stdenv.lib.licenses.bsd3;
 , serialise
 , stdenv
 , tasty
-, tasty-golden
-, tasty-hunit
 , text
 , transformers
 }:
@@ -55664,7 +55665,6 @@ src = .././plutus-ir;
 libraryHaskellDepends = [
 algebraic-graphs
 base
-bytestring
 containers
 language-plutus-core
 lens
@@ -55680,12 +55680,8 @@ base
 language-plutus-core
 mmorph
 mtl
-prettyprinter
 serialise
 tasty
-tasty-golden
-tasty-hunit
-text
 ];
 doHaddock = false;
 description = "Plutus IR language";
@@ -55747,7 +55743,7 @@ transformers
 wallet-api
 ];
 doHaddock = false;
-homepage = "https://github.com/iohk/plutus-playground#readme";
+homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -55763,6 +55759,7 @@ license = stdenv.lib.licenses.bsd3;
 , data-default-class
 , directory
 , exceptions
+, file-embed
 , gitrev
 , hint
 , hspec
@@ -55813,6 +55810,7 @@ cryptonite
 data-default-class
 directory
 exceptions
+file-embed
 gitrev
 hint
 http-types
@@ -55901,7 +55899,7 @@ wai-extra
 warp
 ];
 doHaddock = false;
-homepage = "https://github.com/iohk/plutus-playground#readme";
+homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -55936,9 +55934,7 @@ testHaskellDepends = [
 base
 doctest
 language-plutus-core
-markdown-unlit
 mtl
-plutus-core-interpreter
 plutus-ir
 plutus-tx-plugin
 tasty
@@ -56046,7 +56042,6 @@ base
 containers
 doctest
 hedgehog
-markdown-unlit
 plutus-tx
 plutus-tx-plugin
 tasty

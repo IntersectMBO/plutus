@@ -11,6 +11,7 @@ module Playground.Server
     ) where
 
 import           Control.Concurrent.MVar             (MVar, newMVar, withMVar)
+import           Control.Monad                       (void)
 import           Control.Monad.Catch                 (catch)
 import           Control.Monad.Except                (ExceptT, MonadError, catchError, runExceptT, throwError)
 import           Control.Monad.IO.Class              (liftIO)
@@ -114,7 +115,16 @@ runFunction interpreter evaluation = do
             map (parseErrorText . Text.pack . errMsg) errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
 
+{-# ANN mkHandlers
+          ("HLint: ignore Avoid restricted function" :: String)
+        #-}
+
 mkHandlers :: IO (Server API)
 mkHandlers = do
     interpreter <- mkInterpreterInstance
+    liftIO . putStrLn $ "warming up"
+    warmupResult <- liftIO $ runInterpreterInstance interpreter PI.warmup
+    case warmupResult of
+        Left e  -> error $ "failed to warmup interpreter with error: " <> show e
+        Right _ -> liftIO . putStrLn $ "successfully warmed up interpreter"
     pure $ acceptSourceCode interpreter :<|> runFunction interpreter
