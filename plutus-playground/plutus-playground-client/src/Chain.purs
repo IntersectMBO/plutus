@@ -126,7 +126,7 @@ mockchainChartOptions ::
   forall m.
   Monad m
   => FlowGraph
-  -> E.CommandsT (series :: I, tooltip :: I ) m Unit
+  -> E.CommandsT (series :: I, tooltip :: I) m Unit
 mockchainChartOptions (FlowGraph {flowGraphLinks, flowGraphNodes}) = do
   E.tooltip $ do
     E.trigger E.ItemTrigger
@@ -163,8 +163,10 @@ balancesChartOptions ::
   forall m.
   Monad m
   => Array (Tuple Wallet Value)
-  -> E.CommandsT (series :: I, grid :: I, xAxis :: I, yAxis :: I) m Unit
+  -> E.CommandsT (series :: I, grid :: I, xAxis :: I, yAxis :: I, tooltip :: I) m Unit
 balancesChartOptions wallets = do
+  E.tooltip $ do
+    E.trigger E.ItemTrigger
   E.grid $ E.backgroundColor $ rgb 35 39 64
   E.xAxis do
     E.axisType E.Category
