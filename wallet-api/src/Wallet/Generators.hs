@@ -80,8 +80,8 @@ genMockchain' :: MonadGen m
     => GeneratorModel
     -> m Mockchain
 genMockchain' gm = do
-    (txn, ot) <- genInitialTransaction gm
-    let txId = hashTx txn
+    let (txn, ot) = genInitialTransaction gm
+        txId = hashTx txn
     pure Mockchain {
         mockchainInitialBlock = [txn],
         mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
@@ -94,14 +94,14 @@ genMockchain = genMockchain' generatorModel
 
 -- | A transaction with no inputs that forges some value (to be used at the
 --   beginning of a blockchain)
-genInitialTransaction :: MonadGen m
-    => GeneratorModel
-    -> m (Tx, [TxOut'])
-genInitialTransaction GeneratorModel{..} = do
+genInitialTransaction ::
+       GeneratorModel
+    -> (Tx, [TxOut'])
+genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
         t = getSum $ foldMap Sum gmInitialBalance
-    pure (Tx {
+    in (Tx {
         txInputs = Set.empty,
         txOutputs = o,
         txForge = t,
