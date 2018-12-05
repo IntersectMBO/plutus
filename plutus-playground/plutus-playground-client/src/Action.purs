@@ -1,23 +1,22 @@
 module Action where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, cardFooter_, col4_, col_, pullRight, row, row_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, cardFooter_, col4_, col_, formControl, formGroup_, pullRight, row, row_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
-import Data.Foldable (intercalate)
 import Data.Int as Int
 import Data.Lens (view)
 import Data.Maybe (Maybe, fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
-import Halogen (HTML, IProp)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, hr_, input, p_, small_, text)
+import Halogen (HTML)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, text)
 import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
-import Prelude (const, map, pure, show, ($), (+), (/=), (<$>), (<<<))
+import Prelude (const, map, show, ($), (+), (/=), (<$>), (<<<))
 import Servant.PureScript.Affjax (AjaxError)
 import Types (Action(Wait, Action), Blockchain, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, AddWaitAction, SetWaitTime, PopulateAction, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), _MockWallet, _wallet, validate)
 import Wallet (walletIdPane)
@@ -58,12 +57,7 @@ actionPane index action =
                       , text ": "
                       , text $ unwrap $ _.functionName $ unwrap functionSchema
                       ]
-                  , div_
-                    (intercalate
-                       [ hr_ ]
-                       (Array.mapWithIndex
-                          (\i argument -> pure $ PopulateAction index i <$> actionArgumentForm argument)
-                          (_.argumentSchema $ unwrap functionSchema)))
+                  , actionArgumentForm index $ _.argumentSchema $ unwrap functionSchema
                   ]
               (Wait {blocks}) ->
                 div_
@@ -97,39 +91,51 @@ validationErrorsPane action =
 validationClasses ::
   forall a r i.
   Maybe a
-  -> IProp ("class" :: String | r) i
+  -> Array ClassName
 validationClasses =
-  classes <<< maybe [ ClassName "error" ] (const [])
+  maybe [ ClassName "error" ] (const [])
 
-actionArgumentForm :: forall p. Warn "We're still not handling the Unknowable case." => SimpleArgument -> HTML p FormEvent
-actionArgumentForm (SimpleInt n) =
-  div_ [ input
-           [ type_ InputNumber
-           , value $ maybe "" show n
-           , placeholder "Int"
-           , onValueChange $ map (HQ.action <<< SetIntField) <<< Int.fromString
-           , validationClasses n
-           ]
-       ]
-actionArgumentForm (SimpleString s) =
-  div_ [ input
-           [ type_ InputText
-           , value $ fromMaybe "" s
-           , placeholder "String"
-           , onValueChange $ HE.input SetStringField
-           , validationClasses s
-           ]
-       ]
-actionArgumentForm (SimpleObject subFields) =
-  div_ (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
+actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
+actionArgumentForm index arguments =
+  div_
+    (Array.mapWithIndex
+       (\i argument -> PopulateAction index i <$> actionArgumentField false argument)
+       arguments)
+
+actionArgumentField ::
+  forall p. Warn "We're still not handling the Unknowable case."
+  => Boolean
+  -> SimpleArgument
+  -> HTML p FormEvent
+actionArgumentField _ (SimpleInt n) =
+  input
+    [ type_ InputNumber
+    , classes $ Array.cons formControl $ validationClasses n
+    , value $ maybe "" show n
+    , placeholder "Int"
+    , onValueChange $ map (HQ.action <<< SetIntField) <<< Int.fromString
+    ]
+actionArgumentField _ (SimpleString s) =
+  input
+    [ type_ InputText
+    , classes $ Array.cons formControl $ validationClasses s
+    , value $ fromMaybe "" s
+    , placeholder "String"
+    , onValueChange $ HE.input SetStringField
+    ]
+actionArgumentField indent (SimpleObject subFields) =
+    (if indent
+       then div [ classes [  ClassName "nested" ] ]
+       else div_)
+        (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
   where
     subForm (name /\ arg) =
-      (row_
-         [ col_ [ text name ]
-         , col_ [ actionArgumentForm arg ]
+      (formGroup_
+         [ label [ for name ] [ text name ]
+         , actionArgumentField true arg
          ]
       )
-actionArgumentForm Unknowable =
+actionArgumentField _ Unknowable =
   div_ [ text "Unsupported."
        ]
 

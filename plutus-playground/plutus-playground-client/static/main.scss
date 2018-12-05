@@ -95,6 +95,23 @@ h2 {
     .action {
         text-align: left;
         margin-bottom: 30px;
+
+        .form-group {
+            margin-bottom: 2rem;
+
+            label {
+                margin-bottom: 0;
+            }
+
+            input {
+                padding-left: inherit;
+                padding-right: inherit;
+            }
+        }
+
+        .nested {
+            margin-left: 1rem;
+        }
     }
 }
 
