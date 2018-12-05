@@ -55696,6 +55696,7 @@ license = stdenv.lib.licenses.bsd3;
 , base64-bytestring
 , bytestring
 , containers
+, hedgehog
 , hint
 , http-media
 , insert-ordered-containers
@@ -55709,6 +55710,8 @@ license = stdenv.lib.licenses.bsd3;
 , servant
 , stdenv
 , swagger2
+, tasty
+, tasty-hunit
 , template-haskell
 , text
 , transformers
@@ -55740,6 +55743,18 @@ swagger2
 template-haskell
 text
 transformers
+wallet-api
+];
+testHaskellDepends = [
+aeson
+base
+containers
+hedgehog
+swagger2
+tasty
+tasty-hunit
+template-haskell
+text
 wallet-api
 ];
 doHaddock = false;
