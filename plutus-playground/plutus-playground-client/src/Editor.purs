@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(Just))
 import Data.String as String
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, pre_, slot', small, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, pre_, slot', small, strong_, text)
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
@@ -33,13 +33,13 @@ editorPane ::
   => State -> ParentHTML Query ChildQuery ChildSlot m
 editorPane state =
   div_
-    [ h2_ [ text "Editor" ]
+    [ demoScriptsPane
+    , h2_ [ text "Editor" ]
     , slot' cpEditor EditorSlot
         (aceComponent (initEditor state.editorContents) (Just Live))
         unit
         (input HandleEditorMessage)
     , br_
-    , demoScriptsPane
     , div_
         [ button
             [ classes [ btn, btnClass ]
@@ -87,7 +87,9 @@ initEditor contents editor = liftEff $ do
 demoScriptsPane :: forall p. HTML p Query
 demoScriptsPane =
   div [ class_ pullRight ]
-   (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.editorContents))
+   (Array.cons
+      (strong_ [ text "Demos: " ])
+      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.editorContents)))
 
 demoScriptButton :: forall p. String -> HTML p Query
 demoScriptButton key =

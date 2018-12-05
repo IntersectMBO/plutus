@@ -7,11 +7,14 @@ import Data.Map as Map
 import Data.Tuple.Nested ((/\))
 import Playground.Usecases (vesting, game, crowdfunding, messages)
 
-editorContents :: Map String String
+type Label = String
+type Contents = String
+
+editorContents :: Map Label Contents
 editorContents =
   Map.fromFoldable
-    [ "Vesting" /\ vesting
+    [ "Crowdfunding" /\ crowdfunding
     , "Game" /\ game
-    , "Crowdfunding" /\ crowdfunding
     , "Messages" /\ messages
+    , "Vesting" /\ vesting
     ]

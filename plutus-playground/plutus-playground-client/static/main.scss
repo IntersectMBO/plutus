@@ -45,8 +45,12 @@ body {
 	padding-bottom: 15px;
 }
 
-p, a, button,  i, b, strong, em {
-    color:rgba(255, 255, 255, 0.7);
+p, a, button, i, em {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+b, strong {
+    color: $gray-100;
 }
 
 h1, h2, h3, h4, h5, h6 {
