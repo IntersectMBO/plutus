@@ -34,20 +34,20 @@ module Ledger.Validation
               ) where
 
 import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
-import           Crypto.Hash            (Digest, SHA256, hash)
+import           Crypto.Hash                  (Digest, SHA256, hash)
 import           Data.Aeson                   (FromJSON, ToJSON (toJSON), withText)
 import qualified Data.Aeson                   as JSON
 import           Data.Bifunctor               (first)
-import qualified Data.ByteArray         as BA
+import qualified Data.ByteArray               as BA
 import qualified Data.ByteString.Base64       as Base64
-import qualified Data.ByteString.Lazy   as BSL
+import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Swagger.Internal.Schema (ToSchema (declareNamedSchema), paramSchemaToSchema, plain)
 import qualified Data.Text.Encoding           as TE
-import           GHC.Generics           (Generic)
-import           Language.PlutusTx.Lift (makeLift)
-import           Ledger.Types           (PubKey (..), Signature (..), Value (..))
-import qualified Ledger.Types           as Ledger
+import           GHC.Generics                 (Generic)
+import           Language.PlutusTx.Lift       (makeLift)
+import           Ledger.Types                 (PubKey (..), Signature (..), Value (..))
+import qualified Ledger.Types                 as Ledger
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
 -- problems with the plugin
