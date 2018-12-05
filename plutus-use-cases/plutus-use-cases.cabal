@@ -41,9 +41,6 @@ library
     Language.PlutusTx.Coordination.Contracts.Future
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
-    Language.PlutusTx.Validation
-  other-modules:
-    Language.PlutusTx.Validation.TH
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -74,20 +71,3 @@ test-suite plutus-use-cases-test
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
-
-test-suite plutus-use-cases-doctests
-    type: exitcode-stdio-1.0
-    main-is: tutorial-doctests.hs
-    build-tool-depends: markdown-unlit:markdown-unlit -any
-    hs-source-dirs: tutorial
-    other-modules:
-        Tutorial
-    default-language: Haskell2010
-    ghc-options: -pgmL markdown-unlit -threaded
-    build-depends:
-        base >=4.9 && <5,
-        plutus-tx -any,
-        plutus-tx-plugin -any,
-        wallet-api -any,
-        plutus-use-cases -any,
-        doctest -any

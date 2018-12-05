@@ -1,4 +1,4 @@
-# plutus-use-cases: Wallet-API tutorial
+# wallet-api: Wallet-API tutorial
 
 ```haskell
 {-# LANGUAGE DataKinds         #-}
@@ -15,9 +15,8 @@ This tutorial shows how to implement a simple crowdfunding campaign as a Plutus 
 
 ```haskell
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Validation as Validation
 import           Ledger                       hiding (Height)
-import           Ledger.Validation
+import           Ledger.Validation            as Validation
 import           Wallet
 import           Wallet.Emulator
 import           Prelude                      hiding ((&&))

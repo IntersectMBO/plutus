@@ -55613,8 +55613,10 @@ license = stdenv.lib.licenses.bsd3;
 , language-plutus-core
 , optparse-applicative
 , plutus-core-interpreter
+, prettyprinter
 , stdenv
 , text
+, transformers
 }:
 mkDerivation {
 
@@ -55629,7 +55631,9 @@ bytestring
 language-plutus-core
 optparse-applicative
 plutus-core-interpreter
+prettyprinter
 text
+transformers
 ];
 doHaddock = false;
 description = "Executable for Plutus Core tools";
@@ -55641,7 +55645,6 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , algebraic-graphs
 , base
-, bytestring
 , containers
 , language-plutus-core
 , lens
@@ -55651,8 +55654,6 @@ license = stdenv.lib.licenses.bsd3;
 , serialise
 , stdenv
 , tasty
-, tasty-golden
-, tasty-hunit
 , text
 , transformers
 }:
@@ -55664,7 +55665,6 @@ src = .././plutus-ir;
 libraryHaskellDepends = [
 algebraic-graphs
 base
-bytestring
 containers
 language-plutus-core
 lens
@@ -55680,12 +55680,8 @@ base
 language-plutus-core
 mmorph
 mtl
-prettyprinter
 serialise
 tasty
-tasty-golden
-tasty-hunit
-text
 ];
 doHaddock = false;
 description = "Plutus IR language";
@@ -55747,7 +55743,7 @@ transformers
 wallet-api
 ];
 doHaddock = false;
-homepage = "https://github.com/iohk/plutus-playground#readme";
+homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -55901,7 +55897,7 @@ wai-extra
 warp
 ];
 doHaddock = false;
-homepage = "https://github.com/iohk/plutus-playground#readme";
+homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -55936,9 +55932,7 @@ testHaskellDepends = [
 base
 doctest
 language-plutus-core
-markdown-unlit
 mtl
-plutus-core-interpreter
 plutus-ir
 plutus-tx-plugin
 tasty
@@ -56012,10 +56006,8 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , containers
-, doctest
 , hedgehog
 , lens
-, markdown-unlit
 , mtl
 , plutus-tx
 , plutus-tx-plugin
@@ -56044,9 +56036,7 @@ wallet-api
 testHaskellDepends = [
 base
 containers
-doctest
 hedgehog
-markdown-unlit
 plutus-tx
 plutus-tx-plugin
 tasty
@@ -56054,9 +56044,6 @@ tasty-hedgehog
 template-haskell
 text
 wallet-api
-];
-testToolDepends = [
-markdown-unlit
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";
@@ -77974,11 +77961,13 @@ license = stdenv.lib.licenses.mit;
 , containers
 , cryptonite
 , deriving-compat
+, doctest
 , hashable
 , hedgehog
 , http-media
 , language-plutus-core
 , lens
+, markdown-unlit
 , memory
 , mtl
 , natural-transformation
@@ -78047,12 +78036,16 @@ warp
 testHaskellDepends = [
 base
 containers
+doctest
 hedgehog
 lens
 plutus-tx
 plutus-tx-plugin
 tasty
 tasty-hedgehog
+];
+testToolDepends = [
+markdown-unlit
 ];
 doHaddock = false;
 description = "Wallet API";
