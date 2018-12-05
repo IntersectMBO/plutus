@@ -30,7 +30,7 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx 
 import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), Validator (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
                                               PendingTxOutType (..), Signed (..), ValidatorHash)
@@ -104,7 +104,7 @@ settle refs ft fd ov = do
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = futureDataMarginLong fd + delta
         shortOut = futureDataMarginShort fd - delta
-        red = Ledger.Redeemer $ Ledger.lifted $ Settle ov
+        red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
         outs = [
             Ledger.pubKeyTxOut longOut (futureDataLong fd),
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
@@ -125,7 +125,7 @@ settleEarly refs ft fd ov = do
     let totalVal = futureDataMarginLong fd + futureDataMarginShort fd
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        red = Ledger.Redeemer $ Ledger.lifted $ Settle ov
+        red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
     void $ signAndSubmit (Set.fromList inp) outs
 
 adjustMargin :: (
@@ -145,7 +145,7 @@ adjustMargin refs ft fd vl = do
                 | otherwise = otherError "Private key is not part of futures contrat"
             in fd''
     let
-        red = Ledger.Redeemer $ Ledger.lifted AdjustMargin
+        red = Ledger.RedeemerScript $ Ledger.lifted AdjustMargin
         ds  = DataScript $ Ledger.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
@@ -190,8 +190,8 @@ data FutureRedeemer =
     -- ^ Settle the contract
     deriving Generic
 
-validatorScript :: Future -> Validator
-validatorScript ft = Validator val where
+validatorScript :: Future -> ValidatorScript
+validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
     inner = Ledger.fromPlcCode $$(PlutusTx.plutus [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->

@@ -39,7 +39,7 @@ import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqu
                                              chainNewestFirst, emptyEmulatorState, emptyWalletState, liftMockWallet,
                                              txPool, walletStates)
 
-import           Ledger                     (Block, Height, Tx, TxIn', TxOut', Value)
+import           Ledger                     (Address', Block, Height, Tx, TxIn', TxOut', Value)
 import qualified Wallet.Emulator.Types      as Types
 
 type WalletAPI
@@ -54,6 +54,7 @@ type WalletAPI
 -- Unfortunately we need to return the Tx here because we have to reference it later. So I can't see a way around this change.
      :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] [Tx]
      :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> Get '[JSON] AddressMap
+     :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> ReqBody '[JSON] Address' :> Post '[JSON] NoContent
      :<|> "wallets" :> Capture "walletid" Wallet :> "block-height" :> Get '[JSON] Height
      :<|> "wallets" :> "transactions" :> Get '[ JSON] [Tx]
 
@@ -139,6 +140,12 @@ getWatchedAddresses :: MonadError ServantErr m
   -> m AddressMap
 getWatchedAddresses _ = throwError err501 -- not implemented
 
+startWatching :: MonadError ServantErr m
+  => Wallet
+  -> Address'
+  -> m NoContent
+startWatching _ _ = throwError err501 -- not implemented
+
 getBlockHeight :: MonadError ServantErr m
   => Wallet
   -> m Height
@@ -169,6 +176,7 @@ walletHandlers state =
       wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
       submitTxn :<|>
       getWatchedAddresses :<|>
+      startWatching :<|>
       getBlockHeight :<|>
       getTransactions
     controlApi = processPending

@@ -21,6 +21,7 @@ module Ledger.Validation (-- * Transactions and related types
               , plcTxHash
               -- * Pending transactions
               , PendingTx(..)
+              , PendingTx'
               , PendingTxOut(..)
               , PendingTxIn(..)
               , PendingTxOutType(..)
@@ -31,6 +32,7 @@ module Ledger.Validation (-- * Transactions and related types
 
 import           Codec.Serialise        (serialise)
 import           Crypto.Hash            (Digest, SHA256, hash)
+import           Data.Aeson             (FromJSON, ToJSON)
 import qualified Data.ByteArray         as BA
 import qualified Data.ByteString.Lazy   as BSL
 import           GHC.Generics           (Generic)
@@ -79,6 +81,8 @@ data PendingTx a = PendingTx {
     pendingTxSignatures  :: [Signature],
     pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
     } deriving (Functor, Generic)
+
+type PendingTx' = PendingTx ValidatorHash
 
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle.
@@ -131,7 +135,7 @@ plcDataScriptHash = DataScriptHash . plcHash
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
-plcRedeemerHash :: Ledger.Redeemer -> RedeemerHash
+plcRedeemerHash :: Ledger.RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcHash
 
 plcTxHash :: Ledger.TxId' -> TxHash
@@ -149,6 +153,9 @@ plcDigest = serialise
 --   TODO: Use [[Ledger.Height]] when Integer is supported
 data Height = Height { getHeight :: Int }
     deriving (Eq, Ord, Show, Generic)
+
+instance ToJSON Height
+instance FromJSON Height
 
 makeLift ''PendingTxOutType
 makeLift ''PendingTxOut

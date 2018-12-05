@@ -34,8 +34,8 @@ module Ledger.Types(
     lifted,
     applyScript,
     evaluateScript,
-    Validator(..),
-    Redeemer(..),
+    ValidatorScript(..),
+    RedeemerScript(..),
     DataScript(..),
     -- * Transactions
     Tx(..),
@@ -263,23 +263,23 @@ lifted :: LiftPir a => a -> Script
 lifted = Script . serialise . unsafeLiftPlcProgram
 
 -- | A validator is a PLC script.
-newtype Validator = Validator { getValidator :: Script }
+newtype ValidatorScript = ValidatorScript { getValidator :: Script }
   deriving stock (Generic)
   deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise)
 
-instance Show Validator where
-    show = const "Validator { <script> }"
+instance Show ValidatorScript where
+    show = const "ValidatorScript { <script> }"
 
-instance Eq Validator where
-    (Validator l) == (Validator r) = -- TODO: Deriving via
+instance Eq ValidatorScript where
+    (ValidatorScript l) == (ValidatorScript r) = -- TODO: Deriving via
         l == r
 
-instance Ord Validator where
-    compare (Validator l) (Validator r) = -- TODO: Deriving via
+instance Ord ValidatorScript where
+    compare (ValidatorScript l) (ValidatorScript r) = -- TODO: Deriving via
         l `compare` r
 
-instance BA.ByteArrayAccess Validator where
+instance BA.ByteArrayAccess ValidatorScript where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
@@ -309,23 +309,23 @@ instance BA.ByteArrayAccess DataScript where
         BA.withByteArray . Write.toStrictByteString . encode
 
 -- | Redeemer (supplied by consumer of the transaction output)
-newtype Redeemer = Redeemer { getRedeemer :: Script }
+newtype RedeemerScript = RedeemerScript { getRedeemer :: Script }
   deriving stock (Generic)
   deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise)
 
-instance Show Redeemer where
-    show = const "Redeemer { <script> }"
+instance Show RedeemerScript where
+    show = const "RedeemerScript { <script> }"
 
-instance Eq Redeemer where
-    (Redeemer l) == (Redeemer r) = -- TODO: Deriving via
+instance Eq RedeemerScript where
+    (RedeemerScript l) == (RedeemerScript r) = -- TODO: Deriving via
         l == r
 
-instance Ord Redeemer where
-    compare (Redeemer l) (Redeemer r) = -- TODO: Deriving via
+instance Ord RedeemerScript where
+    compare (RedeemerScript l) (RedeemerScript r) = -- TODO: Deriving via
         l `compare` r
 
-instance BA.ByteArrayAccess Redeemer where
+instance BA.ByteArrayAccess RedeemerScript where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
@@ -422,7 +422,7 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 
 -- | Type of transaction input.
 data TxInType =
-      ConsumeScriptAddress !Validator !Redeemer
+      ConsumeScriptAddress !ValidatorScript !RedeemerScript
     | ConsumePublicKeyAddress !Signature
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
@@ -451,7 +451,7 @@ inType = lens txInType s where
 -- | Validator and redeemer scripts of a transaction input that spends a
 --   "pay to script" output
 --
-inScripts :: TxIn h -> Maybe (Validator, Redeemer)
+inScripts :: TxIn h -> Maybe (ValidatorScript, RedeemerScript)
 inScripts TxIn{ txInType = t } = case t of
     ConsumeScriptAddress v r  -> Just (v, r)
     ConsumePublicKeyAddress _ -> Nothing
@@ -466,7 +466,7 @@ inSignature TxIn{ txInType = t } = case t of
 pubKeyTxIn :: TxOutRef h -> Signature -> TxIn h
 pubKeyTxIn r = TxIn r . ConsumePublicKeyAddress
 
-scriptTxIn :: TxOutRef h -> Validator -> Redeemer -> TxIn h
+scriptTxIn :: TxOutRef h -> ValidatorScript -> RedeemerScript -> TxIn h
 scriptTxIn r v = TxIn r . ConsumeScriptAddress v
 
 instance BA.ByteArrayAccess TxIn' where
@@ -537,13 +537,13 @@ pubKeyAddress pk = Address $ hash h where
     e = encode pk
 
 -- | The address of a transaction output locked by a validator script
-scriptAddress :: Validator -> Address (Digest SHA256)
+scriptAddress :: ValidatorScript -> Address (Digest SHA256)
 scriptAddress vl = Address $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     e = encode vl
 
 -- | Create a transaction output locked by a validator script
-scriptTxOut :: Value -> Validator -> DataScript -> TxOut'
+scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut'
 scriptTxOut v vl ds = TxOut a v tp where
     a = scriptAddress vl
     tp = PayToScript ds
@@ -677,8 +677,8 @@ validate bs TxIn{ txInType = ti } TxOut{..} =
         _ -> False
 
 -- | Evaluate a validator script with the given inputs
-runScript :: ValidationData -> Validator -> Redeemer -> DataScript -> ([String], Bool)
-runScript (ValidationData valData) (Validator validator) (Redeemer redeemer) (DataScript dataScript) =
+runScript :: ValidationData -> ValidatorScript -> RedeemerScript -> DataScript -> ([String], Bool)
+runScript (ValidationData valData) (ValidatorScript validator) (RedeemerScript redeemer) (DataScript dataScript) =
     let
         applied = ((validator `applyScript` redeemer) `applyScript` dataScript) `applyScript` valData
         -- TODO: do something with the error
@@ -700,12 +700,12 @@ unitData = DataScript $ fromPlcCode $$(plutus [|| () ||])
 --       As a result, if you lock a transaction output with `emptyValidator`,
 --       you need to provide `unitData`, `unitRedeemer` and
 --       `unitValidationData` to consume it.
-emptyValidator :: Validator
-emptyValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> () ||])
+emptyValidator :: ValidatorScript
+emptyValidator = ValidatorScript $ fromPlcCode $$(plutus [|| \() () () -> () ||])
 
 -- | () as a redeemer
-unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $ fromPlcCode $$(plutus [|| () ||])
+unitRedeemer :: RedeemerScript
+unitRedeemer = RedeemerScript $ fromPlcCode $$(plutus [|| () ||])
 
 -- | () as validation data
 unitValidationData :: ValidationData
