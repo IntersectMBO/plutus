@@ -41,9 +41,6 @@ library
     Language.PlutusTx.Coordination.Contracts.Future
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
-    Language.PlutusTx.Validation
-  other-modules:
-    Language.PlutusTx.Validation.TH
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
