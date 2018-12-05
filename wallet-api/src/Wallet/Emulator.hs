@@ -1,7 +1,5 @@
 module Wallet.Emulator(
-    module Types,
-    module WalletAPI
+    module Types
     ) where
 
-import           Wallet.API            as WalletAPI
 import           Wallet.Emulator.Types as Types
