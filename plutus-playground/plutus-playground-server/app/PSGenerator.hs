@@ -111,6 +111,18 @@ dataScriptBridge = do
     typeModule ^== "Ledger.Types"
     pure psString
 
+validatorScriptBridge :: BridgePart
+validatorScriptBridge = do
+    typeName ^== "ValidatorScript"
+    typeModule ^== "Ledger.Types"
+    pure psString
+
+redeemerScriptBridge :: BridgePart
+redeemerScriptBridge = do
+    typeName ^== "RedeemerScript"
+    typeModule ^== "Ledger.Types"
+    pure psString
+
 myBridge :: BridgePart
 myBridge =
     defaultBridge <|> integerBridge <|> scientificBridge <|> insOrdHashMapBridge <|>
@@ -121,6 +133,8 @@ myBridge =
     sha256Bridge <|>
     redeemerBridge <|>
     validatorBridge <|>
+    validatorScriptBridge <|>
+    redeemerScriptBridge <|>
     dataScriptBridge
 
 data MyBridge
