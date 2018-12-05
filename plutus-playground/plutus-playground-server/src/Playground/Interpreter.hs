@@ -40,7 +40,7 @@ import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 $(TH.mkFunction 'payToPublicKey)
 
 usecase :: BS.ByteString
-usecase = $(embedFile "./Vesting.hs")
+usecase = $(embedFile "./usecases/Vesting.hs")
 
 defaultExtensions :: [Extension]
 defaultExtensions =

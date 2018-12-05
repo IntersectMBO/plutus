@@ -83,6 +83,7 @@ executable plutus-playground-server
     , containers
     , cryptonite >=0.25
     , data-default-class
+    , filepath
     , file-embed
     , gitrev
     , hspec

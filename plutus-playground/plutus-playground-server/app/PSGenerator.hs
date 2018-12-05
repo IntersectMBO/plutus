@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE AutoDeriveTypeable    #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -7,18 +6,19 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module PSGenerator
-    ( generate, k
+    ( generate
+    , k
     ) where
 
 import           Control.Applicative                       ((<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Reader.Class                (MonadReader)
-import qualified Data.ByteString              as BS
-import qualified Data.ByteString.Char8        as BSC
+import qualified Data.ByteString                           as BS
 import           Data.FileEmbed                            (embedFile)
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
@@ -40,6 +40,7 @@ import qualified Playground.API                            as API
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
                                                             defaultSettings, languageBridge, writeAPIModuleWithSettings,
                                                             _generateSubscriberAPI)
+import           System.FilePath                           ((</>))
 import           Wallet.API                                (WalletAPIError)
 import           Wallet.Emulator.Types                     (EmulatorEvent, Wallet)
 import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner)
@@ -186,19 +187,25 @@ mySettings =
     (defaultSettings & set apiModuleName "Playground.Server")
         {_generateSubscriberAPI = False}
 
-vestingUsecase :: BS.ByteString
-vestingUsecase = $(embedFile "./Vesting.hs")
+multilineString :: BS.ByteString -> BS.ByteString -> BS.ByteString
+multilineString name value =
+    "\n\n" <> name <> " :: String\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
 
--- multilineString :: String -> String -> String
--- multilineString name value = "\n\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
-
--- psModule :: String -> String -> String
--- psModule name body = "module " <> name <> " where" <> body
+psModule :: BS.ByteString -> BS.ByteString -> BS.ByteString
+psModule name body = "module " <> name <> " where" <> body
 
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
-  putStrLn . BSC.unpack $ vestingUsecase
-  putStrLn outputDir
+    let usecases =
+            multilineString "vesting" $(embedFile "./usecases/Vesting.hs") <>
+            multilineString "game" $(embedFile "./usecases/Game.hs") <>
+            multilineString
+                "crowdfunding"
+                $(embedFile "./usecases/CrowdFunding.hs") <>
+            multilineString "messages" $(embedFile "./usecases/Messages.hs")
+        usecasesModule = psModule "Playground.Usecases" usecases
+    BS.writeFile (outputDir </> "Playground" </> "Usecases.purs") usecasesModule
+    putStrLn outputDir
 
 generate :: FilePath -> IO ()
 generate outputDir = do
@@ -211,4 +218,6 @@ generate outputDir = do
     writeUsecases outputDir
 
 k :: IO ()
-k = generate "/Users/kris/Work/Clients/IOHK/plutus/plutus-playground/plutus-playground-client/src"
+k =
+    generate
+        "/Users/kris/Work/Clients/IOHK/plutus/plutus-playground/plutus-playground-client/src"
