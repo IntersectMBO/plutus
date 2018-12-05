@@ -8,6 +8,8 @@
 
 module Playground.Server
     ( mkHandlers
+    , mkInterpreterInstance
+    , runInterpreterInstance
     ) where
 
 import           Control.Concurrent.MVar             (MVar, newMVar, withMVar)

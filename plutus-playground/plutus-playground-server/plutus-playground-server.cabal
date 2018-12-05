@@ -26,6 +26,7 @@ library
   exposed-modules:
       Playground.Server
       Playground.Interpreter
+      Playground.Usecases
   other-modules:
   hs-source-dirs:
       src
@@ -119,6 +120,7 @@ test-suite plutus-playground-server-test
   main-is: Spec.hs
   other-modules:
       Playground.APISpec
+      Playground.UsecasesSpec
       Paths_plutus_playground_server
   hs-source-dirs:
       test
@@ -128,8 +130,10 @@ test-suite plutus-playground-server-test
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , bytestring
     , containers
     , data-default-class
+    , file-embed
     , gitrev
     , hspec
     , http-media
@@ -138,8 +142,8 @@ test-suite plutus-playground-server-test
     , monad-logger
     , mtl
     , network
-    , plutus-playground-server
     , plutus-playground-lib
+    , plutus-playground-server
     , purescript-bridge
     , servant
     , servant-foreign

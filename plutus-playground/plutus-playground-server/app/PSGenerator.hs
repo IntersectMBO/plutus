@@ -19,7 +19,6 @@ import           Control.Applicative                       ((<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Reader.Class                (MonadReader)
 import qualified Data.ByteString                           as BS
-import           Data.FileEmbed                            (embedFile)
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
@@ -37,6 +36,7 @@ import           Ledger.Types                              (Address, Height, Pub
 import           Playground.API                            (CompilationError, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, SimpleArgumentSchema, SourceCode)
 import qualified Playground.API                            as API
+import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
                                                             defaultSettings, languageBridge, writeAPIModuleWithSettings,
                                                             _generateSubscriberAPI)
@@ -197,12 +197,9 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            multilineString "vesting" $(embedFile "./usecases/Vesting.hs") <>
-            multilineString "game" $(embedFile "./usecases/Game.hs") <>
-            multilineString
-                "crowdfunding"
-                $(embedFile "./usecases/CrowdFunding.hs") <>
-            multilineString "messages" $(embedFile "./usecases/Messages.hs")
+            multilineString "vesting" vesting <> multilineString "game" game <>
+            multilineString "crowdfunding" crowdfunding <>
+            multilineString "messages" messages
         usecasesModule = psModule "Playground.Usecases" usecases
     BS.writeFile (outputDir </> "Playground" </> "Usecases.purs") usecasesModule
     putStrLn outputDir
