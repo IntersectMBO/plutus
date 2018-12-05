@@ -18,6 +18,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Language.PlutusTx.Validation as Validation
 import           Ledger                       hiding (Height)
 import           Ledger.Validation
+import           Wallet
 import           Wallet.Emulator
 import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
