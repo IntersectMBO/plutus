@@ -1,18 +1,27 @@
 packages: language-plutus-core
           plutus-core-interpreter
           plutus-exe
-          core-to-plc
           wallet-api
-          plutus-th
+          plutus-tx
+          plutus-tx-plugin
+          plutus-use-cases
+          plutus-ir
+          plutus-playground-server
+          plutus-playground-lib
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
-           , core-to-plc +development
+           , plutus-tx-plugin +development
            , plutus-exe +development
            , plutus-core-interpreter +development
+           , plutus-ir +development
+           , plutus-playground-server +development
 tests: true
 benchmarks: true
 documentation: true
+
+allow-boot-library-installs:
+    true
 
 allow-newer:
     cborg:containers

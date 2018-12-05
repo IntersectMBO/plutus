@@ -1,1 +1,1 @@
-/\(s :: size) -> \(ss : size s) -> \(i : integer s) -> addInteger {s} i (resizeInteger {1} {s} ss 1!1)
+/\(s :: size) -> \(i : integer s) -> addInteger {s} i (resizeInteger {1} {s} (sizeOfInteger {s} i) 1!1)

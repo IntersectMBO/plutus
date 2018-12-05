@@ -1,0 +1,7 @@
+(abs
+  out_Bool_286
+  (type)
+  (lam
+    case_True_287 out_Bool_286 (lam case_False_288 out_Bool_286 case_True_287)
+  )
+)

@@ -15,7 +15,7 @@ build-type: Simple
 
 source-repository head
     type: git
-    location: https://github.com/input-output-hk/plutus-prototype
+    location: https://github.com/input-output-hk/plutus
 
 flag development
     description:
@@ -33,9 +33,10 @@ executable plc
         base <5,
         language-plutus-core -any,
         plutus-core-interpreter -any,
+        transformers -any,
         bytestring -any,
         text -any,
-        mtl -any,
+        prettyprinter -any,
         optparse-applicative -any
 
     if (flag(development) && impl(ghc <8.4))

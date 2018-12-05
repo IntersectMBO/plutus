@@ -9,7 +9,7 @@ module Language.PlutusCore.View
     , PrimIterApp
     , constantAsInteger
     , constantAsStagedBuiltinName
-    , termAsConstant
+    , termAsBuiltin
     , termAsTermIterApp
     , termAsPrimIterApp
     ) where
@@ -42,15 +42,14 @@ constantAsInteger (BuiltinInt _ _ int) = Just int
 constantAsInteger _                    = Nothing
 
 -- | View a 'Constant' as a 'StagedBuiltinName'.
-constantAsStagedBuiltinName :: Constant a -> Maybe StagedBuiltinName
-constantAsStagedBuiltinName (BuiltinName    _ name) = Just $ StaticStagedBuiltinName  name
-constantAsStagedBuiltinName (DynBuiltinName _ name) = Just $ DynamicStagedBuiltinName name
-constantAsStagedBuiltinName _                       = Nothing
+constantAsStagedBuiltinName :: Builtin a -> StagedBuiltinName
+constantAsStagedBuiltinName (BuiltinName    _ name) = StaticStagedBuiltinName  name
+constantAsStagedBuiltinName (DynBuiltinName _ name) = DynamicStagedBuiltinName name
 
 -- | View a 'Term' as a 'Constant'.
-termAsConstant :: Term tyname name a -> Maybe (Constant a)
-termAsConstant (Constant _ constant) = Just constant
-termAsConstant _                     = Nothing
+termAsBuiltin :: Term tyname name a -> Maybe (Builtin a)
+termAsBuiltin (Builtin _ bi) = Just bi
+termAsBuiltin _              = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
 termAsTermIterApp :: Term tyname name a -> TermIterApp tyname name a
@@ -63,7 +62,7 @@ termAsTermIterApp = go [] where
 termAsPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
 termAsPrimIterApp term = do
     let IterApp termHead spine = termAsTermIterApp term
-    headName <- termAsConstant termHead >>= constantAsStagedBuiltinName
+    headName <- constantAsStagedBuiltinName <$> termAsBuiltin termHead
     guard $ all isValue spine
     Just $ IterApp headName spine
 

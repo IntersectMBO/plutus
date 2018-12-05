@@ -1,0 +1,32 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+
+
+
+
+\begin{figure*}[t]
+    \judgmentdef{\(\typeBoundedMultistep{n}{A}{S}\)}{Type $A$ reduces in at most $n$ steps to normal type $S$}
+	
+	\begin{prooftree}
+		\AxiomC{}
+		\UnaryInfC{\(\typeBoundedMultistep{0}{A}{\error{A}}\)}
+	\end{prooftree}
+	
+	\begin{prooftree}
+		\AxiomC{}
+		\UnaryInfC{\(\typeBoundedMultistep{n+1}{S}{S}\)}
+	\end{prooftree}
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeStep{A}{A'}\)}
+		\AxiomC{\(\typeBoundedMultistep{n}{A'}{S}\)}
+		\BinaryInfC{\(\typeBoundedMultistep{n+1}{A}{S}\)}
+	\end{prooftree}
+    
+    \caption{Bounded Multistep Type Reduction}
+    \label{fig:Plutus_core_bounded_multistep_type_reduction}
+\end{figure*}
+
+\end{document}

@@ -214,6 +214,10 @@ instance PrettyBy (PrettyConfigReadable configName) (Constant a) where
         BuiltinInt _ size int -> pretty size <> "!" <> pretty int
         BuiltinSize _ size    -> pretty size
         BuiltinBS _ size bs   -> pretty size <> "!" <> prettyBytes bs
+        BuiltinStr _ str      -> pretty str
+
+instance PrettyBy (PrettyConfigReadable configName) (Builtin a) where
+    prettyBy config = unitaryDoc config . \case
         BuiltinName    _ name -> pretty name
         DynBuiltinName _ name -> pretty name
 
@@ -241,6 +245,7 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
         PrettyBy (PrettyConfigReadable configName) (Term tyname name a) where
     prettyBy config = \case
         Constant _ con         -> prettyBy config con
+        Builtin _ bi -> prettyBy config bi
         Apply _ fun arg        -> applicationDoc config fun arg
         Var _ name             -> unit $ prettyName name
         TyAbs _ name kind body -> bind $ \bindBody ->

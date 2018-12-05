@@ -13,6 +13,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 , Kind (..)
                                 , Program (..)
                                 , Constant (..)
+                                , Builtin (..)
                                 , BuiltinName (..)
                                 , DynamicBuiltinName (..)
                                 , StagedBuiltinName (..)
@@ -38,6 +39,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 , getNormalizedType
                                 ) where
 
+import           Control.Lens
 import qualified Data.ByteString.Lazy               as BSL
 import           Data.Functor.Foldable
 import qualified Data.Map                           as M
@@ -46,7 +48,6 @@ import           Instances.TH.Lift                  ()
 import           Language.Haskell.TH.Syntax         (Lift)
 import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
-import           Lens.Micro
 import           PlutusPrelude
 
 type Size = Natural
@@ -96,22 +97,22 @@ instance Corecursive (Type tyname a) where
 
 -- this type is used for replacing type names in
 -- the Eq instance
-type EqState tyname a = M.Map (tyname a) (tyname a)
+type EqTyState tyname a = M.Map (tyname a) (tyname a)
 
-rebindAndEq :: (Eq a, Ord (tyname a))
-            => EqState tyname a
-            -> Type tyname a
-            -> Type tyname a
-            -> tyname a
-            -> tyname a
-            -> Bool
-rebindAndEq eqSt tyLeft tyRight tnLeft tnRight =
+rebindAndEqTy :: (Eq a, Ord (tyname a))
+              => EqTyState tyname a
+              -> Type tyname a
+              -> Type tyname a
+              -> tyname a
+              -> tyname a
+              -> Bool
+rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight =
     let intermediateSt = M.insert tnRight tnLeft eqSt
         in eqTypeSt intermediateSt tyLeft tyRight
 
 -- This tests for equality of names inside a monad that allows substitution.
 eqTypeSt :: (Ord (tyname a), Eq a)
-        => EqState tyname a
+        => EqTyState tyname a
         -> Type tyname a
         -> Type tyname a
         -> Bool
@@ -123,12 +124,12 @@ eqTypeSt _ (TyInt _ nLeft) (TyInt _ nRight)              = nLeft == nRight
 eqTypeSt _ (TyBuiltin _ bLeft) (TyBuiltin _ bRight)      = bLeft == bRight
 
 eqTypeSt eqSt (TyFix _ tnLeft tyLeft) (TyFix _ tnRight tyRight) =
-    rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+    rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
 eqTypeSt eqSt (TyForall _ tnLeft kLeft tyLeft) (TyForall _ tnRight kRight tyRight) =
-    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+    let tyEq = rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
         in (kLeft == kRight && tyEq)
 eqTypeSt eqSt (TyLam _ tnLeft kLeft tyLeft) (TyLam _ tnRight kRight tyRight) =
-    let tyEq = rebindAndEq eqSt tyLeft tyRight tnLeft tnRight
+    let tyEq = rebindAndEqTy eqSt tyLeft tyRight tnLeft tnRight
         in (kLeft == kRight && tyEq)
 
 eqTypeSt eqSt (TyVar _ tnRight) (TyVar _ tnLeft) =
@@ -140,6 +141,76 @@ eqTypeSt _ _ _ = False
 
 instance (Ord (tyname a), Eq a) => Eq (Type tyname a) where
     (==) = eqTypeSt mempty
+
+data EqState tyname name a = EqState { _tyMap :: M.Map (tyname a) (tyname a), _termMap :: M.Map (name a) (name a) }
+
+emptyEqState :: (Ord (tyname a), Ord (name a)) => EqState tyname name a
+emptyEqState = EqState mempty mempty
+
+termMap :: Lens' (EqState tyname name a) (M.Map (name a) (name a))
+termMap f s = fmap (\x -> s { _termMap = x }) (f (_termMap s))
+
+tyMap :: Lens' (EqState tyname name a) (M.Map (tyname a) (tyname a))
+tyMap f s = fmap (\x -> s { _tyMap = x }) (f (_tyMap s))
+
+rebindAndEq :: (Eq a, Ord (name a), Ord (tyname a))
+            => EqState tyname name a
+            -> Term tyname name a
+            -> Term tyname name a
+            -> name a
+            -> name a
+            -> Bool
+rebindAndEq eqSt tLeft tRight nLeft nRight =
+    let intermediateSt = over termMap (M.insert nRight nLeft) eqSt
+        in eqTermSt intermediateSt tLeft tRight
+
+eqTermSt :: (Ord (name a), Ord (tyname a), Eq a)
+         => EqState tyname name a
+         -> Term tyname name a
+         -> Term tyname name a
+         -> Bool
+
+eqTermSt eqSt (TyAbs _ tnLeft kLeft tLeft) (TyAbs _ tnRight kRight tRight) =
+    let intermediateSt = over tyMap (M.insert tnRight tnLeft) eqSt
+        in kLeft == kRight && eqTermSt intermediateSt tLeft tRight
+
+eqTermSt eqSt (Wrap _ tnLeft tyLeft tLeft) (Wrap _ tnRight tyRight tRight) =
+    let intermediateSt = over tyMap (M.insert tnRight tnLeft) eqSt
+        in eqTypeSt (_tyMap intermediateSt) tyLeft tyRight
+            && eqTermSt intermediateSt tLeft tRight
+
+eqTermSt eqSt (LamAbs _ nLeft tyLeft tLeft) (LamAbs _ nRight tyRight tRight) =
+    let tEq = rebindAndEq eqSt tLeft tRight nLeft nRight
+        in eqTypeSt (_tyMap eqSt) tyLeft tyRight && tEq
+
+eqTermSt eqSt (Apply _ fLeft aLeft) (Apply _ fRight aRight) =
+    eqTermSt eqSt fLeft fRight && eqTermSt eqSt aLeft aRight
+
+eqTermSt _ (Constant _ cLeft) (Constant _ cRight) =
+    cLeft == cRight
+
+eqTermSt _ (Builtin _ biLeft) (Builtin _ biRight) =
+    biLeft == biRight
+
+eqTermSt eqSt (Unwrap _ tLeft) (Unwrap _ tRight) =
+    eqTermSt eqSt tLeft tRight
+
+eqTermSt eqSt (TyInst _ tLeft tyLeft) (TyInst _ tRight tyRight) =
+    eqTermSt eqSt tLeft tRight && eqTypeSt (_tyMap eqSt) tyLeft tyRight
+
+eqTermSt eqSt (Error _ tyLeft) (Error _ tyRight) =
+    eqTypeSt (_tyMap eqSt) tyLeft tyRight
+
+eqTermSt eqSt (Var _ nRight) (Var _ nLeft) =
+    case M.lookup nLeft (_termMap eqSt) of
+        Just n  -> nRight == n
+        Nothing -> nRight == nLeft
+
+eqTermSt _ _ _ = False
+
+instance (Ord (tyname a), Ord (name a), Eq a) => Eq (Term tyname name a) where
+    (==) = eqTermSt emptyEqState
+
 
 tyLoc :: Type tyname a -> a
 tyLoc (TyVar l _)        = l
@@ -156,18 +227,22 @@ termLoc (Var l _)        = l
 termLoc (TyAbs l _ _ _)  = l
 termLoc (Apply l _ _)    = l
 termLoc (Constant l _)   = l
+termLoc (Builtin l _)    = l
 termLoc (TyInst l _ _)   = l
 termLoc (Unwrap l _)     = l
 termLoc (Wrap l _ _ _)   = l
 termLoc (Error l _ )     = l
 termLoc (LamAbs l _ _ _) = l
 
+data Builtin a = BuiltinName a BuiltinName
+               | DynBuiltinName a DynamicBuiltinName
+               deriving (Functor, Show, Eq, Generic, NFData, Lift)
+
 -- | A constant value.
 data Constant a = BuiltinInt a Natural Integer
                 | BuiltinBS a Natural BSL.ByteString
                 | BuiltinSize a Natural
-                | BuiltinName a BuiltinName
-                | DynBuiltinName a DynamicBuiltinName
+                | BuiltinStr a String
                 deriving (Functor, Show, Eq, Generic, NFData, Lift)
 
 -- TODO make this parametric in tyname as well
@@ -177,17 +252,19 @@ data Term tyname name a = Var a (name a) -- ^ A named variable
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
                         | Apply a (Term tyname name a) (Term tyname name a)
                         | Constant a (Constant a) -- ^ A constant term
+                        | Builtin a (Builtin a)
                         | TyInst a (Term tyname name a) (Type tyname a)
                         | Unwrap a (Term tyname name a)
                         | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
                         | Error a (Type tyname a)
-                        deriving (Functor, Show, Eq, Generic, NFData, Lift)
+                        deriving (Functor, Show, Generic, NFData, Lift)
 
 data TermF tyname name a x = VarF a (name a)
                            | TyAbsF a (tyname a) (Kind a) x
                            | LamAbsF a (name a) (Type tyname a) x
                            | ApplyF a x x
                            | ConstantF a (Constant a)
+                           | BuiltinF a (Builtin a)
                            | TyInstF a x (Type tyname a)
                            | UnwrapF a x
                            | WrapF a (tyname a) (Type tyname a) x
@@ -204,6 +281,7 @@ instance Recursive (Term tyname name a) where
     project (LamAbs x n ty t) = LamAbsF x n ty t
     project (Apply x t t')    = ApplyF x t t'
     project (Constant x c)    = ConstantF x c
+    project (Builtin x bi)    = BuiltinF x bi
     project (TyInst x t ty)   = TyInstF x t ty
     project (Unwrap x t)      = UnwrapF x t
     project (Wrap x tn ty t)  = WrapF x tn ty t
@@ -215,6 +293,7 @@ instance Corecursive (Term tyname name a) where
     embed (LamAbsF x n ty t) = LamAbs x n ty t
     embed (ApplyF x t t')    = Apply x t t'
     embed (ConstantF x c)    = Constant x c
+    embed (BuiltinF x bi)    = Builtin x bi
     embed (TyInstF x t ty)   = TyInst x t ty
     embed (UnwrapF x t)      = Unwrap x t
     embed (WrapF x tn ty t)  = Wrap x tn ty t
@@ -245,23 +324,21 @@ data Program tyname name a = Program a (Version a) (Term tyname name a)
 
 type RenamedTerm a = Term TyNameWithKind NameWithType a
 newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Show, Eq, Functor, Generic)
+    deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
+instance Wrapped (NameWithType a)
 
-instance HasUnique (NameWithType a) where
-    unique = lens g s where
-        g (NameWithType n) = n ^. unique
-        s (NameWithType n) u = NameWithType (n & unique .~ u)
+instance HasUnique (NameWithType a) TermUnique where
+    unique = newtypeUnique
 
 type RenamedType a = Type TyNameWithKind a
 newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
     deriving (Show, Eq, Ord, Functor, Generic)
     deriving newtype NFData
+instance Wrapped (TyNameWithKind a)
 
-instance HasUnique (TyNameWithKind a) where
-    unique = lens g s where
-        g (TyNameWithKind n) = n ^. unique
-        s (TyNameWithKind n) u = TyNameWithKind (n & unique .~ u)
+instance HasUnique (TyNameWithKind a) TypeUnique where
+    unique = newtypeUnique
 
 newtype Normalized a = Normalized { getNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)

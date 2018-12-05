@@ -15,6 +15,6 @@ import           Test.Tasty.Hedgehog
 test_evaluateCek :: TestTree
 test_evaluateCek =
     testGroup "evaluateCek"
-        [ testGroup "props" $ fromInteretingGens $ \name ->
+        [ testGroup "props" $ fromInterestingTermGens $ \name ->
             testProperty name . propEvaluate (evaluateCek mempty)
         ]

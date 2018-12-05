@@ -1,13 +1,16 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
 
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
                                 , Unique (..)
+                                , TypeUnique (..)
+                                , TermUnique (..)
                                 , HasUnique (..)
                                 , Name (..)
                                 , TyName (..)
@@ -17,6 +20,7 @@ module Language.PlutusCore.Name ( -- * Types
                                 , identifierStateFrom
                                 , mapNameString
                                 , mapTyNameString
+                                , newtypeUnique
                                 , PrettyConfigName (..)
                                 , HasPrettyConfigName (..)
                                 , defPrettyConfigName
@@ -25,6 +29,7 @@ module Language.PlutusCore.Name ( -- * Types
 
 import           PlutusPrelude
 
+import           Control.Lens
 import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.IntMap                as IM
@@ -32,7 +37,6 @@ import qualified Data.Map                   as M
 import           Data.Text.Encoding         (decodeUtf8)
 import           Instances.TH.Lift          ()
 import           Language.Haskell.TH.Syntax (Lift)
-import           Lens.Micro
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
@@ -44,8 +48,9 @@ data Name a = Name { nameAttribute :: a
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName a = TyName { unTyName :: Name a }
-    deriving (Show, Lift)
+    deriving (Show, Generic, Lift)
     deriving newtype (Eq, Ord, Functor, NFData)
+instance Wrapped (TyName a)
 
 -- | Apply a function to the string representation of a 'Name'.
 mapNameString :: (BSL.ByteString -> BSL.ByteString) -> Name a -> Name a
@@ -76,21 +81,35 @@ identifierStateFrom u = (mempty, mempty, u)
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, Ord, Lift)
-    deriving newtype (NFData)
+    deriving newtype (NFData, Pretty)
+
+-- | The unique of a type-level name.
+newtype TypeUnique = TypeUnique
+    { unTypeUnique :: Unique
+    }
+
+-- | The unique of a term-level name.
+newtype TermUnique = TermUnique
+    { unTermUnique :: Unique
+    }
+
+-- | The default implementation of 'HasUnique' for newtypes.
+newtypeUnique
+    :: (Wrapped new, HasUnique (Unwrapped new) unique', Coercible unique' unique)
+    => Lens' new unique
+newtypeUnique = _Wrapped' . unique . coerced
 
 -- | Types which have a 'Unique' attached to them, mostly names.
-class HasUnique a where
-    unique :: Lens' a Unique
+class Coercible Unique unique => HasUnique a unique | a -> unique where
+    unique :: Lens' a unique
 
-instance HasUnique (Name a) where
+instance HasUnique (Name a) TermUnique where
     unique = lens g s where
-        g = nameUnique
-        s n u = n{nameUnique=u}
+        g = TermUnique . nameUnique
+        s n (TermUnique u) = n{nameUnique=u}
 
-instance HasUnique (TyName a) where
-    unique = lens g s where
-        g (TyName n) = n ^. unique
-        s (TyName n) u = TyName (n & unique .~ u)
+instance HasUnique (TyName a) TypeUnique where
+    unique = newtypeUnique
 
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast

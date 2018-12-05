@@ -1,4 +1,4 @@
-\documentclass[../main.tex]{subfiles}
+\documentclass[../plutus-core-specification.tex]{subfiles}
 
 \begin{document}
 
@@ -9,7 +9,7 @@ one = (abs $a$ (type) (lam $x$ $a$ $x$))
 \end{lstlisting}
 for the element of the type $unit$ (defined in \ref{fig:Plutus_core_type_abbreviations}).
 
-We stress that declarations in this style are \textbf{not part of the Plutus Core language}. We merely use the familiar syntax to present out example. If the high-level definitions in our example were compiled to a Plutus Core expression, it would result in something like figure \ref{fig:Continuized_Let_Example}.
+We stress that declarations in this style are not part of the Plutus Core language. We merely use the familiar syntax to present out example. If the high-level definitions in our example were compiled to a Plutus Core expression, it would result in something like figure \ref{fig:Continuized_Let_Example}.
 
 We proceed by defining the booleans. Like $unit$, the type $boolean$ below is an abbreviation in the specification. Some built-in constants return values of type $boolean$. When needed, user programs should contain the declarations below. We have
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
@@ -22,7 +22,7 @@ true = (abs $a$ (type)
 and similarly
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 false : $boolean$
-false = (abs $a$ (type) 
+false = (abs $a$ (type)
         (lam $x$ $a$
         (lam $y$ $a$
           $y$ )))
@@ -40,140 +40,82 @@ case = (abs $a$ (type)
          [
            [ {$b$ (fun $unit$ $a$)} t f ]
            $one$
-         ] 
+         ]
        ))))
 \end{lstlisting}
 The reader is encouraged to verify that
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 [{case a} true (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ x
-\end{lstlisting}  
+\end{lstlisting}
 and
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 [{case a} false (lam $unit$ u x) (lam $unit$ u y)] $\stackrel{*}{\rightarrow}$ y
-\end{lstlisting}  
+\end{lstlisting}
 
 We can use \texttt{case} to define the following function:
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 verifyIdentity :
-  (fun [(con bytestring) 2048]
-  (fun [(con bytestring) 256] unit))
+  (fun [(con bytestring) (con 256)]
+  (fun [(con bytestring) (con 32)] unit))
 verifyIdentity =
-  (lam $pubkey$ [(con bytestring) 2048]                  
-  (lam $signed$ [(con bytestring) 256]
-    [ case [ {verifySignature 256 
-                              256
-                              2048}
-               $signed$
-               $txhash$
-               $pubkey$
-           ]
-      (lam $unit$ u one)
-      (lam $unit$ (error $unit$))
+  (lam $pubkey$ [(con bytestring) (con 256)]
+  (lam $signed$ [(con bytestring) (con 32)]
+    [ { case $unit$ } [ {(builtin verifySignature) (con 32)
+                                                (con 32)
+                                                (con 256)}
+                      $signed$
+                      $txhash$
+                      $pubkey$
+                      ]
+      (lam u $unit$ one)
+      (lam u $unit$ (error $unit$))
     ]))
 \end{lstlisting}
-the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) 256]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
+the idea being that the first arguemnt is a public key, and the second argument is the result of signing the hash of the current transaction (accessible via $txhash : \texttt{[(con bytestring) (con 32)]}$) with that public key. The function terminates if and only if the signature is valid, raising an \texttt{error} otherwise. Now, given Alice's public key we can apply our function to obtain one that verifies whether or not its input is the result of Alice signing the current block number. Again, we stress that the Plutus Core expression corresponding to $\texttt{verifyIdentity}$ is going to look something like figure \ref{fig:Continuized_Let_Example}.
 
 With minimal modification we might turn our function into one that verifies a signature of the current block number. Specifically, by replacing $txhash$ with
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-[ {$intToByteString$ 128 256}
+[ {$intToByteString$ (con 16) (con 32)}
   256
-  [{$blocknum$ 128} 128]
+  [{$blocknum$ (con 16)} 16]
 ]
 \end{lstlisting}
-Notice that we must supply $blocknum$ with the size we wish to use to store the result twice, once at the type level and again at the term level. This is necessary because we want to have the size information available both at the type level, to facilitate gas calculations, and at the term level, so that once types are erased the runtime will know how much memory to allocate. This quirk is present in a number of the built in functions. 
+Notice that we must supply $blocknum$ with the size we wish to use to store the result twice, once at the type level and again at the term level. This is necessary because we want to have the size information available both at the type level, to facilitate gas calculations, and at the term level, so that once types are erased the runtime will know how much memory to allocate. This quirk is present in a number of the built in functions.
 
 \begin{figure*}
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-  [
-    (lam $prog$
-      (fun $unit$ 
-      (fun $boolean$
-      (fun $boolean$
-      (fun (all $a$ (type) (fun $boolean$ (fun $a$ (fun $a$ $a$))))
-      (fun [(con bytestring) 256]
-      (fun [(con bytestring) 2048] (fun [(con bytestring) 256] $unit$)))))))))
-      [{$prog$ (all $a$ (type) (fun $a$ $a$))
-           (all $a$ (type) (fun (fun $unit$ $a$) (fun (fun $unit$ $a$) $a$)))}
-           (abs $a$ (type) (lam $x$ $a$ $x$))
-           (abs $a$ (type) (lam $x$ (fun $unit$ $a$) (lam $y$ (fun $unit$ $a$) [$x$ $one$])))
-           (abs $a$ (type) (lam $x$ (fun $unit$ $a$) (lam $y$ (fun $unit$ $a$) [$y$ $one$])))
-           (abs $a$ (type) (lam $b$ $boolean$ (lam $t$ $a$ (lam $f$ $a$
-                                  [{$b$ $a$} (lam $x$ $unit$ $t$) (lam $x$ $unit$ $f$)]))))])
-      (lam $one$ $unit$
-      (lam $true$ $boolean$
-      (lam $false$ $boolean$
-      (lam $case$ (all $a$ (type) (fun $boolean$ (fun $a$ (fun $a$ $a$))))
-        (lam $pubkey$ [(con bytestring) 2048]
-        (lam $signed$ [(con bytestring) 256]
-          [$case$ [{verifySignature 256 256 2048} $signed$ $txhash$ $pubkey$]
-                (lam $unit$ u $one$)
-                (lam $unit$ u (error $unit$))]))))))))
-  ]
+(lam $pubkey$ [(con bytestring) (con 256)]
+(lam $signed$ [(con bytestring) (con 32)]
+    [ 
+    {
+        (abs $a$ (type)
+        (lam $b$ (all $a$ (type) (fun $a$ (fun $a$ $a$)))
+            (lam $t$ (fun (all $a$ (type) (fun $a$ $a$)) $a$)
+            (lam $f$ (fun (all $a$ (type) (fun $a$ $a$)) $a$)
+                [
+                [ { $b$ (fun (all $a$ (type) (fun $a$ $a$)) $a$) } $t$ $f$ ]
+                (abs $a$ (type) (lam $x$ $a$ $x$))
+                ]
+            )
+            )
+        )
+        )
+        (all $a$ (type) (fun $a$ $a$))
+    }
+    [ {(builtin verifySignature) (con 32) (con 32) (con 256)} $signed$ (builtin txhash) $pubkey$ ]
+    (lam $u$ (all $a$ (type) (fun $a$ $a$))
+        (abs $a$ (type) (lam $x$ $a$ $x$))
+    )
+    (lam $u$ (all $a$ (type) (fun $a$ $a$))
+        (error (all $a$ (type) (fun $a$ $a$)))
+    )
+    ]
+)
+)
 \end{lstlisting}
-\caption{Example of Section VII written out in full}
+\caption{Example of Section 5 written out in full}
 \label{fig:Continuized_Let_Example}
 \end{figure*}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Unused Version of Example (figure collecting high-level definitions) %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\begin{figure*}
-%\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-%  one : $unit$
-%  one = (abs $a$ (type) (lam $x$ $a$ $x$))
-
-%  true : $boolean$
-%  true = (abs $a$ (type) (lam $x$ (fun $unit$ $a$) (lam $y$ (fun $unit$ $a$) [$x$ one])))
-
-%  false : $boolean$
-%  false = (abs $a$ (type) (lam $x$ (fun $unit$ $a$) (lam $y$ (fun $unit$ $a$) [$y$ one])))
-
-%  case : (all $a$ (type) (fun $boolean$ (fun $a$ (fun $a$ $a$))))
-%  case = (abs $a$ (type)
-%           (lam $b$ $boolean$
-%           (lam $t$ $a$ 
-%           (lam $f$ $a$ 
-%             [ {$b$ $a$} (lam $x$ $unit$ $t$) (lam $x$ $unit$ $f$)]))))
-
-%  verifyIdentity : (fun [(con bytestring) 2048]
-%  verifyIdentity =
-%    (lam $pubkey$ [(con bytestring) 2048]
-%    (lam $signed$ [(con bytestring) 256]
-%      [ case [{$verifySignature$ 256 256 2048} $signed$ $txhash$ $pubkey$]
-%             one
-%             (error unit)]))
-%\end{lstlisting}    
-%\end{figure*}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Unused Version of Example (actual literate program) %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\begin{figure*}
-%We expect as input a bytestring of size 256, 
-%\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-%> (lam signed [(con bytestring) 256]
-%\end{lstlisting}
-%and we use the case statement for booleans, which has \texttt%{[case true t f] $\rightarrow$ t} and \\ \texttt{[case false %t f] $\rightarrow$ f} to branch on the result of \ldots
-%\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-%>     [(abs a (type) (lam b boolean (lam t a (lam f a
-%>            [{b a} (lam x unit t) (lam x unit f)]))))
-%\end{lstlisting}
-%\ldots using the built in operation \texttt{verifySignature} %to check whether or not our input is the result of Alice sign%ing the current block number
-%\begin{lstlisting}[basicstyle=\ttfamily,mathescape]
-%>      [{verifySignature 256 128 2048}
-%>          signed
-%>          txhash
-%>          aliceKey]
-%\end{lstlisting}
-%If it is, we return $\texttt{one} : \texttt{unit}$ and termin%ate successfully. If not, we throw an $\texttt{error}$.
-%\begin{lstlisting}[basicstyle=\ttfamily]
-%>      (abs a (type) (lam x a x))
-%>      (error unit)])
-%\end{lstlisting}
-%\caption{An example Plutus Core program}
-%\end{figure*}
 
 \end{document}
 

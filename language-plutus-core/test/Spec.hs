@@ -3,8 +3,10 @@
 module Main ( main
             ) where
 
+import qualified Check.Spec                   as Check
 import           Codec.Serialise
-import           Control.Monad
+import           Control.Monad.Except
+import           Control.Monad.Reader         (ask)
 import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
@@ -48,6 +50,7 @@ compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == 
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Constant _ x) (Constant _ y)          = x == y
+compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
@@ -73,7 +76,7 @@ propCBOR = property $ do
     prog <- forAll genProgram
     let
         trip = deserialiseOrFail . serialise
-        compared = (==) <$> trip (void prog) <*> pure (void prog)
+        compared = (==) <$> trip prog <*> pure prog
     Hedgehog.assert (fromRight False compared)
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
@@ -81,11 +84,15 @@ propCBOR = property $ do
 propParser :: Property
 propParser = property $ do
     prog <- forAll genProgram
-    let nullPosn = fmap (pure emptyPosn)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
-        proc = nullPosn <$> parse (reprint prog)
-        compared = and (compareProgram (nullPosn prog) <$> proc)
+    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
+        proc = void <$> parse (reprint prog)
+        compared = and (compareProgram (void prog) <$> proc)
     Hedgehog.assert compared
+
+propRename :: Property
+propRename = property $ do
+    prog <- forAll genProgram
+    Hedgehog.assert $ runQuote (rename prog) == prog
 
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
@@ -93,6 +100,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
+    , testProperty "equality survives renaming" propRename
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -100,20 +108,21 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsType typeErrorFiles
     , test_PrettyReadable
     , test_typecheck
-    , test_constantApplication
+    , test_constant
     , test_evaluateCk
     , Quotation.tests
+    , Check.tests
     ]
 
-type TestFunction a = BSL.ByteString -> Either a T.Text
+type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
 
-asIO :: PrettyPlc a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
 
-asGolden :: PrettyPlc a => TestFunction a -> TestName -> TestTree
+asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
@@ -166,8 +175,31 @@ appAppLamLam = do
             (TyBuiltin () TyInteger)
 
 testLam :: Either (TypeError ()) String
-testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty) $
-    normalizeType =<< appAppLamLam
+testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeConfig True mempty Nothing) $ do
+    (TypeConfig _ _ gas) <- ask
+    normalizeType gas =<< appAppLamLam
+
+testEqTerm :: Bool
+testEqTerm =
+    let
+        xName = Name () "x" (Unique 0)
+        yName = Name () "y" (Unique 1)
+
+        varX = Var () xName
+        varY = Var () yName
+
+        varType = TyVar () (TyName (Name () "a" (Unique 2)))
+
+        lamX = LamAbs () xName varType varX
+        lamY = LamAbs () yName varType varY
+
+        -- [(lam x a x) x]
+        term0 = Apply () lamX varX
+        -- [(lam y a y) x]
+        term1 = Apply () lamY varX
+
+    in
+        term0 == term1
 
 testRebindShadowedVariable :: Bool
 testRebindShadowedVariable =
@@ -224,11 +256,15 @@ testRebindCapturedVariable =
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
-    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
+    [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
+    , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
+    , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
     , testLam @?= Right "(con integer)"
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
+    , testEqTerm @?= True
     ]
-    where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+    where
+        fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
+        fmt = format cfg
+        cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

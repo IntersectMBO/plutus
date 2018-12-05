@@ -1,6 +1,9 @@
-\documentclass[../main.tex]{subfiles}
+\documentclass[../plutus-core-specification.tex]{subfiles}
 
 \begin{document}
+
+\newcommand{\builtinoffset}{-3cm} 
+%% Shift things left in the big table of builtins to make it fit on the page properly
 
 \begin{figure*}[t]
     \footnotesize
@@ -32,9 +35,9 @@
 
         $boolean$ & \(\forall \alpha :: \star.\ \alpha \to \alpha \to \alpha\)\\\\
 
-        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{t}{unitval}}}}\)\\\\
+        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{t}}}\)\\\\
 
-        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{\app{f}{unitval}}}}\)\\\\
+        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{f}}}\)\\\\
 
     \end{tabular}
 
@@ -70,12 +73,13 @@
     \label{fig:Plutus_core_constants}
 \end{figure*}
 
+
 \begin{landscape}
 \thispagestyle{empty}
  \begin{figure*}
-    \hspace{-8.5cm}Let $txh$ be the transaction hash and $bnum$ be the block number, both as global parameters to normalization.\vspace{1em}
+    \hspace{\builtinoffset}Let $txh$ be the transaction hash and $bnum$ be the block number, both as global parameters to normalization.\vspace{1em}
 
-    \hspace{-8.5cm}\(\begin{array}{llllll}
+    \hspace{\builtinoffset}\(\begin{array}{llllll}
         \textrm{Builtin Name} & \textrm{Signature} & \textrm{Type Args} & \textrm{Term Args} & \textrm{Semantics} & \textrm{Success Conditions}\\
 
 
@@ -95,10 +99,11 @@
         \texttt{equalsInteger}              &  \sig{s :: size}{integer_s, integer_s}{boolean}  &  s & s!i_0 , s!i_1   &   i_0 == i_1\\
         %&&\\
 
-        \texttt{resizeInteger}   &  \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{integer_{s_1}}  &   z, s_0!i   & s_1!i & -2^{8s_1-1} \leq i < 2^{8s_1-1}\\
+        \texttt{resizeInteger}   &  \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{integer_{s_1}}  &   s_0, s_1   & z, s_0!i   & s_1!i & -2^{8s_1-1} \leq i < 2^{8s_1-1}\\
+        \texttt{sizeOfInteger}   &  \sig{s :: size}{integer_{s}}{size_{s}}                                   &   s          & s!i        & s\\
         %&&\\
 
-        \texttt{intToByteString}  &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{str_{s_1}}  &  s & z, s_0!i           & \text{the binary representation of $i$} &-2^{8s_1-1} \leq i < 2^{8s_1-1}\\
+        \texttt{intToByteString}  &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},integer_{s_0}}{str_{s_1}}  &  s_0, s_1  & z, s_0!i           & \text{the binary representation of $i$} &-2^{8s_1-1} \leq i < 2^{8s_1-1}\\
             &&&&\quad\text{$0$ padded to a}\\
             &&&&\quad\text{most-significant-bit-first}\\
             &&&&\quad\text{$s_1$-byte bytestring}\\
@@ -112,8 +117,8 @@
         \texttt{dropByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_01i, s_1!b     & s_1!(drop \ i \  b)\\
         %&&\\
 
-        \texttt{sha2$\_256$}         &  \sig{s :: size}{str_s}{str_{256}}  & s &   s!b           & 256!(sha2\_256 \  b)\\
-        \texttt{sha3$\_256$}         &  \sig{s :: size}{str_s}{str_{256}}  & s &   s!b           & 256!(sha3\_256\  b)\\
+        \texttt{sha2$\_256$}         &  \sig{s :: size}{str_s}{str_{32}}  & s &   s!b           & 32!(sha2\_256 \  b)\\
+        \texttt{sha3$\_256$}         &  \sig{s :: size}{str_s}{str_{32}}  & s &   s!b           & 32!(sha3\_256\  b)\\
         %&&\\
 
         \texttt{verifySignature}   &  \sig{s_0, s_1, s_2 :: size}{str_{s_0},str_{s_1},str_{s_2}}{boolean}  &   s_0, s_1, s_2 & k, d, s           & \text{$true$ if the private key}\\
@@ -125,10 +130,10 @@
         \texttt{resizeByteString}   &   \sig{s_0 :: size, s_1 :: size}{size_{s_1},str_{s_0}}{str_{s_1}}   &   s _0, s_1 & z, s_0!b   &   s_1!b & |b| \leq s_1\\
         %&&\\
 
-        \texttt{equalsByteString}  &   \sig{s :: size}{str_s,str_s}{boolean}   &   s_0 & b_0 , b_1   & b_0 == b_1\\
+        \texttt{equalsByteString}  &   \sig{s :: size}{str_s,str_s}{boolean}   &   s & b_0 , b_1   & b_0 == b_1\\
         %&&\\
 
-        \texttt{txhash}^{\dagger}   &   \sig{}{}{str_{256}}   &   & \textrm{---}  & 256!txh\\
+        \texttt{txhash}^{\dagger}   &   \sig{}{}{str_{32}}   &   & \textrm{---}  & 32!txh\\
         %&&\\
 
         \texttt{blocknum}  &  \sig{s :: size}{size_s}{integer_s}  & s & z & s!bnum & 0 \leq bnum < 2^{8s-1}\\
@@ -137,9 +142,9 @@
 
     \vspace{1em}
 
-    \hspace{-8.5cm}$^{\dagger}$ \texttt{txhash} and its meaning $txh$ are the hash of the transaction, containing information as specified by the host blockchain.
+    \hspace{\builtinoffset}$^{\dagger}$ \texttt{txhash} and its meaning $txh$ are the hash of the transaction, containing information as specified by the host blockchain.
 
-    \hspace{-8.5cm}\caption{Builtin Signatures and Reductions}
+    \hspace{\builtinoffset}\caption{Builtin Signatures and Reductions}
     \label{fig:Plutus_core_builtins}
 \end{figure*}
 

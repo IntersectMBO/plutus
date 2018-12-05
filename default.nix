@@ -1,87 +1,162 @@
-let
-  localLib = import ./lib.nix;
-  jemallocOverlay = self: super: {
-    # jemalloc has a bug that caused cardano-sl-db to fail to link (via
-    # rocksdb, which can use jemalloc).
-    # https://github.com/jemalloc/jemalloc/issues/937
-    # Using jemalloc 510 with the --disable-initial-exec-tls flag seems to
-    # fix it.
-    jemalloc = self.callPackage ./nix/jemalloc/jemalloc510.nix {};
-  };
-in
+########################################################################
+# default.nix -- The top-level nix build file for plutus.
+#
+# This file defines an attribute set of packages.
+#
+# It contains:
+#
+#   - pkgs -- the nixpkgs set that the build is based on.
+#   - haskellPackages.* -- the package set based on stackage
+#   - haskellPackages.ghc -- the compiler
+#   - localPackages -- just local packages
+#
+#   - tests -- integration tests and linters suitable for running in a
+#              sandboxed build environment
+#
+# Other files:
+#   - shell.nix   - dev environment, used by nix-shell / nix run.
+#   - release.nix - the Hydra jobset.
+#   - lib.nix     - the localLib common functions.
+#   - nix/*       - other nix code modules used by this file.
+#
+# See also:
+#   - TODO: documentation links
+#
+########################################################################
+
 { system ? builtins.currentSystem
-, pkgs ? (import (localLib.fetchNixPkgs) { inherit system config; overlays = [ jemallocOverlay ]; })
-, config ? {}
+, config ? {}  # The nixpkgs configuration file
+
+# Use a pinned version nixpkgs.
+, pkgs ? (import ./lib.nix { inherit config system; }).pkgs
+
+# Disable running of tests for all local packages.
+, forceDontCheck ? false
+
+# Enable profiling for all haskell packages.
+# Profiling slows down performance by 50% so we don't enable it by default.
+, enableProfiling ? false
+
+# Enable separation of build/check derivations.
+, enableSplitCheck ? true
+
+# Keeps the debug information for all haskell packages.
+, enableDebugging ? false
+
+# Build (but don't run) benchmarks for all local packages.
+, enableBenchmarks ? true
+
+# Overrides all nix derivations to add build timing information in
+# their build output.
+, enablePhaseMetrics ? true
+
+# Overrides all nix derivations to add haddock hydra output.
+, enableHaddockHydra ? true
+
+# Disables optimization in the build for all local packages.
+, fasterBuild ? false
+
+# Forces all warnings as errors
+, forceError ? true
+
 }:
 
 with pkgs.lib;
-with pkgs.haskell.lib;
 
 let
-  doHaddockHydra = drv: overrideCabal drv (attrs: {
-    doHaddock = true;
-    postInstall = ''
-      ${attrs.postInstall or ""}
-      mkdir -pv $doc/nix-support
-      tar -czvf $doc/${attrs.pname}-docs.tar.gz -C $doc/share/doc/html .
-      echo "file binary-dist $doc/${attrs.pname}-docs.tar.gz" >> $doc/nix-support/hydra-build-products
-      echo "report ${attrs.pname}-docs.html $doc/share/doc/html index.html" >> $doc/nix-support/hydra-build-products
-    '';
-  });
-  addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
-    testTarget = "--show-details=streaming";
-  });
-  # probably replace with failOnAllWarnings from the haskell lib once we're on a newer nixpkgs
-  addWerror = drv: appendConfigureFlag drv "--ghc-option=-Werror";
-  filterSource = drv: drv.overrideAttrs (attrs : {
-    src = builtins.filterSource cleanSourceFilter attrs.src;
-  });
-  cleanSourceFilter = with pkgs.stdenv;
-    name: type: let baseName = baseNameOf (toString name); in ! (
-      # Filter out .git repo
-      (type == "directory" && baseName == ".git") ||
-      lib.hasSuffix "~" baseName ||
-      builtins.match "^\\.sw[a-z]$" baseName != null ||
-      builtins.match "^\\..*\\.sw[a-z]$" baseName != null ||
-      builtins.match "^\\.ghc\\.environment\\..*$" baseName != null ||
-      baseName == "dist" || baseName == "dist-newstyle" ||
-      baseName == "cabal.project.local" ||
-      lib.hasSuffix ".nix" baseName ||
-      lib.hasSuffix ".dhall" baseName ||
-      (type == "symlink" && lib.hasPrefix "result" baseName) ||
-      (type == "directory" && baseName == ".stack-work")
-    );
-  plutusPkgs = (import ./pkgs { inherit pkgs; }).override {
-    overrides = self: super: {
-      plutus-prototype = addRealTimeTestLogs (filterSource super.plutus-prototype);
-      # we want to enable benchmarking, which also means we have criterion in the corresponding env
-      # we need to enable benchmarks as a flag too, until we are on a newer nixpkgs where this is implied by doBenchmark
-      language-plutus-core = addWerror (appendConfigureFlag (doBenchmark (doHaddockHydra (addRealTimeTestLogs (filterSource super.language-plutus-core)))) "--enable-benchmarks");
-      plutus-core-interpreter = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-core-interpreter)));
-      plutus-exe = addWerror (addRealTimeTestLogs (filterSource super.plutus-exe));
-      core-to-plc = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.core-to-plc)));
-      plutus-th = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.plutus-th)));
-      plutus-use-cases = addWerror (addRealTimeTestLogs (filterSource super.plutus-use-cases));
-      wallet-api = addWerror (doHaddockHydra (addRealTimeTestLogs (filterSource super.wallet-api)));
-    };
+  localLib = import ./lib.nix { inherit config system; } ;
+  src = localLib.iohkNix.cleanSourceHaskell ./.;
+  errorOverlay = import ./nix/overlays/force-error.nix {
+    inherit pkgs;
+    filter = localLib.isPlutus;
   };
-  other = rec {
-    tests = let
-      src = localLib.cleanSourceTree ./.;
-    in {
-      shellcheck = pkgs.callPackage ./tests/shellcheck.nix { inherit src; };
-      hlint = pkgs.callPackage ./tests/hlint.nix { inherit src; };
-      stylishHaskell = pkgs.callPackage ./tests/stylish.nix {
-        inherit (plutusPkgs) stylish-haskell;
+  customOverlays = optional forceError errorOverlay;
+  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
+  packages = self: (rec {
+    inherit pkgs localLib;
+
+    # This is the stackage LTS plus overrides, plus the plutus
+    # packages.
+    haskellPackages = self.callPackage localLib.iohkNix.haskellPackages {
+      inherit forceDontCheck enableProfiling enablePhaseMetrics
+      enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
+      enableSplitCheck customOverlays;
+      pkgsGenerated = ./pkgs;
+      filter = localLib.isPlutus;
+      filterOverrides = {
+        # split check is broken for things with test tool dependencies
+        splitCheck = let
+          pkgList = pkgs.lib.remove "plutus-tx" localLib.plutusPkgList;
+          in name: builtins.elem name pkgList;
+      };
+      requiredOverlay = ./nix/overlays/required.nix;
+    };
+
+    # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
+    playgroundGhc = haskellPackages.ghcWithPackages (ps: [
+      haskellPackages.plutus-playground-server
+      haskellPackages.plutus-playground-lib
+      haskellPackages.plutus-use-cases
+    ]);
+
+    localPackages = localLib.getPackages {
+      inherit (self) haskellPackages; filter = localLib.isPlutus;
+    };
+    tests = {
+      shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
+      hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
+        inherit src;
+        projects = let
+                     fixPlaygroundServer = v: if v != "plutus-playground-server" then v else "plutus-playground/plutus-playground-server";
+                     fixPlaygroundLib = v: if v != "plutus-playground-lib" then v else "plutus-playground/plutus-playground-lib";
+                   in
+                     map (localLib.comp fixPlaygroundServer fixPlaygroundLib) localLib.plutusHaskellPkgList;
+      };
+      stylishHaskell = pkgs.callPackage localLib.iohkNix.tests.stylishHaskell {
+        inherit (self.haskellPackages) stylish-haskell;
         inherit src;
       };
     };
-    stack2nix = import (pkgs.fetchFromGitHub {
-      owner = "avieth";
-      repo = "stack2nix";
-      rev = "c51db2d31892f7c4e7ff6acebe4504f788c56dca";
-      sha256 = "10jcj33sxpq18gxf3zcck5i09b2y4jm6qjggqdlwd9ss86wg3ksb";
-    }) { inherit pkgs; };
-    plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
-  };
-in plutusPkgs // other
+    plutus-server-invoker = pkgs.stdenv.mkDerivation {
+      name = "plutus-server-invoker";
+      unpackPhase = "true";
+      buildInputs = [ playgroundGhc haskellPackages.plutus-playground-server pkgs.makeWrapper ];
+      buildPhase = ''
+        # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
+        mkdir -p $out/bin
+        ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
+        wrapProgram $out/bin/plutus-playground-server --set GHC_LIB_DIR "${playgroundGhc}/lib/ghc-8.4.3" --set GHC_PACKAGE_PATH "${playgroundGhc}/lib/ghc-8.4.3/package.conf.d"
+      '';
+      installPhase = "echo nothing to install";
+    };
+    plutus-playground-purescript = pkgs.stdenv.mkDerivation {
+        name = "plutus-playground-purescript";
+        unpackPhase = "true";
+        buildInputs = [ haskellPackages.plutus-playground-server ];
+        buildPhase = ''
+        mkdir $out
+        ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
+        '';
+        installPhase = "echo nothing to install";
+    };
+    inherit (pkgs.callPackage ./plutus-playground/plutus-playground-client {
+         pkgs = purescriptNixpkgs;
+         psSrc = plutus-playground-purescript;
+    }) plutus-playground-client;
+    docs = {
+      plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
+      lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
+    };
+    plutus-playground-docker = pkgs.dockerTools.buildImage {
+      name = "plutus-playground-docker";
+      contents = [ plutus-playground-client plutus-server-invoker ];
+      config = {
+        Cmd = ["${plutus-server-invoker}/bin/plutus-playground-server" "webserver" "-b" "0.0.0.0" "-p" "8080" "${plutus-playground-client}"];
+      };
+    };
+    inherit (pkgs) stack2nix;
+  });
+
+in
+  # The top-level package set
+  pkgs.lib.makeScope pkgs.newScope packages

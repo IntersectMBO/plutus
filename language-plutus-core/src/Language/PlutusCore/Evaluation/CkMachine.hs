@@ -4,12 +4,15 @@
 
 module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
-    , EvaluationResult(..)
+    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    , EvaluationResult
+    , applyEvaluateCkBuiltinName
     , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
@@ -17,6 +20,8 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
+
+import           Data.Functor.Identity
 
 infix 4 |>, <|
 
@@ -56,6 +61,7 @@ substituteDb varFor new = go where
     go (LamAbs ann var ty body) = LamAbs ann var ty (goUnder var body)
     go (Apply ann fun arg)      = Apply ann (go fun) (go arg)
     go (Constant ann constant)  = Constant ann constant
+    go (Builtin ann bi)         = Builtin ann bi
     go (TyInst ann fun arg)     = TyInst ann (go fun) arg
     go (Unwrap ann term)        = Unwrap ann (go term)
     go (Wrap ann tyn ty term)   = Wrap ann tyn ty (go term)
@@ -80,6 +86,7 @@ stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
 stack |> Unwrap _ term        = FrameUnwrap : stack |> term
 stack |> tyAbs@TyAbs{}        = stack <| tyAbs
 stack |> lamAbs@LamAbs{}      = stack <| lamAbs
+stack |> bi@Builtin{} = stack <| bi
 stack |> constant@Constant{}  = stack <| constant
 _     |> Error{}              = EvaluationFailure
 _     |> var@Var{}            = throwCkMachineException OpenTermEvaluatedMachineError var
@@ -130,12 +137,16 @@ applyEvaluate stack fun                    arg =
             Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
             Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                case runQuote $ applyBuiltinName name spine of
+                case applyEvaluateCkBuiltinName name spine of
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
+
+applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
+applyEvaluateCkBuiltinName name =
+    runIdentity . runEvaluate (const $ Identity . evaluateCk) . runQuoteT . applyBuiltinName name
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

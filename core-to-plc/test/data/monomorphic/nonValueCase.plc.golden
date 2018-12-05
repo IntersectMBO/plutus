@@ -1,7 +1,0 @@
-Error: Type mismatch at () in term
-         'bad_name_25'.
-       Expected type
-         'bad_name_21',
-       found type
-         '(all a_36 (type) (fun a_36 a_36))'
-Context: Converting expr at "nonValueCase"

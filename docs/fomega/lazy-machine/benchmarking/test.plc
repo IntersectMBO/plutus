@@ -1,0 +1,44 @@
+
+
+
+(program 1.0.0
+
+ [{ { (abs T (type)
+  (abs U (type)
+   (lam f (fun (fun T U) (fun T U))
+   [
+      (lam p (fix A (fun A (fun T U)))
+        [f (lam y T [(unwrap p) p y])])
+      (wrap Q (fun Q (fun T U)) 
+        (lam p (fix A (fun A (fun T U)))
+          [f (lam y T [(unwrap p) p y])])
+      )
+   ]
+  )
+  )
+   ) [(con integer) (con 8)] }
+ [(con integer) (con 8)] }
+
+  (lam tri (fun [(con integer) (con 8)] [(con integer) (con 8)] ) 
+    (lam n [(con integer) (con 8)]
+    [ { 
+        [{(con lessThanEqualsInteger) (con 8)} n (con 8 ! 1)] -- if n<=1
+        [(con integer) (con 8)]
+      }
+	  (lam u (all E (type) (fun E E)) (con 8 ! 1)) -- then 1
+	  (lam u (all E (type) (fun E E))
+            [{(con addInteger) (con 8)} 
+              n 
+              [tri [{(con subtractInteger) (con 8)} 
+                     n 
+                     (con 8 ! 1)
+                   ] (abs E (type) (lam x E x)) 
+              ]
+           ]  
+	  )  -- else n + tri (n-1)
+    ]
+    )) 
+(con 8 ! 500000) (abs E (type) (lam x E x))
+]
+)
+

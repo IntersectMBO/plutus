@@ -1,0 +1,32 @@
+(program
+  (let
+    (nonrec
+    )
+    (termbind
+      (vardecl
+        multiplyInteger
+        (fun [(con integer) (con 8)] (fun [(con integer) (con 8)] [(con integer) (con 8)]))
+      )
+      { (builtin multiplyInteger) (con 8) }
+    )
+    (lam
+      ds
+      [(con integer) (con 8)]
+      (let
+        (nonrec)
+        (termbind
+          (vardecl y [(con integer) (con 8)])
+          (let
+            (nonrec)
+            (termbind
+              (vardecl y [(con integer) (con 8)])
+              [ [ multiplyInteger ds ] (con 8 ! 1) ]
+            )
+            [ [ multiplyInteger y ] y ]
+          )
+        )
+        [ [ multiplyInteger y ] y ]
+      )
+    )
+  )
+)

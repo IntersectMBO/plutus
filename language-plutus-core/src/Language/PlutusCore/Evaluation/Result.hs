@@ -6,7 +6,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Result
-    ( EvaluationResult(..)
+    ( EvaluationResultF (EvaluationSuccess, EvaluationFailure)
+    , EvaluationResult
     , evaluationResultToMaybe
     , maybeToEvaluationResult
     ) where
@@ -15,11 +16,24 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
--- | The type of results various evaluation engines return.
-data EvaluationResult
-    = EvaluationSuccess (Value TyName Name ())
+-- | The parameterized type of results various evaluation engines return.
+data EvaluationResultF a
+    = EvaluationSuccess a
     | EvaluationFailure
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor, Foldable, Traversable)
+
+instance Applicative EvaluationResultF where
+    pure = EvaluationSuccess
+
+    EvaluationSuccess f <*> a = fmap f a
+    EvaluationFailure   <*> _ = EvaluationFailure
+
+instance Monad EvaluationResultF where
+    EvaluationSuccess x >>= f = f x
+    EvaluationFailure   >>= _ = EvaluationFailure
+
+-- | The type of results various evaluation engines return.
+type EvaluationResult = EvaluationResultF (Value TyName Name ())
 
 instance PrettyBy config (Value TyName Name ()) => PrettyBy config EvaluationResult where
     prettyBy config (EvaluationSuccess value) = prettyBy config value

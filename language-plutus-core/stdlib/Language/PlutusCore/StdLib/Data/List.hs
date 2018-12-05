@@ -1,6 +1,7 @@
 -- | @list@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Data.List
     ( getBuiltinList
     , getBuiltinNil
@@ -12,7 +13,7 @@ module Language.PlutusCore.StdLib.Data.List
     , getBuiltinProduct
     ) where
 
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -85,7 +86,7 @@ getBuiltinCons = rename =<< do
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterApp (Var () f)
+        $ mkIterApp () (Var () f)
           [ Var () x
           , Var () xs
           ]
@@ -114,13 +115,13 @@ getBuiltinFoldrList = rename =<< do
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
         . LamAbs () z (TyVar () r)
-        . Apply () (mkIterInst fix [listA, TyVar () r])
+        . Apply () (mkIterInst () fix [listA, TyVar () r])
         . LamAbs () rec (TyFun () listA $ TyVar () r)
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . LamAbs () xs' listA
-        $ mkIterApp (Var () f)
+        $ mkIterApp () (Var () f)
           [ Apply () (Var () rec) $ Var () xs'
           , Var () x
           ]
@@ -148,29 +149,28 @@ getBuiltinFoldList = rename =<< do
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
-        . Apply () (mkIterInst fix [TyVar () r, TyFun () listA $ TyVar () r])
+        . Apply () (mkIterInst () fix [TyVar () r, TyFun () listA $ TyVar () r])
         . LamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . LamAbs () xs listA
         . Apply () (Apply () (TyInst () (Unwrap () (Var () xs)) $ TyVar () r) $ Var () z)
         . LamAbs () x (TyVar () a)
         . LamAbs () xs' listA
-        . mkIterApp (Var () rec)
-        $ [ mkIterApp (Var () f) [Var () z, Var () x]
+        . mkIterApp () (Var () rec)
+        $ [ mkIterApp () (Var () f) [Var () z, Var () x]
           , Var () xs'
           ]
 
 -- | 'enumFromTo' as a PLC term
 --
--- > /\(s :: size) -> \(ss : size s) -> (n m : integer s) ->
+-- > /\(s :: size) -> (n m : integer s) ->
 -- >     fix {integer s} {list (integer s)}
 -- >         (\(rec : integer s -> list (integer s)) (n' : integer s) ->
 -- >             ifThenElse {list (integer s)}
 -- >                 (greaterThanInteger {integer s} n' m)
 -- >                 (nil {integer s})
--- >                 (cons {integer s} n' (rec (addInteger {s} n' (resizeInteger {1} {s} ss 1!0))))
+-- >                 (cons {integer s} n' (rec (succInteger {s} n'))))
 -- >         n
--- TODO: remove the @ss@ once @sizeOfInteger@ lands.
 getBuiltinEnumFromTo :: Quote (Term TyName Name ())
 getBuiltinEnumFromTo = rename =<< do
     fix         <- getBuiltinFix
@@ -181,37 +181,33 @@ getBuiltinEnumFromTo = rename =<< do
     nil         <- getBuiltinNil
     cons        <- getBuiltinCons
     s <- freshTyName () "s"
-    ss  <- freshName () "ss"
     n   <- freshName () "n"
     m   <- freshName () "m"
     rec <- freshName () "rec"
     n'  <- freshName () "n'"
     u   <- freshName () "u"
-    let gtInteger  = Constant () $ BuiltinName () GreaterThanInteger
+    let gtInteger  = Builtin () $ BuiltinName () GreaterThanInteger
         int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
         RecursiveType _ listInt =
             holedToRecursive $ holedTyApp list int
     return
         . TyAbs () s (Size ())
-        . LamAbs () ss (TyApp () (TyBuiltin () TySize) $ TyVar () s)
         . LamAbs () n int
         . LamAbs () m int
-        . mkIterApp (mkIterInst fix [int, listInt])
+        . mkIterApp () (mkIterInst () fix [int, listInt])
         $ [   LamAbs () rec (TyFun () int listInt)
             . LamAbs () n' int
-            . mkIterApp (TyInst () ifThenElse listInt)
-            $ [ mkIterApp (TyInst () gtInteger $ TyVar () s)
+            . mkIterApp () (TyInst () ifThenElse listInt)
+            $ [ mkIterApp () (TyInst () gtInteger $ TyVar () s)
                     [ Var () n'
                     , Var () m
                     ]
               , LamAbs () u unit $ TyInst () nil int
-              , LamAbs () u unit $ mkIterApp (TyInst () cons int)
+              , LamAbs () u unit $ mkIterApp () (TyInst () cons int)
                     [ Var () n'
-                    ,   Apply () (Var () rec)
-                      . mkIterApp (TyInst () succInteger (TyVar () s))
-                      $ [ Var () ss
-                        , Var () n'
-                        ]
+                    ,    Apply () (Var () rec)
+                       . Apply () (TyInst () succInteger (TyVar () s))
+                       $ Var () n'
                     ]
               ]
           , Var () n
@@ -228,13 +224,13 @@ getBuiltinSum = rename =<< do
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        add = TyInst () (Constant () (BuiltinName () AddInteger)) sv
+        add = TyInst () (Builtin () (BuiltinName () AddInteger)) sv
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
-        . mkIterApp (mkIterInst foldList [int, int])
+        . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ add
-          , makeDynamicBuiltinInt sv (Var () ss) 0
+          , makeDynBuiltinInt sv (Var () ss) 0
           ]
 
 -- |  'product' as a PLC term.
@@ -248,11 +244,11 @@ getBuiltinProduct = rename =<< do
     ss <- freshName () "ss"
     let sv  = TyVar () s
         int = TyApp () (TyBuiltin () TyInteger) sv
-        mul = TyInst () (Constant () (BuiltinName () MultiplyInteger)) sv
+        mul = TyInst () (Builtin () (BuiltinName () MultiplyInteger)) sv
     return
         . TyAbs () s (Size ())
         . LamAbs () ss (TyApp () (TyBuiltin () TySize) sv)
-        . mkIterApp (mkIterInst foldList [int, int])
+        . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ mul
-          , makeDynamicBuiltinInt sv (Var () ss) 1
+          , makeDynBuiltinInt sv (Var () ss) 1
           ]

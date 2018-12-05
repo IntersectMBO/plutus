@@ -185,7 +185,7 @@ goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ "
 
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"
-    [ testGroup "props" $ fromInteretingGens (\name -> testProperty name . propEvaluate evaluateCk)
+    [ testGroup "props" $ fromInterestingTermGens (\name -> testProperty name . propEvaluate evaluateCk)
     , goldenVsPretty "even2" (pure $ evaluateCk (runQuote $
                                                  Apply () <$> getEven <*> getBuiltinIntegerToNat 2))
     , goldenVsPretty "even3" (pure $ evaluateCk (runQuote $

@@ -2,7 +2,7 @@
 (program 0.1.0
   [
     (lam x t
-      [(con addInteger) x y]
+      [(builtin addInteger) x y]
     )
     z
   ]

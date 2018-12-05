@@ -1,0 +1,14 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyEnum (type))
+        
+        MyEnum_match
+        (vardecl Enum1 MyEnum) (vardecl Enum2 MyEnum)
+      )
+    )
+    Enum1
+  )
+)
