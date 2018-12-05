@@ -14,10 +14,10 @@ showAjaxError =
   runAjaxError >>> _.description >>> showErrorDescription
 
 showErrorDescription :: ErrorDescription -> String
-showErrorDescription (UnexpectedHTTPStatus {status, response}) = response <> " " <> show status
-showErrorDescription (ParsingError err) = err
-showErrorDescription (DecodingError err) = err
-showErrorDescription (ConnectionError err) = err
+showErrorDescription (UnexpectedHTTPStatus {status, response}) = "UnexpectedHTTPStatus: " <> response <> " " <> show status
+showErrorDescription (ParsingError err) = "ParsingError: " <> err
+showErrorDescription (DecodingError err) = "DecodingError: " <> err
+showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
