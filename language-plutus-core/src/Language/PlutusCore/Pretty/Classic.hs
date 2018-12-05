@@ -9,10 +9,12 @@
 module Language.PlutusCore.Pretty.Classic
     ( PrettyConfigClassic (..)
     , PrettyClassicBy
+    , PrettyClassic
+    , prettyClassicDef
     ) where
 
 import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name       (HasPrettyConfigName (..), PrettyConfigName)
+import           Language.PlutusCore.Name       (HasPrettyConfigName (..), PrettyConfigName, defPrettyConfigName)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -25,6 +27,8 @@ newtype PrettyConfigClassic configName = PrettyConfigClassic
 
 -- | The "classically pretty-printable" constraint.
 type PrettyClassicBy configName = PrettyBy (PrettyConfigClassic configName)
+
+type PrettyClassic = PrettyClassicBy PrettyConfigName
 
 instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigClassic configName) where
     toPrettyConfigName = _pccConfigName
@@ -81,3 +85,7 @@ instance PrettyClassicBy configName (Term tyname name a) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name a) where
     prettyBy config (Program _ version term) =
         parens' $ "program" <+> pretty version <//> prettyBy config term
+
+-- | Pretty-print a value in the default mode using the classic view.
+prettyClassicDef :: PrettyClassic a => a -> Doc ann
+prettyClassicDef = prettyBy $ PrettyConfigClassic defPrettyConfigName

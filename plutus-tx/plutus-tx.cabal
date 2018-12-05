@@ -58,6 +58,7 @@ test-suite plutus-tx-tests
         plutus-tx-plugin -any,
         plutus-tx -any,
         plutus-ir -any,
+        prettyprinter -any,
         mtl -any,
         template-haskell -any,
         tasty -any

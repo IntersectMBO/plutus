@@ -45,10 +45,13 @@ module Language.PlutusCore.Pretty
     -- * Classic view
     , PrettyConfigClassic (..)
     , PrettyClassicBy
+    , PrettyClassic
+    , prettyClassicDef
     -- * Readable view
     , RenderContext (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
+    , PrettyReadable
     , topPrettyConfigReadable
     , botPrettyConfigReadable
     ) where
@@ -85,14 +88,14 @@ it's helpful to have an implementation of the default Pretty typeclass that
 does the default thing.
 -}
 instance Pretty (Kind a) where
-    pretty = prettyPlcDef
+    pretty = prettyClassicDef
 instance Pretty (Constant a) where
-    pretty = prettyPlcDef
+    pretty = prettyClassicDef
 instance Pretty (Builtin a) where
-    pretty = prettyPlcDef
-instance PrettyPlc (Type tyname a) => Pretty (Type tyname a) where
-    pretty = prettyPlcDef
-instance PrettyPlc (Term tyname name a) => Pretty (Term tyname name a) where
-    pretty = prettyPlcDef
-instance PrettyPlc (Program tyname name a) => Pretty (Program tyname name a) where
-    pretty = prettyPlcDef
+    pretty = prettyClassicDef
+instance PrettyClassic (Type tyname a) => Pretty (Type tyname a) where
+    pretty = prettyClassicDef
+instance PrettyClassic (Term tyname name a) => Pretty (Term tyname name a) where
+    pretty = prettyClassicDef
+instance PrettyClassic (Program tyname name a) => Pretty (Program tyname name a) where
+    pretty = prettyClassicDef

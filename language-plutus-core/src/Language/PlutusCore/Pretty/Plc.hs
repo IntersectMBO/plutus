@@ -55,8 +55,8 @@ type PrettyPlc = PrettyBy PrettyConfigPlc
 
 -- | A constraint that allows to derive @PrettyBy PrettyConfigPlc@ instances, see below.
 type DefaultPrettyPlcStrategy a =
-       ( PrettyBy (PrettyConfigClassic PrettyConfigName) a
-       , PrettyBy (PrettyConfigReadable PrettyConfigName) a
+       ( PrettyClassic a
+       , PrettyReadable a
        )
 
 instance HasPrettyConfigName PrettyConfigPlcStrategy where

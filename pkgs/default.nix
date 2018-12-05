@@ -56036,6 +56036,7 @@ base
 bytestring
 language-plutus-core
 plutus-ir
+prettyprinter
 tasty
 ];
 doHaddock = false;

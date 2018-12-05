@@ -20,7 +20,6 @@ module Language.PlutusIR (
     Binding (..),
     Term (..),
     Program (..),
-    prettyDef,
     embedIntoIR
     ) where
 
@@ -185,40 +184,27 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
         PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name a) where
     prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
 
-prettyDef :: (PLC.PrettyClassicBy PLC.PrettyConfigName a) => a -> Doc ann
-prettyDef = prettyBy $ PLC.PrettyConfigClassic PLC.defPrettyConfigName
-
 -- See note [Default pretty instances for PLC]
-instance (PLC.PrettyClassicBy PLC.PrettyConfigName (tyname a)) =>
+instance (PLC.PrettyClassic (tyname a)) =>
     Pretty (TyVarDecl tyname a) where
-    pretty = prettyDef
+    pretty = PLC.prettyClassicDef
 
-instance
-    ( PLC.PrettyClassicBy PLC.PrettyConfigName (tyname a)
-    , PLC.PrettyClassicBy PLC.PrettyConfigName (name a)) =>
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
     Pretty (VarDecl tyname name a) where
-    pretty = prettyDef
+    pretty = PLC.prettyClassicDef
 
-instance
-    ( PLC.PrettyClassicBy PLC.PrettyConfigName (tyname a)
-    , PLC.PrettyClassicBy PLC.PrettyConfigName (name a)) =>
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
     Pretty (Datatype tyname name a) where
-    pretty = prettyDef
+    pretty = PLC.prettyClassicDef
 
-instance
-    ( PLC.PrettyClassicBy PLC.PrettyConfigName (tyname a)
-    , PLC.PrettyClassicBy PLC.PrettyConfigName (name a)) =>
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
     Pretty (Binding tyname name a) where
-    pretty = prettyDef
+    pretty = PLC.prettyClassicDef
 
-instance
-    ( PLC.PrettyClassicBy PLC.PrettyConfigName (tyname a)
-    , PLC.PrettyClassicBy PLC.PrettyConfigName (name a)) =>
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
     Pretty (Term tyname name a) where
-    pretty = prettyDef
+    pretty = PLC.prettyClassicDef
 
-instance
-    ( PLC.PrettyClassicBy PLC.PrettyConfigName (tyname a)
-    , PLC.PrettyClassicBy PLC.PrettyConfigName (name a)) =>
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
     Pretty (Program tyname name a) where
-    pretty = prettyDef
+    pretty = PLC.prettyClassicDef
