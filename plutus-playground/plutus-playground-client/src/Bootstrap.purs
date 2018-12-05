@@ -222,3 +222,15 @@ badge = ClassName "badge"
 
 badgePrimary :: ClassName
 badgePrimary = ClassName "badge-primary"
+
+formControl :: ClassName
+formControl = ClassName "form-control"
+
+formControl_ :: forall p i. Array (HTML p i) -> HTML p i
+formControl_ = div [ class_ formControl ]
+
+formGroup :: ClassName
+formGroup = ClassName "form-group"
+
+formGroup_ :: forall p i. Array (HTML p i) -> HTML p i
+formGroup_ = div [ class_ formGroup ]

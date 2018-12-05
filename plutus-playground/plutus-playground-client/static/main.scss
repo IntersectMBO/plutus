@@ -95,6 +95,20 @@ h2 {
     .action {
         text-align: left;
         margin-bottom: 30px;
+
+        label {
+            margin-bottom: 0;
+        }
+
+        input {
+            padding-left: 0;
+            padding-right: 0;
+            margin-bottom: 2rem;
+        }
+
+        .nested {
+            margin-left: 1rem;
+        }
     }
 }
 

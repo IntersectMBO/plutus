@@ -7,20 +7,24 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
 import AjaxUtils (showAjaxError)
-import Bootstrap (alertDanger_, btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
+import Bootstrap (alertDanger_, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff.Class (liftEff)
+import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Map as Map
 import Data.Maybe (Maybe(Just))
 import Data.String as String
+import Halogen (HTML)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), HTML, br_, button, code_, div, div_, h2_, h3_, pre_, slot', small, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, pre_, slot', small, text)
 import Halogen.HTML.Events (input, input_, onClick)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..), isLoading)
 import Playground.API (CompilationError(CompilationError, RawError))
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
+import StaticData as StaticData
 import Types (EditorSlot(..), ChildQuery, ChildSlot, Query(..), State, cpEditor)
 
 editorPane ::
@@ -35,6 +39,7 @@ editorPane state =
         unit
         (input HandleEditorMessage)
     , br_
+    , demoScriptsPane
     , div_
         [ button
             [ classes [ btn, btnClass ]
@@ -79,8 +84,20 @@ initEditor contents editor = liftEff $ do
   session <- Editor.getSession editor
   Session.setMode "ace/mode/haskell" session
 
+demoScriptsPane :: forall p. HTML p Query
+demoScriptsPane =
+  div [ class_ pullRight ]
+   (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.editorContents))
 
-compilationErrorPane :: forall p. CompilationError -> HTML p (Query Unit)
+demoScriptButton :: forall p. String -> HTML p Query
+demoScriptButton key =
+  button
+    [ classes [ btn, btnInfo, btnSmall ]
+    , onClick $ input_ $ LoadScript key
+    ]
+    [ text key ]
+
+compilationErrorPane :: forall p. CompilationError -> HTML p Query
 compilationErrorPane (RawError error) =
   div_ [ text error ]
 compilationErrorPane (CompilationError error) =

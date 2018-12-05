@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeOperators         #-}
 
 module PSGenerator
-    ( generate
+    ( generate, k
     ) where
 
 import           Control.Applicative                       ((<|>))
@@ -190,3 +190,6 @@ generate outputDir = do
         myBridgeProxy
         (Proxy @API.API)
     writePSTypes outputDir (buildBridge myBridge) myTypes
+
+k :: IO ()
+k = generate "/Users/kris/Work/Clients/IOHK/plutus/plutus-playground/plutus-playground-client/src"
