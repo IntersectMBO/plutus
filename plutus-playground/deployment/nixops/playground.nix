@@ -40,6 +40,14 @@
           "/" = {
             proxyPass = "http://127.0.0.1:4000/";
             proxyWebsockets = true;
+            extraConfig = ''
+              add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+	            expires off;
+              '';
+          };
+          "/+" = {
+            proxyPass = "http://127.0.0.1:4000/";
+            proxyWebsockets = true;
           };
         };
       };
