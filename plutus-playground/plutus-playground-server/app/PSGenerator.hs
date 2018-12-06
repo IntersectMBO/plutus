@@ -11,7 +11,6 @@
 
 module PSGenerator
     ( generate
-    , k
     ) where
 
 import           Control.Applicative                       ((<|>))
