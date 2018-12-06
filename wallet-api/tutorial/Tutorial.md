@@ -1,4 +1,4 @@
-# plutus-use-cases: Wallet-API tutorial
+# wallet-api: Wallet-API tutorial
 
 ```haskell
 {-# LANGUAGE DataKinds         #-}
@@ -15,9 +15,9 @@ This tutorial shows how to implement a simple crowdfunding campaign as a Plutus 
 
 ```haskell
 import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Validation as Validation
 import           Ledger                       hiding (Height)
-import           Ledger.Validation
+import           Ledger.Validation            as Validation
+import           Wallet
 import           Wallet.Emulator
 import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
@@ -190,7 +190,7 @@ In the `Collect` case, the current blockchain height must be between `deadline` 
 Finally, we can return the unit value `()` if `isValid` is true, or fail with an error otherwise.
 
 ```haskell
-              if isValid then () else (PlutusTx.error ())
+              if isValid then () else ($$(PlutusTx.error) ())
                   ||])
 ```
 

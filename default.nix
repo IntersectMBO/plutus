@@ -87,7 +87,7 @@ let
         splitCheck = let
           dontSplit = [ 
             # Broken for things with test tool dependencies
-            "plutus-use-cases"
+            "wallet-api"
             "plutus-tx"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"

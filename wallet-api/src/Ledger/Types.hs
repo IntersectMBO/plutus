@@ -127,7 +127,8 @@ import           Data.Swagger.Internal.Schema             (ToSchema(declareNamed
 import qualified Language.PlutusCore                      as PLC
 import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusTx.Lift                   (LiftPir, makeLift, unsafeLiftPlcProgram)
+import           Language.PlutusTx.Lift                   (makeLift, unsafeLiftProgram)
+import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedPlc)
 import           Language.PlutusTx.TH                     (plutus)
 
@@ -265,8 +266,8 @@ instance FromJSON Script where
       Left e  -> fail e
       Right v -> pure v
 
-lifted :: LiftPir a => a -> Script
-lifted = Script . serialise . unsafeLiftPlcProgram
+lifted :: Lift a => a -> Script
+lifted = Script . serialise . unsafeLiftProgram
 
 -- | A validator is a PLC script.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }

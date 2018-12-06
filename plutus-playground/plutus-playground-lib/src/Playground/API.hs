@@ -47,7 +47,7 @@ newtype SourceCode = SourceCode Text
   deriving anyclass (Newtype)
 
 newtype Fn = Fn Text
-  deriving stock (Show, Generic, TH.Lift)
+  deriving stock (Eq, Show, Generic, TH.Lift)
   deriving newtype (ToJSON, FromJSON)
 
 data Expression
@@ -83,7 +83,7 @@ data EvaluationResult = EvaluationResult
 data FunctionSchema a = FunctionSchema
   { functionName   :: Fn
   , argumentSchema :: [a]
-  } deriving (Show, Generic, ToJSON, Functor)
+  } deriving (Eq, Show, Generic, ToJSON, Functor)
 
 data SimpleArgumentSchema
   = SimpleIntArgument

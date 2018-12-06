@@ -55696,6 +55696,7 @@ license = stdenv.lib.licenses.bsd3;
 , base64-bytestring
 , bytestring
 , containers
+, hedgehog
 , hint
 , http-media
 , insert-ordered-containers
@@ -55709,6 +55710,8 @@ license = stdenv.lib.licenses.bsd3;
 , servant
 , stdenv
 , swagger2
+, tasty
+, tasty-hunit
 , template-haskell
 , text
 , transformers
@@ -55740,6 +55743,18 @@ swagger2
 template-haskell
 text
 transformers
+wallet-api
+];
+testHaskellDepends = [
+aeson
+base
+containers
+hedgehog
+swagger2
+tasty
+tasty-hunit
+template-haskell
+text
 wallet-api
 ];
 doHaddock = false;
@@ -56010,10 +56025,8 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , containers
-, doctest
 , hedgehog
 , lens
-, markdown-unlit
 , mtl
 , plutus-tx
 , plutus-tx-plugin
@@ -56042,7 +56055,6 @@ wallet-api
 testHaskellDepends = [
 base
 containers
-doctest
 hedgehog
 plutus-tx
 plutus-tx-plugin
@@ -56051,9 +56063,6 @@ tasty-hedgehog
 template-haskell
 text
 wallet-api
-];
-testToolDepends = [
-markdown-unlit
 ];
 doHaddock = false;
 description = "Collection of smart contracts to develop the plutus/wallet interface";
@@ -77971,11 +77980,13 @@ license = stdenv.lib.licenses.mit;
 , containers
 , cryptonite
 , deriving-compat
+, doctest
 , hashable
 , hedgehog
 , http-media
 , language-plutus-core
 , lens
+, markdown-unlit
 , memory
 , mtl
 , natural-transformation
@@ -78044,12 +78055,16 @@ warp
 testHaskellDepends = [
 base
 containers
+doctest
 hedgehog
 lens
 plutus-tx
 plutus-tx-plugin
 tasty
 tasty-hedgehog
+];
+testToolDepends = [
+markdown-unlit
 ];
 doHaddock = false;
 description = "Wallet API";
