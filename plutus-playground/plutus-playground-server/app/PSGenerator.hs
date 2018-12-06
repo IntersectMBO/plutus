@@ -29,7 +29,7 @@ import           Language.PureScript.Bridge                (BridgeData, BridgePa
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger.Index                              (ValidationError)
-import           Ledger.Types                              (Address, Height, PubKey, Signature, Tx, TxId, TxIn,
+import           Ledger.Types                              (RedeemerScript, ValidatorScript, DataScript, Address, Height, PubKey, Signature, Tx, TxId, TxIn,
                                                             TxInType, TxOut, TxOutRef, TxOutType, Value)
 import           Playground.API                            (CompilationError, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, SimpleArgumentSchema, SourceCode)
@@ -96,6 +96,12 @@ sha256Bridge = do
         typeModule ^== "Crypto.Hash.SHA256"
     pure psString
 
+scriptBridge :: BridgePart
+scriptBridge = do
+    typeName ^== "Script"
+    typeModule ^== "Ledger.Types"
+    pure psString
+
 redeemerBridge :: BridgePart
 redeemerBridge = do
     typeName ^== "Redeemer"
@@ -105,24 +111,6 @@ redeemerBridge = do
 validatorBridge :: BridgePart
 validatorBridge = do
     typeName ^== "Validator"
-    typeModule ^== "Ledger.Types"
-    pure psString
-
-dataScriptBridge :: BridgePart
-dataScriptBridge = do
-    typeName ^== "DataScript"
-    typeModule ^== "Ledger.Types"
-    pure psString
-
-validatorScriptBridge :: BridgePart
-validatorScriptBridge = do
-    typeName ^== "ValidatorScript"
-    typeModule ^== "Ledger.Types"
-    pure psString
-
-redeemerScriptBridge :: BridgePart
-redeemerScriptBridge = do
-    typeName ^== "RedeemerScript"
     typeModule ^== "Ledger.Types"
     pure psString
 
@@ -136,9 +124,7 @@ myBridge =
     sha256Bridge <|>
     redeemerBridge <|>
     validatorBridge <|>
-    validatorScriptBridge <|>
-    redeemerScriptBridge <|>
-    dataScriptBridge
+    scriptBridge
 
 data MyBridge
 
@@ -155,6 +141,9 @@ myTypes =
     , mkSumType (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @Wallet)
+    , mkSumType (Proxy @DataScript)
+    , mkSumType (Proxy @ValidatorScript)
+    , mkSumType (Proxy @RedeemerScript)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @Expression)
     , mkSumType (Proxy @Evaluation)

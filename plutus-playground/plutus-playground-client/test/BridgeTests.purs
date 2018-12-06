@@ -11,7 +11,7 @@ import Data.Either (Either(..))
 import Data.Generic (class Generic)
 import Node.Encoding (Encoding(UTF8))
 import Node.FS (FS)
-import Playground.API (CompilationError)
+import Playground.API (CompilationError, EvaluationResult)
 import Node.FS.Sync as FS
 import Prelude
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
@@ -27,8 +27,10 @@ jsonHandling = do
     test "Json handling" do
       response1 :: Either String Blockchain <- decodeFile "test/evaluation_response1.json"
       assertRight response1
-      response2 :: Either String (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
+      response2 :: Either String EvaluationResult <- decodeFile "test/evaluation_response2.json"
       assertRight response2
+      error1 :: Either String (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
+      assertRight error1
 
 assertRight :: forall e a. Either String a -> Test e
 assertRight (Left err) = failure err
