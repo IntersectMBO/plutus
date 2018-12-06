@@ -61,7 +61,7 @@ module Wallet.Emulator.Types(
     fundsDistribution
     ) where
 
-import           Control.Lens               hiding (index, uncons)
+import           Control.Lens               hiding (index)
 import           Control.Monad.Except
 import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
@@ -70,7 +70,6 @@ import           Control.Newtype.Generics   (Newtype)
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor             (Bifunctor (..))
 import           Data.Foldable              (traverse_)
-import           Data.List                  (uncons)
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
 import           Data.Maybe
@@ -204,24 +203,23 @@ instance WalletAPI MockWallet where
 
     createPaymentWithChange vl = do
         ws <- get
-        let fnds = ws ^. ownFunds
+        let fnds  = ws ^. ownFunds
             total = getSum $ foldMap Sum fnds
-            kp = view ownKeyPair ws
+            kp    = view ownKeyPair ws
             sig   = signature kp
-        if total < vl || Map.null fnds
-        then throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
-        else
-            -- This is the coin selection algorithm
-            -- TODO: Should be customisable
-            let funds = P.takeWhile ((vl <) . snd)
-                        $ maybe [] (uncurry (P.scanl (\t v -> second (+ snd v) t)))
-                        $ uncons
-                        $ Map.toList fnds
-                ins   = Set.fromList (flip pubKeyTxIn sig . fst <$> funds)
-                diff  = maximum (snd <$> funds) - vl
-                out   = pubKeyTxOut diff (pubKey kp) in
-
-            pure (ins, out)
+            err   = throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
+        case Map.toList fnds of
+            []   -> err
+            x:xs
+                | total < vl -> err
+                | otherwise  ->
+                    let fundsWithTotal = P.zip (x:xs) (drop 1 $ P.scanl (+) 0 $ fmap snd (x:xs))
+                        fundsToSpend   = takeUntil (\(_, runningTotal) -> vl >= runningTotal) fundsWithTotal
+                        txIns          = Set.fromList (flip pubKeyTxIn sig . fst . fst <$> fundsToSpend)
+                        totalSpent     = P.last (snd <$> fundsToSpend)-- can use `last` because `fundsToSpend` is not empty
+                        change         = totalSpent - vl -- `change` is the value that we pay back to a public-key address owned by us
+                        txOutput       = pubKeyTxOut change (pubKey kp)
+                    in pure (txIns, txOutput)
 
     register tr action =
         modify (over triggers (Map.insertWith (<>) tr action))
@@ -232,6 +230,15 @@ instance WalletAPI MockWallet where
     startWatching = modifying addressMap . AM.addAddress
 
     blockHeight = use walletBlockHeight
+
+-- | Take elements from a list until the predicate is satisfied.
+--   'takeUntil' @p@ includes the first element for wich @p@ is true
+--   (unlike @takeWhile (not . p)@).
+takeUntil :: (a -> Bool) -> [a] -> [a]
+takeUntil _ []       = []
+takeUntil p (x:xs)
+    | p x            = [x]
+    | otherwise      = x : takeUntil p xs
 
 -- Emulator code
 
