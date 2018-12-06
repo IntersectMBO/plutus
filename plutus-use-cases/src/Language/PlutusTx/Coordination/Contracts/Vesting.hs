@@ -18,6 +18,7 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     ) where
 
 import           Control.Monad.Error.Class    (MonadError (..))
+import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
@@ -74,7 +75,7 @@ vestFunds vst value = do
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    _ <- signAndSubmit payment [o, change]
+    _ <- signAndSubmit payment (o : maybeToList change)
     pure vd
 
 -- | Retrieve some of the vested funds.
