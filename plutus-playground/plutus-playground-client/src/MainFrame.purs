@@ -8,9 +8,10 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
+import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, runAjax)
 import Bootstrap (container_, empty)
-import Chain (mockChainPane, mockchainChartOptions, balancesChartOptions, evaluationPane)
+import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
@@ -110,6 +111,9 @@ eval (LoadScript key next) = do
     Just contents -> do
       assign _editorContents contents
       withEditor $ Editor.setValue contents (Just 1)
+  assign _evaluationResult NotAsked
+  assign _compilationResult NotAsked
+  assign _actions []
   pure next
 
 eval (CompileProgram next) = do
@@ -299,7 +303,7 @@ render state =
     , stripeContainer_ [
         case state.compilationResult of
           Success (Right functionSchemas) ->
-            mockChainPane functionSchemas state.wallets state.actions state.evaluationResult
+            simulationPane functionSchemas state.wallets state.actions state.evaluationResult
           Failure error -> ajaxErrorPane error
           _ -> empty
       ]
