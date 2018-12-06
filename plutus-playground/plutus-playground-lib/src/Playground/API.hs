@@ -127,6 +127,7 @@ data PlaygroundError
   | InterpreterError Hint.InterpreterError
   | FunctionSchemaError
   | DecodeJsonTypeError String String
+  | PlaygroundTimeout
   | OtherError String
   deriving stock (Show, Generic)
 

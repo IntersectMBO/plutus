@@ -13,7 +13,6 @@ module Playground.Server
     ) where
 
 import           Control.Concurrent.MVar             (MVar, newMVar, withMVar)
-import           Control.Monad                       (void)
 import           Control.Monad.Catch                 (catch)
 import           Control.Monad.Except                (ExceptT, MonadError, catchError, runExceptT, throwError)
 import           Control.Monad.IO.Class              (liftIO)
@@ -29,14 +28,16 @@ import           Language.Haskell.Interpreter.Unsafe (unsafeRunInterpreterWithAr
 import           Network.HTTP.Types                  (hContentType)
 import           Playground.API                      (API, CompilationError, Evaluation,
                                                       EvaluationResult (EvaluationResult), FunctionSchema,
-                                                      FunctionSchema, PlaygroundError, SimpleArgumentSchema, SourceCode,
-                                                      parseErrorText, toSimpleArgumentSchema)
+                                                      FunctionSchema, PlaygroundError (PlaygroundTimeout),
+                                                      SimpleArgumentSchema, SourceCode, parseErrorText,
+                                                      toSimpleArgumentSchema)
 import qualified Playground.API                      as PA
 import qualified Playground.Interpreter              as PI
 import           Servant                             (ServantErr, err400, errBody, errHeaders)
 import           Servant.API                         ((:<|>) ((:<|>)))
 import           Servant.Server                      (Handler, Server)
 import           System.Environment                  (lookupEnv)
+import           System.Timeout                      (timeout)
 import qualified Wallet.Graph                        as V
 
 newtype InterpreterInstance =
@@ -85,7 +86,9 @@ acceptSourceCode ::
     -> SourceCode
     -> Handler (Either [CompilationError] [FunctionSchema SimpleArgumentSchema])
 acceptSourceCode i sourceCode = do
-    r <- liftIO . runInterpreterInstance i $ PI.compile sourceCode
+    r <-
+        liftIO . timeoutInterpreter 5000000 . runInterpreterInstance i $
+        PI.compile sourceCode
     case r of
         Right vs -> pure . Right $ fmap toSimpleArgumentSchema <$> vs
         Left (PA.InterpreterError (WontCompile errors)) ->
@@ -101,7 +104,8 @@ throwJSONError err json =
 runFunction :: InterpreterInstance -> Evaluation -> Handler EvaluationResult
 runFunction interpreter evaluation = do
     result <-
-        liftIO $ runInterpreterInstance interpreter $ PI.runFunction evaluation
+        liftIO . timeoutInterpreter 10000000 $
+        runInterpreterInstance interpreter $ PI.runFunction evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
         Right (blockchain, emulatorLog, fundsDistribution) -> do
@@ -116,6 +120,14 @@ runFunction interpreter evaluation = do
             throwJSONError err400 $
             map (parseErrorText . Text.pack . errMsg) errors
         Left err -> throwError $ err400 {errBody = BSL.pack . show $ err}
+
+timeoutInterpreter ::
+       Int -> IO (Either PlaygroundError a) -> IO (Either PlaygroundError a)
+timeoutInterpreter n action = do
+    res <- timeout n action
+    case res of
+        Nothing -> pure . Left $ PlaygroundTimeout
+        Just a  -> pure a
 
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)
