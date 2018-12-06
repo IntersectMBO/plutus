@@ -6,8 +6,8 @@ packages: language-plutus-core
           plutus-tx-plugin
           plutus-use-cases
           plutus-ir
-          plutus-playground-server
-          plutus-playground-lib
+          plutus-playground/plutus-playground-server
+          plutus-playground/plutus-playground-lib
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
