@@ -113,6 +113,7 @@ eval (LoadScript key next) = do
       withEditor $ Editor.setValue contents (Just 1)
   assign _evaluationResult NotAsked
   assign _compilationResult NotAsked
+  assign _actions []
   pure next
 
 eval (CompileProgram next) = do
