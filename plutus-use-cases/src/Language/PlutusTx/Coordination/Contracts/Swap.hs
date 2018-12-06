@@ -10,11 +10,11 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (Height, PubKey, Validator (..), Value (..))
+import           Ledger                       (Height, PubKey, ValidatorScript (..), Value (..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
                                               ValidatorHash)
+import qualified Ledger.Validation            as Validation
 
 import           Prelude                    (Bool (..), Eq (..), Int, Num (..), Ord (..))
 
@@ -36,7 +36,7 @@ data Swap = Swap
     , swapFixedRate       :: !(Ratio Int) -- ^ Interest rate fixed at the beginning of the contract
     , swapFloatingRate    :: !(Ratio Int) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Value -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
-    , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.Plutus.Runtime]])
+    , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.PlutusTx.Coordination.Contracts]])
     }
 
 -- | Identities of the parties involved in the swap. This will be the data
@@ -56,8 +56,8 @@ type SwapOracle = OracleValue (Ratio Int)
 --   See note [Swap Transactions]
 --   See note [Contracts and Validator Scripts] in
 --       Language.Plutus.Coordination.Contracts
-swapValidator :: Swap -> Validator
-swapValidator _ = Validator result where
+swapValidator :: Swap -> ValidatorScript
+swapValidator _ = ValidatorScript result where
     result = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx ValidatorHash) Swap{..} ->
         let
             infixr 3 &&
@@ -80,24 +80,24 @@ swapValidator _ = Validator result where
             minusR (x :% y) (x' :% y') = (x*y' - x'*y) :% (y*y')
 
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
-            extractVerifyAt = PlutusTx.error ()
+            extractVerifyAt = $$(PlutusTx.error) ()
 
             round :: Ratio Int -> Int
-            round = PlutusTx.error ()
+            round = $$(PlutusTx.error) ()
 
             -- | Convert an [[Int]] to a [[Ratio Int]]
             fromInt :: Int -> Ratio Int
-            fromInt = PlutusTx.error ()
+            fromInt = $$(PlutusTx.error) ()
 
             signedBy :: PendingTxIn -> PubKey -> Bool
-            signedBy = $$(PlutusTx.txInSignedBy)
+            signedBy = $$(Validation.txInSignedBy)
 
             infixr 3 ||
             (||) :: Bool -> Bool -> Bool
             (||) = $$(PlutusTx.or)
 
             isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-            isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(PlutusTx.eqPubKey) k) ($$(PlutusTx.pubKeyOutput) o)
+            isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
 
             -- Verify the authenticity of the oracle value and compute
             -- the payments.
@@ -173,7 +173,7 @@ swapValidator _ = Validator result where
 
 
         in
-        if inConditions && outConditions then () else PlutusTx.error ()
+        if inConditions && outConditions then () else $$(PlutusTx.error) ()
         ) ||])
 
 {- Note [Swap Transactions]

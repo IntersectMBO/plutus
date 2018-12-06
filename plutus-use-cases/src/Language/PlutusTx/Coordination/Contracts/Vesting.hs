@@ -23,8 +23,7 @@ import           GHC.Generics                 (Generic)
 import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                               ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', Validator (..), Value (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
@@ -104,17 +103,17 @@ validatorScriptHash =
     . Ledger.scriptAddress
     . validatorScript
 
-validatorScript :: Vesting -> Validator
-validatorScript v = Validator val where
+validatorScript :: Vesting -> ValidatorScript
+validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
     inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(PlutusTx.eqValidator)
+            eqBs = $$(Validation.eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk = $$(PlutusTx.eqPubKey)
+            eqPk = $$(Validation.eqPubKey)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
@@ -130,7 +129,7 @@ validatorScript v = Validator val where
             amountSpent = case os of
                 PendingTxOut (Value v') _ (PubKeyTxOut pk):_
                     | pk `eqPk` vestingOwner -> v'
-                _ -> PlutusTx.error ()
+                _ -> $$(PlutusTx.error) ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
@@ -156,8 +155,8 @@ validatorScript v = Validator val where
             txnOutputsValid = case os of
                 _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
                     vl' `eqBs` vestingDataHash
-                _ -> PlutusTx.error ()
+                _ -> $$(PlutusTx.error) ()
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else PlutusTx.error () ||])
+        if isValid then () else $$(PlutusTx.error) () ||])

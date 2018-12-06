@@ -1,0 +1,129 @@
+[
+  [
+    {
+      "txInputs": [
+        {
+          "txInType": {
+            "tag": "ConsumePublicKeyAddress",
+            "contents": {
+              "getSignature": 2
+            }
+          },
+          "txInRef": {
+            "txOutRefIdx": 1,
+            "txOutRefId": {
+              "getTxId": "nxixGGwYuQ8Y4gAY8RjcGOQYVBjEARhUGOAYohhtGJgYmxMYcBhNGJcYwgQYPBisGOkYKRhGGIcYcBij/w=="
+            }
+          }
+        }
+      ],
+      "txFee": {
+        "getValue": 0
+      },
+      "txForge": {
+        "getValue": 0
+      },
+      "txOutputs": [
+        {
+          "txOutValue": {
+            "getValue": 26
+          },
+          "txOutAddress": {
+            "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
+          },
+          "txOutType": {
+            "tag": "PayToPubKey",
+            "contents": {
+              "getPubKey": 2
+            }
+          }
+        },
+        {
+          "txOutValue": {
+            "getValue": 4
+          },
+          "txOutAddress": {
+            "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
+          },
+          "txOutType": {
+            "tag": "PayToPubKey",
+            "contents": {
+              "getPubKey": 1
+            }
+          }
+        }
+      ],
+      "txSignatures": [
+        {
+          "getSignature": 2
+        }
+      ]
+    }
+  ],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [
+    {
+      "txInputs": [],
+      "txFee": {
+        "getValue": 0
+      },
+      "txForge": {
+        "getValue": 50
+      },
+      "txOutputs": [
+        {
+          "txOutValue": {
+            "getValue": 10
+          },
+          "txOutAddress": {
+            "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
+          },
+          "txOutType": {
+            "tag": "PayToPubKey",
+            "contents": {
+              "getPubKey": 1
+            }
+          }
+        },
+        {
+          "txOutValue": {
+            "getValue": 30
+          },
+          "txOutAddress": {
+            "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
+          },
+          "txOutType": {
+            "tag": "PayToPubKey",
+            "contents": {
+              "getPubKey": 2
+            }
+          }
+        },
+        {
+          "txOutValue": {
+            "getValue": 10
+          },
+          "txOutAddress": {
+            "getAddress": "nxjJGEIYoBhsEhh8GCwYGAIYJhh3GOgYiAIKGPsXGEIIGNIYmRg1GE8YPhjPGO0YsRgkGKEY8xj6GEX/"
+          },
+          "txOutType": {
+            "tag": "PayToPubKey",
+            "contents": {
+              "getPubKey": 3
+            }
+          }
+        }
+      ],
+      "txSignatures": []
+    }
+  ]
+]
