@@ -50,7 +50,7 @@ import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(..), SourceCode(SourceCode))
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (*), (+), (<$>), (<*>), (<<<), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(..), _Wallet)
