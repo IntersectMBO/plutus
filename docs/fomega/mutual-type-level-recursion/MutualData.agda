@@ -66,8 +66,8 @@ module Joined where
   -- The encoding technique described in this module is fairly well-known.
 
 module JoinedCompute where
-  -- If an index of a data type is something that can be matched on, then we can turn it into a
-  -- parameter using induction-recursion.
+  -- In this section we'll make `TreeForest` a data type with a single constructor,
+  -- the contents of which depends on the type being constructed.
 
   data TreeForestᵗ : Set where
     Treeᵗ Forestᵗ : TreeForestᵗ
@@ -81,7 +81,6 @@ module JoinedCompute where
     Forest : Set -> Set
     Forest A = TreeForest A Forestᵗ
 
-    -- However the two definitions below are indeed mutual.
     -- `TreeForestF` matches on the `TreeForestᵗ` index in order to figure out which data type
     -- from the original family is being constructed.
     -- Like in the previous section `TreeForest` defines both the `Tree` and `Forest` data types,
