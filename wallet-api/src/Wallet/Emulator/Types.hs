@@ -81,7 +81,8 @@ import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
 import           Ledger                     (Address', Block, Blockchain, Height, Tx (..), TxId', TxOutRef', Value,
-                                             hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
+                                             hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress,
+                                             txOutValue)
 import qualified Ledger.Index               as Index
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
@@ -219,7 +220,8 @@ instance WalletAPI MockWallet where
                         totalSpent     = P.last (snd <$> fundsToSpend)-- can use `last` because `fundsToSpend` is not empty
                         change         = totalSpent - vl -- `change` is the value that we pay back to a public-key address owned by us
                         txOutput       = pubKeyTxOut change (pubKey kp)
-                    in pure (txIns, txOutput)
+                        txOutput'      = if txOutValue txOutput == 0 then Nothing else Just txOutput
+                    in pure (txIns, txOutput')
 
     register tr action =
         modify (over triggers (Map.insertWith (<>) tr action))

@@ -41,7 +41,7 @@ wallets :: ClientM [Wallet]
 fetchWallet :: Wallet -> ClientM Wallet
 createWallet :: Wallet -> ClientM NoContent
 myKeyPair' :: Wallet -> ClientM KeyPair
-createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', TxOut')
+createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', Maybe TxOut')
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
 processPending :: ClientM [Tx]

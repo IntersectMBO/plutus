@@ -26,6 +26,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
 
 import           Control.Monad                (void)
 import           Control.Monad.Error.Class    (MonadError (..))
+import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx 
@@ -86,7 +87,7 @@ initialise long short f = do
         ds = DataScript $ Ledger.lifted $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange im
-    void $ signAndSubmit payment [o, change]
+    void $ signAndSubmit payment (o : maybeToList change)
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -150,7 +151,7 @@ adjustMargin refs ft fd vl = do
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ signAndSubmit (Set.union payment inp) [o, change]
+    void $ signAndSubmit (Set.union payment inp) (o : maybeToList change)
 
 
 -- | Basic data of a futures contract. `Future` contains all values that do not

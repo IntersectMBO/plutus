@@ -47,7 +47,7 @@ type WalletAPI
      :<|> "wallets" :> Capture "walletid" Wallet :> Get '[ JSON] Wallet
      :<|> "wallets" :> ReqBody '[ JSON] Wallet :> Post '[ JSON] NoContent
      :<|> "wallets" :> Capture "walletid" Wallet :> "my-key-pair" :> Get '[ JSON] KeyPair
-     :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn', TxOut')
+     :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn', Maybe TxOut')
 -- This is where the line between wallet API and control API is crossed
 -- Returning the [Tx] only makes sense when running a WalletAPI m => m () inside a Trace, but not on the wallet API on its own,
 --   otherwise the signature of submitTxn would be submitTxn :: Tx -> m [Tx]
@@ -115,7 +115,7 @@ createPaymentWithChange ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Value
-  -> m (Set.Set TxIn', TxOut')
+  -> m (Set.Set TxIn', Maybe TxOut')
 createPaymentWithChange wallet =
   runWalletAction wallet . WAPI.createPaymentWithChange
 

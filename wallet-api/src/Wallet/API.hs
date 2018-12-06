@@ -55,7 +55,7 @@ import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Functor.Compose       (Compose (..))
 import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
 import qualified Data.Map                   as Map
-import           Data.Maybe                 (fromMaybe)
+import           Data.Maybe                 (fromMaybe, maybeToList)
 import           Data.Monoid                (Sum (..))
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
@@ -225,7 +225,7 @@ class WalletAPI m where
     Create a payment that spends the specified value and returns any
     leftover funds as change. Fails if we don't have enough funds.
     -}
-    createPaymentWithChange :: Value -> m (Set.Set TxIn', TxOut')
+    createPaymentWithChange :: Value -> m (Set.Set TxIn', Maybe TxOut')
 
     {- |
     Register a [[EventHandler]] in `m ()` to be run when condition is true.
@@ -276,8 +276,8 @@ createPayment vl = fst <$> createPaymentWithChange vl
 payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
 payToScript addr v ds = do
     (i, own) <- createPaymentWithChange v
-    let  other = TxOut addr v (PayToScript ds)
-    signAndSubmit i [own, other]
+    let other = TxOut addr v (PayToScript ds)
+    signAndSubmit i (other : maybeToList own)
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
@@ -302,7 +302,7 @@ payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
 payToPubKey v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    signAndSubmit i [own, other]
+    signAndSubmit i (other : maybeToList own)
 
 -- | Create a `TxOut'` that pays to a public key owned by us
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut'
