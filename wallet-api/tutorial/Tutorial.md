@@ -190,7 +190,7 @@ In the `Collect` case, the current blockchain height must be between `deadline` 
 Finally, we can return the unit value `()` if `isValid` is true, or fail with an error otherwise.
 
 ```haskell
-              if isValid then () else (PlutusTx.error ())
+              if isValid then () else ($$(PlutusTx.error) ())
                   ||])
 ```
 
