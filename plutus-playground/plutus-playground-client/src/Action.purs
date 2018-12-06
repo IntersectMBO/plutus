@@ -1,6 +1,9 @@
-module Action where
+module Action
+       ( simulationPane
+       ) where
 
 import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, cardFooter_, col4_, col_, formControl, formGroup_, pullRight, row, row_)
+import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
@@ -9,6 +12,8 @@ import Data.Maybe (Maybe, fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
+import Halogen.Component (ParentHTML)
+import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, text)
 import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Events as HE
@@ -16,10 +21,26 @@ import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, class
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
+import Playground.API (EvaluationResult, FunctionSchema, SimpleArgumentSchema)
 import Prelude (const, map, show, ($), (+), (/=), (<$>), (<<<))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), Blockchain, FormEvent(SetSubField, SetStringField, SetIntField), Query(EvaluateActions, AddWaitAction, SetWaitTime, PopulateAction, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), _MockWallet, _wallet, validate)
-import Wallet (walletIdPane)
+import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), _MockWallet, _wallet, validate)
+import Wallet (walletIdPane, walletsPane)
+
+simulationPane ::
+  forall m aff.
+  MonadAff (EChartsEffects aff) m
+  => Array (FunctionSchema SimpleArgumentSchema)
+  -> Array MockWallet
+  -> Array Action
+  -> RemoteData AjaxError EvaluationResult
+  -> ParentHTML Query ChildQuery ChildSlot m
+simulationPane schemas wallets actions evaluationResult =
+  div_
+    [ walletsPane schemas wallets
+    , br_
+    , actionsPane actions ((_.resultBlockchain <<< unwrap) <$> evaluationResult)
+    ]
 
 actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query
 actionsPane actions evaluationResult =

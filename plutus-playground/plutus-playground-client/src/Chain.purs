@@ -1,11 +1,9 @@
 module Chain
-       ( mockChainPane
-       , mockchainChartOptions
+       ( mockchainChartOptions
        , balancesChartOptions
        , evaluationPane
        ) where
 
-import Action (actionsPane)
 import Bootstrap (empty)
 import Color (Color, rgb)
 import Control.Monad.Aff.Class (class MonadAff)
@@ -29,29 +27,11 @@ import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, h3_, slot', text
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
 import Ledger.Types (Height(..), TxId(..), Value)
-import Network.RemoteData (RemoteData)
-import Playground.API (EvaluationResult(EvaluationResult), FunctionSchema, SimpleArgumentSchema)
-import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<<<), (<>), (>>>))
-import Servant.PureScript.Affjax (AjaxError)
-import Types (Action, BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockWallet, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), cpBalancesChart, cpMockchainChart)
-import Wallet (walletsPane)
+import Playground.API (EvaluationResult(EvaluationResult))
+import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<>), (>>>))
+import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), cpBalancesChart, cpMockchainChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
 import Wallet.Graph (FlowGraph(..), FlowLink(..), TxRef(..))
-
-mockChainPane ::
-  forall m aff.
-  MonadAff (EChartsEffects aff) m
-  => Array (FunctionSchema SimpleArgumentSchema)
-  -> Array MockWallet
-  -> Array Action
-  -> RemoteData AjaxError EvaluationResult
-  -> ParentHTML Query ChildQuery ChildSlot m
-mockChainPane schemas wallets actions evaluationResult =
-  div_
-    [ walletsPane schemas wallets
-    , br_
-    , actionsPane actions ((_.resultBlockchain <<< unwrap) <$> evaluationResult)
-    ]
 
 evaluationPane::
   forall m aff.
