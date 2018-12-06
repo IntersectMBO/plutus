@@ -15,4 +15,4 @@ messages :: ByteString
 messages = $(makeRelativeToProject "usecases/Messages.hs" >>= embedFile)
 
 crowdfunding :: ByteString
-crowdfunding = $(makeRelativeToProject "usecases/Crowdfunding.hs" >>= embedFile)
+crowdfunding = $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)
