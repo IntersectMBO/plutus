@@ -26,6 +26,7 @@ flag development
 library
     exposed-modules:
         Language.PlutusTx.Lift
+        Language.PlutusTx.Lift.Class
         Language.PlutusTx.Plugin
         Language.PlutusTx.Builtins
         Language.PlutusTx.Compiler.Error
@@ -34,7 +35,6 @@ library
         Language.PlutusTx.PLCTypes
         Language.PlutusTx.PIRTypes
         Language.PlutusTx.Utils
-        Language.PlutusTx.Lift.LiftPir
         Language.PlutusTx.Lift.THUtils
         Language.PlutusTx.Lift.Instances
         Language.PlutusTx.Compiler.Binders

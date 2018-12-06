@@ -57,7 +57,7 @@ tests = testGroup "all tests" [
 
 initialTxnValid :: Property
 initialTxnValid = property $ do
-    (i, _) <- forAll $ Gen.genInitialTransaction Gen.generatorModel
+    (i, _) <- forAll . pure $ Gen.genInitialTransaction Gen.generatorModel
     Gen.assertValid i Gen.emptyChain
 
 utxo :: Property
@@ -143,8 +143,8 @@ invalidScript = property $ do
             -> False
 
     where
-        failValidator :: Validator
-        failValidator = Validator $ fromPlcCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
+        failValidator :: ValidatorScript
+        failValidator = ValidatorScript $ fromPlcCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do

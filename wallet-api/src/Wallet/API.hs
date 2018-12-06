@@ -20,7 +20,9 @@ module Wallet.API(
     signAndSubmit,
     payToScript,
     payToPubKey,
+    collectFromScript,
     ownPubKeyTxOut,
+    ownPubKey,
     -- * Triggers
     EventTrigger,
     AnnotatedEventTrigger,
@@ -45,18 +47,23 @@ module Wallet.API(
     WalletLog(..)
     ) where
 
+import           Control.Lens
+import           Control.Monad              (void)
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Functor.Compose       (Compose (..))
 import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
 import qualified Data.Map                   as Map
+import           Data.Maybe                 (fromMaybe)
+import           Data.Monoid                (Sum (..))
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
-import           Ledger                     (Address', DataScript, Height, PubKey (..), Signature (..), Tx (..), TxIn',
-                                             TxOut (..), TxOut', TxOutType (..), Value, pubKeyTxOut)
+import           Ledger                     (Address', DataScript, Height, PubKey (..), RedeemerScript, Signature (..),
+                                             Tx (..), TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript, Value,
+                                             pubKeyTxOut, scriptAddress, scriptTxIn)
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
 
@@ -247,6 +254,11 @@ class WalletAPI m where
     watchedAddresses :: m AddressMap
 
     {-
+    Start watching an address.
+    -}
+    startWatching :: Address' -> m ()
+
+    {-
     The current block height.
     -}
     blockHeight :: m Height
@@ -266,6 +278,24 @@ payToScript addr v ds = do
     (i, own) <- createPaymentWithChange v
     let  other = TxOut addr v (PayToScript ds)
     signAndSubmit i [own, other]
+
+-- | Collect all unspent outputs from a pay to script address and transfer them
+--   to a public key owned by us.
+collectFromScript :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> m ()
+collectFromScript scr red = do
+    am <- watchedAddresses
+    let addr = scriptAddress scr
+        outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
+        con (r, _) = scriptTxIn r scr red
+        ins        = con <$> outputs
+        value = getSum $ foldMap (Sum . snd) outputs
+
+    oo <- ownPubKeyTxOut value
+    void $ signAndSubmit (Set.fromList ins) [oo]
+
+-- | Get the public key for this wallet
+ownPubKey :: (Functor m, WalletAPI m) => m PubKey
+ownPubKey = pubKey <$> myKeyPair
 
 -- | Transfer some funds to an address locked by a public key
 payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx

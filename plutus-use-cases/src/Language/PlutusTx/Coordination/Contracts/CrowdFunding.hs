@@ -34,10 +34,10 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxId', Validator (..), Value (..), scriptTxIn)
+import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
+import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                                WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
                                                ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
@@ -86,7 +86,7 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
         am <- watchedAddresses
         let scr        = contributionScript cmp
             contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
-            red        = Ledger.Redeemer $ Ledger.lifted Collect
+            red        = Ledger.RedeemerScript $ Ledger.lifted Collect
             con (r, _) = scriptTxIn r scr red
             ins        = con <$> contributions
             value = getSum $ foldMap (Sum . snd) contributions
@@ -116,8 +116,8 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 --   2. Refund. In this case each contributor creates a transaction with a
 --      single input claiming back their part of the funds. This case is
 --      covered by the `refundable` branch.
-contributionScript :: Campaign -> Validator
-contributionScript cmp  = Validator val where
+contributionScript :: Campaign -> ValidatorScript
+contributionScript cmp  = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted cmp)
 
     --   See note [Contracts and Validator Scripts] in
@@ -132,7 +132,7 @@ contributionScript cmp  = Validator val where
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
-            signedByT = $$(PlutusTx.txSignedBy)
+            signedByT = $$(Validation.txSignedBy)
 
             PendingTx ps outs _ _ (Height h) _ _ = p
 
@@ -158,7 +158,7 @@ contributionScript cmp  = Validator val where
                         -- of the contributor (that is, to the `a` argument of the data script)
 
                         contributorTxOut :: PendingTxOut -> Bool
-                        contributorTxOut o = $$(PlutusTx.maybe) False (\pk -> $$(PlutusTx.eqPubKey) pk a) ($$(PlutusTx.pubKeyOutput) o)
+                        contributorTxOut o = $$(PlutusTx.maybe) False (\pk -> $$(Validation.eqPubKey) pk a) ($$(Validation.pubKeyOutput) o)
 
                         contributorOnly = $$(PlutusTx.all) contributorTxOut outs
 
@@ -175,7 +175,7 @@ contributionScript cmp  = Validator val where
                                     signedByT p campaignOwner
                     in payToOwner
         in
-        if isValid then () else PlutusTx.error ()) ||])
+        if isValid then () else $$(PlutusTx.error) ()) ||])
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
@@ -198,7 +198,7 @@ refund txid cmp = EventHandler $ \_ -> do
         utxo    = fromMaybe Map.empty $ am ^. at adr
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         scr   = contributionScript cmp
-        red   = Ledger.Redeemer $ Ledger.lifted Refund
+        red   = Ledger.RedeemerScript $ Ledger.lifted Refund
         i ref = scriptTxIn ref scr red
         inputs = Set.fromList $ i . fst <$> ourUtxo
         value  = getSum $ foldMap (Sum . snd) ourUtxo

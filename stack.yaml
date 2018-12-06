@@ -9,6 +9,8 @@ packages:
 - plutus-tx-plugin
 - plutus-use-cases
 - wallet-api
+- plutus-playground/plutus-playground-server
+- plutus-playground/plutus-playground-lib
 
 # Add custom stylish-haskell while waiting for PR upstream: https://github.com/jaspervdj/stylish-haskell/pull/214
 - location:
@@ -16,9 +18,23 @@ packages:
     commit: ecfd3b307d8d13a6d12aff03055f25a39a17e182
   extra-dep: true
 
+- location:
+    git: https://github.com/shmish111/servant-purescript.git
+    commit: 315ccf5d720937c091c8cf3aca8adc8110766a23
+  extra-dep: true
+
+- location:
+    git: https://github.com/smobs/servant-subscriber.git
+    commit: 0354e99f5e1d244d5ec01f78e7e7439478b1d1d3
+  extra-dep: true
+
 extra-deps:
 - serialise-0.2.1.0
 - monad-stm-0.1.0.2
+- servant-options-0.1.0.0
+- hint-0.9.0
+- exceptions-0.10.0
+- purescript-bridge-0.13.0.0
 flags:
   language-plutus-core:
     development: true
@@ -29,6 +45,8 @@ flags:
   plutus-exe:
     development: true
   plutus-core-interpreter:
+    development: true
+  plutus-playground-server:
     development: true
 extra-package-dbs: []
 nix:

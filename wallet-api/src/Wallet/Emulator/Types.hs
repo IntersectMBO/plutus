@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -36,6 +37,7 @@ module Wallet.Emulator.Types(
     walletsNotifyBlock,
     processPending,
     addBlocks,
+    addBlocksAndNotify,
     assertion,
     assertOwnFundsEq,
     -- * Emulator internals
@@ -55,6 +57,7 @@ module Wallet.Emulator.Types(
     liftMockWallet,
     evalEmulated,
     processEmulated,
+    runWalletActionAndProcessPending,
     fundsDistribution
     ) where
 
@@ -63,7 +66,8 @@ import           Control.Monad.Except
 import           Control.Monad.Operational  as Op hiding (view)
 import           Control.Monad.State
 import           Control.Monad.Writer
-import           Data.Aeson                 (FromJSON, ToJSON)
+import           Control.Newtype.Generics   (Newtype)
+import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor             (Bifunctor (..))
 import           Data.Foldable              (traverse_)
 import           Data.List                  (uncons)
@@ -88,7 +92,8 @@ import qualified Wallet.Emulator.AddressMap as AM
 -- agents/wallets
 newtype Wallet = Wallet { getWallet :: Int }
     deriving (Show, Eq, Ord, Generic)
-    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable, ToJSON, FromJSON)
+    deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
 
 type TxPool = [Tx]
 
@@ -98,7 +103,7 @@ data Notification = BlockValidated Block
 
 -- manually records the list of transactions to be submitted
 newtype MockWallet a = MockWallet { runMockWallet :: (ExceptT WalletAPIError (StateT WalletState (Writer (WalletLog, [Tx])))) a }
-    deriving (Functor, Applicative, Monad, MonadState WalletState, MonadError WalletAPIError, MonadWriter (WalletLog, [Tx]))
+    deriving newtype (Functor, Applicative, Monad, MonadState WalletState, MonadError WalletAPIError, MonadWriter (WalletLog, [Tx]))
 
 instance WalletDiagnostics MockWallet where
     logMsg t = tell (WalletLog [t], [])
@@ -223,6 +228,8 @@ instance WalletAPI MockWallet where
         >> modify (over addressMap (AM.addAddresses (addresses tr)))
 
     watchedAddresses = use addressMap
+
+    startWatching = modifying addressMap . AM.addAddress
 
     blockHeight = use walletBlockHeight
 
@@ -402,6 +409,11 @@ processPending = Op.singleton BlockchainProcessPending
 addBlocks :: Int -> Trace m [Block]
 addBlocks i = traverse (const processPending) [1..i]
 
+addBlocksAndNotify :: [Wallet] -> Int -> Trace m ()
+addBlocksAndNotify wallets i = do
+  blocks <- addBlocks i
+  traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) blocks
+
 -- | Make an assertion about the emulator state
 assertion :: Assertion -> Trace m ()
 assertion = Op.singleton . Assertion
@@ -421,3 +433,9 @@ runTraceChain ch t = runState (runExceptT $ processEmulated t) emState where
 runTraceTxPool :: TxPool -> Trace MockWallet a -> (Either AssertionError a, EmulatorState)
 runTraceTxPool tp t = runState (runExceptT $ processEmulated t) emState where
     emState = emulatorState' tp
+
+runWalletActionAndProcessPending :: [Wallet] -> Wallet -> m () -> Trace m [Tx]
+runWalletActionAndProcessPending allWallets wallet action = do
+  _ <- walletAction wallet action
+  block <- processPending
+  walletsNotifyBlock allWallets block

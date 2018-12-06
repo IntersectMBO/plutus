@@ -172,7 +172,7 @@ very simple example, let's write an add-one function.
 addOneToN :: Int -> Program TyName Name ()
 addOneToN n =
     let addOne = $$(plutus [|| \(x:: Int) -> x + 1 ||])
-    in (getPlc addOne) `applyProgram` unsafeLiftPlcProgram n
+    in (getPlc addOne) `applyProgram` unsafeLiftProgram n
 ```
 
 Here we have lifted the Haskell value `4` into a Plutus Core term at runtime.
@@ -204,9 +204,9 @@ shouldEndAt :: EndDate -> Int -> Program TyName Name ()
 shouldEndAt end current =
     (getPlc shouldEnd)
     `applyProgram`
-    unsafeLiftPlcProgram end
+    unsafeLiftProgram end
     `applyProgram`
-    unsafeLiftPlcProgram current
+    unsafeLiftProgram current
 ```
 
 This is more or less all you need to get started - from here on it should mostly

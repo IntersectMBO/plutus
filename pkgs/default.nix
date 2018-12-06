@@ -34016,8 +34016,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "hint";
-version = "0.8.0";
-sha256 = "2e702d62c8f56b799d767f3d3707bec12597bc529a051ad90bd5840581551c41";
+version = "0.9.0";
+sha256 = "7425af412a66d22f254608b4e9f552d65fd96c6cc5885af7b2ed0af62923f8bc";
 libraryHaskellDepends = [
 base
 directory
@@ -34033,7 +34033,7 @@ unix
 ];
 doHaddock = false;
 doCheck = false;
-homepage = "https://github.com/mvdan/hint";
+homepage = "https://github.com/haskell-hint/hint";
 description = "Runtime Haskell interpreter (GHC API wrapper)";
 license = stdenv.lib.licenses.bsd3;
 
@@ -55613,8 +55613,10 @@ license = stdenv.lib.licenses.bsd3;
 , language-plutus-core
 , optparse-applicative
 , plutus-core-interpreter
+, prettyprinter
 , stdenv
 , text
+, transformers
 }:
 mkDerivation {
 
@@ -55629,7 +55631,9 @@ bytestring
 language-plutus-core
 optparse-applicative
 plutus-core-interpreter
+prettyprinter
 text
+transformers
 ];
 doHaddock = false;
 description = "Executable for Plutus Core tools";
@@ -55641,7 +55645,6 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , algebraic-graphs
 , base
-, bytestring
 , containers
 , language-plutus-core
 , lens
@@ -55651,8 +55654,6 @@ license = stdenv.lib.licenses.bsd3;
 , serialise
 , stdenv
 , tasty
-, tasty-golden
-, tasty-hunit
 , text
 , transformers
 }:
@@ -55664,7 +55665,6 @@ src = .././plutus-ir;
 libraryHaskellDepends = [
 algebraic-graphs
 base
-bytestring
 containers
 language-plutus-core
 lens
@@ -55680,15 +55680,243 @@ base
 language-plutus-core
 mmorph
 mtl
-prettyprinter
 serialise
 tasty
-tasty-golden
-tasty-hunit
-text
 ];
 doHaddock = false;
 description = "Plutus IR language";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"plutus-playground-lib" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, base64-bytestring
+, bytestring
+, containers
+, hedgehog
+, hint
+, http-media
+, insert-ordered-containers
+, lens
+, mtl
+, network
+, newtype-generics
+, plutus-tx
+, plutus-tx-plugin
+, plutus-use-cases
+, servant
+, stdenv
+, swagger2
+, tasty
+, tasty-hunit
+, template-haskell
+, text
+, transformers
+, wallet-api
+}:
+mkDerivation {
+
+pname = "plutus-playground-lib";
+version = "0.1.0.0";
+src = .././plutus-playground/plutus-playground-lib;
+libraryHaskellDepends = [
+aeson
+base
+base64-bytestring
+bytestring
+containers
+hint
+http-media
+insert-ordered-containers
+lens
+mtl
+network
+newtype-generics
+plutus-tx
+plutus-tx-plugin
+plutus-use-cases
+servant
+swagger2
+template-haskell
+text
+transformers
+wallet-api
+];
+testHaskellDepends = [
+aeson
+base
+containers
+hedgehog
+swagger2
+tasty
+tasty-hunit
+template-haskell
+text
+wallet-api
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"plutus-playground-server" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bifunctors
+, bytestring
+, containers
+, cryptonite
+, data-default-class
+, directory
+, exceptions
+, file-embed
+, gitrev
+, hint
+, hspec
+, http-media
+, http-types
+, insert-ordered-containers
+, lens
+, monad-logger
+, mtl
+, network
+, newtype-generics
+, optparse-applicative
+, plutus-playground-lib
+, purescript-bridge
+, QuickCheck
+, scientific
+, servant
+, servant-foreign
+, servant-options
+, servant-purescript
+, servant-server
+, stdenv
+, swagger2
+, template-haskell
+, temporary
+, text
+, transformers
+, wai
+, wai-cors
+, wai-extra
+, wallet-api
+, warp
+}:
+mkDerivation {
+
+pname = "plutus-playground-server";
+version = "0.1.0.0";
+src = .././plutus-playground/plutus-playground-server;
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+base
+bifunctors
+bytestring
+containers
+cryptonite
+data-default-class
+directory
+exceptions
+file-embed
+gitrev
+hint
+http-types
+insert-ordered-containers
+lens
+monad-logger
+mtl
+newtype-generics
+plutus-playground-lib
+purescript-bridge
+scientific
+servant
+servant-foreign
+servant-options
+servant-server
+swagger2
+template-haskell
+temporary
+text
+transformers
+wai
+wai-cors
+wai-extra
+wallet-api
+warp
+];
+executableHaskellDepends = [
+aeson
+base
+bytestring
+containers
+cryptonite
+data-default-class
+file-embed
+gitrev
+hspec
+http-media
+http-types
+insert-ordered-containers
+lens
+monad-logger
+mtl
+network
+optparse-applicative
+plutus-playground-lib
+purescript-bridge
+scientific
+servant
+servant-foreign
+servant-options
+servant-purescript
+servant-server
+swagger2
+text
+transformers
+wai
+wai-cors
+wai-extra
+wallet-api
+warp
+];
+testHaskellDepends = [
+aeson
+base
+containers
+data-default-class
+gitrev
+hspec
+http-media
+http-types
+insert-ordered-containers
+monad-logger
+mtl
+network
+plutus-playground-lib
+purescript-bridge
+QuickCheck
+servant
+servant-foreign
+servant-options
+servant-server
+swagger2
+text
+transformers
+wai
+wai-cors
+wai-extra
+warp
+];
+doHaddock = false;
+homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -55723,9 +55951,7 @@ testHaskellDepends = [
 base
 doctest
 language-plutus-core
-markdown-unlit
 mtl
-plutus-core-interpreter
 plutus-ir
 plutus-tx-plugin
 tasty
@@ -63768,6 +63994,39 @@ description = "Derive a mock server for free from your servant API types";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"servant-options" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, http-types
+, servant-foreign
+, servant-server
+, stdenv
+, text
+, wai
+}:
+mkDerivation {
+
+pname = "servant-options";
+version = "0.1.0.0";
+sha256 = "5cfe2e60ec6267c80dfd2c5ccfb2ce8d9d13b2bcaf646ee80de6bc32c8f49fb3";
+libraryHaskellDepends = [
+base
+bytestring
+http-types
+servant-foreign
+servant-server
+text
+wai
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/sordina/servant-options";
+description = "Provide responses to OPTIONS requests for Servant applications";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "servant-pandoc" = callPackage
 ({
   mkDerivation
@@ -63804,6 +64063,63 @@ doHaddock = false;
 doCheck = false;
 description = "Use Pandoc to render servant API documentation";
 license = stdenv.lib.licenses.mit;
+
+}) {};
+"servant-purescript" = callPackage
+({
+  mkDerivation
+, aeson
+, base
+, bytestring
+, containers
+, directory
+, fetchgit
+, filepath
+, http-types
+, lens
+, mainland-pretty
+, purescript-bridge
+, servant
+, servant-foreign
+, servant-server
+, servant-subscriber
+, stdenv
+, text
+}:
+mkDerivation {
+
+pname = "servant-purescript";
+version = "0.9.0.2";
+src = fetchgit {
+
+url = "https://github.com/shmish111/servant-purescript.git";
+sha256 = "0c4pi7rlmm3nghkp8h6p33jfvp3j75x512c68xd3ixgj0al1sw0j";
+rev = "315ccf5d720937c091c8cf3aca8adc8110766a23";
+fetchSubmodules = true;
+
+};
+libraryHaskellDepends = [
+aeson
+base
+bytestring
+containers
+directory
+filepath
+http-types
+lens
+mainland-pretty
+purescript-bridge
+servant
+servant-foreign
+servant-server
+servant-subscriber
+text
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/eskimor/servant-purescript#readme";
+description = "Generate PureScript accessor functions for you servant API";
+license = stdenv.lib.licenses.bsd3;
 
 }) {};
 "servant-ruby" = callPackage
@@ -64070,6 +64386,94 @@ doHaddock = false;
 doCheck = false;
 homepage = "http://github.com/plow-technologies/servant-streaming-server#readme";
 description = "Server instances for the 'servant-streaming' package";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
+"servant-subscriber" = callPackage
+({
+  mkDerivation
+, aeson
+, async
+, attoparsec
+, base
+, blaze-builder
+, bytestring
+, case-insensitive
+, containers
+, directory
+, fetchgit
+, filepath
+, http-types
+, lens
+, lifted-base
+, monad-control
+, monad-logger
+, network-uri
+, purescript-bridge
+, servant
+, servant-foreign
+, servant-server
+, stdenv
+, stm
+, text
+, time
+, transformers
+, wai
+, wai-websockets
+, warp
+, websockets
+}:
+mkDerivation {
+
+pname = "servant-subscriber";
+version = "0.6.0.1";
+src = fetchgit {
+
+url = "https://github.com/smobs/servant-subscriber.git";
+sha256 = "0gnmcvd7dcffj42cqcr9zwbvz1g5jdanxdpa76bkkgfabsbnag0s";
+rev = "0354e99f5e1d244d5ec01f78e7e7439478b1d1d3";
+fetchSubmodules = true;
+
+};
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+aeson
+async
+attoparsec
+base
+blaze-builder
+bytestring
+case-insensitive
+containers
+directory
+filepath
+http-types
+lens
+lifted-base
+monad-control
+monad-logger
+network-uri
+servant
+servant-foreign
+servant-server
+stm
+text
+time
+transformers
+wai
+wai-websockets
+warp
+websockets
+];
+executableHaskellDepends = [
+base
+purescript-bridge
+];
+doHaddock = false;
+doCheck = false;
+homepage = "http://github.com/eskimor/servant-subscriber#readme";
+description = "When REST is not enough ...";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -77576,13 +77980,17 @@ license = stdenv.lib.licenses.mit;
 , containers
 , cryptonite
 , deriving-compat
+, doctest
 , hashable
 , hedgehog
+, http-media
 , language-plutus-core
 , lens
+, markdown-unlit
 , memory
 , mtl
 , natural-transformation
+, newtype-generics
 , operational
 , plutus-tx
 , plutus-tx-plugin
@@ -77593,8 +78001,10 @@ license = stdenv.lib.licenses.mit;
 , servant-server
 , stdenv
 , stm
+, swagger2
 , tasty
 , tasty-hedgehog
+, template-haskell
 , text
 , transformers
 , warp
@@ -77617,11 +78027,13 @@ cryptonite
 deriving-compat
 hashable
 hedgehog
+http-media
 language-plutus-core
 lens
 memory
 mtl
 natural-transformation
+newtype-generics
 operational
 plutus-tx
 plutus-tx-plugin
@@ -77631,6 +78043,8 @@ servant
 servant-client
 servant-server
 stm
+swagger2
+template-haskell
 text
 transformers
 ];
@@ -77641,12 +78055,16 @@ warp
 testHaskellDepends = [
 base
 containers
+doctest
 hedgehog
 lens
 plutus-tx
 plutus-tx-plugin
 tasty
 tasty-hedgehog
+];
+testToolDepends = [
+markdown-unlit
 ];
 doHaddock = false;
 description = "Wallet API";
