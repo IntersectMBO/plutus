@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Playground.UsecasesSpec
     ( spec
@@ -21,14 +20,11 @@ import           Test.Hspec             (Spec, describe, it, shouldSatisfy)
 import           Wallet.Emulator.Types  (EmulatorEvent, Wallet (Wallet))
 
 spec :: Spec
-spec = pure ()
--- TODO: At the moment these tests fail when run with nix, try
--- nix-build -A all-plutus-tests.x86_64-darwin.plutus-playground-server
--- spec = do
---     vestingSpec
---     gameSpec
---     messagesSpec
---     crowdfundingSpec
+spec = do
+    vestingSpec
+    gameSpec
+    messagesSpec
+    crowdfundingSpec
 
 vestingSpec :: Spec
 vestingSpec =
