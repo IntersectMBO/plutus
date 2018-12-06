@@ -48,7 +48,8 @@ tests = testGroup "all tests" [
         testProperty "notify wallet" notifyWallet,
         testProperty "react to blockchain events" eventTrace,
         testProperty "watch funds at an address" notifyWallet,
-        testProperty "log script validation failures" invalidScript
+        testProperty "log script validation failures" invalidScript,
+        testProperty "payToPubkey" payToPubKeyScript
         ],
     testGroup "Etc." [
         testProperty "splitVal" splitVal
@@ -186,6 +187,27 @@ eventTrace = property $ do
 
     -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 100)
+
+
+payToPubKeyScript :: Property
+payToPubKeyScript = property $ do
+    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+        updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
+    (e, _) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ do
+            updateAll
+            walletAction (Wallet 1) $ void $ payToPubKey 5 (PubKey 2)
+            updateAll 
+            walletAction (Wallet 2) $ void $ payToPubKey 5 (PubKey 3)
+            updateAll
+            walletAction (Wallet 3) $ void $ payToPubKey 5 (PubKey 1)
+            updateAll
+            traverse_ (uncurry assertOwnFundsEq) [
+                (w1, 100000),
+                (w2, 100000), 
+                (w3, 100000)]
+    Hedgehog.assert $ isRight e
 
 watchFundsAtAddress :: Property
 watchFundsAtAddress = property $ do
