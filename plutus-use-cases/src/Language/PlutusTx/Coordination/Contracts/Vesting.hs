@@ -21,10 +21,10 @@ import           Control.Monad.Error.Class    (MonadError (..))
 import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
-import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
+import           Ledger.Validation            (PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                               ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Height(..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))

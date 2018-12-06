@@ -30,10 +30,10 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx 
-import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Height(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
-                                              PendingTxOutType (..), Signed (..), ValidatorHash)
+import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..),
+                                              PendingTxOutType (..), ValidatorHash)
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 
@@ -101,7 +101,7 @@ settle :: (
 settle refs ft fd ov = do
     let
         forwardPrice = futureUnitPrice ft
-        OracleValue (Signed (_, (_, spotPrice))) = ov
+        OracleValue _ _ spotPrice = ov
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = futureDataMarginLong fd + delta
         shortOut = futureDataMarginShort fd - delta
@@ -245,8 +245,8 @@ validatorScript ft = ValidatorScript val where
                     isPubKeyOutput txo pk && vl == vl'
 
                 verifyOracle :: OracleValue a -> (Height, a)
-                verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else $$(PlutusTx.error) ()
+                verifyOracle (OracleValue pk h t) =
+                    if pk `eqPk` futurePriceOracle then (h, t) else $$(PlutusTx.error) ()
 
                 isValid =
                     case r of

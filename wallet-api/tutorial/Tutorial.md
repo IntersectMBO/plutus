@@ -15,7 +15,7 @@ This tutorial shows how to implement a simple crowdfunding campaign as a Plutus 
 
 ```haskell
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       hiding (Height)
+import           Ledger
 import           Ledger.Validation            as Validation
 import           Wallet
 import           Wallet.Emulator
