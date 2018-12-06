@@ -130,6 +130,7 @@ test-suite plutus-playground-server-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists
+  build-tool-depends: hspec-discover:hspec-discover
   build-depends:
       QuickCheck
     , aeson
