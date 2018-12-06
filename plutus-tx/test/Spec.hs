@@ -68,26 +68,26 @@ tests = testGroup "plutus-th" <$> sequence [
   ]
 
 simple :: CompiledCode
-simple = $$(plutus [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
+simple = $$(compile [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
 powerPlc :: CompiledCode
-powerPlc = $$(plutus [|| $$(power (4::Int)) ||])
+powerPlc = $$(compile [|| $$(power (4::Int)) ||])
 
 andPlc :: CompiledCode
-andPlc = $$(plutus [|| $$(andTH) True False ||])
+andPlc = $$(compile [|| $$(andTH) True False ||])
 
 convertString :: CompiledCode
-convertString = $$(plutus [|| $$(toPlutusString) "test" ||])
+convertString = $$(compile [|| $$(toPlutusString) "test" ||])
 
 traceDirect :: CompiledCode
-traceDirect = $$(plutus [|| Builtins.trace ($$(toPlutusString) "test") ||])
+traceDirect = $$(compile [|| Builtins.trace ($$(toPlutusString) "test") ||])
 
 tracePrelude :: CompiledCode
-tracePrelude = $$(plutus [|| $$(trace) ($$(toPlutusString) "test") (1::Int) ||])
+tracePrelude = $$(compile [|| $$(trace) ($$(toPlutusString) "test") (1::Int) ||])
 
 traceRepeatedly :: CompiledCode
-traceRepeatedly = $$(plutus
+traceRepeatedly = $$(compile
      [||
                -- This will in fact print the third log first, and then the others, but this
                -- is the same behaviour as Debug.trace

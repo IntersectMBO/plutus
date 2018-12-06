@@ -2,8 +2,8 @@
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 module Language.PlutusTx.TH (
-    plutus,
-    plutusUntyped,
+    compile,
+    compileUntyped,
     CompiledCode,
     getSerializedPlc,
     getSerializedPir,
@@ -15,10 +15,10 @@ import           Language.PlutusTx.Plugin
 import qualified Language.Haskell.TH        as TH
 import qualified Language.Haskell.TH.Syntax as TH
 
--- | Covert a quoted Haskell expression into a corresponding Plutus Core program.
-plutus :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp CompiledCode)
+-- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
+compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp CompiledCode)
 -- See note [Typed TH]
-plutus e = TH.unsafeTExpCoerce $ plutusUntyped $ TH.unType <$> e
+compile e = TH.unsafeTExpCoerce $ compileUntyped $ TH.unType <$> e
 
 {- Note [Typed TH]
 It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we
@@ -32,9 +32,9 @@ This isn't so bad, since our plc function accepts an argument of any type, so th
 going to typecheck, and the result is always a CompiledCode, so that's also fine.
 -}
 
--- | Covert a quoted Haskell expression into a corresponding Plutus Core program.
-plutusUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
-plutusUntyped e = do
+-- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
+compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
+compileUntyped e = do
     TH.addCorePlugin "Language.PlutusTx.Plugin"
     loc <- TH.location
     let locStr = TH.pprint loc

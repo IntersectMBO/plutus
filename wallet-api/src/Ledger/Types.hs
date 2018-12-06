@@ -130,7 +130,7 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (makeLift, unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.Plugin                 (CompiledCode, getSerializedPlc)
-import           Language.PlutusTx.TH                     (plutus)
+import           Language.PlutusTx.TH                     (compile)
 
 {- Note [Serialisation and hashing]
 
@@ -698,7 +698,7 @@ runScript (ValidationData valData) (ValidatorScript validator) (RedeemerScript r
 
 -- | () as a data script
 unitData :: DataScript
-unitData = DataScript $ fromCompiledCode $$(plutus [|| () ||])
+unitData = DataScript $ fromCompiledCode $$(compile [|| () ||])
 
 -- | \() () () -> () as a validator
 --
@@ -711,15 +711,15 @@ unitData = DataScript $ fromCompiledCode $$(plutus [|| () ||])
 --       you need to provide `unitData`, `unitRedeemer` and
 --       `unitValidationData` to consume it.
 emptyValidator :: ValidatorScript
-emptyValidator = ValidatorScript $ fromCompiledCode $$(plutus [|| \() () () -> () ||])
+emptyValidator = ValidatorScript $ fromCompiledCode $$(compile [|| \() () () -> () ||])
 
 -- | () as a redeemer
 unitRedeemer :: RedeemerScript
-unitRedeemer = RedeemerScript $ fromCompiledCode $$(plutus [|| () ||])
+unitRedeemer = RedeemerScript $ fromCompiledCode $$(compile [|| () ||])
 
 -- | () as validation data
 unitValidationData :: ValidationData
-unitValidationData = ValidationData $ fromCompiledCode $$(plutus [|| () ||])
+unitValidationData = ValidationData $ fromCompiledCode $$(compile [|| () ||])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut'

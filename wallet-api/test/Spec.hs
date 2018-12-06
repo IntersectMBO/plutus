@@ -17,7 +17,7 @@ import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
-import           Language.PlutusTx.TH       (plutus)
+import           Language.PlutusTx.TH       (compile)
 import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 
@@ -145,7 +145,7 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ fromCompiledCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
+        failValidator = ValidatorScript $ fromCompiledCode $$(compile [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do
