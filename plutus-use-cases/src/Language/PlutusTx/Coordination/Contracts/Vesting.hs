@@ -107,7 +107,7 @@ validatorScriptHash =
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
-    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
+    inner = Ledger.fromCompiledCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool

@@ -145,7 +145,7 @@ invalidScript = property $ do
 
     where
         failValidator :: ValidatorScript
-        failValidator = ValidatorScript $ fromPlcCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
+        failValidator = ValidatorScript $ fromCompiledCode $$(plutus [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do

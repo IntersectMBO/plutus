@@ -17,9 +17,9 @@ import Language.PlutusCore.Evaluation.CkMachine
 
 ## Writing basic PlutusTx programs
 
-The `PlcCode` type is an opaque type which contains the serialized Plutus Core code
+The `CompiledCode` type is an opaque type which contains the serialized Plutus Core code
 corresponding to a Haskell expression. The `plutus` function takes a typed Template Haskell
-`Q (TExp a)`, for any a, and produces a `Q (TExp PlcCode)`, which we then
+`Q (TExp a)`, for any a, and produces a `Q (TExp CompiledCode)`, which we then
 have to splice into our program.
 
 The fact that `plutus` takes a TH quote means that what you write inside the quote
@@ -34,7 +34,7 @@ Here's the most basic program we can write: one that just evaluates to the integ
 -- (program 1.0.0
 --   (con 8 ! 1)
 -- )
-integerOne :: PlcCode
+integerOne :: CompiledCode
 -- We don't like unbounded integers in Plutus Core, so we have to pin
 -- down that numeric literal to an `Int` not an `Integer`.
 integerOne = $$(plutus [|| (1 :: Int) ||])
@@ -59,7 +59,7 @@ Here's a slightly more complex program, namely the identity function on integers
 -- (program 1.0.0
 --   (lam ds [(con integer) (con 8)] ds)
 -- )
-integerIdentity :: PlcCode
+integerIdentity :: CompiledCode
 integerIdentity = $$(plutus [|| \(x:: Int) -> x ||])
 ```
 
@@ -74,7 +74,7 @@ some reusable components.
 plusOne :: Int -> Int
 plusOne x = x + 1
 
-functions :: PlcCode
+functions :: CompiledCode
 functions = $$(plutus [||
     let
         plusOneLocal :: Int -> Int
@@ -100,7 +100,7 @@ TODO: when we store the PIR, start showing PIR at this stage (or earlier).
 We can use normal Haskell datatypes and pattern matching freely:
 
 ```haskell
-matchMaybe :: PlcCode
+matchMaybe :: CompiledCode
 matchMaybe = $$(plutus [|| \(x:: Maybe Int) -> case x of
     Just n -> n
     Nothing -> 0
@@ -116,7 +116,7 @@ end date.
 ```haskell
 data EndDate = Fixed Int | Never
 
-shouldEnd :: PlcCode
+shouldEnd :: CompiledCode
 shouldEnd = $$(plutus [|| \(end::EndDate) (current::Int) -> case end of
     Fixed n -> n <= current
     Never -> False

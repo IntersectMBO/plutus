@@ -30,7 +30,7 @@ module Ledger.Types(
     scriptAddress,
     -- ** Scripts
     Script, -- abstract
-    fromPlcCode,
+    fromCompiledCode,
     lifted,
     applyScript,
     evaluateScript,
@@ -129,7 +129,7 @@ import           Language.PlutusTx.Evaluation             (evaluateCekTrace)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusTx.Lift                   (makeLift, unsafeLiftProgram)
 import           Language.PlutusTx.Lift.Class             (Lift)
-import           Language.PlutusTx.Plugin                 (PlcCode, getSerializedPlc)
+import           Language.PlutusTx.Plugin                 (CompiledCode, getSerializedPlc)
 import           Language.PlutusTx.TH                     (plutus)
 
 {- Note [Serialisation and hashing]
@@ -240,9 +240,9 @@ deriving anyclass instance FromJSON Address'
 newtype Script = Script { getSerialized :: BSL.ByteString }
   deriving newtype (Serialise, Eq, Ord)
 
--- TODO: possibly this belongs with PlcCode
-fromPlcCode :: PlcCode -> Script
-fromPlcCode = Script . getSerializedPlc
+-- TODO: possibly this belongs with CompiledCode
+fromCompiledCode :: CompiledCode -> Script
+fromCompiledCode = Script . getSerializedPlc
 
 getPlc :: Script -> PLC.Program PLC.TyName PLC.Name ()
 getPlc = deserialise . getSerialized
@@ -698,7 +698,7 @@ runScript (ValidationData valData) (ValidatorScript validator) (RedeemerScript r
 
 -- | () as a data script
 unitData :: DataScript
-unitData = DataScript $ fromPlcCode $$(plutus [|| () ||])
+unitData = DataScript $ fromCompiledCode $$(plutus [|| () ||])
 
 -- | \() () () -> () as a validator
 --
@@ -711,15 +711,15 @@ unitData = DataScript $ fromPlcCode $$(plutus [|| () ||])
 --       you need to provide `unitData`, `unitRedeemer` and
 --       `unitValidationData` to consume it.
 emptyValidator :: ValidatorScript
-emptyValidator = ValidatorScript $ fromPlcCode $$(plutus [|| \() () () -> () ||])
+emptyValidator = ValidatorScript $ fromCompiledCode $$(plutus [|| \() () () -> () ||])
 
 -- | () as a redeemer
 unitRedeemer :: RedeemerScript
-unitRedeemer = RedeemerScript $ fromPlcCode $$(plutus [|| () ||])
+unitRedeemer = RedeemerScript $ fromCompiledCode $$(plutus [|| () ||])
 
 -- | () as validation data
 unitValidationData :: ValidationData
-unitValidationData = ValidationData $ fromPlcCode $$(plutus [|| () ||])
+unitValidationData = ValidationData $ fromCompiledCode $$(plutus [|| () ||])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
 simpleOutput :: Value -> TxOut'

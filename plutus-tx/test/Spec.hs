@@ -32,10 +32,10 @@ import           Test.Tasty
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-instance GetProgram PlcCode where
+instance GetProgram CompiledCode where
     getProgram = catchAll . getPlc
 
-goldenPir :: String -> PlcCode -> TestNested
+goldenPir :: String -> CompiledCode -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
 
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
@@ -67,26 +67,26 @@ tests = testGroup "plutus-th" <$> sequence [
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
   ]
 
-simple :: PlcCode
+simple :: CompiledCode
 simple = $$(plutus [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
-powerPlc :: PlcCode
+powerPlc :: CompiledCode
 powerPlc = $$(plutus [|| $$(power (4::Int)) ||])
 
-andPlc :: PlcCode
+andPlc :: CompiledCode
 andPlc = $$(plutus [|| $$(andTH) True False ||])
 
-convertString :: PlcCode
+convertString :: CompiledCode
 convertString = $$(plutus [|| $$(toPlutusString) "test" ||])
 
-traceDirect :: PlcCode
+traceDirect :: CompiledCode
 traceDirect = $$(plutus [|| Builtins.trace ($$(toPlutusString) "test") ||])
 
-tracePrelude :: PlcCode
+tracePrelude :: CompiledCode
 tracePrelude = $$(plutus [|| $$(trace) ($$(toPlutusString) "test") (1::Int) ||])
 
-traceRepeatedly :: PlcCode
+traceRepeatedly :: CompiledCode
 traceRepeatedly = $$(plutus
      [||
                -- This will in fact print the third log first, and then the others, but this

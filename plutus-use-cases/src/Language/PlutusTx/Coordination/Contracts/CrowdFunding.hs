@@ -122,7 +122,7 @@ contributionScript cmp  = ValidatorScript val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = Ledger.fromCompiledCode $$(PlutusTx.plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
 
             infixr 3 &&
