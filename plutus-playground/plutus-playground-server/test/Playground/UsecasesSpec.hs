@@ -46,7 +46,8 @@ vestingSpec =
             [ Action
                   (Fn "vestFunds")
                   (Wallet 1)
-                  [JSON.String "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getHeight\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getHeight\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
+                  [ JSON.String
+                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getHeight\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getHeight\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
                   , JSON.String "{\"getValue\": 1}"
                   ]
             ]
@@ -55,8 +56,49 @@ vestingSpec =
 
 gameSpec :: Spec
 gameSpec =
-    describe "game" $
-    it "should compile" $ compile game >>= (`shouldSatisfy` isRight)
+    describe "game" $ do
+        it "should compile" $ compile game >>= (`shouldSatisfy` isRight)
+        it
+            "Sequential fund transfer fails - 'Game' script - 'payToPublicKey' action" $
+            evaluate payAll >>=
+            (`shouldSatisfy` hasFundsDistribution
+                                 [ (Wallet 1, 10) -- TODO: this is the wrong result
+                                 , (Wallet 2, 19)
+                                 , (Wallet 3, 1)
+                                 ])
+  where
+    payAll =
+        Evaluation
+            [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
+            [ Action
+                  (Fn "payToPublicKey")
+                  (Wallet 1)
+                  [ JSON.String "{\"getValue\":9}"
+                  , JSON.String "{\"getPubKey\":2}"
+                  ]
+            , Action
+                  (Fn "payToPublicKey")
+                  (Wallet 2)
+                  [ JSON.String "{\"getValue\":9}"
+                  , JSON.String "{\"getPubKey\":3}"
+                  ]
+            , Action
+                  (Fn "payToPublicKey")
+                  (Wallet 3)
+                  [ JSON.String "{\"getValue\":9}"
+                  , JSON.String "{\"getPubKey\":1}"
+                  ]
+            ]
+            (sourceCode game)
+            []
+
+hasFundsDistribution ::
+       [(Wallet, Value)]
+    -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Value)])
+    -> Bool
+hasFundsDistribution _ (Left _) = False
+hasFundsDistribution requiredDistribution (Right (_, _, actualDistribution)) =
+    requiredDistribution == actualDistribution
 
 messagesSpec :: Spec
 messagesSpec =
