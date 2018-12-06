@@ -245,7 +245,7 @@ validatorScript ft = ValidatorScript val where
 
                 verifyOracle :: OracleValue a -> (Height, a)
                 verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else PlutusTx.error ()
+                    if pk `eqPk` futurePriceOracle then t else $$(PlutusTx.error) ()
 
                 isValid =
                     case r of
@@ -305,7 +305,7 @@ validatorScript ft = ValidatorScript val where
 
                                 _ -> False
             in
-                if isValid then () else PlutusTx.error ()
+                if isValid then () else $$(PlutusTx.error) ()
             ||])
 
 PlutusTx.makeLift ''Future

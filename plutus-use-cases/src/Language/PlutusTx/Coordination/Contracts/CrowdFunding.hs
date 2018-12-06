@@ -175,7 +175,7 @@ contributionScript cmp  = ValidatorScript val where
                                     signedByT p campaignOwner
                     in payToOwner
         in
-        if isValid then () else PlutusTx.error ()) ||])
+        if isValid then () else $$(PlutusTx.error) ()) ||])
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger

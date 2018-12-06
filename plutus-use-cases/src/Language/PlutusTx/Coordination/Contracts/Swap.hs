@@ -80,14 +80,14 @@ swapValidator _ = ValidatorScript result where
             minusR (x :% y) (x' :% y') = (x*y' - x'*y) :% (y*y')
 
             extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
-            extractVerifyAt = PlutusTx.error ()
+            extractVerifyAt = $$(PlutusTx.error) ()
 
             round :: Ratio Int -> Int
-            round = PlutusTx.error ()
+            round = $$(PlutusTx.error) ()
 
             -- | Convert an [[Int]] to a [[Ratio Int]]
             fromInt :: Int -> Ratio Int
-            fromInt = PlutusTx.error ()
+            fromInt = $$(PlutusTx.error) ()
 
             signedBy :: PendingTxIn -> PubKey -> Bool
             signedBy = $$(Validation.txInSignedBy)
@@ -173,7 +173,7 @@ swapValidator _ = ValidatorScript result where
 
 
         in
-        if inConditions && outConditions then () else PlutusTx.error ()
+        if inConditions && outConditions then () else $$(PlutusTx.error) ()
         ) ||])
 
 {- Note [Swap Transactions]

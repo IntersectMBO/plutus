@@ -7,8 +7,7 @@ module Language.PlutusTx.Prelude (
     toPlutusString,
     trace,
     traceH,
-    -- error is the only builtin that people are likely to want to use directly
-    -- * Re-exported builtins
+    -- * Error
     error,
     -- * Boolean operators
     and,
@@ -30,9 +29,12 @@ module Language.PlutusTx.Prelude (
 import           Prelude                    (Bool (..), Int, Maybe (..), String, (<), (>), (+))
 
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Builtins (error)
 
 import           Language.Haskell.TH
+
+-- | Terminate the evaluation of the script with an error message
+error :: Q (TExp (() -> a))
+error = [|| Builtins.error ||]
 
 -- | Convert a Haskell 'String' into a 'Builtins.String'.
 toPlutusString :: Q (TExp (String -> Builtins.String))
