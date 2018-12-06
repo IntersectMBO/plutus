@@ -34,6 +34,7 @@ is indeed same as expected. This will be addressed when required mechanisms are 
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RankNTypes   #-}
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -48,39 +49,30 @@ import           Control.Monad                  ( Monad(..)
                                                 )
 import           Control.Monad.Error.Class      ( MonadError(..) )
 import           GHC.Generics                   ( Generic )
-import qualified Data.Set                      as Set
+import qualified Data.Set                       as Set
 
-import           Language.Plutus.Runtime        hiding (Value)
-import qualified Language.Plutus.Runtime       as Plutus
-import           Language.PlutusTx.TH           ( plutus )
-import           Wallet.API                     ( EventTrigger(..)
-                                                , Range(..)
-                                                , WalletAPI(..)
+import qualified Language.PlutusTx              as PlutusTx
+import           Wallet                         ( WalletAPI(..)
                                                 , WalletAPIError
                                                 , otherError
-                                                , pubKey
                                                 , signAndSubmit
-                                                , payToPubKey
                                                 , ownPubKeyTxOut
                                                 )
 
-import           Wallet.UTXO                    ( Address'
-                                                , DataScript(..)
+import           Ledger                         ( DataScript(..)
+                                                , PubKey(..)
                                                 , TxOutRef'
                                                 , TxOut'
+                                                , TxIn'
                                                 , TxOut(..)
-                                                , Validator(..)
+                                                , ValidatorScript(..)
                                                 , scriptTxIn
                                                 , scriptTxOut
-                                                , applyScript
-                                                , emptyValidator
-                                                , unitData
-                                                , txOutValue
                                                 )
-import qualified Wallet.UTXO                   as UTXO
-
-import qualified Language.Plutus.Runtime.TH    as TH
-import qualified Language.PlutusTx.Builtins    as Builtins
+import qualified Ledger                         as Ledger
+import Ledger.Validation
+import qualified Ledger.Validation            as Validation
+import qualified Language.PlutusTx.Builtins     as Builtins
 import           Language.PlutusTx.Lift         ( makeLift )
 
 
@@ -385,11 +377,11 @@ makeLift ''MarloweData
 
 \begin{code}
 
-marloweValidator :: Validator
-marloweValidator = Validator result where
-    result = UTXO.fromPlcCode $$(plutus [|| \
-        (Input inputCommand inputOracles inputChoices :: Input)
-        (MarloweData{..} :: MarloweData)
+marloweValidator :: ValidatorScript
+marloweValidator = ValidatorScript result where
+    result = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \
+        (Input inputCommand inputOracles inputChoices :: Input, MarloweData expectedState expectedContract)
+        (_ :: Input, MarloweData{..} :: MarloweData)
         (pendingTx@ PendingTx{ pendingTxBlockHeight } :: PendingTx ValidatorHash) -> let
 \end{code}
 
@@ -397,27 +389,27 @@ marloweValidator = Validator result where
 
 \begin{code}
         eqPk :: PubKey -> PubKey -> Bool
-        eqPk = $$(TH.eqPubKey)
+        eqPk = $$(Validation.eqPubKey)
 
         eqIdentCC :: IdentCC -> IdentCC -> Bool
         eqIdentCC (IdentCC a) (IdentCC b) = a == b
 
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
-        eqValidator = $$(TH.eqValidator)
+        eqValidator = $$(Validation.eqValidator)
 
         not :: Bool -> Bool
-        not = $$(TH.not)
+        not = $$(PlutusTx.not)
 
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
-        (&&) = $$(TH.and)
+        (&&) = $$(PlutusTx.and)
 
         infixr 3 ||
         (||) :: Bool -> Bool -> Bool
-        (||) = $$(TH.or)
+        (||) = $$(PlutusTx.or)
 
         signedBy :: PubKey -> Bool
-        signedBy = $$(TH.txSignedBy) pendingTx
+        signedBy = $$(Validation.txSignedBy) pendingTx
 
         null :: [a] -> Bool
         null [] = True
@@ -440,14 +432,93 @@ marloweValidator = Validator result where
 
 
         isJust :: Maybe a -> Bool
-        isJust = $$(TH.isJust)
+        isJust = $$(PlutusTx.isJust)
 
         maybe :: r -> (a -> r) -> Maybe a -> r
-        maybe = $$(TH.maybe)
+        maybe = $$(PlutusTx.maybe)
 
         nullContract :: Contract -> Bool
         nullContract Null = True
         nullContract _    = False
+
+        eqValue :: Value -> Value -> Bool
+        eqValue l r = case (l, r) of
+            (Committed idl, Committed idr) -> idl `eqIdentCC` idr
+            (Value vl, Value vr) -> vl == vr
+            (AddValue v1l v2l, AddValue v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
+            (MulValue v1l v2l, MulValue v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
+            (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
+                v1l `eqValue` v1r
+                && v2l `eqValue` v2r
+                && v3l `eqValue` v3r
+            (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
+                idl == idr
+                && pkl `eqPk` pkr
+                && vl `eqValue` vr
+            (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `eqPk` pkr && vl `eqValue` vr
+            _ -> False
+
+        eqObservation :: Observation -> Observation -> Bool
+        eqObservation l r = case (l, r) of
+            (BelowTimeout tl, BelowTimeout tr) -> tl == tr
+            (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eqObservation` o1r && o2l `eqObservation` o2r
+            (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eqObservation` o1r && o2l `eqObservation` o2r
+            (NotObs ol, NotObs or) -> ol `eqObservation` or
+            (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
+                idl == idr && pkl `eqPk` pkr && cl == cr
+            (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
+                idl == idr && pkl `eqPk` pkr
+            (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
+            (TrueObs, TrueObs) -> True
+            (FalseObs, FalseObs) -> True
+            _ -> False
+
+        eqContract :: Contract -> Contract -> Bool
+        eqContract l r = case (l, r) of
+            (Null, Null) -> True
+            (CommitCash idl pkl vl t1l t2l c1l c2l, CommitCash idr pkr vr t1r t2r c1r c2r) ->
+                idl `eqIdentCC` idr
+                && pkl `eqPk` pkr
+                && vl `eqValue` vr
+                && t1l == t1r && t2l == t2r
+                && eqContract c1l c1r && eqContract c2l c2r
+            (RedeemCC idl c1l, RedeemCC idr c1r) -> idl `eqIdentCC` idr && eqContract c1l c1r
+            (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
+                idl == idr
+                && pk1l `eqPk` pk1r
+                && pk2l `eqPk` pk2r
+                && vl `eqValue` vr
+                && tl == tr
+                && eqContract cl cr
+            (Both c1l c2l, Both c1r c2r) -> eqContract c1l c1r && eqContract c2l c2r
+            (Choice ol c1l c2l, Choice or c1r c2r) ->
+                ol `eqObservation` or
+                && eqContract c1l c1r
+                && eqContract c2l c2r
+            (When ol tl c1l c2l, When or tr c1r c2r) ->
+                ol `eqObservation` or
+                && tl == tr
+                && eqContract c1l c1r
+                && eqContract c2l c2r
+            _ -> False
+
+        all :: () -> forall a. (a -> a -> Bool) -> [a] -> [a] -> Bool
+        all _ = go where
+            go _ [] [] = True
+            go eq (a : as) (b : bs) = eq a b && all () eq as bs
+            go _ _ _ = False
+
+        eqCommit :: Commit -> Commit -> Bool
+        eqCommit (id1, (pk1, (NotRedeemed val1 t1))) (id2, (pk2, (NotRedeemed val2 t2))) =
+            id1 `eqIdentCC` id2 && pk1 `eqPk` pk2 && val1 == val2 && t1 == t2
+
+        eqChoice :: Choice -> Choice -> Bool
+        eqChoice ((IdentChoice id1, pk1), c1) ((IdentChoice id2, pk2), c2) =
+            id1 == id2 && c1 == c2 && pk1 `eqPk` pk2
+
+        eqState :: State -> State -> Bool
+        eqState (State commits1 choices1) (State commits2 choices2) =
+            all () eqCommit commits1 commits2 && all () eqChoice choices1 choices2
 
         findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> Maybe CCStatus
         findCommit i@(IdentCC searchId) commits = case commits of
@@ -456,8 +527,8 @@ marloweValidator = Validator result where
             _ -> Nothing
 
         fromOracle :: PubKey -> Height -> [OracleValue Int] -> Maybe Int
-        fromOracle pubKey h@(Plutus.Height blockNumber) oracles = case oracles of
-            OracleValue (Signed (pk, (Plutus.Height bn, value))) : _
+        fromOracle pubKey h@(Height blockNumber) oracles = case oracles of
+            OracleValue (Signed (pk, (Height bn, value))) : _
                 | pk `eqPk` pubKey && bn == blockNumber -> Just value
             _ : rest -> fromOracle pubKey h rest
             _ -> Nothing
@@ -559,7 +630,7 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
             _ -> (t2, t1)
 
         currentBlockNumber :: Int
-        currentBlockNumber = let Plutus.Height blockNumber = pendingTxBlockHeight in blockNumber
+        currentBlockNumber = let Height blockNumber = pendingTxBlockHeight in blockNumber
 
 \end{code}
 \subsection{Contract Evaluation}
@@ -589,11 +660,11 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 
             (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2) | id1 `eqIdentCC` id2 -> let
                 PendingTx [in1, in2]
-                    [PendingTxOut (Plutus.Value committed) (Just (validatorHash, _)) DataTxOut, _]
+                    (PendingTxOut (Ledger.Value committed)
+                        (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
                     _ _ _ _ thisScriptHash = pendingTx
 
-                (PendingTxIn _ _ (Plutus.Value scriptValue),
-                    PendingTxIn _ _ (Plutus.Value commitValue)) = orderTxIns in1 in2
+                (PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue), _) = orderTxIns in1 in2
 
                 vv = evalValue state value
 
@@ -601,8 +672,10 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     && committed == vv + scriptValue
                     && signedBy pubKey
                     && validatorHash `eqValidator` thisScriptHash
+                    && Builtins.equalsByteString dataScriptHash redeemerHash
+                    && eqContract con1 expectedContract
                 in  if isValid then let
-                        cns = (pubKey, NotRedeemed commitValue endTimeout)
+                        cns = (pubKey, NotRedeemed vv endTimeout)
 
                         insertCommit :: Commit -> [Commit] -> [Commit]
                         insertCommit commit@(_, (pubKey, NotRedeemed _ endTimeout)) commits =
@@ -614,15 +687,15 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 
                         updatedState = let State committed choices = state
                             in State (insertCommit (id1, cns) committed) choices
-                        in (updatedState, con1, True)
+                        in (updatedState, con1, eqState updatedState expectedState)
                     else (state, contract, False)
 
             (Pay _ _ _ _ timeout con, _)
                 | currentBlockNumber > timeout -> eval input state con
 
             (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid)) -> let
-                PendingTx [PendingTxIn _ _ (Plutus.Value scriptValue)]
-                    [PendingTxOut (Plutus.Value change) (Just (validatorHash, _)) DataTxOut, _]
+                PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
+                    (PendingTxOut (Ledger.Value change) (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
                     _ _ _ _ thisScriptHash = pendingTx
 
                 pv = evalValue state payValue
@@ -632,6 +705,8 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     && change == scriptValue - pv
                     && signedBy to
                     && validatorHash `eqValidator` thisScriptHash
+                    && Builtins.equalsByteString dataScriptHash redeemerHash
+                    && eqContract con expectedContract
                 in  if isValid then let
                     -- Discounts the Cash from an initial segment of the list of pairs.
                     discountFromPairList ::
@@ -653,13 +728,13 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     in case discountFromPairList [] pv commits of
                         Just updatedCommits -> let
                             updatedState = State (reverse updatedCommits) oracles
-                            in (updatedState, con, True)
+                            in (updatedState, con, eqState updatedState expectedState)
                         Nothing -> (state, contract, False)
                 else (state, contract, False)
 
             (RedeemCC id1 con, Redeem id2) | id1 `eqIdentCC` id2 -> let
-                PendingTx [PendingTxIn _ _ (Plutus.Value scriptValue)]
-                    (PendingTxOut (Plutus.Value change) (Just (validatorHash, _)) DataTxOut : _)
+                PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
+                    (PendingTxOut (Ledger.Value change) (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
                     _ _ _ _ thisScriptHash = pendingTx
 
                 findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
@@ -674,13 +749,16 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                 (ok, updatedState) = findAndRemove commits [] (False, state)
                 isValid = ok
                     && validatorHash `eqValidator` thisScriptHash
+                    && Builtins.equalsByteString dataScriptHash redeemerHash
+                    && eqContract con expectedContract
+                    && eqState updatedState expectedState
                 in if isValid
                 then (updatedState, con, True)
                 else (state, contract, False)
 
             (_, Redeem identCC) -> let
-                    PendingTx [PendingTxIn _ _ (Plutus.Value scriptValue)]
-                        (PendingTxOut (Plutus.Value change) (Just (validatorHash, _)) DataTxOut : _)
+                    PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
+                        (PendingTxOut (Ledger.Value change) (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
                         _ _ _ _ thisScriptHash = pendingTx
 
                     findAndRemoveExpired ::
@@ -700,11 +778,14 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     (ok, updatedState) = findAndRemoveExpired commits [] (False, state)
                     isValid = ok
                         && validatorHash `eqValidator` thisScriptHash
+                        && Builtins.equalsByteString dataScriptHash redeemerHash
+                        && eqContract contract expectedContract
+                        && eqState updatedState expectedState
                     in if isValid
                     then (updatedState, contract, True)
                     else (state, contract, False)
 
-            (Null, SpendDeposit) | null commits -> (state, Null, True)
+            (Null, SpendDeposit) | null commits || not contractIsValid -> (state, Null, True)
 
             _ -> (state, Null, False)
 
@@ -713,12 +794,12 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
         -- record Choices from Input into State
         stateWithChoices = let
             State commits choices = marloweState
-            in State commits (mergeChoices inputChoices choices)
+            in State commits (mergeChoices (reverse inputChoices) choices)
 
         (_::State, _::Contract, allowTransaction) = eval inputCommand stateWithChoices marloweContract
         -- if a contract is not valid we allow a contract creator to spend its initial deposit
         -- otherwise, if the contract IS valid we check the contract allows this transaction
-        in if not contractIsValid || allowTransaction then ()
+        in if allowTransaction then ()
         else Builtins.error ()
         ||])
 
@@ -735,15 +816,37 @@ createContract :: (
     -> m ()
 createContract contract value = do
     _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
-    let ds = DataScript $ UTXO.lifted MarloweData {
+    let ds = DataScript $ Ledger.lifted (Input SpendDeposit [] [], MarloweData {
             marloweContract = contract,
-            marloweState = emptyState }
-    let v' = UTXO.Value value
+            marloweState = emptyState })
+    let v' = Ledger.Value value
     (payment, change) <- createPaymentWithChange v'
     let o = scriptTxOut v' marloweValidator ds
 
     void $ signAndSubmit payment [o, change]
 
+
+
+marloweTx ::
+    (Input, MarloweData)
+    -> (TxOut', TxOutRef')
+    -> (TxIn' -> (Int -> TxOut') -> Int -> m ())
+    -> m ()
+marloweTx inputState txOut f = do
+    let (TxOut _ (Ledger.Value contractValue) _, ref) = txOut
+    let lifted = Ledger.lifted inputState
+    let scriptIn = scriptTxIn ref marloweValidator $ Ledger.RedeemerScript lifted
+    let dataScript = DataScript lifted
+    let scritOut v = scriptTxOut (Ledger.Value v) marloweValidator dataScript
+    f scriptIn scritOut contractValue
+
+
+createRedeemer
+    :: InputCommand -> [OracleValue Int] -> [Choice] -> State -> Contract -> (Input, MarloweData)
+createRedeemer inputCommand oracles choices expectedState expectedCont =
+    let input = Input inputCommand oracles choices
+        mdata = MarloweData { marloweContract = expectedCont, marloweState = expectedState }
+    in  (input, mdata)
 
 commit :: (
     MonadError WalletAPIError m,
@@ -758,18 +861,10 @@ commit :: (
     -> m ()
 commit txOut oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
-    let (TxOut _ (UTXO.Value contractValue) _, ref) = txOut
-    let input = Input (Commit identCC) oracles choices
-    let i   = scriptTxIn ref marloweValidator $ UTXO.Redeemer (UTXO.lifted input)
-
-    let ds = DataScript $ UTXO.lifted MarloweData {
-                marloweContract = expectedCont,
-                marloweState = expectedState
-                }
-    (payment, change) <- createPaymentWithChange (UTXO.Value value)
-    let o = scriptTxOut (UTXO.Value $ value + contractValue) marloweValidator ds
-
-    void $ signAndSubmit (Set.insert i payment) [o, change]
+    let redeemer = createRedeemer (Commit identCC) oracles choices expectedState expectedCont
+    marloweTx redeemer txOut $ \ i getOut v -> do
+        (payment, change) <- createPaymentWithChange (Ledger.Value value)
+        void $ signAndSubmit (Set.insert i payment) [getOut (v + value), change]
 
 
 receivePayment :: (
@@ -785,18 +880,11 @@ receivePayment :: (
     -> m ()
 receivePayment txOut oracles choices identPay value expectedState expectedCont = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
-    let (TxOut _ (UTXO.Value contractValue) _, ref) = txOut
-    let input = Input (Payment identPay) oracles choices
-    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
-
-    let ds = DataScript $ UTXO.lifted MarloweData {
-                marloweContract = expectedCont,
-                marloweState = expectedState
-            }
-    let o = scriptTxOut (UTXO.Value $ contractValue - value) marloweValidator ds
-    oo <- ownPubKeyTxOut (UTXO.Value value)
-
-    void $ signAndSubmit (Set.singleton i) [o, oo]
+    let redeemer = createRedeemer (Payment identPay) oracles choices expectedState expectedCont
+    marloweTx redeemer txOut $ \ i getOut v -> do
+        let out = getOut (v - value)
+        oo <- ownPubKeyTxOut (Ledger.Value value)
+        void $ signAndSubmit (Set.singleton i) [out, oo]
 
 
 
@@ -813,29 +901,20 @@ redeem :: (
     -> m ()
 redeem txOut oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then otherError "Must commit a positive value" else pure ()
-    let (TxOut _ (UTXO.Value contractValue) _, ref) = txOut
-    let input = Input (Redeem identCC) oracles choices
-    let i   = scriptTxIn ref marloweValidator (UTXO.Redeemer $ UTXO.lifted input)
-
-    let ds = DataScript $ UTXO.lifted MarloweData {
-                marloweContract = expectedCont,
-                marloweState = expectedState
-            }
-    let o = scriptTxOut (UTXO.Value $ contractValue - value) marloweValidator ds
-    oo <- ownPubKeyTxOut (UTXO.Value value)
-
-    void $ signAndSubmit (Set.singleton i) [o, oo]
+    let redeemer = createRedeemer (Redeem identCC) oracles choices expectedState expectedCont
+    marloweTx redeemer txOut $ \ i getOut v -> do
+        let out = getOut (v - value)
+        oo <- ownPubKeyTxOut (Ledger.Value value)
+        void $ signAndSubmit (Set.singleton i) [out, oo]
 
 
 
 endContract :: (Monad m, WalletAPI m) => (TxOut', TxOutRef') -> m ()
-endContract (TxOut _ val _, ref) = do
-    oo <- ownPubKeyTxOut val
-    let scr = marloweValidator
-    let input = Input SpendDeposit [] []
-        i   = scriptTxIn ref scr $ UTXO.Redeemer $ UTXO.lifted input
-    void $ signAndSubmit (Set.singleton i) [oo]
-
+endContract txOut = do
+    let redeemer = createRedeemer SpendDeposit [] [] (State [] []) Null
+    marloweTx redeemer txOut $ \ i _ v -> do
+        oo <- ownPubKeyTxOut (Ledger.Value v)
+        void $ signAndSubmit (Set.singleton i) [oo]
 
 \end{code}
 \end{document}
