@@ -84,10 +84,17 @@ let
       pkgsGenerated = ./pkgs;
       filter = localLib.isPlutus;
       filterOverrides = {
-        # split check is broken for things with test tool dependencies
         splitCheck = let
-          pkgList = pkgs.lib.remove "plutus-use-cases" (pkgs.lib.remove "plutus-tx" localLib.plutusPkgList);
-          in name: builtins.elem name pkgList;
+          dontSplit = [ 
+            # Broken for things with test tool dependencies
+            "plutus-use-cases"
+            "plutus-tx"
+            # Broken for things which pick up other files at test runtime
+            "plutus-playground-server"
+          ];
+          # Split only local packages not in the don't split list
+          doSplit = builtins.filter (name: !(builtins.elem name dontSplit)) localLib.plutusPkgList;
+          in name: builtins.elem name doSplit;
       };
       requiredOverlay = ./nix/overlays/required.nix;
     };
