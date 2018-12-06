@@ -33,14 +33,12 @@ import           Playground.API               (Evaluation (program, sourceCode),
                                                SourceCode (SourceCode), wallets)
 import           Playground.Contract          (payToPublicKey)
 import qualified Playground.TH                as TH
+import           Playground.Usecases          (vesting)
 import           System.Directory             (removeFile)
 import           System.IO.Temp               (writeSystemTempFile)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
 $(TH.mkFunction 'payToPublicKey)
-
-usecase :: BS.ByteString
-usecase = $(embedFile "./usecases/Vesting.hs")
 
 defaultExtensions :: [Extension]
 defaultExtensions =
@@ -79,15 +77,20 @@ avoidUnsafe s =
 addGhcOptions :: SourceCode -> SourceCode
 addGhcOptions = Newtype.over SourceCode (mappend opts)
   where
-    opts = "{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}\n"
+    opts =
+        "{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}\n"
 
 writeTempSource :: MonadIO m => SourceCode -> m FilePath
-writeTempSource s = liftIO $ writeSystemTempFile "Contract.hs" (Text.unpack . Newtype.unpack . addGhcOptions $ s)
+writeTempSource s =
+    liftIO $
+    writeSystemTempFile
+        "Contract.hs"
+        (Text.unpack . Newtype.unpack . addGhcOptions $ s)
 
-warmup  ::
+warmup ::
        (MonadInterpreter m, MonadError PlaygroundError m)
     => m [FunctionSchema Schema]
-warmup = compile . SourceCode . Text.pack . BSC.unpack $ usecase
+warmup = compile . SourceCode . Text.pack . BSC.unpack $ vesting
 
 compile ::
        (MonadInterpreter m, MonadError PlaygroundError m)

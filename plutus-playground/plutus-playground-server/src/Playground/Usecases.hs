@@ -3,16 +3,16 @@
 module Playground.Usecases where
 
 import           Data.ByteString (ByteString)
-import           Data.FileEmbed  (embedFile)
+import           Data.FileEmbed  (embedFile, makeRelativeToProject)
 
 vesting :: ByteString
-vesting = $(embedFile "./usecases/Vesting.hs")
+vesting = $(makeRelativeToProject "usecases/Vesting.hs" >>= embedFile)
 
 game :: ByteString
-game = $(embedFile "./usecases/Game.hs")
+game = $(makeRelativeToProject "./usecases/Game.hs" >>= embedFile)
 
 messages :: ByteString
-messages = $(embedFile "./usecases/Messages.hs")
+messages = $(makeRelativeToProject "./usecases/Messages.hs" >>= embedFile)
 
 crowdfunding :: ByteString
-crowdfunding = $(embedFile "./usecases/Crowdfunding.hs")
+crowdfunding = $(makeRelativeToProject "./usecases/Crowdfunding.hs" >>= embedFile)

@@ -10,7 +10,11 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
-extra-source-files:
+data-files:
+  usecases/CrowdFunding.hs
+  usecases/Game.hs
+  usecases/Messages.hs
+  usecases/Vesting.hs
 
 source-repository head
   type: git
@@ -152,8 +156,10 @@ test-suite plutus-playground-server-test
     , swagger2
     , text
     , transformers
+    , unordered-containers
     , wai
     , wai-cors
     , wai-extra
+    , wallet-api
     , warp
   default-language: Haskell2010
