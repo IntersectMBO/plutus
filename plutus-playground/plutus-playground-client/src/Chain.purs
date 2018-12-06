@@ -102,7 +102,7 @@ lightPurple :: Color
 lightPurple = rgb 163 128 188
 
 lightBlue :: Color
-lightBlue = rgb 114 158 237
+lightBlue = rgb 88 119 182
 
 fadedBlue :: Color
 fadedBlue = rgb 35 39 64
