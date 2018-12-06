@@ -16,10 +16,10 @@ import           GHC.Generics                 (Generic)
 import           Playground.Contract
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Validation as PlutusTx
 import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Tx)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
+import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                                WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
                                                ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
@@ -111,7 +111,7 @@ contributionScript cmp  = ValidatorScript val where
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
-            signedByT = $$(PlutusTx.txSignedBy)
+            signedByT = $$(Validation.txSignedBy)
 
             PendingTx ps outs _ _ (Height h) _ _ = p
 
@@ -137,7 +137,7 @@ contributionScript cmp  = ValidatorScript val where
                         -- of the contributor (that is, to the `a` argument of the data script)
 
                         contributorTxOut :: PendingTxOut -> Bool
-                        contributorTxOut o = $$(PlutusTx.maybe) False (\pk -> $$(PlutusTx.eqPubKey) pk a) ($$(PlutusTx.pubKeyOutput) o)
+                        contributorTxOut o = $$(PlutusTx.maybe) False (\pk -> $$(Validation.eqPubKey) pk a) ($$(Validation.pubKeyOutput) o)
 
                         contributorOnly = $$(PlutusTx.all) contributorTxOut outs
 
@@ -154,7 +154,7 @@ contributionScript cmp  = ValidatorScript val where
                                     signedByT p campaignOwner
                     in payToOwner
         in
-        if isValid then () else PlutusTx.error ()) ||])
+        if isValid then () else $$(PlutusTx.error) ()) ||])
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger

@@ -14,7 +14,6 @@ import           Data.Text
 import           Control.Monad.Error (MonadError(..))
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Validation as PlutusTx
 import           Ledger as Ledger
 import           Ledger.Validation
 import Wallet hiding (payToPubKey)
@@ -38,7 +37,7 @@ gameValidator = ValidatorScript (Ledger.fromPlcCode $$(PlutusTx.plutus [||
 
     if guess == number
     then ()
-    else $$(PlutusTx.traceH) "WRONG!" (PlutusTx.error ())
+    else $$(PlutusTx.traceH) "WRONG!" ($$(PlutusTx.error) ())
 
     ||]))
 

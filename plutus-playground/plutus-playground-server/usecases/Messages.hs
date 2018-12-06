@@ -18,9 +18,9 @@ import           GHC.Generics                 (Generic)
 import           Playground.Contract
 
 import qualified Language.PlutusTx            as PlutusTx
-import qualified Language.PlutusTx.Validation as PlutusTx
 import           Ledger
 import           Ledger.Validation
+import qualified Ledger.Validation            as Validation
 import           Wallet
 
 logAMessage :: (WalletAPI m, WalletDiagnostics m) => m ()
