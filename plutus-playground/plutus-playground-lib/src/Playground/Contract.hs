@@ -6,7 +6,7 @@ module Playground.Contract
     , ToJSON
     , FromJSON
     , FunctionSchema
-    , payToPubKey
+    , payToPublicKey
     ) where
 
 import           Control.Monad  (void)
@@ -18,5 +18,5 @@ import           Playground.TH  (mkFunction)
 import           Wallet.API     (WalletAPI)
 import qualified Wallet.API     as WAPI
 
-payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
-payToPubKey v = void . WAPI.payToPubKey v
+payToPublicKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
+payToPublicKey v = void . WAPI.payToPubKey v

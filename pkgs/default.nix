@@ -55774,6 +55774,7 @@ license = stdenv.lib.licenses.bsd3;
 , data-default-class
 , directory
 , exceptions
+, file-embed
 , gitrev
 , hint
 , hspec
@@ -55824,6 +55825,7 @@ cryptonite
 data-default-class
 directory
 exceptions
+file-embed
 gitrev
 hint
 http-types
@@ -55853,9 +55855,11 @@ warp
 executableHaskellDepends = [
 aeson
 base
+bytestring
 containers
 cryptonite
 data-default-class
+file-embed
 gitrev
 hspec
 http-media

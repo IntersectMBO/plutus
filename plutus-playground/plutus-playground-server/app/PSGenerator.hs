@@ -16,6 +16,7 @@ module PSGenerator
 import           Control.Applicative                       ((<|>))
 import           Control.Lens                              (set, (&))
 import           Control.Monad.Reader.Class                (MonadReader)
+import qualified Data.ByteString                           as BS
 import           Data.Monoid                               ()
 import           Data.Proxy                                (Proxy (Proxy))
 import qualified Data.Set                                  as Set ()
@@ -33,9 +34,11 @@ import           Ledger.Types                              (Address, Height, Pub
 import           Playground.API                            (CompilationError, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, SimpleArgumentSchema, SourceCode)
 import qualified Playground.API                            as API
+import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
                                                             defaultSettings, languageBridge, writeAPIModuleWithSettings,
                                                             _generateSubscriberAPI)
+import           System.FilePath                           ((</>))
 import           Wallet.API                                (WalletAPIError)
 import           Wallet.Emulator.Types                     (EmulatorEvent, Wallet)
 import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner)
@@ -111,6 +114,18 @@ dataScriptBridge = do
     typeModule ^== "Ledger.Types"
     pure psString
 
+validatorScriptBridge :: BridgePart
+validatorScriptBridge = do
+    typeName ^== "ValidatorScript"
+    typeModule ^== "Ledger.Types"
+    pure psString
+
+redeemerScriptBridge :: BridgePart
+redeemerScriptBridge = do
+    typeName ^== "RedeemerScript"
+    typeModule ^== "Ledger.Types"
+    pure psString
+
 myBridge :: BridgePart
 myBridge =
     defaultBridge <|> integerBridge <|> scientificBridge <|> insOrdHashMapBridge <|>
@@ -121,6 +136,8 @@ myBridge =
     sha256Bridge <|>
     redeemerBridge <|>
     validatorBridge <|>
+    validatorScriptBridge <|>
+    redeemerScriptBridge <|>
     dataScriptBridge
 
 data MyBridge
@@ -168,6 +185,23 @@ mySettings =
     (defaultSettings & set apiModuleName "Playground.Server")
         {_generateSubscriberAPI = False}
 
+multilineString :: BS.ByteString -> BS.ByteString -> BS.ByteString
+multilineString name value =
+    "\n\n" <> name <> " :: String\n" <> name <> " = \"\"\"" <> value <> "\"\"\""
+
+psModule :: BS.ByteString -> BS.ByteString -> BS.ByteString
+psModule name body = "module " <> name <> " where" <> body
+
+writeUsecases :: FilePath -> IO ()
+writeUsecases outputDir = do
+    let usecases =
+            multilineString "vesting" vesting <> multilineString "game" game <>
+            multilineString "crowdfunding" crowdfunding <>
+            multilineString "messages" messages
+        usecasesModule = psModule "Playground.Usecases" usecases
+    BS.writeFile (outputDir </> "Playground" </> "Usecases.purs") usecasesModule
+    putStrLn outputDir
+
 generate :: FilePath -> IO ()
 generate outputDir = do
     writeAPIModuleWithSettings
@@ -176,3 +210,4 @@ generate outputDir = do
         myBridgeProxy
         (Proxy @API.API)
     writePSTypes outputDir (buildBridge myBridge) myTypes
+    writeUsecases outputDir

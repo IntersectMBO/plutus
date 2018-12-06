@@ -123,6 +123,7 @@ data Query a
   = HandleEditorMessage AceMessage a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
+  | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
   | AddWallet a

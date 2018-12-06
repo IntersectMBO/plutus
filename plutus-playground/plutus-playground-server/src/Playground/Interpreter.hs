@@ -7,11 +7,14 @@ module Playground.Interpreter where
 import           Control.Monad                (unless)
 import           Control.Monad.Catch          (finally, throwM)
 import           Control.Monad.Error.Class    (MonadError, throwError)
-import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Control.Newtype.Generics     as Newtype
 import           Data.Aeson                   (ToJSON, encode)
 import qualified Data.Aeson                   as JSON
+import qualified Data.ByteString              as BS
+import qualified Data.ByteString.Char8        as BSC
 import qualified Data.ByteString.Lazy.Char8   as BSL
+import           Data.FileEmbed               (embedFile)
 import           Data.List                    (intercalate)
 import           Data.Maybe                   (catMaybes)
 import           Data.Monoid                  ((<>))
@@ -27,14 +30,15 @@ import           Ledger.Types                 (Blockchain, Value)
 import           Playground.API               (Evaluation (program, sourceCode), Expression (Action, Wait), Fn (Fn),
                                                FunctionSchema,
                                                PlaygroundError (DecodeJsonTypeError, FunctionSchemaError, InterpreterError),
-                                               SourceCode, wallets)
-import           Playground.Contract          (payToPubKey)
+                                               SourceCode (SourceCode), wallets)
+import           Playground.Contract          (payToPublicKey)
 import qualified Playground.TH                as TH
+import           Playground.Usecases          (vesting)
 import           System.Directory             (removeFile)
 import           System.IO.Temp               (writeSystemTempFile)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
-$(TH.mkFunction 'payToPubKey)
+$(TH.mkFunction 'payToPublicKey)
 
 defaultExtensions :: [Extension]
 defaultExtensions =
@@ -70,20 +74,36 @@ avoidUnsafe s =
         (InterpreterError
              (WontCompile [GhcError "Cannot interpret unsafe functions"]))
 
+addGhcOptions :: SourceCode -> SourceCode
+addGhcOptions = Newtype.over SourceCode (mappend opts)
+  where
+    opts =
+        "{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}\n"
+
+writeTempSource :: MonadIO m => SourceCode -> m FilePath
+writeTempSource s =
+    liftIO $
+    writeSystemTempFile
+        "Contract.hs"
+        (Text.unpack . Newtype.unpack . addGhcOptions $ s)
+
+warmup ::
+       (MonadInterpreter m, MonadError PlaygroundError m)
+    => m [FunctionSchema Schema]
+warmup = compile . SourceCode . Text.pack . BSC.unpack $ vesting
+
 compile ::
        (MonadInterpreter m, MonadError PlaygroundError m)
     => SourceCode
     -> m [FunctionSchema Schema]
 compile s = do
     avoidUnsafe s
-    fileName <-
-        liftIO $
-        writeSystemTempFile "Contract.hs" (Text.unpack . Newtype.unpack $ s)
+    fileName <- writeTempSource s
     loadSource fileName $ \moduleName -> do
         exports <- getModuleExports moduleName
         walletFunctions <- catMaybes <$> traverse isWalletFunction exports
         schemas <- traverse getSchema walletFunctions
-        pure (schemas <> pure payToPubKeySchema)
+        pure (schemas <> pure payToPublicKeySchema)
 
 jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode
@@ -112,11 +132,7 @@ runFunction ::
 runFunction evaluation = do
     avoidUnsafe $ sourceCode evaluation
     expr <- mkExpr evaluation
-    fileName <-
-        liftIO $
-        writeSystemTempFile
-            "Contract.hs"
-            (Text.unpack . Newtype.unpack . sourceCode $ evaluation)
+    fileName <- writeTempSource $ sourceCode evaluation
     loadSource fileName $ \_ -> do
         setImportsQ
             [ ("Playground.Interpreter.Util", Nothing)

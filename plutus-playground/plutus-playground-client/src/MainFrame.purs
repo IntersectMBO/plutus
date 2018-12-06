@@ -27,6 +27,7 @@ import Data.Int as Int
 import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Map as Map
 import Data.Maybe (Maybe(Nothing, Just), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.RawJson (RawJson(..))
@@ -56,7 +57,7 @@ import Wallet.Emulator.Types (Wallet(..), _Wallet)
 
 initialState :: State
 initialState =
-  { editorContents: StaticData.editorContents
+  { editorContents: fromMaybe "" $ Map.lookup "Vesting" StaticData.editorContents
   , compilationResult: NotAsked
   , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
   , actions: []
@@ -101,6 +102,14 @@ eval (HandleBalancesChartMessage EC.Initialized next) = do
 
 -- We just ignore most ECharts events.
 eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
+  pure next
+
+eval (LoadScript key next) = do
+  case Map.lookup key StaticData.editorContents of
+    Nothing -> pure unit
+    Just contents -> do
+      assign _editorContents contents
+      withEditor $ Editor.setValue contents (Just 1)
   pure next
 
 eval (CompileProgram next) = do
@@ -246,14 +255,16 @@ updateChartsIfPossible = do
 
 -- | Handles the messy business of running an editor command iff the
 -- editor is up and running.
-withEditor :: forall m eff.
+withEditor :: forall m eff a.
   MonadEff (ace :: ACE | eff) m
-  => (Editor -> Eff (ace :: ACE | eff) Unit)
+  => (Editor -> Eff (ace :: ACE | eff) a)
   -> HalogenM State Query ChildQuery ChildSlot Void m Unit
 withEditor action = do
   mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
   case mEditor of
-    Just (Just editor) -> liftEff $ action editor
+    Just (Just editor) -> do
+      void $ liftEff $ action editor
+      pure unit
     _ -> pure unit
 
 showCompilationErrorAnnotations :: forall m.
