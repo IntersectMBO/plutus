@@ -6,7 +6,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -213,8 +212,3 @@ generate outputDir = do
         (Proxy @API.API)
     writePSTypes outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir
-
-k :: IO ()
-k =
-    generate
-        "/Users/kris/Work/Clients/IOHK/plutus/plutus-playground/plutus-playground-client/src"
