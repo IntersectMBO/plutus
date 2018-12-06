@@ -10,11 +10,13 @@ import Data.Int as Int
 import Data.Lens (view)
 import Data.Maybe (Maybe, fromMaybe, maybe)
 import Data.Newtype (unwrap)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, text)
+import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, type_, value)
@@ -47,61 +49,62 @@ actionsPane actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
-    , div
+    , Keyed.div
         [ classes [ ClassName "actions", row ] ]
-        (Array.cons addWaitActionPane (mapWithIndex actionPane actions))
+        (Array.snoc (mapWithIndex actionPane actions) addWaitActionPane)
     , br_
     , row_ [ evaluateActionsPane evaluationResult actions ]
     , br_
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. Int -> Action -> HTML p Query
+actionPane :: forall p. Int -> Action -> Tuple String (HTML p Query)
 actionPane index action =
-  col4_
-    [ div [ class_ $ ClassName "action" ]
-      [ div [ class_ card ]
-        [ cardBody_
-          [ div
-              [ classes [ badge, badgePrimary, ClassName "badge-action" ] ]
-              [ text $ show (index + 1) ]
-          , button
-              [ classes [ btn, btnInfo, pullRight ]
-              , onClick $ input_ $ RemoveAction index
-              ]
-              [ icon Close ]
-          , case action of
-              (Action {mockWallet, functionSchema}) ->
-                div_
-                  [ h3_
-                      [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet)
-                      , text ": "
-                      , text $ unwrap $ _.functionName $ unwrap functionSchema
-                      ]
-                  , actionArgumentForm index $ _.argumentSchema $ unwrap functionSchema
-                  ]
-              (Wait {blocks}) ->
-                div_
-                  [ h3_ [ text "Wait" ]
-                  , row_
-                      [ col_ [ text "Time" ]
-                      , col_ [
-                          input
-                            [ type_ InputNumber
-                            , value $ show blocks
-                            , placeholder "Int"
-                            , onValueChange $ map (HQ.action <<< SetWaitTime index) <<< Int.fromString
-                            ]
+  Tuple (show index) $
+    col4_
+      [ div [ class_ $ ClassName "action" ]
+        [ div [ class_ card ]
+          [ cardBody_
+            [ div
+                [ classes [ badge, badgePrimary, ClassName "badge-action" ] ]
+                [ text $ show (index + 1) ]
+            , button
+                [ classes [ btn, btnInfo, pullRight ]
+                , onClick $ input_ $ RemoveAction index
+                ]
+                [ icon Close ]
+            , case action of
+                (Action {mockWallet, functionSchema}) ->
+                  div_
+                    [ h3_
+                        [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet)
+                        , text ": "
+                        , text $ unwrap $ _.functionName $ unwrap functionSchema
                         ]
-                      ]
-                  ]
+                    , actionArgumentForm index $ _.argumentSchema $ unwrap functionSchema
+                    ]
+                (Wait {blocks}) ->
+                  div_
+                    [ h3_ [ text "Wait" ]
+                    , row_
+                        [ col_ [ text "Time" ]
+                        , col_ [
+                            input
+                              [ type_ InputNumber
+                              , value $ show blocks
+                              , placeholder "Int"
+                              , onValueChange $ map (HQ.action <<< SetWaitTime index) <<< Int.fromString
+                              ]
+                          ]
+                        ]
+                    ]
+            ]
+          , cardFooter_
+             [ validationErrorsPane action
+             ]
           ]
-        , cardFooter_
-           [ validationErrorsPane action
-           ]
         ]
       ]
-    ]
 
 validationErrorsPane :: forall p i. Action -> HTML p i
 validationErrorsPane action =
@@ -160,21 +163,22 @@ actionArgumentField _ Unknowable =
   div_ [ text "Unsupported."
        ]
 
-addWaitActionPane :: forall p. HTML p Query
+addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
-  col4_
-    [ div
-        [ class_ $ ClassName "add-wait-action" ]
-        [ div [ class_ card
-              , onClick $ input_ $ AddWaitAction 10
-              ]
-            [ cardBody_
-                [ icon Plus
-                , div_ [ text "Add Wait Action" ]
+  Tuple "add-wait" $
+    col4_
+      [ div
+          [ class_ $ ClassName "add-wait-action" ]
+          [ div [ class_ card
+                , onClick $ input_ $ AddWaitAction 10
                 ]
-            ]
-        ]
-    ]
+              [ cardBody_
+                  [ icon Plus
+                  , div_ [ text "Add Wait Action" ]
+                  ]
+              ]
+          ]
+      ]
 
 evaluateActionsPane :: forall p. RemoteData AjaxError Blockchain -> Array Action -> HTML p Query
 evaluateActionsPane evaluationResult actions =
