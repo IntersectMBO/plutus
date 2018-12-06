@@ -38,7 +38,7 @@
         listen = [{ addr = "0.0.0.0"; port = 80; }];
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:4000/";
+            proxyPass = "http://playground/";
             proxyWebsockets = true;
             extraConfig = ''
               add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
@@ -46,7 +46,7 @@
               '';
           };
           "/+" = {
-            proxyPass = "http://127.0.0.1:4000/";
+            proxyPass = "http://playground/";
             proxyWebsockets = true;
           };
         };
