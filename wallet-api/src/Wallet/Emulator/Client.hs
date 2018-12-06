@@ -25,7 +25,7 @@ import           Control.Monad.Writer       (MonadWriter, WriterT, runWriterT, t
 import           Data.Foldable              (fold)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
-import           Ledger                     (Block, Height, Tx, TxIn', TxOut', Value)
+import           Ledger                     (Address', Block, Height, Tx, TxIn', TxOut', Value)
 import           Servant.API                ((:<|>) ((:<|>)), NoContent)
 import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
 import           Wallet.API                 (KeyPair, WalletAPI (..))
@@ -47,11 +47,12 @@ getTransactions :: ClientM [Tx]
 processPending :: ClientM [Tx]
 blockValidated :: Wallet -> Block -> ClientM ()
 getAddresses :: Wallet -> ClientM AddressMap
+startWatching' :: Wallet -> Address' -> ClientM NoContent
 getBlockHeight :: Wallet -> ClientM Height
 setBlockHeight :: Wallet -> Height -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> getBlockHeight :<|> getTransactions) :<|> (blockValidated :<|> setBlockHeight) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> startWatching' :<|>getBlockHeight :<|> getTransactions) :<|> (blockValidated :<|> setBlockHeight) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -96,6 +97,7 @@ instance WalletAPI WalletClient where
   register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
   watchedAddresses = liftWallet getAddresses
   blockHeight = liftWallet getBlockHeight
+  startWatching a = void $ liftWallet (`startWatching'` a)
 
 handleNotification :: Notification -> (Wallet -> ClientM ())
 handleNotification (BlockValidated block) = (`blockValidated` block)

@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 -- | A futures contract in Plutus. This example illustrates three concepts.
 --   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
---   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.Plutus.Runtime)
+--   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.PlutusTx.Coordination.Contracts)
 --   3. Using the redeemer script to model actions that the participants in the contract may take.
 module Language.PlutusTx.Coordination.Contracts.Future(
     -- * Data types
@@ -29,11 +29,11 @@ import           Control.Monad.Error.Class    (MonadError (..))
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx 
-import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), Validator (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
                                               PendingTxOutType (..), Signed (..), ValidatorHash)
+import qualified Ledger.Validation            as Validation
 import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
 
 import           Prelude                      hiding ((&&), (||))
@@ -64,7 +64,7 @@ their margin. If either party fails to make a margin payment then the contract
 will be settled early.
 
 The current value of the underlying asset is determined by an oracle. See note
-[Oracles] in Language.Plutus.Runtime.
+[Oracles] in Language.PlutusTx.Coordination.Contracts.
 
 -}
 
@@ -104,7 +104,7 @@ settle refs ft fd ov = do
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = futureDataMarginLong fd + delta
         shortOut = futureDataMarginShort fd - delta
-        red = Ledger.Redeemer $ Ledger.lifted $ Settle ov
+        red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
         outs = [
             Ledger.pubKeyTxOut longOut (futureDataLong fd),
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
@@ -125,7 +125,7 @@ settleEarly refs ft fd ov = do
     let totalVal = futureDataMarginLong fd + futureDataMarginShort fd
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-        red = Ledger.Redeemer $ Ledger.lifted $ Settle ov
+        red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
     void $ signAndSubmit (Set.fromList inp) outs
 
 adjustMargin :: (
@@ -145,7 +145,7 @@ adjustMargin refs ft fd vl = do
                 | otherwise = otherError "Private key is not part of futures contrat"
             in fd''
     let
-        red = Ledger.Redeemer $ Ledger.lifted AdjustMargin
+        red = Ledger.RedeemerScript $ Ledger.lifted AdjustMargin
         ds  = DataScript $ Ledger.lifted fd'
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
@@ -190,8 +190,8 @@ data FutureRedeemer =
     -- ^ Settle the contract
     deriving Generic
 
-validatorScript :: Future -> Validator
-validatorScript ft = Validator val where
+validatorScript :: Future -> ValidatorScript
+validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
     inner = Ledger.fromPlcCode $$(PlutusTx.plutus [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
@@ -200,7 +200,7 @@ validatorScript ft = Validator val where
                 PendingTx _ outs _ _ (Height height) _ ownHash = p
 
                 eqPk :: PubKey -> PubKey -> Bool
-                eqPk = $$(PlutusTx.eqPubKey)
+                eqPk = $$(Validation.eqPubKey)
 
                 infixr 3 &&
                 (&&) :: Bool -> Bool -> Bool
@@ -235,7 +235,7 @@ validatorScript ft = Validator val where
                         penalty + delta
 
                 isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-                isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(PlutusTx.eqPubKey) k) ($$(PlutusTx.pubKeyOutput) o)
+                isPubKeyOutput o k = $$(PlutusTx.maybe) False ($$(Validation.eqPubKey) k) ($$(Validation.pubKeyOutput) o)
 
                 --  | Check if a `PendingTxOut` is a public key output for the given pub. key and value
                 paidOutTo :: Int -> PubKey -> PendingTxOut -> Bool
@@ -245,7 +245,7 @@ validatorScript ft = Validator val where
 
                 verifyOracle :: OracleValue a -> (Height, a)
                 verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else PlutusTx.error ()
+                    if pk `eqPk` futurePriceOracle then t else $$(PlutusTx.error) ()
 
                 isValid =
                     case r of
@@ -300,12 +300,12 @@ validatorScript ft = Validator val where
                                     case ot of
                                         PendingTxOut (Value v) (Just (vh, _)) DataTxOut ->
                                             v > marginShort + marginLong
-                                            && $$(PlutusTx.eqValidator) vh ownHash
+                                            && $$(Validation.eqValidator) vh ownHash
                                         _ -> True
 
                                 _ -> False
             in
-                if isValid then () else PlutusTx.error ()
+                if isValid then () else $$(PlutusTx.error) ()
             ||])
 
 PlutusTx.makeLift ''Future

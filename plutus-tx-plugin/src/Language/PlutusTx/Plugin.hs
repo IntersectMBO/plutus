@@ -23,7 +23,7 @@ import           Language.PlutusTx.Compiler.Error
 import           Language.PlutusTx.Compiler.Expr
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
-import           Language.PlutusTx.Lift
+import qualified Language.PlutusTx.Lift.Class           as Lift
 import           Language.PlutusTx.PIRTypes
 import           Language.PlutusTx.PLCTypes
 import           Language.PlutusTx.Utils
@@ -66,7 +66,7 @@ data PlcCode = PlcCode {
 
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
-instance LiftPir PlcCode where
+instance Lift.Lift PlcCode where
     lift (getPlc -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
 
 getSerializedPlc :: PlcCode -> BSL.ByteString

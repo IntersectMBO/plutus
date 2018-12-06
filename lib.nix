@@ -25,6 +25,10 @@ let
   plutusPkgList = [
     "language-plutus-core"
     "plutus-core-interpreter"
+    "plutus-playground-server"
+    "plutus-playground-lib"
+    "plutus-playground-client"
+    "plutus-server-invoker"
     "plutus-exe"
     "plutus-ir"
     "plutus-tx"
@@ -33,10 +37,12 @@ let
     "wallet-api"
   ];
 
+  plutusHaskellPkgList = lib.filter (v: v != "plutus-playground-client" && v != "plutus-server-invoker") plutusPkgList;
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
   withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
+  comp = f: g: (v: f(g v));
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusPkgList withDevTools pkgs nixpkgs;
+  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList withDevTools pkgs nixpkgs comp;
 }

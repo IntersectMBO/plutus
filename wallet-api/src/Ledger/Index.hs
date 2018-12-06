@@ -141,10 +141,9 @@ checkValidInputs h tx = do
 lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn', TxOut')]
 lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . txInputs
 
--- | Matching pair of transaction input and transaction output. The type
---   parameter is to allow the validation data to be inserted.
+-- | Matching pair of transaction input and transaction output.
 data InOutMatch =
-    ScriptMatch Ledger.Validator Ledger.Redeemer DataScript (Ledger.Address (Digest SHA256))
+    ScriptMatch Ledger.ValidatorScript Ledger.RedeemerScript DataScript (Ledger.Address (Digest SHA256))
     | PubKeyMatch PubKey Signature
     deriving (Eq, Ord, Show)
 

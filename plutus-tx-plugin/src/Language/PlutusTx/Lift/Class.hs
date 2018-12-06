@@ -8,7 +8,7 @@
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
-module Language.PlutusTx.Lift.LiftPir (TypeablePir (..),  LiftPir (..), makeTypeablePir, makeLiftPir)where
+module Language.PlutusTx.Lift.Class (Typeable (..),  Lift (..), makeTypeable, makeLift)where
 
 import           Language.PlutusTx.Lift.THUtils
 
@@ -45,7 +45,7 @@ We want to reuse PIR's machinery for defining datatypes. However, one cannot
 get a PLC Type consisting of the compiled PIR type, because the compilation of the
 definitions is done by making a *term*.
 
-So we use the abstract support for handling definitions in PIR, MonadDefs. TypeablePir
+So we use the abstract support for handling definitions in PIR, MonadDefs. Typeable
 then has `typeRep :: (MonadDefs m, MonadQuote m) => Proxy a -> m (Type TyName Name ())`,
 which says that you can get the type in some context where you can make definitions (which
 you will later have to discharge yourself).
@@ -69,13 +69,13 @@ inline all the definitions so that the overall expression can have the right con
 
 -- Constraints
 
--- | Make a 'TypeablePir' constraint.
+-- | Make a 'Typeable' constraint.
 typeablePir :: TH.Type -> TH.Type
-typeablePir ty = TH.classPred ''TypeablePir [ty]
+typeablePir ty = TH.classPred ''Typeable [ty]
 
--- | Make a 'LiftPir' constraint.
+-- | Make a 'Lift' constraint.
 liftPir :: TH.Type -> TH.Type
-liftPir ty = TH.classPred ''LiftPir [ty]
+liftPir ty = TH.classPred ''Lift [ty]
 
 {- Note [Closed constraints]
 There is no point adding constraints that are "closed", i.e. don't mention any of the
@@ -138,17 +138,17 @@ tvNameAndKind = \case
 -- Types and kinds
 
 {- Note [Type variables]
-We handle types in almost exactly the same way when we are constructing TypeablePir
-instances and when we are constructing LiftPir instances. However, there is one key difference
+We handle types in almost exactly the same way when we are constructing Typeable
+instances and when we are constructing Lift instances. However, there is one key difference
 in how we handle type variables.
 
-In the TypeablePir case, the type variables we see will be the type variables of the
+In the Typeable case, the type variables we see will be the type variables of the
 datatype, which we want to map into the variable declarations that we construct. This requires
 us to do some mapping between them at *runtime*, and keep a scope around to map between the TH names
 and the PLC types.
 
-In the LiftPir case, type variables will be free type variables in the instance, and should be handled
-by appropriate TypeablePir constraints for those variables. We get the PLC types by just calling
+In the Lift case, type variables will be free type variables in the instance, and should be handled
+by appropriate Typeable constraints for those variables. We get the PLC types by just calling
 typeRep.
 -}
 
@@ -188,7 +188,7 @@ compileType vars = \case
         Local    -> pure [| getLocalName name |]
     t -> die $ "Unsupported type: " ++ show t
 
--- | Compile a type with the given name using 'typeRep' and incurring a corresponding 'TypeablePir' dependency.
+-- | Compile a type with the given name using 'typeRep' and incurring a corresponding 'Typeable' dependency.
 compileTypeableType :: (THCompiling m) => TH.Type -> TH.Name -> m (TH.Q TH.Exp)
 compileTypeableType ty name = do
     addTypeableDep ty
@@ -201,12 +201,12 @@ compileTypeableType ty name = do
                   Nothing -> typeRep (undefined :: Proxy $(pure ty))
           |]
 
--- TypeablePir
+-- Typeable
 
 -- TODO: try and make this work with type applications
 -- | Class for types which have a corresponding Plutus IR type. Instances should usually be declared
 -- for type constructors, instances for applied types will be derived.
-class TypeablePir (a :: k) where
+class Typeable (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
     typeRep :: (RTCompiling m) => Proxy a -> m (Type TyName ())
 
@@ -263,8 +263,8 @@ compileConstructorDecl TH.ConstructorInfo{TH.constructorName=name, TH.constructo
               pure $ VarDecl () constrName constrTy
           |]
 
-makeTypeablePir :: TH.Name -> TH.Q [TH.Dec]
-makeTypeablePir name = do
+makeTypeable :: TH.Name -> TH.Q [TH.Dec]
+makeTypeable name = do
     requireExtension TH.ScopedTypeVariables
 
     info <- TH.reifyDatatype name
@@ -276,10 +276,10 @@ makeTypeablePir name = do
     decl <- TH.funD 'typeRep [TH.clause [TH.wildP] (TH.normalB rhs) []]
     pure [TH.InstanceD Nothing constraints (typeablePir (TH.ConT name)) [decl]]
 
--- LiftPir
+-- Lift
 
 -- | Class for types which can be lifted into Plutus IR.
-class LiftPir a where
+class Lift a where
     -- | Get a Plutus IR term corresponding to the given value.
     lift :: (RTCompiling m) => a -> m (Term TyName Name ())
 
@@ -320,12 +320,12 @@ compileConstructorClause TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars
             |]
         TH.clause [pat] (TH.normalB $ pure expr) []
 
-makeLiftPir :: TH.Name -> TH.Q [TH.Dec]
-makeLiftPir name = do
+makeLift :: TH.Name -> TH.Q [TH.Dec]
+makeLift name = do
     requireExtension TH.ScopedTypeVariables
 
     -- we need this too if we're lifting
-    typeableDecs <- makeTypeablePir name
+    typeableDecs <- makeTypeable name
     info <- TH.reifyDatatype name
 
     let datatypeType = TH.datatypeType info
@@ -334,15 +334,15 @@ makeLiftPir name = do
 
     {-
     Here we *do* need to add some constraints, because we're going to generate things like
-    `instance LiftPir a => LiftPir (Maybe a)`. We can't just leave these open because they refer to type variables.
+    `instance Lift a => Lift (Maybe a)`. We can't just leave these open because they refer to type variables.
 
-    We *could* put in a TypeablePir constraint for the type itself. This is somewhat more correct,
+    We *could* put in a Typeable constraint for the type itself. This is somewhat more correct,
     but GHC warns us if we do this because we always also define the instance alongside. So we just
     leave it out.
 
-    We also need to remove any LiftPir constraints we get for the type we're defining. This can happen if
+    We also need to remove any Lift constraints we get for the type we're defining. This can happen if
     we're recursive, since we'll probably end up with constructor arguments of the current type.
-    We don't want `instance LiftPir [a] => LiftPir [a]`!
+    We don't want `instance Lift [a] => Lift [a]`!
     -}
     let prunedDeps = Set.delete (LiftDep datatypeType) deps
     -- See Note [Closed constraints]
