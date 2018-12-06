@@ -62,9 +62,9 @@ gameSpec =
             "Sequential fund transfer fails - 'Game' script - 'payToPublicKey' action" $
             evaluate payAll >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [ (Wallet 1, 10) -- TODO: this is the wrong result
-                                 , (Wallet 2, 19)
-                                 , (Wallet 3, 1)
+                                 [ (Wallet 1, 10)
+                                 , (Wallet 2, 10)
+                                 , (Wallet 3, 10)
                                  ])
   where
     payAll =
