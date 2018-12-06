@@ -19,7 +19,7 @@ import           Playground.Contract
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Validation as PlutusTx
-import           Ledger                       as Ledger
+import           Ledger
 import           Ledger.Validation
 import           Wallet
 
