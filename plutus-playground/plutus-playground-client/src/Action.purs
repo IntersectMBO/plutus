@@ -2,31 +2,31 @@ module Action
        ( simulationPane
        ) where
 
-import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, cardFooter_, col4_, col_, formControl, formGroup_, pullRight, row, row_)
+import Bootstrap (badge, badgePrimary, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSuccess, btnWarning, card, cardBody_, col4_, col_, nbsp, formControl, formGroup_, invalidFeedback_, pullRight, row, row_, validFeedback_)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
 import Data.Lens (view)
-import Data.Maybe (Maybe, fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, input, label, p_, small_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, div, div_, form, h2_, h3_, input, label, p_, small_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (input_, onClick, onValueChange)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, type_, value)
+import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
 import Playground.API (EvaluationResult, FunctionSchema, SimpleArgumentSchema)
-import Prelude (const, map, show, ($), (+), (/=), (<$>), (<<<))
+import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), _MockWallet, _wallet, validate)
+import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, _MockWallet, _wallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -99,56 +99,57 @@ actionPane index action =
                         ]
                     ]
             ]
-          , cardFooter_
-             [ validationErrorsPane action
-             ]
           ]
         ]
       ]
 
-validationErrorsPane :: forall p i. Action -> HTML p i
-validationErrorsPane action =
-  div_ $ validationErrorPane <$> validate action
-  where
-    validationErrorPane err = div_ [ code_ [ text $ show err ] ]
-
 validationClasses ::
   forall a.
-  Maybe a
+  SimpleArgument
+  -> Maybe a
   -> Array ClassName
-validationClasses =
-  maybe [ ClassName "error" ] (const [])
+validationClasses arg Nothing = [ ClassName "error" ]
+validationClasses arg (Just _) = []
 
 actionArgumentForm :: forall p. Int -> Array SimpleArgument -> HTML p Query
 actionArgumentForm index arguments =
-  div_
+  form [ class_ $ ClassName "was-validated" ]
     (Array.mapWithIndex
-       (\i argument -> PopulateAction index i <$> actionArgumentField false argument)
+       (\i argument -> PopulateAction index i <$> actionArgumentField ("Field " <> show i) false argument)
        arguments)
 
 actionArgumentField ::
   forall p. Warn "We're still not handling the Unknowable case."
-  => Boolean
+  => String
+  -> Boolean
   -> SimpleArgument
   -> HTML p FormEvent
-actionArgumentField _ (SimpleInt n) =
-  input
-    [ type_ InputNumber
-    , classes $ Array.cons formControl $ validationClasses n
-    , value $ maybe "" show n
-    , placeholder "Int"
-    , onValueChange $ map (HQ.action <<< SetIntField) <<< Int.fromString
-    ]
-actionArgumentField _ (SimpleString s) =
-  input
-    [ type_ InputText
-    , classes $ Array.cons formControl $ validationClasses s
-    , value $ fromMaybe "" s
-    , placeholder "String"
-    , onValueChange $ HE.input SetStringField
-    ]
-actionArgumentField indent (SimpleObject subFields) =
-    (if indent
+actionArgumentField context _ arg@(SimpleInt n) =
+  div_ [
+    input
+      [ type_ InputNumber
+      , class_ formControl
+      , value $ maybe "" show n
+      , required true
+      , placeholder "Int"
+      , onValueChange $ (Just <<< HQ.action <<< SetIntField <<< Int.fromString)
+      ]
+    , validationFeedback $ validate context arg
+  ]
+actionArgumentField context _ arg@(SimpleString s) =
+  div_ [
+    input
+      [ type_ InputText
+      , class_ formControl
+      , value $ fromMaybe "" s
+      , required true
+      , placeholder "String"
+      , onValueChange $ HE.input SetStringField
+      ]
+    , validationFeedback $ validate context arg
+  ]
+actionArgumentField context nested (SimpleObject subFields) =
+    (if nested
        then div [ classes [  ClassName "nested" ] ]
        else div_)
         (mapWithIndex (\i field -> map (SetSubField i) (subForm field)) subFields)
@@ -156,12 +157,18 @@ actionArgumentField indent (SimpleObject subFields) =
     subForm (name /\ arg) =
       (formGroup_
          [ label [ for name ] [ text name ]
-         , actionArgumentField true arg
+         , actionArgumentField name true arg
          ]
       )
-actionArgumentField _ Unknowable =
+actionArgumentField _ _ Unknowable =
   div_ [ text "Unsupported."
        ]
+
+validationFeedback :: forall p i. Array ValidationError -> HTML p i
+validationFeedback [] =
+  validFeedback_ [ nbsp ]
+validationFeedback errors =
+  invalidFeedback_ (text <<< show <$> errors)
 
 addWaitActionPane :: forall p. Tuple String (HTML p Query)
 addWaitActionPane =
@@ -201,6 +208,6 @@ evaluateActionsPane evaluationResult actions =
     btnText _ true = text "Fix Errors"
     btnText _ _ = text "Evaluate"
 
-    validationErrors = Array.concat $ validate <$> actions
+    validationErrors = Array.concat $ validate unit <$> actions
 
     hasErrors = validationErrors /= []

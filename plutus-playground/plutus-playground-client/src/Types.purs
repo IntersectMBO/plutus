@@ -20,7 +20,7 @@ import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationError, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
-import Prelude (class Eq, class Functor, class Ord, class Show, show, ($), (<$>), (<<<), (<>))
+import Prelude (class Eq, class Functor, class Ord, class Show, Unit, show, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet)
 
@@ -98,29 +98,32 @@ instance showValidationError :: Show ValidationError where
   show (Required path) = path <> " is required."
   show (Unsupported path) = path <> " is unsupported."
 
+class Validation ctx a where
+  validate :: ctx -> a -> Array ValidationError
+
+instance actionValidation :: Validation Unit Action where
+  validate _ (Wait _) = []
+  validate _ (Action action) =
+    Array.concat $ Array.mapWithIndex (validate <<< show) args
+    where
+      args :: Array SimpleArgument
+      args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
+
+instance simpleArgumentValidation :: Validation String SimpleArgument where
+  validate path Unknowable = [ Unsupported path ]
+  validate path (SimpleInt Nothing) = [ Required path ]
+  validate path (SimpleInt (Just _)) = []
+  validate path (SimpleString Nothing) = [ Required path ]
+  validate path (SimpleString (Just _)) = []
+  validate path (SimpleObject subArguments) =
+    Array.concat $
+      (\(Tuple name subArgument) -> addPath path <$> validate name subArgument)
+      <$>
+      subArguments
+
 addPath :: String -> ValidationError -> ValidationError
 addPath path (Required subpath) = Required $ path <> "." <> subpath
 addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
-
-validate :: Action -> Array ValidationError
-validate (Wait _) = []
-validate (Action action) =
-  Array.concat $ Array.mapWithIndex (validateArgument <<< show) args
-  where
-    args :: Array SimpleArgument
-    args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
-
-validateArgument :: forall a. String -> SimpleArgument -> Array ValidationError
-validateArgument path Unknowable = [ Unsupported path ]
-validateArgument path (SimpleInt Nothing) = [ Required path ]
-validateArgument path (SimpleInt (Just _)) = []
-validateArgument path (SimpleString Nothing) = [ Required path ]
-validateArgument path (SimpleString (Just _)) = []
-validateArgument path (SimpleObject subArguments) =
-  Array.concat $
-    (\(Tuple name subArgument) -> addPath path <$> validateArgument name subArgument)
-    <$>
-    subArguments
 
 ------------------------------------------------------------
 
@@ -142,7 +145,7 @@ data Query a
   | SetWaitTime Int Int a
 
 data FormEvent a
-  = SetIntField Int a
+  = SetIntField (Maybe Int) a
   | SetStringField String a
   | SetSubField Int (FormEvent a)
 

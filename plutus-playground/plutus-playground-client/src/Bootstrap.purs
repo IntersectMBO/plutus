@@ -217,6 +217,9 @@ alertInfo_ = div [ classes [ alert, alertInfo ] ]
 empty :: forall p i. HTML p i
 empty = text ""
 
+nbsp :: forall p i. HTML p i
+nbsp = text " "
+
 badge :: ClassName
 badge = ClassName "badge"
 
@@ -234,3 +237,15 @@ formGroup = ClassName "form-group"
 
 formGroup_ :: forall p i. Array (HTML p i) -> HTML p i
 formGroup_ = div [ class_ formGroup ]
+
+validFeedback :: ClassName
+validFeedback = ClassName "valid-feedback"
+
+validFeedback_ :: forall p i. Array (HTML p i) -> HTML p i
+validFeedback_ = div [ class_ validFeedback ]
+
+invalidFeedback :: ClassName
+invalidFeedback = ClassName "invalid-feedback"
+
+invalidFeedback_ :: forall p i. Array (HTML p i) -> HTML p i
+invalidFeedback_ = div [ class_ invalidFeedback ]
