@@ -178,7 +178,7 @@ walletActionExpr allWallets (Wait blocks) =
     " >> pure []"
 
 mkApplyExpr :: String -> [String] -> String
-mkApplyExpr functionName [] = functionName
+mkApplyExpr functionName [] = "apply" <+> functionName
 mkApplyExpr functionName [a] = "apply1" <+> functionName <+> a
 mkApplyExpr functionName [a, b] = "apply2" <+> functionName <+> a <+> b
 mkApplyExpr functionName [a, b, c] = "apply3" <+> functionName <+> a <+> b <+> c
