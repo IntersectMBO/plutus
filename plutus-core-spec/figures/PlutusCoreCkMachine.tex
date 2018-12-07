@@ -2,25 +2,27 @@
 
 \begin{document}
 
-\begin{figure*}
+
+\begin{figure}[H]
+\begin{subfigure}[c]{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Stack} & s      & ::= & f^*                               & \textrm{stacks}\\
+        \textrm{Stack} & s      & ::= & \cdot                             & \textrm{empty stack}\\
+                       &        &     & s,f                               & \textrm{stack with frame $f$ at top}\\
         \textrm{State} & \sigma & ::= & \ckforward{s}{M}                  & \textrm{computing a term}\\
-                       %&        &     & \ckforward{s}{A}                  & \textrm{computing a type}\\
+                       %&        &     & \ckforward{s}{A}                 & \textrm{computing a type}\\
                        &        &     & \ckbackward{s}{V}                 & \textrm{returning a term value}\\
-                       %&        &     & \ckbackward{s}{S}                 & \textrm{returning a type value}\\
+                       %&        &     & \ckbackward{s}{S}                & \textrm{returning a type value}\\
                        &        &     & \square V                         & \textrm{halt and return a value}\\
                        &        &     & \ckerror{}                        & \textrm{throwing an error}
     \end{array}\]
 
-    \caption{Grammar of CK Machine States}
+    \captionof{figure}{Grammar of CK Machine States}
     \label{fig:Plutus_core_ck_frames}
-\end{figure*}
+\end{subfigure}
 
 
-
-\begin{figure*}[t]
+\begin{subfigure}[c]{\linewidth}
     \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine state $\sigma$ transitions in one step to machine state $\sigma'$}
 %% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
 \begin{alignat*}{2}
@@ -31,7 +33,7 @@
         \cksteps{\ckforward{s&}{\unwrap{M}}&} {&\ckforward{s, \inUnwrapFrame{}}{M}}\\
         \cksteps{\ckforward{s&}{\lam{x}{A}{M}}&} {&\ckbackward{s}{\lam{x}{A}{M}}}\\
         \cksteps{\ckforward{s&}{\app{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&U} \qquad (\textit{$bn$ computes on $\repetition{A}$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
+        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckbackward{s}{U}} \qquad (\textit{$bn$ computes on $\repetition{A}$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
         \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
         \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
         \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
@@ -41,14 +43,15 @@
         \cksteps{\ckbackward{s, \inUnwrapFrame{}&}{\wrap{\alpha}{A}{V}}&} {&\ckbackward{s}{V}}\\
         \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
         \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
-        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&U} \qquad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
+        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckbackward{s}{U}} \qquad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
         \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
     \end{alignat*}
 
-    \caption{CK Machine}
+    \caption{CK Machine Transitions}
     \label{fig:Plutus_core_ck_machine}
-\end{figure*}
-
-
+\end{subfigure}
+\label{fig:ck-machine}
+\caption{CK machine}
+\end{figure}
 
 \end{document}

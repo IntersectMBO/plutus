@@ -35,3 +35,7 @@ again:
 clean:
 	rm -f *.aux *.log *.cov *.par *.bbl *.fls *.blg *.xml *.bcf *~
 	cd ${FIGS} && ${MAKE} clean
+
+v: ${PDF}
+	acroread ${PDF}
+

@@ -2,7 +2,10 @@
 
 \begin{document}
 
-\begin{figure*}[t]
+%% ---------------- Contexts ---------------- %%
+
+\begin{minipage}{\linewidth}
+{
     \[\begin{array}{lrclr}
         \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
                      &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
@@ -67,16 +70,15 @@
         \TrinaryInfC{\(\Gamma, \termJ{x}{A}\)}
     \end{prooftree}
 
-
-    \caption{Contexts}
+}
+    \captionof{figure}{Contexts}
     \label{fig:Plutus_core_contexts}
-\end{figure*}
+\end{minipage}
 
+%% ---------------- Kind synthesis ---------------- %%
 
-
-
-
-\begin{figure*}[t]
+\begin{minipage}{\linewidth}
+{
     \judgmentdef{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}{In context $\Gamma$, type $A$ has kind $K$}
 
     \begin{prooftree}
@@ -124,15 +126,16 @@
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}{A}}{\typeK{}}}\)}
     \end{prooftree}
 
-    \caption{Kind Synthesis}
+    \captionof{figure}{Kind Synthesis}
     \label{fig:Plutus_core_kind_synthesis}
-\end{figure*}
+}
+\end{minipage}
 
 
+%% ---------------- Type synthesis ---------------- %%
 
-
-
-\begin{figure*}[t]
+\begin{minipage}{\linewidth}
+{
     \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In context $\Gamma$, term $M$ has type $A$}
 
     \begin{prooftree}
@@ -210,19 +213,9 @@
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
 
-    \caption{Type Synthesis}
+    \captionof{figure}{Type Synthesis}
     \label{fig:Plutus_core_type_synthesis}
-\end{figure*}
-
-
-
-
-
-
-
-
-
-
-
+}
+\end{minipage}
 
 \end{document}

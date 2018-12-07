@@ -3,80 +3,103 @@
 \begin{document}
 
 \newcommand{\builtinoffset}{-3cm} 
-%% Shift things left in the big table of builtins to make it fit on the page properly
+% Shift things left in the big table of builtins to make it fit on the page properly
 
-\begin{figure*}[t]
-    \footnotesize
+\newcommand\sep{4pt}
+% The table of abbreviations previously had \\\\ at the end of each line, which
+% made it quite long. Lines are now separated by a vertical space of size \sep.
+% This makes it a bit more readable than no spacing at all, but not too long
 
-    \begin{tabular}{ll}
-        \textrm{Abbreviation} & \textrm{Expanded}\\\\
+\newcommand{\Strut}{\rule[-2mm]{0mm}{6mm}}
+%% ---------------- Abbreviations ---------------- %%
 
-        $\forall \alpha :: K.\ B$ & \(\allT{\alpha}{K}{B}\)\\\\
 
-        $\forall \alpha, \beta, \ldots :: K, \ldots.\ C$ & \(\forall \alpha :: K.\ \forall \beta :: K.\ \ldots.\ C\)\\\\
+\begin{minipage}{\linewidth}
+\centering
+    \begin{tabular}{|l|l|}
+      \hline
+      \Strut
+        \textrm{Abbreviation} & \textrm{Expanded}\\
+        \hline
+        $\forall \alpha :: K.\ B$ & \(\allT{\alpha}{K}{B}\) \rule{0mm}{4mm} \\[\sep]
 
-        $A \to B$ & \(\funT{A}{B}\)\\\\
+        $\forall \alpha, \beta, \ldots :: K, \ldots.\ C$ & \(\forall \alpha :: K.\ \forall \beta :: K.\ \ldots.\ C\)\\[\sep]
 
-        $err(A)$ & \(\error{A}\)\\\\
+        $A \to B$ & \(\funT{A}{B}\)\\[\sep]
 
-        $integer_s$ & \(\builtinT{\conIntegerType{}}{s}\)\\\\
+        $err(A)$ & \(\error{A}\)\\[\sep]
 
-        $bytestring_s$ & \(\builtinT{\conBytestringType{}}{s}\)\\\\
+        $integer_s$ & \(\builtinT{\conIntegerType{}}{s}\)\\[\sep]
 
-        $size_s$ & \(\builtinT{\conSizeType{}}{s}\)\\\\
+        $bytestring_s$ & \(\builtinT{\conBytestringType{}}{s}\)\\[\sep]
 
-        $\star$ & \(\typeK{}\)\\\\
+        $size_s$ & \(\builtinT{\conSizeType{}}{s}\)\\[\sep]
 
-        $size$ & \(\sizeK{}\)\\\\
+        $\star$ & \(\typeK{}\)\\[\sep]
 
-        $unit$ & \(\forall \alpha :: \star.\ \alpha \to \alpha\)\\\\
+        $size$ & \(\sizeK{}\)\\[\sep]
 
-        $unitval$ & \(\abs{\alpha}{\typeK{}}{\lam{x}{\alpha}{x}}\)\\\\
+        $unit$ & \(\forall \alpha :: \star.\ \alpha \to \alpha\)\\[\sep]
 
-        $boolean$ & \(\forall \alpha :: \star.\ \alpha \to \alpha \to \alpha\)\\\\
+        $unitval$ & \(\abs{\alpha}{\typeK{}}{\lam{x}{\alpha}{x}}\)\\[\sep]
 
-        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{t}}}\)\\\\
+        $boolean$ & \(\forall \alpha :: \star.\ \alpha \to \alpha \to \alpha\)\\[\sep]
 
-        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{f}}}\)\\\\
+        $true$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{t}}}\)\\[\sep]
 
+        $false$ & \(\abs{\alpha}{\typeK{}}{\lam{t}{\alpha}{\lam{f}{\alpha}{f}}}\)\\[\sep]
+\hline
     \end{tabular}
 
-    \caption{Abbreviations}
+    \captionof{figure}{Abbreviations}
     \label{fig:Plutus_core_type_abbreviations}
-\end{figure*}
+\end{minipage}
 
-\begin{figure*}[t]
+\vspace{1cm}
 
+%% ---------------- Type constants ---------------- %%
 
-    \(\begin{array}{lllll}
-        \textrm{Type Constant} & \textrm{Arguments} & \textrm{Semantics}\\
+\begin{minipage}{\linewidth}
+\centering
 
-        integer & s & [-2^{8s-1},2^{8s-1})\\
-
-        bytestring & s & \cup_{0\leq s' \leq s}\{0,1\}^{8s'}\\
-
-        size & s & \{s\}\\
-   \end{array}\)
-   \caption{Type Constants}
+    \(\begin{tabular}{|c|c|c|}\hline
+    \Strut
+        \textrm{Type Constant Name (\textit{tcn})} & \textrm{Arguments} & \textrm{Semantics}\\
+        \hline
+        \textit{integer} & $s$ & $[-2^{8s-1},2^{8s-1})$ \rule{0mm}{4mm}  \\[3pt]
+        \textit{bytestring} & $s$ & $\cup_{0\leq s' \leq s}\{0,1\}^{8s'}$\\[3pt]
+        \textit{size} & $s$ & \{$s$\}\\
+        \hline
+   \end{tabular}\)
+   \captionof{figure}{Type Constants}
    \label{fig:Plutus_core_type_constants}
 
-\end{figure*}
+\end{minipage}
+\vspace{1cm}
 
-\begin{figure*}
-   \(\begin{array}{lllll}
+
+%% ---------------- Constants ---------------- %%
+
+\begin{minipage}{\linewidth}
+\centering
+   \(\begin{tabular}{|c|c|c|}\hline
+    \Strut
         \textrm{Constant} & \textrm{Signature} & \textrm{Semantics}\\
-        s!i   & \constsig{integer}{s} & i\\
-        s!b   & \constsig{bytestring}{s} & b\\
-        s     & \constsig{size}{s} & s\\
-    \end{array}\)
-    \caption{Constants}
+        \hline
+        $s!i$   & $\constsig{integer}{s}$ & $i$ \rule{0mm}{4mm} \\[3pt]
+        $s!b$   & $\constsig{bytestring}{s}$ & $b$\\[3pt]
+        $s$     & $\constsig{size}{s}$ & $s$\\
+        \hline
+    \end{tabular}\)
+    \captionof{figure}{Constants}
     \label{fig:Plutus_core_constants}
-\end{figure*}
+\end{minipage}
 
+%% ---------------- Builtins ---------------- %%
 
 \begin{landscape}
 \thispagestyle{empty}
- \begin{figure*}
+ \begin{figure*}[!Ht]
     \hspace{\builtinoffset}Let $txh$ be the transaction hash and $bnum$ be the block number, both as global parameters to normalization.\vspace{1em}
 
     \hspace{\builtinoffset}\(\begin{array}{llllll}
