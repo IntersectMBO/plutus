@@ -7,7 +7,7 @@ import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Generic (class Generic)
+import Data.Generic (class Generic, gShow)
 import Data.Lens (Lens', Prism', _2, over, prism', traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -17,12 +17,12 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
+import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationError, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
-import Prelude (class Eq, class Functor, class Ord, class Show, show, ($), (<$>), (<<<), (<>))
+import Prelude (class Eq, class Functor, class Ord, class Show, Unit, show, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet)
-import Ledger.Types (Tx)
 
 -- | A mock wallet combines an actual Plutus wallet record with a
 -- | pretend opening balance.
@@ -50,6 +50,11 @@ data Action
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
+
+derive instance genericAction :: Generic Action
+
+instance showAction :: Show Action where
+  show = gShow
 
 _Action ::
   Prism'
@@ -93,29 +98,32 @@ instance showValidationError :: Show ValidationError where
   show (Required path) = path <> " is required."
   show (Unsupported path) = path <> " is unsupported."
 
+class Validation ctx a where
+  validate :: ctx -> a -> Array ValidationError
+
+instance actionValidation :: Validation Unit Action where
+  validate _ (Wait _) = []
+  validate _ (Action action) =
+    Array.concat $ Array.mapWithIndex (validate <<< show) args
+    where
+      args :: Array SimpleArgument
+      args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
+
+instance simpleArgumentValidation :: Validation String SimpleArgument where
+  validate path Unknowable = [ Unsupported path ]
+  validate path (SimpleInt Nothing) = [ Required path ]
+  validate path (SimpleInt (Just _)) = []
+  validate path (SimpleString Nothing) = [ Required path ]
+  validate path (SimpleString (Just _)) = []
+  validate path (SimpleObject subArguments) =
+    Array.concat $
+      (\(Tuple name subArgument) -> addPath path <$> validate name subArgument)
+      <$>
+      subArguments
+
 addPath :: String -> ValidationError -> ValidationError
 addPath path (Required subpath) = Required $ path <> "." <> subpath
 addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
-
-validate :: Action -> Array ValidationError
-validate (Wait _) = []
-validate (Action action) =
-  Array.concat $ Array.mapWithIndex (validateArgument <<< show) args
-  where
-    args :: Array SimpleArgument
-    args = view (_functionSchema <<< _FunctionSchema <<< _argumentSchema) action
-
-validateArgument :: forall a. String -> SimpleArgument -> Array ValidationError
-validateArgument path Unknowable = [ Unsupported path ]
-validateArgument path (SimpleInt Nothing) = [ Required path ]
-validateArgument path (SimpleInt (Just _)) = []
-validateArgument path (SimpleString Nothing) = [ Required path ]
-validateArgument path (SimpleString (Just _)) = []
-validateArgument path (SimpleObject subArguments) =
-  Array.concat $
-    (\(Tuple name subArgument) -> addPath path <$> validateArgument name subArgument)
-    <$>
-    subArguments
 
 ------------------------------------------------------------
 
@@ -137,7 +145,7 @@ data Query a
   | SetWaitTime Int Int a
 
 data FormEvent a
-  = SetIntField Int a
+  = SetIntField (Maybe Int) a
   | SetStringField String a
   | SetSubField Int (FormEvent a)
 
@@ -217,6 +225,11 @@ data SimpleArgument
   | SimpleString (Maybe String)
   | SimpleObject (Array (Tuple String SimpleArgument))
   | Unknowable
+
+derive instance genericSimpleArgument :: Generic SimpleArgument
+
+instance showSimpleArgument :: Show SimpleArgument where
+  show = gShow
 
 toValue :: SimpleArgumentSchema -> SimpleArgument
 toValue SimpleIntArgument = SimpleInt Nothing

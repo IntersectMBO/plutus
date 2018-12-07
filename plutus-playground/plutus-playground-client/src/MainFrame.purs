@@ -48,7 +48,7 @@ import Halogen.HTML.Properties (class_)
 import Halogen.Query (HalogenM)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(..), SourceCode(SourceCode))
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode))
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
@@ -204,7 +204,7 @@ eval (SetWaitTime index time next) = do
   pure next
 
 evalForm :: forall a. FormEvent a -> SimpleArgument -> SimpleArgument
-evalForm (SetIntField n next) (SimpleInt _) = SimpleInt (Just n)
+evalForm (SetIntField n next) (SimpleInt _) = SimpleInt n
 evalForm (SetStringField s next) (SimpleString _) = SimpleString (Just s)
 evalForm (SetSubField n subEvent) old@(SimpleObject fields) =
   case Array.index fields n of

@@ -2,15 +2,15 @@
 module ECharts.Extras where
 
 import Data.Foreign (toForeign)
-import ECharts.Monad (DSL, set') as E
+import ECharts.Monad (DSL, set')
 import ECharts.Types.Phantom (I)
 import Prelude (class Monad, ($))
 
-focusNodeAdjacencyAllEdges :: forall i m. Monad m => E.DSL i m
-focusNodeAdjacencyAllEdges = E.set' "focusNodeAdjacency" $ toForeign "allEdges"
+focusNodeAdjacencyAllEdges :: forall i m. Monad m => DSL i m
+focusNodeAdjacencyAllEdges = set' "focusNodeAdjacency" $ toForeign "allEdges"
 
-orientVertical :: forall i m. Monad m => E.DSL i m
-orientVertical = E.set' "orient" $ toForeign "vertical"
+orientVertical :: forall i m. Monad m => DSL i m
+orientVertical = set' "orient" $ toForeign "vertical"
 
-positionBottom ∷ ∀ i m. Monad m ⇒ E.DSL (position ∷ I|i) m
-positionBottom = E.set' "position" $ toForeign "bottom"
+positionBottom ∷ ∀ i m. Monad m => DSL (position ∷ I|i) m
+positionBottom = set' "position" $ toForeign "bottom"
