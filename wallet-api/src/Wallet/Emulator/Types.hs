@@ -418,10 +418,10 @@ processPending = Op.singleton BlockchainProcessPending
 addBlocks :: Int -> Trace m [Block]
 addBlocks i = traverse (const processPending) [1..i]
 
+-- | Add a number of blocks, notifying all wallets after each block
 addBlocksAndNotify :: [Wallet] -> Int -> Trace m ()
-addBlocksAndNotify wallets i = do
-  blocks <- addBlocks i
-  traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) blocks
+addBlocksAndNotify wallets i =
+    traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) [1..i]
 
 -- | Make an assertion about the emulator state
 assertion :: Assertion -> Trace m ()
