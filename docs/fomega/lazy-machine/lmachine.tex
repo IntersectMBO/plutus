@@ -56,7 +56,7 @@
       s;h &\compute (\lam{x}{A}{M}, \rho)           &{}\mapsto{}& s;h \return (\lam{x}{A}{M}, \rho)\\
       s;h &\compute (\app{M}{N}, \rho)              &{}\mapsto{}& s,\inAppLeftFrame{(N, \rho)};h \compute (M,\rho)\\
       s;h &\compute (\builtin{bn}{\repetition{A}}{}, \rho) 
-                                                    &{}\mapsto{}& (U,\rho) \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
+                                                    &{}\mapsto{}& s;h \return (U,\rho) \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
       s;h &\compute (\builtin{bn}{\repetition{A}}{M \repetition{M}}, \rho) 
                                                     &{}\mapsto{}& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}; \rho};h \compute (M, \rho)\\
       s;h &\compute (\error{A}, \rho) &{}\mapsto{}& \ckerror{}\\
@@ -73,7 +73,7 @@
       s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}; \rho}{}; h &\return (V , \rho^{\prime})
                                                     &{}\mapsto{}& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}; \rho};h \compute (M, \rho)\\
       s,\inBuiltin {bn} {\repetition{A}} {\repetition{V}}{\_}{; \rho}; h &\return (V, \rho^{\prime}) 
-                                                    &{}\mapsto{}& s;h \compute (W, \rho) \quad 
+                                                    &{}\mapsto{}& s;h \return (W, \rho) \quad 
                                                     (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
 \end{alignat*}
 }
