@@ -345,6 +345,8 @@ newtype Height = Height { getHeight :: Int }
     deriving anyclass (ToSchema, FromJSON, ToJSON)
     deriving newtype (Num, Real, Integral, Serialise)
 
+makeLift ''Height
+
 -- | The height of a blockchain
 height :: Blockchain -> Height
 height = Height . length

@@ -34,8 +34,9 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
-import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Tx (..), TxIn (..), TxIn', TxOut (..),
-                                       TxOut', TxOutRef', ValidationData (..), Value, lifted, updateUtxo, validValuesTx)
+import           Ledger.Types         (Blockchain, DataScript, Height (..), PubKey, Signature, Tx (..), TxIn (..),
+                                       TxIn', TxOut (..), TxOut', TxOutRef', ValidationData (..), Value, lifted,
+                                       updateUtxo, validValuesTx)
 import qualified Ledger.Types         as Ledger
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
@@ -201,7 +202,7 @@ checkPositiveValues t =
 
 -- | Encode the current transaction and blockchain height
 --   in PLC.
-validationData :: ValidationMonad m => Ledger.Height -> Tx -> m (PendingTx ())
+validationData :: ValidationMonad m => Height -> Tx -> m (PendingTx ())
 validationData h tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
@@ -210,7 +211,7 @@ validationData h tx = rump <$> ins where
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
-        , pendingTxBlockHeight = Validation.Height $ fromIntegral h
+        , pendingTxBlockHeight = h
         , pendingTxSignatures = txSignatures tx
         , pendingTxOwnHash    = ()
         }

@@ -1,24 +1,12 @@
 module Language.PlutusTx.Coordination.Contracts.Game where
 
-import           Control.Applicative          (Applicative (..))
-import           Control.Lens
-import           Control.Monad                (void)
-import           Data.Foldable                (foldMap)
-import qualified Data.Map                     as Map
-import           Data.Maybe                   (fromMaybe)
-import           Data.Monoid                  (Sum (..))
-import qualified Data.Set                     as Set
-import           GHC.Generics                 (Generic)
-import           Playground.Contract
-import           Data.Text
-import           Control.Monad.Error (MonadError(..))
-
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger as Ledger
+import           Ledger
 import           Ledger.Validation
-import Wallet hiding (payToPubKey)
+import           Wallet
+import           Playground.Contract
 
-logAMessage :: (WalletAPI m, WalletDiagnostics m) => m ()
+logAMessage :: MockWallet ()
 logAMessage = logMsg "wallet log"
 
 data ANumber = ANumber Int

@@ -21,6 +21,7 @@ module Wallet.API(
     payToScript,
     payToPubKey,
     collectFromScript,
+    collectFromScriptTxn,
     ownPubKeyTxOut,
     ownPubKey,
     -- * Triggers
@@ -62,8 +63,8 @@ import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address', DataScript, Height, PubKey (..), RedeemerScript, Signature (..),
-                                             Tx (..), TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript, Value,
-                                             pubKeyTxOut, scriptAddress, scriptTxIn)
+                                             Tx (..), TxId', TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript,
+                                             Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
 
@@ -292,6 +293,22 @@ collectFromScript scr red = do
 
     oo <- ownPubKeyTxOut value
     void $ signAndSubmit (Set.fromList ins) [oo]
+
+-- | Given the pay to script address of the 'ValidatorScript', collect from it
+--   all the inputs that were produced by a specific transaction, using the
+--   'RedeemerScript'.
+collectFromScriptTxn :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> TxId' -> m ()
+collectFromScriptTxn vls red txid = do
+    am <- watchedAddresses
+    let adr     = Ledger.scriptAddress vls
+        utxo    = fromMaybe Map.empty $ am ^. at adr
+        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
+        i ref = scriptTxIn ref vls red
+        inputs = Set.fromList $ i . fst <$> ourUtxo
+        value  = getSum $ foldMap (Sum . snd) ourUtxo
+
+    out <- ownPubKeyTxOut value
+    void $ signAndSubmit inputs [out]
 
 -- | Get the public key for this wallet
 ownPubKey :: (Functor m, WalletAPI m) => m PubKey

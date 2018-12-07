@@ -12,8 +12,7 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
 
 import qualified Ledger
-import           Ledger.Validation                               (OracleValue (..), Signed (..))
-import qualified Ledger.Validation                               as Validation
+import           Ledger.Validation                               (OracleValue (..))
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
@@ -65,7 +64,7 @@ settle = checkTrace $ do
         cur = FutureData (PubKey 1) (PubKey 2) im im
         spotPrice = 1124
         delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue (Signed (oracle, (Validation.Height 10, spotPrice)))
+        ov  = OracleValue oracle (Ledger.Height 10) spotPrice
 
     -- advance the clock to block height 10
     void $ addBlocks 8
@@ -89,7 +88,7 @@ settleEarly = checkTrace $ do
         -- up with the variation margin.
         (_, upper) = marginRange
         spotPrice = upper + 1
-        ov  = OracleValue (Signed (oracle, (Validation.Height 8, spotPrice)))
+        ov  = OracleValue oracle (Ledger.Height 8) spotPrice
 
     -- advance the clock to block height 8
     void $ addBlocks 6
@@ -130,7 +129,7 @@ increaseMargin = checkTrace $ do
         spotPrice = upper + 1
 
         delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue (Signed (oracle, (Validation.Height 10, spotPrice)))
+        ov  = OracleValue oracle (Ledger.Height 10) spotPrice
 
     void $ walletAction w2 (F.settle [ins'] contract cur' ov)
     updateAll
@@ -147,7 +146,7 @@ increaseMargin = checkTrace $ do
 --   10 blocks.
 contract :: Future
 contract = Future {
-    futureDeliveryDate  = Validation.Height 10,
+    futureDeliveryDate  = Ledger.Height 10,
     futureUnits         = units,
     futureUnitPrice     = forwardPrice,
     futureInitialMargin = im,

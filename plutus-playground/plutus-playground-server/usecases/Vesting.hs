@@ -1,21 +1,15 @@
 -- | Vesting scheme as a PLC contract
 module Language.PlutusTx.Coordination.Contracts.Vesting  where
 
-import           Control.Monad.Error.Class    (MonadError (..))
 import           Control.Monad                (void)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
-import           GHC.Generics                 (Generic)
-import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
-                                              ValidatorHash)
+
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', ValidatorScript(..), Value (..), scriptTxIn, scriptTxOut)
-import qualified Ledger                       as Ledger
-import qualified Ledger.Validation            as Validation
-import           Prelude                      hiding ((&&))
+import qualified Language.PlutusTx.Prelude    as P
+import           Ledger
+import           Ledger.Validation
+import           Wallet
 import           Playground.Contract
-import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -50,29 +44,22 @@ PlutusTx.makeLift ''VestingData
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
-vestFunds :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => Vesting
-    -> Value
-    -> m ()
+vestFunds :: Vesting -> Value -> MockWallet ()
 vestFunds vst value = do
     _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
-    let vs = validatorScript vst
-        o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
+    let contractAddress = Ledger.scriptAddress (validatorScript vst)
+        dataScript      = DataScript (Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    void $ signAndSubmit payment (o : maybeToList change)
+    void (payToScript contractAddress value dataScript)
 
 -- | Retrieve some of the vested funds.
-retrieveFunds :: (
-    Monad m,
-    WalletAPI m)
-    => Vesting
+retrieveFunds :: 
+    Vesting
     -> VestingData -- ^ Value that has already been taken out
     -> TxOutRef'  -- ^ Transaction output locked by the vesting validator script
     -> Ledger.Value -- ^ Value we want to take out now
-    -> m ()
+    -> MockWallet ()
 retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
     let val = validatorScript vs
@@ -80,11 +67,11 @@ retrieveFunds vs vd r vnow = do
         remaining = totalAmount vs - vnow
         vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val Ledger.unitRedeemer
-    void $ signAndSubmit (Set.singleton inp) [oo, o]
+    void (signAndSubmit (Set.singleton inp) [oo, o])
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
-    Validation.plcValidatorDigest
+    plcValidatorDigest
     . Ledger.getAddress
     . Ledger.scriptAddress
     . validatorScript
@@ -96,14 +83,14 @@ validatorScript v = ValidatorScript val where
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(Validation.eqValidator)
+            eqBs = $$(eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
-            eqPk = $$(Validation.eqPubKey)
+            eqPk = $$(eqPubKey)
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(PlutusTx.and)
+            (&&) = $$(P.and)
 
             PendingTx _ os _ _ (Height h) _ _ = p
             VestingTranche (Height d1) (Value a1) = vestingTranche1
@@ -115,7 +102,7 @@ validatorScript v = ValidatorScript val where
             amountSpent = case os of
                 PendingTxOut (Value v') _ (PubKeyTxOut pk):_
                     | pk `eqPk` vestingOwner -> v'
-                _ -> $$(PlutusTx.error) ()
+                _ -> $$(P.error) ()
 
             -- Value that has been released so far under the scheme
             currentThreshold =
@@ -141,11 +128,11 @@ validatorScript v = ValidatorScript val where
             txnOutputsValid = case os of
                 _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
                     vl' `eqBs` vestingDataHash
-                _ -> $$(PlutusTx.error) ()
+                _ -> $$(P.error) ()
 
             isValid = amountsValid && txnOutputsValid
         in
-        if isValid then () else $$(PlutusTx.error) () ||])
+        if isValid then () else $$(P.error) () ||])
 
 $(mkFunction 'vestFunds)
 $(mkFunction 'retrieveFunds)
