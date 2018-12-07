@@ -113,7 +113,7 @@ validationErrorsPane action =
     validationErrorPane err = div_ [ code_ [ text $ show err ] ]
 
 validationClasses ::
-  forall a r i.
+  forall a.
   Maybe a
   -> Array ClassName
 validationClasses =
