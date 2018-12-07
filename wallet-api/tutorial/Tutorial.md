@@ -86,7 +86,7 @@ mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = applyScript mkValidator (lifted campaign)
   -- ^ val is the obtained by applying `mkValidator` to the lifted `campaign` value
-  mkValidator = fromPlcCode $$(PlutusTx.plutus [|| 
+  mkValidator = fromCompiledCode $$(PlutusTx.compile [|| 
 ```
 
 Anything between the `[||` and `||]` quotes is going to be _on-chain code_ and anything outside the quotes is _off-chain code_. We can now implement a lambda function that looks like `mkValidator`, starting with its parameters:

@@ -10,7 +10,7 @@
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 module Language.PlutusTx.Plugin (
-    PlcCode,
+    CompiledCode,
     getSerializedPlc,
     getSerializedPir,
     getPlc,
@@ -59,20 +59,20 @@ import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
 -- | A PLC program.
-data PlcCode = PlcCode {
+data CompiledCode = CompiledCode {
     serializedPlc   :: BS.ByteString
     , serializedPir :: BS.ByteString
     }
 
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
-instance Lift.Lift PlcCode where
+instance Lift.Lift CompiledCode where
     lift (getPlc -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
 
-getSerializedPlc :: PlcCode -> BSL.ByteString
+getSerializedPlc :: CompiledCode -> BSL.ByteString
 getSerializedPlc = BSL.fromStrict . serializedPlc
 
-getSerializedPir :: PlcCode -> BSL.ByteString
+getSerializedPir :: CompiledCode -> BSL.ByteString
 getSerializedPir = BSL.fromStrict . serializedPir
 
 {- Note [Deserializing the AST]
@@ -85,20 +85,20 @@ instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 instance Exception ImpossibleDeserialisationFailure
 
-getPlc :: PlcCode -> PLC.Program PLC.TyName PLC.Name ()
+getPlc :: CompiledCode -> PLC.Program PLC.TyName PLC.Name ()
 getPlc wrapper = case deserialiseOrFail $ getSerializedPlc wrapper of
     Left e  -> throw $ ImpossibleDeserialisationFailure e
     Right p -> p
 
-getPir :: PlcCode -> PIR.Program PIR.TyName PIR.Name ()
+getPir :: CompiledCode -> PIR.Program PIR.TyName PIR.Name ()
 getPir wrapper = case deserialiseOrFail $ getSerializedPir wrapper of
     Left e  -> throw $ ImpossibleDeserialisationFailure e
     Right p -> p
 
 -- | Marks the given expression for conversion to PLC.
-plc :: forall (loc::Symbol) a . a -> PlcCode
+plc :: forall (loc::Symbol) a . a -> CompiledCode
 -- this constructor is only really there to get rid of the unused warning
-plc _ = PlcCode mustBeReplaced mustBeReplaced
+plc _ = CompiledCode mustBeReplaced mustBeReplaced
 
 data PluginOptions = PluginOptions {
     poDoTypecheck    :: Bool
@@ -128,9 +128,9 @@ pluginPass opts guts = getMarkerName >>= \case
 
 {- Note [Hooking in the plugin]
 Working out what to process and where to put it is tricky. We are going to turn the result in
-to a 'PlcCode', not the Haskell expression we started with!
+to a 'CompiledCode', not the Haskell expression we started with!
 
-Currently we look for calls to the 'plc :: a -> PlcCode' function, and we replace the whole application with the
+Currently we look for calls to the 'plc :: a -> CompiledCode' function, and we replace the whole application with the
 generated code object, which will still be well-typed.
 
 However, if we do this with a polymorphic expression as the argument to 'plc', we have problems
@@ -287,7 +287,7 @@ convertExpr opts locStr origE resType = do
             bsLitPir <- makeByteStringLiteral $ BSL.toStrict $ serialise pirP
             bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise plcP
 
-            dcName <- thNameToGhcNameOrFail 'PlcCode
+            dcName <- thNameToGhcNameOrFail 'CompiledCode
             dc <- GHC.lookupDataCon dcName
 
             pure $ GHC.Var (GHC.dataConWrapId dc) `GHC.App` bsLitPlc `GHC.App` bsLitPir

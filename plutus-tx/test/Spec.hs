@@ -32,10 +32,10 @@ import           Test.Tasty
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-instance GetProgram PlcCode where
+instance GetProgram CompiledCode where
     getProgram = catchAll . getPlc
 
-goldenPir :: String -> PlcCode -> TestNested
+goldenPir :: String -> CompiledCode -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
 
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
@@ -67,27 +67,27 @@ tests = testGroup "plutus-th" <$> sequence [
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
   ]
 
-simple :: PlcCode
-simple = $$(plutus [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
+simple :: CompiledCode
+simple = $$(compile [|| \(x::Bool) -> if x then (1::Int) else (2::Int) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
-powerPlc :: PlcCode
-powerPlc = $$(plutus [|| $$(power (4::Int)) ||])
+powerPlc :: CompiledCode
+powerPlc = $$(compile [|| $$(power (4::Int)) ||])
 
-andPlc :: PlcCode
-andPlc = $$(plutus [|| $$(andTH) True False ||])
+andPlc :: CompiledCode
+andPlc = $$(compile [|| $$(andTH) True False ||])
 
-convertString :: PlcCode
-convertString = $$(plutus [|| $$(toPlutusString) "test" ||])
+convertString :: CompiledCode
+convertString = $$(compile [|| $$(toPlutusString) "test" ||])
 
-traceDirect :: PlcCode
-traceDirect = $$(plutus [|| Builtins.trace ($$(toPlutusString) "test") ||])
+traceDirect :: CompiledCode
+traceDirect = $$(compile [|| Builtins.trace ($$(toPlutusString) "test") ||])
 
-tracePrelude :: PlcCode
-tracePrelude = $$(plutus [|| $$(trace) ($$(toPlutusString) "test") (1::Int) ||])
+tracePrelude :: CompiledCode
+tracePrelude = $$(compile [|| $$(trace) ($$(toPlutusString) "test") (1::Int) ||])
 
-traceRepeatedly :: PlcCode
-traceRepeatedly = $$(plutus
+traceRepeatedly :: CompiledCode
+traceRepeatedly = $$(compile
      [||
                -- This will in fact print the third log first, and then the others, but this
                -- is the same behaviour as Debug.trace
