@@ -7,7 +7,7 @@ import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Generic (class Generic)
+import Data.Generic (class Generic, gShow)
 import Data.Lens (Lens', Prism', _2, over, prism', traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -17,12 +17,12 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
+import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationError, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
 import Prelude (class Eq, class Functor, class Ord, class Show, show, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet)
-import Ledger.Types (Tx)
 
 -- | A mock wallet combines an actual Plutus wallet record with a
 -- | pretend opening balance.
@@ -50,6 +50,11 @@ data Action
       , functionSchema :: FunctionSchema SimpleArgument
       }
   | Wait { blocks :: Int }
+
+derive instance genericAction :: Generic Action
+
+instance showAction :: Show Action where
+  show = gShow
 
 _Action ::
   Prism'
@@ -217,6 +222,11 @@ data SimpleArgument
   | SimpleString (Maybe String)
   | SimpleObject (Array (Tuple String SimpleArgument))
   | Unknowable
+
+derive instance genericSimpleArgument :: Generic SimpleArgument
+
+instance showSimpleArgument :: Show SimpleArgument where
+  show = gShow
 
 toValue :: SimpleArgumentSchema -> SimpleArgument
 toValue SimpleIntArgument = SimpleInt Nothing
