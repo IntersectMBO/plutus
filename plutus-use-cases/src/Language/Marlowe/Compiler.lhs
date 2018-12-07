@@ -366,6 +366,12 @@ data MarloweData = MarloweData {
     } deriving (Generic)
 makeLift ''MarloweData
 
+data ValidatorState = ValidatorState {
+        ccIds  :: [IdentCC],
+        payIds :: [IdentPay]
+    }
+makeLift ''ValidatorState
+
 \end{code}
 
 
@@ -555,22 +561,28 @@ marloweValidator = ValidatorScript result where
 Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 
 \begin{code}
-        validateContract :: [IdentCC] -> [IdentPay] -> Contract -> Bool
-        validateContract ccIds payIds contract = case contract of
-            Null -> True
-            CommitCash ident _ _ _ _ c1 c2 -> notInCCs ident &&
-                let ids = ident : ccIds
-                in validateContract ids payIds c1 && validateContract ids payIds c2
-            RedeemCC ident c -> notInCCs ident && validateContract (ident : ccIds) payIds c
-            Pay ident _ _ _ _ c -> notInPays ident && validateContract ccIds (ident : payIds) c
-            Both c1 c2 -> validateContract ccIds payIds c1 && validateContract ccIds payIds c2
-            Choice _ c1 c2 -> validateContract ccIds payIds c1 && validateContract ccIds payIds c2
-            When _ _ c1 c2 -> validateContract ccIds payIds c1 && validateContract ccIds payIds c2
+        validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
+        validateContract state@(ValidatorState ccIds payIds) contract = case contract of
+            Null -> (state, True)
+            CommitCash ident _ _ _ _ c1 c2 ->
+                if notElem eqIdentCC ccIds ident
+                then checkBoth (ValidatorState (ident : ccIds) payIds) c1 c2
+                else (state, False)
+            RedeemCC _ c -> validateContract state c
+            Pay ident _ _ _ _ c ->
+                if notElem (\(IdentPay a) (IdentPay b) -> a == b) payIds ident
+                then validateContract (ValidatorState ccIds (ident : payIds)) c
+                else (state, False)
+            Both c1 c2 -> checkBoth state c1 c2
+            Choice _ c1 c2 -> checkBoth state c1 c2
+            When _ _ c1 c2 -> checkBoth state c1 c2
           where
-            notInCCs :: IdentCC -> Bool
-            notInCCs  = notElem eqIdentCC ccIds
-            notInPays :: IdentPay -> Bool
-            notInPays = notElem (\(IdentPay a) (IdentPay b) -> a == b) payIds
+            checkBoth :: ValidatorState -> Contract -> Contract -> (ValidatorState, Bool)
+            checkBoth state c1 c2 = let
+                (us, valid) = validateContract state c1
+                in if valid then validateContract us c2
+                else (state, False)
+
 
 \end{code}
 \subsection{Value Evaluation}
@@ -664,7 +676,8 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                         (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
                     _ _ _ _ thisScriptHash = pendingTx
 
-                (PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue), _) = orderTxIns in1 in2
+                (PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue), _) =
+                    orderTxIns in1 in2
 
                 vv = evalValue state value
 
@@ -673,7 +686,6 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     && signedBy pubKey
                     && validatorHash `eqValidator` thisScriptHash
                     && Builtins.equalsByteString dataScriptHash redeemerHash
-                    && eqContract con1 expectedContract
                 in  if isValid then let
                         cns = (pubKey, NotRedeemed vv endTimeout)
 
@@ -687,7 +699,7 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 
                         updatedState = let State committed choices = state
                             in State (insertCommit (id1, cns) committed) choices
-                        in (updatedState, con1, eqState updatedState expectedState)
+                        in (updatedState, con1, True)
                     else (state, contract, False)
 
             (Pay _ _ _ _ timeout con, _)
@@ -695,8 +707,9 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 
             (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid)) -> let
                 PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
-                    (PendingTxOut (Ledger.Value change) (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                    _ _ _ _ thisScriptHash = pendingTx
+                    (PendingTxOut (Ledger.Value change)
+                        (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
+                        _ _ _ _ thisScriptHash = pendingTx
 
                 pv = evalValue state payValue
 
@@ -706,7 +719,6 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     && signedBy to
                     && validatorHash `eqValidator` thisScriptHash
                     && Builtins.equalsByteString dataScriptHash redeemerHash
-                    && eqContract con expectedContract
                 in  if isValid then let
                     -- Discounts the Cash from an initial segment of the list of pairs.
                     discountFromPairList ::
@@ -728,14 +740,15 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     in case discountFromPairList [] pv commits of
                         Just updatedCommits -> let
                             updatedState = State (reverse updatedCommits) oracles
-                            in (updatedState, con, eqState updatedState expectedState)
+                            in (updatedState, con, True)
                         Nothing -> (state, contract, False)
                 else (state, contract, False)
 
             (RedeemCC id1 con, Redeem id2) | id1 `eqIdentCC` id2 -> let
                 PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
-                    (PendingTxOut (Ledger.Value change) (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                    _ _ _ _ thisScriptHash = pendingTx
+                    (PendingTxOut (Ledger.Value change)
+                        (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
+                        _ _ _ _ thisScriptHash = pendingTx
 
                 findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
                 findAndRemove ls resultCommits result = case ls of
@@ -750,16 +763,15 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                 isValid = ok
                     && validatorHash `eqValidator` thisScriptHash
                     && Builtins.equalsByteString dataScriptHash redeemerHash
-                    && eqContract con expectedContract
-                    && eqState updatedState expectedState
                 in if isValid
                 then (updatedState, con, True)
                 else (state, contract, False)
 
             (_, Redeem identCC) -> let
                     PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
-                        (PendingTxOut (Ledger.Value change) (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                        _ _ _ _ thisScriptHash = pendingTx
+                        (PendingTxOut (Ledger.Value change)
+                            (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
+                            _ _ _ _ thisScriptHash = pendingTx
 
                     findAndRemoveExpired ::
                         [(IdentCC, CCStatus)]
@@ -779,28 +791,33 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
                     isValid = ok
                         && validatorHash `eqValidator` thisScriptHash
                         && Builtins.equalsByteString dataScriptHash redeemerHash
-                        && eqContract contract expectedContract
-                        && eqState updatedState expectedState
                     in if isValid
                     then (updatedState, contract, True)
                     else (state, contract, False)
 
-            (Null, SpendDeposit) | null commits || not contractIsValid -> (state, Null, True)
+            (Null, SpendDeposit) | null commits -> (state, Null, True)
 
             _ -> (state, Null, False)
 
-        contractIsValid = validateContract [] [] marloweContract
+        (_, contractIsValid) = validateContract (ValidatorState [] []) marloweContract
 
-        -- record Choices from Input into State
-        stateWithChoices = let
-            State commits choices = marloweState
-            in State commits (mergeChoices (reverse inputChoices) choices)
+        State currentCommits currentChoices = marloweState
 
-        (_::State, _::Contract, allowTransaction) = eval inputCommand stateWithChoices marloweContract
-        -- if a contract is not valid we allow a contract creator to spend its initial deposit
-        -- otherwise, if the contract IS valid we check the contract allows this transaction
-        in if allowTransaction then ()
-        else Builtins.error ()
+        in if contractIsValid then let
+            -- record Choices from Input into State
+            mergedChoices = mergeChoices (reverse inputChoices) currentChoices
+
+            stateWithChoices = State currentCommits mergedChoices
+
+            (newState::State, newCont::Contract, validated) =
+                eval inputCommand stateWithChoices marloweContract
+
+            allowTransaction = validated
+                && newCont `eqContract` expectedContract
+                && newState `eqState` expectedState
+
+            in if allowTransaction then () else Builtins.error ()
+        else if null currentCommits then () else Builtins.error ()
         ||])
 
 \end{code}
@@ -887,7 +904,6 @@ receivePayment txOut oracles choices identPay value expectedState expectedCont =
         void $ signAndSubmit (Set.singleton i) [out, oo]
 
 
-
 redeem :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -909,9 +925,9 @@ redeem txOut oracles choices identCC value expectedState expectedCont = do
 
 
 
-endContract :: (Monad m, WalletAPI m) => (TxOut', TxOutRef') -> m ()
-endContract txOut = do
-    let redeemer = createRedeemer SpendDeposit [] [] (State [] []) Null
+endContract :: (Monad m, WalletAPI m) => (TxOut', TxOutRef') -> State -> m ()
+endContract txOut state = do
+    let redeemer = createRedeemer SpendDeposit [] [] state Null
     marloweTx redeemer txOut $ \ i _ v -> do
         oo <- ownPubKeyTxOut (Ledger.Value v)
         void $ signAndSubmit (Set.singleton i) [oo]

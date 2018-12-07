@@ -2,7 +2,9 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
+-fno-warn-name-shadowing
+-fno-warn-unused-do-bind #-}
 module Spec.Marlowe(tests) where
 
 import           Data.Either                                         (isRight)
@@ -20,7 +22,6 @@ import qualified Ledger.Validation                                as Validation
 import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Generators                                as Gen
-import qualified Language.PlutusTx
 import           Language.Marlowe.Compiler
 import Language.Marlowe.Escrow                            as Escrow
 
@@ -30,7 +31,8 @@ tests :: TestTree
 tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
         testProperty "Oracle Commit/Pay works" oraclePayment,
         testProperty "Escrow Contract" escrowTest,
-        -- testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC,
+        testProperty "Futures" futuresTest,
+        testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC,
         testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
         testProperty "redeem after commit expired" redeemAfterCommitExpired
         ]
@@ -51,8 +53,8 @@ updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 getScriptOutFromTx :: Tx -> (TxOut', TxOutRef')
 getScriptOutFromTx tx = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
 
-perform :: Wallet -> m () -> Trace m (TxOut', TxOutRef')
-perform actor action = do
+performs :: Wallet -> m () -> Trace m (TxOut', TxOutRef')
+performs actor action = do
     [tx] <- walletAction actor action
     processPending >>= void . walletsNotifyBlock [actor]
     assertIsValidated tx
@@ -61,7 +63,7 @@ perform actor action = do
 withContract
     :: [Wallet]
     -> Contract
-    -> ((TxOut', TxOutRef') -> Trace MockWallet (TxOut', TxOutRef'))
+    -> ((TxOut', TxOutRef') -> Trace MockWallet ((TxOut', TxOutRef'), State))
     -> Trace MockWallet ()
 withContract wallets contract f = do
     [tx] <- walletAction creator (createContract contract 12)
@@ -69,9 +71,9 @@ withContract wallets contract f = do
     update
     assertIsValidated tx
 
-    tx1Out <- f txOut
+    (tx1Out, state) <- f txOut
 
-    [tx] <- walletAction creator (endContract tx1Out)
+    [tx] <- walletAction creator (endContract tx1Out state)
     update
     assertIsValidated tx
   where
@@ -95,7 +97,7 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
     let oracleValue = OracleValue (Signed (oracle, (Validation.Height 2, 100)))
 
     withContract [alice, bob] contract $ \txOut -> do
-        txOut <- bob `perform` commit
+        txOut <- bob `performs` commit
             txOut
             [oracleValue] []
             (IdentCC 1)
@@ -103,12 +105,13 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             (State [(IdentCC 1, (PubKey 2, NotRedeemed 100 256))] [])
             (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
 
-        alice `perform` receivePayment txOut
+        txOut <- alice `performs` receivePayment txOut
             [] []
             (IdentPay 1)
             100
             (State [] [])
             Null
+        return (txOut, State [] [])
 
     assertOwnFundsEq alice 1100
     assertOwnFundsEq bob 677
@@ -137,7 +140,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
             (State [(IdentCC 1, (PubKey 2, NotRedeemed 100 256))] [])
             Null
         update
-        return txOut
+        return (txOut, State [] [])
 
     assertOwnFundsEq alice 1000
     assertOwnFundsEq bob 777
@@ -156,7 +159,7 @@ duplicateIdentCC = checkMarloweTrace (MarloweScenario {
             (CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256 Null Null)
             Null
 
-    withContract [alice, bob] contract $ \txOut -> return txOut
+    withContract [alice, bob] contract $ \txOut -> return (txOut, State [] [])
 
     assertOwnFundsEq alice 1000
     assertOwnFundsEq bob 777
@@ -174,7 +177,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
     let contract = CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null
     withContract [alice, bob] contract $ \txOut -> do
 
-        txOut <- bob `perform` commit
+        txOut <- bob `performs` commit
             txOut
             [] []
             (IdentCC 1)
@@ -184,7 +187,9 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
 
         addBlocks 300
 
-        bob `perform` redeem txOut [] [] identCC 100 (State [] []) Null
+        txOut <- bob `performs` redeem
+            txOut [] [] identCC 100 (State [] []) Null
+        return (txOut, State [] [])
 
     assertOwnFundsEq alice 1000
     assertOwnFundsEq bob 777
@@ -206,7 +211,7 @@ escrowTest = checkMarloweTrace (MarloweScenario {
     let contract = Escrow.escrowContract
 
     withContract [alice, bob, carol] contract $ \txOut -> do
-        txOut <- alice `perform` commit
+        txOut <- alice `performs` commit
             txOut
             [] []
             (IdentCC 1)
@@ -226,15 +231,119 @@ escrowTest = checkMarloweTrace (MarloweScenario {
         addBlocks 50
 
         let choices = [((IdentChoice 1, alicePk), 1), ((IdentChoice 2, bobPk), 1), ((IdentChoice 3, carolPk), 1)]
-        bob `perform` receivePayment txOut
+        txOut <- bob `performs` receivePayment txOut
             []
             choices
             (IdentPay 1)
             450
             (State [] choices)
             Null
+        return (txOut, (State [] choices))
 
     assertOwnFundsEq alice 550
     assertOwnFundsEq bob 1227
     assertOwnFundsEq carol 555
+
+
+-- | A futures contract in Marlowe.
+
+futuresTest :: Property
+futuresTest = checkMarloweTrace (MarloweScenario {
+    mlInitialBalances = Map.fromList [ (PubKey 1, 1000000), (PubKey 2, 1000000) ] }) $ do
+    -- Init a contract
+    let alice = Wallet 1
+        alicePk = PubKey 1
+        bob = Wallet 2
+        bobPk = PubKey 2
+        update = updateAll [alice, bob]
+    update
+
+    let penalty = 1000
+    let forwardPrice = 1123
+    let units = 187
+    let deliveryDate = 100
+    let endTimeout = deliveryDate + 50
+    let startTimeout = 10
+    let oracle = PubKey 17
+    let initialMargin = penalty + (units * forwardPrice `div` 20) -- 5%, 11500
+    let forwardPriceV = Value forwardPrice
+    let minus a b = AddValue a (MulValue (Value (-1)) b)
+    let spotPrice = 1124
+    let spotPriceV = ValueFromOracle oracle (Value forwardPrice)
+    let delta d = MulValue (Value units) d
+    let afterDelivery = NotObs $ BelowTimeout deliveryDate
+    let redeems = Both (RedeemCC (IdentCC 1) Null) (RedeemCC (IdentCC 2) Null)
+    let contract =  CommitCash (IdentCC 1) alicePk (Value initialMargin) startTimeout endTimeout
+                        (CommitCash (IdentCC 2) bobPk (Value initialMargin) startTimeout endTimeout
+                            (Choice (AndObs afterDelivery (ValueGE spotPriceV forwardPriceV))
+                                (Pay (IdentPay 1) bobPk alicePk
+                                    (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
+                                (Choice (AndObs afterDelivery (ValueGE forwardPriceV spotPriceV))
+                                    (Pay (IdentPay 2) alicePk bobPk
+                                        (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
+                                    redeems))
+                            (RedeemCC (IdentCC 1) Null))
+                        Null
+
+    withContract [alice, bob] contract $ \txOut -> do
+        txOut <- alice `performs` commit
+            txOut
+            [] []
+            (IdentCC 1)
+            initialMargin
+            (State [(IdentCC 1, (PubKey 1, NotRedeemed initialMargin endTimeout))] [])
+            (CommitCash (IdentCC 2) bobPk (Value initialMargin) startTimeout endTimeout
+                (Choice (AndObs afterDelivery (ValueGE spotPriceV forwardPriceV))
+                    (Pay (IdentPay 1) bobPk alicePk
+                        (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
+                    (Choice (AndObs afterDelivery (ValueGE forwardPriceV spotPriceV))
+                        (Pay (IdentPay 2) alicePk bobPk
+                            (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
+                        redeems))
+                (RedeemCC (IdentCC 1) Null))
+
+        txOut <- bob `performs` commit
+            txOut
+            [] []
+            (IdentCC 2)
+            initialMargin
+            (State [ (IdentCC 1, (PubKey 1, NotRedeemed initialMargin endTimeout)),
+                     (IdentCC 2, (PubKey 2, NotRedeemed initialMargin endTimeout))] [])
+            (Choice (AndObs afterDelivery (ValueGE spotPriceV forwardPriceV))
+                (Pay (IdentPay 1) bobPk alicePk
+                    (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
+                (Choice (AndObs afterDelivery (ValueGE forwardPriceV spotPriceV))
+                    (Pay (IdentPay 2) alicePk bobPk
+                        (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
+                    redeems))
+
+        addBlocks deliveryDate
+
+        let oracleValue = OracleValue (Signed (oracle, (Validation.Height (deliveryDate + 4), spotPrice)))
+        txOut <- alice `performs` receivePayment txOut
+            [oracleValue] []
+            (IdentPay 1)
+            187
+            (State [ (IdentCC 1, (PubKey 1, NotRedeemed initialMargin endTimeout)),
+                     (IdentCC 2, (PubKey 2, NotRedeemed (initialMargin - 187) endTimeout))] [])
+            redeems
+
+        txOut <- alice `performs` redeem txOut
+            [] []
+            (IdentCC 1)
+            initialMargin
+            (State [(IdentCC 2, (PubKey 2, NotRedeemed (initialMargin - 187) endTimeout))] [])
+            (RedeemCC (IdentCC 2) Null)
+
+        txOut <- bob `performs` redeem txOut
+            [] []
+            (IdentCC 2)
+            (initialMargin - 187)
+            (State [] [])
+            Null
+        return (txOut, State [] [])
+
+
+    assertOwnFundsEq alice 1000187
+    assertOwnFundsEq bob    999813
     return ()
