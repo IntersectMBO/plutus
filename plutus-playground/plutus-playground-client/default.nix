@@ -30,7 +30,7 @@ in {
 
     name = "plutus-playground-client";
 
-    buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache ];
+    buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache python2 ];
 
     bowerComponents = pkgs.buildBowerComponents {
       name = "my-web-app";
