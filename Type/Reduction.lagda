@@ -106,6 +106,12 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       -----------------
     → Π M —→⋆ Π M′
 
+  ξ-ƛ : ∀ {Γ K J} {M M′ : Γ ,⋆ K ⊢⋆ J}
+    → M —→⋆ M′
+      -----------------
+    → ƛ M —→⋆ ƛ M′
+
+
 
   β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
  --   → Value⋆ W
@@ -127,8 +133,14 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → L —↠⋆ N
 
 -- TODO: prove these
-postulate ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
-postulate Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *} → M —↠⋆ N → Π M —↠⋆ Π N
+ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
+ƛ—↠⋆ refl—↠⋆          = refl—↠⋆
+ƛ—↠⋆ (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-ƛ p) (ƛ—↠⋆ q)
+
+Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *} → M —↠⋆ N → Π M —↠⋆ Π N
+Π—↠⋆ refl—↠⋆          = refl—↠⋆
+Π—↠⋆ (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-Π p) (Π—↠⋆ q)
+
 postulate
   ξ-⇒' : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
     → S —↠⋆ S'
