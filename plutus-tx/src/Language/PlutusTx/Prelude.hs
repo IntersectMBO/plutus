@@ -22,8 +22,15 @@ module Language.PlutusTx.Prelude (
     map,
     foldr,
     length,
-    all) where
+    all,
+    -- * Hashes
+    ByteString,
+    sha2_256,
+    sha3_256,
+    equalsByteString
+    ) where
 
+import           Data.ByteString.Lazy       (ByteString)        
 import           Prelude                    (Bool (..), Int, Maybe (..), String, (<), (>), (+))
 
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -202,3 +209,14 @@ all = [||
         in go l
     ||]
 
+-- | The double SHA256 hash of a 'ByteString'
+sha2_256 :: Q (TExp (ByteString -> ByteString))
+sha2_256 = [|| Builtins.sha2_256 ||]
+
+-- | The triple SHA256 hash of a 'ByteString'
+sha3_256 :: Q (TExp (ByteString -> ByteString))
+sha3_256 = [|| Builtins.sha3_256 ||]
+
+-- | Check if two 'ByteString's are equal
+equalsByteString :: Q (TExp (ByteString -> ByteString -> Bool))
+equalsByteString = [|| Builtins.equalsByteString ||]
