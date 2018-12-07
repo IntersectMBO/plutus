@@ -7,17 +7,29 @@ import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
 
-import qualified Data.ByteString.Char8        as C
+import qualified Data.ByteString.Lazy.Char8   as C
 
 data HashedString = HashedString ByteString
-    deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''HashedString
 
+-- create a data script for the guessing game by hashing the string
+-- and lifting the hash to its on-chain representation
+mkDataScript :: String -> DataScript
+mkDataScript word = 
+    let hashedWord = plcSHA2_256 (C.pack word)
+    in  DataScript (Ledger.lifted (HashedString hashedWord))
+
 data ClearString = ClearString ByteString
-    deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''ClearString
+
+-- create a redeemer script for the guessing game by lifting the
+-- string to its on-chain representation
+mkRedeemerScript :: String -> RedeemerScript
+mkRedeemerScript word = 
+    let clearWord = C.pack word
+    in RedeemerScript (Ledger.lifted (ClearString clearWord))
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript (Ledger.fromPlcCode $$(PlutusTx.plutus [||
@@ -33,17 +45,10 @@ gameAddress :: Address'
 gameAddress = Ledger.scriptAddress gameValidator
 
 lock :: String -> Value -> MockWallet ()
-lock word value = do
-    let hashedWord = plcSHA2_256 (C.pack word)
-        ds = DataScript (Ledger.lifted (HashedString hashedWord))
-    _ <- payToScript gameAddress value ds
-    pure ()
+lock word value = payToScript_ gameAddress value (mkDataScript word)
 
 guess :: String -> MockWallet ()
-guess word = do
-    let clearWord = C.pack word
-        redeemer = RedeemerScript (Ledger.lifted clearWord)
-    collectFromScript gameValidator redeemer
+guess word = collectFromScript gameValidator (mkRedeemerScript word)
 
 -- | Tell the wallet to start watching the address of the game script
 startGame :: MockWallet ()

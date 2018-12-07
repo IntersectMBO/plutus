@@ -45,12 +45,12 @@ PlutusTx.makeLift ''VestingData
 --   [[VestingData]] representing the current state of the process
 vestFunds :: Vesting -> Value -> MockWallet ()
 vestFunds vst value = do
-    _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
+    _ <- if value < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
     let contractAddress = Ledger.scriptAddress (validatorScript vst)
         dataScript      = DataScript (Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    void (payToScript contractAddress value dataScript)
+    payToScript_ contractAddress value dataScript
 
 -- | Register this wallet as the owner of the vesting scheme. At each of the
 --   two dates (tranche 1, tranche 2) we take out the funds that have been 
@@ -63,12 +63,17 @@ registerVestingOwner v = do
     let 
         o = vestingOwner v
         addr = Ledger.scriptAddress (validatorScript v)
-    _ <- if o != ourPubKey 
-         then otherError "Vesting scheme is not owned by this wallet" 
+    _ <- if o /= ourPubKey 
+         then throwOtherError "Vesting scheme is not owned by this wallet" 
          else startWatching addr
-    
-    -- register (tranche2Trigger v) (tranche2Handler v)
+
     register (tranche2Trigger v) (tranche2Handler v)
+    -- ^ This runs `tranche2Handler` as soon as the final funds are released.
+    --   It is possible to take out funds from tranche 1 earlier than that
+    --   (as explained in the script code, below) but doing so requires some
+    --   low-level code dealing with the transaction outputs, because we don't
+    --   have a nice interface for this in 'Wallet.API' yet.
+    
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
@@ -82,9 +87,6 @@ validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
     inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
-
-            eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
             eqPk = $$(eqPubKey)
@@ -116,6 +118,7 @@ validatorScript v = ValidatorScript val where
                 -- Nothing has been released yet
                 else 0
 
+
             paidOut = let Value v' = vestingDataPaidOut in v'
             newAmount = paidOut + amountSpent
 
@@ -127,9 +130,11 @@ validatorScript v = ValidatorScript val where
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
-                _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
-                    vl' `eqBs` vestingDataHash
-                _ -> $$(P.error) ()
+                _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ -> $$(eqValidator) vl' vestingDataHash
+                -- If there is no data script in the output list,
+                -- we only accept the transaction if we are past the
+                -- date of the final tranche.
+                _ -> h >= d2
 
             isValid = amountsValid && txnOutputsValid
         in
@@ -144,13 +149,13 @@ tranche1Trigger v =
 tranche2Handler :: Vesting -> EventHandler MockWallet
 tranche2Handler vesting = EventHandler (\_ -> do
     logMsg "Collecting tranche 2"
-    let validatorScript = validatorScript vesting
+    let vlscript = validatorScript vesting
         redeemerScript  = Ledger.unitRedeemer
-    collectFromScript validatorScript redeemerScript)
+    collectFromScript vlscript redeemerScript)
 
 tranche2Trigger :: Vesting -> EventTrigger
 tranche2Trigger v = 
-    let VestingTranche _ dt2 = vestingTranche1 v in
+    let VestingTranche dt2 _ = vestingTranche2 v in
     (blockHeightT (Interval dt2 (succ dt2)))
 
 $(mkFunction 'vestFunds)

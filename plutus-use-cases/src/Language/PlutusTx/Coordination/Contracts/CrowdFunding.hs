@@ -39,7 +39,7 @@ import qualified Ledger                       as Ledger
 import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
-                                               WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
+                                               WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, throwOtherError,
                                                ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
 
 import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, succ, ($), (.),
@@ -69,7 +69,7 @@ contribute :: (WalletAPI m, WalletDiagnostics m)
     -> Value
     -> m ()
 contribute cmp value = do
-    _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
+    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
     ds <- DataScript . Ledger.lifted . pubKey <$> myKeyPair
 
     tx <- payToScript (campaignAddress cmp) value ds

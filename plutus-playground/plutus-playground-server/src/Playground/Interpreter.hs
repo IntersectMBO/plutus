@@ -31,14 +31,14 @@ import           Playground.API               (Evaluation (program, sourceCode),
                                                FunctionSchema,
                                                PlaygroundError (DecodeJsonTypeError, FunctionSchemaError, InterpreterError),
                                                SourceCode (SourceCode), wallets)
-import           Playground.Contract          (payToPublicKey)
+import           Playground.Contract          (payToPublicKey_)
 import qualified Playground.TH                as TH
 import           Playground.Usecases          (vesting)
 import           System.Directory             (removeFile)
 import           System.IO.Temp               (writeSystemTempFile)
 import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
 
-$(TH.mkFunction 'payToPublicKey)
+$(TH.mkFunction 'payToPublicKey_)
 
 defaultExtensions :: [Extension]
 defaultExtensions =
@@ -103,7 +103,7 @@ compile s = do
         exports <- getModuleExports moduleName
         walletFunctions <- catMaybes <$> traverse isWalletFunction exports
         schemas <- traverse getSchema walletFunctions
-        pure (schemas <> pure payToPublicKeySchema)
+        pure (schemas <> pure payToPublicKey_Schema)
 
 jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode
