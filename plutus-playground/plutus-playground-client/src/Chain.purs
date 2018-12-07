@@ -4,7 +4,7 @@ module Chain
        , evaluationPane
        ) where
 
-import Bootstrap (empty)
+import Bootstrap (empty, nbsp)
 import Color (Color, rgb)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
@@ -79,7 +79,11 @@ emulatorEventPane (TxnValidate (TxId txId)) =
 
 emulatorEventPane (TxnValidationFail (TxId txId) error) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Validation failed for transaction: " <> txId.getTxId <> ": " <> gShow error ]
+    [ text $ "Validation failed for transaction: " <> txId.getTxId
+    , br_
+    , nbsp
+    , text $ gShow error
+    ]
 
 emulatorEventPane (BlockAdd (Height height)) =
   div [ class_ $ ClassName "info" ]
