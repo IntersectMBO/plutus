@@ -49,6 +49,14 @@ instance Newtype InterpreterInstance
 mkInterpreterInstance :: IO InterpreterInstance
 mkInterpreterInstance = InterpreterInstance <$> newMVar ()
 
+runInterpreterInstanceTimeout ::
+       InterpreterInstance
+    -> Int
+    -> InterpreterT (ExceptT PlaygroundError IO) a
+    -> IO (Either PlaygroundError a)
+runInterpreterInstanceTimeout i maxTime =
+    withMVar (unpack i) . const . timeoutInterpreter maxTime . runInterpreter
+
 runInterpreterInstance ::
        InterpreterInstance
     -> InterpreterT (ExceptT PlaygroundError IO) a
@@ -86,8 +94,9 @@ acceptSourceCode ::
     -> SourceCode
     -> Handler (Either [CompilationError] [FunctionSchema SimpleArgumentSchema])
 acceptSourceCode i sourceCode = do
+    let maxInterpretationTime = 5000000
     r <-
-        liftIO . timeoutInterpreter 5000000 . runInterpreterInstance i $
+        liftIO . runInterpreterInstanceTimeout i maxInterpretationTime $
         PI.compile sourceCode
     case r of
         Right vs -> pure . Right $ fmap toSimpleArgumentSchema <$> vs
@@ -103,9 +112,10 @@ throwJSONError err json =
 
 runFunction :: InterpreterInstance -> Evaluation -> Handler EvaluationResult
 runFunction interpreter evaluation = do
+    let maxInterpretationTime = 10000000
     result <-
-        liftIO . timeoutInterpreter 10000000 $
-        runInterpreterInstance interpreter $ PI.runFunction evaluation
+        liftIO . runInterpreterInstanceTimeout interpreter maxInterpretationTime $
+        PI.runFunction evaluation
     let pubKeys = PA.pubKeys evaluation
     case result of
         Right (blockchain, emulatorLog, fundsDistribution) -> do
