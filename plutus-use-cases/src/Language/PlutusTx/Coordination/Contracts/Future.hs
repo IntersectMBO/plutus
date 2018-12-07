@@ -35,7 +35,7 @@ import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..),
                                               PendingTxOutType (..), ValidatorHash)
 import qualified Ledger.Validation            as Validation
-import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, signAndSubmit)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -143,7 +143,7 @@ adjustMargin refs ft fd vl = do
     fd' <- let fd''
                 | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
                 | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
-                | otherwise = otherError "Private key is not part of futures contrat"
+                | otherwise = throwOtherError "Private key is not part of futures contrat"
             in fd''
     let
         red = Ledger.RedeemerScript $ Ledger.lifted AdjustMargin

@@ -28,7 +28,7 @@ import           Ledger                       (DataScript (..), Height(..), PubK
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
-import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, signAndSubmit)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -70,7 +70,7 @@ vestFunds :: (
     -> Value
     -> m VestingData
 vestFunds vst value = do
-    _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
+    _ <- if value < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)

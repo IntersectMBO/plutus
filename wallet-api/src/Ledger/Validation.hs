@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 module Ledger.Validation
@@ -39,6 +40,9 @@ module Ledger.Validation
     , eqRedeemer
     , eqValidator
     , eqTx
+    -- * Hashes
+    , plcSHA2_256
+    , plcSHA3_256
     ) where
 
 import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
@@ -215,6 +219,14 @@ plcTxHash = TxHash . plcDigest . Ledger.getTxId
 -- | PLC-compatible hash of a hashable value
 plcHash :: BA.ByteArrayAccess a => a -> BSL.ByteString
 plcHash = plcDigest . hash
+
+-- | PLC-compatible double SHA256 hash of a hashable value
+plcSHA2_256 :: BA.ByteArrayAccess a => a -> BSL.ByteString
+plcSHA2_256 = plcDigest . hash @(Digest SHA256) . hash
+
+-- | PLC-compatible triple SHA256 hash of a hashable value
+plcSHA3_256 :: BA.ByteArrayAccess a => a -> BSL.ByteString
+plcSHA3_256 = plcDigest . hash @(Digest SHA256) . hash @(Digest SHA256) . hash
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
 plcDigest :: Digest SHA256 -> BSL.ByteString

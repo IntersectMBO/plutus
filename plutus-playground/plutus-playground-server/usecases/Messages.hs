@@ -28,7 +28,7 @@ submitInvalidTxn = do
     submitTxn tx
 
 throwWalletAPIError :: Text -> MockWallet ()
-throwWalletAPIError = otherError
+throwWalletAPIError = throwOtherError
 
 $(mkFunction 'logAMessage)
 $(mkFunction 'submitInvalidTxn)

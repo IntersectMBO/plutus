@@ -172,7 +172,7 @@ eventTrace = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> void $ payToPubKey 100 (PubKey 2)
+                    EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
                 trigger = blockHeightT (GEQ 3)
 
             -- schedule the `mkPayment` action to run when block height 3 is
@@ -197,11 +197,11 @@ payToPubKeyScript = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ do
             updateAll
-            walletAction (Wallet 1) $ void $ payToPubKey 5 (PubKey 2)
+            walletAction (Wallet 1) $ payToPublicKey_ 5 (PubKey 2)
             updateAll 
-            walletAction (Wallet 2) $ void $ payToPubKey 5 (PubKey 3)
+            walletAction (Wallet 2) $ payToPublicKey_ 5 (PubKey 3)
             updateAll
-            walletAction (Wallet 3) $ void $ payToPubKey 5 (PubKey 1)
+            walletAction (Wallet 3) $ payToPublicKey_ 5 (PubKey 1)
             updateAll
             traverse_ (uncurry assertOwnFundsEq) [
                 (w1, 100000),
@@ -218,7 +218,7 @@ watchFundsAtAddress = property $ do
         $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
-                    EventHandler $ \_ -> void $ payToPubKey 100 (PubKey 2)
+                    EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
                 t1 = blockHeightT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<

@@ -32,7 +32,7 @@ PlutusTx.makeLift ''CampaignAction
 --
 contribute :: Campaign -> Value -> MockWallet ()
 contribute cmp value = do
-    _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
+    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
     ownPK <- ownPubKey
     let ds = DataScript (Ledger.lifted ownPK)
     tx <- payToScript (campaignAddress cmp) value ds

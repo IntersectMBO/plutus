@@ -2,7 +2,6 @@
 module Language.PlutusTx.Coordination.Contracts.Vesting  where
 
 import           Control.Monad                (void)
-import qualified Data.Set                     as Set
 
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
@@ -46,28 +45,35 @@ PlutusTx.makeLift ''VestingData
 --   [[VestingData]] representing the current state of the process
 vestFunds :: Vesting -> Value -> MockWallet ()
 vestFunds vst value = do
-    _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
+    _ <- if value < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
     let contractAddress = Ledger.scriptAddress (validatorScript vst)
         dataScript      = DataScript (Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    void (payToScript contractAddress value dataScript)
+    payToScript_ contractAddress value dataScript
 
--- | Retrieve some of the vested funds.
-retrieveFunds :: 
-    Vesting
-    -> VestingData -- ^ Value that has already been taken out
-    -> TxOutRef'  -- ^ Transaction output locked by the vesting validator script
-    -> Ledger.Value -- ^ Value we want to take out now
-    -> MockWallet ()
-retrieveFunds vs vd r vnow = do
-    oo <- ownPubKeyTxOut vnow
-    let val = validatorScript vs
-        o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
-        remaining = totalAmount vs - vnow
-        vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
-        inp = scriptTxIn r val Ledger.unitRedeemer
-    void (signAndSubmit (Set.singleton inp) [oo, o])
+-- | Register this wallet as the owner of the vesting scheme. At each of the
+--   two dates (tranche 1, tranche 2) we take out the funds that have been 
+--   released so far.
+--   This function has to be called before the funds are vested, so that the 
+--   wallet can start watching the contract address for changes.
+registerVestingOwner :: Vesting -> MockWallet ()
+registerVestingOwner v = do
+    ourPubKey <- ownPubKey
+    let 
+        o = vestingOwner v
+        addr = Ledger.scriptAddress (validatorScript v)
+    _ <- if o /= ourPubKey 
+         then throwOtherError "Vesting scheme is not owned by this wallet" 
+         else startWatching addr
+
+    register (tranche2Trigger v) (tranche2Handler v)
+    -- ^ This runs `tranche2Handler` as soon as the final funds are released.
+    --   It is possible to take out funds from tranche 1 earlier than that
+    --   (as explained in the script code, below) but doing so requires some
+    --   low-level code dealing with the transaction outputs, because we don't
+    --   have a nice interface for this in 'Wallet.API' yet.
+    
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
@@ -81,9 +87,6 @@ validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
     inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
-
-            eqBs :: ValidatorHash -> ValidatorHash -> Bool
-            eqBs = $$(eqValidator)
 
             eqPk :: PubKey -> PubKey -> Bool
             eqPk = $$(eqPubKey)
@@ -115,6 +118,7 @@ validatorScript v = ValidatorScript val where
                 -- Nothing has been released yet
                 else 0
 
+
             paidOut = let Value v' = vestingDataPaidOut in v'
             newAmount = paidOut + amountSpent
 
@@ -126,13 +130,33 @@ validatorScript v = ValidatorScript val where
             -- Check that the remaining output is locked by the same validation
             -- script
             txnOutputsValid = case os of
-                _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ ->
-                    vl' `eqBs` vestingDataHash
-                _ -> $$(P.error) ()
+                _:PendingTxOut _ (Just (vl', _)) DataTxOut:_ -> $$(eqValidator) vl' vestingDataHash
+                -- If there is no data script in the output list,
+                -- we only accept the transaction if we are past the
+                -- date of the final tranche.
+                _ -> h >= d2
 
             isValid = amountsValid && txnOutputsValid
         in
         if isValid then () else $$(P.error) () ||])
 
+tranche1Trigger :: Vesting -> EventTrigger
+tranche1Trigger v = 
+    let VestingTranche dt1 _ = vestingTranche1 v in
+    (blockHeightT (Interval dt1 (succ dt1)))
+
+-- | Collect the remaining funds at the end of tranche 2
+tranche2Handler :: Vesting -> EventHandler MockWallet
+tranche2Handler vesting = EventHandler (\_ -> do
+    logMsg "Collecting tranche 2"
+    let vlscript = validatorScript vesting
+        redeemerScript  = Ledger.unitRedeemer
+    collectFromScript vlscript redeemerScript)
+
+tranche2Trigger :: Vesting -> EventTrigger
+tranche2Trigger v = 
+    let VestingTranche dt2 _ = vestingTranche2 v in
+    (blockHeightT (Interval dt2 (succ dt2)))
+
 $(mkFunction 'vestFunds)
-$(mkFunction 'retrieveFunds)
+$(mkFunction 'registerVestingOwner)

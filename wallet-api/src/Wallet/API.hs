@@ -19,7 +19,9 @@ module Wallet.API(
     createPayment,
     signAndSubmit,
     payToScript,
-    payToPubKey,
+    payToScript_,
+    payToPublicKey,
+    payToPublicKey_,
     collectFromScript,
     collectFromScriptTxn,
     ownPubKeyTxOut,
@@ -42,8 +44,8 @@ module Wallet.API(
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
-    insufficientFundsError,
-    otherError,
+    throwInsufficientFundsError,
+    throwOtherError,
     -- * Logging
     WalletLog(..)
     ) where
@@ -264,21 +266,26 @@ class WalletAPI m where
     -}
     blockHeight :: m Height
 
-insufficientFundsError :: MonadError WalletAPIError m => Text -> m a
-insufficientFundsError = throwError . InsufficientFunds
+throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
+throwInsufficientFundsError = throwError . InsufficientFunds
 
-otherError :: MonadError WalletAPIError m => Text -> m a
-otherError = throwError . OtherError
+throwOtherError :: MonadError WalletAPIError m => Text -> m a
+throwOtherError = throwError . OtherError
 
 createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
 
--- | Transfer some funds to an address locked by a script.
+-- | Transfer some funds to an address locked by a script, returning the
+--   transaction that was submitted.
 payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
 payToScript addr v ds = do
     (i, own) <- createPaymentWithChange v
     let other = TxOut addr v (PayToScript ds)
     signAndSubmit i (other : maybeToList own)
+
+-- | Transfer some funds to an address locked by a script.
+payToScript_ :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
+payToScript_ addr v = void . payToScript addr v
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
@@ -314,12 +321,17 @@ collectFromScriptTxn vls red txid = do
 ownPubKey :: (Functor m, WalletAPI m) => m PubKey
 ownPubKey = pubKey <$> myKeyPair
 
--- | Transfer some funds to an address locked by a public key
-payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
-payToPubKey v pk = do
+-- | Transfer some funds to an address locked by a public key, returning the
+--   transaction that was submitted.
+payToPublicKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
+payToPublicKey v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
     signAndSubmit i (other : maybeToList own)
+
+-- | Transfer some funds to an address locked by a public key
+payToPublicKey_ :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
+payToPublicKey_ v = void . payToPublicKey v
 
 -- | Create a `TxOut'` that pays to a public key owned by us
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut'

@@ -59,7 +59,7 @@ gameSpec =
     describe "game" $ do
         it "should compile" $ compile game >>= (`shouldSatisfy` isRight)
         it
-            "Sequential fund transfer fails - 'Game' script - 'payToPublicKey' action" $
+            "Sequential fund transfer fails - 'Game' script - 'payToPublicKey_' action" $
             evaluate payAll >>=
             (`shouldSatisfy` hasFundsDistribution
                                  [ (Wallet 1, 10)
@@ -71,19 +71,19 @@ gameSpec =
         Evaluation
             [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
             [ Action
-                  (Fn "payToPublicKey")
+                  (Fn "payToPublicKey_")
                   (Wallet 1)
                   [ JSON.String "{\"getValue\":9}"
                   , JSON.String "{\"getPubKey\":2}"
                   ]
             , Action
-                  (Fn "payToPublicKey")
+                  (Fn "payToPublicKey_")
                   (Wallet 2)
                   [ JSON.String "{\"getValue\":9}"
                   , JSON.String "{\"getPubKey\":3}"
                   ]
             , Action
-                  (Fn "payToPublicKey")
+                  (Fn "payToPublicKey_")
                   (Wallet 3)
                   [ JSON.String "{\"getValue\":9}"
                   , JSON.String "{\"getPubKey\":1}"
