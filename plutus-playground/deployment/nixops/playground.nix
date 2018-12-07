@@ -1,4 +1,22 @@
 { mkInstance = { playground, defaultMachine, machines, ... }: node: { config, pkgs, lib, ... }:
+  let playgroundInstance = port: {
+      wantedBy = [ "nginx.service" ];
+      before = [ "nginx.service" ];
+      enable = true;
+      path = [
+        "${playground.plutus-server-invoker}"
+      ];
+
+      serviceConfig = {
+        TimeoutStartSec = "0";
+        Restart = "always";
+        User = "plutus";
+        PrivateTmp = true;
+      };
+
+      script = "plutus-playground-server webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground-client}";
+  };
+  in
   {
       imports = [ (defaultMachine node pkgs)
                 ];
@@ -33,6 +51,11 @@
 
     upstreams.playground.servers."127.0.0.1:4000" = {};
     upstreams.playground.servers."127.0.0.1:4001" = {};
+    upstreams.playground.servers."127.0.0.1:4002" = {};
+    upstreams.playground.servers."127.0.0.1:4003" = {};
+    upstreams.playground.servers."127.0.0.1:4004" = {};
+    upstreams.playground.servers."127.0.0.1:4005" = {};
+
     virtualHosts = {
       "~." = {
         listen = [{ addr = "0.0.0.0"; port = 80; }];
@@ -54,41 +77,12 @@
     };
   };
 
-  systemd.services.plutus-playground-1 = {
-    wantedBy = [ "nginx.service" ];
-    before = [ "nginx.service" ];
-    enable = true;
-    path = [
-      "${playground.plutus-server-invoker}"
-    ];
-
-    serviceConfig = {
-      TimeoutStartSec = "0";
-      Restart = "always";
-      User = "plutus";
-      PrivateTmp = true;
-    };
-
-    script = "plutus-playground-server webserver -b 127.0.0.1 -p 4000 ${playground.plutus-playground-client}";
-  };
-
-  systemd.services.plutus-playground-2 = {
-    wantedBy = [ "nginx.service" ];
-    before = [ "nginx.service" ];
-    enable = true;
-    path = [
-      "${playground.plutus-server-invoker}"
-    ];
-
-    serviceConfig = {
-      TimeoutStartSec = "0";
-      Restart = "always";
-      User = "plutus";
-      PrivateTmp = true;
-    };
-
-    script = "plutus-playground-server webserver -b 127.0.0.1 -p 4001 ${playground.plutus-playground-client}";
-  };
+  systemd.services.plutus-playground-0 = playgroundInstance "4000";
+  systemd.services.plutus-playground-1 = playgroundInstance "4001";
+  systemd.services.plutus-playground-2 = playgroundInstance "4002";
+  systemd.services.plutus-playground-3 = playgroundInstance "4003";
+  systemd.services.plutus-playground-4 = playgroundInstance "4004";
+  systemd.services.plutus-playground-5 = playgroundInstance "4005";
 
 };
 }
