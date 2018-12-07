@@ -73,7 +73,7 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 contributionScript :: Campaign -> ValidatorScript
 contributionScript cmp  = ValidatorScript val where
     val = Ledger.applyScript mkValidator (Ledger.lifted cmp)
-    mkValidator = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\Campaign{..} (act :: CampaignAction) (con :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    mkValidator = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (con :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
 
             infixr 3 &&

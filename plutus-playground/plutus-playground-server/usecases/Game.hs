@@ -32,7 +32,7 @@ mkRedeemerScript word =
     in RedeemerScript (Ledger.lifted (ClearString clearWord))
 
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript (Ledger.fromPlcCode $$(PlutusTx.plutus [||
+gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
     \(ClearString guess) (HashedString actual) (p :: PendingTx ValidatorHash) ->
 
     if $$(P.equalsByteString) actual ($$(P.sha2_256) guess)
