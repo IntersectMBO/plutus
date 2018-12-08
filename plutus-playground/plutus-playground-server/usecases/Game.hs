@@ -33,7 +33,7 @@ mkRedeemerScript word =
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
-    \(ClearString guess) (HashedString actual) (p :: PendingTx ValidatorHash) ->
+    \(ClearString guess) (HashedString actual) (p :: PendingTx') ->
 
     if $$(P.equalsByteString) actual ($$(P.sha2_256) guess)
     then ()
