@@ -28,31 +28,6 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
--- | Contribute funds to the campaign (contributor)
---
-contribute :: Campaign -> Value -> MockWallet ()
-contribute cmp value = do
-    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
-    ownPK <- ownPubKey
-    let ds = DataScript (Ledger.lifted ownPK)
-    tx <- payToScript (campaignAddress cmp) value ds
-    logMsg "Submitted contribution"
-
-    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) cmp)
-    logMsg "Registered refund trigger"
-
--- | Register a [[EventHandler]] to collect all the funds of a campaign
---
-scheduleCollection :: Campaign -> MockWallet ()
-scheduleCollection cmp = register (collectFundsTrigger cmp) (EventHandler (\_ -> do
-        logMsg "Collecting funds"
-        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
-        collectFromScript (contributionScript cmp) redeemerScript))
-
--- | The address of a [[Campaign]]
-campaignAddress :: Campaign -> Ledger.Address'
-campaignAddress = Ledger.scriptAddress . contributionScript
-
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
@@ -119,6 +94,31 @@ contributionScript cmp  = ValidatorScript val where
                     in payToOwner
         in
         if isValid then () else $$(P.error) ()) ||])
+
+-- | The address of a [[Campaign]]
+campaignAddress :: Campaign -> Ledger.Address'
+campaignAddress = Ledger.scriptAddress . contributionScript
+
+-- | Contribute funds to the campaign (contributor)
+--
+contribute :: Campaign -> Value -> MockWallet ()
+contribute cmp value = do
+    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
+    ownPK <- ownPubKey
+    let ds = DataScript (Ledger.lifted ownPK)
+    tx <- payToScript (campaignAddress cmp) value ds
+    logMsg "Submitted contribution"
+
+    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) cmp)
+    logMsg "Registered refund trigger"
+
+-- | Register a [[EventHandler]] to collect all the funds of a campaign
+--
+scheduleCollection :: Campaign -> MockWallet ()
+scheduleCollection cmp = register (collectFundsTrigger cmp) (EventHandler (\_ -> do
+        logMsg "Collecting funds"
+        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
+        collectFromScript (contributionScript cmp) redeemerScript))
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
