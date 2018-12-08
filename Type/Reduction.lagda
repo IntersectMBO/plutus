@@ -70,6 +70,7 @@ data Neutral⋆ where
 
 \begin{code}
 infix 2 _—→⋆_
+infix 2 _—↠⋆_
 
 data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
   ξ-⇒₁ : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
@@ -132,7 +133,6 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       ---------
     → L —↠⋆ N
 
--- TODO: prove these
 ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
 ƛ—↠⋆ refl—↠⋆          = refl—↠⋆
 ƛ—↠⋆ (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-ƛ p) (ƛ—↠⋆ q)
@@ -141,29 +141,37 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
 Π—↠⋆ refl—↠⋆          = refl—↠⋆
 Π—↠⋆ (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-Π p) (Π—↠⋆ q)
 
-postulate
-  ξ-⇒' : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
+ξ-·₁' : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
+  → L —↠⋆ L′
+    -----------------
+  → L · M —↠⋆ L′ · M
+ξ-·₁' refl—↠⋆ = refl—↠⋆
+ξ-·₁' (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-·₁ p) (ξ-·₁' q)
+
+ξ-·₂' : ∀ {Γ K J} {L : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
+  → M —↠⋆ M′
+    -----------------
+  → L · M —↠⋆ L · M′
+ξ-·₂' refl—↠⋆ = refl—↠⋆
+ξ-·₂' (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-·₂ p) (ξ-·₂' q)
+
+ξ-⇒' : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
     → S —↠⋆ S'
     → T —↠⋆ T'
       -----------------------------------
     → (S ⇒ T) —↠⋆ (S' ⇒ T')
-postulate
-  ξ-·₁' : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
-    → L —↠⋆ L′
-      -----------------
-    → (L · M) —↠⋆ (L′ · M) -- TODO: operator presidence
-postulate
-  ξ-·₂' : ∀ {Γ K J} {L : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
-    → M —↠⋆ M′
-      -----------------
-    → (L · M) —↠⋆ (L · M′) -- TODO: operator presidence
-postulate
-  ξ-con' : ∀{Φ}
-    → {tcn : TyCon}
-    → {s s' : Φ ⊢⋆ #}
-    → s —↠⋆ s'
-      ------------------
-    → con tcn s —↠⋆ con tcn s'
+ξ-⇒' refl—↠⋆          refl—↠⋆          = refl—↠⋆
+ξ-⇒' refl—↠⋆          (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-⇒₂ p) (ξ-⇒' refl—↠⋆ q)
+ξ-⇒' (trans—↠⋆ L p q) r                = trans—↠⋆ _ (ξ-⇒₁ p) (ξ-⇒' q r)
+
+ξ-con' : ∀{Φ}
+  → {tcn : TyCon}
+  → {s s' : Φ ⊢⋆ #}
+  → s —↠⋆ s'
+    ------------------
+  → con tcn s —↠⋆ con tcn s'
+ξ-con' refl—↠⋆          = refl—↠⋆
+ξ-con' (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-con p) (ξ-con' q)
 
 -- like concatenation for lists
 -- the ordinary trans is like cons
@@ -269,6 +277,7 @@ rename—→⋆ ρ (ξ-⇒₂ p)            = ξ-⇒₂ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-·₂ p)             = ξ-·₂ (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-Π p)             = ξ-Π (rename—→⋆ (ext ρ) p)
+rename—→⋆ ρ (ξ-ƛ p)             = ξ-ƛ (rename—→⋆ (ext ρ) p)
 rename—→⋆ ρ (β-ƛ {N = M}{W = N}) =
   substEq (λ X → rename ρ ((ƛ M) · N) —→⋆ X)
           (trans (sym (subst-rename M))
@@ -289,6 +298,7 @@ subst—→⋆ σ (ξ-⇒₂ p)            = ξ-⇒₂ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-·₁ p)               = ξ-·₁ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-·₂ p)             = ξ-·₂ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-Π p)             = ξ-Π (subst—→⋆ (exts σ) p)
+subst—→⋆ σ (ξ-ƛ p)             = ξ-ƛ (subst—→⋆ (exts σ) p)
 subst—→⋆ σ (β-ƛ {N = M}{W = N}) =
   substEq (λ X → subst σ ((ƛ M) · N) —→⋆ X)
           (trans (sym (subst-comp M))
