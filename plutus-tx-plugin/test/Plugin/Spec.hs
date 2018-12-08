@@ -82,6 +82,8 @@ primitives = testNested "primitives" [
   --, goldenPlc "blocknum" blocknumPlc
   , goldenPir "bytestring" bytestring
   , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftProgram ("hello"::ByteString) ]
+  , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: ByteString)]
+  , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: ByteString), unsafeLiftProgram ("hello" :: ByteString)]
   , goldenPir "verify" verify
   ]
 
@@ -130,6 +132,12 @@ ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
 
 bytestring :: CompiledCode
 bytestring = plc @"bytestring" (\(x::ByteString) -> x)
+
+sha2 :: CompiledCode
+sha2 = plc @"sha2" (\(x :: ByteString) -> Builtins.sha2_256 x)
+
+bsEquals :: CompiledCode
+bsEquals = plc @"bsEquals" (\(x :: ByteString) (y :: ByteString) -> Builtins.equalsByteString x y)
 
 verify :: CompiledCode
 verify = plc @"verify" (\(x::ByteString) (y::ByteString) (z::ByteString) -> Builtins.verifySignature x y z)
