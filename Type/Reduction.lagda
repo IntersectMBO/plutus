@@ -165,9 +165,11 @@ postulate
       ------------------
     → con tcn s —↠⋆ con tcn s'
 
-
-postulate trans—↠⋆' : ∀{Γ J}{L M N : Γ ⊢⋆ J} → L —↠⋆ M → M —↠⋆ N → L —↠⋆ N
-
+-- like concatenation for lists
+-- the ordinary trans is like cons
+trans—↠⋆' : ∀{Γ J}{L M N : Γ ⊢⋆ J} → L —↠⋆ M → M —↠⋆ N → L —↠⋆ N
+trans—↠⋆' refl—↠⋆ p = p
+trans—↠⋆' (trans—↠⋆ L p q) r = trans—↠⋆ L p (trans—↠⋆' q r)
 \end{code}
 
 \begin{code}
