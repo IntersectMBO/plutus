@@ -294,7 +294,7 @@ ought to be included as sugar.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
-\item $\error{A}$ causes an error, termintating computation immediately.
+\item $\error{A}$ causes an error, terminating computation immediately.
 \end{itemize}
 
 \paragraph{Values.} Values are terms which cannot undergo any further reduction.
@@ -516,7 +516,7 @@ shown\footnote{In fact, the bounds are upper bounds, not actual sizes:
 same syntax to denote expressions of appropriate types in
 Figure~\ref{fig:Plutus_core_builtins}.
 
-We provide standard artithmetic and comparison operations for integers
+We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:Plutus_core_builtins}, using a number of
 abbreviations given in Figure~\ref{fig:Plutus_core_type_abbreviations}.
@@ -550,11 +550,6 @@ Core, validation is successful when the script reduces to any value
 other than \(\error{A}\) in the allotted number of steps.
 
 
-
-
-
-
-
 %\section{Erasure}
 
 %TO WRITE
@@ -568,9 +563,6 @@ other than \(\error{A}\) in the allotted number of steps.
 %\section{Example}
 
 %\subfile{figures/PlutusCoreExampleAgain}
-
-
-
 
 
 
