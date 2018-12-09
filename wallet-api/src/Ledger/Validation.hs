@@ -46,11 +46,11 @@ module Ledger.Validation
     ) where
 
 import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
-import           Crypto.Hash                  (Digest, SHA256, hash)
+import           Crypto.Hash                  (Digest, SHA256)
 import           Data.Aeson                   (FromJSON, ToJSON (toJSON), withText)
 import qualified Data.Aeson                   as JSON
 import           Data.Bifunctor               (first)
-import qualified Data.ByteArray               as BA
+import qualified Data.ByteString.Lazy.Hash    as Hash
 import qualified Data.ByteString.Base64       as Base64
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
@@ -205,28 +205,24 @@ newtype TxHash =
     deriving (Eq, Generic)
 
 plcDataScriptHash :: Ledger.DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcHash
+plcDataScriptHash = DataScriptHash . plcSHA2_256 . serialise
 
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
 plcRedeemerHash :: Ledger.RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcHash
+plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
 
 plcTxHash :: Ledger.TxId' -> TxHash
 plcTxHash = TxHash . plcDigest . Ledger.getTxId
 
--- | PLC-compatible hash of a hashable value
-plcHash :: BA.ByteArrayAccess a => a -> BSL.ByteString
-plcHash = plcDigest . hash
+-- | PLC-compatible SHA-256 hash of a hashable value
+plcSHA2_256 :: BSL.ByteString -> BSL.ByteString
+plcSHA2_256 = Hash.sha2
 
--- | PLC-compatible double SHA256 hash of a hashable value
-plcSHA2_256 :: BA.ByteArrayAccess a => a -> BSL.ByteString
-plcSHA2_256 = plcDigest . hash @(Digest SHA256) . hash
-
--- | PLC-compatible triple SHA256 hash of a hashable value
-plcSHA3_256 :: BA.ByteArrayAccess a => a -> BSL.ByteString
-plcSHA3_256 = plcDigest . hash @(Digest SHA256) . hash @(Digest SHA256) . hash
+-- | PLC-compatible SHA3-256 hash of a hashable value
+plcSHA3_256 :: BSL.ByteString -> BSL.ByteString
+plcSHA3_256 = Hash.sha3
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
 plcDigest :: Digest SHA256 -> BSL.ByteString

@@ -63,6 +63,7 @@ library
         Language.PlutusCore.Generators.Test
         PlutusPrelude
         Common
+        Data.ByteString.Lazy.Hash
         PlcTestUtils
     build-tool-depends: alex:alex, happy:happy >= 1.17.1
     hs-source-dirs: src prelude stdlib generators common
@@ -115,6 +116,7 @@ library
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        cryptonite -any,
         containers -any,
         array -any,
         mtl -any,
@@ -127,6 +129,7 @@ library
         composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,
+        memory -any,
         mmorph -any,
         cborg -any,
         serialise -any,
