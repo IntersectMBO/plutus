@@ -24,7 +24,10 @@
 
 \begin{subfigure}[c]{\linewidth}
     \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine state $\sigma$ transitions in one step to machine state $\sigma'$}
+
 %% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
+\hspace{-1cm}\begin{minipage}{\linewidth}  
+% To stop "bn computes to ...'' going over the edge of the page
 \begin{alignat*}{2}
         \cksteps{\ckforward{s&}{\con{cn}}&} {&\ckbackward{s}{\con{cn}}}\\
         \cksteps{\ckforward{s&}{\abs{\alpha}{K}{V}}&} {&\ckbackward{s}{\abs{\alpha}{K}{V}}}\\
@@ -33,7 +36,8 @@
         \cksteps{\ckforward{s&}{\unwrap{M}}&} {&\ckforward{s, \inUnwrapFrame{}}{M}}\\
         \cksteps{\ckforward{s&}{\lam{x}{A}{M}}&} {&\ckbackward{s}{\lam{x}{A}{M}}}\\
         \cksteps{\ckforward{s&}{\app{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckbackward{s}{U}} \qquad (\textit{$bn$ computes on $\repetition{A}$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
+        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckbackward{s}{U}} 
+              \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$ according to Fig.~\ref{fig:Plutus_core_builtins}})\\
         \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
         \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
         \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
@@ -43,10 +47,11 @@
         \cksteps{\ckbackward{s, \inUnwrapFrame{}&}{\wrap{\alpha}{A}{V}}&} {&\ckbackward{s}{V}}\\
         \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
         \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
-        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckbackward{s}{U}} \qquad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to \ref{fig:Plutus_core_builtins}})\\
+        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckbackward{s}{U}} 
+          \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to Fig.~\ref{fig:Plutus_core_builtins}})\\
         \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
     \end{alignat*}
-
+\end{minipage}
     \caption{CK Machine Transitions}
     \label{fig:Plutus_core_ck_machine}
 \end{subfigure}

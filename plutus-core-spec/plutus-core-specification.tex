@@ -189,6 +189,9 @@ of the language: while writing large Plutus Core programs by hand is
 difficult, the language is relatively straightforward to formalize
 with a proof assistant.
 
+\blue{Say that the type system is expressive enough to let us type 
+enough stuff to encode datatypes and use recursive functions}.
+
 We have tried keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
 through, for example, the Scott encoding (\cite{Scott-encoding} and
@@ -273,9 +276,9 @@ ought to be included as sugar.
 
 %In this grammar, we have multi-argument application, both in types (\(\appT{A}{B^+}\)) and in terms (\(\app{M}{N^+}\)), as well as multi-argument instantiation in terms (\(\inst{M}{A^*}\)). This is to be understood as a convenient form of syntactic sugar for iterated binary application associated to the left, and the formal rules treat only the binary case.
 
-
-
 \subfile{figures/PlutusCoreLexicalGrammar}
+
+\subfile{figures/PlutusCoreGrammar}
 
 \newcommand\fixtype{\mu\,\alpha.A}  % Just for talking about the fix operator in the notes.
 
@@ -314,7 +317,6 @@ is the type of 8-byte integers.  See \S\ref{sec:builtins} for more information.
   reduction: see section~\ref{sec:reduction}.  The type normalisation
   process always terminates. \blue{(WHY?)}
 
-\subfile{figures/PlutusCoreGrammar}
 
 
 \subsection{Remarks}
@@ -363,7 +365,7 @@ with explicit maps \texttt{wrap}: $(\fixtype)[\alpha \mapsto \fixtype] \rightarr
 and \texttt{unwrap}: $\fixtype \rightarrow (\fixtype)[\alpha \mapsto \fixtype]$.  
 \\
 
-\noindent\blue{Should we give a more detailed explanation of why we do this? Do we want an example here?}
+\noindent\blue{Should we give a more detailed explanation of why we do this? Do we want an example here?}
 
 % As an example, consider the program in Figure \ref{fig:Plutus_core_example}, which defines the type of natural numbers as well as lists, and the factorial and map functions. This program is not the most readable, which is to be expected from a representation intended for machine interpretation rather than human interpretation, but it does make explicit precisely what the roles are of the various parts.
 
@@ -424,6 +426,9 @@ have. In this setting, we would pick some upper bound $\mathit{max}$
 and then perform steps of terms $M$ by computing which $M'$ is such
 that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
 
+
+\newpage 
+
 \subsection{Type reduction}
 As mentioned earlier, the Plutus Core type system contains a copy of the 
 simply typed lambda calculus, allowing complex computations to take place
@@ -434,16 +439,16 @@ this allows us to perform normalisation (ie, reduction to a form which
 cannot undergo any further reduction) statically, before execution begins. 
 Figure~\ref{fig:type-reduction} contains the rules for type reduction.
 
-\subsection{Term reduction}
-Execution of Plutus Core programs is performed by (possibly non-terminating) 
-reduction of well-typed terms.  The reduction rules give us a fairly 
-standard operational semantics, and ar contained in Figure~\ref{fig:term-reduction}.
-
-\newpage
-\subfile{figures/PlutusCoreTermReduction}
-\newpage
 \subfile{figures/PlutusCoreTypeReduction}
-\newpage
+
+
+\subsection{Term reduction}
+Execution of Plutus Core programs is performed by (possibly
+non-terminating) reduction of well-typed terms.  The reduction rules
+are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
+standard operational semantics.
+
+\subfile{figures/PlutusCoreTermReduction}
 
 \subsection{An abstract machine for evaluating Plutus Core programs}
 This section contains a description of an abstract machine for
@@ -465,6 +470,8 @@ useful bridge for formalisation purposes.
 
 \subfile{figures/PlutusCoreCkMachine}
 
+\blue{There's a conflict with earlier substitution notation in $[V/x]M$. Does this matter?}
+
 The machine alternates between two main phases: \textit{computation}
 ($\triangleright$), where it recurses down the AST looking for values,
 saving surrounding contexts as frames (or \textit{reduction contexts})
@@ -480,7 +487,52 @@ halts execution and returns a value to the outside world.
 
 \section{Built in types, functions, and values}
 \label{sec:builtins}
-Blah blah blah.
+Plutus Core come with a pre-defined set of built-in types and
+functions which will be useful for blockchain applications.  The set
+of built-ins is fixed, although in future we may provide a framework
+to allow customisation for specialised blockchains.
+
+As mentioned earlier, there are three basic types: \texttt{size},
+\texttt{integer}, and \texttt{bytestring}.  The \textrm{size} type is
+used to track the sizes of objects, the \texttt{integer} type, in
+conjunction with \texttt{size} provides integers of specified sizes,
+and the \texttt{bytestring} type provides sequences of bytes, again of
+specified sizes.  These types are given in
+Figure~\ref{fig:Plutus_core_type_constants}:  for example 
+\texttt{(builtin integer 10)} is the type of signed 10-byte integers.
+
+\blue{Is it \texttt{con} or \texttt{builtin}?  I think there's a 
+conflict between Figure~\ref{fig:Plutus_core_type_constants}
+and Figure~\ref{fig:Plutus_core_grammar}.}
+
+Terms of these types are written using the \texttt{!} character, as
+shown in Figure~\ref{fig:Plutus_core_constants}.  For example
+\texttt{10~!~12345} is a ten-byte integer whose value is 12345 (and
+\textrm{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
+is a 20-byte bytestring containing the bytes
+shown\footnote{In fact, the bounds are upper bounds, not actual sizes:
+  in the current implementation, \texttt{10~!~12345} will only take up
+  as much space as it requires, not the full 10 bytes.}.  We use the
+same syntax to denote expressions of appropriate types in
+Figure~\ref{fig:Plutus_core_builtins}.
+
+We provide standard artithmetic and comparison operations for integers
+and a number of list-like functions for bytestrings. The details are
+given in Figure~\ref{fig:Plutus_core_builtins}, using a number of
+abbreviations given in Figure~\ref{fig:Plutus_core_type_abbreviations}.
+Note the following:
+\begin{itemize}
+\item The signatures of the functions statically limit the way in
+  which sizes are used.  It is not possible to create values of
+  unlimited size at runtime.  If any function attempts to create a
+  value exceeding the expected size, an error will occur during execution.
+\item We use fixed Scott encodings for certain types and values,
+  specifically for the \texttt{unit} and \texttt{boolean} types.
+Compilers targeting Plutus Core must be aware of these encodings and
+use them appropriately.
+\end{itemize}
+
+\newpage
 
 \subfile{figures/PlutusCoreBuiltins}
 
@@ -490,7 +542,12 @@ Blah blah blah.
 
 \section{Basic Validation Program Structure}
 
-The basic way that validation is done in Plutus Core is somewhat similar to what's in Bitcoin Script. Whereas in Bitcoin Script, a validation is successful if the validating script successfully executes and leaves $\textit{true}$ on the top of the stack, in Plutus Core, validation is successful when the script reduces to any value other than \(\error{A}\) in the allotted number of steps.
+The basic way that validation is done in Plutus Core is somewhat
+similar to what's in Bitcoin Script. Whereas in Bitcoin Script, a
+validation is successful if the validating script successfully
+executes and leaves $\textit{true}$ on the top of the stack, in Plutus
+Core, validation is successful when the script reduces to any value
+other than \(\error{A}\) in the allotted number of steps.
 
 
 

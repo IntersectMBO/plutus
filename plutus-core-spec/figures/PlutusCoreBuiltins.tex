@@ -68,7 +68,7 @@
         \hline
         \textit{integer} & $s$ & $[-2^{8s-1},2^{8s-1})$ \rule{0mm}{4mm}  \\[3pt]
         \textit{bytestring} & $s$ & $\cup_{0\leq s' \leq s}\{0,1\}^{8s'}$\\[3pt]
-        \textit{size} & $s$ & \{$s$\}\\
+        \textit{size} & $s$ & \{$s$\}\\[3pt]
         \hline
    \end{tabular}\)
    \captionof{figure}{Type Constants}
@@ -88,7 +88,7 @@
         \hline
         $s!i$   & $\constsig{integer}{s}$ & $i$ \rule{0mm}{4mm} \\[3pt]
         $s!b$   & $\constsig{bytestring}{s}$ & $b$\\[3pt]
-        $s$     & $\constsig{size}{s}$ & $s$\\
+        $s$     & $\constsig{size}{s}$ & $s$\\[3pt]
         \hline
     \end{tabular}\)
     \captionof{figure}{Constants}
@@ -137,7 +137,7 @@
         %&&\\
 
         \texttt{takeByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_0!i, s_1!b     & s_1!(take \ i \  b)\\
-        \texttt{dropByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_01i, s_1!b     & s_1!(drop \ i \  b)\\
+        \texttt{dropByteString}    &   \sig{s_0 :: size, s_1 :: size}{integer_{s_0},str_{s_1}}{str_{s_1}}   & s_0, s_1 &   s_0!i, s_1!b     & s_1!(drop \ i \  b)\\
         %&&\\
 
         \texttt{sha2$\_256$}         &  \sig{s :: size}{str_s}{str_{32}}  & s &   s!b           & 32!(sha2\_256 \  b)\\
