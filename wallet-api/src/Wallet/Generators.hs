@@ -18,6 +18,7 @@ module Wallet.Generators(
     -- * Assertions
     assertValid,
     -- * Etc.
+    genValue,
     Wallet.Generators.runTrace,
     runTraceOn,
     splitVal
@@ -165,6 +166,9 @@ genValidTransactionSpending' g f ins totalVal = do
                     txFee = fee,
                     txSignatures = [] }
         else Gen.discard
+
+genValue :: MonadGen m => m Value
+genValue = Value <$> Gen.int (Range.linear 0 (100000 :: Int))
 
 -- | Assert that a transaction is valid in a chain
 assertValid :: (MonadTest m, HasCallStack)

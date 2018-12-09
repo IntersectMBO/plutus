@@ -78084,6 +78084,7 @@ plutus-tx
 plutus-tx-plugin
 tasty
 tasty-hedgehog
+transformers
 ];
 testToolDepends = [
 markdown-unlit
