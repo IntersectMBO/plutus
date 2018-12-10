@@ -354,15 +354,16 @@ mainHeader :: forall p i. HTML p i
 mainHeader =
   div_
     [ div [ classes [ btnGroup, pullRight ] ]
-        (makeLink <$> [ Tuple "Getting Started" "https://webdevf.iohk.io/plutus/get-started/writing-contracts-in-plutus/"
-                      , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
-                      , Tuple "API" "https://input-output-hk.github.io/plutus/"
-                      ])
+        (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
     ]
   where
+    links = [ Tuple "Getting Started" "https://webdevf.iohk.io/plutus/get-started/writing-contracts-in-plutus/"
+            , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
+            , Tuple "API" "https://input-output-hk.github.io/plutus/"
+            ]
     makeLink (Tuple name link) =
       a [ classes [ btn, btnSmall ]
         , href link
