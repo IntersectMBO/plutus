@@ -1,35 +1,24 @@
 module Language.Marlowe.Escrow where
 
-import Language.Marlowe.Compiler
-import           Wallet.API                                          (PubKey (..))
+import           Language.Marlowe.Compiler
+import           Wallet.API                     ( PubKey(..) )
 
+{-
 ------------------------------------------
 -- Implementation of an escrow contract --
 ------------------------------------------
 
--- The contract allows person 1 to pay 450 ADA
--- to person 2 by using person 3 as an escrow.
---
--- Person 1 can commit 450 ADA until block 100.
--- The payment will go through only if 2 out of the 3
--- participants choose the number "1".
---
--- If 2 out of the 3 participants chooses the number "0"
--- or if payment did not go through after block 100,
--- the money will be refunded to person 1.
+   The contract allows person 1 to pay 450 ADA
+   to person 2 by using person 3 as an escrow.
 
+   Person 1 can commit 450 ADA until block 100.
+   The payment will go through only if 2 out of the 3
+   participants choose the number "1".
 
--- escrowContract :: Contract
--- escrowContract = CommitCash 1
---                     (Value 450)
---                     (When (OrObs (two_chose 1 2 3 refund)
---                                  (two_chose 1 2 3 pay))
---                           (Choice (two_chose 1 2 3 pay)
---                                   (Pay 1 2 Committed)
---                                   redeem_original))
-
--- refund = 0
--- pay    = 1
+   If 2 out of the 3 participants chooses the number "0"
+   or if payment did not go through after block 100,
+   the money will be refunded to person 1.
+-}
 
 alice :: Person
 alice = PubKey 1
@@ -44,32 +33,32 @@ escrowContract :: Contract
 escrowContract = CommitCash iCC1 alice
                     (Value 450)
                     10 100
-                    (When (OrObs (two_chose alice bob carol 0)
-                                 (two_chose alice bob carol 1))
+                    (When (OrObs (twoChose alice bob carol 0)
+                                 (twoChose alice bob carol 1))
                           90
-                          (Choice (two_chose alice bob carol 1)
+                          (Choice (twoChose alice bob carol 1)
                                   (Pay iP1 alice bob
                                        (Committed iCC1)
                                        100
                                        Null)
-                                  redeem_original)
-                          redeem_original)
+                                  redeemOriginal)
+                          redeemOriginal)
                     Null
 
 chose :: Person -> ConcreteChoice -> Observation
-chose per@(PubKey id) c = PersonChoseThis (IdentChoice id) per c
+chose per@(PubKey i) c = PersonChoseThis (IdentChoice i) per c
 
-one_chose :: Person -> Person -> ConcreteChoice -> Observation
-one_chose per per' val =
+oneChose :: Person -> Person -> ConcreteChoice -> Observation
+oneChose per per' val =
         (OrObs (chose per val) (chose per' val))
 
-two_chose :: Person -> Person -> Person -> ConcreteChoice -> Observation
-two_chose p1 p2 p3 c =
-        OrObs (AndObs (chose p1 c) (one_chose p2 p3 c))
+twoChose :: Person -> Person -> Person -> ConcreteChoice -> Observation
+twoChose p1 p2 p3 c =
+        OrObs (AndObs (chose p1 c) (oneChose p2 p3 c))
               (AndObs (chose p2 c) (chose p3 c))
 
-redeem_original :: Contract
-redeem_original = RedeemCC iCC1 Null
+redeemOriginal :: Contract
+redeemOriginal = RedeemCC iCC1 Null
 
 iCC1 :: IdentCC
 iCC1 = IdentCC 1

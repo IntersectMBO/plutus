@@ -7,23 +7,27 @@
 -fno-warn-unused-do-bind #-}
 module Spec.Marlowe(tests) where
 
-import           Data.Either                                         (isRight)
-import           Control.Monad                                        (void)
-import qualified Data.Map                                            as Map
-import           Hedgehog                                            (Property, forAll, property)
+import           Data.Either                    ( isRight )
+import           Control.Monad                  ( void )
+import qualified Data.Map                      as Map
+import           Hedgehog                       ( Property
+                                                , forAll
+                                                , property
+                                                )
 import qualified Hedgehog
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                                 (testProperty, HedgehogTestLimit(..))
+import           Test.Tasty.Hedgehog            ( testProperty
+                                                , HedgehogTestLimit(..)
+                                                )
 
-import Ledger hiding (Value)
+import           Ledger                  hiding ( Value )
 import qualified Ledger
-import Ledger.Validation (OracleValue(..), Signed(..))
-import qualified Ledger.Validation                                as Validation
-import           Wallet                                           (PubKey (..))
+import           Ledger.Validation              ( OracleValue(..) )
+import           Wallet                         ( PubKey(..) )
 import           Wallet.Emulator
-import qualified Wallet.Generators                                as Gen
+import qualified Wallet.Generators             as Gen
 import           Language.Marlowe.Compiler
-import Language.Marlowe.Escrow                            as Escrow
+import           Language.Marlowe.Escrow       as Escrow
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
 
@@ -94,7 +98,7 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
             Null
 
-    let oracleValue = OracleValue (Signed (oracle, (Validation.Height 2, 100)))
+    let oracleValue = OracleValue oracle (Height 2) 100
 
     withContract [alice, bob] contract $ \txOut -> do
         txOut <- bob `performs` commit
@@ -217,16 +221,16 @@ escrowTest = checkMarloweTrace (MarloweScenario {
             (IdentCC 1)
             450
             (State [(IdentCC 1, (PubKey 1, NotRedeemed 450 100))] [])
-            (When (OrObs (two_chose alicePk bobPk carolPk 0)
-                                 (two_chose alicePk bobPk carolPk 1))
+            (When (OrObs (twoChose alicePk bobPk carolPk 0)
+                                 (twoChose alicePk bobPk carolPk 1))
                           90
-                          (Choice (two_chose alicePk bobPk carolPk 1)
+                          (Choice (twoChose alicePk bobPk carolPk 1)
                                   (Pay iP1 alicePk bobPk
                                        (Committed iCC1)
                                        100
                                        Null)
-                                  redeem_original)
-                          redeem_original)
+                                  redeemOriginal)
+                          redeemOriginal)
 
         addBlocks 50
 
@@ -319,7 +323,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
 
         addBlocks deliveryDate
 
-        let oracleValue = OracleValue (Signed (oracle, (Validation.Height (deliveryDate + 4), spotPrice)))
+        let oracleValue = OracleValue oracle (Height (deliveryDate + 4)) spotPrice
         txOut <- alice `performs` receivePayment txOut
             [oracleValue] []
             (IdentPay 1)
