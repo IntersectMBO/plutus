@@ -7,7 +7,7 @@
     "purs:compile": "purs compile 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs'",
     "purs:bundle": "purs bundle output/**/*.js",
     "start": "node bundle.js",
-    "test": "pulp test"
+    "test": "pulp test -I generated"
   },
   "dependencies": {
     "ace-builds": "^1.4.1",
