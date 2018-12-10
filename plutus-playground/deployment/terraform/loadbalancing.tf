@@ -42,7 +42,7 @@ resource "aws_security_group" "public_alb" {
 }
 
 data "aws_acm_certificate" "kevm_private" {
-  domain      = "*.playground.plutus.iohkdev.io"
+  domain      = "*.${var.tld}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -170,7 +170,7 @@ resource "aws_route53_record" "alb" {
 #
 #resource "aws_route53_record" "alb" {
 #  zone_id = "Z3HMYGFV3CT1GJ"
-#  name    = "${var.env}.playground.plutus.iohkdev.io"
+#  name    = "${var.env}.${var.tld}"
 #  type    = "A"
 #
 #  alias {
