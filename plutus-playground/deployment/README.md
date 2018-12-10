@@ -8,7 +8,7 @@ We use `terraform` to manage the AWS infrastructure including networking, loadba
 
 ### Creating AWS infrastructure
 
-1. You must have an account in the plutus-playground AWS account (you will need a lot of capabilities, so an admin account is easiest)
+1. You must have an account in the plutus-playground or dev-mantis AWS account (you will need a lot of capabilities, so an admin account is easiest)
 2. Authenticate your account in the current shell session
 3. Create the Route 53 zone you want to use (e.g. playground.plutus.iohkdev.io) and add an NS record in the parent zone.
 4. Setup ACM for wildcard on that zone.
