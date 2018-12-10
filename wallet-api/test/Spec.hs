@@ -6,6 +6,7 @@ module Main(main) where
 
 import           Control.Lens
 import           Control.Monad              (void)
+import           Control.Monad.Trans.Except (runExcept)
 import           Data.Either                (isLeft, isRight)
 import           Data.Foldable              (traverse_)
 import qualified Data.Map                   as Map
@@ -49,10 +50,12 @@ tests = testGroup "all tests" [
         testProperty "react to blockchain events" eventTrace,
         testProperty "watch funds at an address" notifyWallet,
         testProperty "log script validation failures" invalidScript,
-        testProperty "payToPubkey" payToPubKeyScript
+        testProperty "payToPubkey" payToPubKeyScript,
+        testProperty "payToPubkey-2" payToPubKeyScript2
         ],
     testGroup "Etc." [
-        testProperty "splitVal" splitVal
+        testProperty "splitVal" splitVal,
+        testProperty "selectCoin" selectCoinProp
         ]
     ]
 
@@ -155,6 +158,17 @@ splitVal = property $ do
     Hedgehog.assert $ sum vs == i
     Hedgehog.assert $ length vs <= n
 
+selectCoinProp :: Property
+selectCoinProp = property $ do
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValue
+    target <- forAll Gen.genValue
+    let result = runExcept (selectCoin inputs target)
+    case result of
+        Left _ -> 
+            Hedgehog.assert $ (sum $ snd <$> inputs) < target
+        Right (ins, change) -> 
+            Hedgehog.assert $ (sum $ snd <$> ins) == target + change
+
 notifyWallet :: Property
 notifyWallet = property $ do
     let w = Wallet 1
@@ -188,6 +202,27 @@ eventTrace = property $ do
     -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 100)
 
+payToPubKeyScript2 :: Property
+payToPubKeyScript2 = property $ do
+    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+        updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
+    (e, _) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ do
+            updateAll
+            walletAction (Wallet 1) $ payToPublicKey_ (initialBalance - 1) (PubKey 2)
+            updateAll 
+            walletAction (Wallet 2) $ payToPublicKey_ (initialBalance + 1) (PubKey 3)
+            updateAll
+            walletAction (Wallet 3) $ payToPublicKey_ (initialBalance + 1) (PubKey 1)
+            updateAll
+            walletAction (Wallet 1) $ payToPublicKey_ 2 (PubKey 2)
+            updateAll
+            traverse_ (uncurry assertOwnFundsEq) [
+                (w1, initialBalance),
+                (w2, initialBalance), 
+                (w3, initialBalance)]
+    Hedgehog.assert $ isRight e
 
 payToPubKeyScript :: Property
 payToPubKeyScript = property $ do
