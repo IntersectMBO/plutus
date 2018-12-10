@@ -4,8 +4,8 @@ module Chain
        , evaluationPane
        ) where
 
-import Bootstrap (empty)
-import Color (Color, rgb)
+import Bootstrap (empty, nbsp)
+import Color (Color, rgb, white)
 import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array as Array
 import Data.Foldable (traverse_)
@@ -15,10 +15,10 @@ import Data.Maybe (Maybe(Nothing))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple, fst, snd)
 import Data.Tuple.Nested ((/\))
-import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, buildItems, buildLinks, color, colors, formatterString, itemStyle, items, label, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, trigger, value, xAxis, yAxis) as E
+import ECharts.Commands (addItem, addLink, axisLine, axisType, backgroundColor, bar, bottom, buildItems, buildLinks, color, colorSource, colors, formatterString, itemStyle, items, label, left, lineStyle, name, nameGap, nameLocationMiddle, nameRotate, normal, right, sankey, series, sourceName, splitLine, targetName, textStyle, tooltip, top, trigger, value, xAxis, yAxis) as E
 import ECharts.Extras (focusNodeAdjacencyAllEdges, orientVertical, positionBottom)
-import ECharts.Monad (CommandsT,DSL) as E
-import ECharts.Types (AxisType(Value, Category), TooltipTrigger(ItemTrigger), numItem, strItem) as E
+import ECharts.Monad (CommandsT, DSL) as E
+import ECharts.Types (AxisType(Value, Category), PixelOrPercent(Pixel), TooltipTrigger(ItemTrigger), numItem, strItem) as E
 import ECharts.Types.Phantom (I)
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
@@ -31,7 +31,7 @@ import Playground.API (EvaluationResult(EvaluationResult))
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<>), (>>>))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), cpBalancesChart, cpMockchainChart)
 import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
-import Wallet.Graph (FlowGraph(..), FlowLink(..), TxRef(..))
+import Wallet.Graph (FlowGraph(FlowGraph), FlowLink(FlowLink), TxRef(TxRef))
 
 evaluationPane::
   forall m aff.
@@ -79,7 +79,11 @@ emulatorEventPane (TxnValidate (TxId txId)) =
 
 emulatorEventPane (TxnValidationFail (TxId txId) error) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Validation failed for transaction: " <> txId.getTxId <> ": " <> gShow error ]
+    [ text $ "Validation failed for transaction: " <> txId.getTxId
+    , br_
+    , nbsp
+    , text $ gShow error
+    ]
 
 emulatorEventPane (BlockAdd (Height height)) =
   div [ class_ $ ClassName "info" ]
@@ -107,6 +111,22 @@ lightBlue = rgb 88 119 182
 fadedBlue :: Color
 fadedBlue = rgb 35 39 64
 
+softPalette :: Array Color
+softPalette =
+  [ rgb 55 68 106
+  , rgb 54 93 72
+  , rgb 94 50 62
+  ]
+
+hardPalette :: Array Color
+hardPalette =
+  [ rgb 210 112 240
+  , rgb 252 255 119
+  , rgb 255 126 119
+  , rgb 112 240 130
+  , rgb 163 128 188
+  , rgb 112 156 240
+  ]
 ------------------------------------------------------------
 
 -- | Remember here that the Blockchain is latest-block *first*.
@@ -118,18 +138,18 @@ mockchainChartOptions ::
 mockchainChartOptions (FlowGraph {flowGraphLinks, flowGraphNodes}) = do
   E.tooltip $ do
     E.trigger E.ItemTrigger
-  E.colors [ rgb 55 68 106
-           , rgb 54 93 72
-           , rgb 94 50 62
-           ]
+  E.colors hardPalette
   E.series do
     E.sankey do
+      traverse_ (\f -> f (E.Pixel 30)) [ E.top, E.right, E.bottom, E.left ]
       focusNodeAdjacencyAllEdges
       orientVertical
+      E.lineStyle $ E.normal do
+        E.colorSource
       E.buildLinks $ traverse_ toEchartLink flowGraphLinks
       E.buildItems $ traverse_ toEchartItem flowGraphNodes
       E.label $ E.normal do
-        E.color offWhite
+        E.color white
         positionBottom
 
 toEchartItem :: forall m i. Monad m => TxRef -> E.CommandsT (item :: I | i) m Unit

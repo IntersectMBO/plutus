@@ -10,7 +10,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetE
 import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, runAjax)
-import Bootstrap (container_, empty)
+import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff)
@@ -34,7 +34,7 @@ import Data.Newtype (unwrap)
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.String as String
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
@@ -43,8 +43,8 @@ import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, div, h1, header_, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
+import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
@@ -324,8 +324,19 @@ stripeContainer_ children =
 
 mainHeader :: forall p i. HTML p i
 mainHeader =
-  header_
-    [ h1
+  div_
+    [ div [ classes [ btnGroup, pullRight ] ]
+        (makeLink <$> [ Tuple "Getting Started" "https://webdevf.iohk.io/plutus/get-started/writing-contracts-in-plutus/"
+                      , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
+                      , Tuple "API" "https://input-output-hk.github.io/plutus/"
+                      ])
+    , h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
     ]
+  where
+    makeLink (Tuple name link) =
+      a [ classes [ btn, btnSmall ]
+        , href link
+        ]
+        [ text name ]
