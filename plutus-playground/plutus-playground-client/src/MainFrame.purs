@@ -34,7 +34,7 @@ import Data.Newtype (unwrap)
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
 import Data.String as String
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
