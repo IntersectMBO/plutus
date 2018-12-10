@@ -58,7 +58,8 @@ module Wallet.Emulator.Types(
     evalEmulated,
     processEmulated,
     runWalletActionAndProcessPending,
-    fundsDistribution
+    fundsDistribution,
+    selectCoin
     ) where
 
 import           Control.Lens               hiding (index)
@@ -203,23 +204,14 @@ instance WalletAPI MockWallet where
 
     createPaymentWithChange vl = do
         ws <- get
-        let fnds  = ws ^. ownFunds
-            total = getSum $ foldMap Sum fnds
+        let fnds = ws ^. ownFunds
             kp    = view ownKeyPair ws
             sig   = signature kp
-            err   = throwError $ InsufficientFunds $ T.unwords ["Total:", T.pack $ show total, "expected:", T.pack $ show vl]
-        case Map.toList fnds of
-            []   -> err
-            x:xs
-                | total < vl -> err
-                | otherwise  ->
-                    let fundsWithTotal = P.zip (x:xs) (drop 1 $ P.scanl (+) 0 $ fmap snd (x:xs))
-                        fundsToSpend   = takeUntil (\(_, runningTotal) -> vl >= runningTotal) fundsWithTotal
-                        txIns          = Set.fromList (flip pubKeyTxIn sig . fst . fst <$> fundsToSpend)
-                        totalSpent     = P.last (snd <$> fundsToSpend)-- can use `last` because `fundsToSpend` is not empty
-                        change         = totalSpent - vl -- `change` is the value that we pay back to a public-key address owned by us
-                        txOutput       = pubKeyTxOut change (pubKey kp)
-                    in pure (txIns, txOutput)
+        (spend, change) <- selectCoin (Map.toList fnds) vl
+        let
+            txOutput = if change > 0 then Just (pubKeyTxOut change (pubKey kp)) else Nothing
+            ins = Set.fromList (flip pubKeyTxIn sig . fst <$> spend)
+        pure (ins, txOutput)
 
     register tr action =
         modify (over triggers (Map.insertWith (<>) tr action))
@@ -230,6 +222,32 @@ instance WalletAPI MockWallet where
     startWatching = modifying addressMap . AM.addAddress
 
     blockHeight = use walletBlockHeight
+
+-- | Given a set of 'a's with coin values, and a target value, select a number
+-- of 'a' such that their total value is greater than or equal to the target.
+selectCoin :: (MonadError WalletAPIError m)
+    => [(a, Value)]
+    -> Value
+    -> m ([(a, Value)], Value)
+selectCoin fnds vl =
+        let
+            total = getSum $ foldMap (Sum . snd) fnds
+            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl (+) 0 $ fmap snd fnds)
+            err   = throwError
+                    $ InsufficientFunds
+                    $ T.unwords
+                        [ "Total:", T.pack $ show total
+                        , "expected:", T.pack $ show vl]
+        in  if total < vl
+            then err
+            else
+                let
+                    fundsToSpend   = takeUntil (\(_, runningTotal) -> vl <= runningTotal) fundsWithTotal
+                    totalSpent     = case reverse fundsToSpend of
+                                        []            -> 0
+                                        (_, total'):_ -> total'
+                    change         = totalSpent - vl
+                in pure (fst <$> fundsToSpend, change)
 
 -- | Take elements from a list until the predicate is satisfied.
 --   'takeUntil' @p@ includes the first element for wich @p@ is true
@@ -416,10 +434,10 @@ processPending = Op.singleton BlockchainProcessPending
 addBlocks :: Int -> Trace m [Block]
 addBlocks i = traverse (const processPending) [1..i]
 
+-- | Add a number of blocks, notifying all wallets after each block
 addBlocksAndNotify :: [Wallet] -> Int -> Trace m ()
-addBlocksAndNotify wallets i = do
-  blocks <- addBlocks i
-  traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) blocks
+addBlocksAndNotify wallets i =
+    traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) [1..i]
 
 -- | Make an assertion about the emulator state
 assertion :: Assertion -> Trace m ()

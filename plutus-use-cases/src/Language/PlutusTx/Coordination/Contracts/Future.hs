@@ -26,15 +26,16 @@ module Language.PlutusTx.Coordination.Contracts.Future(
 
 import           Control.Monad                (void)
 import           Control.Monad.Error.Class    (MonadError (..))
+import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx 
-import           Ledger                       (DataScript (..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Height(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (Height (..), OracleValue (..), PendingTx (..), PendingTxOut (..),
-                                              PendingTxOutType (..), Signed (..), ValidatorHash)
+import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..),
+                                              PendingTxOutType (..), ValidatorHash)
 import qualified Ledger.Validation            as Validation
-import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, pubKey, signAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, signAndSubmit)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -86,7 +87,7 @@ initialise long short f = do
         ds = DataScript $ Ledger.lifted $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange im
-    void $ signAndSubmit payment [o, change]
+    void $ signAndSubmit payment (o : maybeToList change)
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -100,7 +101,7 @@ settle :: (
 settle refs ft fd ov = do
     let
         forwardPrice = futureUnitPrice ft
-        OracleValue (Signed (_, (_, spotPrice))) = ov
+        OracleValue _ _ spotPrice = ov
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
         longOut = futureDataMarginLong fd + delta
         shortOut = futureDataMarginShort fd - delta
@@ -142,7 +143,7 @@ adjustMargin refs ft fd vl = do
     fd' <- let fd''
                 | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
                 | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
-                | otherwise = otherError "Private key is not part of futures contrat"
+                | otherwise = throwOtherError "Private key is not part of futures contrat"
             in fd''
     let
         red = Ledger.RedeemerScript $ Ledger.lifted AdjustMargin
@@ -150,7 +151,7 @@ adjustMargin refs ft fd vl = do
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ signAndSubmit (Set.union payment inp) [o, change]
+    void $ signAndSubmit (Set.union payment inp) (o : maybeToList change)
 
 
 -- | Basic data of a futures contract. `Future` contains all values that do not
@@ -193,7 +194,7 @@ data FutureRedeemer =
 validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
-    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [||
+    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
@@ -244,8 +245,8 @@ validatorScript ft = ValidatorScript val where
                     isPubKeyOutput txo pk && vl == vl'
 
                 verifyOracle :: OracleValue a -> (Height, a)
-                verifyOracle (OracleValue (Signed (pk, t))) =
-                    if pk `eqPk` futurePriceOracle then t else $$(PlutusTx.error) ()
+                verifyOracle (OracleValue pk h t) =
+                    if pk `eqPk` futurePriceOracle then (h, t) else $$(PlutusTx.error) ()
 
                 isValid =
                     case r of

@@ -29,6 +29,8 @@ jsonHandling = do
       assertRight response1
       response2 :: Either String EvaluationResult <- decodeFile "test/evaluation_response2.json"
       assertRight response2
+      response3 :: Either String EvaluationResult <- decodeFile "test/evaluation_response3.json"
+      assertRight response3
       error1 :: Either String (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
       assertRight error1
 

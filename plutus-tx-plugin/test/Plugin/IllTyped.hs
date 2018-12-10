@@ -14,33 +14,33 @@ import           Language.PlutusTx.Plugin
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}
 
-string :: PlcCode
+string :: CompiledCode
 string = plc @"string" "test"
 
-listConstruct :: PlcCode
+listConstruct :: CompiledCode
 listConstruct = plc @"listConstruct" ([]::[Int])
 
-listConstruct2 :: PlcCode
+listConstruct2 :: CompiledCode
 listConstruct2 = plc @"listConstruct2" ([1]::[Int])
 
 -- It is very difficult to get GHC to make a non-polymorphic redex if you use
 -- list literal syntax with integers. But this works.
-listConstruct3 :: PlcCode
+listConstruct3 :: CompiledCode
 listConstruct3 = plc @"listConstruct3" ((1::Int):(2::Int):(3::Int):[])
 
-listMatch :: PlcCode
+listMatch :: CompiledCode
 listMatch = plc @"listMatch" (\(l::[Int]) -> case l of { (x:_) -> x ; [] -> 0; })
 
 data B a = One a | Two (B (a, a))
 
-ptreeConstruct :: PlcCode
+ptreeConstruct :: CompiledCode
 ptreeConstruct = plc @"ptreeConstruct" (Two (Two (One ((1,2),(3,4)))) :: B Int)
 
 -- TODO: replace this with 'first' when we have working recursive functions
-ptreeMatch :: PlcCode
+ptreeMatch :: CompiledCode
 ptreeMatch = plc @"ptreeMatch" (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
 
-sumDirect :: PlcCode
+sumDirect :: CompiledCode
 sumDirect = plc @"sumDirect" (
     let sum :: [Int] -> Int
         sum []     = 0
@@ -50,7 +50,7 @@ sumDirect = plc @"sumDirect" (
 -- This doesn't work: we can't handle things that aren't of plain function type, and fold
 -- is a universally quantified function type
 {-
-sumViaFold :: PlcCode
+sumViaFold :: CompiledCode
 sumViaFold = plc (let fold :: (a -> b -> a) -> a -> [b] -> a
                       fold f base l = case l of
                           [] -> base

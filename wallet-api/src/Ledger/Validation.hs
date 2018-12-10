@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 module Ledger.Validation
@@ -26,7 +27,6 @@ module Ledger.Validation
     , plcRedeemerHash
     , plcTxHash
     -- * Oracles
-    , Signed(..)
     , OracleValue(..)
     -- * Validator functions
     -- ** Signatures
@@ -40,16 +40,17 @@ module Ledger.Validation
     , eqRedeemer
     , eqValidator
     , eqTx
-    -- * Misc.
-    , Height(..) 
+    -- * Hashes
+    , plcSHA2_256
+    , plcSHA3_256
     ) where
 
 import           Codec.Serialise              (Serialise, deserialiseOrFail, serialise)
-import           Crypto.Hash                  (Digest, SHA256, hash)
+import           Crypto.Hash                  (Digest, SHA256)
 import           Data.Aeson                   (FromJSON, ToJSON (toJSON), withText)
 import qualified Data.Aeson                   as JSON
 import           Data.Bifunctor               (first)
-import qualified Data.ByteArray               as BA
+import qualified Data.ByteString.Lazy.Hash    as Hash
 import qualified Data.ByteString.Base64       as Base64
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Proxy                   (Proxy (Proxy))
@@ -59,7 +60,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Ledger.Types                 (PubKey (..), Signature (..), Value (..))
+import           Ledger.Types                 (PubKey (..), Signature (..), Value (..), Height(..))
 import qualified Ledger.Types                 as Ledger
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
@@ -140,12 +141,11 @@ Language.Plutus.Coordination.Contracts.Future.validatorScript scripts.
 
 -- `OracleValue a` is the value observed at a time signed by
 -- an oracle. See note [Oracles]
-data OracleValue a =
-    OracleValue (Signed (Height, a))
-    deriving (Generic)
-
-data Signed a =
-    Signed (PubKey, a)
+data OracleValue a = OracleValue {
+        ovSignature :: PubKey,
+        ovHeight    :: Height,
+        ovValue     :: a
+    }
     deriving (Generic)
 
 {- Note [Hashes in validator scripts]
@@ -205,31 +205,28 @@ newtype TxHash =
     deriving (Eq, Generic)
 
 plcDataScriptHash :: Ledger.DataScript -> DataScriptHash
-plcDataScriptHash = DataScriptHash . plcHash
+plcDataScriptHash = DataScriptHash . plcSHA2_256 . serialise
 
 plcValidatorDigest :: Digest SHA256 -> ValidatorHash
 plcValidatorDigest = ValidatorHash . plcDigest
 
 plcRedeemerHash :: Ledger.RedeemerScript -> RedeemerHash
-plcRedeemerHash = RedeemerHash . plcHash
+plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
 
 plcTxHash :: Ledger.TxId' -> TxHash
 plcTxHash = TxHash . plcDigest . Ledger.getTxId
 
--- | PLC-compatible hash of a hashable value
-plcHash :: BA.ByteArrayAccess a => a -> BSL.ByteString
-plcHash = plcDigest . hash
+-- | PLC-compatible SHA-256 hash of a hashable value
+plcSHA2_256 :: BSL.ByteString -> BSL.ByteString
+plcSHA2_256 = Hash.sha2
+
+-- | PLC-compatible SHA3-256 hash of a hashable value
+plcSHA3_256 :: BSL.ByteString -> BSL.ByteString
+plcSHA3_256 = Hash.sha3
 
 -- | Convert a `Digest SHA256` to a PLC `Hash`
 plcDigest :: Digest SHA256 -> BSL.ByteString
 plcDigest = serialise
-
--- | Blockchain height
---   TODO: Use [[Ledger.Height]] when Integer is supported
-data Height = Height
-    { getHeight :: Int
-    } deriving (Eq, Ord, Show, Generic, FromJSON, ToJSON, ToSchema)
-
 
 -- | Check if a transaction was signed by a public key
 txSignedBy :: Q (TExp (PendingTx ValidatorHash -> PubKey -> Bool))
@@ -315,8 +312,6 @@ makeLift ''PendingTx
 
 makeLift ''OracleValue
 
-makeLift ''Signed
-
 makeLift ''ValidatorHash
 
 makeLift ''DataScriptHash
@@ -324,5 +319,3 @@ makeLift ''DataScriptHash
 makeLift ''RedeemerHash
 
 makeLift ''TxHash
-
-makeLift ''Height

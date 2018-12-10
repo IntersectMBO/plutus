@@ -34,15 +34,15 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn)
+import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Height(..))
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
+import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
-                                               WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
+                                               WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, throwOtherError,
                                                ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
 
-import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fromIntegral, fst, snd, succ, ($), (.),
+import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, succ, ($), (.),
                                              (<$>), (==))
 
 -- | A crowdfunding campaign.
@@ -69,7 +69,7 @@ contribute :: (WalletAPI m, WalletDiagnostics m)
     -> Value
     -> m ()
 contribute cmp value = do
-    _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
+    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
     ds <- DataScript . Ledger.lifted . pubKey <$> myKeyPair
 
     tx <- payToScript (campaignAddress cmp) value ds
@@ -122,7 +122,7 @@ contributionScript cmp  = ValidatorScript val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
         let
 
             infixr 3 &&
@@ -181,13 +181,13 @@ contributionScript cmp  = ValidatorScript val where
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
     (fundsAtAddressT (campaignAddress c) $ GEQ 1)
-    (blockHeightT (GEQ $ fromIntegral $ succ $ getHeight $ campaignCollectionDeadline c))
+    (blockHeightT (GEQ $ succ $ campaignCollectionDeadline c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
     (fundsAtAddressT (campaignAddress c) $ GEQ $ campaignTarget c)
-    (blockHeightT $ fromIntegral . getHeight <$> Interval (campaignDeadline c) (campaignCollectionDeadline c))
+    (blockHeightT $ Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
 -- | Claim a refund of our campaign contribution
 refund :: (WalletAPI m, WalletDiagnostics m) => TxId' -> Campaign -> EventHandler m

@@ -4,29 +4,18 @@
 -- throwWalletAPIError throws an error from a wallet (client)
 module Language.PlutusTx.Coordination.Contracts.Messages where
 
-import           Control.Applicative          (Applicative (..))
-import           Control.Lens
-import           Control.Monad                (void)
-import           Control.Monad.Error          (MonadError (..))
-import           Data.Foldable                (foldMap)
-import qualified Data.Map                     as Map
-import           Data.Maybe                   (fromMaybe)
-import           Data.Monoid                  (Sum (..))
 import qualified Data.Set                     as Set
-import           Data.Text
-import           GHC.Generics                 (Generic)
-import           Playground.Contract
+import           Data.Text                    (Text)
 
-import qualified Language.PlutusTx            as PlutusTx
 import           Ledger
 import           Ledger.Validation
-import qualified Ledger.Validation            as Validation
 import           Wallet
+import           Playground.Contract
 
-logAMessage :: (WalletAPI m, WalletDiagnostics m) => m ()
+logAMessage :: MockWallet ()
 logAMessage = logMsg "wallet log"
 
-submitInvalidTxn :: (WalletAPI m, WalletDiagnostics m) => m ()
+submitInvalidTxn :: MockWallet ()
 submitInvalidTxn = do
     logMsg "Preparing to submit an invalid transaction"
     let tx = Tx
@@ -38,8 +27,8 @@ submitInvalidTxn = do
             }
     submitTxn tx
 
-throwWalletAPIError :: (WalletAPI m, WalletDiagnostics m) => Text -> m ()
-throwWalletAPIError = throwError . OtherError
+throwWalletAPIError :: Text -> MockWallet ()
+throwWalletAPIError = throwOtherError
 
 $(mkFunction 'logAMessage)
 $(mkFunction 'submitInvalidTxn)

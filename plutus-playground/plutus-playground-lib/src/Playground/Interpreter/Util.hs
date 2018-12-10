@@ -79,6 +79,12 @@ decode v =
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 
+apply ::
+     (MonadError PlaygroundError m)
+  => a
+  -> m a
+apply = pure
+
 apply1 ::
      (T.Typeable a, FromJSON a, MonadError PlaygroundError m)
   => (a -> b)

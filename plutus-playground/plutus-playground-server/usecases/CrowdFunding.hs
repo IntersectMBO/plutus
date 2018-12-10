@@ -4,25 +4,12 @@
 -- number of inputs a transaction can have.
 module Language.PlutusTx.Coordination.Contracts.CrowdFunding where
 
-import           Control.Applicative          (Applicative (..))
-import           Control.Lens
-import           Control.Monad                (void)
-import           Data.Foldable                (foldMap)
-import qualified Data.Map                     as Map
-import           Data.Maybe                   (fromMaybe)
-import           Data.Monoid                  (Sum (..))
-import qualified Data.Set                     as Set
-import           GHC.Generics                 (Generic)
-import           Playground.Contract
-
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Tx)
-import qualified Ledger                       as Ledger
-import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
-import qualified Ledger.Validation            as Validation
-import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
-                                               WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, otherError,
-                                               ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
+import qualified Language.PlutusTx.Prelude    as P
+import           Ledger
+import           Ledger.Validation
+import           Playground.Contract
+import           Wallet
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -41,43 +28,6 @@ data CampaignAction = Collect | Refund
 
 PlutusTx.makeLift ''CampaignAction
 
--- | Contribute funds to the campaign (contributor)
---
-contribute :: (WalletAPI m, WalletDiagnostics m)
-    => Campaign
-    -> Value
-    -> m ()
-contribute cmp value = do
-    _ <- if value <= 0 then otherError "Must contribute a positive value" else pure ()
-    ds <- DataScript . Ledger.lifted . pubKey <$> myKeyPair
-
-    tx <- payToScript (campaignAddress cmp) value ds
-    logMsg "Submitted contribution"
-
-    register (refundTrigger cmp) (refund (Ledger.hashTx tx) cmp)
-    logMsg "Registered refund trigger"
-
--- | Register a [[EventHandler]] to collect all the funds of a campaign
---
-collect :: (WalletAPI m, WalletDiagnostics m) => Campaign -> m ()
-collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
-        logMsg "Collecting funds"
-        am <- watchedAddresses
-        let scr        = contributionScript cmp
-            contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
-            red        = Ledger.RedeemerScript $ Ledger.lifted Collect
-            con (r, _) = scriptTxIn r scr red
-            ins        = con <$> contributions
-            value = getSum $ foldMap (Sum . snd) contributions
-
-        oo <- ownPubKeyTxOut value
-        void $ signAndSubmit (Set.fromList ins) [oo]
-
-
--- | The address of a [[Campaign]]
-campaignAddress :: Campaign -> Ledger.Address'
-campaignAddress = Ledger.scriptAddress . contributionScript
-
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
 --
@@ -91,99 +41,137 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 --      the owner creates a single transaction with two inputs, referring to
 --      t_1 and t_2. Each input contains the script `contributionScript c`
 --      specialised to a contributor. This case is covered by the
---      definition for `payToOwner` below.
+--      `Collect` branch below.
 --   2. Refund. In this case each contributor creates a transaction with a
 --      single input claiming back their part of the funds. This case is
---      covered by the `refundable` branch.
+--      covered by the `Refund` branch.
 contributionScript :: Campaign -> ValidatorScript
 contributionScript cmp  = ValidatorScript val where
-    val = Ledger.applyScript inner (Ledger.lifted cmp)
+    val = Ledger.applyScript mkValidator (Ledger.lifted cmp)
+    mkValidator = Ledger.fromCompiledCode $$(PlutusTx.compile [|| 
 
-    --   See note [Contracts and Validator Scripts] in
-    --       Language.Plutus.Coordination.Contracts
-    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
-        let
+        -- The validator script is a function of for arguments:
+        -- 1. The 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
+        --    As a result, the 'Campaign' definition is part of the script address, and different campaigns have different addresses.
+        --    The Campaign{..} syntax means that all fields of the 'Campaign' value are in scope (for example 'campaignDeadline' in l. 70).
+        --    See note [RecordWildCards].
+        --
+        -- 2. A 'CampaignAction'. This is the redeemer script. It is provided by the redeeming transaction.
+        --
+        -- 3. A 'CampaignActor'. This is the data script. It is provided by the producing transaction (the contribution)
+        --
+        -- 4. A 'PendingTx' value. It contains information about the current transaction and is provided by the slot leader.
+        --    See note [PendingTx]
+        \Campaign{..} (act :: CampaignAction) (con :: CampaignActor) (p :: PendingTx') ->
+            let
 
-            infixr 3 &&
-            (&&) :: Bool -> Bool -> Bool
-            (&&) = $$(PlutusTx.and)
+                infixr 3 &&
+                (&&) :: Bool -> Bool -> Bool
+                (&&) = $$(PlutusTx.and)
 
-            -- | Check that a pending transaction is signed by the private key
-            --   of the given public key.
-            signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
-            signedByT = $$(Validation.txSignedBy)
+                PendingTx ps outs _ _ (Height h) _ _ = p
 
-            PendingTx ps outs _ _ (Height h) _ _ = p
+                deadline :: Int
+                deadline = let Height h' = campaignDeadline in h'
 
-            deadline :: Int
-            deadline = let Height h' = campaignDeadline in h'
+                collectionDeadline :: Int
+                collectionDeadline = let Height h' = campaignCollectionDeadline in h'
 
-            collectionDeadline :: Int
-            collectionDeadline = let Height h' = campaignCollectionDeadline in h'
+                target :: Int
+                target = let Value v = campaignTarget in v
 
-            target :: Int
-            target = let Value v = campaignTarget in v
+                -- | The total value of all contributions
+                totalInputs :: Int
+                totalInputs =
+                    let v (PendingTxIn _ _ (Value vl)) = vl in
+                    $$(P.foldr) (\i total -> total + v i) 0 ps
 
-            -- | The total value of all contributions
-            totalInputs :: Int
-            totalInputs =
-                let v (PendingTxIn _ _ (Value vl)) = vl in
-                $$(PlutusTx.foldr) (\i total -> total + v i) 0 ps
+                isValid = case act of
+                    Refund -> -- the "refund" branch
+                        let
 
-            isValid = case act of
-                Refund -> -- the "refund" branch
-                    let
-                        -- Check that all outputs are paid to the public key
-                        -- of the contributor (that is, to the `a` argument of the data script)
+                            contributorTxOut :: PendingTxOut -> Bool
+                            contributorTxOut o = case $$(pubKeyOutput) o of
+                                Nothing -> False
+                                Just pk -> $$(eqPubKey) pk con
 
-                        contributorTxOut :: PendingTxOut -> Bool
-                        contributorTxOut o = $$(PlutusTx.maybe) False (\pk -> $$(Validation.eqPubKey) pk a) ($$(Validation.pubKeyOutput) o)
+                            -- Check that all outputs are paid to the public key
+                            -- of the contributor (this key is provided as the data script `con`)
+                            contributorOnly = $$(P.all) contributorTxOut outs
 
-                        contributorOnly = $$(PlutusTx.all) contributorTxOut outs
+                            refundable = h > collectionDeadline && contributorOnly && $$(txSignedBy) p con
 
-                        refundable   = h > collectionDeadline &&
-                                                    contributorOnly &&
-                                                    signedByT p a
+                        in refundable
+                    Collect -> -- the "successful campaign" branch
+                        let
+                            payToOwner = h > deadline && h <= collectionDeadline && totalInputs >= target && $$(txSignedBy) p campaignOwner
+                        in payToOwner
+            in
+            if isValid then () else $$(P.error) () ||])
 
-                    in refundable
-                Collect -> -- the "successful campaign" branch
-                    let
-                        payToOwner = h > deadline &&
-                                    h <= collectionDeadline &&
-                                    totalInputs >= target &&
-                                    signedByT p campaignOwner
-                    in payToOwner
-        in
-        if isValid then () else $$(PlutusTx.error) ()) ||])
+-- | The address of a [[Campaign]]
+campaignAddress :: Campaign -> Ledger.Address'
+campaignAddress = Ledger.scriptAddress . contributionScript
+
+-- | Contribute funds to the campaign (contributor)
+--
+contribute :: Campaign -> Value -> MockWallet ()
+contribute cmp value = do
+    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
+    ownPK <- ownPubKey
+    let ds = DataScript (Ledger.lifted ownPK)
+    tx <- payToScript (campaignAddress cmp) value ds
+    logMsg "Submitted contribution"
+
+    register (refundTrigger cmp) (refundHandler (Ledger.hashTx tx) cmp)
+    logMsg "Registered refund trigger"
+
+-- | Register a [[EventHandler]] to collect all the funds of a campaign
+--
+scheduleCollection :: Campaign -> MockWallet ()
+scheduleCollection cmp = register (collectFundsTrigger cmp) (EventHandler (\_ -> do
+        logMsg "Collecting funds"
+        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
+        collectFromScript (contributionScript cmp) redeemerScript))
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ GEQ 1)
-    (blockHeightT (GEQ $ fromIntegral $ succ $ getHeight $ campaignCollectionDeadline c))
+    (fundsAtAddressT (campaignAddress c) (GEQ 1))
+    (blockHeightT (GEQ (succ (campaignCollectionDeadline c))))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ GEQ $ campaignTarget c)
-    (blockHeightT $ fromIntegral . getHeight <$> Interval (campaignDeadline c) (campaignCollectionDeadline c))
+    (fundsAtAddressT (campaignAddress c) (GEQ (campaignTarget c)))
+    (blockHeightT (Interval (campaignDeadline c) (campaignCollectionDeadline c)))
 
 -- | Claim a refund of our campaign contribution
-refund :: (WalletAPI m, WalletDiagnostics m) => TxId' -> Campaign -> EventHandler m
-refund txid cmp = EventHandler $ \_ -> do
+refundHandler :: TxId' -> Campaign -> EventHandler MockWallet
+refundHandler txid cmp = EventHandler (\_ -> do
     logMsg "Claiming refund"
-    am <- watchedAddresses
-    let adr     = campaignAddress cmp
-        utxo    = fromMaybe Map.empty $ am ^. at adr
-        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
-        scr   = contributionScript cmp
-        red   = Ledger.RedeemerScript $ Ledger.lifted Refund
-        i ref = scriptTxIn ref scr red
-        inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = getSum $ foldMap (Sum . snd) ourUtxo
+    let validatorScript = contributionScript cmp
+        redeemerScript  = Ledger.RedeemerScript (Ledger.lifted Refund)
+    collectFromScriptTxn validatorScript redeemerScript txid)
 
-    out <- ownPubKeyTxOut value
-    void $ signAndSubmit inputs [out]
-
-$(mkFunction 'collect)
+$(mkFunction 'scheduleCollection)
 $(mkFunction 'contribute)
+
+{- note [RecordWildCards]
+
+We can use the syntax "Campaign{..}" here because the 'RecordWildCards' 
+extension is enabled automatically by the Playground backend.
+
+The extension is documented here:
+* https://downloads.haskell.org/~ghc/7.2.1/docs/html/users_guide/syntax-extns.html
+
+A list of extensions that are enabled by default for the Playground can be found here:
+* https://github.com/input-output-hk/plutus/blob/b0f49a0cc657cd1a4eaa4af72a6d69996b16d07a/plutus-playground/plutus-playground-server/src/Playground/Interpreter.hs#L44
+
+-}
+
+{- note [PendingTx]
+
+This part of the API (the PendingTx argument) is experimental and subject to change.
+
+-}

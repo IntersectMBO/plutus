@@ -23,6 +23,7 @@ library
   hs-source-dirs: src
   build-depends:
     base -any,
+    bytestring -any,
     containers -any,
     mtl -any,
     template-haskell -any,
@@ -39,6 +40,7 @@ library
     Language.PlutusTx.Coordination.Contracts
     Language.PlutusTx.Coordination.Contracts.CrowdFunding
     Language.PlutusTx.Coordination.Contracts.Future
+    Language.PlutusTx.Coordination.Contracts.Game
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
   ghc-options:
@@ -54,6 +56,7 @@ test-suite plutus-use-cases-test
     other-modules:
       Spec.Crowdfunding
       Spec.Future
+      Spec.Game
       Spec.Vesting
     build-depends:
         base >=4.9 && <5,

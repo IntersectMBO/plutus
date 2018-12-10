@@ -29,10 +29,10 @@ import           GHC.Generics
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
-instance GetProgram PlcCode where
+instance GetProgram CompiledCode where
     getProgram = catchAll . getPlc
 
-goldenPir :: String -> PlcCode -> TestNested
+goldenPir :: String -> CompiledCode -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
 
 tests :: TestNested
@@ -52,10 +52,10 @@ basic = testNested "basic" [
   , goldenPlc "monoK" monoK
   ]
 
-monoId :: PlcCode
+monoId :: CompiledCode
 monoId = plc @"monoId" (\(x :: Int) -> x)
 
-monoK :: PlcCode
+monoK :: CompiledCode
 monoK = plc @"monoK" (\(i :: Int) -> \(j :: Int) -> i)
 
 primitives :: TestNested
@@ -82,56 +82,64 @@ primitives = testNested "primitives" [
   --, goldenPlc "blocknum" blocknumPlc
   , goldenPir "bytestring" bytestring
   , goldenEval "bytestringApply" [ getPlc bytestring, unsafeLiftProgram ("hello"::ByteString) ]
+  , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: ByteString)]
+  , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: ByteString), unsafeLiftProgram ("hello" :: ByteString)]
   , goldenPir "verify" verify
   ]
 
-int :: PlcCode
+int :: CompiledCode
 int = plc @"int" (1::Int)
 
-int2 :: PlcCode
+int2 :: CompiledCode
 int2 = plc @"int2" (2::Int)
 
-bool :: PlcCode
+bool :: CompiledCode
 bool = plc @"bool" True
 
-andPlc :: PlcCode
+andPlc :: CompiledCode
 andPlc = plc @"andPlc" (\(x::Bool) (y::Bool) -> if x then (if y then True else False) else False)
 
-tuple :: PlcCode
+tuple :: CompiledCode
 tuple = plc @"tuple" ((1::Int), (2::Int))
 
-tupleMatch :: PlcCode
+tupleMatch :: CompiledCode
 tupleMatch = plc @"tupleMatch" (\(x:: (Int, Int)) -> let (a, b) = x in a)
 
-intCompare :: PlcCode
+intCompare :: CompiledCode
 intCompare = plc @"intCompare" (\(x::Int) (y::Int) -> x < y)
 
-intEq :: PlcCode
+intEq :: CompiledCode
 intEq = plc @"intEq" (\(x::Int) (y::Int) -> x == y)
 
 -- Has a Void in it
-void :: PlcCode
+void :: CompiledCode
 void = plc @"void" (\(x::Int) (y::Int) -> let a x' y' = case (x', y') of { (True, True) -> True; _ -> False; } in (x == y) `a` (y == x))
 
-intPlus :: PlcCode
+intPlus :: CompiledCode
 intPlus = plc @"intPlus" (\(x::Int) (y::Int) -> x + y)
 
-intDiv :: PlcCode
+intDiv :: CompiledCode
 intDiv = plc @"intDiv" (\(x::Int) (y::Int) -> x `div` y)
 
-errorPlc :: PlcCode
+errorPlc :: CompiledCode
 errorPlc = plc @"errorPlc" (Builtins.error @Int)
 
-ifThenElse :: PlcCode
+ifThenElse :: CompiledCode
 ifThenElse = plc @"ifThenElse" (\(x::Int) (y::Int) -> if x == y then x else y)
 
---blocknumPlc :: PlcCode
+--blocknumPlc :: CompiledCode
 --blocknumPlc = plc @"blocknumPlc" Builtins.blocknum
 
-bytestring :: PlcCode
+bytestring :: CompiledCode
 bytestring = plc @"bytestring" (\(x::ByteString) -> x)
 
-verify :: PlcCode
+sha2 :: CompiledCode
+sha2 = plc @"sha2" (\(x :: ByteString) -> Builtins.sha2_256 x)
+
+bsEquals :: CompiledCode
+bsEquals = plc @"bsEquals" (\(x :: ByteString) (y :: ByteString) -> Builtins.equalsByteString x y)
+
+verify :: CompiledCode
 verify = plc @"verify" (\(x::ByteString) (y::ByteString) (z::ByteString) -> Builtins.verifySignature x y z)
 
 structure :: TestNested
@@ -140,7 +148,7 @@ structure = testNested "structure" [
   ]
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
-letFun :: PlcCode
+letFun :: CompiledCode
 letFun = plc @"lefFun" (\(x::Int) (y::Int) -> let f z = x == z in f y)
 
 datat :: TestNested
@@ -169,44 +177,44 @@ monoData = testNested "monomorphic" [
 
 data MyEnum = Enum1 | Enum2
 
-basicEnum :: PlcCode
+basicEnum :: CompiledCode
 basicEnum = plc @"basicEnum" (Enum1)
 
 data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int deriving (Generic)
 
-monoDataType :: PlcCode
+monoDataType :: CompiledCode
 monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
 
-monoConstructor :: PlcCode
+monoConstructor :: CompiledCode
 monoConstructor = plc @"monConstructor" (Mono1)
 
-monoConstructed :: PlcCode
+monoConstructed :: CompiledCode
 monoConstructed = plc @"monoConstructed" (Mono2 1)
 
-monoCase :: PlcCode
+monoCase :: CompiledCode
 monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  Mono2 a -> a; Mono3 a -> a })
 
-defaultCase :: PlcCode
+defaultCase :: CompiledCode
 defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
 
-irrefutableMatch :: PlcCode
+irrefutableMatch :: CompiledCode
 irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
 
-atPattern :: PlcCode
+atPattern :: CompiledCode
 atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
 
 data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int} deriving Generic
 
-monoRecord :: PlcCode
+monoRecord :: CompiledCode
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
 
 -- must be compiled with a lazy case
-nonValueCase :: PlcCode
+nonValueCase :: CompiledCode
 nonValueCase = plc @"nonValueCase" (\(x :: MyEnum) -> case x of { Enum1 -> 1::Int ; Enum2 -> Builtins.error (); })
 
 type Synonym = Int
 
-synonym :: PlcCode
+synonym :: CompiledCode
 synonym = plc @"synonym" (1::Synonym)
 
 polyData :: TestNested
@@ -218,13 +226,13 @@ polyData = testNested "polymorphic" [
 
 data MyPolyData a b = Poly1 a b | Poly2 a
 
-polyDataType :: PlcCode
+polyDataType :: CompiledCode
 polyDataType = plc @"polyDataType" (\(x:: MyPolyData Int Int) -> x)
 
-polyConstructed :: PlcCode
+polyConstructed :: CompiledCode
 polyConstructed = plc @"polyConstructed" (Poly1 (1::Int) (2::Int))
 
-defaultCasePoly :: PlcCode
+defaultCasePoly :: CompiledCode
 defaultCasePoly = plc @"defaultCasePoly" (\(x :: MyPolyData Int Int) -> case x of { Poly1 a _ -> a ; _ -> 2; })
 
 newtypes :: TestNested
@@ -241,19 +249,19 @@ newtype MyNewtype = MyNewtype Int
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
-basicNewtype :: PlcCode
+basicNewtype :: CompiledCode
 basicNewtype = plc @"basicNewtype" (\(x::MyNewtype) -> x)
 
-newtypeMatch :: PlcCode
+newtypeMatch :: CompiledCode
 newtypeMatch = plc @"newtypeMatch" (\(MyNewtype x) -> x)
 
-newtypeCreate :: PlcCode
+newtypeCreate :: CompiledCode
 newtypeCreate = plc @"newtypeCreate" (\(x::Int) -> MyNewtype x)
 
-newtypeCreate2 :: PlcCode
+newtypeCreate2 :: CompiledCode
 newtypeCreate2 = plc @"newtypeCreate2" (MyNewtype 1)
 
-nestedNewtypeMatch :: PlcCode
+nestedNewtypeMatch :: CompiledCode
 nestedNewtypeMatch = plc @"nestedNewtypeMatch" (\(MyNewtype2 (MyNewtype x)) -> x)
 
 recursiveTypes :: TestNested
@@ -283,14 +291,14 @@ recursion = testNested "recursiveFunctions" [
     , goldenEval "even4" [ evenMutual, plc @"4" (4::Int) ]
   ]
 
-fib :: PlcCode
+fib :: CompiledCode
 -- not using case to avoid literal cases
 fib = plc @"fib" (
     let fib :: Int -> Int
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
 
-evenMutual :: PlcCode
+evenMutual :: CompiledCode
 evenMutual = plc @"evenMutual" (
     let even :: Int -> Bool
         even n = if n == 0 then True else odd (n-1)
@@ -306,16 +314,16 @@ errors = testNested "errors" [
     , goldenPlcCatch "recordSelector" recordSelector
   ]
 
-integer :: PlcCode
+integer :: CompiledCode
 integer = plc @"integer" (1::Integer)
 
-free :: PlcCode
+free :: CompiledCode
 free = plc @"free" (True && False)
 
 -- It's little tricky to get something that GHC actually turns into a polymorphic computation! We use our value twice
 -- at different types to prevent the obvious specialization.
-valueRestriction :: PlcCode
+valueRestriction :: CompiledCode
 valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtins.error (); } in (f @Bool, f @Int))
 
-recordSelector :: PlcCode
+recordSelector :: CompiledCode
 recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)

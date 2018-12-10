@@ -41,8 +41,8 @@
 body {
     font-family: 'Open Sans', sans-serif;
     background:#121326;
-	padding-top: 15px;
-	padding-bottom: 15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 p, a, button, i, em {
@@ -95,20 +95,28 @@ h2 {
     text-align: center;
 }
 
+.form-control {
+    &:focus {
+        color: inherit;
+    }
+}
+
 .actions {
     .action {
         text-align: left;
         margin-bottom: 30px;
 
-        label {
-            margin-bottom: 0;
+        .form-group {
+            label {
+                margin-bottom: 0;
+            }
+
+            input {
+                padding-left: 0;
+                padding-right: 0;
+            }
         }
 
-        input {
-            padding-left: 0;
-            padding-right: 0;
-            margin-bottom: 2rem;
-        }
 
         .nested {
             margin-left: 1rem;
@@ -127,11 +135,6 @@ h2 {
         border: $input-border-color;
         outline:none;
         border-bottom:1px solid $purple05;
-
-        &.error {
-            color: $red;
-            border-bottom:1px solid $red;
-        }
     }
 }
 

@@ -18,16 +18,17 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     ) where
 
 import           Control.Monad.Error.Class    (MonadError (..))
+import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
-import           Ledger.Validation            (Height (..), PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
+import           Ledger.Validation            (PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                               ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Height(..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
-import           Wallet                       (WalletAPI (..), WalletAPIError, otherError, ownPubKeyTxOut, signAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, signAndSubmit)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -69,12 +70,12 @@ vestFunds :: (
     -> Value
     -> m VestingData
 vestFunds vst value = do
-    _ <- if value < totalAmount vst then otherError "Value must not be smaller than vested amount" else pure ()
+    _ <- if value < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    _ <- signAndSubmit payment [o, change]
+    _ <- signAndSubmit payment (o : maybeToList change)
     pure vd
 
 -- | Retrieve some of the vested funds.
@@ -106,7 +107,7 @@ validatorScriptHash =
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
-    inner = Ledger.fromPlcCode $$(PlutusTx.plutus [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
+    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| \Vesting{..} () VestingData{..} (p :: PendingTx ValidatorHash) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool

@@ -22,7 +22,6 @@ import qualified Wallet.Generators                                     as Gen
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
 import qualified Ledger
-import qualified Ledger.Validation                                     as Validation
 
 tests :: TestTree
 tests = testGroup "crowdfunding" [
@@ -59,9 +58,9 @@ collect w = void $ walletAction w $ CF.collect $ cfCampaign scenario1
 scenario1 :: CFScenario
 scenario1 = CFScenario{..} where
     cfCampaign = Campaign {
-        campaignDeadline = Validation.Height 10,
+        campaignDeadline = 10,
         campaignTarget   = 1000,
-        campaignCollectionDeadline = Validation.Height 15,
+        campaignCollectionDeadline = 15,
         campaignOwner              = PubKey 1
         }
     cfWallets = [w1, w2, w3]

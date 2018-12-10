@@ -19,8 +19,11 @@ module Wallet.API(
     createPayment,
     signAndSubmit,
     payToScript,
-    payToPubKey,
+    payToScript_,
+    payToPublicKey,
+    payToPublicKey_,
     collectFromScript,
+    collectFromScriptTxn,
     ownPubKeyTxOut,
     ownPubKey,
     -- * Triggers
@@ -41,8 +44,8 @@ module Wallet.API(
     annTruthValue,
     -- * Error handling
     WalletAPIError(..),
-    insufficientFundsError,
-    otherError,
+    throwInsufficientFundsError,
+    throwOtherError,
     -- * Logging
     WalletLog(..)
     ) where
@@ -55,15 +58,15 @@ import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Functor.Compose       (Compose (..))
 import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
 import qualified Data.Map                   as Map
-import           Data.Maybe                 (fromMaybe)
+import           Data.Maybe                 (fromMaybe, maybeToList)
 import           Data.Monoid                (Sum (..))
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address', DataScript, Height, PubKey (..), RedeemerScript, Signature (..),
-                                             Tx (..), TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript, Value,
-                                             pubKeyTxOut, scriptAddress, scriptTxIn)
+                                             Tx (..), TxId', TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript,
+                                             Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
 
@@ -225,7 +228,7 @@ class WalletAPI m where
     Create a payment that spends the specified value and returns any
     leftover funds as change. Fails if we don't have enough funds.
     -}
-    createPaymentWithChange :: Value -> m (Set.Set TxIn', TxOut')
+    createPaymentWithChange :: Value -> m (Set.Set TxIn', Maybe TxOut')
 
     {- |
     Register a [[EventHandler]] in `m ()` to be run when condition is true.
@@ -263,21 +266,26 @@ class WalletAPI m where
     -}
     blockHeight :: m Height
 
-insufficientFundsError :: MonadError WalletAPIError m => Text -> m a
-insufficientFundsError = throwError . InsufficientFunds
+throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
+throwInsufficientFundsError = throwError . InsufficientFunds
 
-otherError :: MonadError WalletAPIError m => Text -> m a
-otherError = throwError . OtherError
+throwOtherError :: MonadError WalletAPIError m => Text -> m a
+throwOtherError = throwError . OtherError
 
 createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
 
--- | Transfer some funds to an address locked by a script.
+-- | Transfer some funds to an address locked by a script, returning the
+--   transaction that was submitted.
 payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
 payToScript addr v ds = do
     (i, own) <- createPaymentWithChange v
-    let  other = TxOut addr v (PayToScript ds)
-    signAndSubmit i [own, other]
+    let other = TxOut addr v (PayToScript ds)
+    signAndSubmit i (other : maybeToList own)
+
+-- | Transfer some funds to an address locked by a script.
+payToScript_ :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
+payToScript_ addr v = void . payToScript addr v
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
@@ -293,16 +301,37 @@ collectFromScript scr red = do
     oo <- ownPubKeyTxOut value
     void $ signAndSubmit (Set.fromList ins) [oo]
 
+-- | Given the pay to script address of the 'ValidatorScript', collect from it
+--   all the inputs that were produced by a specific transaction, using the
+--   'RedeemerScript'.
+collectFromScriptTxn :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> TxId' -> m ()
+collectFromScriptTxn vls red txid = do
+    am <- watchedAddresses
+    let adr     = Ledger.scriptAddress vls
+        utxo    = fromMaybe Map.empty $ am ^. at adr
+        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
+        i ref = scriptTxIn ref vls red
+        inputs = Set.fromList $ i . fst <$> ourUtxo
+        value  = getSum $ foldMap (Sum . snd) ourUtxo
+
+    out <- ownPubKeyTxOut value
+    void $ signAndSubmit inputs [out]
+
 -- | Get the public key for this wallet
 ownPubKey :: (Functor m, WalletAPI m) => m PubKey
 ownPubKey = pubKey <$> myKeyPair
 
--- | Transfer some funds to an address locked by a public key
-payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
-payToPubKey v pk = do
+-- | Transfer some funds to an address locked by a public key, returning the
+--   transaction that was submitted.
+payToPublicKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
+payToPublicKey v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    signAndSubmit i [own, other]
+    signAndSubmit i (other : maybeToList own)
+
+-- | Transfer some funds to an address locked by a public key
+payToPublicKey_ :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
+payToPublicKey_ v = void . payToPublicKey v
 
 -- | Create a `TxOut'` that pays to a public key owned by us
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut'

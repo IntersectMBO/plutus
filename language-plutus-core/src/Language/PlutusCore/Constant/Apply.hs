@@ -28,6 +28,7 @@ import           PlutusPrelude
 
 import           Control.Monad.Trans.Class                      (lift)
 import qualified Data.ByteString.Lazy                           as BSL
+import qualified Data.ByteString.Lazy.Hash                      as Hash
 import           Data.IntMap.Strict                             (IntMap)
 import qualified Data.IntMap.Strict                             as IntMap
 
@@ -240,8 +241,8 @@ applyBuiltinName Concatenate          = applyTypedBuiltinName typedConcatenate  
 applyBuiltinName TakeByteString       = applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
 applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
 applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
-applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 undefined
-applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 undefined
+applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 Hash.sha2
+applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 Hash.sha3
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName TxHash               = applyTypedBuiltinName typedTxHash               undefined

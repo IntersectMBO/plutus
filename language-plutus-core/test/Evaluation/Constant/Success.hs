@@ -10,6 +10,7 @@ import           Evaluation.Constant.Apply
 
 import           Control.Monad.Morph
 import qualified Data.ByteString.Lazy           as BSL
+import qualified Data.ByteString.Lazy.Hash      as Hash
 import           Data.Maybe
 import           Hedgehog
 import           Test.Tasty
@@ -99,6 +100,18 @@ test_typedTakeByteStringSuccess
     $ prop_applyBuiltinNameSuccess typedTakeByteString (BSL.take . fromIntegral)
     $ genTypedBuiltinDef
 
+test_typedSHA2Success :: TestTree
+test_typedSHA2Success
+    = testProperty "typedSHA2"
+    $ prop_applyBuiltinNameSuccess typedSHA2 Hash.sha2
+    $ genTypedBuiltinDef
+
+test_typedSHA3Success :: TestTree
+test_typedSHA3Success
+    = testProperty "typedSHA3"
+    $ prop_applyBuiltinNameSuccess typedSHA3 Hash.sha3
+    $ genTypedBuiltinDef
+
 test_typedDropByteStringSuccess :: TestTree
 test_typedDropByteStringSuccess
     = testProperty "typedDropByteString"
@@ -130,6 +143,8 @@ test_applyBuiltinNameSuccess =
         , test_typedTakeByteStringSuccess
         , test_typedDropByteStringSuccess
         , test_typedEqByteStringSuccess
+        , test_typedSHA2Success
+        , test_typedSHA3Success
         ]
 
 -- | Generates in-bounds constants and checks that their evaluation results in an 'EvaluationSuccess'.

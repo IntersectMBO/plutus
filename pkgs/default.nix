@@ -43094,6 +43094,7 @@ license = stdenv.lib.licenses.bsd3;
 , composition-prelude
 , containers
 , criterion
+, cryptonite
 , deepseq
 , dependent-map
 , dependent-sum
@@ -43101,6 +43102,7 @@ license = stdenv.lib.licenses.bsd3;
 , happy
 , hedgehog
 , lens
+, memory
 , mmorph
 , mtl
 , prettyprinter
@@ -43131,12 +43133,14 @@ bytestring
 cborg
 composition-prelude
 containers
+cryptonite
 deepseq
 dependent-map
 dependent-sum
 filepath
 hedgehog
 lens
+memory
 mmorph
 mtl
 prettyprinter
@@ -55701,6 +55705,7 @@ license = stdenv.lib.licenses.bsd3;
 , http-media
 , insert-ordered-containers
 , lens
+, memory
 , mtl
 , network
 , newtype-generics
@@ -55732,6 +55737,7 @@ hint
 http-media
 insert-ordered-containers
 lens
+memory
 mtl
 network
 newtype-generics
@@ -55775,9 +55781,11 @@ license = stdenv.lib.licenses.bsd3;
 , directory
 , exceptions
 , file-embed
+, filepath
 , gitrev
 , hint
 , hspec
+, hspec-discover
 , http-media
 , http-types
 , insert-ordered-containers
@@ -55802,6 +55810,7 @@ license = stdenv.lib.licenses.bsd3;
 , temporary
 , text
 , transformers
+, unordered-containers
 , wai
 , wai-cors
 , wai-extra
@@ -55815,6 +55824,7 @@ version = "0.1.0.0";
 src = .././plutus-playground/plutus-playground-server;
 isLibrary = true;
 isExecutable = true;
+enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 aeson
 base
@@ -55860,6 +55870,7 @@ containers
 cryptonite
 data-default-class
 file-embed
+filepath
 gitrev
 hspec
 http-media
@@ -55890,8 +55901,10 @@ warp
 testHaskellDepends = [
 aeson
 base
+bytestring
 containers
 data-default-class
+file-embed
 gitrev
 hspec
 http-media
@@ -55910,10 +55923,15 @@ servant-server
 swagger2
 text
 transformers
+unordered-containers
 wai
 wai-cors
 wai-extra
+wallet-api
 warp
+];
+testToolDepends = [
+hspec-discover
 ];
 doHaddock = false;
 homepage = "https://github.com/iohk/plutus#readme";
@@ -55924,6 +55942,7 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, bytestring
 , doctest
 , language-plutus-core
 , markdown-unlit
@@ -55942,6 +55961,7 @@ version = "0.1.0.0";
 src = .././plutus-tx;
 libraryHaskellDepends = [
 base
+bytestring
 language-plutus-core
 plutus-core-interpreter
 plutus-tx-plugin
@@ -56024,6 +56044,7 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , base
+, bytestring
 , containers
 , hedgehog
 , lens
@@ -56044,6 +56065,7 @@ version = "0.1.0.0";
 src = .././plutus-use-cases;
 libraryHaskellDepends = [
 base
+bytestring
 containers
 lens
 mtl
@@ -78062,6 +78084,7 @@ plutus-tx
 plutus-tx-plugin
 tasty
 tasty-hedgehog
+transformers
 ];
 testToolDepends = [
 markdown-unlit

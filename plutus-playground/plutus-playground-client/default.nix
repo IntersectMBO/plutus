@@ -1,4 +1,4 @@
-{ stdenv, pkgs, psSrc }:
+{ stdenv, pkgs, fetchurl, psSrc }:
 
 with pkgs;
 
@@ -15,13 +15,22 @@ let
         -e 's@#!/.*/coffee@#!'"$coffee"'@' || true
   '';
 
+  # node-sass is terrible and we have to get it its binaries otherwise it will try to build them
+  nodeSassBinLinux = fetchurl {
+    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-48_binding.node";
+    sha256 = "0by4hp7wxdzl8dq5svs2c11i93zsdkmn1v2009lqcrw3jyg6fxym";
+  };
+  nodeSassBinDarwin = fetchurl {
+    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-48_binding.node";
+    sha256 = "11jik9r379dxnx5v9h79sirqlk7ixdspnccfibzd4pgm6s2mw4vn";
+  };
 in {
   plutus-playground-client = stdenv.mkDerivation {
     src = ./.;
 
     name = "plutus-playground-client";
 
-    buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache ];
+    buildInputs = [ nodejs yarn git cacert purescript yarnDeps.offline_cache python2 ];
 
     bowerComponents = pkgs.buildBowerComponents {
       name = "my-web-app";
@@ -31,6 +40,7 @@ in {
 
     configurePhase = ''
       export HOME="$NIX_BUILD_TOP"
+      export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
 
       sed -i -E 's|^(\s*resolved\s*")https?://.*/|\1|' yarn.lock
       yarn --offline config set yarn-offline-mirror ${yarnDeps.offline_cache}

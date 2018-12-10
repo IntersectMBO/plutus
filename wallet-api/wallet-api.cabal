@@ -110,6 +110,7 @@ test-suite wallet-api-test
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,
+        transformers -any,
         wallet-api -any,
         plutus-tx -any,
         plutus-tx-plugin -any,
