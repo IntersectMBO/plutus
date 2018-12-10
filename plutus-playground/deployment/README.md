@@ -36,7 +36,7 @@ The individual machines now exist but have nothing installed on them. We configu
 1. ssh onto the nixops machine `ssh nixops.plutus_playground` and accept the fingerprints
 2. exit the machine and from the project root copy the generated json files onto the nixops machine `scp plutus-playground/deployment/nixops/*.json root@nixops.plutus_playground:~/plutus/plutus-playground/deployment/nixops`
 3. ssh onto the nixops machine again `ssh nixops.plutus_playground`
-4. Copy private nixops ssh key to nixops user of nixops host
+4. Make sure ssh agent forwarding is setup correctly so nixops can use your ssh key needed to login to playground servers
 5. Clone the plutus repository `git clone https://github.com/input-output-hk/plutus.git`
 6. Enter the project `cd plutus`
 7. Switch to the branch you want to work with e.g. `git checkout master`
