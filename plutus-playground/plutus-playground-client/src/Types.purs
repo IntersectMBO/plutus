@@ -8,7 +8,7 @@ import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic (class Generic, gShow)
-import Data.Lens (Lens', Prism', _2, over, prism', traversed, view)
+import Data.Lens (Lens', Prism', Lens, _2, over, prism', traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -77,13 +77,16 @@ _Wait = prism' Wait f
     f (Wait r) = Just r
     f _ = Nothing
 
-_functionSchema :: forall a r. Lens'{ functionSchema :: a | r} a
+_functionSchema :: forall a b r. Lens { functionSchema :: a | r} { functionSchema :: b | r} a b
 _functionSchema = prop (SProxy :: SProxy "functionSchema")
 
-_argumentSchema :: forall a r. Lens'{ argumentSchema :: a | r} a
+_argumentSchema :: forall a b r. Lens {argumentSchema :: a | r} {argumentSchema :: b | r} a b
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
 
-_blocks :: forall a r. Lens'{ blocks :: a | r} a
+_functionName :: forall a b r. Lens {functionName :: a | r} {functionName :: b | r} a b
+_functionName = prop (SProxy :: SProxy "functionName")
+
+_blocks :: forall a b r. Lens { blocks :: a | r} { blocks :: b | r} a b
 _blocks = prop (SProxy :: SProxy "blocks")
 
 ------------------------------------------------------------
@@ -239,4 +242,4 @@ toValue (UnknownArgument _) = Unknowable
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
 toValueLevel :: FunctionSchema SimpleArgumentSchema -> FunctionSchema SimpleArgument
-toValueLevel = over (_Newtype <<< prop (SProxy :: SProxy "argumentSchema") <<< traversed) toValue
+toValueLevel = over (_Newtype <<< _argumentSchema <<< traversed) toValue

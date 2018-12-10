@@ -28,7 +28,6 @@ import Data.Generic (gEq)
 import Data.Int as Int
 import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -49,7 +48,7 @@ import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode))
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
@@ -217,7 +216,7 @@ eval (PopulateAction n l event) = do
        <<< ix n
        <<< _Action
        <<< _functionSchema
-       <<< _Newtype
+       <<< _FunctionSchema
        <<< _argumentSchema
        <<< ix l)
     (evalForm event)
