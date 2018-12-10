@@ -275,17 +275,20 @@ futuresTest = checkMarloweTrace (MarloweScenario {
     let spotPrice = 1124
     let spotPriceV = ValueFromOracle oracle (Value forwardPrice)
     let delta d = MulValue (Value units) d
-    let afterDelivery = NotObs $ BelowTimeout deliveryDate
     let redeems = Both (RedeemCC (IdentCC 1) Null) (RedeemCC (IdentCC 2) Null)
     let contract =  CommitCash (IdentCC 1) alicePk (Value initialMargin) startTimeout endTimeout
                         (CommitCash (IdentCC 2) bobPk (Value initialMargin) startTimeout endTimeout
-                            (Choice (AndObs afterDelivery (ValueGE spotPriceV forwardPriceV))
-                                (Pay (IdentPay 1) bobPk alicePk
-                                    (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
-                                (Choice (AndObs afterDelivery (ValueGE forwardPriceV spotPriceV))
-                                    (Pay (IdentPay 2) alicePk bobPk
-                                        (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
-                                    redeems))
+                            (When FalseObs deliveryDate Null
+                                (Choice (AndObs (ValueGE spotPriceV forwardPriceV)
+                                                (ValueGE forwardPriceV spotPriceV))
+                                    redeems
+                                    (Choice (ValueGE spotPriceV forwardPriceV)
+                                        (Pay (IdentPay 1) bobPk alicePk
+                                            (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
+                                        (Choice (ValueGE forwardPriceV spotPriceV)
+                                            (Pay (IdentPay 2) alicePk bobPk
+                                                (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
+                                            redeems))))
                             (RedeemCC (IdentCC 1) Null))
                         Null
 
@@ -297,13 +300,17 @@ futuresTest = checkMarloweTrace (MarloweScenario {
             initialMargin
             (State [(IdentCC 1, (PubKey 1, NotRedeemed initialMargin endTimeout))] [])
             (CommitCash (IdentCC 2) bobPk (Value initialMargin) startTimeout endTimeout
-                (Choice (AndObs afterDelivery (ValueGE spotPriceV forwardPriceV))
-                    (Pay (IdentPay 1) bobPk alicePk
-                        (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
-                    (Choice (AndObs afterDelivery (ValueGE forwardPriceV spotPriceV))
-                        (Pay (IdentPay 2) alicePk bobPk
-                            (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
-                        redeems))
+                (When FalseObs deliveryDate Null
+                    (Choice (AndObs (ValueGE spotPriceV forwardPriceV)
+                                    (ValueGE forwardPriceV spotPriceV))
+                        redeems
+                        (Choice (ValueGE spotPriceV forwardPriceV)
+                            (Pay (IdentPay 1) bobPk alicePk
+                                (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
+                            (Choice (ValueGE forwardPriceV spotPriceV)
+                                (Pay (IdentPay 2) alicePk bobPk
+                                    (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
+                                redeems))))
                 (RedeemCC (IdentCC 1) Null))
 
         txOut <- bob `performs` commit
@@ -313,13 +320,17 @@ futuresTest = checkMarloweTrace (MarloweScenario {
             initialMargin
             (State [ (IdentCC 1, (PubKey 1, NotRedeemed initialMargin endTimeout)),
                      (IdentCC 2, (PubKey 2, NotRedeemed initialMargin endTimeout))] [])
-            (Choice (AndObs afterDelivery (ValueGE spotPriceV forwardPriceV))
-                (Pay (IdentPay 1) bobPk alicePk
-                    (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
-                (Choice (AndObs afterDelivery (ValueGE forwardPriceV spotPriceV))
-                    (Pay (IdentPay 2) alicePk bobPk
-                        (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
-                    redeems))
+            (When FalseObs deliveryDate Null
+                (Choice (AndObs (ValueGE spotPriceV forwardPriceV)
+                                (ValueGE forwardPriceV spotPriceV))
+                    redeems
+                    (Choice (ValueGE spotPriceV forwardPriceV)
+                        (Pay (IdentPay 1) bobPk alicePk
+                            (delta (minus spotPriceV forwardPriceV)) endTimeout redeems)
+                        (Choice (ValueGE forwardPriceV spotPriceV)
+                            (Pay (IdentPay 2) alicePk bobPk
+                                (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
+                            redeems))))
 
         addBlocks deliveryDate
 
