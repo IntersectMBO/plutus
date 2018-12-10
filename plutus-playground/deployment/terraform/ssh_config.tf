@@ -18,7 +18,7 @@ data "template_file" "ssh_config_section_playground_a" {
     short_hostname   = "playground-a.${var.project}"
     ip               = "${aws_instance.playground_a.private_ip}"
     bastion_hostname = "${aws_instance.bastion.*.public_ip[0]}"
-    user_name        = "root"
+    user_name        = "plutus"
   }
 }
 
@@ -30,7 +30,7 @@ data "template_file" "ssh_config_section_playground_b" {
     short_hostname   = "playground-b.${var.project}"
     ip               = "${aws_instance.playground_b.private_ip}"
     bastion_hostname = "${aws_instance.bastion.*.public_ip[0]}"
-    user_name        = "root"
+    user_name        = "plutus"
   }
 }
 
