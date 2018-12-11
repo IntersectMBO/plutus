@@ -17,7 +17,7 @@ module Webserver
   ) where
 
 import           Control.Monad.IO.Class               (MonadIO, liftIO)
-import           Control.Monad.Logger                 (MonadLogger)
+import           Control.Monad.Logger                 (MonadLogger, logInfoN)
 import           Data.Default.Class                   (def)
 import           Data.Proxy                           (Proxy (Proxy))
 import           Data.Text                            (Text)
@@ -58,5 +58,6 @@ app handlers staticDir =
 
 run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> m ()
 run settings staticDir = do
-  handlers <- liftIO PS.mkHandlers
+  handlers <- PS.mkHandlers
+  logInfoN "Starting webserver."
   liftIO . runSettings settings $ app handlers staticDir

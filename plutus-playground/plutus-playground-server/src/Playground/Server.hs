@@ -15,7 +15,8 @@ module Playground.Server
 import           Control.Concurrent.MVar             (MVar, newMVar, withMVar)
 import           Control.Monad.Catch                 (catch)
 import           Control.Monad.Except                (ExceptT, MonadError, catchError, runExceptT, throwError)
-import           Control.Monad.IO.Class              (liftIO)
+import           Control.Monad.IO.Class              (MonadIO, liftIO)
+import           Control.Monad.Logger                (MonadLogger, logInfoN)
 import           Control.Monad.Trans.Class           (lift)
 import           Control.Newtype.Generics            (Newtype, unpack)
 import           Data.Aeson                          (ToJSON, encode)
@@ -143,12 +144,12 @@ timeoutInterpreter n action = do
           ("HLint: ignore Avoid restricted function" :: String)
         #-}
 
-mkHandlers :: IO (Server API)
+mkHandlers :: (MonadLogger m, MonadIO m) => m (Server API)
 mkHandlers = do
-    interpreter <- mkInterpreterInstance
-    liftIO . putStrLn $ "warming up"
+    logInfoN "Warming up."
+    interpreter <- liftIO mkInterpreterInstance
     warmupResult <- liftIO $ runInterpreterInstance interpreter PI.warmup
     case warmupResult of
-        Left e  -> error $ "failed to warmup interpreter with error: " <> show e
-        Right _ -> liftIO . putStrLn $ "successfully warmed up interpreter"
+        Left e  -> error $ "Failed to warm up interpreter with error: " <> show e
+        Right _ -> logInfoN "Successfully warmed up interpreter."
     pure $ acceptSourceCode interpreter :<|> runFunction interpreter
