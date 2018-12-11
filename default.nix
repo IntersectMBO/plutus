@@ -85,7 +85,7 @@ let
       filter = localLib.isPlutus;
       filterOverrides = {
         splitCheck = let
-          dontSplit = [ 
+          dontSplit = [
             # Broken for things with test tool dependencies
             "wallet-api"
             "plutus-tx"
@@ -155,7 +155,7 @@ let
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
     };
     plutus-playground-docker = pkgs.dockerTools.buildImage {
-      name = "plutus-playground-docker";
+      name = "plutus-playgrounds";
       contents = [ plutus-playground-client plutus-server-invoker ];
       config = {
         Cmd = ["${plutus-server-invoker}/bin/plutus-playground-server" "webserver" "-b" "0.0.0.0" "-p" "8080" "${plutus-playground-client}"];
