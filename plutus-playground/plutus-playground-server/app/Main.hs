@@ -63,8 +63,7 @@ webserverCommandParser =
     pure Webserver {..}
 
 runCommand :: (MonadIO m, MonadLogger m) => Command -> m ()
-runCommand Webserver {..} = do
-  logInfoN . Text.pack $ "Running on " <> show _host <> ":" <> show _port
+runCommand Webserver {..} =
   Webserver.run settings _staticDir
   where
     settings = setHost _host . setPort _port $ defaultSettings

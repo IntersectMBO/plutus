@@ -10,6 +10,7 @@ import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetE
 import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, runAjax)
+import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
@@ -29,7 +30,7 @@ import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, us
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
-import Data.Maybe (Maybe(Nothing, Just), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.RawJson (RawJson(..))
 import Data.StrMap as M
@@ -69,16 +70,44 @@ initialState =
 
 mainFrame ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (ajax :: AJAX | aff))) m
+  MonadAff (EChartsEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS | aff))) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
   H.parentComponent
     { initialState: const initialState
     , render
-    , eval
+    , eval: evalWithAnalyticsTracking
     , receiver: const Nothing
     }
+
+evalWithAnalyticsTracking ::
+  forall m aff.
+  MonadAff (ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
+  => MonadAsk (SPSettings_ SPParams_) m
+  => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
+evalWithAnalyticsTracking query = do
+  case toEvent query of
+    Nothing -> pure unit
+    Just event -> liftEff $ trackEvent event
+  eval query
+
+toEvent :: forall a. Query a -> Maybe Event
+toEvent (HandleEditorMessage _ _) = Nothing
+toEvent (HandleMockchainChartMessage _ _) = Nothing
+toEvent (HandleBalancesChartMessage _ _) = Nothing
+toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
+toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
+toEvent (ScrollTo _ _) = Nothing
+toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+toEvent (AddAction _ _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+toEvent (AddWaitAction _ _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
+toEvent (RemoveAction _ _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
+toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+toEvent (SetWaitTime _ _ _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 
 eval ::
   forall m aff.
