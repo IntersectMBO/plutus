@@ -91,6 +91,8 @@ evalWithAnalyticsTracking query = do
     Just event -> liftEff $ trackEvent event
   eval query
 
+-- | Here we decide which top-level queries to track as GA events, and
+-- how to classify them.
 toEvent :: forall a. Query a -> Maybe Event
 toEvent (HandleEditorMessage _ _) = Nothing
 toEvent (HandleMockchainChartMessage _ _) = Nothing
