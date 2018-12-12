@@ -29,7 +29,8 @@
     "purescript-remotedata": "^3.0.0",
     "purescript-partial": "^1.2.0",
     "purescript-js-date": "^4.0.0",
-    "purescript-argonaut-codecs": "3.2.0"
+    "purescript-argonaut-codecs": "3.2.0",
+    "purescript-undefinable": "3.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "3.0.0",
