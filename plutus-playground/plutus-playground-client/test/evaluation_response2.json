@@ -3,44 +3,20 @@
     {
       "tag": "BlockAdd",
       "contents": {
-        "getHeight": 3
-      }
-    },
-    {
-      "tag": "BlockAdd",
-      "contents": {
         "getHeight": 2
       }
     },
     {
       "tag": "TxnValidate",
       "contents": {
-        "getTxId": "nxgqGPcY5hjLGKQYhBhWGDUYtxjMGNYYuxj0EBjIGOEYlhiBGC4YThiiBRQYgxifGMsYhxiXGFsYkhgiGN//"
+        "getTxId": "nxixGNMY4xj5GOYYXRhiGHoYxAcYLxgfCxjPGLkYixiPGLwYqRhdGL4Ycxh7GDoYbhgYGHsYvxiFGJgYhhgn/w=="
       }
     },
     {
       "tag": "TxnSubmit",
       "contents": {
-        "getTxId": "nxgqGPcY5hjLGKQYhBhWGDUYtxjMGNYYuxj0EBjIGOEYlhiBGC4YThiiBRQYgxifGMsYhxiXGFsYkhgiGN//"
+        "getTxId": "nxixGNMY4xj5GOYYXRhiGHoYxAcYLxgfCxjPGLkYixiPGLwYqRhdGL4Ycxh7GDoYbhgYGHsYvxiFGJgYhhgn/w=="
       }
-    },
-    {
-      "tag": "WalletInfo",
-      "contents": [
-        {
-          "getWallet": 1
-        },
-        "Submitted contribution"
-      ]
-    },
-    {
-      "tag": "WalletInfo",
-      "contents": [
-        {
-          "getWallet": 1
-        },
-        "Registered refund trigger"
-      ]
     },
     {
       "tag": "BlockAdd",
@@ -56,7 +32,6 @@
     }
   ],
   "resultBlockchain": [
-    [],
     [
       {
         "txInputs": [
@@ -84,7 +59,21 @@
         "txOutputs": [
           {
             "txOutValue": {
-              "getValue": 2
+              "getValue": 5
+            },
+            "txOutAddress": {
+              "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
+            },
+            "txOutType": {
+              "tag": "PayToPubKey",
+              "contents": {
+                "getPubKey": 2
+              }
+            }
+          },
+          {
+            "txOutValue": {
+              "getValue": 5
             },
             "txOutAddress": {
               "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
@@ -93,20 +82,6 @@
               "tag": "PayToPubKey",
               "contents": {
                 "getPubKey": 1
-              }
-            }
-          },
-          {
-            "txOutValue": {
-              "getValue": 8
-            },
-            "txOutAddress": {
-              "getAddress": "nxgsEBjFGN4YHRi3GPIYXxhHGKQYIRhFGF0YyRjwGOIYHhhSGGMYYxiVGNwY3xieGFkYPhjpGCIY1BhcGKAYR/8="
-            },
-            "txOutType": {
-              "tag": "PayToScript",
-              "contents": {
-                "getDataScript": "X1kCiPb2AQAAw/bD9sX2wfb2U0xlZGdlcl9UeXBlc19QdWJLZXkIwPbC9vZTTGVkZ2VyX1R5cGVzX1B1YktleQnB9sf2xPbBxfYIwPb2U0xlZGdlcl9UeXBlc19QdWJLZXkIwvb2WBltYXRjaF9MZWRnZXJfVHlwZXNfUHViS2V5CsH2wPb2U0xlZGdlcl9UeXBlc19QdWJLZXkIw/b2V291dF9MZWRnZXJfVHlwZXNfUHViS2V5C8D2wfbB9sf2xPbBxfYIwPb2V291dF9MZWRnZXJfVHlwZXNfUHViS2V5C8D29ldvdXRfTGVkZ2VyX1R5cGVzX1B1YktleQvD9sD29lNMZWRnZXJfVHlwZXNfUHViS2V5CcT2wPYIAcP29ldvdXRfTGVkZ2VyX1R5cGVzX1B1YktleQzA9sH2wfbH9sT2wcX2CMD29ldvdXRfTGVkZ2VyX1R5cGVzX1B1YktleQzA9vZXb3V0X0xlZGdlcl9UeXBlc19QdWJLZXkMwvb2RWFyZ18wDcf2xPbBxfYIwfb2V291dF9MZWRnZXJfVHlwZXNfUHViS2V5DsD2wvb2WBhjYXNlX0xlZGdlcl9UeXBlc19QdWJLZXkPwfbH9sT2wcX2CMD29ldvdXRfTGVkZ2VyX1R5cGVzX1B1YktleQ7D9sD29lgYY2FzZV9MZWRnZXJfVHlwZXNfUHViS2V5D8D29kVhcmdfMA3C9vZBeBDD9vZXb3V0X0xlZGdlcl9UeXBlc19QdWJLZXkRwPbB9sH2x/bE9sHF9gjA9vZXb3V0X0xlZGdlcl9UeXBlc19QdWJLZXkRwPb2V291dF9MZWRnZXJfVHlwZXNfUHViS2V5EcD29kF4EP8="
               }
             }
           }
@@ -163,32 +138,13 @@
   ],
   "resultGraph": {
     "flowGraphNodes": [
-      "2af7e6cb",
       "9aeab944",
-      "utxo 2af7e6cb 0",
-      "utxo 2af7e6cb 1",
-      "utxo 9aeab944 1"
+      "b1d3e3f9",
+      "utxo 9aeab944 1",
+      "utxo b1d3e3f9 0",
+      "utxo b1d3e3f9 1"
     ],
     "flowGraphLinks": [
-      {
-        "flowLinkOwner": {
-          "tag": "PubKeyOwner",
-          "contents": {
-            "getPubKey": 1
-          }
-        },
-        "flowLinkValue": 2,
-        "flowLinkSource": "2af7e6cb",
-        "flowLinkTarget": "utxo 2af7e6cb 0"
-      },
-      {
-        "flowLinkOwner": {
-          "tag": "ScriptOwner"
-        },
-        "flowLinkValue": 8,
-        "flowLinkSource": "2af7e6cb",
-        "flowLinkTarget": "utxo 2af7e6cb 1"
-      },
       {
         "flowLinkOwner": {
           "tag": "PubKeyOwner",
@@ -197,8 +153,45 @@
           }
         },
         "flowLinkValue": 10,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 1,
+          "utxoLocBlockIdx": 1
+        },
         "flowLinkSource": "9aeab944",
+        "flowLinkTargetLoc": null,
         "flowLinkTarget": "utxo 9aeab944 1"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 2
+          }
+        },
+        "flowLinkValue": 5,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "b1d3e3f9",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo b1d3e3f9 0"
+      },
+      {
+        "flowLinkOwner": {
+          "tag": "PubKeyOwner",
+          "contents": {
+            "getPubKey": 1
+          }
+        },
+        "flowLinkValue": 5,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkSource": "b1d3e3f9",
+        "flowLinkTargetLoc": null,
+        "flowLinkTarget": "utxo b1d3e3f9 1"
       },
       {
         "flowLinkOwner": {
@@ -208,8 +201,16 @@
           }
         },
         "flowLinkValue": 10,
+        "flowLinkSourceLoc": {
+          "utxoLocBlock": 1,
+          "utxoLocBlockIdx": 1
+        },
         "flowLinkSource": "9aeab944",
-        "flowLinkTarget": "2af7e6cb"
+        "flowLinkTargetLoc": {
+          "utxoLocBlock": 2,
+          "utxoLocBlockIdx": 1
+        },
+        "flowLinkTarget": "b1d3e3f9"
       }
     ]
   },
@@ -219,7 +220,7 @@
         "getWallet": 1
       },
       {
-        "getValue": 2
+        "getValue": 5
       }
     ],
     [
@@ -227,7 +228,7 @@
         "getWallet": 2
       },
       {
-        "getValue": 10
+        "getValue": 15
       }
     ]
   ]
