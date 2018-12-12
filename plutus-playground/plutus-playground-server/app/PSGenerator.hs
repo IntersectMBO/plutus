@@ -42,7 +42,7 @@ import           Servant.PureScript                        (HasBridge, Settings,
 import           System.FilePath                           ((</>))
 import           Wallet.API                                (WalletAPIError)
 import           Wallet.Emulator.Types                     (EmulatorEvent, Wallet)
-import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner)
+import           Wallet.Graph                              (FlowGraph, FlowLink, TxRef, UtxOwner, UtxoLocation)
 
 integerBridge :: BridgePart
 integerBridge = do
@@ -167,6 +167,7 @@ myTypes =
     , mkSumType (Proxy @FlowLink)
     , mkSumType (Proxy @TxRef)
     , mkSumType (Proxy @UtxOwner)
+    , mkSumType (Proxy @UtxoLocation)
     , mkSumType (Proxy @FlowGraph)
     ]
 

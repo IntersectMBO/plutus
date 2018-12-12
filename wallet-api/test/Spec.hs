@@ -8,7 +8,7 @@ import           Control.Lens
 import           Control.Monad              (void)
 import           Control.Monad.Trans.Except (runExcept)
 import           Data.Either                (isLeft, isRight)
-import           Data.Foldable              (traverse_)
+import           Data.Foldable              (fold, traverse_)
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
 import           Data.Monoid                (Sum (..))
@@ -28,6 +28,7 @@ import           Wallet.Generators          (Mockchain (..))
 import qualified Wallet.Generators          as Gen
 import           Ledger
 import qualified Ledger.Index          as Index
+import qualified Wallet.Graph
 
 main :: IO ()
 main = defaultMain tests
@@ -55,7 +56,8 @@ tests = testGroup "all tests" [
         ],
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
-        testProperty "selectCoin" selectCoinProp
+        testProperty "selectCoin" selectCoinProp,
+        testProperty "txnFlows" txnFlowsTest
         ]
     ]
 
@@ -164,10 +166,20 @@ selectCoinProp = property $ do
     target <- forAll Gen.genValue
     let result = runExcept (selectCoin inputs target)
     case result of
-        Left _ -> 
+        Left _ ->
             Hedgehog.assert $ (sum $ snd <$> inputs) < target
-        Right (ins, change) -> 
+        Right (ins, change) ->
             Hedgehog.assert $ (sum $ snd <$> ins) == target + change
+
+txnFlowsTest :: Property
+txnFlowsTest = property $ do
+    (_, e) <- forAll $ Gen.runTraceOn Gen.generatorModel pubKeyTransactions
+    let chain = _chainNewestFirst e
+        numTx = length $ fold chain
+        flows = Wallet.Graph.txnFlows [] chain
+        -- there should be at least one link per tx
+        -- plus some for the unspent outputs
+    Hedgehog.assert (length flows > numTx)
 
 notifyWallet :: Property
 notifyWallet = property $ do
@@ -211,7 +223,7 @@ payToPubKeyScript2 = property $ do
         $ do
             updateAll
             walletAction (Wallet 1) $ payToPublicKey_ (initialBalance - 1) (PubKey 2)
-            updateAll 
+            updateAll
             walletAction (Wallet 2) $ payToPublicKey_ (initialBalance + 1) (PubKey 3)
             updateAll
             walletAction (Wallet 3) $ payToPublicKey_ (initialBalance + 1) (PubKey 1)
@@ -220,28 +232,29 @@ payToPubKeyScript2 = property $ do
             updateAll
             traverse_ (uncurry assertOwnFundsEq) [
                 (w1, initialBalance),
-                (w2, initialBalance), 
+                (w2, initialBalance),
                 (w3, initialBalance)]
     Hedgehog.assert $ isRight e
 
-payToPubKeyScript :: Property
-payToPubKeyScript = property $ do
+pubKeyTransactions :: Trace MockWallet ()
+pubKeyTransactions = do
     let [w1, w2, w3] = Wallet <$> [1, 2, 3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
-    (e, _) <- forAll
-        $ Gen.runTraceOn Gen.generatorModel
-        $ do
-            updateAll
-            walletAction (Wallet 1) $ payToPublicKey_ 5 (PubKey 2)
-            updateAll 
-            walletAction (Wallet 2) $ payToPublicKey_ 5 (PubKey 3)
-            updateAll
-            walletAction (Wallet 3) $ payToPublicKey_ 5 (PubKey 1)
-            updateAll
-            traverse_ (uncurry assertOwnFundsEq) [
-                (w1, 100000),
-                (w2, 100000), 
-                (w3, 100000)]
+    updateAll
+    walletAction (Wallet 1) $ payToPublicKey_ 5 (PubKey 2)
+    updateAll
+    walletAction (Wallet 2) $ payToPublicKey_ 5 (PubKey 3)
+    updateAll
+    walletAction (Wallet 3) $ payToPublicKey_ 5 (PubKey 1)
+    updateAll
+    traverse_ (uncurry assertOwnFundsEq) [
+        (w1, 100000),
+        (w2, 100000),
+        (w3, 100000)]
+
+payToPubKeyScript :: Property
+payToPubKeyScript = property $ do
+    (e, _) <- forAll $ Gen.runTraceOn Gen.generatorModel pubKeyTransactions
     Hedgehog.assert $ isRight e
 
 watchFundsAtAddress :: Property
@@ -267,7 +280,6 @@ watchFundsAtAddress = property $ do
             void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 200)
-
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
 genChainTxn = do
