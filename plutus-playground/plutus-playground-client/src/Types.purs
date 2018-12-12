@@ -159,7 +159,6 @@ instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetStringField s _) = SetStringField s $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
 
-
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
   extract (SetStringField _ a) = a
