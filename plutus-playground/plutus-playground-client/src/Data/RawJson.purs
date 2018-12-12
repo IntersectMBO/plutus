@@ -1,11 +1,9 @@
 module Data.RawJson where
 
+import Data.Generic (class Generic)
 import Data.Lens (Iso')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Newtype (class Newtype)
-
-import Prelude
-import Data.Generic (class Generic)
 
 newtype RawJson = RawJson String
 

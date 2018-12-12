@@ -49,7 +49,8 @@ in {
 
       ${patchShebangs "node_modules/.bin/"}
 
-      cp -R ${psSrc}/* ./src/
+      mkdir generated
+      cp -R ${psSrc}/* generated/
       cp --reflink=auto --no-preserve=mode -R $bowerComponents/bower_components .
     '';
 

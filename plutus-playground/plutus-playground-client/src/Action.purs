@@ -7,9 +7,8 @@ import Control.Monad.Aff.Class (class MonadAff)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Int as Int
-import Data.Lens (view)
+import Data.Lens (to, view)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen (HTML)
@@ -22,11 +21,11 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, classes, disabled, for, placeholder, required, type_, value)
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
-import Network.RemoteData (RemoteData(..))
-import Playground.API (EvaluationResult, FunctionSchema, SimpleArgumentSchema)
+import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
+import Playground.API (EvaluationResult, FunctionSchema, SimpleArgumentSchema, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, _MockWallet, _wallet, validate)
+import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -41,7 +40,7 @@ simulationPane schemas wallets actions evaluationResult =
   div_
     [ walletsPane schemas wallets
     , br_
-    , actionsPane actions ((_.resultBlockchain <<< unwrap) <$> evaluationResult)
+    , actionsPane actions (view (_EvaluationResult <<< to _.resultBlockchain) <$> evaluationResult)
     ]
 
 actionsPane :: forall p. Array Action -> RemoteData AjaxError Blockchain -> HTML p Query
@@ -79,9 +78,9 @@ actionPane index action =
                     [ h3_
                         [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet)
                         , text ": "
-                        , text $ unwrap $ _.functionName $ unwrap functionSchema
+                        , text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
                         ]
-                    , actionArgumentForm index $ _.argumentSchema $ unwrap functionSchema
+                    , actionArgumentForm index $ view (_FunctionSchema <<< _argumentSchema) functionSchema
                     ]
                 (Wait {blocks}) ->
                   div_
