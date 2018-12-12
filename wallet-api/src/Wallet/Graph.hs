@@ -56,7 +56,7 @@ mkRef :: TxId' -> TxRef
 mkRef = TxRef . Text.pack . take 8 . show . getTxId
 
 data UtxoLocation = UtxoLocation
-  { utxoLocBlock     :: Integer
+  { utxoLocBlock    :: Integer
   , utxoLocBlockIdx :: Integer
   } deriving (Eq, Ord, Show, Generic, ToJSON)
 
