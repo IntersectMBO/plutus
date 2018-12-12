@@ -44,6 +44,13 @@ main =
                       ]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
+                    bgroup "renamer"
+                      [ bench "rename" $ nf (fmap renameConcrete) (parse f)
+                      , bench "rename" $ nf (fmap renameConcrete) (parse g)
+                      , bench "rename" $ nf (fmap renameConcrete) (parse h)
+                      ]
+
+                , env largeTypeFiles $ \ ~(f, g, h) ->
                     bgroup "CBOR"
                       [ bench "writeProgram" $ nf (fmap (serialise . void)) $ parse f
                       , bench "writeProgram" $ nf (fmap (serialise . void)) $ parse g
@@ -63,3 +70,6 @@ main =
           typeCompare0 = BSL.readFile "test/types/example.plc"
           typeCompare1 = BSL.readFile "bench/example-compare.plc"
           typeCompare = (,) <$> typeCompare0 <*> typeCompare1
+
+renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
+renameConcrete = runQuote . rename
