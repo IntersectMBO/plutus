@@ -4,7 +4,7 @@
       before = [ "nginx.service" ];
       enable = true;
       path = [
-        "${playground.plutus-server-invoker}"
+        "${playground.plutus-playground.server-invoker}"
       ];
 
       serviceConfig = {
@@ -14,7 +14,7 @@
         PrivateTmp = true;
       };
 
-      script = "plutus-playground-server webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground-client}";
+      script = "plutus-playground-server webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground.client}";
   };
   in
   {
