@@ -66,17 +66,19 @@ with pkgs.lib;
 let
   localLib = import ./lib.nix { inherit config system; } ;
   src = localLib.iohkNix.cleanSourceHaskell ./.;
-  errorOverlay = import ./nix/overlays/force-error.nix {
-    inherit pkgs;
-    filter = localLib.isPlutus;
-  };
-  customOverlays = optional forceError errorOverlay;
+
   packages = self: (rec {
     inherit pkgs localLib;
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
-    haskellPackages = self.callPackage localLib.iohkNix.haskellPackages {
+    haskellPackages = let 
+      errorOverlay = import ./nix/overlays/force-error.nix {
+        inherit pkgs;
+        filter = localLib.isPlutus;
+      };
+      customOverlays = optional forceError errorOverlay;
+    in self.callPackage localLib.iohkNix.haskellPackages {
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
       enableSplitCheck customOverlays;
