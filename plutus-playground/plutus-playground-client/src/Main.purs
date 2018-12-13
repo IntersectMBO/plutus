@@ -4,7 +4,6 @@ import Prelude
 
 import Ace.Halogen.Component (AceEffects)
 import Analytics (ANALYTICS)
-import Control.Monad.Aff.Console (CONSOLE)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Unsafe (unsafePerformEff)
 import Control.Monad.Reader.Trans (runReaderT)
@@ -20,7 +19,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
 
-main :: Eff (HalogenEffects (EChartsEffects (AceEffects (console :: CONSOLE, ajax :: AJAX, analytics :: ANALYTICS)))) Unit
+main :: Eff (HalogenEffects (EChartsEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS)))) Unit
 main = runHalogenAff do
   body <- awaitBody
   runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
