@@ -71,7 +71,6 @@ let
     filter = localLib.isPlutus;
   };
   customOverlays = optional forceError errorOverlay;
-  purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
   packages = self: (rec {
     inherit pkgs localLib;
 
@@ -99,16 +98,10 @@ let
       requiredOverlay = ./nix/overlays/required.nix;
     };
 
-    # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
-    playgroundGhc = haskellPackages.ghcWithPackages (ps: [
-      haskellPackages.plutus-playground-server
-      haskellPackages.plutus-playground-lib
-      haskellPackages.plutus-use-cases
-    ]);
-
     localPackages = localLib.getPackages {
       inherit (self) haskellPackages; filter = localLib.isPlutus;
     };
+
     tests = {
       shellcheck = pkgs.callPackage localLib.iohkNix.tests.shellcheck { inherit src; };
       hlint = pkgs.callPackage localLib.iohkNix.tests.hlint {
@@ -124,36 +117,40 @@ let
         inherit src;
       };
     };
-    plutus-server-invoker = pkgs.stdenv.mkDerivation {
-      name = "plutus-server-invoker";
-      unpackPhase = "true";
-      buildInputs = [ playgroundGhc haskellPackages.plutus-playground-server pkgs.makeWrapper ];
-      buildPhase = ''
-        # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
-        mkdir -p $out/bin
-        ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
-        wrapProgram $out/bin/plutus-playground-server --set GHC_LIB_DIR "${playgroundGhc}/lib/ghc-8.4.3" --set GHC_PACKAGE_PATH "${playgroundGhc}/lib/ghc-8.4.3/package.conf.d"
-      '';
-      installPhase = "echo nothing to install";
-    };
-    plutus-playground-purescript = pkgs.stdenv.mkDerivation {
-        name = "plutus-playground-purescript";
-        unpackPhase = "true";
-        buildInputs = [ haskellPackages.plutus-playground-server ];
-        buildPhase = ''
-        mkdir $out
-        ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
-        '';
-        installPhase = "echo nothing to install";
-    };
-    inherit (pkgs.callPackage ./plutus-playground/plutus-playground-client {
-         pkgs = purescriptNixpkgs;
-         psSrc = plutus-playground-purescript;
-    }) plutus-playground-client;
+
     docs = {
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
     };
+
+    plutus-server-invoker = let 
+      # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
+      runtimeGhc = haskellPackages.ghcWithPackages (ps: [
+        haskellPackages.plutus-playground-server
+        haskellPackages.plutus-playground-lib
+        haskellPackages.plutus-use-cases
+      ]);
+    in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
+      # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
+      mkdir -p $out/bin
+      ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
+      wrapProgram $out/bin/plutus-playground-server --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+    '';
+
+    plutus-playground-client = let 
+      plutus-playground-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
+        mkdir $out
+        ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
+      '';
+      # We have to use purescript 0.11.7 (why?), but our pinned nixpkgs has 0.12, and overriding
+      # doesn't work easily because we can't built 0.11.7 with the default compiler either.
+      purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
+      in
+      pkgs.callPackage ./plutus-playground/plutus-playground-client {
+        pkgs = purescriptNixpkgs;
+        psSrc = plutus-playground-purescript;
+      };
+
     plutus-playground-docker = pkgs.dockerTools.buildImage {
       name = "plutus-playgrounds";
       contents = [ plutus-playground-client plutus-server-invoker ];
@@ -161,6 +158,7 @@ let
         Cmd = ["${plutus-server-invoker}/bin/plutus-playground-server" "webserver" "-b" "0.0.0.0" "-p" "8080" "${plutus-playground-client}"];
       };
     };
+
     inherit (pkgs) stack2nix;
   });
 
