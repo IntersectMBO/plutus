@@ -14,8 +14,8 @@ stack exec -- plutus-playground-server webserver -p 8080 ../plutus-playground-cl
 ### nix
 
 ```sh
-nix-build -A plutus-server-invoker --option substituters https://hydra.iohk.io --option require-sigs false
-/nix/store/***-plutus-server-invoker webserver -p 4000 ./plutus-playground/plutus-playground-client/dist
+nix build -f default.nix plutus-playground.server-invoker 
+result/bin/plutus-server-invoker webserver -p 4000 ./plutus-playground/plutus-playground-client/dist
 ```
 
 ## Client
@@ -34,20 +34,19 @@ Then run: `yarn run webpack` for a production build on http://localhost:8080
 nix is not really suitable for development with purescript but if you want to check everything works correctly:
 
 ```sh
-nix-build -A plutus-playground-purescript --option substituters https://hydra.iohk.io --option require-sigs false
-nix-build -A plutus-playground-client  --option substituters https://hydra.iohk.io --option require-sigs false
+nix build -f default.nix plutus-playground.client
 ```
 
 ## Docker image
 
 ```sh
-nix-build -A plutus-playground-docker --option substituters https://hydra.iohk.io --option require-sigs false
-docker load < /nix/store/***docker-image-plutus-playground-docker.tar.gz
+nix build -f default.nix plutus-playground.docker
+docker load < result
 # You can see the image name and tag as a result of the previous command and use it below
 docker run -p 8080:8080 plutus-playground-docker:somecrazytag
 ```
 
-# TroubleShooting
+# Troubleshooting
 
 On a Mac, you may see this when compiling a contract:
 
