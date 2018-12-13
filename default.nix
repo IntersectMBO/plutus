@@ -160,8 +160,6 @@ let
         Cmd = ["${plutus-server-invoker}/bin/plutus-playground-server" "webserver" "-b" "0.0.0.0" "-p" "8080" "${plutus-playground-client}"];
       };
     };
-
-    inherit (pkgs) stack2nix;
   });
 
 in
