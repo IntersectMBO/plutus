@@ -27,13 +27,13 @@ embCtx∥ (Γ Norm., A)  = embCtx∥ Γ
 
 
 \begin{code}
-lemT : ∀{Γ Γ' J K}(A :  Γ ⊢Nf⋆ K)
+lemT' : ∀{Γ Γ' J K}(A :  Γ ⊢Nf⋆ K)
  → (p : Γ ≡ Γ')
  → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
   → weaken (substEq (_⊢⋆ K) p (embNf A))
     ≡
     substEq (_⊢⋆ K) q (embNf (renameNf S A))
-lemT A refl refl = sym (rename-embNf S A)
+lemT' A refl refl = sym (rename-embNf S A)
 \end{code}
 
 \begin{code}
@@ -52,6 +52,6 @@ embTyVar Norm.Z     = Syn.Z
 embTyVar (Norm.S α) = Syn.S (embTyVar α)
 embTyVar {Γ Norm.,⋆ K} (Norm.T {A = A} α) = subst∋'
   refl
-  (lemT A (embCtx∥ Γ) (embCtx∥ (Γ Norm.,⋆ K)))
+  (lemT' A (embCtx∥ Γ) (embCtx∥ (Γ Norm.,⋆ K)))
   (Syn.T (embTyVar α))
 \end{code}

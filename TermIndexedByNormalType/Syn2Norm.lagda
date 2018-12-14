@@ -8,7 +8,7 @@ import TermIndexedByNormalType.Term as Norm
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness
-
+open import Type.BetaNBE.RenamingSubstitution
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
 open import Function
@@ -24,15 +24,12 @@ nfCtx∥ Syn.∅ = refl
 nfCtx∥ (Γ Syn.,⋆ K) = cong (_,⋆ K) (nfCtx∥ Γ)
 nfCtx∥ (Γ Syn., A)  = nfCtx∥ Γ
 
---lem∥ : ∀{Γ Γ'} → Γ ≡ Γ' → Norm.∥ Γ ∥ ≡ Norm.∥ Γ ∥
---lem∥ refl = refl
-
-lemS : ∀{Γ Γ' K J}{A : Γ ⊢Nf⋆ K}{A' : Γ ,⋆ J ⊢Nf⋆ K}
- → (p : Γ ≡ Γ')
- → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
- → renameNf S A ≡ A'
- → renameNf S (substEq (_⊢Nf⋆ K) p A) ≡ substEq (_⊢Nf⋆ K) q A'
-lemS refl refl p = p
+lemT : ∀{Γ Γ' K J}(A : Γ ⊢⋆ K)
+  → (p : Γ ≡ Γ')
+  → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
+  → weakenNf (substEq (_⊢Nf⋆ K) p (nf A)) ≡
+    substEq (_⊢Nf⋆ K) q (nf (rename S A))
+lemT A refl refl = rename-nf S A
 
 subst∋ : ∀ {Γ Γ' K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}{A' : Norm.∥ Γ' ∥ ⊢Nf⋆ K}
  → (p : Γ ≡ Γ')
@@ -46,27 +43,15 @@ subst⊢ : ∀ {Γ Γ' K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}{A' : Norm.∥ Γ' ∥ 
  (Γ Norm.⊢ A) → Γ' Norm.⊢ A'
 subst⊢ refl refl α = α
 
-
 nfTyVar : ∀{Γ K}
   → {A : Syn.∥ Γ ∥ ⊢⋆ K}
   → Γ Syn.∋ A
   → nfCtx Γ Norm.∋ substEq (_⊢Nf⋆ K) (nfCtx∥ Γ) (nf A)
 nfTyVar Syn.Z = Norm.Z
 nfTyVar (Syn.S α) =  Norm.S (nfTyVar α)
-nfTyVar (Syn.T {Γ}{K}{J}{A} α) = subst∋
+nfTyVar {Γ Syn.,⋆ K} (Syn.T {A = A} α) = subst∋
   refl
-  (lemS
-    (nfCtx∥ Γ)
-    (cong (_,⋆ J) (nfCtx∥ Γ))
-    -- this horrible thing proves: renameNf S (nf A) ≡ nf rename S A)
-    (trans
-      (rename-reify (idext idCR A) S)
-      (reifyCR
-        (transCR
-          (transCR
-            (renameVal-eval A idCR S)
-            (idext (renameVal-reflect S ∘ `) A))
-          (symCR (rename-eval A idCR S))))) ) 
+  (lemT A (nfCtx∥ Γ) (nfCtx∥ (Γ Syn.,⋆ K)))
   (Norm.T (nfTyVar α))
 
 lemƛ : ∀{Γ Γ'}(p : Γ ≡ Γ')(A B : Γ ⊢Nf⋆ *)
@@ -163,12 +148,6 @@ nfTypeTC (STermCon.size s)           = NTermCon.size s
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
 
-{-
-nfTypeSIG : ∀{φ} → SSig.Sig φ → NSig.Sig φ
-nfTypeSIG ([]     ,, C) = [] ,, nf C
-nfTypeSIG (A ∷ As ,, C) with nfTypeSIG (As ,, C)
-... | ANs ,, CN = nf A ∷ ANs ,, CN
--}
 nfTypeSIG≡₁ : (bn : Builtin) → proj₁ (SSig.SIG bn) ≡ proj₁ (NSig.SIG bn)
 nfTypeSIG≡₁ addInteger = refl
 nfTypeSIG≡₁ subtractInteger = refl
@@ -213,37 +192,6 @@ lemσ σ refl C _ refl refl = trans
       (subst-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
       (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness C))))
     (sym (subst-eval C idCR σ)) 
-{-
-nfTypeSIG≡₂ : (bn : Builtin)
-  → substEq NSig.Sig (nfTypeSIG≡₁ bn) (nfTypeSIG (proj₂ (SSig.SIG bn)))
-    ≡
-    proj₂ (NSig.SIG bn)
-nfTypeSIG≡₂ addInteger = refl
-nfTypeSIG≡₂ subtractInteger = refl
-nfTypeSIG≡₂ multiplyInteger = refl
-nfTypeSIG≡₂ divideInteger = refl
-nfTypeSIG≡₂ quotientInteger = refl
-nfTypeSIG≡₂ remainderInteger = refl
-nfTypeSIG≡₂ modInteger = refl
-nfTypeSIG≡₂ lessThanInteger = refl
-nfTypeSIG≡₂ lessThanEqualsInteger = refl
-nfTypeSIG≡₂ greaterThanInteger = refl
-nfTypeSIG≡₂ greaterThanEqualsInteger = refl
-nfTypeSIG≡₂ equalsInteger = refl
-nfTypeSIG≡₂ resizeInteger = refl
-nfTypeSIG≡₂ sizeOfInteger = refl
-nfTypeSIG≡₂ intToByteString = refl
-nfTypeSIG≡₂ concatenate = refl
-nfTypeSIG≡₂ takeByteString = refl
-nfTypeSIG≡₂ dropByteString = refl
-nfTypeSIG≡₂ sha2-256 = refl
-nfTypeSIG≡₂ sha3-256 = refl
-nfTypeSIG≡₂ verifySignature = refl
-nfTypeSIG≡₂ resizeByteString = refl
-nfTypeSIG≡₂ equalsByteString = refl
-nfTypeSIG≡₂ txh = refl
-nfTypeSIG≡₂ blocknum = refl
--}
 
 nfTypeSIG≡₂ : (bn : Builtin) → 
   nf (proj₂ (proj₂ (SSig.SIG bn))) ≡

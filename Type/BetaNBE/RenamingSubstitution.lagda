@@ -34,6 +34,19 @@ evalCRSubst : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
 evalCRSubst p {t = t} refl = idext p t
 \end{code}
 
+\begin{code}
+rename-nf : ∀{ϕ ψ K}(σ : Ren ϕ ψ)(A : ϕ ⊢⋆ K) →
+  renameNf σ (nf A) ≡ nf (rename σ A)
+rename-nf σ A = trans
+  (rename-reify (idext idCR A) σ)
+  (reifyCR
+    (transCR
+      (renameVal-eval A idCR σ)
+      (transCR
+        (idext (renameVal-reflect σ ∘ `) A)
+        (symCR (rename-eval A idCR σ))  )))
+\end{code}
+
 Substitution for normal forms:
 1. embed back into syntax;
 2. perform substitution;
