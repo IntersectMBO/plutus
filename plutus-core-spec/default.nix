@@ -6,6 +6,7 @@ let
     scheme-small
     collection-latexextra
     collection-mathscience
+    collection-latexrecommended
     latexmk;
   };
 in
