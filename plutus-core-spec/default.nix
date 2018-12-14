@@ -5,8 +5,8 @@ let
     inherit (texlive)
     scheme-small
     collection-latexextra
-    collection-mathscience
     collection-latexrecommended
+    collection-mathscience
     latexmk;
   };
 in
