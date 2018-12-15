@@ -55,3 +55,19 @@ embTyVar {Γ Norm.,⋆ K} (Norm.T {A = A} α) = subst∋'
   (lemT' A (embCtx∥ Γ) (embCtx∥ (Γ Norm.,⋆ K)))
   (Syn.T (embTyVar α))
 \end{code}
+
+\begin{code}
+embTy : ∀{Γ K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}
+  → Γ Norm.⊢ A
+  → embCtx Γ Syn.⊢ substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)
+embTy (Norm.` α) = Syn.` (embTyVar α)
+embTy (Norm.ƛ t) = {!Syn.ƛ ?!}
+embTy (t Norm.· u) = {!!}
+embTy (Norm.Λ t) = {!!}
+embTy (t Norm.·⋆ A) = {!!}
+embTy (Norm.wrap1 pat arg t) = {!!}
+embTy (Norm.unwrap1 t) = {!!}
+embTy (Norm.con t) = {!!}
+embTy (Norm.builtin bn σ tel) = {!!}
+embTy {Γ} (Norm.error A) = Syn.error (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf A) )
+\end{code}
