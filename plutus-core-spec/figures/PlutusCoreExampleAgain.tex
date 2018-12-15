@@ -82,7 +82,7 @@ With minimal modification we might turn our function into one that verifies a si
 \end{lstlisting}
 Notice that we must supply $blocknum$ with the size we wish to use to store the result twice, once at the type level and again at the term level. This is necessary because we want to have the size information available both at the type level, to facilitate gas calculations, and at the term level, so that once types are erased the runtime will know how much memory to allocate. This quirk is present in a number of the built in functions.
 
-\begin{figure*}[!Ht]
+\begin{figure*}[h]  % Using H here causes undefined references to this figure
 \begin{lstlisting}[basicstyle=\ttfamily,mathescape]
 (lam $pubkey$ [(con bytestring) (con 256)]
 (lam $signed$ [(con bytestring) (con 32)]
