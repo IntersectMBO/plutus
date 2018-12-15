@@ -33,5 +33,12 @@ again:
 	touch ${DOC}.tex && ${MAKE}
 
 clean:
-	rm -f *.aux *.log *.cov *.par *.bbl *.fls *.blg *.xml *.bcf *~
+	rm -f *.aux *.log *.cov *.par *.bbl *.fls *.blg *.xml *.bcf *.dvi *~
 	cd ${FIGS} && ${MAKE} clean
+
+clean2: clean
+	rm -f ${DOC}.pdf
+
+v: ${PDF}
+	acroread ${PDF}
+
