@@ -24,17 +24,18 @@ module Language.PlutusCore.Quote (
             , liftQuote
             ) where
 
-import           Control.Lens             (coerced)
+import           Control.Lens              (coerced)
 import           Control.Monad.Except
-import           Control.Monad.Morph      as MM
+import           Control.Monad.Morph       as MM
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Control.Monad.Trans.Maybe
 
-import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.ByteString.Lazy      as BSL
 import           Data.Functor.Foldable
 import           Data.Functor.Identity
-import qualified Data.Set                 as Set
-import           Hedgehog                 (GenT)
+import qualified Data.Set                  as Set
+import           Hedgehog                  (GenT, PropertyT)
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
@@ -63,9 +64,11 @@ instance (Monad m) => MonadQuote (QuoteT m) where
     liftQuote = MM.hoist (pure . runIdentity)
 
 instance MonadQuote m => MonadQuote (StateT s m)
+instance MonadQuote m => MonadQuote (MaybeT m)
 instance MonadQuote m => MonadQuote (ExceptT e m)
 instance MonadQuote m => MonadQuote (ReaderT r m)
 instance MonadQuote m => MonadQuote (GenT m)
+instance MonadQuote m => MonadQuote (PropertyT m)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
 -- be safely combined with other terms - that should happen inside 'QuoteT'.

@@ -1,4 +1,5 @@
-module Generators ( genProgram
+module Generators ( genTerm
+                  , genProgram
                   ) where
 
 import qualified Data.ByteString.Lazy as BSL

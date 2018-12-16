@@ -44,6 +44,7 @@ module Language.PlutusCore
     , format
     , formatDoc
     -- * Processing
+    , Gas (..)
     , annotateProgram
     , annotateTerm
     , annotateType
@@ -81,7 +82,6 @@ module Language.PlutusCore
     , TypeCheckM
     , parseTypecheck
     -- for testing
-    , normalizeType
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
@@ -177,7 +177,7 @@ printNormalizeType
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
     annotated <- annotateProgram scoped
-    typecheckProgram (TypeConfig norm mempty (Just 1000)) annotated
+    typecheckProgram (TypeConfig norm mempty defaultTypecheckerGas) annotated
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -228,8 +228,8 @@ defaultVersion :: a -> Version a
 defaultVersion a = Version a 1 0 0
 
 -- | The default amount of gas to run the typechecker with.
-defaultTypecheckerGas :: Maybe Natural
-defaultTypecheckerGas = Just 1000
+defaultTypecheckerGas :: Maybe Gas
+defaultTypecheckerGas = Just $ Gas 1000
 
 defaultTypecheckerCfg :: TypeConfig
 defaultTypecheckerCfg = TypeConfig False mempty defaultTypecheckerGas
