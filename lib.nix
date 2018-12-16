@@ -1,3 +1,4 @@
+{ system ? builtins.currentSystem, config ? {} }:
 let
   # iohk-nix can be overridden for debugging purposes by setting
   # NIX_PATH=iohk_nix=/path/to/iohk-nix
@@ -11,33 +12,37 @@ let
       in builtins.fetchTarball {
         url = "${spec.url}/archive/${spec.rev}.tar.gz";
         inherit (spec) sha256;
-      });
+      }) { inherit config system; };
 
   # nixpkgs can be overridden for debugging purposes by setting
   # NIX_PATH=custom_nixpkgs=/path/to/nixpkgs
-  fetchNixpkgs = iohkNix.fetchNixpkgs ./nixpkgs-src.json;
-  pkgs = import fetchNixpkgs { config = {}; overlays = []; };
+  pkgs = iohkNix.pkgs;
+  nixpkgs = iohkNix.nixpkgs;
   lib = pkgs.lib;
-  cleanSourceHaskell = iohkNix.cleanSourceHaskell pkgs;
-  getPackages = iohkNix.getPackages { inherit lib;};
-
-  importPkgs = args: import fetchNixpkgs ({ overlays = [ iohkNix.jemallocOverlay ]; config = {}; } // args);
+  getPackages = iohkNix.getPackages;
 
   # List of all plutus pkgs. This is used for `isPlutus` filter and `mapTestOn`
   plutusPkgList = [
-    "core-to-plc"
     "language-plutus-core"
     "plutus-core-interpreter"
+    "plutus-playground-server"
+    "plutus-playground-lib"
+    "plutus-playground-client"
+    "plutus-server-invoker"
     "plutus-exe"
     "plutus-ir"
-    "plutus-th"
+    "plutus-tx"
+    "plutus-tx-plugin"
     "plutus-use-cases"
     "wallet-api"
   ];
 
+  plutusHaskellPkgList = lib.filter (v: v != "plutus-playground-client" && v != "plutus-server-invoker") plutusPkgList;
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
+  withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
+  comp = f: g: (v: f(g v));
 in lib // {
-  inherit fetchNixpkgs importPkgs cleanSourceHaskell getPackages iohkNix isPlutus plutusPkgList;
+  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList withDevTools pkgs nixpkgs comp;
 }

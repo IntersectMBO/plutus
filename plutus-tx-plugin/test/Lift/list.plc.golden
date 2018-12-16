@@ -1,0 +1,92 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            GHC_Types_List_15
+            (fun (type) (type))
+            (lam
+              GHC_Types_Nil_16
+              (all a_17 (type) [GHC_Types_List_15 a_17])
+              (lam
+                GHC_Types_Cons_18
+                (all a_19 (type) (fun a_19 (fun [GHC_Types_List_15 a_19] [GHC_Types_List_15 a_19])))
+                (lam
+                  match_GHC_Types_Nil_20
+                  (all a_21 (type) (fun [GHC_Types_List_15 a_21] [(lam a_22 (type) (all out_GHC_Types_List_23 (type) (fun out_GHC_Types_List_23 (fun (fun a_22 (fun [GHC_Types_List_15 a_22] out_GHC_Types_List_23)) out_GHC_Types_List_23)))) a_21]))
+                  [
+                    [
+                      { GHC_Types_Cons_18 [(con integer) (con 8)] } (con 8 ! 1)
+                    ]
+                    { GHC_Types_Nil_16 [(con integer) (con 8)] }
+                  ]
+                )
+              )
+            )
+          )
+          (fix GHC_Types_List_24 (lam a_25 (type) (all out_GHC_Types_List_26 (type) (fun out_GHC_Types_List_26 (fun (fun a_25 (fun [GHC_Types_List_24 a_25] out_GHC_Types_List_26)) out_GHC_Types_List_26)))))
+        }
+        (abs
+          a_27
+          (type)
+          (wrap
+            GHC_Types_List_28
+            (lam a_29 (type) (all out_GHC_Types_List_30 (type) (fun out_GHC_Types_List_30 (fun (fun a_29 (fun [GHC_Types_List_28 a_29] out_GHC_Types_List_30)) out_GHC_Types_List_30))))
+            (abs
+              out_GHC_Types_List_31
+              (type)
+              (lam
+                case_GHC_Types_Nil_32
+                out_GHC_Types_List_31
+                (lam
+                  case_GHC_Types_Cons_33
+                  (fun a_27 (fun [GHC_Types_List_28 a_27] out_GHC_Types_List_31))
+                  case_GHC_Types_Nil_32
+                )
+              )
+            )
+          )
+        )
+      ]
+      (abs
+        a_34
+        (type)
+        (lam
+          arg_0_35
+          a_34
+          (lam
+            arg_1_36
+            [(fix GHC_Types_List_37 (lam a_38 (type) (all out_GHC_Types_List_39 (type) (fun out_GHC_Types_List_39 (fun (fun a_38 (fun [GHC_Types_List_37 a_38] out_GHC_Types_List_39)) out_GHC_Types_List_39))))) a_34]
+            (wrap
+              GHC_Types_List_40
+              (lam a_41 (type) (all out_GHC_Types_List_42 (type) (fun out_GHC_Types_List_42 (fun (fun a_41 (fun [GHC_Types_List_40 a_41] out_GHC_Types_List_42)) out_GHC_Types_List_42))))
+              (abs
+                out_GHC_Types_List_43
+                (type)
+                (lam
+                  case_GHC_Types_Nil_44
+                  out_GHC_Types_List_43
+                  (lam
+                    case_GHC_Types_Cons_45
+                    (fun a_34 (fun [GHC_Types_List_40 a_34] out_GHC_Types_List_43))
+                    [ [ case_GHC_Types_Cons_45 arg_0_35 ] arg_1_36 ]
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_46
+      (type)
+      (lam
+        x_47
+        [(fix GHC_Types_List_48 (lam a_49 (type) (all out_GHC_Types_List_50 (type) (fun out_GHC_Types_List_50 (fun (fun a_49 (fun [GHC_Types_List_48 a_49] out_GHC_Types_List_50)) out_GHC_Types_List_50))))) a_46]
+        (unwrap x_47)
+      )
+    )
+  ]
+)

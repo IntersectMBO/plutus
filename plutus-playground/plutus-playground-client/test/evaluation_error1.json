@@ -1,0 +1,25 @@
+[
+  {
+    "tag": "CompilationError",
+    "text": [
+      " error:",
+      " • Couldn't match type ‘()’ with ‘MockWallet ()’",
+      " Expected type: Either PlaygroundError (MockWallet ())",
+      " Actual type: Either PlaygroundError ()",
+      " • In the second argument of ‘(<$>)’, namely ‘(submitInvalidTxn)’",
+      " In the expression:",
+      " (runWalletActionAndProcessPending",
+      " ([Wallet {getWallet = 1}, Wallet {getWallet = 2}])",
+      " (Wallet {getWallet = 1})",
+      " <$> (submitInvalidTxn))",
+      " In the second argument of ‘runTrace’, namely",
+      " ‘[(runWalletActionAndProcessPending",
+      " ([Wallet {getWallet = 1}, Wallet {getWallet = 2}])",
+      " (Wallet {getWallet = 1})",
+      " <$> (submitInvalidTxn))]’"
+    ],
+    "row": 2,
+    "column": 185,
+    "filename": "<interactive>"
+  }
+]

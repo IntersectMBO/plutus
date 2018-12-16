@@ -68,7 +68,7 @@ data IterAppValue head arg r = IterAppValue
     }
 
 instance ( PrettyBy config (Term TyName Name ())
-         , PrettyBy config head, PrettyBy config arg
+         , PrettyBy config head, PrettyBy config arg, PrettyDynamic r
          ) => PrettyBy config (IterAppValue head arg r) where
     prettyBy config (IterAppValue term pia tbv) = parens $ fold
         [ "{ ", prettyBy config term, line
@@ -102,7 +102,7 @@ genSizeDef = genSizeIn 2 4
 -- | Either return a size taken from a 'TypedBuiltinSized' or generate one using 'genSizeDef'.
 genSizeFrom :: Monad m => TypedBuiltin Size a -> GenT m Size
 genSizeFrom (TypedBuiltinSized sizeEntry _) = return $ flattenSizeEntry sizeEntry
-genSizeFrom TypedBuiltinBool                = genSizeDef
+genSizeFrom _                               = genSizeDef
 
 -- | Generate a 'BuiltinSized'.
 genBuiltinSized :: Monad m => GenT m BuiltinSized

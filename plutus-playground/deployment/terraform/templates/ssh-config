@@ -1,0 +1,10 @@
+Host ${full_hostname}
+  ProxyJump bastion@${bastion_hostname}
+
+Host ${short_hostname}
+  Hostname ${full_hostname}
+  ProxyJump bastion@${bastion_hostname}
+
+Host ${ip}
+  ProxyJump bastion@${bastion_hostname}
+

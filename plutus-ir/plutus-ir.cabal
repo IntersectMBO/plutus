@@ -27,11 +27,15 @@ library
     exposed-modules:
         Language.PlutusIR
         Language.PlutusIR.Compiler
+        Language.PlutusIR.Compiler.Names
+        Language.PlutusIR.Compiler.Definitions
         Language.PlutusIR.MkPir
         Language.PlutusIR.Value
         Language.PlutusIR.Optimizer.DeadCode
     hs-source-dirs: src
     other-modules:
+        Language.PlutusIR.Analysis.Dependencies
+        Language.PlutusIR.Analysis.Usages
         Language.PlutusIR.Compiler.Error
         Language.PlutusIR.Compiler.Term
         Language.PlutusIR.Compiler.Datatype
@@ -53,15 +57,16 @@ library
                  -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
-        bytestring -any,
         containers -any,
         language-plutus-core -any,
         lens -any,
         mtl -any,
         mmorph -any,
         prettyprinter -any,
+        serialise -any,
         text -any,
-        transformers -any
+        transformers -any,
+        algebraic-graphs <0.3
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -78,12 +83,7 @@ test-suite plutus-ir-test
         base >=4.9 && <5,
         plutus-ir -any,
         language-plutus-core -any,
-        bytestring -any,
-        lens -any,
         mtl -any,
         mmorph -any,
-        text -any,
-        prettyprinter -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-golden -any
+        serialise -any,
+        tasty -any

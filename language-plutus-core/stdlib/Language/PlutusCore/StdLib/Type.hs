@@ -11,9 +11,11 @@ module Language.PlutusCore.StdLib.Type
     , makeRecursiveType
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 -- | A 'Type' that starts with a 'TyIFix' (i.e. a recursive type) packaged along with a

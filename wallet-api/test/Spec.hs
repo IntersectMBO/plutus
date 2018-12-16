@@ -1,24 +1,33 @@
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeApplications #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Main(main) where
 
-import           Control.Monad       (void)
-import           Data.Either         (isLeft, isRight)
-import           Data.Foldable       (traverse_)
-import qualified Data.Map            as Map
-import           Data.Monoid         (Sum (..))
-import           Hedgehog            (Property, forAll, property)
+import           Control.Lens
+import           Control.Monad              (void)
+import           Control.Monad.Trans.Except (runExcept)
+import           Data.Either                (isLeft, isRight)
+import           Data.Foldable              (traverse_)
+import qualified Data.Map                   as Map
+import qualified Data.Set                   as Set
+import           Data.Monoid                (Sum (..))
+import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen        as Gen
-import qualified Hedgehog.Range      as Range
-import           Lens.Micro
-import           Lens.Micro.Extras   (view)
+import qualified Hedgehog.Gen               as Gen
+import qualified Hedgehog.Range             as Range
 import           Test.Tasty
-import           Test.Tasty.Hedgehog (testProperty)
+import           Test.Tasty.Hedgehog        (testProperty)
+import           Language.PlutusTx.TH       (compile)
+import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Prelude  as PlutusTx
 
+import           Wallet
 import           Wallet.Emulator
-import           Wallet.Generators   (Mockchain (..))
-import qualified Wallet.Generators   as Gen
-import           Wallet.UTXO         (unitValidationData)
-import qualified Wallet.UTXO.Index   as Index
+import           Wallet.Generators          (Mockchain (..))
+import qualified Wallet.Generators          as Gen
+import           Ledger
+import qualified Ledger.Index          as Index
 
 main :: IO ()
 main = defaultMain tests
@@ -39,16 +48,20 @@ tests = testGroup "all tests" [
         testProperty "reject invalid txn" invalidTrace,
         testProperty "notify wallet" notifyWallet,
         testProperty "react to blockchain events" eventTrace,
-        testProperty "watch funds at an address" notifyWallet
+        testProperty "watch funds at an address" notifyWallet,
+        testProperty "log script validation failures" invalidScript,
+        testProperty "payToPubkey" payToPubKeyScript,
+        testProperty "payToPubkey-2" payToPubKeyScript2
         ],
     testGroup "Etc." [
-        testProperty "splitVal" splitVal
+        testProperty "splitVal" splitVal,
+        testProperty "selectCoin" selectCoinProp
         ]
     ]
 
 initialTxnValid :: Property
 initialTxnValid = property $ do
-    (i, _) <- forAll $ Gen.genInitialTransaction Gen.generatorModel
+    (i, _) <- forAll . pure $ Gen.genInitialTransaction Gen.generatorModel
     Gen.assertValid i Gen.emptyChain
 
 utxo :: Property
@@ -64,30 +77,30 @@ txnValid = property $ do
 txnIndex :: Property
 txnIndex = property $ do
     (m, txn) <- forAll genChainTxn
-    let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
-    Hedgehog.assert (Index.initialise (emChain st) == emIndex st)
+    let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
+    Hedgehog.assert (Index.initialise (_chainNewestFirst st) == _index st)
 
 txnIndexValid :: Property
 txnIndexValid = property $ do
     (m, txn) <- forAll genChainTxn
-    let (result, st) = Gen.runTrace m blockchainActions
-        idx = emIndex st
+    let (result, st) = Gen.runTrace m processPending
+        idx = _index st
     Hedgehog.assert (Right () == Index.runValidation (Index.validateTransaction 0 txn) idx)
 
 -- | Submit a transaction to the blockchain and assert that it has been
 --   validated
-simpleTrace :: Tx -> Trace EmulatedWalletApi ()
+simpleTrace :: Tx -> Trace MockWallet ()
 simpleTrace txn = do
     [txn'] <- walletAction (Wallet 1) $ submitTxn txn
-    block <- blockchainActions
+    block <- processPending
     assertIsValidated txn'
 
 validTrace :: Property
 validTrace = property $ do
     (m, txn) <- forAll genChainTxn
-    let (result, st) = Gen.runTrace m $ blockchainActions >> simpleTrace txn
+    let (result, st) = Gen.runTrace m $ processPending >> simpleTrace txn
     Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
 
 invalidTrace :: Property
 invalidTrace = property $ do
@@ -95,7 +108,47 @@ invalidTrace = property $ do
     let invalidTxn = txn { txFee = 0 }
         (result, st) = Gen.runTrace m $ simpleTrace invalidTxn
     Hedgehog.assert (isLeft result)
-    Hedgehog.assert ([] == emTxPool st)
+    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert (not (null $ _emulatorLog st))
+    Hedgehog.assert (case _emulatorLog st of
+        BlockAdd _ : TxnValidationFail _ _ : _ -> True
+        _                                      -> False)
+
+invalidScript :: Property
+invalidScript = property $ do
+    (m, txn1) <- forAll genChainTxn
+
+    -- modify one of the outputs to be a script output
+    index <- forAll $ Gen.int (Range.linear 0 ((length $ txOutputs txn1) -1))
+    let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitData
+    Hedgehog.annotateShow (scriptTxn)
+    let outToSpend = (txOutRefs scriptTxn) !! index
+    let totalVal = txOutValue (fst outToSpend)
+
+    -- try and spend the script output
+    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
+    Hedgehog.annotateShow (invalidTxn)
+
+    let (result, st) = Gen.runTrace m $ do
+            processPending
+            walletAction (Wallet 1) $ submitTxn scriptTxn
+            processPending
+            walletAction (Wallet 1) $ submitTxn invalidTxn
+            processPending
+
+    Hedgehog.assert (isRight result)
+    Hedgehog.assert ([] == _txPool st)
+    Hedgehog.assert (not (null $ _emulatorLog st))
+    Hedgehog.annotateShow (_emulatorLog st)
+    Hedgehog.assert $ case _emulatorLog st of
+        BlockAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
+            -> True
+        _
+            -> False
+
+    where
+        failValidator :: ValidatorScript
+        failValidator = ValidatorScript $ fromCompiledCode $$(compile [|| \() () () -> $$(PlutusTx.traceH) "I always fail everything" (Builtins.error @()) ||])
 
 splitVal :: Property
 splitVal = property $ do
@@ -105,23 +158,35 @@ splitVal = property $ do
     Hedgehog.assert $ sum vs == i
     Hedgehog.assert $ length vs <= n
 
+selectCoinProp :: Property
+selectCoinProp = property $ do
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValue
+    target <- forAll Gen.genValue
+    let result = runExcept (selectCoin inputs target)
+    case result of
+        Left _ -> 
+            Hedgehog.assert $ (sum $ snd <$> inputs) < target
+        Right (ins, change) -> 
+            Hedgehog.assert $ (sum $ snd <$> ins) == target + change
+
 notifyWallet :: Property
 notifyWallet = property $ do
     let w = Wallet 1
-    (e, EmulatorState{ emWalletState = st }) <- forAll
+    (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
-        $ blockchainActions >>= walletNotifyBlock w
+        $ processPending >>= walletNotifyBlock w
     let ttl = Map.lookup w st
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just initialBalance
 
 eventTrace :: Property
 eventTrace = property $ do
     let w = Wallet 1
-    (e, EmulatorState{ emWalletState = st }) <- forAll
+    (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
-            blockchainActions >>= walletNotifyBlock w
-            let mkPayment = payToPubKey 100 (PubKey 2)
+            processPending >>= walletNotifyBlock w
+            let mkPayment =
+                    EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
                 trigger = blockHeightT (GEQ 3)
 
             -- schedule the `mkPayment` action to run when block height 3 is
@@ -131,21 +196,64 @@ eventTrace = property $ do
 
             -- advance the clock to trigger `mkPayment`
             addBlocks 2 >>= traverse_ (walletNotifyBlock w)
-            void (blockchainActions >>= walletNotifyBlock w)
+            void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
 
     -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 100)
 
+payToPubKeyScript2 :: Property
+payToPubKeyScript2 = property $ do
+    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+        updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
+    (e, _) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ do
+            updateAll
+            walletAction (Wallet 1) $ payToPublicKey_ (initialBalance - 1) (PubKey 2)
+            updateAll 
+            walletAction (Wallet 2) $ payToPublicKey_ (initialBalance + 1) (PubKey 3)
+            updateAll
+            walletAction (Wallet 3) $ payToPublicKey_ (initialBalance + 1) (PubKey 1)
+            updateAll
+            walletAction (Wallet 1) $ payToPublicKey_ 2 (PubKey 2)
+            updateAll
+            traverse_ (uncurry assertOwnFundsEq) [
+                (w1, initialBalance),
+                (w2, initialBalance), 
+                (w3, initialBalance)]
+    Hedgehog.assert $ isRight e
+
+payToPubKeyScript :: Property
+payToPubKeyScript = property $ do
+    let [w1, w2, w3] = Wallet <$> [1, 2, 3]
+        updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
+    (e, _) <- forAll
+        $ Gen.runTraceOn Gen.generatorModel
+        $ do
+            updateAll
+            walletAction (Wallet 1) $ payToPublicKey_ 5 (PubKey 2)
+            updateAll 
+            walletAction (Wallet 2) $ payToPublicKey_ 5 (PubKey 3)
+            updateAll
+            walletAction (Wallet 3) $ payToPublicKey_ 5 (PubKey 1)
+            updateAll
+            traverse_ (uncurry assertOwnFundsEq) [
+                (w1, 100000),
+                (w2, 100000), 
+                (w3, 100000)]
+    Hedgehog.assert $ isRight e
+
 watchFundsAtAddress :: Property
 watchFundsAtAddress = property $ do
     let w = Wallet 1
         pkTarget = PubKey 2
-    (e, EmulatorState{ emWalletState = st }) <- forAll
+    (e, EmulatorState{ _walletStates = st }) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
-            blockchainActions >>= walletNotifyBlock w
-            let mkPayment = payToPubKey 100 pkTarget
+            processPending >>= walletNotifyBlock w
+            let mkPayment =
+                    EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
                 t1 = blockHeightT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<
@@ -156,7 +264,7 @@ watchFundsAtAddress = property $ do
             -- after 3 blocks, t1 should fire, triggering the first payment of 100 to PubKey 2
             -- after 4 blocks, t2 should fire, triggering the second payment of 100
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
-            void (blockchainActions >>= walletNotifyBlock w)
+            void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
     Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 200)
 

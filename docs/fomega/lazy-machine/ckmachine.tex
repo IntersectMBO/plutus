@@ -1,0 +1,72 @@
+%%% ---------------- CK machine ---------------- %%%
+\begin{figure}[!ht]
+\caption{The CK machine}\label{fig:ck-machine}
+\centering
+\begin{subfigure}[c]{\linewidth}  %% ---------------- CK machine states ---------------- %%
+{\small
+\caption{States}
+    \[\begin{array}{lrclr}
+        \textrm{Stack} & s      & ::= & f^*                               & \textrm{stacks}\\
+        \textrm{State} & \sigma & ::= & s \compute M                  & \textrm{computing a term}\\
+                       &        &     & s \return V                 & \textrm{returning a term value}\\
+                       &        &     & \ckerror{}                        & \textrm{throwing an error}\\
+                       &        &     & \square V                        & \textrm{halt and return a value}
+
+
+    \end{array}\]
+}
+\end{subfigure}
+
+\vspace{3mm}
+\hrule
+\vspace{3mm}
+
+\begin{subfigure}[c]{\linewidth}      %% ---------------- CK machine frames ---------------- %%
+{\small
+\caption{Reduction frames}
+\[
+    \begin{array}{rlr}
+      f ::= & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
+            & \inWrapRightFrame{\alpha}{A}            & \textrm{right wrap}\\
+            & \inUnwrapFrame{}                        & \textrm{unwrap}\\
+            & \inAppLeftFrame{M}                      & \textrm{left application}\\
+            & \inAppRightFrame{V}                     & \textrm{right application}\\
+            & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+    \end{array}
+\]
+}
+\end{subfigure}
+\vspace{3mm}
+\hrule
+\vspace{3mm}
+
+\begin{subfigure}[c]{\linewidth}   %% ---------------- CK machine ---------------- %%
+{\small
+\caption{Transitions}
+     \begin{alignat*}{2}
+      s &\compute \con{cn}                 &{}\mapsto{}& s \return \con{cn}\\
+      s &\compute \abs{\alpha}{K}{M}       &{}\mapsto{}& s \return \abs{\alpha}{K}{M}\\
+      s &\compute \inst{M}{A}              &{}\mapsto{}& s,\inInstLeftFrame{A} \compute M\\
+      s &\compute \wrap{\alpha}{A}{M}      &{}\mapsto{}& s,\inWrapRightFrame{\alpha}{A} \compute M\\
+      s &\compute \unwrap{M}               &{}\mapsto{}& s,\inUnwrapFrame{} \compute M\\
+      s &\compute \lam{x}{A}{M}            &{}\mapsto{}& s \return \lam{x}{A}{M}\\
+      s &\compute \app{M}{N}               &{}\mapsto{}& s,\inAppLeftFrame{N} \compute M\\
+      s &\compute \builtin{bn}{\repetition{A}}{} &{}\mapsto{}& 
+                                      s \return U \quad (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
+      s &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &{}\mapsto{}& 
+                                      s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}} \compute {M}\\
+      s &\compute \error{A} &{}\mapsto{}& \ckerror{}\\
+      \cdot &\return V &{}\mapsto{}& \square V\\
+      s,\inInstLeftFrame{A} &\return \abs{\alpha}{K}{M} &{}\mapsto{}& s \compute{M} \\
+      s,\inWrapRightFrame{\alpha}{A} &\return V         &{}\mapsto{}& s \return \wrap{\alpha}{A}{V}\\
+      s,\inUnwrapFrame{} &\return {\wrap{\alpha}{A}{V}} &{}\mapsto{}& s \return V\\
+      s,\inAppLeftFrame{N} &\return V                   &{}\mapsto{}& s, \inAppRightFrame{V} \compute N\\
+      s,\inAppRightFrame{\lam{x}{A}{M}} &\return V      &{}\mapsto{}& s \compute \subst{V}{x}{M}\\
+      s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}} &\return V &{}\mapsto{}& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
+      s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{} &\return V &{}\mapsto{}& s \return W \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
+    \end{alignat*}
+}
+\end{subfigure}
+\end{figure}
+
+

@@ -1,13 +1,11 @@
-let
-  localLib = import ./lib.nix;
-in
 { system ? builtins.currentSystem
 , config ? {}
-, pkgs ? (import (localLib.fetchNixpkgs) { inherit system config; })
+, localPackages ? import ./. { inherit config system; }
+, pkgs ? localPackages.pkgs
 }:
 
 let
-  localPackages = import ./. {};
+  localLib = import ./lib.nix { inherit config system; };
   fixStylishHaskell = pkgs.stdenv.mkDerivation {
     name = "fix-stylish-haskell";
     buildInputs = with pkgs; [ haskellPackages.stylish-haskell git fd ];
@@ -26,9 +24,9 @@ let
       exit
     '';
   };
-  shell = localPackages.haskellPackages.shellFor {
-    packages = p: (map (x: p.${x}) localLib.plutusPkgList);
-  };
+  shell = localLib.withDevTools (localPackages.haskellPackages.shellFor {
+    packages = p: (map (x: p.${x}) localLib.plutusHaskellPkgList);
+  });
 
 in shell // {
   inherit fixStylishHaskell;

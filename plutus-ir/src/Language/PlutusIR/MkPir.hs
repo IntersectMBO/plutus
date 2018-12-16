@@ -1,6 +1,8 @@
 
-module Language.PlutusIR.MkPir ( TermDef
+module Language.PlutusIR.MkPir ( Def (..)
+                               , TermDef
                                , TypeDef
+                               , DatatypeDef
                                , mkVar
                                , mkTyVar
                                , mkIterTyForall
@@ -23,6 +25,8 @@ import           Data.List                 (foldl')
 type TermDef tyname name a = Def (VarDecl tyname name a) (Term tyname name a)
 -- | A type definition as a type variable.
 type TypeDef tyname a = Def (TyVarDecl tyname a) (Type tyname a)
+-- | A datatype definition as a type variable.
+type DatatypeDef tyname name a = Def (TyVarDecl tyname a) (Datatype tyname name a)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: a -> VarDecl tyname name a -> Term tyname name a

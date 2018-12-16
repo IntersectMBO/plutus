@@ -1,0 +1,112 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure*}[t]
+    \[\begin{array}{lrclr}
+        \textrm{Ctx} & \Gamma  & ::= & \epsilon                    & \textrm{empty context} \\
+                     &         &     & \Gamma, \typeJ{\alpha}{K}   & \textrm{type variable} \\
+                     &         &     & \Gamma, \termJ{x}{\diffbox{S}}        & \textrm{term variable} \\
+    \end{array}\]
+
+    \caption{Contexts}
+    \label{fig:Plutus_core_contexts_algorithmic_unrestricted}
+\end{figure*}
+
+\begin{figure*}[t]
+    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{S}}\)}{In context $\Gamma$, term $M$ has normal type $S$}
+
+    \begin{prooftree}
+        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{\diffbox{S}}}\)}
+        \RightLabel{var}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{\diffbox{S}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$cn$ has constant signature $\constsig{tcn}{s}$ in Fig. \ref{fig:Plutus_core_constants}}
+        \RightLabel{con}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}{s}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{\diffbox{T}}}\)}
+        \RightLabel{abs}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{\diffbox{T}}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\allT{\alpha}{K}{T}}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
+        \AxiomC{\(\typeMultistep{\subst{A}{\alpha}{T}}{R}\)}
+        \RightLabel{inst}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{R}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\Gamma \vdash Q :: \typeK{}\)}
+        \AxiomC{\(Q = \mathcal{E}\{\fixT{\alpha}{A}\}\)}
+		\AxiomC{\(\Gamma \vdash M : \mathcal{E}\{[\fixT{\alpha}{A}/\alpha]A\}\)}
+		\RightLabel{wrap}
+		\TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{A}{M}}{Q}}\)}
+    \end{prooftree}
+    
+    Where $\mathcal{E}$ is an elimination context $\mathcal{E} ::= \bullet \mid [\mathcal{E} \,\, A]$, $A$ a type, such that $\mathcal{E}\{Q\}$ denotes the type expression obtained by replacing the $\bullet$ in $\mathcal{E}$ with $Q$. That is, $[\bullet\,\, A]\{B\} = [B\,\,A]$, and so on. 
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{\fixT{\alpha}{S}}}}\)}
+        \AxiomC{\(\diffbox{\typeMultistep{\subst{\fixT{\alpha}{S}}{\alpha}{S}}{R}}\)}
+        \RightLabel{unwrap}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\diffbox{R}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+    	\AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
+        \AxiomC{\(\hypJ{\Gamma, \termJ{y}{\diffbox{S}}}{\istermJ{M}{\diffbox{T}}}\)}
+        \RightLabel{lam}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{\diffbox{S}}{\diffbox{T}}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\funT{S}{T}}}}\)}
+        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{S'}}}\)}
+        \AxiomC{\(\diffbox{\typeEqual{S}{S'}}\)}
+        \RightLabel{app}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \alwaysNoLine
+        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Fig. \ref{fig:Plutus_core_builtins}}
+        \UnaryInfC{\(\diffbox{\typeMultistep{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}{T_i}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{\diffbox{T'_i}}}\)}
+        \UnaryInfC{\(\diffbox{\typeEqual{T_i}{T'_i}}\)}
+        \UnaryInfC{\(\diffbox{\typeMultistep{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}{R}}\)}
+        \alwaysSingleLine
+        \RightLabel{builtin}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\diffbox{R}}}\)}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
+        \AxiomC{\(\diffbox{\typeMultistep{A}{S}}\)}
+        \RightLabel{error}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{\diffbox{S}}}\)}
+    \end{prooftree}
+
+    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+    \label{fig:Plutus_core_type_synthesis_algorithmic_unrestricted}
+\end{figure*}
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

@@ -13,7 +13,6 @@ import           Language.PlutusIR.Compiler.Types
 
 import           Control.Monad
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except
 import           Control.Monad.Reader
 
 import qualified Language.PlutusCore                   as PLC

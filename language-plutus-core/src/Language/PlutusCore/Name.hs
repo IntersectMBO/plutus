@@ -81,7 +81,7 @@ identifierStateFrom u = (mempty, mempty, u)
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
     deriving (Eq, Show, Ord, Lift)
-    deriving newtype (NFData)
+    deriving newtype (NFData, Pretty)
 
 -- | The unique of a type-level name.
 newtype TypeUnique = TypeUnique

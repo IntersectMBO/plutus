@@ -14,6 +14,8 @@ module Language.PlutusCore.Error
     , AsParseError (..)
     , NormalizationError (..)
     , AsNormalizationError (..)
+    , UniqueError (..)
+    , AsUniqueError (..)
     , RenameError (..)
     , AsRenameError (..)
     , UnknownDynamicBuiltinNameError (..)
@@ -33,7 +35,7 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Lens
+import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 
@@ -53,6 +55,13 @@ data ParseError a
     | Overflow a Natural Integer
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
+
+data UniqueError a
+    = MultiplyDefined Unique a a
+    | IncoherentUsage Unique a a
+    | FreeVariable Unique a
+    deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''UniqueError
 
 data NormalizationError tyname name a
     = BadType a (Type tyname a) T.Text
@@ -94,6 +103,7 @@ makeClassyPrisms ''TypeError
 
 data Error a
     = ParseErrorE (ParseError a)
+    | UniqueCoherencyErrorE (UniqueError a)
     | RenameErrorE (RenameError a)
     | TypeErrorE (TypeError a)
     | NormalizationErrorE (NormalizationError TyName Name a)
@@ -102,6 +112,9 @@ makeClassyPrisms ''Error
 
 instance AsParseError (Error a) a where
     _ParseError = _ParseErrorE
+
+instance AsUniqueError (Error a) a where
+    _UniqueError = _UniqueCoherencyErrorE
 
 instance AsRenameError (Error a) a where
     _RenameError = _RenameErrorE
@@ -121,6 +134,14 @@ instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
     pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+
+instance Pretty a => Pretty (UniqueError a) where
+    pretty (MultiplyDefined u def redef) =
+        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+> "is redefined at" <+> pretty redef
+    pretty (IncoherentUsage u def use) =
+        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+> "is used in a different scope at" <+> pretty use
+    pretty (FreeVariable u use) =
+        "Variable" <+> pretty u <+> "is free at" <+> pretty use
 
 instance (Pretty a, PrettyBy config (Type tyname a), PrettyBy config (Term tyname name a)) =>
         PrettyBy config (NormalizationError tyname name a) where
@@ -155,12 +176,12 @@ instance PrettyBy PrettyConfigPlc (InternalTypeError a) where
             "built-in is open"
 
 instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
-    prettyBy config (KindMismatch x ty k k')            =
+    prettyBy config (KindMismatch x ty k k')          =
         "Kind mismatch at" <+> pretty x <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch x t ty ty')           =
+    prettyBy config (TypeMismatch x t ty ty')         =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config
             then mempty
@@ -169,16 +190,17 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (InternalTypeErrorE x err)           =
+    prettyBy config (InternalTypeErrorE x err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty x
-    prettyBy _      (UnknownDynamicBuiltinName x udbne) =
-        "Unknown dynamic built-in at" <+> pretty x <>
-        ":" <+> pretty udbne
-    prettyBy _      OutOfGas                            = "Type checker ran out of gas."
+    prettyBy _      (UnknownDynamicBuiltinName x err) =
+        "Unknown dynamic built-in name at" <+> pretty x <>
+        ":" <+> pretty err
+    prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
-    prettyBy _      (ParseErrorE e)         = pretty e
-    prettyBy config (RenameErrorE e)        = prettyBy config e
-    prettyBy config (TypeErrorE e)          = prettyBy config e
-    prettyBy config (NormalizationErrorE e) = prettyBy config e
+    prettyBy _      (ParseErrorE e)           = pretty e
+    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
+    prettyBy config (RenameErrorE e)          = prettyBy config e
+    prettyBy config (TypeErrorE e)            = prettyBy config e
+    prettyBy config (NormalizationErrorE e)   = prettyBy config e

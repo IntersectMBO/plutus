@@ -1,7 +1,6 @@
-{ pkgs, enableProfiling }:
+{ pkgs }:
 
-with import ../../lib.nix;
-
+with import ../../lib.nix { inherit (pkgs) system config; };
 with pkgs.haskell.lib;
 
 let
@@ -19,12 +18,9 @@ self: super: {
     language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
     # The base Haskell package builder
 
-    mkDerivation = args: super.mkDerivation (args // {
-      enableLibraryProfiling = enableProfiling;
-      enableExecutableProfiling = enableProfiling;
-      splitCheck = true;
-    } // pkgs.lib.optionalAttrs (args ? src) {
-      src = cleanSourceHaskell args.src;
+    mkDerivation = args: super.mkDerivation (args //
+      pkgs.lib.optionalAttrs (args ? src) {
+        src = iohkNix.cleanSourceHaskell args.src;
     });
 
     # stack2nix doesn't have the right set of GHC base packages nulled out for 8.4, as

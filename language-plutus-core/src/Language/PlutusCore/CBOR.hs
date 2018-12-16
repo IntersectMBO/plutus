@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
 import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type hiding (name)
+import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -38,17 +39,17 @@ for testing.
 -}
 
 instance Serialise TypeBuiltin where
-    encode bi =
-        let i = case bi of
-                TyByteString -> 0
-                TyInteger    -> 1
-                TySize       -> 2
-        in encodeTag i
+    encode bi = case bi of
+        TyByteString -> encodeTag 0
+        TyInteger    -> encodeTag 1
+        TySize       -> encodeTag 2
+        TyString     -> encodeTag 3
 
     decode = go =<< decodeTag
         where go 0 = pure TyByteString
               go 1 = pure TyInteger
               go 2 = pure TySize
+              go 3 = pure TyString
               go _ = fail "Failed to decode TypeBuiltin"
 
 instance Serialise BuiltinName where
@@ -178,10 +179,12 @@ instance Serialise a => Serialise (Constant a) where
     encode (BuiltinInt x n i) = fold [ encodeTag 0, encode x, encode n, encodeInteger i ]
     encode (BuiltinBS x n bs) = fold [ encodeTag 1, encode x, encode n, encodeBytes (BSL.toStrict bs) ]
     encode (BuiltinSize x n)  = encodeTag 2 <> encode x <> encode n
+    encode (BuiltinStr x s)   = encodeTag 3 <> encode x <> encode s
     decode = go =<< decodeTag
         where go 0 = BuiltinInt <$> decode <*> decode <*> decodeInteger
               go 1 = BuiltinBS <$> decode <*> decode <*> fmap BSL.fromStrict decodeBytes
               go 2 = BuiltinSize <$> decode <*> decode
+              go 3 = BuiltinStr <$> decode <*> decode
               go _ = fail "Failed to decode Constant ()"
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a) where
@@ -209,6 +212,14 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (T
               go 8 = Error <$> decode <*> decode
               go 9 = Builtin <$> decode <*> decode
               go _ = fail "Failed to decode Term TyName Name ()"
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (VarDecl tyname name a) where
+    encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
+    decode = VarDecl <$> decode <*> decode <*> decode
+
+instance (Serialise a, Serialise (tyname a))  => Serialise (TyVarDecl tyname a) where
+    encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
+    decode = TyVarDecl <$> decode <*> decode <*> decode
 
 instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a) where
     encode (Program x v t) = encode x <> encode v <> encode t

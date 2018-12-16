@@ -3,8 +3,9 @@
 module Main ( main
             ) where
 
+import qualified Check.Spec                   as Check
 import           Codec.Serialise
-import           Control.Monad.Trans.Except   (runExceptT)
+import           Control.Monad.Except
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
 import           Data.Text.Encoding           (encodeUtf8)
@@ -16,6 +17,7 @@ import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.MkPlc    (mkIterTyApp)
 import           Language.PlutusCore.Pretty
 import           PlutusPrelude
 import           Pretty.Readable
@@ -109,6 +111,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , test_constant
     , test_evaluateCk
     , Quotation.tests
+    , Check.tests
     ]
 
 type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
@@ -160,20 +163,19 @@ testsRewrite
     = testGroup "golden rewrite tests"
     . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
 
-appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
-appAppLamLam = do
-    x <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "x")
-    y <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "y")
-    pure $
-        TyApp ()
-            (TyApp ()
-                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
-                 (TyBuiltin () TyInteger))
-            (TyBuiltin () TyInteger)
+integer2 :: Type tyname ()
+integer2 = TyApp () (TyBuiltin () TyInteger) (TyInt () 2)
 
-testLam :: Either (TypeError ()) String
-testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty) $
-    normalizeType =<< appAppLamLam
+getAppAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
+getAppAppLamLam = do
+    x <- liftQuote $ TyNameWithKind <$> freshTyName ((), Type ()) "x"
+    y <- liftQuote $ TyNameWithKind <$> freshTyName ((), Type ()) "y"
+    pure $ mkIterTyApp ()
+        (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
+        [integer2, integer2]
+
+testLam :: Bool
+testLam = runQuote (getAppAppLamLam >>= normalizeTypeAny) == Normalized integer2
 
 testEqTerm :: Bool
 testEqTerm =
@@ -254,13 +256,13 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
-    , testLam @?= Right "(con integer)"
+    , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
+    , testLam @?= True
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
     ]
     where
-        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
+        fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

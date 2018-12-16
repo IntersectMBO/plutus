@@ -10,7 +10,7 @@ module Language.PlutusCore.StdLib.Data.Nat
     , getBuiltinNatToInteger
     ) where
 
-import           Language.PlutusCore.Constant             (makeDynBuiltinInt)
+import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote

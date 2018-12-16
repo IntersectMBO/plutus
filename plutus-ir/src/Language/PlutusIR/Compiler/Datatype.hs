@@ -4,10 +4,11 @@
 module Language.PlutusIR.Compiler.Datatype (compileDatatype) where
 
 import           Language.PlutusIR
+import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
 
-import           PlutusPrelude                         (strToBs)
+import           PlutusPrelude                         (bsToStr)
 
 import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
@@ -275,7 +276,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
           -- scope from the wrap, so we can still use it, and we don't need to do anything to the declared types
           -- see note [Abstract data types]
           let caseTypes = fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
-          caseArgNames <- for constrs (\c -> liftQuote $ freshName p $ "case_" <> (nameString $ varDeclName c))
+          caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" ++ bsToStr (nameString $ varDeclName c))
           pure $ zipWith (VarDecl p) caseArgNames caseTypes
 
     -- This is inelegant, but it should never fail
@@ -289,7 +290,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
           -- see note [Abstract data types]
         let argTypes = unveilDatatype (getType dty) d <$> constructorArgTypes constr
         -- we don't have any names for these things, we just had the type, so we call them "arg_i
-        argNames <- for [0..(length argTypes -1)] (\i -> liftQuote $ freshName p $ strToBs $ "arg_" ++ show i)
+        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName p $ "arg_" ++ show i)
         pure $ zipWith (VarDecl p) argNames argTypes
 
 
@@ -327,7 +328,7 @@ mkDestructor dty (Datatype _ _ tvs _ _) = local (DatatypeComponent Destructor) $
     -- dty t_1 .. t_n
     let appliedReal = PLC.mkIterTyApp p (getType dty) (fmap (PLC.mkTyVar p) tvs)
 
-    xn <- liftQuote $ freshName p "x"
+    xn <- safeFreshName p "x"
     pure $
         -- /\t_1 .. t_n
         PLC.mkIterTyAbs p tvs $

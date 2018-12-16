@@ -17,14 +17,18 @@ module Language.PlutusCore.Constant.Make
     , makeDynBuiltinIntSizedAs
     , makeBuiltinInt
     , makeBuiltinBS
+    , makeBuiltinStr
     , makeSizedConstant
     , makeBuiltinBool
     , makeBuiltin
     , unsafeMakeBuiltin
+    , unsafeMakeDynamicBuiltin
     , makeSizedConstantNOCHECK
     , makeBuiltinNOCHECK
     ) where
 
+import           Language.PlutusCore.Constant.Dynamic.Pretty
+import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -33,8 +37,8 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Data.Bits                            (bit)
-import qualified Data.ByteString.Lazy                 as BSL
+import           Data.Bits                                   (bit)
+import qualified Data.ByteString.Lazy                        as BSL
 import           Data.Maybe
 
 -- | Lift a 'BuiltinName' to 'Term'.
@@ -127,6 +131,9 @@ makeBuiltinInt size int = checkBoundsInt size int ? BuiltinInt () size int
 makeBuiltinBS :: Size -> BSL.ByteString -> Maybe (Constant ())
 makeBuiltinBS size bs = checkBoundsBS size bs ? BuiltinBS () size bs
 
+makeBuiltinStr :: String -> Constant ()
+makeBuiltinStr = BuiltinStr ()
+
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- checking all constraints (e.g. an 'Integer' is in appropriate bounds) along the way.
 makeSizedConstant :: Size -> TypedBuiltinSized a -> a -> Maybe (Constant ())
@@ -135,23 +142,29 @@ makeSizedConstant size TypedBuiltinSizedBS   bs  = makeBuiltinBS  size bs
 makeSizedConstant size TypedBuiltinSizedSize ()  = Just $ BuiltinSize () size
 
 -- | Convert a 'Bool' to the corresponding PLC's @boolean@.
-makeBuiltinBool :: Bool -> Quote (Value TyName Name ())
+makeBuiltinBool :: Bool -> Quote (Term TyName Name ())
 makeBuiltinBool b = if b then getBuiltinTrue else getBuiltinFalse
 
 -- | Convert a Haskell value to the corresponding PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way.
-makeBuiltin :: TypedBuiltinValue Size a -> Quote (Maybe (Value TyName Name ()))
+makeBuiltin :: TypedBuiltinValue Size a -> Quote (Maybe (Term TyName Name ()))
 makeBuiltin (TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs ->
         return $ Constant () <$> makeSizedConstant (flattenSizeEntry se) tbs x
     TypedBuiltinBool         -> Just <$> makeBuiltinBool x
+    TypedBuiltinDyn          -> makeDynamicBuiltin x
 
 -- | Convert a Haskell value to a PLC value checking all constraints
 -- (e.g. an 'Integer' is in appropriate bounds) along the way and
 -- fail in case constraints are not satisfied.
-unsafeMakeBuiltin :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
+unsafeMakeBuiltin :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Term TyName Name ())
 unsafeMakeBuiltin tbv = fromMaybe err <$> makeBuiltin tbv where
-    err = error $ "unsafeMakeBuiltin: out of bounds: " ++ prettyString tbv
+    err = error $ "unsafeMakeBuiltin: could not convert from a denotation: " ++ prettyString tbv
+
+-- | Convert a Haskell value to a PLC value of a dynamic built-in type.
+unsafeMakeDynamicBuiltin
+    :: (KnownDynamicBuiltinType dyn, PrettyDynamic dyn) => dyn -> Quote (Term TyName Name ())
+unsafeMakeDynamicBuiltin = unsafeMakeBuiltin . TypedBuiltinValue TypedBuiltinDyn
 
 -- | Convert a Haskell value to the corresponding PLC constant indexed by size
 -- without checking constraints (e.g. an 'Integer' is in appropriate bounds).
@@ -164,10 +177,11 @@ makeSizedConstantNOCHECK size TypedBuiltinSizedSize ()  = BuiltinSize () size
 
 -- | Convert a Haskell value to the corresponding PLC value without checking constraints
 -- (e.g. an 'Integer' is in appropriate bounds).
--- This function allows to fake a 'Value' with a wrong size and thus it's highly unsafe
+-- This function allows to fake a 'Term' with a wrong size and thus it's highly unsafe
 -- and should be used with great caution.
-makeBuiltinNOCHECK :: TypedBuiltinValue Size a -> Quote (Value TyName Name ())
-makeBuiltinNOCHECK (TypedBuiltinValue tb x) = case tb of
+makeBuiltinNOCHECK :: PrettyDynamic a => TypedBuiltinValue Size a -> Quote (Term TyName Name ())
+makeBuiltinNOCHECK tbv@(TypedBuiltinValue tb x) = case tb of
     TypedBuiltinSized se tbs ->
         return . Constant () $ makeSizedConstantNOCHECK (flattenSizeEntry se) tbs x
     TypedBuiltinBool         -> makeBuiltinBool x
+    TypedBuiltinDyn          -> unsafeMakeBuiltin tbv

@@ -1,13 +1,16 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 -- | Interface between wallet and Plutus client
 module Wallet.API(
     WalletAPI(..),
+    WalletDiagnostics(..),
     Range(..),
+    EventHandler(..),
     KeyPair(..),
     PubKey(..),
     pubKey,
@@ -16,10 +19,16 @@ module Wallet.API(
     createPayment,
     signAndSubmit,
     payToScript,
-    payToPubKey,
+    payToScript_,
+    payToPublicKey,
+    payToPublicKey_,
+    collectFromScript,
+    collectFromScriptTxn,
     ownPubKeyTxOut,
+    ownPubKey,
     -- * Triggers
-    EventTrigger(..),
+    EventTrigger,
+    AnnotatedEventTrigger,
     EventTriggerF(..),
     andT,
     orT,
@@ -30,26 +39,38 @@ module Wallet.API(
     fundsAtAddressT,
     checkTrigger,
     addresses,
+    -- AnnTriggerF,
+    getAnnot,
+    annTruthValue,
     -- * Error handling
     WalletAPIError(..),
-    insufficientFundsError,
-    otherError
+    throwInsufficientFundsError,
+    throwOtherError,
+    -- * Logging
+    WalletLog(..)
     ) where
 
-import           Control.Monad.Error.Class (MonadError (..))
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Eq.Deriving          (deriveEq1)
-import           Data.Functor.Foldable     (Base, Corecursive (..), Fix (..), Recursive (..))
-import qualified Data.Map                  as Map
-import           Data.Ord.Deriving         (deriveOrd1)
-import qualified Data.Set                  as Set
-import           Data.Text                 (Text)
-import           GHC.Generics              (Generic)
-import           Text.Show.Deriving        (deriveShow1)
-import           Wallet.UTXO               (Address', DataScript, Height, PubKey (..), Signature (..), Tx (..), TxIn',
-                                            TxOut (..), TxOut', TxOutType (..), Value, pubKeyTxOut)
+import           Control.Lens
+import           Control.Monad              (void)
+import           Control.Monad.Error.Class  (MonadError (..))
+import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.Eq.Deriving           (deriveEq1)
+import           Data.Functor.Compose       (Compose (..))
+import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
+import qualified Data.Map                   as Map
+import           Data.Maybe                 (fromMaybe, maybeToList)
+import           Data.Monoid                (Sum (..))
+import           Data.Ord.Deriving          (deriveOrd1)
+import qualified Data.Set                   as Set
+import           Data.Text                  (Text)
+import           GHC.Generics               (Generic)
+import           Ledger                     (Address', DataScript, Height, PubKey (..), RedeemerScript, Signature (..),
+                                             Tx (..), TxId', TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript,
+                                             Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
+import           Text.Show.Deriving         (deriveShow1)
+import           Wallet.Emulator.AddressMap (AddressMap)
 
-import           Prelude                   hiding (Ordering (..))
+import           Prelude                    hiding (Ordering (..))
 
 newtype PrivateKey = PrivateKey { getPrivateKey :: Int }
     deriving (Eq, Ord, Show)
@@ -98,29 +119,13 @@ $(deriveEq1 ''EventTriggerF)
 $(deriveOrd1 ''EventTriggerF)
 $(deriveShow1 ''EventTriggerF)
 
-type instance Base EventTrigger = EventTriggerF
+-- | An [[EventTrigger]] where each level is annotated with a value of `a`
+type AnnotatedEventTrigger a = Fix (Compose ((,) a) EventTriggerF)
 
-instance Recursive EventTrigger where
-    project (EventTrigger (Fix k)) = case k of
-        And l r               -> And (EventTrigger l) (EventTrigger r)
-        Or l r                -> Or (EventTrigger l) (EventTrigger r)
-        Not n                 -> Not (EventTrigger n)
-        PAlways               -> PAlways
-        PNever                -> PNever
-        BlockHeightRange r    -> BlockHeightRange r
-        FundsAtAddress addr r -> FundsAtAddress addr r
+type EventTrigger = Fix EventTriggerF
 
-instance Corecursive EventTrigger where
-    embed t = let f = EventTrigger . Fix in
-        case t of
-            And (EventTrigger l) (EventTrigger r) -> f $ And l r
-            Or (EventTrigger l) (EventTrigger r)  -> f $ Or l r
-            Not (EventTrigger n)                  -> f $ Not n
-            PAlways                               -> f PAlways
-            PNever                                -> f PNever
-            BlockHeightRange r                    -> f $ BlockHeightRange r
-            FundsAtAddress addr r                 -> f $ FundsAtAddress addr r
-
+getAnnot :: AnnotatedEventTrigger a -> a
+getAnnot = fst . getCompose . unfix
 
 -- | `andT l r` is true when `l` and `r` are true.
 andT :: EventTrigger -> EventTrigger -> EventTrigger
@@ -153,17 +158,23 @@ notT = embed . Not
 -- | Check if the given block height and UTXOs match the
 --   conditions of an [[EventTrigger]]
 checkTrigger :: Height -> Map.Map Address' Value -> EventTrigger -> Bool
-checkTrigger h mp = cata chk where
-    chk = \case
-        And l r -> l && r
-        Or  l r -> l || r
-        Not r   -> not r
-        PAlways -> True
-        PNever -> False
-        BlockHeightRange r -> h `inRange` r
+checkTrigger h mp = getAnnot . annTruthValue h mp
+
+-- | Annotate each node in an `EventTriggerF` with its truth value given a block height
+--   and a set of unspent outputs
+annTruthValue :: Height -> Map.Map Address' Value -> EventTrigger -> AnnotatedEventTrigger Bool
+annTruthValue h mp = cata f where
+    embedC = embed . Compose
+    f = \case
+        And l r -> embedC (getAnnot l && getAnnot r, And l r)
+        Or  l r -> embedC (getAnnot l || getAnnot r, Or l r)
+        Not r   -> embedC (not $ getAnnot r, Not r)
+        PAlways -> embedC (True, PAlways)
+        PNever -> embedC (False, PNever)
+        BlockHeightRange r -> embedC (h `inRange` r, BlockHeightRange r)
         FundsAtAddress a r ->
-            let f = Map.findWithDefault 0 a mp in
-            f `inRange` r
+            let funds = Map.findWithDefault 0 a mp in
+            embedC (funds `inRange` r, FundsAtAddress a r)
 
 -- | The addresses that an [[EventTrigger]] refers to
 addresses :: EventTrigger -> [Address']
@@ -177,14 +188,36 @@ addresses = cata adr where
         BlockHeightRange _ -> []
         FundsAtAddress a _ -> [a]
 
--- | Event triggers the Plutus client can register with the wallet.
-newtype EventTrigger = EventTrigger { getEventTrigger :: Fix EventTriggerF }
-    deriving (Eq, Ord, Show)
+-- | An action than can be run in response to a blockchain event. It receives
+--   its [[EventTrigger]] annotated with truth values.
+newtype EventHandler m = EventHandler { runEventHandler :: AnnotatedEventTrigger Bool -> m () }
+
+instance Monad m => Semigroup (EventHandler m) where
+    l <> r = EventHandler $ \a ->
+        runEventHandler l a >> runEventHandler r a
+
+instance Monad m => Monoid (EventHandler m) where
+    mappend = (<>)
+    mempty = EventHandler $ \_ -> pure ()
 
 data WalletAPIError =
     InsufficientFunds Text
     | OtherError Text
-    deriving (Show)
+    deriving (Show, Eq, Ord, Generic)
+
+instance FromJSON WalletAPIError
+instance ToJSON WalletAPIError
+
+newtype WalletLog = WalletLog { getWalletLog :: [Text] }
+    deriving (Eq, Ord, Show, Generic, Semigroup, Monoid)
+
+instance FromJSON WalletLog
+instance ToJSON WalletLog
+
+-- | The ability to log messages and throw errors
+class MonadError WalletAPIError m => WalletDiagnostics m where
+    -- | Write some information to the log
+    logMsg :: Text -> m ()
 
 -- | Used by Plutus client to interact with wallet
 class WalletAPI m where
@@ -195,14 +228,13 @@ class WalletAPI m where
     Create a payment that spends the specified value and returns any
     leftover funds as change. Fails if we don't have enough funds.
     -}
-    createPaymentWithChange :: Value -> m (Set.Set TxIn', TxOut')
+    createPaymentWithChange :: Value -> m (Set.Set TxIn', Maybe TxOut')
 
     {- |
-    Register an action in `m ()` to be run when condition is true.
+    Register a [[EventHandler]] in `m ()` to be run when condition is true.
 
-    * The action will be run once for each block where the condition holds. For
-      example, `register (blockHeightT (Interval 3 6)) a` causes `a` to be run
-      at blocks 3, 4, and 5.
+    * The action will be run once for each block where the condition holds.
+      For example, `register (blockHeightT (Interval 3 6)) a` causes `a` to be run at blocks 3, 4, and 5.
 
     * Each time the wallet is notified of a new block, all triggers are checked
       and the matching ones are run in an unspecified order.
@@ -217,30 +249,89 @@ class WalletAPI m where
 
     * `register c a >> register c b = register c (a >> b)`
     -}
-    register :: EventTrigger -> m () -> m ()
+    register :: EventTrigger -> EventHandler m -> m ()
 
-insufficientFundsError :: MonadError WalletAPIError m => Text -> m a
-insufficientFundsError = throwError . InsufficientFunds
+    {-
+    The [[AddressMap]] of all addresses currently watched by the wallet.
+    -}
+    watchedAddresses :: m AddressMap
 
-otherError :: MonadError WalletAPIError m => Text -> m a
-otherError = throwError . OtherError
+    {-
+    Start watching an address.
+    -}
+    startWatching :: Address' -> m ()
+
+    {-
+    The current block height.
+    -}
+    blockHeight :: m Height
+
+throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
+throwInsufficientFundsError = throwError . InsufficientFunds
+
+throwOtherError :: MonadError WalletAPIError m => Text -> m a
+throwOtherError = throwError . OtherError
 
 createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
 
--- | Transfer some funds to an address locked by a script.
-payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
+-- | Transfer some funds to an address locked by a script, returning the
+--   transaction that was submitted.
+payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
 payToScript addr v ds = do
     (i, own) <- createPaymentWithChange v
-    let  other = TxOut addr v (PayToScript ds)
-    signAndSubmit i [own, other]
+    let other = TxOut addr v (PayToScript ds)
+    signAndSubmit i (other : maybeToList own)
 
--- | Transfer some funds to an address locked by a public key
-payToPubKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
-payToPubKey v pk = do
+-- | Transfer some funds to an address locked by a script.
+payToScript_ :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
+payToScript_ addr v = void . payToScript addr v
+
+-- | Collect all unspent outputs from a pay to script address and transfer them
+--   to a public key owned by us.
+collectFromScript :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> m ()
+collectFromScript scr red = do
+    am <- watchedAddresses
+    let addr = scriptAddress scr
+        outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
+        con (r, _) = scriptTxIn r scr red
+        ins        = con <$> outputs
+        value = getSum $ foldMap (Sum . snd) outputs
+
+    oo <- ownPubKeyTxOut value
+    void $ signAndSubmit (Set.fromList ins) [oo]
+
+-- | Given the pay to script address of the 'ValidatorScript', collect from it
+--   all the inputs that were produced by a specific transaction, using the
+--   'RedeemerScript'.
+collectFromScriptTxn :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> TxId' -> m ()
+collectFromScriptTxn vls red txid = do
+    am <- watchedAddresses
+    let adr     = Ledger.scriptAddress vls
+        utxo    = fromMaybe Map.empty $ am ^. at adr
+        ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
+        i ref = scriptTxIn ref vls red
+        inputs = Set.fromList $ i . fst <$> ourUtxo
+        value  = getSum $ foldMap (Sum . snd) ourUtxo
+
+    out <- ownPubKeyTxOut value
+    void $ signAndSubmit inputs [out]
+
+-- | Get the public key for this wallet
+ownPubKey :: (Functor m, WalletAPI m) => m PubKey
+ownPubKey = pubKey <$> myKeyPair
+
+-- | Transfer some funds to an address locked by a public key, returning the
+--   transaction that was submitted.
+payToPublicKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
+payToPublicKey v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    signAndSubmit i [own, other]
+    signAndSubmit i (other : maybeToList own)
+
+-- | Transfer some funds to an address locked by a public key
+payToPublicKey_ :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
+payToPublicKey_ v = void . payToPublicKey v
 
 -- | Create a `TxOut'` that pays to a public key owned by us
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut'
@@ -248,13 +339,15 @@ ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
 
 -- | Create a transaction, sign it and submit it
 --   TODO: Also compute the fee
-signAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m ()
+signAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m Tx
 signAndSubmit ins outs = do
     sig <- signature <$> myKeyPair
-    submitTxn Tx
-        { txInputs = ins
-        , txOutputs = outs
-        , txForge = 0
-        , txFee = 0
-        , txSignatures = [sig]
-        }
+    let tx = Tx
+            { txInputs = ins
+            , txOutputs = outs
+            , txForge = 0
+            , txFee = 0
+            , txSignatures = [sig]
+            }
+    submitTxn tx
+    pure tx
