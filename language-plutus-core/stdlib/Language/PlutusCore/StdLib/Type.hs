@@ -46,7 +46,7 @@ instance Exception IndicesLengthsMismatchError
 type Spiney ann
     =  ann
     -> Kind ann
-    -> (Type TyName ann -> Type TyName ann)
+    -> ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
     -> Type TyName ann
     -> Quote (Type TyName ann)
 
@@ -69,6 +69,7 @@ getPatternFunctor ann k withSpine pat = do
         . TyApp ann (TyVar ann p)
         . TyApp ann pat
         . withSpine
+        . TyApp ann
         $ TyVar ann b
 
 -- |
@@ -80,14 +81,11 @@ getPatternFunctor ann k withSpine pat = do
 getTyFixN :: Spiney ann
 getTyFixN ann k withSpine pat = do
     patF  <- getPatternFunctor ann k withSpine pat
-    spine <- freshTyName ann "spine"
-    let star  = Type ann
-        (~~>) = KindArrow ann
+--     spine <- freshTyName ann "spine"
+--     let star  = Type ann
+--         (~~>) = KindArrow ann
 
-    return
-        . withSpine
-        . TyLam ann spine (k ~~> star)
-        $ TyIFix ann patF (TyVar ann spine)
+    return . withSpine $ TyIFix ann patF
 
 -- > Fix₀ : (Set -> Set) -> Set
 -- > Fix₀ = FixN withSpine0 where
@@ -133,16 +131,16 @@ getSpine ann args = ($ args) <$> getToSpine ann
 -- > getWithSpine [a1 :: k1, a2 :: k2] =
 -- >     \(K : ((k1 -> k2 -> *) -> *) -> *) (a1 :: k1) (a2 :: k2) ->
 -- >          K \(R :: k1 -> k2 -> *) -> R a1 a2
-getWithSpine :: ann -> [TyVarDecl TyName ann] -> Quote (Type TyName ann -> Type TyName ann)
+getWithSpine
+    :: ann
+    -> [TyVarDecl TyName ann]
+    -> Quote ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
 getWithSpine ann argVars = do
     spine <- getSpine ann $ map tyDeclVar argVars
     -- let argKinds = map tyVarDeclKind argVars
     -- TyLam ann k (KindArrow ann (KindArrow ann (toRecKind ann argKinds) $ Type ann) $ Type ann)
 
-    return $ \k ->
-          mkIterTyLam ann argVars
-        . TyApp ann k
-        $ spine
+    return $ \k -> mkIterTyLam ann argVars $ k spine
 
 packagePatternBodyN
     :: Spiney ann
@@ -191,3 +189,28 @@ makeRecursiveType ann name argVars patBody =
     -- makeRecursiveType () treeForest
     --     [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
     --     body
+
+
+
+
+
+
+
+
+-- "(\(k :: ((* -> * -> *) -> *) -> *) -> \(a :: *) -> \(b :: *) -> k (\(r :: * -> * -> *) -> r a b)) (\(spine :: (* -> * -> *) -> *) -> ifix (\(b :: ((* -> * -> *) -> *) -> *) -> \(p :: (* -> * -> *) -> *) -> p ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) ((\(k :: ((* -> * -> *) -> *) -> *) -> \(a :: *) -> \(b :: *) -> k (\(r :: * -> * -> *) -> r a b)) b))) spine)"
+--
+-- "\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)"
+--
+-- "\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)"
+--
+--
+--
+-- "/\\(a :: *) -> /\\(b :: *) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> z)"
+--
+-- "/\\(a :: *) -> /\\(b :: *) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> z)"
+--
+--
+--
+-- "/\\(a :: *) -> /\\(b :: *) -> \\(x : a) -> \\(y : b) -> \\(xs : (\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)) b a) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> f x y xs)"
+--
+-- "/\\(a :: *) -> /\\(b :: *) -> \\(x : a) -> \\(y : b) -> \\(xs : (\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)) b a) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> f x y xs)"
