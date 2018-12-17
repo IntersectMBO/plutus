@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-    imports = [ <nixpkgs/nixos/modules/virtualisation/amazon-image.nix> ];
+  imports = [ <nixpkgs/nixos/modules/virtualisation/amazon-image.nix> ];
     ec2.hvm = true;
     nix = {
         nixPath = [ "nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-18.09.tar.gz"
@@ -29,7 +29,7 @@
         };
 
     environment.systemPackages = with pkgs;
-                    [ nixops vim tmux ];
+                    [ nixops vim tmux git ];
 
     services.fail2ban.enable = true;
 
