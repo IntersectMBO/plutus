@@ -5,9 +5,7 @@
 {-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.StdLib.Type
-    ( (~~>)
-    , star
-    , RecursiveType (..)
+    ( RecursiveType (..)
     , makeRecursiveType
     ) where
 
@@ -42,24 +40,24 @@ instance Show IndicesLengthsMismatchError where
 
 instance Exception IndicesLengthsMismatchError
 
-infixr 5 ~~>
+-- | A type-level function that receives @withSpine@ and a pattern functor that binds
+-- @n + 1@ type variables (where @1@ represents the variable responsible for recursion)
+-- using type-level lambdas.
+type Spiney ann
+    =  ann
+    -> Kind ann
+    -> (Type TyName ann -> Type TyName ann)
+    -> Type TyName ann
+    -> Quote (Type TyName ann)
 
-class HasArrow a where
-    (~~>) :: a -> a -> a
+-- \(rec :: i -> k -> *) (a :: i) (b :: j) ->
 
-instance a ~ () => HasArrow (Kind a) where
-    (~~>) = KindArrow ()
-
-instance a ~ () => HasArrow (Type tyname a) where
-    (~~>) = TyFun ()
-
-star :: Kind ()
-star = Type ()
-
+-- |
+--
 -- > \(withSpine :: ((k -> *) -> *) -> k) (pat :: k -> k) ->
 -- >     \(b :: (k -> *) -> *) (p :: k -> *) -> p (pat (withSpine b))
-getPatternFunctor :: ann -> Type TyName ann -> Type TyName ann -> Kind ann -> Quote (Type TyName ann)
-getPatternFunctor ann withSpine pat k = do
+getPatternFunctor :: Spiney ann
+getPatternFunctor ann k withSpine pat = do
     b <- freshTyName ann "b"
     p <- freshTyName ann "p"
     let star  = Type ann
@@ -70,7 +68,7 @@ getPatternFunctor ann withSpine pat k = do
         . TyLam ann p (k ~~> star)
         . TyApp ann (TyVar ann p)
         . TyApp ann pat
-        . TyApp ann withSpine
+        . withSpine
         $ TyVar ann b
 
 -- |
@@ -79,15 +77,15 @@ getPatternFunctor ann withSpine pat k = do
 -- > FixN {K} withSpine Pat =
 -- >     withSpine λ (spine : K -> Set) -> IFix patternFunctor spine where
 -- >         patternFunctor = λ (B : (K -> Set) -> Set) (P : K -> Set) -> P (Pat (withSpine B))
-getTyFixN :: ann -> Type TyName ann -> Type TyName ann -> Kind ann -> Quote (Type TyName ann)
-getTyFixN ann withSpine pat k = do
-    patF  <- getPatternFunctor ann withSpine pat k
+getTyFixN :: Spiney ann
+getTyFixN ann k withSpine pat = do
+    patF  <- getPatternFunctor ann k withSpine pat
     spine <- freshTyName ann "spine"
     let star  = Type ann
         (~~>) = KindArrow ann
 
     return
-        . TyApp ann withSpine
+        . withSpine
         . TyLam ann spine (k ~~> star)
         $ TyIFix ann patF (TyVar ann spine)
 
@@ -115,12 +113,13 @@ getToSpine ann = do
 -- > getSpine _ [a1 :: k1, a2 :: k2 ... an :: kn] =
 -- >     \(R :: k1 -> k2 -> ... kn -> *) -> R a1 a2 ... an
 --
--- For example
+-- For example,
 --
 -- > getSpine _ [a1 :: k1, a2 :: k2] =
 -- >     \(R :: k1 -> k2 -> *) -> R a1 a2
 getSpine :: ann -> [TyDecl TyName ann] -> Quote (Type TyName ann)
 getSpine ann args = ($ args) <$> getToSpine ann
+
 
 -- |
 --
@@ -129,28 +128,24 @@ getSpine ann args = ($ args) <$> getToSpine ann
 -- >      (v1 :: k1) (v2 :: k2) ... (vn :: kn) ->
 -- >          K \(R :: k1 -> k2 -> ... kn -> *) -> R v1 v2 ... vn
 --
--- For example
+-- For example,
 --
 -- > getWithSpine [a1 :: k1, a2 :: k2] =
 -- >     \(K : ((k1 -> k2 -> *) -> *) -> *) (a1 :: k1) (a2 :: k2) ->
 -- >          K \(R :: k1 -> k2 -> *) -> R a1 a2
-getWithSpine :: ann -> [TyVarDecl TyName ann] -> Quote (Type TyName ann)
+getWithSpine :: ann -> [TyVarDecl TyName ann] -> Quote (Type TyName ann -> Type TyName ann)
 getWithSpine ann argVars = do
-    k <- freshTyName ann "k"
     spine <- getSpine ann $ map tyDeclVar argVars
-    let argKinds = map tyVarDeclKind argVars
+    -- let argKinds = map tyVarDeclKind argVars
+    -- TyLam ann k (KindArrow ann (KindArrow ann (toRecKind ann argKinds) $ Type ann) $ Type ann)
 
-    return
-        . TyLam ann k (KindArrow ann (KindArrow ann (toRecKind ann argKinds) $ Type ann) $ Type ann)
-        . mkIterTyLam ann argVars
-        . TyApp ann (TyVar ann k)
+    return $ \k ->
+          mkIterTyLam ann argVars
+        . TyApp ann k
         $ spine
 
 packagePatternBodyN
-    :: (ann -> Type TyName ann -> Type TyName ann -> Kind ann -> Quote (Type TyName ann))
-       -- ^ Some type-level function that receives @withSpine@ and a pattern functor that binds
-       -- @n + 1@ type variables (where @1@ represents the variable responsible for recursion)
-       -- using type-level lambdas.
+    :: Spiney ann
     -> ann                     -- ^ An annotation placed everywhere we do not have annotations.
     -> TyName ann              -- ^ The name for the @1@ varible responsible for recursion.
     -> [TyVarDecl TyName ann]  -- ^ A list of @n@ type variables.
@@ -162,7 +157,7 @@ packagePatternBodyN getFun ann name argVars patBody = do
     let argKinds = map tyVarDeclKind argVars
         vR  = TyVarDecl ann name $ toRecKind ann argKinds
         pat = mkIterTyLam ann (vR : argVars) patBody
-    getFun ann withSpine pat $ toRecKind ann argKinds
+    getFun ann (toRecKind ann argKinds) withSpine pat
 
 getTyFix :: ann -> TyName ann -> [TyVarDecl TyName ann] -> Type TyName ann -> Quote (Type TyName ann)
 getTyFix = packagePatternBodyN getTyFixN
@@ -192,3 +187,7 @@ makeRecursiveType
     -> Quote (RecursiveType ann)
 makeRecursiveType ann name argVars patBody =
     RecursiveType <$> getTyFix ann name argVars patBody <*> getWrap ann name argVars patBody
+
+    -- makeRecursiveType () treeForest
+    --     [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
+    --     body

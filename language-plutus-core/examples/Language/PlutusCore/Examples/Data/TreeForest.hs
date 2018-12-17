@@ -1,4 +1,7 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Examples.Data.TreeForest
     ( getBuiltinTree
@@ -67,6 +70,20 @@ using this representation:
     Forest : Set -> Set
     Forest = AsForest TreeForest
 -}
+
+infixr 5 ~~>
+
+class HasArrow a where
+    (~~>) :: a -> a -> a
+
+instance a ~ () => HasArrow (Kind a) where
+    (~~>) = KindArrow ()
+
+instance a ~ () => HasArrow (Type tyname a) where
+    (~~>) = TyFun ()
+
+star :: Kind ()
+star = Type ()
 
 getTreeTag :: Quote (Type TyName ())
 getTreeTag = do
