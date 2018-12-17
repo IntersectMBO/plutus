@@ -122,12 +122,21 @@ lem[]' {Γ} A B = trans
     (substEq (_⊢Nf⋆ *) (nfCtx∥ Γ))
     (trans
       (trans
-        (subst-eval (embNf (eval B (exte (idEnv _)))) idCR (subst-cons ` (embNf (nf A))))
+        (subst-eval
+          (embNf (eval B (exte (idEnv _))))
+          idCR
+          (subst-cons ` (embNf (nf A))))
         (trans
-          (fund (λ x → idext idCR (subst-cons ` (embNf (nf A)) x)) (sym≡β (evalSR B (SRweak idSR))))
+          (fund
+            (λ x → idext idCR (subst-cons ` (embNf (nf A)) x))
+            (sym≡β (evalSR B (SRweak idSR))))
           (trans
-            (subst-eval B (λ x → idext idCR (subst-cons ` (embNf (nf A)) x)) (exts `))
-            (idext (λ { Z → symCR (fund idCR (soundness A)) ; (S α) → idCR α}) B))))
+            (subst-eval
+              B
+              (λ x → idext idCR (subst-cons ` (embNf (nf A)) x))
+              (exts `))
+            (idext (λ { Z → symCR (fund idCR (soundness A))
+                      ; (S α) → idCR α}) B))))
       (sym (subst-eval B idCR (subst-cons ` A)))))
 
 import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
@@ -175,7 +184,13 @@ nfTypeSIG≡₁ equalsByteString = refl
 nfTypeSIG≡₁ txh = refl
 nfTypeSIG≡₁ blocknum = refl
 
-lemσ : ∀{Γ Γ' Δ Δ'}(σ : Sub Δ Γ) → (p : Γ ≡ Γ') → (C : Δ ⊢⋆ *)(C' : Δ' ⊢Nf⋆ *) → (q : Δ' ≡ Δ) → nf C ≡ substEq (_⊢Nf⋆ *) q C' → 
+lemσ : ∀{Γ Γ' Δ Δ'}
+  → (σ : Sub Δ Γ)
+  → (p : Γ ≡ Γ')
+  → (C : Δ ⊢⋆ *)
+  → (C' : Δ' ⊢Nf⋆ *)
+  → (q : Δ' ≡ Δ)
+  → nf C ≡ substEq (_⊢Nf⋆ *) q C' → 
   substNf
       (λ {J} α →
          nf
@@ -237,11 +252,10 @@ nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
 
-
-
-lemList : (bn : Builtin) → substEq (λ Δ → List (Δ ⊢Nf⋆ *)) (sym (nfTypeSIG≡₁ bn))
-  (proj₁ (proj₂ (NSig.SIG bn)))
-  ≡ nfList (proj₁ (proj₂ (SSig.SIG bn)))
+lemList : (bn : Builtin)
+  → substEq (λ Δ → List (Δ ⊢Nf⋆ *)) (sym (nfTypeSIG≡₁ bn))
+    (proj₁ (proj₂ (NSig.SIG bn)))
+    ≡ nfList (proj₁ (proj₂ (SSig.SIG bn)))
 lemList addInteger = refl
 lemList subtractInteger = refl
 lemList multiplyInteger = refl
@@ -278,14 +292,21 @@ nfTypeTel : ∀{Γ Δ}(σ : Sub Δ Syn.∥ Γ ∥)(As : List (Δ ⊢⋆ *))
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ substEq (_⊢⋆ _) (nfCtx∥ Γ) ∘ σ) (nfList As)
   
 nfTypeTel σ []        _ = _
-nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) = subst⊢ refl (sym (lemσ σ (nfCtx∥ Γ) A (nf A) refl refl)) (nfType M) ,, nfTypeTel σ As Ms
+nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
+  subst⊢ refl (sym (lemσ σ (nfCtx∥ Γ) A (nf A) refl refl)) (nfType M)
+  ,,
+  nfTypeTel σ As Ms
 
 nfTypeTel' : ∀{Γ Δ Δ'}(σ : Sub Δ Syn.∥ Γ ∥)(As : List (Δ ⊢⋆ *))
   → (q : Δ' ≡ Δ)
   → (As' : List (Δ' ⊢Nf⋆ *))
   → (substEq (λ Δ → List (Δ ⊢Nf⋆ *)) q As' ≡ nfList As)
   → Syn.Tel Γ Δ σ As
-  → Norm.Tel (nfCtx Γ) Δ' (nf ∘ substEq (_⊢⋆ _) (nfCtx∥ Γ) ∘ σ ∘ substEq (_∋⋆ _) q) As'
+  → Norm.Tel
+      (nfCtx Γ)
+      Δ'
+      (nf ∘ substEq (_⊢⋆ _) (nfCtx∥ Γ) ∘ σ ∘ substEq (_∋⋆ _) q)
+      As'
 nfTypeTel' σ As refl .(nfList As) refl tel = nfTypeTel σ As tel
 
 nfType (Syn.` α) = Norm.` (nfTyVar α)
@@ -309,9 +330,18 @@ nfType {Γ} (Syn._·⋆_ {B = B} t A) = subst⊢
   Norm.·⋆
   -- is there another version where this is just nf A?
   substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf A)) 
-nfType {Γ} (Syn.wrap1 pat arg t) =
-  subst⊢ refl (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg)) (Norm.wrap1 (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ ) (nf pat)) (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf arg)) (subst⊢ refl (lemXX {Γ} pat arg) (nfType t)))
-nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢ refl (sym (lemXX {Γ} pat arg)) (Norm.unwrap1 (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
+nfType {Γ} (Syn.wrap1 pat arg t) = subst⊢
+  refl
+  (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))
+  (Norm.wrap1
+    (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ ) (nf pat))
+    (substEq (_⊢Nf⋆ _) (nfCtx∥ Γ) (nf arg))
+    (subst⊢ refl (lemXX {Γ} pat arg) (nfType t)))
+nfType {Γ} (Syn.unwrap1 {pat = pat}{arg} t) = subst⊢
+  refl
+  (sym (lemXX {Γ} pat arg))
+  (Norm.unwrap1
+    (subst⊢ refl (sym (lemμ' (nfCtx∥ Γ) (nf pat) (nf arg))) (nfType t))) 
 nfType (Syn.conv p t) rewrite sym (completeness p) = nfType t
 nfType {Γ} (Syn.con {s = s}{tcn = tcn} t) = subst⊢
   refl
