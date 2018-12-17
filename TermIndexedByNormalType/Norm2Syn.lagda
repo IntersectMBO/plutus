@@ -13,7 +13,7 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
-open import TermIndexedByNormalType.Syn2Norm
+--open import TermIndexedByNormalType.Syn2Norm
 
 open import Function
 \end{code}
@@ -104,6 +104,29 @@ lem[]'' refl refl A B = substEq (embNf B [ embNf A ] ≡β_) (cong embNf (trans 
 \end{code}
 
 \begin{code}
+lemμ : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Γ ⊢Nf⋆ K) → 
+  substEq (_⊢⋆ *) p (μ1 · embNf pat · embNf arg) ≡
+  μ1 · substEq (_⊢⋆ _) p (embNf pat) · substEq (_⊢⋆ _) p (embNf arg)
+lemμ refl pat arg = refl
+\end{code}
+
+\begin{code}
+open import Data.Sum
+lemμ' : ∀{Γ Γ' K}(p : Γ ≡ Γ')(pat : Γ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Γ ⊢Nf⋆ K) →
+  substEq (_⊢⋆ (K ⇒ *) ⇒ K ⇒ *) p (embNf pat) ·
+  (μ1 · substEq (_⊢⋆ (K ⇒ *) ⇒ K ⇒ *) p (embNf pat))
+  · substEq (_⊢⋆ K) p (embNf arg)
+  ≡β
+  substEq (_⊢⋆ *) p
+  (embNf
+   ((eval (embNf pat) (idEnv Γ) ·V
+     inj₁
+     (μ1 · reify (eval (embNf pat) (idEnv Γ))))
+    ·V eval (embNf arg) (idEnv Γ)))
+lemμ' refl pat arg = soundness (embNf pat · (μ1 · embNf pat) · embNf arg)
+\end{code}
+
+\begin{code}
 embTy : ∀{Γ K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}
   → Γ Norm.⊢ A
   → embCtx Γ Syn.⊢ substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)
@@ -119,8 +142,17 @@ embTy {Γ}(Norm._·⋆_ {K = K}{B = B} t A) = Syn.conv -- there's a substitution
   (Syn._·⋆_
     (subst⊢' refl (sym (lemΠ' (embCtx∥ Γ) (embCtx∥ (Γ Norm.,⋆ K)) B)) (embTy t))
     (substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)))
-embTy (Norm.wrap1 pat arg t) = {!!}
-embTy (Norm.unwrap1 t) = {!!}
+embTy {Γ} (Norm.wrap1 pat arg t) = subst⊢'
+  refl
+  (sym (lemμ (embCtx∥ Γ) pat arg))
+  (Syn.wrap1
+    (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf pat))
+    (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf arg))
+    (Syn.conv (sym≡β (lemμ' (embCtx∥ Γ) pat arg)) (embTy t)))
+embTy {Γ} (Norm.unwrap1 {pat = pat}{arg} t) = Syn.conv
+  (lemμ'
+    (embCtx∥ Γ) pat arg)
+    (Syn.unwrap1 (subst⊢' refl (lemμ (embCtx∥ Γ) pat arg) (embTy t)))
 embTy (Norm.con t) = {!!}
 embTy (Norm.builtin bn σ tel) = {!!}
 embTy {Γ} (Norm.error A) = Syn.error (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf A) )
