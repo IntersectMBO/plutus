@@ -94,6 +94,7 @@ test-suite plutus-tx-plugin-tests
         base >=4.9 && <5,
         plutus-tx-plugin -any,
         plutus-ir -any,
+        prettyprinter -any,
         language-plutus-core -any,
         bytestring -any,
         tasty -any

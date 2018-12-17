@@ -30,7 +30,7 @@ Here's the most basic program we can write: one that just evaluates to the integ
 
 ```haskell
 -- |
--- >>> prettyPlcDef $ getPlc integerOne
+-- >>> pretty $ getPlc integerOne
 -- (program 1.0.0
 --   (con 8 ! 1)
 -- )
@@ -55,7 +55,7 @@ Here's a slightly more complex program, namely the identity function on integers
 
 ```haskell
 -- |
--- >>> prettyPlcDef $ getPlc integerIdentity
+-- >>> pretty $ getPlc integerIdentity
 -- (program 1.0.0
 --   (lam ds [(con integer) (con 8)] ds)
 -- )
@@ -152,7 +152,7 @@ very simple example, let's write an add-one function.
 -- TODO: show PIR here too
 
 -- |
--- >>> prettyPlcDef $ addOneToN 4
+-- >>> pretty $ addOneToN 4
 -- (program 1.0.0
 --   [
 --     [
@@ -167,7 +167,7 @@ very simple example, let's write an add-one function.
 --   ]
 -- )
 
--- >>> prettyPlcDef $ runCk program
+-- >>> pretty $ runCk program
 -- (con 8 ! 5)
 addOneToN :: Int -> Program TyName Name ()
 addOneToN n =
@@ -196,7 +196,7 @@ makeLift ''EndDate
 
 -- |
 -- >>> let program = shouldEndAt Never 5
--- >>> prettyPlcDef $ runCk program
+-- >>> pretty $ runCk program
 -- (abs
 --   out_Bool (type) (lam case_True out_Bool (lam case_False out_Bool case_False))
 -- )

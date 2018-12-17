@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
     TyName (..),
@@ -19,7 +20,6 @@ module Language.PlutusIR (
     Binding (..),
     Term (..),
     Program (..),
-    prettyDef,
     embedIntoIR
     ) where
 
@@ -184,5 +184,27 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
         PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name a) where
     prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
 
-prettyDef :: (PLC.PrettyBy (PLC.PrettyConfigClassic PLC.PrettyConfigName) a) => a -> Doc ann
-prettyDef = prettyBy $ PLC.PrettyConfigClassic PLC.defPrettyConfigName
+-- See note [Default pretty instances for PLC]
+instance (PLC.PrettyClassic (tyname a)) =>
+    Pretty (TyVarDecl tyname a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (VarDecl tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Datatype tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Binding tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Term tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Program tyname name a) where
+    pretty = PLC.prettyClassicDef

@@ -24,6 +24,7 @@ import           Language.PlutusTx.Plugin
 import qualified Language.PlutusIR          as PIR
 
 import           Data.ByteString.Lazy
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
 
 -- this module does lots of weird stuff deliberately
@@ -33,7 +34,7 @@ instance GetProgram (CompiledCode a) where
     getProgram = catchAll . getPlc
 
 goldenPir :: String -> CompiledCode a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
+goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 tests :: TestNested
 tests = testNested "Plugin" [

@@ -27,6 +27,7 @@ import           Language.PlutusCore
 import           Control.Monad.Except
 import           Control.Exception
 
+import Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
 main :: IO ()
@@ -35,8 +36,8 @@ main = defaultMain $ runTestNestedIn ["test"] tests
 instance GetProgram (CompiledCode a) where
     getProgram = catchAll . getPlc
 
-goldenPir :: String -> (CompiledCode a) -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ PIR.prettyDef $ getPir value
+goldenPir :: String -> CompiledCode a -> TestNested
+goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 runPlcCek :: GetProgram a => [a] -> ExceptT SomeException IO EvaluationResult
 runPlcCek values = do
