@@ -127,6 +127,36 @@ lemμ' refl pat arg = soundness (embNf pat · (μ1 · embNf pat) · embNf arg)
 \end{code}
 
 \begin{code}
+open import Builtin.Constant.Type
+
+lemcon : ∀{Γ Γ'}(p : Γ ≡ Γ')(tcn : TyCon)(s : Γ ⊢Nf⋆ #)
+  → con tcn (substEq (_⊢⋆ #) p (embNf s)) ≡
+    substEq (_⊢⋆ *) p (con tcn (embNf s))
+lemcon refl tcn s = refl
+\end{code}
+
+\begin{code}
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
+  as SSig
+import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con Norm.booleanNf size⋆
+  as NSig
+open import Builtin
+import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆ as STermCon 
+import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆ as NTermCon 
+
+
+substTC : ∀{Γ Γ'}(p : Γ ≡ Γ')(s : Γ ⊢⋆ #)(tcn : TyCon)
+  → STermCon.TermCon (con tcn s)
+  → STermCon.TermCon (con tcn (substEq (_⊢⋆ #) p s))
+substTC refl s tcn t = t
+
+embTypeTC : ∀{φ}{A : φ ⊢Nf⋆ *} → NTermCon.TermCon A → STermCon.TermCon (embNf A)
+embTypeTC (NTermCon.integer s i p)    = STermCon.integer s i p
+embTypeTC (NTermCon.bytestring s b p) = STermCon.bytestring s b p 
+embTypeTC (NTermCon.size s)           = STermCon.size s
+\end{code}
+\begin{code}
 embTy : ∀{Γ K}{A : Norm.∥ Γ ∥ ⊢Nf⋆ K}
   → Γ Norm.⊢ A
   → embCtx Γ Syn.⊢ substEq (_⊢⋆ K) (embCtx∥ Γ) (embNf A)
@@ -153,7 +183,9 @@ embTy {Γ} (Norm.unwrap1 {pat = pat}{arg} t) = Syn.conv
   (lemμ'
     (embCtx∥ Γ) pat arg)
     (Syn.unwrap1 (subst⊢' refl (lemμ (embCtx∥ Γ) pat arg) (embTy t)))
-embTy (Norm.con t) = {!!}
+embTy {Γ} (Norm.con  {s = s}{tcn = tcn} t ) = subst⊢'
+  refl
+  (lemcon (embCtx∥ Γ) tcn s) (Syn.con (substTC (embCtx∥ Γ) (embNf s) tcn (embTypeTC t)))
 embTy (Norm.builtin bn σ tel) = {!!}
 embTy {Γ} (Norm.error A) = Syn.error (substEq (_⊢⋆ _) (embCtx∥ Γ) (embNf A) )
 \end{code}
