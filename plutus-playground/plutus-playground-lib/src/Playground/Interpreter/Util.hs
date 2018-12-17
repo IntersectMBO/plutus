@@ -11,7 +11,7 @@ import qualified Data.Map                   as Map
 import           Data.Monoid                (Sum (Sum), getSum)
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, Value (Value))
+import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOut(txOutValue), Value (Value))
 import           Playground.API             (PlaygroundError (OtherError))
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
@@ -43,7 +43,7 @@ runTrace wallets actions =
               blockchain = _chainNewestFirst newState
               emulatorLog = _emulatorLog newState
               fundsDistribution =
-                Map.map (getSum . foldMap Sum . view ownFunds) .
+                Map.map (getSum . foldMap (Sum . txOutValue) . view ownFunds) .
                 view walletStates $
                 newState
            in case eRes of
