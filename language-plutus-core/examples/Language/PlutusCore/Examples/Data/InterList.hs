@@ -30,6 +30,10 @@ We encode the following in this module:
       go A B f (InterCons x y xs) = f x y $ go B A (flip f) xs
 -}
 
+-- |
+--
+-- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
+-- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
 getBuiltinInterList :: Quote (RecursiveType ())
 getBuiltinInterList = do
     a         <- freshTyName () "a"

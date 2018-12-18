@@ -47,7 +47,7 @@ type Spiney ann
     =  ann
     -> Kind ann
     -> ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
-    -> (Type TyName ann -> Type TyName ann)
+    -> Type TyName ann
     -> Quote (Type TyName ann)
 
 -- \(rec :: i -> k -> *) (a :: i) (b :: j) ->
@@ -67,7 +67,7 @@ getPatternFunctor ann k withSpine pat = do
         . TyLam ann b ((k ~~> star) ~~> star)
         . TyLam ann p (k ~~> star)
         . TyApp ann (TyVar ann p)
-        . pat
+        . TyApp ann pat
         . withSpine
         . TyApp ann
         $ TyVar ann b
@@ -142,22 +142,123 @@ getWithSpine ann argVars = do
 
     return $ \k -> mkIterTyLam ann argVars $ k spine
 
--- Pat (WithSpine ...)
+{- Note [InterList]
 
--- > getWithSpine [a1 :: k1, a2 :: k2] =
--- >     \(K : ((k1 -> k2 -> *) -> *) -> *) (a1 :: k1) (a2 :: k2) ->
--- >          K \(R :: k1 -> k2 -> *) -> R a1 a2
 
--- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+    data InterList a b
+        = InterNil
+        | InterCons a b (InterList b a)
+
+    example_InterList :: InterList Char Int
+    example_InterList = InterCons 'a' 1 . InterCons 2 'b' . InterCons 'c' 3 $ InterNil
+
+
+-}
+
+{- Note [Generic fix]
+Imagine we have the following @fix@:
+
+    fix :: (k -> k) -> k
+
+Using it we can easily define the @list@ data type as a fixed point of an appropriate
+pattern functor:
+
+    listF = \(a :: *) (list :: *) -> all (r :: *). r -> (a -> list -> r) -> r
+    list  = \(a :: *) -> fix (listF a) a
+
+There are a few problems with this definition however:
+
+1. In @listF@ there is no indication that @list@ is supposed to contain elements of type @a@.
+So @listF@ binds both @a@ and @list@, but does not specify there is a relation between these two
+things. The burden of connecting @a@ and @list@ together is on the caller, which is not a big deal,
+because the only callers are @fix@, in terms of which the data type is defined, and @wrap@ that
+allows to define the constructors of the data type, but still, this way the code looks strangely
+structured.
+
+2. Related to 1: such encoding diverges from what one would write having a data construction
+machinery. A standard Haskell definition would be
+
+    data List a
+        = Nil
+        | Cons a (List a)
+
+In this definition we explicitly apply @List@ to @a@ in the @Cons@ case. Thus, the encoding looks
+somewhat unnatural.
+
+3. @wrap@ constructing a @list@ must carry @listF a@ in the same way @fix@ carries it. This makes
+it very hard to construct terms using AST as shown in @plutus/language-plutus-core/docs/Holed types.md@.
+
+4. There are data types that can't be defined this way. See Note [InterList] for one example.
+
+There is however an approach that allows to encode data types in a "natural" way, does not cause
+any trouble while constructing data types and can handle much more data types than what is described
+above. Here is how the @list@ example look like with it:
+
+    listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+    list  = \(a :: *) -> fix listF a
+
+requires @fix :: ((k -> *) -> k -> *) -> k -> *@.
+
+-}
+
+{- Note [Spines]
+@ifix@ has the following kind signature:
+
+    ifix :: ((k -> *) -> k -> *) -> k -> *
+
+I.e. @ifix@ receives two arguments: a pattern functor of kind @(k -> *) -> k -> *@ and an index
+of kind @k@ and constructs a data type living in @*@.
+
+We can define the @list@ data type as follows using @ifix@:
+
+    listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+    list  = \(a :: *) -> ifix listF a
+
+-- pat  =
+--
+
+
+
+Consider
+
+
+-- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
+-- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
+
+    [a, b, interlist, r] <- traverse (freshTyName ()) ["a", "b", "interlist", "r"]
+    let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
+        nilElimTy   = TyVar () r
+        consElimTy  = mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
+    makeRecursiveType () interlist [TyVarDecl () a $ Type (), TyVarDecl () b $ Type ()]
+        . TyForall () r (Type ())  -- all (r :: *).
+        . TyFun () nilElimTy       --     r ->
+        . TyFun () consElimTy      --         (a -> b -> interlist b a -> r) ->
+        $ TyVar () r               --             r
+-}
+
+{- Note [Denormalization]
+The encoding trick we use in this module turns normalized things into non-normalized ones.
+Originally, we were binding all variables on the Plutus Core side and this resulted in huge
+unreadable types being produced. For example, the @nil@ constructor had the following definition
+(the semantics of this is not important here, just the number of symbols):
+
+    /\(a :: *) -> wrap ((\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> \(rec :: (* -> *) -> *) -> \(p :: * -> *) -> p (pat (withSpine rec))) (\(k :: (* -> *) -> *) -> k (\(r :: *) -> r)) (\(list :: *) -> (\(a :: *) -> all (r :: *). r -> (a -> list -> r) -> r) a)) (\(r :: *) -> r) (/\(r :: *) -> \(z : r) -> \(f : a -> (\(a :: *) -> (\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> withSpine (\(spine :: * -> *) -> ifix ((\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> \(rec :: (* -> *) -> *) -> \(p :: * -> *) -> p (pat (withSpine rec))) withSpine pat) spine)) (\(k :: (* -> *) -> *) -> k (\(r :: *) -> r)) (\(list :: *) -> all (r :: *). r -> (a -> list -> r) -> r)) a -> r) -> z)
+
+Now we bind some variables on the Haskell side meaning Haskell performs type reductions for us.
+The @nil@ constructor is now (the semantics is still not important):
+
+    /\(a :: *) -> wrap (\(rec :: ((* -> *) -> *) -> *) -> \(p :: (* -> *) -> *) -> p ((\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) (\(a :: *) -> rec (\(r :: * -> *) -> r a)))) (\(r :: * -> *) -> r a) (/\(r :: *) -> \(z : r) -> \(f : a -> (\(a :: *) -> ifix (\(rec :: ((* -> *) -> *) -> *) -> \(p :: (* -> *) -> *) -> p ((\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) (\(a :: *) -> rec (\(r :: * -> *) -> r a)))) (\(r :: * -> *) -> r a)) a -> r) -> z)
+
+This is much better, but types are still not normalized.
 
 -- pat  = \(list :: * -> *)              (a :: *) ->
---   all (r :: *). r -> (a -> list a            -> r) -> r
--- pat1 = \(rec :: ((* -> *) -> *) -> *) (a :: *) ->
---   all (r :: *). r -> (a -> rec (\sp -> sp a) -> r) -> r
+--                       all (r :: *). r -> (a -> list a            -> r) -> r
 
--- \(a :: *) -> ifix (\(rec :: ((* -> *) -> *) -> *) -> \(p :: (* -> *) -> *) -> p ((\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) (\(a :: *) -> rec (\(r :: * -> *) -> r a)))) (\(r :: * -> *) -> r a)
+-- pat1 = \(rec :: ((* -> *) -> *) -> *) (spine :: (* -> *) -> *) ->
+--   spine (\(a :: *) -> all (r :: *). r -> (a -> rec (\on -> on a) -> r) -> r)
 
 
+-}
 
 packagePatternBodyN
     :: Spiney ann
