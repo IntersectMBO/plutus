@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedBySyntacticType.Term where
+module Declarative.Term where
 \end{code}
 
 ## Imports

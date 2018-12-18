@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedByNormalType.Term.RenamingSubstitution where
+module Algorithmic.Term.RenamingSubstitution where
 \end{code}
 
 ## Imports
@@ -22,7 +22,7 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
-open import TermIndexedByNormalType.Term
+open import Algorithmic.Term
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf size⋆
@@ -63,11 +63,11 @@ ext⋆ {Γ}{Δ} ρ⋆ ρ {J}{K}{A} (T x) =
 \end{code}
 
 \begin{code}
-rename-nf : ∀{Γ Δ K}
+rename-nf' : ∀{Γ Δ K}
   → (A : ∥ Γ ∥ ⊢⋆ K)
   → (ρ⋆ : ∀ {J} → ∥ Γ ∥ ∋⋆ J → ∥ Δ ∥ ∋⋆ J)
   → renameNf ρ⋆ (nf A) ≡ nf (⋆.rename ρ⋆ A)
-rename-nf A ρ⋆ = trans
+rename-nf' A ρ⋆ = trans
   (rename-reify (idext idCR A) ρ⋆)
   (reifyCR
     (transCR
@@ -117,7 +117,7 @@ rename {Γ}{Δ} ρ⋆ ρ (wrap1 pat arg term) = wrap1
   (substEq
     (Δ ⊢_)
     (trans
-      (rename-nf {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)
+      (rename-nf' {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)
       (cong₂ (λ (p : ∥ Δ ∥ ⊢⋆ _)(a : ∥ Δ ∥ ⊢⋆ _) → nf (p · (μ1 · p) · a))
              (sym (rename-embNf ρ⋆ pat))
              (sym (rename-embNf ρ⋆ arg))))
@@ -128,7 +128,7 @@ rename {Γ}{Δ} ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = substEq
     (cong₂ (λ (p : ∥ Δ ∥ ⊢⋆ _)(a : ∥ Δ ∥ ⊢⋆ _) → nf (p · (μ1 · p) · a))
              (rename-embNf ρ⋆ pat)
              (rename-embNf ρ⋆ arg))
-    (sym (rename-nf {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
+    (sym (rename-nf' {Γ}{Δ} (embNf pat · (μ1 · embNf pat) · embNf arg) ρ⋆)))
   (unwrap1 (rename ρ⋆ ρ term))
 rename ρ⋆ ρ (con c) = con (renameTermCon ρ⋆ c)
 rename {Γ}{Δ} ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in substEq

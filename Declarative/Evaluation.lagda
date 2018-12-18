@@ -1,13 +1,13 @@
 \begin{code}
-module TermIndexedBySyntacticType.Evaluation where
+module Declarative.Evaluation where
 \end{code}
 
 ## Imports
 
 \begin{code}
 open import Type
-open import TermIndexedBySyntacticType.Term
-open import TermIndexedBySyntacticType.Term.Reduction
+open import Declarative.Term
+open import Declarative.Term.Reduction
 \end{code}
 
 ## Evaluation

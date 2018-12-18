@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedByNormalType.Term where
+module Algorithmic.Term where
 \end{code}
 
 ## Imports

@@ -29,20 +29,20 @@ import Builtin.Signature
 import Builtin.Constant.Type
 import Builtin.Constant.Term
 
-import TermIndexedBySyntacticType.Term
-import TermIndexedBySyntacticType.Term.RenamingSubstitution
-import TermIndexedBySyntacticType.Term.Reduction
-import TermIndexedBySyntacticType.Evaluation
-import TermIndexedBySyntacticType.Main
-import TermIndexedBySyntacticType.Examples
+import Declarative.Term
+import Declarative.Term.RenamingSubstitution
+import Declarative.Term.Reduction
+import Declarative.Evaluation
+import Declarative.Main
+import Declarative.Examples
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
 
-import TermIndexedByNormalType.Term
-import TermIndexedByNormalType.Term.RenamingSubstitution
-import TermIndexedByNormalType.Term.Reduction
-import TermIndexedByNormalType.Evaluation
-import TermIndexedByNormalType.Examples
-import TermIndexedByNormalType.Main
+import Algorithmic.Term
+import Algorithmic.Term.RenamingSubstitution
+import Algorithmic.Term.Reduction
+import Algorithmic.Evaluation
+import Algorithmic.Examples
+import Algorithmic.Main
 \end{code}

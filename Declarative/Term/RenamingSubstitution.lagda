@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedBySyntacticType.Term.RenamingSubstitution where
+module Declarative.Term.RenamingSubstitution where
 \end{code}
 
 ## Imports
@@ -16,7 +16,7 @@ open import Type.Equality
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * # _∋⋆_ Z S _⊢⋆_ ` con boolean size⋆
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
-open import TermIndexedBySyntacticType.Term
+open import Declarative.Term
 \end{code}
 
 

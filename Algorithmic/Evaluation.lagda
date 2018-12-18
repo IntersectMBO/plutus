@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedByNormalType.Evaluation where
+module Algorithmic.Evaluation where
 \end{code}
 
 ## Imports
@@ -7,8 +7,8 @@ module TermIndexedByNormalType.Evaluation where
 \begin{code}
 open import Type
 open import Type.BetaNormal
-open import TermIndexedByNormalType.Term
-open import TermIndexedByNormalType.Term.Reduction
+open import Algorithmic.Term
+open import Algorithmic.Term.Reduction
 \end{code}
 
 ## Evaluation

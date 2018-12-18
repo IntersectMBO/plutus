@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedBySyntacticType.Examples where
+module Declarative.Examples where
 \end{code}
 
 ## Imports
@@ -8,9 +8,9 @@ module TermIndexedBySyntacticType.Examples where
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
-open import TermIndexedBySyntacticType.Term
-open import TermIndexedBySyntacticType.Term.RenamingSubstitution
-open import TermIndexedBySyntacticType.Evaluation
+open import Declarative.Term
+open import Declarative.Term.RenamingSubstitution
+open import Declarative.Evaluation
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term

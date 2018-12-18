@@ -1,5 +1,5 @@
 \begin{code}
-module TermIndexedByNormalType.Examples where
+module Algorithmic.Examples where
 \end{code}
 
 ## Imports
@@ -9,9 +9,9 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE.RenamingSubstitution
 import Type.RenamingSubstitution as ⋆
-open import TermIndexedByNormalType.Term
-open import TermIndexedByNormalType.Term.RenamingSubstitution
-open import TermIndexedByNormalType.Evaluation
+open import Algorithmic.Term
+open import Algorithmic.Term.RenamingSubstitution
+open import Algorithmic.Evaluation
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
 \end{code}
