@@ -4,7 +4,7 @@
       before = [ "nginx.service" ];
       enable = true;
       path = [
-        "${playground.plutus-server-invoker}"
+        "${playground.plutus-playground.server-invoker}"
       ];
 
       serviceConfig = {
@@ -14,12 +14,32 @@
         PrivateTmp = true;
       };
 
-      script = "plutus-playground-server webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground-client}";
+      script = "plutus-playground-server webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground.client}";
   };
+  plutus_systemctl = pkgs.writeScriptBin "plutus-systemctl" ''
+    INSTANCE="$2"
+    COMMAND="$1"
+    if [[ $COMMAND =~ ^(stop|start|restart|status)$ ]]
+    then
+        systemctl "$COMMAND" "plutus-playground-$INSTANCE.service"
+    else
+        echo "usage: $0 (stop|start|restart|status) <instance>"
+    fi
+  '';
   in
   {
       imports = [ (defaultMachine node pkgs)
                 ];
+
+  security.sudo = {
+    enable = true;
+    extraRules = [{
+      users = [ "plutus" ];
+      commands = [
+        { command = "${plutus_systemctl}/bin/plutus-systemctl"; options = [ "NOPASSWD" ]; }
+      ];
+    }];
+  };
 
   networking.firewall = {
     enable = true;
@@ -32,6 +52,7 @@
     description = "Plutus user";
     extraGroups = [ "systemd-journal" ];
     openssh.authorizedKeys.keys = machines.playgroundSshKeys;
+    packages = [ plutus_systemctl ];
   };
 
   services.nginx = {

@@ -14,33 +14,33 @@ import           Language.PlutusTx.Plugin
 -- this module does lots of weird stuff deliberately
 {-# ANN module "HLint: ignore" #-}
 
-string :: CompiledCode
+string :: CompiledCode String
 string = plc @"string" "test"
 
-listConstruct :: CompiledCode
+listConstruct :: CompiledCode [Int]
 listConstruct = plc @"listConstruct" ([]::[Int])
 
-listConstruct2 :: CompiledCode
+listConstruct2 :: CompiledCode [Int]
 listConstruct2 = plc @"listConstruct2" ([1]::[Int])
 
 -- It is very difficult to get GHC to make a non-polymorphic redex if you use
 -- list literal syntax with integers. But this works.
-listConstruct3 :: CompiledCode
+listConstruct3 :: CompiledCode [Int]
 listConstruct3 = plc @"listConstruct3" ((1::Int):(2::Int):(3::Int):[])
 
-listMatch :: CompiledCode
+listMatch :: CompiledCode ([Int] -> Int)
 listMatch = plc @"listMatch" (\(l::[Int]) -> case l of { (x:_) -> x ; [] -> 0; })
 
 data B a = One a | Two (B (a, a))
 
-ptreeConstruct :: CompiledCode
+ptreeConstruct :: CompiledCode (B Int)
 ptreeConstruct = plc @"ptreeConstruct" (Two (Two (One ((1,2),(3,4)))) :: B Int)
 
 -- TODO: replace this with 'first' when we have working recursive functions
-ptreeMatch :: CompiledCode
+ptreeMatch :: CompiledCode (B Int -> Int)
 ptreeMatch = plc @"ptreeMatch" (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
 
-sumDirect :: CompiledCode
+sumDirect :: CompiledCode ([Int] -> Int)
 sumDirect = plc @"sumDirect" (
     let sum :: [Int] -> Int
         sum []     = 0

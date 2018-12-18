@@ -68,7 +68,7 @@ resource "aws_instance" "playground_a" {
   instance_type        = "${var.playground_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[0]}"
   user_data            = "${data.template_file.playground_user_data.rendered}"
-  iam_instance_profile = "elasticsearch_profile"
+  #iam_instance_profile = "elasticsearch_profile"
 
   vpc_security_group_ids = [
     "${aws_security_group.playground.id}",
@@ -99,7 +99,7 @@ resource "aws_instance" "playground_b" {
   instance_type        = "${var.playground_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[1]}"
   user_data            = "${data.template_file.playground_user_data.rendered}"
-  iam_instance_profile = "elasticsearch_profile"
+  #iam_instance_profile = "elasticsearch_profile"
 
   vpc_security_group_ids = [
     "${aws_security_group.playground.id}",

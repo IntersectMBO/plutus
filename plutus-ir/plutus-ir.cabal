@@ -85,5 +85,6 @@ test-suite plutus-ir-test
         language-plutus-core -any,
         mtl -any,
         mmorph -any,
+        prettyprinter -any,
         serialise -any,
         tasty -any

@@ -13,7 +13,7 @@
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', '<%= htmlWebpackPlugin.options.googleAnalyticsId %>');
+            gtag('config', '<%= htmlWebpackPlugin.options.googleAnalyticsId %>', { 'anonymize_ip': true });
         </script>
     </head>
     <body>

@@ -14,6 +14,7 @@ module Language.PlutusCore.Pretty.Readable
     ( RenderContext (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
+    , PrettyReadable
     , topPrettyConfigReadable
     , botPrettyConfigReadable
     ) where
@@ -134,6 +135,8 @@ encloseInContext (RenderContext (Fixity precOut assocOut) dir) (Fixity precIn as
 
 -- | The "readably pretty-printable" constraint.
 type PrettyReadableBy configName = PrettyBy (PrettyConfigReadable configName)
+
+type PrettyReadable = PrettyReadableBy PrettyConfigName
 
 -- | Adjust a 'PrettyConfigReadable' by setting new 'Fixity' and 'Direction' and call 'prettyBy'.
 prettyInBy

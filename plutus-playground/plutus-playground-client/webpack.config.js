@@ -53,9 +53,10 @@ module.exports = {
                         options: {
                             src: [
                                 'bower_components/purescript-*/src/**/*.purs',
-                                'src/**/*.purs'
+                                'src/**/*.purs',
+                                'generated/**/*.purs'
                             ],
-                            bundle: false,
+                            bundle: true,
                             psc: 'psa',
                             watch: isWebpackDevServer || isWatch,
                             pscIde: true
@@ -94,6 +95,7 @@ module.exports = {
             template: 'static/index.html',
             favicon: 'static/favicon.ico',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
-        })
+        }),
+        new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js')
     ].concat(plugins)
 };

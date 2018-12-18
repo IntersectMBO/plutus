@@ -28,7 +28,6 @@ import Data.Generic (gEq)
 import Data.Int as Int
 import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -49,7 +48,7 @@ import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode))
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
@@ -92,6 +91,8 @@ evalWithAnalyticsTracking query = do
     Just event -> liftEff $ trackEvent event
   eval query
 
+-- | Here we decide which top-level queries to track as GA events, and
+-- how to classify them.
 toEvent :: forall a. Query a -> Maybe Event
 toEvent (HandleEditorMessage _ _) = Nothing
 toEvent (HandleMockchainChartMessage _ _) = Nothing
@@ -217,7 +218,7 @@ eval (PopulateAction n l event) = do
        <<< ix n
        <<< _Action
        <<< _functionSchema
-       <<< _Newtype
+       <<< _FunctionSchema
        <<< _argumentSchema
        <<< ix l)
     (evalForm event)
@@ -355,15 +356,16 @@ mainHeader :: forall p i. HTML p i
 mainHeader =
   div_
     [ div [ classes [ btnGroup, pullRight ] ]
-        (makeLink <$> [ Tuple "Getting Started" "https://webdevf.iohk.io/plutus/get-started/writing-contracts-in-plutus/"
-                      , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
-                      , Tuple "API" "https://input-output-hk.github.io/plutus/"
-                      ])
+        (makeLink <$> links)
     , h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
     ]
   where
+    links = [ Tuple "Getting Started" "https://webdevf.iohk.io/plutus/get-started/writing-contracts-in-plutus/"
+            , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
+            , Tuple "API" "https://input-output-hk.github.io/plutus/"
+            ]
     makeLink (Tuple name link) =
       a [ classes [ btn, btnSmall ]
         , href link

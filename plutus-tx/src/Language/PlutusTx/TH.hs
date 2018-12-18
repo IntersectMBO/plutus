@@ -16,7 +16,7 @@ import qualified Language.Haskell.TH        as TH
 import qualified Language.Haskell.TH.Syntax as TH
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
-compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp CompiledCode)
+compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp (CompiledCode a))
 -- See note [Typed TH]
 compile e = TH.unsafeTExpCoerce $ compileUntyped $ TH.unType <$> e
 
