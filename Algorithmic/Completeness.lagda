@@ -1,10 +1,10 @@
 \begin{code}
-module TermIndexedByNormalType.Syn2Norm where
+module Algorithmic.Completeness where
 
 open import Type
 open import Type.RenamingSubstitution
-import TermIndexedBySyntacticType.Term as Syn
-import TermIndexedByNormalType.Term as Norm
+import Declarative.Term as Syn
+import Algorithmic.Term as Norm
 open import Type.BetaNormal
 open import Type.BetaNBE
 open import Type.BetaNBE.Completeness

@@ -19,23 +19,12 @@ The formalisation requires Agda version 2.5.4.1 or higher.
 
 ## Status
 
-The formalisation currently covers System F omega with (deep)
-iso-recursive types and builtin-types for sized integers and sized
-bytestrings. Progress and preservation have been shown to hold for the
-small-step semantics and an evaluator can be used to execute small
-examples.
-
-### Current status
-* deep iso-recursive types are implemented but not fully tested;
-* builtins are covered only in the syntactic typed version so far;
-* builtins integers are modelled as Agda integers and could,
-  potentially, be compiled to Haskell integers. Only a subset of the
-  integer operations map to real Agda implementations, the rest are treated
-  abstractly. It is possible to, for example, increment an arbitrarily
-  sized integer;
-* builtin bytestrings are modelled abstractly in Agda and could,
-  potentially, be compiled to Haskell bytestrings;
-* abstract machines/erasure are not yet covered.
+The formalisation currently covers the full language of Plutus Core:
+System F omega with (deep) iso-recursive types, and builtin-types for
+sized integers and sized bytestrings. Progress and preservation have
+been shown to hold for the small-step semantics. An evaluator can be
+used to execute small examples in Agda and also compile them to
+Haskell.
 
 ## Structure
 
@@ -45,8 +34,8 @@ The formalisation is split into three sections. Firstly,
 
 Then, two different implementations of the term language:
 
-2. Terms indexed by syntactic types;
-3. Terms indexed by normal types.
+2. Terms indexed by syntactic types (declarative);
+3. Terms indexed by normal types (algorithmic).
 
 ## Types
 
@@ -127,7 +116,7 @@ table.
 
 The rest of the Builtin machinery: telescopes, and the semantics of
 builtins are contained in
-[TermIndexedBySyntacticType.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Term.Reduction.html).
+[Declarative.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.Reduction.html).
 
 ## Terms indexed by syntactic types
 
@@ -141,28 +130,28 @@ sufficient to handle examples which do not require computing the types
 before applying beta-reductions. Such as Church/Scott Numerals.
 
 
-1. The [TermIndexedBySyntacticType.Term](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Term.html)
+1. The [Declarative.Term](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.html)
 module contains the definition of terms. This module has two further submodules:
 
-   1. [TermIndexedBySyntacticType.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Term.RenamingSubstitution.html)
+   1. [Declarative.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.RenamingSubstitution.html)
       contains the definitions of substitution for terms that is necessary to
       specify the beta-rules in the reduction relation. This definition and
       those it depends on, in turn, depend on the definitions and correctness
       proofs of the corresponding type level operations.
 
-   2. [TermIndexedBySyntacticType.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Term.Reduction.html)
+   2. [Declarative.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.Reduction.html)
       This file contains the reduction relation for terms (also known
       as the small step operational semantics) and the progress proof.
       Preservation is inherent. Note: this version of
       progress doesn't handle type conversions in terms.
 
-2. [TermIndexedBySyntacticType.Evaluation](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Evaluation.html)
+2. [Declarative.Evaluation](https://input-output-hk.github.io/plutus-metatheory/Declarative.Evaluation.html)
 contains the evaluator the terms. It takes a *gas* argument which is
 the number of steps of reduction that are allowed. It returns both a
 result and trace of reduction steps or *out of gas*. Note: this
 version of evaluation doesn't handle type conversions in terms.
 
-3. [TermIndexedBySyntacticType.Examples](https://input-output-hk.github.io/plutus-metatheory/TermIndexedBySyntacticType.Examples.html)
+3. [Declarative.Examples](https://input-output-hk.github.io/plutus-metatheory/Declarative.Examples.html)
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.
 
@@ -176,10 +165,10 @@ form. This allows us to define progress, preservation, and
 evaluation for the full language of System F omega with iso-recursive
 types.
 
-1. The [TermIndexedByNormalType.Term](https://input-output-hk.github.io/plutus-metatheory/TermIndexedByNormalType.Term.html)
+1. The [Algorithmic.Term](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.html)
 module contains the definition of terms. This module has two further submodules:
 
-   1. [TermIndexedByNormalType.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/TermIndexedByNormalType.Term.RenamingSubstitution.html)
+   1. [Algorithmic.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.RenamingSubstitution.html)
       contains the definitions of substitution for terms that is
       necessary to specify the beta-rules in the reduction
       relation. This definition and those it depends on, in turn,
@@ -188,16 +177,16 @@ module contains the definition of terms. This module has two further submodules:
       includes depeneding on the correctness proof of the beta
       normalizer for types.
 
-   2. [TermIndexedByNormalType.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/TermIndexedByNormalType.Term.Reduction.html)
+   2. [Algorithmic.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.Reduction.html)
       This file contains the reduction relation for terms (also known
       as the small step operational semantics) and the progress proof.
       Preservation is, again, inherent.
 
-2. [TermIndexedByNormalType.Evaluation](https://input-output-hk.github.io/plutus-metatheory/TermIndexedByNormalType.Evaluation.html)
+2. [Algorithmic.Evaluation](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Evaluation.html)
 contains the evaluator the terms. It takes a *gas* argument which is
 the number of steps of reduction that are allowed. It returns both a
 result and trace of reduction steps or *out of gas*.
 
-3. [TermIndexedByNormalType.Examples](https://input-output-hk.github.io/plutus-metatheory/TermIndexedByNormalType.Examples.html)
+3. [Algorithmic.Examples](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Examples.html)
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.

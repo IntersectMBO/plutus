@@ -45,4 +45,6 @@ import Algorithmic.Term.Reduction
 import Algorithmic.Evaluation
 import Algorithmic.Examples
 import Algorithmic.Main
+import Algorithmic.Soundness
+import Algorithmic.Completeness
 \end{code}

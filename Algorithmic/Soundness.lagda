@@ -1,10 +1,10 @@
 \begin{code}
-module TermIndexedByNormalType.Norm2Syn where
+module Algorithmic.Soundness where
 
 open import Type
 open import Type.RenamingSubstitution
-import TermIndexedBySyntacticType.Term as Syn
-import TermIndexedByNormalType.Term as Norm
+import Declarative.Term as Syn
+import Algorithmic.Term as Norm
 open import Type.BetaNormal
 open import Type.Equality
 open import Type.BetaNBE
@@ -13,7 +13,7 @@ open import Type.BetaNBE.Soundness
 open import Type.BetaNBE.Stability
 open import Type.BetaNBE.RenamingSubstitution
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
-open import TermIndexedByNormalType.Syn2Norm
+open import Algorithmic.Completeness
 
 open import Function
 \end{code}
