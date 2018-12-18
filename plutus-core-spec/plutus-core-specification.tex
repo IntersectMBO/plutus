@@ -177,11 +177,11 @@
 
 \section{Plutus Core}
 
-Plutus Core is typed, eagerly evaluated $\lambda$-calculus designed
+Plutus Core is a typed, eagerly evaluated $\lambda$-calculus designed
 for use as a transaction validation language in blockchain
 systems. More precisely, Plutus Core is the system $F_\omega$ of
-Girard and Reynolds (\cite{Girard-thesis})
-\cite{Reynolds-type-structure} \cite[\S30]{Pierce:TAPL}) with a number
+Girard and Reynolds (see \cite{Girard-thesis},
+\cite{Reynolds-type-structure}, \cite[\S30]{Pierce:TAPL}) with a number
 of extensions (a type-level fixpoint operator, isorecursive types, and 
 a library of basic types and functions).  Plutus Core is
 meant to be a compilation target, and this is reflected in the design
@@ -335,19 +335,19 @@ is the type of 8-byte integers.  See \S\ref{sec:builtins} for more information.
   opportunities for type reduction and thus have little effect on the
   proof.
 
-\paragraph{Kinds.} As mentioned above, Plutus Core contains a copy of the 
-simply typed lambda calculus at the type level: the types of the
+\paragraph{Kinds.} In Plutus Core we have a copy of the 
+simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
-\textit{kinds}, alllowing the type system to talk about operations
-which themselves occur at the level of types. In addition to the
-standard kind \texttt{(type)} (usually written as $\star$), we have a
-kind \texttt{(size)} which allows us to deal with the sized types described 
-below in~\S\ref{sec:size-note}.
+\textit{kinds} in Plutus Core, allowing the type system to talk about
+operations which themselves occur at the level of types. In addition
+to the standard kind \texttt{(type)} (usually written as $\star$), we
+have a kind \texttt{(size)} which allows us to deal with the sized
+types described below in~\S\ref{sec:size-note}.
 
 
 \paragraph{Programs and Versions.} A complete Plutus Core program 
 consists of a standard version number (1.0.2, for example) indicating
-the Plutus Core version and a \textit{closed} term (ie, a term with no
+the Plutus Core version and a \textit{closed} term (i.e., a term with no
 free variables) forming the body of the program.  The version number
 is used by the Plutus Core evaluator and other tools to check that
 they are dealing with code conforming to the correct version of the
@@ -484,14 +484,15 @@ that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
 \newpage 
 
 \subsection{Type reduction}
-As mentioned earlier, the Plutus Core type system contains a copy of the 
-simply typed lambda calculus, allowing complex computations to take place
-at the level of types.  Reductions in the type system always transform
-a given type into an equivalent type, and so have no effect on the term
-level.  In conjunction with the fact that type reduction always terminates,
-this allows us to perform normalisation (ie, reduction to a form which
-cannot undergo any further reduction) statically, before execution begins. 
-Figure~\ref{fig:type-reduction} contains the rules for type reduction.
+Because the Plutus Core type system contains a copy of the simply
+typed lambda calculus, complex computations can take place at the
+level of types.  Reductions in the type system always transform a
+given type into an equivalent type, and so have no effect on the term
+level.  In conjunction with the fact that type reduction always
+terminates, this allows us to perform normalisation (i.e., reduction to
+a form which cannot undergo any further reduction) statically, before
+execution begins.  Figure~\ref{fig:type-reduction} contains the rules
+for type reduction.
 
 \subfile{figures/PlutusCoreTypeReduction}
 
