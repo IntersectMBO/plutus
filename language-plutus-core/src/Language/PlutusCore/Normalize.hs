@@ -50,22 +50,15 @@ makeLenses ''NormalizeTypeEnv
 Type normalization requires 'Quote' (because we need to be able to generate fresh names), but we
 do not put 'Quote' into 'NormalizeTypeT'. The reason for this is that it makes type signatures of
 various runners much nicer and also more generic. For example, we have
-
     runNormalizeTypeAnyM :: MonadQuote m => NormalizeTypeT m tyname ann a -> m a
-
 If 'NormalizeTypeT' contained 'Quote', it would be
-
     runNormalizeTypeAnyM :: NormalizeTypeT m tyname ann a -> QuoteT m a
-
 which hardcodes 'QuoteT' to be the outermost transformer.
-
 Type normalization can run in any @m@ (as long as it's a 'MonadQuote') as witnessed by
 the following type signature:
-
     normalizeTypeM
         :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
         => Type tyname ann -> NormalizeTypeT m tyname ann (NormalizedType tyname ann)
-
 so it's natural to have runners that do not break this genericity.
 -}
 
@@ -129,7 +122,6 @@ lookupTyName name =
 {- Note [Normalization]
 Normalization works under the assumption that variables are globally unique.
 We use environments instead of substitutions as they're more efficient.
-
 Since all names are unique and there is no need to track scopes, type normalization has only two
 interesting cases: function application and a variable usage. In the function application case we
 normalize a function and its argument, add the normalized argument to the environment and continue
@@ -148,8 +140,8 @@ normalizeTypeM
     => Type tyname ann -> NormalizeTypeT m tyname ann (NormalizedType tyname ann)
 normalizeTypeM (TyForall ann name kind body) =
     TyForall ann name kind <<$>> normalizeTypeM body
-normalizeTypeM (TyFix ann name pat)          =
-    TyFix ann name <<$>> normalizeTypeM pat
+normalizeTypeM (TyIFix ann pat arg)          =
+    TyIFix ann <<$>> normalizeTypeM pat <<*>> normalizeTypeM arg
 normalizeTypeM (TyFun ann dom cod)           =
     TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
 normalizeTypeM (TyLam ann name kind body)    =
@@ -213,7 +205,7 @@ normalizeTypesIn = go where
 
     go (LamAbs ann name ty body)  = LamAbs ann name <$> normalizeReturnType ty <*> go body
     go (TyAbs ann name kind body) = TyAbs ann name kind <$> go body
-    go (Wrap ann name pat term)   = Wrap ann name <$> normalizeReturnType pat <*> go term
+    go (IWrap ann pat arg term)   = IWrap ann <$> normalizeReturnType pat <*> normalizeReturnType arg <*> go term
     go (Apply ann fun arg)        = Apply ann <$> go fun <*> go arg
     go (Unwrap ann term)          = Unwrap ann <$> go term
     go (Error ann ty)             = Error ann <$> normalizeReturnType ty

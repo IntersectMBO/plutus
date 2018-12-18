@@ -55,8 +55,7 @@ data TypeConfig = TypeConfig
        -- If set to 'Nothing', type reductions will be unbounded.
     }
 
--- | The type checking monad contains the 'BuiltinTable' and it lets us throw
--- 'TypeError's.
+-- | The type checking monad contains the 'BuiltinTable' and it lets us throw 'TypeError's.
 type TypeCheckM ann = ReaderT TypeConfig (ExceptT (TypeError ann) Quote)
 
 runInTypeCheckM :: (forall m. MonadQuote m => NormalizeTypeT m tyname ann1 a) -> TypeCheckM ann2 a
@@ -133,15 +132,15 @@ runTypeCheckM typeConfig tc =
     runReaderT tc typeConfig
 
 indexOfPatternFunctor :: a -> Type TyNameWithKind a -> TypeCheckM a (Kind ())
-indexOfPatternFunctor _ pat = do
+indexOfPatternFunctor ann pat = do
     patKind <- kindOf pat
     case patKind of
         KindArrow _ (KindArrow _ k (Type _)) (KindArrow () k' (Type ())) ->
             if k == k'
                 then return k
-                else error "handle me"
+                else throwError $ PatternFunctorIndexMismatch ann (void pat) patKind k k'
         _                                                                ->
-            error "handle me"
+            throwError $ PatternFunctorWrongKind ann (void pat) patKind
 
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())

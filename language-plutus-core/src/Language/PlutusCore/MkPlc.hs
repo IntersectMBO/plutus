@@ -142,4 +142,4 @@ mkIterKindArrow
     -> [Kind a]
     -> Kind a
     -> Kind a
-mkIterKindArrow x kinds target = foldr (\kind acc -> KindArrow x kind acc) target kinds
+mkIterKindArrow x kinds target = foldr (KindArrow x) target kinds

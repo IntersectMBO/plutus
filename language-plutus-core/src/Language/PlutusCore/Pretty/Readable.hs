@@ -269,7 +269,7 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
         Unwrap _ term          -> comp juxtApp $ \_ juxtRight -> "unwrap" <+> juxtRight term
         IWrap _ pat arg term   -> comp juxtApp $ \_ juxtRight ->
-            "wrap" <+> inMiddle pat <+> inMiddle arg <+> juxtRight term
+            "iwrap" <+> inMiddle pat <+> inMiddle arg <+> juxtRight term
         Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
         prettyName = prettyBy config

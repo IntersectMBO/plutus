@@ -92,6 +92,8 @@ makeClassyPrisms ''InternalTypeError
 
 data TypeError a
     = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
+    | PatternFunctorWrongKind     a (Type TyNameWithKind ()) (Kind ())
+    | PatternFunctorIndexMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ()) (Kind ())
     | TypeMismatch a (Term TyNameWithKind NameWithType ())
                      (Type TyNameWithKind ())
                      (NormalizedType TyNameWithKind ())
@@ -181,6 +183,16 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
         ", found kind" <+> squotes (prettyBy config k')
+    prettyBy config (PatternFunctorWrongKind x ty k)  =
+        "Wrong kind at" <+> pretty x <+>
+        "in pattern functor" <+> squotes (prettyBy config ty) <>
+        ". Found kind" <+> squotes (prettyBy config k)
+    prettyBy config (PatternFunctorIndexMismatch x ty k i j) =
+        "Index mismatch at" <+> pretty x <+>
+        "in the kind" <+> squotes (prettyBy config k) <+>
+        "of pattern functor" <+> squotes (prettyBy config ty) <>
+        ". Expected index" <+> squotes (prettyBy config i) <>
+        ", found index" <+> squotes (prettyBy config j)
     prettyBy config (TypeMismatch x t ty ty')         =
         "Type mismatch at" <+> pretty x <>
         (if _pcpoCondensedErrors . _pcpOptions $ config

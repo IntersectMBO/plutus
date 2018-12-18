@@ -109,6 +109,7 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openBrace Term some(Type) closeBrace { tyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
+     | openParen con Constant closeParen { Constant $2 $3 }
      | openParen iwrap Type Type Term closeParen { IWrap $2 $3 $4 $5 }
      | openParen builtin builtinVar closeParen { Builtin $2 (BuiltinName (loc $3) (tkBuiltin $3)) }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }

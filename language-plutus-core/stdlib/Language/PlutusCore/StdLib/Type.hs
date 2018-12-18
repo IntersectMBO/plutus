@@ -155,13 +155,9 @@ getWithSpine ann argVars = do
 
 -}
 
-{- Note [Generic fix]
-Imagine we have the following @fix@:
-
-    fix :: (k -> k) -> k
-
-Using it we can easily define the @list@ data type as a fixed point of an appropriate
-pattern functor:
+{- Note [Natural representation]
+Having @fix :: (* -> *) -> *@ we can easily define the @list@ data type as a fixed point of
+an appropriate pattern functor:
 
     listF = \(a :: *) (list :: *) -> all (r :: *). r -> (a -> list -> r) -> r
     list  = \(a :: *) -> fix (listF a) a
@@ -186,20 +182,51 @@ In this definition we explicitly apply @List@ to @a@ in the @Cons@ case. Thus, t
 somewhat unnatural.
 
 3. @wrap@ constructing a @list@ must carry @listF a@ in the same way @fix@ carries it. This makes
-it very hard to construct terms using AST as shown in @plutus/language-plutus-core/docs/Holed types.md@.
+it very hard to construct terms using the AST directly as shown in
+@plutus/language-plutus-core/docs/Holed types.md@.
 
 4. There are data types that can't be defined this way. See Note [InterList] for one example.
 
 There is however an approach that allows to encode data types in a "natural" way, does not cause
-any trouble while constructing data types and can handle much more data types than what is described
-above. Here is how the @list@ example look like with it:
+any trouble while constructing data types and can handle much more data types than what is shown
+above. Here is how the @list@ example looks like with it:
 
     listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
     list  = \(a :: *) -> fix listF a
 
-requires @fix :: ((k -> *) -> k -> *) -> k -> *@.
+I.e. instead of tying the knot over @list :: *@ we tie the knot over @list :: * -> *@. This simple
+trick solves all the problems described avove.
 
+But the code is actually ill-kinded. The reason for this is that @fix :: (* -> *) -> *@ is no longer
+enough, because we're taking a fixed point of a pattern functor of kind @(* -> *) -> * -> *@
+rather than just @* -> *@. Hence we need a more permissive fixed-point operator.
+Read next: Note [Generic fix].
 -}
+
+{- Note [Generic fix]
+In Note [Natural representation] we concluded that @fix :: (* -> *) -> *@ is not enough to encode
+@list@ in a satisfying way. In that particular case it would be enough to have
+
+    fix :: ((* -> *) -> * -> *) -> * -> *
+
+but what about other cases? The example from Note [InterList] then requires
+
+    fix :: ((* -> * -> *) -> * -> * -> *) -> * -> * -> *
+
+and of course we still need
+
+    fix :: (* -> *) -> *
+
+occasionally. This suggests to change the kind signature of @fix@ to
+
+    fix :: (k -> k) -> k
+
+which covers all those cases. However,
+
+1. It also can be instantiated as @fix :: (size -> size) -> size@ which doesn't make sense.
+2. It's not cleat how to implement such @fix@. See <...> for details.
+-}
+
 
 {- Note [Spines]
 @ifix@ has the following kind signature:
