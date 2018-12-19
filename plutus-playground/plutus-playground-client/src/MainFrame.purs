@@ -362,7 +362,7 @@ mainHeader =
         [ text "Plutus Playground" ]
     ]
   where
-    links = [ Tuple "Getting Started" "https://webdevf.iohk.io/plutus/get-started/writing-contracts-in-plutus/"
+    links = [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
             , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             ]
