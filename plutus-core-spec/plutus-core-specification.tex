@@ -316,7 +316,7 @@ ought to be included as sugar.
 \item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{\alpha}{A}$ is a type-level fixpoint operator $\fixtype{A}$: see the note on recursive types below.
+\item $\fixT{\alpha}{A}$ represents a recursive type $\fixtype{A}$: see the note on recursive types below.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
@@ -394,7 +394,7 @@ which will increase as the size of the integers involved increases.
 
 
 \subsubsection{Recursive types}
-The type-level fixpoint operator $\fixT{\alpha}{A}$ allows one to
+The operator $\texttt{fix}$ allows one to
 define recursive types in Plutus Core: $\fixT{\alpha}{A}$ is a type
 $\fixtype{A}$ such that $\fixtype{A} \cong [\fixtype{A}/\alpha]A$; in
 practice the type $A$ here will usually be a function type involving
