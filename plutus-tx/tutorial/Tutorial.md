@@ -1,5 +1,10 @@
 # Tutorial
 
+This tutorial will walk you through the basics of using the Plutus Tx compiler to create
+embedded programs that can be used when generating transactions. This tutorial will
+not go into detail about how to use these programs to make transactions, for that see
+the [following tutorial](../../wallet-api/Tutorial.md).
+
 ```haskell
 -- Necessary language extensions
 {-# LANGUAGE TemplateHaskell     #-}
@@ -21,12 +26,20 @@ import Language.PlutusCore.Evaluation.CkMachine
 
 ## Writing basic PlutusTx programs
 
-The `CompiledCode a` type is an opaque type which contains the serialized Plutus Core code
-corresponding to a Haskell expression of type `a`. The `compile` function takes a typed Template Haskell
-`Q (TExp a)`, for any a, and produces a `Q (TExp (CompiledCode a))`, which we then
-have to splice into our program.
+The key function we will use is the `compile` function. `compile` has type
+`Q (TExp a) -> Q (TExp (CompiledCode a))`. What does this mean? Well:
+- `Q` just means we're operating inside the Template Haskell quotation monad
+- `TExp a` is a Template Haskell representation of a Haskell program of type `a`
+- `CompiledCode a` is a Plutus Core program corresponding to a Haskell program of type `a`
+- `TExp (CompiledCode a)` is a Template Haskell representation of a Haskell program
+  of type `CompiledCode a`, i.e. which evaluates to a *Plutus Core* program
 
-The fact that `compile` takes a TH quote means that what you write inside the quote
+What this means is that `compile` lets you take a Haskell program and turn it into a Plutus
+Core program, and this happens when you compile your Haskell program (since that's when Template Haskell runs).
+This programming model is often called *staged programming* (or staged metaprogramming), where
+we write one program which generates another program that runs at a later stage.
+
+The fact that `compile` takes a Template Haskell quote means that what you write inside the quote
 is *just normal Haskell* - there is no Plutus Tx-specific syntax, and the Plutus Tx compiler will
 tell you if you use any Haskell features which are not supported.
 
@@ -40,10 +53,20 @@ Here's the most basic program we can write: one that just evaluates to the integ
 )
 -}
 integerOne :: CompiledCode Int
--- We don't like unbounded integers in Plutus Core, so we have to pin
--- down that numeric literal to an `Int` not an `Integer`.
-integerOne = $$(compile [|| (1 :: Int) ||])
+integerOne = $$( -- The splice inserts the `Q (CompiledCode Int)` into the program
+    -- compile turns the `Q Int` into a `Q (CompiledCode Int)`
+    compile
+        -- The quote has type `Q Int`
+        [||
+          -- We don't like unbounded integers in Plutus Core, so we have to pin
+          -- down this numeric literal to an `Int` not an `Integer`
+          (1 :: Int)
+        ||])
 ```
+
+We can see how the staged programming works here: the Haskell program `1` was
+turned into a `CompiledCode Int` at compile time, which we spliced into our Haskell program,
+and which we can then inspect at runtime to see the generated Plutus Core.
 
 The Plutus Core program will look incomprehensible, which is fine, since you
 mostly won't want to look at the output of the compiler. However, it's instructive to
