@@ -259,7 +259,7 @@ instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (n
         PrettyBy (PrettyConfigReadable configName) (Term tyname name a) where
     prettyBy config = \case
         Constant _ con         -> prettyBy config con
-        Builtin _ bi -> prettyBy config bi
+        Builtin _ bi           -> prettyBy config bi
         Apply _ fun arg        -> applicationDoc config fun arg
         Var _ name             -> unit $ prettyName name
         TyAbs _ name kind body -> bind $ \bindBody ->

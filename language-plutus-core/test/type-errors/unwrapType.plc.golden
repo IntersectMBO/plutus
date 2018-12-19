@@ -1,1 +1,6 @@
-Unexpected 'con' at 2:12
+Type mismatch at 2:4 in term
+  '(con 64 ! 0)'.
+Expected type
+  '(fix * *)',
+found type
+  '[(con integer) (con 64)]'

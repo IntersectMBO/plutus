@@ -16,11 +16,12 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
--- | A 'Type' that starts with a 'TyIFix' (i.e. a recursive type) packaged along with a
--- specified 'Wrap' that allows to construct elements of this type.
+-- | A recursive type packaged along with a specified 'Wrap' that allows to construct elements
+-- of this type.
 data RecursiveType ann = RecursiveType
     { _recursiveType :: Type TyName ann
       -- ^ This is not supposed to have duplicate names.
+      -- TODO: check this.
     , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
       -- ^ This produces terms with duplicate names.
     }
@@ -40,70 +41,32 @@ instance Show IndicesLengthsMismatchError where
 
 instance Exception IndicesLengthsMismatchError
 
--- | A type-level function that receives @withSpine@ and a pattern functor that binds
--- @n + 1@ type variables (where @1@ represents the variable responsible for recursion)
--- using type-level lambdas.
-type Spiney ann
-    =  ann
-    -> Kind ann
-    -> ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
-    -> Type TyName ann
-    -> Quote (Type TyName ann)
-
--- \(rec :: i -> k -> *) (a :: i) (b :: j) ->
-
--- |
---
--- > \(withSpine :: ((k -> *) -> *) -> k) (pat :: k -> k) ->
--- >     \(b :: (k -> *) -> *) (p :: k -> *) -> p (pat (withSpine b))
-getPatternFunctor :: Spiney ann
-getPatternFunctor ann k withSpine pat = do
-    b <- freshTyName ann "b"
-    p <- freshTyName ann "p"
-    let star  = Type ann
-        (~~>) = KindArrow ann
-
-    return
-        . TyLam ann b ((k ~~> star) ~~> star)
-        . TyLam ann p (k ~~> star)
-        . TyApp ann (TyVar ann p)
-        . TyApp ann pat
-        . withSpine
-        . TyApp ann
-        $ TyVar ann b
-
 -- |
 --
 -- > FixN : ∀ {K} -> (((K -> Set) -> Set) -> K) -> (K -> K) -> K
 -- > FixN {K} withSpine Pat =
--- >     withSpine λ (spine : K -> Set) -> IFix patternFunctor spine where
+-- >     withSpine (IFix patternFunctor) spine where
 -- >         patternFunctor = λ (B : (K -> Set) -> Set) (P : K -> Set) -> P (Pat (withSpine B))
-getTyFixN :: Spiney ann
-getTyFixN ann k withSpine pat = do
-    patF  <- getPatternFunctor ann k withSpine pat
---     spine <- freshTyName ann "spine"
---     let star  = Type ann
---         (~~>) = KindArrow ann
+-- > \(withSpine :: ((k -> *) -> *) -> k) (patF :: k -> k) ->
+-- >     \(rec :: (k -> *) -> *) (spine :: k -> *) -> spine (patF (withSpine rec))
 
-    return . withSpine $ TyIFix ann patF
+-- | > toDataKind _ [k1, k2 ... kn] = k1 -> k2 -> ... -> kn -> *
+argKindsToDataKindN :: ann -> [Kind ann] -> Kind ann
+argKindsToDataKindN ann argKinds = mkIterKindArrow ann argKinds $ Type ann
 
--- > Fix₀ : (Set -> Set) -> Set
--- > Fix₀ = FixN withSpine0 where
--- >     withSpine0 =
--- >         λ (K : (Set -> Set) -> Set) ->
--- >             K λ (R : Set) -> R
+dataKindToSpineKind :: ann -> Kind ann -> Kind ann
+dataKindToSpineKind ann dataKind = KindArrow ann dataKind $ Type ann
 
--- | > toRecKind _ [k1, k2 ... kn] = k1 -> k2 -> ... -> kn -> *
-toRecKind :: ann -> [Kind ann] -> Kind ann
-toRecKind ann kindArgs = mkIterKindArrow ann kindArgs $ Type ann
+spineKindToRecKind :: ann -> Kind ann -> Kind ann
+spineKindToRecKind ann spineKind = KindArrow ann spineKind $ Type ann
 
 getToSpine :: ann -> Quote ([TyDecl TyName ann] -> Type TyName ann)
 getToSpine ann = do
-    r <- freshTyName ann "r"
+    dat <- freshTyName ann "dat"
 
     return $ \args ->
-          TyLam ann r (toRecKind ann $ map tyDeclKind args)
-        . mkIterTyApp ann (TyVar ann r)
+          TyLam ann dat (argKindsToDataKindN ann $ map tyDeclKind args)
+        . mkIterTyApp ann (TyVar ann dat)
         $ map tyDeclType args
 
 -- |
@@ -117,7 +80,6 @@ getToSpine ann = do
 -- >     \(R :: k1 -> k2 -> *) -> R a1 a2
 getSpine :: ann -> [TyDecl TyName ann] -> Quote (Type TyName ann)
 getSpine ann args = ($ args) <$> getToSpine ann
-
 
 -- |
 --
@@ -137,22 +99,15 @@ getWithSpine
     -> Quote ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
 getWithSpine ann argVars = do
     spine <- getSpine ann $ map tyDeclVar argVars
-    -- let argKinds = map tyVarDeclKind argVars
-    -- TyLam ann k (KindArrow ann (KindArrow ann (toRecKind ann argKinds) $ Type ann) $ Type ann)
-
     return $ \k -> mkIterTyLam ann argVars $ k spine
 
 {- Note [InterList]
-
-
     data InterList a b
         = InterNil
         | InterCons a b (InterList b a)
 
     example_InterList :: InterList Char Int
     example_InterList = InterCons 'a' 1 . InterCons 2 'b' . InterCons 'c' 3 $ InterNil
-
-
 -}
 
 {- Note [Natural representation]
@@ -241,11 +196,6 @@ We can define the @list@ data type as follows using @ifix@:
     listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
     list  = \(a :: *) -> ifix listF a
 
--- pat  =
---
-
-
-
 Consider
 
 
@@ -271,8 +221,9 @@ unreadable types being produced. For example, the @nil@ constructor had the foll
 
     /\(a :: *) -> wrap ((\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> \(rec :: (* -> *) -> *) -> \(p :: * -> *) -> p (pat (withSpine rec))) (\(k :: (* -> *) -> *) -> k (\(r :: *) -> r)) (\(list :: *) -> (\(a :: *) -> all (r :: *). r -> (a -> list -> r) -> r) a)) (\(r :: *) -> r) (/\(r :: *) -> \(z : r) -> \(f : a -> (\(a :: *) -> (\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> withSpine (\(spine :: * -> *) -> ifix ((\(withSpine :: ((* -> *) -> *) -> *) -> \(pat :: * -> *) -> \(rec :: (* -> *) -> *) -> \(p :: * -> *) -> p (pat (withSpine rec))) withSpine pat) spine)) (\(k :: (* -> *) -> *) -> k (\(r :: *) -> r)) (\(list :: *) -> all (r :: *). r -> (a -> list -> r) -> r)) a -> r) -> z)
 
-Now we bind some variables on the Haskell side meaning Haskell performs type reductions for us.
-The @nil@ constructor is now (the semantics is still not important):
+Now we bind some variables on the Haskell side, i.e. we use Haskell lambdas to bind variables and
+regular function application to eliminate those lambdas which allows us to defer type reduction
+business to Haskell. The @nil@ constructor is now (the semantics is still not important):
 
     /\(a :: *) -> wrap (\(rec :: ((* -> *) -> *) -> *) -> \(p :: (* -> *) -> *) -> p ((\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) (\(a :: *) -> rec (\(r :: * -> *) -> r a)))) (\(r :: * -> *) -> r a) (/\(r :: *) -> \(z : r) -> \(f : a -> (\(a :: *) -> ifix (\(rec :: ((* -> *) -> *) -> *) -> \(p :: (* -> *) -> *) -> p ((\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) (\(a :: *) -> rec (\(r :: * -> *) -> r a)))) (\(r :: * -> *) -> r a)) a -> r) -> z)
 
@@ -282,37 +233,110 @@ This is much better, but types are still not normalized.
 --                       all (r :: *). r -> (a -> list a            -> r) -> r
 
 -- pat1 = \(rec :: ((* -> *) -> *) -> *) (spine :: (* -> *) -> *) ->
---   spine (\(a :: *) -> all (r :: *). r -> (a -> rec (\on -> on a) -> r) -> r)
-
-
+--   spine (\(a :: *) -> all (r :: *). r -> (a -> rec (\list -> list a) -> r) -> r)
 -}
 
-packagePatternBodyN
-    :: Spiney ann
-    -> ann                     -- ^ An annotation placed everywhere we do not have annotations.
-    -> TyName ann              -- ^ The name for the @1@ varible responsible for recursion.
-    -> [TyVarDecl TyName ann]  -- ^ A list of @n@ type variables.
-    -> Type TyName ann         -- ^ The body of a pattern functor
-                               -- to which the @n + 1@ type variables will be added via 'TyLam's.
-    -> Quote (Type TyName ann)
-packagePatternBodyN getFun ann name argVars patBody = do
+-- pat  = \(list :: * -> *)              (a :: *) ->
+--                       all (r :: *). r -> (a -> list a            -> r) -> r
+
+-- pat1 = \(rec :: ((* -> *) -> *) -> *) (spine :: (* -> *) -> *) ->
+--   spine (\(a :: *) -> all (r :: *). r -> (a -> rec (\list -> list a) -> r) -> r)
+
+-- pat  = \(list :: * -> *)              (a :: *) ->
+--                       all (r :: *). r -> (a -> list $ a            -> r) -> r
+
+-- pat  = \(list :: * -> *)              (a :: *) ->
+--                       all (r :: *). r -> (a -> (\a -> rec (\list -> list a) $ a            -> r) -> r
+
+
+{- Note [Arity of patterns functors]
+The arity of a pattern functor is the number of arguments the pattern functor receives in addition
+to the first argument representing the recursive case. So
+@f :: * -> *@                           has arity 0
+@f :: (k -> *) -> k -> *@               has arity 1
+@f :: (k1 -> k2 -> *) -> k1 -> k2 -> *@ has arity 2
+etc
+-}
+
+type WithData ann a
+    =  ann                     -- ^ An annotation placed everywhere we do not have annotations.
+    -> TyName ann              -- ^ The name of the data type being defined.
+    -> [TyVarDecl TyName ann]  -- ^ A list of @n@ type variables bound in a pattern functor.
+    -> Type TyName ann         -- ^ The body of the n-ary pattern functor.
+    -> Quote a
+
+semPackPatternBodyN :: WithData ann (Type TyName ann)
+semPackPatternBodyN ann0 dataName argVars patBodyN = do
+    withSpine <- getWithSpine ann0 argVars
+
+    rec   <- freshTyName ann0 "rec"
+    spine <- freshTyName ann0 "spine"
+
+    let dataKind  = argKindsToDataKindN ann0 $ map tyVarDeclKind argVars
+        spineKind = dataKindToSpineKind ann0 dataKind
+        recKind   = spineKindToRecKind  ann0 spineKind
+        vR   = TyVarDecl ann0 dataName dataKind
+        pat1 = mkIterTyLam ann0 (vR : argVars) patBodyN
+
+    return
+        . TyLam ann0 rec recKind
+        . TyLam ann0 spine spineKind
+        . TyApp ann0 (TyVar ann0 spine)
+        . TyApp ann0 pat1
+        . withSpine
+        . TyApp ann0
+        $ TyVar ann0 rec
+
+synPackPatternBodyN :: WithData ann (Type TyName ann)
+synPackPatternBodyN ann0 dataName argVars patBodyN = do
+    rec   <- freshTyName ann0 "rec"
+    spine <- freshTyName ann0 "spine"
+
+    let dataKind  = argKindsToDataKindN ann0 $ map tyVarDeclKind argVars
+        spineKind = dataKindToSpineKind ann0 dataKind
+        recKind   = spineKindToRecKind  ann0 spineKind
+
+        pack = go argVars return
+
+        go vars elimCon var@(TyVar ann name)        = if name == dataName
+            then do
+                nameFr <- freshenTyName name
+                fun    <- elimCon $ TyVar ann nameFr
+                return
+                    . mkIterTyLam ann vars
+                    . TyApp ann (TyVar ann rec)
+                    . TyLam ann nameFr dataKind
+                    . mkIterTyApp ann fun
+                    $ map (mkTyVar ann) vars
+            else elimCon var
+        go vars elimCon (TyApp ann fun arg)         =
+            go (drop 1 vars) (\fun' -> pack arg >>= elimCon . TyApp ann fun') fun
+        go _    _       (TyFun ann tyIn tyOut)      = TyFun ann <$> pack tyIn <*> pack tyOut
+        go _    _       (TyIFix ann pat arg)        = TyIFix ann <$> pack pat <*> pack arg
+        go _    _       (TyForall ann name kind ty) = TyForall ann name kind <$> pack ty
+        go _    elimCon bi@TyBuiltin{}              = elimCon bi
+        go _    _       size@TyInt{}                = return $ size
+        go _    elimCon (TyLam ann name kind ty)    = pack ty >>= elimCon . TyLam ann name kind
+
+    patBody1 <- pack patBodyN
+    return
+        . TyLam ann0 rec recKind
+        . TyLam ann0 spine spineKind
+        . TyApp ann0 (TyVar ann0 spine)
+        . mkIterTyLam ann0 argVars
+        $ patBody1
+
+packPatternBodyN :: WithData ann (Type TyName ann)
+packPatternBodyN = const semPackPatternBodyN synPackPatternBodyN
+
+getTyFix :: WithData ann (Type TyName ann)
+getTyFix ann name argVars patBodyN = do
     withSpine <- getWithSpine ann argVars
-    let argKinds = map tyVarDeclKind argVars
-        vR  = TyVarDecl ann name $ toRecKind ann argKinds
-        pat = mkIterTyLam ann (vR : argVars) patBody
-    getFun ann (toRecKind ann argKinds) withSpine pat
+    withSpine . TyIFix ann <$> packPatternBodyN ann name argVars patBodyN
 
-getTyFix :: ann -> TyName ann -> [TyVarDecl TyName ann] -> Type TyName ann -> Quote (Type TyName ann)
-getTyFix = packagePatternBodyN getTyFixN
-
-getWrap
-    :: ann
-    -> TyName ann
-    -> [TyVarDecl TyName ann]
-    -> Type TyName ann
-    -> Quote ([Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann)
+getWrap :: WithData ann ([Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann)
 getWrap ann name argVars patBody = do
-    pat1 <- packagePatternBodyN getPatternFunctor ann name argVars patBody
+    pat1 <- packPatternBodyN ann name argVars patBody
     toSpine <- getToSpine ann
     let instVar var ty = TyDecl ann ty $ tyVarDeclKind var
     return $ \args ->
@@ -330,41 +354,3 @@ makeRecursiveType
     -> Quote (RecursiveType ann)
 makeRecursiveType ann name argVars patBody =
     RecursiveType <$> getTyFix ann name argVars patBody <*> getWrap ann name argVars patBody
-
-    -- makeRecursiveType () treeForest
-    --     [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
-    --     body
-
-
-
-
-
-
-
--- Pat (WithSpine ...)
-
--- "\(a :: *) -> ifix (\(rec :: ((* -> *) -> *) -> *) -> \(p :: (* -> *) -> *) -> p ((\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) (\(a :: *) -> rec (\(r :: * -> *) -> r a)))) (\(r :: * -> *) -> r a)"
-
-
-
-
-
--- "(\(k :: ((* -> * -> *) -> *) -> *) -> \(a :: *) -> \(b :: *) -> k (\(r :: * -> * -> *) -> r a b)) (\(spine :: (* -> * -> *) -> *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(p :: (* -> * -> *) -> *) -> p ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) ((\(k :: ((* -> * -> *) -> *) -> *) -> \(a :: *) -> \(b :: *) -> k (\(r :: * -> * -> *) -> r a b)) rec))) spine)"
-
--- "\(a :: *) -> \(b :: *) -> (\(spine :: (* -> * -> *) -> *) -> ifix (\(b :: ((* -> * -> *) -> *) -> *) -> \(p :: (* -> * -> *) -> *) -> p ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> b (\(r :: * -> * -> *) -> r a b)))) spine) (\(r :: * -> * -> *) -> r a b)"
-
--- "\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(p :: (* -> * -> *) -> *) -> p ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(r :: * -> * -> *) -> r a b)))) (\(r :: * -> * -> *) -> r a b)"
-
--- "\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(p :: (* -> * -> *) -> *) -> p (\(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> rec (\(r :: * -> * -> *) -> r b a)) -> r) -> r) (\(r :: * -> * -> *) -> r a b)"
-
-
-
--- "/\\(a :: *) -> /\\(b :: *) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> z)"
---
--- "/\\(a :: *) -> /\\(b :: *) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> z)"
---
---
---
--- "/\\(a :: *) -> /\\(b :: *) -> \\(x : a) -> \\(y : b) -> \\(xs : (\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)) b a) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> (\\(spine :: (* -> * -> *) -> *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) spine) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> f x y xs)"
---
--- "/\\(a :: *) -> /\\(b :: *) -> \\(x : a) -> \\(y : b) -> \\(xs : (\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)) b a) -> wrap (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b) (/\\(r :: *) -> \\(z : r) -> \\(f : a -> b -> (\\(a :: *) -> \\(b :: *) -> ifix (\\(b :: ((* -> * -> *) -> *) -> *) -> \\(p :: (* -> * -> *) -> *) -> p ((\\(interlist :: * -> * -> *) -> \\(a :: *) -> \\(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\\(a :: *) -> \\(b :: *) -> b (\\(r :: * -> * -> *) -> r a b)))) (\\(r :: * -> * -> *) -> r a b)) b a -> r) -> f x y xs)"

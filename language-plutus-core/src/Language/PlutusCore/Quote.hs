@@ -167,5 +167,5 @@ freshTyNameText :: (Monad m) => a -> Text.Text -> QuoteT m (TyName a)
 freshTyNameText = fmap TyName .* freshNameText
 
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
-freshenTyName :: Monad m =>  TyName a -> QuoteT m (TyName a)
+freshenTyName :: Monad m => TyName a -> QuoteT m (TyName a)
 freshenTyName (TyName name) = TyName <$> freshenName name

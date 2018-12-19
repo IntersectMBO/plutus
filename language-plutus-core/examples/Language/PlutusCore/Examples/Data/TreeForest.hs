@@ -140,8 +140,10 @@ getBuiltinTreeForest = do
     let vA = TyVar () a
         vR = TyVar () r
         recSpine = [TyVar () treeForest, vA]
-    Normalized tree   <- normalizeTypeAny $ mkIterTyApp () asTree   recSpine
-    Normalized forest <- normalizeTypeAny $ mkIterTyApp () asForest recSpine
+--     Normalized tree   <- normalizeTypeAny $ mkIterTyApp () asTree   recSpine
+--     Normalized forest <- normalizeTypeAny $ mkIterTyApp () asForest recSpine
+    let tree   = mkIterTyApp () asTree   recSpine
+        forest = mkIterTyApp () asForest recSpine
     body <- rename
         . TyForall () r (Type ())
         $ mkIterTyApp () (TyVar () tag)
@@ -152,12 +154,15 @@ getBuiltinTreeForest = do
         [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
         body
 
+-- \(a :: *) -> ifix (\(rec :: ((* -> (* -> * -> *) -> *) -> *) -> *) -> \(spine :: (* -> (* -> * -> *) -> *) -> *) -> spine (\(a :: *) -> \(tag :: * -> * -> *) -> all (r :: *). tag)) (\(r :: * -> (* -> * -> *) -> *) -> r a (\(t :: *) -> \(f :: *) -> t))
+
 getBuiltinTree :: Quote (RecursiveType ())
 getBuiltinTree = do
     RecursiveType treeForest wrapTreeForest <- getBuiltinTreeForest
     treeTag <- getTreeTag
     asTree  <- getAsTree
-    Normalized tree <- normalizeTypeAny $ TyApp () asTree treeForest
+--     Normalized tree <- normalizeTypeAny $ TyApp () asTree treeForest
+    let tree = TyApp () asTree treeForest
     return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
 getBuiltinForest :: Quote (RecursiveType ())
@@ -165,7 +170,8 @@ getBuiltinForest = do
     RecursiveType treeForest wrapTreeForest <- getBuiltinTreeForest
     forestTag <- getForestTag
     asForest  <- getAsForest
-    Normalized forest <- normalizeTypeAny $ TyApp () asForest treeForest
+--     Normalized forest <- normalizeTypeAny $ TyApp () asForest treeForest
+    let forest = TyApp () asForest treeForest
     return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
 
 -- |
