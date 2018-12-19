@@ -120,15 +120,21 @@ builtins are contained in
 
 ## Terms indexed by syntactic types
 
-This is a reference implementation with limited scope. We can define
-the terms easily in this style but using them in further
-programs/proofs is complicated by the presence of a separate syntactic
-constructor for type conversion (type cast/coercion). In this version
-progress, and evaluation do not handle the conversion
+This is the standard presentation of the typing rules that one may
+find in a text book. We can define the terms easily in this style but
+using them in further programs/proofs is complicated by the presence
+of a separate syntactic constructor for type conversion (type
+cast/coercion). The typing rules are not syntax directed which means
+it is not possible to directly write a typechecker for these rules as
+their is always a choice of rules to apply when building a
+derivation. Hence we refer to this version as declarative rather than
+algorithmic.  In this formalisation where conversion is a constructor
+of the syntax not just a typing rule this also affects computation as
+we don't know how to process conversions when evaluating. In this
+version progress, and evaluation do not handle the conversion
 constructor. They fail if they encounter it. Nevertheless this is
 sufficient to handle examples which do not require computing the types
 before applying beta-reductions. Such as Church/Scott Numerals.
-
 
 1. The [Declarative.Term](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.html)
 module contains the definition of terms. This module has two further submodules:
@@ -161,9 +167,10 @@ This version is able to handle type conversion by using the normalizer
 described above to ensure that types are always in normal form. This
 means that no conversion constructor is necessary as any two types
 which one could convert between are already in identical normal
-form. This allows us to define progress, preservation, and
-evaluation for the full language of System F omega with iso-recursive
-types.
+form. Here the typing rules are syntax directed and we don't have to
+deal with conversions in the syntax. This allows us to define
+progress, preservation, and evaluation for the full language of System
+F omega with iso-recursive types and sized integers and bytestrings.
 
 1. The [Algorithmic.Term](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.html)
 module contains the definition of terms. This module has two further submodules:
@@ -190,3 +197,18 @@ result and trace of reduction steps or *out of gas*.
 3. [Algorithmic.Examples](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Examples.html)
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.
+
+We also need to show that the algorithmic version of the type system is sound and complete.
+
+4. [Algorithmic.Soundness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Soundness.html)
+
+Programmatically this corresponds to taking a term with normal type
+and converting it back to a term with a syntactic type. This
+introduces conversions into the term anywhere there a substitution
+occurs in a type.
+
+4. [Algorithmic.Completeness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Completeness.html)
+
+Programmatically this correponds to taking a term with a syntactic
+type that may contain conversions and normalising its type by
+collapsing all the conversions.
