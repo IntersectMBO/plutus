@@ -344,6 +344,7 @@ import Ledger.Validation
 import qualified Ledger.Validation            as Validation
 import qualified Language.PlutusTx.Builtins     as Builtins
 import           Language.PlutusTx.Lift         ( makeLift )
+import Language.Marlowe.Common
 
 
 \end{code}
@@ -353,15 +354,6 @@ import           Language.PlutusTx.Lift         ( makeLift )
 
 
 
-\begin{code}
-
-type Timeout = Int
-type Cash = Int
-
-type Person      = PubKey
-
-\end{code}
-
 \subsection{Identifiers}
 
 Commitments, choices and payments are all identified by identifiers.
@@ -369,32 +361,6 @@ Their types are given here. In a more sophisticated model these would
 be generated automatically (and so uniquely); here we simply assume that
 they are unique.
 
-\begin{code}
-newtype IdentCC = IdentCC Int
-               deriving (Eq, Ord)
-makeLift ''IdentCC
-
-
-newtype IdentChoice = IdentChoice Int
-               deriving (Eq, Ord)
-makeLift ''IdentChoice
-
-newtype IdentPay = IdentPay Int
-               deriving (Eq, Ord)
-makeLift ''IdentPay
-
-type ConcreteChoice = Int
-
-type CCStatus = (Person, CCRedeemStatus)
-
-data CCRedeemStatus = NotRedeemed Cash Timeout
-               deriving (Eq, Ord)
-makeLift ''CCRedeemStatus
-
-type Choice = ((IdentChoice, Person), ConcreteChoice)
-
-type Commit = (IdentCC, CCStatus)
-\end{code}
 
 \subsection{Input}
 
@@ -441,16 +407,6 @@ of money.
 \begin{code}
 
 
-data Value  = Committed IdentCC
-            | Value Int
-            | AddValue Value Value
-            | MulValue Value Value
-            | DivValue Value Value Value  -- divident, divisor, default value (when divisor evaluates to 0)
-            | ValueFromChoice IdentChoice Person Value
-            | ValueFromOracle PubKey Value -- Oracle PubKey, default value when no Oracle Value provided
-                    deriving (Eq)
-
-makeLift ''Value
 \end{code}
 
 \subsection{Observation}
@@ -581,21 +537,7 @@ marloweValidator = ValidatorScript result where
         nullContract _    = False
 
         eqValue :: Value -> Value -> Bool
-        eqValue l r = case (l, r) of
-            (Committed idl, Committed idr) -> idl `eqIdentCC` idr
-            (Value vl, Value vr) -> vl == vr
-            (AddValue v1l v2l, AddValue v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
-            (MulValue v1l v2l, MulValue v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
-            (DivValue v1l v2l v3l, DivValue v1r v2r v3r) ->
-                v1l `eqValue` v1r
-                && v2l `eqValue` v2r
-                && v3l `eqValue` v3r
-            (ValueFromChoice (IdentChoice idl) pkl vl, ValueFromChoice (IdentChoice idr) pkr vr) ->
-                idl == idr
-                && pkl `eqPk` pkr
-                && vl `eqValue` vr
-            (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `eqPk` pkr && vl `eqValue` vr
-            _ -> False
+        eqValue = $$(equalValue)
 
         eqObservation :: Observation -> Observation -> Bool
         eqObservation l r = case (l, r) of
