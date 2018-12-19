@@ -181,23 +181,23 @@ Plutus Core is a typed, eagerly evaluated $\lambda$-calculus designed
 for use as a transaction validation language in blockchain
 systems. More precisely, Plutus Core is the system $F_\omega$ of
 Girard and Reynolds (see \cite{Girard-thesis},
-\cite{Reynolds-type-structure}, \cite[\S30]{Pierce:TAPL}) with a number
-of extensions (a type-level fixpoint operator, isorecursive types, and 
-a library of basic types and functions).  Plutus Core is
-meant to be a compilation target, and this is reflected in the design
-of the language: while writing large Plutus Core programs by hand is
+\cite{Reynolds-type-structure}, \cite[\S30]{Pierce:TAPL}) with a
+number of extensions (isorecursive types, higher kinds, and a library
+of basic types and functions).  Plutus Core is meant to be a
+compilation target, and this is reflected in the design of the
+language: while writing large Plutus Core programs by hand is
 difficult, the language is relatively straightforward to formalize
 with a proof assistant.
 
-We have tried keep the Plutus Core language small. There is no
+We have tried to keep the Plutus Core language small. There is no
 explicit support for algebraic datatypes, but they are representable
 using, for example, the Scott encoding (\cite{Scott-encoding}: see
-\cite{Koopman:2014} for example; note that the Scott enconding
-coincides with the Church encoding for non-recursive
-types). Similarly, there are no explicit constructs for recursion or
-branching, but the type system is sufficiently expressive to allow us
-to use standard combinators (for example the $Z$ combinator and
-Church/Scott encoded booleans) for such purposes.
+also \cite{Koopman:2014} and ~\cite{Geuvers-2014} for example; note that
+the Scott enconding coincides with the Church encoding for
+non-recursive types). Similarly, there are no explicit constructs for
+recursion or branching, but the type system is sufficiently expressive
+to allow us to use standard combinators (for example the $Z$
+combinator and Church/Scott encoded booleans) for such purposes.
 
 
 \subsection{Blockchain issues}
