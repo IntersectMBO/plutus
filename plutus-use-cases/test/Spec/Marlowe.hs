@@ -20,7 +20,6 @@ import           Hedgehog                       ( Gen, Property, Size(..)
                                                 , property
                                                 )
 import qualified Hedgehog.Range as Range
-import qualified Hedgehog.Gen as Gen
 import Hedgehog.Gen (element, int, choice, sized)
 import qualified Hedgehog
 import           Test.Tasty
@@ -50,7 +49,8 @@ emptyBounds = Bounds Map.empty Map.empty
 
 tests :: TestTree
 tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
-        testProperty "eqValue" checkEqValue,
+        testProperty "eqValue is reflective, symmetric, and transitive" checkEqValue,
+        testProperty "eqObservation is reflective, symmetric, and transitive" checkEqObservation,
         testProperty "Oracle Commit/Pay works" oraclePayment
         -- testProperty "Escrow Contract" escrowTest,
         -- testProperty "Futures" futuresTest,
@@ -85,15 +85,73 @@ boundedValueAux participants commits bounds (Size s) = do
                     , Value <$> positiveAmount ]
         LT -> error "Negative size in boundedValue"
 
+boundedObservationAux :: Set Person -> Set IdentCC -> Bounds -> Size -> Gen Observation
+boundedObservationAux participants commits bounds (Size s) = do
+    let parties   = Set.toList participants
+    let choices   = Map.keys $ choiceBounds bounds
+    let concreteChoices = map (\(IdentChoice id) -> id) choices
+    let go s      = boundedObservationAux participants commits bounds (Size s)
+    case compare s 0 of
+        GT -> choice
+            [ BelowTimeout <$> positiveAmount
+            , AndObs <$> go (s `div` 2) <*> go (s `div` 2)
+            , OrObs <$> go (s `div` 2) <*> go (s `div` 2)
+            , NotObs <$> go (s `div` 2)
+            , PersonChoseThis <$> element choices <*> element parties <*> element concreteChoices
+            , PersonChoseSomething <$> element choices <*> element parties
+            , ValueGE
+                <$> boundedValueAux participants commits bounds (Size (s `div` 2))
+                <*> boundedValueAux participants commits bounds (Size(s `div` 2))
+            , pure TrueObs
+            , pure FalseObs
+            ]
+        EQ -> choice
+            [ BelowTimeout <$> positiveAmount
+            , PersonChoseThis <$> element choices <*> element parties <*> element concreteChoices
+            , PersonChoseSomething <$> element choices <*> element parties
+            , pure TrueObs
+            , pure FalseObs
+            ]
+        LT -> error "Negative size in boundedContract"
+
+boundedObservation :: Set Person -> Set IdentCC -> Bounds -> Gen Observation
+boundedObservation participants commits bounds = sized $ boundedObservationAux participants commits bounds
+
+eqValue :: Value -> Value -> Bool
+eqValue = $$(equalValue)
+
+eqObservation :: Observation -> Observation -> Bool
+eqObservation = $$(equalObservation) eqValue
+
+checkEqValue :: Property
 checkEqValue = property $ do
     let bounds = Bounds
             { choiceBounds = Map.fromList [(IdentChoice 1, (400, 444)), (IdentChoice 2, (500, 555))]
             , oracleBounds = Map.singleton (PubKey 42) (200, 333)
             }
 
-    v <- forAll $ boundedValue (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
-    let eq = $$(equalValue)
-    Hedgehog.assert (eq v v)
+    let value = boundedValue (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
+    a <- forAll value
+    b <- forAll value
+    c <- forAll value
+    Hedgehog.assert (eqValue a a)
+    Hedgehog.assert (eqValue a b == eqValue b a)
+    Hedgehog.assert (if eqValue a b && eqValue b c then eqValue a c else True)
+
+checkEqObservation :: Property
+checkEqObservation = property $ do
+    let bounds = Bounds
+            { choiceBounds = Map.fromList [(IdentChoice 1, (400, 444)), (IdentChoice 2, (500, 555))]
+            , oracleBounds = Map.singleton (PubKey 42) (200, 333)
+            }
+
+    let observation = boundedObservation (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
+    a <- forAll observation
+    b <- forAll observation
+    c <- forAll observation
+    Hedgehog.assert (eqObservation a a)
+    Hedgehog.assert (eqObservation a b == eqObservation b a)
+    Hedgehog.assert (if eqObservation a b && eqObservation b c then eqObservation a c else True)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished

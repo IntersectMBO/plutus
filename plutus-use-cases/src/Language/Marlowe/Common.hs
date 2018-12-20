@@ -6,7 +6,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE RankNTypes   #-}
+{-# LANGUAGE LambdaCase   #-}
 {-# LANGUAGE NamedFieldPuns   #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS -fplugin=Language.PlutusTx.Plugin
@@ -19,10 +21,16 @@ import           Control.Monad                  ( Monad(..)
                                                 , void
                                                 )
 import           Control.Monad.Error.Class      ( MonadError(..) )
-import           Data.Maybe                     (maybeToList)
-import qualified Data.Set                       as Set
+import           Data.Maybe                     ( maybeToList )
+import qualified Data.Set                      as Set
+import           Prelude                        ( Show(..)
+                                                , Eq(..)
+                                                , Bool(..)
+                                                , Ord(..)
+                                                , Int
+                                                )
 
-import qualified Language.PlutusTx              as PlutusTx
+import qualified Language.PlutusTx             as PlutusTx
 import           Wallet                         ( WalletAPI(..)
                                                 , WalletAPIError
                                                 , throwOtherError
@@ -41,12 +49,14 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxIn
                                                 , scriptTxOut
                                                 )
-import qualified Ledger                         as Ledger
-import Ledger.Validation
-import qualified Ledger.Validation            as Validation
-import qualified Language.PlutusTx.Builtins     as Builtins
+import qualified Ledger                        as Ledger
+import           Ledger.Validation
+import qualified Ledger.Validation             as Validation
+import qualified Language.PlutusTx.Builtins    as Builtins
 import           Language.PlutusTx.Lift         ( makeLift )
-import           Language.Haskell.TH          (Q, TExp)
+import           Language.Haskell.TH            ( Q
+                                                , TExp
+                                                )
 
 type Timeout = Int
 type Cash = Int
@@ -87,6 +97,19 @@ data Value  = Committed IdentCC
             | ValueFromOracle PubKey Value -- Oracle PubKey, default value when no Oracle Value provided
                     deriving (Eq, Show)
 
+data Observation = BelowTimeout Int -- are we still on time for something that expires on Timeout?
+                | AndObs Observation Observation
+                | OrObs Observation Observation
+                | NotObs Observation
+                | PersonChoseThis IdentChoice Person ConcreteChoice
+                | PersonChoseSomething IdentChoice Person
+                | ValueGE Value Value  -- is first amount is greater or equal than the second?
+                | TrueObs
+                | FalseObs
+                deriving (Eq, Show)
+makeLift ''Observation
+
+
 makeLift ''Value
 
 eqValidator :: Q (TExp (ValidatorHash -> ValidatorHash -> Bool))
@@ -121,6 +144,32 @@ equalValue = [|| \l r -> let
             && pkl `eqPk` pkr
             && eq vl vr
         (ValueFromOracle pkl vl, ValueFromOracle pkr vr) -> pkl `eqPk` pkr && eq vl vr
+        _ -> False
+    in eq l r
+    ||]
+
+equalObservation :: Q (TExp ((Value -> Value -> Bool) -> Observation -> Observation -> Bool))
+equalObservation = [|| \eqValue l r -> let
+    infixr 3 &&
+    (&&) :: Bool -> Bool -> Bool
+    (&&) = $$(PlutusTx.and)
+
+    eqPk :: PubKey -> PubKey -> Bool
+    eqPk = $$(Validation.eqPubKey)
+
+    eq :: Observation -> Observation -> Bool
+    eq l r = case (l, r) of
+        (BelowTimeout tl, BelowTimeout tr) -> tl == tr
+        (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
+        (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eq` o1r && o2l `eq` o2r
+        (NotObs ol, NotObs or) -> ol `eq` or
+        (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
+            idl == idr && pkl `eqPk` pkr && cl == cr
+        (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
+            idl == idr && pkl `eqPk` pkr
+        (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
+        (TrueObs, TrueObs) -> True
+        (FalseObs, FalseObs) -> True
         _ -> False
     in eq l r
     ||]

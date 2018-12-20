@@ -415,17 +415,6 @@ Representation of observations over observables and the state.
 Rendered into predicates by interpretObs.
 
 \begin{code}
-data Observation = BelowTimeout Int -- are we still on time for something that expires on Timeout?
-                | AndObs Observation Observation
-                | OrObs Observation Observation
-                | NotObs Observation
-                | PersonChoseThis IdentChoice Person ConcreteChoice
-                | PersonChoseSomething IdentChoice Person
-                | ValueGE Value Value  -- is first amount is greater or equal than the second?
-                | TrueObs
-                | FalseObs
-                deriving (Eq)
-makeLift ''Observation
 \end{code}
 
 \subsection{Marlowe Contract Data Type}
@@ -540,19 +529,7 @@ marloweValidator = ValidatorScript result where
         eqValue = $$(equalValue)
 
         eqObservation :: Observation -> Observation -> Bool
-        eqObservation l r = case (l, r) of
-            (BelowTimeout tl, BelowTimeout tr) -> tl == tr
-            (AndObs o1l o2l, AndObs o1r o2r) -> o1l `eqObservation` o1r && o2l `eqObservation` o2r
-            (OrObs o1l o2l, OrObs o1r o2r) -> o1l `eqObservation` o1r && o2l `eqObservation` o2r
-            (NotObs ol, NotObs or) -> ol `eqObservation` or
-            (PersonChoseThis (IdentChoice idl) pkl cl, PersonChoseThis (IdentChoice idr) pkr cr) ->
-                idl == idr && pkl `eqPk` pkr && cl == cr
-            (PersonChoseSomething (IdentChoice idl) pkl, PersonChoseSomething (IdentChoice idr) pkr) ->
-                idl == idr && pkl `eqPk` pkr
-            (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
-            (TrueObs, TrueObs) -> True
-            (FalseObs, FalseObs) -> True
-            _ -> False
+        eqObservation = $$(equalObservation) eqValue
 
         eqContract :: Contract -> Contract -> Bool
         eqContract l r = case (l, r) of
