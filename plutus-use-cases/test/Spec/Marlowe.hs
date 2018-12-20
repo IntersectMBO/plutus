@@ -48,16 +48,24 @@ emptyBounds = Bounds Map.empty Map.empty
 
 
 tests :: TestTree
-tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe" [
-        testProperty "eqValue is reflective, symmetric, and transitive" checkEqValue,
-        testProperty "eqObservation is reflective, symmetric, and transitive" checkEqObservation,
-        testProperty "Oracle Commit/Pay works" oraclePayment
-        -- testProperty "Escrow Contract" escrowTest,
-        -- testProperty "Futures" futuresTest,
-        -- testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC,
-        -- testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
-        -- testProperty "redeem after commit expired" redeemAfterCommitExpired
-        ]
+tests = testGroup "Marlowe" [validatorTests, contractsTests]
+
+validatorTests :: TestTree
+validatorTests = testGroup "Marlowe Validator" [
+    testProperty "eqValue is reflective, symmetric, and transitive" checkEqValue,
+    testProperty "eqObservation is reflective, symmetric, and transitive" checkEqObservation,
+    testProperty "eqContract is reflective, symmetric, and transitive" checkEqContract
+    ]
+
+contractsTests :: TestTree
+contractsTests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe Contracts" [
+    testProperty "Oracle Commit/Pay works" oraclePayment,
+    testProperty "Escrow Contract" escrowTest,
+    testProperty "Futures" futuresTest,
+    testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC,
+    testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
+    testProperty "redeem after commit expired" redeemAfterCommitExpired
+    ]
 
 positiveAmount :: Gen Int
 positiveAmount = int $ Range.linear 0 100
@@ -117,11 +125,63 @@ boundedObservationAux participants commits bounds (Size s) = do
 boundedObservation :: Set Person -> Set IdentCC -> Bounds -> Gen Observation
 boundedObservation participants commits bounds = sized $ boundedObservationAux participants commits bounds
 
+boundedContractAux :: Set Person -> Set IdentCC -> Bounds -> Size -> Gen Contract
+boundedContractAux participants commits bounds (Size s) = do
+    let committed       = Set.toList commits
+    let parties         = Set.toList participants
+    let go s            = boundedContractAux participants commits bounds $ Size (s `div` 2)
+
+    case compare s 0 of
+        GT -> do
+            let commitCash = do
+                    ident <- positiveAmount
+                    let  identCC = IdentCC ident
+                    person <- element parties
+                    value <- boundedValueAux participants (Set.insert identCC commits) bounds $ Size (s - 1)
+                    timeout1 <- positiveAmount
+                    timeout2 <- positiveAmount
+                    contract1 <- go s
+                    contract2 <- go s
+                    return $ CommitCash identCC person value timeout1 timeout2 contract1 contract2
+
+            choice   [ pure Null
+                    , commitCash
+                    , RedeemCC <$> element committed <*> go s
+                    , (Pay . IdentPay)
+                        <$> positiveAmount
+                        <*> element parties
+                        <*> element parties
+                        <*> boundedValueAux participants commits bounds (Size (s - 1))
+                        <*> positiveAmount
+                        <*> go s
+                    , Both
+                        <$> go s
+                        <*> go s
+                    , Choice
+                        <$> boundedObservationAux participants commits bounds (Size (s - 1))
+                        <*> go s
+                        <*> go s
+                    , When
+                        <$> boundedObservationAux participants commits bounds (Size (s - 1))
+                        <*> positiveAmount
+                        <*> go s
+                        <*> go s
+                    ]
+        EQ -> element [Null]
+        LT -> error "Negative size in boundedContract"
+
+boundedContract :: Set Person -> Set IdentCC -> Bounds -> Gen Contract
+boundedContract participants commits bounds = sized $ boundedContractAux participants commits bounds
+
+
 eqValue :: Value -> Value -> Bool
 eqValue = $$(equalValue)
 
 eqObservation :: Observation -> Observation -> Bool
 eqObservation = $$(equalObservation) eqValue
+
+eqContract :: Contract -> Contract -> Bool
+eqContract = $$(equalContract) eqValue eqObservation
 
 checkEqValue :: Property
 checkEqValue = property $ do
@@ -152,6 +212,21 @@ checkEqObservation = property $ do
     Hedgehog.assert (eqObservation a a)
     Hedgehog.assert (eqObservation a b == eqObservation b a)
     Hedgehog.assert (if eqObservation a b && eqObservation b c then eqObservation a c else True)
+
+checkEqContract :: Property
+checkEqContract = property $ do
+    let bounds = Bounds
+            { choiceBounds = Map.fromList [(IdentChoice 1, (400, 444)), (IdentChoice 2, (500, 555))]
+            , oracleBounds = Map.singleton (PubKey 42) (200, 333)
+            }
+
+    let contract = boundedContract (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
+    a <- forAll contract
+    b <- forAll contract
+    c <- forAll contract
+    Hedgehog.assert (eqContract a a)
+    Hedgehog.assert (eqContract a b == eqContract b a)
+    Hedgehog.assert (if eqContract a b && eqContract b c then eqContract a c else True)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished

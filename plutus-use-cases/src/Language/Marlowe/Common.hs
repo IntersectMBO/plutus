@@ -22,7 +22,7 @@ import           Control.Monad                  ( Monad(..)
                                                 )
 import           Control.Monad.Error.Class      ( MonadError(..) )
 import           Data.Maybe                     ( maybeToList )
-import qualified Data.Set                      as Set
+import qualified Data.Set                       as Set
 import           Prelude                        ( Show(..)
                                                 , Eq(..)
                                                 , Bool(..)
@@ -30,7 +30,7 @@ import           Prelude                        ( Show(..)
                                                 , Int
                                                 )
 
-import qualified Language.PlutusTx             as PlutusTx
+import qualified Language.PlutusTx              as PlutusTx
 import           Wallet                         ( WalletAPI(..)
                                                 , WalletAPIError
                                                 , throwOtherError
@@ -49,10 +49,10 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxIn
                                                 , scriptTxOut
                                                 )
-import qualified Ledger                        as Ledger
+import qualified Ledger                         as Ledger
 import           Ledger.Validation
-import qualified Ledger.Validation             as Validation
-import qualified Language.PlutusTx.Builtins    as Builtins
+import qualified Ledger.Validation              as Validation
+import qualified Language.PlutusTx.Builtins     as Builtins
 import           Language.PlutusTx.Lift         ( makeLift )
 import           Language.Haskell.TH            ( Q
                                                 , TExp
@@ -108,6 +108,18 @@ data Observation = BelowTimeout Int -- are we still on time for something that e
                 | FalseObs
                 deriving (Eq, Show)
 makeLift ''Observation
+
+data Contract = Null
+              | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
+              | RedeemCC IdentCC Contract
+              | Pay IdentPay Person Person Value Timeout Contract
+              | Both Contract Contract
+              | Choice Observation Contract Contract
+              | When Observation Timeout Contract Contract
+                deriving (Eq, Show)
+
+makeLift ''Contract
+
 
 
 makeLift ''Value
@@ -170,6 +182,46 @@ equalObservation = [|| \eqValue l r -> let
         (ValueGE v1l v2l, ValueGE v1r v2r) -> v1l `eqValue` v1r && v2l `eqValue` v2r
         (TrueObs, TrueObs) -> True
         (FalseObs, FalseObs) -> True
+        _ -> False
+    in eq l r
+    ||]
+
+equalContract :: Q (TExp ((Value -> Value -> Bool) -> (Observation -> Observation -> Bool) -> Contract -> Contract -> Bool))
+equalContract = [|| \eqValue eqObservation l r -> let
+    infixr 3 &&
+    (&&) :: Bool -> Bool -> Bool
+    (&&) = $$(PlutusTx.and)
+
+    eqPk :: PubKey -> PubKey -> Bool
+    eqPk = $$(Validation.eqPubKey)
+
+    eq :: Contract -> Contract -> Bool
+    eq l r = case (l, r) of
+        (Null, Null) -> True
+        (CommitCash (IdentCC idl) pkl vl t1l t2l c1l c2l, CommitCash (IdentCC idr) pkr vr t1r t2r c1r c2r) ->
+            idl == idr
+            && pkl `eqPk` pkr
+            && vl `eqValue` vr
+            && t1l == t1r && t2l == t2r
+            && eq c1l c1r && eq c2l c2r
+        (RedeemCC (IdentCC idl) c1l, RedeemCC (IdentCC idr) c1r) -> idl == idr && eq c1l c1r
+        (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
+            idl == idr
+            && pk1l `eqPk` pk1r
+            && pk2l `eqPk` pk2r
+            && vl `eqValue` vr
+            && tl == tr
+            && eq cl cr
+        (Both c1l c2l, Both c1r c2r) -> eq c1l c1r && eq c2l c2r
+        (Choice ol c1l c2l, Choice or c1r c2r) ->
+            ol `eqObservation` or
+            && eq c1l c1r
+            && eq c2l c2r
+        (When ol tl c1l c2l, When or tr c1r c2r) ->
+            ol `eqObservation` or
+            && tl == tr
+            && eq c1l c1r
+            && eq c2l c2r
         _ -> False
     in eq l r
     ||]

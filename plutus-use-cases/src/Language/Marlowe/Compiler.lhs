@@ -418,20 +418,6 @@ Rendered into predicates by interpretObs.
 \end{code}
 
 \subsection{Marlowe Contract Data Type}
-
-\begin{code}
-data Contract = Null
-              | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
-              | RedeemCC IdentCC Contract
-              | Pay IdentPay Person Person Value Timeout Contract
-              | Both Contract Contract
-              | Choice Observation Contract Contract
-              | When Observation Timeout Contract Contract
-                deriving (Eq)
-
-makeLift ''Contract
-
-\end{code}
 \subsection{Marlowe Data Script}
 
 This data type is a content of a contract \emph{Data Script}
@@ -532,33 +518,7 @@ marloweValidator = ValidatorScript result where
         eqObservation = $$(equalObservation) eqValue
 
         eqContract :: Contract -> Contract -> Bool
-        eqContract l r = case (l, r) of
-            (Null, Null) -> True
-            (CommitCash idl pkl vl t1l t2l c1l c2l, CommitCash idr pkr vr t1r t2r c1r c2r) ->
-                idl `eqIdentCC` idr
-                && pkl `eqPk` pkr
-                && vl `eqValue` vr
-                && t1l == t1r && t2l == t2r
-                && eqContract c1l c1r && eqContract c2l c2r
-            (RedeemCC idl c1l, RedeemCC idr c1r) -> idl `eqIdentCC` idr && eqContract c1l c1r
-            (Pay (IdentPay idl) pk1l pk2l vl tl cl, Pay (IdentPay idr) pk1r pk2r vr tr cr) ->
-                idl == idr
-                && pk1l `eqPk` pk1r
-                && pk2l `eqPk` pk2r
-                && vl `eqValue` vr
-                && tl == tr
-                && eqContract cl cr
-            (Both c1l c2l, Both c1r c2r) -> eqContract c1l c1r && eqContract c2l c2r
-            (Choice ol c1l c2l, Choice or c1r c2r) ->
-                ol `eqObservation` or
-                && eqContract c1l c1r
-                && eqContract c2l c2r
-            (When ol tl c1l c2l, When or tr c1r c2r) ->
-                ol `eqObservation` or
-                && tl == tr
-                && eqContract c1l c1r
-                && eqContract c2l c2r
-            _ -> False
+        eqContract = $$(equalContract) eqValue eqObservation
 
         all :: () -> forall a. (a -> a -> Bool) -> [a] -> [a] -> Bool
         all _ = go where
