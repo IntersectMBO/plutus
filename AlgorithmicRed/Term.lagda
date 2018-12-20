@@ -111,10 +111,11 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
       ------
     → Γ ⊢ A
 
-  ƛ : ∀ {Γ A B}
-    → Γ , A ⊢ B
+  ƛ : ∀ {Γ A B A'}
+    → A —Nf→⋆ A'
+    → Γ , A' ⊢ B
       -----------
-    → Γ ⊢ A ⇒ B
+    → Γ ⊢ A' ⇒ B
 
   _·_ : ∀ {Γ A B}
     → Γ ⊢ A ⇒ B
@@ -140,14 +141,18 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
   wrap1 : ∀{Γ K}
    → (pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
    → (arg : ∥ Γ ∥ ⊢Nf⋆ K)
-   → (term : Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+   → {R : ∥ Γ ∥ ⊢Nf⋆ *}
+   → embNf pat · (μ1 · embNf pat) · embNf arg —Nf→⋆ R
+   → (term : Γ ⊢ R)
    → Γ ⊢ ne (μ1 · pat · arg)
 
   unwrap1 : ∀{Γ K}
     → {pat : ∥ Γ ∥ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : ∥ Γ ∥ ⊢Nf⋆ K}
     → (term : Γ ⊢ ne (μ1 · pat · arg))
-    → Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)
+    → {R : ∥ Γ ∥ ⊢Nf⋆ *}
+    → embNf pat · (μ1 · embNf pat) · embNf arg —Nf→⋆ R
+    → Γ ⊢ R
 
   con : ∀{Γ s tcn}
     → TermCon (con tcn s)
@@ -162,7 +167,7 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
       ----------------------------------
     → Γ ⊢ substNf σ C
 -}
-  error : ∀{Γ} → (A : ∥ Γ ∥ ⊢Nf⋆ *) → Γ ⊢ A
+  error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *){R : ∥ Γ ∥ ⊢Nf⋆ *} → A —Nf→⋆ R → Γ ⊢ R
 {-
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
@@ -173,10 +178,11 @@ Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
 \begin{code}
 --void : ∀{Γ} → Γ ⊢ unitNf
 --void = Λ (ƛ (` Z))
-
+{-
 true : ∀{Γ} → Γ ⊢ booleanNf
 true = Λ (ƛ (ƛ (` (S Z))))
 
 false : ∀{Γ} → Γ ⊢ booleanNf
 false = Λ (ƛ (ƛ (` Z)))
+-}
 \end{code}
