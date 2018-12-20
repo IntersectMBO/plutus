@@ -23,7 +23,7 @@ open import Builtin.Signature
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢Nf⋆_ con size⋆
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 open import Data.Unit
 \end{code}
 
@@ -102,7 +102,7 @@ application.
 postulate _—Nf→⋆_ : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K → Set
 infix 4 _—Nf→⋆_
 
--- Tel : ∀ Γ Δ → (∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
+Tel : ∀ Γ Δ → (∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
 
 data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
 
@@ -158,20 +158,23 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → TermCon (con tcn s)
       -------------------
     → Γ ⊢ con tcn s
-{-
+
   builtin : ∀{Γ}
     → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J)
     → Tel Γ Δ σ As
+    → {N : ∥ Γ ∥ ⊢Nf⋆ *}
+    → subst (embNf ∘ σ) (embNf C) —Nf→⋆ N
       ----------------------------------
-    → Γ ⊢ substNf σ C
--}
+    → Γ ⊢ N
+
   error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *){R : ∥ Γ ∥ ⊢Nf⋆ *} → A —Nf→⋆ R → Γ ⊢ R
-{-
+
 Tel Γ Δ σ [] = ⊤
-Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
--}
+Tel Γ Δ σ (A ∷ As) =
+  Σ (∥ Γ ∥ ⊢Nf⋆ *) λ N → subst (embNf ∘ σ) (embNf A) —Nf→⋆ N × Tel Γ Δ σ As
+
 \end{code}
 
 # Term Abbreviations
