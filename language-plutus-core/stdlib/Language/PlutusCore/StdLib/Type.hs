@@ -258,7 +258,7 @@ produce new ones while encoding the types. And the answer is "yes".
 But read Note [Spines] first.
 -}
 
-{- Note [Spines]
+{- Note [Spiney API]
 Encoding of n-ary pattern functors into 1-ary pattern functors is hidden behind an API that pretends
 our types are in head-spine form. See @plutus/docs/fomega/deep-isorecursive/alternatives.md@ for
 details and discussion about the head-spine form approach.
@@ -294,7 +294,7 @@ this type into three components
 and pass them to the 'makeRecursiveType' function (which also receives an annotation as its first
 argument just so that we have something to place in the AST when needed). Note that we do not require
 to provide the kind of 'interlist', because we can compute it from the kinds of other type variables.
-
+2
 The code constructing the data type itself:
 
     -- Introduce names in scope.
@@ -319,6 +319,95 @@ Read next: Note [Packing n-ary pattern functors syntactically]
 -}
 
 {- Note [Packing n-ary pattern functors syntactically]
+Now that we know how the API looks like (see Note [Spiney API]), we can discuss a solution to
+the denormalization problem (see Note [Denormalization]).
+
+Recall (or see Note [Packing n-ary pattern functors semantically]) that if we pack the pattern
+functor of 'list'
+
+    listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+
+semantically and normalize the result, we'll get
+
+    semListF =
+        \(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->
+            spine (\(a :: *) -> all (r :: *). r -> (a -> rec (\(dat :: * -> *) -> dat a) -> r) -> r)
+
+The question is how to get the same without full-scale normalization.
+
+In this particular case it's easy: since we receive the body of 'listF' separately from the variables
+the leading lambdas bind, we can simply enclose the body of 'listF' like this:
+
+    \(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->
+                spine (\(a :: *) -> <body_of_listF>)
+
+and replace each occurrence of @list a@ by
+
+    rec (\(dat :: * -> *) -> dat a)
+
+and that's all.
+
+The slightly tricky part is how exactly we perform the replacement: we need to traverse each sequence
+of consecutive function applications in the pattern functor, remember all encountered arguments and
+if the head of consecutive applications is 'list' then rename it to 'dat' (and freshen the unique of
+the variable, because it's easy and it's nice not to break the global uniqueness condition, but this
+is not too important), apply 'dat' to all the remembered arguments and enclose the result by
+
+    rec (\(dat :: * -> *) -> _)
+
+But that doesn't work in the general case. The user might write
+
+    app = \(f :: * -> *) (a :: *) -> f a
+    listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> app list a -> r) -> r
+
+i.e. a type containing a non-saturated 'list' and the outlined algorithm can't handle this case,
+because it always just restores all the arguments in a sequence of applications (which we have none
+in this example) while we need to generate the following:
+
+    semAppListF =
+        \(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->
+            let list = \(a :: *) -> rec (\(dat :: * -> *) -> dat a)
+                in spine (\(a :: *) -> all (r :: *). r -> (a -> app list a -> r) -> r)
+
+(where @let list = ... in ...@ is pseudosyntax introduced for readability)
+So if a recursive case is not saturated, we have to generate as many lambdas as there are missing
+arguments and prepend the lambdas to the encoding of the recursive case.
+
+This way we can preserve the user's redexes and not introduce additional ones.
+
+Read next: Note [Comparing approaches to pattern functor packing]
+-}
+
+{- Note [Comparing approaches to pattern functor packing]
+Packing n-ary pattern functors semantically (see Note [Packing n-ary pattern functors semantically]):
+Pros:
+    1. easy to get right. Kinds match? You're all set
+    2. does not require manual manipulations with syntax (which would be very error-prone)
+    3. does not evaluate redexes written by the user
+    4. pattern functors with more than one recursive case are smaller being encoded this way than
+       when everything is fully inlined (in the latter case the overhead is O(n) where 'n' is the
+       number of recursive occurrences in a pattern functor)
+Cons:
+    1. resulting types contain additional redexes. I.e. we can turn normalized types into
+       non-normalized ones
+    2. pattern functors with one recursive case are slightly bigger being encoded this way than
+       when everything is fully inlined
+
+Packing n-ary pattern functors syntactically (see Note [Packing n-ary pattern functors syntactically]):
+Pros:
+    1. neither introduces new redexes nor evaluates ones written by the user
+Cons:
+    1. super easy to get wrong. While implementing this approach, I got it wrong three times.
+       It can still be wrong
+    2. requires testing against the other way to encode n-ary pattern functors
+    3. requires manipulations with uniques which always look fine until you get an incomprehensible
+       error message after 82 generated test cases pass
+    4. pattern functors with more than one recursive case are bigger being encoded this way than
+       with the other approach (the overhead here is O(n) where 'n' is the number of recursive
+       occurrences in a pattern functor)
+
+Therefore, the costs of encoding n-ary pattern functors as 1-ary pattern functors in normal form
+are rather high.
 -}
 
 -- | A recursive type packaged along with a specified 'Wrap' that allows to construct elements
@@ -327,6 +416,7 @@ data RecursiveType ann = RecursiveType
     { _recursiveType :: Type TyName ann
       -- ^ This is not supposed to have duplicate names.
       -- TODO: check this.
+      -- TODO: is it important at all?
     , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
       -- ^ This produces terms with duplicate names.
     }
