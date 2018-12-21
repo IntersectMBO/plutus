@@ -21,6 +21,7 @@ data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   V-Π_ : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}
+    → Value⋆ N
       ----------------------------
     → Value⋆ (Π N)
 
@@ -64,6 +65,8 @@ data Neutral⋆ where
    → Neutral⋆ N
    → Value⋆ V
    → Neutral⋆ (N · V)
+
+  N-` : ∀ {Φ K}{α : Φ ∋⋆ K} → Neutral⋆ (` α)
 \end{code}
 
 ## Intrinsically Kind Preserving Type Reduction
@@ -181,8 +184,8 @@ trans—↠⋆' (trans—↠⋆ L p q) r = trans—↠⋆ L p (trans—↠⋆' q
 \end{code}
 
 \begin{code}
-data Progress⋆ {K} (M : ∅ ⊢⋆ K) : Set where
-  step : ∀ {N : ∅ ⊢⋆ K}
+data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
+  step : ∀ {N : Γ ⊢⋆ K}
     → M —→⋆ N
       -------------
     → Progress⋆ M
@@ -193,10 +196,12 @@ data Progress⋆ {K} (M : ∅ ⊢⋆ K) : Set where
 \end{code}
 
 \begin{code}
-progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
-progress⋆ (` ())
+progress⋆ : ∀ {Γ K} → (M : Γ ⊢⋆ K) → Progress⋆ M
+progress⋆ (` α) = done (N- N-`)
 progress⋆ μ1      = done (N- N-μ1)
-progress⋆ (Π M)   = done V-Π_
+progress⋆ (Π M)   with progress⋆ M
+progress⋆ (Π M) | step p = step (ξ-Π p)
+progress⋆ (Π M) | done p = done (V-Π p)
 progress⋆ (M ⇒ N) = done _V-⇒_
 progress⋆ (ƛ M)   = done V-ƛ_
 progress⋆ (M · N)  with progress⋆ M
@@ -204,7 +209,7 @@ progress⋆ (M · N)  with progress⋆ M
 ...                    | done vM with progress⋆ N
 ...                                | step p = step (ξ-·₂ p)
 progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step β-ƛ
-progress⋆ (M · N) | done (N- {∅} {K ⇒ K₁} x₁) | done x = done (N- (N-· x₁ x))
+progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
 progress⋆ (size⋆ n)   = done V-size
 progress⋆ (con tcn s) with progress⋆ s
 ... | step p  = step (ξ-con p)
@@ -228,19 +233,20 @@ renameValue⋆ : ∀ {Φ Ψ}
   → Value⋆ A
     -------------------
   → Value⋆ (rename ρ A)
-
-renameValue⋆ ρ V-Π_      = V-Π_
+renameValue⋆ ρ (V-Π N)      = V-Π renameValue⋆ (ext ρ) N
 renameValue⋆ ρ _V-⇒_     = _V-⇒_
 renameValue⋆ ρ V-ƛ_      = V-ƛ_
 renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
 renameValue⋆ ρ V-size    = V-size
 renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)
 
+renameNeutral⋆ ρ N-`       = N-`
 renameNeutral⋆ ρ N-μ1      = N-μ1
 renameNeutral⋆ ρ (N-· N V) = N-· (renameNeutral⋆ ρ N) (renameValue⋆ ρ V)
 \end{code}
 
 \begin{code}
+{-
 substNeutral⋆ : ∀ {Φ Ψ}
   → (σ : Sub Φ Ψ)
   → ∀ {J}{A : Φ ⊢⋆ J}
@@ -255,15 +261,16 @@ substValue⋆ : ∀ {Φ Ψ}
     -----------------------------
   → Value⋆ (subst σ A)
   
-substValue⋆ σ V-Π_      = V-Π_
+substValue⋆ σ (V-Π N)      = V-Π {!!}
 substValue⋆ σ _V-⇒_     = _V-⇒_
 substValue⋆ σ V-ƛ_      = V-ƛ_
 substValue⋆ σ (N- N)    = N- (substNeutral⋆ σ N)
 substValue⋆ σ  V-size   = V-size
 substValue⋆ σ (V-con s) = V-con (substValue⋆ σ s)
-
+substNeutral⋆ σ N-` = {!σ _!}
 substNeutral⋆ σ N-μ1     = N-μ1
 substNeutral⋆ σ (N-· N V) = N-· (substNeutral⋆ σ N) (substValue⋆ σ V)
+-}
 \end{code}
 
 \begin{code}

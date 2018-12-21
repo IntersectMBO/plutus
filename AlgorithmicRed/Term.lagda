@@ -98,8 +98,20 @@ application.
 \begin{code}
 
 
+open import Type.Reduction
+_—Nf→⋆_ : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K → Set
+A —Nf→⋆ N = Σ (_ ⊢⋆ _) λ A' → (A —→⋆ A') × Value⋆ A' × embNf N ≡ A'
 
-postulate _—Nf→⋆_ : ∀{Γ K} → Γ ⊢⋆ K → Γ ⊢Nf⋆ K → Set
+-- value predicate and normal forms coincide
+
+val2nf : ∀{Γ K}{A : Γ ⊢⋆ K} → Value⋆ A → Σ (Γ ⊢Nf⋆ K) λ N → embNf N ≡ A
+val2nf (V-Π p) = {!!}
+val2nf _V-⇒_ = {!!}
+val2nf V-ƛ_ = {!!}
+val2nf (N- x) = {!!}
+val2nf V-size = {!!}
+val2nf (V-con x) = {!!}
+
 infix 4 _—Nf→⋆_
 
 Tel : ∀ Γ Δ → (∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
