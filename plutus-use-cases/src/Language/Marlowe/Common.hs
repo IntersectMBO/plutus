@@ -65,16 +65,16 @@ type Person      = PubKey
 
 newtype IdentCC = IdentCC Int
                deriving (Eq, Ord, Show)
-makeLift ''IdentCC
+
 
 
 newtype IdentChoice = IdentChoice Int
                deriving (Eq, Ord, Show)
-makeLift ''IdentChoice
+
 
 newtype IdentPay = IdentPay Int
                deriving (Eq, Ord, Show)
-makeLift ''IdentPay
+
 
 type ConcreteChoice = Int
 
@@ -82,7 +82,7 @@ type CCStatus = (Person, CCRedeemStatus)
 
 data CCRedeemStatus = NotRedeemed Cash Timeout
                deriving (Eq, Ord, Show)
-makeLift ''CCRedeemStatus
+
 
 type Choice = ((IdentChoice, Person), ConcreteChoice)
 
@@ -107,7 +107,7 @@ data Observation = BelowTimeout Int -- are we still on time for something that e
                 | TrueObs
                 | FalseObs
                 deriving (Eq, Show)
-makeLift ''Observation
+
 
 data Contract = Null
               | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
@@ -118,11 +118,21 @@ data Contract = Null
               | When Observation Timeout Contract Contract
                 deriving (Eq, Show)
 
-makeLift ''Contract
+data ValidatorState = ValidatorState {
+        ccIds  :: [IdentCC],
+        payIds :: [IdentPay]
+    }
 
 
 
+makeLift ''IdentCC
+makeLift ''IdentChoice
+makeLift ''IdentPay
+makeLift ''CCRedeemStatus
 makeLift ''Value
+makeLift ''Observation
+makeLift ''Contract
+makeLift ''ValidatorState
 
 eqValidator :: Q (TExp (ValidatorHash -> ValidatorHash -> Bool))
 eqValidator = [|| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r ||]
@@ -224,4 +234,38 @@ equalContract = [|| \eqValue eqObservation l r -> let
             && eq c2l c2r
         _ -> False
     in eq l r
+    ||]
+
+validateContractQ :: Q (TExp (ValidatorState -> Contract -> (ValidatorState, Bool)))
+validateContractQ = [|| \state contract -> let
+
+    notElem :: (a -> a -> Bool) -> [a] -> a -> Bool
+    -- noteElem _ _ _ = False
+    notElem eq as a = notel eq as a
+      where
+        notel eq (e : ls) a = if a `eq` e then False else notel eq ls a
+        notel _ [] _ = True
+
+    checkBoth :: ValidatorState -> Contract -> Contract -> (ValidatorState, Bool)
+    checkBoth state c1 c2 = let
+        (us, valid) = validate state c1
+        in if valid then validate us c2
+        else (state, False)
+
+    validate :: ValidatorState -> Contract -> (ValidatorState, Bool)
+    validate state@(ValidatorState ccIds payIds) contract = case contract of
+        Null -> (state, True)
+        CommitCash ident _ _ _ _ c1 c2 ->
+            if notElem (\(IdentCC a) (IdentCC b) -> a == b) ccIds ident
+            then checkBoth (ValidatorState (ident : ccIds) payIds) c1 c2
+            else (state, False)
+        RedeemCC _ c -> validate state c
+        Pay ident _ _ _ _ c ->
+            if notElem (\(IdentPay a) (IdentPay b) -> a == b) payIds ident
+            then validate (ValidatorState ccIds (ident : payIds)) c
+            else (state, False)
+        Both c1 c2 -> checkBoth state c1 c2
+        Choice _ c1 c2 -> checkBoth state c1 c2
+        When _ _ c1 c2 -> checkBoth state c1 c2
+    in validate state contract
     ||]

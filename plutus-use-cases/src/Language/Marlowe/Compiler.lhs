@@ -430,12 +430,6 @@ data MarloweData = MarloweData {
     }
 makeLift ''MarloweData
 
-data ValidatorState = ValidatorState {
-        ccIds  :: [IdentCC],
-        payIds :: [IdentPay]
-    }
-makeLift ''ValidatorState
-
 \end{code}
 
 
@@ -574,26 +568,7 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 
 \begin{code}
         validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
-        validateContract state@(ValidatorState ccIds payIds) contract = case contract of
-            Null -> (state, True)
-            CommitCash ident _ _ _ _ c1 c2 ->
-                if notElem eqIdentCC ccIds ident
-                then checkBoth (ValidatorState (ident : ccIds) payIds) c1 c2
-                else (state, False)
-            RedeemCC _ c -> validateContract state c
-            Pay ident _ _ _ _ c ->
-                if notElem (\(IdentPay a) (IdentPay b) -> a == b) payIds ident
-                then validateContract (ValidatorState ccIds (ident : payIds)) c
-                else (state, False)
-            Both c1 c2 -> checkBoth state c1 c2
-            Choice _ c1 c2 -> checkBoth state c1 c2
-            When _ _ c1 c2 -> checkBoth state c1 c2
-          where
-            checkBoth :: ValidatorState -> Contract -> Contract -> (ValidatorState, Bool)
-            checkBoth state c1 c2 = let
-                (us, valid) = validateContract state c1
-                in if valid then validateContract us c2
-                else (state, False)
+        validateContract = $$(validateContractQ)
 
 
 \end{code}
