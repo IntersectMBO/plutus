@@ -2,32 +2,13 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-          
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
-        )
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
       )
-      [
-        (lam
-          ds
-          Bool
-          [
-            [
-              [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit True) ]
-              (lam thunk Unit False)
-            ]
-            Unit
-          ]
-        )
-        False
-      ]
     )
+    [ (lam ds Bool [ [ { [ Bool_match ds ] Bool } True ] False ]) False ]
   )
 )
