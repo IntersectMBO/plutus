@@ -19,6 +19,7 @@ module Language.PlutusCore.Type ( Term (..)
                                 , StagedBuiltinName (..)
                                 , TypeBuiltin (..)
                                 , Size
+                                , Gas (..)
                                 -- * Base functors
                                 , TermF (..)
                                 , TypeF (..)
@@ -51,6 +52,10 @@ import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 type Size = Natural
+
+newtype Gas = Gas
+    { unGas :: Natural
+    }
 
 -- | A 'Type' assigned to expressions.
 data Type tyname a = TyVar a (tyname a)

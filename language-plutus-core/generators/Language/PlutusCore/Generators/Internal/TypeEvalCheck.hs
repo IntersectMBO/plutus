@@ -77,7 +77,7 @@ typeEvalCheckBy
     -> TermOf (TypedBuiltinValue Size a)
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
-    let typecheck = annotateTerm >=> typecheckTerm (TypeConfig True mempty (Just 1000))
+    let typecheck = annotateTerm >=> typecheckTerm (TypeConfig True mempty defaultTypecheckerGas)
     termTy <- typecheck term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
