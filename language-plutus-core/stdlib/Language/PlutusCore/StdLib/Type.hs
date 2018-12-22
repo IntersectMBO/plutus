@@ -398,27 +398,26 @@ Pros:
     1. neither introduces new redexes nor evaluates ones written by the user
 Cons:
     1. super easy to get wrong. While implementing this approach, I got it wrong three times.
-       It can still be wrong
+       I'm still not sure it's sound
     2. requires testing against the other way to encode n-ary pattern functors
     3. requires manipulations with uniques which always look fine until you get an incomprehensible
        error message after 82 generated test cases pass
     4. pattern functors with more than one recursive case are bigger being encoded this way than
        with the other approach (the overhead here is O(n) where 'n' is the number of recursive
        occurrences in a pattern functor)
+    5. someone who generates Plutus Core does not care much about whether types are normalized,
+       because it's a pain and if you want normalized types, just normalize what you generated
+       in the end.
 
 Therefore, the costs of encoding n-ary pattern functors as 1-ary pattern functors in normal form
-are rather high.
+are rather high while the benefits are minor, and thus we go with the semantic packing approach.
 -}
 
 -- | A recursive type packaged along with a specified 'Wrap' that allows to construct elements
 -- of this type.
 data RecursiveType ann = RecursiveType
     { _recursiveType :: Type TyName ann
-      -- ^ This is not supposed to have duplicate names.
-      -- TODO: check this.
-      -- TODO: is it important at all?
     , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
-      -- ^ This produces terms with duplicate names.
     }
 
 data IndicesLengthsMismatchError = IndicesLengthsMismatchError
@@ -504,69 +503,27 @@ type WithData ann a
     -> Type TyName ann         -- ^ The body of the n-ary pattern functor.
     -> Quote a
 
-semPackPatternBodyN :: WithData ann (Type TyName ann)
-semPackPatternBodyN ann0 dataName argVars patBodyN = do
-    withSpine <- getWithSpine ann0 argVars
-
-    rec   <- freshTyName ann0 "rec"
-    spine <- freshTyName ann0 "spine"
-
-    let dataKind  = argKindsToDataKindN ann0 $ map tyVarDeclKind argVars
-        spineKind = dataKindToSpineKind ann0 dataKind
-        recKind   = spineKindToRecKind  ann0 spineKind
-        vR   = TyVarDecl ann0 dataName dataKind
-        pat1 = mkIterTyLam ann0 (vR : argVars) patBodyN
-
-    return
-        . TyLam ann0 rec recKind
-        . TyLam ann0 spine spineKind
-        . TyApp ann0 (TyVar ann0 spine)
-        . TyApp ann0 pat1
-        . withSpine
-        . TyApp ann0
-        $ TyVar ann0 rec
-
-synPackPatternBodyN :: WithData ann (Type TyName ann)
-synPackPatternBodyN ann0 dataName argVars patBodyN = do
-    rec   <- freshTyName ann0 "rec"
-    spine <- freshTyName ann0 "spine"
-
-    let dataKind  = argKindsToDataKindN ann0 $ map tyVarDeclKind argVars
-        spineKind = dataKindToSpineKind ann0 dataKind
-        recKind   = spineKindToRecKind  ann0 spineKind
-
-        pack = go argVars return
-
-        go vars elimCon var@(TyVar ann name)        = if name == dataName
-            then do
-                nameFr <- freshenTyName name
-                fun    <- elimCon $ TyVar ann nameFr
-                return
-                    . mkIterTyLam ann vars
-                    . TyApp ann (TyVar ann rec)
-                    . TyLam ann nameFr dataKind
-                    . mkIterTyApp ann fun
-                    $ map (mkTyVar ann) vars
-            else elimCon var
-        go vars elimCon (TyApp ann fun arg)         =
-            go (drop 1 vars) (\fun' -> pack arg >>= elimCon . TyApp ann fun') fun
-        go _    _       (TyFun ann tyIn tyOut)      = TyFun ann <$> pack tyIn <*> pack tyOut
-        go _    _       (TyIFix ann pat arg)        = TyIFix ann <$> pack pat <*> pack arg
-        go _    _       (TyForall ann name kind ty) = TyForall ann name kind <$> pack ty
-        go _    elimCon bi@TyBuiltin{}              = elimCon bi
-        go _    _       size@TyInt{}                = return $ size
-        go _    elimCon (TyLam ann name kind ty)    = pack ty >>= elimCon . TyLam ann name kind
-
-    patBody1 <- pack patBodyN
-    return
-        . TyLam ann0 rec recKind
-        . TyLam ann0 spine spineKind
-        . TyApp ann0 (TyVar ann0 spine)
-        . mkIterTyLam ann0 argVars
-        $ patBody1
-
 packPatternBodyN :: WithData ann (Type TyName ann)
-packPatternBodyN = const semPackPatternBodyN synPackPatternBodyN
+packPatternBodyN ann dataName argVars patBodyN = do
+    withSpine <- getWithSpine ann argVars
+
+    rec   <- freshTyName ann "rec"
+    spine <- freshTyName ann "spine"
+
+    let dataKind  = argKindsToDataKindN ann $ map tyVarDeclKind argVars
+        spineKind = dataKindToSpineKind ann dataKind
+        recKind   = spineKindToRecKind  ann spineKind
+        vR   = TyVarDecl ann dataName dataKind
+        pat1 = mkIterTyLam ann (vR : argVars) patBodyN
+
+    return
+        . TyLam ann rec recKind
+        . TyLam ann spine spineKind
+        . TyApp ann (TyVar ann spine)
+        . TyApp ann pat1
+        . withSpine
+        . TyApp ann
+        $ TyVar ann rec
 
 getTyFix :: WithData ann (Type TyName ann)
 getTyFix ann name argVars patBodyN = do
@@ -585,11 +542,6 @@ getWrap ann name argVars patBody = do
                 then IWrap ann pat1 . toSpine $ zipWith instVar argVars args
                 else throw . IndicesLengthsMismatchError argVarsLen argsLen $ void name
 
-makeRecursiveType
-    :: ann
-    -> TyName ann
-    -> [TyVarDecl TyName ann]
-    -> Type TyName ann
-    -> Quote (RecursiveType ann)
+makeRecursiveType :: WithData ann (RecursiveType ann)
 makeRecursiveType ann name argVars patBody =
     RecursiveType <$> getTyFix ann name argVars patBody <*> getWrap ann name argVars patBody
