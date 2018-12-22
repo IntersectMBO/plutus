@@ -44,6 +44,7 @@ module Language.PlutusCore
     , format
     , formatDoc
     -- * Processing
+    , Gas (..)
     , annotateProgram
     , annotateTerm
     , annotateType
@@ -81,7 +82,6 @@ module Language.PlutusCore
     , TypeCheckM
     , parseTypecheck
     -- for testing
-    , normalizeTypeAny
     , runTypeCheckM
     , typecheckPipeline
     , defaultTypecheckerGas
@@ -128,7 +128,6 @@ import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize            (normalizeTypeAny)
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote

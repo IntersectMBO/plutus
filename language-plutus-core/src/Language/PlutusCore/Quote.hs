@@ -39,7 +39,7 @@ import           Data.Functor.Identity
 import qualified Data.Set                  as Set
 import qualified Data.Text                 as Text
 import qualified Data.Text.Encoding        as Text
-import           Hedgehog                  (GenT)
+import           Hedgehog                  (GenT, PropertyT)
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
@@ -72,6 +72,7 @@ instance MonadQuote m => MonadQuote (MaybeT m)
 instance MonadQuote m => MonadQuote (ExceptT e m)
 instance MonadQuote m => MonadQuote (ReaderT r m)
 instance MonadQuote m => MonadQuote (GenT m)
+instance MonadQuote m => MonadQuote (PropertyT m)
 
 -- | Run a quote from an empty identifier state. Note that the resulting term cannot necessarily
 -- be safely combined with other terms - that should happen inside 'QuoteT'.

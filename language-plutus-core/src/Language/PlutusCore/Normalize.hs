@@ -9,11 +9,11 @@
 module Language.PlutusCore.Normalize
     ( NormalizeTypeT
     , runNormalizeTypeM
-    , runNormalizeTypeAnyM
+    , runNormalizeTypeDownM
     , runNormalizeTypeGasM
     , withExtendedTypeVarEnv
     , normalizeTypeM
-    , normalizeTypeAny
+    , normalizeTypeDown
     , substituteNormalizeTypeM
     , normalizeTypesIn
     ) where
@@ -50,16 +50,38 @@ makeLenses ''NormalizeTypeEnv
 Type normalization requires 'Quote' (because we need to be able to generate fresh names), but we
 do not put 'Quote' into 'NormalizeTypeT'. The reason for this is that it makes type signatures of
 various runners much nicer and also more generic. For example, we have
-    runNormalizeTypeAnyM :: MonadQuote m => NormalizeTypeT m tyname ann a -> m a
+
+    runNormalizeTypeDownM :: MonadQuote m => NormalizeTypeT m tyname ann a -> m a
+
 If 'NormalizeTypeT' contained 'Quote', it would be
-    runNormalizeTypeAnyM :: NormalizeTypeT m tyname ann a -> QuoteT m a
+
+    runNormalizeTypeDownM :: NormalizeTypeT m tyname ann a -> QuoteT m a
+
 which hardcodes 'QuoteT' to be the outermost transformer.
+
 Type normalization can run in any @m@ (as long as it's a 'MonadQuote') as witnessed by
 the following type signature:
+
     normalizeTypeM
         :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
         => Type tyname ann -> NormalizeTypeT m tyname ann (NormalizedType tyname ann)
+
 so it's natural to have runners that do not break this genericity.
+-}
+
+{- Note [Normalization API]
+Normalization is split in two parts:
+
+1. functions returning computations that perform reductions and run in defined in this module
+   monad transformers (e.g. 'NormalizeTypeT')
+2. runners of those computations
+
+The reason for splitting the API is that this way the type-theoretic notion of normalization is
+separated from implementation-specific details like how to count gas (we hardcode *where* to count
+gas, but this can be generalized in case we need it). And this is important, because gas counting
+requires access to different monads in different scenarios, so in the end we have a fine-grained API
+instead of a single function that reflects all possible effects from distinct scenarios in its type
+signature.
 -}
 
 -- See Note [NormalizedTypeT].
@@ -72,34 +94,30 @@ newtype NormalizeTypeT m tyname ann a = NormalizeTypeT
         , MonadQuote
         )
 
-type CountSubstT m = StateT Gas (MaybeT m)
-
 -- | Run a 'NormalizeTypeM' computation.
 runNormalizeTypeM :: m () -> NormalizeTypeT m tyname ann a -> m a
 runNormalizeTypeM countStep (NormalizeTypeT a) =
     runReaderT a $ NormalizeTypeEnv (TypeVarEnv mempty) countStep
 
 -- | Run a 'NormalizeTypeM' computation without dealing with gas.
-runNormalizeTypeAnyM
+runNormalizeTypeDownM
     :: MonadQuote m => NormalizeTypeT m tyname ann a -> m a
-runNormalizeTypeAnyM = runNormalizeTypeM $ pure ()
+runNormalizeTypeDownM = runNormalizeTypeM $ pure ()
 
 -- | Run a gas-consuming 'NormalizeTypeM' computation.
+-- Count a single substitution step by subtracting @1@ from available gas or
+-- fail when there is no available gas.
 runNormalizeTypeGasM
-    :: MonadQuote m => Gas -> NormalizeTypeT (CountSubstT m) tyname ann a -> m (Maybe a)
-runNormalizeTypeGasM gas a = runMaybeT $ evalStateT (runNormalizeTypeM countSubst a) gas
+    :: MonadQuote m => Gas -> NormalizeTypeT (StateT Gas (MaybeT m)) tyname ann a -> m (Maybe a)
+runNormalizeTypeGasM gas a = runMaybeT $ evalStateT (runNormalizeTypeM countSubst a) gas where
+    countSubst = do
+        Gas gas' <- get
+        if gas' == 0
+            then mzero
+            else put . Gas $ gas' - 1
 
 countTypeNormalizationStep :: NormalizeTypeT m tyname ann ()
 countTypeNormalizationStep = NormalizeTypeT . ReaderT $ _normalizeTypeEnvCountStep
-
--- | Count a single substitution step by subtracting @1@ from available gas
--- (or failing when there is no available gas).
-countSubst :: Monad m => CountSubstT m ()
-countSubst = do
-    Gas gas <- get
-    if gas == 0
-        then mzero
-        else put . Gas $ gas - 1
 
 -- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeM' computation.
 withExtendedTypeVarEnv
@@ -190,10 +208,10 @@ normalizeType countStep = runNormalizeTypeM countStep . normalizeTypeM
 
 -- See Note [Normalization].
 --- | Normalize a 'Type' without dealing with gas.
-normalizeTypeAny
+normalizeTypeDown
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
     => Type tyname ann -> m (NormalizedType tyname ann)
-normalizeTypeAny = normalizeType $ pure ()
+normalizeTypeDown = normalizeType $ pure ()
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesIn
@@ -205,7 +223,8 @@ normalizeTypesIn = go where
 
     go (LamAbs ann name ty body)  = LamAbs ann name <$> normalizeReturnType ty <*> go body
     go (TyAbs ann name kind body) = TyAbs ann name kind <$> go body
-    go (IWrap ann pat arg term)   = IWrap ann <$> normalizeReturnType pat <*> normalizeReturnType arg <*> go term
+    go (IWrap ann pat arg term)   =
+        IWrap ann <$> normalizeReturnType pat <*> normalizeReturnType arg <*> go term
     go (Apply ann fun arg)        = Apply ann <$> go fun <*> go arg
     go (Unwrap ann term)          = Unwrap ann <$> go term
     go (Error ann ty)             = Error ann <$> normalizeReturnType ty

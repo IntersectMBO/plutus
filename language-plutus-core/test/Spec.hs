@@ -17,8 +17,8 @@ import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.MkPlc    (mkIterTyApp)
 import           Language.PlutusCore.Pretty
+import           Normalization.Type
 import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec               as Quotation
@@ -107,6 +107,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
     , test_Pretty
+    , test_typeNormalization
     , test_typecheck
     , test_constant
     , test_evaluateCk
@@ -162,20 +163,6 @@ testsRewrite :: [FilePath] -> TestTree
 testsRewrite
     = testGroup "golden rewrite tests"
     . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
-
-integer2 :: Type tyname ()
-integer2 = TyApp () (TyBuiltin () TyInteger) (TyInt () 2)
-
-getAppAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
-getAppAppLamLam = do
-    x <- liftQuote $ TyNameWithKind <$> freshTyName ((), Type ()) "x"
-    y <- liftQuote $ TyNameWithKind <$> freshTyName ((), Type ()) "y"
-    pure $ mkIterTyApp ()
-        (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
-        [integer2, integer2]
-
-testLam :: Bool
-testLam = runQuote (getAppAppLamLam >>= normalizeTypeAny) == Normalized integer2
 
 testEqTerm :: Bool
 testEqTerm =
@@ -257,7 +244,6 @@ tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
-    , testLam @?= True
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True

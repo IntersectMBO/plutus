@@ -140,8 +140,8 @@ getBuiltinTreeForest = do
     let vA = TyVar () a
         vR = TyVar () r
         recSpine = [TyVar () treeForest, vA]
---     Normalized tree   <- normalizeTypeAny $ mkIterTyApp () asTree   recSpine
---     Normalized forest <- normalizeTypeAny $ mkIterTyApp () asForest recSpine
+--     Normalized tree   <- normalizeTypeDown $ mkIterTyApp () asTree   recSpine
+--     Normalized forest <- normalizeTypeDown $ mkIterTyApp () asForest recSpine
     let tree   = mkIterTyApp () asTree   recSpine
         forest = mkIterTyApp () asForest recSpine
     body <- rename
@@ -154,14 +154,12 @@ getBuiltinTreeForest = do
         [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
         body
 
--- \(a :: *) -> ifix (\(rec :: ((* -> (* -> * -> *) -> *) -> *) -> *) -> \(spine :: (* -> (* -> * -> *) -> *) -> *) -> spine (\(a :: *) -> \(tag :: * -> * -> *) -> all (r :: *). tag)) (\(r :: * -> (* -> * -> *) -> *) -> r a (\(t :: *) -> \(f :: *) -> t))
-
 getBuiltinTree :: Quote (RecursiveType ())
 getBuiltinTree = do
     RecursiveType treeForest wrapTreeForest <- getBuiltinTreeForest
     treeTag <- getTreeTag
     asTree  <- getAsTree
---     Normalized tree <- normalizeTypeAny $ TyApp () asTree treeForest
+--     Normalized tree <- normalizeTypeDown $ TyApp () asTree treeForest
     let tree = TyApp () asTree treeForest
     return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
@@ -170,7 +168,7 @@ getBuiltinForest = do
     RecursiveType treeForest wrapTreeForest <- getBuiltinTreeForest
     forestTag <- getForestTag
     asForest  <- getAsForest
---     Normalized forest <- normalizeTypeAny $ TyApp () asForest treeForest
+--     Normalized forest <- normalizeTypeDown $ TyApp () asForest treeForest
     let forest = TyApp () asForest treeForest
     return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
 
@@ -179,7 +177,7 @@ getBuiltinForest = do
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
 getBuiltinTreeNode :: Quote (Term TyName Name ())
-getBuiltinTreeNode = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
+getBuiltinTreeNode = runNormalizeTypeDownM . normalizeTypesIn =<< rename =<< do
     RecursiveType _      wrapTree <- getBuiltinTree
     RecursiveType forest _        <- getBuiltinForest
     a  <- freshTyName () "a"
@@ -189,7 +187,7 @@ getBuiltinTreeNode = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
     f  <- freshName () "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized forestA <- normalizeTypeAny $ TyApp () forest vA
+    Normalized forestA <- normalizeTypeDown $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . LamAbs () x vA
@@ -206,7 +204,7 @@ getBuiltinTreeNode = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
 getBuiltinForestNil :: Quote (Term TyName Name ())
-getBuiltinForestNil = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
+getBuiltinForestNil = runNormalizeTypeDownM . normalizeTypesIn =<< rename =<< do
     RecursiveType tree   _          <- getBuiltinTree
     RecursiveType forest wrapForest <- getBuiltinForest
     a <- freshTyName () "a"
@@ -215,8 +213,8 @@ getBuiltinForestNil = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
     f <- freshName () "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized treeA   <- normalizeTypeAny $ TyApp () tree   vA
-    Normalized forestA <- normalizeTypeAny $ TyApp () forest vA
+    Normalized treeA   <- normalizeTypeDown $ TyApp () tree   vA
+    Normalized forestA <- normalizeTypeDown $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . wrapForest [vA]
@@ -230,7 +228,7 @@ getBuiltinForestNil = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
 getBuiltinForestCons :: Quote (Term TyName Name ())
-getBuiltinForestCons = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
+getBuiltinForestCons = runNormalizeTypeDownM . normalizeTypesIn =<< rename =<< do
     RecursiveType tree   _          <- getBuiltinTree
     RecursiveType forest wrapForest <- getBuiltinForest
     a  <- freshTyName () "a"
@@ -241,8 +239,8 @@ getBuiltinForestCons = runNormalizeTypeAnyM . normalizeTypesIn =<< rename =<< do
     f  <- freshName () "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized treeA   <- normalizeTypeAny $ TyApp () tree   vA
-    Normalized forestA <- normalizeTypeAny $ TyApp () forest vA
+    Normalized treeA   <- normalizeTypeDown $ TyApp () tree   vA
+    Normalized forestA <- normalizeTypeDown $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . LamAbs () tr treeA

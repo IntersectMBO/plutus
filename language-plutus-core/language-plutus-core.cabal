@@ -42,6 +42,7 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Normalize
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.Subst
@@ -90,7 +91,6 @@ library
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
-        Language.PlutusCore.Normalize
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Examples.Data.TreeForest
@@ -180,6 +180,7 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Failure
         Evaluation.Constant.Resize
         Generators
+        Normalization.Type
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
