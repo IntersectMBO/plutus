@@ -32,6 +32,7 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ (S ⇒ T)
 
   V-ƛ_ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
+    → Value⋆ N
       -----------------------------
     → Value⋆ (ƛ N)
 
@@ -216,12 +217,14 @@ progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
 progress⋆ (M ⇒ N) | done VM with progress⋆ N
 progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
 progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
-progress⋆ (ƛ M)   = done V-ƛ_
+progress⋆ (ƛ M)   with progress⋆ M
+progress⋆ (ƛ M) | step p  = step (ξ-ƛ p)
+progress⋆ (ƛ M) | done VM = done (V-ƛ VM)
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
 ...                    | done vM with progress⋆ N
 ...                                | step p = step (ξ-·₂ p)
-progress⋆ (.(ƛ _) · N) | done V-ƛ_ | done vN = step β-ƛ
+progress⋆ (.(ƛ _) · N) | done (V-ƛ _) | done vN = step β-ƛ
 progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
 progress⋆ (size⋆ n)   = done V-size
 progress⋆ (con tcn s) with progress⋆ s
@@ -248,7 +251,7 @@ renameValue⋆ : ∀ {Φ Ψ}
   → Value⋆ (rename ρ A)
 renameValue⋆ ρ (V-Π N)   = V-Π renameValue⋆ (ext ρ) N
 renameValue⋆ ρ (M V-⇒ N) = renameValue⋆ ρ M V-⇒ renameValue⋆ ρ N
-renameValue⋆ ρ V-ƛ_      = V-ƛ_
+renameValue⋆ ρ (V-ƛ N)   = V-ƛ renameValue⋆ (ext ρ) N
 renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
 renameValue⋆ ρ V-size    = V-size
 renameValue⋆ ρ (V-con s) = V-con (renameValue⋆ ρ s)

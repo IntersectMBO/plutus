@@ -109,7 +109,8 @@ val2nf (V-Π VN) with val2nf VN
 ... | N ,, q = Π N ,, cong Π q
 val2nf (VM V-⇒ VN) with val2nf VM | val2nf VN
 ... | M ,, p | N ,, q = M ⇒ N ,, cong₂ _⇒_ p q
-val2nf V-ƛ_ = {!!}
+val2nf (V-ƛ VN) with val2nf VN
+... | N ,, p = ƛ N ,, cong ƛ p
 val2nf (N- x) = {!!}
 val2nf V-size = {!!}
 val2nf (V-con x) = {!!}

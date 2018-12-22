@@ -47,4 +47,6 @@ import Algorithmic.Examples
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
+
+--import AlgorithmicRed.Term
 \end{code}
