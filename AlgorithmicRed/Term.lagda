@@ -105,8 +105,10 @@ A —Nf→⋆ N = Σ (_ ⊢⋆ _) λ A' → (A —→⋆ A') × Value⋆ A' × e
 -- value predicate and normal forms coincide
 
 val2nf : ∀{Γ K}{A : Γ ⊢⋆ K} → Value⋆ A → Σ (Γ ⊢Nf⋆ K) λ N → embNf N ≡ A
-val2nf (V-Π p) = {!!}
-val2nf _V-⇒_ = {!!}
+val2nf (V-Π VN) with val2nf VN
+... | N ,, q = Π N ,, cong Π q
+val2nf (VM V-⇒ VN) with val2nf VM | val2nf VN
+... | M ,, p | N ,, q = M ⇒ N ,, cong₂ _⇒_ p q
 val2nf V-ƛ_ = {!!}
 val2nf (N- x) = {!!}
 val2nf V-size = {!!}

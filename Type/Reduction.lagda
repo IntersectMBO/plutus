@@ -26,6 +26,8 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ (Π N)
 
   _V-⇒_ : ∀ {Φ} {S : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
+    → Value⋆ S
+    → Value⋆ T
       -----------------------------------
     → Value⋆ (S ⇒ T)
 
@@ -82,7 +84,7 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → S ⇒ T —→⋆ S' ⇒ T
 
   ξ-⇒₂ : ∀ {Φ} {S : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
- --   → Value⋆ S
+    → Value⋆ S
     → T —→⋆ T'
       -----------------------------------
     → S ⇒ T —→⋆ S ⇒ T'
@@ -130,7 +132,7 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
       --------
     → M —↠⋆ M
 
-  trans—↠⋆ : (L : Γ ⊢⋆ J) {M N : Γ ⊢⋆ J}
+  trans—↠⋆ : {L : Γ ⊢⋆ J} {M N : Γ ⊢⋆ J}
     → L —→⋆ M
     → M —↠⋆ N
       ---------
@@ -138,34 +140,41 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
 
 ƛ—↠⋆ : ∀{Γ K J}{M N : Γ ,⋆ K ⊢⋆ J} → M —↠⋆ N → ƛ M —↠⋆ ƛ N
 ƛ—↠⋆ refl—↠⋆          = refl—↠⋆
-ƛ—↠⋆ (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-ƛ p) (ƛ—↠⋆ q)
+ƛ—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-ƛ p) (ƛ—↠⋆ q)
 
 Π—↠⋆ : ∀{Γ K}{M N : Γ ,⋆ K ⊢⋆ *} → M —↠⋆ N → Π M —↠⋆ Π N
 Π—↠⋆ refl—↠⋆          = refl—↠⋆
-Π—↠⋆ (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-Π p) (Π—↠⋆ q)
+Π—↠⋆ (trans—↠⋆ p q) = trans—↠⋆ (ξ-Π p) (Π—↠⋆ q)
 
 ξ-·₁' : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
   → L —↠⋆ L′
     -----------------
   → L · M —↠⋆ L′ · M
 ξ-·₁' refl—↠⋆ = refl—↠⋆
-ξ-·₁' (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-·₁ p) (ξ-·₁' q)
+ξ-·₁' (trans—↠⋆ p q) = trans—↠⋆ (ξ-·₁ p) (ξ-·₁' q)
 
 ξ-·₂' : ∀ {Γ K J} {L : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
+  → Value⋆ L
   → M —↠⋆ M′
     -----------------
   → L · M —↠⋆ L · M′
-ξ-·₂' refl—↠⋆ = refl—↠⋆
-ξ-·₂' (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-·₂ p) (ξ-·₂' q)
+ξ-·₂' _ refl—↠⋆ = refl—↠⋆
+ξ-·₂' VL (trans—↠⋆ p q) = trans—↠⋆ (ξ-·₂ p) (ξ-·₂' VL q)
 
-ξ-⇒' : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
+ξ-⇒₁' : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
     → S —↠⋆ S'
+      -----------------------------------
+    → (S ⇒ T) —↠⋆ (S' ⇒ T)
+ξ-⇒₁' refl—↠⋆        = refl—↠⋆
+ξ-⇒₁' (trans—↠⋆ p q) = trans—↠⋆ (ξ-⇒₁ p) (ξ-⇒₁' q)
+
+ξ-⇒₂' : ∀ {Φ} {S : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
+    → Value⋆ S
     → T —↠⋆ T'
       -----------------------------------
-    → (S ⇒ T) —↠⋆ (S' ⇒ T')
-ξ-⇒' refl—↠⋆          refl—↠⋆          = refl—↠⋆
-ξ-⇒' refl—↠⋆          (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-⇒₂ p) (ξ-⇒' refl—↠⋆ q)
-ξ-⇒' (trans—↠⋆ L p q) r                = trans—↠⋆ _ (ξ-⇒₁ p) (ξ-⇒' q r)
+    → (S ⇒ T) —↠⋆ (S ⇒ T')
+ξ-⇒₂' VS refl—↠⋆ = refl—↠⋆
+ξ-⇒₂' VS (trans—↠⋆ p q) = trans—↠⋆ (ξ-⇒₂ VS p) (ξ-⇒₂' VS q)
 
 ξ-con' : ∀{Φ}
   → {tcn : TyCon}
@@ -174,13 +183,13 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     ------------------
   → con tcn s —↠⋆ con tcn s'
 ξ-con' refl—↠⋆          = refl—↠⋆
-ξ-con' (trans—↠⋆ L p q) = trans—↠⋆ _ (ξ-con p) (ξ-con' q)
+ξ-con' (trans—↠⋆ p q) = trans—↠⋆ (ξ-con p) (ξ-con' q)
 
 -- like concatenation for lists
 -- the ordinary trans is like cons
 trans—↠⋆' : ∀{Γ J}{L M N : Γ ⊢⋆ J} → L —↠⋆ M → M —↠⋆ N → L —↠⋆ N
 trans—↠⋆' refl—↠⋆ p = p
-trans—↠⋆' (trans—↠⋆ L p q) r = trans—↠⋆ L p (trans—↠⋆' q r)
+trans—↠⋆' (trans—↠⋆ p q) r = trans—↠⋆ p (trans—↠⋆' q r)
 \end{code}
 
 \begin{code}
@@ -202,7 +211,11 @@ progress⋆ μ1      = done (N- N-μ1)
 progress⋆ (Π M)   with progress⋆ M
 progress⋆ (Π M) | step p = step (ξ-Π p)
 progress⋆ (Π M) | done p = done (V-Π p)
-progress⋆ (M ⇒ N) = done _V-⇒_
+progress⋆ (M ⇒ N) with progress⋆ M
+progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
+progress⋆ (M ⇒ N) | done VM with progress⋆ N
+progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
+progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
 progress⋆ (ƛ M)   = done V-ƛ_
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
@@ -233,8 +246,8 @@ renameValue⋆ : ∀ {Φ Ψ}
   → Value⋆ A
     -------------------
   → Value⋆ (rename ρ A)
-renameValue⋆ ρ (V-Π N)      = V-Π renameValue⋆ (ext ρ) N
-renameValue⋆ ρ _V-⇒_     = _V-⇒_
+renameValue⋆ ρ (V-Π N)   = V-Π renameValue⋆ (ext ρ) N
+renameValue⋆ ρ (M V-⇒ N) = renameValue⋆ ρ M V-⇒ renameValue⋆ ρ N
 renameValue⋆ ρ V-ƛ_      = V-ƛ_
 renameValue⋆ ρ (N- N)    = N- (renameNeutral⋆ ρ N)
 renameValue⋆ ρ V-size    = V-size
@@ -280,12 +293,12 @@ rename—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
     -------------------------
   → rename ρ A —→⋆ rename ρ B
 rename—→⋆ ρ (ξ-⇒₁ p)               = ξ-⇒₁ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-⇒₂ p)            = ξ-⇒₂ (rename—→⋆ ρ p)
+rename—→⋆ ρ (ξ-⇒₂ VM p)            = ξ-⇒₂ (renameValue⋆ ρ VM) (rename—→⋆ ρ p)
 rename—→⋆ ρ (ξ-·₁ p)               = ξ-·₁ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-·₂ p)             = ξ-·₂ (rename—→⋆ ρ p)
-rename—→⋆ ρ (ξ-Π p)             = ξ-Π (rename—→⋆ (ext ρ) p)
-rename—→⋆ ρ (ξ-ƛ p)             = ξ-ƛ (rename—→⋆ (ext ρ) p)
-rename—→⋆ ρ (β-ƛ {N = M}{W = N}) =
+rename—→⋆ ρ (ξ-·₂ p)               = ξ-·₂ (rename—→⋆ ρ p)
+rename—→⋆ ρ (ξ-Π p)                = ξ-Π (rename—→⋆ (ext ρ) p)
+rename—→⋆ ρ (ξ-ƛ p)                = ξ-ƛ (rename—→⋆ (ext ρ) p)
+rename—→⋆ ρ (β-ƛ {N = M}{W = N})   =
   substEq (λ X → rename ρ ((ƛ M) · N) —→⋆ X)
           (trans (sym (subst-rename M))
                  (trans (subst-cong (rename-subst-cons ρ N) M)
@@ -295,13 +308,14 @@ rename—→⋆ ρ (ξ-con p)              = ξ-con (rename—→⋆ ρ p)
 \end{code}
 
 \begin{code}
+{-
 subst—→⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (σ : Sub Φ Ψ)
   → A —→⋆ B
     ----------------------------
   → subst σ A —→⋆ subst σ B
 subst—→⋆ σ (ξ-⇒₁ p)               = ξ-⇒₁ (subst—→⋆ σ p)
-subst—→⋆ σ (ξ-⇒₂ p)            = ξ-⇒₂ (subst—→⋆ σ p)
+subst—→⋆ σ (ξ-⇒₂ VM p)            = ξ-⇒₂ (substValue⋆ σ VM) (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-·₁ p)               = ξ-·₁ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-·₂ p)             = ξ-·₂ (subst—→⋆ σ p)
 subst—→⋆ σ (ξ-Π p)             = ξ-Π (subst—→⋆ (exts σ) p)
@@ -313,6 +327,7 @@ subst—→⋆ σ (β-ƛ {N = M}{W = N}) =
                         (subst-comp  M)))
           (β-ƛ {N = subst (exts σ) M}{W = subst σ N})
 subst—→⋆ ρ (ξ-con p)              = ξ-con (subst—→⋆ ρ p)
+-}
 \end{code}
 
 \begin{code}
@@ -322,19 +337,21 @@ rename—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
     ------------------------------
   → rename ρ A —↠⋆ rename ρ B
 rename—↠⋆ ρ refl—↠⋆          = refl—↠⋆
-rename—↠⋆ ρ (trans—↠⋆ L p q) =
-  trans—↠⋆ (rename ρ L) (rename—→⋆ ρ p) (rename—↠⋆ ρ q)
+rename—↠⋆ ρ (trans—↠⋆ p q) =
+  trans—↠⋆ (rename—→⋆ ρ p) (rename—↠⋆ ρ q)
 \end{code}
 
 \begin{code}
+{-
 subst—↠⋆ : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (σ : Sub Φ Ψ)
   → A —↠⋆ B
     ----------------------------
   → subst σ A —↠⋆ subst σ B
 subst—↠⋆ σ refl—↠⋆          = refl—↠⋆
-subst—↠⋆ σ (trans—↠⋆ L p q) =
-  trans—↠⋆ (subst σ L) (subst—→⋆ σ p) (subst—↠⋆ σ q)
+subst—↠⋆ σ (trans—↠⋆ p q) =
+  trans—↠⋆ (subst—→⋆ σ p) (subst—↠⋆ σ q)
+-}
 \end{code}
 
 
