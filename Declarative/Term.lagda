@@ -130,7 +130,8 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 
   wrap1 : ∀{Γ K}
    → (pat : ∥ Γ ∥ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
-   → (arg : ∥ Γ ∥ ⊢⋆ K)
+
+→ (arg : ∥ Γ ∥ ⊢⋆ K)
    → (term : Γ ⊢ pat · (μ1 · pat) · arg)
    → Γ ⊢ μ1 · pat · arg
 

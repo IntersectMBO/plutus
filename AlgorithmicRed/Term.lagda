@@ -105,16 +105,24 @@ A —Nf→⋆ N = Σ (_ ⊢⋆ _) λ A' → (A —→⋆ A') × Value⋆ A' × e
 -- value predicate and normal forms coincide
 
 val2nf : ∀{Γ K}{A : Γ ⊢⋆ K} → Value⋆ A → Σ (Γ ⊢Nf⋆ K) λ N → embNf N ≡ A
+neu2nen : ∀{Γ K}{A : Γ ⊢⋆ K} → Neutral⋆ A → Σ (Γ ⊢NeN⋆ K) λ N → embNeN N ≡ A
+
 val2nf (V-Π VN) with val2nf VN
 ... | N ,, q = Π N ,, cong Π q
 val2nf (VM V-⇒ VN) with val2nf VM | val2nf VN
 ... | M ,, p | N ,, q = M ⇒ N ,, cong₂ _⇒_ p q
 val2nf (V-ƛ VN) with val2nf VN
 ... | N ,, p = ƛ N ,, cong ƛ p
-val2nf (N- x) = {!!}
-val2nf V-size = {!!}
-val2nf (V-con x) = {!!}
+val2nf (N- VN) with neu2nen VN
+... | N ,, p = ne N ,, p
+val2nf V-size = size⋆ _ ,, refl 
+val2nf (V-con {tcn = tcn} vs) with val2nf vs
+... | s ,, p = con tcn s ,, cong (con tcn) p
 
+neu2nen N-μ1 = _ ,, refl
+neu2nen (N-· NA VB) with neu2nen NA | val2nf VB
+... | A ,, p | B ,, q = A · B ,, cong₂ _·_ p q
+neu2nen N-` = _ ,, refl
 infix 4 _—Nf→⋆_
 
 Tel : ∀ Γ Δ → (∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
