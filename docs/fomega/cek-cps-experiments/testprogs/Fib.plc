@@ -1,0 +1,73 @@
+-- Preprocess this file with 'gpp -DARG=20 -DSIZE=4' to calculate fib(20), for example.
+-- SIZE is the size of integers to use.
+
+#ifndef ARG
+#define ARG 10
+#endif
+
+#ifndef SIZE
+#define SIZE 30
+#endif
+
+#define Int [(con integer) (con SIZE)]
+#define Bool (all E (type) (fun E (fun E E)))
+#define True  (abs E (type) (lam x1 E (lam y1 E x1)))
+#define False (abs E (type) (lam x2 E (lam y2 E y2)))
+#define Unit  (all E (type) (fun E E))
+#define One   (abs E (type) (lam u E u))
+
+(program 1.0.0
+
+ [{ { (abs T (type)
+  (abs U (type)
+   (lam f (fun (fun T U) (fun T U))
+   [
+      (lam p (fix A (fun A (fun T U)))
+        [f (lam a T [(unwrap p) p a])])
+      (wrap Q (fun Q (fun T U)) 
+        (lam q (fix A (fun A (fun T U)))
+          [f (lam b T [(unwrap q) q b])])
+      )
+   ]
+  )
+  )
+ ) Int }
+ Int }
+(lam fib (fun Int Int) 
+    (lam n Int
+    [ { 
+        [{(builtin lessThanEqualsInteger) (con SIZE)} n (con SIZE ! 2)] -- if n <= 2 
+        (fun Unit Int)
+        -- Comparison returns a bool: (all A (type) (fun A (fun A A))). 
+        -- Instantiate this at A = Int so we can apply it to the banches
+      }
+	  (lam u Unit (con SIZE ! 1)) -- then 1
+	  (lam u Unit
+            [{(builtin addInteger) (con SIZE)} 
+              [fib [{(builtin subtractInteger) (con SIZE)} 
+                     n 
+                     (con SIZE ! 1)
+                   ]
+              ]
+              [fib [{(builtin subtractInteger) (con SIZE)} 
+                     n 
+                     (con SIZE ! 2)
+                   ]
+              ]
+           ]
+	  )
+	  One
+    ]
+    ))
+(con SIZE ! ARG)
+]
+)
+
+{-
+fix XXX A M = 
+ [
+  (unwrap (wrap (fun a A) (lam y (fix a (fun a A)) [[(unwrap y) y]/XXX]M)))
+  (wrap (fun a A) (lam y (fix a (fun a A)) [[(unwrap y) y]/XXX]M))
+ ]
+-}
+
