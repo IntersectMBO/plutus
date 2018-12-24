@@ -19,7 +19,7 @@ program and runs each of them with a sequence of inputs.
 
 * `testprogs/`: the test programs
 
-* `results/`: the output
+* `results/`: the results of the experiments
 
 * `r/`: R scripts for generating graphs from the test results.
 
