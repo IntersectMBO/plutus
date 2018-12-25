@@ -140,6 +140,7 @@ lookupTyName name =
 {- Note [Normalization]
 Normalization works under the assumption that variables are globally unique.
 We use environments instead of substitutions as they're more efficient.
+
 Since all names are unique and there is no need to track scopes, type normalization has only two
 interesting cases: function application and a variable usage. In the function application case we
 normalize a function and its argument, add the normalized argument to the environment and continue

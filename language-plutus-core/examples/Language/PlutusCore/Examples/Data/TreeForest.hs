@@ -140,8 +140,6 @@ getBuiltinTreeForest = do
     let vA = TyVar () a
         vR = TyVar () r
         recSpine = [TyVar () treeForest, vA]
---     Normalized tree   <- normalizeTypeDown $ mkIterTyApp () asTree   recSpine
---     Normalized forest <- normalizeTypeDown $ mkIterTyApp () asForest recSpine
     let tree   = mkIterTyApp () asTree   recSpine
         forest = mkIterTyApp () asForest recSpine
     body <- rename
@@ -159,7 +157,6 @@ getBuiltinTree = do
     RecursiveType treeForest wrapTreeForest <- getBuiltinTreeForest
     treeTag <- getTreeTag
     asTree  <- getAsTree
---     Normalized tree <- normalizeTypeDown $ TyApp () asTree treeForest
     let tree = TyApp () asTree treeForest
     return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
@@ -168,7 +165,6 @@ getBuiltinForest = do
     RecursiveType treeForest wrapTreeForest <- getBuiltinTreeForest
     forestTag <- getForestTag
     asForest  <- getAsForest
---     Normalized forest <- normalizeTypeDown $ TyApp () asForest treeForest
     let forest = TyApp () asForest treeForest
     return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
 

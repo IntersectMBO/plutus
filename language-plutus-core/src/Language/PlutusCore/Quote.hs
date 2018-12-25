@@ -120,11 +120,11 @@ collectTypeUniques :: (HasUnique (tyname a) TypeUnique) => Type tyname a -> Set.
 collectTypeUniques = cata f where
     f = \case
         TyVarF _ tn        -> Set.singleton (tn ^. unique . coerced)
-        TyIFixF _ pat arg  -> pat <> arg
         TyForallF _ tn _ t -> Set.insert (tn ^. unique . coerced) t
         TyLamF _ tn _ t    -> Set.insert (tn ^. unique . coerced) t
         TyAppF _ t1 t2     -> t1 <> t2
         TyFunF _ t1 t2     -> t1 <> t2
+        TyIFixF _ pat arg  -> pat <> arg
         _                  -> mempty
 
 collectTermUniques :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) => Term tyname name a -> Set.Set Unique
@@ -132,10 +132,10 @@ collectTermUniques = cata f where
     f = \case
         VarF _ n           -> Set.singleton (n ^. unique . coerced)
         LamAbsF _ n ty t   -> Set.insert (n ^. unique . coerced) (collectTypeUniques ty <> t)
-        IWrapF _ pat arg t -> collectTypeUniques pat <> collectTypeUniques arg <> t
         TyAbsF _ tn _ t    -> Set.insert (tn ^. unique . coerced) t
         TyInstF _ t ty     -> t <> collectTypeUniques ty
         ApplyF _ t1 t2     -> t1 <> t2
+        IWrapF _ pat arg t -> collectTypeUniques pat <> collectTypeUniques arg <> t
         UnwrapF _ t        -> t
         ErrorF _ ty        -> collectTypeUniques ty
         _                  -> mempty

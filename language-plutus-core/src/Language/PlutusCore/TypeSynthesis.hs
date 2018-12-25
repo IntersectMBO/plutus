@@ -156,17 +156,6 @@ runTypeCheckM :: TypeConfig
 runTypeCheckM typeConfig tc =
     runReaderT tc typeConfig
 
-indexOfPatternFunctor :: a -> Type TyNameWithKind a -> TypeCheckM a (Kind ())
-indexOfPatternFunctor ann pat = do
-    patKind <- kindOf pat
-    case patKind of
-        KindArrow _ (KindArrow _ k (Type _)) (KindArrow () k' (Type ())) ->
-            if k == k'
-                then return k
-                else throwError $ PatternFunctorIndexMismatch ann (void pat) patKind k k'
-        _                                                                ->
-            throwError $ PatternFunctorWrongKind ann (void pat) patKind
-
 -- | Extract kind information from a type.
 kindOf :: Type TyNameWithKind a -> TypeCheckM a (Kind ())
 kindOf TyInt{} = pure (Size ())
@@ -181,12 +170,12 @@ kindOf (TyLam _ _ argK body) = KindArrow () (void argK) <$> kindOf body
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = pure $ kindOfTypeBuiltin b
 
--- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]
--- --------------------------------------------------------
+-- [infer| arg :: k]    [check| pat :: (k -> *) -> k -> *]
+-- -------------------------------------------------------
 -- [infer| ifix pat arg :: *]
 kindOf (TyIFix x pat arg) = do
-    k <- indexOfPatternFunctor x pat
-    kindCheckM x arg k
+    k <- kindOf arg
+    kindCheckPatternFunctorM x pat k
     pure $ Type ()
 
 -- [infer| fun :: dom -> cod]    [check | arg :: dom]
@@ -199,6 +188,15 @@ kindOf (TyApp x fun arg) = do
             kindCheckM x arg dom
             pure cod
         _ -> throwError $ KindMismatch x (void fun) (KindArrow () dummyKind dummyKind) funKind
+
+-- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
+kindCheckPatternFunctorM
+    :: ann
+    -> Type TyNameWithKind ann  -- ^ A pattern functor.
+    -> Kind ()                  -- ^ @k@.
+    -> TypeCheckM ann ()
+kindCheckPatternFunctorM ann pat k =
+    kindCheckM ann pat $ KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
 
 -- | Check a 'Type' against a 'Kind'.
 kindCheckM :: a -> Type TyNameWithKind a -> Kind () -> TypeCheckM a ()
@@ -341,17 +339,16 @@ typeOf (Unwrap x term) = do
             unfoldFixOf (NormalizedType vPat) (NormalizedType vArg) k
         _                  -> throwError (TypeMismatch x (void term) (TyIFix () dummyType dummyType) vTermTy)
 
--- [infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]    pat ~>? vPat    arg ~>? vArg
+-- [infer| arg :: k]    [check| pat :: (k -> *) -> k -> *]    pat ~>? vPat    arg ~>? vArg
 -- [check| term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
--- ----------------------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------------------
 -- [infer| iwrap pat arg term : ifix vPat vArg]
 typeOf (IWrap x pat arg term) = do
-    k <- indexOfPatternFunctor x pat
-    kindCheckM x arg k
+    k <- kindOf arg
+    kindCheckPatternFunctorM x pat k
     vPat <- normalizeTypeOptTcm $ void pat
     vArg <- normalizeTypeOptTcm $ void arg
-    unfoldedFix <- unfoldFixOf vPat vArg  k
-    typeCheckM x term unfoldedFix
+    typeCheckM x term =<< unfoldFixOf vPat vArg k
     return $ TyIFix () <$> vPat <*> vArg
 
 -- | Check a 'Term' against a 'NormalizedType'.
@@ -377,7 +374,6 @@ unfoldFixOf pat arg k = do
     let vPat = getNormalizedType pat
         vArg = getNormalizedType arg
     a <- liftQuote $ TyNameWithKind <$> freshTyName ((), k) "a"
-    -- TODO: we previously called 'substituteNormalizeTypeTcm' here.
     normalizeTypeTcm $
         foldl' (TyApp ()) vPat
             [ TyLam () a k . TyIFix () vPat $ TyVar () a

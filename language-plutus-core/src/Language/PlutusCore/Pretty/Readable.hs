@@ -12,6 +12,7 @@
 
 module Language.PlutusCore.Pretty.Readable
     ( RenderContext (..)
+    , ShowKinds (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
     , PrettyReadable
@@ -54,11 +55,16 @@ data RenderContext = RenderContext
     , _rcDirection :: Direction
     }
 
+data ShowKinds
+    = ShowKindsYes
+    | ShowKindsNo
+    deriving (Show, Eq)
+
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable
     { _pcrConfigName    :: configName
     , _pcrRenderContext :: RenderContext
-    , _pcrShowKinds     :: Bool
+    , _pcrShowKinds     :: ShowKinds
     }
 
 instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigReadable configName) where
@@ -96,11 +102,11 @@ topApp :: Fixity
 topApp = Fixity 13 NonAssociative
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'topApp'.
-topPrettyConfigReadable :: configName -> Bool -> PrettyConfigReadable configName
+topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 topPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext topApp Forward
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'botApp'.
-botPrettyConfigReadable :: configName -> Bool -> PrettyConfigReadable configName
+botPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 botPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext botApp Forward
 
 -- | Set the 'RenderContext' of a 'PrettyConfigReadable'.
@@ -208,12 +214,13 @@ arrowDoc
 arrowDoc config a b =
     compoundDoc config arrowApp $ \arrLeft arrRight -> arrLeft a <+> "->" <+> arrRight b
 
+-- | Pretty-print a binding at the type level.
 prettyTypeBinding
     :: PrettyReadableBy configName (tyname a)
     => PrettyConfigReadable configName -> tyname a -> Kind a -> Doc ann
 prettyTypeBinding config name kind
-    | _pcrShowKinds config = parens $ prName <+> "::" <+> prettyInBotBy config kind
-    | otherwise            = prName
+    | _pcrShowKinds config == ShowKindsYes = parens $ prName <+> "::" <+> prettyInBotBy config kind
+    | otherwise                            = prName
     where prName = prettyBy config name
 
 instance PrettyBy (PrettyConfigReadable configName) (Kind a) where

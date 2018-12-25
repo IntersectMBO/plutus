@@ -48,6 +48,7 @@ library
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
         Language.PlutusCore.Check.Uniques
+        Language.PlutusCore.FsTree
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -59,6 +60,7 @@ library
         Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Meta.Data.Tuple
         Language.PlutusCore.StdLib.Type
+        Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test

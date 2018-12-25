@@ -36,7 +36,7 @@ data Frame
     | FrameApplyArg (Term TyName Name ())             -- ^ @[_ N]@
     | FrameTyInstArg (Type TyName ())                 -- ^ @{_ A}@
     | FrameUnwrap                                     -- ^ @(unwrap _)@
-    | FrameWrap () (Type TyName ()) (Type TyName ())  -- ^ @(wrap pat arg _)@
+    | FrameWrap () (Type TyName ()) (Type TyName ())  -- ^ @(wrap A B _)@
 
 type Context = [Frame]
 

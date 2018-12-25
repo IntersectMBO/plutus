@@ -1,6 +1,6 @@
 # Holed types
 
-This document elaborates how we did things previously, but then we found a better way, so what is fescribed here no longer applies to the code base. We keep the document however, because a note in the code, explaining how everything gets complicated if you choose a wrong encoding of data types, refers t it.
+This document elaborates how we did things previously, but then we found a better way, so what is described here no longer applies to the code base. We keep the document however, because it's referenced by a note in the code explaining how everything gets complicated if you choose a wrong encoding of data types.
 
 ## Preface
 

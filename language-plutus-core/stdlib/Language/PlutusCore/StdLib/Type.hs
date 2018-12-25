@@ -420,20 +420,23 @@ data RecursiveType ann = RecursiveType
     , _recursiveWrap :: [Type TyName ann] -> Term TyName Name ann -> Term TyName Name ann
     }
 
-data IndicesLengthsMismatchError = IndicesLengthsMismatchError
-    { _indicesLengthsMismatchErrorExpected :: Int
-    , _indicesLengthsMismatchErrorActual   :: Int
-    , _indicesLengthsMismatchErrorTyName   :: TyName ()
+-- | This exception is thrown when @_recursiveWrap@ is applied to a spine which length
+-- is not equal to the length of the spine that @_recursiveType@ contains.
+-- This can only happen if someone writing/generating Plutus Core made a mistake.
+data IndicesLengthsMismatchException = IndicesLengthsMismatchException
+    { _indicesLengthsMismatchExceptionExpected :: Int
+    , _indicesLengthsMismatchExceptionActual   :: Int
+    , _indicesLengthsMismatchExceptionTyName   :: TyName ()
     } deriving (Typeable)
 
-instance Show IndicesLengthsMismatchError where
-    show (IndicesLengthsMismatchError expected actual tyName) = concat
+instance Show IndicesLengthsMismatchException where
+    show (IndicesLengthsMismatchException expected actual tyName) = concat
         [ "Wrong number of elements\n"
         , "expected: ", show expected, " , actual: ", show actual, "\n"
         , "while constructing a ", prettyPlcDefString tyName
         ]
 
-instance Exception IndicesLengthsMismatchError
+instance Exception IndicesLengthsMismatchException
 
 -- |
 --
@@ -540,7 +543,7 @@ getWrap ann name argVars patBody = do
             argsLen = length args
             in if argVarsLen == argsLen
                 then IWrap ann pat1 . toSpine $ zipWith instVar argVars args
-                else throw . IndicesLengthsMismatchError argVarsLen argsLen $ void name
+                else throw . IndicesLengthsMismatchException argVarsLen argsLen $ void name
 
 makeRecursiveType :: WithData ann (RecursiveType ann)
 makeRecursiveType ann name argVars patBody =

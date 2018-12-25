@@ -1,0 +1,1 @@
+ifix (\(rec :: (* -> *) -> *) -> \(spine :: * -> *) -> spine ((\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) (rec (\(dat :: *) -> dat)))) (\(dat :: *) -> dat)
