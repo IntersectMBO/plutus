@@ -27,7 +27,10 @@ module Language.PlutusTx.Prelude (
     ByteString,
     sha2_256,
     sha3_256,
-    equalsByteString
+    equalsByteString,
+    takeByteString,
+    dropByteString,
+    concatenate
     ) where
 
 import           Data.ByteString.Lazy       (ByteString)        
@@ -220,3 +223,15 @@ sha3_256 = [|| Builtins.sha3_256 ||]
 -- | Check if two 'ByteString's are equal
 equalsByteString :: Q (TExp (ByteString -> ByteString -> Bool))
 equalsByteString = [|| Builtins.equalsByteString ||]
+
+-- | Returns the n length prefix of a 'ByteString'
+takeByteString :: Q (TExp (Int -> ByteString -> ByteString))
+takeByteString = [|| Builtins.takeByteString ||]
+
+-- | Returns the suffix of a 'ByteString' after n elements
+dropByteString :: Q (TExp (Int -> ByteString -> ByteString))
+dropByteString = [|| Builtins.dropByteString ||]
+
+-- | Concatenates two 'ByteString's together.
+concatenate :: Q (TExp (ByteString -> ByteString -> ByteString))
+concatenate = [|| Builtins.concatenate ||]
