@@ -411,11 +411,6 @@ This data type is a content of a contract \emph{Data Script}
 
 \begin{code}
 
-data MarloweData = MarloweData {
-        marloweState :: State,
-        marloweContract :: Contract
-    }
-makeLift ''MarloweData
 
 \end{code}
 
@@ -430,113 +425,7 @@ makeLift ''MarloweData
 
 marloweValidator :: ValidatorScript
 marloweValidator = ValidatorScript result where
-    result = Ledger.fromCompiledCode $$(PlutusTx.compile [|| \
-        (input@(Input _ _ inputChoices :: Input), MarloweData expectedState expectedContract)
-        (_ :: Input, MarloweData{..} :: MarloweData)
-        (pendingTx@ PendingTx{ pendingTxBlockHeight } :: PendingTx ValidatorHash) -> let
-
-        eqPk :: PubKey -> PubKey -> Bool
-        eqPk = $$(Validation.eqPubKey)
-
-        eqIdentCC :: IdentCC -> IdentCC -> Bool
-        eqIdentCC (IdentCC a) (IdentCC b) = a == b
-
-        not :: Bool -> Bool
-        not = $$(PlutusTx.not)
-
-        infixr 3 &&
-        (&&) :: Bool -> Bool -> Bool
-        (&&) = $$(PlutusTx.and)
-
-        infixr 3 ||
-        (||) :: Bool -> Bool -> Bool
-        (||) = $$(PlutusTx.or)
-
-        null :: [a] -> Bool
-        null [] = True
-        null _  = False
-
-        reverse :: [a] -> [a]
-        reverse l =  rev l [] where
-                rev []     a = a
-                rev (x:xs) a = rev xs (x:a)
-
-        -- it's quadratic, I know. We'll have Sets later
-        mergeChoices :: [Choice] -> [Choice] -> [Choice]
-        mergeChoices input choices = case input of
-            choice : rest | notElem eqChoice choices choice -> mergeChoices rest (choice : choices)
-                          | otherwise -> mergeChoices rest choices
-            [] -> choices
-          where
-            eqChoice :: Choice -> Choice -> Bool
-            eqChoice ((IdentChoice id1, p1), _) ((IdentChoice id2, p2), _) = id1 == id2 && p1 `eqPk` p2
-
-
-        eqValue :: Value -> Value -> Bool
-        eqValue = $$(equalValue)
-
-        eqObservation :: Observation -> Observation -> Bool
-        eqObservation = $$(equalObservation) eqValue
-
-        eqContract :: Contract -> Contract -> Bool
-        eqContract = $$(equalContract) eqValue eqObservation
-
-        all :: () -> forall a. (a -> a -> Bool) -> [a] -> [a] -> Bool
-        all _ = go where
-            go _ [] [] = True
-            go eq (a : as) (b : bs) = eq a b && all () eq as bs
-            go _ _ _ = False
-
-        eqCommit :: Commit -> Commit -> Bool
-        eqCommit (id1, (pk1, (NotRedeemed val1 t1))) (id2, (pk2, (NotRedeemed val2 t2))) =
-            id1 `eqIdentCC` id2 && pk1 `eqPk` pk2 && val1 == val2 && t1 == t2
-
-        eqChoice :: Choice -> Choice -> Bool
-        eqChoice ((IdentChoice id1, pk1), c1) ((IdentChoice id2, pk2), c2) =
-            id1 == id2 && c1 == c2 && pk1 `eqPk` pk2
-
-        eqState :: State -> State -> Bool
-        eqState (State commits1 choices1) (State commits2 choices2) =
-            all () eqCommit commits1 commits2 && all () eqChoice choices1 choices2
-
-        elem :: (a -> a -> Bool) -> [a] -> a -> Bool
-        elem = realElem
-          where
-            realElem eq (e : ls) a = a `eq` e || realElem eq ls a
-            realElem _ [] _ = False
-
-        notElem :: (a -> a -> Bool) -> [a] -> a -> Bool
-        notElem eq as a = not (elem eq as a)
-
-        validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
-        validateContract = $$(validateContractQ)
-
-        currentBlockNumber :: Int
-        currentBlockNumber = let Height blockNumber = pendingTxBlockHeight in blockNumber
-
-        eval :: Input -> Int -> PendingTx' -> State -> Contract -> (State, Contract, Bool)
-        eval = $$(evaluateContract)
-
-        (_, contractIsValid) = validateContract (ValidatorState [] []) marloweContract
-
-        State currentCommits currentChoices = marloweState
-
-        in if contractIsValid then let
-            -- record Choices from Input into State
-            mergedChoices = mergeChoices (reverse inputChoices) currentChoices
-
-            stateWithChoices = State currentCommits mergedChoices
-
-            (newState::State, newCont::Contract, validated) =
-                eval input currentBlockNumber pendingTx stateWithChoices marloweContract
-
-            allowTransaction = validated
-                && newCont `eqContract` expectedContract
-                && newState `eqState` expectedState
-
-            in if allowTransaction then () else Builtins.error ()
-        else if null currentCommits then () else Builtins.error ()
-        ||])
+    result = Ledger.fromCompiledCode $$(PlutusTx.compile [|| $$(validator) ||])
 
 \end{code}
 \subsection{Marlowe Wallet API}
