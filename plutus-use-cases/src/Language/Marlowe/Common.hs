@@ -28,6 +28,9 @@ import           Prelude                        ( Show(..)
                                                 , Bool(..)
                                                 , Ord(..)
                                                 , Int
+                                                , Maybe(..)
+                                                , Num(..)
+                                                , div
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
@@ -123,6 +126,11 @@ data ValidatorState = ValidatorState {
         payIds :: [IdentPay]
     }
 
+data State = State {
+        stateCommitted  :: [Commit],
+        stateChoices :: [Choice]
+    } deriving (Eq, Ord)
+makeLift ''State
 
 
 makeLift ''IdentCC
@@ -268,4 +276,101 @@ validateContractQ = [|| \state contract -> let
         Choice _ c1 c2 -> checkBoth state c1 c2
         When _ _ c1 c2 -> checkBoth state c1 c2
     in validate state contract
+    ||]
+
+evaluateValue :: Q (TExp (Height -> [OracleValue Int] -> State -> Value -> Int))
+evaluateValue = [|| \pendingTxBlockHeight inputOracles state value -> let
+    infixr 3 &&
+    (&&) :: Bool -> Bool -> Bool
+    (&&) = $$(PlutusTx.and)
+
+    eqPk :: PubKey -> PubKey -> Bool
+    eqPk = $$(Validation.eqPubKey)
+
+    findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> Maybe CCStatus
+    findCommit i@(IdentCC searchId) commits = case commits of
+        (IdentCC id, status) : _ | id == searchId -> Just status
+        _ : xs -> findCommit i xs
+        _ -> Nothing
+
+    fromOracle :: PubKey -> Height -> [OracleValue Int] -> Maybe Int
+    fromOracle pubKey h@(Height blockNumber) oracles = case oracles of
+        OracleValue pk (Height bn) value : _
+            | pk `eqPk` pubKey && bn == blockNumber -> Just value
+        _ : rest -> fromOracle pubKey h rest
+        _ -> Nothing
+
+    fromChoices :: IdentChoice -> PubKey -> [Choice] -> Maybe ConcreteChoice
+    fromChoices identChoice@(IdentChoice id) pubKey choices = case choices of
+        ((IdentChoice i, party), value) : _ | id == i && party `eqPk` pubKey -> Just value
+        _ : rest -> fromChoices identChoice pubKey rest
+        _ -> Nothing
+
+    evalValue :: State -> Value -> Int
+    evalValue state@(State committed choices) value = case value of
+        Committed ident -> case findCommit ident committed of
+            Just (_, NotRedeemed c _) -> c
+            _ -> 0
+        Value v -> v
+        AddValue lhs rhs -> evalValue state lhs + evalValue state rhs
+        MulValue lhs rhs -> evalValue state lhs * evalValue state rhs
+        DivValue lhs rhs def -> do
+            let divident = evalValue state lhs
+            let divisor  = evalValue state rhs
+            let defVal   = evalValue state def
+            if divisor == 0 then defVal else divident `div` divisor
+        ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
+            Just v -> v
+            _ -> evalValue state def
+        ValueFromOracle pubKey def -> case fromOracle pubKey pendingTxBlockHeight inputOracles of
+            Just v -> v
+            _ -> evalValue state def
+
+        in evalValue state value
+    ||]
+
+interpretObservation :: Q (TExp (
+    (State -> Value -> Int)
+    -> Int -> State -> Observation -> Bool))
+interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs -> let
+    not :: Bool -> Bool
+    not = $$(PlutusTx.not)
+
+    infixr 3 &&
+    (&&) :: Bool -> Bool -> Bool
+    (&&) = $$(PlutusTx.and)
+
+    infixr 3 ||
+    (||) :: Bool -> Bool -> Bool
+    (||) = $$(PlutusTx.or)
+
+    eqPk :: PubKey -> PubKey -> Bool
+    eqPk = $$(Validation.eqPubKey)
+
+    isJust :: Maybe a -> Bool
+    isJust = $$(PlutusTx.isJust)
+
+    maybe :: r -> (a -> r) -> Maybe a -> r
+    maybe = $$(PlutusTx.maybe)
+
+    find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
+    find choiceId@(IdentChoice cid) (person) choices = case choices of
+        (((IdentChoice id, party), choice) : _)
+            | cid == id && party `eqPk` person -> Just choice
+        (_ : cs) -> find choiceId person cs
+        _ -> Nothing
+
+    go :: Observation -> Bool
+    go obs = case obs of
+        BelowTimeout n -> blockNumber <= n
+        AndObs obs1 obs2 -> go obs1 && go obs2
+        OrObs obs1 obs2 -> go obs1 || go obs2
+        NotObs obs -> not (go obs)
+        PersonChoseThis choiceId person referenceChoice ->
+            maybe False (== referenceChoice) (find choiceId person choices)
+        PersonChoseSomething choiceId person -> isJust (find choiceId person choices)
+        ValueGE a b -> evalValue state a >= evalValue state b
+        TrueObs -> True
+        FalseObs -> False
+    in go obs
     ||]

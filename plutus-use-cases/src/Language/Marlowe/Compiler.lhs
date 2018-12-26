@@ -384,11 +384,7 @@ makeLift ''Input
 Commits MUST be sorted by expiration time, ascending.
 
 \begin{code}
-data State = State {
-                stateCommitted  :: [Commit],
-                stateChoices :: [Choice]
-            } deriving (Eq, Ord)
-makeLift ''State
+
 
 
 emptyState :: State
@@ -576,52 +572,15 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
 \begin{code}
 
         evalValue :: State -> Value -> Int
-        evalValue state@(State committed choices) value = case value of
-            Committed ident -> case findCommit ident committed of
-                Just (_, NotRedeemed c _) -> c
-                _ -> 0
-            Value v -> v
-            AddValue lhs rhs -> evalValue state lhs + evalValue state rhs
-            MulValue lhs rhs -> evalValue state lhs * evalValue state rhs
-            DivValue lhs rhs def -> do
-                let divident = evalValue state lhs
-                let divisor  = evalValue state rhs
-                let defVal   = evalValue state def
-                if divisor == 0 then defVal else divident `div` divisor
-            ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
-                Just v -> v
-                _ -> evalValue state def
-            ValueFromOracle pubKey def -> case fromOracle pubKey pendingTxBlockHeight inputOracles of
-                Just v -> v
-                _ -> evalValue state def
+        evalValue = $$(evaluateValue) pendingTxBlockHeight inputOracles
 
 \end{code}
 \subsection{Observation Evaluation}
 \begin{code}
 
 
-        interpretObs :: Int -> [OracleValue Int] -> State -> Observation -> Bool
-        interpretObs blockNumber oracles state@(State _ choices) obs = case obs of
-            BelowTimeout n -> blockNumber <= n
-            AndObs obs1 obs2 -> go obs1 && go obs2
-            OrObs obs1 obs2 -> go obs1 || go obs2
-            NotObs obs -> not (go obs)
-            PersonChoseThis choice_id person reference_choice ->
-                maybe False (== reference_choice) (find choice_id person choices)
-            PersonChoseSomething choice_id person -> isJust (find choice_id person choices)
-            ValueGE a b -> evalValue state a >= evalValue state b
-            TrueObs -> True
-            FalseObs -> False
-            where
-                go = interpretObs blockNumber oracles state
-
-                find choiceId@(IdentChoice cid) person choices = case choices of
-                    (((IdentChoice id, party), choice) : _)
-                        | cid == id && party `eqPk` person -> Just choice
-                    (_ : cs) -> find choiceId person cs
-                    _ -> Nothing
-
-
+        interpretObs :: Int -> State -> Observation -> Bool
+        interpretObs = $$(interpretObservation) evalValue
 
         orderTxIns :: PendingTxIn -> PendingTxIn -> (PendingTxIn, PendingTxIn)
         orderTxIns t1 t2 = case t1 of
@@ -639,9 +598,9 @@ Here we check that \emph{IdentCC} and \emph{IdentPay} identifiers are unique.
         eval input state@(State commits oracles) contract = case (contract, input) of
             (When obs timeout con con2, _)
                 | currentBlockNumber > timeout -> eval input state con2
-                | interpretObs currentBlockNumber inputOracles state obs -> eval input state con
+                | interpretObs currentBlockNumber state obs -> eval input state con
 
-            (Choice obs conT conF, _) -> if interpretObs currentBlockNumber inputOracles state obs
+            (Choice obs conT conF, _) -> if interpretObs currentBlockNumber state obs
                 then eval input state conT
                 else eval input state conF
 

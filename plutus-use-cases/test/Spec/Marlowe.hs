@@ -55,6 +55,8 @@ validatorTests = testGroup "Marlowe Validator" [
     testProperty "eqValue is reflective, symmetric, and transitive" checkEqValue,
     testProperty "eqObservation is reflective, symmetric, and transitive" checkEqObservation,
     testProperty "eqContract is reflective, symmetric, and transitive" checkEqContract,
+    testProperty "validateContract is a total function" checkValidateContract,
+    testProperty "interprebObs is a total function" checkInterpretObsTotality,
     testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC
     ]
 
@@ -183,8 +185,16 @@ eqObservation = $$(equalObservation) eqValue
 eqContract :: Contract -> Contract -> Bool
 eqContract = $$(equalContract) eqValue eqObservation
 
-validContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
-validContract = $$(validateContractQ)
+validContract :: ValidatorState -> Contract -> Bool
+validContract state contract = snd ($$(validateContractQ) state contract)
+
+evalValue :: Height -> [OracleValue Int] -> State -> Value -> Int
+evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
+
+interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
+interpretObs inputOracles blockNumber state obs = let
+    ev = evalValue (Height blockNumber) inputOracles
+    in $$(interpretObservation) ev blockNumber state obs
 
 checkEqValue :: Property
 checkEqValue = property $ do
@@ -237,8 +247,33 @@ duplicateIdentCC = property $ do
             (CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256 Null Null)
             Null
 
-        (_, contractIsValid) = validContract (ValidatorState [] []) contract
+        contractIsValid = validContract (ValidatorState [] []) contract
     Hedgehog.assert (not contractIsValid)
+
+checkValidateContract :: Property
+checkValidateContract = property $ do
+    let bounds = Bounds
+            { choiceBounds = Map.fromList [(IdentChoice 1, (400, 444)), (IdentChoice 2, (500, 555))]
+            , oracleBounds = Map.singleton (PubKey 42) (200, 333)
+            }
+
+    let contract = boundedContract (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
+    a <- forAll contract
+    let r = validContract (ValidatorState [] []) a
+    Hedgehog.assert (r || not r)
+
+checkInterpretObsTotality :: Property
+checkInterpretObsTotality = property $ do
+    let bounds = Bounds
+            { choiceBounds = Map.fromList [(IdentChoice 1, (400, 444)), (IdentChoice 2, (500, 555))]
+            , oracleBounds = Map.singleton (PubKey 42) (200, 333)
+            }
+
+    let observation = boundedObservation (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
+    a <- forAll observation
+    let oracleValue = OracleValue (PubKey 42) (Height 1) 256
+    let r = interpretObs [oracleValue] 1 emptyState a
+    Hedgehog.assert (r || not r)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished
