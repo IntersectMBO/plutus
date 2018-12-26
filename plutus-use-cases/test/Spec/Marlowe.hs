@@ -48,7 +48,7 @@ emptyBounds = Bounds Map.empty Map.empty
 
 
 tests :: TestTree
-tests = testGroup "Marlowe" [validatorTests{- , contractsTests -}]
+tests = testGroup "Marlowe" [validatorTests, contractsTests]
 
 validatorTests :: TestTree
 validatorTests = testGroup "Marlowe Validator" [
