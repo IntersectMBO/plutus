@@ -6,21 +6,30 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
 -fno-warn-name-shadowing
 -fno-warn-unused-do-bind #-}
-module Spec.Marlowe(tests) where
+module Spec.Marlowe
+    ( tests
+    )
+where
 
 import           Data.Either                    ( isRight )
 import           Control.Monad                  ( void )
-import Data.Set (Set)
-import qualified Data.Set as Set
-import Data.Map.Strict (Map)
-import qualified Data.Map.Strict as Map
+import           Data.Set                       ( Set )
+import qualified Data.Set                       as Set
+import           Data.Map.Strict                ( Map )
+import qualified Data.Map.Strict                as Map
 
-import           Hedgehog                       ( Gen, Property, Size(..)
+import           Hedgehog                       ( Gen
+                                                , Property
+                                                , Size(..)
                                                 , forAll
                                                 , property
                                                 )
-import qualified Hedgehog.Range as Range
-import Hedgehog.Gen (element, int, choice, sized)
+import qualified Hedgehog.Range                 as Range
+import           Hedgehog.Gen                   ( element
+                                                , int
+                                                , choice
+                                                , sized
+                                                )
 import qualified Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog            ( testProperty
@@ -32,10 +41,9 @@ import qualified Ledger
 import           Ledger.Validation              ( OracleValue(..) )
 import           Wallet                         ( PubKey(..) )
 import           Wallet.Emulator
-import qualified Wallet.Generators             as Gen
-import           Language.Marlowe.Compiler     as Marlowe
-import           Language.Marlowe.Common       as Marlowe
-import           Language.Marlowe.Escrow       as Escrow
+import qualified Wallet.Generators              as Gen
+import           Language.Marlowe               as Marlowe
+import           Language.Marlowe.Escrow        as Escrow
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
 data Bounds = Bounds {

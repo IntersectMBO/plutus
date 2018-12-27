@@ -16,13 +16,6 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
 module Language.Marlowe.Common where
-import           Control.Applicative            ( Applicative(..) )
-import           Control.Monad                  ( Monad(..)
-                                                , void
-                                                )
-import           Control.Monad.Error.Class      ( MonadError(..) )
-import           Data.Maybe                     ( maybeToList )
-import qualified Data.Set                       as Set
 import           Prelude                        ( Show(..)
                                                 , Eq(..)
                                                 , Bool(..)
@@ -35,23 +28,8 @@ import           Prelude                        ( Show(..)
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
-import           Wallet                         ( WalletAPI(..)
-                                                , WalletAPIError
-                                                , throwOtherError
-                                                , signAndSubmit
-                                                , ownPubKeyTxOut
-                                                )
-
-import           Ledger                         ( DataScript(..)
-                                                , Height(..)
+import           Ledger                         ( Height(..)
                                                 , PubKey(..)
-                                                , TxOutRef'
-                                                , TxOut'
-                                                , TxIn'
-                                                , TxOut(..)
-                                                , ValidatorScript(..)
-                                                , scriptTxIn
-                                                , scriptTxOut
                                                 )
 import qualified Ledger                         as Ledger
 import           Ledger.Validation
@@ -65,20 +43,16 @@ import           Language.Haskell.TH            ( Q
 type Timeout = Int
 type Cash = Int
 
-type Person      = PubKey
+type Person = PubKey
 
 newtype IdentCC = IdentCC Int
                deriving (Eq, Ord, Show)
 
-
-
 newtype IdentChoice = IdentChoice Int
                deriving (Eq, Ord, Show)
 
-
 newtype IdentPay = IdentPay Int
                deriving (Eq, Ord, Show)
-
 
 type ConcreteChoice = Int
 
@@ -145,11 +119,6 @@ data MarloweData = MarloweData {
         marloweState :: State,
         marloweContract :: Contract
     }
-makeLift ''MarloweData
-
-makeLift ''Input
-makeLift ''State
-
 
 makeLift ''IdentCC
 makeLift ''IdentChoice
@@ -159,6 +128,10 @@ makeLift ''Value
 makeLift ''Observation
 makeLift ''Contract
 makeLift ''ValidatorState
+makeLift ''MarloweData
+makeLift ''Input
+makeLift ''State
+
 
 eqValidator :: Q (TExp (ValidatorHash -> ValidatorHash -> Bool))
 eqValidator = [|| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r ||]
@@ -603,16 +576,9 @@ validator = [|| \
         eqIdentCC :: IdentCC -> IdentCC -> Bool
         eqIdentCC (IdentCC a) (IdentCC b) = a == b
 
-        not :: Bool -> Bool
-        not = $$(PlutusTx.not)
-
         infixr 3 &&
         (&&) :: Bool -> Bool -> Bool
         (&&) = $$(PlutusTx.and)
-
-        infixr 3 ||
-        (||) :: Bool -> Bool -> Bool
-        (||) = $$(PlutusTx.or)
 
         null :: [a] -> Bool
         null [] = True
@@ -661,14 +627,11 @@ validator = [|| \
         eqState (State commits1 choices1) (State commits2 choices2) =
             all () eqCommit commits1 commits2 && all () eqChoice choices1 choices2
 
-        elem :: (a -> a -> Bool) -> [a] -> a -> Bool
-        elem = realElem
-            where
-            realElem eq (e : ls) a = a `eq` e || realElem eq ls a
-            realElem _ [] _ = False
-
         notElem :: (a -> a -> Bool) -> [a] -> a -> Bool
-        notElem eq as a = not (elem eq as a)
+        notElem eq as a = notel eq as a
+            where
+            notel eq (e : ls) a = if a `eq` e then False else notel eq ls a
+            notel _ [] _ = True
 
         validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
         validateContract = $$(validateContractQ)

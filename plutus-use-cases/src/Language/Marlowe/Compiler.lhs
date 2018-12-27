@@ -343,7 +343,6 @@ import qualified Ledger                         as Ledger
 import Ledger.Validation
 import qualified Ledger.Validation            as Validation
 import qualified Language.PlutusTx.Builtins     as Builtins
-import           Language.PlutusTx.Lift         ( makeLift )
 import Language.Marlowe.Common
 
 

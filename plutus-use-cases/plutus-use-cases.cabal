@@ -42,6 +42,7 @@ library
     Language.PlutusTx.Coordination.Contracts.Game
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
+    Language.Marlowe
     Language.Marlowe.Common
     Language.Marlowe.Compiler
     Language.Marlowe.Escrow
