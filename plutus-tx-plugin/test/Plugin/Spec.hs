@@ -278,6 +278,29 @@ recursiveTypes = testNested "recursiveTypes" [
     , goldenEval "ptreeConstDest" [ getProgram $ ptreeMatch, getProgram $ ptreeConstruct ]
   ]
 
+listConstruct :: PlcCode
+listConstruct = plc @"listConstruct" ([]::[Int])
+
+listConstruct2 :: PlcCode
+listConstruct2 = plc @"listConstruct2" ([1]::[Int])
+
+-- It is very difficult to get GHC to make a non-polymorphic redex if you use
+-- list literal syntax with integers. But this works.
+listConstruct3 :: PlcCode
+listConstruct3 = plc @"listConstruct3" ((1::Int):(2::Int):(3::Int):[])
+
+listMatch :: PlcCode
+listMatch = plc @"listMatch" (\(l::[Int]) -> case l of { (x:_) -> x ; [] -> 0; })
+
+data B a = One a | Two (B (a, a))
+
+ptreeConstruct :: PlcCode
+ptreeConstruct = plc @"ptreeConstruct" (Two (Two (One ((1,2),(3,4)))) :: B Int)
+
+-- TODO: replace this with 'first' when we have working recursive functions
+ptreeMatch :: PlcCode
+ptreeMatch = plc @"ptreeMatch" (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
+
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
     -- currently broken, will come back to this later
@@ -298,6 +321,13 @@ fib = plc @"fib" (
     let fib :: Int -> Int
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
+
+sumDirect :: PlcCode
+sumDirect = plc @"sumDirect" (
+    let sum :: [Int] -> Int
+        sum []     = 0
+        sum (x:xs) = x + sum xs
+    in sum)
 
 evenMutual :: CompiledCode (Int -> Bool)
 evenMutual = plc @"evenMutual" (
