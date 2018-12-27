@@ -119,11 +119,13 @@ data Heap = Heap {
 -- | Stack frames.  These are effectively continuations: would using explicit CPS speed things up?
 -- The spec also has a frame for n-ary built in application, but that's not in the AST yet
 data Frame
-    = FrameAppArg Closure                        -- ^ @[_ N]@       -- Tells the machine that we've got back to N after evaluating M in [M N]
-    | FrameHeapUpdate HeapLoc                    -- ^ @(update l)@  -- Mark the stack for evaluation of a delayed argument
-    | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
-    | FrameUnwrap                                -- ^ @(unwrap _)@
-    | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
+    = FrameAppArg Closure                              -- ^ @[_ N]@
+                                                       -- Tells the machine that we've got back to N after evaluating M in [M N]
+    | FrameHeapUpdate HeapLoc                          -- ^ @(update l)@
+                                                       -- Mark the stack for evaluation of a delayed argument
+    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
+    | FrameUnwrap                                      -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
       deriving (Show)
 
 -- | A context is a stack of frames.
@@ -175,19 +177,19 @@ lookupHeap l (Heap h _) =
 computeL :: EvaluationContext -> Heap -> Closure -> LMachineResult
 computeL ctx heap cl@(Closure term env) =
     case term of
-      TyInst _ fun ty       -> computeL (FrameTyInstArg ty : ctx)                 heap (Closure fun env)
-      Apply _ fun arg       -> computeL (FrameAppArg (Closure arg env) : ctx)     heap (Closure fun env)
-      Wrap ann tyn ty term' -> computeL (FrameWrap ann tyn ty : ctx)              heap (Closure term' env)
-      Unwrap _ term'        -> computeL (FrameUnwrap : ctx)                       heap (Closure term' env)
-      TyAbs{}               -> returnL  ctx heap cl
-      LamAbs{}              -> returnL  ctx heap cl
-      Builtin{}             -> returnL  ctx heap cl
-      Constant{}            -> returnL  ctx heap cl
-      Error{}               -> Failure
-      Var _ name            -> let l = lookupHeapLoc name env
-                               in case lookupHeap l heap of
-                                    Evaluated cl'   -> returnL ctx heap cl'
-                                    Unevaluated cl' -> computeL (FrameHeapUpdate l : ctx) heap cl'
+      TyInst _ fun ty         -> computeL (FrameTyInstArg ty : ctx)             heap (Closure fun env)
+      Apply _ fun arg         -> computeL (FrameAppArg (Closure arg env) : ctx) heap (Closure fun env)
+      IWrap ann pat arg term' -> computeL (FrameIWrap ann pat arg : ctx)        heap (Closure term' env)
+      Unwrap _ term'          -> computeL (FrameUnwrap : ctx)                   heap (Closure term' env)
+      TyAbs{}                 -> returnL  ctx heap cl
+      LamAbs{}                -> returnL  ctx heap cl
+      Builtin{}               -> returnL  ctx heap cl
+      Constant{}              -> returnL  ctx heap cl
+      Error{}                 -> Failure
+      Var _ name              -> let l = lookupHeapLoc name env
+                                 in case lookupHeap l heap of
+                                      Evaluated cl'   -> returnL ctx heap cl'
+                                      Unevaluated cl' -> computeL (FrameHeapUpdate l : ctx) heap cl'
 
 
 -- | Return a closure containing a value. Ideally the fact that we've
@@ -202,10 +204,10 @@ returnL (frame : ctx) heap result@(Closure v env) =
       FrameHeapUpdate l      -> returnL ctx heap' result where heap' = updateHeap l (Evaluated result) heap
       FrameAppArg argClosure -> evaluateFun ctx heap result argClosure
       FrameTyInstArg ty      -> instantiateEvaluate ctx heap ty result
-      FrameWrap ann tyn ty   -> returnL ctx heap $ Closure (Wrap ann tyn ty v) env
+      FrameIWrap ann pat arg -> returnL ctx heap $ Closure (IWrap ann pat arg v) env
       FrameUnwrap            -> case v of
-                                  Wrap _ _ _ t -> returnL ctx heap (Closure t env)
-                                  _            -> throwLMachineException NonWrapUnwrappedMachineError v
+                                  IWrap _ _ _ t -> returnL ctx heap (Closure t env)
+                                  _             -> throwLMachineException NonWrapUnwrappedMachineError v
 
 
 -- | Apply a function to an argument and proceed.
@@ -312,4 +314,3 @@ evaluateL term = translateResult $  internalEvaluateL term
 -- We're not using the dynamic names at the moment, but we'll require them eventually.
 runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
 runL _ (Program _ _ term) = evaluateL term
-

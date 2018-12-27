@@ -32,11 +32,11 @@ data NoDynamicBuiltinNamesMachineError = NoDynamicBuiltinNamesMachineError
 type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
 
 data Frame
-    = FrameApplyFun (Value TyName Name ())            -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name ())             -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName ())                 -- ^ @{_ A}@
-    | FrameUnwrap                                     -- ^ @(unwrap _)@
-    | FrameWrap () (Type TyName ()) (Type TyName ())  -- ^ @(wrap A B _)@
+    = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
+    | FrameApplyArg (Term TyName Name ())              -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
+    | FrameUnwrap                                      -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
 
 type Context = [Frame]
 
@@ -82,7 +82,7 @@ substituteDb varFor new = go where
 (|>) :: Context -> Term TyName Name () -> EvaluationResult
 stack |> TyInst _ fun ty        = FrameTyInstArg ty : stack |> fun
 stack |> Apply _ fun arg        = FrameApplyArg arg : stack |> fun
-stack |> IWrap ann pat arg term = FrameWrap ann pat arg : stack |> term
+stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
 stack |> Unwrap _ term          = FrameUnwrap : stack |> term
 stack |> tyAbs@TyAbs{}          = stack <| tyAbs
 stack |> lamAbs@LamAbs{}        = stack <| lamAbs
@@ -102,12 +102,12 @@ _     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachi
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|) :: Context -> Value TyName Name () -> EvaluationResult
-[]                            <| term    = EvaluationSuccess term
-FrameTyInstArg ty     : stack <| fun     = instantiateEvaluate stack ty fun
-FrameApplyArg arg     : stack <| fun     = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun     : stack <| arg     = applyEvaluate stack fun arg
-FrameWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
-FrameUnwrap           : stack <| wrapped = case wrapped of
+[]                             <| term    = EvaluationSuccess term
+FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
+FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
+FrameApplyFun fun      : stack <| arg     = applyEvaluate stack fun arg
+FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
+FrameUnwrap            : stack <| wrapped = case wrapped of
     IWrap _ _ _ term -> stack <| term
     term             -> throwCkMachineException NonWrapUnwrappedMachineError term
 

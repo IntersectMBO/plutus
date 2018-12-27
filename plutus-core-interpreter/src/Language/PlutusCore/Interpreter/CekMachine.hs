@@ -63,11 +63,11 @@ data CekEnv = CekEnv
 type CekM = ReaderT CekEnv (Either CekMachineException)
 
 data Frame
-    = FrameApplyFun VarEnv (Plain Value)         -- ^ @[V _]@
-    | FrameApplyArg VarEnv (Plain Term)          -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
-    | FrameUnwrap                                -- ^ @(unwrap _)@
-    | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
+    = FrameApplyFun VarEnv (Plain Value)               -- ^ @[V _]@
+    | FrameApplyArg VarEnv (Plain Term)                -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
+    | FrameUnwrap                                      -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
 
 type Context = [Frame]
 
@@ -110,23 +110,23 @@ lookupDynamicBuiltinName dynName = do
 
 -- | The computing part of the CEK machine.
 -- Either
--- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'Wrap', 'Unwrap')
+-- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
 -- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 computeCek :: Context -> Plain Term -> CekM EvaluationResult
-computeCek con (TyInst _ body ty)     = computeCek (FrameTyInstArg ty : con) body
-computeCek con (Apply _ fun arg)      = do
+computeCek con (TyInst _ body ty)       = computeCek (FrameTyInstArg ty : con) body
+computeCek con (Apply _ fun arg)        = do
     varEnv <- getVarEnv
     computeCek (FrameApplyArg varEnv arg : con) fun
-computeCek con (Wrap ann tyn ty term) = computeCek (FrameWrap ann tyn ty : con) term
-computeCek con (Unwrap _ term)        = computeCek (FrameUnwrap : con) term
-computeCek con tyAbs@TyAbs{}          = returnCek con tyAbs
-computeCek con lamAbs@LamAbs{}        = returnCek con lamAbs
-computeCek con constant@Constant{}    = returnCek con constant
-computeCek con bi@Builtin{}           = returnCek con bi
-computeCek _   Error{}                = pure EvaluationFailure
-computeCek con (Var _ varName)        = do
+computeCek con (IWrap ann pat arg term) = computeCek (FrameIWrap ann pat arg : con) term
+computeCek con (Unwrap _ term)          = computeCek (FrameUnwrap : con) term
+computeCek con tyAbs@TyAbs{}            = returnCek con tyAbs
+computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
+computeCek con constant@Constant{}      = returnCek con constant
+computeCek con bi@Builtin{}             = returnCek con bi
+computeCek _   Error{}                  = pure EvaluationFailure
+computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term
 
@@ -146,10 +146,10 @@ returnCek (FrameApplyArg argVarEnv arg : con) fun = do
 returnCek (FrameApplyFun funVarEnv fun : con) arg = do
     argVarEnv <- getVarEnv
     applyEvaluate funVarEnv argVarEnv con fun arg
-returnCek (FrameWrap ann tyn ty        : con) val = returnCek con $ Wrap ann tyn ty val
+returnCek (FrameIWrap ann pat arg      : con) val = returnCek con $ IWrap ann pat arg val
 returnCek (FrameUnwrap                 : con) dat = case dat of
-    Wrap _ _ _ term -> returnCek con term
-    term            -> throwError $ MachineException NonWrapUnwrappedMachineError term
+    IWrap _ _ _ term -> returnCek con term
+    term             -> throwError $ MachineException NonWrapUnwrappedMachineError term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
