@@ -16,7 +16,7 @@ import           Wallet
 
 import           Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8   as C
-  
+
 data HashedString = HashedString ByteString
 
 PlutusTx.makeLift ''HashedString
