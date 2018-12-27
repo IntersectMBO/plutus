@@ -4,7 +4,6 @@
 {-# OPTIONS_GHC   -Wno-orphans #-}
 module Lift.Spec where
 
-import           Plugin.IllTyped
 import           Plugin.Spec
 
 import           Common
