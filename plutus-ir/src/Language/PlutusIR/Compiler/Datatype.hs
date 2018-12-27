@@ -279,10 +279,9 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
           -- see note [Abstract data types]
 {- MERGE CONFLICT
           let caseTypes = fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
-          caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" ++ bsToStr (nameString $ varDeclName c))
 -}
           let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
-          caseArgNames <- for constrs (\c -> liftQuote $ freshName p $ "case_" <> (nameString $ varDeclName c))
+          caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" ++ bsToStr (nameString $ varDeclName c))
           pure $ zipWith (VarDecl p) caseArgNames caseTypes
 
     -- This is inelegant, but it should never fail
