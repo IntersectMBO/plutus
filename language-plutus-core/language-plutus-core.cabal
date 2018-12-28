@@ -48,6 +48,7 @@ library
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
         Language.PlutusCore.Check.Uniques
+        Language.PlutusCore.FsTree
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
