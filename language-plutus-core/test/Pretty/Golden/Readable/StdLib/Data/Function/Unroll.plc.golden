@@ -1,1 +1,1 @@
-/\(a :: *) -> \(s : (\(a :: *) -> ifix (\(self :: * -> *) -> \(a :: *) -> self a -> a) a) a) -> unwrap s s
+/\(a :: *) -> \(s : (\(a :: *) -> ifix (\(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) -> spine ((\(self :: * -> *) -> \(a :: *) -> self a -> a) (\(a :: *) -> rec (\(dat :: * -> *) -> dat a)))) (\(dat :: * -> *) -> dat a)) a) -> unwrap s s

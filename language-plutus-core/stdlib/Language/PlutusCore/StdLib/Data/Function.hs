@@ -16,6 +16,8 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
+import           Language.PlutusCore.StdLib.Type
+
 import           Control.Monad
 
 -- | 'const' as a PLC term.
@@ -34,36 +36,23 @@ getBuiltinConst = do
         . LamAbs () y (TyVar () b)
         $ Var () x
 
--- | @SelfF@ as a PLC type.
---
--- > \(self :: * -> *) (a :: *) -> self a -> a
-getBuiltinSelfF :: Quote (Type TyName ())
-getBuiltinSelfF = do
-    self <- freshTyName () "self"
-    a    <- freshTyName () "a"
-    return
-        . TyLam () self (KindArrow () (Type ()) $ Type ())
-        . TyLam () a (Type ())
-        . TyFun () (TyApp () (TyVar () self) $ TyVar () a)
-        $ TyVar () a
-
 -- | @Self@ as a PLC type.
 --
--- > \(a :: *) -> ifix selfF a
-getBuiltinSelf :: Quote (Type TyName ())
+-- > fix \(self :: * -> *) (a :: *) -> self a -> a
+getBuiltinSelf :: Quote (RecursiveType ())
 getBuiltinSelf = do
-    selfF <- getBuiltinSelfF
-    a     <- freshTyName () "a"
-    return
-        . TyLam () a (Type ())
-        $ TyIFix () selfF (TyVar () a)
+    self <- freshTyName () "self"
+    a    <- freshTyName () "a"
+    makeRecursiveType () self [TyVarDecl () a $ Type ()]
+        . TyFun () (TyApp () (TyVar () self) (TyVar () a))
+        $ TyVar () a
 
 -- | @unroll@ as a PLC term.
 --
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
 getBuiltinUnroll :: Quote (Term TyName Name ())
 getBuiltinUnroll = do
-    self <- getBuiltinSelf
+    self <- _recursiveType <$> getBuiltinSelf
     a <- freshTyName () "a"
     s <- freshName () "s"
     return
@@ -80,8 +69,7 @@ getBuiltinUnroll = do
 -- See @plutus/docs/fomega/z-combinator-benchmarks@ for details.
 getBuiltinFix :: Quote (Term TyName Name ())
 getBuiltinFix = rename =<< do
-    selfF  <- getBuiltinSelfF
-    self   <- getBuiltinSelf
+    RecursiveType self wrapSelf <- getBuiltinSelf
     unroll <- getBuiltinUnroll
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -96,7 +84,7 @@ getBuiltinFix = rename =<< do
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
         . Apply () unrollFunAB
-        . IWrap () selfF funAB
+        . wrapSelf [funAB]
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
         $ mkIterApp () (Var () f)

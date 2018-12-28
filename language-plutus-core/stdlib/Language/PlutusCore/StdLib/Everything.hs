@@ -41,7 +41,7 @@ stdLib =
                   ]
               , treeFolderContents "Function"
                   [ plcTermFile "Const"  getBuiltinConst
-                  -- , Named "Self"   getBuiltinSelf
+                  , plcTypeFile "Self"   $ _recursiveType <$> getBuiltinSelf
                   , plcTermFile "Unroll" getBuiltinUnroll
                   , plcTermFile "Fix"    getBuiltinFix
                   , plcTermFile "Fix2"   $ getBuiltinFixN 2
