@@ -335,7 +335,7 @@ typeOf (Unwrap x term) = do
     vTermTy <- typeOf term
     case getNormalizedType vTermTy of
         TyIFix _ vPat vArg -> do
-            k <- kindOf $ x <$ vArg  -- Looks weird.
+            k <- kindOf $ x <$ vArg
             unfoldFixOf (NormalizedType vPat) (NormalizedType vArg) k
         _                  -> throwError (TypeMismatch x (void term) (TyIFix () dummyType dummyType) vTermTy)
 
