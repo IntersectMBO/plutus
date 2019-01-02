@@ -9,6 +9,9 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
     (let
       (nonrec)
       (termbind
@@ -28,60 +31,50 @@
           )
         )
       )
-      (let
-        (nonrec)
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
+      (lam
+        ds
+        (con integer)
         (lam
           ds
           (con integer)
-          (lam
-            ds
-            (con integer)
-            (let
-              (nonrec)
-              (termbind
-                (vardecl fail (fun (all a (type) (fun Unit a)) Bool))
-                (lam ds (all a (type) (fun Unit a)) False)
-              )
+          (let
+            (nonrec)
+            (termbind
+              (vardecl fail (fun (all a (type) (fun Unit a)) Bool))
+              (lam ds (all a (type) (fun Unit a)) False)
+            )
+            [
               [
                 [
-                  [
-                    {
-                      [ Bool_match [ [ equalsInteger ds ] ds ] ] (fun Unit Bool)
-                    }
-                    (lam
-                      thunk
-                      Unit
-                      [
-                        [
-                          [
-                            {
-                              [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                              (fun Unit Bool)
-                            }
-                            (lam thunk Unit True)
-                          ]
-                          (lam
-                            thunk
-                            Unit
-                            [ fail (abs e (type) (lam thunk Unit (error e))) ]
-                          )
-                        ]
-                        Unit
-                      ]
-                    )
-                  ]
+                  { [ Bool_match [ [ equalsInteger ds ] ds ] ] (fun Unit Bool) }
                   (lam
                     thunk
                     Unit
-                    [ fail (abs e (type) (lam thunk Unit (error e))) ]
+                    [
+                      [
+                        [
+                          {
+                            [ Bool_match [ [ equalsInteger ds ] ds ] ]
+                            (fun Unit Bool)
+                          }
+                          (lam thunk Unit True)
+                        ]
+                        (lam
+                          thunk
+                          Unit
+                          [ fail (abs e (type) (lam thunk Unit (error e))) ]
+                        )
+                      ]
+                      Unit
+                    ]
                   )
                 ]
-                Unit
+                (lam
+                  thunk Unit [ fail (abs e (type) (lam thunk Unit (error e))) ]
+                )
               ]
-            )
+              Unit
+            ]
           )
         )
       )

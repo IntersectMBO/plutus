@@ -4,20 +4,38 @@
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
     (let
       (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-          
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
+      (termbind
+        (vardecl nandDirect (fun Bool (fun Bool Bool)))
+        (lam
+          ds
+          Bool
+          (lam
+            ds
+            Bool
+            [
+              [
+                [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
+                (lam thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ])
+              ]
+              Unit
+            ]
+          )
         )
       )
       (let
         (nonrec)
         (termbind
-          (vardecl nandDirect (fun Bool (fun Bool Bool)))
+          (vardecl andDirect (fun Bool (fun Bool Bool)))
           (lam
             ds
             Bool
@@ -25,36 +43,12 @@
               ds
               Bool
               [
-                [
-                  [
-                    { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False)
-                  ]
-                  (lam thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ])
-                ]
-                Unit
+                [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ]
               ]
             )
           )
         )
-        (let
-          (nonrec)
-          (termbind
-            (vardecl andDirect (fun Bool (fun Bool Bool)))
-            (lam
-              ds
-              Bool
-              (lam
-                ds
-                Bool
-                [
-                  [ nandDirect [ [ nandDirect ds ] ds ] ]
-                  [ [ nandDirect ds ] ds ]
-                ]
-              )
-            )
-          )
-          [ [ andDirect True ] False ]
-        )
+        [ [ andDirect True ] False ]
       )
     )
   )

@@ -3,6 +3,8 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 -- | A guessing game that
 --
 --   * Uses a state machine to keep track of the current secret word
@@ -14,6 +16,7 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , lock
     , gameTokenVal
     , gameValidator
+    , scriptPlc
     ) where
 
 import qualified Data.Map                     as Map
@@ -75,6 +78,9 @@ data GameInput =
     -- ^ Make a guess and lock the remaining funds using a new secret word.
 
 PlutusTx.makeLift ''GameInput
+
+scriptPlc :: PlutusTx.CompiledCode ((GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> Bool)
+scriptPlc = $$(PlutusTx.compile [|| mkValidator ||])
 
 mkValidator :: (GameState, Maybe GameInput) -> (GameState, Maybe GameInput) -> PendingTx -> Bool
 mkValidator ds vs p =

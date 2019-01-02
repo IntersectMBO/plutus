@@ -34,20 +34,43 @@
             )
           )
         )
+        (datatypebind
+          (datatype
+            (tyvardecl Bool (type))
+            
+            Bool_match
+            (vardecl True Bool) (vardecl False Bool)
+          )
+        )
         (let
           (nonrec)
-          (datatypebind
-            (datatype
-              (tyvardecl Bool (type))
-              
-              Bool_match
-              (vardecl True Bool) (vardecl False Bool)
+          (termbind
+            (vardecl nandDirect (fun Bool (fun Bool Bool)))
+            (lam
+              ds
+              Bool
+              (lam
+                ds
+                Bool
+                [
+                  [
+                    [
+                      { [ Bool_match ds ] (fun Unit Bool) }
+                      (lam thunk Unit False)
+                    ]
+                    (lam
+                      thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ]
+                    )
+                  ]
+                  Unit
+                ]
+              )
             )
           )
           (let
             (nonrec)
             (termbind
-              (vardecl nandDirect (fun Bool (fun Bool Bool)))
+              (vardecl andDirect (fun Bool (fun Bool Bool)))
               (lam
                 ds
                 Bool
@@ -55,117 +78,88 @@
                   ds
                   Bool
                   [
-                    [
-                      [
-                        { [ Bool_match ds ] (fun Unit Bool) }
-                        (lam thunk Unit False)
-                      ]
-                      (lam
-                        thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ]
-                      )
-                    ]
-                    Unit
+                    [ nandDirect [ [ nandDirect ds ] ds ] ]
+                    [ [ nandDirect ds ] ds ]
                   ]
                 )
               )
             )
             (let
-              (nonrec)
+              (rec)
               (termbind
-                (vardecl andDirect (fun Bool (fun Bool Bool)))
-                (lam
-                  ds
-                  Bool
+                (vardecl
+                  allDirect
+                  (all a (type) (fun (fun a Bool) (fun [List a] Bool)))
+                )
+                (abs
+                  a
+                  (type)
                   (lam
-                    ds
-                    Bool
-                    [
-                      [ nandDirect [ [ nandDirect ds ] ds ] ]
-                      [ [ nandDirect ds ] ds ]
-                    ]
+                    p
+                    (fun a Bool)
+                    (lam
+                      l
+                      [List a]
+                      [
+                        [ { [ { Nil_match a } l ] Bool } True ]
+                        (lam
+                          h
+                          a
+                          (lam
+                            t
+                            [List a]
+                            [
+                              [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ]
+                            ]
+                          )
+                        )
+                      ]
+                    )
                   )
                 )
               )
               (let
-                (rec)
+                (nonrec)
                 (termbind
                   (vardecl
-                    allDirect
-                    (all a (type) (fun (fun a Bool) (fun [List a] Bool)))
+                    greaterThanInteger
+                    (fun (con integer) (fun (con integer) Bool))
                   )
-                  (abs
-                    a
-                    (type)
-                    (lam
-                      p
-                      (fun a Bool)
-                      (lam
-                        l
-                        [List a]
-                        [
-                          [ { [ { Nil_match a } l ] Bool } True ]
-                          (lam
-                            h
-                            a
-                            (lam
-                              t
-                              [List a]
-                              [
-                                [ andDirect [ p h ] ]
-                                [ [ { allDirect a } p ] t ]
-                              ]
-                            )
-                          )
-                        ]
-                      )
-                    )
-                  )
-                )
-                (let
-                  (nonrec)
-                  (termbind
-                    (vardecl
-                      greaterThanInteger
-                      (fun (con integer) (fun (con integer) Bool))
-                    )
+                  (lam
+                    arg
+                    (con integer)
                     (lam
                       arg
                       (con integer)
-                      (lam
-                        arg
-                        (con integer)
-                        [
-                          (lam
-                            b
-                            (all a (type) (fun a (fun a a)))
-                            [ [ { b Bool } True ] False ]
-                          )
-                          [ [ (builtin greaterThanInteger) arg ] arg ]
-                        ]
-                      )
+                      [
+                        (lam
+                          b
+                          (all a (type) (fun a (fun a a)))
+                          [ [ { b Bool } True ] False ]
+                        )
+                        [ [ (builtin greaterThanInteger) arg ] arg ]
+                      ]
                     )
                   )
-                  [
-                    [
-                      { allDirect (con integer) }
-                      (lam
-                        ds (con integer) [ [ greaterThanInteger ds ] (con 5) ]
-                      )
-                    ]
-                    [
-                      { build (con integer) }
-                      (abs
-                        a
-                        (type)
-                        (lam
-                          c
-                          (fun (con integer) (fun a a))
-                          (lam n a [ [ c (con 7) ] [ [ c (con 6) ] n ] ])
-                        )
-                      )
-                    ]
-                  ]
                 )
+                [
+                  [
+                    { allDirect (con integer) }
+                    (lam ds (con integer) [ [ greaterThanInteger ds ] (con 5) ])
+                  ]
+                  [
+                    { build (con integer) }
+                    (abs
+                      a
+                      (type)
+                      (lam
+                        c
+                        (fun (con integer) (fun a a))
+                        (lam n a [ [ c (con 7) ] [ [ c (con 6) ] n ] ])
+                      )
+                    )
+                  ]
+                ]
               )
             )
           )

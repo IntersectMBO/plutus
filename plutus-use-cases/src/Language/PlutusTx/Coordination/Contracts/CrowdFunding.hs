@@ -20,6 +20,7 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
     , campaignAddress
     -- * Validator script
     , contributionScript
+    , contributionScriptPlc
     , mkCampaign
     ) where
 
@@ -107,6 +108,12 @@ contributionScript cmp  = ValidatorScript $
     $$(Ledger.compileScript [|| mkValidator ||])
         `Ledger.applyScript`
             Ledger.lifted cmp
+
+-- | The validator script that determines whether the campaign owner can
+--   retrieve the funds or the contributors can claim a refund.
+--
+contributionScriptPlc :: PlutusTx.CompiledCode (Campaign -> CrowdfundingValidator)
+contributionScriptPlc = $$(PlutusTx.compile [|| mkValidator ||])
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address

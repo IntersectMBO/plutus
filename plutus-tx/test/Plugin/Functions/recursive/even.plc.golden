@@ -9,6 +9,15 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (termbind
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (builtin subtractInteger)
+    )
     (let
       (nonrec)
       (termbind
@@ -29,76 +38,58 @@
         )
       )
       (let
-        (nonrec)
-        (datatypebind
-          (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-        )
-        (let
-          (nonrec)
-          (termbind
-            (vardecl
-              subtractInteger
-              (fun (con integer) (fun (con integer) (con integer)))
-            )
-            (builtin subtractInteger)
-          )
-          (let
-            (rec)
-            (termbind
-              (vardecl even (fun (con integer) Bool))
-              (lam
-                n
-                (con integer)
+        (rec)
+        (termbind
+          (vardecl even (fun (con integer) Bool))
+          (lam
+            n
+            (con integer)
+            [
+              [
                 [
-                  [
-                    [
-                      {
-                        [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
-                        (fun Unit Bool)
-                      }
-                      (lam thunk Unit True)
-                    ]
-                    (lam
-                      thunk
-                      Unit
-                      (let
-                        (nonrec)
-                        (termbind
-                          (vardecl n (fun Unit (con integer)))
-                          (lam thunk Unit [ [ subtractInteger n ] (con 1) ])
-                        )
-                        [
-                          [
-                            [
-                              {
-                                [
-                                  Bool_match
-                                  [ [ equalsInteger [ n Unit ] ] (con 0) ]
-                                ]
-                                (fun Unit Bool)
-                              }
-                              (lam thunk Unit False)
-                            ]
-                            (lam
-                              thunk
-                              Unit
-                              [
-                                even [ [ subtractInteger [ n Unit ] ] (con 1) ]
-                              ]
-                            )
-                          ]
-                          Unit
-                        ]
-                      )
-                    )
-                  ]
-                  Unit
+                  {
+                    [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                    (fun Unit Bool)
+                  }
+                  (lam thunk Unit True)
                 ]
-              )
-            )
-            even
+                (lam
+                  thunk
+                  Unit
+                  (let
+                    (nonrec)
+                    (termbind
+                      (vardecl n (fun Unit (con integer)))
+                      (lam thunk Unit [ [ subtractInteger n ] (con 1) ])
+                    )
+                    [
+                      [
+                        [
+                          {
+                            [
+                              Bool_match
+                              [ [ equalsInteger [ n Unit ] ] (con 0) ]
+                            ]
+                            (fun Unit Bool)
+                          }
+                          (lam thunk Unit False)
+                        ]
+                        (lam
+                          thunk
+                          Unit
+                          [ even [ [ subtractInteger [ n Unit ] ] (con 1) ] ]
+                        )
+                      ]
+                      Unit
+                    ]
+                  )
+                )
+              ]
+              Unit
+            ]
           )
         )
+        even
       )
     )
   )

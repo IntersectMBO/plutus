@@ -4,7 +4,7 @@
 {-# LANGUAGE LambdaCase       #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
-module Language.PlutusIR.Analysis.Dependencies (Node (..), DepGraph, runTermDeps, runTypeDeps) where
+module Language.PlutusIR.Analysis.Dependencies (Node (..), nodeUnique, DepGraph, runTermDeps, runTypeDeps) where
 
 import qualified Language.PlutusCore               as PLC
 import qualified Language.PlutusCore.Name          as PLC
@@ -23,6 +23,11 @@ import qualified Data.Set                          as Set
 -- dependency graph of, say, a term, there will not be a binding for the term itself which
 -- we can use to represent it in the graph.
 data Node = Variable PLC.Unique | Root deriving (Show, Eq, Ord)
+
+nodeUnique :: Node -> Maybe PLC.Unique
+nodeUnique = \case
+    Variable u -> Just u
+    Root -> Nothing
 
 -- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from it), whose
 -- vertices are 'Node's.
@@ -59,7 +64,7 @@ runTypeDeps
     -> g
 runTypeDeps t = runReader (typeDeps t) Root
 
--- | Record some dependencies on the current node.
+-- | Record some dependencies from the current node.
 recordDeps
     :: (DepGraph g, MonadReader Node m)
     => [PLC.Unique]

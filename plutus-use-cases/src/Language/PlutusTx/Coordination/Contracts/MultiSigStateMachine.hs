@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE DataKinds         #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors #-}
 -- | A multisig contract written as a state machine.
 --   $multisig
 module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(

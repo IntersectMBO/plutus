@@ -32,6 +32,7 @@ import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
+import qualified Language.PlutusIR.Optimizer            as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
@@ -309,7 +310,7 @@ runCompiler opts expr = do
 
     (pirT::PIRTerm) <- PIR.runDefT () $ convExprWithDefs expr
     -- We manually run a simplifier pass here before dumping/storing the PIR
-    (pirP::PIRProgram) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplifyTerm pirT)
+    (pirP::PIRProgram) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplify pirT)
     when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
 
     (plcP::PLCProgram) <- void <$> (flip runReaderT ctx $ PIR.compileProgram pirP)

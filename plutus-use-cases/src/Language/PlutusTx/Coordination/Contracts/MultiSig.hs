@@ -5,6 +5,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors #-}
 -- | Implements an n-out-of-m multisig contract.
 module Language.PlutusTx.Coordination.Contracts.MultiSig
     ( MultiSig(..)

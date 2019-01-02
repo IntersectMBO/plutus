@@ -6,6 +6,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
+import           Control.Monad.IO.Class (MonadIO (liftIO))
 import           Control.Monad                                         (void)
 import           Data.Either                                           (isRight)
 import           Data.Foldable                                         (traverse_)
@@ -28,6 +29,9 @@ import           Ledger.Ada                                            (Ada)
 import qualified Ledger.Ada                                            as Ada
 import qualified Ledger.Value                                          as Value
 
+import qualified Language.PlutusTx as PlutusTx
+import Language.PlutusCore.Pretty
+
 w1, w2, w3 :: Wallet
 w1 = Wallet 1
 w2 = Wallet 2
@@ -48,7 +52,15 @@ tests = testGroup "crowdfunding" [
             owner = w1
             cmp = CF.mkCampaign deadline target collectionDeadline owner
         in HUnit.testCase "script size is reasonable" (Size.reasonable (CF.contributionScript cmp) 50000)
+        --HUnit.testCase "print" (printScript CF.contributionScriptPlc)
         ]
+
+-- | Assert that the size of a 'ValidatorScript' is below
+--   the maximum.
+printScript :: PlutusTx.CompiledCode a -> HUnit.Assertion
+printScript script = do
+    liftIO $ putStrLn (show $ pretty $ PlutusTx.getPir script)
+    HUnit.assertBool "wot" True
 
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator

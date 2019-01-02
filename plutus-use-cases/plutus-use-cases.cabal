@@ -84,6 +84,8 @@ test-suite plutus-use-cases-test
     build-depends:
         plutus-wallet-api -any,
         plutus-use-cases -any,
+        plutus-tx -any,
+        language-plutus-core -any,
         plutus-emulator -any
     build-depends:
         base >=4.9 && <5,

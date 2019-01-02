@@ -5,103 +5,90 @@
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (termbind
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (builtin subtractInteger)
+    )
     (let
       (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-          
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
-        )
-      )
-      (let
-        (nonrec)
-        (termbind
-          (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+      (termbind
+        (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+        (lam
+          arg
+          (con integer)
           (lam
             arg
             (con integer)
-            (lam
-              arg
-              (con integer)
-              [
-                (lam
-                  b
-                  (all a (type) (fun a (fun a a)))
-                  [ [ { b Bool } True ] False ]
-                )
-                [ [ (builtin equalsInteger) arg ] arg ]
-              ]
-            )
+            [
+              (lam
+                b (all a (type) (fun a (fun a a))) [ [ { b Bool } True ] False ]
+              )
+              [ [ (builtin equalsInteger) arg ] arg ]
+            ]
           )
         )
-        (let
-          (nonrec)
-          (datatypebind
-            (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-          )
-          (let
-            (nonrec)
-            (termbind
-              (vardecl
-                subtractInteger
-                (fun (con integer) (fun (con integer) (con integer)))
-              )
-              (builtin subtractInteger)
-            )
-            (let
-              (rec)
-              (termbind
-                (vardecl fib (fun (con integer) (con integer)))
+      )
+      (let
+        (rec)
+        (termbind
+          (vardecl fib (fun (con integer) (con integer)))
+          (lam
+            n
+            (con integer)
+            [
+              [
+                [
+                  {
+                    [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                    (fun Unit (con integer))
+                  }
+                  (lam thunk Unit (con 0))
+                ]
                 (lam
-                  n
-                  (con integer)
+                  thunk
+                  Unit
                   [
                     [
                       [
                         {
-                          [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                          [ Bool_match [ [ equalsInteger n ] (con 1) ] ]
                           (fun Unit (con integer))
                         }
-                        (lam thunk Unit (con 0))
+                        (lam thunk Unit (con 1))
                       ]
                       (lam
                         thunk
                         Unit
                         [
                           [
-                            [
-                              {
-                                [ Bool_match [ [ equalsInteger n ] (con 1) ] ]
-                                (fun Unit (con integer))
-                              }
-                              (lam thunk Unit (con 1))
-                            ]
-                            (lam
-                              thunk
-                              Unit
-                              [
-                                [
-                                  addInteger
-                                  [ fib [ [ subtractInteger n ] (con 1) ] ]
-                                ]
-                                [ fib [ [ subtractInteger n ] (con 2) ] ]
-                              ]
-                            )
+                            addInteger [ fib [ [ subtractInteger n ] (con 1) ] ]
                           ]
-                          Unit
+                          [ fib [ [ subtractInteger n ] (con 2) ] ]
                         ]
                       )
                     ]
                     Unit
                   ]
                 )
-              )
-              fib
-            )
+              ]
+              Unit
+            ]
           )
         )
+        fib
       )
     )
   )

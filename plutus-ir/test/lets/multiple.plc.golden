@@ -1,0 +1,13 @@
+(program 1.0.0
+  [
+    (lam
+      b_8
+      (all a_9 (type) (fun a_9 a_9))
+      [
+        (lam a_10 (all a_11 (type) (fun a_11 a_11)) a_10)
+        (abs a_12 (type) (lam x_13 a_12 x_13))
+      ]
+    )
+    (abs a_14 (type) (lam x_15 a_14 x_15))
+  ]
+)

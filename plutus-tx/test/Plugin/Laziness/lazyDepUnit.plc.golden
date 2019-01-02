@@ -4,24 +4,18 @@
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
+    (termbind
+      (vardecl monoId (fun (con bytestring) (con bytestring)))
+      (lam x (con bytestring) x)
+    )
+    (termbind (vardecl emptyByteString (con bytestring)) (con #))
     (let
       (nonrec)
       (termbind
-        (vardecl monoId (fun (con bytestring) (con bytestring)))
-        (lam x (con bytestring) x)
+        (vardecl aByteString (fun Unit (con bytestring)))
+        (lam thunk Unit [ monoId emptyByteString ])
       )
-      (let
-        (nonrec)
-        (termbind (vardecl emptyByteString (con bytestring)) (con #))
-        (let
-          (nonrec)
-          (termbind
-            (vardecl aByteString (fun Unit (con bytestring)))
-            (lam thunk Unit [ monoId emptyByteString ])
-          )
-          [ aByteString Unit ]
-        )
-      )
+      [ aByteString Unit ]
     )
   )
 )

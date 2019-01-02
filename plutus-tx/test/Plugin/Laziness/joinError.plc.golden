@@ -4,6 +4,14 @@
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
     (let
       (nonrec)
       (termbind
@@ -18,52 +26,41 @@
         )
         (let
           (nonrec)
-          (datatypebind
-            (datatype
-              (tyvardecl Bool (type))
-              
-              Bool_match
-              (vardecl True Bool) (vardecl False Bool)
-            )
-          )
-          (let
-            (nonrec)
-            (termbind
-              (vardecl joinError (fun Bool (fun Bool Unit)))
+          (termbind
+            (vardecl joinError (fun Bool (fun Bool Unit)))
+            (lam
+              x
+              Bool
               (lam
-                x
+                y
                 Bool
-                (lam
-                  y
-                  Bool
+                [
                   [
                     [
-                      [
-                        { [ Bool_match x ] (fun Unit Unit) }
-                        (lam
-                          thunk
-                          Unit
+                      { [ Bool_match x ] (fun Unit Unit) }
+                      (lam
+                        thunk
+                        Unit
+                        [
                           [
                             [
-                              [
-                                { [ Bool_match y ] (fun Unit Unit) }
-                                (lam thunk Unit [ joinError1 Unit ])
-                              ]
-                              (lam thunk Unit Unit)
+                              { [ Bool_match y ] (fun Unit Unit) }
+                              (lam thunk Unit [ joinError1 Unit ])
                             ]
-                            Unit
+                            (lam thunk Unit Unit)
                           ]
-                        )
-                      ]
-                      (lam thunk Unit Unit)
+                          Unit
+                        ]
+                      )
                     ]
-                    Unit
+                    (lam thunk Unit Unit)
                   ]
-                )
+                  Unit
+                ]
               )
             )
-            joinError
           )
+          joinError
         )
       )
     )

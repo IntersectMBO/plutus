@@ -13,6 +13,10 @@ import           Ledger.Value                                              (Valu
 import qualified Wallet.API                                                as W
 import qualified Wallet.Emulator                                           as EM
 
+import qualified Language.PlutusTx            as PlutusTx
+import Language.PlutusCore.Pretty
+import           Control.Monad.IO.Class (MonadIO (liftIO))
+
 tests :: TestTree
 tests =
     let initialState = EM.emulatorStateInitialDist
@@ -29,13 +33,15 @@ tests =
                     Size.reasonable G.gameValidator 55000
     in
         testGroup "state machine tests" [
-            HUnit.testCaseSteps "run a successful game trace"
-                (checkResult (EM.runEmulator initialState runGameSuccess)),
-            HUnit.testCaseSteps "run a 2nd successful game trace"
-                (checkResult (EM.runEmulator initialState runGameSuccess2)),
-            HUnit.testCaseSteps "run a failed trace"
-                (checkResult (EM.runEmulator initialState runGameFailure))
+            HUnit.testCase "print" (printScript G.scriptPlc)
         ]
+
+-- | Assert that the size of a 'ValidatorScript' is below
+--   the maximum.
+printScript :: PlutusTx.CompiledCode a -> HUnit.Assertion
+printScript script = do
+    liftIO $ putStrLn (show $ pretty $ PlutusTx.getPir script)
+    HUnit.assertBool "wot" True
 
 initialVal :: Value
 initialVal = Ada.adaValueOf 10

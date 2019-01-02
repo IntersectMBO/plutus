@@ -1,0 +1,23 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype (tyvardecl Unit (type))  match_Unit (vardecl unit Unit))
+  )
+  (let
+    (nonrec)
+    (termbind (vardecl unitval Unit) unit)
+    (let
+      (nonrec)
+      (termbind (vardecl unitval2 Unit) unit)
+      (let
+        (nonrec)
+        (termbind (vardecl unitval3 Unit) unit)
+        (let
+          (nonrec)
+          (termbind (vardecl unitval4 Unit) [(lam x Unit x) unitval])
+          unitval4
+        )
+      )
+    )
+  )
+)
