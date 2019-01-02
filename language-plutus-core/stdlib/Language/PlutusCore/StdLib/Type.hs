@@ -117,7 +117,7 @@ occasionally. This suggests to change the kind signature of @fix@ to
 which covers all those cases. However,
 
 1. It also can be instantiated as @fix :: (size -> size) -> size@ which doesn't make sense.
-2. It's not clear how to implement such @fix@. See <TODO_add_link> for details.
+2. It's not clear how to implement such @fix@. See @docs/fomega/deep-isorecursive/README.md@ for details.
 
 But it turns out that
 
@@ -190,7 +190,7 @@ If we eta-contract @interlistF'@, we'll get
 
 And this can be generalized to arbitrary n-ary pattern functors:
 
-    pat1 =
+    toPat1 =
         \(withSpine :: ((k -> *) -> *) -> k) (patN :: k -> k) ->
             \(rec :: (k -> *) -> *) (spine :: k -> *) ->
                 spine (pat (withSpine rec))
@@ -202,7 +202,82 @@ functor of kind @k -> k@ we can get a 1-ary pattern functor of kind
 
 We derive various 'withSpine's automatically on the Haskell side from 'k' itself.
 
-Read next: Note [Denormalization].
+Read next: Note [Generic fix].
+-}
+
+{- Note [Generic fix]
+Now that we know how to pack n-ary functors into 1-ary ones
+(see [Packing n-ary pattern functors semantically]), only a few tiny steps remain to get the generic
+
+    fix :: (k -> k) -> k
+
+from just
+
+    ifix :: ((i -> *) -> i -> *) -> i -> *
+
+Having @pat :: k -> k@ we can pack it as
+
+    toPat1 withSpine patN :: ((k -> *) -> *) -> (k -> *) -> *
+
+(where 'withSpine' is constructed automatically from 'k' on the Haskell side) and we can apply
+'ifix' to this 1-ary pattern functor and get
+
+    ifix (toPat1 withSpine patN) :: (k -> *) -> *
+
+It only remains to turn something of kind @(k -> *) -> *@ into something of kind @*@, i.e. to define
+a type function of kind @((k -> *) -> *) -> k@. But we already have such a function: 'withSpine',
+so the final encoding is
+
+    fix = \(patN :: k -> k) -> withSpine (ifix (toPat1 withSpine patN))
+
+The meaning of 'withSpine' here is the same as we've seen before: we use it to pack @n@ type
+arguments as a single CPS-encoded spine and pass it to some function.
+
+Summarizing, 'fix' receives an n-ary pattern functor and @n@ type arguments, the pattern functor
+gets packed as a 1-ary one, the type arguments get packed into a single CPS-encoded spine and
+'ifix' gets applied to the 1-ary pattern functor and the spine.
+
+Read next: Note [Encoded InterList].
+-}
+
+{- Note [Encoded InterList]
+Let's now look at an example.
+
+Recall that the pattern functor of 'interlist' is
+
+    interlistF =
+        \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
+            all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
+
+We can apply generic 'fix' (see Note [Generic fix]) to this pattern functor directly:
+
+    fix interlistF :: * -> *
+
+which after eta-expansion and some reductions becomes
+
+    \(a :: *) -> withSpine (ifix (toPat1 withSpine interlistF)) a
+
+(as per Note [Generic fix]) which after some more reductions becomes
+
+    -- Two type arguments that the data type receives and the 'ifix' primitive.
+    \(a :: *) (b -> *) -> ifix
+        -- The variable responsible for recursion and the variable representing a CPS-encoded spine
+        -- of two elements. Note that the kind of the argument that the variable responsible for
+        -- recursion receives is the same as the kind of 'spine', i.e. we always instantiate
+        -- recursion at some spine.
+        (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) ->
+            -- 'spine' unpacks a CPS-encoded spine and passes all its elements to a continuation.
+            spine
+              -- The 'interlistF' pattern functor given above applied to a function that receives
+              -- two type arguments, packs them as a CPS-encoded spine and passes the spine to the
+              -- variable responsible for recursion.
+              (interlistF (\(a :: *) (b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))
+        )
+        -- The two type arguments packed as a CPS-encoded spine.
+        (\(dat :: * -> * -> *) -> dat a b)
+
+We've elaborated the encoding on example, but there is a problem to consider here.
+Read next: Note [Denormalization]
 -}
 
 {- Note [Denormalization]
@@ -215,20 +290,17 @@ Here is how the definition of 'list' looks like:
 
     \(a :: *) -> ifix
         (\(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->
-            spine
-                ( (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r)
-                  (\(a :: *) -> rec (\(dat :: * -> *) -> dat a))
-                )
+            spine (listF (\(a :: *) -> rec (\(dat :: * -> *) -> dat a)))
         )
         (\(dat :: * -> *) -> dat a)
 
-This is pretty readable (once you know how to read it) and doesn't contain any 'withSpine' or 'patN'
-variables, but looking closely at:
+This is pretty readable (once you know how to read it, see Note [Encoded InterList] for a similar
+example) and doesn't contain any 'withSpine' or 'patN' variables, but if we inline 'listF', we'll get
 
     (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r)
     (\(a :: *) -> rec (\(dat :: * -> *) -> dat a))
 
-we see an applied lambda abstraction that essentially says that in the pattern functor of 'list'
+which is an applied lambda abstraction. This essentially means that in the pattern functor of 'list'
 
     \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
 
@@ -238,20 +310,22 @@ we see an applied lambda abstraction that essentially says that in the pattern f
 
 This all is fine, that's how our encoding trick works, but note that we produced a type that is not
 in normal form. This is a bit worrying: the user writes something that looks like it's normalized,
-but in the end types are not normalized due to how the encoding works.
+but in the end types are not normalized due to how the encoding works. In Plutus Core we have two
+modes for type checking:
 
-If we normalize the definition of 'list', we'll get
+1. off-chain, type normalization is allowed
+2. on-chain, type normalization is not allowed and types must already be normalized
 
-    \(a :: *) -> ifix
-        (\(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->
-            spine (\(a :: *) -> all (r :: *). r -> (a -> rec (\(dat :: * -> *) -> dat a) -> r) -> r))
-        (\(dat :: * -> *) -> dat a)
+Thus, we do care about whether types are normalized or not. In the compilation pipeline we just
+explicitly normalize types whenever normalized types are required, but since this module belongs
+to a library it better be general and not rely on particular details of downstream code.
 
-But we can't just normalize everything, because the user might write a non-normalized type and it's
-desirable to preserve redexes in the type.
+Preserving properties of user-written code is generally a good idea while transforming it,
+so we also do not want to remove redexes from user-written code and thus we can't just normalize
+everything in sight to overcome the denormalization problem.
 
 Then the question is whether it's possible to preserve redexes in user-written types and not to
-produce new ones while encoding the types. And the answer is "yes".
+produce new ones while encoding the types. And the answer is "yes, but it's too costly".
 
 But read Note [Spiney API] first.
 -}

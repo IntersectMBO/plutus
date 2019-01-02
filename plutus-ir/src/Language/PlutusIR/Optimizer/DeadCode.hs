@@ -77,7 +77,6 @@ processTerm term = case term of
     LamAbs x n ty t -> LamAbs x n ty <$> processTerm t
     Apply x t1 t2 -> Apply x <$> processTerm t1 <*> processTerm t2
     TyInst x t ty -> TyInst x <$> processTerm t <*> pure ty
--- MERGE CONFLICT
     IWrap x pat arg t -> IWrap x pat arg <$> processTerm t
     Unwrap x t -> Unwrap x <$> processTerm t
     t@Constant{} -> pure t

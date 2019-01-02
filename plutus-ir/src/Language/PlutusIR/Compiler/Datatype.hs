@@ -277,9 +277,6 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
     casesAndTypes <- do
           -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
           -- see note [Abstract data types]
-{- MERGE CONFLICT
-          let caseTypes = fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
--}
           let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
           caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" ++ bsToStr (nameString $ varDeclName c))
           pure $ zipWith (VarDecl p) caseArgNames caseTypes
