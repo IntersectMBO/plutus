@@ -28,6 +28,11 @@ data FsTree a
     = FsFolder String (FolderContents a)
     | FsFile String a
 
+-- | The contents of a folder. A wrapper around @[FsTree a]@.
+-- Exists because of its 'Semigroup' instance which allows to concatenate two 'FolderContents's
+-- without placing them into the same folder immediately, so we can have various PLC "modules"
+-- (@stdlib@, @examples@, etc), define compound modules (e.g. @stdlib <> examples@) and run various
+-- tests (pretty-printing, type synthesis, etc) against simple and compound modules uniformly.
 newtype FolderContents a = FolderContents
     { unFolderContents :: [FsTree a]
     } deriving (Semigroup, Monoid)
@@ -40,12 +45,15 @@ data PlcEntity
 type PlcFsTree         = FsTree         PlcEntity
 type PlcFolderContents = FolderContents PlcEntity
 
+-- | Construct an 'FsTree' out of the name of a folder and a list of 'FsTree's.
 treeFolderContents :: String -> [FsTree a] -> FsTree a
 treeFolderContents name = FsFolder name . FolderContents
 
+-- | Construct a single-file 'PlcFsTree' out of a type.
 plcTypeFile :: String -> Quote (Type TyName ()) -> PlcFsTree
 plcTypeFile name = FsFile name . PlcType
 
+-- | Construct a single-file 'PlcFsTree' out of a term.
 plcTermFile :: String -> Quote (Term TyName Name ()) -> PlcFsTree
 plcTermFile name = FsFile name . PlcTerm
 
@@ -70,6 +78,7 @@ foldPlcFsTree onFolder onType onTerm = foldFsTree onFolder onFile where
     onFile name (PlcType getTy)   = onType name getTy
     onFile name (PlcTerm getTerm) = onTerm name getTerm
 
+-- | Fold the contents of a PLC folder.
 foldPlcFolderContents
     :: (String -> [b] -> b)                          -- ^ What to do on a folder.
     -> (String -> Quote (Type TyName ())      -> b)  -- ^ What to do on a type.

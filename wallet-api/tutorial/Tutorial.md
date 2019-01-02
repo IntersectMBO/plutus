@@ -23,7 +23,7 @@ import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 ```
 
-The module imported as `Validation` contains types and functions that can be used in on-chain code. `PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](../plutus-tx/README.md)). `Wallet.Emulator` covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain. 
+The module imported as `Validation` contains types and functions that can be used in on-chain code. `PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](https://github.com/input-output-hk/plutus/blob/master/plutus-tx/tutorial/Tutorial.md)). `Wallet.Emulator` covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain. 
 
 The campaign has the following parameters:
 

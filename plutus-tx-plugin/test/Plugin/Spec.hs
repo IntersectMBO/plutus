@@ -9,6 +9,8 @@
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
+-- this adds source notes which helps the plugin give better errors
+{-# OPTIONS_GHC   -g #-}
 
 module Plugin.Spec where
 
@@ -18,8 +20,6 @@ import           PlcTestUtils
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
-
-import qualified Language.PlutusIR          as PIR
 
 import           Data.ByteString.Lazy
 import           Data.Text.Prettyprint.Doc
