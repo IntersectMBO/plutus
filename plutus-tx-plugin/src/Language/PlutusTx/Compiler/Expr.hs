@@ -253,7 +253,11 @@ convExpr e = withContextM (sdToTxt $ "Converting expr:" GHC.<+> GHC.ppr e) $ do
                 -- See Note [At patterns]
                 let binds = [ PIR.TermBind () v scrutinee' ]
                 pure $ PIR.Let () PIR.NonRec binds mainCase
-        -- ignore annotation
+        -- we can use source notes to get a better context for the inner expression
+        -- these are put in when you compile with -g
+        GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
+            withContextM (sdToTxt $ "Converting expr at:" GHC.<+> GHC.ppr src) $ convExpr body
+        -- ignore other annotations
         GHC.Tick _ body -> convExpr body
         GHC.Cast body coerce -> do
             body' <- convExpr body
