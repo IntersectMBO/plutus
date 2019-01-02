@@ -173,6 +173,7 @@ monoData = testNested "monomorphic" [
   , goldenPir "atPattern" atPattern
   , goldenEval "monoConstDestDefault" [ getProgram $ monoCase, getProgram $ monoConstructed ]
   , goldenPir "monoRecord" monoRecord
+  , goldenPir "recordNewtype" recordNewtype
   , goldenPir "nonValueCase" nonValueCase
   , goldenPir "synonym" synonym
   ]
@@ -182,7 +183,7 @@ data MyEnum = Enum1 | Enum2
 basicEnum :: CompiledCode MyEnum
 basicEnum = plc @"basicEnum" (Enum1)
 
-data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int deriving (Generic)
+data MyMonoData = Mono1 Int Int | Mono2 Int | Mono3 Int
 
 monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
 monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
@@ -205,10 +206,15 @@ irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mo
 atPattern :: CompiledCode ((Int, Int) -> Int)
 atPattern = plc @"atPattern" (\t@(x::Int, y::Int) -> let fst (a, b) = a in y + fst t)
 
-data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int} deriving Generic
+data MyMonoRecord = MyMonoRecord { mrA :: Int , mrB :: Int}
 
 monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
+
+data RecordNewtype = RecordNewtype { newtypeField :: MyNewtype }
+
+recordNewtype :: CompiledCode (RecordNewtype -> RecordNewtype)
+recordNewtype = plc @"recordNewtype" (\(x :: RecordNewtype) -> x)
 
 -- must be compiled with a lazy case
 nonValueCase :: CompiledCode (MyEnum -> Int)

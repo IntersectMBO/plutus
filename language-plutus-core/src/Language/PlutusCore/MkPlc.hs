@@ -50,7 +50,7 @@ tyDeclVar :: TyVarDecl tyname a -> TyDecl tyname a
 tyDeclVar (TyVarDecl ann name kind) = TyDecl ann (TyVar ann name) kind
 
 -- | A definition. Pretty much just a pair with more descriptive names.
-data Def var val = Def { defVar::var, defVal::val}
+data Def var val = Def { defVar::var, defVal::val} deriving (Show, Eq, Ord, Generic)
 
 -- | A term definition as a variable.
 type TermDef tyname name a = Def (VarDecl tyname name a) (Term tyname name a)

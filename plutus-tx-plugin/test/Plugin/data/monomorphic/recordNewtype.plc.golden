@@ -1,0 +1,25 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyNewtype (type))
+        
+        MyNewtype_match
+        (vardecl MyNewtype (fun [(con integer) (con 8)] MyNewtype))
+      )
+    )
+    (let
+      (nonrec)
+      (datatypebind
+        (datatype
+          (tyvardecl RecordNewtype (type))
+          
+          RecordNewtype_match
+          (vardecl RecordNewtype (fun MyNewtype RecordNewtype))
+        )
+      )
+      (lam ds RecordNewtype ds)
+    )
+  )
+)

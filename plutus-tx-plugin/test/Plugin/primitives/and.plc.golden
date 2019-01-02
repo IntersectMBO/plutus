@@ -24,20 +24,7 @@
             [
               [
                 { [ Bool_match ds ] (fun Unit Bool) }
-                (lam
-                  thunk
-                  Unit
-                  [
-                    [
-                      [
-                        { [ Bool_match ds ] (fun Unit Bool) }
-                        (lam thunk Unit True)
-                      ]
-                      (lam thunk Unit False)
-                    ]
-                    Unit
-                  ]
-                )
+                (lam thunk Unit [ [ { [ Bool_match ds ] Bool } True ] False ])
               ]
               (lam thunk Unit False)
             ]
