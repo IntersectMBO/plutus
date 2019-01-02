@@ -29,6 +29,7 @@ deadCode = testNested "deadCode" [
     , goldenPir "datatypeDead" (runQuote datatypeDead)
     , goldenPir "singleBinding" (runQuote singleBinding)
     , goldenPir "nestedBindings" (runQuote nestedBindings)
+    , goldenPir "nestedBindingsIndirect" (runQuote nestedBindingsIndirect)
     , goldenPir "recBindingSimple" (runQuote recBindingSimple)
     , goldenPir "recBindingComplex" (runQuote recBindingComplex)
     ]
@@ -120,6 +121,31 @@ nestedBindings = removeDeadBindings <$> do
         Let () NonRec [
         TermBind () (VarDecl () uv unit) unitVal
         ] (Var () uv)
+
+nestedBindingsIndirect :: Quote (Term TyName Name ())
+nestedBindingsIndirect = removeDeadBindings <$> do
+    u <- freshTyName () "unit"
+    unit <- Unit.getBuiltinUnit
+
+    dt <- freshTyName () "SomeType"
+    match <- freshName () "match_SomeType"
+    constr <- freshName () "Constr"
+
+    arg <- freshName () "arg"
+    pure $
+        Let () NonRec [
+        -- only used by the constructor of dt, needs to not be removed
+        TypeBind () (TyVarDecl () u (PLC.Type ())) unit
+        ] $
+        Let () NonRec [
+        DatatypeBind () (Datatype ()
+            (TyVarDecl () dt (PLC.Type ()))
+            []
+            match
+            -- this is live because dt is
+            [VarDecl () constr (TyFun () (TyVar () u) (TyVar () dt))])
+        -- uses dt
+        ] (LamAbs () arg (TyVar () dt) (Var () arg))
 
 recBindingSimple :: Quote (Term TyName Name ())
 recBindingSimple = removeDeadBindings <$> do
