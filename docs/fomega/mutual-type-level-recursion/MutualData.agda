@@ -176,7 +176,7 @@ module JoinedComputeIFixFω where
 
   -- The Church-encoded version of `TreeForestᵗ` at the type level looks like this:
 
-  -- ∀ R -> (Set -> Set -> R) -> R
+  -- ∀ R -> R -> R -> R
 
   -- However this is still not System Fω compatible, because here we quantify over `R` which in
   -- System Fω is a kind and we can't quatify over kinds there. But looking at
