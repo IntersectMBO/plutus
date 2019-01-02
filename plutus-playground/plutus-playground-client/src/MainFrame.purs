@@ -13,6 +13,7 @@ import AjaxUtils (ajaxErrorPane, runAjax)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
+import Control.Alternative ((<|>))
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
@@ -46,6 +47,8 @@ import Halogen.ECharts as EC
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
+import LocalStorage (LOCALSTORAGE)
+import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema)
@@ -58,7 +61,7 @@ import Wallet.Emulator.Types (Wallet(..), _Wallet)
 
 initialState :: State
 initialState =
-  { editorContents: fromMaybe "" $ Map.lookup "Vesting" StaticData.editorContents
+  { editorContents: ""
   , compilationResult: NotAsked
   , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
   , actions: []
@@ -69,20 +72,22 @@ initialState =
 
 mainFrame ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (ajax :: AJAX, analytics :: ANALYTICS | aff))) m
+  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
-  H.parentComponent
+  H.lifecycleParentComponent
     { initialState: const initialState
     , render
     , eval: evalWithAnalyticsTracking
     , receiver: const Nothing
+    , initializer: Just (H.action Initialize)
+    , finalizer: Nothing
     }
 
 evalWithAnalyticsTracking ::
   forall m aff.
-  MonadAff (ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
+  MonadAff (localStorage :: LOCALSTORAGE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
@@ -94,6 +99,7 @@ evalWithAnalyticsTracking query = do
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 toEvent :: forall a. Query a -> Maybe Event
+toEvent (Initialize _) = Nothing
 toEvent (HandleEditorMessage _ _) = Nothing
 toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
@@ -110,13 +116,31 @@ toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 toEvent (SetWaitTime _ _ _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 
+bufferLocalStorageKey :: LocalStorage.Key
+bufferLocalStorageKey  = LocalStorage.Key "PlutusPlaygroundBuffer"
+
+saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
+saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
+
+loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
+loadBuffer = LocalStorage.getItem bufferLocalStorageKey
+
 eval ::
   forall m aff.
-  MonadAff (ace :: ACE, ajax :: AJAX | aff) m
+  MonadAff (localStorage :: LOCALSTORAGE, ace :: ACE, ajax :: AJAX | aff) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
+eval (Initialize next) = do
+  savedContents <- liftEff loadBuffer
+  let defaultContents = Map.lookup "Vesting" StaticData.editorContents
+  let contents = fromMaybe "" (savedContents <|> defaultContents)
+  assign _editorContents contents
+  withEditor $ Editor.setValue contents (Just 1)
+  pure next
+
 eval (HandleEditorMessage (TextChanged text) next) = do
   assign _editorContents text
+  liftEff $ saveBuffer text
   pure next
 
 eval (HandleMockchainChartMessage EC.Initialized next) = do

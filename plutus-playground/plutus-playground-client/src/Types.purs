@@ -131,7 +131,8 @@ addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 ------------------------------------------------------------
 
 data Query a
-  = HandleEditorMessage AceMessage a
+  = Initialize a
+  | HandleEditorMessage AceMessage a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
   | LoadScript String a
