@@ -59,9 +59,8 @@ monoK = plc @"monoK" (\(i :: Int) -> \(j :: Int) -> i)
 
 primitives :: TestNested
 primitives = testNested "primitives" [
--- ?????
---     goldenPir "string" string
-    goldenPir "int" int
+    goldenPir "string" string
+  , goldenPir "int" int
   , goldenPir "int2" int
   , goldenPir "bool" bool
   , goldenPir "and" andPlc
@@ -86,6 +85,9 @@ primitives = testNested "primitives" [
   , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: ByteString), unsafeLiftProgram ("hello" :: ByteString)]
   , goldenPir "verify" verify
   ]
+
+string :: CompiledCode String
+string = plc @"string" "test"
 
 int :: CompiledCode Int
 int = plc @"int" (1::Int)

@@ -159,11 +159,11 @@ freshNameText ann = freshName ann . BSL.fromStrict . Text.encodeUtf8
 freshenName :: Monad m =>  Name a -> QuoteT m (Name a)
 freshenName (Name ann str _) = Name ann str <$> freshUnique
 
--- | Get a fresh 'TyName', given the annotation an the name.
+-- | Get a fresh 'TyName', given the annotation and the @ByteString@ name.
 freshTyName :: Monad m => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 
--- | Get a fresh 'TyName', given the annotation an the name.
+-- | Get a fresh 'TyName', given the annotation and the @Text@ name.
 freshTyNameText :: (Monad m) => a -> Text.Text -> QuoteT m (TyName a)
 freshTyNameText = fmap TyName .* freshNameText
 
