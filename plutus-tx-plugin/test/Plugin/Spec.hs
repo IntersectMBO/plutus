@@ -84,6 +84,7 @@ primitives = testNested "primitives" [
   , goldenEval "sha2_256" [ getPlc sha2, unsafeLiftProgram ("hello" :: ByteString)]
   , goldenEval "equalsByteString" [ getPlc bsEquals, unsafeLiftProgram ("hello" :: ByteString), unsafeLiftProgram ("hello" :: ByteString)]
   , goldenPir "verify" verify
+  , goldenPir "trace" trace
   ]
 
 string :: CompiledCode String
@@ -143,6 +144,9 @@ bsEquals = plc @"bsEquals" (\(x :: ByteString) (y :: ByteString) -> Builtins.equ
 
 verify :: CompiledCode (ByteString -> ByteString -> ByteString -> Bool)
 verify = plc @"verify" (\(x::ByteString) (y::ByteString) (z::ByteString) -> Builtins.verifySignature x y z)
+
+trace :: CompiledCode (Builtins.String -> ())
+trace = plc @"trace" (\(x :: Builtins.String) -> Builtins.trace x)
 
 structure :: TestNested
 structure = testNested "structure" [

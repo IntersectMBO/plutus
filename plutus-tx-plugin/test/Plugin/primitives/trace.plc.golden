@@ -1,0 +1,20 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (let
+      (nonrec)
+      (termbind
+        (vardecl trace (fun (con string) Unit))
+        (lam
+          arg
+          (con string)
+          [ (lam b (all a (type) (fun a a)) Unit) [ (builtin trace) arg ] ]
+        )
+      )
+      (lam ds (con string) [ trace ds ])
+    )
+  )
+)
