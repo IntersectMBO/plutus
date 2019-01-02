@@ -1,7 +1,6 @@
 -- | A guessing game
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds       #-}
-{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Language.PlutusTx.Coordination.Contracts.Game(
     lock,
     guess,

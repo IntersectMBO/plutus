@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 module Main(main) where
 
 import           Control.Lens
