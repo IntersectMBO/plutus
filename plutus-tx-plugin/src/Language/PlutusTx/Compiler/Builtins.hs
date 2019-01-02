@@ -37,6 +37,7 @@ import qualified Language.PlutusCore.Constant                as PLC
 import qualified Language.PlutusCore.Constant.Dynamic        as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Bool        as Bool
+import qualified Language.PlutusCore.StdLib.Data.Unit        as Unit
 
 import qualified GhcPlugins                                  as GHC
 
@@ -272,7 +273,8 @@ defineBuiltinTerms = do
         let term = mkDynBuiltin PLC.dynamicCharToStringName
         defineBuiltinTerm 'Builtins.charToString term [char, str]
     do
-        let term = mkDynBuiltin PLC.dynamicTraceName
+        strTy <- lookupBuiltinType ''Builtins.String
+        term <- wrapUnitFun strTy $ mkDynBuiltin PLC.dynamicTraceName
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
 defineBuiltinTypes :: Converting m => m ()
@@ -376,3 +378,26 @@ wrapBsRel arity term = do
 
 mkBsRel :: Converting m => PLC.BuiltinName -> m PIRTerm
 mkBsRel name = wrapBsRel 2 $ instSize haskellBSSize (mkBuiltin name)
+
+-- | Convert a Scott-encoded Unit into a Haskell Unit.
+scottUnitToHaskellUnit :: Converting m => m PIRTerm
+scottUnitToHaskellUnit = do
+    scottUnitTy <- liftQuote Unit.getBuiltinUnit
+
+    arg <- liftQuote $ freshName () "b"
+
+    haskellUnitVal <- convDataConRef GHC.unitDataCon
+    pure $ PIR.LamAbs () arg scottUnitTy haskellUnitVal
+
+-- | Wrap an function with the given argument type that produces a Scott unit.
+wrapUnitFun :: Converting m => PIRType -> PIRTerm -> m PIRTerm
+wrapUnitFun argTy term = do
+    arg <- do
+        name <- safeFreshName () "arg"
+        pure $ PIR.VarDecl () name argTy
+
+    converter <- scottUnitToHaskellUnit
+
+    pure $
+        PIR.mkIterLamAbs () [arg] $
+        PIR.Apply () converter (PIR.Apply () term (PIR.mkVar () arg))
