@@ -135,7 +135,7 @@ eval ::
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 eval (Initialize next) = do
   savedContents <- liftEff loadBuffer
-  let defaultContents = Map.lookup "Vesting" StaticData.editorContents
+  let defaultContents = Map.lookup "Vesting" StaticData.demoFiles
   let contents = fromMaybe "" (savedContents <|> defaultContents)
   assign _editorContents contents
   withEditor $ Editor.setValue contents (Just 1)
@@ -174,7 +174,7 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
   pure next
 
 eval (LoadScript key next) = do
-  case Map.lookup key StaticData.editorContents of
+  case Map.lookup key StaticData.demoFiles of
     Nothing -> pure unit
     Just contents -> do
       assign _editorContents contents

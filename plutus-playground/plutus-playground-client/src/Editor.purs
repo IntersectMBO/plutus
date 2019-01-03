@@ -94,7 +94,7 @@ demoScriptsPane =
   div [ class_ pullRight ]
    (Array.cons
       (strong_ [ text "Demos: " ])
-      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.editorContents)))
+      (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))
 
 demoScriptButton :: forall p. String -> HTML p Query
 demoScriptButton key =
