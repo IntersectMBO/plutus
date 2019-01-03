@@ -15,10 +15,10 @@ import Data.Either (Either(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(Just))
 import Data.String as String
-import Halogen (HTML)
+import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, pre_, slot', small, strong_, text)
-import Halogen.HTML.Events (input, input_, onClick)
+import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..), isLoading)
@@ -35,10 +35,15 @@ editorPane state =
   div_
     [ demoScriptsPane
     , h2_ [ text "Editor" ]
-    , slot' cpEditor EditorSlot
-        (aceComponent (initEditor state.editorContents) (Just Live))
-        unit
-        (input HandleEditorMessage)
+    , div
+        [ onDragOver $ Just <<< action <<< HandleDragEvent
+        , onDrop $ Just <<< action <<< HandleDropEvent
+        ]
+        [ slot' cpEditor EditorSlot
+            (aceComponent (initEditor state.editorContents) (Just Live))
+            unit
+            (input HandleEditorMessage)
+        ]
     , br_
     , div_
         [ button

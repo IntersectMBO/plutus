@@ -15,7 +15,7 @@ import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Alternative ((<|>))
 import Control.Comonad (extract)
-import Control.Monad.Aff.Class (class MonadAff)
+import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Reader.Class (class MonadAsk)
@@ -39,6 +39,7 @@ import Data.Tuple (Tuple(Tuple))
 import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
+import FileEvents (FILE, preventDefault, readFileFromDragEvent)
 import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -72,7 +73,7 @@ initialState =
 
 mainFrame ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m
+  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE, file :: FILE, ajax :: AJAX, analytics :: ANALYTICS | aff))) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
@@ -87,7 +88,7 @@ mainFrame =
 
 evalWithAnalyticsTracking ::
   forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
+  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX, analytics :: ANALYTICS | aff) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
@@ -101,6 +102,8 @@ evalWithAnalyticsTracking query = do
 toEvent :: forall a. Query a -> Maybe Event
 toEvent (Initialize _) = Nothing
 toEvent (HandleEditorMessage _ _) = Nothing
+toEvent (HandleDragEvent _ _) = Nothing
+toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
 toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
@@ -127,7 +130,7 @@ loadBuffer = LocalStorage.getItem bufferLocalStorageKey
 
 eval ::
   forall m aff.
-  MonadAff (localStorage :: LOCALSTORAGE, ace :: ACE, ajax :: AJAX | aff) m
+  MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 eval (Initialize next) = do
@@ -141,6 +144,17 @@ eval (Initialize next) = do
 eval (HandleEditorMessage (TextChanged text) next) = do
   assign _editorContents text
   liftEff $ saveBuffer text
+  pure next
+
+eval (HandleDragEvent event next) = do
+  liftEff $ preventDefault event
+  pure next
+
+eval (HandleDropEvent event next) = do
+  liftEff $ preventDefault event
+  contents <- liftAff $ readFileFromDragEvent event
+  assign _editorContents contents
+  withEditor $ Editor.setValue contents (Just 1)
   pure next
 
 eval (HandleMockchainChartMessage EC.Initialized next) = do

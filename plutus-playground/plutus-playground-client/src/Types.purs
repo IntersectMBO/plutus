@@ -3,6 +3,7 @@ module Types where
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
+import DOM.HTML.Event.Types (DragEvent)
 import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
@@ -133,6 +134,8 @@ addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 data Query a
   = Initialize a
   | HandleEditorMessage AceMessage a
+  | HandleDragEvent DragEvent a
+  | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
   | LoadScript String a
