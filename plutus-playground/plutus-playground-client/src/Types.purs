@@ -132,8 +132,7 @@ addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 ------------------------------------------------------------
 
 data Query a
-  = Initialize a
-  | HandleEditorMessage AceMessage a
+  = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
@@ -202,8 +201,7 @@ type CompilationResult =
 type Blockchain = Array (Array Tx)
 
 type State =
-  { editorContents :: String
-  , compilationResult :: RemoteData AjaxError CompilationResult
+  { compilationResult :: RemoteData AjaxError CompilationResult
   , wallets :: Array MockWallet
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
@@ -217,9 +215,6 @@ _wallets = prop (SProxy :: SProxy "wallets")
 
 _evaluationResult :: forall s a. Lens' {evaluationResult :: a | s} a
 _evaluationResult = prop (SProxy :: SProxy "evaluationResult")
-
-_editorContents :: forall s a. Lens' {editorContents :: a | s} a
-_editorContents = prop (SProxy :: SProxy "editorContents")
 
 _compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
 _compilationResult = prop (SProxy :: SProxy "compilationResult")

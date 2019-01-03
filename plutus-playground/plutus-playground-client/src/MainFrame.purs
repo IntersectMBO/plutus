@@ -13,7 +13,6 @@ import AjaxUtils (ajaxErrorPane, runAjax)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
-import Control.Alternative ((<|>))
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
@@ -57,13 +56,13 @@ import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
+import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Wallet.Emulator.Types (Wallet(..), _Wallet)
 
 initialState :: State
 initialState =
-  { editorContents: ""
-  , compilationResult: NotAsked
+  { compilationResult: NotAsked
   , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
   , actions: []
   , evaluationResult: NotAsked
@@ -77,13 +76,11 @@ mainFrame ::
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
-  H.lifecycleParentComponent
+  H.parentComponent
     { initialState: const initialState
     , render
     , eval: evalWithAnalyticsTracking
     , receiver: const Nothing
-    , initializer: Just (H.action Initialize)
-    , finalizer: Nothing
     }
 
 evalWithAnalyticsTracking ::
@@ -100,7 +97,6 @@ evalWithAnalyticsTracking query = do
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 toEvent :: forall a. Query a -> Maybe Event
-toEvent (Initialize _) = Nothing
 toEvent (HandleEditorMessage _ _) = Nothing
 toEvent (HandleDragEvent _ _) = Nothing
 toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
@@ -119,30 +115,15 @@ toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 toEvent (SetWaitTime _ _ _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 
-bufferLocalStorageKey :: LocalStorage.Key
-bufferLocalStorageKey  = LocalStorage.Key "PlutusPlaygroundBuffer"
-
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
-
-loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
-loadBuffer = LocalStorage.getItem bufferLocalStorageKey
 
 eval ::
   forall m aff.
   MonadAff (localStorage :: LOCALSTORAGE, file :: FILE, ace :: ACE, ajax :: AJAX | aff) m
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
-eval (Initialize next) = do
-  savedContents <- liftEff loadBuffer
-  let defaultContents = Map.lookup "Vesting" StaticData.demoFiles
-  let contents = fromMaybe "" (savedContents <|> defaultContents)
-  assign _editorContents contents
-  withEditor $ Editor.setValue contents (Just 1)
-  pure next
-
 eval (HandleEditorMessage (TextChanged text) next) = do
-  assign _editorContents text
   liftEff $ saveBuffer text
   pure next
 
@@ -153,8 +134,7 @@ eval (HandleDragEvent event next) = do
 eval (HandleDropEvent event next) = do
   liftEff $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
-  assign _editorContents contents
-  withEditor $ Editor.setValue contents (Just 1)
+  void $ withEditor $ Editor.setValue contents (Just 1)
   pure next
 
 eval (HandleMockchainChartMessage EC.Initialized next) = do
@@ -175,32 +155,31 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
 
 eval (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure unit
+    Nothing -> pure next
     Just contents -> do
-      assign _editorContents contents
-      withEditor $ Editor.setValue contents (Just 1)
-  assign _evaluationResult NotAsked
-  assign _compilationResult NotAsked
-  assign _actions []
-  pure next
+      void $ withEditor $ Editor.setValue contents (Just 1)
+      assign _evaluationResult NotAsked
+      assign _compilationResult NotAsked
+      assign _actions []
+      pure next
 
 eval (CompileProgram next) = do
-  contents <- use _editorContents
-  --
-  assign _evaluationResult NotAsked
-  assign _compilationResult Loading
-  result <- runAjax $ postContract $ SourceCode contents
-  assign _compilationResult result
-  --
-  withEditor $ showCompilationErrorAnnotations $
-    case result of
-      Success (Left errors) -> errors
-      _ -> []
-  --
-  pure next
+  mContents <- withEditor Editor.getValue
+  case mContents of
+    Nothing -> pure next
+    Just contents ->  do
+      assign _compilationResult Loading
+      result <- runAjax $ postContract $ SourceCode contents
+      assign _compilationResult result
+      --
+      void $ withEditor $ showCompilationErrorAnnotations $
+        case result of
+          Success (Left errors) -> errors
+          _ -> []
+      pure next
 
 eval (ScrollTo {row, column} next) = do
-  withEditor $ Editor.gotoLine row (Just column) (Just true)
+  void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
 eval (AddAction action next) = do
@@ -216,17 +195,17 @@ eval (RemoveAction index next) = do
   pure next
 
 eval (EvaluateActions next) = do
-  -- | TODO This is probably wrong. We ought to be capturing the
-  -- successfully-compiled source, so that we use that even if the
-  -- editor changes, right?
-  contents <- use _editorContents
-  evaluation <- currentEvaluation
-  assign _evaluationResult Loading
-  result <- runAjax $ postEvaluate evaluation
-  assign _evaluationResult result
-  --
-  updateChartsIfPossible
-  pure next
+  mContents <- withEditor $ Editor.getValue
+  case mContents of
+    Nothing -> pure next
+    Just contents -> do
+      evaluation <- currentEvaluation (SourceCode contents)
+      assign _evaluationResult Loading
+      result <- runAjax $ postEvaluate evaluation
+      assign _evaluationResult result
+      --
+      updateChartsIfPossible
+      pure next
 
 eval (AddWallet next) = do
   wallets <- use _wallets
@@ -284,8 +263,8 @@ evalForm (SetSubField n subEvent) old@(SimpleObject fields) =
            Just newFields -> SimpleObject newFields
 evalForm other arg = arg
 
-currentEvaluation :: forall m. MonadState State m => m Evaluation
-currentEvaluation = do
+currentEvaluation :: forall m. MonadState State m => SourceCode -> m Evaluation
+currentEvaluation sourceCode = do
   actions <- use _actions
   let toPair :: MockWallet -> Tuple Wallet Int
       toPair mockWallet =
@@ -294,7 +273,6 @@ currentEvaluation = do
         view (_MockWallet <<< _balance) mockWallet
   wallets <- map toPair <$> use _wallets
   let program = toExpression <$> actions
-  sourceCode <- SourceCode <$> use _editorContents
   let blockchain = []
   pure $ Evaluation { wallets, program, sourceCode, blockchain }
 
@@ -330,14 +308,13 @@ updateChartsIfPossible = do
 withEditor :: forall m eff a.
   MonadEff (ace :: ACE | eff) m
   => (Editor -> Eff (ace :: ACE | eff) a)
-  -> HalogenM State Query ChildQuery ChildSlot Void m Unit
+  -> HalogenM State Query ChildQuery ChildSlot Void m (Maybe a)
 withEditor action = do
   mEditor <- H.query' cpEditor EditorSlot $ H.request GetEditor
   case mEditor of
     Just (Just editor) -> do
-      void $ liftEff $ action editor
-      pure unit
-    _ -> pure unit
+      liftEff $ Just <$> action editor
+    _ -> pure Nothing
 
 showCompilationErrorAnnotations :: forall m.
   Array CompilationError
@@ -359,7 +336,7 @@ toAnnotation (CompilationError {row, column, text}) =
 
 render ::
   forall m aff.
-  MonadAff (EChartsEffects (AceEffects aff)) m
+  MonadAff (EChartsEffects (AceEffects (localStorage :: LOCALSTORAGE | aff))) m
   => State -> ParentHTML Query ChildQuery ChildSlot m
 render state =
   div

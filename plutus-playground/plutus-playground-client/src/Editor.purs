@@ -8,12 +8,14 @@ import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
 import AjaxUtils (showAjaxError)
 import Bootstrap (alertDanger_, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
+import Control.Alternative ((<|>))
 import Control.Monad.Aff.Class (class MonadAff)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Map as Map
-import Data.Maybe (Maybe(Just))
+import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
@@ -21,6 +23,8 @@ import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h
 import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
+import LocalStorage (LOCALSTORAGE)
+import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), isLoading)
 import Playground.API (CompilationError(CompilationError, RawError))
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
@@ -29,7 +33,7 @@ import Types (EditorSlot(..), ChildQuery, ChildSlot, Query(..), State, cpEditor)
 
 editorPane ::
   forall m aff.
-  MonadAff (AceEffects aff) m
+  MonadAff (AceEffects (localStorage :: LOCALSTORAGE | aff)) m
   => State -> ParentHTML Query ChildQuery ChildSlot m
 editorPane state =
   div_
@@ -40,7 +44,7 @@ editorPane state =
         , onDrop $ Just <<< action <<< HandleDropEvent
         ]
         [ slot' cpEditor EditorSlot
-            (aceComponent (initEditor state.editorContents) (Just Live))
+            (aceComponent initEditor (Just Live))
             unit
             (input HandleEditorMessage)
         ]
@@ -78,12 +82,19 @@ editorPane state =
                         ]
                     _ -> empty
 
+loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
+loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
+
 initEditor ∷
   forall m aff.
-  MonadAff (ace :: ACE | aff) m
-  => String -> Editor -> m Unit
-initEditor contents editor = liftEff $ do
+  MonadAff (ace :: ACE, localStorage :: LOCALSTORAGE | aff) m
+  => Editor -> m Unit
+initEditor editor = liftEff $ do
+  savedContents <- liftEff loadBuffer
+  let defaultContents = Map.lookup "Vesting" StaticData.demoFiles
+  let contents = fromMaybe "" (savedContents <|> defaultContents)
   void $ Editor.setValue contents (Just 1) editor
+
   Editor.setTheme "ace/theme/monokai" editor
   --
   session <- Editor.getSession editor
