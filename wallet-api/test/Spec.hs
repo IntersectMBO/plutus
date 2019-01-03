@@ -188,7 +188,7 @@ notifyWallet = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ processPending >>= walletNotifyBlock w
     let ttl = Map.lookup w st
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just initialBalance
+    Hedgehog.assert $ (getSum . foldMap (Sum . txOutValue) . view ownFunds <$> ttl) == Just initialBalance
 
 eventTrace :: Property
 eventTrace = property $ do
@@ -212,7 +212,7 @@ eventTrace = property $ do
     let ttl = Map.lookup w st
 
     -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 100)
+    Hedgehog.assert $ (getSum . foldMap (Sum . txOutValue) . view ownFunds <$> ttl) == Just (initialBalance - 100)
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
@@ -279,7 +279,7 @@ watchFundsAtAddress = property $ do
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 200)
+    Hedgehog.assert $ (getSum . foldMap (Sum . txOutValue) . view ownFunds <$> ttl) == Just (initialBalance - 200)
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
 genChainTxn = do

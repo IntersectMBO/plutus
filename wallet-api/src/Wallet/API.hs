@@ -22,6 +22,8 @@ module Wallet.API(
     payToScript_,
     payToPublicKey,
     payToPublicKey_,
+    payToScripts,
+    payToScripts_,
     collectFromScript,
     collectFromScriptTxn,
     ownPubKeyTxOut,
@@ -275,13 +277,24 @@ throwOtherError = throwError . OtherError
 createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
 
+-- | Transfer some funds to a number of script addresses, returning the
+--   transaction that was submitted.
+payToScripts :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m Tx
+payToScripts ins = do
+    let
+        totalVal     = getSum $ foldMap (Sum . view _2) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript ds)) ins
+    (i, ownChange) <- createPaymentWithChange totalVal
+    signAndSubmit i (maybe otherOutputs (:otherOutputs) ownChange)
+
+-- | Transfer some funds to a number of script addresses.
+payToScripts_ :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m ()
+payToScripts_ = void . payToScripts
+
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
 payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
-payToScript addr v ds = do
-    (i, own) <- createPaymentWithChange v
-    let other = TxOut addr v (PayToScript ds)
-    signAndSubmit i (other : maybeToList own)
+payToScript addr v ds = payToScripts [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
 payToScript_ :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
@@ -296,7 +309,7 @@ collectFromScript scr red = do
         outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
         con (r, _) = scriptTxIn r scr red
         ins        = con <$> outputs
-        value = getSum $ foldMap (Sum . snd) outputs
+        value = getSum $ foldMap (Sum . txOutValue . snd) outputs
 
     oo <- ownPubKeyTxOut value
     void $ signAndSubmit (Set.fromList ins) [oo]
@@ -312,7 +325,7 @@ collectFromScriptTxn vls red txid = do
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         i ref = scriptTxIn ref vls red
         inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = getSum $ foldMap (Sum . snd) ourUtxo
+        value  = getSum $ foldMap (Sum . txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
     void $ signAndSubmit inputs [out]
