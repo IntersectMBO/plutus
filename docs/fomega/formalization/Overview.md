@@ -20,6 +20,8 @@
 
 [8] [No ω + shifting at big lambdas + Coq](https://github.com/bobatkey/system-f-parametricity-model), Bob Atkey.
 
+[9] [Soundness, progress, and preservation proofs of System F in Coq](https://github.com/stepchowfun/proofs/tree/master/coq/SystemF), Stephan Boyer.
+
 ### Papers
 
 [A Formalization of the Strong Normalization Proof for System F in Lego](http://www.cs.nott.ac.uk/%7Epsztxa/publ/tlca93.pdf), Thorsten Altenkirch.
