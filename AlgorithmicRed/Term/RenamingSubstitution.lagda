@@ -12,6 +12,7 @@ open import Data.Unit
 
 open import Type
 open import Type.BetaNormal
+open import Type.Reduction
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.Equality
@@ -83,27 +84,40 @@ renameTel ρ⋆ ρ {As = []}     _         = _
 renameTel ρ⋆ ρ {As = A ∷ As} (M ,, Ms) = {!!}
 --  substEq (_ ⊢_) (sym (⋆.rename-subst A)) (rename ρ⋆ ρ M) ,, renameTel ρ⋆ ρ Ms
 
-rename = {!!}
-{-
 rename ρ⋆ ρ (` x)    = ` (ρ x)
-rename ρ⋆ ρ (ƛ N)    = ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
+rename ρ⋆ ρ (ƛ {A' = A'} (A ,, p ,, q ,, r) N)    =
+  ƛ (⋆.rename ρ⋆ A ,, rename—→⋆ ρ⋆ p ,, renameValue⋆ ρ⋆ q ,, trans (rename-embNf ρ⋆ A') (cong (⋆.rename ρ⋆) r)) (rename ρ⋆ (ext ρ⋆ ρ) N)
+  -- ƛ (rename ρ⋆ (ext ρ⋆ ρ) N)
 rename ρ⋆ ρ (L · M)  = rename ρ⋆ ρ L · rename ρ⋆ ρ M 
 rename ρ⋆ ρ (Λ N)    = Λ (rename (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N )
-rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) =
-  substEq (λ A → Δ ⊢ A)
-          ( trans (sym (⋆.subst-rename B))
-                 (trans (⋆.subst-cong (⋆.rename-subst-cons ρ⋆ A) B)
-                        (⋆.rename-subst B) ) )
-          (rename ρ⋆ ρ t ·⋆ ⋆.rename ρ⋆ A)
-rename ρ⋆ ρ (wrap1 pat arg t) = wrap1 _ _ (rename ρ⋆ ρ t)
-rename ρ⋆ ρ (unwrap1 t)       = unwrap1 (rename ρ⋆ ρ t)
-rename ρ⋆ ρ (con cn)   = con (renameTermCon ρ⋆ cn)
-rename {Γ} {Δ} ρ⋆ ρ (builtin bn σ X ) = substEq
+rename {Γ}{Δ} ρ⋆ ρ (_·⋆_ {B = B} t A {R} (p ,, q ,, r ,, s)) = _·⋆_
+  (rename ρ⋆ ρ t)
+  (renameNf ρ⋆ A)
+  (⋆.rename ρ⋆ p
+  ,,
+  substEq
+    (_—→⋆ ⋆.rename ρ⋆ p)
+    (trans
+      (sym (⋆.rename-subst (embNf B)))
+      (trans
+        (trans
+          (⋆.subst-cong (sym ∘ ⋆.rename-subst-cons ρ⋆ (embNf A)) (embNf B))
+          (⋆.subst-rename (embNf B)))
+        (cong₂
+            ⋆._[_]
+            (sym (rename-embNf (⋆.ext ρ⋆) B))
+            (sym (rename-embNf ρ⋆ A)))))
+    (rename—→⋆ ρ⋆ q)
+  ,, renameValue⋆ ρ⋆ r
+  ,, trans (rename-embNf ρ⋆ R) (cong (⋆.rename ρ⋆) s))
+rename ρ⋆ ρ (wrap1 pat arg t p) = {!!} -- wrap1 _ _ (rename ρ⋆ ρ t)
+rename ρ⋆ ρ (unwrap1 t p)       = {!!} -- unwrap1 (rename ρ⋆ ρ t)
+rename ρ⋆ ρ (con cn)   = {!!} -- con (renameTermCon ρ⋆ cn)
+rename {Γ} {Δ} ρ⋆ ρ (builtin bn σ X p) = {!!} {- substEq
   (Δ ⊢_)
   (⋆.rename-subst (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.rename ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X)) 
-rename ρ⋆ ρ (error A) = error (⋆.rename ρ⋆ A)
--}
+  (builtin bn (⋆.rename ρ⋆ ∘ σ) (renameTel ρ⋆ ρ X))  -}
+rename ρ⋆ ρ (error A p) = {!!} -- error (⋆.rename ρ⋆ A)
 \end{code}
 
 \begin{code}
