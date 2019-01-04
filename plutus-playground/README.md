@@ -29,6 +29,9 @@ yarn run bower install
 Then run: `yarn run webpack` for a production build on http://localhost:8080
 ...or `yarn run webpack:server` for an auto-reloading dev build on http://localhost:8009
 
+You may also want to run `yarn run purs:ide` to start `psc-ide`
+support running with the correct paths.
+
 ### nix
 
 nix is not really suitable for development with purescript but if you want to check everything works correctly:
