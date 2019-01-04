@@ -20,7 +20,7 @@
 
 [8] [No ω + shifting at big lambdas + Coq](https://github.com/bobatkey/system-f-parametricity-model), Bob Atkey.
 
-[9] [Soundness, progress, and preservation proofs of System F in Coq](https://github.com/stepchowfun/proofs/tree/master/coq/SystemF), Stephan Boyer.
+[9] [No ω + locally nameless (thus no shifting) + Coq + soundness, progress, and preservation proofs](https://github.com/stepchowfun/proofs/tree/master/coq/SystemF), Stephan Boyer.
 
 ### Papers
 
