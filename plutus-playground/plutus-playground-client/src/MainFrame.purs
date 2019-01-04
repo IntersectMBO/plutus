@@ -171,7 +171,7 @@ eval (CompileProgram next) = do
       assign _compilationResult Loading
       result <- runAjax $ postContract $ SourceCode contents
       assign _compilationResult result
-      --
+
       void $ withEditor $ showCompilationErrorAnnotations $
         case result of
           Success (Left errors) -> errors
