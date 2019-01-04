@@ -21,7 +21,7 @@ exports._readFileFromDragEvent = function(onLoad, onError, e) {
             }
         }
 
-        file = files.shift();
+        file = files[0];
         if (file) {
             reader = new FileReader();
             reader.onloadend = function (loadEvent) {
