@@ -81,8 +81,9 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Ledger                     (Address', Block, Blockchain, Height, Tx (..), TxId', TxOutRef', Value,
-                                             hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut, txOutAddress)
+import           Ledger                     (Address', Block, Blockchain, Height, Tx (..), TxId', TxOut (..), TxOut',
+                                             TxOutRef', Value, hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
+                                             txOutAddress)
 import qualified Ledger.Index               as Index
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
@@ -135,7 +136,7 @@ makeLenses ''WalletState
 ownAddress :: WalletState -> Address'
 ownAddress = pubKeyAddress . pubKey . view ownKeyPair
 
-ownFunds :: Lens' WalletState (Map TxOutRef' Value)
+ownFunds :: Lens' WalletState (Map TxOutRef' TxOut')
 ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
@@ -207,7 +208,7 @@ instance WalletAPI MockWallet where
         let fnds = ws ^. ownFunds
             kp    = view ownKeyPair ws
             sig   = signature kp
-        (spend, change) <- selectCoin (Map.toList fnds) vl
+        (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
             txOutput = if change > 0 then Just (pubKeyTxOut change (pubKey kp)) else Nothing
             ins = Set.fromList (flip pubKeyTxIn sig . fst <$> spend)
@@ -296,7 +297,7 @@ data EmulatorState = EmulatorState {
 makeLenses ''EmulatorState
 
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (getSum . foldMap Sum . view ownFunds) . view walletStates
+fundsDistribution = Map.map (getSum . foldMap (Sum . txOutValue) . view ownFunds) . view walletStates
 
 -- | The blockchain as a list of blocks, starting with the oldest (genesis)
 --   block
@@ -324,7 +325,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-    let total = getSum $ foldMap Sum $ ws ^. ownFunds
+    let total = getSum $ foldMap (Sum . txOutValue) $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]

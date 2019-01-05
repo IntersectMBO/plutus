@@ -122,7 +122,7 @@ splitNewtypeCoercion coerce = case GHC.coercionKind coerce of
 getUsedTcs :: (Converting m) => GHC.TyCon -> m [GHC.TyCon]
 getUsedTcs tc = do
     dcs <- getDataCons tc
-    let usedTcs = GHC.unionManyUniqSets $ (\dc -> GHC.unionManyUniqSets $ GHC.tyConsOfType <$> GHC.dataConRepArgTys dc) <$> dcs
+    let usedTcs = GHC.unionManyUniqSets $ (\dc -> GHC.unionManyUniqSets $ GHC.tyConsOfType <$> GHC.dataConOrigArgTys dc) <$> dcs
     pure $ GHC.nonDetEltsUniqSet usedTcs
 
 {- Note [Case expressions and laziness]
@@ -198,7 +198,7 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
 -- | Makes the type of the constructor corresponding to the given 'DataCon', with the type variables free.
 mkConstructorType :: Converting m => GHC.DataCon -> m PIRType
 mkConstructorType dc =
-    let argTys = GHC.dataConRepArgTys dc
+    let argTys = GHC.dataConOrigArgTys dc
     in
         -- See Note [Scott encoding of datatypes]
         withContextM (sdToTxt $ "Converting data constructor type:" GHC.<+> GHC.ppr dc) $ do

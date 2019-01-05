@@ -4,10 +4,11 @@
     "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
-    "purs:compile": "purs compile 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs'",
+    "purs:compile": "purs compile 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs' 'generated/**/*.purs'",
+    "purs:ide": "purs ide server --log-level=debug 'bower_components/purescript-*/src/**/*.purs' 'src/**/*.purs' 'generated/**/*.purs'",
     "purs:bundle": "purs bundle output/**/*.js",
     "start": "node bundle.js",
-    "test": "pulp test"
+    "test": "pulp test -I generated"
   },
   "dependencies": {
     "ace-builds": "^1.4.1",

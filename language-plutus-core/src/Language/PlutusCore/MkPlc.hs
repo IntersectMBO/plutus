@@ -40,7 +40,7 @@ mkTyVar :: a -> TyVarDecl tyname a -> Type tyname a
 mkTyVar x = TyVar x . tyVarDeclName
 
 -- | A definition. Pretty much just a pair with more descriptive names.
-data Def var val = Def { defVar::var, defVal::val}
+data Def var val = Def { defVar::var, defVal::val} deriving (Show, Eq, Ord, Generic)
 
 -- | A term definition as a variable.
 type TermDef tyname name a = Def (VarDecl tyname name a) (Term tyname name a)

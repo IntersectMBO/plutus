@@ -27,6 +27,7 @@ module Language.PlutusCore.Pretty.Plc
     , prettyPlcCondensedErrorBy
     ) where
 
+import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.Readable
@@ -54,8 +55,8 @@ type PrettyPlc = PrettyBy PrettyConfigPlc
 
 -- | A constraint that allows to derive @PrettyBy PrettyConfigPlc@ instances, see below.
 type DefaultPrettyPlcStrategy a =
-       ( PrettyBy (PrettyConfigClassic PrettyConfigName) a
-       , PrettyBy (PrettyConfigReadable PrettyConfigName) a
+       ( PrettyClassic a
+       , PrettyReadable a
        )
 
 instance HasPrettyConfigName PrettyConfigPlcStrategy where

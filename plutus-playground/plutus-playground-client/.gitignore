@@ -1,8 +1,6 @@
 /bower_components/
 /node_modules/
 /output/
+/generated/
 /yarn-error.log
-/src/Playground/*
-/src/Wallet/*
-/src/Ledger/*
 /.psci_modules/

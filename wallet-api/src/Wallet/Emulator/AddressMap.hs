@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TypeFamilies       #-}
 module Wallet.Emulator.AddressMap(
     AddressMap(..),
@@ -31,11 +30,11 @@ import qualified Data.Set               as Set
 import qualified Data.Text.Encoding     as TE
 import           GHC.Generics           (Generic)
 
-import           Ledger                 (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOutRef (..), TxOutRef',
-                                         Value, hashTx)
+import           Ledger                 (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOut', TxOutRef (..),
+                                         TxOutRef', Value, hashTx)
 
 -- | A map of [[Address']]es and their unspent outputs
-newtype AddressMap = AddressMap { getAddressMap :: Map Address' (Map TxOutRef' Value) }
+newtype AddressMap = AddressMap { getAddressMap :: Map Address' (Map TxOutRef' TxOut') }
     deriving Show
     deriving stock (Generic)
     deriving newtype (Serialise)
@@ -59,14 +58,14 @@ instance FromJSON AddressMap where
 
 instance Semigroup AddressMap where
     (AddressMap l) <> (AddressMap r) = AddressMap (Map.unionWith add l r) where
-        add = Map.unionWith (+)
+        add = Map.union
 
 instance Monoid AddressMap where
     mappend = (<>)
     mempty = AddressMap Map.empty
 
 type instance Index AddressMap = Address'
-type instance IxValue AddressMap = Map TxOutRef' Value
+type instance IxValue AddressMap = Map TxOutRef' TxOut'
 
 instance Ixed AddressMap where
     ix adr f (AddressMap mp) = AddressMap <$> ix adr f mp
@@ -80,7 +79,7 @@ instance At AddressMap where
 --   nothing.
 addAddress :: Address' -> AddressMap -> AddressMap
 addAddress adr (AddressMap mp) = AddressMap $ Map.alter upd adr mp where
-    upd :: Maybe (Map TxOutRef' Value) -> Maybe (Map TxOutRef' Value)
+    upd :: Maybe (Map TxOutRef' TxOut') -> Maybe (Map TxOutRef' TxOut')
     upd = maybe (Just Map.empty) Just
 
 -- | Add a list of [[Address']]es with no unspent outputs
@@ -89,20 +88,20 @@ addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs at an address
 values :: AddressMap -> Map Address' Value
-values = Map.map (getSum . foldMap Sum) . getAddressMap
+values = Map.map (getSum . foldMap (Sum . txOutValue)) . getAddressMap
 
 -- | An [[AddressMap]] with the unspent outputs of a single transaction
 fromTxOutputs :: Tx -> AddressMap
 fromTxOutputs tx =
     AddressMap . Map.fromListWith Map.union . fmap mkUtxo . zip [0..] . txOutputs $ tx where
-    mkUtxo (i, TxOut{..}) = (txOutAddress, Map.singleton (TxOutRef h i) txOutValue)
+    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRef h i) t)
     h = hashTx tx
 
 -- | A map of unspent transaction outputs to their addresses (the "inverse" of
 --   [[AddressMap]], without the values
 knownAddresses :: AddressMap -> Map TxOutRef' Address'
 knownAddresses = Map.fromList . unRef . Map.toList . getAddressMap where
-    unRef :: [(Address', Map TxOutRef' Value)] -> [(TxOutRef', Address')]
+    unRef :: [(Address', Map TxOutRef' TxOut')] -> [(TxOutRef', Address')]
     unRef lst = do
         (a, outRefs) <- lst
         (rf, _) <- Map.toList outRefs
@@ -118,7 +117,7 @@ updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) w
     upd adr mp = Map.union (producedAt adr) mp `Map.difference` consumedFrom adr
 
     -- The TxOutRefs produced by the transaction, for a given address
-    producedAt :: Address' -> Map TxOutRef' Value
+    producedAt :: Address' -> Map TxOutRef' TxOut'
     producedAt adr = Map.findWithDefault Map.empty adr outputs
 
     -- The TxOutRefs consumed by the transaction, for a given address

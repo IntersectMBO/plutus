@@ -3,12 +3,13 @@ module Types where
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
+import DOM.HTML.Event.Types (DragEvent)
 import Data.Array as Array
 import Data.Either (Either)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Generic (class Generic, gShow)
-import Data.Lens (Lens', Prism', _2, over, prism', traversed, view)
+import Data.Lens (Lens', Prism', Lens, _2, over, prism', traversed, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -77,13 +78,16 @@ _Wait = prism' Wait f
     f (Wait r) = Just r
     f _ = Nothing
 
-_functionSchema :: forall a r. Lens'{ functionSchema :: a | r} a
+_functionSchema :: forall a b r. Lens { functionSchema :: a | r} { functionSchema :: b | r} a b
 _functionSchema = prop (SProxy :: SProxy "functionSchema")
 
-_argumentSchema :: forall a r. Lens'{ argumentSchema :: a | r} a
+_argumentSchema :: forall a b r. Lens {argumentSchema :: a | r} {argumentSchema :: b | r} a b
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
 
-_blocks :: forall a r. Lens'{ blocks :: a | r} a
+_functionName :: forall a b r. Lens {functionName :: a | r} {functionName :: b | r} a b
+_functionName = prop (SProxy :: SProxy "functionName")
+
+_blocks :: forall a b r. Lens { blocks :: a | r} { blocks :: b | r} a b
 _blocks = prop (SProxy :: SProxy "blocks")
 
 ------------------------------------------------------------
@@ -129,6 +133,8 @@ addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 
 data Query a
   = HandleEditorMessage AceMessage a
+  | HandleDragEvent DragEvent a
+  | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
   | LoadScript String a
@@ -155,7 +161,6 @@ instance extendFormEvent :: Extend FormEvent where
   extend f event@(SetIntField n _) = SetIntField n $ f event
   extend f event@(SetStringField s _) = SetStringField s $ f event
   extend f event@(SetSubField n _) = SetSubField n $ extend f event
-
 
 instance comonadFormEvent :: Comonad FormEvent where
   extract (SetIntField _ a) = a
@@ -196,8 +201,7 @@ type CompilationResult =
 type Blockchain = Array (Array Tx)
 
 type State =
-  { editorContents :: String
-  , compilationResult :: RemoteData AjaxError CompilationResult
+  { compilationResult :: RemoteData AjaxError CompilationResult
   , wallets :: Array MockWallet
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
@@ -211,9 +215,6 @@ _wallets = prop (SProxy :: SProxy "wallets")
 
 _evaluationResult :: forall s a. Lens' {evaluationResult :: a | s} a
 _evaluationResult = prop (SProxy :: SProxy "evaluationResult")
-
-_editorContents :: forall s a. Lens' {editorContents :: a | s} a
-_editorContents = prop (SProxy :: SProxy "editorContents")
 
 _compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
@@ -239,4 +240,4 @@ toValue (UnknownArgument _) = Unknowable
 
 -- | This should just be `map` but we can't put an orphan instance on FunctionSchema. :-(
 toValueLevel :: FunctionSchema SimpleArgumentSchema -> FunctionSchema SimpleArgument
-toValueLevel = over (_Newtype <<< prop (SProxy :: SProxy "argumentSchema") <<< traversed) toValue
+toValueLevel = over (_Newtype <<< _argumentSchema <<< traversed) toValue

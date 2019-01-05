@@ -58,21 +58,23 @@ import qualified Data.Text.Prettyprint.Doc              as PP
 import           GHC.TypeLits
 import           System.IO.Unsafe                       (unsafePerformIO)
 
--- | A PLC program.
-data CompiledCode = CompiledCode {
+-- | A compiled Plutus Tx program. The type parameter inicates
+-- the type of the Haskell expression that was compiled, and
+-- hence the type of the compiled code.
+data CompiledCode a = CompiledCode {
     serializedPlc   :: BS.ByteString
     , serializedPir :: BS.ByteString
     }
 
 -- Note that we do *not* have a TypeablePlc instance, since we don't know what the type is. We could in principle store it after the plugin
 -- typechecks the code, but we don't currently.
-instance Lift.Lift CompiledCode where
+instance Lift.Lift (CompiledCode a) where
     lift (getPlc -> (PLC.Program () _ body)) = PIR.embedIntoIR <$> PLC.rename body
 
-getSerializedPlc :: CompiledCode -> BSL.ByteString
+getSerializedPlc :: CompiledCode a -> BSL.ByteString
 getSerializedPlc = BSL.fromStrict . serializedPlc
 
-getSerializedPir :: CompiledCode -> BSL.ByteString
+getSerializedPir :: CompiledCode a -> BSL.ByteString
 getSerializedPir = BSL.fromStrict . serializedPir
 
 {- Note [Deserializing the AST]
@@ -85,18 +87,18 @@ instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 instance Exception ImpossibleDeserialisationFailure
 
-getPlc :: CompiledCode -> PLC.Program PLC.TyName PLC.Name ()
+getPlc :: CompiledCode a -> PLC.Program PLC.TyName PLC.Name ()
 getPlc wrapper = case deserialiseOrFail $ getSerializedPlc wrapper of
     Left e  -> throw $ ImpossibleDeserialisationFailure e
     Right p -> p
 
-getPir :: CompiledCode -> PIR.Program PIR.TyName PIR.Name ()
+getPir :: CompiledCode a -> PIR.Program PIR.TyName PIR.Name ()
 getPir wrapper = case deserialiseOrFail $ getSerializedPir wrapper of
     Left e  -> throw $ ImpossibleDeserialisationFailure e
     Right p -> p
 
 -- | Marks the given expression for conversion to PLC.
-plc :: forall (loc::Symbol) a . a -> CompiledCode
+plc :: forall (loc::Symbol) a . a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
 plc _ = CompiledCode mustBeReplaced mustBeReplaced
 
@@ -140,13 +142,6 @@ note [System FC and system FW]). I don't currently know how to resolve this.
 
 getMarkerName :: GHC.CoreM (Maybe GHC.Name)
 getMarkerName = GHC.thNameToGhcName 'plc
-
-getMarkerType :: GHC.Type -> Maybe GHC.Type
-getMarkerType vtype = do
-    (_, ty) <- GHC.splitForAllTy_maybe vtype
-    (_, ty') <- GHC.splitForAllTy_maybe ty
-    (_, o) <- GHC.splitFunTy_maybe ty'
-    pure o
 
 messagePrefix :: String
 messagePrefix = "GHC Core to PLC plugin"
@@ -219,14 +214,16 @@ convertMarkedExprs opts markerName =
         conv = convertMarkedExprs opts markerName
         convB = convertMarkedExprsBind opts markerName
     in \case
-      -- the ignored argument is the type for the polymorphic 'plc'
-      e@(GHC.App(GHC.App (GHC.App (GHC.Var fid) (GHC.Type (GHC.isStrLitTy -> Just fs_locStr))) (GHC.Type _)) inner) | markerName == GHC.idName fid ->
-          let
-              vtype = GHC.varType fid
-              locStr = show fs_locStr
-          in case getMarkerType vtype of
-              Just t  -> convertExpr opts locStr inner t
-              Nothing -> failCompilationSDoc "Found invalid marker, could not decode type" (GHC.ppr e)
+      GHC.App (GHC.App (GHC.App
+                          -- function id
+                          (GHC.Var fid)
+                          -- first type argument, must be a string literal type
+                          (GHC.Type (GHC.isStrLitTy -> Just fs_locStr)))
+                     -- second type argument
+                     (GHC.Type codeTy))
+            -- value argument
+            inner
+          | markerName == GHC.idName fid -> convertExpr opts (show fs_locStr) codeTy inner
       e@(GHC.Var fid) | markerName == GHC.idName fid -> failCompilationSDoc "Found invalid marker, not applied correctly" (GHC.ppr e)
       GHC.App e a -> GHC.App <$> conv e <*> conv a
       GHC.Lam b e -> GHC.Lam b <$> conv e
@@ -258,8 +255,8 @@ stringBuiltinTypes =
     in PLC.DynamicBuiltinNameTypes allStringBuiltinTypes
 
 -- | Actually invokes the Core to PLC compiler to convert an expression into a PLC literal.
-convertExpr :: PluginOptions -> String -> GHC.CoreExpr -> GHC.Type -> GHC.CoreM GHC.CoreExpr
-convertExpr opts locStr origE resType = do
+convertExpr :: PluginOptions -> String -> GHC.Type -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr
+convertExpr opts locStr codeTy origE = do
     flags <- GHC.getDynFlags
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
@@ -268,7 +265,7 @@ convertExpr opts locStr origE resType = do
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
               when (poDoTypecheck opts) $ do
                   annotated <- PLC.annotateProgram plcP
-                  void $ PLC.typecheckProgram (PLC.TypeConfig True stringBuiltinTypes (Just 1000)) annotated
+                  void $ PLC.typecheckProgram (PLC.TypeConfig True stringBuiltinTypes Nothing) annotated
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },
@@ -279,10 +276,15 @@ convertExpr opts locStr origE resType = do
     case runExcept . runQuoteT . flip runReaderT context $ result of
         Left s ->
             let shown = show $ if poStripContext opts then PP.pretty (stripContext s) else PP.pretty s in
-            if poDeferErrors opts
             -- TODO: is this the right way to do either of these things?
-            then pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID resType shown -- this will blow up at runtime
-            else failCompilation shown -- this will actually terminate compilation
+            if poDeferErrors opts
+            -- this will blow up at runtime
+            then do
+                tcName <- thNameToGhcNameOrFail ''CompiledCode
+                tc <- GHC.lookupTyCon tcName
+                pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
+            -- this will actually terminate compilation
+            else failCompilation shown
         Right (pirP, plcP) -> do
             bsLitPir <- makeByteStringLiteral $ BSL.toStrict $ serialise pirP
             bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise plcP
@@ -290,4 +292,8 @@ convertExpr opts locStr origE resType = do
             dcName <- thNameToGhcNameOrFail 'CompiledCode
             dc <- GHC.lookupDataCon dcName
 
-            pure $ GHC.Var (GHC.dataConWrapId dc) `GHC.App` bsLitPlc `GHC.App` bsLitPir
+            pure $
+                GHC.Var (GHC.dataConWrapId dc)
+                `GHC.App` GHC.Type codeTy
+                `GHC.App` bsLitPlc
+                `GHC.App` bsLitPir

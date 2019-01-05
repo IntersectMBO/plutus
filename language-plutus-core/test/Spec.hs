@@ -6,8 +6,6 @@ module Main ( main
 import qualified Check.Spec                   as Check
 import           Codec.Serialise
 import           Control.Monad.Except
-import           Control.Monad.Reader         (ask)
-import           Control.Monad.Trans.Except   (runExceptT)
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
 import           Data.Text.Encoding           (encodeUtf8)
@@ -20,6 +18,7 @@ import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Pretty
+import           Normalization.Type
 import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec               as Quotation
@@ -106,7 +105,8 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsType typeFiles
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
-    , test_PrettyReadable
+    , test_Pretty
+    , test_typeNormalization
     , test_typecheck
     , test_constant
     , test_evaluateCk
@@ -162,22 +162,6 @@ testsRewrite :: [FilePath] -> TestTree
 testsRewrite
     = testGroup "golden rewrite tests"
     . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
-
-appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
-appAppLamLam = do
-    x <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "x")
-    y <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "y")
-    pure $
-        TyApp ()
-            (TyApp ()
-                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
-                 (TyBuiltin () TyInteger))
-            (TyBuiltin () TyInteger)
-
-testLam :: Either (TypeError ()) String
-testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeConfig True mempty Nothing) $ do
-    (TypeConfig _ _ gas) <- ask
-    normalizeType gas =<< appAppLamLam
 
 testEqTerm :: Bool
 testEqTerm =
@@ -259,7 +243,6 @@ tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
-    , testLam @?= Right "(con integer)"
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True

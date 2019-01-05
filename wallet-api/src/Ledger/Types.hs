@@ -241,7 +241,7 @@ newtype Script = Script { getSerialized :: BSL.ByteString }
   deriving newtype (Serialise, Eq, Ord)
 
 -- TODO: possibly this belongs with CompiledCode
-fromCompiledCode :: CompiledCode -> Script
+fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = Script . getSerializedPlc
 
 getPlc :: Script -> PLC.Program PLC.TyName PLC.Name ()

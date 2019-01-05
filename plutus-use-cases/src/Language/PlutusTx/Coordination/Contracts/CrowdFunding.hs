@@ -89,7 +89,7 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
             red        = Ledger.RedeemerScript $ Ledger.lifted Collect
             con (r, _) = scriptTxIn r scr red
             ins        = con <$> contributions
-            value = getSum $ foldMap (Sum . snd) contributions
+            value = getSum $ foldMap (Sum . Ledger.txOutValue . snd) contributions
 
         oo <- ownPubKeyTxOut value
         void $ signAndSubmit (Set.fromList ins) [oo]
@@ -201,7 +201,7 @@ refund txid cmp = EventHandler $ \_ -> do
         red   = Ledger.RedeemerScript $ Ledger.lifted Refund
         i ref = scriptTxIn ref scr red
         inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = getSum $ foldMap (Sum . snd) ourUtxo
+        value  = getSum $ foldMap (Sum . Ledger.txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
     void $ signAndSubmit inputs [out]

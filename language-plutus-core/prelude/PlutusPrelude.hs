@@ -86,6 +86,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , iasqrt
                      , ilogFloor
                      , ilogRound
+                     -- * GHCi
+                     , printPretty
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -275,3 +277,9 @@ ilogRound b x
     | b ^ p == x = p
     | otherwise  = p + 1
     where p = ilogFloor b x
+
+-- For GHCi to use this properly it needs to be in a registered package, hence
+-- why we're naming such a trivial thing.
+-- | A command suitable for use in GHCi as an interactive printer.
+printPretty :: Pretty a => a -> IO ()
+printPretty = print . pretty

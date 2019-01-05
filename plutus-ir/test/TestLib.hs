@@ -6,8 +6,10 @@ import           Common
 import           Language.PlutusCore.Quote
 import           Language.PlutusIR
 
+import           Data.Text.Prettyprint.Doc
+
 goldenPir :: String -> Term TyName Name a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ prettyDef value
+goldenPir name value = nestedGoldenVsDoc name $ pretty value
 
 maybeDatatype :: Quote (Datatype TyName Name ())
 maybeDatatype = do

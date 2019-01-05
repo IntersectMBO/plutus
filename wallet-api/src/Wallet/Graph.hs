@@ -12,18 +12,19 @@ module Wallet.Graph
   , FlowLink
   , TxRef
   , UtxOwner
+  , UtxoLocation
   ) where
 
 import           Data.Aeson.Types (ToJSON, toJSON)
-import           Data.Foldable    (fold)
 import           Data.List        (nub)
 import qualified Data.Map         as Map
+import           Data.Maybe       (catMaybes)
 import qualified Data.Set         as Set
 import qualified Data.Text        as Text
 import           GHC.Generics     (Generic)
-import           Ledger.Types     (Blockchain, PubKey, TxId', TxOut (TxOut), TxOutRef (TxOutRef),
+import           Ledger.Types     (Blockchain, PubKey, Tx, TxId', TxOut (TxOut), TxOutRef (TxOutRef), TxOutRef',
                                    TxOutType (PayToPubKey, PayToScript), getTxId, hashTx, out, txInRef, txInputs,
-                                   txOutRefId, txOutType, txOutValue, unspentOutputs)
+                                   txOutRefId, txOutRefs, txOutType, txOutValue, unspentOutputs)
 
 -- | Owner of unspent funds
 data UtxOwner
@@ -54,11 +55,19 @@ instance ToJSON TxRef where
 mkRef :: TxId' -> TxRef
 mkRef = TxRef . Text.pack . take 8 . show . getTxId
 
+data UtxoLocation = UtxoLocation
+  { utxoLocBlock    :: Integer
+  , utxoLocBlockIdx :: Integer
+  } deriving (Eq, Ord, Show, Generic, ToJSON)
+
 data FlowLink = FlowLink
-  { flowLinkSource :: TxRef
-  , flowLinkTarget :: TxRef
-  , flowLinkValue  :: Integer
-  , flowLinkOwner  :: UtxOwner
+  { flowLinkSource    :: TxRef
+  , flowLinkTarget    :: TxRef
+  , flowLinkValue     :: Integer
+  , flowLinkOwner     :: UtxOwner
+  , flowLinkSourceLoc :: UtxoLocation
+  , flowLinkTargetLoc :: Maybe UtxoLocation
+    -- ^ If this is `Nothing` then the output is unspent (UTXO)
   } deriving (Show, Generic, ToJSON)
 
 data FlowGraph = FlowGraph
@@ -74,26 +83,44 @@ graph lnks = FlowGraph {..}
 
 -- | The flows of value from t
 txnFlows :: [PubKey] -> Blockchain -> [FlowLink]
-txnFlows keys bc = utxoLinks ++ foldMap extract (fold bc)
+txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
   where
+    bc' = foldMap (\(blockNum, txns) -> fmap (\(blockIdx, txn) -> (UtxoLocation blockNum blockIdx, txn)) txns) $ zipWithIndex $ zipWithIndex <$> reverse bc
+
+    sourceLocations :: Map.Map TxOutRef' UtxoLocation
+    sourceLocations = Map.fromList $ foldMap (uncurry outRefsWithLoc) bc'
+
+    knownKeys :: Set.Set PubKey
     knownKeys = Set.fromList keys
-    getOut rf =
-      let Just o = out bc rf
-       in o
+
     utxos = fmap fst $ Map.toList $ unspentOutputs bc
-    utxoLinks = uncurry flow <$> zip (utxoTargets <$> utxos) utxos
-    utxoTargets (TxOutRef rf idx) =
-      TxRef $
-      Text.unwords
-        ["utxo", Text.pack $ take 8 $ show $getTxId rf, Text.pack $ show idx]
-    extract tx =
-      fmap (flow (mkRef $ hashTx tx) . txInRef) (Set.toList $ txInputs tx)
+    utxoLinks = uncurry (flow Nothing) <$> zip (utxoTargets <$> utxos) utxos
+
+    extract :: (UtxoLocation, Tx) -> [Maybe FlowLink]
+    extract (loc, tx) =
+      let targetRef = mkRef $ hashTx tx in
+      fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ txInputs tx)
     -- make a flow for a TxOutRef
-    flow tgt rf =
-      let src = getOut rf
-       in FlowLink
-            { flowLinkSource = mkRef $ txOutRefId rf -- source :: TxRe
-            , flowLinkTarget = tgt -- target :: TxRef
+
+    flow :: Maybe UtxoLocation -> TxRef -> TxOutRef' -> Maybe FlowLink
+    flow tgtLoc tgtRef rf = do
+      src <- out bc rf
+      sourceLoc <- Map.lookup rf sourceLocations
+      let sourceRef = mkRef $ txOutRefId rf
+      pure FlowLink
+            { flowLinkSource = sourceRef
+            , flowLinkTarget = tgtRef
             , flowLinkValue = fromIntegral $ txOutValue src
             , flowLinkOwner = owner knownKeys src
+            , flowLinkSourceLoc = sourceLoc
+            , flowLinkTargetLoc = tgtLoc
             }
+
+    zipWithIndex = zip [1..]
+
+-- | Annotate the [[TxOutRef']]s produced by a transaction with their location
+outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef', UtxoLocation)]
+outRefsWithLoc loc tx = (\txo -> (snd txo, loc)) <$> txOutRefs tx
+
+utxoTargets :: Show a => TxOutRef a -> TxRef
+utxoTargets (TxOutRef rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]
