@@ -9,7 +9,7 @@ module Language.PlutusCore.Subst(
 import           Language.PlutusCore.Type
 import           PlutusPrelude            hiding (empty)
 
-import           Data.Functor.Foldable    hiding (hoist)
+import           Data.Functor.Foldable    (cata, project)
 import           Data.Set
 
 -- | Naively substitute names using the given functions (i.e. do not account for scoping).
