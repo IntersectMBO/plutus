@@ -30,7 +30,7 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx 
-import           Ledger                       (DataScript (..), Height(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..),
                                               PendingTxOutType (..), ValidatorHash)
@@ -158,7 +158,7 @@ adjustMargin refs ft fd vl = do
 --   change during the lifetime of the contract.
 --
 data Future = Future {
-    futureDeliveryDate  :: Height,
+    futureDeliveryDate  :: Slot,
     futureUnits         :: Int,
     futureUnitPrice     :: Value,
     futureInitialMargin :: Value,
@@ -198,7 +198,7 @@ validatorScript ft = ValidatorScript val where
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
 
             let
-                PendingTx _ outs _ _ (Height height) _ ownHash = p
+                PendingTx _ outs _ _ (Slot sl) _ ownHash = p
 
                 eqPk :: PubKey -> PubKey -> Bool
                 eqPk = $$(Validation.eqPubKey)
@@ -224,7 +224,7 @@ validatorScript ft = ValidatorScript val where
                 penalty = let Value v = futureMarginPenalty in v
 
                 deliveryDate :: Int
-                deliveryDate = let Height h = futureDeliveryDate in h
+                deliveryDate = let Slot h = futureDeliveryDate in h
 
                 -- Compute the required margin from the current price of the
                 -- underlying asset.
@@ -244,7 +244,7 @@ validatorScript ft = ValidatorScript val where
                     let PendingTxOut (Value vl') _ _ = txo in
                     isPubKeyOutput txo pk && vl == vl'
 
-                verifyOracle :: OracleValue a -> (Height, a)
+                verifyOracle :: OracleValue a -> (Slot, a)
                 verifyOracle (OracleValue pk h t) =
                     if pk `eqPk` futurePriceOracle then (h, t) else $$(PlutusTx.error) ()
 
@@ -266,7 +266,7 @@ validatorScript ft = ValidatorScript val where
                                 delta  = futureUnits *  (spotPrice - forwardPrice)
                                 expShort = marginShort - delta
                                 expLong  = marginLong + delta
-                                heightvalid = height >= deliveryDate
+                                slotvalid = sl >= deliveryDate
 
                                 canSettle =
                                     case outs of
@@ -275,7 +275,7 @@ validatorScript ft = ValidatorScript val where
                                                     (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
                                                     || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
                                             in
-                                                heightvalid && paymentsValid
+                                                slotvalid && paymentsValid
                                         o1:_ ->
                                             let
                                                 totalMargin = marginShort + marginLong

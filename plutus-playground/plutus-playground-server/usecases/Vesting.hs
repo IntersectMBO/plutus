@@ -12,14 +12,14 @@ import           Playground.Contract
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
-    vestingTrancheDate   :: Height,
+    vestingTrancheDate   :: Slot,
     vestingTrancheAmount :: Value
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
---   (block height) after which an additional amount of money can be spent.
+--   (slot) after which an additional amount of money can be spent.
 data Vesting = Vesting {
     vestingTranche1 :: VestingTranche,
     vestingTranche2 :: VestingTranche,
@@ -95,9 +95,9 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(P.and)
 
-            PendingTx _ os _ _ (Height h) _ _ = p
-            VestingTranche (Height d1) (Value a1) = vestingTranche1
-            VestingTranche (Height d2) (Value a2) = vestingTranche2
+            PendingTx _ os _ _ (Slot h) _ _ = p
+            VestingTranche (Slot d1) (Value a1) = vestingTranche1
+            VestingTranche (Slot d2) (Value a2) = vestingTranche2
 
             -- We assume here that the txn outputs are always given in the same
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
@@ -143,7 +143,7 @@ validatorScript v = ValidatorScript val where
 tranche1Trigger :: Vesting -> EventTrigger
 tranche1Trigger v = 
     let VestingTranche dt1 _ = vestingTranche1 v in
-    (blockHeightT (Interval dt1 (succ dt1)))
+    (slotRangeT (Interval dt1 (succ dt1)))
 
 -- | Collect the remaining funds at the end of tranche 2
 tranche2Handler :: Vesting -> EventHandler MockWallet
@@ -156,7 +156,7 @@ tranche2Handler vesting = EventHandler (\_ -> do
 tranche2Trigger :: Vesting -> EventTrigger
 tranche2Trigger v = 
     let VestingTranche dt2 _ = vestingTranche2 v in
-    (blockHeightT (Interval dt2 (succ dt2)))
+    (slotRangeT (Interval dt2 (succ dt2)))
 
 $(mkFunction 'vestFunds)
 $(mkFunction 'registerVestingOwner)

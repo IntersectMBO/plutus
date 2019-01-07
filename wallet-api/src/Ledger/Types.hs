@@ -16,8 +16,8 @@
 module Ledger.Types(
     -- * Basic types
     Value(..),
-    Height(..),
-    height,
+    Slot(..),
+    lastSlot,
     TxId(..),
     TxId',
     PubKey(..),
@@ -338,18 +338,20 @@ instance BA.ByteArrayAccess RedeemerScript where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | Block height
-newtype Height = Height { getHeight :: Int }
+-- | Slot number
+newtype Slot = Slot { getSlot :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
     deriving anyclass (ToSchema, FromJSON, ToJSON)
     deriving newtype (Num, Real, Integral, Serialise)
 
-makeLift ''Height
+makeLift ''Slot
 
--- | The height of a blockchain
-height :: Blockchain -> Height
-height = Height . length
+-- | The number of the last slot of a blockchain. Assumes that empty slots are 
+--   represented as empty blocks (as opposed to no blocks). This is true in the 
+--   emulator but not necessarily on the real chain,
+lastSlot :: Blockchain -> Slot
+lastSlot = Slot . length
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
@@ -625,7 +627,7 @@ updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.un
 --   scripts
 --
 data BlockchainState = BlockchainState {
-    blockchainStateHeight :: Height,
+    blockchainSlot        :: Slot,
     blockchainStateTxHash :: TxId'
     }
 
@@ -644,7 +646,7 @@ instance Show ValidationData where
 
 -- | Get blockchain state for a transaction
 state :: Tx -> Blockchain -> BlockchainState
-state tx bc = BlockchainState (height bc) (hashTx tx)
+state tx bc = BlockchainState (lastSlot bc) (hashTx tx)
 
 -- | Determine whether a transaction is valid in a given ledger
 --

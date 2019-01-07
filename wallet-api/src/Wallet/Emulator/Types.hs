@@ -26,7 +26,7 @@ module Wallet.Emulator.Types(
     ownKeyPair,
     ownFunds,
     addressMap,
-    blockHeight,
+    walletSlot,
     -- ** Traces
     Trace,
     runTraceChain,
@@ -81,8 +81,8 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Ledger                     (Address', Block, Blockchain, Height, Tx (..), TxId', TxOut (..), TxOut',
-                                             TxOutRef', Value, hashTx, height, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
+import           Ledger                     (Address', Block, Blockchain, Slot, Tx (..), TxId', TxOut (..), TxOut',
+                                             TxOutRef', Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
                                              txOutAddress)
 import qualified Ledger.Index               as Index
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
@@ -99,7 +99,7 @@ newtype Wallet = Wallet { getWallet :: Int }
 type TxPool = [Tx]
 
 data Notification = BlockValidated Block
-                  | BlockHeight Height
+                  | CurrentSlot Slot
                   deriving (Show, Eq, Ord)
 
 -- manually records the list of transactions to be submitted
@@ -115,12 +115,12 @@ tellTx tx = MockWallet $ tell (mempty, tx)
 -- Wallet code
 
 data WalletState = WalletState {
-    _ownKeyPair        :: KeyPair,
-    _walletBlockHeight :: Height,
-    -- ^  Height of the blockchain as far as the wallet is concerned
-    _addressMap        :: AM.AddressMap,
+    _ownKeyPair :: KeyPair,
+    _walletSlot :: Slot,
+    -- ^  Current slot as far as the wallet is concerned
+    _addressMap :: AM.AddressMap,
     -- ^ Addresses that we watch. For each address we keep the unspent transaction outputs and their values, so that we can use them in transactions.
-    _triggers          :: Map EventTrigger (EventHandler MockWallet)
+    _triggers   :: Map EventTrigger (EventHandler MockWallet)
     }
 
 instance Show WalletState where
@@ -158,8 +158,8 @@ data EmulatorEvent =
     -- ^ A transaction has been validated and added to the blockchain
     | TxnValidationFail TxId' Index.ValidationError
     -- ^ A transaction failed  to validate
-    | BlockAdd Height
-    -- ^ A block has been added to the blockchain
+    | SlotAdd Slot
+    -- ^ A slot has passed, and a block was added to the blokchain
     | WalletError Wallet WalletAPIError
     -- ^ A `WalletAPI` action produced an error
     | WalletInfo Wallet T.Text
@@ -172,11 +172,11 @@ instance ToJSON EmulatorEvent
 handleNotifications :: [Notification] -> MockWallet ()
 handleNotifications = mapM_ (updateState >=> runTriggers)  where
     updateState = \case
-            BlockHeight h -> modify (walletBlockHeight .~ h)
-            BlockValidated blck -> mapM_ (modify . update) blck >> modify (walletBlockHeight %~ succ)
+            CurrentSlot h -> modify (walletSlot .~ h)
+            BlockValidated blck -> mapM_ (modify . update) blck >> modify (walletSlot %~ succ)
 
     runTriggers _ = do
-        h <- gets (view walletBlockHeight)
+        h <- gets (view walletSlot)
         adrs <- gets (view addressMap)
         trg <- gets (view triggers)
 
@@ -222,7 +222,7 @@ instance WalletAPI MockWallet where
 
     startWatching = modifying addressMap . AM.addAddress
 
-    blockHeight = use walletBlockHeight
+    slot = use walletSlot
 
 -- | Given a set of 'a's with coin values, and a target value, select a number
 -- of 'a' such that their total value is greater than or equal to the target.
@@ -354,7 +354,7 @@ emulatorState' tp = emptyEmulatorState
 -- | Validate a transaction in the current emulator state
 validateEm :: EmulatorState -> Tx -> Maybe Index.ValidationError
 validateEm EmulatorState{_index=idx, _chainNewestFirst = ch} txn =
-    let h = height ch
+    let h = lastSlot ch
         result = Index.runValidation (Index.validateTransaction h txn) idx in
     either Just (const Nothing) result
 
@@ -389,7 +389,7 @@ evalEmulated = \case
             _chainNewestFirst = newChain,
             _txPool = [],
             _index = Index.insertBlock block (_index emState),
-            _emulatorLog   = BlockAdd (height newChain) : events ++ _emulatorLog emState
+            _emulatorLog   = SlotAdd (lastSlot newChain) : events ++ _emulatorLog emState
             }
         pure block
     Assertion a -> assert a

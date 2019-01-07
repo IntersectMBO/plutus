@@ -1,9 +1,9 @@
 {
   "emulatorLog": [
     {
-      "tag": "BlockAdd",
+      "tag": "SlotAdd",
       "contents": {
-        "getHeight": 2
+        "getSlot": 2
       }
     },
     {
@@ -19,9 +19,9 @@
       }
     },
     {
-      "tag": "BlockAdd",
+      "tag": "SlotAdd",
       "contents": {
-        "getHeight": 1
+        "getSlot": 1
       }
     },
     {

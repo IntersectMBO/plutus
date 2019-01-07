@@ -113,7 +113,7 @@ invalidTrace = property $ do
     Hedgehog.assert ([] == _txPool st)
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.assert (case _emulatorLog st of
-        BlockAdd _ : TxnValidationFail _ _ : _ -> True
+        SlotAdd _ : TxnValidationFail _ _ : _ -> True
         _                                      -> False)
 
 invalidScript :: Property
@@ -143,7 +143,7 @@ invalidScript = property $ do
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert $ case _emulatorLog st of
-        BlockAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
+        SlotAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
             -> True
         _
             -> False
@@ -199,9 +199,9 @@ eventTrace = property $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
                     EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
-                trigger = blockHeightT (GEQ 3)
+                trigger = slotRangeT (GEQ 3)
 
-            -- schedule the `mkPayment` action to run when block height 3 is
+            -- schedule the `mkPayment` action to run when slot 3 is
             -- reached.
             b1 <- walletAction (Wallet 1) $ register trigger mkPayment
             walletNotifyBlock w b1
@@ -267,7 +267,7 @@ watchFundsAtAddress = property $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
                     EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
-                t1 = blockHeightT (Interval 3 4)
+                t1 = slotRangeT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<
                 (walletAction (Wallet 1) $ do

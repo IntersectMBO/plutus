@@ -26,7 +26,7 @@ import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, h3_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
-import Ledger.Types (Height(..), TxId(..), Value)
+import Ledger.Types (Slot(..), TxId(..), Value)
 import Playground.API (EvaluationResult(EvaluationResult))
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<>), (>>>))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), cpBalancesChart, cpMockchainChart)
@@ -85,9 +85,9 @@ emulatorEventPane (TxnValidationFail (TxId txId) error) =
     , text $ gShow error
     ]
 
-emulatorEventPane (BlockAdd (Height height)) =
+emulatorEventPane (SlotAdd (Slot slot)) =
   div [ class_ $ ClassName "info" ]
-    [ text $ "Add block #" <> show height.getHeight ]
+    [ text $ "Add slot #" <> show slot.getSlot ]
 
 emulatorEventPane (WalletError (Wallet walletId) error) =
   div [ class_ $ ClassName "error" ]

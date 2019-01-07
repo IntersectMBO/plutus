@@ -24,7 +24,7 @@ import           GHC.Generics                 (Generic)
 import           Ledger.Validation            (PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                               ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Height(..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
@@ -32,14 +32,14 @@ import           Wallet                       (WalletAPI (..), WalletAPIError, t
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
-    vestingTrancheDate   :: Height,
+    vestingTrancheDate   :: Slot,
     vestingTrancheAmount :: Value
     } deriving Generic
 
 PlutusTx.makeLift ''VestingTranche
 
 -- | A vesting scheme consisting of two tranches. Each tranche defines a date
---   (block height) after which an additional amount of money can be spent.
+--   (slot) after which an additional amount of money can be spent.
 data Vesting = Vesting {
     vestingTranche1 :: VestingTranche,
     vestingTranche2 :: VestingTranche,
@@ -120,9 +120,9 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
 
-            PendingTx _ os _ _ (Height h) _ _ = p
-            VestingTranche (Height d1) (Value a1) = vestingTranche1
-            VestingTranche (Height d2) (Value a2) = vestingTranche2
+            PendingTx _ os _ _ (Slot h) _ _ = p
+            VestingTranche (Slot d1) (Value a1) = vestingTranche1
+            VestingTranche (Slot d2) (Value a2) = vestingTranche2
 
             -- We assume here that the txn outputs are always given in the same
             -- order (1 PubKey output, followed by 0 or 1 script outputs)

@@ -60,7 +60,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins as Builtins
-import           Ledger.Types                 (PubKey (..), Signature (..), Value (..), Height(..))
+import           Ledger.Types                 (PubKey (..), Signature (..), Value (..), Slot(..))
 import qualified Ledger.Types                 as Ledger
 
 -- Ignore newtype warnings related to `Oracle` and `Signed` because it causes
@@ -111,7 +111,7 @@ data PendingTx a = PendingTx
     , pendingTxOutputs     :: [PendingTxOut]
     , pendingTxFee         :: Value
     , pendingTxForge       :: Value
-    , pendingTxBlockHeight :: Height
+    , pendingTxSlot        :: Slot
     , pendingTxSignatures  :: [Signature]
     , pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
     } deriving (Functor, Generic)
@@ -123,7 +123,7 @@ I'm not sure how oracles are going to work eventually, so I'm going to use this
 definition for now:
 * Oracles are identified by their public key
 * An oracle can produce "observations", which are values annotated with time
-  (block height). These observations are signed by the oracle. This means we are
+  (slot number). These observations are signed by the oracle. This means we are
   assume a _trusted_ oracle (as opposed to services such as
   http://www.oraclize.it/ who provide untrusted oracles). Trusting the oracle
   makes sense when dealing with financial data: Current prices etc. are usually
@@ -143,7 +143,7 @@ Language.Plutus.Coordination.Contracts.Future.validatorScript scripts.
 -- an oracle. See note [Oracles]
 data OracleValue a = OracleValue {
         ovSignature :: PubKey,
-        ovHeight    :: Height,
+        ovSlot      :: Slot,
         ovValue     :: a
     }
     deriving (Generic)
