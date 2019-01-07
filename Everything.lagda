@@ -48,5 +48,8 @@ import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
 
---import AlgorithmicRed.Term
+-- Terms, that carry witnesses of their type's reduction to normal form
+
+import AlgorithmicRed.Term
+import AlgorithmicRed.Term.RenamingSubstitution
 \end{code}

@@ -241,3 +241,10 @@ rename-embNeN ρ (` x)    = refl
 rename-embNeN ρ (n · n') = cong₂ _·_ (rename-embNeN ρ n) (rename-embNf ρ n')
 rename-embNeN ρ μ1       = refl
 \end{code}
+
+# Assemblies
+
+\begin{code}
+booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
+booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
+\end{code}

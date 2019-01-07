@@ -13,9 +13,6 @@ open import Type
 open import Type.RenamingSubstitution
 open import Type.BetaNormal
 
-booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
-booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
-
 open import Type.BetaNBE
 open import Builtin
 open import Builtin.Signature
@@ -187,17 +184,19 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢Nf⋆ J → Set where
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {J} → Δ ∋⋆ J → ∥ Γ ∥ ⊢Nf⋆ J)
     → Tel Γ Δ σ As
-    → {N : ∥ Γ ∥ ⊢Nf⋆ *}
-    → subst (embNf ∘ σ) (embNf C) —Nf→⋆ N
+    → {R : ∥ Γ ∥ ⊢Nf⋆ *}
+    → subst (embNf ∘ σ) (embNf C) —Nf→⋆ R
       ----------------------------------
-    → Γ ⊢ N
+    → Γ ⊢ R
 
   error : ∀{Γ} → (A : ∥ Γ ∥ ⊢⋆ *){R : ∥ Γ ∥ ⊢Nf⋆ *} → A —Nf→⋆ R → Γ ⊢ R
 
 Tel Γ Δ σ [] = ⊤
-Tel Γ Δ σ (A ∷ As) =
-  Σ (∥ Γ ∥ ⊢Nf⋆ *) λ N → subst (embNf ∘ σ) (embNf A) —Nf→⋆ N × Tel Γ Δ σ As
-
+Tel Γ Δ σ (A ∷ As) = 
+  Σ (∥ Γ ∥ ⊢Nf⋆ *) λ N →
+    subst (embNf ∘ σ) (embNf A) —Nf→⋆ N
+  × Γ ⊢ N
+  × Tel Γ Δ σ As
 \end{code}
 
 # Term Abbreviations

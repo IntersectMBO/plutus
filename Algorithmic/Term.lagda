@@ -12,9 +12,6 @@ open import Function hiding (_∋_)
 open import Type
 open import Type.BetaNormal
 
-booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
-booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
-
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
