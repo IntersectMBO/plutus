@@ -40,9 +40,11 @@ genConstant = Gen.choice [genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 1 10)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
-          genInt = BuiltinInt () <$> size' <*> int'
+          genInt = Gen.filter (not . badInt) $ BuiltinInt () <$> size' <*> int'
           genSize = BuiltinSize () <$> size'
           genBS = BuiltinBS () <$> size' <*> string'
+          badInt (BuiltinInt _ sz i) = (2 ^ (sz - 1)) <= i || -(2 ^ (sz - 1)) > i
+          badInt _                   = False
 
 genType :: MonadGen m => m (Type TyName ())
 genType = simpleRecursive nonRecursive recursive
