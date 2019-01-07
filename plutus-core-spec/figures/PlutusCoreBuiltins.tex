@@ -24,17 +24,17 @@
         \hline
         $\forall \alpha :: K.\ B$ & \(\allT{\alpha}{K}{B}\) \rule{0mm}{4mm} \\[\sep]
 
-        $\forall \alpha, \beta, \ldots :: K, \ldots.\ C$ & \(\forall \alpha :: K.\ \forall \beta :: K.\ \ldots.\ C\)\\[\sep]
+        $integer_s$ & \(\conT{\conIntegerType{}}{s}\)\\\\
 
-        $A \to B$ & \(\funT{A}{B}\)\\[\sep]
+        $bytestring_s$ & \(\conT{\conBytestringType{}}{s}\)\\\\
 
-        $err(A)$ & \(\error{A}\)\\[\sep]
+        $size_s$ & \(\conT{\conSizeType{}}{s}\)\\\\
 
-        $integer_s$ & \(\builtinT{\conIntegerType{}}{s}\)\\[\sep]
+        $integer_s$ & \(\conT{\conIntegerType{}}{s}\)\\[\sep]
 
-        $bytestring_s$ & \(\builtinT{\conBytestringType{}}{s}\)\\[\sep]
+        $bytestring_s$ & \(\conT{\conBytestringType{}}{s}\)\\[\sep]
 
-        $size_s$ & \(\builtinT{\conSizeType{}}{s}\)\\[\sep]
+        $size_s$ & \(\conT{\conSizeType{}}{s}\)\\[\sep]
 
         $\star$ & \(\typeK{}\)\\[\sep]
 
