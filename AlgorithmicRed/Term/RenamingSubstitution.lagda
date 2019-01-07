@@ -128,7 +128,22 @@ rename ρ⋆ ρ (wrap1 pat arg {R} (p ,, q ,, r ,, s) t) = wrap1
    trans (rename-embNf ρ⋆ R) (cong (⋆.rename ρ⋆) s))
   (rename ρ⋆ ρ t)
   -- wrap1 _ _ (rename ρ⋆ ρ t)
-rename ρ⋆ ρ (unwrap1 t p) = {!!} -- unwrap1 (rename ρ⋆ ρ t)
+rename ρ⋆ ρ (unwrap1 {pat = pat}{arg = arg} t {R = R} (p ,, q ,, r ,, s)) = unwrap1
+  (rename ρ⋆ ρ t)
+  (⋆.rename ρ⋆ p
+   ,,
+   substEq
+     (_—→⋆ ⋆.rename ρ⋆ p)
+     (cong₂
+       (λ t u → t · (μ1 · t) · u)
+       (sym (rename-embNf ρ⋆ pat))
+       (sym (rename-embNf ρ⋆ arg)))
+     (rename—→⋆ ρ⋆ q)
+   ,,
+   renameValue⋆ ρ⋆ r
+   ,,
+   trans (rename-embNf ρ⋆ R) (cong (⋆.rename ρ⋆) s))
+  -- unwrap1 (rename ρ⋆ ρ t)
 rename ρ⋆ ρ (con cn) = {!!} -- con (renameTermCon ρ⋆ cn)
 rename {Γ} {Δ} ρ⋆ ρ (builtin bn σ X p) = {!!} {- substEq
   (Δ ⊢_)
