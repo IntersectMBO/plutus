@@ -56,12 +56,52 @@
 	
 	\judgmentdef{\(\typeEquiv{A}{A'}\)}{Type $A$ is equivalent to type $A'$ modulo $\beta$ reduction}
 	
+	% beta conversion
+	
 	\begin{prooftree}
-		\AxiomC{\(\typeMultistep{A}{S}\)}
-		\AxiomC{\(\typeMultistep{A'}{S'}\)}
-		\AxiomC{\(\typeEqual{S}{S'}\)}
-		\TrinaryInfC{\(\typeEquiv{A}{A'}\)}
+		\AxiomC{}
+		\UnaryInfC{\(\typeEquiv{\appT{\lamT{\alpha}{K}{B}}{A}}{\subst{A}{\alpha}{B}}\)}
 	\end{prooftree}
+	
+	% alpha
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEqual{A}{A'}\)}
+		\RightLabel{$\alpha$}
+		\UnaryInfC{\(\typeEquiv{A}{A'}\)}
+	\end{prooftree}
+	
+	% sym
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{sym}
+		\UnaryInfC{\(\typeEquiv{A'}{A}\)}
+	\end{prooftree}
+	
+	% trans
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\AxiomC{\(\typeEquiv{A'}{A''}\)}
+		\RightLabel{trans}
+		\BinaryInfC{\(\typeEquiv{A}{A''}\)}
+	\end{prooftree}
+	
+	% cong
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{cong}
+		\UnaryInfC{\(\typeEquiv{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
+	\end{prooftree}
+	
+	%\begin{prooftree}
+	%	\AxiomC{\(\typeMultistep{A}{S}\)}
+	%	\AxiomC{\(\typeMultistep{A'}{S'}\)}
+	%	\AxiomC{\(\typeEqual{S}{S'}\)}
+	%	\TrinaryInfC{\(\typeEquiv{A}{A'}\)}
+	%\end{prooftree}
 	
 	
 	

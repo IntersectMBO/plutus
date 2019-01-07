@@ -212,6 +212,13 @@
         \RightLabel{error}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
+    
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{conv}
+		\BinaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
+    \end{prooftree}
 
     \captionof{figure}{Type Synthesis}
     \label{fig:Plutus_core_type_synthesis}
