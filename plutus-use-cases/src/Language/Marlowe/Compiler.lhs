@@ -325,6 +325,7 @@ import           Wallet                         ( WalletAPI(..)
                                                 , WalletAPIError
                                                 , throwOtherError
                                                 , signAndSubmit
+                                                , signature
                                                 , ownPubKeyTxOut
                                                 )
 
@@ -484,7 +485,8 @@ commit :: (
     -> m ()
 commit txOut oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
-    let redeemer = createRedeemer (Commit identCC) oracles choices expectedState expectedCont
+    sig <- signature <$> myKeyPair
+    let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut $ \ i getOut v -> do
         (payment, change) <- createPaymentWithChange (Ledger.Value value)
         void $ signAndSubmit (Set.insert i payment) (getOut (v + value) : maybeToList change)
@@ -503,7 +505,8 @@ receivePayment :: (
     -> m ()
 receivePayment txOut oracles choices identPay value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
-    let redeemer = createRedeemer (Payment identPay) oracles choices expectedState expectedCont
+    sig <- signature <$> myKeyPair
+    let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut $ \ i getOut v -> do
         let out = getOut (v - value)
         oo <- ownPubKeyTxOut (Ledger.Value value)
@@ -523,7 +526,8 @@ redeem :: (
     -> m ()
 redeem txOut oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
-    let redeemer = createRedeemer (Redeem identCC) oracles choices expectedState expectedCont
+    sig <- signature <$> myKeyPair
+    let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut $ \ i getOut v -> do
         let out = getOut (v - value)
         oo <- ownPubKeyTxOut (Ledger.Value value)

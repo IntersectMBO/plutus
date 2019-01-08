@@ -30,6 +30,7 @@ import           Prelude                        ( Show(..)
 import qualified Language.PlutusTx              as PlutusTx
 import           Ledger                         ( Height(..)
                                                 , PubKey(..)
+                                                , Signature(..)
                                                 )
 import qualified Ledger                         as Ledger
 import           Ledger.Validation
@@ -106,9 +107,9 @@ data State = State {
         stateChoices :: [Choice]
     } deriving (Eq, Ord)
 
-data InputCommand = Commit IdentCC
-    | Payment IdentPay
-    | Redeem IdentCC
+data InputCommand = Commit IdentCC Signature
+    | Payment IdentPay Signature
+    | Redeem IdentCC Signature
     | SpendDeposit
 makeLift ''InputCommand
 
@@ -377,8 +378,8 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
     (||) :: Bool -> Bool -> Bool
     (||) = $$(PlutusTx.or)
 
-    signedBy :: PubKey -> Bool
-    signedBy = $$(Validation.txSignedBy) pendingTx
+    signedBy :: Signature -> PubKey -> Bool
+    signedBy (Signature sig) (PubKey pk) = sig == pk
 
     null :: [a] -> Bool
     null [] = True
@@ -435,7 +436,7 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
         (CommitCash _ _ _ startTimeout endTimeout _ con2, _)
             | currentBlockNumber > startTimeout || currentBlockNumber > endTimeout -> eval input state con2
 
-        (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2) | id1 `eqIdentCC` id2 -> let
+        (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2 signature) | id1 `eqIdentCC` id2 -> let
             PendingTx [in1, in2]
                 (PendingTxOut (Ledger.Value committed)
                     (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
@@ -448,7 +449,7 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
 
             isValid = vv > 0
                 && committed == vv + scriptValue
-                && signedBy pubKey
+                && signature `signedBy` pubKey
                 && validatorHash `eqValidator` thisScriptHash
                 && Builtins.equalsByteString dataScriptHash redeemerHash
             in  if isValid then let
@@ -470,7 +471,7 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
         (Pay _ _ _ _ timeout con, _)
             | currentBlockNumber > timeout -> eval input state con
 
-        (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid)) -> let
+        (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid) signature) -> let
             PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
                 (PendingTxOut (Ledger.Value change)
                     (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
@@ -481,7 +482,7 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
             isValid = pid == contractIdentPay
                 && pv > 0
                 && change == scriptValue - pv
-                && signedBy to
+                && signature `signedBy` to
                 && validatorHash `eqValidator` thisScriptHash
                 && Builtins.equalsByteString dataScriptHash redeemerHash
             in  if isValid then let
@@ -509,7 +510,7 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
                     Nothing -> (state, contract, False)
             else (state, contract, False)
 
-        (RedeemCC id1 con, Redeem id2) | id1 `eqIdentCC` id2 -> let
+        (RedeemCC id1 con, Redeem id2 signature) | id1 `eqIdentCC` id2 -> let
             PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
                 (PendingTxOut (Ledger.Value change)
                     (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
@@ -517,8 +518,9 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
 
             findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
             findAndRemove ls resultCommits result = case ls of
-                (i, (_, NotRedeemed val _)) : ls | i `eqIdentCC` id1 && change == scriptValue - val ->
-                    findAndRemove ls resultCommits (True, state)
+                (i, (pk, NotRedeemed val _)) : ls
+                    | i `eqIdentCC` id1 && change == scriptValue - val && signature `signedBy` pk ->
+                        findAndRemove ls resultCommits (True, state)
                 e : ls -> findAndRemove ls (e : resultCommits) result
                 [] -> let
                     (isValid, State _ choices) = result
@@ -532,7 +534,7 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
             then (updatedState, con, True)
             else (state, contract, False)
 
-        (_, Redeem identCC) -> let
+        (_, Redeem identCC signature) -> let
                 PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
                     (PendingTxOut (Ledger.Value change)
                         (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
@@ -544,8 +546,11 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
                     -> (Bool, State)
                     -> (Bool, State)
                 findAndRemoveExpired ls resultCommits result = case ls of
-                    (i, (_, NotRedeemed val expire)) : ls |
-                        i `eqIdentCC` identCC && change == scriptValue - val && currentBlockNumber > expire ->
+                    (i, (pk, NotRedeemed val expire)) : ls
+                        | i `eqIdentCC` identCC
+                        && change == scriptValue - val
+                        && currentBlockNumber > expire
+                        && signature `signedBy` pk ->
                             findAndRemoveExpired ls resultCommits (True, state)
                     e : ls -> findAndRemoveExpired ls (e : resultCommits) result
                     [] -> let
