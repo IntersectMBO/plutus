@@ -22,13 +22,14 @@ import           Prelude                        ( Show(..)
                                                 , Ord(..)
                                                 , Int
                                                 , Maybe(..)
+                                                , Either(..)
                                                 , Num(..)
                                                 , div
                                                 , otherwise
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
-import           Ledger                         ( Height(..)
+import           Ledger                         ( Slot(..)
                                                 , PubKey(..)
                                                 , Signature(..)
                                                 )
@@ -67,6 +68,11 @@ type Choice = ((IdentChoice, Person), ConcreteChoice)
 
 type Commit = (IdentCC, CCStatus)
 
+{-|
+    Value is a set of contract primitives that represent constants,
+    functions, and variables that can be evaluated as an amount
+    of money.
+-}
 data Value  = Committed IdentCC
             | Value Int
             | AddValue Value Value
@@ -77,25 +83,25 @@ data Value  = Committed IdentCC
                     deriving (Eq, Show)
 
 data Observation = BelowTimeout Int -- are we still on time for something that expires on Timeout?
-                | AndObs Observation Observation
-                | OrObs Observation Observation
-                | NotObs Observation
-                | PersonChoseThis IdentChoice Person ConcreteChoice
-                | PersonChoseSomething IdentChoice Person
-                | ValueGE Value Value  -- is first amount is greater or equal than the second?
-                | TrueObs
-                | FalseObs
-                deriving (Eq, Show)
+            | AndObs Observation Observation
+            | OrObs Observation Observation
+            | NotObs Observation
+            | PersonChoseThis IdentChoice Person ConcreteChoice
+            | PersonChoseSomething IdentChoice Person
+            | ValueGE Value Value  -- is first amount is greater or equal than the second?
+            | TrueObs
+            | FalseObs
+            deriving (Eq, Show)
 
 
 data Contract = Null
-              | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
-              | RedeemCC IdentCC Contract
-              | Pay IdentPay Person Person Value Timeout Contract
-              | Both Contract Contract
-              | Choice Observation Contract Contract
-              | When Observation Timeout Contract Contract
-                deriving (Eq, Show)
+            | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
+            | RedeemCC IdentCC Contract
+            | Pay IdentPay Person Person Value Timeout Contract
+            | Both Contract Contract
+            | Choice Observation Contract Contract
+            | When Observation Timeout Contract Contract
+            deriving (Eq, Show)
 
 data ValidatorState = ValidatorState {
         ccIds  :: [IdentCC],
@@ -105,7 +111,10 @@ data ValidatorState = ValidatorState {
 data State = State {
         stateCommitted  :: [Commit],
         stateChoices :: [Choice]
-    } deriving (Eq, Ord)
+    } deriving (Eq, Ord, Show)
+
+emptyState :: State
+emptyState = State { stateCommitted = [], stateChoices = [] }
 
 data InputCommand = Commit IdentCC Signature
     | Payment IdentPay Signature
@@ -269,8 +278,8 @@ validateContractQ = [|| \state contract -> let
     in validate state contract
     ||]
 
-evaluateValue :: Q (TExp (Height -> [OracleValue Int] -> State -> Value -> Int))
-evaluateValue = [|| \pendingTxBlockHeight inputOracles state value -> let
+evaluateValue :: Q (TExp (Slot -> [OracleValue Int] -> State -> Value -> Int))
+evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
     (&&) = $$(PlutusTx.and)
@@ -284,9 +293,9 @@ evaluateValue = [|| \pendingTxBlockHeight inputOracles state value -> let
         _ : xs -> findCommit i xs
         _ -> Nothing
 
-    fromOracle :: PubKey -> Height -> [OracleValue Int] -> Maybe Int
-    fromOracle pubKey h@(Height blockNumber) oracles = case oracles of
-        OracleValue pk (Height bn) value : _
+    fromOracle :: PubKey -> Slot -> [OracleValue Int] -> Maybe Int
+    fromOracle pubKey h@(Slot blockNumber) oracles = case oracles of
+        OracleValue pk (Slot bn) value : _
             | pk `eqPk` pubKey && bn == blockNumber -> Just value
         _ : rest -> fromOracle pubKey h rest
         _ -> Nothing
@@ -313,7 +322,7 @@ evaluateValue = [|| \pendingTxBlockHeight inputOracles state value -> let
         ValueFromChoice ident pubKey def -> case fromChoices ident pubKey choices of
             Just v -> v
             _ -> evalValue state def
-        ValueFromOracle pubKey def -> case fromOracle pubKey pendingTxBlockHeight inputOracles of
+        ValueFromOracle pubKey def -> case fromOracle pubKey pendingTxSlot inputOracles of
             Just v -> v
             _ -> evalValue state def
 
@@ -366,9 +375,16 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     in go obs
     ||]
 
-evaluateContract :: Q (TExp (Input -> Height -> PendingTx' -> State -> Contract -> (State, Contract, Bool)))
-evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pendingTx state contract -> let
-    Height currentBlockNumber = blockHeight
+evaluateContract :: Q (TExp (Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)))
+evaluateContract = [|| \
+    (Input inputCommand inputOracles _)
+    blockHeight
+    (Ledger.Value scriptInValue)
+    (Ledger.Value scriptOutValue)
+    state
+    contract -> let
+
+    Slot currentBlockNumber = blockHeight
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
@@ -396,25 +412,17 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a == b
 
-    eqValidator :: ValidatorHash -> ValidatorHash -> Bool
-    eqValidator = $$(Validation.eqValidator)
-
     nullContract :: Contract -> Bool
     nullContract Null = True
     nullContract _    = False
 
     evalValue :: State -> Value -> Int
-    evalValue = $$(evaluateValue) (Height currentBlockNumber) inputOracles
+    evalValue = $$(evaluateValue) (Slot currentBlockNumber) inputOracles
 
     interpretObs :: Int -> State -> Observation -> Bool
     interpretObs = $$(interpretObservation) evalValue
 
-    orderTxIns :: PendingTxIn -> PendingTxIn -> (PendingTxIn, PendingTxIn)
-    orderTxIns t1 t2 = case t1 of
-        PendingTxIn _ (Just _ :: Maybe (ValidatorHash, RedeemerHash)) _ -> (t1, t2)
-        _ -> (t2, t1)
-
-
+    eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits oracles) contract = case (contract, input) of
         (When obs timeout con con2, _)
             | currentBlockNumber > timeout -> eval input state con2
@@ -437,21 +445,11 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
             | currentBlockNumber > startTimeout || currentBlockNumber > endTimeout -> eval input state con2
 
         (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2 signature) | id1 `eqIdentCC` id2 -> let
-            PendingTx [in1, in2]
-                (PendingTxOut (Ledger.Value committed)
-                    (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                _ _ _ _ thisScriptHash = pendingTx
-
-            (PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue), _) =
-                orderTxIns in1 in2
-
             vv = evalValue state value
 
             isValid = vv > 0
-                && committed == vv + scriptValue
+                && scriptOutValue == scriptInValue + vv
                 && signature `signedBy` pubKey
-                && validatorHash `eqValidator` thisScriptHash
-                && Builtins.equalsByteString dataScriptHash redeemerHash
             in  if isValid then let
                     cns = (pubKey, NotRedeemed vv endTimeout)
 
@@ -472,19 +470,12 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
             | currentBlockNumber > timeout -> eval input state con
 
         (Pay (IdentPay contractIdentPay) from to payValue _ con, Payment (IdentPay pid) signature) -> let
-            PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
-                (PendingTxOut (Ledger.Value change)
-                    (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                    _ _ _ _ thisScriptHash = pendingTx
-
             pv = evalValue state payValue
 
             isValid = pid == contractIdentPay
                 && pv > 0
-                && change == scriptValue - pv
+                && scriptOutValue == scriptInValue - pv
                 && signature `signedBy` to
-                && validatorHash `eqValidator` thisScriptHash
-                && Builtins.equalsByteString dataScriptHash redeemerHash
             in  if isValid then let
                 -- Discounts the Cash from an initial segment of the list of pairs.
                 discountFromPairList ::
@@ -511,59 +502,43 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
             else (state, contract, False)
 
         (RedeemCC id1 con, Redeem id2 signature) | id1 `eqIdentCC` id2 -> let
-            PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
-                (PendingTxOut (Ledger.Value change)
-                    (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                    _ _ _ _ thisScriptHash = pendingTx
-
             findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
             findAndRemove ls resultCommits result = case ls of
                 (i, (pk, NotRedeemed val _)) : ls
-                    | i `eqIdentCC` id1 && change == scriptValue - val && signature `signedBy` pk ->
+                    | i `eqIdentCC` id1 && scriptOutValue == scriptInValue - val && signature `signedBy` pk ->
                         findAndRemove ls resultCommits (True, state)
                 e : ls -> findAndRemove ls (e : resultCommits) result
                 [] -> let
                     (isValid, State _ choices) = result
                     in (isValid, State (reverse resultCommits) choices)
 
-            (ok, updatedState) = findAndRemove commits [] (False, state)
-            isValid = ok
-                && validatorHash `eqValidator` thisScriptHash
-                && Builtins.equalsByteString dataScriptHash redeemerHash
+            (isValid, updatedState) = findAndRemove commits [] (False, state)
             in if isValid
             then (updatedState, con, True)
             else (state, contract, False)
 
         (_, Redeem identCC signature) -> let
-                PendingTx [PendingTxIn _ (Just (_, RedeemerHash redeemerHash)) (Ledger.Value scriptValue)]
-                    (PendingTxOut (Ledger.Value change)
-                        (Just (validatorHash, DataScriptHash dataScriptHash)) DataTxOut : _)
-                        _ _ _ _ thisScriptHash = pendingTx
+            findAndRemoveExpired ::
+                [(IdentCC, CCStatus)]
+                -> [(IdentCC, CCStatus)]
+                -> (Bool, State)
+                -> (Bool, State)
+            findAndRemoveExpired ls resultCommits result = case ls of
+                (i, (pk, NotRedeemed val expire)) : ls
+                    | i `eqIdentCC` identCC
+                    && scriptOutValue == scriptInValue - val
+                    && currentBlockNumber > expire
+                    && signature `signedBy` pk ->
+                        findAndRemoveExpired ls resultCommits (True, state)
+                e : ls -> findAndRemoveExpired ls (e : resultCommits) result
+                [] -> let
+                    (isValid, State _ choices) = result
+                    in (isValid, State (reverse resultCommits) choices)
 
-                findAndRemoveExpired ::
-                    [(IdentCC, CCStatus)]
-                    -> [(IdentCC, CCStatus)]
-                    -> (Bool, State)
-                    -> (Bool, State)
-                findAndRemoveExpired ls resultCommits result = case ls of
-                    (i, (pk, NotRedeemed val expire)) : ls
-                        | i `eqIdentCC` identCC
-                        && change == scriptValue - val
-                        && currentBlockNumber > expire
-                        && signature `signedBy` pk ->
-                            findAndRemoveExpired ls resultCommits (True, state)
-                    e : ls -> findAndRemoveExpired ls (e : resultCommits) result
-                    [] -> let
-                        (isValid, State _ choices) = result
-                        in (isValid, State (reverse resultCommits) choices)
-
-                (ok, updatedState) = findAndRemoveExpired commits [] (False, state)
-                isValid = ok
-                    && validatorHash `eqValidator` thisScriptHash
-                    && Builtins.equalsByteString dataScriptHash redeemerHash
-                in if isValid
-                then (updatedState, contract, True)
-                else (state, contract, False)
+            (isValid, updatedState) = findAndRemoveExpired commits [] (False, state)
+            in if isValid
+            then (updatedState, contract, True)
+            else (state, contract, False)
 
         (Null, SpendDeposit) | null commits -> (state, Null, True)
 
@@ -571,11 +546,11 @@ evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pending
     in eval inputCommand state contract
     ||]
 
-validator :: Q (TExp ((Input, MarloweData) -> (Input, MarloweData) -> PendingTx ValidatorHash -> ()))
+validator :: Q (TExp ((Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
 validator = [|| \
-        (input@(Input _ _ inputChoices :: Input), MarloweData expectedState expectedContract)
+        (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (_ :: Input, MarloweData{..} :: MarloweData)
-        (pendingTx@ PendingTx{ pendingTxBlockHeight } :: PendingTx ValidatorHash) -> let
+        (PendingTx{ pendingTxOutputs, pendingTxSlot, pendingTxIn } :: PendingTx) -> let
 
         eqPk :: PubKey -> PubKey -> Bool
         eqPk = $$(Validation.eqPubKey)
@@ -643,7 +618,27 @@ validator = [|| \
         validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
         validateContract = $$(validateContractQ)
 
-        eval :: Input -> Height -> PendingTx' -> State -> Contract -> (State, Contract, Bool)
+        eqValidator :: ValidatorHash -> ValidatorHash -> Bool
+        eqValidator = $$(Validation.eqValidator)
+
+        (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
+            PendingTxIn _ (Left (inputValidatorHash, RedeemerHash redeemerHash)) scriptInValue ->
+                (inputValidatorHash, redeemerHash, scriptInValue)
+            _ -> Builtins.error ()
+
+        scriptOutValue = case inputCommand of
+            SpendDeposit -> Ledger.Value 0
+            _ -> let (PendingTxOut change
+                        (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
+                {-  Check that TxOut is a valid continuation.
+                    For that we need to ensure dataScriptHash == redeemerHash
+                    and that TxOut has the same validator
+                -}
+                 in if Builtins.equalsByteString dataScriptHash redeemerHash
+                        && inputValidatorHash `eqValidator` outputValidatorHash
+                    then change else Builtins.error ()
+
+        eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract)
 
         (_, contractIsValid) = validateContract (ValidatorState [] []) marloweContract
@@ -657,7 +652,12 @@ validator = [|| \
             stateWithChoices = State currentCommits mergedChoices
 
             (newState::State, newCont::Contract, validated) =
-                eval input pendingTxBlockHeight pendingTx stateWithChoices marloweContract
+                eval input
+                    pendingTxSlot
+                    scriptInValue
+                    scriptOutValue
+                    stateWithChoices
+                    marloweContract
 
             allowTransaction = validated
                 && newCont `eqContract` expectedContract

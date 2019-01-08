@@ -39,10 +39,20 @@ import           Test.Tasty.Hedgehog            ( testProperty
 import           Ledger                  hiding ( Value )
 import qualified Ledger
 import           Ledger.Validation              ( OracleValue(..) )
-import           Wallet                         ( PubKey(..) )
+import           Wallet                         ( PubKey(..)
+                                                , startWatching
+                                                )
 import           Wallet.Emulator
 import qualified Wallet.Generators              as Gen
 import           Language.Marlowe               as Marlowe
+import           Language.Marlowe.Client        ( commit'
+                                                , commit
+                                                , redeem
+                                                , createContract
+                                                , endContract
+                                                , receivePayment
+                                                , marloweValidator
+                                                )
 import           Language.Marlowe.Escrow        as Escrow
 
 newtype MarloweScenario = MarloweScenario { mlInitialBalances :: Map.Map PubKey Ledger.Value }
@@ -73,8 +83,8 @@ contractsTests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe C
     testProperty "Oracle Commit/Pay works" oraclePayment,
     testProperty "Escrow Contract" escrowTest,
     testProperty "Futures" futuresTest,
-    testProperty "can't commit after timeout" cantCommitAfterStartTimeout,
-    testProperty "redeem after commit expired" redeemAfterCommitExpired
+    testProperty "can't commit' after timeout" cantCommitAfterStartTimeout,
+    testProperty "redeem after commit' expired" redeemAfterCommitExpired
     ]
 
 positiveAmount :: Gen Int
@@ -196,12 +206,12 @@ eqContract = $$(equalContract) eqValue eqObservation
 validContract :: ValidatorState -> Contract -> Bool
 validContract state contract = snd ($$(validateContractQ) state contract)
 
-evalValue :: Height -> [OracleValue Int] -> State -> Value -> Int
+evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
 evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
 
 interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
 interpretObs inputOracles blockNumber state obs = let
-    ev = evalValue (Height blockNumber) inputOracles
+    ev = evalValue (Slot blockNumber) inputOracles
     in $$(interpretObservation) ev blockNumber state obs
 
 checkEqValue :: Property
@@ -279,7 +289,7 @@ checkInterpretObsTotality = property $ do
 
     let observation = boundedObservation (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
     a <- forAll observation
-    let oracleValue = OracleValue (PubKey 42) (Height 1) 256
+    let oracleValue = OracleValue (PubKey 42) (Slot 1) 256
     let r = interpretObs [oracleValue] 1 emptyState a
     Hedgehog.assert (r || not r)
 
@@ -341,7 +351,14 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
             Null
 
-    let oracleValue = OracleValue oracle (Height 2) 100
+    let oracleValue = OracleValue oracle (Slot 2) 100
+
+    -- void $ walletAction alice $ startWatching (Ledger.pubKeyAddress $ PubKey 1)
+    -- void $ walletAction alice $ startWatching (Ledger.pubKeyAddress $ PubKey 2)
+    -- void $ walletAction alice $ startWatching (Ledger.scriptAddress $ marloweValidator)
+    void $ walletAction bob $ startWatching (Ledger.pubKeyAddress $ PubKey 1)
+    -- void $ walletAction bob $ startWatching (Ledger.pubKeyAddress $ PubKey 2)
+    void $ walletAction bob $ startWatching (Ledger.scriptAddress $ marloweValidator)
 
     withContract [alice, bob] contract $ \txOut -> do
         txOut <- bob `performs` commit
@@ -349,8 +366,8 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             [oracleValue] []
             (IdentCC 1)
             100
-            (State [(IdentCC 1, (PubKey 2, NotRedeemed 100 256))] [])
-            (Pay (IdentPay 1) (PubKey 2) (PubKey 1) (Committed (IdentCC 1)) 256 Null)
+            emptyState
+            contract
 
         txOut <- alice `performs` receivePayment txOut
             [] []
@@ -379,7 +396,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
 
         addBlocks 200
 
-        walletAction bob $ commit
+        walletAction bob $ commit'
             txOut
             [] []
             (IdentCC 1)
@@ -405,7 +422,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
     let contract = CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null
     withContract [alice, bob] contract $ \txOut -> do
 
-        txOut <- bob `performs` commit
+        txOut <- bob `performs` commit'
             txOut
             [] []
             (IdentCC 1)
@@ -439,7 +456,7 @@ escrowTest = checkMarloweTrace (MarloweScenario {
     let contract = Escrow.escrowContract
 
     withContract [alice, bob, carol] contract $ \txOut -> do
-        txOut <- alice `performs` commit
+        txOut <- alice `performs` commit'
             txOut
             [] []
             (IdentCC 1)
@@ -517,7 +534,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
                         Null
 
     withContract [alice, bob] contract $ \txOut -> do
-        txOut <- alice `performs` commit
+        txOut <- alice `performs` commit'
             txOut
             [] []
             (IdentCC 1)
@@ -537,7 +554,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
                                 redeems))))
                 (RedeemCC (IdentCC 1) Null))
 
-        txOut <- bob `performs` commit
+        txOut <- bob `performs` commit'
             txOut
             [] []
             (IdentCC 2)
@@ -558,7 +575,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
 
         addBlocks deliveryDate
 
-        let oracleValue = OracleValue oracle (Height (deliveryDate + 4)) spotPrice
+        let oracleValue = OracleValue oracle (Slot (deliveryDate + 4)) spotPrice
         txOut <- alice `performs` receivePayment txOut
             [oracleValue] []
             (IdentPay 1)

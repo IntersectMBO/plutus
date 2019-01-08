@@ -28,6 +28,8 @@ library
     mtl -any,
     template-haskell -any,
     plutus-tx -any,
+    text,
+    plutus-tx-plugin -any,
     wallet-api -any,
     lens -any
   default-language: Haskell2010
@@ -43,8 +45,8 @@ library
     Language.PlutusTx.Coordination.Contracts.Vesting
     Language.PlutusTx.Coordination.Contracts.Swap
     Language.Marlowe
+    Language.Marlowe.Client
     Language.Marlowe.Common
-    Language.Marlowe.Compiler
     Language.Marlowe.Escrow
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
