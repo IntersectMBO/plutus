@@ -365,8 +365,10 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     in go obs
     ||]
 
-evaluateContract :: Q (TExp (Input -> Int -> PendingTx' -> State -> Contract -> (State, Contract, Bool)))
-evaluateContract = [|| \ (Input inputCommand inputOracles _) currentBlockNumber pendingTx state contract -> let
+evaluateContract :: Q (TExp (Input -> Height -> PendingTx' -> State -> Contract -> (State, Contract, Bool)))
+evaluateContract = [|| \ (Input inputCommand inputOracles _) blockHeight pendingTx state contract -> let
+    Height currentBlockNumber = blockHeight
+
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
     (&&) = $$(PlutusTx.and)
@@ -636,10 +638,7 @@ validator = [|| \
         validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
         validateContract = $$(validateContractQ)
 
-        currentBlockNumber :: Int
-        currentBlockNumber = let Height blockNumber = pendingTxBlockHeight in blockNumber
-
-        eval :: Input -> Int -> PendingTx' -> State -> Contract -> (State, Contract, Bool)
+        eval :: Input -> Height -> PendingTx' -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract)
 
         (_, contractIsValid) = validateContract (ValidatorState [] []) marloweContract
@@ -653,7 +652,7 @@ validator = [|| \
             stateWithChoices = State currentCommits mergedChoices
 
             (newState::State, newCont::Contract, validated) =
-                eval input currentBlockNumber pendingTx stateWithChoices marloweContract
+                eval input pendingTxBlockHeight pendingTx stateWithChoices marloweContract
 
             allowTransaction = validated
                 && newCont `eqContract` expectedContract
