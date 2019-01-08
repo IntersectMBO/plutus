@@ -165,8 +165,8 @@ toTermExample getTerm = TermExample ty term where
         Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
         Right vTy                  -> PLC.getNormalizedType vTy
 
-avalaibleExamples :: [(ExampleName, SomeExample)]
-avalaibleExamples =
+availableExamples :: [(ExampleName, SomeExample)]
+availableExamples =
     [ ("succInteger", SomeTermExample $ toTermExample PLC.getBuiltinSuccInteger)
     , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) unit)
     , ("unitval"    , SomeTermExample $ toTermExample PLC.getBuiltinUnitval)
@@ -183,9 +183,9 @@ avalaibleExamples =
 
 runExample :: ExampleOptions -> IO ()
 runExample (ExampleOptions ExampleAvailable)     =
-    traverse_ (T.putStrLn . PLC.docText . uncurry prettySignature) avalaibleExamples
+    traverse_ (T.putStrLn . PLC.docText . uncurry prettySignature) availableExamples
 runExample (ExampleOptions (ExampleSingle name)) =
-    T.putStrLn $ case lookup name avalaibleExamples of
+    T.putStrLn $ case lookup name availableExamples of
         Nothing -> "Unknown name: " <> name
         Just ex -> PLC.docText $ prettyExample ex
 
