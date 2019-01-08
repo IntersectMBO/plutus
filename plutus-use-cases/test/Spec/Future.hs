@@ -39,7 +39,7 @@ adjustMargin w refs fd vl =
         outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
 -- | Initialise the futures contract with contributions from wallets 1 and 2,
---   and update all wallets. Running `initBoth` will increase the block height
+--   and update all wallets. Running `initBoth` will increase the slot number
 --   by 2.
 initBoth :: Trace MockWallet [Ledger.TxOutRef']
 initBoth = do
@@ -64,9 +64,9 @@ settle = checkTrace $ do
         cur = FutureData (PubKey 1) (PubKey 2) im im
         spotPrice = 1124
         delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue oracle (Ledger.Height 10) spotPrice
+        ov  = OracleValue oracle (Ledger.Slot 10) spotPrice
 
-    -- advance the clock to block height 10
+    -- advance the clock to slot 10
     void $ addBlocks 8
     void $ walletAction w2 (F.settle ins contract cur ov)
     updateAll
@@ -88,9 +88,9 @@ settleEarly = checkTrace $ do
         -- up with the variation margin.
         (_, upper) = marginRange
         spotPrice = upper + 1
-        ov  = OracleValue oracle (Ledger.Height 8) spotPrice
+        ov  = OracleValue oracle (Ledger.Slot 8) spotPrice
 
-    -- advance the clock to block height 8
+    -- advance the clock to slot 8
     void $ addBlocks 6
     void $ walletAction w1 (F.settleEarly ins contract cur ov)
     updateAll
@@ -106,14 +106,14 @@ increaseMargin = checkTrace $ do
         cur = FutureData (PubKey 1) (PubKey 2) im im
         increase = fromIntegral units * 5
 
-    -- advance the clock to block height 8
+    -- advance the clock to slot 8
     void $ addBlocks 6
 
     -- Commit an additional `units * 5` amount of funds
     ins' <- adjustMargin w2 ins cur increase
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - (initMargin + increase))]
-    -- advance the clock to block height 10
+    -- advance the clock to slot 10
     void $ addBlocks 2
 
     -- Now the contract has ended successfully and wallet 2 gets some of its
@@ -129,7 +129,7 @@ increaseMargin = checkTrace $ do
         spotPrice = upper + 1
 
         delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue oracle (Ledger.Height 10) spotPrice
+        ov  = OracleValue oracle (Ledger.Slot 10) spotPrice
 
     void $ walletAction w2 (F.settle [ins'] contract cur' ov)
     updateAll
@@ -146,7 +146,7 @@ increaseMargin = checkTrace $ do
 --   10 blocks.
 contract :: Future
 contract = Future {
-    futureDeliveryDate  = Ledger.Height 10,
+    futureDeliveryDate  = Ledger.Slot 10,
     futureUnits         = units,
     futureUnitPrice     = forwardPrice,
     futureInitialMargin = im,

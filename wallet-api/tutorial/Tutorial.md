@@ -39,13 +39,13 @@ In Haskell:
 ```haskell
 data Campaign = Campaign {
       fundingTarget      :: Value,
-      endDate            :: Height,
-      collectionDeadline :: Height,
+      endDate            :: Slot,
+      collectionDeadline :: Slot,
       campaignOwner      :: PubKey
  }
 ```
 
-The type of monetary values is `Value`. Dates are expressed in terms of blocks, and their type is `Height`. The campaign owner is identified by their public key.
+The type of monetary values is `Value`. Dates are expressed in terms of slots, and their type is `Slot`. The campaign owner is identified by their public key.
 
 One of the strengths of PlutusTx is the ability to use the same definitions for on-chain and off-chain code, which includes lifting values from Haskell to Plutus Core. To enable values of the `Campaign` type to be lifted, we need to call `makeLift` from the `PlutusTx` module:
 
@@ -55,7 +55,7 @@ PlutusTx.makeLift ''Campaign
 
 Now we need to figure out what the campaign will look like on the blockchain. Which transactions are involved, who submits them, and in what order? 
 
-Each contributor pays their contribution to the address of the campaign script. When the block height `endDate` is reached, the campaign owner submits a single transaction, spending all inputs from the campaign address and paying them to a pubkey address. If the funding target isn't reached, or the campaign owner fails to collect the funds, then each contributor can claim a refund, in the form of a transaction that spends their own contribution. This means that the validator script is going to be run once per contribution, and we need to tell it which of the two cases outcomes it should check.
+Each contributor pays their contribution to the address of the campaign script. When the slot `endDate` is reached, the campaign owner submits a single transaction, spending all inputs from the campaign address and paying them to a pubkey address. If the funding target isn't reached, or the campaign owner fails to collect the funds, then each contributor can claim a refund, in the form of a transaction that spends their own contribution. This means that the validator script is going to be run once per contribution, and we need to tell it which of the two cases outcomes it should check.
 
 We can encode the two possible actions in a data type:
 
@@ -109,15 +109,15 @@ There is no standard library of functions that are automatically in scope for on
 Next, we pattern match on the structure of the `PendingTx'` value `p` to get the Validation information we care about:
 
 ```haskell
-                  PendingTx ins outs _ _ (Height currentHeight) _ _ = p
+                  PendingTx ins outs _ _ (Slot currentSlot) _ _ = p
 ```
 
-This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `currentHeight` to the number of blocks (that is, to the current date).
+This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `currentSlot` to the current slot (that is, to the current date).
 
 We also need the parameters of the campaign, which we can get by pattern matching on `c`.
 
 ```haskell
-                  Campaign (Value target) (Height deadline) (Height collectionDeadline) campaignOwner = c
+                  Campaign (Value target) (Slot deadline) (Slot collectionDeadline) campaignOwner = c
 ```
 
 Then we compute the total value of all transaction inputs, using `Validation.foldr` on the list of inputs `ins`.
@@ -159,7 +159,7 @@ The predicate `contributorTxOut` is applied to all outputs of the current transa
 For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor.
 
 ```haskell
-                              refundable   = currentHeight > collectionDeadline &&
+                              refundable   = currentSlot > collectionDeadline &&
                                       contributorOnly &&
                                       $$(Validation.txSignedBy) p pkCon
 ```
@@ -176,11 +176,11 @@ The second branch represents a successful campaign.
                       Collect -> 
 ```
 
-In the `Collect` case, the current blockchain height must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner.
+In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner.
 
 ```haskell
-                          currentHeight > deadline &&
-                          currentHeight <= collectionDeadline &&
+                          currentSlot > deadline &&
+                          currentSlot <= collectionDeadline &&
                           totalInputs >= target &&
                           $$(Validation.txSignedBy) p campaignOwner
 

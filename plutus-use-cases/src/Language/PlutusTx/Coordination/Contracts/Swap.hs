@@ -10,7 +10,7 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (Height, PubKey, ValidatorScript (..), Value (..))
+import           Ledger                       (Slot, PubKey, ValidatorScript (..), Value (..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..),
                                               ValidatorHash)
@@ -32,7 +32,7 @@ data Ratio a = a :% a  deriving Eq
 --
 data Swap = Swap
     { swapNotionalAmt     :: !Value
-    , swapObservationTime :: !Height
+    , swapObservationTime :: !Slot
     , swapFixedRate       :: !(Ratio Int) -- ^ Interest rate fixed at the beginning of the contract
     , swapFloatingRate    :: !(Ratio Int) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
     , swapMargin          :: !Value -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
@@ -79,7 +79,7 @@ swapValidator _ = ValidatorScript result where
             minusR :: Ratio Int -> Ratio Int -> Ratio Int
             minusR (x :% y) (x' :% y') = (x*y' - x'*y) :% (y*y')
 
-            extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Height -> Ratio Int
+            extractVerifyAt :: OracleValue (Ratio Int) -> PubKey -> Ratio Int -> Slot -> Ratio Int
             extractVerifyAt = $$(PlutusTx.error) ()
 
             round :: Ratio Int -> Int
@@ -165,8 +165,8 @@ swapValidator _ = ValidatorScript result where
             ol2 :: PendingTxOut -> Bool
             ol2 o@(PendingTxOut (Value v) _ _) = isPubKeyOutput o swapOwnersFloating && v <= floatRemainder
 
-            -- NOTE: I didn't include a check that the chain height is greater
-            -- than the observation time. This is because the chain height is
+            -- NOTE: I didn't include a check that the slot is greater
+            -- than the observation time. This is because the slot is
             -- already part of the oracle value and we trust the oracle.
 
             outConditions = (ol1 o1 && ol2 o2) || (ol1 o2 && ol2 o1)

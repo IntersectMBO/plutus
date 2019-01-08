@@ -22,6 +22,8 @@ module Wallet.API(
     payToScript_,
     payToPublicKey,
     payToPublicKey_,
+    payToScripts,
+    payToScripts_,
     collectFromScript,
     collectFromScriptTxn,
     ownPubKeyTxOut,
@@ -35,7 +37,7 @@ module Wallet.API(
     notT,
     alwaysT,
     neverT,
-    blockHeightT,
+    slotRangeT,
     fundsAtAddressT,
     checkTrigger,
     addresses,
@@ -64,7 +66,7 @@ import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
-import           Ledger                     (Address', DataScript, Height, PubKey (..), RedeemerScript, Signature (..),
+import           Ledger                     (Address', DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
                                              Tx (..), TxId', TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript,
                                              Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import           Text.Show.Deriving         (deriveShow1)
@@ -111,7 +113,7 @@ data EventTriggerF f =
     | Not f
     | PAlways
     | PNever
-    | BlockHeightRange !(Range Height)
+    | SlotRange !(Range Slot)
     | FundsAtAddress !Address' !(Range Value)
     deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic)
 
@@ -143,9 +145,9 @@ alwaysT = embed PAlways
 neverT :: EventTrigger
 neverT = embed PNever
 
--- | `blockHeightT r` is true when the block height is in the range `r`
-blockHeightT :: Range Height -> EventTrigger
-blockHeightT = embed . BlockHeightRange
+-- | `slotRangeT r` is true when the slot number is in the range `r`
+slotRangeT :: Range Slot -> EventTrigger
+slotRangeT = embed . SlotRange
 
 -- | `fundsAtAddressT a r` is true when the funds at `a` are in the range `r`
 fundsAtAddressT :: Address' -> Range Value -> EventTrigger
@@ -155,14 +157,14 @@ fundsAtAddressT a = embed . FundsAtAddress a
 notT :: EventTrigger -> EventTrigger
 notT = embed . Not
 
--- | Check if the given block height and UTXOs match the
+-- | Check if the given slot number and UTXOs match the
 --   conditions of an [[EventTrigger]]
-checkTrigger :: Height -> Map.Map Address' Value -> EventTrigger -> Bool
+checkTrigger :: Slot -> Map.Map Address' Value -> EventTrigger -> Bool
 checkTrigger h mp = getAnnot . annTruthValue h mp
 
--- | Annotate each node in an `EventTriggerF` with its truth value given a block height
+-- | Annotate each node in an `EventTriggerF` with its truth value given a slot
 --   and a set of unspent outputs
-annTruthValue :: Height -> Map.Map Address' Value -> EventTrigger -> AnnotatedEventTrigger Bool
+annTruthValue :: Slot -> Map.Map Address' Value -> EventTrigger -> AnnotatedEventTrigger Bool
 annTruthValue h mp = cata f where
     embedC = embed . Compose
     f = \case
@@ -171,7 +173,7 @@ annTruthValue h mp = cata f where
         Not r   -> embedC (not $ getAnnot r, Not r)
         PAlways -> embedC (True, PAlways)
         PNever -> embedC (False, PNever)
-        BlockHeightRange r -> embedC (h `inRange` r, BlockHeightRange r)
+        SlotRange r -> embedC (h `inRange` r, SlotRange r)
         FundsAtAddress a r ->
             let funds = Map.findWithDefault 0 a mp in
             embedC (funds `inRange` r, FundsAtAddress a r)
@@ -185,7 +187,7 @@ addresses = cata adr where
         Not t   -> t
         PAlways -> []
         PNever -> []
-        BlockHeightRange _ -> []
+        SlotRange _ -> []
         FundsAtAddress a _ -> [a]
 
 -- | An action than can be run in response to a blockchain event. It receives
@@ -234,7 +236,7 @@ class WalletAPI m where
     Register a [[EventHandler]] in `m ()` to be run when condition is true.
 
     * The action will be run once for each block where the condition holds.
-      For example, `register (blockHeightT (Interval 3 6)) a` causes `a` to be run at blocks 3, 4, and 5.
+      For example, `register (slotRangeT (Interval 3 6)) a` causes `a` to be run at blocks 3, 4, and 5.
 
     * Each time the wallet is notified of a new block, all triggers are checked
       and the matching ones are run in an unspecified order.
@@ -262,9 +264,9 @@ class WalletAPI m where
     startWatching :: Address' -> m ()
 
     {-
-    The current block height.
+    The current slot.
     -}
-    blockHeight :: m Height
+    slot :: m Slot
 
 throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 throwInsufficientFundsError = throwError . InsufficientFunds
@@ -275,13 +277,24 @@ throwOtherError = throwError . OtherError
 createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
 createPayment vl = fst <$> createPaymentWithChange vl
 
+-- | Transfer some funds to a number of script addresses, returning the
+--   transaction that was submitted.
+payToScripts :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m Tx
+payToScripts ins = do
+    let
+        totalVal     = getSum $ foldMap (Sum . view _2) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript ds)) ins
+    (i, ownChange) <- createPaymentWithChange totalVal
+    signAndSubmit i (maybe otherOutputs (:otherOutputs) ownChange)
+
+-- | Transfer some funds to a number of script addresses.
+payToScripts_ :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m ()
+payToScripts_ = void . payToScripts
+
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
 payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
-payToScript addr v ds = do
-    (i, own) <- createPaymentWithChange v
-    let other = TxOut addr v (PayToScript ds)
-    signAndSubmit i (other : maybeToList own)
+payToScript addr v ds = payToScripts [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
 payToScript_ :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
@@ -296,7 +309,7 @@ collectFromScript scr red = do
         outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
         con (r, _) = scriptTxIn r scr red
         ins        = con <$> outputs
-        value = getSum $ foldMap (Sum . snd) outputs
+        value = getSum $ foldMap (Sum . txOutValue . snd) outputs
 
     oo <- ownPubKeyTxOut value
     void $ signAndSubmit (Set.fromList ins) [oo]
@@ -312,7 +325,7 @@ collectFromScriptTxn vls red txid = do
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         i ref = scriptTxIn ref vls red
         inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = getSum $ foldMap (Sum . snd) ourUtxo
+        value  = getSum $ foldMap (Sum . txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
     void $ signAndSubmit inputs [out]

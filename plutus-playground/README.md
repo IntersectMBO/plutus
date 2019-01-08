@@ -29,12 +29,30 @@ yarn run bower install
 Then run: `yarn run webpack` for a production build on http://localhost:8080
 ...or `yarn run webpack:server` for an auto-reloading dev build on http://localhost:8009
 
-### nix
+You may also want to run `yarn run purs:ide` to start `psc-ide`
+support running with the correct paths.
 
-nix is not really suitable for development with purescript but if you want to check everything works correctly:
+## nix
+
+Fair warning before we start: You may struggle with PureScript on Nix on OSX.
+
+The client and server can be built from the top-level of this repo with:
 
 ```sh
-nix build -f default.nix plutus-playground.client
+nix-build \
+  --option trusted-public-keys "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" \
+  --option substituters https://hydra.iohk.io \
+  -A plutus-playground.client -A plutus-playground.server-invoker
+```
+
+(You may prefer to put those option flags in your global =nix.conf= file.)
+
+When the client's dependencies change you may need to update the nix packages scripts for yarn and bower:
+
+```sh
+cd plutus-playground/plutus-playground-client
+nix-shell -p yarn2nix --run 'yarn2nix | tee yarn.nix'
+nix-shell -p nodePackages.bower2nix --run 'bower2nix | tee bower-packages.nix'
 ```
 
 ## Docker image

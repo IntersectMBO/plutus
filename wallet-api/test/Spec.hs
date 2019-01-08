@@ -112,7 +112,7 @@ invalidTrace = property $ do
     Hedgehog.assert ([] == _txPool st)
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.assert (case _emulatorLog st of
-        BlockAdd _ : TxnValidationFail _ _ : _ -> True
+        SlotAdd _ : TxnValidationFail _ _ : _ -> True
         _                                      -> False)
 
 invalidScript :: Property
@@ -142,7 +142,7 @@ invalidScript = property $ do
     Hedgehog.assert (not (null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert $ case _emulatorLog st of
-        BlockAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
+        SlotAdd{} : TxnValidationFail _ (ScriptFailure ["I always fail everything"]) : _
             -> True
         _
             -> False
@@ -187,7 +187,7 @@ notifyWallet = property $ do
         $ Gen.runTraceOn Gen.generatorModel
         $ processPending >>= walletNotifyBlock w
     let ttl = Map.lookup w st
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just initialBalance
+    Hedgehog.assert $ (getSum . foldMap (Sum . txOutValue) . view ownFunds <$> ttl) == Just initialBalance
 
 eventTrace :: Property
 eventTrace = property $ do
@@ -198,9 +198,9 @@ eventTrace = property $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
                     EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
-                trigger = blockHeightT (GEQ 3)
+                trigger = slotRangeT (GEQ 3)
 
-            -- schedule the `mkPayment` action to run when block height 3 is
+            -- schedule the `mkPayment` action to run when slot 3 is
             -- reached.
             b1 <- walletAction (Wallet 1) $ register trigger mkPayment
             walletNotifyBlock w b1
@@ -211,7 +211,7 @@ eventTrace = property $ do
     let ttl = Map.lookup w st
 
     -- if `mkPayment` was run then the funds of wallet 1 should be reduced by 100
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 100)
+    Hedgehog.assert $ (getSum . foldMap (Sum . txOutValue) . view ownFunds <$> ttl) == Just (initialBalance - 100)
 
 payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
@@ -266,7 +266,7 @@ watchFundsAtAddress = property $ do
             processPending >>= walletNotifyBlock w
             let mkPayment =
                     EventHandler $ \_ -> payToPublicKey_ 100 (PubKey 2)
-                t1 = blockHeightT (Interval 3 4)
+                t1 = slotRangeT (Interval 3 4)
                 t2 = fundsAtAddressT (pubKeyAddress pkTarget) (GEQ 1)
             walletNotifyBlock w =<<
                 (walletAction (Wallet 1) $ do
@@ -278,7 +278,7 @@ watchFundsAtAddress = property $ do
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
     let ttl = Map.lookup w st
-    Hedgehog.assert $ (getSum . foldMap Sum . view ownFunds <$> ttl) == Just (initialBalance - 200)
+    Hedgehog.assert $ (getSum . foldMap (Sum . txOutValue) . view ownFunds <$> ttl) == Just (initialBalance - 200)
 
 genChainTxn :: Hedgehog.MonadGen m => m (Mockchain, Tx)
 genChainTxn = do

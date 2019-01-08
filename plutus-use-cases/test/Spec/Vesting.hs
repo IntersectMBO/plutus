@@ -38,8 +38,8 @@ tests = testGroup "vesting" [
 scen1 :: VestingScenario
 scen1 = VestingScenario{..} where
     vsVestingScheme = Vesting {
-        vestingTranche1 = VestingTranche (Ledger.Height 10) 200,
-        vestingTranche2 = VestingTranche (Ledger.Height 20) 400,
+        vestingTranche1 = VestingTranche (Ledger.Slot 10) 200,
+        vestingTranche2 = VestingTranche (Ledger.Slot 20) 400,
         vestingOwner    = PubKey 1 }
     vsWallets = Wallet <$> [1, 2]
     vsInitialBalances = Map.fromList [
@@ -91,7 +91,7 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     updateAll'
     addBlocks 10
 
-    -- at block height 11, not more than 200 may be taken out
+    -- at slot 11, not more than 200 may be taken out
     -- so the transaction submitted by `retrieveFunds` below
     -- is invalid and will be rejected by the mockchain.
     let ds = VestingData (vsScriptHash scen1) 250

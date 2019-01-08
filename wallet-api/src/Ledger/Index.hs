@@ -34,9 +34,9 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
-import           Ledger.Types         (Blockchain, DataScript, Height (..), PubKey, Signature, Tx (..), TxIn (..),
-                                       TxIn', TxOut (..), TxOut', TxOutRef', ValidationData (..), Value, lifted,
-                                       updateUtxo, validValuesTx)
+import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Slot (..), Tx (..), TxIn (..), TxIn',
+                                       TxOut (..), TxOut', TxOutRef', ValidationData (..), Value, lifted, updateUtxo,
+                                       validValuesTx)
 import qualified Ledger.Types         as Ledger
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
@@ -123,7 +123,7 @@ lkpTxOut o = fst <$> lookupRef o
 --   it doesn't compute the UTXO of a blockchain from scratch.
 --   It also gives a more precise error: `ValidationError` instead of `False`.
 validateTransaction :: ValidationMonad m
-    => Ledger.Height
+    => Ledger.Slot
     -> Tx
     -> m ()
 validateTransaction h t =
@@ -132,7 +132,7 @@ validateTransaction h t =
 -- | Check if the inputs of the transaction consume outputs that
 --   (a) exist and
 --   (b) can be unlocked by the signatures or validator scripts of the inputs
-checkValidInputs :: ValidationMonad m => Ledger.Height -> Tx -> m ()
+checkValidInputs :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
 checkValidInputs h tx = do
     matches <- lkpOutputs tx >>= traverse (uncurry matchInputOutput)
     vld     <- validationData h tx
@@ -200,9 +200,8 @@ checkPositiveValues t =
     then pure ()
     else throwError $ NegativeValue t
 
--- | Encode the current transaction and blockchain height
---   in PLC.
-validationData :: ValidationMonad m => Height -> Tx -> m (PendingTx ())
+-- | Encode the current transaction and slot in PLC.
+validationData :: ValidationMonad m => Slot -> Tx -> m (PendingTx ())
 validationData h tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
@@ -211,7 +210,7 @@ validationData h tx = rump <$> ins where
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
-        , pendingTxBlockHeight = h
+        , pendingTxSlot = h
         , pendingTxSignatures = txSignatures tx
         , pendingTxOwnHash    = ()
         }

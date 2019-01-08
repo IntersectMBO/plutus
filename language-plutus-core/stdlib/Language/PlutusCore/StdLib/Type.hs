@@ -366,7 +366,7 @@ this type into three components
 and pass them to the 'makeRecursiveType' function (which also receives an annotation as its first
 argument just so that we have something to place in the AST when needed). Note that we do not require
 to provide the kind of 'interlist', because we can compute it from the kinds of other type variables.
-2
+
 The code constructing the data type itself:
 
     -- Introduce names in scope.

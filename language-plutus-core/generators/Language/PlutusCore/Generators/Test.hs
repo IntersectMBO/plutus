@@ -56,6 +56,6 @@ propEvaluate eval genTermOfTbv = withTests 200 . property . hoist (return . runQ
     case runQuote . runExceptT $ typeEvalCheckBy eval termOfTbv of
         Left (TypeEvalCheckErrorIllFormed err)             -> errorPlc err
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
-            expected === actual  -- We know that these two are disctinct, but there is no nice way we
+            expected === actual  -- We know that these two are distinct, but there is no nice way we
                                  -- can report this via 'hedgehog' except by comparing them here again.
         Right _                                            -> return ()
