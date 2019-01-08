@@ -95,9 +95,9 @@ successfulCampaign = checkCFTrace scenario1 $ do
     contrib2 600 >> contrib3 800
     processPending >>= notifyBlock
 
-    -- the campaign ends at blockheight 10 (specified in `scenario1`)
+    -- the campaign ends at slot 10 (specified in `scenario1`)
     -- so we add a number of empty blocks to ensure that the target
-    -- height has ben reached.
+    -- slot has ben reached.
     blcks <- addBlocks 10
 
     -- Once we have notified the wallets of the new blocks, wallet 1 will submit
@@ -145,7 +145,7 @@ cantCollectUnlessNotified = checkCFTrace scenario1 $ do
     addBlocks 10 >>= notifyBlocks
 
     -- At this point there are enough funds at the campaign address,
-    -- and the block height is in the desired range. However, w1 is not aware
+    -- and the slot number is in the desired range. However, w1 is not aware
     -- of the first contribution, so its `collectFunds` trigger never fires and
     -- the funds remain locked. (They can be claimed back by w2 and w3 later,
     -- as demonstrated in `canRefund`)

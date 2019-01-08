@@ -15,12 +15,11 @@ import           Wallet
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
-    { campaignDeadline           :: Height
-    -- ^ The date by which the campaign target has to be met. (Blocks have a 
-    --   fixed length, so we can use them to measure time)
+    { campaignDeadline           :: Slot
+    -- ^ The date by which the campaign target has to be met
     , campaignTarget             :: Value
     -- ^ Target amount of funds
-    , campaignCollectionDeadline :: Height
+    , campaignCollectionDeadline :: Slot
     -- ^ The date by which the campaign owner has to collect the funds
     , campaignOwner              :: PubKey
     -- ^ Public key of the campaign owner. This key is entitled to retrieve the 
@@ -73,19 +72,19 @@ contributionScript cmp  = ValidatorScript val where
                 -- information we need:
                 -- `ps` is the list of inputs of the transaction
                 -- `outs` is the list of outputs
-                -- `h` is the current block height
-                PendingTx ps outs _ _ (Height h) _ _ = p
+                -- `h` is the current slot number
+                PendingTx ps outs _ _ (Slot h) _ _ = p
 
                 -- `deadline` is the campaign deadline, but we need it as an 
                 -- `Int` so that we can compare it with other integers.
                 deadline :: Int
-                deadline = let Height h' = campaignDeadline in h'
+                deadline = let Slot h' = campaignDeadline in h'
 
 
                 -- `collectionDeadline` is the campaign collection deadline as 
                 -- an `Int`
                 collectionDeadline :: Int
-                collectionDeadline = let Height h' = campaignCollectionDeadline in h'
+                collectionDeadline = let Slot h' = campaignCollectionDeadline in h'
 
                 -- `target` is the campaign target as 
                 -- an `Int`
@@ -168,13 +167,13 @@ scheduleCollection cmp = register (collectFundsTrigger cmp) (EventHandler (\_ ->
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
     (fundsAtAddressT (campaignAddress c) (GEQ 1))
-    (blockHeightT (GEQ (succ (campaignCollectionDeadline c))))
+    (slotRangeT (GEQ (succ (campaignCollectionDeadline c))))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
     (fundsAtAddressT (campaignAddress c) (GEQ (campaignTarget c)))
-    (blockHeightT (Interval (campaignDeadline c) (campaignCollectionDeadline c)))
+    (slotRangeT (Interval (campaignDeadline c) (campaignCollectionDeadline c)))
 
 -- | Claim a refund of our campaign contribution
 refundHandler :: TxId' -> Campaign -> EventHandler MockWallet

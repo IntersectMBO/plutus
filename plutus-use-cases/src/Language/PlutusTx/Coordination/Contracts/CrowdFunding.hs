@@ -34,12 +34,12 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Height(..))
+import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
-                                               WalletDiagnostics (..), andT, blockHeightT, fundsAtAddressT, throwOtherError,
+                                               WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
                                                ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
 
 import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, succ, ($), (.),
@@ -47,9 +47,9 @@ import           Prelude                    (Bool (..), Int, Num (..), Ord (..),
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
-    { campaignDeadline           :: Height
+    { campaignDeadline           :: Slot
     , campaignTarget             :: Value
-    , campaignCollectionDeadline :: Height
+    , campaignCollectionDeadline :: Slot
     , campaignOwner              :: CampaignActor
     } deriving Generic
 
@@ -134,13 +134,13 @@ contributionScript cmp  = ValidatorScript val where
             signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
             signedByT = $$(Validation.txSignedBy)
 
-            PendingTx ps outs _ _ (Height h) _ _ = p
+            PendingTx ps outs _ _ (Slot h) _ _ = p
 
             deadline :: Int
-            deadline = let Height h' = campaignDeadline in h'
+            deadline = let Slot h' = campaignDeadline in h'
 
             collectionDeadline :: Int
-            collectionDeadline = let Height h' = campaignCollectionDeadline in h'
+            collectionDeadline = let Slot h' = campaignCollectionDeadline in h'
 
             target :: Int
             target = let Value v = campaignTarget in v
@@ -181,13 +181,13 @@ contributionScript cmp  = ValidatorScript val where
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
     (fundsAtAddressT (campaignAddress c) $ GEQ 1)
-    (blockHeightT (GEQ $ succ $ campaignCollectionDeadline c))
+    (slotRangeT (GEQ $ succ $ campaignCollectionDeadline c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
     (fundsAtAddressT (campaignAddress c) $ GEQ $ campaignTarget c)
-    (blockHeightT $ Interval (campaignDeadline c) (campaignCollectionDeadline c))
+    (slotRangeT $ Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
 -- | Claim a refund of our campaign contribution
 refund :: (WalletAPI m, WalletDiagnostics m) => TxId' -> Campaign -> EventHandler m

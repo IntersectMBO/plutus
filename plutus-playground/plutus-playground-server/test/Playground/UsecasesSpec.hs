@@ -50,7 +50,7 @@ vestingSpec =
                   (Fn "vestFunds")
                   (Wallet 1)
                   [ JSON.String
-                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getHeight\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getHeight\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
+                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
                   , JSON.String "{\"getValue\": 1}"
                   ]
             ]
@@ -207,9 +207,9 @@ crowdfundingSpec =
         mkI = JSON.toJSON
         theCampaign = JSON.String $ TL.toStrict $ JSON.encodeToLazyText $
             object
-                [ "campaignDeadline" .= object ["getHeight" .= mkI 10]
+                [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
                 , "campaignTarget"   .= object ["getValue"  .= mkI 15]
-                , "campaignCollectionDeadline" .= object ["getHeight" .= mkI 20]
+                , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
                 , "campaignOwner"    .= object ["getPubKey" .= mkI 1]
                 ]
         theContribution = JSON.String $ TL.toStrict $ JSON.encodeToLazyText $

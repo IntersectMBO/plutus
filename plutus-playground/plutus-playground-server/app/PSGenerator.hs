@@ -29,9 +29,9 @@ import           Language.PureScript.Bridge                (BridgeData, BridgePa
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger.Index                              (ValidationError)
-import           Ledger.Types                              (Address, DataScript, Height, PubKey, RedeemerScript,
-                                                            Signature, Tx, TxId, TxIn, TxInType, TxOut, TxOutRef,
-                                                            TxOutType, ValidatorScript, Value)
+import           Ledger.Types                              (Address, DataScript, PubKey, RedeemerScript, Signature,
+                                                            Slot, Tx, TxId, TxIn, TxInType, TxOut, TxOutRef, TxOutType,
+                                                            ValidatorScript, Value)
 import           Playground.API                            (CompilationError, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, SimpleArgumentSchema, SourceCode)
 import qualified Playground.API                            as API
@@ -151,7 +151,7 @@ myTypes =
     , mkSumType (Proxy @EvaluationResult)
     , mkSumType (Proxy @EmulatorEvent)
     , mkSumType (Proxy @ValidationError)
-    , mkSumType (Proxy @Height)
+    , mkSumType (Proxy @Slot)
     , mkSumType (Proxy @WalletAPIError)
     , mkSumType (Proxy @Tx)
     , mkSumType (Proxy @(TxIn A))

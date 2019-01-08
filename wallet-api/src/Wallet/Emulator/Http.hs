@@ -35,11 +35,11 @@ import qualified Wallet.API                 as WAPI
 import           Wallet.Emulator.AddressMap (AddressMap)
 import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual),
                                              EmulatorState (_txPool, _walletStates), MockWallet,
-                                             Notification (BlockHeight, BlockValidated), Wallet, WalletState, assert,
+                                             Notification (BlockValidated, CurrentSlot), Wallet, WalletState, assert,
                                              chainNewestFirst, emptyEmulatorState, emptyWalletState, liftMockWallet,
                                              txPool, walletStates)
 
-import           Ledger                     (Address', Block, Height, Tx, TxIn', TxOut', Value)
+import           Ledger                     (Address', Block, Slot, Tx, TxIn', TxOut', Value)
 import qualified Wallet.Emulator.Types      as Types
 
 type WalletAPI
@@ -55,12 +55,12 @@ type WalletAPI
      :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] [Tx]
      :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> Get '[JSON] AddressMap
      :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> ReqBody '[JSON] Address' :> Post '[JSON] NoContent
-     :<|> "wallets" :> Capture "walletid" Wallet :> "block-height" :> Get '[JSON] Height
+     :<|> "wallets" :> Capture "walletid" Wallet :> "current-slot" :> Get '[JSON] Slot
      :<|> "wallets" :> "transactions" :> Get '[ JSON] [Tx]
 
 type WalletControlAPI
    = "wallets" :> (Capture "walletid" Wallet :> "notifications" :> "block-validation" :> ReqBody '[ JSON] Block :> Post '[ JSON] ()
-                   :<|> Capture "walletid" Wallet :> "notifications" :> "block-height" :> ReqBody '[ JSON] Height :> Post '[ JSON] ())
+                   :<|> Capture "walletid" Wallet :> "notifications" :> "current-slot" :> ReqBody '[ JSON] Slot :> Post '[ JSON] ())
 
 type AssertionsAPI
    = "assertions" :> ("own-funds-eq" :> Capture "walletid" Wallet :> ReqBody '[ JSON] Value :> Post '[ JSON] NoContent
@@ -146,10 +146,10 @@ startWatching :: MonadError ServantErr m
   -> m NoContent
 startWatching _ _ = throwError err501 -- not implemented
 
-getBlockHeight :: MonadError ServantErr m
+getSlot :: MonadError ServantErr m
   => Wallet
-  -> m Height
-getBlockHeight _ = throwError err501 -- not implemented
+  -> m Slot
+getSlot _ = throwError err501 -- not implemented
 
 -- | Concrete monad stack for server server
 newtype AppM a = AppM
@@ -177,10 +177,10 @@ walletHandlers state =
       submitTxn :<|>
       getWatchedAddresses :<|>
       startWatching :<|>
-      getBlockHeight :<|>
+      getSlot :<|>
       getTransactions
     controlApi = processPending
-    walletControlApi = blockValidated :<|> blockHeight
+    walletControlApi = blockValidated :<|> slot
     assertionsApi = assertOwnFundsEq :<|> assertIsValidated
 
 assertOwnFundsEq ::
@@ -204,12 +204,12 @@ blockValidated ::
   -> m ()
 blockValidated wallet block = handleNotifications wallet [BlockValidated block]
 
-blockHeight ::
+slot ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
-  -> Height
+  -> Slot
   -> m ()
-blockHeight wallet height = handleNotifications wallet [BlockHeight height]
+slot wallet slt = handleNotifications wallet [CurrentSlot slt]
 
 runWalletAction ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)

@@ -24,7 +24,7 @@ We consider a validator script to have executed successful if it does not termin
 ## Blockchain state available to validator scripts
 Validator scripts receive, at a minimum, the following information from the validated transaction and the rest of the blockchain:
 
-1. the current block height (not including the currently validated transaction),
+1. the current slot number
 2. the hash of the currently validated transaction,
 3. for every input of the validated transaction, its value and the hashes of its validator, data, and redeemer scripts,
 4. for every output of the validated transaction, its value and the hash of its validator and data script, and
