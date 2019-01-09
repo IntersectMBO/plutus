@@ -45,6 +45,8 @@ postulate
 {-# COMPILE GHC str2 = BS.pack "world"   #-}
 {-# COMPILE GHC printByteString = T.pack . BS.unpack #-}
 
+{-# FOREIGN GHC import qualified Crypto.Hash #-}
+
 lemma1 : length str1 ≡ 7
 lemma1 = primTrustMe 
 lemma2 : length str2 ≡ 7
