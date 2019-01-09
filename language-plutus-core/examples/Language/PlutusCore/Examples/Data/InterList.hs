@@ -30,7 +30,9 @@ We encode the following in this module:
       go A B f (InterCons x y xs) = f x y $ go B A (flip f) xs
 -}
 
--- |
+-- This definition is used as an example in Note [Spiney API] in "Language.PlutusCore.StdLib.Type",
+-- so if you change it here, then also change it there.
+-- | @InterList@ as a PLC type.
 --
 -- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
 -- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
