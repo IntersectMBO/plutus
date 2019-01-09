@@ -2,11 +2,12 @@ module Generators ( genTerm
                   , genProgram
                   ) where
 
-import qualified Data.ByteString.Lazy as BSL
-import           Hedgehog             hiding (Size, Var)
-import qualified Hedgehog.Gen         as Gen
-import qualified Hedgehog.Range       as Range
+import qualified Data.ByteString.Lazy         as BSL
+import           Hedgehog                     hiding (Size, Var)
+import qualified Hedgehog.Gen                 as Gen
+import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant
 
 genVersion :: MonadGen m => m (Version ())
 genVersion = Version () <$> int' <*> int' <*> int'
@@ -40,7 +41,7 @@ genConstant = Gen.choice [genInt, genSize, genBS]
     where int' = Gen.integral_ (Range.linear (-10000000) 10000000)
           size' = Gen.integral_ (Range.linear 1 10)
           string' = BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
-          genInt = BuiltinInt () <$> size' <*> int'
+          genInt = makeAutoSizedBuiltinInt <$> int'
           genSize = BuiltinSize () <$> size'
           genBS = BuiltinBS () <$> size' <*> string'
 

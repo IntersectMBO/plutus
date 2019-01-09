@@ -86,8 +86,8 @@ propParser = property $ do
     prog <- forAll genProgram
     let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
         proc = void <$> parse (reprint prog)
-        compared = and (compareProgram (void prog) <$> proc)
-    Hedgehog.assert compared
+        compared = compareProgram (void prog) <$> proc
+    Hedgehog.assert (fromRight False compared)
 
 propRename :: Property
 propRename = property $ do
