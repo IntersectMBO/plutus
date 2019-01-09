@@ -9,6 +9,7 @@ import           PlcTestUtils
 import           TestLib
 
 import           OptimizerSpec
+import           TransformSpec
 
 import           Language.PlutusCore.Quote
 
@@ -17,7 +18,6 @@ import           Language.PlutusIR.Compiler
 import           Language.PlutusIR.MkPir
 
 import qualified Language.PlutusCore                  as PLC
-import qualified Language.PlutusCore.MkPlc            as PLC
 
 import qualified Language.PlutusCore.StdLib.Data.Bool as Bool
 import qualified Language.PlutusCore.StdLib.Data.Nat  as Nat
@@ -67,7 +67,8 @@ tests = testGroup "plutus-ir" <$> sequence [
     recursion,
     serialization,
     errors,
-    optimizer
+    optimizer,
+    transform
     ]
 
 prettyprinting :: TestNested
@@ -137,7 +138,8 @@ datatypes = testNested "datatypes" [
 recursion :: TestNested
 recursion = testNested "recursion" [
     goldenPlc "even3" evenOdd,
-    goldenEval "even3Eval" [evenOdd]
+    goldenEval "even3Eval" [evenOdd],
+    goldenPlcCatch "mutuallyRecursiveValues" mutuallyRecursiveValues
     ]
 
 natToBool :: Quote (Type TyName ())
@@ -183,38 +185,6 @@ evenOdd = do
             ] $
         Apply () (Var () evenn) (Var () arg)
 
-serialization :: TestNested
-serialization = testNested "serialization" [
-    goldenPir "serializeBasic" (roundTripPirTerm basic),
-    goldenPir "serializeMaybePirTerm" (roundTripPirTerm $ runQuote maybePir),
-    goldenPir "serializeEvenOdd" (roundTripPirTerm $ runQuote evenOdd),
-    goldenPir "serializeListMatch" (roundTripPirTerm $ runQuote listMatch)
-    ]
-
-roundTripPirTerm :: Term TyName Name () -> Term TyName Name ()
-roundTripPirTerm tt = deserialise $ serialise tt
-
-errors :: TestNested
-errors = testNested "errors" [
-    goldenPlcCatch "mutuallyRecursiveTypes" mutuallyRecursiveTypes,
-    goldenPlcCatch "mutuallyRecursiveValues" mutuallyRecursiveValues
-    ]
-
-mutuallyRecursiveTypes :: Quote (Term TyName Name ())
-mutuallyRecursiveTypes = do
-    unit <- Unit.getBuiltinUnit
-
-    (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) <- treeForestDatatype
-
-    pure $
-        Let ()
-            Rec
-            [
-                DatatypeBind () treeDt,
-                DatatypeBind () forestDt
-            ] $
-        TyInst () (mkVar () nil) unit
-
 mutuallyRecursiveValues :: Quote (Term TyName Name ())
 mutuallyRecursiveValues = do
     x <- freshName () "x"
@@ -231,3 +201,34 @@ mutuallyRecursiveValues = do
                 TermBind () (VarDecl () y unit) unitval
             ] $
         Var () x
+
+serialization :: TestNested
+serialization = testNested "serialization" [
+    goldenPir "serializeBasic" (roundTripPirTerm basic),
+    goldenPir "serializeMaybePirTerm" (roundTripPirTerm $ runQuote maybePir),
+    goldenPir "serializeEvenOdd" (roundTripPirTerm $ runQuote evenOdd),
+    goldenPir "serializeListMatch" (roundTripPirTerm $ runQuote listMatch)
+    ]
+
+roundTripPirTerm :: Term TyName Name () -> Term TyName Name ()
+roundTripPirTerm tt = deserialise $ serialise tt
+
+errors :: TestNested
+errors = testNested "errors" [
+    goldenPlcCatch "mutuallyRecursiveTypes" mutuallyRecursiveTypes
+    ]
+
+mutuallyRecursiveTypes :: Quote (Term TyName Name ())
+mutuallyRecursiveTypes = do
+    unit <- Unit.getBuiltinUnit
+
+    (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) <- treeForestDatatype
+
+    pure $
+        Let ()
+            Rec
+            [
+                DatatypeBind () treeDt,
+                DatatypeBind () forestDt
+            ] $
+        TyInst () (mkVar () nil) unit

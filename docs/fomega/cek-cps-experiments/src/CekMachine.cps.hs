@@ -25,8 +25,7 @@ module Language.PlutusCore.Interpreter.CekMachine
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.MachineException (MachineError (..),
-                                                                  MachineException (..))
+import           Language.PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
 import           Language.PlutusCore.Evaluation.Result           (EvaluationResult (..))
 import           Language.PlutusCore.View
 import           PlutusPrelude
