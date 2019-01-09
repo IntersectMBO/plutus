@@ -5,16 +5,17 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant          (typeOfBuiltinName)
-import           Language.PlutusCore.FsTree            (foldPlcFolderContents)
+import           Language.PlutusCore.Constant            (typeOfBuiltinName)
+import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.StdLib.Everything (stdLib)
+import           Language.PlutusCore.Examples.Everything (examples)
+import           Language.PlutusCore.StdLib.Everything   (stdLib)
 
 import           Common
 
 import           Control.Monad.Except
-import           System.FilePath                       ((</>))
+import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -59,7 +60,7 @@ test_typecheckAvailable =
             testGroup
             (\name -> testCase name . assertWellKinded)
             (\name -> testCase name . assertWellTyped)
-            stdLib
+            (stdLib <> examples)
 
 -- | Self-application. An example of ill-typed term.
 --

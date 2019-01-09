@@ -69,7 +69,7 @@ termAsPrimIterApp term = do
 -- | Check whether a 'Term' is a 'Value'.
 isValue :: Term tyname name a -> Bool
 isValue (TyAbs  _ _ _ body) = isValue body
-isValue (Wrap   _ _ _ term) = isValue term
+isValue (IWrap _ _ _ term)  = isValue term
 isValue LamAbs{}            = True
 isValue Constant{}          = True
 isValue term                = isJust $ termAsPrimIterApp term

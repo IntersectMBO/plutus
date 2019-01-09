@@ -60,6 +60,7 @@ library
         Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Meta.Data.Tuple
         Language.PlutusCore.StdLib.Type
+        Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
@@ -68,7 +69,7 @@ library
         Data.ByteString.Lazy.Hash
         PlcTestUtils
     build-tool-depends: alex:alex, happy:happy >= 1.17.1
-    hs-source-dirs: src prelude stdlib generators common
+    hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
         Language.PlutusCore.Type
         Language.PlutusCore.Lexer
@@ -93,6 +94,8 @@ library
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
         Language.PlutusCore.Analysis.Definitions
+        Language.PlutusCore.Examples.Data.InterList
+        Language.PlutusCore.Examples.Data.TreeForest
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypeEvalCheck

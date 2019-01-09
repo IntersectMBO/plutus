@@ -57,8 +57,9 @@ newtype PlcList a = PlcList
 
 instance KnownDynamicBuiltinType dyn => KnownDynamicBuiltinType (PlcList dyn) where
     getTypeEncoding proxyListDyn =
-        fmap (_recursiveType . holedToRecursive) $
-            holedTyApp <$> getBuiltinList <*> getTypeEncoding (argumentProxy proxyListDyn)
+        TyApp ()
+            <$> fmap _recursiveType getBuiltinList
+            <*> getTypeEncoding (argumentProxy proxyListDyn)
 
     makeDynamicBuiltin (PlcList xs) = do
         mayDyns <- getCompose $ traverse (Compose . makeDynamicBuiltin) xs

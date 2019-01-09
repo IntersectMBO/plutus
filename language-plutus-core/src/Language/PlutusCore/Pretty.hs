@@ -1,7 +1,9 @@
-{-# LANGUAGE UndecidableInstances #-}
 -- There is really no way to avoid these being orphans without a cycle
 -- between the pretty printing and AST modules.
 {-# OPTIONS_GHC -Wno-orphans -Wno-simplifiable-class-constraints #-}
+
+{-# LANGUAGE UndecidableInstances #-}
+
 module Language.PlutusCore.Pretty
     (
     -- * Basic types and functions
@@ -21,6 +23,7 @@ module Language.PlutusCore.Pretty
     , prettyPlcDefString
     , prettyPlcDefText
     -- * Global configuration
+    , CondensedErrors (..)
     , PrettyConfigPlcOptions (..)
     , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
@@ -49,6 +52,7 @@ module Language.PlutusCore.Pretty
     , prettyClassicDef
     -- * Readable view
     , RenderContext (..)
+    , ShowKinds (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
     , PrettyReadable

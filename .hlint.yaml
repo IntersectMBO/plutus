@@ -1,6 +1,6 @@
 ---
 - functions:
-  - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
+  - {name: unsafePerformIO, within: [PlutusPrelude, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Constant.Dynamic.Call, Language.PlutusCore.Constant.Dynamic.Emit, Language.PlutusCore.Constant.Dynamic.Instances, Language.PlutusCore.StdLib.Type, Language.PlutusTx.Plugin, Language.PlutusTx.Evaluation]}
   - {name: error, within: [Main, PlutusPrelude, Language.PlutusCore.StdLib.Meta, Evaluation.Constant.Success, Language.PlutusCore.Constant.Apply, Language.PlutusCore.Constant.Typed, Language.PlutusCore.Evaluation.CkMachine, Language.PlutusCore.TypeSynthesis, Language.PlutusCore.Generators.Internal.Entity, Language.PlutusCore.Generators.Internal.Utils, Language.PlutusCore.Constant.Make, Language.PlutusCore.TH, Language.PlutusTx.Utils, Language.PlutusIR.Compiler.Datatype]}
   - {name: undefined, within: [Language.PlutusCore.Constant.Apply, Language.PlutusTx.Lift.Class, Language.PlutusTx.Lift.Instances]}
   - {name: fromJust, within: [Language.PlutusTx.Lift]}
@@ -9,8 +9,6 @@
 
 - error: {lhs: "hylo embed", rhs: "ana", name: "Use anamorphism"}
 - error: {lhs: "hylo f project", rhs: "cata f", name: "Use catamorphism"}
-- error: {lhs: "concat", rhs: "fold", name: "Generalize concat"}
-- error: {lhs: "concatMap", rhs: "foldMap", name: "Generalize concatMap"}
 - error: {lhs: "f >> pure ()", rhs: "void f", name: "Use void"}
 - error: {lhs: "over _1 f x", rhs: "first f x", name: "Use arrows"}
 - error: {lhs: "over _2 f x", rhs: "second f x", name: "Use arrows"}
@@ -18,7 +16,7 @@
 - error: {lhs: "maybe mempty", rhs: "foldMap", name: "Use foldMap"}
 - error: {lhs: "mconcat", rhs: "fold", name: "Generalize mconcat"}
 
-- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.PlutusTx.Compiler.Binders, Language.PlutusTx.Compiler.Type, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting, Language.PlutusTx.Lift, OptimizerSpec]}
+- ignore: {name: Reduce duplication, within: [Language.PlutusCore.Renamer, Language.PlutusCore.Constant.Prelude, Language.PlutusCore.StdLib.Data.Bool, Language.PlutusCore.StdLib.Data.ChurchNat, Language.PlutusCore.StdLib.Data.Function, Language.PlutusCore.StdLib.Data.List, Language.PlutusCore.StdLib.Data.Nat, Language.PlutusCore.Pretty.Readable, Language.PlutusCore.Examples.Data.InterList, Language.PlutusCore.Examples.Data.TreeForest, Language.PlutusTx.Compiler.Binders, Language.PlutusTx.Compiler.Type, Evaluation.CkMachine, Spec.Crowdfunding, Spec.Vesting, Language.PlutusTx.Lift, OptimizerSpec]}
 - ignore: {name: Redundant $, within: [Evaluation.Constant.Success, Language.PlutusCore.Generators.Internal.TypedBuiltinGen]}
 - ignore: {name: Redundant bracket, within: [Language.PlutusTx.TH]}
 # this is rarely an improvement, also ignored in cardano

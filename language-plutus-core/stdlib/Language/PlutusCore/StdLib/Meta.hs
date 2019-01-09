@@ -30,12 +30,12 @@ getBuiltinNatSum :: Natural -> Quote (Term TyName Name ())
 getBuiltinNatSum s = rename =<< do
     foldList <- getBuiltinFoldList
     let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
+    nat1 <- _recursiveType <$> getBuiltinNat
     let add = TyInst () (Builtin () (BuiltinName () AddInteger)) $ TyInt () s
-    RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
     nti <- getBuiltinNatToInteger
     acc <- freshName () "acc"
     n <- freshName () "n"
-    RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
+    nat2 <- _recursiveType <$> getBuiltinNat
     return
         $ mkIterApp () (mkIterInst () foldList [nat1, int])
           [   LamAbs () acc int

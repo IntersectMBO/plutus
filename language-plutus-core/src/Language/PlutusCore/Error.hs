@@ -183,7 +183,7 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         ", found kind" <+> squotes (prettyBy config k')
     prettyBy config (TypeMismatch x t ty ty')         =
         "Type mismatch at" <+> pretty x <>
-        (if _pcpoCondensedErrors . _pcpOptions $ config
+        (if _pcpoCondensedErrors (_pcpOptions config) == CondensedErrorsYes
             then mempty
             else " in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
         hardline <>

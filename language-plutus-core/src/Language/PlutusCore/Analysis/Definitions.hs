@@ -128,12 +128,12 @@ termDefs
     => Term tyname name a
     -> m ()
 termDefs = cata $ \case
-    VarF a n         -> addUsage n a TermScope
-    LamAbsF a n ty t -> addDef n a TermScope >> typeDefs ty >> t
-    WrapF a tn ty t  -> addDef tn a TypeScope >> typeDefs ty >> t
-    TyAbsF a tn _ t  -> addDef tn a TypeScope >> t
-    TyInstF _ t ty   -> t >> typeDefs ty
-    x                -> sequence_ x
+    VarF a n           -> addUsage n a TermScope
+    LamAbsF a n ty t   -> addDef n a TermScope >> typeDefs ty >> t
+    IWrapF _ pat arg t -> typeDefs pat >> typeDefs arg >> t
+    TyAbsF a tn _ t    -> addDef tn a TypeScope >> t
+    TyInstF _ t ty     -> t >> typeDefs ty
+    x                  -> sequence_ x
 
 typeDefs
     :: (Ord a,
@@ -144,7 +144,6 @@ typeDefs
     -> m ()
 typeDefs = cata $ \case
     TyVarF a n         -> addUsage n a TypeScope
-    TyFixF a n t       -> addDef n a TypeScope >> t
     TyForallF a tn _ t -> addDef tn a TypeScope >> t
     TyLamF a tn _ t    -> addDef tn a TypeScope >> t
     x                  -> sequence_ x

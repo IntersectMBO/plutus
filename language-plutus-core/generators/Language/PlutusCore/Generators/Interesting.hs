@@ -18,14 +18,16 @@ module Language.PlutusCore.Generators.Interesting
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Generators
 import           Language.PlutusCore.MkPlc
+
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
+
+import           Language.PlutusCore.Generators
 
 import           Control.Monad.Morph
 import           Data.List                                (genericIndex)
@@ -173,7 +175,7 @@ genNatRoundtrip = do
         ssize = Constant () $ BuiltinSize () sizev
         typedIntS = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntS
-    term <- lift $ do
+    term <- lift $ rename =<< do
         n <- getBuiltinIntegerToNat iv
         natToInteger <- getBuiltinNatToInteger
         return $ mkIterApp () (TyInst () natToInteger size) [ssize, n]

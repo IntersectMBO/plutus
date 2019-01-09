@@ -6,11 +6,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Pretty.Readable
     ( RenderContext (..)
+    , ShowKinds (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
     , PrettyReadable
@@ -53,10 +55,16 @@ data RenderContext = RenderContext
     , _rcDirection :: Direction
     }
 
+data ShowKinds
+    = ShowKindsYes
+    | ShowKindsNo
+    deriving (Show, Eq)
+
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable
     { _pcrConfigName    :: configName
     , _pcrRenderContext :: RenderContext
+    , _pcrShowKinds     :: ShowKinds
     }
 
 instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigReadable configName) where
@@ -94,11 +102,11 @@ topApp :: Fixity
 topApp = Fixity 13 NonAssociative
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'topApp'.
-topPrettyConfigReadable :: configName -> PrettyConfigReadable configName
+topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 topPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext topApp Forward
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'botApp'.
-botPrettyConfigReadable :: configName -> PrettyConfigReadable configName
+botPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 botPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext botApp Forward
 
 -- | Set the 'RenderContext' of a 'PrettyConfigReadable'.
@@ -206,6 +214,15 @@ arrowDoc
 arrowDoc config a b =
     compoundDoc config arrowApp $ \arrLeft arrRight -> arrLeft a <+> "->" <+> arrRight b
 
+-- | Pretty-print a binding at the type level.
+prettyTypeBinding
+    :: PrettyReadableBy configName (tyname a)
+    => PrettyConfigReadable configName -> tyname a -> Kind a -> Doc ann
+prettyTypeBinding config name kind
+    | _pcrShowKinds config == ShowKindsYes = parens $ prName <+> "::" <+> prettyInBotBy config kind
+    | otherwise                            = prName
+    where prName = prettyBy config name
+
 instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
     prettyBy config = \case
         Type{}          -> unitaryDoc config "*"
@@ -230,45 +247,43 @@ instance PrettyReadableBy configName (tyname a) =>
         TyApp _ fun arg         -> applicationDoc config fun arg
         TyVar _ name            -> unit $ prettyName name
         TyFun _ tyIn tyOut      -> arrowDoc config tyIn tyOut
-        TyFix _ name body       -> bind $ \bindBody ->
-            "fix" <+> prettyName name <> "." <+> bindBody body
+        -- TODO: add another combinator for doing this. Or fix the existing one somehow.
+        TyIFix _ pat arg        -> compoundDoc @_ @(Type tyname a) config juxtApp $ \_ juxtRight ->
+            "ifix" <+> inMiddle pat <+> juxtRight arg
         TyForall _ name kind ty -> bind $ \bindBody ->
-            "all" <+> parens (prettyName name <+> "::" <+> inBot kind) <> "." <+> bindBody ty
+            "all" <+> prettyTypeBinding config name kind <> "." <+> bindBody ty
         TyBuiltin _ builtin     -> unit $ pretty builtin
         TyInt _ size            -> unit $ pretty size
         TyLam _ name kind ty    -> bind $ \bindBody ->
-            "\\" <> parens (prettyName name <+> "::" <+> inBot kind) <+> "->" <+> bindBody ty
+            "\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody ty
       where
         prettyName = prettyBy config
         unit = unitaryDoc config
         bind = binderDoc  config
-        inBot = prettyInBotBy config
+        inMiddle = prettyInMiddleBy config
 
 instance (PrettyReadableBy configName (tyname a), PrettyReadableBy configName (name a)) =>
         PrettyBy (PrettyConfigReadable configName) (Term tyname name a) where
     prettyBy config = \case
         Constant _ con         -> prettyBy config con
-        Builtin _ bi -> prettyBy config bi
+        Builtin _ bi           -> prettyBy config bi
         Apply _ fun arg        -> applicationDoc config fun arg
         Var _ name             -> unit $ prettyName name
         TyAbs _ name kind body -> bind $ \bindBody ->
-            "/\\" <> parens (prettyName name <+> "::" <+> inBot kind) <+> "->" <+> bindBody body
+            "/\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody body
         TyInst _ fun ty        -> comp juxtApp $ \juxtLeft _ -> juxtLeft fun <+> inBraces ty
         LamAbs _ name ty body  -> bind $ \bindBody ->
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
         Unwrap _ term          -> comp juxtApp $ \_ juxtRight -> "unwrap" <+> juxtRight term
-        Wrap _ name ty term    -> comp juxtApp $ \_ juxtRight ->
-            "wrap" <+> prettyName name <+> inMiddle ty <+> juxtRight term
+        IWrap _ pat arg term   -> comp juxtApp $ \_ juxtRight ->
+            "iwrap" <+> inMiddle pat <+> inMiddle arg <+> juxtRight term
         Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
-        -- Annoyingly, @TypeFamilies@ break type inference.
-        prettyName :: PrettyReadableBy configName n => n -> Doc ann
         prettyName = prettyBy config
         unit = unitaryDoc  config
         bind = binderDoc   config
         comp = compoundDoc config
-        inBot :: PrettyReadableBy configName b => b -> Doc ann
-        inBot = prettyInBotBy config
+        inBot    = prettyInBotBy config
         inMiddle = prettyInMiddleBy config
         inBraces = enclose "{" "}" . inBot
 

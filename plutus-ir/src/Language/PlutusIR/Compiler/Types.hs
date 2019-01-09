@@ -18,12 +18,7 @@ type PLCTerm a = PLC.Term PLC.TyName PLC.Name (Provenance a)
 type PLCType a = PLC.Type PLC.TyName (Provenance a)
 
 -- | A possibly recursive type.
-data PLCRecType a = PlainType (PLCType a) | RecursiveType (Types.RecursiveType PLC.TyName (Provenance a))
-
--- The 'Quote' is mainly so this is forwards compatible with the ifix version.
--- | Make a 'Types.RecursiveType' for the given provenance, name, and pattern functor.
-mkRecursiveType :: Provenance a -> PLC.TyName (Provenance a) -> PLCType a -> Quote (Types.RecursiveType PLC.TyName (Provenance a))
-mkRecursiveType ann tn pf = pure $ Types.RecursiveType (\t -> PLC.Wrap ann tn pf t) (PLC.TyFix ann tn pf)
+data PLCRecType a = PlainType (PLCType a) | RecursiveType (Types.RecursiveType (Provenance a))
 
 -- | Get the actual type inside a 'PLCRecType'.
 getType :: PLCRecType a -> PLCType a
@@ -32,10 +27,10 @@ getType r = case r of
     RecursiveType Types.RecursiveType {Types._recursiveType=t} -> t
 
 -- | Wrap a term appropriately for a possibly recursive type.
-wrap :: Provenance a -> PLCRecType a -> PLCTerm a -> PLCTerm a
-wrap p r t = case r of
+wrap :: Provenance a -> PLCRecType a -> [PLCType a] -> PLCTerm a -> PLCTerm a
+wrap p r tvs t = case r of
     PlainType _                                                      -> t
-    RecursiveType Types.RecursiveType {Types._recursiveWrap=wrapper} -> setProvenance p $ wrapper t
+    RecursiveType Types.RecursiveType {Types._recursiveWrap=wrapper} -> setProvenance p $ wrapper tvs t
 
 -- | Unwrap a term appropriately for a possibly recursive type.
 unwrap :: Provenance a -> PLCRecType a -> PLCTerm a -> PLCTerm a

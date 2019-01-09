@@ -11,6 +11,8 @@ module Language.PlutusCore.Quote (
             , freshUnique
             , freshName
             , freshTyName
+            , freshNameText
+            , freshTyNameText
             , freshenName
             , freshenTyName
             , markNonFresh
@@ -35,6 +37,8 @@ import qualified Data.ByteString.Lazy      as BSL
 import           Data.Functor.Foldable
 import           Data.Functor.Identity
 import qualified Data.Set                  as Set
+import qualified Data.Text                 as Text
+import qualified Data.Text.Encoding        as Text
 import           Hedgehog                  (GenT, PropertyT)
 
 import           Language.PlutusCore.Name
@@ -116,25 +120,25 @@ collectTypeUniques :: (HasUnique (tyname a) TypeUnique) => Type tyname a -> Set.
 collectTypeUniques = cata f where
     f = \case
         TyVarF _ tn        -> Set.singleton (tn ^. unique . coerced)
-        TyFixF _ tn t      -> Set.insert (tn ^. unique . coerced) t
         TyForallF _ tn _ t -> Set.insert (tn ^. unique . coerced) t
         TyLamF _ tn _ t    -> Set.insert (tn ^. unique . coerced) t
         TyAppF _ t1 t2     -> t1 <> t2
         TyFunF _ t1 t2     -> t1 <> t2
+        TyIFixF _ pat arg  -> pat <> arg
         _                  -> mempty
 
 collectTermUniques :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique) => Term tyname name a -> Set.Set Unique
 collectTermUniques = cata f where
     f = \case
-        VarF _ n         -> Set.singleton (n ^. unique . coerced)
-        LamAbsF _ n ty t -> Set.insert (n ^. unique . coerced) (collectTypeUniques ty <> t)
-        WrapF _ tn ty t  -> Set.insert (tn ^. unique . coerced) (collectTypeUniques ty <> t)
-        TyAbsF _ tn _ t  -> Set.insert (tn ^. unique . coerced) t
-        TyInstF _ t ty   -> t <> collectTypeUniques ty
-        ApplyF _ t1 t2   -> t1 <> t2
-        UnwrapF _ t      -> t
-        ErrorF _ ty      -> collectTypeUniques ty
-        _                -> mempty
+        VarF _ n           -> Set.singleton (n ^. unique . coerced)
+        LamAbsF _ n ty t   -> Set.insert (n ^. unique . coerced) (collectTypeUniques ty <> t)
+        TyAbsF _ tn _ t    -> Set.insert (tn ^. unique . coerced) t
+        TyInstF _ t ty     -> t <> collectTypeUniques ty
+        ApplyF _ t1 t2     -> t1 <> t2
+        IWrapF _ pat arg t -> collectTypeUniques pat <> collectTypeUniques arg <> t
+        UnwrapF _ t        -> t
+        ErrorF _ ty        -> collectTypeUniques ty
+        _                  -> mempty
 
 -- | Get a fresh 'Unique'.
 freshUnique :: MonadQuote m => m Unique
@@ -143,18 +147,26 @@ freshUnique = liftQuote $ do
     put $ Unique (unUnique nextU + 1)
     pure nextU
 
--- | Get a fresh 'Name', given the annotation an the name.
+-- | Get a fresh 'Name', given the annotation and the @ByteString@ name.
 freshName :: Monad m => a -> BSL.ByteString -> QuoteT m (Name a)
 freshName ann str = Name ann str <$> freshUnique
+
+-- | Get a fresh 'Name', given the annotation and the @Text@ name.
+freshNameText :: Monad m => a -> Text.Text -> QuoteT m (Name a)
+freshNameText ann = freshName ann . BSL.fromStrict . Text.encodeUtf8
 
 -- | Make a copy of the given 'Name' that is distinct from the old one.
 freshenName :: Monad m =>  Name a -> QuoteT m (Name a)
 freshenName (Name ann str _) = Name ann str <$> freshUnique
 
--- | Get a fresh 'TyName', given the annotation an the name.
+-- | Get a fresh 'TyName', given the annotation and the @ByteString@ name.
 freshTyName :: Monad m => a -> BSL.ByteString -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 
+-- | Get a fresh 'TyName', given the annotation and the @Text@ name.
+freshTyNameText :: (Monad m) => a -> Text.Text -> QuoteT m (TyName a)
+freshTyNameText = fmap TyName .* freshNameText
+
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
-freshenTyName :: Monad m =>  TyName a -> QuoteT m (TyName a)
+freshenTyName :: Monad m => TyName a -> QuoteT m (TyName a)
 freshenTyName (TyName name) = TyName <$> freshenName name

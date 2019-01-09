@@ -33,7 +33,9 @@ import qualified Data.Map                       as Map
 {- Note [Costs]
 Typechecking costs are relatively simple: it costs 1 gas to perform
 a reduction. Substitution does not in general cost anything.
-Costs are reset every time we enter 'NormalizeTypeM'.
+
+Costs are reset every time we enter 'NormalizeTypeT'.
+
 In unlimited mode, gas is not tracked and we do not fail even on large numbers
 of reductions.
 -}
@@ -53,8 +55,7 @@ data TypeConfig = TypeConfig
        -- If set to 'Nothing', type reductions will be unbounded.
     }
 
--- | The type checking monad contains the 'BuiltinTable' and it lets us throw
--- 'TypeError's.
+-- | The type checking monad contains the 'BuiltinTable' and it lets us throw 'TypeError's.
 type TypeCheckM ann = ReaderT TypeConfig (ExceptT (TypeError ann) Quote)
 
 -- | Run a 'NormalizeTypeT' computation in the 'TypeCheckM' context.
@@ -168,8 +169,13 @@ kindOf (TyForall x _ _ ty) = do
 kindOf (TyLam _ _ argK body) = KindArrow () (void argK) <$> kindOf body
 kindOf (TyVar _ (TyNameWithKind (TyName (Name (_, k) _ _)))) = pure (void k)
 kindOf (TyBuiltin _ b) = pure $ kindOfTypeBuiltin b
-kindOf (TyFix x _ pat) = do
-    kindCheckM x pat $ Type ()
+
+-- [infer| arg :: k]    [check| pat :: (k -> *) -> k -> *]
+-- -------------------------------------------------------
+-- [infer| ifix pat arg :: *]
+kindOf (TyIFix x pat arg) = do
+    k <- kindOf arg
+    kindCheckPatternFunctorM x pat k
     pure $ Type ()
 
 -- [infer| fun :: dom -> cod]    [check | arg :: dom]
@@ -182,6 +188,15 @@ kindOf (TyApp x fun arg) = do
             kindCheckM x arg dom
             pure cod
         _ -> throwError $ KindMismatch x (void fun) (KindArrow () dummyKind dummyKind) funKind
+
+-- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
+kindCheckPatternFunctorM
+    :: ann
+    -> Type TyNameWithKind ann  -- ^ A pattern functor.
+    -> Kind ()                  -- ^ @k@.
+    -> TypeCheckM ann ()
+kindCheckPatternFunctorM ann pat k =
+    kindCheckM ann pat $ KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
 
 -- | Check a 'Type' against a 'Kind'.
 kindCheckM :: a -> Type TyNameWithKind a -> Kind () -> TypeCheckM a ()
@@ -313,24 +328,28 @@ typeOf (TyInst x body ty) = do
             substituteNormalizeTypeTcm vTy n vCod
         _ -> throwError (TypeMismatch x (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
--- [infer| term : fix n vPat]
--- -----------------------------------------------------
--- [infer| unwrap n term : NORM ([fix n vPat / n] vPat)]
+-- [infer| term : ifix vPat vArg]    [infer| vArg :: k]
+-- ------------------------------------------------------------------
+-- [infer| unwrap term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
 typeOf (Unwrap x term) = do
     vTermTy <- typeOf term
     case getNormalizedType vTermTy of
-        TyFix _ n vPat -> unfoldFixOf n (NormalizedType vPat)
-        _              -> throwError (TypeMismatch x (void term) (TyFix () dummyTyName dummyType) vTermTy)
+        TyIFix _ vPat vArg -> do
+            k <- kindOf $ x <$ vArg
+            unfoldFixOf (NormalizedType vPat) (NormalizedType vArg) k
+        _                  -> throwError (TypeMismatch x (void term) (TyIFix () dummyType dummyType) vTermTy)
 
--- [check| pat :: *]    pat ~>? vPat    [check| term : NORM ([fix n vPat / n] vPat)]
--- ---------------------------------------------------------------------------------
--- [infer| wrap n pat term : fix n vPat]
-typeOf (Wrap x n pat term) = do
-    kindCheckM x pat $ Type ()
+-- [infer| arg :: k]    [check| pat :: (k -> *) -> k -> *]    pat ~>? vPat    arg ~>? vArg
+-- [check| term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
+-- ---------------------------------------------------------------------------------------
+-- [infer| iwrap pat arg term : ifix vPat vArg]
+typeOf (IWrap x pat arg term) = do
+    k <- kindOf arg
+    kindCheckPatternFunctorM x pat k
     vPat <- normalizeTypeOptTcm $ void pat
-    unfoldedFix <- unfoldFixOf (void n) vPat
-    typeCheckM x term unfoldedFix
-    return $ TyFix () (void n) <$> vPat
+    vArg <- normalizeTypeOptTcm $ void arg
+    typeCheckM x term =<< unfoldFixOf vPat vArg k
+    return $ TyIFix () <$> vPat <*> vArg
 
 -- | Check a 'Term' against a 'NormalizedType'.
 typeCheckM :: a
@@ -345,11 +364,18 @@ typeCheckM x term vTy = do
     vTermTy <- typeOf term
     when (vTermTy /= vTy) $ throwError (TypeMismatch x (void term) (getNormalizedType vTermTy) vTy)
 
--- | @unfoldFixOf vPat = NORM (vPat (fix vPat))@
+-- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldFixOf
-    :: TyNameWithKind ()
-    -> NormalizedType TyNameWithKind ()
+    :: NormalizedType TyNameWithKind ()  -- ^ @vPat@
+    -> NormalizedType TyNameWithKind ()  -- ^ @vArg@
+    -> Kind ()                           -- ^ @k@
     -> TypeCheckM a (NormalizedType TyNameWithKind ())
-unfoldFixOf name vPat = do
-    let pat = getNormalizedType vPat
-    substituteNormalizeTypeTcm (TyFix () name <$> vPat) name pat
+unfoldFixOf pat arg k = do
+    let vPat = getNormalizedType pat
+        vArg = getNormalizedType arg
+    a <- liftQuote $ TyNameWithKind <$> freshTyName ((), k) "a"
+    normalizeTypeTcm $
+        foldl' (TyApp ()) vPat
+            [ TyLam () a k . TyIFix () vPat $ TyVar () a
+            , vArg
+            ]

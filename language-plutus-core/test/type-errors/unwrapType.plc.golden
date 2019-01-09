@@ -1,6 +1,6 @@
 Type mismatch at 2:4 in term
   '(con 64 ! 0)'.
 Expected type
-  '(fix * *)',
+  '(ifix * *)',
 found type
   '[(con integer) (con 64)]'

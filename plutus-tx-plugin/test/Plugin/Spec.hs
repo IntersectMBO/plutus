@@ -14,8 +14,6 @@
 
 module Plugin.Spec where
 
-import           Plugin.IllTyped
-
 import           Common
 import           PlcTestUtils
 
@@ -88,6 +86,9 @@ primitives = testNested "primitives" [
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   ]
+
+string :: CompiledCode String
+string = plc @"string" "test"
 
 int :: CompiledCode Int
 int = plc @"int" (1::Int)
@@ -288,6 +289,29 @@ recursiveTypes = testNested "recursiveTypes" [
     , goldenEval "ptreeConstDest" [ getProgram $ ptreeMatch, getProgram $ ptreeConstruct ]
   ]
 
+listConstruct :: CompiledCode [Int]
+listConstruct = plc @"listConstruct" ([]::[Int])
+
+listConstruct2 :: CompiledCode [Int]
+listConstruct2 = plc @"listConstruct2" ([1]::[Int])
+
+-- It is very difficult to get GHC to make a non-polymorphic redex if you use
+-- list literal syntax with integers. But this works.
+listConstruct3 :: CompiledCode [Int]
+listConstruct3 = plc @"listConstruct3" ((1::Int):(2::Int):(3::Int):[])
+
+listMatch :: CompiledCode ([Int] -> Int)
+listMatch = plc @"listMatch" (\(l::[Int]) -> case l of { (x:_) -> x ; [] -> 0; })
+
+data B a = One a | Two (B (a, a))
+
+ptreeConstruct :: CompiledCode (B Int)
+ptreeConstruct = plc @"ptreeConstruct" (Two (Two (One ((1,2),(3,4)))) :: B Int)
+
+-- TODO: replace this with 'first' when we have working recursive functions
+ptreeMatch :: CompiledCode (B Int -> Int)
+ptreeMatch = plc @"ptreeMatch" (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
+
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
     -- currently broken, will come back to this later
@@ -308,6 +332,13 @@ fib = plc @"fib" (
     let fib :: Int -> Int
         fib n = if n == 0 then 0 else if n == 1 then 1 else fib(n-1) + fib(n-2)
     in fib)
+
+sumDirect :: CompiledCode ([Int] -> Int)
+sumDirect = plc @"sumDirect" (
+    let sum :: [Int] -> Int
+        sum []     = 0
+        sum (x:xs) = x + sum xs
+    in sum)
 
 evenMutual :: CompiledCode (Int -> Bool)
 evenMutual = plc @"evenMutual" (

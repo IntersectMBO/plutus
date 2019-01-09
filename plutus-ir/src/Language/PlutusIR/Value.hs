@@ -15,7 +15,7 @@ isTermValue = \case
     Builtin {} -> True
     -- Type abstractions and wraps are values if their bodies are
     TyAbs _ _ _ t -> isTermValue t
-    Wrap _ _ _ t -> isTermValue t
+    IWrap _ _ _ t -> isTermValue t
     x -> isBuiltinValue x
 
 -- Builtins or applications of builtins are also values

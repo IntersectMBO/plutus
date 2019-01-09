@@ -78,7 +78,7 @@ addGhcOptions :: SourceCode -> SourceCode
 addGhcOptions = Newtype.over SourceCode (mappend opts)
   where
     opts =
-        "{-# OPTIONS -fplugin=Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}\n"
+        "{-# OPTIONS_GHC -O0 #-}\n"
 
 writeTempSource :: MonadIO m => SourceCode -> m FilePath
 writeTempSource s =

@@ -20,6 +20,7 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
+import           Language.PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
 stdLib :: PlcFolderContents
@@ -40,6 +41,7 @@ stdLib =
                   ]
               , treeFolderContents "Function"
                   [ plcTermFile "Const"  getBuiltinConst
+                  , plcTypeFile "Self"   $ _recursiveType <$> getBuiltinSelf
                   , plcTermFile "Unroll" getBuiltinUnroll
                   , plcTermFile "Fix"    getBuiltinFix
                   , plcTermFile "Fix2"   $ getBuiltinFixN 2
@@ -48,7 +50,8 @@ stdLib =
                   [ plcTermFile "SuccInteger" getBuiltinSuccInteger
                   ]
               , treeFolderContents "List"
-                  [ plcTermFile "Nil"        getBuiltinNil
+                  [ plcTypeFile "List"       $ _recursiveType <$> getBuiltinList
+                  , plcTermFile "Nil"        getBuiltinNil
                   , plcTermFile "Cons"       getBuiltinCons
                   , plcTermFile "FoldrList"  getBuiltinFoldrList
                   , plcTermFile "FoldList"   getBuiltinFoldList
@@ -57,7 +60,8 @@ stdLib =
                   , plcTermFile "Product"    getBuiltinProduct
                   ]
               , treeFolderContents "Nat"
-                  [ plcTermFile "Zero"         getBuiltinZero
+                  [ plcTypeFile "Nat"          $ _recursiveType <$> getBuiltinNat
+                  , plcTermFile "Zero"         getBuiltinZero
                   , plcTermFile "Succ"         getBuiltinSucc
                   , plcTermFile "FoldrNat"     getBuiltinFoldrNat
                   , plcTermFile "FoldNat"      getBuiltinFoldNat

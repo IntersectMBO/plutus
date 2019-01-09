@@ -52,17 +52,17 @@ termUsages
     => Term tyname name a
     -> m ()
 termUsages term = case term of
-    Let _ _ bs t    -> traverse_ bindingUsages bs >> termUsages t
-    Var _ n         -> modify (addUsage n)
-    TyAbs _ _ _ t   -> termUsages t
-    LamAbs _ _ ty t -> typeUsages ty >> termUsages t
-    Apply _ t1 t2   -> termUsages t1 >> termUsages t2
-    TyInst _ t ty   -> termUsages t >> typeUsages ty
-    Error _ ty      -> typeUsages ty
-    Wrap _ _ ty t   -> typeUsages ty >> termUsages t
-    Unwrap _ t      -> termUsages t
-    Constant _ _    -> pure ()
-    Builtin _ _     -> pure ()
+    Let _ _ bs t      -> traverse_ bindingUsages bs >> termUsages t
+    Var _ n           -> modify (addUsage n)
+    TyAbs _ _ _ t     -> termUsages t
+    LamAbs _ _ ty t   -> typeUsages ty >> termUsages t
+    Apply _ t1 t2     -> termUsages t1 >> termUsages t2
+    TyInst _ t ty     -> termUsages t >> typeUsages ty
+    Error _ ty        -> typeUsages ty
+    IWrap _ pat arg t -> typeUsages pat >> typeUsages arg >> termUsages t
+    Unwrap _ t        -> termUsages t
+    Constant _ _      -> pure ()
+    Builtin _ _       -> pure ()
 
 varDeclUsages
     :: (MonadState Usages m, PLC.HasUnique (tyname a) PLC.TypeUnique)
@@ -97,7 +97,7 @@ typeUsages
 typeUsages ty = case ty of
     TyVar _ n        -> modify (addUsage n)
     TyFun _ t1 t2    -> typeUsages t1 >> typeUsages t2
-    TyFix _ _ t      -> typeUsages t
+    TyIFix _ pat arg -> typeUsages pat >> typeUsages arg
     TyForall _ _ _ t -> typeUsages t
     TyLam _ _ _ t    -> typeUsages t
     TyApp _ t1 t2    -> typeUsages t1 >> typeUsages t2

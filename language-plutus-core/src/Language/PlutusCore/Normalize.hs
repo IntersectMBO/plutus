@@ -94,8 +94,6 @@ newtype NormalizeTypeT m tyname ann a = NormalizeTypeT
         , MonadQuote
         )
 
-type CountSubstT m = StateT Gas (MaybeT m)
-
 -- | Run a 'NormalizeTypeM' computation.
 runNormalizeTypeM :: m () -> NormalizeTypeT m tyname ann a -> m a
 runNormalizeTypeM countStep (NormalizeTypeT a) =
@@ -110,7 +108,7 @@ runNormalizeTypeDownM = runNormalizeTypeM $ pure ()
 -- Count a single substitution step by subtracting @1@ from available gas or
 -- fail when there is no available gas.
 runNormalizeTypeGasM
-    :: MonadQuote m => Gas -> NormalizeTypeT (CountSubstT m) tyname ann a -> m (Maybe a)
+    :: MonadQuote m => Gas -> NormalizeTypeT (StateT Gas (MaybeT m)) tyname ann a -> m (Maybe a)
 runNormalizeTypeGasM gas a = runMaybeT $ evalStateT (runNormalizeTypeM countSubst a) gas where
     countSubst = do
         Gas gas' <- get
@@ -161,8 +159,8 @@ normalizeTypeM
     => Type tyname ann -> NormalizeTypeT m tyname ann (NormalizedType tyname ann)
 normalizeTypeM (TyForall ann name kind body) =
     TyForall ann name kind <<$>> normalizeTypeM body
-normalizeTypeM (TyFix ann name pat)          =
-    TyFix ann name <<$>> normalizeTypeM pat
+normalizeTypeM (TyIFix ann pat arg)          =
+    TyIFix ann <<$>> normalizeTypeM pat <<*>> normalizeTypeM arg
 normalizeTypeM (TyFun ann dom cod)           =
     TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
 normalizeTypeM (TyLam ann name kind body)    =
@@ -226,7 +224,8 @@ normalizeTypesIn = go where
 
     go (LamAbs ann name ty body)  = LamAbs ann name <$> normalizeReturnType ty <*> go body
     go (TyAbs ann name kind body) = TyAbs ann name kind <$> go body
-    go (Wrap ann name pat term)   = Wrap ann name <$> normalizeReturnType pat <*> go term
+    go (IWrap ann pat arg term)   =
+        IWrap ann <$> normalizeReturnType pat <*> normalizeReturnType arg <*> go term
     go (Apply ann fun arg)        = Apply ann <$> go fun <*> go arg
     go (Unwrap ann term)          = Unwrap ann <$> go term
     go (Error ann ty)             = Error ann <$> normalizeReturnType ty

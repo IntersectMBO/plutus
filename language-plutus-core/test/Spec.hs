@@ -52,20 +52,21 @@ compareTerm (Constant _ x) (Constant _ y)          = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
-compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
+    compareType pat1 pat2 && compareType arg1 arg2 && compareTerm t1 t2
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
 compareType :: Eq a => Type TyName a -> Type TyName a -> Bool
-compareType (TyVar _ n) (TyVar _ n')                 = compareTyName n n'
-compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
-compareType (TyFix _ n t) (TyFix _ n' t')            = compareTyName n n' && compareType t t'
-compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k == k' && compareType t t'
-compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
-compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
-compareType (TyApp _ t t') (TyApp _ t'' t''')        = compareType t t'' && compareType t' t'''
-compareType (TyInt _ n) (TyInt _ n')                 = n == n'
-compareType _ _                                      = False
+compareType (TyVar _ n) (TyVar _ n')                  = compareTyName n n'
+compareType (TyFun _ t s) (TyFun _ t' s')             = compareType t t' && compareType s s'
+compareType (TyIFix _ pat1 arg1) (TyIFix _ pat2 arg2) = compareType pat1 pat2 && compareType arg1 arg2
+compareType (TyForall _ n k t) (TyForall _ n' k' t')  = compareTyName n n' && k == k' && compareType t t'
+compareType (TyBuiltin _ x) (TyBuiltin _ y)           = x == y
+compareType (TyLam _ n k t) (TyLam _ n' k' t')        = compareTyName n n' && k == k' && compareType t t'
+compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && compareType t' t'''
+compareType (TyInt _ n) (TyInt _ n')                  = n == n'
+compareType _ _                                       = False
 
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
@@ -227,13 +228,13 @@ testRebindCapturedVariable =
         typeL2
             = TyForall () zName typeKind
             $ TyFun ()
-                (TyFix () wName $ TyForall () xName typeKind (TyFun () varW varX))
+                (TyForall () wName typeKind $ TyForall () xName typeKind (TyFun () varW varX))
                 varZ
         -- (all x (type) (fun (all x (all y (type) (fun x y))))) x)
         typeR2
             = TyForall () xName typeKind
             $ TyFun ()
-                (TyFix () xName $ TyForall () yName typeKind (TyFun () varX varY))
+                (TyForall () xName typeKind $ TyForall () yName typeKind (TyFun () varX varY))
                 varX
     in
         [typeL1, typeL2] == [typeR1, typeR2]

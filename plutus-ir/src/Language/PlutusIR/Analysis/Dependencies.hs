@@ -131,7 +131,7 @@ termDeps = \case
     Apply _ t1 t2 -> G.overlay <$> termDeps t1 <*> termDeps t2
     TyInst _ t ty -> G.overlay <$> termDeps t <*> typeDeps ty
     Error _ ty -> typeDeps ty
-    Wrap _ _ ty t -> G.overlay <$> typeDeps ty <*> termDeps t
+    IWrap _ pat arg t -> G.overlays <$> sequence [typeDeps pat, typeDeps arg, termDeps t]
     Unwrap _ t -> termDeps t
     Constant{} -> pure G.empty
     Builtin{} -> pure G.empty

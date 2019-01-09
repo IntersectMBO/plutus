@@ -25,6 +25,7 @@ module Language.PlutusTx.Prelude (
     all,
     -- * Hashes
     ByteString,
+    txhash,
     sha2_256,
     sha3_256,
     equalsByteString,
@@ -33,7 +34,7 @@ module Language.PlutusTx.Prelude (
     concatenate
     ) where
 
-import           Data.ByteString.Lazy       (ByteString)        
+import           Data.ByteString.Lazy       (ByteString)
 import           Prelude                    (Bool (..), Int, Maybe (..), String, (<), (>), (+))
 
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -41,15 +42,15 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.Haskell.TH
 
 -- $prelude
--- The PlutusTx Prelude is a collection of useful functions that work with 
+-- The PlutusTx Prelude is a collection of useful functions that work with
 -- builtin Haskell data types such as 'Maybe' and @[]@ (list).
 --
--- Functions from the Prelude can be used with the the typed Template Haskell 
+-- Functions from the Prelude can be used with the the typed Template Haskell
 -- splice operator @$$()@:
 --
 -- @
 --   import qualified Language.PlutusTx.Prelude as P
---   
+--
 --   [||  $$(P.traceH) "plutus" ... ||]
 -- @
 
@@ -201,7 +202,7 @@ length = [||
 --
 --   >>> $$([|| $$(all) (\i -> i > 5) [6, 8, 12] ||])
 --   True
--- 
+--
 all :: Q (TExp ((a -> Bool) -> [a] -> Bool))
 all = [||
     \pred l ->
@@ -211,6 +212,9 @@ all = [||
                 x:xs -> pred x `and'` go xs
         in go l
     ||]
+
+txhash :: Q (TExp ByteString)
+txhash = [|| Builtins.txhash ||]
 
 -- | The double SHA256 hash of a 'ByteString'
 sha2_256 :: Q (TExp (ByteString -> ByteString))
