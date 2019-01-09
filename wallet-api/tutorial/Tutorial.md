@@ -1,5 +1,10 @@
 # wallet-api: Wallet-API tutorial
 
+This tutorial shows how to implement a simple crowdfunding campaign as a Plutus contract, using the wallet API submit it to the blockchain. The tutorial is written as a literate Haskell file, so it can be fed directly to the Haskell compiler. There are two ways to run the code:
+
+1. Open the [Plutus Playground](https://prod.playground.plutus.iohkdev.io/), delete all the text in the editor field, and type / copy the code bits in there. Make sure to preserve the indentation.
+2. Clone the Plutus repository at `git@github.com:input-output-hk/plutus.git` and build the `wallet-api` library using `nix-build -A localPackages.wallet-api`. This runs the `wallet-api-doctests` test suite that compiles the tutorial. Alternatively, run `cabal test wallet-api`. Note that the test suite requires Unix symlinks to be supported by the file system, which means that it will not work on Windows Subsystem for Linux (WSL), even though nix generally does work!
+
 ```haskell
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -7,11 +12,12 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -O0 #-}
 module Tutorial where
 ```
 
-This tutorial shows how to implement a simple crowdfunding campaign as a Plutus contract, using the wallet API submit it to the blockchain. We need some imports:
+We need some imports:
 
 ```haskell
 import qualified Language.PlutusTx            as PlutusTx
@@ -260,9 +266,46 @@ startCampaign campaign = startWatching (campaignAddress campaign)
 
 `startCampaign`, `contribute` and `collect` form the public interface of the crowdfunding campaign.
 
-# Wallet triggers
+# Blockchain triggers
 
-(TBD)
+Some interactions with contracts can be automated. For example, the `collect` endpoint does not require any user input, so it could be run automatically as soon as the campaign is over, provided the campaign target has been reached. 
+
+The wallet API allows us to specify `EventTrigger`s with handlers to implement this. An event trigger describes a condition of the blockchain and can be true or false. There are four basic triggers: `slotRangeT` is true when the slot number is in a specific range, `fundsAtAddressT` is true when the total value of unspent outputs at an address is within a range, `alwaysT` is always true and `neverT` is never true. We also have boolean connectives `andT`, `orT` and `notT` to describe more complex conditions.
+
+```haskell
+collectFundsTrigger :: Campaign -> EventTrigger
+collectFundsTrigger c = andT
+    (fundsAtAddressT (campaignAddress c) (GEQ (fundingTarget c)))
+    (slotRangeT (Interval (endDate c) (collectionDeadline c)))
+```
+
+The campaign owner can collect contributions when two conditions hold: The funds at the address must have reached the target, and the current slot must be greater than the campaign deadline but smaller than the collection deadline.
+
+Now we can define an event handler that collects the contributions:
+
+```haskell
+collection :: Campaign -> EventHandler MockWallet
+collection cmp = EventHandler (\_ -> do
+        logMsg "Collecting funds"
+        let redeemerScript = Ledger.RedeemerScript (Ledger.lifted Collect)
+        collectFromScript (mkValidatorScript cmp) redeemerScript)
+```
+
+The handler is function of one argument, which we ignore in this case (the argument tells us which of the conditions in the trigger are true, which can be useful if we used `orT` to build a complex condition). In our case we don't need this information because we know that both the `fundsAtAddressT` and the `slotRangeT` conditions hold when the event handler is run, so we can call `collectFromScript` immediately.
+
+Note that the trigger mechanism is a feature of the wallet, not of the blockchain. That means that the wallet needs to be running when the condition becomes true, so that it can submit transactions. It also means that there is no guarantee that the transaction(s) we generate in the handler are valid. Anything that happens in an `EventHandler` is a normal interaction with the blockchain facilitated by the wallet, so it is still our responsibility to submit valid transactions. 
+
+With that, we can re-write the `startCampaign` endpoint to register a `collectFundsTrigger` and collect the funds automatically if the campaign is successful:
+
+```haskell
+scheduleCollection :: Campaign -> MockWallet ()
+scheduleCollection cmp = register (collectFundsTrigger cmp) (collection cmp)
+```
+
+Now the campaign owner only has to run `scheduleCollection` at the beginning of the campaign and the wallet will take care of collecting the funds.
+
+# Testing the contract in the playground
+
 
 # Testing the contract in the emulator
 
