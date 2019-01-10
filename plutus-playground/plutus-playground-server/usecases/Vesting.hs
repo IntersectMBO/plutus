@@ -1,5 +1,5 @@
 -- | Vesting scheme as a PLC contract
-module Language.PlutusTx.Coordination.Contracts.Vesting  where
+module Vesting where
 
 import           Control.Monad                (void)
 
@@ -158,5 +158,4 @@ tranche2Trigger v =
     let VestingTranche dt2 _ = vestingTranche2 v in
     (slotRangeT (Interval dt2 (succ dt2)))
 
-$(mkFunction 'vestFunds)
-$(mkFunction 'registerVestingOwner)
+$(mkFunctions ['vestFunds, 'registerVestingOwner])

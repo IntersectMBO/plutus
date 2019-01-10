@@ -4,8 +4,6 @@
 --   Player 2 guesses the word by attempting to spend the transaction
 --   output. If the guess is correct, the validator script releases the funds.
 --   If it isn't, the funds stay locked.
-module Language.PlutusTx.Coordination.Contracts.Game where
-
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
@@ -91,9 +89,7 @@ startGame =
     -- Player 2's wallet is aware of the game address.
     startWatching gameAddress
 
-$(mkFunction 'lock)
-$(mkFunction 'guess)
-$(mkFunction 'startGame)
+$(mkFunctions ['lock, 'guess, 'startGame])
 
 {- Note [Contract endpoints]
 

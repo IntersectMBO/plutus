@@ -1,165 +1,194 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Playground.Interpreter where
 
-import           Control.Monad                (unless)
-import           Control.Monad.Catch          (finally, throwM)
-import           Control.Monad.Error.Class    (MonadError, throwError)
-import           Control.Monad.IO.Class       (MonadIO, liftIO)
-import qualified Control.Newtype.Generics     as Newtype
-import           Data.Aeson                   (ToJSON, encode)
-import qualified Data.Aeson                   as JSON
-import qualified Data.ByteString              as BS
-import qualified Data.ByteString.Char8        as BSC
-import qualified Data.ByteString.Lazy.Char8   as BSL
-import           Data.FileEmbed               (embedFile)
-import           Data.List                    (intercalate)
-import           Data.Maybe                   (catMaybes)
-import           Data.Monoid                  ((<>))
-import           Data.Swagger                 (Schema)
-import qualified Data.Text                    as Text
-import qualified Data.Text.Internal.Search    as Text
-import           Language.Haskell.Interpreter (Extension (..), GhcError (GhcError),
-                                               InterpreterError (UnknownError, WontCompile), ModuleElem (Fun),
-                                               ModuleName, MonadInterpreter, OptionVal ((:=)), as, getLoadedModules,
-                                               getModuleExports, interpret, languageExtensions, loadModules, set,
-                                               setImportsQ, setTopLevelModules, typeOf)
-import           Ledger.Types                 (Blockchain, Value)
-import           Playground.API               (Evaluation (program, sourceCode), Expression (Action, Wait), Fn (Fn),
-                                               FunctionSchema,
-                                               PlaygroundError (DecodeJsonTypeError, FunctionSchemaError, InterpreterError),
-                                               SourceCode (SourceCode), wallets)
-import           Playground.Contract          (payToPublicKey_)
-import qualified Playground.TH                as TH
-import           Playground.Usecases          (vesting)
-import           System.Directory             (removeFile)
-import           System.IO.Temp               (writeSystemTempFile)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
+import           Control.Monad              (unless)
+import           Control.Monad.Catch        (MonadCatch, MonadMask, bracket, catch)
+import           Control.Monad.Error.Class  (MonadError, throwError)
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
+import qualified Control.Newtype.Generics   as Newtype
+import           Data.Aeson                 (ToJSON)
+import qualified Data.Aeson                 as JSON
+import           Data.ByteString            (ByteString)
+import qualified Data.ByteString.Char8      as BS8
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import           Data.List                  (intercalate)
+import           Data.Swagger               (Schema)
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
+import qualified Data.Text.Internal.Search  as Text
+import qualified Data.Text.IO               as Text
+import           Ledger.Types               (Blockchain, Value)
+import           Playground.API             (Evaluation (sourceCode), Expression (Action, Wait), Fn (Fn),
+                                             FunctionSchema,
+                                             PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
+                                             SourceCode, parseErrorsText, program, wallets)
+import           System.Directory           (removeFile)
+import           System.Environment         (lookupEnv)
+import           System.Exit                (ExitCode (ExitSuccess))
+import           System.IO                  (Handle, hClose, hFlush)
+import           System.IO.Temp             (getCanonicalTemporaryDirectory, openTempFile)
+import           System.Process             (readProcessWithExitCode)
+import qualified Text.Regex                 as Regex
+import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
 
-$(TH.mkFunction 'payToPublicKey_)
+run :: (MonadIO m, MonadError PlaygroundError m) => FilePath -> m String
+run scriptPath = do
+    runghc <- lookupRunghc
+    (exitCode, stdout, stderr) <-
+        liftIO $ readProcessWithExitCode runghc [scriptPath] ""
+    case exitCode of
+        ExitSuccess -> pure stdout
+        _           -> throwError . CompilationErrors $ parseErrorsText (Text.pack stderr)
 
-defaultExtensions :: [Extension]
-defaultExtensions =
-    [ DataKinds
-    , DeriveAnyClass
-    , DeriveFoldable
-    , DeriveFunctor
-    , DeriveGeneric
-    , DeriveLift
-    , DeriveTraversable
-    , ExplicitForAll
-    , FlexibleContexts
-    , OverloadedStrings
-    , RecordWildCards
-    , ScopedTypeVariables
-    , StandaloneDeriving
-    , TemplateHaskell
-    ]
+replaceModuleName :: Text -> Text
+replaceModuleName script =
+    let scriptString = Text.unpack script
+        regex = Regex.mkRegex "module .* where"
+     in Text.pack $ Regex.subRegex regex scriptString "module Main where"
 
-loadSource :: (MonadInterpreter m) => FilePath -> (ModuleName -> m a) -> m a
-loadSource fileName action =
-    flip finally (liftIO (removeFile fileName)) $ do
-        set [languageExtensions := defaultExtensions]
-        loadModules [fileName]
-        (m:_) <- getLoadedModules
-        setTopLevelModules [m]
-        action m
+mkCompileScript :: Text -> Text
+mkCompileScript script =
+    replaceModuleName script <> "\n\nmain :: IO ()" <>
+    "\nmain = printSchemas schemas"
 
 avoidUnsafe :: (MonadError PlaygroundError m) => SourceCode -> m ()
 avoidUnsafe s =
     unless (null . Text.indices "unsafe" . Newtype.unpack $ s) $
-    throwError
-        (InterpreterError
-             (WontCompile [GhcError "Cannot interpret unsafe functions"]))
+    throwError $ OtherError "Cannot interpret unsafe functions"
 
-addGhcOptions :: SourceCode -> SourceCode
-addGhcOptions = Newtype.over SourceCode (mappend opts)
-  where
-    opts =
-        "{-# OPTIONS_GHC -O0 #-}\n"
-
-writeTempSource :: MonadIO m => SourceCode -> m FilePath
-writeTempSource s =
-    liftIO $
-    writeSystemTempFile
-        "Contract.hs"
-        (Text.unpack . Newtype.unpack . addGhcOptions $ s)
-
-warmup ::
-       (MonadInterpreter m, MonadError PlaygroundError m)
-    => m [FunctionSchema Schema]
-warmup = compile . SourceCode . Text.pack . BSC.unpack $ vesting
+runscript ::
+       (MonadIO m, MonadError PlaygroundError m)
+    => Handle
+    -> FilePath
+    -> Text
+    -> m (ExitCode, String, String)
+runscript handle file script = do
+    liftIO . Text.hPutStr handle $ script
+    liftIO $ hFlush handle
+    runghc <- lookupRunghc
+    liftIO $ readProcessWithExitCode runghc (runghcOpts <> [file]) ""
 
 compile ::
-       (MonadInterpreter m, MonadError PlaygroundError m)
+       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
     => SourceCode
     -> m [FunctionSchema Schema]
-compile s = do
-    avoidUnsafe s
-    fileName <- writeTempSource s
-    loadSource fileName $ \moduleName -> do
-        exports <- getModuleExports moduleName
-        walletFunctions <- catMaybes <$> traverse isWalletFunction exports
-        schemas <- traverse getSchema walletFunctions
-        pure (schemas <> pure payToPublicKey_Schema)
+compile source = do
+    avoidUnsafe source
+    withSystemTempFile "Main.hs" $ \file handle -> do
+        (exitCode, stdout, stderr) <-
+            runscript handle file $ mkCompileScript (Newtype.unpack source)
+        result <-
+            case exitCode of
+                ExitSuccess -> pure stdout
+                _ ->
+                    throwError . CompilationErrors $
+                    parseErrorsText (Text.pack stderr)
+        let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
+        case eSchema of
+            Left err ->
+                throwError . OtherError $
+                "unable to decode compilation result" <> err
+            Right schema -> pure schema
+
+runFunction ::
+       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
+    => Evaluation
+    -> m (Blockchain, [EmulatorEvent], [(Wallet, Value)])
+runFunction evaluation = do
+    let source = sourceCode evaluation
+    avoidUnsafe source
+    expr <- mkExpr evaluation
+    withSystemTempFile "Main.hs" $ \file handle -> do
+        (exitCode, stdout, stderr) <-
+            runscript handle file $
+            mkRunScript (Newtype.unpack source) (Text.pack . BS8.unpack $ expr)
+        result <-
+            case exitCode of
+                ExitSuccess -> pure stdout
+                _           -> throwError . InterpreterError $ [stderr]
+        let decodeResult =
+                JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
+                                                                                                     , [EmulatorEvent]
+                                                                                                     , [( Wallet
+                                                                                                        , Value)]))
+        case decodeResult of
+            Left err ->
+                throwError . OtherError $
+                "unable to decode compilation result" <> err
+            Right eResult ->
+                case eResult of
+                    Left err      -> throwError err
+                    Right result' -> pure result'
+
+mkRunScript :: Text -> Text -> Text
+mkRunScript script expr =
+    replaceModuleName script <> "\n\nmain :: IO ()" <> "\nmain = printJson $ " <>
+    expr
+
+runghcOpts :: [String]
+runghcOpts =
+    [ "-XDataKinds"
+    , "-XDeriveAnyClass"
+    , "-XDeriveFoldable"
+    , "-XDeriveFunctor"
+    , "-XDeriveGeneric"
+    , "-XDeriveLift"
+    , "-XDeriveTraversable"
+    , "-XExplicitForAll"
+    , "-XFlexibleContexts"
+    , "-XOverloadedStrings"
+    , "-XRecordWildCards"
+    , "-XStandaloneDeriving"
+    , "-XTemplateHaskell"
+    , "-XScopedTypeVariables"
+    , "-O0"
+    ]
+
+lookupRunghc :: (MonadIO m, MonadError PlaygroundError m) => m String
+lookupRunghc = do
+    mBinDir <- liftIO $ lookupEnv "GHC_BIN_DIR"
+    case mBinDir of
+        Nothing  -> pure "runghc"
+        Just val -> pure $ val <> "/runghc"
+
+{-# ANN ignoringIOErrors ("HLint: ignore Evaluate" :: String) #-}
+
+ignoringIOErrors :: MonadCatch m => m () -> m ()
+ignoringIOErrors ioe = ioe `catch` (\e -> const (return ()) (e :: IOError))
+
+withSystemTempFile ::
+       (MonadMask m, MonadIO m, MonadError PlaygroundError m)
+    => FilePath
+    -> (FilePath -> Handle -> m a)
+    -> m a
+withSystemTempFile template action = do
+    tmpDir <- liftIO getCanonicalTemporaryDirectory
+    bracket
+        (liftIO $ openTempFile tmpDir template)
+        (\(name, handle) ->
+             liftIO (hClose handle >> ignoringIOErrors (removeFile name)))
+        (uncurry action)
 
 jsonToString :: ToJSON a => a -> String
 jsonToString = show . JSON.encode
 
-{-# ANN getSchema ("HLint: ignore" :: String) #-}
-
-getSchema ::
-       (MonadInterpreter m, MonadError PlaygroundError m)
-    => ModuleElem
-    -> m (FunctionSchema Schema)
-getSchema (Fun m) = interpret m (as :: FunctionSchema Schema)
-getSchema _       = throwError FunctionSchemaError
-  -- error "Trying to get a schema by calling something other than a function"
+mkExpr :: (MonadError PlaygroundError m) => Evaluation -> m ByteString
+mkExpr evaluation = do
+    let allWallets = fst <$> wallets evaluation
+    exprs <- traverse (walletActionExpr allWallets) (program evaluation)
+    pure . BS8.pack $
+        "runTrace (decode' " <> jsonToString (wallets evaluation) <> ") [" <>
+        intercalate ", " exprs <>
+        "]"
 
 {-# ANN getJsonString ("HLint: ignore" :: String) #-}
 
 getJsonString :: (MonadError PlaygroundError m) => JSON.Value -> m String
 getJsonString (JSON.String s) = pure $ Text.unpack s
 getJsonString v =
-    throwError . DecodeJsonTypeError "String" . BSL.unpack . encode $ v
-
-runFunction ::
-       (MonadInterpreter m, MonadError PlaygroundError m)
-    => Evaluation
-    -> m (Blockchain, [EmulatorEvent], [(Wallet, Value)])
-runFunction evaluation = do
-    avoidUnsafe $ sourceCode evaluation
-    expr <- mkExpr evaluation
-    fileName <- writeTempSource $ sourceCode evaluation
-    loadSource fileName $ \_ -> do
-        setImportsQ
-            [ ("Playground.Interpreter.Util", Nothing)
-            , ("Playground.API", Nothing)
-            , ("Wallet.Emulator", Nothing)
-            , ("Ledger.Types", Nothing)
-            , ("Data.Map", Nothing)
-            ]
-        liftIO . putStrLn $ expr
-        res <-
-            interpret
-                expr
-                (as :: Either PlaygroundError ( Blockchain
-                                              , [EmulatorEvent]
-                                              , [(Wallet, Value)]))
-        case res of
-            Left e  -> throwM . UnknownError $ show e
-            Right r -> pure r
-
-mkExpr :: (MonadError PlaygroundError m) => Evaluation -> m String
-mkExpr evaluation = do
-    let allWallets = fst <$> wallets evaluation
-    exprs <- traverse (walletActionExpr allWallets) (program evaluation)
-    pure $
-        "runTrace (decode' " <> jsonToString (wallets evaluation) <> ") [" <>
-        intercalate ", " exprs <>
-        "]"
+    throwError . DecodeJsonTypeError "String" . BSL.unpack . JSON.encode $ v
 
 walletActionExpr ::
        (MonadError PlaygroundError m) => [Wallet] -> Expression -> m String
@@ -177,6 +206,8 @@ walletActionExpr allWallets (Wait blocks) =
     "pure $ addBlocksAndNotify (" <> show allWallets <> ") " <> show blocks <>
     " >> pure []"
 
+{-# ANN mkApplyExpr ("HLint: ignore" :: String) #-}
+
 mkApplyExpr :: String -> [String] -> String
 mkApplyExpr functionName [] = "apply" <+> functionName
 mkApplyExpr functionName [a] = "apply1" <+> functionName <+> a
@@ -190,18 +221,7 @@ mkApplyExpr functionName [a, b, c, d, e, f] =
     "apply6" <+> functionName <+> a <+> b <+> c <+> d <+> e <+> f
 mkApplyExpr functionName [a, b, c, d, e, f, g] =
     "apply7" <+> functionName <+> a <+> b <+> c <+> d <+> e <+> f <+> g
+mkApplyExpr _ _ = error "cannot apply more than 7 arguments"
 
 (<+>) :: String -> String -> String
 a <+> b = a <> " " <> b
-
-isWalletFunction :: (MonadInterpreter m) => ModuleElem -> m (Maybe ModuleElem)
-isWalletFunction f@(Fun s) = do
-    t <- typeOf s
-    liftIO . putStrLn $ "COMPILED: " <> s <> " :: " <> t
-    pure $
-        if t == "FunctionSchema Schema" ||
-           t == "Playground.API.FunctionSchema Data.Swagger.Internal.Schema" ||
-           t == "Playground.API.FunctionSchema a" || t == "FunctionSchema a"
-            then Just f
-            else Nothing
-isWalletFunction _ = pure Nothing
