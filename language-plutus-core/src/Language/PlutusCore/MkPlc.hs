@@ -42,7 +42,7 @@ data TyVarDecl tyname a = TyVarDecl {tyVarDeclAnn::a, tyVarDeclName::tyname a, t
 mkTyVar :: a -> TyVarDecl tyname a -> Type tyname a
 mkTyVar x = TyVar x . tyVarDeclName
 
--- | A "type declaration", i.e. a name and a kind for a type.
+-- | A "type declaration", i.e. a kind for a type.
 data TyDecl tyname a = TyDecl {tyDeclAnn::a, tyDeclType::Type tyname a, tyDeclKind::Kind a}
     deriving (Functor, Show, Eq, Generic)
 

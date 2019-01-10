@@ -7,6 +7,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
 import           Language.PlutusCore.StdLib.Data.Bool
@@ -14,165 +15,83 @@ import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Meta
+import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                       as BSL
-import           Data.List
 import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 
-natToBool :: Quote (Type TyName ())
-natToBool = do
-    nat <- _recursiveType <$> getBuiltinNat
-    TyFun () nat <$> getBuiltinBool
+getEvenAndOdd :: Quote (Tuple ())
+getEvenAndOdd = do
+    nat  <- _recursiveType <$> getBuiltinNat
+    bool <- getBuiltinBool
 
-evenAndOdd :: Quote (Term TyName Name ())
-evenAndOdd = do
-    nat1 <- _recursiveType <$> getBuiltinNat
-    b1 <- getBuiltinBool
-    nat2 <- _recursiveType <$> getBuiltinNat
-    b2 <- getBuiltinBool
-
-    true <- getBuiltinTrue
+    true  <- getBuiltinTrue
     false <- getBuiltinFalse
 
-    fix2 <- getBuiltinFixN 2
-
-    q <- freshTyName () "Q"
-
-    choose <- freshName () "choose"
-    chooseTy <- do
-        ntb1 <- natToBool
-        ntb2 <- natToBool
-        pure $ TyFun () ntb1 (TyFun () ntb2 (TyVar () q))
-
     evenn <- freshName () "even"
-    evenTy <- natToBool
-    oddd <- freshName () "odd"
-    oddTy <- natToBool
+    oddd  <- freshName () "odd"
 
     let eoFunc b recc = do
           n <- freshName () "n"
-          nat <- _recursiveType <$> getBuiltinNat
-          bool <- getBuiltinBool
           pure $
               LamAbs () n nat $
               Apply () (Apply () (TyInst () (Unwrap () (Var () n)) bool) b) $ Var () recc
 
-    evenF <- eoFunc true oddd
-    oddF <- eoFunc false evenn
+    evenF <- Function () nat bool . Def evenn <$> eoFunc true oddd
+    oddF  <- Function () nat bool . Def oddd  <$> eoFunc false evenn
 
-    pure $
-        Apply () (foldl' (\acc t -> TyInst () acc t) fix2 [nat1, b1, nat2, b2]) $
-        TyAbs () q (Type ()) $
-        LamAbs () choose chooseTy $
-        LamAbs () evenn evenTy $
-        LamAbs () oddd oddTy $
-        Apply () (Apply () (Var () choose) evenF) oddF
+    getBuiltinMutualFixOf () [evenF, oddF]
 
 getEven :: Quote (Term TyName Name ())
-getEven = do
-    both <- evenAndOdd
-    instTy <- natToBool
-    x <- freshName () "x"
-    xTy <- natToBool
-    y <- freshName () "y"
-    yTy <- natToBool
-    pure $
-        Apply () (TyInst () both instTy) $
-        LamAbs () x xTy $
-        LamAbs () y yTy $
-        Var () x
+getEven = getEvenAndOdd >>= tupleTermAt () 0
 
-listInt :: Quote (Type TyName ())
-listInt = do
-    list1 <- _recursiveType <$> getBuiltinList
-    nat1 <- _recursiveType <$> getBuiltinNat
-    pure $ TyApp () list1 nat1
+getEvenAndOddList :: Quote (Tuple ())
+getEvenAndOddList = do
+    list <- _recursiveType <$> getBuiltinList
+    nat  <- _recursiveType <$> getBuiltinNat
+    let listNat = TyApp () list nat
 
-listIntToListInt :: Quote (Type TyName ())
-listIntToListInt = TyFun () <$> listInt <*> listInt
-
-evenAndOddList :: Quote (Term TyName Name ())
-evenAndOddList = do
-    fix2 <- getBuiltinFixN 2
-
-    q <- freshTyName () "Q"
-
-    choose <- freshName () "choose"
-    chooseTy <- do
-        li1 <- listIntToListInt
-        li2 <- listIntToListInt
-        pure $ TyFun () li1 (TyFun () li2 (TyVar () q))
+    nil  <- getBuiltinNil
+    cons <- getBuiltinCons
 
     evenn <- freshName () "even"
-    evenTy <- listIntToListInt
-    oddd <- freshName () "odd"
-    oddTy <- listIntToListInt
+    oddd  <- freshName () "odd"
 
     let eoFunc recc = do
           l <- freshName () "l"
-          li1 <- listInt
-          li2 <- listInt
-
-          nil <- getBuiltinNil
-          nat <- _recursiveType <$> getBuiltinNat
-
           pure $
-              LamAbs () l li1 $
+              LamAbs () l listNat $
               Apply () (
-                  Apply () (TyInst () (Unwrap () (Var () l)) li2)
+                  Apply () (TyInst () (Unwrap () (Var () l)) listNat)
                   (TyInst() nil nat))
               recc
 
-    evenF <- do
+    evenF <- Function () listNat listNat . Def evenn <$> do
         h <- freshName () "head"
-        nat1 <- _recursiveType <$> getBuiltinNat
         t <- freshName () "tail"
-        li1 <- listInt
-        cons <- getBuiltinCons
-        nat2 <- _recursiveType <$> getBuiltinNat
         eoFunc $
-            LamAbs () h nat1 $
-            LamAbs () t li1 $
-            Apply () (Apply () (TyInst () cons nat2) (Var () h)) $
+            LamAbs () h nat $
+            LamAbs () t listNat $
+            Apply () (Apply () (TyInst () cons nat) (Var () h)) $
             Apply () (Var () oddd) (Var () t)
 
-    oddF <- do
+    oddF <- Function () listNat listNat . Def oddd <$> do
         h <- freshName () "head"
-        nat1 <- _recursiveType <$> getBuiltinNat
         t <- freshName () "tail"
-        li1 <- listInt
         eoFunc $
-            LamAbs () h nat1 $
-            LamAbs () t li1 $
+            LamAbs () h nat $
+            LamAbs () t listNat $
             Apply () (Var () evenn) (Var () t)
 
-    lis <- replicateM 4 listInt
-    pure $
-        Apply () (foldl' (\acc t -> TyInst () acc t) fix2 lis) $
-        TyAbs () q (Type ()) $
-        LamAbs () choose chooseTy $
-        LamAbs () evenn evenTy $
-        LamAbs () oddd oddTy $
-        Apply () (Apply () (Var () choose) evenF) oddF
+    getBuiltinMutualFixOf () [evenF, oddF]
 
 getEvenList :: Quote (Term TyName Name ())
-getEvenList = do
-    both <- evenAndOddList
-    instTy <- listIntToListInt
-    x <- freshName () "x"
-    xTy <- listIntToListInt
-    y <- freshName () "y"
-    yTy <- listIntToListInt
-    pure $
-        Apply () (TyInst () both instTy) $
-        LamAbs () x xTy $
-        LamAbs () y yTy $
-        Var () x
+getEvenList = getEvenAndOddList >>= tupleTermAt () 0
 
 smallNatList :: Quote (Term TyName Name ())
 smallNatList = do

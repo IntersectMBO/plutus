@@ -3,9 +3,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Meta.Data.Tuple
-    ( getBuiltinTuple
-    , getBuiltinTupleConstructor
-    , getBuiltinTupleAccessor
+    ( Tuple (..)
+    , getTupleType
+    , tupleTypeTermAt
+    , tupleTermAt
+    , tupleDefAt
+    , bindTuple
+    , getBuiltinProdN
+    , getBuiltinProdNConstructor
+    , getBuiltinProdNAccessor
     ) where
 
 import           PlutusPrelude               (strToBs)
@@ -16,13 +22,78 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
+import           Control.Lens.Indexed        (ifor, itraverse)
 import           Data.Traversable
 
--- | Given an arity @n@, create the type of n-tuples.
+-- | A Plutus Core tuple.
+data Tuple ann = Tuple
+    { _tupleElementTypes :: [Type TyName ann]     -- ^ The types of elements of a tuple.
+    , _tupleTerm         :: Term TyName Name ann  -- ^ A term representation of the tuple.
+    }
+
+-- | Get the type of a 'Tuple'.
+--
+-- > getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -> ... -> an -> r) -> r
+getTupleType :: MonadQuote m => ann -> Tuple ann -> m (Type TyName ann)
+getTupleType ann (Tuple elTys _) = liftQuote $ do
+    resultTy <- freshTyName ann "r"
+    let caseTy = mkIterTyFun ann elTys (TyVar ann resultTy)
+    pure
+        . TyForall ann resultTy (Type ann)
+        . TyFun ann caseTy
+        $ TyVar ann resultTy
+
+-- | Get the type of the ith element of a 'Tuple' along with the element itself.
+--
+-- > tupleTypeTermAt _ i (Tuple [a0, ... , an] term) =
+-- >     term {ai} (\(x0 : a0) ... (xn : an) -> xi)
+tupleTypeTermAt
+    :: MonadQuote m => ann -> Int -> Tuple ann -> m (Type TyName ann, Term TyName Name ann)
+tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
+    args <- ifor elTys $ \i ty -> do
+        n <- freshName ann $ strToBs $ "arg_" ++ show i
+        pure $ VarDecl ann n ty
+    let selectedTy  = elTys !! ind
+        selectedArg = mkVar ann $ args !! ind
+        selector    = mkIterLamAbs ann args selectedArg
+
+    pure
+        ( selectedTy
+        , Apply ann (TyInst ann term selectedTy) selector
+        )
+
+-- | Get the ith element of a 'Tuple'.
+tupleTermAt :: MonadQuote m => ann -> Int -> Tuple ann -> m (Term TyName Name ann)
+tupleTermAt ann ind tuple = snd <$> tupleTypeTermAt ann ind tuple
+
+-- | Get the ith element of a 'Tuple' as a 'TermDef'.
+tupleDefAt :: MonadQuote m => ann -> Int -> Name ann -> Tuple ann -> m (TermDef TyName Name ann)
+tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTermAt ann ind tuple
+
+-- | Bind all elements of a 'Tuple' inside a 'Term'.
+--
+-- > bindTuple _ [x_1, ... , x_n] (Tuple [a1, ... , an] term) body =
+-- >     (\(tup : all r. (a_1 -> ... -> a_n -> r) -> r) ->
+-- >       let x_1 = _1 tup
+-- >           ...
+-- >           x_n = _n tup
+-- >         in body
+-- >     ) term
+bindTuple
+    :: MonadQuote m
+    => ann -> [Name ann] -> Tuple ann -> Term TyName Name ann -> m (Term TyName Name ann)
+bindTuple ann names (Tuple elTys term) body = liftQuote $ do
+    tup <- freshName ann "tup"
+    let tupVar = Tuple elTys $ Var ann tup
+    tupTy <- getTupleType ann tupVar
+    tupDefs <- itraverse (\i name -> tupleDefAt ann i name tupVar) names
+    pure $ Apply ann (LamAbs ann tup tupTy $ foldr (mkTermLet ann) body tupDefs) term
+
+-- | Given an arity @n@, create the n-ary product type.
 --
 -- @\(T_1 :: *) .. (T_n :: *) . all (R :: *) . (T_1 -> .. -> T_n -> R) -> R@
-getBuiltinTuple :: MonadQuote m => Int -> m (Type TyName ())
-getBuiltinTuple arity = do
+getBuiltinProdN :: MonadQuote m => Int -> m (Type TyName ())
+getBuiltinProdN arity = do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ strToBs $ "t_" ++ show i
         pure $ TyVarDecl () tn $ Type ()
@@ -37,7 +108,7 @@ getBuiltinTuple arity = do
         -- (T_1 -> .. -> T_n -> r) -> r
         TyFun () caseType (TyVar () resultType)
 
--- | Given an arity @n@, create the constructor for n-tuples.
+-- | Given an arity @n@, create the constructor for n-ary products.
 --
 -- @
 --     /\(T_1 :: *) .. (T_n :: *) .
@@ -45,8 +116,8 @@ getBuiltinTuple arity = do
 --             /\(R :: *).
 --                 \(case : T_1 -> .. -> T_n -> R) -> case arg_1 .. arg_n
 -- @
-getBuiltinTupleConstructor :: MonadQuote m => Int -> m (Term TyName Name ())
-getBuiltinTupleConstructor arity = do
+getBuiltinProdNConstructor :: MonadQuote m => Int -> m (Term TyName Name ())
+getBuiltinProdNConstructor arity = do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ strToBs $ "t_" ++ show i
         pure $ TyVarDecl () tn $ Type ()
@@ -76,16 +147,16 @@ getBuiltinTupleConstructor arity = do
 -- @
 --     /\(T_1 :: *) .. (T_n :: *) .
 --         \(tuple : all (R :: *) . (T_1 -> .. -> T_n -> R) -> R)) .
---             tuple {T_i} (\(arg_1 : T_1) .. (arg_n : T_n) . arg_n)
+--             tuple {T_i} (\(arg_1 : T_1) .. (arg_n : T_n) . arg_i)
 -- @
-getBuiltinTupleAccessor :: MonadQuote m => Int -> Int -> m (Term TyName Name ())
-getBuiltinTupleAccessor arity index = rename =<< do
+getBuiltinProdNAccessor :: MonadQuote m => Int -> Int -> m (Term TyName Name ())
+getBuiltinProdNAccessor arity index = rename =<< do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ strToBs $ "t_" ++ show i
         pure $ TyVarDecl () tn $ Type ()
 
     tupleTy <- do
-        genericTuple <- getBuiltinTuple arity
+        genericTuple <- getBuiltinProdN arity
         pure $ mkIterTyApp () genericTuple (fmap (mkTyVar ()) tyVars)
     let selectedTy = mkTyVar () $ tyVars !! index
 
