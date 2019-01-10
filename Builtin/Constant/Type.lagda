@@ -49,15 +49,30 @@ postulate
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
+-- no binding needed for addition
+-- no binding needed for subtract
+-- no binding needed for multiply
 {-# COMPILE GHC div  = div  #-}
 {-# COMPILE GHC quot = quot #-}
 {-# COMPILE GHC rem  = rem  #-}
 {-# COMPILE GHC mod  = mod  #-}
+-- no binding needed for lessthan
+-- no binding needed for lessthaneq
+-- no binding needed for greaterthan
+-- no binding needed for greaterthaneq
+-- no binding needed for equals
+-- no binding needed for resize
+-- no binding needed for sizeOf
+-- TODO: intToByteString
 
 {-# COMPILE GHC append = BS.append #-}
 {-# COMPILE GHC take = BS.take . fromIntegral #-}
 {-# COMPILE GHC drop = BS.drop . fromIntegral #-}
-
+-- TODO: sha2-256
+-- TODO: sha3-256
+-- TODO: verifySig
+-- TODO: resizeByteString
+-- no binding needed for equalsByteString
 {-# COMPILE GHC empty = BS.empty #-}
 \end{code}
 
