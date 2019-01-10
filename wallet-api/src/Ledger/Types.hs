@@ -72,7 +72,6 @@ module Ledger.Types(
     unspentOutputsTx,
     spentOutputs,
     unspentOutputs,
-    unspentOutputsAndSigs,
     updateUtxo,
     validTx,
     txOutPubKey,
@@ -88,7 +87,6 @@ module Ledger.Types(
     -- * Lenses
     inputs,
     outputs,
-    signatures,
     outAddress,
     outValue,
     outType,
@@ -346,8 +344,8 @@ newtype Slot = Slot { getSlot :: Int }
 
 makeLift ''Slot
 
--- | The number of the last slot of a blockchain. Assumes that empty slots are 
---   represented as empty blocks (as opposed to no blocks). This is true in the 
+-- | The number of the last slot of a blockchain. Assumes that empty slots are
+--   represented as empty blocks (as opposed to no blocks). This is true in the
 --   emulator but not necessarily on the real chain,
 lastSlot :: Blockchain -> Slot
 lastSlot = Slot . length
@@ -357,8 +355,7 @@ data Tx = Tx {
     txInputs     :: Set.Set TxIn',
     txOutputs    :: [TxOut'],
     txForge      :: !Value,
-    txFee        :: !Value,
-    txSignatures :: [Signature]
+    txFee        :: !Value
     } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | The inputs of a transaction
@@ -372,11 +369,7 @@ outputs = lens g s where
     g = txOutputs
     s tx o = tx { txOutputs = o }
 
--- | Signatures of a transaction
-signatures :: Lens' Tx [Signature]
-signatures = lens g s where
-    g = txSignatures
-    s tx sg = tx { txSignatures = sg }
+
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
@@ -609,18 +602,14 @@ spentOutputs = Set.map txInRef . txInputs
 
 -- | Unspent outputs of a ledger.
 unspentOutputs :: Blockchain -> Map TxOutRef' TxOut'
-unspentOutputs = Map.map fst . unspentOutputsAndSigs
-
--- | Unspent outputs, paired with signatures of their transactions, of a ledger
-unspentOutputsAndSigs :: Blockchain -> Map TxOutRef' (TxOut', [Signature])
-unspentOutputsAndSigs = foldr updateUtxo Map.empty . join
+unspentOutputs = foldr updateUtxo Map.empty . join
 
 -- | Update a map of unspent transaction outputs and sigantures with the inputs
 --   and outputs of a transaction.
-updateUtxo :: Tx -> Map TxOutRef' (TxOut', [Signature]) -> Map TxOutRef' (TxOut', [Signature])
+updateUtxo :: Tx -> Map TxOutRef' TxOut' -> Map TxOutRef' TxOut'
 updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
-    outs = Map.map (,txSignatures t) $ unspentOutputsTx t
+    outs = unspentOutputsTx t
 
 -- | Ledger and transaction state available to both the validator and redeemer
 --   scripts

@@ -17,7 +17,7 @@ module Wallet.API(
     keyPair,
     signature,
     createPayment,
-    signAndSubmit,
+    createTxAndSubmit,
     payToScript,
     payToScript_,
     payToPublicKey,
@@ -285,7 +285,7 @@ payToScripts ins = do
         totalVal     = getSum $ foldMap (Sum . view _2) ins
         otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript ds)) ins
     (i, ownChange) <- createPaymentWithChange totalVal
-    signAndSubmit i (maybe otherOutputs (:otherOutputs) ownChange)
+    createTxAndSubmit i (maybe otherOutputs (:otherOutputs) ownChange)
 
 -- | Transfer some funds to a number of script addresses.
 payToScripts_ :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m ()
@@ -312,7 +312,7 @@ collectFromScript scr red = do
         value = getSum $ foldMap (Sum . txOutValue . snd) outputs
 
     oo <- ownPubKeyTxOut value
-    void $ signAndSubmit (Set.fromList ins) [oo]
+    void $ createTxAndSubmit (Set.fromList ins) [oo]
 
 -- | Given the pay to script address of the 'ValidatorScript', collect from it
 --   all the inputs that were produced by a specific transaction, using the
@@ -328,7 +328,7 @@ collectFromScriptTxn vls red txid = do
         value  = getSum $ foldMap (Sum . txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
-    void $ signAndSubmit inputs [out]
+    void $ createTxAndSubmit inputs [out]
 
 -- | Get the public key for this wallet
 ownPubKey :: (Functor m, WalletAPI m) => m PubKey
@@ -340,7 +340,7 @@ payToPublicKey :: (Monad m, WalletAPI m) => Value -> PubKey -> m Tx
 payToPublicKey v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    signAndSubmit i (other : maybeToList own)
+    createTxAndSubmit i (other : maybeToList own)
 
 -- | Transfer some funds to an address locked by a public key
 payToPublicKey_ :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
@@ -350,17 +350,15 @@ payToPublicKey_ v = void . payToPublicKey v
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut'
 ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
 
--- | Create a transaction, sign it and submit it
+-- | Create a transaction, and submit it
 --   TODO: Also compute the fee
-signAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m Tx
-signAndSubmit ins outs = do
-    sig <- signature <$> myKeyPair
+createTxAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m Tx
+createTxAndSubmit ins outs = do
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
             , txForge = 0
             , txFee = 0
-            , txSignatures = [sig]
             }
     submitTxn tx
     pure tx

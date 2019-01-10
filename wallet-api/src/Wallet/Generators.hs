@@ -106,8 +106,7 @@ genInitialTransaction GeneratorModel{..} =
         txInputs = Set.empty,
         txOutputs = o,
         txForge = t,
-        txFee = 0,
-        txSignatures = []
+        txFee = 0
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -163,8 +162,7 @@ genValidTransactionSpending' g f ins totalVal = do
                     txInputs = ins,
                     txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
                     txForge = 0,
-                    txFee = fee,
-                    txSignatures = [] }
+                    txFee = fee }
         else Gen.discard
 
 genValue :: MonadGen m => m Value

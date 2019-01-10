@@ -53,18 +53,18 @@ vestFunds vst value = do
     payToScript_ contractAddress value dataScript
 
 -- | Register this wallet as the owner of the vesting scheme. At each of the
---   two dates (tranche 1, tranche 2) we take out the funds that have been 
+--   two dates (tranche 1, tranche 2) we take out the funds that have been
 --   released so far.
---   This function has to be called before the funds are vested, so that the 
+--   This function has to be called before the funds are vested, so that the
 --   wallet can start watching the contract address for changes.
 registerVestingOwner :: Vesting -> MockWallet ()
 registerVestingOwner v = do
     ourPubKey <- ownPubKey
-    let 
+    let
         o = vestingOwner v
         addr = Ledger.scriptAddress (validatorScript v)
-    _ <- if o /= ourPubKey 
-         then throwOtherError "Vesting scheme is not owned by this wallet" 
+    _ <- if o /= ourPubKey
+         then throwOtherError "Vesting scheme is not owned by this wallet"
          else startWatching addr
 
     register (tranche2Trigger v) (tranche2Handler v)
@@ -73,7 +73,7 @@ registerVestingOwner v = do
     --   (as explained in the script code, below) but doing so requires some
     --   low-level code dealing with the transaction outputs, because we don't
     --   have a nice interface for this in 'Wallet.API' yet.
-    
+
 
 validatorScriptHash :: Vesting -> ValidatorHash
 validatorScriptHash =
@@ -95,7 +95,7 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(P.and)
 
-            PendingTx _ os _ _ (Slot h) _ _ = p
+            PendingTx _ os _ _ (Slot h) _ = p
             VestingTranche (Slot d1) (Value a1) = vestingTranche1
             VestingTranche (Slot d2) (Value a2) = vestingTranche2
 
@@ -141,7 +141,7 @@ validatorScript v = ValidatorScript val where
         if isValid then () else $$(P.error) () ||])
 
 tranche1Trigger :: Vesting -> EventTrigger
-tranche1Trigger v = 
+tranche1Trigger v =
     let VestingTranche dt1 _ = vestingTranche1 v in
     (slotRangeT (Interval dt1 (succ dt1)))
 
@@ -154,7 +154,7 @@ tranche2Handler vesting = EventHandler (\_ -> do
     collectFromScript vlscript redeemerScript)
 
 tranche2Trigger :: Vesting -> EventTrigger
-tranche2Trigger v = 
+tranche2Trigger v =
     let VestingTranche dt2 _ = vestingTranche2 v in
     (slotRangeT (Interval dt2 (succ dt2)))
 
