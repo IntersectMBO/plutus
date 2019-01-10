@@ -66,8 +66,8 @@ import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
-import           Ledger                     (Address', DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
-                                             Tx (..), TxId', TxIn', TxOut (..), TxOut', TxOutType (..), ValidatorScript,
+import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
+                                             Tx (..), TxId, TxIn, TxOutOf (..), TxOut, TxOutType (..), ValidatorScript,
                                              Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
@@ -114,7 +114,7 @@ data EventTriggerF f =
     | PAlways
     | PNever
     | SlotRange !(Range Slot)
-    | FundsAtAddress !Address' !(Range Value)
+    | FundsAtAddress !Address !(Range Value)
     deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic)
 
 $(deriveEq1 ''EventTriggerF)
@@ -150,7 +150,7 @@ slotRangeT :: Range Slot -> EventTrigger
 slotRangeT = embed . SlotRange
 
 -- | `fundsAtAddressT a r` is true when the funds at `a` are in the range `r`
-fundsAtAddressT :: Address' -> Range Value -> EventTrigger
+fundsAtAddressT :: Address -> Range Value -> EventTrigger
 fundsAtAddressT a = embed . FundsAtAddress a
 
 -- | `notT t` is true when `t` is false
@@ -159,12 +159,12 @@ notT = embed . Not
 
 -- | Check if the given slot number and UTXOs match the
 --   conditions of an [[EventTrigger]]
-checkTrigger :: Slot -> Map.Map Address' Value -> EventTrigger -> Bool
+checkTrigger :: Slot -> Map.Map Address Value -> EventTrigger -> Bool
 checkTrigger h mp = getAnnot . annTruthValue h mp
 
 -- | Annotate each node in an `EventTriggerF` with its truth value given a slot
 --   and a set of unspent outputs
-annTruthValue :: Slot -> Map.Map Address' Value -> EventTrigger -> AnnotatedEventTrigger Bool
+annTruthValue :: Slot -> Map.Map Address Value -> EventTrigger -> AnnotatedEventTrigger Bool
 annTruthValue h mp = cata f where
     embedC = embed . Compose
     f = \case
@@ -179,7 +179,7 @@ annTruthValue h mp = cata f where
             embedC (funds `inRange` r, FundsAtAddress a r)
 
 -- | The addresses that an [[EventTrigger]] refers to
-addresses :: EventTrigger -> [Address']
+addresses :: EventTrigger -> [Address]
 addresses = cata adr where
     adr = \case
         And l r -> l ++ r
@@ -230,7 +230,7 @@ class WalletAPI m where
     Create a payment that spends the specified value and returns any
     leftover funds as change. Fails if we don't have enough funds.
     -}
-    createPaymentWithChange :: Value -> m (Set.Set TxIn', Maybe TxOut')
+    createPaymentWithChange :: Value -> m (Set.Set TxIn, Maybe TxOut)
 
     {- |
     Register a [[EventHandler]] in `m ()` to be run when condition is true.
@@ -261,7 +261,7 @@ class WalletAPI m where
     {-
     Start watching an address.
     -}
-    startWatching :: Address' -> m ()
+    startWatching :: Address -> m ()
 
     {-
     The current slot.
@@ -274,30 +274,30 @@ throwInsufficientFundsError = throwError . InsufficientFunds
 throwOtherError :: MonadError WalletAPIError m => Text -> m a
 throwOtherError = throwError . OtherError
 
-createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn')
+createPayment :: (Functor m, WalletAPI m) => Value -> m (Set.Set TxIn)
 createPayment vl = fst <$> createPaymentWithChange vl
 
 -- | Transfer some funds to a number of script addresses, returning the
 --   transaction that was submitted.
-payToScripts :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m Tx
+payToScripts :: (Monad m, WalletAPI m) => [(Address, Value, DataScript)] -> m Tx
 payToScripts ins = do
     let
         totalVal     = getSum $ foldMap (Sum . view _2) ins
-        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript ds)) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOutOf addr vl (PayToScript ds)) ins
     (i, ownChange) <- createPaymentWithChange totalVal
     createTxAndSubmit i (maybe otherOutputs (:otherOutputs) ownChange)
 
 -- | Transfer some funds to a number of script addresses.
-payToScripts_ :: (Monad m, WalletAPI m) => [(Address', Value, DataScript)] -> m ()
+payToScripts_ :: (Monad m, WalletAPI m) => [(Address, Value, DataScript)] -> m ()
 payToScripts_ = void . payToScripts
 
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
-payToScript :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m Tx
+payToScript :: (Monad m, WalletAPI m) => Address -> Value -> DataScript -> m Tx
 payToScript addr v ds = payToScripts [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
-payToScript_ :: (Monad m, WalletAPI m) => Address' -> Value -> DataScript -> m ()
+payToScript_ :: (Monad m, WalletAPI m) => Address -> Value -> DataScript -> m ()
 payToScript_ addr v = void . payToScript addr v
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
@@ -317,7 +317,7 @@ collectFromScript scr red = do
 -- | Given the pay to script address of the 'ValidatorScript', collect from it
 --   all the inputs that were produced by a specific transaction, using the
 --   'RedeemerScript'.
-collectFromScriptTxn :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> TxId' -> m ()
+collectFromScriptTxn :: (Monad m, WalletAPI m) => ValidatorScript -> RedeemerScript -> TxId -> m ()
 collectFromScriptTxn vls red txid = do
     am <- watchedAddresses
     let adr     = Ledger.scriptAddress vls
@@ -346,13 +346,13 @@ payToPublicKey v pk = do
 payToPublicKey_ :: (Monad m, WalletAPI m) => Value -> PubKey -> m ()
 payToPublicKey_ v = void . payToPublicKey v
 
--- | Create a `TxOut'` that pays to a public key owned by us
-ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut'
+-- | Create a `TxOut` that pays to a public key owned by us
+ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
 
 -- | Create a transaction, and submit it
 --   TODO: Also compute the fee
-createTxAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn' -> [TxOut'] -> m Tx
+createTxAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn -> [TxOut] -> m Tx
 createTxAndSubmit ins outs = do
     let tx = Tx
             { txInputs = ins

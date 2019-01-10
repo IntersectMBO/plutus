@@ -94,7 +94,7 @@ txIn :: TxId -> Int -> Witness -> TxIn
 txIn txId idx wit = TxIn (TxOutRef txId idx) wit
 
 ---- Equality of transaction inputs is only predicated on the output that the input
----- refers to, *not* on the witness. This is curcial so that two 'TxIn' values
+---- refers to, *not* on the witness. This is curcial so that two 'TxIn values
 ---- spending the same input are considered the same.
 ----
 --instance Eq TxIn where

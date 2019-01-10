@@ -29,7 +29,7 @@ import           Data.Maybe                   (maybeToList)
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
                                               PendingTxOutType (..))
@@ -92,7 +92,7 @@ initialise long short f = do
 settle :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => [TxOutRef']
+    => [TxOutRef]
     -> Future
     -> FutureData
     -> OracleValue Value
@@ -116,7 +116,7 @@ settle refs ft fd ov = do
 settleEarly :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => [TxOutRef']
+    => [TxOutRef]
     -> Future
     -> FutureData
     -> OracleValue Value
@@ -131,7 +131,7 @@ settleEarly refs ft fd ov = do
 adjustMargin :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => [TxOutRef']
+    => [TxOutRef]
     -> Future
     -> FutureData
     -> Ledger.Value

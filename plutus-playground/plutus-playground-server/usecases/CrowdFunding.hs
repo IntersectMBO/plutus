@@ -128,7 +128,7 @@ contributionScript cmp  = ValidatorScript val where
             if isValid then () else $$(P.error) () ||])
 
 -- | The address of a [[Campaign]]
-campaignAddress :: Campaign -> Ledger.Address'
+campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Ledger.scriptAddress . contributionScript
 
 -- | Contribute funds to the campaign (contributor)
@@ -185,7 +185,7 @@ collectFundsTrigger c = andT
     (slotRangeT (Interval (campaignDeadline c) (campaignCollectionDeadline c)))
 
 -- | Claim a refund of our campaign contribution
-refundHandler :: TxId' -> Signature -> Campaign -> EventHandler MockWallet
+refundHandler :: TxId -> Signature -> Campaign -> EventHandler MockWallet
 refundHandler txid signature cmp = EventHandler (\_ -> do
     logMsg "Claiming refund"
     let validatorScript = contributionScript cmp

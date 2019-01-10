@@ -32,8 +32,8 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
-import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Slot (..), Tx (..), TxIn (..), TxIn',
-                                       TxOut (..), TxOut', TxOutRef', ValidationData (..), Value, lifted, updateUtxo,
+import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Slot (..), Tx (..), TxIn, TxInOf (..),
+                                       TxOut, TxOutOf (..), TxOutRef, ValidationData (..), Value, lifted, updateUtxo,
                                        validValuesTx)
 import qualified Ledger.Types         as Ledger
 import           Ledger.Validation    (PendingTx (..))
@@ -45,7 +45,7 @@ import           Prelude              hiding (lookup)
 type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The transactions of a blockchain indexed by hash
-newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef' TxOut' }
+newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
     deriving (Eq, Ord, Show, Semigroup)
 
 -- | An empty [[UtxoIndex]]
@@ -65,15 +65,15 @@ insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
 insertBlock blck i = foldl' (flip insert) i blck
 
 -- | Find an unspent transaction output by the `TxOutRef'` that spends it.
-lookup :: TxOutRef' -> UtxoIndex -> Either ValidationError TxOut'
+lookup :: TxOutRef -> UtxoIndex -> Either ValidationError TxOut
 lookup i =
     maybe (Left $ TxOutRefNotFound i) Right . Map.lookup i . getIndex
 
 -- | Reason why a transaction is invalid
 data ValidationError =
-    InOutTypeMismatch TxIn' TxOut'
+    InOutTypeMismatch TxIn TxOut
     -- ^ A pay-to-pubkey output was consumed by a pay-to-script input or vice versa
-    | TxOutRefNotFound TxOutRef'
+    | TxOutRefNotFound TxOutRef
     -- ^ The unspent transaction output consumed by a transaction input could not be found (either because it was already spent, or because there was no transaction with the given hash on the blockchain)
     | InvalidScriptHash DataScript
     -- ^ (for pay-to-script outputs) The validator script provided in the transaction input does not match the hash specified in the transaction output
@@ -97,15 +97,15 @@ newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either
 runValidation :: Validation a -> UtxoIndex -> Either ValidationError a
 runValidation l = runReaderT (_runValidation l)
 
--- | Determine the unspent value that a [[TxOutRef']] refers to
-lkpValue :: ValidationMonad m => TxOutRef' -> m Value
+-- | Determine the unspent value that a [[TxOutRef]] refers to
+lkpValue :: ValidationMonad m => TxOutRef -> m Value
 lkpValue = fmap txOutValue . lkpTxOut
 
 -- | Find an unspent transaction output by its reference. Assumes that the
 --   output for this reference exists. If you want to handle the lookup error
 --   you can use `runLookup`.
 --   Determine the transaction output that a [[TxOutRef']] refers to
-lkpTxOut :: ValidationMonad m => TxOutRef' -> m TxOut'
+lkpTxOut :: ValidationMonad m => TxOutRef -> m TxOut
 lkpTxOut t = liftEither  . lookup t =<< ask
 
 -- | Validate a transaction in a `ValidationMonad` context.
@@ -130,23 +130,23 @@ checkValidInputs h tx = do
     traverse_ (checkMatch vld) matches
 
 -- | Match each input of the transaction with its output
-lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn', TxOut')]
+lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
 lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . txInputs
 
 -- | Matching pair of transaction input and transaction output.
 data InOutMatch =
     ScriptMatch
-        TxIn'
+        TxIn
         Ledger.ValidatorScript
         Ledger.RedeemerScript
         DataScript
-        (Ledger.Address (Digest SHA256))
+        (Ledger.AddressOf (Digest SHA256))
     | PubKeyMatch PubKey Signature
     deriving (Eq, Ord, Show)
 
 -- | Match a transaction input with the output that it consumes, ensuring that
 --   both are of the same type (pubkey or pay-to-script)
-matchInputOutput :: ValidationMonad m => TxIn' -> TxOut' -> m InOutMatch
+matchInputOutput :: ValidationMonad m => TxIn -> TxOut -> m InOutMatch
 matchInputOutput i txo = case (txInType i, txOutType txo) of
     (Ledger.ConsumeScriptAddress v r, Ledger.PayToScript d) ->
         pure $ ScriptMatch i v r d (txOutAddress txo)
@@ -211,7 +211,7 @@ validationData h tx = rump <$> ins where
         -- this is changed accordingly in `checkMatch` during validation
         }
 
-mkOut :: TxOut' -> Validation.PendingTxOut
+mkOut :: TxOut -> Validation.PendingTxOut
 mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
     (d, tp) = case txOutType t of
         Ledger.PayToScript scrpt ->
@@ -222,7 +222,7 @@ mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
                 (Just (validatorHash, dataScriptHash), Validation.DataTxOut)
         Ledger.PayToPubKey pk -> (Nothing, Validation.PubKeyTxOut pk)
 
-mkIn :: ValidationMonad m => TxIn' -> m Validation.PendingTxIn
+mkIn :: ValidationMonad m => TxIn -> m Validation.PendingTxIn
 mkIn i = Validation.PendingTxIn <$> pure ref <*> pure red <*> vl where
     ref =
         let hash = Validation.plcTxHash . Ledger.txOutRefId $ txInRef i
@@ -237,5 +237,5 @@ mkIn i = Validation.PendingTxIn <$> pure ref <*> pure red <*> vl where
             Right sig
     vl = valueOf i
 
-valueOf :: ValidationMonad m => Ledger.TxIn' -> m Value
+valueOf :: ValidationMonad m => Ledger.TxIn -> m Value
 valueOf = lkpValue . txInRef

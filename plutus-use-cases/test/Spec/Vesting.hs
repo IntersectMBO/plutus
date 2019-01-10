@@ -50,7 +50,7 @@ scen1 = VestingScenario{..} where
 -- | Commit some funds from a wallet to a vesting scheme. Returns the reference
 --   to the transaction output that is locked by the schemes's validator
 --   script (and can be collected by the scheme's owner)
-commit :: Wallet -> Vesting -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef'
+commit :: Wallet -> Vesting -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef
 commit w vv vl = exScriptOut <$> walletAction w (void $ vestFunds vv vl) where
     exScriptOut = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 

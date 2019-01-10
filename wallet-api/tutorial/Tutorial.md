@@ -206,7 +206,7 @@ Finally, we can return the unit value `()` if `isValid` is true, or fail with an
 We need to compute the address of a campaign, which amounts to  hashing the output of `mkValidatorScript`:
 
 ```haskell
-campaignAddress :: Campaign -> Address'
+campaignAddress :: Campaign -> Address
 campaignAddress cmp = scriptAddress (mkValidatorScript cmp)
 ```
 

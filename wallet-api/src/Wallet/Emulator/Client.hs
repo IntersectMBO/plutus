@@ -25,7 +25,7 @@ import           Control.Monad.Writer       (MonadWriter, WriterT, runWriterT, t
 import           Data.Foldable              (fold)
 import           Data.Proxy                 (Proxy (Proxy))
 import           Data.Set                   (Set)
-import           Ledger                     (Address', Block, Slot, Tx, TxIn', TxOut', Value)
+import           Ledger                     (Address, Block, Slot, Tx, TxIn, TxOut, Value)
 import           Servant.API                ((:<|>) ((:<|>)), NoContent)
 import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
 import           Wallet.API                 (KeyPair, WalletAPI (..))
@@ -41,13 +41,13 @@ wallets :: ClientM [Wallet]
 fetchWallet :: Wallet -> ClientM Wallet
 createWallet :: Wallet -> ClientM NoContent
 myKeyPair' :: Wallet -> ClientM KeyPair
-createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', Maybe TxOut')
+createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn, Maybe TxOut)
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
 processPending :: ClientM [Tx]
 blockValidated :: Wallet -> Block -> ClientM ()
 getAddresses :: Wallet -> ClientM AddressMap
-startWatching' :: Wallet -> Address' -> ClientM NoContent
+startWatching' :: Wallet -> Address -> ClientM NoContent
 getSlot :: Wallet -> ClientM Slot
 setSlot :: Wallet -> Slot -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent

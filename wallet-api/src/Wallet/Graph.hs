@@ -22,7 +22,7 @@ import           Data.Maybe       (catMaybes)
 import qualified Data.Set         as Set
 import qualified Data.Text        as Text
 import           GHC.Generics     (Generic)
-import           Ledger.Types     (Blockchain, PubKey, Tx, TxId', TxOut (TxOut), TxOutRef (TxOutRef), TxOutRef',
+import           Ledger.Types     (Blockchain, PubKey, Tx, TxId, TxOutOf (TxOutOf), TxOutRefOf (TxOutRefOf), TxOutRef,
                                    TxOutType (PayToPubKey, PayToScript), getTxId, hashTx, out, txInRef, txInputs,
                                    txOutRefId, txOutRefs, txOutType, txOutValue, unspentOutputs)
 
@@ -36,15 +36,15 @@ data UtxOwner
     -- ^ All other funds (that is, funds owned by a public key we are not interested in )
   deriving (Eq, Ord, Show, Generic, ToJSON)
 
-owner :: Set.Set PubKey -> TxOut h -> UtxOwner
-owner keys TxOut {..} =
+owner :: Set.Set PubKey -> TxOutOf h -> UtxOwner
+owner keys TxOutOf {..} =
   case txOutType of
     PayToScript _ -> ScriptOwner
     PayToPubKey pk
       | pk `Set.member` keys -> PubKeyOwner pk
     _ -> OtherOwner
 
--- | Wrapper around the first 8 digits of a `TxId'`
+-- | Wrapper around the first 8 digits of a `TxId`
 newtype TxRef =
   TxRef Text.Text
   deriving (Eq, Ord, Show, Generic)
@@ -52,7 +52,7 @@ newtype TxRef =
 instance ToJSON TxRef where
   toJSON (TxRef t) = toJSON t
 
-mkRef :: TxId' -> TxRef
+mkRef :: TxId -> TxRef
 mkRef = TxRef . Text.pack . take 8 . show . getTxId
 
 data UtxoLocation = UtxoLocation
@@ -87,7 +87,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
   where
     bc' = foldMap (\(blockNum, txns) -> fmap (\(blockIdx, txn) -> (UtxoLocation blockNum blockIdx, txn)) txns) $ zipWithIndex $ zipWithIndex <$> reverse bc
 
-    sourceLocations :: Map.Map TxOutRef' UtxoLocation
+    sourceLocations :: Map.Map TxOutRef UtxoLocation
     sourceLocations = Map.fromList $ foldMap (uncurry outRefsWithLoc) bc'
 
     knownKeys :: Set.Set PubKey
@@ -102,7 +102,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
       fmap (flow (Just loc) targetRef . txInRef) (Set.toList $ txInputs tx)
     -- make a flow for a TxOutRef
 
-    flow :: Maybe UtxoLocation -> TxRef -> TxOutRef' -> Maybe FlowLink
+    flow :: Maybe UtxoLocation -> TxRef -> TxOutRef -> Maybe FlowLink
     flow tgtLoc tgtRef rf = do
       src <- out bc rf
       sourceLoc <- Map.lookup rf sourceLocations
@@ -118,9 +118,9 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
 
     zipWithIndex = zip [1..]
 
--- | Annotate the [[TxOutRef']]s produced by a transaction with their location
-outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef', UtxoLocation)]
+-- | Annotate the [[TxOutRef]]s produced by a transaction with their location
+outRefsWithLoc :: UtxoLocation -> Tx -> [(TxOutRef, UtxoLocation)]
 outRefsWithLoc loc tx = (\txo -> (snd txo, loc)) <$> txOutRefs tx
 
-utxoTargets :: Show a => TxOutRef a -> TxRef
-utxoTargets (TxOutRef rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]
+utxoTargets :: Show a => TxOutRefOf a -> TxRef
+utxoTargets (TxOutRefOf rf idx) = TxRef $ Text.unwords ["utxo", Text.pack $ take 8 $ show $ getTxId rf, Text.pack $ show idx]

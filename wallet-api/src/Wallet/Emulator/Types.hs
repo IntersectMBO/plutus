@@ -81,8 +81,8 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Ledger                     (Address', Block, Blockchain, Slot, Tx (..), TxId', TxOut (..), TxOut',
-                                             TxOutRef', Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
+import           Ledger                     (Address, Block, Blockchain, Slot, Tx (..), TxId, TxOutOf (..), TxOut,
+                                             TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
                                              txOutAddress)
 import qualified Ledger.Index               as Index
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
@@ -133,10 +133,10 @@ instance Show WalletState where
 
 makeLenses ''WalletState
 
-ownAddress :: WalletState -> Address'
+ownAddress :: WalletState -> Address
 ownAddress = pubKeyAddress . pubKey . view ownKeyPair
 
-ownFunds :: Lens' WalletState (Map TxOutRef' TxOut')
+ownFunds :: Lens' WalletState (Map TxOutRef TxOut)
 ownFunds = lens g s where
     g ws = fromMaybe Map.empty $ ws ^. addressMap . at (ownAddress ws)
     s ws utxo = ws & addressMap . at (ownAddress ws) ?~ utxo
@@ -152,11 +152,11 @@ emptyWalletState (Wallet i) = WalletState kp 0 oa Map.empty where
 
 -- | Events produced by the mockchain
 data EmulatorEvent =
-    TxnSubmit TxId'
+    TxnSubmit TxId
     -- ^ A transaction has been added to the global pool of pending transactions
-    | TxnValidate TxId'
+    | TxnValidate TxId
     -- ^ A transaction has been validated and added to the blockchain
-    | TxnValidationFail TxId' Index.ValidationError
+    | TxnValidationFail TxId Index.ValidationError
     -- ^ A transaction failed  to validate
     | SlotAdd Slot
     -- ^ A slot has passed, and a block was added to the blokchain

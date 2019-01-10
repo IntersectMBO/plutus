@@ -23,7 +23,7 @@ import           GHC.Generics                 (Generic)
 import           Ledger.Validation            (PendingTx (..), PendingTxOut (..), PendingTxOutType (..),
                                               ValidatorHash)
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef', ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
+import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
@@ -83,7 +83,7 @@ retrieveFunds :: (
     WalletAPI m)
     => Vesting
     -> VestingData -- ^ Value that has already been taken out
-    -> TxOutRef'  -- ^ Transaction output locked by the vesting validator script
+    -> TxOutRef  -- ^ Transaction output locked by the vesting validator script
     -> Ledger.Value -- ^ Value we want to take out now
     -> m VestingData
 retrieveFunds vs vd r vnow = do
