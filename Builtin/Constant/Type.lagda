@@ -45,7 +45,10 @@ postulate
 # What builtin operations should be compiled to if we compile to Haskell
 
 \begin{code}
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BS #-}
+{-# FOREIGN GHC import qualified Data.ByteArray as B #-}
+{-# FOREIGN GHC import Crypto.Hash (SHA256, SHA3_256, hashlazy) #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
@@ -68,8 +71,8 @@ postulate
 {-# COMPILE GHC append = BS.append #-}
 {-# COMPILE GHC take = BS.take . fromIntegral #-}
 {-# COMPILE GHC drop = BS.drop . fromIntegral #-}
--- TODO: sha2-256
--- TODO: sha3-256
+{-# COMPILE GHC SHA2-256 = BS.fromStrict . B.convert . hashlazy @SHA256 #-}
+{-# COMPILE GHC SHA3-256 = BS.fromStrict . B.convert . hashlazy @SHA3_256 #-}
 -- TODO: verifySig
 -- TODO: resizeByteString
 -- no binding needed for equalsByteString

@@ -40,7 +40,7 @@ postulate
 
   printByteString : ByteString -> String
 
-{-# FOREIGN GHC import qualified Data.ByteString.Char8 as BS #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy.Char8 as BS #-}
 {-# COMPILE GHC str1 = BS.pack "Hello, " #-}
 {-# COMPILE GHC str2 = BS.pack "world"   #-}
 {-# COMPILE GHC printByteString = T.pack . BS.unpack #-}
