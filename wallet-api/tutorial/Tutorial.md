@@ -74,10 +74,10 @@ PlutusTx.makeLift ''Contributor
 Now that we know the types of data and redeemer scripts, we automatically know the signature of the validator script:
 
 ```haskell
-type CampaignValidator = CampaignAction -> Contributor -> PendingTx' -> ()
+type CampaignValidator = CampaignAction -> Contributor -> PendingTx -> ()
 ```
 
-`CampaignValidator` is a function that takes three parameters -- `CampaignAction`, `Contributor`, and `PendingTx'` and produces a unit value `()` or fails with an error.
+`CampaignValidator` is a function that takes three parameters -- `CampaignAction`, `Contributor`, and `PendingTx` and produces a unit value `()` or fails with an error.
 
 If we want to implement `CampaignValidator` we need to know the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`. However, we can't implement `mkValidator` like this, because we need to wrap it in Template Haskell quotes so that it can be compiled to Plutus Core. We therefore define `mkValidator` in PlutusTx:
 
@@ -92,7 +92,7 @@ mkValidatorScript campaign = ValidatorScript val where
 Anything between the `[||` and `||]` quotes is going to be _on-chain code_ and anything outside the quotes is _off-chain code_. We can now implement a lambda function that looks like `mkValidator`, starting with its parameters:
 
 ```haskell
-              \(c :: Campaign) (act :: CampaignAction) (con :: Contributor) (p :: PendingTx') ->
+              \(c :: Campaign) (act :: CampaignAction) (con :: Contributor) (p :: PendingTx) ->
 ```
 
 Before we check whether `act` is permitted, we define a number of intermediate values that will make the checking code much more readable. These definitions are placed inside a `let` block, which is closed by a corresponding `in` below.
@@ -109,7 +109,7 @@ Before we check whether `act` is permitted, we define a number of intermediate v
 
 There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the `Validation` module using the `\$\$()` splicing operator.
 
-Next, we pattern match on the structure of the `PendingTx'` value `p` to get the Validation information we care about:
+Next, we pattern match on the structure of the `PendingTx` value `p` to get the Validation information we care about:
 
 ```haskell
                   PendingTx ins outs _ _ (Slot currentSlot) _ = p

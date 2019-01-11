@@ -135,7 +135,12 @@ lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList 
 
 -- | Matching pair of transaction input and transaction output.
 data InOutMatch =
-    ScriptMatch Ledger.ValidatorScript Ledger.RedeemerScript DataScript (Ledger.Address (Digest SHA256))
+    ScriptMatch
+        TxIn'
+        Ledger.ValidatorScript
+        Ledger.RedeemerScript
+        DataScript
+        (Ledger.Address (Digest SHA256))
     | PubKeyMatch PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -144,7 +149,7 @@ data InOutMatch =
 matchInputOutput :: ValidationMonad m => TxIn' -> TxOut' -> m InOutMatch
 matchInputOutput i txo = case (txInType i, txOutType txo) of
     (Ledger.ConsumeScriptAddress v r, Ledger.PayToScript d) ->
-        pure $ ScriptMatch v r d (txOutAddress txo)
+        pure $ ScriptMatch i v r d (txOutAddress txo)
     (Ledger.ConsumePublicKeyAddress sig, Ledger.PayToPubKey pk) ->
         pure $ PubKeyMatch pk sig
     _ -> throwError $ InOutTypeMismatch i txo
@@ -154,20 +159,20 @@ matchInputOutput i txo = case (txInType i, txOutType txo) of
 --   correct and script evaluation has to terminate successfully. If this is a
 --   pay-to-pubkey output then the signature needs to match the public key that
 --   locks it.
-checkMatch :: ValidationMonad m => PendingTx () -> InOutMatch -> m ()
+checkMatch :: ValidationMonad m => PendingTx -> InOutMatch -> m ()
 checkMatch v = \case
-    ScriptMatch vl r d a
+    ScriptMatch txin vl r d a
         | a /= Ledger.scriptAddress vl ->
                 throwError $ InvalidScriptHash d
-        | otherwise ->
+        | otherwise -> do
+            pTxIn <- mkIn txin
             let v' = ValidationData
                     $ lifted
-                    $ v { pendingTxOwnHash = Validation.plcValidatorDigest (Ledger.getAddress a) }
+                    $ v { pendingTxIn = pTxIn }
                 (logOut, success) = Ledger.runScript v' vl r d
-            in
-                if success
-                then pure ()
-                else throwError $ ScriptFailure logOut
+            if success
+            then pure ()
+            else throwError $ ScriptFailure logOut
     PubKeyMatch pk sig ->
         if sig `Ledger.signedBy` pk
         then pure ()
@@ -192,7 +197,7 @@ checkPositiveValues t =
     else throwError $ NegativeValue t
 
 -- | Encode the current transaction and slot in PLC.
-validationData :: ValidationMonad m => Slot -> Tx -> m (PendingTx ())
+validationData :: ValidationMonad m => Slot -> Tx -> m PendingTx
 validationData h tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
@@ -202,7 +207,8 @@ validationData h tx = rump <$> ins where
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
         , pendingTxSlot = h
-        , pendingTxOwnHash    = ()
+        , pendingTxIn = head inputs
+        -- this is changed accordingly in `checkMatch` during validation
         }
 
 mkOut :: TxOut' -> Validation.PendingTxOut
