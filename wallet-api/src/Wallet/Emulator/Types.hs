@@ -81,7 +81,7 @@ import           Prelude                    as P
 import           Servant.API                (FromHttpApiData, ToHttpApiData)
 
 import           Data.Hashable              (Hashable)
-import           Ledger                     (Address, Block, Blockchain, Slot, Tx (..), TxId, TxOutOf (..), TxOut,
+import           Ledger                     (Address, Block, Blockchain, Slot, Tx (..), TxId, TxOut, TxOutOf (..),
                                              TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
                                              txOutAddress)
 import qualified Ledger.Index               as Index

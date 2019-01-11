@@ -22,7 +22,7 @@ import           Data.Maybe       (catMaybes)
 import qualified Data.Set         as Set
 import qualified Data.Text        as Text
 import           GHC.Generics     (Generic)
-import           Ledger.Types     (Blockchain, PubKey, Tx, TxId, TxOutOf (TxOutOf), TxOutRefOf (TxOutRefOf), TxOutRef,
+import           Ledger.Types     (Blockchain, PubKey, Tx, TxId, TxOutOf (TxOutOf), TxOutRef, TxOutRefOf (TxOutRefOf),
                                    TxOutType (PayToPubKey, PayToScript), getTxId, hashTx, out, txInRef, txInputs,
                                    txOutRefId, txOutRefs, txOutType, txOutValue, unspentOutputs)
 

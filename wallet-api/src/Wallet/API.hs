@@ -28,6 +28,7 @@ module Wallet.API(
     collectFromScriptTxn,
     ownPubKeyTxOut,
     ownPubKey,
+    ownSignature,
     -- * Triggers
     EventTrigger,
     AnnotatedEventTrigger,
@@ -67,7 +68,7 @@ import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
 import           GHC.Generics               (Generic)
 import           Ledger                     (Address, DataScript, PubKey (..), RedeemerScript, Signature (..), Slot,
-                                             Tx (..), TxId, TxIn, TxOutOf (..), TxOut, TxOutType (..), ValidatorScript,
+                                             Tx (..), TxId, TxIn, TxOut, TxOutOf (..), TxOutType (..), ValidatorScript,
                                              Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
@@ -267,6 +268,10 @@ class WalletAPI m where
     The current slot.
     -}
     slot :: m Slot
+
+-- | Generate a 'Signature' with the wallet's own private key
+ownSignature :: (Functor m, WalletAPI m) => m Signature
+ownSignature = signature <$> myKeyPair
 
 throwInsufficientFundsError :: MonadError WalletAPIError m => Text -> m a
 throwInsufficientFundsError = throwError . InsufficientFunds
