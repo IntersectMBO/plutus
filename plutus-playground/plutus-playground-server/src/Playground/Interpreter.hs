@@ -33,15 +33,6 @@ import           System.Process             (readProcessWithExitCode)
 import qualified Text.Regex                 as Regex
 import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
 
-run :: (MonadIO m, MonadError PlaygroundError m) => FilePath -> m String
-run scriptPath = do
-    runghc <- lookupRunghc
-    (exitCode, stdout, stderr) <-
-        liftIO $ readProcessWithExitCode runghc [scriptPath] ""
-    case exitCode of
-        ExitSuccess -> pure stdout
-        _           -> throwError . CompilationErrors $ parseErrorsText (Text.pack stderr)
-
 replaceModuleName :: Text -> Text
 replaceModuleName script =
     let scriptString = Text.unpack script
@@ -78,13 +69,13 @@ compile source = do
     avoidUnsafe source
     withSystemTempFile "Main.hs" $ \file handle -> do
         (exitCode, stdout, stderr) <-
-            runscript handle file $ mkCompileScript (Newtype.unpack source)
+            runscript handle file . mkCompileScript . Newtype.unpack $ source
         result <-
             case exitCode of
                 ExitSuccess -> pure stdout
                 _ ->
-                    throwError . CompilationErrors $
-                    parseErrorsText (Text.pack stderr)
+                    throwError . CompilationErrors . parseErrorsText . Text.pack $
+                    stderr
         let eSchema = JSON.eitherDecodeStrict . BS8.pack $ result
         case eSchema of
             Left err ->
@@ -152,6 +143,12 @@ lookupRunghc = do
     case mBinDir of
         Nothing  -> pure "runghc"
         Just val -> pure $ val <> "/runghc"
+
+-- ignoringIOErrors and withSystemTempFile are clones of the functions
+-- in System.IO.Temp however they are generalized over the monad
+-- This could be done using unliftio I think however it looked to be
+-- more pain that it was worth so I simply copied and pasted the
+-- definitions and changed the types.
 
 {-# ANN ignoringIOErrors ("HLint: ignore Evaluate" :: String) #-}
 

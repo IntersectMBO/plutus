@@ -43,10 +43,8 @@ mkFunction _ = error
 
 mkSingleFunction :: Name -> Q [Dec]
 mkSingleFunction name = do
-    let newName = mkName $ nameBase name ++ "Schema"
-        fn = Fn . pack $ nameBase name
-    expression <- mkFunctionExp name fn
-    pure [FunD newName [Clause [] (NormalB expression) []]]
+  dec <- mkFunction' name
+  pure [dec]
 
 mkFunction' :: Name -> Q Dec
 mkFunction' name = do
