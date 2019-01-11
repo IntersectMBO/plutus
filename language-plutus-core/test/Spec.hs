@@ -71,23 +71,24 @@ compareType _ _                                       = False
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
+-- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name a } deriving Show
+
+instance Eq a => Eq (TextualProgram a) where
+    (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
+
 propCBOR :: Property
 propCBOR = property $ do
     prog <- forAll genProgram
-    let
-        trip = deserialiseOrFail . serialise
-        compared = (==) <$> trip prog <*> pure prog
-    Hedgehog.assert (fromRight False compared)
+    Hedgehog.tripping prog serialise deserialiseOrFail
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
-    prog <- forAll genProgram
-    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
-        proc = void <$> parse (reprint prog)
-        compared = compareProgram (void prog) <$> proc
-    Hedgehog.assert (fromRight False compared)
+    prog <- TextualProgram . void <$> forAll genProgram
+    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText . unTextualProgram
+    Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
 
 propRename :: Property
 propRename = property $ do
