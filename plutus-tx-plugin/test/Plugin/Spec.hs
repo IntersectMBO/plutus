@@ -287,6 +287,8 @@ recursiveTypes = testNested "recursiveTypes" [
     , goldenPir "ptreeConstruct" ptreeConstruct
     , goldenPir "ptreeMatch" ptreeMatch
     , goldenEval "ptreeConstDest" [ getProgram $ ptreeMatch, getProgram $ ptreeConstruct ]
+    , goldenEval "polyRecEval" [ getProgram $ polyRec, getProgram $ ptreeConstruct ]
+    , goldenEval "ptreeFirstEval" [ getProgram $ ptreeFirst, getProgram $ ptreeConstruct ]
   ]
 
 listConstruct :: CompiledCode [Int]
@@ -311,6 +313,22 @@ ptreeConstruct = plc @"ptreeConstruct" (Two (Two (One ((1,2),(3,4)))) :: B Int)
 -- TODO: replace this with 'first' when we have working recursive functions
 ptreeMatch :: CompiledCode (B Int -> Int)
 ptreeMatch = plc @"ptreeMatch" (\(t::B Int) -> case t of { One a -> a; Two _ -> 2; })
+
+polyRec :: CompiledCode (B Int -> Int)
+polyRec = plc @"polyRec" (
+    let
+        depth :: B a -> Int
+        depth tree = case tree of
+            One _     -> 1
+            Two inner -> 1 + depth inner
+    in \(t::B Int) -> depth t)
+
+ptreeFirst :: CompiledCode (B Int -> Int)
+ptreeFirst = plc @"ptreeFirst" (
+    let go :: (a -> Int) -> B a -> Int
+        go k (One x) = k x
+        go k (Two b) = go (\(x, _) -> k x) b
+    in go (\x -> x))
 
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
