@@ -14,9 +14,7 @@ module Ledger.Index(
     initialise,
     Validation,
     runValidation,
-    lookupRef,
     lkpValue,
-    lkpSigs,
     lkpTxOut,
     lkpOutputs,
     ValidationError(..),
@@ -47,7 +45,7 @@ import           Prelude              hiding (lookup)
 type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The transactions of a blockchain indexed by hash
-newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef' (TxOut', [Signature]) }
+newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef' TxOut' }
     deriving (Eq, Ord, Show, Semigroup)
 
 -- | An empty [[UtxoIndex]]
@@ -56,7 +54,7 @@ empty = UtxoIndex Map.empty
 
 -- | Create an index of all transactions on the chain
 initialise :: Blockchain -> UtxoIndex
-initialise = UtxoIndex . Ledger.unspentOutputsAndSigs
+initialise = UtxoIndex . Ledger.unspentOutputs
 
 -- | Add a transaction to the index
 insert :: Tx -> UtxoIndex -> UtxoIndex
@@ -67,7 +65,7 @@ insertBlock :: [Tx] -> UtxoIndex -> UtxoIndex
 insertBlock blck i = foldl' (flip insert) i blck
 
 -- | Find an unspent transaction output by the `TxOutRef'` that spends it.
-lookup :: TxOutRef' -> UtxoIndex -> Either ValidationError (TxOut', [Signature])
+lookup :: TxOutRef' -> UtxoIndex -> Either ValidationError TxOut'
 lookup i =
     maybe (Left $ TxOutRefNotFound i) Right . Map.lookup i . getIndex
 
@@ -95,12 +93,6 @@ instance ToJSON ValidationError
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
     deriving (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
 
--- | Find an unspent transaction output by its reference. Assumes that the
---   output for this reference exists. If you want to handle the lookup error
---   you can use `runLookup`.
-lookupRef :: ValidationMonad m => TxOutRef' -> m (TxOut', [Signature])
-lookupRef t = liftEither  . lookup t =<< ask
-
 -- | Run a `Validation` on a `UtxoIndex`
 runValidation :: Validation a -> UtxoIndex -> Either ValidationError a
 runValidation l = runReaderT (_runValidation l)
@@ -109,13 +101,12 @@ runValidation l = runReaderT (_runValidation l)
 lkpValue :: ValidationMonad m => TxOutRef' -> m Value
 lkpValue = fmap txOutValue . lkpTxOut
 
--- | Determine the signatures of the transaction that [[TxOutRef']] refers to.
-lkpSigs :: ValidationMonad m => TxOutRef' -> m [Signature]
-lkpSigs o = snd <$> lookupRef o
-
--- | Determine the transaction output that a [[TxOutRef']] refers to
+-- | Find an unspent transaction output by its reference. Assumes that the
+--   output for this reference exists. If you want to handle the lookup error
+--   you can use `runLookup`.
+--   Determine the transaction output that a [[TxOutRef']] refers to
 lkpTxOut :: ValidationMonad m => TxOutRef' -> m TxOut'
-lkpTxOut o = fst <$> lookupRef o
+lkpTxOut t = liftEither  . lookup t =<< ask
 
 -- | Validate a transaction in a `ValidationMonad` context.
 --
@@ -211,7 +202,6 @@ validationData h tx = rump <$> ins where
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
         , pendingTxSlot = h
-        , pendingTxSignatures = txSignatures tx
         , pendingTxOwnHash    = ()
         }
 
@@ -227,18 +217,18 @@ mkOut t = Validation.PendingTxOut (txOutValue t) d tp where
         Ledger.PayToPubKey pk -> (Nothing, Validation.PubKeyTxOut pk)
 
 mkIn :: ValidationMonad m => TxIn' -> m Validation.PendingTxIn
-mkIn i = Validation.PendingTxIn <$> ref <*> pure red <*> vl where
+mkIn i = Validation.PendingTxIn <$> pure ref <*> pure red <*> vl where
     ref =
         let hash = Validation.plcTxHash . Ledger.txOutRefId $ txInRef i
             idx  = Ledger.txOutRefIdx $ Ledger.txInRef i
         in
-            Validation.PendingTxOutRef hash idx <$> lkpSigs (Ledger.txInRef i)
+            Validation.PendingTxOutRef hash idx
     red = case txInType i of
         Ledger.ConsumeScriptAddress v r  ->
             let h = Ledger.getAddress $ Ledger.scriptAddress v in
-            Just (Validation.plcValidatorDigest h, Validation.plcRedeemerHash r)
-        Ledger.ConsumePublicKeyAddress _ ->
-            Nothing
+            Left (Validation.plcValidatorDigest h, Validation.plcRedeemerHash r)
+        Ledger.ConsumePublicKeyAddress sig ->
+            Right sig
     vl = valueOf i
 
 valueOf :: ValidationMonad m => Ledger.TxIn' -> m Value

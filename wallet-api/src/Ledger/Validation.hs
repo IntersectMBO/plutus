@@ -76,7 +76,7 @@ transaction output it validates, and the redeemer of the transaction input of
 the transaction that consumes it.
 In addition, the validation script also needs information on the transaction as
 a whole (not just the output-input pair it is concerned with). This information
-is provided by the `PendingTx` type. A `PendingTx` contains the hashes of 
+is provided by the `PendingTx` type. A `PendingTx` contains the hashes of
 redeemer and data scripts of all of its inputs and outputs.
 -}
 
@@ -95,13 +95,13 @@ data PendingTxOut = PendingTxOut
 data PendingTxOutRef = PendingTxOutRef
     { pendingTxOutRefId  :: TxHash -- ^ Transaction whose outputs are consumed
     , pendingTxOutRefIdx :: Int -- ^ Index into the referenced transaction's list of outputs
-    , pendingTxOutSigs   :: [Signature]
     } deriving (Generic)
 
 -- | Input of a pending transaction.
 data PendingTxIn = PendingTxIn
     { pendingTxInRef       :: PendingTxOutRef
-    , pendingTxInRefHashes :: Maybe (ValidatorHash, RedeemerHash) -- ^ Hashes of validator and redeemer scripts
+    , pendingTxInWitness   :: Either (ValidatorHash, RedeemerHash) Signature
+    -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
     , pendingTxInValue     :: Value -- ^ Value consumed by this txn input
     } deriving (Generic)
 
@@ -112,7 +112,6 @@ data PendingTx a = PendingTx
     , pendingTxFee         :: Value
     , pendingTxForge       :: Value
     , pendingTxSlot        :: Slot
-    , pendingTxSignatures  :: [Signature]
     , pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
     } deriving (Functor, Generic)
 
@@ -233,36 +232,26 @@ txSignedBy :: Q (TExp (PendingTx ValidatorHash -> PubKey -> Bool))
 txSignedBy = [||
     \(p :: PendingTx ValidatorHash) (PubKey k) ->
         let
-            PendingTx _ _ _ _ _ sigs _ = p
+            PendingTx txins _ _ _ _ _ = p
 
             signedBy' :: Signature -> Bool
             signedBy' (Signature s) = s == k
 
-            go :: [Signature] -> Bool
+            go :: [PendingTxIn] -> Bool
             go l = case l of
-                        s:r -> if signedBy' s then True else go r
+                        PendingTxIn _ (Right sig) _ : r -> if signedBy' sig then True else go r
+                        _ : r -> go r
                         []  -> False
         in
-            go sigs
+            go txins
     ||]
 
 -- | Check if the input of a pending transaction was signed by a public key
 txInSignedBy :: Q (TExp (PendingTxIn -> PubKey -> Bool))
 txInSignedBy = [||
-    \(i :: PendingTxIn) (PubKey k) ->
-        let
-            PendingTxIn ref _ _      = i
-            PendingTxOutRef _ _ sigs = ref
-
-            signedBy' :: Signature -> Bool
-            signedBy' (Signature i') = i' == k
-
-            go :: [Signature] -> Bool
-            go l = case l of
-                        s:r -> if signedBy' s then True else go r
-                        []  -> False
-        in go sigs
-
+    \(i :: PendingTxIn) (PubKey k) -> case i of
+        PendingTxIn _ (Right (Signature sig)) _ -> sig == k
+        _ -> False
     ||]
 
 -- | Returns the public key that locks the transaction output
@@ -297,7 +286,7 @@ eqRedeemer = [|| \(RedeemerHash l) (RedeemerHash r) -> Builtins.equalsByteString
 -- | Equality of transactions
 eqTx :: Q (TExp (TxHash -> TxHash -> Bool))
 eqTx = [|| \(TxHash l) (TxHash r) -> Builtins.equalsByteString l r ||]
-    
+
 
 
 makeLift ''PendingTxOutType

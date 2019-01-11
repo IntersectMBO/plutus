@@ -27,7 +27,7 @@ import           Ledger                       (DataScript (..), Slot(..), PubKey
 import qualified Ledger                       as Ledger
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, signAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -74,7 +74,7 @@ vestFunds vst value = do
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    _ <- signAndSubmit payment (o : maybeToList change)
+    _ <- createTxAndSubmit payment (o : maybeToList change)
     pure vd
 
 -- | Retrieve some of the vested funds.
@@ -93,7 +93,7 @@ retrieveFunds vs vd r vnow = do
         remaining = totalAmount vs - vnow
         vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val Ledger.unitRedeemer
-    _ <- signAndSubmit (Set.singleton inp) [oo, o]
+    _ <- createTxAndSubmit (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
@@ -119,7 +119,7 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
 
-            PendingTx _ os _ _ (Slot h) _ _ = p
+            PendingTx _ os _ _ (Slot h) _ = p
             VestingTranche (Slot d1) (Value a1) = vestingTranche1
             VestingTranche (Slot d2) (Value a2) = vestingTranche2
 
