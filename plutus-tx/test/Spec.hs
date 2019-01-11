@@ -3,10 +3,13 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -O0 #-}
 
 -- | Most tests for this functionality are in the plugin package, this is mainly just checking that the wiring machinery
 -- works.
 module Main (main) where
+
+import           Prelude                    hiding (all)
 
 import           Common
 import           PlcTestUtils
@@ -26,7 +29,7 @@ import           Language.PlutusCore
 import           Control.Monad.Except
 import           Control.Exception
 
-import Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
 main :: IO ()
@@ -61,6 +64,7 @@ tests = testGroup "plutus-th" <$> sequence [
     goldenPir "simple" simple
     , goldenPir "power" powerPlc
     , goldenPir "and" andPlc
+    , goldenEvalCek "all" [allPlc]
     , goldenEvalCek "convertString" [convertString]
     , goldenEvalCekLog "traceDirect" [traceDirect]
     , goldenEvalCekLog "tracePrelude" [tracePrelude]
@@ -76,6 +80,9 @@ powerPlc = $$(compile [|| $$(power (4::Int)) ||])
 
 andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
+
+allPlc :: CompiledCode Bool
+allPlc = $$(compile [|| $$(all) (\(x::Int) -> x > 5) [7, 6] ||])
 
 convertString :: CompiledCode Builtins.String
 convertString = $$(compile [|| $$(toPlutusString) "test" ||])
