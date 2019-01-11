@@ -23,6 +23,14 @@ thunkRecursions = testNested "thunkRecursions" [
 
 listFold :: Quote (Term TyName Name ())
 listFold = thunkRecursionsTerm =<< do
+    {-
+    This implements foldl:
+
+        foldl : (a -> b -> a) -> a -> [b] -> a
+        foldl f acc lst = case lst of
+            [] -> acc
+            x:xs -> foldl f (f acc x) xs
+    -}
     lb@(Datatype _ d _ destr _) <- listDatatype
     avd <- do
         a <- freshTyName () "a"
@@ -58,8 +66,10 @@ listFold = thunkRecursionsTerm =<< do
             [
                 -- lst
                 Var () lst,
+                -- Nil case
                 -- acc
                 Var () acc,
+                -- Cons case
                 -- \(x:b) (xs::[b]) -> foldl f (f acc x) xs
                 LamAbs () x (mkTyVar () bvd) $
                 LamAbs () xs listBTy $
@@ -81,6 +91,14 @@ listFold = thunkRecursionsTerm =<< do
 
 monoMap :: Quote (Term TyName Name ())
 monoMap = thunkRecursionsTerm =<< do
+    {-
+    This implements a monomorphic map (which does not need to be thunked):
+
+        map : (1 -> 1) -> List 1 -> List 1
+        map f lst = case lst of
+            [] -> []
+            x:xs -> f x : map f xs
+    -}
     lb@(Datatype _ d _ destr [nil, cons]) <- listDatatype
 
     let elemTy = TyInt () 1
@@ -108,14 +126,18 @@ monoMap = thunkRecursionsTerm =<< do
             [
                 -- lst
                 Var () lst,
+                -- Nil case
                 -- nil
                 mkVar () nil,
+                -- Cons case
                 -- \(x:b) (xs::[b]) -> f x : map f xs
                 LamAbs () x elemTy $
                 LamAbs () xs listTy $
                 mkIterApp () (mkVar () cons)
                 [
+                    -- f x
                     Apply () (Var () f) (Var () x),
+                    -- map f xs
                     mkIterApp () (mkVar () fvd)
                     [
                         Var () f,

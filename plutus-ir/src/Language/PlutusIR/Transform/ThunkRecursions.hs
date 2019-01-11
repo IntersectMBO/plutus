@@ -18,7 +18,6 @@ import           Control.Lens
 
 import           Data.List
 import qualified Data.Map                               as Map
-import           Data.Maybe
 import           Data.Traversable
 
 {- Note [Thunking recursions]
@@ -30,7 +29,7 @@ qualified type, instead of a function type (although it is a function underneath
 We could solve this problem for universally quantified values by lifting the forall
 out of the recursion. This is a bit like performing the following transformation:
 
-    map : forall a . List a -> List a
+    map : forall a b . (a -> b) -> List a -> List b
     map f xs = case xs of
         [] -> []
         x:xs -> f x : map f xs
@@ -38,12 +37,12 @@ out of the recursion. This is a bit like performing the following transformation
 vs
 
     -- non-recursive
-    map : forall a . List a -> List a
+    map : forall a b . (a -> b) -> List a -> List a
     map = map'
         where
-            -- recursive, but *monomorphic* in the 'a' we instantiate to, so of
+            -- recursive, but *monomorphic* in the 'a' and 'b' we instantiate to, so of
             -- simple function type
-            map' : List a -> List a
+            map' : (a -> b) -> List a -> List b
             map' f xs = case xs of
                 [] -> []
                 x:xs -> f x : map' f xs
@@ -65,17 +64,27 @@ a unit argument and forcing it at all the uses in the body.
 So we do something like this:
 
     -- non-recursive, acts as an "adaptor" for other consumers of the original function
-    map : forall a . List a -> List a
+    map : forall a b . (a -> b) -> List a -> List b
     map = map' () @a
         where
             -- recursive, but thunked, so of simple function type
-            map' : () -> forall b . List b -> List b
-            map' f xs = case xs of
+            map' : () -> forall a' b' . (a' -> b') -> List a' -> List b'
+            map' _ f xs = case xs of
                 [] -> []
                 x:xs -> f x : (map' () @b) f xs
 
 This has the advantage of always working, but it's annoying because we have to go
 in and edit the body of the function definition.
+
+The algorithm operates as follows:
+- Given a recursive let binding with some bindings that need thunking (i.e. are not of simple function type):
+    - For each binding that needs thunking with name `n`, type `t`, and body `b`:
+        - Make a new binding with a new name `n'`, type `() -> t` and body `\() -> b`.
+        - Add the mapping `n => n' ()` into a substitution map.
+        - Make an adaptor binding with name `n`, type `t`, and body `n' ()`.
+    - Use the substitution map to replace all occurrences of old names inside the new bindings and any bindings
+      that didn't need thunking.
+    - The final term is `let rec <new bindings ++ non thunked bindings> in let nonrec <adaptor bindings> in <original body>`.
 -}
 
 {- Note [Transformation vs compilation]
@@ -141,6 +150,11 @@ thunkRecursionsTerm = \case
     Unwrap x t -> Unwrap x <$> thunkRecursionsTerm t
     t -> pure t
 
+data ThunkedNonTermBinding = ThunkedNonTermBinding
+instance Show ThunkedNonTermBinding where
+    show _ = "Tried to thunk a non-term binding. This should never happen, please report a bug to the Plutus Team"
+instance Exception ThunkedNonTermBinding
+
 -- See Note [Thunking recursions]
 constructThunkedLet
     :: (MonadQuote m)
@@ -164,16 +178,16 @@ constructThunkedLet ann okay needThunking body = do
     - An adaptor binding from the old name to a forced application of the new name, so that
       existing consumers inside the let binding can be left untouched.
     -}
-    processed <- fmap catMaybes $ for needThunking $ \case
+    processed <- for needThunking $ \case
         TermBind x' oldVd@(VarDecl x'' oldName ty) rhs -> do
             newName <- liftQuote $ freshName ann $ nameString oldName <> "_thunked"
             let forcedApp = Apply ann (Var ann newName) unitval
             let substitution = (oldName, forcedApp)
             let thunked = TermBind x' (VarDecl x'' newName (TyFun ann unit ty)) (LamAbs ann argName unit rhs)
             let adaptor = TermBind ann oldVd forcedApp
-            pure $ Just (substitution, thunked, adaptor)
+            pure (substitution, thunked, adaptor)
         -- This case shouldn't happen, since only term bindings will need thunking
-        _ -> pure Nothing
+        _ -> throw ThunkedNonTermBinding
 
     let thunkedBindings = processed ^.. traverse . _2
     let newBindings = thunkedBindings ++ okay
