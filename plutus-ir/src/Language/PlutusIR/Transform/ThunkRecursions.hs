@@ -78,6 +78,27 @@ This has the advantage of always working, but it's annoying because we have to g
 in and edit the body of the function definition.
 -}
 
+{- Note [Transformation vs compilation]
+We have two options for where we can put this transformation:
+- We can do it on-demand during compilation.
+- We can do it in advance in a separate pass.
+
+The advantage of the former is that it makes compilation "more total", otherwise
+we have to have a case where we give an error if we see a recursive binding we can't
+handle, even if we've already run the pass to get rid of them.
+
+(If we were doing a "Trees that Grow" approach we could disable the constructor afterwards,
+which would be pretty nice.)
+
+However, the advantage of the second approach is that it keeps it separate and independently
+testable, which is handy.
+
+This isn't very clear-cut - since PIR is a superset of PLC, we could implement our compiler
+as a set of transformations, each of which eliminates one of the PIR features, until we're only
+left with the PLC subset. This would be quite elegant - except that the final "lowering" step
+would be quite ugly as it would just have to fail if it saw any PIR features.
+-}
+
 isFunctionType :: Type tyname a -> Bool
 isFunctionType = \case
     TyFun {} -> True
