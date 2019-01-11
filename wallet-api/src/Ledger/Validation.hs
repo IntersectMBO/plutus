@@ -12,7 +12,6 @@ module Ledger.Validation
     (
     -- * Pending transactions and related types
       PendingTx(..)
-    , PendingTx'
     , PendingTxOut(..)
     , PendingTxOutRef(..)
     , PendingTxIn(..)
@@ -106,16 +105,15 @@ data PendingTxIn = PendingTxIn
     } deriving (Generic)
 
 -- | A pending transaction as seen by validator scripts.
-data PendingTx a = PendingTx
+data PendingTx = PendingTx
     { pendingTxInputs      :: [PendingTxIn] -- ^ Transaction inputs
     , pendingTxOutputs     :: [PendingTxOut]
     , pendingTxFee         :: Value
     , pendingTxForge       :: Value
     , pendingTxSlot        :: Slot
-    , pendingTxOwnHash     :: a -- ^ Hash of the validator script that is currently running
-    } deriving (Functor, Generic)
-
-type PendingTx' = PendingTx ValidatorHash
+    , pendingTxIn          :: PendingTxIn
+    -- ^ PendingTxIn being validated
+    } deriving (Generic)
 
 {- Note [Oracles]
 I'm not sure how oracles are going to work eventually, so I'm going to use this
@@ -228,9 +226,9 @@ plcDigest :: Digest SHA256 -> BSL.ByteString
 plcDigest = serialise
 
 -- | Check if a transaction was signed by a public key
-txSignedBy :: Q (TExp (PendingTx ValidatorHash -> PubKey -> Bool))
+txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
-    \(p :: PendingTx ValidatorHash) (PubKey k) ->
+    \(p :: PendingTx) (PubKey k) ->
         let
             PendingTx txins _ _ _ _ _ = p
 

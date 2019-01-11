@@ -26,7 +26,7 @@ PlutusTx.makeLift ''ClearString
 
 gameValidator :: ValidatorScript
 gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
-    \(ClearString guess') (HashedString actual) (_ :: PendingTx ValidatorHash) ->
+    \(ClearString guess') (HashedString actual) (_ :: PendingTx) ->
 
     if $$(P.equalsByteString) actual ($$(P.sha2_256) guess')
     then ()

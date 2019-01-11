@@ -55,9 +55,9 @@ contributionScript cmp  = ValidatorScript val where
         --
         -- 3. A 'PubKey'. This is the data script. It is provided by the producing transaction (the contribution)
         --
-        -- 4. A 'PendingTx' value. It contains information about the current transaction and is provided by the slot leader.
+        -- 4. A 'PendingTx value. It contains information about the current transaction and is provided by the slot leader.
         --    See note [PendingTx]
-        \Campaign{..} (act :: CampaignAction) (con :: PubKey) (p :: PendingTx') ->
+        \Campaign{..} (act :: CampaignAction) (con :: PubKey) (p :: PendingTx) ->
             let
 
                 -- In Haskell we can define new operators. We import

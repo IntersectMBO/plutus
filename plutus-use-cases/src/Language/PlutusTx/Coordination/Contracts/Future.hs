@@ -31,8 +31,8 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..),
-                                              PendingTxOutType (..), ValidatorHash)
+import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
+                                              PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit)
 
@@ -194,10 +194,13 @@ validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
     inner = Ledger.fromCompiledCode $$(PlutusTx.compile [||
-        \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
+        \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
 
             let
-                PendingTx _ outs _ _ (Slot sl) ownHash = p
+                PendingTx _ outs _ _ (Slot sl) (PendingTxIn _ witness _) = p
+                ownHash = case witness of
+                    Left (vhash, _) -> vhash
+                    _ -> $$(PlutusTx.error) ()
 
                 eqPk :: PubKey -> PubKey -> Bool
                 eqPk = $$(Validation.eqPubKey)

@@ -36,7 +36,7 @@ import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
                                                TxId', ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
+import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut)
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                                WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
@@ -124,7 +124,7 @@ contributionScript cmp  = ValidatorScript val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx) ->
         let
 
             infixr 3 &&
