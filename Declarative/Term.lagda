@@ -165,15 +165,3 @@ data _⊢_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
 \end{code}
-
-# Term Abbreviations
-\begin{code}
-void : ∀{Γ} → Γ ⊢ unit
-void = Λ (ƛ (` Z))
-
-true : ∀{Γ} → Γ ⊢ boolean
-true = Λ (ƛ (ƛ (` (S Z))))
-
-false : ∀{Γ} → Γ ⊢ boolean
-false = Λ (ƛ (ƛ (` Z)))
-\end{code}

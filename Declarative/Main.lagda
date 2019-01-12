@@ -112,7 +112,6 @@ helpB M (steps x (done n v)) = printBS n v
 helpB M (steps x out-of-gas) = "out of gas..."
 helpB M error = "something went wrong"
 
-
 main : IO ⊤
 main = putStrLn (help _ (eval (gas 100) builtininc2'))
 \end{code}
