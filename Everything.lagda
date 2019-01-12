@@ -35,7 +35,8 @@ import Declarative.Term.Reduction
 import Declarative.Evaluation
 import Declarative.Main
 import Declarative.Examples
-import Declarative.stdLib.Bool
+import Declarative.StdLib.Unit
+import Declarative.StdLib.Bool
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
