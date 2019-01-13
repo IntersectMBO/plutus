@@ -1,3 +1,3 @@
 (program 1.0.0
-  (lam ds_79 [(con integer) (con 8)] (lam ds_80 [(con integer) (con 8)] ds_79))
+  (lam ds_72 [(con integer) (con 8)] (lam ds_73 [(con integer) (con 8)] ds_72))
 )

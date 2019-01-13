@@ -1,7 +1,5 @@
 (abs
-  out_Bool_100
+  out_Bool_93
   (type)
-  (lam
-    case_True_101 out_Bool_100 (lam case_False_102 out_Bool_100 case_True_101)
-  )
+  (lam case_True_94 out_Bool_93 (lam case_False_95 out_Bool_93 case_True_94))
 )

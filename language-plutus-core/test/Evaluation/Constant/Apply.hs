@@ -72,7 +72,7 @@ prop_applyBuiltinNameSuccessFailure
     :: PrettyDynamic r => TypedBuiltinName a r -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
     prop_applyBuiltinName getFinal tbn x genTypedBuiltinDef where
-        getFinal tb = lift . makeConstAppResult . TypedBuiltinValue tb
+        getFinal tb = return . makeConstAppResult . TypedBuiltinValue tb
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
 -- the Haskell side must not fit into the default bounds (as per the spec) and hence the
@@ -82,4 +82,4 @@ prop_applyBuiltinNameFailure
     :: PrettyDynamic r => TypedBuiltinName a r -> a -> TypedBuiltinGenT Quote -> Property
 prop_applyBuiltinNameFailure =
     prop_applyBuiltinName getFinal where
-        getFinal tb = lift . makeConstAppResult . TypedBuiltinValue tb
+        getFinal tb = return . makeConstAppResult . TypedBuiltinValue tb
