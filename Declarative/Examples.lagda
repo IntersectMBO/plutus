@@ -24,14 +24,15 @@ open import Data.Integer
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat
 open import Data.Unit
+
+import Declarative.StdLib.ChurchNat
 \end{code}
 
 ## Examples
 
 \begin{code}
 module Builtins where
-  con1 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-  con1 = con (integer 8 (pos 1) (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
+  open Declarative.StdLib.ChurchNat
 
   con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
   con2 = con (integer 8 (pos 2) (-≤+ ,, +≤+ (s≤s (s≤s (s≤s z≤n)))))
@@ -50,9 +51,6 @@ module Builtins where
 
   builtininc2 : ∅ ⊢ con integer (size⋆ 8)
   builtininc2 = inc8 · con2
-
-  inc : ∅ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
-  inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S Z) → size⋆ 8 ; (S (S ()))}) (builtin sizeOfInteger ` (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
 
   builtininc2' : ∅ ⊢ con integer (size⋆ 8)
   builtininc2' = (inc ·⋆ size⋆ 8) · con2
@@ -228,7 +226,7 @@ module Scott1 where
 
 \begin{code}
 module Church where
-  open import Declarative.StdLib.ChurchNat
+  open Declarative.StdLib.ChurchNat
   
   -- two plus two
   One : ∅ ⊢ N

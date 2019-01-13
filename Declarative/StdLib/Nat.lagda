@@ -30,4 +30,6 @@ Succ : ∀{Γ} → Γ ⊢ N ⇒ N
 Succ = ƛ (Λ (ƛ (ƛ
   (` Z · (wrap0 (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
 
+--FoldNat : ∀{Γ} → {!!}
+--FoldNat = {!!}
 \end{code}
