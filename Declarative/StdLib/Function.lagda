@@ -49,9 +49,7 @@ unwrap0 {Γ} pat X = conv
   -- Z f = (\r : mu x. x -> a -> b. f (\x : a. r r x)) (\r : mu x. x -> a -> b. f (\x : a. r r x))
 -}
 
-{-
 Z-comb : ∀{Γ} →
   Γ ⊢ Π (Π (((` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z))
 Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (conv (β≡β _ _) (unwrap0 (ƛ (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)) · wrap0 _ (conv (sym≡β (β≡β _ _)) (ƛ {- r -} (` (S Z) · ƛ (conv (β≡β _ _) (unwrap0 (ƛ (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)))))))
--}
 \end{code}

@@ -245,18 +245,8 @@ module Scott1 where
 
 \begin{code}
 module Church where
-  N : ∀{Γ} → Γ ⊢⋆ *
-  N = Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ ` Z)
-
-  Zero : ∅ ⊢ N
-  Zero = Λ (ƛ (ƛ (` (S Z))))
-
-  Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` Z))))))
+  open import Declarative.StdLib.ChurchNat
   
-  Iter : ∅ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
-  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
-
   -- two plus two
   One : ∅ ⊢ N
   One = Succ · Zero
