@@ -95,14 +95,14 @@ inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S 
 builtininc2' : ∅ ⊢ con integer (size⋆ 8)
 builtininc2' = (inc ·⋆ size⋆ 8) · con2
 
-printInt : (x : ∅ ⊢ con integer (size⋆ 8)) → Value x → ℤ
-printInt .(con (integer 8 i x)) (V-con (integer .8 i x)) = i
+printInt : ∀{n} → (x : ∅ ⊢ con integer (size⋆ n)) → Value x → ℤ
+printInt .(con (integer _ i x)) (V-con (integer _ i x)) = i
 
 printBS : (x : ∅ ⊢ con bytestring (size⋆ 16)) → Value x → String
 printBS .(con (bytestring 16 b x)) (V-con (bytestring .16 b x)) =
   printByteString b
 
-help :  (M : ∅ ⊢ con integer (size⋆ 8)) → Steps M → String
+help :  ∀{n} → (M : ∅ ⊢ con integer (size⋆ n)) → Steps M → String
 help M (steps x (done n v)) = show (printInt n v)
 help M (steps x out-of-gas) = "out of gas..."
 help M error = "something went wrong"
@@ -113,8 +113,9 @@ helpB M (steps x out-of-gas) = "out of gas..."
 helpB M error = "something went wrong"
 
 open import Declarative.test.AddInteger
-
+open import Declarative.test.IntegerLiteral
 open Agda.Builtin.IO
+open import Data.String
 postulate
   return : ∀ {a} {A : Set a} → A → IO A
   _>>=_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
@@ -127,7 +128,15 @@ x >> y = x >>= λ _ → y
 
 main : IO ⊤
 main = do
-  putStrLn "test:AddInteger expected output 4" 
-  putStrLn (help _ (eval (gas 100) (addI · con2 · con2)))
+  putStrLn "test:AddInteger"
+  putStrLn "expected output: 4"
+  s ← return (help _ (eval (gas 100) (addI · con2 · con2)))
+  putStrLn ("actual output:   " ++ s)
+  putStrLn ""
 
+  putStrLn "test:IntegerLiteral"
+  putStrLn "expected output: 102341"
+  s ← return (help _ (eval (gas 100) intLit))
+  putStrLn ("actual output:   " ++ s)
+  putStrLn ""
 \end{code}

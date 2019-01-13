@@ -123,6 +123,20 @@ BoundedN : (s : ℕ)(i : ℤ) → Set
 BoundedN s i =
   pos 0 ≤ i × i < pos (2 ^ (8 ** (s ∸ 1)))
 
+-- a more efficient version of leq
+open import Data.Empty
+
+_≤'_ : ℕ → ℕ → Set
+zero    ≤' y = ⊤
+ℕ.suc x ≤' zero = ⊥
+ℕ.suc x ≤' ℕ.suc y = x ≤' y
+
+gen : ∀ m n → m ≤' n → m Data.Nat.≤ n
+gen zero n p = z≤n
+gen (ℕ.suc m) zero ()
+gen (ℕ.suc m) (ℕ.suc n) p = s≤s (gen m n p)
+
+
 BoundedB : (s : ℕ)(b : ByteString) → Set
 BoundedB s b = length b Data.Nat.≤ s
 
