@@ -192,25 +192,8 @@ eval (gas 10000000) Scott.Two
 
 \begin{code}
 module Scott1 where
-  G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
-  G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
+  open import Declarative.StdLib.Nat
   
-  M : ∀{Γ} → Γ ⊢⋆ *
-  M {Γ} = μ0 · ƛ G
-
-  N : ∀{Γ} → Γ ⊢⋆ *
-  N  =  G ⋆.[ M ]
-
-  Zero : ∀{Γ} → Γ ⊢ N
-  Zero = Λ (ƛ (ƛ (` (S (Z )))))
-
-  -- succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
-  -- : N → N
-
-  Succ : ∀{Γ} → Γ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ
-    (` Z · (wrap0 (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
-
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
   

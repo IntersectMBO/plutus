@@ -38,6 +38,8 @@ import Declarative.Examples
 import Declarative.StdLib.Unit
 import Declarative.StdLib.Bool
 import Declarative.StdLib.Function
+import Declarative.StdLib.ChurchNat
+import Declarative.StdLib.Nat
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
