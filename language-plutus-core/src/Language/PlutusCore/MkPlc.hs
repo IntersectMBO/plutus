@@ -63,7 +63,7 @@ mkTermLet
     -> TermDef tyname name a
     -> Term tyname name a -- ^ The body of the let, possibly referencing the name.
     -> Term tyname name a
-mkTermLet x (Def (VarDecl _ name ty) bind) body = Apply x (LamAbs x name ty body) bind
+mkTermLet x1 (Def (VarDecl x2 name ty) bind) body = Apply x1 (LamAbs x2 name ty body) bind
 
 -- | Make a "let-binding" for a type. Note: the body must be a value.
 mkTypeLet
@@ -71,7 +71,7 @@ mkTypeLet
     -> TypeDef tyname a
     -> Term tyname name a -- ^ The body of the let, possibly referencing the name.
     -> Term tyname name a
-mkTypeLet x (Def (TyVarDecl _ name k) bind) body = TyInst x (TyAbs x name k body) bind
+mkTypeLet x1 (Def (TyVarDecl x2 name k) bind) body = TyInst x1 (TyAbs x2 name k body) bind
 
 -- | Make an iterated application.
 mkIterApp
@@ -91,19 +91,17 @@ mkIterInst x = foldl' (TyInst x)
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs
-    :: a
-    -> [VarDecl tyname name a]
+    :: [VarDecl tyname name a]
     -> Term tyname name a
     -> Term tyname name a
-mkIterLamAbs x args body = foldr (\(VarDecl _ n ty) acc -> LamAbs x n ty acc) body args
+mkIterLamAbs args body = foldr (\(VarDecl x n ty) acc -> LamAbs x n ty acc) body args
 
 -- | Type abstract a list of names.
 mkIterTyAbs
-    :: a
-    -> [TyVarDecl tyname a]
+    :: [TyVarDecl tyname a]
     -> Term tyname name a
     -> Term tyname name a
-mkIterTyAbs x args body = foldr (\(TyVarDecl _ n k) acc -> TyAbs x n k acc) body args
+mkIterTyAbs args body = foldr (\(TyVarDecl x n k) acc -> TyAbs x n k acc) body args
 
 -- | Make an iterated type application.
 mkIterTyApp
@@ -123,20 +121,19 @@ mkIterTyFun x tys target = foldr (\ty acc -> TyFun x ty acc) target tys
 
 -- | Universally quantify a list of names.
 mkIterTyForall
-    :: a
-    -> [TyVarDecl tyname a]
+    :: [TyVarDecl tyname a]
     -> Type tyname a
     -> Type tyname a
-mkIterTyForall x args body = foldr (\(TyVarDecl _ n k) acc -> TyForall x n k acc) body args
+mkIterTyForall args body = foldr (\(TyVarDecl x n k) acc -> TyForall x n k acc) body args
 
 -- | Lambda abstract a list of names.
 mkIterTyLam
-    :: a
-    -> [TyVarDecl tyname a]
+    :: [TyVarDecl tyname a]
     -> Type tyname a
     -> Type tyname a
-mkIterTyLam x args body = foldr (\(TyVarDecl _ n k) acc -> TyLam x n k acc) body args
+mkIterTyLam args body = foldr (\(TyVarDecl x n k) acc -> TyLam x n k acc) body args
 
+-- | Make an iterated function kind.
 mkIterKindArrow
     :: a
     -> [Kind a]
