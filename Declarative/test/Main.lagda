@@ -1,5 +1,5 @@
 \begin{code}
-module Declarative.Main where
+module Declarative.test.Main where
 open import Agda.Builtin.IO
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
@@ -112,6 +112,22 @@ helpB M (steps x (done n v)) = printBS n v
 helpB M (steps x out-of-gas) = "out of gas..."
 helpB M error = "something went wrong"
 
+open import Declarative.test.AddInteger
+
+open Agda.Builtin.IO
+postulate
+  return : ∀ {a} {A : Set a} → A → IO A
+  _>>=_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
+
+{-# COMPILE GHC return = \_ _ -> return    #-}
+{-# COMPILE GHC _>>=_  = \_ _ _ _ -> (>>=) #-}
+
+_>>_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → IO B → IO B
+x >> y = x >>= λ _ → y
+
 main : IO ⊤
-main = putStrLn (help _ (eval (gas 100) builtininc2'))
+main = do
+  putStrLn "test:AddInteger expected output 4" 
+  putStrLn (help _ (eval (gas 100) (addI · con2 · con2)))
+
 \end{code}
