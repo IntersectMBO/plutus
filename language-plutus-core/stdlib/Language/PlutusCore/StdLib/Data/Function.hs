@@ -38,16 +38,13 @@ getBuiltinConst = do
 
 -- | @Self@ as a PLC type.
 --
--- > \(a :: *) -> fix \(self :: *) -> self -> a
-getBuiltinSelf :: Quote (HoledType TyName ())
+-- > fix \(self :: * -> *) (a :: *) -> self a -> a
+getBuiltinSelf :: Quote (RecursiveType ())
 getBuiltinSelf = do
-    a    <- freshTyName () "a"
     self <- freshTyName () "self"
-    return
-        . HoledType self $ \hole ->
-          TyLam () a (Type ())
-        . hole
-        . TyFun () (TyVar () self)
+    a    <- freshTyName () "a"
+    makeRecursiveType () self [TyVarDecl () a $ Type ()]
+        . TyFun () (TyApp () (TyVar () self) (TyVar () a))
         $ TyVar () a
 
 -- | @unroll@ as a PLC term.
@@ -55,26 +52,24 @@ getBuiltinSelf = do
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
 getBuiltinUnroll :: Quote (Term TyName Name ())
 getBuiltinUnroll = do
-    self <- getBuiltinSelf
+    self <- _recursiveType <$> getBuiltinSelf
     a <- freshTyName () "a"
     s <- freshName () "s"
-    let RecursiveType _ selfA =
-            holedToRecursive . holedTyApp self $ TyVar () a
     return
         . TyAbs () a (Type ())
-        . LamAbs () s selfA
+        . LamAbs () s (TyApp () self $ TyVar () a)
         . Apply () (Unwrap () $ Var () s)
         $ Var () s
 
 -- | 'fix' as a PLC term.
 --
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
--- >    unroll {a -> b} (wrap \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
+-- >    unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 --
 -- See @plutus/docs/fomega/z-combinator-benchmarks@ for details.
 getBuiltinFix :: Quote (Term TyName Name ())
 getBuiltinFix = rename =<< do
-    self   <- getBuiltinSelf
+    RecursiveType self wrapSelf <- getBuiltinSelf
     unroll <- getBuiltinUnroll
     a <- freshTyName () "a"
     b <- freshTyName () "b"
@@ -83,14 +78,13 @@ getBuiltinFix = rename =<< do
     x <- freshName () "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
         unrollFunAB = TyInst () unroll funAB
-        RecursiveType wrapSelfFunAB selfFunAB =
-            holedToRecursive $ holedTyApp self funAB
+    let selfFunAB = TyApp () self funAB
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
         . LamAbs () f (TyFun () funAB funAB)
         . Apply () unrollFunAB
-        . wrapSelfFunAB
+        . wrapSelf [funAB]
         . LamAbs () s selfFunAB
         . LamAbs () x (TyVar () a)
         $ mkIterApp () (Var () f)

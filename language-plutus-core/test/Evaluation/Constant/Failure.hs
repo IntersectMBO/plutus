@@ -13,7 +13,6 @@ import           Evaluation.Constant.Apply
 
 import           Control.Monad.Morph
 import           Data.Maybe
-import           Data.Semigroup
 import           Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog

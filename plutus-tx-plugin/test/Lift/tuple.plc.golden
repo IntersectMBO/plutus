@@ -1,0 +1,69 @@
+(program 1.0.0
+  [
+    [
+      {
+        (abs
+          GHC_Tuple_Tuple2_11
+          (fun (type) (fun (type) (type)))
+          (lam
+            GHC_Tuple_Tuple2_12
+            (all a_13 (type) (all b_14 (type) (fun a_13 (fun b_14 [[GHC_Tuple_Tuple2_11 a_13] b_14]))))
+            (lam
+              match_GHC_Tuple_Tuple2_15
+              (all a_16 (type) (all b_17 (type) (fun [[GHC_Tuple_Tuple2_11 a_16] b_17] (all out_GHC_Tuple_Tuple2_18 (type) (fun (fun a_16 (fun b_17 out_GHC_Tuple_Tuple2_18)) out_GHC_Tuple_Tuple2_18)))))
+              [
+                [
+                  {
+                    { GHC_Tuple_Tuple2_12 [(con integer) (con 8)] }
+                    [(con integer) (con 8)]
+                  }
+                  (con 8 ! 1)
+                ]
+                (con 8 ! 2)
+              ]
+            )
+          )
+        )
+        (lam a_19 (type) (lam b_20 (type) (all out_GHC_Tuple_Tuple2_21 (type) (fun (fun a_19 (fun b_20 out_GHC_Tuple_Tuple2_21)) out_GHC_Tuple_Tuple2_21))))
+      }
+      (abs
+        a_22
+        (type)
+        (abs
+          b_23
+          (type)
+          (lam
+            arg_0_24
+            a_22
+            (lam
+              arg_1_25
+              b_23
+              (abs
+                out_GHC_Tuple_Tuple2_26
+                (type)
+                (lam
+                  case_GHC_Tuple_Tuple2_27
+                  (fun a_22 (fun b_23 out_GHC_Tuple_Tuple2_26))
+                  [ [ case_GHC_Tuple_Tuple2_27 arg_0_24 ] arg_1_25 ]
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (abs
+      a_28
+      (type)
+      (abs
+        b_29
+        (type)
+        (lam
+          x_30
+          [[(lam a_31 (type) (lam b_32 (type) (all out_GHC_Tuple_Tuple2_33 (type) (fun (fun a_31 (fun b_32 out_GHC_Tuple_Tuple2_33)) out_GHC_Tuple_Tuple2_33)))) a_28] b_29]
+          x_30
+        )
+      )
+    )
+  ]
+)

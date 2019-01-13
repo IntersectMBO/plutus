@@ -1,0 +1,643 @@
+%% Plutus Core Specification
+
+\documentclass[a4paper]{article}
+% Let's try full width text to see if it makes 
+% it easier to get figures in the right place
+
+\usepackage{blindtext, graphicx}
+\usepackage{url}
+
+% *** MATH PACKAGES ***
+%
+\usepackage[cmex10]{amsmath}
+\usepackage{stmaryrd}
+
+% *** ALIGNMENT PACKAGES ***
+%
+\usepackage{array}
+\usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
+\usepackage{subcaption}
+\usepackage{caption}
+
+% correct bad hyphenation here
+\hyphenation{}
+
+\usepackage{subfiles}
+\usepackage{geometry}
+\usepackage{pdflscape}
+
+% *** IMPORTS FOR PLUTUS LANGUAGE ***
+
+\usepackage[T1]{fontenc}
+\usepackage{bussproofs,amsmath,amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+
+
+% *** DEFINITIONS FOR PLUTUS LANGUAGE ***
+
+%%% General Misc. Definitions
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
+
+
+\newcommand{\diffbox}[1]{\text{\colorbox{lightgray}{\(#1\)}}}
+\newcommand{\judgmentdef}[2]{\fbox{#1}
+
+\vspace{0.5em}
+
+#2}
+\newcommand{\hyphen}{\operatorname{-}}
+\newcommand{\repetition}[1]{\overline{#1}}
+\newcommand{\Fomega}{F$^{\omega}$}
+\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
+
+
+
+%%% Term Grammar
+
+\newcommand{\sig}[3]{[#1](#2)#3}
+\newcommand{\constsig}[2]{#1,#2}
+\newcommand{\con}[1]{\construct{\keyword{con} ~ #1}}
+\newcommand{\abs}[3]{\construct{\keyword{abs} ~ #1 ~ #2 ~ #3}}
+\newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
+\newcommand{\lam}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
+\newcommand{\app}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+\newcommand{\wrap}[3]{\construct{\keyword{wrap} ~ #1 ~ #2 ~ #3}}
+\newcommand{\unwrap}[1]{\construct{\keyword{unwrap} ~ #1}}
+\newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
+\newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
+\newcommand{\sizedBuiltin}[2]{#1\keyword{!}#2}
+
+
+
+%%%  Type Grammar
+
+\newcommand{\funT}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
+\newcommand{\fixT}[2]{\construct{\keyword{fix} ~ #1 ~ #2}}
+\newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
+\newcommand{\conIntegerType}[1]{\keyword{integer}}
+\newcommand{\conBytestringType}[1]{\keyword{bytestring}}
+\newcommand{\conSizeType}[1]{\keyword{size}}
+\newcommand{\builtinT}[2]{\construct{\keyword{builtin} ~ #1 ~ #2}}
+\newcommand{\conT}[2]{\construct{\keyword{con} ~ #1 ~ #2}}
+\newcommand{\lamT}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
+\newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+
+\newcommand{\typeK}{\construct{\keyword{type}}}
+\newcommand{\funK}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
+\newcommand{\sizeK}{\construct{\keyword{size}}}
+
+
+
+%%% Program Grammar
+
+\newcommand{\version}[2]{\construct{\keyword{version} ~ #1 ~ #2}}
+
+
+
+%%% Judgments
+
+\newcommand{\hypJ}[2]{#1 \vdash #2}
+\newcommand{\ctxni}[2]{#1 \ni #2}
+\newcommand{\validJ}[1]{#1 \ \operatorname{valid}}
+\newcommand{\termJ}[2]{#1 : #2}
+\newcommand{\typeJ}[2]{#1 :: #2}
+\newcommand{\istermJ}[2]{#1 : #2}
+\newcommand{\istypeJ}[2]{#1 :: #2}
+
+
+
+%%% Contextual Normalization
+
+\newcommand{\ctxsubst}[2]{#1\{#2\}}
+\newcommand{\typeStep}[2]{#1 ~ \rightarrow_{ty} ~ #2}
+\newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
+\newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
+\newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
+\newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
+\newcommand{\normalform}[1]{\lfloor #1 \rfloor}
+\newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
+\newcommand{\typeEqual}[2]{#1 =_{\mathit{ty}} #2}
+\newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
+
+
+\newcommand{\inConT}[2]{\conT{#1}{#2}}
+\newcommand{\inAppTLeft}[2]{\appT{#1}{#2}}
+\newcommand{\inAppTRight}[2]{\appT{#1}{#2}}
+\newcommand{\inFunTLeft}[2]{\funT{#1}{#2}}
+\newcommand{\inFunTRight}[2]{\funT{#1}{#2}}
+\newcommand{\inAllT}[3]{\allT{#1}{#2}{#3}}
+\newcommand{\inFixT}[2]{\fixT{#1}{#2}}
+\newcommand{\inLamT}[3]{\lamT{#1}{#2}{#3}}
+
+\newcommand{\inBuiltin}[5]{\builtin{#1}{#2}{#3 #4 #5}}
+
+
+
+%%% CK Machine Normalization
+
+\newcommand{\cksteps}[2]{#1 ~\mapsto~ #2}
+\newcommand{\ckforward}[2]{#1 \triangleright #2}
+\newcommand{\ckbackward}[2]{#1 \triangleleft #2}
+\newcommand{\ckerror}{\blacklozenge}
+
+\newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
+\newcommand{\inWrapRightFrame}[2]{\wrap{#1}{#2}{\_}}
+\newcommand{\inUnwrapFrame}{\unwrap{\_}}
+\newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
+\newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
+
+
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{Formal Specification of\\the Plutus Core Language v1.0 (RC5.5)}
+
+
+\maketitle
+
+\thispagestyle{plain}
+\pagestyle{plain}
+
+
+%\begin{abstract}
+%\boldmath
+%The Plutus Language is outlined, together with the major
+%design decisions for implementations. A formal specification of the
+%language is given, including an elaborator and bidirectional type
+%system.
+
+\section{Plutus Core}
+
+Plutus Core is a typed, eagerly evaluated $\lambda$-calculus designed
+for use as a transaction validation language in blockchain
+systems. More precisely, Plutus Core is the system $F_\omega$ of
+Girard and Reynolds (see \cite{Girard-thesis},
+\cite{Reynolds-type-structure}, \cite[\S30]{Pierce:TAPL}) with a
+number of extensions (isorecursive types, higher kinds, and a library
+of basic types and functions).  Plutus Core is meant to be a
+compilation target, and this is reflected in the design of the
+language: while writing large Plutus Core programs by hand is
+difficult, the language is relatively straightforward to formalize
+with a proof assistant.
+
+We have tried to keep the Plutus Core language small. There is no
+explicit support for algebraic datatypes, but they are representable
+using, for example, the Scott encoding (\cite{Scott-encoding}: see
+also \cite{Koopman:2014} and ~\cite{Geuvers-2014} for example; note that
+the Scott enconding coincides with the Church encoding for
+non-recursive types). Similarly, there are no explicit constructs for
+recursion or branching, but the type system is sufficiently expressive
+to allow us to use standard combinators (for example the $Z$
+combinator and Church/Scott encoded booleans) for such purposes.
+
+
+\subsection{Blockchain issues}
+Plutus Core code (and code intended for execution on a blockchain in
+general) can be executed in two different environments:
+\textit{off-chain} and \textit{on-chain}.  As the name suggests,
+off-chain execution doesn't happen on the blockchain itself, but in
+some other environment, such as in an electronic wallet on a
+smartphone or PC.  In contrast, on-chain execution takes place on
+\textit{core nodes}, machines which are actually maintaining the
+blockchain.  It is important that core nodes process transactions
+quickly and efficiently; moreover, core nodes benefit from executing
+transactions and compete with each other to do so.  Denial of service
+thus becomes an issue for on-chain code, and it is important that a
+malicious user cannot submit code which consumes excessive amounts of
+processor time or memory.
+
+To deal with this problem, a charge is levied when a core node runs
+on-chain code.  Units of so-called \textit{gas} are consumed as a
+program runs, and users must buy gas in advance.  
+
+Because of these issues, it is important that the cost of on-chain
+code execution is easy to calculate, certainly during execution (so
+that gas consumption can be accounted for), but ideally also in
+advance so that a user has some idea of how much a contract is likely
+to cost and can make sure that they buy enough gas to allow their
+contract to run to completion.  The design of Plutus Core incorporates
+a number of features to facilitate cost analysis for this purpose,
+notably explicitly \textit{sized} types for integers and bytestrings.
+
+Resource limitations also preclude complicated on-chain code analysis
+and verification.  We perform type checking prior to execution of
+Plutus Core Code, but no other validation.  Type checking itself takes
+time and requires memory, so there is also a gas charge for on-chain
+type checking.
+
+\section{Syntax}
+
+The grammar of Plutus Core is given in
+Figures~\ref{fig:Plutus_core_lexical_grammar} and
+\ref{fig:Plutus_core_grammar}. This grammar describes the abstract
+syntax trees of Plutus Core in a convenient notation, and also
+describes the string syntax to be used when referring to those
+ASTs. The string syntax is not fundamental to Plutus Core, and only
+exists because we must refer to programs in documents such as
+the present one. Plutus Core programs are intended to exist only as ASTs produced by
+compilers from higher languages, and as serialized representations on
+blockchains, and therefore we do not expect anyone to write programs
+in Plutus Core, nor need to use a parser for the language.
+
+Lexemes are described in standard regular expression notation.  The only other
+lexemes are round \texttt{()}, square \texttt{[]}, and curly \texttt{\{\}}
+brackets.  Spaces and tabs are allowed anywhere, and have no effect
+save to separate lexemes.
+
+Application in both terms and types is indicated by square
+brackets, and instantiation in terms is indicated by curly brackets. We
+permit the use of multi-argument application and instantiation as
+syntactic sugar for iterated application.
+For instance,
+\[
+  [M_0 ~ M_1 ~ M_2 ~ M_3]
+\]
+is sugar for
+\[
+  [[[M_0 ~ M_1] ~ M_2] ~ M_3]
+\]
+All subsequent definitions assume iterated application and instantiation
+has been expanded out, and use only the binary form. To the extent that
+a standard utility parser for Plutus Core might be made, for debugging
+purposes and other such things, iterated application and instantiation
+ought to be included as sugar.
+
+%In this grammar, we have multi-argument application, both in types (\(\appT{A}{B^+}\)) and in terms (\(\app{M}{N^+}\)), as well as multi-argument instantiation in terms (\(\inst{M}{A^*}\)). This is to be understood as a convenient form of syntactic sugar for iterated binary application associated to the left, and the formal rules treat only the binary case.
+
+\subfile{figures/PlutusCoreLexicalGrammar}
+
+\subfile{figures/PlutusCoreGrammar}
+
+\newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
+
+\subsection{Notes on the grammar}
+\paragraph{Terms.}
+\begin{itemize}
+\item $\con{cn}$ represents a built-in constant: see \S\ref{sec:builtins}
+\item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
+  over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
+  Note that we require the body of the abstraction to be a
+  \textit{value}, not a term: see the note on the value restriction below.
+\item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
+\item $\wrap{\alpha}{A}{V}$ and $\unwrap{M}$: see the note on recursive types below.
+\item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
+\item $\app{M}{N}$ is standard function application.
+\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
+\item $\error{A}$ causes an error, terminating computation immediately.
+\end{itemize}
+
+%% Re the value restriction:  Phil says
+% Value restriction: This guarantees that one can erase a type
+% abstraction to its body (otherwise, one needs to erase a type
+% abstraction to a value abstraction). It also corresponds to the value
+% restriction in Standard ML, which ensures polymorphism works with
+% effects. For instance, if we wanted to translate Plutus into a monad
+% to make non-termination and reading the environment explicit, that is
+% easy with the value restriction; otherwise, it is (so far as I know)
+% not known how to do it. The restriction appears in my paper Theorems
+% for Free for Free with Ahmed, Jamner, and Siek in ICFP 2017.
+
+
+
+\paragraph{Values.} Values are terms which cannot undergo any further reduction.
+
+\paragraph{Types.} Plutus Core contains a copy of the simply typed lambda calculus
+  at the type level, together with a few extensions.
+\begin{itemize}
+\item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
+\item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
+\item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
+\item $\fixT{\alpha}{A}$ represents a recursive type $\fixtype{A}$: see the note on recursive types below.
+\item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
+\item $\appT{A}{B}$ is function application at the type level.
+\item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
+is the type of 8-byte integers.  See \S\ref{sec:builtins} for more information.
+\end{itemize}
+
+\paragraph{Type Values.} All types can be reduced to a type value (or
+  \textit{normalised type}) which cannot undergo any further
+  reduction: see section~\ref{sec:reduction}.  The type normalisation
+  process always terminates: the proof is similar to the proof of the
+  fact that reduction of terms in the simply typed lambda calculus
+  always terminates (\cite[\S12]{Pierce:TAPL}).  The type-level
+  structure of Plutus Core is slightly more complicated than the
+  simply typed lambda calculus, but the extra forms (\texttt{fix},
+  \texttt{all}, built-in base types) don't provide any new
+  opportunities for type reduction and thus have little effect on the
+  proof.
+
+\paragraph{Kinds.} In Plutus Core we have a copy of the 
+simply typed lambda calculus at the type level. The types of the
+simply typed lambda calculus are lifted to the level of
+\textit{kinds} in Plutus Core, allowing the type system to talk about
+operations which themselves occur at the level of types. In addition
+to the standard kind \texttt{(type)} (usually written as $\star$), we
+have a kind \texttt{(size)} which allows us to deal with the sized
+types described below in~\S\ref{sec:size-note}.
+
+
+\paragraph{Programs and Versions.} A complete Plutus Core program 
+consists of a standard version number (1.0.2, for example) indicating
+the Plutus Core version and a \textit{closed} term (i.e., a term with no
+free variables) forming the body of the program.  The version number
+is used by the Plutus Core evaluator and other tools to check that
+they are dealing with code conforming to the correct version of the
+Plutus Core language.
+
+\subsection{More detailed remarks}
+\subsubsection{Type Normalisation}
+ Type checking requires normalisation to be performed, for example to
+ check that two types are equal.  This process can be expensive, so we
+ require that code supplied for on-chain execution comes with all type
+ annotations pre-normalised.  This can be done during off-chain type
+ checking.  Another issue here is that normalisation can cause sizes
+ to increase (in the worst case, exponentially \blue{(really?)}), and
+ requiring normalisation to be performed before a program is submitted
+ to the chain facilitates prediction of on-chain costs.  \blue{Is
+   there an issue that further normalisation may be required when
+   programs are composed on-chain?}
+
+\subsubsection{Sizes and built-in types and functions}
+\label{sec:size-note}
+Details of built-in types and functions are given
+in~\S\ref{sec:builtins}, but a remark on sizes may be helpful at this
+point.  Plutus Core currently provides two types of built-in data with
+variable sizes: integers and bytestrings (blocks of binary data used
+for cryptographic purposes).  There is no fixed upper bound on the
+size of values of these types, but -- as mentioned in the introduction -- it
+could be problematic if users were allowed to create values of arbitrary size 
+at runtime. To avoid this, sizes are tracked in the type system so that 
+appropriate charges can be made. 
+
+For integers, this works as follows (the system for 
+bytestrings is similar).  Integers are signed values:
+there is no fixed upper bound, but values are represented as sequences
+of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
+is the integer 100 stored as a single byte.  Literal constants must
+fit into the specified size: \texttt{1~!~200} gives a compile-time
+error. If a value overflows at runtime then an error occurs and
+execution is terminated.  Integers are manipulated using built-in
+functions (see Figure~\ref{fig:Plutus_core_builtins}) whose types
+include the size. This prevents users from writing programs which
+generate arbitrarily large values during execution; it also allows us
+to charge according to the actual amount of computation performed,
+which will increase as the size of the integers involved increases.
+
+
+\subsubsection{Recursive types}
+The operator $\texttt{fix}$ allows one to
+define recursive types in Plutus Core: $\fixT{\alpha}{A}$ is a type
+$\fixtype{A}$ such that $\fixtype{A} \cong [\fixtype{A}/\alpha]A$; in
+practice the type $A$ here will usually be a function type involving
+$\alpha$.  Note that we have an \textit{isomporhism} of types here
+rather than equality.  Fixpoint types are
+\textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
+\texttt{wrap}: $[\fixtype{A}/\alpha]A \rightarrow \fixtype{A}$ and
+\texttt{unwrap}: $\fixtype{A} \rightarrow [\fixtype{A}/\alpha]A$.
+The use of isorecursive types makes it somewhat more difficult to
+write \textit{terms}, but makes it much easier to reason about
+\textit{types}, and in particular simplifies the typechecking process
+considerably.
+
+\noindent\blue{Do we want an example here?  Also, ``isorecursive'' or ``iso-recursive''? 
+Is it true that we have an isomporhism, and not a retraction or something?}
+
+% As an example, consider the program in Figure
+% \ref{fig:Plutus_core_example}, which defines the type of natural
+% numbers as well as lists, and the factorial and map functions. This
+% program is not the most readable, which is to be expected from a
+% representation intended for machine interpretation rather than human
+% interpretation, but it does make explicit precisely what the roles
+% are of the various parts.
+
+%\subfile{figures/PlutusCoreExample}
+
+
+\subsubsection{The value restriction}
+In $\abs{\alpha}{K}{V}$ we require the body $V$ to be a value. We will
+refer to this restriction as the \textit{value restriction} because it
+can be regarded as a generalisation of the value restriction in
+Standard ML (\cite[22.7]{Pierce:TAPL}). Experience has shown that
+allowing general terms as bodies of type abstractions can cause a
+number of difficulties.  For example, Standard ML's value restriction
+is required to avoid a number of problems when (implicit) type
+abstractions include non-values; other issues are explored
+in~\cite[2.4]{Ahmed:2017}. Plutus Core's restriction to values avoids
+these problems and is not very onerous in practice.
+  
+
+
+\section{Type Correctness}
+
+We define for Plutus Core a number of typing judgments which explain ways that a program can be well-formed. First, in Figure \ref{fig:Plutus_core_contexts}, we define the grammar of variable contexts that these judgments hold under. Variable contexts contain information about the nature of variables --- type variables with their kind, and term variables with their type.
+
+Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what it means for a type to synthesize a kind. Plutus Core is a higher-kinded version of System F, so we have a number of standard System F rules together with some obvious extensions. In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type synthesis judgment, which explains how a term synthesizes a type.
+
+Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}\!\!$)
+% \!: negative spaces to get rid of superfluous space
+is given in tabular form rather than in inference rule form, in Figure \ref{fig:Plutus_core_builtins}, which also gives the reduction semantics. This table also specifies what conditions trigger an error.
+
+
+
+
+
+\subfile{figures/PlutusCoreTypeCorrectness}
+
+
+\section{Reduction and Execution}
+\label{sec:reduction}
+
+In this section we define a standard eager,
+small-step contextual semantics~\cite[5.3]{Harper:PFPL} (or
+\textit{reduction semantics}~\cite[\S2]{Felleisen-Hieb}) for Plutus
+Core in terms of the reduction relation for types
+(\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction}) 
+and terms (\(\step{M}{M'}\)) (Figure~\ref{fig:term-reduction}), which
+incorporates both $\beta$ reduction and contextual congruence. We make
+use of the transitive closure of these stepping relations via the
+usual Kleene star notation.
+% It seems that Harper talks about "contextual semactics" in the 
+% first edition of his book, but changed it to "contextual dymanics"
+% in the second.  It doesn't seem to be a standard term elsewhere though.
+
+In the context of a blockchain system, it can be useful to also have a
+step indexed version of stepping, indicated by a superscript count of
+steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
+transaction validation from looping indefinitely, or from simply
+taking an inordinate amount of time, which would be a serious security
+flaw in the blockchain system, we can use step indexing to put an
+upper bound on the number of computational steps that a program can
+have. In this setting, we would pick some upper bound $\mathit{max}$
+and then perform steps of terms $M$ by computing which $M'$ is such
+that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
+
+
+\newpage 
+
+\subsection{Type reduction}
+Because the Plutus Core type system contains a copy of the simply
+typed lambda calculus, complex computations can take place at the
+level of types.  Reductions in the type system always transform a
+given type into an equivalent type, and so have no effect on the term
+level.  In conjunction with the fact that type reduction always
+terminates, this allows us to perform normalisation (i.e., reduction to
+a form which cannot undergo any further reduction) statically, before
+execution begins.  Figure~\ref{fig:type-reduction} contains the rules
+for type reduction.
+
+\subfile{figures/PlutusCoreTypeReduction}
+
+
+\subsection{Term reduction}
+Execution of Plutus Core programs is performed by (possibly
+non-terminating) reduction of well-typed terms.  The reduction rules
+are contained in Figure~\ref{fig:term-reduction}, and give us a fairly
+standard operational semantics.
+
+\subfile{figures/PlutusCoreTermReduction}
+
+\subsection{An abstract machine for evaluating Plutus Core programs}
+This section contains a description of an abstract machine for
+executing Plutus Core.  This is based on the CK machine of Felleisen
+and Friedman~\cite{Felleisen-CK-CEK}. 
+
+This machine is intended as a reference implementation which is
+amenable to formalisation, ideally so that it can be proved to
+implement the operational semantics described above.  The CK machine
+is inefficient because it implements application as $\beta$-reduction,
+so that when evaluating $(\lambda x.M)V$, $V$ must be substituted
+bodily for $x$ wherever it occurs in $M$.  This process can require
+considerable amounts of time and space.  More efficient machines are
+available (for example the CEK machine from~\cite{Felleisen-CK-CEK},
+which uses environments binding actual arguments to variables), and in
+practice we would use something based on such a machine; however, the
+CK machine will still provide a useful bridge for formalisation
+purposes.
+
+\subfile{figures/PlutusCoreCkMachine}
+
+\noindent The machine alternates between two main phases: \textit{computation}
+($\triangleright$), where it recurses down the AST looking for values,
+saving surrounding contexts as frames (or \textit{reduction contexts})
+on a stack as it goes; and \textit{return} ($\triangleleft$), where it
+has obtained a value and pops a frame off the stack to tell it how to
+proceed next.  In addition there is an error state $\blacklozenge$
+which halts execution with an error, and a stop state $\square$ which
+halts execution and returns a value to the outside world.
+
+\blue{When a builtin returns a result, should it be a value
+  that gets $\triangleleft$ or a term that gets $\triangleright$?  The 
+  new dynamic built-in stuff would probably require the latter.} 
+
+\section{Built in types, functions, and values}
+\label{sec:builtins}
+Plutus Core comes with a pre-defined set of built-in types and
+functions which will be useful for blockchain applications.  The set
+of built-ins is fixed, although in future we may provide a framework
+to allow customisation for specialised blockchains.
+
+As mentioned earlier, there are three basic types: \texttt{size},
+\texttt{integer}, and \texttt{bytestring}.  The \textrm{size} type is
+used to track the sizes of objects, the \texttt{integer} type, in
+conjunction with \texttt{size} provides integers of specified sizes,
+and the \texttt{bytestring} type provides sequences of bytes, again of
+specified sizes.  These types are given in
+Figure~\ref{fig:Plutus_core_type_constants}:  for example 
+\texttt{(builtin integer 10)} is the type of signed 10-byte integers.
+
+\red{Is it \texttt{con} or \texttt{builtin}?  I think there's a 
+conflict between Figure~\ref{fig:Plutus_core_type_abbreviations}
+and Figure~\ref{fig:Plutus_core_grammar}.}
+
+Terms of these types are written using the \texttt{!} character, as
+shown in Figure~\ref{fig:Plutus_core_constants}.  For example
+\texttt{10~!~12345} is a ten-byte integer whose value is 12345 (and
+\textrm{1~!~12345} would cause an error), and \texttt{20~!~\#3ac29d873246f} 
+is a 20-byte bytestring containing the bytes
+shown\footnote{In fact, the bounds are upper bounds, not actual sizes:
+  in the current implementation, \texttt{10~!~12345} will only take up
+  as much space as it requires, not the full 10 bytes.}.  We use the
+same syntax to denote expressions of appropriate types in
+Figure~\ref{fig:Plutus_core_builtins}.
+
+We provide standard arithmetic and comparison operations for integers
+and a number of list-like functions for bytestrings. The details are
+given in Figure~\ref{fig:Plutus_core_builtins}, using a number of
+abbreviations given in Figure~\ref{fig:Plutus_core_type_abbreviations}.
+Note the following:
+\begin{itemize}
+\item The signatures of the functions statically limit the way in
+  which sizes are used.  It is not possible to create values of
+  unlimited size at runtime.  If any function attempts to create a
+  value exceeding the expected size, an error will occur during execution.
+\item We use fixed Scott encodings for certain types and values,
+  specifically for the \texttt{unit} and \texttt{boolean} types.
+Compilers targeting Plutus Core must be aware of these encodings and
+use them appropriately.
+\end{itemize}
+
+\newpage
+
+\subfile{figures/PlutusCoreBuiltins}
+
+\section{Examples}
+
+\subfile{figures/PlutusCoreExampleAgain}
+
+\section{Basic Validation Program Structure}
+
+The basic way that validation is done in Plutus Core is somewhat
+similar to what's in Bitcoin Script. Whereas in Bitcoin Script, a
+validation is successful if the validating script successfully
+executes and leaves $\textit{true}$ on the top of the stack, in Plutus
+Core, validation is successful when the script reduces to any value
+other than \(\error{A}\) in the allotted number of steps.
+
+
+%\section{Erasure}
+
+%TO WRITE
+
+%\subfile{figures/PlutusCoreErasureGrammar}
+
+%\subfile{figures/PlutusCoreErasureReduction}
+
+%\subfile{figures/PlutusCoreErasureTheorem}
+
+%\section{Example}
+
+%\subfile{figures/PlutusCoreExampleAgain}
+
+
+
+\section{Unrestricted Algorithmic Type System}
+
+For implementation purposes, it's useful to have a variant of the type system that is more algorithmic in its presentation. We give this here, showing the figures that have been changed (relative to the declarative version above), and highlighting the specific parts of each rule that is different, where possible.
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
+
+
+
+\section{Restricted Algorithmic Type System}
+
+For blockchain purposes, it is useful to not only have an algorithmic system, but to require that no un-normalized types are present in programs, so as to reduce the amount of computation necessary to typecheck a program. It's also useful to have a way of bounding the amount of computation that can be done in type checking, for security purposes. To that end, we present a restricted grammar and type reduction, and a type system that reflects these. The figures below are additions with respect to the unrestricted version, and show only the new or changed figures and their respective highlighted differences.
+
+\subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
+
+\bibliographystyle{plain} %% ... or whatever
+\bibliography{plutus-core-specification}
+
+\end{document}

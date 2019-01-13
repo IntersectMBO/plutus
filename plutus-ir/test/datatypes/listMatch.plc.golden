@@ -4,35 +4,35 @@
       [
         {
           (abs
-            List_23
+            List_31
             (fun (type) (type))
             (lam
-              Nil_24
-              (all a_25 (type) [List_23 a_25])
+              Nil_32
+              (all a_33 (type) [List_31 a_33])
               (lam
-                Cons_26
-                (all a_27 (type) (fun a_27 (fun [List_23 a_27] [List_23 a_27])))
+                Cons_34
+                (all a_35 (type) (fun a_35 (fun [List_31 a_35] [List_31 a_35])))
                 (lam
-                  match_List_28
-                  (all a_29 (type) (fun [List_23 a_29] [(lam a_30 (type) (all out_List_31 (type) (fun out_List_31 (fun (fun a_30 (fun [List_23 a_30] out_List_31)) out_List_31)))) a_29]))
+                  match_List_36
+                  (all a_37 (type) (fun [List_31 a_37] (all out_List_38 (type) (fun out_List_38 (fun (fun a_37 (fun [List_31 a_37] out_List_38)) out_List_38)))))
                   [
                     [
                       {
                         [
-                          { match_List_28 (all a_32 (type) (fun a_32 a_32)) }
-                          { Nil_24 (all a_33 (type) (fun a_33 a_33)) }
+                          { match_List_36 (all a_39 (type) (fun a_39 a_39)) }
+                          { Nil_32 (all a_40 (type) (fun a_40 a_40)) }
                         ]
-                        (all a_34 (type) (fun a_34 a_34))
+                        (all a_41 (type) (fun a_41 a_41))
                       }
-                      (abs a_35 (type) (lam x_36 a_35 x_36))
+                      (abs a_42 (type) (lam x_43 a_42 x_43))
                     ]
                     (lam
-                      head_37
-                      (all a_38 (type) (fun a_38 a_38))
+                      head_44
+                      (all a_45 (type) (fun a_45 a_45))
                       (lam
-                        tail_39
-                        [List_23 (all a_40 (type) (fun a_40 a_40))]
-                        head_37
+                        tail_46
+                        [List_31 (all a_47 (type) (fun a_47 a_47))]
+                        head_44
                       )
                     )
                   ]
@@ -40,24 +40,24 @@
               )
             )
           )
-          (fix List_41 (lam a_42 (type) (all out_List_43 (type) (fun out_List_43 (fun (fun a_42 (fun [List_41 a_42] out_List_43)) out_List_43)))))
+          (lam a_48 (type) (ifix (lam rec_49 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_50 (fun (fun (type) (type)) (type)) [spine_50 [(lam List_51 (fun (type) (type)) (lam a_52 (type) (all out_List_53 (type) (fun out_List_53 (fun (fun a_52 (fun [List_51 a_52] out_List_53)) out_List_53))))) (lam a_54 (type) [rec_49 (lam dat_55 (fun (type) (type)) [dat_55 a_54])])]])) (lam dat_56 (fun (type) (type)) [dat_56 a_48])))
         }
         (abs
-          a_44
+          a_57
           (type)
-          (wrap
-            List_45
-            (lam a_46 (type) (all out_List_47 (type) (fun out_List_47 (fun (fun a_46 (fun [List_45 a_46] out_List_47)) out_List_47))))
+          (iwrap
+            (lam rec_58 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_59 (fun (fun (type) (type)) (type)) [spine_59 [(lam List_60 (fun (type) (type)) (lam a_61 (type) (all out_List_62 (type) (fun out_List_62 (fun (fun a_61 (fun [List_60 a_61] out_List_62)) out_List_62))))) (lam a_63 (type) [rec_58 (lam dat_64 (fun (type) (type)) [dat_64 a_63])])]]))
+            (lam dat_65 (fun (type) (type)) [dat_65 a_57])
             (abs
-              out_List_48
+              out_List_66
               (type)
               (lam
-                case_Nil_49
-                out_List_48
+                case_Nil_67
+                out_List_66
                 (lam
-                  case_Cons_50
-                  (fun a_44 (fun [List_45 a_44] out_List_48))
-                  case_Nil_49
+                  case_Cons_68
+                  (fun a_57 (fun [(lam a_69 (type) (ifix (lam rec_70 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_71 (fun (fun (type) (type)) (type)) [spine_71 [(lam List_72 (fun (type) (type)) (lam a_73 (type) (all out_List_74 (type) (fun out_List_74 (fun (fun a_73 (fun [List_72 a_73] out_List_74)) out_List_74))))) (lam a_75 (type) [rec_70 (lam dat_76 (fun (type) (type)) [dat_76 a_75])])]])) (lam dat_77 (fun (type) (type)) [dat_77 a_69]))) a_57] out_List_66))
+                  case_Nil_67
                 )
               )
             )
@@ -65,27 +65,27 @@
         )
       ]
       (abs
-        a_51
+        a_78
         (type)
         (lam
-          arg_0_52
-          a_51
+          arg_0_79
+          a_78
           (lam
-            arg_1_53
-            [(fix List_54 (lam a_55 (type) (all out_List_56 (type) (fun out_List_56 (fun (fun a_55 (fun [List_54 a_55] out_List_56)) out_List_56))))) a_51]
-            (wrap
-              List_57
-              (lam a_58 (type) (all out_List_59 (type) (fun out_List_59 (fun (fun a_58 (fun [List_57 a_58] out_List_59)) out_List_59))))
+            arg_1_80
+            [(lam a_81 (type) (ifix (lam rec_82 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_83 (fun (fun (type) (type)) (type)) [spine_83 [(lam List_84 (fun (type) (type)) (lam a_85 (type) (all out_List_86 (type) (fun out_List_86 (fun (fun a_85 (fun [List_84 a_85] out_List_86)) out_List_86))))) (lam a_87 (type) [rec_82 (lam dat_88 (fun (type) (type)) [dat_88 a_87])])]])) (lam dat_89 (fun (type) (type)) [dat_89 a_81]))) a_78]
+            (iwrap
+              (lam rec_90 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_91 (fun (fun (type) (type)) (type)) [spine_91 [(lam List_92 (fun (type) (type)) (lam a_93 (type) (all out_List_94 (type) (fun out_List_94 (fun (fun a_93 (fun [List_92 a_93] out_List_94)) out_List_94))))) (lam a_95 (type) [rec_90 (lam dat_96 (fun (type) (type)) [dat_96 a_95])])]]))
+              (lam dat_97 (fun (type) (type)) [dat_97 a_78])
               (abs
-                out_List_60
+                out_List_98
                 (type)
                 (lam
-                  case_Nil_61
-                  out_List_60
+                  case_Nil_99
+                  out_List_98
                   (lam
-                    case_Cons_62
-                    (fun a_51 (fun [List_57 a_51] out_List_60))
-                    [ [ case_Cons_62 arg_0_52 ] arg_1_53 ]
+                    case_Cons_100
+                    (fun a_78 (fun [(lam a_101 (type) (ifix (lam rec_102 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_103 (fun (fun (type) (type)) (type)) [spine_103 [(lam List_104 (fun (type) (type)) (lam a_105 (type) (all out_List_106 (type) (fun out_List_106 (fun (fun a_105 (fun [List_104 a_105] out_List_106)) out_List_106))))) (lam a_107 (type) [rec_102 (lam dat_108 (fun (type) (type)) [dat_108 a_107])])]])) (lam dat_109 (fun (type) (type)) [dat_109 a_101]))) a_78] out_List_98))
+                    [ [ case_Cons_100 arg_0_79 ] arg_1_80 ]
                   )
                 )
               )
@@ -95,12 +95,12 @@
       )
     ]
     (abs
-      a_63
+      a_110
       (type)
       (lam
-        x_64
-        [(fix List_65 (lam a_66 (type) (all out_List_67 (type) (fun out_List_67 (fun (fun a_66 (fun [List_65 a_66] out_List_67)) out_List_67))))) a_63]
-        (unwrap x_64)
+        x_111
+        [(lam a_112 (type) (ifix (lam rec_113 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_114 (fun (fun (type) (type)) (type)) [spine_114 [(lam List_115 (fun (type) (type)) (lam a_116 (type) (all out_List_117 (type) (fun out_List_117 (fun (fun a_116 (fun [List_115 a_116] out_List_117)) out_List_117))))) (lam a_118 (type) [rec_113 (lam dat_119 (fun (type) (type)) [dat_119 a_118])])]])) (lam dat_120 (fun (type) (type)) [dat_120 a_112]))) a_110]
+        (unwrap x_111)
       )
     )
   ]

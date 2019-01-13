@@ -19,16 +19,17 @@ module PlutusPrelude ( -- * Reëxports from base
                      , throw
                      , join
                      , (<=<)
+                     , ($>)
                      , fromRight
                      , isRight
                      , void
+                     , through
                      , coerce
                      , Generic
                      , NFData
                      , Natural
                      , NonEmpty (..)
                      , Word8
-                     , Semigroup (..)
                      , Alternative (..)
                      , Exception
                      , PairT (..)
@@ -41,6 +42,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , view
                      , (.~)
                      , set
+                     , (%~)
                      , over
                      -- * Debugging
                      , traceShowId
@@ -84,6 +86,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , iasqrt
                      , ilogFloor
                      , ilogRound
+                     -- * GHCi
+                     , printPretty
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -91,6 +95,7 @@ import           Control.Arrow                           ((&&&))
 import           Control.Composition                     ((.*))
 import           Control.DeepSeq                         (NFData)
 import           Control.Exception                       (Exception, throw)
+import           Control.Lens
 import           Control.Monad                           (guard, join, (<=<))
 import           Data.Bifunctor                          (first, second)
 import           Data.Bool                               (bool)
@@ -99,12 +104,11 @@ import           Data.Coerce                             (Coercible, coerce)
 import           Data.Either                             (fromRight, isRight)
 import           Data.Foldable                           (fold, toList)
 import           Data.Function                           (on)
-import           Data.Functor                            (void)
+import           Data.Functor                            (void, ($>))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
 import           Data.Maybe                              (isJust)
-import           Data.Semigroup
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc
@@ -116,8 +120,6 @@ import           Data.Word                               (Word8)
 import           Debug.Trace
 import           GHC.Generics
 import           GHC.Natural                             (Natural)
-import           Lens.Micro
-import           Lens.Micro.Extras
 
 import           Data.Functor.Compose
 
@@ -203,6 +205,10 @@ prettyTextBy = docText .* prettyBy
 (<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
 f <<*>> a = getCompose $ Compose f <*> Compose a
 
+-- | Makes an effectful function ignore its result value and return its input value.
+through :: Functor f => (a -> f b) -> (a -> f a)
+through f x = f x $> x
+
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
 foldMapM f xs = foldr step return xs mempty where
@@ -271,3 +277,9 @@ ilogRound b x
     | b ^ p == x = p
     | otherwise  = p + 1
     where p = ilogFloor b x
+
+-- For GHCi to use this properly it needs to be in a registered package, hence
+-- why we're naming such a trivial thing.
+-- | A command suitable for use in GHCi as an interactive printer.
+printPretty :: Pretty a => a -> IO ()
+printPretty = print . pretty

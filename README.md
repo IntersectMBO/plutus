@@ -7,10 +7,10 @@ This repository contains the various components and some documentation for the P
 `default.nix` defines a package set containing all the packages in this repository. These can be built directly.
 For example:
 ```
-nix build -f default.nix language-plutus-core
+nix build -f default.nix localPackages.language-plutus-core
 ```
 
-The Plutus Core specification is also built this way, as the attribute `plutus-core-spec`.
+The Plutus Core specification is also built this way, as the attribute `docs.plutus-core-spec`.
 
 ### Binary caches
 
@@ -30,5 +30,30 @@ https://hydra.iohk.io/job/serokell/plutus/language-plutus-core.x86_64-linux/late
 
 You can also build the docs yourself locally. For example:
 ```
-nix build -f default.nix language-plutus-core.doc
+nix build -f default.nix localPackages.language-plutus-core.doc
 ```
+
+## Glossary
+
+Definitions of some technical terms and names used throughout this project.
+
+- Extended UTxO
+    - The ledger model on which the Plutus Platform is based.
+- On-chain code
+    - Code written as part of a smart contract which executes on the chain during
+      transaction validation.
+- Off-chain code
+    - Code written as part of a smart contract which executes off the chain, usually
+      in a user's wallet.
+- Plutus Core
+    - A small functional programming language designed to run as on-chain code.
+- Plutus IR
+    - An intermediate language that compiles to Plutus Core, for use as a target
+      language for compiler writers.
+- Plutus Platform
+    - The combined software support for writing smart contracts, including:
+        - Libraries for writing off-chain code in Haskell.
+        - Libraries for writing on-chain code in Plutus Tx.
+        - Emulator support for testing smart contracts.
+- Plutus Tx
+    - A subset of Haskell which is compiled into Plutus Core.

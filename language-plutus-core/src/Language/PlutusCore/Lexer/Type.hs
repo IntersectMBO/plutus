@@ -28,6 +28,7 @@ import           Numeric                            (showHex)
 data TypeBuiltin = TyByteString
                  | TyInteger
                  | TySize
+                 | TyString
                  deriving (Show, Eq, Ord, Generic, NFData, Lift)
 
 -- | Builtin functions
@@ -89,11 +90,11 @@ which has the desired type signature:
     succInteger : forall s. integer s -> integer s
 -}
 
--- | The type of dynamic builtin functions. I.e. functions that exist on certain chains and do
+-- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
--- this allows to type check and evaluate dynamic builtins just like static ones.
+-- this allows to type check and evaluate dynamic built-in names just like static ones.
 newtype DynamicBuiltinName = DynamicBuiltinName
-    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic builtin function.
+    { unDynamicBuiltinName :: T.Text  -- ^ The name of a dynamic built-in name.
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift)
 
@@ -109,7 +110,7 @@ data Version a = Version a Natural Natural Natural
 -- | A keyword in Plutus Core.
 data Keyword = KwAbs
              | KwLam
-             | KwFix
+             | KwIFix
              | KwFun
              | KwAll
              | KwByteString
@@ -118,7 +119,8 @@ data Keyword = KwAbs
              | KwType
              | KwProgram
              | KwCon
-             | KwWrap
+             | KwIWrap
+             | KwBuiltin
              | KwUnwrap
              | KwError
              deriving (Show, Eq, Generic, NFData)
@@ -167,7 +169,7 @@ instance Pretty Special where
 instance Pretty Keyword where
     pretty KwAbs        = "abs"
     pretty KwLam        = "lam"
-    pretty KwFix        = "fix"
+    pretty KwIFix       = "ifix"
     pretty KwFun        = "fun"
     pretty KwAll        = "forall"
     pretty KwByteString = "bytestring"
@@ -176,7 +178,8 @@ instance Pretty Keyword where
     pretty KwType       = "type"
     pretty KwProgram    = "program"
     pretty KwCon        = "con"
-    pretty KwWrap       = "wrap"
+    pretty KwIWrap      = "iwrap"
+    pretty KwBuiltin    = "builtin"
     pretty KwUnwrap     = "unwrap"
     pretty KwError      = "error"
 
@@ -228,6 +231,7 @@ instance Pretty TypeBuiltin where
     pretty TyInteger    = "integer"
     pretty TyByteString = "bytestring"
     pretty TySize       = "size"
+    pretty TyString     = "string"
 
 instance Pretty (Version a) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

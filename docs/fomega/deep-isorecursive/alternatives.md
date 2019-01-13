@@ -16,19 +16,125 @@ Also iterated application is common at the type level as it simplifies unificati
 
 There is a [formalization sketch of this](https://gist.github.com/effectfully/8ae112e2a99393c493642fc52aafe87f#file-system-f-iso-agda).
 
+Here are some examples:
+
+the `nat` data type:
+
+```
+natF = \(nat :: *) -> all r. r -> (nat -> r) -> r
+nat  = fix natF []
+zero = wrap natF [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
+succ = \(n : nat) -> wrap natF [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
+```
+
+the `list` data type
+
+```
+listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+list  = \(a :: *) -> fix listF [a]
+nil   = /\(a :: *) -> wrap listF [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z
+cons  = /\(a :: *) -> \(x : a) (xs : list a) ->
+        wrap listF [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
+```
+
+where `[a]` is a list containing exactly one element: `a`.
+
+In general, each recursive data type is a `fix` applied to a pattern functor and a spine of type arguments. The pattern functor binds at least one variable, the one representing recursion, but it can bind more like in the `list` example where an additional type variable `a :: *` is bound. At the term level `wrap` receives the pattern functor of a data type being constructed and a spine of type arguments. The exact problem with elimination contexts is that an elimination context can't be inferred and we can't specify it, because elimination contexts do not have syntax. Here we are allowed to specify spines, because they do have syntax.
+
 ## Replace `fix :: (* -> *) -> *` by `ifix :: ((k -> *) -> k -> *) -> k -> *`
 
-The least invasive approach. We only need to replace `fix :: (* -> *) -> *` by `ifix :: ((k -> *) -> k -> *) -> k -> *`. The original `fix` [can be easily recovered](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d#file-ifixnat-agda).
-
-We can emulate application of `fix` to a spine of arguments. With kind-level products we could write `fix f (a1, a2, ... an)`. We do not have kind-level products, but we can just Church-encode spines:
+The least invasive approach. We only need to replace `fix :: (* -> *) -> *` by `ifix :: ((k -> *) -> k -> *) -> k -> *`. The original `fix` can be easily recovered as
 
 ```
-fix f (\(r :: k1 -> k2 -> ... -> kn -> *) -> r a1 a2 ... an)
+origF = \(r :: (* -> *) -> *) (f :: * -> *) -> f (r f)
+fix   =  \(f :: * -> *) ->                     ifix  origF f
+wrap  = /\(f :: * -> *) -> \(t : f (fix f)) -> iwrap origF f t
 ```
 
-which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case ([an illustration](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d#file-ifixn-agda)).
+(the encoding of `nat`, for example, then remains the same).
 
-Besides, `ifix` is what we use to [encode mutually recursive data types](https://gist.github.com/effectfully/e57d2816c475928a380e5a6b897ad17d) and having the ability to encode mutually recursive data type is the primary reason for having a higher-kinded `fix`.
+The type rules:
+
+```
+[infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]
+--------------------------------------------------------
+[infer| ifix pat arg :: *]
+
+[infer| term : ifix vPat vArg]    [infer| vArg :: k]
+------------------------------------------------------------------
+[infer| unwrap term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
+
+[infer| pat :: (k -> *) -> k -> *]    [check | arg :: k]    pat ~>? vPat    arg ~>? vArg
+[check| term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
+----------------------------------------------------------------------------------------
+[infer| iwrap pat arg term : ifix vPat vArg]
+```
+
+Note that we have to expand `ifix vPat` to `\(a :: k) -> ifix vPat a`, because `ifix` is a syntactic form that always receives a pattern functor and a type argument and can't be eta-contracted.
+
+Here is how the `list` data type looks with `ifix`:
+
+```
+listF = \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+list  = \(a :: *) -> ifix listF a
+nil   = /\(a :: *) -> iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z
+cons  = /\(a :: *) -> \(x : a) (xs : list a) ->
+            iwrap listF a /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
+```
+
+This is basically the same encoding as with the head-spine form approach, except `a` is provided directly rather than via a single-element list.
+
+However we also need to cover the generic n-ary case. With kind-level products we could write `fix f (a1, a2, ... an)`. We do not have kind-level products, but we can just Church-encode spines:
+
+```
+ifix f (\(r :: k1 -> k2 -> ... -> kn -> *) -> r a1 a2 ... an)
+```
+
+which gives us `k ~ (k1 -> k2 -> ... -> kn -> *) -> *`. This is not a "true" Church-encoded spine, because the resulting type is limited to be of kind `*`, but this seems enough in our case (see [this illustration](TreeForest.md)).
+
+What is implemented right now performs this Church-encoding and the resulting machinery looks very much like the head-spine form approach for the user. Our examples become
+
+`nat`:
+
+```
+(nat, wrapNat) = makeRecursiveType nat (all r. r -> (nat -> r) -> r)
+zero = wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
+succ = \(n : nat) -> wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
+```
+
+`list`:
+
+```
+(list, wrapList) = makeRecursiveType list \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
+nil  = /\(a :: *) -> wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
+cons = /\(a :: *) -> \(x : a) (xs : list a) ->
+           wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
+```
+
+where `makeRecursiveType` is a function that hides all the Church-encoding details from the user. We see spines here again: `[]` in the `nat` example and `[a]` in the `list` example. Those are true spines, they can be of any length. We could also make `wrapNat` not receive any spine at all, because it must always be the empty spine, but we keep those empty spines for uniformity.
+
+## Comparison of the `ifix` and head-spine form approaches
+
+As shown in the end of the previous section there is no big difference to the user which approach is used as they both look almost identically to the user with only small cosmetic differences.
+
+Regardless of the approach, `unwrap` is always used the same way. Even with elimination contexts or without higher kinds at all `unwrap` was used in the same way. The usages of `unwrap` in the Plutus Core codebase have never changed basically.
+
+It also does not matter which approach we choose from the encoding of mutual recursion perspective. This is because for encoding mutual recursion we use [ifix](../mutual-type-level-recursion/MutualData.agda) which we have out of the box in the `ifix` approach and which we can get trivially in the head-spine form approach:
+
+```
+ifix  =  \(f :: (k -> *) -> k -> *) (a :: k) ->                        Spines.fix  f [a]
+iwrap = /\(f :: (k -> *) -> k -> *) (a :: k) -> \(t : f (ifix f) a) -> Spines.wrap f [a] t
+```
+
+(where `Spines.fix` and `Spines.wrap` are the corresponding primitives in the head-spine approach). I.e. the only thing we need is just to use a single-element spine.
+
+There are only two notable differences between the approaches:
+
+1. the head-spine form solution may be more efficient, because it does not Church-encode spines. The exact performance penalty is not clear right now and will be investigated
+2. the `ifix` solution requires much less changes to the Plutus Core AST and thus is more conservative
+3. it's not immediately clear how to specify the rules for the head-spine form solution (which is why they're not present in this document)
+
+These are all the trade-offs known at the moment.
 
 ## Replace `synth`-only moded type system w/ `synth+check` moded type system
 

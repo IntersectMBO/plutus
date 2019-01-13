@@ -1,1 +1,1 @@
-(all a (type) (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))))
+(all a (type) (ifix (lam list (fun (type) (type)) (lam a (type) (all r (type) (fun r (fun (fun a (fun [list a] r)) r))))) a))

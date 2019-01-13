@@ -1,8 +1,8 @@
-\documentclass[../main.tex]{subfiles}
+\documentclass[../plutus-core-specification.tex]{subfiles}
 
 \begin{document}
 
-\begin{figure*}[t]
+\begin{minipage}{\linewidth}
     \centering
     \[\begin{array}{lrclr}
         \textrm{Term}             & L,M,N  & ::= & x                          & \textrm{variable}\\
@@ -15,7 +15,7 @@
                                   &        &     & \app{M}{N}                 & \textrm{function application}\\
                                   &        &     & \builtin{bn}{A^*}{M^*}     & \textrm{builtin}\\
                                   &        &     & \error{A}                  & \textrm{error}\\
-        \textrm{Value}            & U, V   & ::= & \con{cn}                   & \textrm{contant}\\
+        \textrm{Value}            & U, V   & ::= & \con{cn}                   & \textrm{constant}\\
                                   &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
                                   &        &     & \wrap{\alpha}{A}{V}        & \textrm{fix type's wrap}\\
                                   &        &     & \lam{x}{A}{M}              & \textrm{$\lambda$ abstraction}\\
@@ -44,8 +44,8 @@
         \textrm{Program}          & P      & ::= & \version{v}{M}             & \textrm{versioned program}\\
 
     \end{array}\]
-    \caption{Grammar of Plutus Core}
+    \captionof{figure}{Grammar of Plutus Core}
     \label{fig:Plutus_core_grammar}
-\end{figure*}
+\end{minipage}
 
 \end{document}

@@ -39,10 +39,16 @@ library
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
+        Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
+        Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Normalize
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
         Language.PlutusCore.Subst
+        Language.PlutusCore.Name
+        Language.PlutusCore.Check.Uniques
+        Language.PlutusCore.FsTree
         Language.PlutusCore.StdLib.Data.Bool
         Language.PlutusCore.StdLib.Data.ChurchNat
         Language.PlutusCore.StdLib.Data.Function
@@ -54,22 +60,31 @@ library
         Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Meta.Data.Tuple
         Language.PlutusCore.StdLib.Type
+        Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         PlutusPrelude
         Common
+        Data.ByteString.Lazy.Hash
         PlcTestUtils
-    build-tools: alex -any, happy >=1.17.1
-    hs-source-dirs: src prelude stdlib generators common
+    build-tool-depends: alex:alex, happy:happy >= 1.17.1
+    hs-source-dirs: src prelude stdlib examples generators common
     other-modules:
         Language.PlutusCore.Type
-        Language.PlutusCore.Name
         Language.PlutusCore.Lexer
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Parser
         Language.PlutusCore.Constant.Apply
+        Language.PlutusCore.Constant.Dynamic.BuiltinName
+        Language.PlutusCore.Constant.Dynamic.Call
+        Language.PlutusCore.Constant.Dynamic.Emit
+        Language.PlutusCore.Constant.Dynamic.Instances
+        Language.PlutusCore.Constant.Dynamic.OnChain
+        Language.PlutusCore.Constant.Dynamic.Pretty
+        Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Make
+        Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.Pretty.Classic
@@ -78,8 +93,9 @@ library
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
         Language.PlutusCore.TypeSynthesis
-        Language.PlutusCore.Normalize
-        Language.PlutusCore.CBOR
+        Language.PlutusCore.Analysis.Definitions
+        Language.PlutusCore.Examples.Data.InterList
+        Language.PlutusCore.Examples.Data.TreeForest
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Entity
         Language.PlutusCore.Generators.Internal.TypeEvalCheck
@@ -87,7 +103,6 @@ library
         Language.PlutusCore.Generators.Internal.Utils
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
-        Data.Coerce.Lens
     default-language: Haskell2010
     default-extensions: ScopedTypeVariables FlexibleContexts
                         DeriveGeneric StandaloneDeriving DeriveLift
@@ -105,6 +120,7 @@ library
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        cryptonite -any,
         containers -any,
         array -any,
         mtl -any,
@@ -113,11 +129,11 @@ library
         recursion-schemes -any,
         text -any,
         prettyprinter >=1.1.0.1,
-        microlens -any,
-        microlens-th -any,
+        lens -any,
         composition-prelude >=1.1.0.1,
         template-haskell -any,
         th-lift-instances -any,
+        memory -any,
         mmorph -any,
         cborg -any,
         serialise -any,
@@ -145,12 +161,7 @@ executable language-plutus-core-generate-evaluation-test
     build-depends:
         base -any,
         language-plutus-core -any,
-        bytestring -any,
-        serialise -any,
-        text -any,
-        prettyprinter -any,
-        mmorph -any,
-        hedgehog -any
+        text -any
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -171,7 +182,9 @@ test-suite language-plutus-core-test
         Evaluation.Constant.Failure
         Evaluation.Constant.Resize
         Generators
+        Normalization.Type
         Pretty.Readable
+        Check.Spec
         TypeSynthesis.Spec
         Quotation.Spec
     default-language: Haskell2010

@@ -37,7 +37,7 @@ import Language.PlutusCore.Constant.Make
 %nonassoc integer
 %nonassoc float
 %nonassoc bytestring
-%nonassoc wrap
+%nonassoc iwrap
 %nonassoc unwrap
 %nonassoc lam
 %nonassoc con
@@ -47,8 +47,9 @@ import Language.PlutusCore.Constant.Make
 
     abs { LexKeyword $$ KwAbs }
     lam { LexKeyword $$ KwLam }
-    fix { LexKeyword $$ KwFix }
+    ifix { LexKeyword $$ KwIFix }
     con { LexKeyword $$ KwCon }
+    builtin { LexKeyword $$ KwBuiltin }
     fun { LexKeyword $$ KwFun }
     all { LexKeyword $$ KwAll }
     size { LexKeyword $$ KwSize }
@@ -56,7 +57,7 @@ import Language.PlutusCore.Constant.Make
     bytestring { LexKeyword $$ KwByteString }
     type { LexKeyword $$ KwType }
     program { LexKeyword $$ KwProgram }
-    wrap { LexKeyword $$ KwWrap }
+    iwrap { LexKeyword $$ KwIWrap }
     unwrap { LexKeyword $$ KwUnwrap }
     errorTerm { LexKeyword $$ KwError }
 
@@ -94,8 +95,7 @@ Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
 Version : naturalLit dot naturalLit dot naturalLit { Version (loc $1) (tkNat $1) (tkNat $3) (tkNat $5) }
 
-Builtin : builtinVar { BuiltinName (loc $1) (tkBuiltin $1) }
-        | naturalLit exclamation integerLit {% handleInteger (loc $1) (tkNat $1) (tkInt $3) }
+Constant : naturalLit exclamation integerLit {% handleInteger (loc $1) (tkNat $1) (tkInt $3) }
         | naturalLit exclamation naturalLit {% handleInteger (loc $1) (tkNat $1) (fromIntegral (tkNat $3)) }
         | naturalLit exclamation byteStringLit { BuiltinBS (loc $1) (tkNat $1) (tkBytestring $3) } -- this is kinda broken but I'm waiting for a new spec
         | naturalLit { BuiltinSize (loc $1) (tkNat $1) }
@@ -109,8 +109,9 @@ Term : Name { Var (nameAttribute $1) $1 }
      | openBrace Term some(Type) closeBrace { tyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term) closeBracket { app $1 $2 (NE.reverse $3) } -- TODO should we reverse here or somewhere else?
-     | openParen con Builtin closeParen { Constant $2 $3 }
-     | openParen wrap TyName Type Term closeParen { Wrap $2 $3 $4 $5 }
+     | openParen con Constant closeParen { Constant $2 $3 }
+     | openParen iwrap Type Type Term closeParen { IWrap $2 $3 $4 $5 }
+     | openParen builtin builtinVar closeParen { Builtin $2 (BuiltinName (loc $3) (tkBuiltin $3)) }
      | openParen unwrap Term closeParen { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen { Error $2 $3 }
 
@@ -123,7 +124,7 @@ Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen fix TyName Type closeParen { TyFix $2 $3 $4 }
+     | openParen ifix Type Type closeParen { TyIFix $2 $3 $4 }
      | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
      | openParen con BuiltinType closeParen { $3 }
 
@@ -159,28 +160,28 @@ parseTermST str = runAlexST' str (runExceptT parsePlutusCoreTerm) >>= liftEither
 parseTypeST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Type TyName AlexPosn)
 parseTypeST str = runAlexST' str (runExceptT parsePlutusCoreType) >>= liftEither
 
-mapParseRun :: (MonadError (Error a) m, MonadQuote m) => StateT IdentifierState (Except (ParseError a)) b -> m b
+mapParseRun :: (AsParseError e a, MonadError e m, MonadQuote m) => StateT IdentifierState (Except (ParseError a)) b -> m b
 -- we need to run the parser starting from our current next unique, then throw away the rest of the
 -- parser state and get back the new next unique
-mapParseRun run = convertErrors asError $ do
+mapParseRun run = do
     nextU <- liftQuote get
-    (p, (_, _, u)) <- liftEither $ runExcept $ runStateT run (identifierStateFrom nextU)
+    (p, (_, _, u)) <- throwingEither _ParseError $ runExcept $ runStateT run (identifierStateFrom nextU)
     liftQuote $ put u
     pure p
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
+parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name AlexPosn)
 parseProgram str = mapParseRun (parseST str)
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name AlexPosn)
+parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name AlexPosn)
 parseTerm str = mapParseRun (parseTermST str)
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseType :: (MonadError (Error AlexPosn) m, MonadQuote m) => BSL.ByteString -> m (Type TyName AlexPosn)
+parseType :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => BSL.ByteString -> m (Type TyName AlexPosn)
 parseType str = mapParseRun (parseTypeST str)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.

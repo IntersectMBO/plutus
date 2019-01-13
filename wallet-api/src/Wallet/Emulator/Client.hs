@@ -10,28 +10,29 @@ module Wallet.Emulator.Client
   , createWallet
   , getTransactions
   , blockValidated
-  , blockHeight
-  , blockchainActions
+  , slot
+  , processPending
   , assertOwnFundsEq
   , assertIsValidated
   , process
   ) where
 
-import           Control.Monad             (void)
-import           Control.Monad.Except      (ExceptT (ExceptT), throwError)
-import           Control.Monad.Operational (interpretWithMonad)
-import           Control.Monad.Reader      (MonadReader, ReaderT, asks, lift, runReaderT)
-import           Control.Monad.Writer      (MonadWriter, WriterT, runWriterT, tell)
-import           Data.Foldable             (fold)
-import           Data.Proxy                (Proxy (Proxy))
-import           Data.Set                  (Set)
-import           Servant.API               ((:<|>) ((:<|>)), NoContent)
-import           Servant.Client            (ClientEnv, ClientM, ServantError, client, runClientM)
-import           Wallet.API                (KeyPair, WalletAPI (..))
-import           Wallet.Emulator.Http      (API)
-import           Wallet.Emulator.Types     (Assertion (IsValidated, OwnFundsEqual), Event (..),
-                                            Notification (BlockHeight, BlockValidated), Trace, Wallet)
-import           Wallet.UTXO               (Block, Height, Tx, TxIn', TxOut', Value)
+import           Control.Monad              (void)
+import           Control.Monad.Except       (ExceptT (ExceptT), throwError)
+import           Control.Monad.Operational  (interpretWithMonad)
+import           Control.Monad.Reader       (MonadReader, ReaderT, asks, lift, runReaderT)
+import           Control.Monad.Writer       (MonadWriter, WriterT, runWriterT, tell)
+import           Data.Foldable              (fold)
+import           Data.Proxy                 (Proxy (Proxy))
+import           Data.Set                   (Set)
+import           Ledger                     (Address', Block, Slot, Tx, TxIn', TxOut', Value)
+import           Servant.API                ((:<|>) ((:<|>)), NoContent)
+import           Servant.Client             (ClientEnv, ClientM, ServantError, client, runClientM)
+import           Wallet.API                 (KeyPair, WalletAPI (..))
+import           Wallet.Emulator.AddressMap (AddressMap)
+import           Wallet.Emulator.Http       (API)
+import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqual), Event (..),
+                                             Notification (BlockValidated, CurrentSlot), Trace, Wallet)
 
 api :: Proxy API
 api = Proxy
@@ -40,16 +41,18 @@ wallets :: ClientM [Wallet]
 fetchWallet :: Wallet -> ClientM Wallet
 createWallet :: Wallet -> ClientM NoContent
 myKeyPair' :: Wallet -> ClientM KeyPair
-createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', TxOut')
-payToPublicKey' :: Wallet -> Value -> ClientM TxOut'
+createPaymentWithChange' :: Wallet -> Value -> ClientM (Set TxIn', Maybe TxOut')
 submitTxn' :: Wallet -> Tx -> ClientM [Tx]
 getTransactions :: ClientM [Tx]
-blockchainActions :: ClientM [Tx]
+processPending :: ClientM [Tx]
 blockValidated :: Wallet -> Block -> ClientM ()
-blockHeight :: Wallet -> Height -> ClientM ()
+getAddresses :: Wallet -> ClientM AddressMap
+startWatching' :: Wallet -> Address' -> ClientM NoContent
+getSlot :: Wallet -> ClientM Slot
+setSlot :: Wallet -> Slot -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> payToPublicKey' :<|> submitTxn' :<|> getTransactions) :<|> (blockValidated :<|> blockHeight) :<|> blockchainActions  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> startWatching' :<|> getSlot :<|> getTransactions) :<|> (blockValidated :<|> setSlot) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -92,11 +95,13 @@ instance WalletAPI WalletClient where
   myKeyPair = liftWallet myKeyPair'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)
   register _ _ = pure () -- TODO: Keep track of triggers in emulated wallet
-  payToPublicKey value = liftWallet (`payToPublicKey'` value)
+  watchedAddresses = liftWallet getAddresses
+  slot = liftWallet getSlot
+  startWatching a = void $ liftWallet (`startWatching'` a)
 
 handleNotification :: Notification -> (Wallet -> ClientM ())
 handleNotification (BlockValidated block) = (`blockValidated` block)
-handleNotification (BlockHeight height)   = (`blockHeight` height)
+handleNotification (CurrentSlot slt)      = (`setSlot` slt)
 
 assert :: Assertion -> ClientM ()
 assert (IsValidated tx)             = void $ assertIsValidated tx
@@ -111,7 +116,7 @@ eval clientEnv =
       traverse
         (runWalletAction clientEnv wallet . liftWallet . handleNotification)
         trigger
-    BlockchainActions -> ExceptT $ runClientM blockchainActions clientEnv
+    BlockchainProcessPending -> ExceptT $ runClientM processPending clientEnv
     Assertion a -> ExceptT $ runClientM (assert a) clientEnv
 
 process :: ClientEnv -> Trace WalletClient a -> ExceptT ServantError IO a

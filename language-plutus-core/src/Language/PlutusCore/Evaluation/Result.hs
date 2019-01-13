@@ -13,8 +13,8 @@ module Language.PlutusCore.Evaluation.Result
     ) where
 
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 -- | The parameterized type of results various evaluation engines return.
 data EvaluationResultF a
@@ -38,6 +38,9 @@ type EvaluationResult = EvaluationResultF (Value TyName Name ())
 instance PrettyBy config (Value TyName Name ()) => PrettyBy config EvaluationResult where
     prettyBy config (EvaluationSuccess value) = prettyBy config value
     prettyBy _      EvaluationFailure         = "Failure"
+
+instance Pretty EvaluationResult where
+    pretty = prettyPlcDef
 
 -- | Map 'EvaluationSuccess' to 'Just' and 'EvaluationFailure' to 'Nothing'.
 evaluationResultToMaybe :: EvaluationResult -> Maybe (Value TyName Name ())

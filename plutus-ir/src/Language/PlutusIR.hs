@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module Language.PlutusIR (
     TyName (..),
@@ -18,23 +19,35 @@ module Language.PlutusIR (
     Recursivity (..),
     Binding (..),
     Term (..),
-    prettyDef,
+    Program (..),
     embedIntoIR
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type)
+import           Language.PlutusCore        (Kind, Name, TyName, Type (..))
 import qualified Language.PlutusCore        as PLC
+import           Language.PlutusCore.CBOR   ()
 import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
+import           Codec.Serialise            (Serialise)
 import           GHC.Generics               (Generic)
 
 -- Datatypes
 
+{- Note: [Serialization of PIR]
+The serialized version of Plutus-IR will be included in  the final
+executable for helping debugging and testing and providing better error
+reporting. It is not meant to be stored on the chain, which means that
+the underlying representation can vary. The `Generic` instances of the
+terms can thus be used as backwards compatibility is not required.
+-}
+
 data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] (name a) [VarDecl tyname name a]
     deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise a, Serialise (tyname a) , Serialise (name a)) => Serialise (Datatype tyname name a)
 
 varDeclNameString :: VarDecl name Name a -> String
 varDeclNameString = bsToStr . PLC.nameString . varDeclName
@@ -49,10 +62,15 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 data Recursivity = NonRec | Rec
     deriving (Show, Eq, Generic)
+
+instance Serialise Recursivity
+
 data Binding tyname name a = TermBind a (VarDecl tyname name a) (Term tyname name a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname a)
                            | DatatypeBind a (Datatype tyname name a)
     deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Binding tyname name a)
 
 -- Terms
 
@@ -82,18 +100,22 @@ Plutus Core to use reified declarations.
 -}
 
 -- See note [PIR as a PLC extension]
-data Term tyname name a = Let a Recursivity [Binding tyname name a] (Term tyname name a)
+data Term tyname name a =
                         -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
+                          Let a Recursivity [Binding tyname name a] (Term tyname name a)
                         | Var a (name a)
                         | TyAbs a (tyname a) (Kind a) (Term tyname name a)
                         | LamAbs a (name a) (Type tyname a) (Term tyname name a)
                         | Apply a (Term tyname name a) (Term tyname name a)
                         | Constant a (PLC.Constant a)
+                        | Builtin a (PLC.Builtin a)
                         | TyInst a (Term tyname name a) (Type tyname a)
                         | Error a (Type tyname a)
-                        | Wrap a (tyname a) (Type tyname a) (Term tyname name a)
+                        | IWrap a (Type tyname a) (Type tyname a) (Term tyname name a)
                         | Unwrap a (Term tyname name a)
                         deriving (Functor, Show, Eq, Generic)
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Term tyname name a)
 
 embedIntoIR :: PLC.Term tyname name a -> Term tyname name a
 embedIntoIR = \case
@@ -102,10 +124,16 @@ embedIntoIR = \case
     PLC.LamAbs a n ty t -> LamAbs a n ty (embedIntoIR t)
     PLC.Apply a t1 t2 -> Apply a (embedIntoIR t1) (embedIntoIR t2)
     PLC.Constant a c ->  Constant a c
+    PLC.Builtin a bi -> Builtin a bi
     PLC.TyInst a t ty -> TyInst a (embedIntoIR t) ty
     PLC.Error a ty -> Error a ty
     PLC.Unwrap a t -> Unwrap a (embedIntoIR t)
-    PLC.Wrap a tn ty t -> Wrap a tn ty (embedIntoIR t)
+    PLC.IWrap a ty1 ty2 t -> IWrap a ty1 ty2 (embedIntoIR t)
+
+-- no version as PIR is not versioned
+data Program tyname name a = Program a (Term tyname name a) deriving Generic
+
+instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (Program tyname name a)
 
 -- Pretty-printing
 
@@ -146,10 +174,37 @@ instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configN
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])
         Apply _ t1 t2 -> brackets' (vsep' [prettyBy config t1, prettyBy config t2])
         Constant _ c -> parens' ("con" </> prettyBy config c)
+        Builtin _ bi -> parens' ("builtin" </> prettyBy config bi)
         TyInst _ t ty -> braces' (vsep' [prettyBy config t, prettyBy config ty])
         Error _ ty -> parens' ("error" </> prettyBy config ty)
-        Wrap _ n ty t -> parens' ("wrap" </> vsep' [ prettyBy config n, prettyBy config ty, prettyBy config t ])
+        IWrap _ ty1 ty2 t -> parens' ("iwrap" </> vsep' [ prettyBy config ty1, prettyBy config ty2, prettyBy config t ])
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
 
-prettyDef :: Term TyName Name a -> Doc ann
-prettyDef = prettyBy $ PLC.PrettyConfigClassic PLC.defPrettyConfigName
+instance (PLC.PrettyClassicBy configName (tyname a), PLC.PrettyClassicBy configName (name a)) =>
+        PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name a) where
+    prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
+
+-- See note [Default pretty instances for PLC]
+instance (PLC.PrettyClassic (tyname a)) =>
+    Pretty (TyVarDecl tyname a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (VarDecl tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Datatype tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Binding tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Term tyname name a) where
+    pretty = PLC.prettyClassicDef
+
+instance (PLC.PrettyClassic (tyname a), PLC.PrettyClassic (name a)) =>
+    Pretty (Program tyname name a) where
+    pretty = PLC.prettyClassicDef

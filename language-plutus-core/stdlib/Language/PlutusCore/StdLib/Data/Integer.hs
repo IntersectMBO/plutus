@@ -6,7 +6,7 @@ module Language.PlutusCore.StdLib.Data.Integer
     ( getBuiltinSuccInteger
     ) where
 
-import           Language.PlutusCore.Constant (makeDynBuiltinIntSizedAs)
+import           Language.PlutusCore.Constant.Make (makeDynBuiltinIntSizedAs)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -24,7 +24,7 @@ getBuiltinSuccInteger = rename =<< do
     return
         . TyAbs () s (Size ())
         . LamAbs () i (TyApp () (TyBuiltin () TyInteger) $ TyVar () s)
-        . mkIterApp () (TyInst () (Constant () $ BuiltinName () AddInteger) $ TyVar () s)
+        . mkIterApp () (TyInst () (Builtin () $ BuiltinName () AddInteger) $ TyVar () s)
         $ [ Var () i
           , makeDynBuiltinIntSizedAs (TyVar () s) (Var () i) 1
           ]

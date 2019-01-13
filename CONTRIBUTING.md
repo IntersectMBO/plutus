@@ -1,17 +1,14 @@
 # Developing the code
 
-An appropriate environment for developing a package can be entered using the `env` attribute of the package. For example:
-```
-nix-shell default.nix -A language-plutus-core.env
-```
-
-There are also `shell.nix` files in the package subdirectories.
+An appropriate environment for developing a package can be entered using `nix-shell` in the package directory. This
+includes all the dependencies for the package and `cabal`, so you should be able to `cabal build` a package after
+doing this.
 
 ## Updating the generated Haskell package set
 
 `pkgs/default.nix` contains a generated package set with all the dependencies for this project.
 
-You should regenerate this if you change any dependencies in cabal files. To do this, use the environment defined in `shell.nix`, and run `pkgs/generate.sh`.
+You should regenerate this if you change any dependencies in cabal files. To do this, run `pkgs/generate.sh`.
 
 ## Adding a new package
 
@@ -19,13 +16,10 @@ You need to do a few things when adding a new package, in the following order:
 - Add the cabal file.
 - Add the package to `stack.yaml`.
 - Update the generated package set (see above).
-- Add an appropriate override to `default.nix` for that package.
-    - These do things like "enable building Haddock on Hydra". You can just copy the line for another package and change the package name.
-- (If you want the package to be built by CI) Add the package to `release.nix`.
-    - You should just copy exactly what is there for other packages.
-- (If you want the package to be hlinted by CI) Add the project to `tests/hlint.nix`.
+- Add the project to `plutusPkgList` in `lib.nix`.
+    - This will ensure it gets built by CI and so on.
 
-You should at least be able to run `nix build -f default.nix <package name>` successfully at the root. You can use `nix log -f default.nix <package name>` if you want to check the build output.
+You should at least be able to run `nix build -f default.nix localPackages.<package name>` successfully at the root. You can use `nix log -f default.nix localPackages.<package name>` if you want to check the build output.
 
 ## Code style
 

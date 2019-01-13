@@ -6,12 +6,13 @@ module Language.PlutusIR.Compiler.Recursion where
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
+import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import {-# SOURCE #-} Language.PlutusIR.Compiler.Term
 import           Language.PlutusIR.Compiler.Types
 
 import           Control.Monad
-import           Control.Monad.Except
+import           Control.Monad.Error.Lens
 import           Control.Monad.Reader
 
 import qualified Language.PlutusCore                        as PLC
@@ -60,13 +61,13 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
 
  -- See note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
-compileRecTerms :: Compiling m a => PLCTerm a -> [TermDef TyName Name (Provenance a)] -> m (PLCTerm a)
+compileRecTerms :: Compiling m e a => PLCTerm a -> [TermDef TyName Name (Provenance a)] -> m (PLCTerm a)
 compileRecTerms body bs = do
     p <- ask
     PLC.Apply p <$> mkTupleBinder body (fmap PLC.defVar bs) <*> mkFixpoint bs
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
-mkFixpoint :: Compiling m a => [TermDef TyName Name (Provenance a)] -> m (PLCTerm a)
+mkFixpoint :: Compiling m e a => [TermDef TyName Name (Provenance a)] -> m (PLCTerm a)
 mkFixpoint bs = do
     p <- ask
 
@@ -74,10 +75,10 @@ mkFixpoint bs = do
     -- The pairs of types we'll need for fixN
     asbs <- forM tys $ \case
         PLC.TyFun _ i o -> pure (i, o)
-        t -> throwError $ CompilationError (PLC.tyLoc t) "Recursive values must be of function type. You may need to manually add unit arguments."
+        t -> throwing _Error $ CompilationError (PLC.tyLoc t) "Recursive values must be of function type. You may need to manually add unit arguments."
 
     q <- liftQuote $ freshTyName p "Q"
-    choose <- liftQuote $ freshName p "choose"
+    choose <- safeFreshName p "choose"
     let chooseTy = PLC.mkIterTyFun p tys (PLC.TyVar p q)
 
     -- \f1 ... fn -> choose b1 ... bn
@@ -100,7 +101,7 @@ mkFixpoint bs = do
 -- TODO: move to MkPlc?
 -- | Given a term, and a list of var decls, creates a function which takes a tuple of values for each decl, and binds
 -- them in the body.
-mkTupleBinder :: Compiling m a => PLCTerm a -> [VarDecl TyName Name (Provenance a)] -> m (PLCTerm a)
+mkTupleBinder :: Compiling m e a => PLCTerm a -> [VarDecl TyName Name (Provenance a)] -> m (PLCTerm a)
 mkTupleBinder body vars = do
     p <- ask
 
@@ -110,7 +111,7 @@ mkTupleBinder body vars = do
         ntuple <- setProvenance p <$> Tuple.getBuiltinTuple (length tys)
         pure $ PLC.mkIterTyApp p ntuple tys
 
-    tupleArg <- liftQuote $ freshName p "tuple"
+    tupleArg <- safeFreshName p "tuple"
 
     -- _i tuple
     accesses <- forM [0..(length tys -1)] $ \i -> do

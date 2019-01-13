@@ -5,7 +5,7 @@
     (lam
       ds_1
       [(con integer) (con 64)]
-      [ [ { (con lessThanInteger) (con 64) } ds_0 ] ds_1 ]
+      [ [ { (builtin lessThanInteger) (con 64) } ds_0 ] ds_1 ]
     )
   )
 )

@@ -34,7 +34,7 @@ module Classic where
 
   -- We can use the most straightforward fixed-point operator in order to get mutual recursion.
   {-# TERMINATING #-}
-  fix : ∀ {A} -> (A -> A) -> A
+  fix : {A : Set} -> (A -> A) -> A
   fix f = f (fix f)
 
   -- We instantiate `fix` to be defined over a pair of functions. I.e. a generic fixed-point
@@ -155,7 +155,7 @@ module Uncurried where
   -- We can now do another twist and turn `A × B` into `∀ {R} -> (A -> B -> R) -> R` which finally
   -- allows us to get rid of tuples:
 
-  fix2 : ∀ {A B R} -> (∀ {Q} -> (A -> B -> Q) -> A -> B -> Q) -> (A -> B -> R) -> R
+  fix2 : {A B R : Set} -> (∀ {Q} -> (A -> B -> Q) -> A -> B -> Q) -> (A -> B -> R) -> R
   fix2 f k = k (fix2 f (f λ x y -> x)) (fix2 f (f λ x y -> y))
 
   -- `k` is the continuation that represents a Church-encoded tuple returned as the result.
@@ -194,7 +194,7 @@ module Uncurried where
   -- It is straighforward to define a fixed-point combinator for a family of three mutually
   -- recursive functions:
 
-  fix3 : ∀ {A B C R} -> (∀ {Q} -> (A -> B -> C -> Q) -> A -> B -> C -> Q) -> (A -> B -> C -> R) -> R
+  fix3 : {A B C R : Set} -> (∀ {Q} -> (A -> B -> C -> Q) -> A -> B -> C -> Q) -> (A -> B -> C -> R) -> R
   fix3 f k = k (fix3 f (f λ x y z -> x)) (fix3 f (f λ x y z -> y)) (fix3 f (f λ x y z -> z))
 
   -- The pattern is clear and we can abstract it.
@@ -261,17 +261,17 @@ module UncurriedGeneral where
 
   -- Assembling everything together, we arrive at
 
-  fixBy : ∀ {F : Set -> Set}
+  fixBy : {F : Set -> Set}
         -> ((∀ {Q} -> F Q -> Q) -> ∀ {R} -> F R -> R)  -- by fact (3)
         -> (∀ {Q} -> F Q -> F Q) -> ∀ {R} -> F R -> R  -- by fact (1)
   fixBy by f = by (fixBy by f ∘ f)                     -- by fact (2)
 
   -- Let's now implement particular `by`s:
 
-  by2 : ∀ {A B} -> (∀ {Q} -> (A -> B -> Q) -> Q) -> ∀ {R} -> (A -> B -> R) -> R
+  by2 : {A B : Set} -> (∀ {Q} -> (A -> B -> Q) -> Q) -> {R : Set} -> (A -> B -> R) -> R
   by2 r k = k (r λ x y -> x) (r λ x y -> y)
 
-  by3 : ∀ {A B C} -> (∀ {Q} -> (A -> B -> C -> Q) -> Q) -> ∀ {R} -> (A -> B -> C -> R) -> R
+  by3 : {A B C : Set} -> (∀ {Q} -> (A -> B -> C -> Q) -> Q) -> {R : Set} -> (A -> B -> C -> R) -> R
   by3 r k = k (r λ x y z -> x) (r λ x y z -> y) (r λ x y z -> z)
 
   -- and fixed-points combinators from the previous section in terms of what we derived in this one:
@@ -314,19 +314,19 @@ module LazinessStrictness where
 
   -- The version of `fix2` that works in a strict language can be defined as follows:
 
-  by2' : ∀ {A₁ B₁ A₂ B₂}
+  by2' : {A₁ B₁ A₂ B₂ : Set}
        -> (∀ {Q} -> ((A₁ -> B₁) -> (A₂ -> B₂) -> Q) -> Q)
-       -> ∀ {R} -> ((A₁ -> B₁) -> (A₂ -> B₂) -> R) -> R
+       -> {R : Set} -> ((A₁ -> B₁) -> (A₂ -> B₂) -> R) -> R
   by2' r k = k (λ x₁ -> r λ f₁ f₂ -> f₁ x₁) (λ x₂ -> r λ f₁ f₂ -> f₂ x₂)
 
-  fix2' : ∀ {A₁ B₁ A₂ B₂}
+  fix2' : {A₁ B₁ A₂ B₂ : Set}
         -> (∀ {Q} -> ((A₁ -> B₁) -> (A₂ -> B₂) -> Q) -> (A₁ -> B₁) -> (A₂ -> B₂) -> Q)
-        -> ∀ {R} -> ((A₁ -> B₁) -> (A₂ -> B₂) -> R) -> R
+        -> {R : Set} -> ((A₁ -> B₁) -> (A₂ -> B₂) -> R) -> R
   fix2' = fixBy by2'
 
   -- The difference is that in
 
-  by2 : ∀ {A B} -> (∀ {Q} -> (A -> B -> Q) -> Q) -> ∀ {R} -> (A -> B -> R) -> R
+  by2 : {A B : Set} -> (∀ {Q} -> (A -> B -> Q) -> Q) -> {R : Set} -> (A -> B -> R) -> R
   by2 r k = k (r λ x y -> x) (r λ x y -> y)
 
   -- both calls to `r` are forced before `k` returns, while in `by2'` additional lambdas that bind

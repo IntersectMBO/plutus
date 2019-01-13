@@ -5,14 +5,17 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant          (typeOfBuiltinName)
+import           Language.PlutusCore.Constant            (typeOfBuiltinName)
+import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.StdLib.Everything
+
+import           Language.PlutusCore.Examples.Everything (examples)
+import           Language.PlutusCore.StdLib.Everything   (stdLib)
 
 import           Common
 
 import           Control.Monad.Except
-import           System.FilePath                       ((</>))
+import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -21,7 +24,7 @@ kindcheckQuoted
     => Quote (Type TyName ()) -> m (Type TyName ())
 kindcheckQuoted getType = do
     ty <- liftQuote getType
-    _ <- annotateType ty >>= kindCheck (TypeCheckCfg 1000 $ TypeConfig True mempty)
+    _ <- annotateType ty >>= kindCheck (TypeConfig True mempty Nothing)
     return ty
 
 typecheckQuoted
@@ -29,7 +32,7 @@ typecheckQuoted
     => Quote (Term TyName Name ()) -> m (Term TyName Name ())
 typecheckQuoted getTerm = do
     term <- liftQuote getTerm
-    _ <- annotateTerm term >>= typecheckTerm (TypeCheckCfg 1000 $ TypeConfig True mempty)
+    _ <- annotateTerm term >>= typecheckTerm (TypeConfig True mempty Nothing)
     return term
 
 -- | Assert a 'Type' is well-kinded.
@@ -50,12 +53,14 @@ assertIllTyped getTerm = case runExcept . runQuoteT $ typecheckQuoted getTerm of
     Right term -> assertFailure $ "Well-typed: " ++ prettyPlcCondensedErrorClassicString term
     Left  _    -> return ()
 
-test_typecheckStdLib :: TestTree
-test_typecheckStdLib =
-    foldStdLib
-        testGroup
-        (\name -> testCase name . assertWellKinded)
-        (\name -> testCase name . assertWellTyped)
+test_typecheckAvailable :: TestTree
+test_typecheckAvailable =
+    testGroup "Available" $
+        foldPlcFolderContents
+            testGroup
+            (\name -> testCase name . assertWellKinded)
+            (\name -> testCase name . assertWellTyped)
+            (stdLib <> examples)
 
 -- | Self-application. An example of ill-typed term.
 --
@@ -91,6 +96,6 @@ test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
         [ test_typecheckBuiltinNames
-        , test_typecheckStdLib
+        , test_typecheckAvailable
         , test_typecheckIllTyped
         ]

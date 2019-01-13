@@ -11,12 +11,15 @@
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
     , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
     , EvaluationResult
     , evaluateCekCatch
     , evaluateCek
+    , readDynamicBuiltinCek
     , runCek
     ) where
 
@@ -24,10 +27,13 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.View
-import           PlutusPrelude
+import           PlutusPrelude                                   hiding (hoist)
 
+import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except
+import           Control.Monad.Morph                             (hoist)
 import           Control.Monad.Reader
+import           Control.Monad.Trans                             (lift)
 import           Data.IntMap                                     (IntMap)
 import qualified Data.IntMap                                     as IntMap
 import qualified Data.Map                                        as Map
@@ -49,7 +55,7 @@ newtype VarEnv = VarEnv (IntMap Closure)
 
 -- | The environment the CEK machine runs in.
 data CekEnv = CekEnv
-    { _cekEnvDbnms  :: DynamicBuiltinNameMeanings
+    { _cekEnvMeans  :: DynamicBuiltinNameMeanings
     , _cekEnvVarEnv :: VarEnv
     }
 
@@ -57,13 +63,18 @@ data CekEnv = CekEnv
 type CekM = ReaderT CekEnv (Either CekMachineException)
 
 data Frame
-    = FrameApplyFun VarEnv (Plain Value)         -- ^ @[V _]@
-    | FrameApplyArg VarEnv (Plain Term)          -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
-    | FrameUnwrap                                -- ^ @(unwrap _)@
-    | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
+    = FrameApplyFun VarEnv (Plain Value)               -- ^ @[V _]@
+    | FrameApplyArg VarEnv (Plain Term)                -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
+    | FrameUnwrap                                      -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
 
 type Context = [Frame]
+
+makeLenses ''CekEnv
+
+runCekM :: CekEnv -> CekM a -> Either CekMachineException a
+runCekM = flip runReaderT
 
 -- | Get the current 'VarEnv'.
 getVarEnv :: CekM VarEnv
@@ -71,7 +82,7 @@ getVarEnv = asks _cekEnvVarEnv
 
 -- | Set a new 'VarEnv' and proceed.
 withVarEnv :: VarEnv -> CekM a -> CekM a
-withVarEnv env = local $ \cekEnv -> cekEnv { _cekEnvVarEnv = env }
+withVarEnv = local . set cekEnvVarEnv
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
@@ -90,31 +101,32 @@ lookupVarName varName = do
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM DynamicBuiltinNameMeaning
 lookupDynamicBuiltinName dynName = do
-    DynamicBuiltinNameMeanings means <- asks _cekEnvDbnms
+    DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
         Nothing   -> throwError $ MachineException err term where
-            err  = OtherMachineError $ UnknownDynamicBuiltinNameError dynName
-            term = Constant () $ DynBuiltinName () dynName
+            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+            term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
 -- Either
--- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'Wrap', 'Unwrap')
+-- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
 -- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 computeCek :: Context -> Plain Term -> CekM EvaluationResult
-computeCek con (TyInst _ body ty)     = computeCek (FrameTyInstArg ty : con) body
-computeCek con (Apply _ fun arg)      = do
+computeCek con (TyInst _ body ty)       = computeCek (FrameTyInstArg ty : con) body
+computeCek con (Apply _ fun arg)        = do
     varEnv <- getVarEnv
     computeCek (FrameApplyArg varEnv arg : con) fun
-computeCek con (Wrap ann tyn ty term) = computeCek (FrameWrap ann tyn ty : con) term
-computeCek con (Unwrap _ term)        = computeCek (FrameUnwrap : con) term
-computeCek con tyAbs@TyAbs{}          = returnCek con tyAbs
-computeCek con lamAbs@LamAbs{}        = returnCek con lamAbs
-computeCek con constant@Constant{}    = returnCek con constant
-computeCek _   Error{}                = pure EvaluationFailure
-computeCek con (Var _ varName)        = do
+computeCek con (IWrap ann pat arg term) = computeCek (FrameIWrap ann pat arg : con) term
+computeCek con (Unwrap _ term)          = computeCek (FrameUnwrap : con) term
+computeCek con tyAbs@TyAbs{}            = returnCek con tyAbs
+computeCek con lamAbs@LamAbs{}          = returnCek con lamAbs
+computeCek con constant@Constant{}      = returnCek con constant
+computeCek con bi@Builtin{}             = returnCek con bi
+computeCek _   Error{}                  = pure EvaluationFailure
+computeCek con (Var _ varName)          = do
     Closure newVarEnv term <- lookupVarName varName
     withVarEnv newVarEnv $ returnCek con term
 
@@ -134,10 +146,10 @@ returnCek (FrameApplyArg argVarEnv arg : con) fun = do
 returnCek (FrameApplyFun funVarEnv fun : con) arg = do
     argVarEnv <- getVarEnv
     applyEvaluate funVarEnv argVarEnv con fun arg
-returnCek (FrameWrap ann tyn ty        : con) val = returnCek con $ Wrap ann tyn ty val
+returnCek (FrameIWrap ann pat arg      : con) val = returnCek con $ IWrap ann pat arg val
 returnCek (FrameUnwrap                 : con) dat = case dat of
-    Wrap _ _ _ term -> returnCek con term
-    term            -> throwError $ MachineException NonWrapUnwrappedMachineError term
+    IWrap _ _ _ term -> returnCek con term
+    term             -> throwError $ MachineException NonWrapUnwrappedMachineError term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -166,32 +178,47 @@ applyEvaluate funVarEnv _         con fun                    arg =
             Nothing                       ->
                 throwError $ MachineException NonPrimitiveApplicationMachineError term
             Just (IterApp headName spine) -> do
-                constAppResult <- runQuote <$> applyStagedBuiltinName headName spine
+                constAppResult <- runQuoteT $ applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
-                    ConstAppSuccess res -> returnCek con res
+                    ConstAppSuccess res -> computeCek con res
                     ConstAppFailure     -> pure EvaluationFailure
                     ConstAppStuck       -> returnCek con term
                     ConstAppError   err ->
                         throwError $ MachineException (ConstAppMachineError err) term
 
+evaluateInCekM :: Evaluate (Either CekMachineException) a -> CekM a
+evaluateInCekM a =
+    ReaderT $ \cekEnv ->
+        let eval means' = evaluateCekCatchIn $ cekEnv & cekEnvMeans %~ mappend means'
+            in runEvaluate eval a
+
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM (Quote ConstAppResult)
+applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> QuoteT CekM ConstAppResult
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
-    DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
-    pure $ applyTypeSchemed sch x args
-applyStagedBuiltinName (StaticStagedBuiltinName  name) args = pure $ applyBuiltinName name args
+    DynamicBuiltinNameMeaning sch x <- lift $ lookupDynamicBuiltinName name
+    hoist evaluateInCekM $ applyTypeSchemed sch x args
+applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
+    hoist evaluateInCekM $ applyBuiltinName name args
+
+-- | Evaluate a term in an environment using the CEK machine.
+evaluateCekCatchIn
+    :: CekEnv -> Plain Term -> Either CekMachineException EvaluationResult
+evaluateCekCatchIn cekEnv = runCekM cekEnv . computeCek []
 
 -- | Evaluate a term using the CEK machine.
 evaluateCekCatch
     :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResult
-evaluateCekCatch dbnms term =
-    runReaderT (computeCek [] term) (CekEnv dbnms $ VarEnv IntMap.empty)
+evaluateCekCatch means = evaluateCekCatchIn (CekEnv means $ VarEnv IntMap.empty)
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
 evaluateCek = either throw id .* evaluateCekCatch
 
+readDynamicBuiltinCek
+    :: KnownDynamicBuiltinType dyn => Term TyName Name () -> Either CekMachineException (Maybe dyn)
+readDynamicBuiltinCek = readDynamicBuiltin evaluateCekCatch
+
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.
 runCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
-runCek dbnms (Program _ _ term) = evaluateCek dbnms term
+runCek means (Program _ _ term) = evaluateCek means term

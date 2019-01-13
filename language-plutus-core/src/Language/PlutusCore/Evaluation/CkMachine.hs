@@ -6,11 +6,13 @@ module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
     , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
     , EvaluationResult
+    , applyEvaluateCkBuiltinName
     , evaluateCk
     , runCk
     ) where
 
 import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.MachineException
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
@@ -18,6 +20,8 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.View
 import           PlutusPrelude
+
+import           Data.Functor.Identity
 
 infix 4 |>, <|
 
@@ -28,11 +32,11 @@ data NoDynamicBuiltinNamesMachineError = NoDynamicBuiltinNamesMachineError
 type CkMachineException = MachineException NoDynamicBuiltinNamesMachineError
 
 data Frame
-    = FrameApplyFun (Value TyName Name ())       -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name ())        -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
-    | FrameUnwrap                                -- ^ @(unwrap _)@
-    | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
+    = FrameApplyFun (Value TyName Name ())             -- ^ @[V _]@
+    | FrameApplyArg (Term TyName Name ())              -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName ())                  -- ^ @{_ A}@
+    | FrameUnwrap                                      -- ^ @(unwrap _)@
+    | FrameIWrap () (Type TyName ()) (Type TyName ())  -- ^ @(iwrap A B _)@
 
 type Context = [Frame]
 
@@ -57,9 +61,10 @@ substituteDb varFor new = go where
     go (LamAbs ann var ty body) = LamAbs ann var ty (goUnder var body)
     go (Apply ann fun arg)      = Apply ann (go fun) (go arg)
     go (Constant ann constant)  = Constant ann constant
+    go (Builtin ann bi)         = Builtin ann bi
     go (TyInst ann fun arg)     = TyInst ann (go fun) arg
     go (Unwrap ann term)        = Unwrap ann (go term)
-    go (Wrap ann tyn ty term)   = Wrap ann tyn ty (go term)
+    go (IWrap ann pat arg term) = IWrap ann pat arg (go term)
     go (Error ann ty)           = Error ann ty
 
     goUnder var term = if var == varFor then term else go term
@@ -75,15 +80,16 @@ substituteDb varFor new = go where
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>) :: Context -> Term TyName Name () -> EvaluationResult
-stack |> TyInst _ fun ty      = FrameTyInstArg ty : stack |> fun
-stack |> Apply _ fun arg      = FrameApplyArg arg : stack |> fun
-stack |> Wrap ann tyn ty term = FrameWrap ann tyn ty : stack |> term
-stack |> Unwrap _ term        = FrameUnwrap : stack |> term
-stack |> tyAbs@TyAbs{}        = stack <| tyAbs
-stack |> lamAbs@LamAbs{}      = stack <| lamAbs
-stack |> constant@Constant{}  = stack <| constant
-_     |> Error{}              = EvaluationFailure
-_     |> var@Var{}            = throwCkMachineException OpenTermEvaluatedMachineError var
+stack |> TyInst _ fun ty        = FrameTyInstArg ty : stack |> fun
+stack |> Apply _ fun arg        = FrameApplyArg arg : stack |> fun
+stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
+stack |> Unwrap _ term          = FrameUnwrap : stack |> term
+stack |> tyAbs@TyAbs{}          = stack <| tyAbs
+stack |> lamAbs@LamAbs{}        = stack <| lamAbs
+stack |> bi@Builtin{}           = stack <| bi
+stack |> constant@Constant{}    = stack <| constant
+_     |> Error{}                = EvaluationFailure
+_     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachineError var
 
 -- | The returning part of the CK machine. Rules are as follows:
 --
@@ -96,14 +102,14 @@ _     |> var@Var{}            = throwCkMachineException OpenTermEvaluatedMachine
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|) :: Context -> Value TyName Name () -> EvaluationResult
-[]                           <| term      = EvaluationSuccess term
-FrameTyInstArg ty    : stack <| fun       = instantiateEvaluate stack ty fun
-FrameApplyArg arg    : stack <| fun       = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun    : stack <| arg       = applyEvaluate stack fun arg
-FrameWrap ann tyn ty : stack <| value     = stack <| Wrap ann tyn ty value
-FrameUnwrap          : stack <| wrapped   = case wrapped of
-    Wrap _ _ _ term -> stack <| term
-    term            -> throwCkMachineException NonWrapUnwrappedMachineError term
+[]                             <| term    = EvaluationSuccess term
+FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
+FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
+FrameApplyFun fun      : stack <| arg     = applyEvaluate stack fun arg
+FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
+FrameUnwrap            : stack <| wrapped = case wrapped of
+    IWrap _ _ _ term -> stack <| term
+    term             -> throwCkMachineException NonWrapUnwrappedMachineError term
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -131,12 +137,16 @@ applyEvaluate stack fun                    arg =
             Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
                 throwCkMachineException (OtherMachineError NoDynamicBuiltinNamesMachineError) term
             Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                case runQuote $ applyBuiltinName name spine of
+                case applyEvaluateCkBuiltinName name spine of
                     ConstAppSuccess term' -> stack <| term'
                     ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> stack <| term
                     ConstAppError err     ->
                         throwCkMachineException (ConstAppMachineError err) term
+
+applyEvaluateCkBuiltinName :: BuiltinName -> [Value TyName Name ()] -> ConstAppResult
+applyEvaluateCkBuiltinName name =
+    runIdentity . runEvaluate (const $ Identity . evaluateCk) . runQuoteT . applyBuiltinName name
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

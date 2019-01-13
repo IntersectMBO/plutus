@@ -1,6 +1,7 @@
 module Common
     ( TestNested
     , runTestNestedIn
+    , runTestNested
     , testNested
     , goldenVsText
     , goldenVsTextM
@@ -29,6 +30,10 @@ type TestNested = Reader [String] TestTree
 -- | Run a 'TestTree' of tests with a given name prefix.
 runTestNestedIn :: [String] -> TestNested -> TestTree
 runTestNestedIn path test = runReader test path
+
+-- | Run a 'TestTree' of tests with an empty prefix.
+runTestNested :: TestNested -> TestTree
+runTestNested = runTestNestedIn []
 
 -- | Descend into a name prefix.
 testNested :: String -> [TestNested] -> TestNested

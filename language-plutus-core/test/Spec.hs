@@ -3,9 +3,9 @@
 module Main ( main
             ) where
 
+import qualified Check.Spec                   as Check
 import           Codec.Serialise
-import           Control.Monad
-import           Control.Monad.Trans.Except   (runExceptT)
+import           Control.Monad.Except
 import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Text                    as T
 import           Data.Text.Encoding           (encodeUtf8)
@@ -18,6 +18,7 @@ import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Pretty
+import           Normalization.Type
 import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec               as Quotation
@@ -48,44 +49,46 @@ compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == 
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Constant _ x) (Constant _ y)          = x == y
+compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
-compareTerm (Wrap _ n ty t) (Wrap _ n' ty' t')     = compareTyName n n' && compareType ty ty' && compareTerm t t'
+compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
+    compareType pat1 pat2 && compareType arg1 arg2 && compareTerm t1 t2
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
 compareType :: Eq a => Type TyName a -> Type TyName a -> Bool
-compareType (TyVar _ n) (TyVar _ n')                 = compareTyName n n'
-compareType (TyFun _ t s) (TyFun _ t' s')            = compareType t t' && compareType s s'
-compareType (TyFix _ n t) (TyFix _ n' t')            = compareTyName n n' && compareType t t'
-compareType (TyForall _ n k t) (TyForall _ n' k' t') = compareTyName n n' && k == k' && compareType t t'
-compareType (TyBuiltin _ x) (TyBuiltin _ y)          = x == y
-compareType (TyLam _ n k t) (TyLam _ n' k' t')       = compareTyName n n' && k == k' && compareType t t'
-compareType (TyApp _ t t') (TyApp _ t'' t''')        = compareType t t'' && compareType t' t'''
-compareType (TyInt _ n) (TyInt _ n')                 = n == n'
-compareType _ _                                      = False
+compareType (TyVar _ n) (TyVar _ n')                  = compareTyName n n'
+compareType (TyFun _ t s) (TyFun _ t' s')             = compareType t t' && compareType s s'
+compareType (TyIFix _ pat1 arg1) (TyIFix _ pat2 arg2) = compareType pat1 pat2 && compareType arg1 arg2
+compareType (TyForall _ n k t) (TyForall _ n' k' t')  = compareTyName n n' && k == k' && compareType t t'
+compareType (TyBuiltin _ x) (TyBuiltin _ y)           = x == y
+compareType (TyLam _ n k t) (TyLam _ n' k' t')        = compareTyName n n' && k == k' && compareType t t'
+compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && compareType t' t'''
+compareType (TyInt _ n) (TyInt _ n')                  = n == n'
+compareType _ _                                       = False
 
 compareProgram :: Eq a => Program TyName Name a -> Program TyName Name a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
+-- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name a } deriving Show
+
+instance Eq a => Eq (TextualProgram a) where
+    (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
+
 propCBOR :: Property
 propCBOR = property $ do
     prog <- forAll genProgram
-    let
-        trip = deserialiseOrFail . serialise
-        compared = (==) <$> trip (void prog) <*> pure (void prog)
-    Hedgehog.assert (fromRight False compared)
+    Hedgehog.tripping prog serialise deserialiseOrFail
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
-    prog <- forAll genProgram
-    let nullPosn = fmap (pure emptyPosn)
-        reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
-        proc = nullPosn <$> parse (reprint prog)
-        compared = and (compareProgram (nullPosn prog) <$> proc)
-    Hedgehog.assert compared
+    prog <- TextualProgram . void <$> forAll genProgram
+    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText . unTextualProgram
+    Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
 
 propRename :: Property
 propRename = property $ do
@@ -104,22 +107,24 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsType typeFiles
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
-    , test_PrettyReadable
+    , test_Pretty
+    , test_typeNormalization
     , test_typecheck
     , test_constant
     , test_evaluateCk
     , Quotation.tests
+    , Check.tests
     ]
 
-type TestFunction a = BSL.ByteString -> Either a T.Text
+type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
 
-asIO :: PrettyPlc a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
 
-asGolden :: PrettyPlc a => TestFunction a -> TestName -> TestTree
+asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 testsType :: [FilePath] -> TestTree
@@ -159,21 +164,6 @@ testsRewrite :: [FilePath] -> TestTree
 testsRewrite
     = testGroup "golden rewrite tests"
     . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
-
-appAppLamLam :: MonadQuote m => m (Type TyNameWithKind ())
-appAppLamLam = do
-    x <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "x")
-    y <- liftQuote (TyNameWithKind <$> freshTyName ((), Type ()) "y")
-    pure $
-        TyApp ()
-            (TyApp ()
-                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
-                 (TyBuiltin () TyInteger))
-            (TyBuiltin () TyInteger)
-
-testLam :: Either (TypeError ()) String
-testLam = fmap prettyPlcDefString . runQuote . runExceptT $ runTypeCheckM (TypeCheckCfg 100 $ TypeConfig False mempty) $
-    normalizeType =<< appAppLamLam
 
 testEqTerm :: Bool
 testEqTerm =
@@ -239,25 +229,27 @@ testRebindCapturedVariable =
         typeL2
             = TyForall () zName typeKind
             $ TyFun ()
-                (TyFix () wName $ TyForall () xName typeKind (TyFun () varW varX))
+                (TyForall () wName typeKind $ TyForall () xName typeKind (TyFun () varW varX))
                 varZ
         -- (all x (type) (fun (all x (all y (type) (fun x y))))) x)
         typeR2
             = TyForall () xName typeKind
             $ TyFun ()
-                (TyFix () xName $ TyForall () yName typeKind (TyFun () varX varY))
+                (TyForall () xName typeKind $ TyForall () yName typeKind (TyFun () varX varY))
                 varX
     in
         [typeL1, typeL2] == [typeR1, typeR2]
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ format cfg "(program 0.1.0 [(con addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (con addInteger) x ] y ]\n)"
-    , format cfg "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
-    , format cfg "{- program " @?= Left (ParseError (LexErr "Error in nested comment at line 1, column 12"))
-    , testLam @?= Right "(con integer)"
+    [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
+    , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
+    , fmt "{- program " @?= Left (ParseErrorE (LexErr "Error in nested comment at line 1, column 12"))
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
     ]
-    where cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+    where
+        fmt :: BSL.ByteString -> Either (Error AlexPosn) T.Text
+        fmt = format cfg
+        cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions

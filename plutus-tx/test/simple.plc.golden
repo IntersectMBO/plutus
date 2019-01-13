@@ -1,0 +1,21 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (lam
+      ds
+      Bool
+      [
+        [ { [ Bool_match ds ] [(con integer) (con 8)] } (con 8 ! 1) ]
+        (con 8 ! 2)
+      ]
+    )
+  )
+)

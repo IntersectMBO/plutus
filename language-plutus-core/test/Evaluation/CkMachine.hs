@@ -26,14 +26,14 @@ import           Test.Tasty.Hedgehog
 
 natToBool :: Quote (Type TyName ())
 natToBool = do
-    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+    nat <- _recursiveType <$> getBuiltinNat
     TyFun () nat <$> getBuiltinBool
 
 evenAndOdd :: Quote (Term TyName Name ())
 evenAndOdd = do
-    RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
+    nat1 <- _recursiveType <$> getBuiltinNat
     b1 <- getBuiltinBool
-    RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
+    nat2 <- _recursiveType <$> getBuiltinNat
     b2 <- getBuiltinBool
 
     true <- getBuiltinTrue
@@ -56,7 +56,7 @@ evenAndOdd = do
 
     let eoFunc b recc = do
           n <- freshName () "n"
-          RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+          nat <- _recursiveType <$> getBuiltinNat
           bool <- getBuiltinBool
           pure $
               LamAbs () n nat $
@@ -89,8 +89,8 @@ getEven = do
 
 listInt :: Quote (Type TyName ())
 listInt = do
-    RecursiveType _ list1 <- holedToRecursive <$> getBuiltinList
-    RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
+    list1 <- _recursiveType <$> getBuiltinList
+    nat1 <- _recursiveType <$> getBuiltinNat
     pure $ TyApp () list1 nat1
 
 listIntToListInt :: Quote (Type TyName ())
@@ -119,7 +119,7 @@ evenAndOddList = do
           li2 <- listInt
 
           nil <- getBuiltinNil
-          RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+          nat <- _recursiveType <$> getBuiltinNat
 
           pure $
               LamAbs () l li1 $
@@ -130,11 +130,11 @@ evenAndOddList = do
 
     evenF <- do
         h <- freshName () "head"
-        RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
+        nat1 <- _recursiveType <$> getBuiltinNat
         t <- freshName () "tail"
         li1 <- listInt
         cons <- getBuiltinCons
-        RecursiveType _ nat2 <- holedToRecursive <$> getBuiltinNat
+        nat2 <- _recursiveType <$> getBuiltinNat
         eoFunc $
             LamAbs () h nat1 $
             LamAbs () t li1 $
@@ -143,7 +143,7 @@ evenAndOddList = do
 
     oddF <- do
         h <- freshName () "head"
-        RecursiveType _ nat1 <- holedToRecursive <$> getBuiltinNat
+        nat1 <- _recursiveType <$> getBuiltinNat
         t <- freshName () "tail"
         li1 <- listInt
         eoFunc $
@@ -177,7 +177,7 @@ getEvenList = do
 smallNatList :: Quote (Term TyName Name ())
 smallNatList = do
     nats <- mapM getBuiltinIntegerToNat [1,2,3]
-    RecursiveType _ nat <- holedToRecursive <$> getBuiltinNat
+    nat <- _recursiveType <$> getBuiltinNat
     getListToBuiltinList nat nats
 
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree

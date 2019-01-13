@@ -1,13 +1,13 @@
 (program 1.0.0
   (abs a (type)
-    (wrap
-      list
-      (all r (type) (fun r (fun (fun a (fun list r)) r)))
+    (iwrap
+      (lam list (fun (type) (type)) (lam a (type) (all r (type) (fun r (fun (fun a (fun [list a] r)) r)))))
+	  a
       (abs r (type)
         (lam z r
           (lam
             f
-            (fun a (fun (fix list (all r (type) (fun r (fun (fun a (fun list r)) r)))) r))
+            (fun a (fun (ifix (lam list (fun (type) (type)) (lam a (type) (all r (type) (fun r (fun (fun a (fun [list a] r)) r))))) a) r))
             z
           )
         )
