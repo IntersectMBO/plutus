@@ -89,9 +89,9 @@ getBuiltinCons = rename =<< do
 
 -- |  @foldrList@ as a PLC term.
 --
--- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) (z : r) ->
+-- > /\(a :: *) (r :: *) -> \(f : a -> r -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
--- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f (rec xs') x
+-- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
 getBuiltinFoldrList :: Quote (Term TyName Name ())
 getBuiltinFoldrList = rename =<< do
     list <- _recursiveType <$> getBuiltinList
@@ -108,7 +108,7 @@ getBuiltinFoldrList = rename =<< do
     return
         . TyAbs () a (Type ())
         . TyAbs () r (Type ())
-        . LamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
+        . LamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () r) $ TyVar () r)
         . LamAbs () z (TyVar () r)
         . Apply () (mkIterInst () fix [listA, TyVar () r])
         . LamAbs () rec (TyFun () listA $ TyVar () r)
@@ -117,8 +117,8 @@ getBuiltinFoldrList = rename =<< do
         . LamAbs () x (TyVar () a)
         . LamAbs () xs' listA
         $ mkIterApp () (Var () f)
-          [ Apply () (Var () rec) $ Var () xs'
-          , Var () x
+          [ Var () x
+          , Apply () (Var () rec) $ Var () xs'
           ]
 
 -- |  'foldl\'' as a PLC term.
