@@ -230,7 +230,7 @@ getBuiltinFixN n = do
             pure $
                 LamAbs () x (TyVar () a) $
                 Apply () (TyInst () (Var () k) (TyVar () b)) $
-                mkIterLamAbs () fs $
+                mkIterLamAbs fs $
                 -- this is an ugly but straightforward way of getting the right fi
                 Apply () (mkVar () (fs !! i)) (Var () x)
 
@@ -241,7 +241,7 @@ getBuiltinFixN n = do
     let allAsBs = foldMap (\(a, b) -> [a, b]) asbs
     pure $
         -- abstract out all the As and Bs
-        mkIterTyAbs () (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
+        mkIterTyAbs (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
         Apply () instantiatedFix $
         LamAbs () k kTy $
         TyAbs () s (Type ()) $

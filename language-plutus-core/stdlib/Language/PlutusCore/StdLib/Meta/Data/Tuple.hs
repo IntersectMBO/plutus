@@ -31,7 +31,7 @@ getBuiltinTuple arity = do
     let caseType = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
     pure $
         -- \T_1 .. T_n
-        mkIterTyLam () tyVars $
+        mkIterTyLam tyVars $
         -- all R
         TyForall () resultType (Type ()) $
         -- (T_1 -> .. -> T_n -> r) -> r
@@ -61,9 +61,9 @@ getBuiltinTupleConstructor arity = do
     let caseTy = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
     pure $
         -- /\T_1 .. T_n
-        mkIterTyAbs () tyVars $
+        mkIterTyAbs tyVars $
         -- \arg_1 .. arg_n
-        mkIterLamAbs () args $
+        mkIterLamAbs args $
         -- /\R
         TyAbs () resultType (Type ()) $
         -- \case
@@ -97,10 +97,10 @@ getBuiltinTupleAccessor arity index = rename =<< do
     tupleArg <- liftQuote $ freshName () "tuple"
     pure $
         -- /\T_1 .. T_n
-        mkIterTyAbs () tyVars $
+        mkIterTyAbs tyVars $
         -- \tuple :: (tupleN T_1 .. T_n)
         LamAbs () tupleArg tupleTy $
         -- tuple {T_i}
         Apply () (TyInst () (Var () tupleArg) selectedTy) $
         -- \arg_1 .. arg_n . arg_i
-        mkIterLamAbs () args selectedArg
+        mkIterLamAbs args selectedArg

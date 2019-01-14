@@ -85,7 +85,7 @@ mkFixpoint bs = do
     bsLam <- do
           rhss <- traverse (compileTerm . PLC.defVal) bs
           let chosen =  PLC.mkIterApp p (PLC.Var p choose) rhss
-              abstracted = PLC.mkIterLamAbs p (fmap PLC.defVar bs) chosen
+              abstracted = PLC.mkIterLamAbs (fmap PLC.defVar bs) chosen
           pure abstracted
 
     -- abstract out Q and choose
