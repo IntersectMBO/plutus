@@ -11,9 +11,12 @@ module Language.PlutusCore.Examples.Data.TreeForest
     , getBuiltinForestCons
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Type
 

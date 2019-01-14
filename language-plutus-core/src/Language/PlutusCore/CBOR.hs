@@ -10,6 +10,7 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
+import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
@@ -226,3 +227,13 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (P
     decode = Program <$> decode <*> decode <*> decode
 
 instance Serialise AlexPosn
+
+deriving instance Serialise Ix
+
+instance Serialise a => Serialise (DeBruijn a) where
+    encode (DeBruijn x txt i) = encode x <> encode txt <> encode i
+    decode = DeBruijn <$> decode <*> decode <*> decode
+
+instance Serialise a => Serialise (TyDeBruijn a) where
+    encode (TyDeBruijn n) = encode n
+    decode = TyDeBruijn <$> decode
