@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Generators ( genTerm
                   , genProgram
                   ) where
@@ -20,7 +22,48 @@ genTyName = TyName <$> genName
 genName :: MonadGen m => m (Name ())
 genName = Name () <$> name' <*> int'
     where int' = Unique <$> Gen.int (Range.linear 0 3000)
-          name' = BSL.fromStrict <$> Gen.utf8 (Range.linear 1 20) Gen.lower
+          name' = Gen.filter (not . isKw) (BSL.fromStrict <$> Gen.utf8 (Range.linear 1 20) Gen.lower)
+          isKw "abs"                      = True
+          isKw "lam"                      = True
+          isKw "ifix"                     = True
+          isKw "fun"                      = True
+          isKw "all"                      = True
+          isKw "bytestring"               = True
+          isKw "integer"                  = True
+          isKw "size"                     = True
+          isKw "type"                     = True
+          isKw "program"                  = True
+          isKw "con"                      = True
+          isKw "iwrap"                    = True
+          isKw "builtin"                  = True
+          isKw "unwrap"                   = True
+          isKw "error"                    = True
+          isKw "addInteger"               = True
+          isKw "subtractInteger"          = True
+          isKw "multiplyInteger"          = True
+          isKw "divideInteger"            = True
+          isKw "quotientInteger"          = True
+          isKw "modInteger"               = True
+          isKw "remainderInteger"         = True
+          isKw "lessThanInteger"          = True
+          isKw "lessThanEqualsInteger"    = True
+          isKw "greaterThanInteger"       = True
+          isKw "greaterThanEqualsInteger" = True
+          isKw "equalsInteger"            = True
+          isKw "resizeInteger"            = True
+          isKw "intToByteString"          = True
+          isKw "concatenate"              = True
+          isKw "takeByteString"           = True
+          isKw "dropByteString"           = True
+          isKw "equalsByteString"         = True
+          isKw "resizeByteString"         = True
+          isKw "sha2_256"                 = True
+          isKw "sha3_256"                 = True
+          isKw "verifySignature"          = True
+          isKw "txhash"                   = True
+          isKw "blocknum"                 = True
+          isKw "sizeOfInteger"            = True
+          isKw _                          = False
 
 simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
 simpleRecursive = Gen.recursive Gen.choice
