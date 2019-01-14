@@ -21,6 +21,9 @@ import           Wallet.Emulator.Types (MockWallet)
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.
 
+f0 :: MockWallet ()
+f0 = pure ()
+
 f1 :: MockWallet ()
 f1 = pure ()
 
@@ -36,16 +39,16 @@ f4 _ _ _ _ = pure ()
 data Value = Value Int Int
     deriving (Generic, FromJSON, ToJSON, ToSchema)
 
-$(mkFunction 'f1)
-$(mkFunction 'f2)
-$(mkFunction 'f3)
-$(mkFunction 'f4)
+$(mkSingleFunction 'f0)
+
+$(mkFunctions ['f1, 'f2, 'f3, 'f4])
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "TH" [
+    testCase "f0" (f0Schema @?= FunctionSchema @Schema (Fn "f0") []),
     testCase "f1" (f1Schema @?= FunctionSchema @Schema (Fn "f1") []),
     testCase "f2" (f2Schema @?= FunctionSchema (Fn "f2") [
         toSchema (Proxy @String)]),

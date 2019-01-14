@@ -4,8 +4,6 @@
 --
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
-module Language.PlutusTx.Coordination.Contracts.CrowdFunding where
-
 import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
@@ -201,8 +199,7 @@ refundHandler txid signature cmp = EventHandler (\_ -> do
     -- transaction would be invalid).
     collectFromScriptTxn validatorScript redeemerScript txid)
 
-$(mkFunction 'scheduleCollection)
-$(mkFunction 'contribute)
+$(mkFunctions ['scheduleCollection, 'contribute])
 
 {- note [Transactions in the crowdfunding campaign]
 
