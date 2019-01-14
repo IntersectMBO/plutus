@@ -8,4 +8,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 
 -- plutus/language-plutus-core/test/data/negation.plc
 
--- I don't currently understand this example
+open import Declarative.StdLib.Bool
+
+negate : ∀{Γ} → Γ ⊢ boolean ⇒ boolean
+negate {Γ} = ƛ (if ·⋆ boolean · ` Z · false · true)

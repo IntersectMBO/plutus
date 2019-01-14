@@ -138,4 +138,5 @@ main = do
   test (addI · con2 · con2) "AddInteger" "4"
   test intLit "IntegerLiteral" "102341"
   test stringLit "StringLiteral" "4321758fabce1aa4780193f"
+  test negate "Negation" "it worked"
 \end{code}
