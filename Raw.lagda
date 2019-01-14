@@ -11,7 +11,7 @@ The raw un-scope-checked and un-type-checked syntax
 \begin{code}
 
 data RawKind : Set where
-  * : RawKind
+  *   : RawKind
   _⇒_ : RawKind → RawKind → RawKind
     
 data RawTy : Set where
@@ -27,5 +27,4 @@ data RawTm : Set where
   _·⋆ : RawTm → RawTy → RawTm
   ƛ : String → RawTy → RawTm
   _·_ : RawTm → RawTm → RawTm
-
 \end{code}

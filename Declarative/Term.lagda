@@ -72,10 +72,10 @@ The erasure of a context is a type context.
 
 ## Variables
 
-A variable is indexed by its context and type.
+A variable is indexed by its context and type. Notice there is only
+one Z as a type variable cannot be a term.
 \begin{code}
-data _∋_ : ∀ {J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
-
+data _∋_ : ∀{J} (Γ : Ctx) → ∥ Γ ∥ ⊢⋆ J → Set where
   Z : ∀ {Γ J} {A : ∥ Γ ∥ ⊢⋆ J}
       ----------
     → Γ , A ∋ A
