@@ -95,25 +95,23 @@ inc = Λ (ƛ (builtin addInteger ` ((builtin resizeInteger (λ { Z → ` Z ; (S 
 builtininc2' : ∅ ⊢ con integer (size⋆ 8)
 builtininc2' = (inc ·⋆ size⋆ 8) · con2
 
-printInt : ∀{n} → (x : ∅ ⊢ con integer (size⋆ n)) → Value x → ℤ
-printInt .(con (integer _ i x)) (V-con (integer _ i x)) = i
+print : ∀{A : ∅ ⊢⋆ #}{b} → (x : ∅ ⊢ con b A) → Value x → String
+print .(con (integer s i x)) (V-con (integer s i x)) = show i
+print .(con (bytestring s b x)) (V-con (bytestring s b x)) = printByteString b
+print .(con (size s)) (V-con (TermCon.size s)) = show (pos s)
 
-printBS : (x : ∅ ⊢ con bytestring (size⋆ 16)) → Value x → String
-printBS .(con (bytestring 16 b x)) (V-con (bytestring .16 b x)) =
-  printByteString b
-
-help :  ∀{n} → (M : ∅ ⊢ con integer (size⋆ n)) → Steps M → String
-help M (steps x (done n v)) = show (printInt n v)
+help : ∀{A : ∅ ⊢⋆ *} → (M : ∅ ⊢ A) → Steps M → String
+help {con x₁ A} M (steps x (done n v)) = print n v
+help {_} M (steps x (done n v)) = "it worked"
 help M (steps x out-of-gas) = "out of gas..."
 help M error = "something went wrong"
 
-helpB :  (M : ∅ ⊢ con bytestring (size⋆ 16)) → Steps M → String
-helpB M (steps x (done n v)) = printBS n v
-helpB M (steps x out-of-gas) = "out of gas..."
-helpB M error = "something went wrong"
-
 open import Declarative.test.AddInteger
 open import Declarative.test.IntegerLiteral
+open import Declarative.test.IntegerOverflow -- can't be used
+open import Declarative.test.Negation -- TODO
+open import Declarative.test.StringLiteral
+
 open Agda.Builtin.IO
 open import Data.String
 postulate
@@ -126,17 +124,18 @@ postulate
 _>>_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
 
-main : IO ⊤
-main = do
-  putStrLn "test:AddInteger"
-  putStrLn "expected output: 4"
-  s ← return (help _ (eval (gas 100) (addI · con2 · con2)))
+test : ∀{A : ∅ ⊢⋆ *}
+  → ∅ ⊢ A → (name : String) → (expected : String) → IO ⊤
+test t name expected = do
+  putStrLn ("test:" ++ name)
+  putStrLn ("expected output: " ++ expected)
+  s ← return (help _ (eval (gas 100) t))
   putStrLn ("actual output:   " ++ s)
   putStrLn ""
 
-  putStrLn "test:IntegerLiteral"
-  putStrLn "expected output: 102341"
-  s ← return (help _ (eval (gas 100) intLit))
-  putStrLn ("actual output:   " ++ s)
-  putStrLn ""
+main : IO ⊤
+main = do
+  test (addI · con2 · con2) "AddInteger" "4"
+  test intLit "IntegerLiteral" "102341"
+  test stringLit "StringLiteral" "4321758fabce1aa4780193f"
 \end{code}
