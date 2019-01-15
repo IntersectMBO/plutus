@@ -72,15 +72,15 @@ stdLib =
                   , plcTermFile "Unitval" getBuiltinUnitval
                   ]
               ]
---           , treeFolderContents "Meta"
---               [ treeFolderContents "Data"
---                   [ treeFolderContents "Tuple"
---                       [ plcTypeFile "Tuple2"   $ getBuiltinTuple 2
---                       , plcTermFile "Tuple2_0" $ getBuiltinTupleAccessor 2 0
---                       , plcTermFile "Tuple2_1" $ getBuiltinTupleAccessor 2 1
---                       , plcTermFile "MkTuple2" $ getBuiltinTupleConstructor 2
---                       ]
---                   ]
---               ]
+          , treeFolderContents "Meta"
+              [ treeFolderContents "Data"
+                  [ treeFolderContents "Tuple"
+                      [ plcTypeFile "ProdN2"   $ getBuiltinProdN 2
+                      , plcTermFile "ProdN2_0" $ getBuiltinProdNAccessor 2 0
+                      , plcTermFile "ProdN2_1" $ getBuiltinProdNAccessor 2 1
+                      , plcTermFile "MkProdN2" $ getBuiltinProdNConstructor 2
+                      ]
+                  ]
+              ]
           ]
       ]

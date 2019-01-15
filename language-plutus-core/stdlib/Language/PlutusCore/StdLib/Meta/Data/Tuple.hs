@@ -46,7 +46,7 @@ getTupleType ann (Tuple elTys _) = liftQuote $ do
 -- | Get the type of the ith element of a 'Tuple' along with the element itself.
 --
 -- > tupleTypeTermAt _ i (Tuple [a0, ... , an] term) =
--- >     term {ai} (\(x0 : a0) ... (xn : an) -> xi)
+-- >     (ai, term {ai} (\(x0 : a0) ... (xn : an) -> xi))
 tupleTypeTermAt
     :: MonadQuote m => ann -> Int -> Tuple ann -> m (Type TyName ann, Term TyName Name ann)
 tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do

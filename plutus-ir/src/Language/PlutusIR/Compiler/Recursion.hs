@@ -5,7 +5,6 @@ module Language.PlutusIR.Compiler.Recursion where
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Error
-import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import {-# SOURCE #-} Language.PlutusIR.Compiler.Term
 import           Language.PlutusIR.Compiler.Types
