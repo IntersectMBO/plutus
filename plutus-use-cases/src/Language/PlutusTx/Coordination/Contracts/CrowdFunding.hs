@@ -40,7 +40,7 @@ import           Ledger.Validation            (PendingTx (..), PendingTxIn (..),
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                                WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
-                                               ownPubKeyTxOut, payToScript, pubKey, createTxAndSubmit, signature)
+                                               ownPubKeyTxOut, payToScript, pubKey, createTxAndSubmit, signature, withValidationInterval)
 
 import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, succ, ($), (.),
                                              (<$>), (==))
@@ -94,8 +94,9 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
             value = getSum $ foldMap (Sum . Ledger.txOutValue . snd) contributions
 
         oo <- ownPubKeyTxOut value
-        void $ createTxAndSubmit (Set.fromList ins) [oo]
-
+        void 
+            $ withValidationInterval (pure (succ $ campaignDeadline cmp, campaignCollectionDeadline cmp))
+            $ createTxAndSubmit (Set.fromList ins) [oo]
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
@@ -136,7 +137,7 @@ contributionScript cmp  = ValidatorScript val where
             signedBy :: PubKey -> Signature -> Bool
             signedBy (PubKey pk) (Signature s) = pk == s
 
-            PendingTx ps outs _ _ (Slot h) _ = p
+            PendingTx ps outs _ _ _ (Slot slFrom) (Slot slTo) = p
 
             deadline :: Int
             deadline = let Slot h' = campaignDeadline in h'
@@ -164,15 +165,15 @@ contributionScript cmp  = ValidatorScript val where
 
                         contributorOnly = $$(PlutusTx.all) contributorTxOut outs
 
-                        refundable   = h > collectionDeadline &&
+                        refundable   = slFrom > collectionDeadline &&
                                                     contributorOnly &&
                                                     a `signedBy` sig
 
                     in refundable
                 Collect sig -> -- the "successful campaign" branch
                     let
-                        payToOwner = h > deadline &&
-                                    h <= collectionDeadline &&
+                        payToOwner = slFrom > deadline &&
+                                    slTo <= collectionDeadline &&
                                     totalInputs >= target &&
                                     campaignOwner `signedBy` sig
                     in payToOwner

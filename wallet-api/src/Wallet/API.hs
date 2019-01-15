@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 -- | Interface between wallet and Plutus client
@@ -29,6 +30,9 @@ module Wallet.API(
     ownPubKeyTxOut,
     ownPubKey,
     ownSignature,
+    -- * Modifiers
+    WithValidationInterval(..),
+    withValidationInterval,
     -- * Triggers
     EventTrigger,
     AnnotatedEventTrigger,
@@ -203,6 +207,9 @@ instance Monad m => Monoid (EventHandler m) where
     mappend = (<>)
     mempty = EventHandler $ \_ -> pure ()
 
+ehTrans :: (forall a. m a -> n a) -> EventHandler m -> EventHandler n
+ehTrans f (EventHandler r) = EventHandler $ fmap f r
+
 data WalletAPIError =
     InsufficientFunds Text
     | OtherError Text
@@ -224,6 +231,13 @@ class MonadError WalletAPIError m => WalletDiagnostics m where
 
 -- | Used by Plutus client to interact with wallet
 class WalletAPI m where
+    {- |
+    How much time to leave for transaction validation. The standard validation
+    interval for transactions submitted by this wallet is @(c, c +
+    defaultValidationTime)@ where @c@ is the current slot.
+    -}
+    validationInterval :: m (Slot, Slot)
+
     submitTxn :: Tx -> m ()
     myKeyPair :: m KeyPair
 
@@ -268,6 +282,34 @@ class WalletAPI m where
     The current slot.
     -}
     slot :: m Slot
+
+-- | Change the 'validationInterval' of a 'WalletAPI' action.
+newtype WithValidationInterval m a = WithValidationInterval { runWithValidationInterval :: m (Slot, Slot) -> m a }
+    deriving (Functor)
+
+instance Applicative m => Applicative (WithValidationInterval m) where
+    pure a = WithValidationInterval $ const $ pure a
+    WithValidationInterval l <*> WithValidationInterval r  = WithValidationInterval $ \i -> l i <*> r i
+
+instance Monad m => Monad (WithValidationInterval m) where
+    return  = pure
+    (WithValidationInterval w) >>= f =
+        WithValidationInterval $ \i -> w i >>= \a -> runWithValidationInterval (f a) i
+
+instance WalletAPI m => WalletAPI (WithValidationInterval m) where
+    validationInterval = WithValidationInterval id
+    submitTxn t        = WithValidationInterval $ const $ submitTxn t
+    myKeyPair          = WithValidationInterval $ const myKeyPair
+    createPaymentWithChange v =
+        WithValidationInterval $ \_ -> createPaymentWithChange v
+    register t h       = WithValidationInterval $ \i -> register t (ehTrans (\w -> runWithValidationInterval w i) h)
+    watchedAddresses   = WithValidationInterval $ const watchedAddresses
+    startWatching a    = WithValidationInterval $ const $ startWatching a
+    slot               = WithValidationInterval $ const slot
+
+-- | Set the 'validationInterval' for a 'WalletAPI' action
+withValidationInterval :: m (Slot, Slot) -> WithValidationInterval m a -> m a
+withValidationInterval = flip runWithValidationInterval
 
 -- | Generate a 'Signature' with the wallet's own private key
 ownSignature :: (Functor m, WalletAPI m) => m Signature
@@ -355,15 +397,22 @@ payToPublicKey_ v = void . payToPublicKey v
 ownPubKeyTxOut :: (Monad m, WalletAPI m) => Value -> m TxOut
 ownPubKeyTxOut v = pubKeyTxOut v <$> fmap pubKey myKeyPair
 
--- | Create a transaction, and submit it
+-- | Create a transaction and submit it.
 --   TODO: Also compute the fee
-createTxAndSubmit :: (Monad m, WalletAPI m) => Set.Set TxIn -> [TxOut] -> m Tx
+createTxAndSubmit ::
+    (Monad m, WalletAPI m)
+    => Set.Set TxIn
+    -> [TxOut]
+    -> m Tx
 createTxAndSubmit ins outs = do
+    (vfrom, vto) <- validationInterval
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
             , txForge = 0
             , txFee = 0
+            , txValidFrom = vfrom
+            , txValidTo = vto
             }
     submitTxn tx
     pure tx

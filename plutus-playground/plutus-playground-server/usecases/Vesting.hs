@@ -95,7 +95,7 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(P.and)
 
-            PendingTx _ os _ _ (Slot h) _ = p
+            PendingTx _ os _ _ _ (Slot slFrom) _ = p
             VestingTranche (Slot d1) (Value a1) = vestingTranche1
             VestingTranche (Slot d2) (Value a2) = vestingTranche2
 
@@ -109,8 +109,8 @@ validatorScript v = ValidatorScript val where
 
             -- Value that has been released so far under the scheme
             currentThreshold =
-                if h >= d1
-                then if h >= d2
+                if slFrom >= d1
+                then if slFrom >= d2
                     -- everything can be spent
                      then a1 + a2
                      -- only the first tranche can be spent (we are between d1 and d2)
@@ -134,7 +134,7 @@ validatorScript v = ValidatorScript val where
                 -- If there is no data script in the output list,
                 -- we only accept the transaction if we are past the
                 -- date of the final tranche.
-                _ -> h >= d2
+                _ -> slFrom >= d2
 
             isValid = amountsValid && txnOutputsValid
         in

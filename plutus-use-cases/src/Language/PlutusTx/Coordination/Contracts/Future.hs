@@ -34,7 +34,7 @@ import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
                                               PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit, withValidationInterval)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -99,6 +99,7 @@ settle :: (
     -> m ()
 settle refs ft fd ov = do
     let
+        delDate = futureDeliveryDate ft
         forwardPrice = futureUnitPrice ft
         OracleValue _ _ spotPrice = ov
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
@@ -110,7 +111,9 @@ settle refs ft fd ov = do
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
             ]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ createTxAndSubmit (Set.fromList inp) outs
+    void 
+        $ withValidationInterval (pure (delDate, delDate + 10))
+        $ createTxAndSubmit (Set.fromList inp) outs
 
 -- | Settle the position early if a margin payment has been missed.
 settleEarly :: (
@@ -197,7 +200,7 @@ validatorScript ft = ValidatorScript val where
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
 
             let
-                PendingTx _ outs _ _ (Slot sl) (PendingTxIn _ witness _) = p
+                PendingTx _ outs _ _ (PendingTxIn _ witness _) (Slot slFrom) _ = p
                 ownHash = case witness of
                     Left (vhash, _) -> vhash
                     _ -> $$(PlutusTx.error) ()
@@ -268,7 +271,7 @@ validatorScript ft = ValidatorScript val where
                                 delta  = futureUnits *  (spotPrice - forwardPrice)
                                 expShort = marginShort - delta
                                 expLong  = marginLong + delta
-                                slotvalid = sl >= deliveryDate
+                                slotvalid = slFrom >= deliveryDate
 
                                 canSettle =
                                     case outs of

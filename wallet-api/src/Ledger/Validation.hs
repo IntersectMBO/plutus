@@ -110,8 +110,9 @@ data PendingTx = PendingTx
     , pendingTxOutputs     :: [PendingTxOut]
     , pendingTxFee         :: Value
     , pendingTxForge       :: Value
-    , pendingTxSlot        :: Slot
     , pendingTxIn          :: PendingTxIn
+    , pendingTxValidFrom   :: Slot
+    , pendingTxValidTo     :: Slot
     -- ^ PendingTxIn being validated
     } deriving (Generic)
 
@@ -230,7 +231,7 @@ txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
     \(p :: PendingTx) (PubKey k) ->
         let
-            PendingTx txins _ _ _ _ _ = p
+            PendingTx txins _ _ _ _ _ _ = p
 
             signedBy' :: Signature -> Bool
             signedBy' (Signature s) = s == k

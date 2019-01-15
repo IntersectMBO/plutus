@@ -85,6 +85,13 @@ data ValidationError =
     -- ^ The transaction produces an output with a negative value
     | ScriptFailure [String]
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
+    | SlotRangeInvalid
+    -- ^ The slot range for transaction validation is not valid, because the 
+    --   `txValidFrom` field is greater than the `txValidTo` field.
+    | CurrentSlotOutOfRange Slot
+    -- ^ The `txValidTo` field is smaller than the current slot, or the 
+    --   `txValidFrom` field is greater than the current slot. Includes the 
+    --   current slot.
     deriving (Eq, Ord, Show, Generic)
 
 instance FromJSON ValidationError
@@ -118,15 +125,25 @@ validateTransaction :: ValidationMonad m
     -> Tx
     -> m ()
 validateTransaction h t =
-    checkValuePreserved t >> checkPositiveValues t >> checkValidInputs h t
+    checkSlotRange h t >> checkValuePreserved t >> checkPositiveValues t >> checkValidInputs t
+
+-- | Check that a transaction can be validated in the given slot.
+checkSlotRange :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
+checkSlotRange sl tx = 
+    let (from, to) = (txValidFrom tx, txValidTo tx) in
+    if to < from
+    then throwError SlotRangeInvalid
+    else if from <= sl && sl <= to
+         then pure ()
+         else throwError $ CurrentSlotOutOfRange sl
 
 -- | Check if the inputs of the transaction consume outputs that
 --   (a) exist and
 --   (b) can be unlocked by the signatures or validator scripts of the inputs
-checkValidInputs :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
-checkValidInputs h tx = do
+checkValidInputs :: ValidationMonad m => Tx -> m ()
+checkValidInputs tx = do
     matches <- lkpOutputs tx >>= traverse (uncurry matchInputOutput)
-    vld     <- validationData h tx
+    vld     <- validationData tx
     traverse_ (checkMatch vld) matches
 
 -- | Match each input of the transaction with its output
@@ -197,8 +214,8 @@ checkPositiveValues t =
     else throwError $ NegativeValue t
 
 -- | Encode the current transaction and slot in PLC.
-validationData :: ValidationMonad m => Slot -> Tx -> m PendingTx
-validationData h tx = rump <$> ins where
+validationData :: ValidationMonad m => Tx -> m PendingTx
+validationData tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
     rump inputs = PendingTx
@@ -206,9 +223,9 @@ validationData h tx = rump <$> ins where
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
-        , pendingTxSlot = h
-        , pendingTxIn = head inputs
-        -- this is changed accordingly in `checkMatch` during validation
+        , pendingTxIn = head inputs -- this is changed accordingly in `checkMatch` during validation
+        , pendingTxValidFrom = txValidFrom tx
+        , pendingTxValidTo = txValidTo tx
         }
 
 mkOut :: TxOut -> Validation.PendingTxOut

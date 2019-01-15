@@ -73,8 +73,9 @@ contributionScript cmp  = ValidatorScript val where
                 -- information we need:
                 -- `ps` is the list of inputs of the transaction
                 -- `outs` is the list of outputs
-                -- `h` is the current slot number
-                PendingTx ps outs _ _ (Slot h) _ = p
+                -- `slFrom` is the beginning of the validation interval
+                -- `slTo` is the end of the validation interval
+                PendingTx ps outs _ _ _ (Slot slFrom) (Slot slTo) = p
 
                 -- `deadline` is the campaign deadline, but we need it as an
                 -- `Int` so that we can compare it with other integers.
@@ -114,13 +115,13 @@ contributionScript cmp  = ValidatorScript val where
                             -- of the contributor (this key is provided as the data script `con`)
                             contributorOnly = $$(P.all) contributorTxOut outs
 
-                            refundable = h >= collectionDeadline && contributorOnly && con `signedBy` sig
+                            refundable = slFrom > collectionDeadline && contributorOnly && con `signedBy` sig
 
                         in refundable
                     Collect sig -> -- the "successful campaign" branch
                         let
-                            payToOwner = h >= deadline
-                                && h < collectionDeadline
+                            payToOwner = slFrom > deadline
+                                && slTo <= collectionDeadline
                                 && totalInputs >= target
                                 && campaignOwner `signedBy` sig
                         in payToOwner
@@ -170,7 +171,8 @@ scheduleCollection cmp = do
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
         let redeemerScript = Ledger.RedeemerScript (Ledger.lifted $ Collect sig)
-        collectFromScript (contributionScript cmp) redeemerScript))
+        withValidationInterval (pure (succ (campaignDeadline cmp), campaignCollectionDeadline cmp)) $
+            collectFromScript (contributionScript cmp) redeemerScript))
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
@@ -191,13 +193,14 @@ refundHandler txid signature cmp = EventHandler (\_ -> do
     let validatorScript = contributionScript cmp
         redeemerScript  = Ledger.RedeemerScript (Ledger.lifted $ Refund signature)
 
-    -- `collectFromScriptTxn` generates a transaction that spends the unspent
-    -- transaction outputs at the address of the validator scripts, *but* only
-    -- those outputs that were produced by the transaction `txid`. We use it
-    -- here to ensure that we don't attempt to claim back other contributors'
-    -- funds (if we did that, the validator script would fail and the entire
-    -- transaction would be invalid).
-    collectFromScriptTxn validatorScript redeemerScript txid)
+    withValidationInterval (pure (succ (campaignCollectionDeadline cmp), 10 + campaignCollectionDeadline cmp)) $
+        -- `collectFromScriptTxn` generates a transaction that spends the unspent
+        -- transaction outputs at the address of the validator scripts, *but* only
+        -- those outputs that were produced by the transaction `txid`. We use it
+        -- here to ensure that we don't attempt to claim back other contributors'
+        -- funds (if we did that, the validator script would fail and the entire
+        -- transaction would be invalid).
+        collectFromScriptTxn validatorScript redeemerScript txid)
 
 $(mkFunctions ['scheduleCollection, 'contribute])
 

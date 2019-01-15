@@ -93,7 +93,9 @@ module Ledger.Types(
     inRef,
     inType,
     inScripts,
-    inSignature
+    inSignature,
+    validFrom,
+    validTo
     ) where
 
 import qualified Codec.CBOR.Write                         as Write
@@ -355,7 +357,11 @@ data Tx = Tx {
     txInputs     :: Set.Set TxIn,
     txOutputs    :: [TxOut],
     txForge      :: !Value,
-    txFee        :: !Value
+    txFee        :: !Value,
+    txValidFrom  :: !Slot,
+    -- ^ The first slot during which this transaction may be validated
+    txValidTo    :: !Slot
+    -- ^ The last slot during which this transaction may be validated
     } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | The inputs of a transaction
@@ -369,7 +375,15 @@ outputs = lens g s where
     g = txOutputs
     s tx o = tx { txOutputs = o }
 
+validFrom :: Lens' Tx Slot
+validFrom = lens g s where
+    g = txValidFrom
+    s tx o = tx { txValidFrom = o }
 
+validTo :: Lens' Tx Slot
+validTo = lens g s where
+    g = txValidTo
+    s tx o = tx { txValidTo = o }
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
