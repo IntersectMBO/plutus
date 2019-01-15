@@ -11,8 +11,6 @@ module Language.PlutusCore.Quote (
             , freshUnique
             , freshName
             , freshTyName
-            , freshNameText
-            , freshTyNameText
             , freshenName
             , freshenTyName
             , markNonFresh
@@ -33,12 +31,10 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 
-import qualified Data.ByteString.Lazy      as BSL
 import           Data.Functor.Foldable
 import           Data.Functor.Identity
 import qualified Data.Set                  as Set
 import qualified Data.Text                 as Text
-import qualified Data.Text.Encoding        as Text
 import           Hedgehog                  (GenT, PropertyT)
 
 import           Language.PlutusCore.Name
@@ -148,24 +144,16 @@ freshUnique = liftQuote $ do
     pure nextU
 
 -- | Get a fresh 'Name', given the annotation and the @ByteString@ name.
-freshName :: Monad m => a -> BSL.ByteString -> QuoteT m (Name a)
+freshName :: Monad m => a -> Text.Text -> QuoteT m (Name a)
 freshName ann str = Name ann str <$> freshUnique
 
--- | Get a fresh 'Name', given the annotation and the @Text@ name.
-freshNameText :: Monad m => a -> Text.Text -> QuoteT m (Name a)
-freshNameText ann = freshName ann . BSL.fromStrict . Text.encodeUtf8
-
 -- | Make a copy of the given 'Name' that is distinct from the old one.
-freshenName :: Monad m =>  Name a -> QuoteT m (Name a)
+freshenName :: Monad m => Name a -> QuoteT m (Name a)
 freshenName (Name ann str _) = Name ann str <$> freshUnique
 
 -- | Get a fresh 'TyName', given the annotation and the @ByteString@ name.
-freshTyName :: Monad m => a -> BSL.ByteString -> QuoteT m (TyName a)
+freshTyName :: Monad m => a -> Text.Text -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
-
--- | Get a fresh 'TyName', given the annotation and the @Text@ name.
-freshTyNameText :: (Monad m) => a -> Text.Text -> QuoteT m (TyName a)
-freshTyNameText = fmap TyName .* freshNameText
 
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
 freshenTyName :: Monad m => TyName a -> QuoteT m (TyName a)

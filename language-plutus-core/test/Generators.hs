@@ -20,7 +20,7 @@ genTyName = TyName <$> genName
 genName :: MonadGen m => m (Name ())
 genName = Name () <$> name' <*> int'
     where int' = Unique <$> Gen.int (Range.linear 0 3000)
-          name' = BSL.fromStrict <$> Gen.utf8 (Range.linear 1 20) Gen.lower
+          name' = Gen.text (Range.linear 1 20) Gen.lower
 
 simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
 simpleRecursive = Gen.recursive Gen.choice

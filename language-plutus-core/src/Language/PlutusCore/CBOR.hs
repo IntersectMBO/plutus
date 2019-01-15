@@ -116,8 +116,8 @@ instance Serialise Unique where
 
 instance Serialise a => Serialise (Name a) where
     -- TODO: should we encode the name or not?
-    encode (Name x bs u) = encode x <> encodeBytes (BSL.toStrict bs) <> encode u
-    decode = Name <$> decode <*> fmap BSL.fromStrict decodeBytes <*> decode
+    encode (Name x txt u) = encode x <> encode txt <> encode u
+    decode = Name <$> decode <*> decode <*> decode
 
 instance Serialise a => Serialise (TyName a) where
     encode (TyName n) = encode n

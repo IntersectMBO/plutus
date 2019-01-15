@@ -34,13 +34,13 @@ import           Control.Monad.State
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.IntMap                as IM
 import qualified Data.Map                   as M
-import           Data.Text.Encoding         (decodeUtf8)
+import qualified Data.Text                  as T
 import           Instances.TH.Lift          ()
 import           Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
-                   , nameString    :: BSL.ByteString -- ^ The identifier name, for use in error messages.
+                   , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
                    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
                    }
             deriving (Show, Functor, Generic, NFData, Lift)
@@ -53,11 +53,11 @@ newtype TyName a = TyName { unTyName :: Name a }
 instance Wrapped (TyName a)
 
 -- | Apply a function to the string representation of a 'Name'.
-mapNameString :: (BSL.ByteString -> BSL.ByteString) -> Name a -> Name a
+mapNameString :: (T.Text -> T.Text) -> Name a -> Name a
 mapNameString f name = name { nameString = f $ nameString name }
 
 -- | Apply a function to the string representation of a 'TyName'.
-mapTyNameString :: (BSL.ByteString -> BSL.ByteString) -> TyName a -> TyName a
+mapTyNameString :: (T.Text -> T.Text) -> TyName a -> TyName a
 mapTyNameString f (TyName name) = TyName $ mapNameString f name
 
 instance Eq (Name a) where
@@ -226,9 +226,9 @@ class HasPrettyConfigName config where
     toPrettyConfigName :: config -> PrettyConfigName
 
 instance HasPrettyConfigName config => PrettyBy config (Name a) where
-    prettyBy config (Name _ bs (Unique uniq))
-        | showsUnique = pretty (decodeUtf8 $ BSL.toStrict bs) <> "_" <> pretty uniq
-        | otherwise   = pretty (decodeUtf8 $ BSL.toStrict bs)
+    prettyBy config (Name _ txt (Unique uniq))
+        | showsUnique = pretty txt <> "_" <> pretty uniq
+        | otherwise   = pretty txt
         where PrettyConfigName showsUnique _ = toPrettyConfigName config
 
 deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyName a)

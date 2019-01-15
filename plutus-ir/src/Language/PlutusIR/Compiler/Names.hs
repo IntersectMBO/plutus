@@ -1,8 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
-import           PlutusPrelude             (strToBs)
-
 import qualified Language.PlutusCore       as PLC
 import           Language.PlutusCore.Quote
 
@@ -46,10 +44,9 @@ termReplacements = replacements ++ [
 
 data NameKind = TypeName | TermName
 
-safeName :: NameKind -> String -> String
-safeName kind s =
+safeName :: NameKind -> T.Text -> T.Text
+safeName kind t =
     let
-        t = T.pack s
         -- replace some special cases
         toReplace = case kind of
             TypeName -> typeReplacements
@@ -61,10 +58,10 @@ safeName kind s =
         dropped = T.dropWhile (\c -> c == '_' || c == '`') stripped
         -- empty name, just put something to mark that
         nonEmpty = if T.null dropped then "bad_name" else dropped
-    in T.unpack nonEmpty
+    in nonEmpty
 
-safeFreshName :: MonadQuote m => a -> String -> m (PLC.Name a)
-safeFreshName ann s = liftQuote $ freshName ann $ strToBs $ safeName TermName s
+safeFreshName :: MonadQuote m => a -> T.Text -> m (PLC.Name a)
+safeFreshName ann s = liftQuote $ freshName ann $ safeName TermName s
 
-safeFreshTyName :: MonadQuote m => a -> String -> m (PLC.TyName a)
-safeFreshTyName ann s = liftQuote $ freshTyName ann $ strToBs $ safeName TypeName s
+safeFreshTyName :: MonadQuote m => a -> T.Text -> m (PLC.TyName a)
+safeFreshTyName ann s = liftQuote $ freshTyName ann $ safeName TypeName s
