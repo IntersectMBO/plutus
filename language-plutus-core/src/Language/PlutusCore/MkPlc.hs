@@ -8,6 +8,12 @@ module Language.PlutusCore.MkPlc ( VarDecl (..)
                                  , Def (..)
                                  , TermDef
                                  , TypeDef
+                                 , FunctionType (..)
+                                 , FunctionDef (..)
+                                 , functionTypeToType
+                                 , functionDefToType
+                                 , functionDefVarDecl
+                                 , mkFunctionDef
                                  , mkTermLet
                                  , mkTypeLet
                                  , mkIterTyForall
@@ -42,7 +48,7 @@ data TyVarDecl tyname a = TyVarDecl {tyVarDeclAnn::a, tyVarDeclName::tyname a, t
 mkTyVar :: a -> TyVarDecl tyname a -> Type tyname a
 mkTyVar x = TyVar x . tyVarDeclName
 
--- | A "type declaration", i.e. a name and a kind for a type.
+-- | A "type declaration", i.e. a kind for a type.
 data TyDecl tyname a = TyDecl {tyDeclAnn::a, tyDeclType::Type tyname a, tyDeclKind::Kind a}
     deriving (Functor, Show, Eq, Generic)
 
@@ -56,6 +62,47 @@ data Def var val = Def { defVar::var, defVal::val} deriving (Show, Eq, Ord, Gene
 type TermDef tyname name a = Def (VarDecl tyname name a) (Term tyname name a)
 -- | A type definition as a type variable.
 type TypeDef tyname a = Def (TyVarDecl tyname a) (Type tyname a)
+
+-- | The type of a PLC function.
+data FunctionType tyname ann = FunctionType
+    { _functionTypeAnn :: ann              -- ^ An annotation.
+    , _functionTypeDom :: Type tyname ann  -- ^ The domain of a function.
+    , _functionTypeCod :: Type tyname ann  -- ^ The codomain of the function.
+    }
+
+-- Should we parameterize 'VarDecl' by @ty@ rather than @tyname@, so that we can define
+-- 'FunctionDef' as 'TermDef FunctionType tyname name ann'?
+-- Perhaps we even should define general 'Decl' and 'Def' that cover all of the cases?
+-- | A PLC function.
+data FunctionDef tyname name ann = FunctionDef
+    { _functionDefAnn  :: ann                      -- ^ An annotation.
+    , _functionDefName :: name ann                 -- ^ The name of a function.
+    , _functionDefType :: FunctionType tyname ann  -- ^ The type of the function.
+    , _functionDefTerm :: Term tyname name ann     -- ^ The definition of the function.
+    }
+
+-- | Convert a 'FunctionType' to the corresponding 'Type'.
+functionTypeToType :: FunctionType tyname ann -> Type tyname ann
+functionTypeToType (FunctionType ann dom cod) = TyFun ann dom cod
+
+-- | Get the type of a 'FunctionDef'.
+functionDefToType :: FunctionDef tyname name ann -> Type tyname ann
+functionDefToType (FunctionDef _ _ funTy _) = functionTypeToType funTy
+
+-- | Convert a 'FunctionDef' to a 'VarDecl'. I.e. ignore the actual term.
+functionDefVarDecl :: FunctionDef tyname name ann -> VarDecl tyname name ann
+functionDefVarDecl (FunctionDef ann name funTy _) = VarDecl ann name $ functionTypeToType funTy
+
+-- | Make a 'FunctioDef'. Return 'Nothing' if the provided type is not functional.
+mkFunctionDef
+    :: ann
+    -> name ann
+    -> Type tyname ann
+    -> Term tyname name ann
+    -> Maybe (FunctionDef tyname name ann)
+mkFunctionDef annName name (TyFun annTy dom cod) term =
+    Just $ FunctionDef annName name (FunctionType annTy dom cod) term
+mkFunctionDef _       _    _                     _    = Nothing
 
 -- | Make a "let-binding" for a term.
 mkTermLet

@@ -8,6 +8,8 @@ module Language.PlutusCore.StdLib.Data.Function
     , getBuiltinUnroll
     , getBuiltinFix
     , getBuiltinFixN
+    , FunctionDef (..)
+    , getBuiltinMutualFixOf
     ) where
 
 import           Language.PlutusCore.MkPlc
@@ -16,6 +18,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
+import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 import           Control.Monad
@@ -247,3 +250,40 @@ getBuiltinFixN n = do
         TyAbs () s (Type ()) $
         LamAbs () h hTy $
         mkIterApp () (Var () h) branches
+
+-- | Get the fixed-point of a list of mutually recursive functions.
+--
+-- > getBuiltinMutualFixOf _ [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
+-- >                         , ...
+-- >                         , FunctionDef _ fNn (FunctionType _ an bn) fn
+-- >                         ] =
+-- >     Tuple [(a1 -> b1) ... (an -> bn)] $
+-- >         fixN {a1} {b1} ... {an} {bn}
+-- >             /\(q :: *) -> \(choose : (a1 -> b1) -> ... -> (an -> bn) -> q) ->
+-- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
+getBuiltinMutualFixOf :: ann -> [FunctionDef TyName Name ann] -> Quote (Tuple ann)
+getBuiltinMutualFixOf ann funs = do
+    let funTys = map functionDefToType funs
+
+    q <- liftQuote $ freshTyName ann "Q"
+    -- TODO: It was 'safeFreshName' previously. Should we perhaps have @freshName = safeFreshName@?
+    choose <- freshName ann "choose"
+    let chooseTy = mkIterTyFun ann funTys (TyVar ann q)
+
+    -- \v1 ... vn -> choose f1 ... fn
+    let rhss    = map _functionDefTerm funs
+        chosen  = mkIterApp ann (Var ann choose) rhss
+        vsLam   = mkIterLamAbs (map functionDefVarDecl funs) chosen
+
+    -- abstract out Q and choose
+    let cLam = TyAbs ann q (Type ann) $ LamAbs ann choose chooseTy vsLam
+
+    -- fixN {A1} {B1} ... {An} {Bn}
+    instantiatedFix <- do
+        fixN <- (ann <$) <$> getBuiltinFixN (length funs)
+        let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -> [dom, cod]) funs
+        pure $ mkIterInst ann fixN domCods
+
+    let term = Apply ann instantiatedFix cLam
+
+    pure $ Tuple funTys term
