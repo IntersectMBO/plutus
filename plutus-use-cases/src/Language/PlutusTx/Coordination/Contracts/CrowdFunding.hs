@@ -33,13 +33,14 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), PubKey (..), TxId', ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
+import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
+                                               TxId', ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut, ValidatorHash)
+import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut)
 import qualified Ledger.Validation            as Validation
 import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
                                                WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
-                                               ownPubKeyTxOut, payToScript, pubKey, signAndSubmit)
+                                               ownPubKeyTxOut, payToScript, pubKey, createTxAndSubmit, signature)
 
 import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, succ, ($), (.),
                                              (<$>), (==))
@@ -56,7 +57,7 @@ type CampaignActor = PubKey
 
 PlutusTx.makeLift ''Campaign
 
-data CampaignAction = Collect | Refund
+data CampaignAction = Collect Signature | Refund Signature
     deriving Generic
 
 PlutusTx.makeLift ''CampaignAction
@@ -83,15 +84,17 @@ collect :: (WalletAPI m, WalletDiagnostics m) => Campaign -> m ()
 collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
         logMsg "Collecting funds"
         am <- watchedAddresses
+        keyPair <- myKeyPair
+        let sig = signature keyPair
         let scr        = contributionScript cmp
             contributions = am ^. at (campaignAddress cmp) . to (Map.toList . fromMaybe Map.empty)
-            red        = Ledger.RedeemerScript $ Ledger.lifted Collect
+            red        = Ledger.RedeemerScript $ Ledger.lifted $ Collect sig
             con (r, _) = scriptTxIn r scr red
             ins        = con <$> contributions
             value = getSum $ foldMap (Sum . Ledger.txOutValue . snd) contributions
 
         oo <- ownPubKeyTxOut value
-        void $ signAndSubmit (Set.fromList ins) [oo]
+        void $ createTxAndSubmit (Set.fromList ins) [oo]
 
 
 -- | The address of a [[Campaign]]
@@ -121,7 +124,7 @@ contributionScript cmp  = ValidatorScript val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx ValidatorHash) ->
+    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx) ->
         let
 
             infixr 3 &&
@@ -130,10 +133,10 @@ contributionScript cmp  = ValidatorScript val where
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
-            signedByT :: PendingTx ValidatorHash -> CampaignActor -> Bool
-            signedByT = $$(Validation.txSignedBy)
+            signedBy :: PubKey -> Signature -> Bool
+            signedBy (PubKey pk) (Signature s) = pk == s
 
-            PendingTx ps outs _ _ (Slot h) _ _ = p
+            PendingTx ps outs _ _ (Slot h) _ = p
 
             deadline :: Int
             deadline = let Slot h' = campaignDeadline in h'
@@ -151,7 +154,7 @@ contributionScript cmp  = ValidatorScript val where
                 $$(PlutusTx.foldr) (\i total -> total + v i) 0 ps
 
             isValid = case act of
-                Refund -> -- the "refund" branch
+                Refund sig -> -- the "refund" branch
                     let
                         -- Check that all outputs are paid to the public key
                         -- of the contributor (that is, to the `a` argument of the data script)
@@ -163,15 +166,15 @@ contributionScript cmp  = ValidatorScript val where
 
                         refundable   = h > collectionDeadline &&
                                                     contributorOnly &&
-                                                    signedByT p a
+                                                    a `signedBy` sig
 
                     in refundable
-                Collect -> -- the "successful campaign" branch
+                Collect sig -> -- the "successful campaign" branch
                     let
                         payToOwner = h > deadline &&
                                     h <= collectionDeadline &&
                                     totalInputs >= target &&
-                                    signedByT p campaignOwner
+                                    campaignOwner `signedBy` sig
                     in payToOwner
         in
         if isValid then () else $$(PlutusTx.error) ()) ||])
@@ -193,14 +196,16 @@ refund :: (WalletAPI m, WalletDiagnostics m) => TxId' -> Campaign -> EventHandle
 refund txid cmp = EventHandler $ \_ -> do
     logMsg "Claiming refund"
     am <- watchedAddresses
+    keyPair <- myKeyPair
+    let sig = signature keyPair
     let adr     = campaignAddress cmp
         utxo    = fromMaybe Map.empty $ am ^. at adr
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         scr   = contributionScript cmp
-        red   = Ledger.RedeemerScript $ Ledger.lifted Refund
+        red   = Ledger.RedeemerScript $ Ledger.lifted $ Refund sig
         i ref = scriptTxIn ref scr red
         inputs = Set.fromList $ i . fst <$> ourUtxo
         value  = getSum $ foldMap (Sum . Ledger.txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
-    void $ signAndSubmit inputs [out]
+    void $ createTxAndSubmit inputs [out]

@@ -71,8 +71,10 @@ mkFixpoint :: Compiling m e a => [TermDef TyName Name (Provenance a)] -> m (Tupl
 mkFixpoint bs = do
     p0 <- ask
 
-    funs <- forM bs $ \(PLC.Def (PLC.VarDecl p name ty) term) -> case ty of
-        PLC.TyFun _ i o -> Function.Function p i o . PLC.Def name <$> compileTerm term
-        _ -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type. You may need to manually add unit arguments."
+    funs <- forM bs $ \(PLC.Def (PLC.VarDecl p name ty) term) -> do
+        compTerm <- compileTerm term
+        case PLC.mkFunctionDef p name ty compTerm of
+            Just fun -> pure fun
+            Nothing  -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type. You may need to manually add unit arguments."
 
     liftQuote $ Function.getBuiltinMutualFixOf p0 funs

@@ -23,7 +23,7 @@ import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 ```
 
-The module imported as `Validation` contains types and functions that can be used in on-chain code. `PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](https://github.com/input-output-hk/plutus/blob/master/plutus-tx/tutorial/Tutorial.md)). `Wallet.Emulator` covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain. 
+The module imported as `Validation` contains types and functions that can be used in on-chain code. `PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](https://github.com/input-output-hk/plutus/blob/master/plutus-tx/tutorial/Tutorial.md)). `Wallet.Emulator` covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
 
 The campaign has the following parameters:
 
@@ -53,18 +53,18 @@ One of the strengths of PlutusTx is the ability to use the same definitions for 
 PlutusTx.makeLift ''Campaign
 ```
 
-Now we need to figure out what the campaign will look like on the blockchain. Which transactions are involved, who submits them, and in what order? 
+Now we need to figure out what the campaign will look like on the blockchain. Which transactions are involved, who submits them, and in what order?
 
 Each contributor pays their contribution to the address of the campaign script. When the slot `endDate` is reached, the campaign owner submits a single transaction, spending all inputs from the campaign address and paying them to a pubkey address. If the funding target isn't reached, or the campaign owner fails to collect the funds, then each contributor can claim a refund, in the form of a transaction that spends their own contribution. This means that the validator script is going to be run once per contribution, and we need to tell it which of the two cases outcomes it should check.
 
 We can encode the two possible actions in a data type:
 
 ```haskell
-data CampaignAction = Collect | Refund
+data CampaignAction = Collect Signature | Refund Signature
 PlutusTx.makeLift ''CampaignAction
 ```
 
-The `CampaignAction` will be submitted as the redeemer script. Now we need one final bit of information, namely the identity (public key) of each contributor, so that we know the recipient of the refund. This data can't be part of the redeemer script because then a reclaim could be made by anyone, not just the original contributor. Therefore the public key is going to be stored in the data script of the contribution. 
+The `CampaignAction` will be submitted as the redeemer script. Now we need one final bit of information, namely the identity (public key) of each contributor, so that we know the recipient of the refund. This data can't be part of the redeemer script because then a reclaim could be made by anyone, not just the original contributor. Therefore the public key is going to be stored in the data script of the contribution.
 
 ```haskell
 data Contributor = Contributor PubKey
@@ -74,10 +74,10 @@ PlutusTx.makeLift ''Contributor
 Now that we know the types of data and redeemer scripts, we automatically know the signature of the validator script:
 
 ```haskell
-type CampaignValidator = CampaignAction -> Contributor -> PendingTx' -> ()
+type CampaignValidator = CampaignAction -> Contributor -> PendingTx -> ()
 ```
 
-`CampaignValidator` is a function that takes three parameters -- `CampaignAction`, `Contributor`, and `PendingTx'` and produces a unit value `()` or fails with an error.
+`CampaignValidator` is a function that takes three parameters -- `CampaignAction`, `Contributor`, and `PendingTx` and produces a unit value `()` or fails with an error.
 
 If we want to implement `CampaignValidator` we need to know the parameters of the campaign, so that we can check if the selected `CampaignAction` is allowed. In Haskell we can do this by writing a function `mkValidator :: Campaign -> CampaignValidator` that takes a `Campaign` and produces a `CampaignValidator`. However, we can't implement `mkValidator` like this, because we need to wrap it in Template Haskell quotes so that it can be compiled to Plutus Core. We therefore define `mkValidator` in PlutusTx:
 
@@ -86,13 +86,13 @@ mkValidatorScript :: Campaign -> ValidatorScript
 mkValidatorScript campaign = ValidatorScript val where
   val = applyScript mkValidator (lifted campaign)
   -- ^ val is the obtained by applying `mkValidator` to the lifted `campaign` value
-  mkValidator = fromCompiledCode $$(PlutusTx.compile [|| 
+  mkValidator = fromCompiledCode $$(PlutusTx.compile [||
 ```
 
 Anything between the `[||` and `||]` quotes is going to be _on-chain code_ and anything outside the quotes is _off-chain code_. We can now implement a lambda function that looks like `mkValidator`, starting with its parameters:
 
 ```haskell
-              \(c :: Campaign) (act :: CampaignAction) (con :: Contributor) (p :: PendingTx') ->
+              \(c :: Campaign) (act :: CampaignAction) (con :: Contributor) (p :: PendingTx) ->
 ```
 
 Before we check whether `act` is permitted, we define a number of intermediate values that will make the checking code much more readable. These definitions are placed inside a `let` block, which is closed by a corresponding `in` below.
@@ -102,14 +102,17 @@ Before we check whether `act` is permitted, we define a number of intermediate v
                   infixr 3 &&
                   (&&) :: Bool -> Bool -> Bool
                   (&&) = $$(PlutusTx.and)
+
+                  signedBy :: PubKey -> Signature -> Bool
+                  signedBy (PubKey pk) (Signature s) = pk == s
 ```
 
 There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the `Validation` module using the `\$\$()` splicing operator.
 
-Next, we pattern match on the structure of the `PendingTx'` value `p` to get the Validation information we care about:
+Next, we pattern match on the structure of the `PendingTx` value `p` to get the Validation information we care about:
 
 ```haskell
-                  PendingTx ins outs _ _ (Slot currentSlot) _ _ = p
+                  PendingTx ins outs _ _ (Slot currentSlot) _ = p
 ```
 
 This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `currentSlot` to the current slot (that is, to the current date).
@@ -133,7 +136,7 @@ We now have all the information we need to check whether the action `act` is all
 
 ```haskell
                   isValid = case act of
-                      Refund -> 
+                      Refund sig ->
                           let
                               Contributor pkCon = con
 ```
@@ -142,7 +145,7 @@ In the `Refund` branch we check that the outputs of this transaction all go to t
 
 ```haskell
                               contributorTxOut :: PendingTxOut -> Bool
-                              contributorTxOut o = 
+                              contributorTxOut o =
                                 case $$(Validation.pubKeyOutput) o of
                                   Nothing -> False
                                   Just pk -> $$(Validation.eqPubKey) pk pkCon
@@ -161,7 +164,7 @@ For the contribution to be refundable, three conditions must hold. The collectio
 ```haskell
                               refundable   = currentSlot > collectionDeadline &&
                                       contributorOnly &&
-                                      $$(Validation.txSignedBy) p pkCon
+                                      pkCon `signedBy` sig
 ```
 
 The overall result of this branch is the `refundable` value:
@@ -170,10 +173,10 @@ The overall result of this branch is the `refundable` value:
                           in refundable
 ```
 
-The second branch represents a successful campaign. 
+The second branch represents a successful campaign.
 
 ```haskell
-                      Collect -> 
+                      Collect sig ->
 ```
 
 In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner.
@@ -182,7 +185,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
                           currentSlot > deadline &&
                           currentSlot <= collectionDeadline &&
                           totalInputs >= target &&
-                          $$(Validation.txSignedBy) p campaignOwner
+                          campaignOwner `signedBy` sig
 
               in
 ```
@@ -223,7 +226,7 @@ Contributing to a campaign is easy: We need to pay the value `amount` to a scrip
       tx <- payToScript (campaignAddress cmp) amount dataScript
 ```
 
-`tx` is a transaction that pays `amount` to the address of the campaign validator script, using our own public key as the data script. 
+`tx` is a transaction that pays `amount` to the address of the campaign validator script, using our own public key as the data script.
 
 ```haskell
       -- TODO: In the original contract we now register a refund trigger for our own contribution, using the hash of `tx`.
@@ -237,13 +240,13 @@ mkRedeemer :: CampaignAction -> RedeemerScript
 mkRedeemer action = RedeemerScript (lifted (action))
 ```
 
-To collect the funds we use `collectFromScript`, which expects a validator script and a redeemer script. 
+To collect the funds we use `collectFromScript`, which expects a validator script and a redeemer script.
 
 ```haskell
-collect :: Campaign -> MockWallet ()
-collect cmp = 
+collect :: Signature -> Campaign -> MockWallet ()
+collect sig cmp =
       let validatorScript = mkValidatorScript cmp
-          redeemer = mkRedeemer Collect
+          redeemer = mkRedeemer $ Collect sig
       in
           collectFromScript validatorScript redeemer
 ```

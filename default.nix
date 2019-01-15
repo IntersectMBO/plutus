@@ -137,10 +137,13 @@ let
         # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
         ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
-        wrapProgram $out/bin/plutus-playground-server --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+        wrapProgram $out/bin/plutus-playground-server \
+          --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
+          --set GHC_BIN_DIR "${runtimeGhc}/bin" \
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
       '';
 
-      client = let 
+      client = let
         generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
           mkdir $out
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out

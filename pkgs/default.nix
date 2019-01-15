@@ -55714,6 +55714,7 @@ license = stdenv.lib.licenses.bsd3;
 , plutus-tx-plugin
 , plutus-use-cases
 , servant
+, split
 , stdenv
 , swagger2
 , tasty
@@ -55746,6 +55747,7 @@ plutus-tx
 plutus-tx-plugin
 plutus-use-cases
 servant
+split
 swagger2
 template-haskell
 text
@@ -55797,8 +55799,10 @@ license = stdenv.lib.licenses.bsd3;
 , newtype-generics
 , optparse-applicative
 , plutus-playground-lib
+, process
 , purescript-bridge
 , QuickCheck
+, regex-compat
 , scientific
 , servant
 , servant-foreign
@@ -55846,7 +55850,9 @@ monad-logger
 mtl
 newtype-generics
 plutus-playground-lib
+process
 purescript-bridge
+regex-compat
 scientific
 servant
 servant-foreign
@@ -55883,6 +55889,7 @@ mtl
 network
 optparse-applicative
 plutus-playground-lib
+process
 purescript-bridge
 scientific
 servant

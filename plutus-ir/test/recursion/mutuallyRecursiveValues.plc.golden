@@ -1,0 +1,289 @@
+(program 1.0.0
+  [
+    (lam
+      tup_122
+      (all r_123 (type) (fun (fun (fun (all a_124 (type) (fun a_124 a_124)) (all a_125 (type) (fun a_125 a_125))) (fun (fun (all a_126 (type) (fun a_126 a_126)) (all a_127 (type) (fun a_127 a_127))) r_123)) r_123))
+      [
+        (lam
+          x_thunked_128
+          (fun (all a_129 (type) (fun a_129 a_129)) (all a_130 (type) (fun a_130 a_130)))
+          [
+            (lam
+              y_thunked_131
+              (fun (all a_132 (type) (fun a_132 a_132)) (all a_133 (type) (fun a_133 a_133)))
+              [
+                (lam
+                  y_134
+                  (all a_135 (type) (fun a_135 a_135))
+                  [
+                    (lam x_136 (all a_137 (type) (fun a_137 a_137)) x_136)
+                    [ x_thunked_128 (abs a_138 (type) (lam x_139 a_138 x_139)) ]
+                  ]
+                )
+                [ y_thunked_131 (abs a_140 (type) (lam x_141 a_140 x_141)) ]
+              ]
+            )
+            [
+              {
+                tup_122
+                (fun (all a_142 (type) (fun a_142 a_142)) (all a_143 (type) (fun a_143 a_143)))
+              }
+              (lam
+                arg_0_144
+                (fun (all a_145 (type) (fun a_145 a_145)) (all a_146 (type) (fun a_146 a_146)))
+                (lam
+                  arg_1_147
+                  (fun (all a_148 (type) (fun a_148 a_148)) (all a_149 (type) (fun a_149 a_149)))
+                  arg_1_147
+                )
+              )
+            ]
+          ]
+        )
+        [
+          {
+            tup_122
+            (fun (all a_150 (type) (fun a_150 a_150)) (all a_151 (type) (fun a_151 a_151)))
+          }
+          (lam
+            arg_0_152
+            (fun (all a_153 (type) (fun a_153 a_153)) (all a_154 (type) (fun a_154 a_154)))
+            (lam
+              arg_1_155
+              (fun (all a_156 (type) (fun a_156 a_156)) (all a_157 (type) (fun a_157 a_157)))
+              arg_0_152
+            )
+          )
+        ]
+      ]
+    )
+    [
+      {
+        {
+          {
+            {
+              (abs
+                a_158
+                (type)
+                (abs
+                  b_159
+                  (type)
+                  (abs
+                    a_160
+                    (type)
+                    (abs
+                      b_161
+                      (type)
+                      [
+                        {
+                          (abs
+                            F_162
+                            (fun (type) (type))
+                            (lam
+                              by_163
+                              (fun (all Q_164 (type) (fun [F_162 Q_164] Q_164)) (all Q_165 (type) (fun [F_162 Q_165] Q_165)))
+                              [
+                                {
+                                  {
+                                    (abs
+                                      a_166
+                                      (type)
+                                      (abs
+                                        b_167
+                                        (type)
+                                        (lam
+                                          f_168
+                                          (fun (fun a_166 b_167) (fun a_166 b_167))
+                                          [
+                                            {
+                                              (abs
+                                                a_169
+                                                (type)
+                                                (lam
+                                                  s_170
+                                                  [(lam a_171 (type) (ifix (lam rec_172 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_173 (fun (fun (type) (type)) (type)) [spine_173 [(lam self_174 (fun (type) (type)) (lam a_175 (type) (fun [self_174 a_175] a_175))) (lam a_176 (type) [rec_172 (lam dat_177 (fun (type) (type)) [dat_177 a_176])])]])) (lam dat_178 (fun (type) (type)) [dat_178 a_171]))) a_169]
+                                                  [ (unwrap s_170) s_170 ]
+                                                )
+                                              )
+                                              (fun a_166 b_167)
+                                            }
+                                            (iwrap
+                                              (lam rec_179 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_180 (fun (fun (type) (type)) (type)) [spine_180 [(lam self_181 (fun (type) (type)) (lam a_182 (type) (fun [self_181 a_182] a_182))) (lam a_183 (type) [rec_179 (lam dat_184 (fun (type) (type)) [dat_184 a_183])])]]))
+                                              (lam dat_185 (fun (type) (type)) [dat_185 (fun a_166 b_167)])
+                                              (lam
+                                                s_186
+                                                [(lam a_187 (type) (ifix (lam rec_188 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_189 (fun (fun (type) (type)) (type)) [spine_189 [(lam self_190 (fun (type) (type)) (lam a_191 (type) (fun [self_190 a_191] a_191))) (lam a_192 (type) [rec_188 (lam dat_193 (fun (type) (type)) [dat_193 a_192])])]])) (lam dat_194 (fun (type) (type)) [dat_194 a_187]))) (fun a_166 b_167)]
+                                                (lam
+                                                  x_195
+                                                  a_166
+                                                  [
+                                                    [
+                                                      f_168
+                                                      [
+                                                        {
+                                                          (abs
+                                                            a_196
+                                                            (type)
+                                                            (lam
+                                                              s_197
+                                                              [(lam a_198 (type) (ifix (lam rec_199 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_200 (fun (fun (type) (type)) (type)) [spine_200 [(lam self_201 (fun (type) (type)) (lam a_202 (type) (fun [self_201 a_202] a_202))) (lam a_203 (type) [rec_199 (lam dat_204 (fun (type) (type)) [dat_204 a_203])])]])) (lam dat_205 (fun (type) (type)) [dat_205 a_198]))) a_196]
+                                                              [
+                                                                (unwrap s_197)
+                                                                s_197
+                                                              ]
+                                                            )
+                                                          )
+                                                          (fun a_166 b_167)
+                                                        }
+                                                        s_186
+                                                      ]
+                                                    ]
+                                                    x_195
+                                                  ]
+                                                )
+                                              )
+                                            )
+                                          ]
+                                        )
+                                      )
+                                    )
+                                    (all Q_206 (type) (fun [F_162 Q_206] [F_162 Q_206]))
+                                  }
+                                  (all Q_207 (type) (fun [F_162 Q_207] Q_207))
+                                }
+                                (lam
+                                  rec_208
+                                  (fun (all Q_209 (type) (fun [F_162 Q_209] [F_162 Q_209])) (all Q_210 (type) (fun [F_162 Q_210] Q_210)))
+                                  (lam
+                                    h_211
+                                    (all Q_212 (type) (fun [F_162 Q_212] [F_162 Q_212]))
+                                    (abs
+                                      R_213
+                                      (type)
+                                      (lam
+                                        fr_214
+                                        [F_162 R_213]
+                                        [
+                                          {
+                                            [
+                                              by_163
+                                              (abs
+                                                Q_215
+                                                (type)
+                                                (lam
+                                                  fq_216
+                                                  [F_162 Q_215]
+                                                  [
+                                                    { [ rec_208 h_211 ] Q_215 }
+                                                    [ { h_211 Q_215 } fq_216 ]
+                                                  ]
+                                                )
+                                              )
+                                            ]
+                                            R_213
+                                          }
+                                          fr_214
+                                        ]
+                                      )
+                                    )
+                                  )
+                                )
+                              ]
+                            )
+                          )
+                          (lam X_217 (type) (fun (fun a_158 b_159) (fun (fun a_160 b_161) X_217)))
+                        }
+                        (lam
+                          k_218
+                          (all Q_219 (type) (fun (fun (fun a_158 b_159) (fun (fun a_160 b_161) Q_219)) Q_219))
+                          (abs
+                            S_220
+                            (type)
+                            (lam
+                              h_221
+                              (fun (fun a_158 b_159) (fun (fun a_160 b_161) S_220))
+                              [
+                                [
+                                  h_221
+                                  (lam
+                                    x_222
+                                    a_158
+                                    [
+                                      { k_218 b_159 }
+                                      (lam
+                                        f_223
+                                        (fun a_158 b_159)
+                                        (lam
+                                          f_224
+                                          (fun a_160 b_161)
+                                          [ f_223 x_222 ]
+                                        )
+                                      )
+                                    ]
+                                  )
+                                ]
+                                (lam
+                                  x_225
+                                  a_160
+                                  [
+                                    { k_218 b_161 }
+                                    (lam
+                                      f_226
+                                      (fun a_158 b_159)
+                                      (lam
+                                        f_227 (fun a_160 b_161) [ f_227 x_225 ]
+                                      )
+                                    )
+                                  ]
+                                )
+                              ]
+                            )
+                          )
+                        )
+                      ]
+                    )
+                  )
+                )
+              )
+              (all a_228 (type) (fun a_228 a_228))
+            }
+            (all a_229 (type) (fun a_229 a_229))
+          }
+          (all a_230 (type) (fun a_230 a_230))
+        }
+        (all a_231 (type) (fun a_231 a_231))
+      }
+      (abs
+        Q_232
+        (type)
+        (lam
+          choose_233
+          (fun (fun (all a_234 (type) (fun a_234 a_234)) (all a_235 (type) (fun a_235 a_235))) (fun (fun (all a_236 (type) (fun a_236 a_236)) (all a_237 (type) (fun a_237 a_237))) Q_232))
+          (lam
+            x_thunked_238
+            (fun (all a_239 (type) (fun a_239 a_239)) (all a_240 (type) (fun a_240 a_240)))
+            (lam
+              y_thunked_241
+              (fun (all a_242 (type) (fun a_242 a_242)) (all a_243 (type) (fun a_243 a_243)))
+              [
+                [
+                  choose_233
+                  (lam
+                    arg_244
+                    (all a_245 (type) (fun a_245 a_245))
+                    [ y_thunked_241 (abs a_246 (type) (lam x_247 a_246 x_247)) ]
+                  )
+                ]
+                (lam
+                  arg_248
+                  (all a_249 (type) (fun a_249 a_249))
+                  (abs a_250 (type) (lam x_251 a_250 x_251))
+                )
+              ]
+            )
+          )
+        )
+      )
+    ]
+  ]
+)

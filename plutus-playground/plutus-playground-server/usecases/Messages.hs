@@ -2,8 +2,6 @@
 -- logAMessage produces a log message from a wallet
 -- submitInvalidTxn submits an invalid txn which should result in a "Validation failed" message
 -- throwWalletAPIError throws an error from a wallet (client)
-module Language.PlutusTx.Coordination.Contracts.Messages where
-
 import qualified Data.Set                     as Set
 import           Data.Text                    (Text)
 
@@ -23,13 +21,10 @@ submitInvalidTxn = do
             , txOutputs = []
             , txForge = 2
             , txFee = 0
-            , txSignatures = []
             }
     submitTxn tx
 
 throwWalletAPIError :: Text -> MockWallet ()
 throwWalletAPIError = throwOtherError
 
-$(mkFunction 'logAMessage)
-$(mkFunction 'submitInvalidTxn)
-$(mkFunction 'throwWalletAPIError)
+$(mkFunctions ['logAMessage, 'submitInvalidTxn, 'throwWalletAPIError])

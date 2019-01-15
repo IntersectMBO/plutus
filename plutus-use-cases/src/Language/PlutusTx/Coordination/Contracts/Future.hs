@@ -31,10 +31,10 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef', Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
-import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxOut (..),
-                                              PendingTxOutType (..), ValidatorHash)
+import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
+                                              PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, signAndSubmit)
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -86,7 +86,7 @@ initialise long short f = do
         ds = DataScript $ Ledger.lifted $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange im
-    void $ signAndSubmit payment (o : maybeToList change)
+    void $ createTxAndSubmit payment (o : maybeToList change)
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -110,7 +110,7 @@ settle refs ft fd ov = do
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
             ]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ signAndSubmit (Set.fromList inp) outs
+    void $ createTxAndSubmit (Set.fromList inp) outs
 
 -- | Settle the position early if a margin payment has been missed.
 settleEarly :: (
@@ -126,7 +126,7 @@ settleEarly refs ft fd ov = do
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
         red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
-    void $ signAndSubmit (Set.fromList inp) outs
+    void $ createTxAndSubmit (Set.fromList inp) outs
 
 adjustMargin :: (
     MonadError WalletAPIError m,
@@ -150,7 +150,7 @@ adjustMargin refs ft fd vl = do
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ signAndSubmit (Set.union payment inp) (o : maybeToList change)
+    void $ createTxAndSubmit (Set.union payment inp) (o : maybeToList change)
 
 
 -- | Basic data of a futures contract. `Future` contains all values that do not
@@ -194,10 +194,13 @@ validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
     inner = Ledger.fromCompiledCode $$(PlutusTx.compile [||
-        \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: (PendingTx ValidatorHash)) ->
+        \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
 
             let
-                PendingTx _ outs _ _ (Slot sl) _ ownHash = p
+                PendingTx _ outs _ _ (Slot sl) (PendingTxIn _ witness _) = p
+                ownHash = case witness of
+                    Left (vhash, _) -> vhash
+                    _ -> $$(PlutusTx.error) ()
 
                 eqPk :: PubKey -> PubKey -> Bool
                 eqPk = $$(Validation.eqPubKey)

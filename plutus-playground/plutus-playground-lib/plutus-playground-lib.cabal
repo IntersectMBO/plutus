@@ -52,6 +52,7 @@ library
     , newtype-generics
     , plutus-use-cases
     , servant
+    , split
     , swagger2
     , template-haskell
     , text

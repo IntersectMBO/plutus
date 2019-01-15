@@ -5,6 +5,7 @@ module Language.PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
 
 import           Language.PlutusIR
 import qualified Language.PlutusIR.Analysis.Dependencies as Deps
+import           Language.PlutusIR.MkPir
 
 import qualified Language.PlutusCore                     as PLC
 import qualified Language.PlutusCore.Name                as PLC
@@ -69,10 +70,7 @@ processTerm term = case term of
         -- now handle usages and dead bindings with the bindings themselves
         processedBindings <- traverse processBinding liveBindings
 
-        -- if we've removed all the bindings then drop the let
-        if null processedBindings
-        then pure t'
-        else pure $ Let x r processedBindings t'
+        pure $ mkLet x r processedBindings t'
     TyAbs x tn k t -> TyAbs x tn k <$> processTerm t
     LamAbs x n ty t -> LamAbs x n ty <$> processTerm t
     Apply x t1 t2 -> Apply x <$> processTerm t1 <*> processTerm t2
@@ -90,6 +88,5 @@ processBinding
     -> m (Binding tyname name a)
 processBinding = \case
     TermBind x d rhs -> TermBind x d <$> processTerm rhs
--- MERGE CONFLICT
     b@TypeBind{} -> pure b
     b@DatatypeBind{} -> pure b

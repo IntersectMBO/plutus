@@ -42,8 +42,8 @@ getEvenAndOdd = do
               LamAbs () n nat $
               Apply () (Apply () (TyInst () (Unwrap () (Var () n)) bool) b) $ Var () recc
 
-    evenF <- Function () nat bool . Def evenn <$> eoFunc true oddd
-    oddF  <- Function () nat bool . Def oddd  <$> eoFunc false evenn
+    evenF <- FunctionDef () evenn (FunctionType () nat bool) <$> eoFunc true oddd
+    oddF  <- FunctionDef () oddd  (FunctionType () nat bool) <$> eoFunc false evenn
 
     getBuiltinMutualFixOf () [evenF, oddF]
 
@@ -71,7 +71,7 @@ getEvenAndOddList = do
                   (TyInst() nil nat))
               recc
 
-    evenF <- Function () listNat listNat . Def evenn <$> do
+    evenF <- FunctionDef () evenn (FunctionType () listNat listNat) <$> do
         h <- freshName () "head"
         t <- freshName () "tail"
         eoFunc $
@@ -80,7 +80,7 @@ getEvenAndOddList = do
             Apply () (Apply () (TyInst () cons nat) (Var () h)) $
             Apply () (Var () oddd) (Var () t)
 
-    oddF <- Function () listNat listNat . Def oddd <$> do
+    oddF <- FunctionDef () oddd (FunctionType () listNat listNat) <$> do
         h <- freshName () "head"
         t <- freshName () "tail"
         eoFunc $
