@@ -17,8 +17,8 @@ data RawKind : Set where
 data RawTy : Set where
   `   : String → RawTy
   _⇒_ : RawTy → RawTy → RawTy
-  Π   : String → RawKind → RawTy
-  ƛ   : String → RawKind → RawTy
+  Π   : String → RawKind → RawTy → RawTy
+  ƛ   : String → RawKind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
 
 data RawTm : Set where
