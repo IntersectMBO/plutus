@@ -9,6 +9,7 @@
 -- the simplifier messes with things otherwise
 {-# OPTIONS_GHC   -O0 #-}
 {-# OPTIONS_GHC   -Wno-orphans #-}
+{-# OPTIONS_GHC   -fmax-simplifier-iterations=0 #-}  -- being paranoid
 -- this adds source notes which helps the plugin give better errors
 {-# OPTIONS_GHC   -g #-}
 
@@ -252,6 +253,7 @@ newtypes = testNested "newtypes" [
     goldenPir "basicNewtype" basicNewtype
    , goldenPir "newtypeMatch" newtypeMatch
    , goldenPir "newtypeCreate" newtypeCreate
+   , goldenPir "newtypeId" newtypeId
    , goldenPir "newtypeCreate2" newtypeCreate2
    , goldenPir "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenEval "newtypeCreatDest" [ getProgram $ newtypeMatch, getProgram $ newtypeCreate2 ]
@@ -269,6 +271,9 @@ newtypeMatch = plc @"newtypeMatch" (\(MyNewtype x) -> x)
 
 newtypeCreate :: CompiledCode (Int -> MyNewtype)
 newtypeCreate = plc @"newtypeCreate" (\(x::Int) -> MyNewtype x)
+
+newtypeId :: CompiledCode (MyNewtype -> MyNewtype)
+newtypeId = plc @"newtypeCreate" (\(MyNewtype x) -> MyNewtype x)
 
 newtypeCreate2 :: CompiledCode MyNewtype
 newtypeCreate2 = plc @"newtypeCreate2" (MyNewtype 1)
@@ -289,6 +294,8 @@ recursiveTypes = testNested "recursiveTypes" [
     , goldenEval "ptreeConstDest" [ getProgram $ ptreeMatch, getProgram $ ptreeConstruct ]
     , goldenEval "polyRecEval" [ getProgram $ polyRec, getProgram $ ptreeConstruct ]
     , goldenEval "ptreeFirstEval" [ getProgram $ ptreeFirst, getProgram $ ptreeConstruct ]
+    , goldenEval "sameEmptyRoseEval" [ getProgram $ sameEmptyRose, getProgram $ emptyRoseConstruct ]
+    , goldenPlc "sameEmptyRose" sameEmptyRose
   ]
 
 listConstruct :: CompiledCode [Int]
@@ -329,6 +336,25 @@ ptreeFirst = plc @"ptreeFirst" (
         go k (One x) = k x
         go k (Two b) = go (\(x, _) -> k x) b
     in go (\x -> x))
+
+newtype EmptyRose = EmptyRose [EmptyRose]
+
+emptyRoseConstruct :: CompiledCode EmptyRose
+emptyRoseConstruct = plc @"emptyRoseConstruct" (EmptyRose [EmptyRose [], EmptyRose []])
+
+sameEmptyRose :: CompiledCode (EmptyRose -> EmptyRose)
+sameEmptyRose = plc @"sameEmptyRose" (
+    -- The type signatures are needed due to a bug (see 'emptyRoseNewId')
+    let (.|) :: ([EmptyRose] -> [EmptyRose]) -> (EmptyRose -> [EmptyRose]) -> EmptyRose -> [EmptyRose]
+        (.|) = \g f x -> g (f x)
+        (|.) :: ([EmptyRose] -> EmptyRose) -> (EmptyRose -> [EmptyRose]) -> EmptyRose -> EmptyRose
+        (|.) = \g f x -> g (f x)
+        map :: (EmptyRose -> EmptyRose) -> [EmptyRose] -> [EmptyRose]
+        map _ []     = []
+        map f (x:xs) = f x : map f xs
+        unEmptyRose (EmptyRose x) = x
+        go = EmptyRose |. (map go .| unEmptyRose)
+    in go)
 
 recursion :: TestNested
 recursion = testNested "recursiveFunctions" [
@@ -372,6 +398,7 @@ errors = testNested "errors" [
     , goldenPlcCatch "free" free
     , goldenPlcCatch "valueRestriction" valueRestriction
     , goldenPlcCatch "recordSelector" recordSelector
+    , goldenPlcCatch "emptyRoseId1" emptyRoseId1
   ]
 
 integer :: CompiledCode Integer
@@ -387,3 +414,20 @@ valueRestriction = plc @"valueRestriction" (let { f :: forall a . a; f = Builtin
 
 recordSelector :: CompiledCode (MyMonoRecord -> Int)
 recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
+
+emptyRoseId1 :: CompiledCode (EmptyRose -> EmptyRose)
+emptyRoseId1 = plc @"emptyRoseId1" (
+    let map _ []     = []
+        map f (x:xs) = f x : map f xs
+        go (EmptyRose xs) = EmptyRose (map go xs)
+    in go)
+
+-- Unexpectedly results in
+--
+-- > Used but not defined in the current conversion: Variable EmptyRose
+-- > [DataConWrapper]
+-- emptyRoseId2 :: CompiledCode (EmptyRose -> EmptyRose)
+-- emptyRoseId2 = plc @"emptyRoseId2" (
+--     let (.) g f = \x -> g (f x)
+--         unEmptyRose (EmptyRose xs) = xs
+--     in EmptyRose . unEmptyRose)
