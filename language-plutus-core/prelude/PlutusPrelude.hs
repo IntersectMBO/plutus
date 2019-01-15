@@ -88,6 +88,8 @@ module PlutusPrelude ( -- * Reëxports from base
                      , ilogRound
                      -- * GHCi
                      , printPretty
+                     -- * Text
+                     , showText
                      ) where
 
 import           Control.Applicative                     (Alternative (..))
@@ -283,3 +285,6 @@ ilogRound b x
 -- | A command suitable for use in GHCi as an interactive printer.
 printPretty :: Pretty a => a -> IO ()
 printPretty = print . pretty
+
+showText :: Show a => a -> T.Text
+showText = T.pack . show

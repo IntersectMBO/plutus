@@ -143,7 +143,7 @@ freshUnique = liftQuote $ do
     put $ Unique (unUnique nextU + 1)
     pure nextU
 
--- | Get a fresh 'Name', given the annotation and the @ByteString@ name.
+-- | Get a fresh 'Name', given the annotation and the 'Text.Text' name.
 freshName :: Monad m => a -> Text.Text -> QuoteT m (Name a)
 freshName ann str = Name ann str <$> freshUnique
 
@@ -151,7 +151,7 @@ freshName ann str = Name ann str <$> freshUnique
 freshenName :: Monad m => Name a -> QuoteT m (Name a)
 freshenName (Name ann str _) = Name ann str <$> freshUnique
 
--- | Get a fresh 'TyName', given the annotation and the @ByteString@ name.
+-- | Get a fresh 'TyName', given the annotation and the 'Text.Text' name.
 freshTyName :: Monad m => a -> Text.Text -> QuoteT m (TyName a)
 freshTyName = fmap TyName .* freshName
 

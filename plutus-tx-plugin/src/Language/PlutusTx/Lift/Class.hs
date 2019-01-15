@@ -231,7 +231,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs}= 
                       tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
                       let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
-                      matchName <- safeFreshName () ((T.pack "match_") <> showName tyName)
+                      matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
 
                       -- Define it so we get something for recursive uses
                       let fakeDatatype = Datatype () dtvd [] matchName []

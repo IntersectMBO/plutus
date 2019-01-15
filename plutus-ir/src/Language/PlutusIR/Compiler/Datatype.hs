@@ -4,6 +4,8 @@
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module Language.PlutusIR.Compiler.Datatype (compileDatatype) where
 
+import           PlutusPrelude                         (showText)
+
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
@@ -290,7 +292,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
           -- see note [Abstract data types]
         let argTypes = unveilDatatype (getType dty) d <$> constructorArgTypes constr
         -- we don't have any names for these things, we just had the type, so we call them "arg_i
-        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName p $ "arg_" <> (T.pack $ show i))
+        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName p $ "arg_" <> showText i)
         pure $ zipWith (VarDecl p) argNames argTypes
 
 
