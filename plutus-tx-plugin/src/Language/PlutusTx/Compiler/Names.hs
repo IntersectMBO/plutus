@@ -21,12 +21,13 @@ import           Language.PlutusIR.Compiler.Names
 import           Data.List
 import qualified Data.List.NonEmpty               as NE
 import qualified Data.Map                         as Map
+import qualified Data.Text                        as T
 
 lookupName :: Scope -> GHC.Name -> Maybe PLCVar
 lookupName (Scope ns _) n = Map.lookup n ns
 
 convNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
-convNameFresh n = safeFreshName () $ GHC.getOccString n
+convNameFresh n = safeFreshName () $ T.pack $ GHC.getOccString n
 
 convVarFresh :: Converting m => GHC.Var -> m PLCVar
 convVarFresh v = do
@@ -38,7 +39,7 @@ lookupTyName :: Scope -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
 convTyNameFresh :: MonadQuote m => GHC.Name -> m (PLC.TyName ())
-convTyNameFresh n = safeFreshTyName () $ GHC.getOccString n
+convTyNameFresh n = safeFreshTyName () $ T.pack $ GHC.getOccString n
 
 convTyVarFresh :: Converting m => GHC.TyVar -> m PLCTyVar
 convTyVarFresh v = do

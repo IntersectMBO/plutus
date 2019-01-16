@@ -32,6 +32,7 @@ import           Language.PlutusCore.MkPlc  (TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Pretty as PLC
 
 import           Codec.Serialise            (Serialise)
+import qualified Data.Text                  as T
 import           GHC.Generics               (Generic)
 
 -- Datatypes
@@ -50,10 +51,10 @@ data Datatype tyname name a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname 
 instance (Serialise a, Serialise (tyname a) , Serialise (name a)) => Serialise (Datatype tyname name a)
 
 varDeclNameString :: VarDecl name Name a -> String
-varDeclNameString = bsToStr . PLC.nameString . varDeclName
+varDeclNameString = T.unpack . PLC.nameString . varDeclName
 
 tyVarDeclNameString :: TyVarDecl TyName a -> String
-tyVarDeclNameString = bsToStr . PLC.nameString . PLC.unTyName . tyVarDeclName
+tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . tyVarDeclName
 
 datatypeNameString :: Datatype TyName name a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn

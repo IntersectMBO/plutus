@@ -43,6 +43,7 @@ import           Control.Monad.Reader
 import           Data.List                              (reverse, sortBy)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Set                               as Set
+import qualified Data.Text                              as T
 import           Data.Traversable
 
 -- Types
@@ -88,7 +89,7 @@ convTyCon tc = do
             let deps = fmap GHC.getName usedTcs ++ fmap GHC.getName dcs
 
             tvd <- convTcTyVarFresh tc
-            matchName <- safeFreshName () $ (GHC.getOccString $ GHC.getName tc) ++ "_match"
+            matchName <- safeFreshName () $ (T.pack $ GHC.getOccString $ GHC.getName tc) <> "_match"
 
             let fakeDatatype = PIR.Datatype () tvd [] matchName []
             PIR.defineDatatype tcName (PIR.Def tvd fakeDatatype) Set.empty
@@ -265,7 +266,7 @@ convAlt mustDelay instArgTys (alt, vars, body) = withContextM (sdToTxt $ "Creati
         body' <- convExpr body >>= maybeDelay mustDelay
         -- need to consume the args
         argTypes <- mapM convType instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" ++ show i)
+        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" <> (T.pack $ show i))
         pure $ PIR.mkIterLamAbs () (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.

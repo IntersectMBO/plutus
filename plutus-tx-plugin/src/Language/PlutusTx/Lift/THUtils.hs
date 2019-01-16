@@ -9,14 +9,16 @@ import           Language.PlutusCore.Quote
 
 import           Control.Monad
 
+import qualified Data.Text                        as T
+
 import qualified Language.Haskell.TH              as TH
 import qualified Language.Haskell.TH.Syntax       as TH
 
 -- | Very nearly the same as 'TH.showName', but doesn't print uniques, since we don't need to
 -- incorporate them into our names.
-showName :: TH.Name -> String
-showName = \case
-    TH.Name occ TH.NameS -> TH.occString occ
+showName :: TH.Name -> T.Text
+showName n = T.pack $ case n of
+    TH.Name occ TH.NameS         -> TH.occString occ
     TH.Name occ (TH.NameQ m)     -> TH.modString m ++ "." ++ TH.occString occ
     TH.Name occ (TH.NameG _ _ m) -> TH.modString m ++ "." ++ TH.occString occ
     TH.Name occ (TH.NameU _)     -> TH.occString occ

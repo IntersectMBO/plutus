@@ -4,12 +4,12 @@
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module Language.PlutusIR.Compiler.Datatype (compileDatatype) where
 
+import           PlutusPrelude                         (showText)
+
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
-
-import           PlutusPrelude                         (bsToStr)
 
 import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
@@ -19,6 +19,7 @@ import qualified Language.PlutusCore.Subst             as PLC
 
 import           Control.Monad.Reader
 
+import qualified Data.Text                             as T
 import           Data.Traversable
 
 -- Utilities
@@ -278,7 +279,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
           -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
           -- see note [Abstract data types]
           let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (PLC.TyVar p resultType)) constrs
-          caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" ++ bsToStr (nameString $ varDeclName c))
+          caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" <> T.pack (varDeclNameString c))
           pure $ zipWith (VarDecl p) caseArgNames caseTypes
 
     -- This is inelegant, but it should never fail
@@ -291,7 +292,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = local (DatatypeComponen
           -- see note [Abstract data types]
         let argTypes = unveilDatatype (getType dty) d <$> constructorArgTypes constr
         -- we don't have any names for these things, we just had the type, so we call them "arg_i
-        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName p $ "arg_" ++ show i)
+        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName p $ "arg_" <> showText i)
         pure $ zipWith (VarDecl p) argNames argTypes
 
 

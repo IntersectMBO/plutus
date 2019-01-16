@@ -34,6 +34,7 @@ import           Data.Foldable
 import           Data.List                              (sortBy)
 import           Data.Maybe
 import           Data.Proxy
+import qualified Data.Text                              as T
 import           Data.Traversable
 
 -- Apparently this is how you're supposed to fail at TH time.
@@ -230,7 +231,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs}= 
                       tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
                       let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
-                      matchName <- safeFreshName () ("match_" ++ showName tyName)
+                      matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
 
                       -- Define it so we get something for recursive uses
                       let fakeDatatype = Datatype () dtvd [] matchName []
