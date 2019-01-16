@@ -22,9 +22,9 @@ data RawTy : Set where
   _·_ : RawTy → RawTy → RawTy
 
 data RawTm : Set where
-  ` : String → RawTm
-  Λ : String → RawKind → RawTm
-  _·⋆ : RawTm → RawTy → RawTm
-  ƛ : String → RawTy → RawTm
-  _·_ : RawTm → RawTm → RawTm
+  `    : String → RawTm
+  Λ    : String → RawKind → RawTm → RawTm
+  _·⋆_ : RawTm → RawTy → RawTm
+  ƛ    : String → RawTy → RawTm → RawTm
+  _·_  : RawTm → RawTm → RawTm
 \end{code}

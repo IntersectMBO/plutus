@@ -121,7 +121,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
     → Φ ⊢⋆ J
 
   μ1 : ∀{φ K}
-     ---------------------------------
+      --------------------------------
     → φ ⊢⋆ ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
 
   size⋆ : ∀{φ}
@@ -140,7 +140,7 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
 Let `A`, `B`, `C` range over types.
 
 ## Type Abbreviations
-
+TODO: these should be in the stdlib
 \begin{code}
 unit : ∀{Γ} → Γ ⊢⋆ *
 unit = Π (` Z ⇒ ` Z)

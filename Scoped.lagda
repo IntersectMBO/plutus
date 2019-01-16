@@ -31,14 +31,14 @@ data WeirdFin : Weirdℕ → Set where
 
 ∥_∥ : Weirdℕ → ℕ
 ∥ Z ∥   = zero
-∥ S n ∥ = suc ∥ n ∥
-∥ T n ∥ = ∥ n ∥
+∥ S n ∥ = ∥ n ∥
+∥ T n ∥ = suc ∥ n ∥
 
 data ScopedTm : Weirdℕ → Set where
   `    : ∀{n} → WeirdFin n → ScopedTm n 
-  Λ    : ∀{n} → ScopedTm (S n) → ScopedTm n
+  Λ    : ∀{n} → ScopedKind → ScopedTm (T n) → ScopedTm n
   _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
-  ƛ    : ∀{n} → ScopedTm (S n) → ScopedTm n
+  ƛ    : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
 
 
@@ -57,15 +57,14 @@ open import Category.Monad
 import Level
 open RawMonad {f = Level.zero} monad
 
-velemIndex : String → ℕ → ∀{n} → Vec String n → Maybe (Fin n)
-velemIndex x n [] = nothing
-velemIndex x n (x' ∷ xs) with x Data.String.≟ x'
-velemIndex x zero    (x' ∷ xs) | yes p = just zero
-velemIndex x (suc n) (x' ∷ xs) | yes p = map suc (velemIndex x n xs)
-velemIndex x n       (x' ∷ xs) | no ¬p = map suc (velemIndex x n xs)
+velemIndex : String → ∀{n} → Vec String n → Maybe (Fin n)
+velemIndex x [] = nothing
+velemIndex x (x' ∷ xs) with x Data.String.≟ x'
+velemIndex x (x' ∷ xs) | yes p = just zero
+velemIndex x (x' ∷ xs) | no ¬p = map suc (velemIndex x xs)
 
 deBruijnifyTy : ∀{n} → Vec String n → RawTy → Maybe (ScopedTy n)
-deBruijnifyTy g (` α) = map ` (velemIndex α 0 g)
+deBruijnifyTy g (` α) = map ` (velemIndex α g)
 deBruijnifyTy g (A ⇒ B) = do
   A ← deBruijnifyTy g A
   B ← deBruijnifyTy g B
@@ -78,4 +77,38 @@ deBruijnifyTy g (A · B) = do
   A ← deBruijnifyTy g A
   B ← deBruijnifyTy g B
   return (A · B)
+
+data WeirdVec (X : Set) : Weirdℕ → Set where
+  nil : WeirdVec X Z
+  consS : ∀{n} → X → WeirdVec X n → WeirdVec X (S n)
+  consT : ∀{n} → X → WeirdVec X n → WeirdVec X (T n)
+
+∥_∥Vec : ∀{X n} → WeirdVec X n → Vec X ∥ n ∥
+∥ nil        ∥Vec = []
+∥ consS x xs ∥Vec = ∥ xs ∥Vec
+∥ consT x xs ∥Vec = x ∷ ∥ xs ∥Vec
+
+velemIndexWeird : String → ∀{n} → WeirdVec String n → Maybe (WeirdFin n)
+velemIndexWeird x nil = nothing
+velemIndexWeird x (consS x' xs) with x Data.String.≟ x'
+velemIndexWeird x (consS x' xs) | yes p = just Z
+velemIndexWeird x (consS _  xs) | no ¬p = map S (velemIndexWeird x xs)
+velemIndexWeird x (consT _  xs) = map T (velemIndexWeird x xs)
+
+deBruijnifyTm : ∀{n} → WeirdVec String n → RawTm → Maybe (ScopedTm n)
+deBruijnifyTm g (` x) = map ` (velemIndexWeird x g)
+deBruijnifyTm g (ƛ x A L) = do
+  A ← deBruijnifyTy ∥ g ∥Vec A
+  L ← deBruijnifyTm (consS x g) L
+  return (ƛ A L)
+deBruijnifyTm g (L · M) = do
+  L ← deBruijnifyTm g L
+  M ← deBruijnifyTm g M
+  return (L · M)
+deBruijnifyTm g (Λ x K L) =
+  map (Λ (deBruijnifyK K)) (deBruijnifyTm (consT x g) L)
+deBruijnifyTm g (L ·⋆ A) = do
+  L ← deBruijnifyTm g L
+  A ← deBruijnifyTy ∥ g ∥Vec A
+  return (L ·⋆ A)
 
