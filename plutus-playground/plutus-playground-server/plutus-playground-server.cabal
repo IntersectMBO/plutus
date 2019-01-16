@@ -16,6 +16,8 @@ data-files:
     usecases/Game.hs
     usecases/Messages.hs
     usecases/Vesting.hs
+    test/gists1.json
+    test/oAuthToken1.json
 
 source-repository head
     type:     git
@@ -31,13 +33,22 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
+        Gist
+        Utils
+        Control.Monad.Now
+        Control.Monad.Trace
+        Servant.Extra
     hs-source-dirs:   src
     default-language: Haskell2010
     build-depends:
         aeson -any,
+        aeson-casing -any,
+        authenticate-oauth -any,
+        binary -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
+        cookie -any,
         cryptonite >=0.25,
         data-default-class -any,
         directory -any,
@@ -45,6 +56,7 @@ library
         file-embed -any,
         gitrev -any,
         hint >=0.9.0,
+        http-conduit -any,
         bifunctors -any,
         http-types -any,
         insert-ordered-containers -any,
@@ -60,17 +72,20 @@ library
         scientific -any,
         servant -any,
         servant-foreign -any,
+        servant-client -any,
         servant-options -any,
         servant-server -any,
         swagger2 -any,
         template-haskell -any,
         temporary -any,
         text -any,
+        time -any,
         wai -any,
         wai-cors -any,
         wai-extra -any,
         wallet-api -any,
-        warp -any
+        warp -any,
+        yaml -any
 
 executable plutus-playground-server
     main-is:          Main.hs
@@ -78,6 +93,7 @@ executable plutus-playground-server
     other-modules:
         Webserver
         PSGenerator
+        Auth
     default-language: Haskell2010
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
@@ -85,21 +101,30 @@ executable plutus-playground-server
     build-depends:
         aeson -any,
         base >=4.7 && <5,
+        authenticate-oauth -any,
+        binary -any,
         bytestring -any,
         containers -any,
+        cookie -any,
         cryptonite >=0.25,
         data-default-class -any,
+        errors -any,
         filepath -any,
         file-embed -any,
         gitrev -any,
         hspec -any,
+        http-client -any,
+        http-client-tls -any,
+        http-conduit -any,
         http-media -any,
         http-types -any,
         insert-ordered-containers -any,
+        jwt -any,
         lens -any,
         monad-logger -any,
         mtl -any,
         network -any,
+        newtype-generics -any,
         optparse-applicative -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,
@@ -107,12 +132,14 @@ executable plutus-playground-server
         process -any,
         scientific -any,
         servant -any,
+        servant-client -any,
         servant-foreign -any,
         servant-options -any,
         servant-purescript -any,
         servant-server -any,
         swagger2 -any,
         text -any,
+        time -any,
         transformers -any,
         wai -any,
         wai-cors -any,
@@ -129,6 +156,8 @@ test-suite plutus-playground-server-test
         Playground.APISpec
         Playground.UsecasesSpec
         Paths_plutus_playground_server
+        UtilsSpec
+        GistSpec
     default-language:   Haskell2010
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns

@@ -1,6 +1,7 @@
 module Types where
 
 import Ace.Halogen.Component (AceMessage, AceQuery)
+import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import DOM.HTML.Event.Types (DragEvent)
@@ -16,6 +17,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Ledger.Types (Tx)
@@ -140,6 +142,7 @@ data Query a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
+  | CheckAuthStatus a
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
@@ -205,6 +208,8 @@ type State =
   , wallets :: Array MockWallet
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
+  , authStatus :: RemoteData AjaxError AuthStatus
+  , gists :: RemoteData AjaxError (Array Gist)
   }
 
 _actions :: forall s a. Lens' {actions :: a | s} a
@@ -218,6 +223,12 @@ _evaluationResult = prop (SProxy :: SProxy "evaluationResult")
 
 _compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
+
+_authStatus :: forall s a. Lens' {authStatus :: a | s} a
+_authStatus = prop (SProxy :: SProxy "authStatus")
+
+_gists :: forall s a. Lens' {gists :: a | s} a
+_gists = prop (SProxy :: SProxy "gists")
 
 ------------------------------------------------------------
 

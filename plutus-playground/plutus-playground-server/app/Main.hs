@@ -63,12 +63,10 @@ webserverCommandParser =
     pure Webserver {..}
 
 runCommand :: (MonadIO m, MonadLogger m) => Command -> m ()
-runCommand Webserver {..} =
-  Webserver.run settings _staticDir
+runCommand Webserver {..} = Webserver.run settings _staticDir
   where
     settings = setHost _host . setPort _port $ defaultSettings
-runCommand PSGenerator {..} =
-  liftIO $ PSGenerator.generate _outputDir
+runCommand PSGenerator {..} = liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
 main = do

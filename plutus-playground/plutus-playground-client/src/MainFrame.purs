@@ -9,9 +9,10 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, runAjax)
+import AjaxUtils (ajaxErrorPane, runAjax, showAjaxError)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
+import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
+import Bootstrap (btn, btnGroup, btnSmall, container_, empty, nbsp, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
@@ -39,22 +40,24 @@ import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
 import FileEvents (FILE, preventDefault, readFileFromDragEvent)
+import Gist (Gist)
 import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, i_, text)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
+import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
-import Playground.Server (SPParams_, postContract, postEvaluate)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (>>=))
+import Playground.Server (SPParams_, getGists, getOauthStatus, postContract, postEvaluate)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, ($), (+), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Servant.PureScript.Affjax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -66,6 +69,8 @@ initialState =
   , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
   , actions: []
   , evaluationResult: NotAsked
+  , authStatus: NotAsked
+  , gists: NotAsked
   }
 
 ------------------------------------------------------------
@@ -76,11 +81,13 @@ mainFrame ::
   => MonadAsk (SPSettings_ SPParams_) m
   => Component HTML Query Unit Void m
 mainFrame =
-  H.parentComponent
+  H.lifecycleParentComponent
     { initialState: const initialState
     , render
     , eval: evalWithAnalyticsTracking
     , receiver: const Nothing
+    , initializer: Just $ H.action $ CheckAuthStatus
+    , finalizer: Nothing
     }
 
 evalWithAnalyticsTracking ::
@@ -106,6 +113,7 @@ toEvent (HandleDragEvent _ _) = Nothing
 toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
 toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
+toEvent (CheckAuthStatus _) = Nothing
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
@@ -155,6 +163,18 @@ eval (HandleBalancesChartMessage EC.Initialized next) = do
 
 -- We just ignore most ECharts events.
 eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
+  pure next
+
+eval (CheckAuthStatus next) = do
+  assign _authStatus Loading
+  authResult <- runAjax getOauthStatus
+  assign _authStatus authResult
+  case view authStatusAuthRole <$> authResult of
+    Success GithubUser -> do
+      assign _gists Loading
+      gistsResult <- runAjax getGists
+      assign _gists gistsResult
+    _ -> pure unit
   pure next
 
 eval (LoadScript key next) = do
@@ -346,7 +366,7 @@ render state =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
-        [ mainHeader
+        [ mainHeader (view _authStatus state) (view _gists state)
         , editorPane state
         ]
     , stripeContainer_ [
@@ -371,11 +391,28 @@ stripeContainer_ children =
     [ class_ $ ClassName "stripe" ]
     [ container_ children ]
 
-mainHeader :: forall p i. HTML p i
-mainHeader =
+mainHeader :: forall p i. RemoteData AjaxError AuthStatus -> RemoteData AjaxError (Array Gist) -> HTML p i
+mainHeader authStatus gists =
   div_
     [ div [ classes [ btnGroup, pullRight ] ]
         (makeLink <$> links)
+    , div_ [ i_ [
+               case view authStatusAuthRole <$> authStatus of
+                 Success GithubUser -> text "Authenticated with Github."
+                 Success Anonymous -> text "Please authenticate."
+                 Failure err -> showAjaxError err
+                 Loading -> text "Loading..."
+                 NotAsked -> text "-"
+             ]
+           , nbsp
+           , i_ [
+               case gists of
+                 Success xs -> text $ show (Array.length xs) <> " gists."
+                 Failure err -> showAjaxError err
+                 Loading -> text "Loading..."
+                 NotAsked -> empty
+             ]
+           ]
     , h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
@@ -385,6 +422,7 @@ mainHeader =
             , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
+            , Tuple "Github" "/api/oauth/github"
             ]
     makeLink (Tuple name link) =
       a [ classes [ btn, btnSmall ]
