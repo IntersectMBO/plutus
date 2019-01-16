@@ -4,21 +4,21 @@
       [
         {
           (abs
-            Plugin_Spec_MyPolyData_17
+            Plugin_Spec_MyPolyData_i0
             (fun (type) (fun (type) (type)))
             (lam
-              Plugin_Spec_Poly1_18
-              (all a_19 (type) (all b_20 (type) (fun a_19 (fun b_20 [[Plugin_Spec_MyPolyData_17 a_19] b_20]))))
+              Plugin_Spec_Poly1_i0
+              (all a_i0 (type) (all b_i0 (type) (fun a_i2 (fun b_i1 [[Plugin_Spec_MyPolyData_i4 a_i2] b_i1]))))
               (lam
-                Plugin_Spec_Poly2_21
-                (all a_22 (type) (all b_23 (type) (fun a_22 [[Plugin_Spec_MyPolyData_17 a_22] b_23])))
+                Plugin_Spec_Poly2_i0
+                (all a_i0 (type) (all b_i0 (type) (fun a_i2 [[Plugin_Spec_MyPolyData_i5 a_i2] b_i1])))
                 (lam
-                  match_Plugin_Spec_MyPolyData_24
-                  (all a_25 (type) (all b_26 (type) (fun [[Plugin_Spec_MyPolyData_17 a_25] b_26] (all out_Plugin_Spec_MyPolyData_27 (type) (fun (fun a_25 (fun b_26 out_Plugin_Spec_MyPolyData_27)) (fun (fun a_25 out_Plugin_Spec_MyPolyData_27) out_Plugin_Spec_MyPolyData_27))))))
+                  match_Plugin_Spec_MyPolyData_i0
+                  (all a_i0 (type) (all b_i0 (type) (fun [[Plugin_Spec_MyPolyData_i6 a_i2] b_i1] (all out_Plugin_Spec_MyPolyData_i0 (type) (fun (fun a_i3 (fun b_i2 out_Plugin_Spec_MyPolyData_i1)) (fun (fun a_i3 out_Plugin_Spec_MyPolyData_i1) out_Plugin_Spec_MyPolyData_i1))))))
                   [
                     [
                       {
-                        { Plugin_Spec_Poly1_18 [(con integer) (con 8)] }
+                        { Plugin_Spec_Poly1_i3 [(con integer) (con 8)] }
                         [(con integer) (con 8)]
                       }
                       (con 8 ! 1)
@@ -29,30 +29,30 @@
               )
             )
           )
-          (lam a_28 (type) (lam b_29 (type) (all out_Plugin_Spec_MyPolyData_30 (type) (fun (fun a_28 (fun b_29 out_Plugin_Spec_MyPolyData_30)) (fun (fun a_28 out_Plugin_Spec_MyPolyData_30) out_Plugin_Spec_MyPolyData_30)))))
+          (lam a_i0 (type) (lam b_i0 (type) (all out_Plugin_Spec_MyPolyData_i0 (type) (fun (fun a_i3 (fun b_i2 out_Plugin_Spec_MyPolyData_i1)) (fun (fun a_i3 out_Plugin_Spec_MyPolyData_i1) out_Plugin_Spec_MyPolyData_i1)))))
         }
         (abs
-          a_31
+          a_i0
           (type)
           (abs
-            b_32
+            b_i0
             (type)
             (lam
-              arg_0_33
-              a_31
+              arg_0_i0
+              a_i3
               (lam
-                arg_1_34
-                b_32
+                arg_1_i0
+                b_i3
                 (abs
-                  out_Plugin_Spec_MyPolyData_35
+                  out_Plugin_Spec_MyPolyData_i0
                   (type)
                   (lam
-                    case_Plugin_Spec_Poly1_36
-                    (fun a_31 (fun b_32 out_Plugin_Spec_MyPolyData_35))
+                    case_Plugin_Spec_Poly1_i0
+                    (fun a_i6 (fun b_i5 out_Plugin_Spec_MyPolyData_i2))
                     (lam
-                      case_Plugin_Spec_Poly2_37
-                      (fun a_31 out_Plugin_Spec_MyPolyData_35)
-                      [ [ case_Plugin_Spec_Poly1_36 arg_0_33 ] arg_1_34 ]
+                      case_Plugin_Spec_Poly2_i0
+                      (fun a_i7 out_Plugin_Spec_MyPolyData_i3)
+                      [ [ case_Plugin_Spec_Poly1_i2 arg_0_i5 ] arg_1_i4 ]
                     )
                   )
                 )
@@ -62,24 +62,24 @@
         )
       ]
       (abs
-        a_38
+        a_i0
         (type)
         (abs
-          b_39
+          b_i0
           (type)
           (lam
-            arg_0_40
-            a_38
+            arg_0_i0
+            a_i3
             (abs
-              out_Plugin_Spec_MyPolyData_41
+              out_Plugin_Spec_MyPolyData_i0
               (type)
               (lam
-                case_Plugin_Spec_Poly1_42
-                (fun a_38 (fun b_39 out_Plugin_Spec_MyPolyData_41))
+                case_Plugin_Spec_Poly1_i0
+                (fun a_i5 (fun b_i4 out_Plugin_Spec_MyPolyData_i2))
                 (lam
-                  case_Plugin_Spec_Poly2_43
-                  (fun a_38 out_Plugin_Spec_MyPolyData_41)
-                  [ case_Plugin_Spec_Poly2_43 arg_0_40 ]
+                  case_Plugin_Spec_Poly2_i0
+                  (fun a_i6 out_Plugin_Spec_MyPolyData_i3)
+                  [ case_Plugin_Spec_Poly2_i1 arg_0_i4 ]
                 )
               )
             )
@@ -88,15 +88,15 @@
       )
     ]
     (abs
-      a_44
+      a_i0
       (type)
       (abs
-        b_45
+        b_i0
         (type)
         (lam
-          x_46
-          [[(lam a_47 (type) (lam b_48 (type) (all out_Plugin_Spec_MyPolyData_49 (type) (fun (fun a_47 (fun b_48 out_Plugin_Spec_MyPolyData_49)) (fun (fun a_47 out_Plugin_Spec_MyPolyData_49) out_Plugin_Spec_MyPolyData_49))))) a_44] b_45]
-          x_46
+          x_i0
+          [[(lam a_i0 (type) (lam b_i0 (type) (all out_Plugin_Spec_MyPolyData_i0 (type) (fun (fun a_i3 (fun b_i2 out_Plugin_Spec_MyPolyData_i1)) (fun (fun a_i3 out_Plugin_Spec_MyPolyData_i1) out_Plugin_Spec_MyPolyData_i1))))) a_i3] b_i2]
+          x_i1
         )
       )
     )
