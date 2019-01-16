@@ -2,7 +2,6 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -27,11 +26,6 @@ module Language.PlutusCore.Type ( Term (..)
                                 -- * Helper functions
                                 , tyLoc
                                 , termLoc
-                                -- * Renamed types and terms
-                                , NameWithType (..)
-                                , RenamedType
-                                , RenamedTerm
-                                , TyNameWithKind (..)
                                 -- * Normalized
                                 , Normalized (..)
                                 -- * Backwards compatibility
@@ -41,14 +35,12 @@ module Language.PlutusCore.Type ( Term (..)
                                 ) where
 
 import           Control.Lens
-import qualified Data.ByteString.Lazy               as BSL
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable
-import qualified Data.Map                           as M
-import           Data.Text.Prettyprint.Doc.Internal (enclose)
-import           Instances.TH.Lift                  ()
-import           Language.Haskell.TH.Syntax         (Lift)
-import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Name
+import qualified Data.Map                       as M
+import           Instances.TH.Lift              ()
+import           Language.Haskell.TH.Syntax     (Lift)
+import           Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
 type Size = Natural
@@ -328,24 +320,6 @@ instance Recursive (Kind a) where
 data Program tyname name a = Program a (Version a) (Term tyname name a)
                  deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
-type RenamedTerm a = Term TyNameWithKind NameWithType a
-newtype NameWithType a = NameWithType (Name (a, RenamedType a))
-    deriving (Show, Eq, Ord, Functor, Generic)
-    deriving newtype NFData
-instance Wrapped (NameWithType a)
-
-instance HasUnique (NameWithType a) TermUnique where
-    unique = newtypeUnique
-
-type RenamedType a = Type TyNameWithKind a
-newtype TyNameWithKind a = TyNameWithKind { unTyNameWithKind :: TyName (a, Kind a) }
-    deriving (Show, Eq, Ord, Functor, Generic)
-    deriving newtype NFData
-instance Wrapped (TyNameWithKind a)
-
-instance HasUnique (TyNameWithKind a) TypeUnique where
-    unique = newtypeUnique
-
 newtype Normalized a = Normalized { getNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
     deriving newtype NFData
@@ -364,21 +338,3 @@ getNormalizedType (Normalized ty) = ty
 
 instance PrettyBy config a => PrettyBy config (Normalized a) where
     prettyBy config (Normalized x) = prettyBy config x
-
-instance ( HasPrettyConfigName config
-         , PrettyBy config (Kind a)
-         , PrettyBy config (TyName (a, Kind a))
-         ) => PrettyBy config (TyNameWithKind a) where
-    prettyBy config (TyNameWithKind tyname@(TyName (Name (_, kind) _ _)))
-        | showsAttached = enclose "<" ">" $ prettyBy config tyname <+> "::" <+> prettyBy config kind
-        | otherwise     = prettyBy config tyname
-        where PrettyConfigName _ showsAttached = toPrettyConfigName config
-
-instance ( HasPrettyConfigName config
-         , PrettyBy config (RenamedType a)
-         , PrettyBy config (Name (a, RenamedType a))
-         ) => PrettyBy config (NameWithType a) where
-    prettyBy config (NameWithType name@(Name (_, ty) _ _))
-        | showsAttached = enclose "<" ">" $ prettyBy config name <+> ":" <+> prettyBy config ty
-        | otherwise     = prettyBy config name
-        where PrettyConfigName _ showsAttached = toPrettyConfigName config

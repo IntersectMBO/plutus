@@ -16,8 +16,6 @@ module Language.PlutusCore.Error
     , AsNormalizationError (..)
     , UniqueError (..)
     , AsUniqueError (..)
-    , RenameError (..)
-    , AsRenameError (..)
     , UnknownDynamicBuiltinNameError (..)
     , AsUnknownDynamicBuiltinNameError (..)
     , InternalTypeError (..)
@@ -29,7 +27,7 @@ module Language.PlutusCore.Error
     , throwingEither
     ) where
 
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
@@ -69,14 +67,6 @@ data NormalizationError tyname name a
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''NormalizationError
 
--- | A 'RenameError' is thrown when a free variable is encountered during
--- rewriting.
-data RenameError a
-    = UnboundVar (Name a)
-    | UnboundTyVar (TyName a)
-    deriving (Show, Eq, Generic, NFData)
-makeClassyPrisms ''RenameError
-
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
 newtype UnknownDynamicBuiltinNameError
     = UnknownDynamicBuiltinNameErrorE DynamicBuiltinName
@@ -91,12 +81,14 @@ data InternalTypeError a
 makeClassyPrisms ''InternalTypeError
 
 data TypeError a
-    = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
-    | TypeMismatch a (Term TyNameWithKind NameWithType ())
-                     (Type TyNameWithKind ())
-                     (NormalizedType TyNameWithKind ())
+    = KindMismatch a (Type TyName ()) (Kind ()) (Kind ())
+    | TypeMismatch a (Term TyName Name ())
+                     (Type TyName ())
+                     (NormalizedType TyName ())
     | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
     | InternalTypeErrorE a (InternalTypeError a)
+    | FreeTypeVariableE (TyName a)
+    | FreeVariableE (Name a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
@@ -104,7 +96,6 @@ makeClassyPrisms ''TypeError
 data Error a
     = ParseErrorE (ParseError a)
     | UniqueCoherencyErrorE (UniqueError a)
-    | RenameErrorE (RenameError a)
     | TypeErrorE (TypeError a)
     | NormalizationErrorE (NormalizationError TyName Name a)
     deriving (Show, Eq, Generic, NFData)
@@ -115,9 +106,6 @@ instance AsParseError (Error a) a where
 
 instance AsUniqueError (Error a) a where
     _UniqueError = _UniqueCoherencyErrorE
-
-instance AsRenameError (Error a) a where
-    _RenameError = _RenameErrorE
 
 instance AsTypeError (Error a) a where
     _TypeError = _TypeErrorE
@@ -154,16 +142,6 @@ instance (Pretty a, PrettyBy config (Type tyname a), PrettyBy config (Term tynam
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError a) where
-    prettyBy config (UnboundVar n@(Name l _ _)) =
-        "Error at" <+> pretty l <>
-        ". Variable" <+> prettyBy config n <+>
-        "is not in scope."
-    prettyBy config (UnboundTyVar n@(TyName (Name l _ _))) =
-        "Error at" <+> pretty l <>
-        ". Type variable" <+> prettyBy config n <+>
-        "is not in scope."
-
 instance Pretty UnknownDynamicBuiltinNameError where
     pretty (UnknownDynamicBuiltinNameErrorE dbn) =
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
@@ -190,6 +168,10 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
+    prettyBy config (FreeTypeVariableE name)          =
+        "Free type variable:" <+> prettyBy config name
+    prettyBy config (FreeVariableE name)              =
+        "Free variable:" <+> prettyBy config name
     prettyBy config (InternalTypeErrorE x err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty x
@@ -201,6 +183,5 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
-    prettyBy config (RenameErrorE e)          = prettyBy config e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormalizationErrorE e)   = prettyBy config e

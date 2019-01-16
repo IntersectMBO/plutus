@@ -54,10 +54,9 @@ compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuo
     -- it is important we run the two computations in the same Quote together, otherwise we might make
     -- names during compilation that are not fresh
     compiled <- compileTerm =<< liftQuote pir
-    when doTypecheck $ void $ do
-        annotated <- PLC.annotateTerm compiled
+    when doTypecheck $ void $
         -- need our own typechecker pipeline to allow normalized types
-        PLC.typecheckTerm (PLC.TypeConfig True mempty Nothing) annotated
+        PLC.typecheckTerm (PLC.TypeConfig True mempty mempty mempty Nothing) compiled
     pure compiled
 
 tests :: TestNested

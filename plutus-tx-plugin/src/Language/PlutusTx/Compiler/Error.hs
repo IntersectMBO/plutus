@@ -69,9 +69,6 @@ makeClassyPrisms ''Error
 instance (PP.Pretty a) => PP.Pretty (Error a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance PLC.AsRenameError ConvError () where
-    _RenameError = _NoContext . _PLCError . PLC._RenameError
-
 instance PLC.AsTypeError ConvError () where
     _TypeError = _NoContext . _PLCError . PLC._TypeError
 

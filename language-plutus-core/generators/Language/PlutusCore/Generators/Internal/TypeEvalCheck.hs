@@ -45,15 +45,12 @@ makeClassyPrisms ''TypeEvalCheckError
 instance AsError TypeEvalCheckError () where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
 
-instance AsRenameError TypeEvalCheckError () where
-    _RenameError = _TypeEvalCheckErrorIllFormed . _RenameError
-
 instance AsTypeError TypeEvalCheckError () where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.
 data TypeEvalCheckResult = TypeEvalCheckResult
-    { _termCheckResultType  :: NormalizedType TyNameWithKind ()
+    { _termCheckResultType  :: NormalizedType TyName ()
       -- ^ The type of the term.
     , _termCheckResultValue :: EvaluationResult
       -- ^ The result of evaluation of the term.
@@ -77,7 +74,7 @@ typeEvalCheckBy
     -> TermOf (TypedBuiltinValue Size a)
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
-    let typecheck = annotateTerm >=> typecheckTerm (TypeConfig True mempty defaultTypecheckerGas)
+    let typecheck = typecheckTerm (TypeConfig True mempty mempty mempty defaultTypecheckerGas)
     termTy <- typecheck term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $

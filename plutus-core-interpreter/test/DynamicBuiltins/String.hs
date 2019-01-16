@@ -14,6 +14,8 @@ import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Language.PlutusCore.Interpreter.CekMachine
 
+import           DynamicBuiltins.Common
+
 import           Control.Monad.IO.Class                     (liftIO)
 import           Hedgehog                                   hiding (Size, Var)
 import qualified Hedgehog.Gen                               as Gen
@@ -44,7 +46,7 @@ test_plcListOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . propert
 test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    (str', errOrRes) <- liftIO . withEmitEvaluateBy evaluateCekCatch TypedBuiltinDyn $ \emit ->
+    (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek TypedBuiltinDyn $ \emit ->
         runQuote $ do
             unit        <- getBuiltinUnit
             unitval     <- getBuiltinUnitval
