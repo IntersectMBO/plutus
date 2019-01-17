@@ -25,7 +25,6 @@ import Data.Argonaut.Core as Json
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Generic (gEq)
 import Data.Int as Int
 import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
@@ -248,7 +247,7 @@ eval (RemoveWallet index next) = do
 
 eval (SetBalance wallet newBalance next) = do
   modifying _wallets
-    (map (\mockWallet -> if view (_MockWallet <<< _wallet) mockWallet  `gEq` wallet
+    (map (\mockWallet -> if view (_MockWallet <<< _wallet) mockWallet == wallet
                          then set (_MockWallet <<< _balance) newBalance mockWallet
                          else mockWallet))
   pure next

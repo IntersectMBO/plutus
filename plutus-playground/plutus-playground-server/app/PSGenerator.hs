@@ -153,7 +153,8 @@ myTypes =
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
-    , mkSumType (Proxy @Wallet)
+    , let p = Proxy @Wallet
+       in equal p (mkSumType p)
     , mkSumType (Proxy @DataScript)
     , mkSumType (Proxy @ValidatorScript)
     , mkSumType (Proxy @RedeemerScript)
