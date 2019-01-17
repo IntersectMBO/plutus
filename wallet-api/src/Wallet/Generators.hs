@@ -67,7 +67,7 @@ constantFee = FeeEstimator . const . const
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
     mockchainInitialBlock :: Block,
-    mockchainUtxo         :: Map TxOutRef' TxOut'
+    mockchainUtxo         :: Map TxOutRef TxOut
     } deriving Show
 
 -- | The empty mockchain
@@ -85,7 +85,7 @@ genMockchain' gm = do
         txId = hashTx txn
     pure Mockchain {
         mockchainInitialBlock = [txn],
-        mockchainUtxo = Map.fromList $ first (TxOutRef txId) <$> zip [0..] ot
+        mockchainUtxo = Map.fromList $ first (TxOutRefOf txId) <$> zip [0..] ot
         }
 
 -- | Generate a mockchain using the default [[GeneratorModel]]
@@ -97,7 +97,7 @@ genMockchain = genMockchain' generatorModel
 --   beginning of a blockchain)
 genInitialTransaction ::
        GeneratorModel
-    -> (Tx, [TxOut'])
+    -> (Tx, [TxOut])
 genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
@@ -141,7 +141,7 @@ genValidTransaction' g f (Mockchain bc ops) = do
     genValidTransactionSpending' g f ins totalVal
 
 genValidTransactionSpending :: MonadGen m
-    => Set.Set TxIn'
+    => Set.Set TxIn
     -> Value
     -> m Tx
 genValidTransactionSpending = genValidTransactionSpending' generatorModel (constantFee 1)
@@ -149,7 +149,7 @@ genValidTransactionSpending = genValidTransactionSpending' generatorModel (const
 genValidTransactionSpending' :: MonadGen m
     => GeneratorModel
     -> FeeEstimator
-    -> Set.Set TxIn'
+    -> Set.Set TxIn
     -> Value
     -> m Tx
 genValidTransactionSpending' g f ins totalVal = do

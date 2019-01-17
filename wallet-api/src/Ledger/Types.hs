@@ -17,14 +17,14 @@ module Ledger.Types(
     Value(..),
     Slot(..),
     lastSlot,
-    TxId(..),
-    TxId',
+    TxIdOf(..),
+    TxId,
     PubKey(..),
     Signature(..),
     signedBy,
     -- ** Addresses
-    Address(..),
-    Address',
+    AddressOf(..),
+    Address,
     pubKeyAddress,
     scriptAddress,
     -- ** Scripts
@@ -43,14 +43,14 @@ module Ledger.Types(
     preHash,
     hashTx,
     dataTxo,
-    TxIn(..),
+    TxInOf(..),
     TxInType(..),
-    TxIn',
-    TxOut(..),
+    TxIn,
+    TxOutOf(..),
     TxOutType(..),
-    TxOut',
-    TxOutRef(..),
-    TxOutRef',
+    TxOut,
+    TxOutRefOf(..),
+    TxOutRef,
     simpleInput,
     simpleOutput,
     pubKeyTxIn,
@@ -184,18 +184,18 @@ newtype Value = Value { getValue :: Int }
 makeLift ''Value
 
 -- | Transaction ID (double SHA256 hash of the transaction)
-newtype TxId h = TxId { getTxId :: h }
+newtype TxIdOf h = TxIdOf { getTxId :: h }
     deriving (Eq, Ord, Show)
     deriving stock (Generic)
 
-makeLift ''TxId
+makeLift ''TxIdOf
 
-type TxId' = TxId (Digest SHA256)
+type TxId = TxIdOf (Digest SHA256)
 
-deriving newtype instance Serialise TxId'
-deriving anyclass instance ToJSON a => ToJSON (TxId a)
-deriving anyclass instance FromJSON a => FromJSON (TxId a)
-deriving anyclass instance ToSchema a => ToSchema (TxId a)
+deriving newtype instance Serialise TxId
+deriving anyclass instance ToJSON a => ToJSON (TxIdOf a)
+deriving anyclass instance FromJSON a => FromJSON (TxIdOf a)
+deriving anyclass instance ToSchema a => ToSchema (TxIdOf a)
 
 instance Serialise (Digest SHA256) where
   encode = encode . BA.unpack
@@ -224,14 +224,14 @@ instance FromJSON (Digest SHA256) where
 -- | A payment address is a double SHA256 of a
 --   UTxO output's validator script (and presumably its data script).
 --   This corresponds to a Bitcoing pay-to-witness-script-hash
-newtype Address h = Address { getAddress :: h }
+newtype AddressOf h = AddressOf { getAddress :: h }
     deriving (Eq, Ord, Show, Generic)
 
-type Address' = Address (Digest SHA256)
+type Address = AddressOf (Digest SHA256)
 
-deriving newtype instance Serialise Address'
-deriving anyclass instance ToJSON Address'
-deriving anyclass instance FromJSON Address'
+deriving newtype instance Serialise Address
+deriving anyclass instance ToJSON Address
+deriving anyclass instance FromJSON Address
 
 -- | Script
 newtype Script = Script { getSerialized :: BSL.ByteString }
@@ -352,19 +352,19 @@ lastSlot = Slot . length
 
 -- | Transaction including witnesses for its inputs
 data Tx = Tx {
-    txInputs     :: Set.Set TxIn',
-    txOutputs    :: [TxOut'],
+    txInputs     :: Set.Set TxIn,
+    txOutputs    :: [TxOut],
     txForge      :: !Value,
     txFee        :: !Value
     } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | The inputs of a transaction
-inputs :: Lens' Tx (Set.Set TxIn')
+inputs :: Lens' Tx (Set.Set TxIn)
 inputs = lens g s where
     g = txInputs
     s tx i = tx { txInputs = i }
 
-outputs :: Lens' Tx [TxOut']
+outputs :: Lens' Tx [TxOut]
 outputs = lens g s where
     g = txOutputs
     s tx o = tx { txOutputs = o }
@@ -383,8 +383,8 @@ validValuesTx Tx{..}
 
 -- | Transaction without witnesses for its inputs
 data TxStripped = TxStripped {
-    txStrippedInputs  :: Set.Set TxOutRef',
-    txStrippedOutputs :: [TxOut'],
+    txStrippedInputs  :: Set.Set TxOutRef,
+    txStrippedOutputs :: [TxOut],
     txStrippedForge   :: !Value,
     txStrippedFee     :: !Value
     } deriving (Show, Eq, Ord)
@@ -402,26 +402,26 @@ preHash :: TxStripped -> Digest SHA256
 preHash = hash
 
 -- | Double hash of a transaction, excluding its witnesses
-hashTx :: Tx -> TxId'
-hashTx = TxId . hash . preHash . strip
+hashTx :: Tx -> TxId
+hashTx = TxIdOf . hash . preHash . strip
 
 -- | Reference to a transaction output
-data TxOutRef h = TxOutRef {
-    txOutRefId  :: TxId h,
+data TxOutRefOf h = TxOutRefOf {
+    txOutRefId  :: TxIdOf h,
     txOutRefIdx :: Int -- ^ Index into the referenced transaction's outputs
     } deriving (Show, Eq, Ord, Generic)
 
-type TxOutRef' = TxOutRef (Digest SHA256)
+type TxOutRef = TxOutRefOf (Digest SHA256)
 
-deriving instance Serialise TxOutRef'
-deriving instance ToJSON TxOutRef'
-deriving instance FromJSON TxOutRef'
-deriving instance ToSchema TxOutRef'
+deriving instance Serialise TxOutRef
+deriving instance ToJSON TxOutRef
+deriving instance FromJSON TxOutRef
+deriving instance ToSchema TxOutRef
 
--- | A list of a transaction's outputs paired with their [[TxOutRef']]s
-txOutRefs :: Tx -> [(TxOut', TxOutRef')]
+-- | A list of a transaction's outputs paired with their [[TxOutRef]]s
+txOutRefs :: Tx -> [(TxOut, TxOutRef)]
 txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
-    mkOut (i, o) = (o, TxOutRef txId i)
+    mkOut (i, o) = (o, TxOutRefOf txId i)
     txId = hashTx t
 
 -- | Type of transaction input.
@@ -431,49 +431,49 @@ data TxInType =
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | Transaction input
-data TxIn h = TxIn {
-    txInRef  :: !(TxOutRef h),
+data TxInOf h = TxInOf {
+    txInRef  :: !(TxOutRefOf h),
     txInType :: !TxInType
     } deriving (Show, Eq, Ord, Generic)
 
-type TxIn' = TxIn (Digest SHA256)
+type TxIn = TxInOf (Digest SHA256)
 
-deriving instance Serialise TxIn'
-deriving instance ToJSON TxIn'
-deriving instance FromJSON TxIn'
+deriving instance Serialise TxIn
+deriving instance ToJSON TxIn
+deriving instance FromJSON TxIn
 
--- | The `TxOutRef` spent by a transaction input
-inRef :: Lens (TxIn h) (TxIn g) (TxOutRef h) (TxOutRef g)
+-- | The 'TxOutRefOf' spent by a transaction input
+inRef :: Lens (TxInOf h) (TxInOf g) (TxOutRefOf h) (TxOutRefOf g)
 inRef = lens txInRef s where
     s txi r = txi { txInRef = r }
 
 -- | The type of a transaction input
-inType :: Lens' (TxIn h) TxInType
+inType :: Lens' (TxInOf h) TxInType
 inType = lens txInType s where
     s txi t = txi { txInType = t }
 
 -- | Validator and redeemer scripts of a transaction input that spends a
 --   "pay to script" output
 --
-inScripts :: TxIn h -> Maybe (ValidatorScript, RedeemerScript)
-inScripts TxIn{ txInType = t } = case t of
+inScripts :: TxInOf h -> Maybe (ValidatorScript, RedeemerScript)
+inScripts TxInOf{ txInType = t } = case t of
     ConsumeScriptAddress v r  -> Just (v, r)
     ConsumePublicKeyAddress _ -> Nothing
 
 -- | Signature of a transaction input that spends a "pay to public key" output
 --
-inSignature :: TxIn h -> Maybe Signature
-inSignature TxIn{ txInType = t } = case t of
+inSignature :: TxInOf h -> Maybe Signature
+inSignature TxInOf{ txInType = t } = case t of
     ConsumeScriptAddress _ _  -> Nothing
     ConsumePublicKeyAddress s -> Just s
 
-pubKeyTxIn :: TxOutRef h -> Signature -> TxIn h
-pubKeyTxIn r = TxIn r . ConsumePublicKeyAddress
+pubKeyTxIn :: TxOutRefOf h -> Signature -> TxInOf h
+pubKeyTxIn r = TxInOf r . ConsumePublicKeyAddress
 
-scriptTxIn :: TxOutRef h -> ValidatorScript -> RedeemerScript -> TxIn h
-scriptTxIn r v = TxIn r . ConsumeScriptAddress v
+scriptTxIn :: TxOutRefOf h -> ValidatorScript -> RedeemerScript -> TxInOf h
+scriptTxIn r v = TxInOf r . ConsumeScriptAddress v
 
-instance BA.ByteArrayAccess TxIn' where
+instance BA.ByteArrayAccess TxIn where
     length        = BA.length . Write.toStrictByteString . encode
     withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
@@ -484,81 +484,81 @@ data TxOutType =
     deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- Transaction output
-data TxOut h = TxOut {
-    txOutAddress :: !(Address h),
+data TxOutOf h = TxOutOf {
+    txOutAddress :: !(AddressOf h),
     txOutValue   :: !Value,
     txOutType    :: !TxOutType
     }
     deriving (Show, Eq, Ord, Generic)
 
-type TxOut' = TxOut (Digest SHA256)
+type TxOut = TxOutOf (Digest SHA256)
 
-deriving instance Serialise TxOut'
-deriving instance ToJSON TxOut'
-deriving instance FromJSON TxOut'
+deriving instance Serialise TxOut
+deriving instance ToJSON TxOut
+deriving instance FromJSON TxOut
 
--- | The data script that a [[TxOut]] refers to
-txOutData :: TxOut h -> Maybe DataScript
-txOutData TxOut{txOutType = t} = case  t of
+-- | The data script that a [[TxOutOf]] refers to
+txOutData :: TxOutOf h -> Maybe DataScript
+txOutData TxOutOf{txOutType = t} = case  t of
     PayToScript s -> Just s
     PayToPubKey _ -> Nothing
 
 -- | The public key that a [[TxOut]] refers to
-txOutPubKey :: TxOut h -> Maybe PubKey
-txOutPubKey TxOut{txOutType = t} = case  t of
+txOutPubKey :: TxOutOf h -> Maybe PubKey
+txOutPubKey TxOutOf{txOutType = t} = case  t of
     PayToPubKey k -> Just k
     _             -> Nothing
 
 -- | The address of a transaction output
-outAddress :: Lens (TxOut h) (TxOut g) (Address h) (Address g)
+outAddress :: Lens (TxOutOf h) (TxOutOf g) (AddressOf h) (AddressOf g)
 outAddress = lens txOutAddress s where
     s tx a = tx { txOutAddress = a }
 
 -- | The value of a transaction output
 -- | TODO: Compute address again
-outValue :: Lens' (TxOut h) Value
+outValue :: Lens' (TxOutOf h) Value
 outValue = lens txOutValue s where
     s tx v = tx { txOutValue = v }
 
 -- | The type of a transaction output
 -- | TODO: Compute address again
-outType :: Lens' (TxOut h) TxOutType
+outType :: Lens' (TxOutOf h) TxOutType
 outType = lens txOutType s where
     s tx d = tx { txOutType = d }
 
 -- | Returns true if the output is a pay-to-pubkey output
-isPubKeyOut :: TxOut h -> Bool
+isPubKeyOut :: TxOutOf h -> Bool
 isPubKeyOut = isJust . txOutPubKey
 
 -- | Returns true if the output is a pay-to-script output
-isPayToScriptOut :: TxOut h -> Bool
+isPayToScriptOut :: TxOutOf h -> Bool
 isPayToScriptOut = isJust . txOutData
 
 -- | The address of a transaction output locked by public key
-pubKeyAddress :: PubKey -> Address (Digest SHA256)
-pubKeyAddress pk = Address $ hash h where
+pubKeyAddress :: PubKey -> AddressOf (Digest SHA256)
+pubKeyAddress pk = AddressOf $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     e = encode pk
 
 -- | The address of a transaction output locked by a validator script
-scriptAddress :: ValidatorScript -> Address (Digest SHA256)
-scriptAddress vl = Address $ hash h where
+scriptAddress :: ValidatorScript -> AddressOf (Digest SHA256)
+scriptAddress vl = AddressOf $ hash h where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     e = encode vl
 
 -- | Create a transaction output locked by a validator script
-scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut'
-scriptTxOut v vl ds = TxOut a v tp where
+scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut
+scriptTxOut v vl ds = TxOutOf a v tp where
     a = scriptAddress vl
     tp = PayToScript ds
 
 -- | Create a transaction output locked by a public key
-pubKeyTxOut :: Value -> PubKey -> TxOut'
-pubKeyTxOut v pk = TxOut a v tp where
+pubKeyTxOut :: Value -> PubKey -> TxOut
+pubKeyTxOut v pk = TxOutOf a v tp where
     a = pubKeyAddress pk
     tp = PayToPubKey pk
 
-instance BA.ByteArrayAccess TxOut' where
+instance BA.ByteArrayAccess TxOut where
     length        = BA.length . Write.toStrictByteString . encode
     withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
@@ -566,12 +566,12 @@ type Block = [Tx]
 type Blockchain = [Block]
 
 -- | Lookup a transaction by its hash
-transaction :: Blockchain -> TxOutRef' -> Maybe Tx
+transaction :: Blockchain -> TxOutRef -> Maybe Tx
 transaction bc o = listToMaybe $ filter p  $ join bc where
     p = (txOutRefId o ==) . hashTx
 
 -- | Determine the unspent output that an input refers to
-out :: Blockchain -> TxOutRef' -> Maybe TxOut'
+out :: Blockchain -> TxOutRef -> Maybe TxOut
 out bc o = do
     t <- transaction bc o
     let i = txOutRefIdx o
@@ -580,33 +580,33 @@ out bc o = do
         else Just $ txOutputs t !! i
 
 -- | Determine the unspent value that an input refers to
-value :: Blockchain -> TxOutRef' -> Maybe Value
+value :: Blockchain -> TxOutRef -> Maybe Value
 value bc o = txOutValue <$> out bc o
 
 -- | Determine the data script that an input refers to
-dataTxo :: Blockchain -> TxOutRef' -> Maybe DataScript
+dataTxo :: Blockchain -> TxOutRef -> Maybe DataScript
 dataTxo bc o = txOutData =<< out bc o
 
 -- | Determine the public key that locks the txo
-pubKeyTxo :: Blockchain -> TxOutRef' -> Maybe PubKey
+pubKeyTxo :: Blockchain -> TxOutRef -> Maybe PubKey
 pubKeyTxo bc o = out bc o >>= txOutPubKey
 
 -- | The unspent outputs of a transaction
-unspentOutputsTx :: Tx -> Map TxOutRef' TxOut'
+unspentOutputsTx :: Tx -> Map TxOutRef TxOut
 unspentOutputsTx t = Map.fromList $ fmap f $ zip [0..] $ txOutputs t where
-    f (idx, o) = (TxOutRef (hashTx t) idx, o)
+    f (idx, o) = (TxOutRefOf (hashTx t) idx, o)
 
 -- | The outputs consumed by a transaction
-spentOutputs :: Tx -> Set.Set TxOutRef'
+spentOutputs :: Tx -> Set.Set TxOutRef
 spentOutputs = Set.map txInRef . txInputs
 
 -- | Unspent outputs of a ledger.
-unspentOutputs :: Blockchain -> Map TxOutRef' TxOut'
+unspentOutputs :: Blockchain -> Map TxOutRef TxOut
 unspentOutputs = foldr updateUtxo Map.empty . join
 
 -- | Update a map of unspent transaction outputs and sigantures with the inputs
 --   and outputs of a transaction.
-updateUtxo :: Tx -> Map TxOutRef' TxOut' -> Map TxOutRef' TxOut'
+updateUtxo :: Tx -> Map TxOutRef TxOut -> Map TxOutRef TxOut
 updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.union` outs where
     lift' = Map.fromSet (const ())
     outs = unspentOutputsTx t
@@ -616,7 +616,7 @@ updateUtxo t unspent = (unspent `Map.difference` lift' (spentOutputs t)) `Map.un
 --
 data BlockchainState = BlockchainState {
     blockchainSlot        :: Slot,
-    blockchainStateTxHash :: TxId'
+    blockchainStateTxHash :: TxId
     }
 
 -- | Information about the state of the blockchain and about the transaction
@@ -667,8 +667,8 @@ validTx v t bc = inputsAreValid && valueIsPreserved && validValuesTx t where
 --   * If it is a P2PK input:
 --     * Verifying that the signature matches the public key
 --
-validate :: ValidationData -> TxIn' -> TxOut' -> Bool
-validate bs TxIn{ txInType = ti } TxOut{..} =
+validate :: ValidationData -> TxIn -> TxOut -> Bool
+validate bs TxInOf{ txInType = ti } TxOutOf{..} =
     case (ti, txOutType) of
         (ConsumeScriptAddress v r, PayToScript d)
             | txOutAddress /= scriptAddress v -> False
@@ -712,10 +712,10 @@ unitValidationData :: ValidationData
 unitValidationData = ValidationData $ fromCompiledCode $$(compile [|| () ||])
 
 -- | Transaction output locked by the empty validator and unit data scripts.
-simpleOutput :: Value -> TxOut'
+simpleOutput :: Value -> TxOut
 simpleOutput vl = scriptTxOut vl emptyValidator unitData
 
 -- | Transaction input that spends an output using the empty validator and
 --   unit redeemer scripts.
-simpleInput :: TxOutRef a -> TxIn a
+simpleInput :: TxOutRefOf a -> TxInOf a
 simpleInput ref = scriptTxIn ref emptyValidator unitRedeemer

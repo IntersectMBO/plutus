@@ -155,7 +155,7 @@ We need to deal with hashes of four different things in a validator script:
 4. Redeemer scripts
 
 The mockchain code in [[Ledger.Types]] only deals with the hashes of(1)
-and (2), and uses the [[Ledger.TxId']] and `Digest SHA256` types for
+and (2), and uses the [[Ledger.TxId]] and `Digest SHA256` types for
 them.
 
 In PLC validator scripts the situation is different: First, they need to work
@@ -210,7 +210,7 @@ plcValidatorDigest = ValidatorHash . plcDigest
 plcRedeemerHash :: Ledger.RedeemerScript -> RedeemerHash
 plcRedeemerHash = RedeemerHash . plcSHA2_256 . serialise
 
-plcTxHash :: Ledger.TxId' -> TxHash
+plcTxHash :: Ledger.TxId -> TxHash
 plcTxHash = TxHash . plcDigest . Ledger.getTxId
 
 -- | PLC-compatible SHA-256 hash of a hashable value

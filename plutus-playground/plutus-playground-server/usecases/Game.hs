@@ -51,7 +51,7 @@ gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
     ||]))
 
 -- | The address of the game (the hash of its validator script)
-gameAddress :: Address'
+gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]

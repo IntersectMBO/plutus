@@ -34,7 +34,7 @@ import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
-                                               TxId', ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
+                                               TxId, ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut)
 import qualified Ledger.Validation            as Validation
@@ -98,7 +98,7 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
 
 
 -- | The address of a [[Campaign]]
-campaignAddress :: Campaign -> Ledger.Address'
+campaignAddress :: Campaign -> Ledger.Address
 campaignAddress = Ledger.scriptAddress . contributionScript
 
 -- | The validator script that determines whether the campaign owner can
@@ -192,7 +192,7 @@ collectFundsTrigger c = andT
     (slotRangeT $ Interval (campaignDeadline c) (campaignCollectionDeadline c))
 
 -- | Claim a refund of our campaign contribution
-refund :: (WalletAPI m, WalletDiagnostics m) => TxId' -> Campaign -> EventHandler m
+refund :: (WalletAPI m, WalletDiagnostics m) => TxId -> Campaign -> EventHandler m
 refund txid cmp = EventHandler $ \_ -> do
     logMsg "Claiming refund"
     am <- watchedAddresses

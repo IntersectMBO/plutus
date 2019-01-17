@@ -34,7 +34,7 @@ gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
 
     ||]))
 
-gameAddress :: Address'
+gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
 lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
