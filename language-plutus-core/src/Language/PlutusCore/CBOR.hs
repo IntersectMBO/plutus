@@ -228,7 +228,7 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (P
 
 instance Serialise AlexPosn
 
-deriving instance Serialise Ix
+deriving instance Serialise Index
 
 instance Serialise a => Serialise (DeBruijn a) where
     encode (DeBruijn x txt i) = encode x <> encode txt <> encode i

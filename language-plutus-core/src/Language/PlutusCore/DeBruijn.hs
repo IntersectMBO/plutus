@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 -- | Support for using de Bruijn indices for term and type names.
 module Language.PlutusCore.DeBruijn (
-                                Ix (..)
+                                Index (..)
                                 , DeBruijn (..)
                                 , TyDeBruijn (..)
                                 , FreeVariableError (..)
@@ -23,7 +23,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 import           Control.Exception
-import           Control.Lens               hiding (Level, index, ix)
+import           Control.Lens               hiding (Index, Level, index, ix)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
@@ -36,12 +36,12 @@ import           Numeric.Natural
 import           GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
-newtype Ix = Ix Natural
+newtype Index = Index Natural
     deriving stock Generic
     deriving newtype (Show, Num, Eq, Ord)
 
 -- | A term name as a de Bruijn index.
-data DeBruijn a = DeBruijn { dbnAttribute :: a, dbnString :: T.Text, dbnIndex :: Ix }
+data DeBruijn a = DeBruijn { dbnAttribute :: a, dbnString :: T.Text, dbnIndex :: Index }
     deriving (Show, Functor, Generic)
 
 -- | A type name as a de Bruijn index.
@@ -50,33 +50,37 @@ newtype TyDeBruijn a = TyDeBruijn (DeBruijn a)
 instance Wrapped (TyDeBruijn a)
 
 instance HasPrettyConfigName config => PrettyBy config (DeBruijn a) where
-    prettyBy config (DeBruijn _ txt (Ix ix))
+    prettyBy config (DeBruijn _ txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique _ = toPrettyConfigName config
 
 deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn a)
 
-class HasIx a where
-    index :: Lens' a Ix
+class HasIndex a where
+    index :: Lens' a Index
 
-instance HasIx (DeBruijn a) where
+instance HasIndex (DeBruijn a) where
     index = lens g s where
         g = dbnIndex
         s n i = n{dbnIndex=i}
 
-instance HasIx (TyDeBruijn a) where
+instance HasIndex (TyDeBruijn a) where
     index = _Wrapped' . index
 
 -- Converting from normal names to DeBruijn indices, and vice versa
 
 {- Note [Levels and indices]
-The indices that we use for de Bruijn identifiers are *relative*. However,
-when doing conversions it is easier to work with *absolute* levels, since  that
-way we don't have to adjust them all when we go under a binder.
+The indices ('Index') that we actually store as our de Bruijn indices in the program
+are *relative* - that is, they say how many levels above the *current* level to look for
+the binder.
 
-However, this means that we *do* need to adjust them when we use them or record them.
-The adjustment is fairly straightforward:
+However, when doing conversions it is easier to record the  *absolute* level of a variable,
+in our state, since that way we don't have to adjust our mapping when we go under a binder (whereas
+for relative indices we would need to increment them all by one, as the current level has increased).
+
+However, this means that we *do* need to do an adjustment when we store an index as a level or extract
+a level to use it as an index. The adjustment is fairly straightforward:
 - An index `i` points to a binder `i` levels above (smaller than) the current level, so the level
   of `i` is `current - i`.
 - A level `l` which is `i` levels above (smaller than) the current level has an index of `i`, so it
@@ -86,24 +90,24 @@ We use a newtype to keep these separate, since getting it wrong will leads to an
 -}
 
 -- | An absolute level in the program.
-newtype Level = Level Ix deriving newtype (Eq, Ord, Num)
+newtype Level = Level Index deriving newtype (Eq, Ord, Num)
 data Levels = Levels Level (BM.Bimap Unique Level)
 
--- | Compute the absolute 'Level' of a relative 'Ix' relative to the current 'Level'.
-ixToLevel :: Level -> Ix -> Level
+-- | Compute the absolute 'Level' of a relative 'Index' relative to the current 'Level'.
+ixToLevel :: Level -> Index -> Level
 ixToLevel (Level current) ix = Level (current - ix)
 
--- | Compute the relative 'Ix' of a absolute 'Level' relative to the current 'Level'.
-levelToIx :: Level -> Level -> Ix
-levelToIx (Level current) (Level l) = current - l
+-- | Compute the relative 'Index' of a absolute 'Level' relative to the current 'Level'.
+levelToIndex :: Level -> Level -> Index
+levelToIndex (Level current) (Level l) = current - l
 
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
 declareUnique n = local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. unique . coerced) current ls
 
 -- | Declare a name with an index, recording the mapping from the corresponding 'Level' to a fresh unique.
-declareIx :: (MonadReader Levels m, MonadQuote m, HasIx name) => name -> m a -> m a
-declareIx n act = do
+declareIndex :: (MonadReader Levels m, MonadQuote m, HasIndex name) => name -> m a -> m a
+declareIndex n act = do
     newU <- freshUnique
     local (\(Levels current ls) -> Levels current $ BM.insert newU (ixToLevel current (n ^. index)) ls) act
 
@@ -113,19 +117,19 @@ withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 
 -- | We cannot do a correct translation to or from de Bruijn indices if the program is not well-scoped.
 -- So we throw an error in such a case.
-data FreeVariableError = FreeUnique Unique | FreeIndex Ix deriving (Show, Typeable, Eq, Ord)
+data FreeVariableError = FreeUnique Unique | FreeIndex Index deriving (Show, Typeable, Eq, Ord)
 instance Exception FreeVariableError
 
--- | Get the 'Ix' corresponding to a given 'Unique'.
-getIndex :: (MonadReader Levels m, MonadError FreeVariableError m) => Unique -> m Ix
+-- | Get the 'Index' corresponding to a given 'Unique'.
+getIndex :: (MonadReader Levels m, MonadError FreeVariableError m) => Unique -> m Index
 getIndex u = do
     Levels current ls <- ask
     case BM.lookup u ls of
-        Just ix -> pure $ levelToIx current ix
+        Just ix -> pure $ levelToIndex current ix
         Nothing -> throwError $ FreeUnique u
 
--- | Get the 'Unique' corresponding to a given 'Ix'.
-getUnique :: (MonadReader Levels m, MonadError FreeVariableError m) => Ix -> m Unique
+-- | Get the 'Unique' corresponding to a given 'Index'.
+getUnique :: (MonadReader Levels m, MonadError FreeVariableError m) => Index -> m Unique
 getUnique ix = do
     Levels current ls <- ask
     case BM.lookupR (ixToLevel current ix) ls of
@@ -227,10 +231,10 @@ unDeBruijnTyM = \case
     -- variable case
     TyVar x n -> TyVar x <$> deBruijnToTyName n
     -- binder cases
-    TyForall x tn k ty -> declareIx tn $ do
+    TyForall x tn k ty -> declareIndex tn $ do
         tn' <- deBruijnToTyName tn
         withScope $ TyForall x tn' k <$> unDeBruijnTyM ty
-    TyLam x tn k ty -> declareIx tn $ do
+    TyLam x tn k ty -> declareIndex tn $ do
         tn' <- deBruijnToTyName tn
         withScope $ TyLam x tn' k <$> unDeBruijnTyM ty
     -- boring recursive cases
@@ -249,10 +253,10 @@ unDeBruijnTermM = \case
     -- variable case
     Var x n -> Var x <$> deBruijnToName n
     -- binder cases
-    TyAbs x tn k t -> declareIx tn $ do
+    TyAbs x tn k t -> declareIndex tn $ do
         tn' <- deBruijnToTyName tn
         withScope $ TyAbs x tn' k <$> unDeBruijnTermM t
-    LamAbs x n ty t -> declareIx n $ do
+    LamAbs x n ty t -> declareIndex n $ do
         n' <- deBruijnToName n
         withScope $ LamAbs x n' <$> unDeBruijnTyM ty <*> unDeBruijnTermM t
     -- boring recursive cases
