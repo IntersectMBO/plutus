@@ -1,3 +1,4 @@
+
 module Language.PlutusCore
     (
       -- * Parser
@@ -45,6 +46,8 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , Gas (..)
+    , ValueRestrictionError (..)
+    , AsValueRestrictionError (..)
     , rename
     -- * Normalization
     , check
@@ -107,12 +110,13 @@ module Language.PlutusCore
     ) where
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                     as BSL
-import qualified Data.Text                                as T
+import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.Text                                  as T
 import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.CBOR                 ()
-import           Language.PlutusCore.Check.Normal
-import qualified Language.PlutusCore.Check.Uniques        as Uniques
+import           Language.PlutusCore.CBOR                   ()
+import           Language.PlutusCore.Check.Normal           hiding (isTermValue)
+import qualified Language.PlutusCore.Check.Uniques          as Uniques
+import qualified Language.PlutusCore.Check.ValueRestriction as VR (checkProgram)
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Lexer
@@ -153,14 +157,22 @@ checkFile = fmap (either (pure . prettyText) id . fmap (fmap prettyPlcDefText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
-    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, AsTypeError e AlexPosn, MonadError e m)
+    :: (AsParseError e AlexPosn,
+        AsValueRestrictionError e TyName AlexPosn,
+        AsUniqueError e AlexPosn,
+        AsTypeError e AlexPosn,
+        MonadError e m)
     => BSL.ByteString
     -> m T.Text
 printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType
-    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, AsTypeError e AlexPosn, MonadError e m)
+    :: (AsParseError e AlexPosn,
+        AsValueRestrictionError e TyName AlexPosn,
+        AsUniqueError e AlexPosn,
+        AsTypeError e AlexPosn,
+        MonadError e m)
     => Bool
     -> BSL.ByteString
     -> m T.Text
@@ -171,15 +183,24 @@ printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped
-    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, MonadError e m, MonadQuote m)
+    :: (AsParseError e AlexPosn,
+        AsValueRestrictionError e TyName AlexPosn,
+        AsUniqueError e AlexPosn,
+        MonadError e m,
+        MonadQuote m)
     => BSL.ByteString
     -> m (Program TyName Name AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
+parseScoped =
+    through VR.checkProgram
+    <=< through (Uniques.checkProgram (const True))
+    <=< rename
+    <=< parseProgram
 
 -- | Parse a program and typecheck it.
 parseTypecheck
     :: (AsParseError e AlexPosn,
+        AsValueRestrictionError e TyName AlexPosn,
         AsUniqueError e AlexPosn,
         AsNormalizationError e TyName Name AlexPosn,
         AsTypeError e AlexPosn,

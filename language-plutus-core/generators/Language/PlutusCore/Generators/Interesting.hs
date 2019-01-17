@@ -91,20 +91,24 @@ getBuiltinFactorial = rename =<< do
 
 -- | The naive exponential fibonacci function as a PLC term.
 --
--- > /\ (s :: size) -> fix {integer s} {integer s} \(rec : integer s -> integer s) (i : integer s) ->
--- >     let ss = sizeOfInteger {s} i in
--- >         ifThenElse {integer s}
--- >             (lessThanEqInteger {s} i (resizeInteger {1} {s} ss 1!1))
--- >             (\(u : unit) -> i)
--- >             (\(u : unit) -> addInteger {s}
--- >                 (rec (subtractInteger {s} i (resizeInteger {1} {s} ss 1!1)))
--- >                 (rec (subtractInteger {s} i (resizeInteger {1} {s} ss 1!2))))
+-- > /\ (s :: size) -> \(i0 : integer s) ->
+-- >     fix {integer s} {integer s}
+-- >         (\(rec : integer s -> integer s) (i : integer s) ->
+-- >             let ss = sizeOfInteger {s} i in
+-- >                 ifThenElse {integer s}
+-- >                     (lessThanEqInteger {s} i (resizeInteger {1} {s} ss 1!1))
+-- >                     (\(u : unit) -> i)
+-- >                     (\(u : unit) -> addInteger {s}
+-- >                         (rec (subtractInteger {s} i (resizeInteger {1} {s} ss 1!1)))
+-- >                         (rec (subtractInteger {s} i (resizeInteger {1} {s} ss 1!2)))))
+-- >         i0
 getBuiltinNaiveFib :: Quote (Term TyName Name ())
 getBuiltinNaiveFib = rename =<< do
     unit       <- getBuiltinUnit
     ifThenElse <- getBuiltinIf
     fix        <- getBuiltinFix
     s   <- freshTyName () "s"
+    i0  <- freshName () "i0"
     rec <- freshName () "rec"
     i   <- freshName () "i"
     u   <- freshName () "u"
@@ -113,19 +117,22 @@ getBuiltinNaiveFib = rename =<< do
         makeIntS          = makeDynBuiltinIntSizedAs (TyVar () s) (Var () i)
     return
         . TyAbs () s (Size ())
-        . Apply () (mkIterInst () fix [intS, intS])
-        . LamAbs () rec (TyFun () intS intS)
-        . LamAbs () i intS
-        $ mkIterApp () (TyInst () ifThenElse intS)
-            [ mkIterApp () (builtinNameS LessThanEqInteger)
-                [Var () i, makeIntS 1]
-            , LamAbs () u unit $ Var () i
-            , LamAbs () u unit $ mkIterApp () (builtinNameS AddInteger)
-                [ Apply () (Var () rec) $ mkIterApp () (builtinNameS SubtractInteger)
-                    [Var () i, makeIntS 1]
-                , Apply () (Var () rec) $ mkIterApp () (builtinNameS SubtractInteger)
-                    [Var () i, makeIntS 2]
-                ]
+        . LamAbs () i0 intS
+        $ mkIterApp () (mkIterInst () fix [intS, intS])
+            [   LamAbs () rec (TyFun () intS intS)
+              . LamAbs () i intS
+              $ mkIterApp () (TyInst () ifThenElse intS)
+                  [ mkIterApp () (builtinNameS LessThanEqInteger)
+                      [Var () i, makeIntS 1]
+                  , LamAbs () u unit $ Var () i
+                  , LamAbs () u unit $ mkIterApp () (builtinNameS AddInteger)
+                      [ Apply () (Var () rec) $ mkIterApp () (builtinNameS SubtractInteger)
+                          [Var () i, makeIntS 1]
+                      , Apply () (Var () rec) $ mkIterApp () (builtinNameS SubtractInteger)
+                          [Var () i, makeIntS 2]
+                      ]
+                  ]
+            , Var () i0
             ]
 
 -- | Apply some factorial function to its 'Size' and 'Integer' arguments.
