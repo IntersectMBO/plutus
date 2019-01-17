@@ -15,6 +15,48 @@
     -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
+{- | = Marlowe: financial contracts on Cardano Computation Layer
+
+Here we present a reference implementation of Marlowe, domain-specific language targeted at
+the execution of financial contracts in the style of Peyton Jones et al
+on Cardano Computation Layer.
+
+The implementation is based on semantics described in paper
+'Marlowe: financial contracts on blockchain' by Simon Thompson and Pablo Lamela Seijas
+
+== Semantics
+
+Marlowe Contract execution is a chain of transactions,
+where remaining contract and its state is passed through /Data Script/,
+and actions (i.e. /Choices/ and /Oracle Values/) are passed as
+/Redeemer Script/
+
+Validation Script/ is always the same Marlowe interpreter implementation, available below.
+
+Both /Redeemer Script/ and /Data Script/ have the same structure:
+@(Input, MarloweData)@
+
+where
+
+* /Input/ contains contract actions (i.e. /Pay/, /Redeem/), /Choices/ and /Oracle Values/,
+* /MarloweData/ contains remaining /Contract/ and its /State/
+* /State/ is a set of /Commits/ plus set of made /Choices/
+
+To spend 'TxOut' secured by Marlowe Validator Script, a user must provide /Redeemer Script/
+that is a tuple of an /Input/ and expected output of Marlowe Contract interpretation for
+the given /Input/, i.e. /Contract/ and /State/.
+
+To ensure that user provides valid remainig /Contract/ and /State/
+/Marlowe Validator Script/ compares evaluated contract and state with provided by user,
+and rejects a transaction if those don't match.
+
+To ensure that remaining contract's /Data Script/ has the same /Contract/ and /State/
+as was passed with /Redeemer Script/, we check that /Data Script/ hash is
+the same as /Redeemer Script/.
+That's why those are of the same structure @(Input, MarloweData)@.
+
+-}
+
 module Language.Marlowe.Common where
 import           Prelude                        ( Show(..)
                                                 , Eq(..)
@@ -47,6 +89,15 @@ type Cash = Int
 
 type Person = PubKey
 
+{-|
+== Identifiers
+
+Commitments, choices and payments are all identified by identifiers.
+Their types are given here. In a more sophisticated model these would
+be generated automatically (and so uniquely); here we simply assume that
+they are unique.
+
+-}
 newtype IdentCC = IdentCC Int
                deriving (Eq, Ord, Show)
 
@@ -82,6 +133,10 @@ data Value  = Committed IdentCC
             | ValueFromOracle PubKey Value -- Oracle PubKey, default value when no Oracle Value provided
                     deriving (Eq, Show)
 
+{-|
+    Representation of observations over observables and the state.
+    Rendered into predicates by interpretObs.
+-}
 data Observation = BelowTimeout Int -- are we still on time for something that expires on Timeout?
             | AndObs Observation Observation
             | OrObs Observation Observation
@@ -93,7 +148,9 @@ data Observation = BelowTimeout Int -- are we still on time for something that e
             | FalseObs
             deriving (Eq, Show)
 
-
+{-|
+    Marlowe Contract Data Type
+-}
 data Contract = Null
             | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
             | RedeemCC IdentCC Contract
@@ -103,11 +160,18 @@ data Contract = Null
             | When Observation Timeout Contract Contract
             deriving (Eq, Show)
 
+{-|
+    State of a contract validation function.
+-}
 data ValidatorState = ValidatorState {
         ccIds  :: [IdentCC],
         payIds :: [IdentPay]
     }
 
+{-|
+    Internal Marlowe Contract state.
+    Persisted in Data Script.
+-}
 data State = State {
         stateCommitted  :: [Commit],
         stateChoices :: [Choice]
@@ -116,15 +180,33 @@ data State = State {
 emptyState :: State
 emptyState = State { stateCommitted = [], stateChoices = [] }
 
+{-|
+    Contract input command.
+    'Commit', 'Payment', and 'Redeem' all require a proof,
+    that the transaction is issued by a particular party identified with Public Key.
+    We require 'Signature' verifiable with required public key.
+
+    E.g. if we have
+    @ CommitCash ident pubKey (Value 100) ... @
+    then we require
+    @ Commit ident signature(pubKey) @
+    to validate that transaction.
+-}
 data InputCommand = Commit IdentCC Signature
     | Payment IdentPay Signature
     | Redeem IdentCC Signature
     | SpendDeposit
 makeLift ''InputCommand
 
-
+{-|
+    Marlowe Contract Input.
+    May contain oracle values, and newly made choices.
+-}
 data Input = Input InputCommand [OracleValue Int] [Choice]
 
+{-|
+    This data type is a content of a contract /Data Script/
+-}
 data MarloweData = MarloweData {
         marloweState :: State,
         marloweContract :: Contract
@@ -245,6 +327,9 @@ equalContract = [|| \eqValue eqObservation l r -> let
     in eq l r
     ||]
 
+{-|
+    Here we check that 'IdentCC' and 'IdentPay' identifiers are unique.
+-}
 validateContractQ :: Q (TExp (ValidatorState -> Contract -> (ValidatorState, Bool)))
 validateContractQ = [|| \state contract -> let
 
@@ -278,6 +363,9 @@ validateContractQ = [|| \state contract -> let
     in validate state contract
     ||]
 
+{-|
+    Evaluates 'Value' given current block number 'Slot', oracle values, and current 'State'.
+-}
 evaluateValue :: Q (TExp (Slot -> [OracleValue Int] -> State -> Value -> Int))
 evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     infixr 3 &&
@@ -329,6 +417,10 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
         in evalValue state value
     ||]
 
+{-|
+    Evaluates 'Observation'.
+
+-}
 interpretObservation :: Q (TExp (
     (State -> Value -> Int)
     -> Int -> State -> Observation -> Bool))
@@ -375,6 +467,10 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     in go obs
     ||]
 
+{-|
+    Evaluates Marlowe Contract
+    Returns contract 'State', remaining 'Contract', and validation result.
+-}
 evaluateContract :: Q (TExp (Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)))
 evaluateContract = [|| \
     (Input inputCommand inputOracles _)
@@ -422,6 +518,15 @@ evaluateContract = [|| \
     interpretObs :: Int -> State -> Observation -> Bool
     interpretObs = $$(interpretObservation) evalValue
 
+    insertCommit :: Commit -> [Commit] -> [Commit]
+    insertCommit commit commits = let
+        (_, (pubKey, NotRedeemed _ endTimeout)) = commit
+        in case commits of
+            [] -> [commit]
+            (_, (pk, NotRedeemed _ t)) : _
+                | pk `eqPk` pubKey && endTimeout < t -> commit : commits
+            c : cs -> c : insertCommit commit cs
+
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits oracles) contract = case (contract, input) of
         (When obs timeout con con2, _)
@@ -452,15 +557,6 @@ evaluateContract = [|| \
                 && signature `signedBy` pubKey
             in  if isValid then let
                     cns = (pubKey, NotRedeemed vv endTimeout)
-
-                    insertCommit :: Commit -> [Commit] -> [Commit]
-                    insertCommit commit@(_, (pubKey, NotRedeemed _ endTimeout)) commits =
-                        case commits of
-                            [] -> [commit]
-                            (_, (pk, NotRedeemed _ t)) : _
-                                | pk `eqPk` pubKey && endTimeout < t -> commit : commits
-                            c : cs -> c : insertCommit commit cs
-
                     updatedState = let State committed choices = state
                         in State (insertCommit (id1, cns) committed) choices
                     in (updatedState, con1, True)
@@ -546,6 +642,9 @@ evaluateContract = [|| \
     in eval inputCommand state contract
     ||]
 
+{-|
+    Marlowe main Validator Script
+-}
 validator :: Q (TExp ((Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
 validator = [|| \
         (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
@@ -571,7 +670,7 @@ validator = [|| \
                 rev []     a = a
                 rev (x:xs) a = rev xs (x:a)
 
-        -- it's quadratic, I know. We'll have Sets later
+        -- it's quadratic, I know. FIXME
         mergeChoices :: [Choice] -> [Choice] -> [Choice]
         mergeChoices input choices = case input of
             choice : rest | notElem eqChoice choices choice -> mergeChoices rest (choice : choices)
@@ -622,8 +721,7 @@ validator = [|| \
         eqValidator = $$(Validation.eqValidator)
 
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
-            PendingTxIn _ (Left (inputValidatorHash, RedeemerHash redeemerHash)) scriptInValue ->
-                (inputValidatorHash, redeemerHash, scriptInValue)
+            PendingTxIn _ (Left (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
         scriptOutValue = case inputCommand of
@@ -632,8 +730,7 @@ validator = [|| \
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.
                     For that we need to ensure dataScriptHash == redeemerHash
-                    and that TxOut has the same validator
-                -}
+                    and that TxOut has the same validator -}
                  in if Builtins.equalsByteString dataScriptHash redeemerHash
                         && inputValidatorHash `eqValidator` outputValidatorHash
                     then change else Builtins.error ()
