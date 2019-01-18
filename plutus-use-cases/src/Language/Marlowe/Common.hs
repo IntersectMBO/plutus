@@ -467,6 +467,28 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     in go obs
     ||]
 
+-- | Add a 'Commit', placing it in order by endTimeout per 'Person'
+insertCommitQ :: Q (TExp (Commit -> [Commit] -> [Commit]))
+insertCommitQ = [|| \ commit commits -> let
+
+    infixr 3 &&
+    (&&) :: Bool -> Bool -> Bool
+    (&&) = $$(PlutusTx.and)
+
+    eqPk :: PubKey -> PubKey -> Bool
+    eqPk = $$(Validation.eqPubKey)
+
+    insert :: Commit -> [Commit] -> [Commit]
+    insert commit commits = let
+        (_, (pubKey, NotRedeemed _ endTimeout)) = commit
+        in case commits of
+            [] -> [commit]
+            (_, (pk, NotRedeemed _ t)) : _
+                | pk `eqPk` pubKey && endTimeout < t -> commit : commits
+            c : cs -> c : insert commit cs
+    in insert commit commits
+    ||]
+
 {-|
     Evaluates Marlowe Contract
     Returns contract 'State', remaining 'Contract', and validation result.
@@ -519,13 +541,7 @@ evaluateContract = [|| \
     interpretObs = $$(interpretObservation) evalValue
 
     insertCommit :: Commit -> [Commit] -> [Commit]
-    insertCommit commit commits = let
-        (_, (pubKey, NotRedeemed _ endTimeout)) = commit
-        in case commits of
-            [] -> [commit]
-            (_, (pk, NotRedeemed _ t)) : _
-                | pk `eqPk` pubKey && endTimeout < t -> commit : commits
-            c : cs -> c : insertCommit commit cs
+    insertCommit = $$(insertCommitQ)
 
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
     eval input state@(State commits oracles) contract = case (contract, input) of

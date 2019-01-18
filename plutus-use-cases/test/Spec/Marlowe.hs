@@ -14,6 +14,7 @@ where
 import           Data.Either                    ( isRight )
 import           Control.Monad                  ( void )
 import           Data.Set                       ( Set )
+import qualified Data.List                      as List
 import qualified Data.Set                       as Set
 import           Data.Map.Strict                ( Map )
 import qualified Data.Map.Strict                as Map
@@ -28,6 +29,7 @@ import qualified Hedgehog.Range                 as Range
 import           Hedgehog.Gen                   ( element
                                                 , int
                                                 , choice
+                                                , list
                                                 , sized
                                                 )
 import qualified Hedgehog
@@ -75,6 +77,7 @@ validatorTests = testGroup "Marlowe Validator" [
     testProperty "eqContract is reflective, symmetric, and transitive" checkEqContract,
     testProperty "validateContract is a total function" checkValidateContract,
     testProperty "interprebObs is a total function" checkInterpretObsTotality,
+    testProperty "insertCommit" checkInsertCommit,
     testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC
     ]
 
@@ -213,6 +216,31 @@ interpretObs :: [OracleValue Int] -> Int -> State -> Observation -> Bool
 interpretObs inputOracles blockNumber state obs = let
     ev = evalValue (Slot blockNumber) inputOracles
     in $$(interpretObservation) ev blockNumber state obs
+
+insertCommit :: Commit -> [Commit] -> [Commit]
+insertCommit = $$(insertCommitQ)
+
+checkInsertCommit :: Property
+checkInsertCommit = property $ do
+    commits <- forAll $ list (Range.linear 0 100) commitGen
+    let go [] a = a
+        go (c:cs) a = go cs (insertCommit c a)
+    let result = go commits []
+    let expectedMoney   = List.foldl' (\acc c -> acc + money c) 0 commits
+    let actualMoney     = List.foldl' (\acc c -> acc + money c) 0 result
+    Hedgehog.assert (length result == length commits)
+    Hedgehog.assert (actualMoney == expectedMoney)
+  where
+    money :: Commit -> Int
+    money (_, (_, NotRedeemed m _)) = m
+
+    commitGen :: Gen Commit
+    commitGen = do
+        person <- PubKey <$> int (Range.linear 0 10)
+        cash <- int (Range.linear 1 10000)
+        timeout <- int (Range.linear 1 50)
+        return (IdentCC 123, (person, NotRedeemed cash timeout))
+
 
 checkEqValue :: Property
 checkEqValue = property $ do
