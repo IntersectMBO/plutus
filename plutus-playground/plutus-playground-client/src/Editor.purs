@@ -14,6 +14,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Lens (view)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
@@ -26,10 +27,10 @@ import Icons (Icon(..), icon)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.RemoteData (RemoteData(..), isLoading)
-import Playground.API (CompilationError(CompilationError, RawError))
+import Playground.API (_CompilationResult, CompilationError(CompilationError, RawError), Warning, _Warning)
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (EditorSlot(..), ChildQuery, ChildSlot, Query(..), State, cpEditor)
+import Types (EditorSlot(..), ChildQuery, ChildSlot, Query(..), State, cpEditor, _warnings)
 
 editorPane ::
   forall m aff.
@@ -59,6 +60,7 @@ editorPane state =
         ]
     , br_
     , errorList
+, warningList
     ]
     where
       btnClass = case state.compilationResult of
@@ -81,6 +83,9 @@ editorPane state =
                         , text "Please try again or contact support for assistance."
                         ]
                     _ -> empty
+      warningList = case state.compilationResult of
+                     (Success (Right result)) -> listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> (view (_CompilationResult <<< _warnings) result))
+                     _ -> empty
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
@@ -129,3 +134,6 @@ compilationErrorPane (CompilationError error) =
     , code_
         [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]
+
+compilationWarningPane :: forall p. Warning -> HTML p Query
+compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text (view _Warning warning) ]

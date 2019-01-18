@@ -85,7 +85,7 @@ newtype Warning = Warning Text
 
 data CompilationResult = CompilationResult
   { functionSchema :: [FunctionSchema SimpleArgumentSchema]
-  , warnings       :: Maybe [Warning]
+  , warnings       :: [Warning]
   }
   deriving (Generic, ToJSON)
 

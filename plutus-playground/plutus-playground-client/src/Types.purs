@@ -81,6 +81,9 @@ _Wait = prism' Wait f
 _functionSchema :: forall a b r. Lens { functionSchema :: a | r} { functionSchema :: b | r} a b
 _functionSchema = prop (SProxy :: SProxy "functionSchema")
 
+_warnings :: forall a b r. Lens { warnings :: a | r} { warnings :: b | r} a b
+_warnings = prop (SProxy :: SProxy "warnings")
+
 _argumentSchema :: forall a b r. Lens {argumentSchema :: a | r} {argumentSchema :: b | r} a b
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
 

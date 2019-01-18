@@ -91,11 +91,11 @@ compile source = do
                 throwError . OtherError $
                 "unable to decode compilation result" <> err
             Right [schema] ->
-                pure . CompilationResult [toSimpleArgumentSchema <$> schema]  . Just $
+                pure . CompilationResult [toSimpleArgumentSchema <$> schema] $
                 [ Warning
                       "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
                 ]
-            Right schemas -> pure $ CompilationResult (fmap toSimpleArgumentSchema <$> schemas) Nothing
+            Right schemas -> pure $ CompilationResult (fmap toSimpleArgumentSchema <$> schemas) []
 
 runFunction ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
