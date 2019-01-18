@@ -19,11 +19,16 @@ We need some language extensions and imports:
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# OPTIONS_GHC -O0 #-}
 module Tutorial where
+```
 
+The language extensions fall into three categories. The first category is extensions required by the plugin that translates Haskell Core to Plutus IR (Intermediate Representation - a more abstract form of Plutus Core). This category includes [`DataKinds`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#datatype-promotion), [`TemplateHaskell`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#template-haskell) and [`ScopedTypeVariables`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#lexically-scoped-type-variables). The second category is extensions that contract endpoints to be automatically generated in the Plutus Playground, and it contains only the [`DeriveGeneric`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#deriving-representations) extension. The final category is extensions that make the code look nicer. These include [`RecordWildCards`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#record-wildcards), which lets us use write `Campaign{..}` in pattern matching to bring into scope all fields of a `Campaign` value, and [`OverloadedStrings`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#overloaded-string-literals) which allows us to write log messages as string literals without having to convert them to `Text` values first.
+
+We also need the `{-# OPTIONS_GHC -O0 #-}` compiler option. It disables some of GHC's optimisations to ensure that the generated Haskell Core can be translated to Plutus IR easily.
+
+```haskell
 import qualified Language.PlutusTx            as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..), Value(..))
 import qualified Ledger                       as L
@@ -92,7 +97,9 @@ In the crowdfunding campaign the data script contains a `Contributor` value, whi
 
 ## 1.2 The Validator Script
 
-Now that we know the types of data and redeemer scripts, we automatically know the signature of the validator script:
+The general form of a validator script is `Redeemer -> DataScript -> PendingTx -> Answer`. That is, the validator script is a function of three arguments that produces a value of type `Answer` (or fails with an error). As contract authors we can freely choose the types of `Redeemer`, `DataScript` and `Answer`. The third argument has to be of type `PendingTx` because that is the information about the current transaction, provided by the slot leader. When the evaluation of the script has finished without an error, the result is discarded and never used again. The value of `Answer` is not relevant, and therefore we usually choose `Answer` to be the unit type `()`.
+
+Since we already know the types of data and redeemer scripts (`Contributor` and `CampaignAction`, respectively), we automatically know the signature of the validator script:
 
 ```haskell
 type CampaignValidator = CampaignAction -> Contributor -> PendingTx -> ()
@@ -136,7 +143,7 @@ Next, we pattern match on the structure of the `PendingTx` value `p` to get the 
                   PendingTx ins outs _ _ (Slot currentSlot) _ = p -- p is bound to the pending transaction
 ```
 
-This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `currentSlot` to the current slot (that is, to the current date).
+This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `currentSlot` to the current slot. Each slot stands for a specific interval of time in the real world, so we can use the `Slot` type as a proxy for time in our scripts.
 
 We also need the parameters of the campaign, which we can get by pattern matching on `c`.
 
@@ -144,7 +151,7 @@ We also need the parameters of the campaign, which we can get by pattern matchin
                   Campaign (Value target) (Slot deadline) (Slot collectionDeadline) campaignOwner = c
 ```
 
-Then we compute the total value of all transaction inputs, using `Validation.foldr` on the list of inputs `ins`.
+Then we compute the total value of all transaction inputs, using `P.foldr` on the list of inputs `ins`. Note that there is a limit on the number of inputs a transaction may have, and thus on the number of contributions in this crowdfunding campaign. In this tutorial we ignore that limit, because it depends on the details of the implementation of Plutus on the Cardano chain, and that implementation has not happened yet.
 
 ```haskell
                   totalInputs :: Int
@@ -213,7 +220,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
 
 **Note (Operators in On-Chain Code)** We can use the operators `>`, `<`, `>=`, `<=` and `==` to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those operators because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../../plutus-tx/tutorial/Tutorial.md).
 
-Finally, we can return the unit value `()` if `isValid` is true, or fail with an error otherwise.
+Finally, we can return the unit value `()` if `isValid` is true, or fail with an error otherwise. We can produce an error using the `P.error` function from the Prelude, but the signature of `P.error` is `forall a. () -> a` and therefore we alway have to apply it to a unit value. `P.error` is different from Haskell's `undefined` (of type `forall a. a`) because of differences in the type systems of the two languages.
 
 ```haskell
               if isValid then () else ($$(P.error) ())
@@ -247,7 +254,7 @@ contribute :: Campaign -> Value -> MockWallet ()
 contribute cmp amount = do
 ```
 
-Contributing to a campaign is easy: We need to pay the value `amount` to a script address, and provide our own public key as the data script. Paying to a script address is a common task at the beginning of a contract, and the wallet API implements it in `payToScript_`.
+Contributing to a campaign is easy: We need to pay the value `amount` to a script address, and provide our own public key as the data script. Paying to a script address is a common task at the beginning of a contract, and the wallet API implements it in `payToScript_`. The underscore is a Haskell naming convention, indicating that `payToScript_` is a variant of `payToScript` which ignores its return value and produces a `()` instead. 
 
 ```haskell
       pk <- W.ownPubKey
@@ -269,7 +276,7 @@ collect :: Campaign -> MockWallet ()
 collect cmp = do
       sig <- W.ownSignature
       let validator = mkValidatorScript cmp
-          redeemer = mkRedeemer $ Collect sig
+          redeemer = mkRedeemer (Collect sig)
       W.collectFromScript validator redeemer
 ```
 
@@ -284,7 +291,7 @@ startCampaign campaign = W.startWatching (campaignAddress campaign)
 
 Some interactions with contracts can be automated. For example, the `collect` endpoint does not require any user input, so it could be run automatically as soon as the campaign is over, provided the campaign target has been reached. 
 
-The wallet API allows us to specify `EventTrigger`s with handlers to implement this. An event trigger describes a condition of the blockchain and can be true or false. There are four basic triggers: `slotRangeT` is true when the slot number is in a specific range, `fundsAtAddressT` is true when the total value of unspent outputs at an address is within a range, `alwaysT` is always true and `neverT` is never true. We also have boolean connectives `andT`, `orT` and `notT` to describe more complex conditions.
+The wallet API allows us to specify a pair of `EventTrigger` and `EventHandler` to automatically run `collect`. An event trigger describes a condition of the blockchain and can be true or false. There are four basic triggers: `slotRangeT` is true when the slot number is in a specific range, `fundsAtAddressT` is true when the total value of unspent outputs at an address is within a range, `alwaysT` is always true and `neverT` is never true. We also have boolean connectives `andT`, `orT` and `notT` to describe more complex conditions.
 
 ```haskell
 collectFundsTrigger :: Campaign -> EventTrigger
@@ -306,9 +313,9 @@ collectionHandler cmp = EventHandler (\_ -> do
         W.collectFromScript (mkValidatorScript cmp) redeemerScript)
 ```
 
-The handler is function of one argument, which we ignore in this case (the argument tells us which of the conditions in the trigger are true, which can be useful if we used `orT` to build a complex condition). In our case we don't need this information because we know that both the `fundsAtAddressT` and the `slotRangeT` conditions hold when the event handler is run, so we can call `collectFromScript` immediately.
+The handler is a function of one argument, which we ignore in this case (the argument tells us which of the conditions in the trigger are true, which can be useful if we used `orT` to build a complex condition). In our case we don't need this information because we know that both the `fundsAtAddressT` and the `slotRangeT` conditions hold when the event handler is run, so we can call `collectFromScript` immediately.
 
-Note that the trigger mechanism is a feature of the wallet, not of the blockchain. That means that the wallet needs to be running when the condition becomes true, so that it can react to it and submit transactions. Anything that happens in an `EventHandler` is a normal interaction with the blockchain facilitated by the wallet, so it is still our responsibility to submit valid transactions.
+Note that the trigger mechanism is a feature of the wallet, not of the blockchain. That means that the wallet needs to be running when the condition becomes true, so that it can react to it and submit transactions. Anything that happens in an `EventHandler` is a normal interaction with the blockchain facilitated by the wallet.
 
 With that, we can re-write the `startCampaign` endpoint to register a `collectFundsTrigger` and collect the funds automatically if the campaign is successful:
 
@@ -321,7 +328,7 @@ Now the campaign owner only has to run `scheduleCollection` at the beginning of 
 
 This takes care of the successful outcome to the campaign. We need another contract endpoint for claiming a refund in case the goal was not reached. After contributing to a campaign we do not need any user input to determine whether we are eligible for a refund of our contribution. Eligibility is defined entirely in terms of the blockchain state, and therefore we can use the event mechanism to automatically process our refund. 
 
-Let's start with the event handler. Just like the `collection` handler, our refund handler should also collect outputs from a script address, so we could use `collectFromScript` to implement it. However, `collectFromScript` consumes *all* outputs at the script address. In our refund transaction we only want to consume the output that corresponds to our own contribution. 
+Let's start with the event handler. Just like the `collection` handler, our refund handler should also collect outputs from a script address, so we one might think we could use `collectFromScript` to implement it, like we did in `collectionHandler`. However, `collectFromScript` consumes *all* outputs at the script address. In our refund transaction we only want to consume the output that corresponds to our own contribution. 
 
 If we submitted a refund transaction for all outputs, that transaction would fail to validate because our validator script checks that refunds go to their intended recipients (see the equation for `contributorOnly` above). Instead of `collectFromScript` we can use `collectFromScriptTxn`, which takes an additional `TxId` parameter and only collects outputs produced by that transaction.
 
@@ -371,12 +378,11 @@ There are two ways to test a Plutus contract. We can run it interactively in the
 
 ## 2.1 Playground
 
-We need to tell the Playground what our contract endpoints are, so that it can generate a UI for them. This is done by adding a line calling `mkFunction` for each endpoint to the end of the script:
+We need to tell the Playground what our contract endpoints are, so that it can generate a UI for them. This is done by adding a call to `mkFunctions` for the endpoints to the end of the script:
 
-`$(mkFunction 'scheduleCollection)`
-`$(mkFunction 'contribute)`
+`$(mkFunctions ['scheduleCollection, 'contribute])`
 
-(We can't use the usual Haskell syntax highlighting for these two lines because the entire script is compiled and executed as part of the test suite for the `wallet-api` project. The Playground-specific `mkFunction` is defined in a different library (`plutus-playground-lib`) and it is not available here.)
+(We can't use the usual Haskell syntax highlighting for these two lines because the entire script is compiled and executed as part of the test suite for the `wallet-api` project. The Playground-specific `mkFunctions` is defined in a different library (`plutus-playground-lib`) and it is not available for this tutorial.)
 
 Alternatively, you can click the "Crowdfunding" button in the Playground to load the sample contract including `mkFunction` calls. Note that the sample code differs slightly from what is written in this tutorial, because it does not include some of the intermediate definitions of contract endpoints such as `startCampaign` (which was superseded by `scheduleCollection`) and `contribute` (superseded by `contribute2`). 
 
@@ -396,6 +402,6 @@ A click on "Evaluate" runs the simulation and returns the result. We can see in 
 
 Testing contracts with unit and property tests requires more effort than running them in the Playground, but it has several advantages. In a unit test we have much more fine-grained control over the mockchain. For example, we can simulate network outages that cause a wallet to fall behind in its notifications, and we can deploy multiple contracts on the same mockchain to see how they interact. And by writing smart contracts the same way as all other software we can use the same tools (versioning, continuous integration, release processes, etc.) without having to set up additional infrastructure.
 
-The Plutus repository has a complete set of tests for the crowdfunding campaign: [Crowdfunding.hs](../../plutus-use-cases/test/Spec/Crowdfunding.hs)
+We plan to write a tutorial on this soon. Until then we would like to refer you to the test suite in [Crowdfunding.hs](../../plutus-use-cases/test/Spec/Crowdfunding.hs).
 
 You can run the test suite with `nix build -f default.nix localPackages.plutus-use-cases` or `cabal test plutus-use-cases`.
