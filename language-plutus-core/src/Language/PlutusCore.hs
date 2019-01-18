@@ -45,16 +45,6 @@ module Language.PlutusCore
     , formatDoc
     -- * Processing
     , Gas (..)
-    , annotateProgram
-    , annotateTerm
-    , annotateType
-    , RenameError (..)
-    , AsRenameError (..)
-    , TyNameWithKind (..)
-    , NameWithType (..)
-    , TypeState (..)
-    , RenamedType
-    , RenamedTerm
     , rename
     -- * Normalization
     , check
@@ -163,21 +153,20 @@ checkFile = fmap (either (pure . prettyText) id . fmap (fmap prettyPlcDefText . 
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
-    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, AsRenameError e AlexPosn, AsTypeError e AlexPosn, MonadError e m)
+    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, AsTypeError e AlexPosn, MonadError e m)
     => BSL.ByteString
     -> m T.Text
 printType = printNormalizeType False
 
 -- | Print the type of a program contained in a 'ByteString'
 printNormalizeType
-    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, AsRenameError e AlexPosn, AsTypeError e AlexPosn, MonadError e m)
+    :: (AsParseError e AlexPosn, AsUniqueError e AlexPosn, AsTypeError e AlexPosn, MonadError e m)
     => Bool
     -> BSL.ByteString
     -> m T.Text
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
-    annotated <- annotateProgram scoped
-    typecheckProgram (TypeConfig norm mempty defaultTypecheckerGas) annotated
+    typecheckProgram (TypeConfig norm mempty mempty mempty defaultTypecheckerGas) scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -193,26 +182,23 @@ parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
         AsNormalizationError e TyName Name AlexPosn,
-        AsRenameError e AlexPosn,
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeConfig -> BSL.ByteString -> m (NormalizedType TyNameWithKind ())
+    => TypeConfig -> BSL.ByteString -> m (NormalizedType TyName ())
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
     :: (AsNormalizationError e TyName Name a,
-        AsRenameError e a,
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
     => TypeConfig
     -> Program TyName Name a
-    -> m (NormalizedType TyNameWithKind ())
+    -> m (NormalizedType TyName ())
 typecheckPipeline cfg =
     typecheckProgram cfg
-    <=< annotateProgram
     <=< through (unless (_typeConfigNormalize cfg) . checkProgram)
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
@@ -232,7 +218,7 @@ defaultTypecheckerGas :: Maybe Gas
 defaultTypecheckerGas = Just $ Gas 1000
 
 defaultTypecheckerCfg :: TypeConfig
-defaultTypecheckerCfg = TypeConfig False mempty defaultTypecheckerGas
+defaultTypecheckerCfg = TypeConfig False mempty mempty mempty defaultTypecheckerGas
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()

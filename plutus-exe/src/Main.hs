@@ -116,7 +116,7 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-    let cfg = PLC.TypeConfig (case mode of {NotRequired -> True; Required -> False}) mempty PLC.defaultTypecheckerGas
+    let cfg = PLC.TypeConfig (case mode of {NotRequired -> True; Required -> False}) mempty mempty mempty PLC.defaultTypecheckerGas
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
         Left (e :: PLC.Error PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
@@ -142,7 +142,7 @@ runEval (EvalOptions inp mode) = do
             exitSuccess
 
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName ())
-data TermExample = TermExample (PLC.Type PLC.TyNameWithKind ()) (PLC.Term PLC.TyName PLC.Name ())
+data TermExample = TermExample (PLC.Type PLC.TyName ()) (PLC.Term PLC.TyName PLC.Name ())
 data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
@@ -160,7 +160,7 @@ toTermExample :: PLC.Quote (PLC.Term PLC.TyName PLC.Name ()) -> TermExample
 toTermExample getTerm = TermExample ty term where
     term = PLC.runQuote getTerm
     program = PLC.Program () (PLC.defaultVersion ()) term
-    config = PLC.TypeConfig True mempty Nothing
+    config = PLC.TypeConfig True mempty mempty mempty Nothing
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline config program of
         Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
         Right vTy                  -> PLC.getNormalizedType vTy

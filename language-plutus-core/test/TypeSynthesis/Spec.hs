@@ -24,7 +24,7 @@ kindcheckQuoted
     => Quote (Type TyName ()) -> m (Type TyName ())
 kindcheckQuoted getType = do
     ty <- liftQuote getType
-    _ <- annotateType ty >>= kindCheck (TypeConfig True mempty Nothing)
+    _ <- kindCheck (TypeConfig True mempty mempty mempty Nothing) ty
     return ty
 
 typecheckQuoted
@@ -32,7 +32,7 @@ typecheckQuoted
     => Quote (Term TyName Name ()) -> m (Term TyName Name ())
 typecheckQuoted getTerm = do
     term <- liftQuote getTerm
-    _ <- annotateTerm term >>= typecheckTerm (TypeConfig True mempty Nothing)
+    _ <- typecheckTerm (TypeConfig True mempty mempty mempty Nothing) term
     return term
 
 -- | Assert a 'Type' is well-kinded.
