@@ -45,7 +45,6 @@ import qualified Wallet.Emulator.Types      as Types
 type WalletAPI
    = "wallets" :> Get '[ JSON] [Wallet]
      :<|> "wallets" :> Capture "walletid" Wallet :> Get '[ JSON] Wallet
-     :<|> "wallets" :> Capture "walletid" Wallet :> "validation-interval" :> Get '[ JSON] (Slot, Slot)
      :<|> "wallets" :> ReqBody '[ JSON] Wallet :> Post '[ JSON] NoContent
      :<|> "wallets" :> Capture "walletid" Wallet :> "my-key-pair" :> Get '[ JSON] KeyPair
      :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn, Maybe TxOut)
@@ -79,12 +78,6 @@ type API
 newtype ServerState = ServerState
   { getState :: TVar EmulatorState
   }
-
-validationInterval ::
-    (MonadError ServantErr m)
-  => Wallet
-  -> m (Slot, Slot)
-validationInterval _ = throwError err501 -- not implemented
 
 wallets ::
      (MonadError ServantErr m, MonadReader ServerState m, MonadIO m)
@@ -180,7 +173,7 @@ walletHandlers state =
   walletApi :<|> walletControlApi :<|> controlApi :<|> assertionsApi
   where
     walletApi =
-      wallets :<|> fetchWallet :<|> validationInterval :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
+      wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair :<|> createPaymentWithChange :<|>
       submitTxn :<|>
       getWatchedAddresses :<|>
       startWatching :<|>

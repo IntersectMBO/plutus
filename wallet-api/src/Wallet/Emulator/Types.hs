@@ -85,8 +85,9 @@ import           Servant.API                (FromHttpApiData, ToHttpApiData)
 import           Data.Hashable              (Hashable)
 import           Ledger                     (Address, Block, Blockchain, Slot, Tx (..), TxId, TxOut, TxOutOf (..),
                                              TxOutRef, Value, hashTx, lastSlot, pubKeyAddress, pubKeyTxIn, pubKeyTxOut,
-                                             txOutAddress, validFrom)
+                                             txOutAddress)
 import qualified Ledger.Index               as Index
+import qualified Ledger.Interval            as Interval
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
                                              annTruthValue, getAnnot, keyPair, pubKey, signature)
@@ -198,9 +199,6 @@ handleNotifications = mapM_ (updateState >=> runTriggers)  where
     update t = over addressMap (AM.updateAddresses t)
 
 instance WalletAPI MockWallet where
-    validationInterval = do
-        s <- slot
-        pure (s, s + 1000)
 
     submitTxn txn =
         let adrs = txOutAddress <$> txOutputs txn in
@@ -317,7 +315,7 @@ emptyEmulatorState = EmulatorState {
     _chainNewestFirst = [],
     _txPool = [],
     _walletStates = Map.empty,
-    _index = Index.empty,
+    _index = mempty,
     _emulatorLog = []
     }
 
@@ -424,7 +422,7 @@ validateBlock emState txns = ValidatedBlock block events rest where
             Nothing  -> TxnValidate (hashTx t)
             Just err -> TxnValidationFail (hashTx t) err
     events = mkEvent <$> processed
-    canValidateNow tx = (tx ^. validFrom) <= currentSlot
+    canValidateNow tx = $$(Interval.member) currentSlot (txValidRange tx)
     currentSlot = emState ^. chainNewestFirst . to lastSlot
 
 processEmulated :: (MonadEmulator m) => Trace MockWallet a -> m a

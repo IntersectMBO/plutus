@@ -38,7 +38,6 @@ api :: Proxy API
 api = Proxy
 
 wallets :: ClientM [Wallet]
-validationInterval' :: Wallet -> ClientM (Slot, Slot)
 fetchWallet :: Wallet -> ClientM Wallet
 createWallet :: Wallet -> ClientM NoContent
 myKeyPair' :: Wallet -> ClientM KeyPair
@@ -53,7 +52,7 @@ getSlot :: Wallet -> ClientM Slot
 setSlot :: Wallet -> Slot -> ClientM ()
 assertOwnFundsEq :: Wallet -> Value -> ClientM NoContent
 assertIsValidated :: Tx -> ClientM NoContent
-(wallets :<|> fetchWallet :<|> validationInterval' :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> startWatching' :<|> getSlot :<|> getTransactions) :<|> (blockValidated :<|> setSlot) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
+(wallets :<|> fetchWallet :<|> createWallet :<|> myKeyPair' :<|> createPaymentWithChange' :<|> submitTxn' :<|> getAddresses :<|> startWatching' :<|> getSlot :<|> getTransactions) :<|> (blockValidated :<|> setSlot) :<|> processPending  :<|> (assertOwnFundsEq :<|> assertIsValidated) =
   client api
 
 data Environment = Environment
@@ -92,7 +91,6 @@ runWalletAction clientEnv wallet action = do
     Right (_, tx) -> pure tx
 
 instance WalletAPI WalletClient where
-  validationInterval = liftWallet validationInterval'
   submitTxn tx = liftWallet (`submitTxn'` tx) >> tell [tx]
   myKeyPair = liftWallet myKeyPair'
   createPaymentWithChange value = liftWallet (`createPaymentWithChange'` value)

@@ -41,13 +41,13 @@ lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
 lock word vl = do
     let hashedWord = plcSHA2_256 (C.pack word)
         ds = DataScript (Ledger.lifted (HashedString hashedWord))
-    payToScript_ gameAddress vl ds
+    payToScript_ defaultSlotRange gameAddress vl ds
 
 guess :: (WalletAPI m, WalletDiagnostics m) => String -> m ()
 guess word = do
     let clearWord = C.pack word
         redeemer = RedeemerScript (Ledger.lifted (ClearString clearWord))
-    collectFromScript gameValidator redeemer
+    collectFromScript defaultSlotRange gameValidator redeemer
 
 -- | Tell the wallet to start watching the address of the game script
 startGame :: WalletAPI m => m ()

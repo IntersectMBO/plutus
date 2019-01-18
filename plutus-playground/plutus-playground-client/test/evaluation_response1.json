@@ -53,6 +53,10 @@
           }
         }
       ],
+      "txValidRange": { 
+        "ivTo" : null, 
+        "ivFrom" : null 
+      },
       "txSignatures": [
         {
           "getSignature": 2
@@ -123,6 +127,10 @@
           }
         }
       ],
+      "txValidRange": { 
+        "ivTo" : null, 
+        "ivFrom" : null 
+      },
       "txSignatures": []
     }
   ]

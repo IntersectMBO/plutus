@@ -2,13 +2,13 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TemplateHaskell  #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the UTXO index.
 module Ledger.Index(
     --  * Types for transaction validation based on UTXO index
     ValidationMonad,
     UtxoIndex(..),
-    empty,
     insert,
     insertBlock,
     initialise,
@@ -32,6 +32,7 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
+import qualified Ledger.Interval      as Interval
 import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Slot (..), Tx (..), TxIn, TxInOf (..),
                                        TxOut, TxOutOf (..), TxOutRef, ValidationData (..), Value, lifted, updateUtxo,
                                        validValuesTx)
@@ -46,11 +47,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The transactions of a blockchain indexed by hash
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
-    deriving (Eq, Ord, Show, Semigroup)
-
--- | An empty [[UtxoIndex]]
-empty :: UtxoIndex
-empty = UtxoIndex Map.empty
+    deriving (Eq, Ord, Show, Semigroup, Monoid)
 
 -- | Create an index of all transactions on the chain
 initialise :: Blockchain -> UtxoIndex
@@ -85,13 +82,8 @@ data ValidationError =
     -- ^ The transaction produces an output with a negative value
     | ScriptFailure [String]
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
-    | SlotRangeInvalid
-    -- ^ The slot range for transaction validation is not valid, because the 
-    --   `txValidFrom` field is greater than the `txValidTo` field.
     | CurrentSlotOutOfRange Slot
-    -- ^ The `txValidTo` field is smaller than the current slot, or the 
-    --   `txValidFrom` field is greater than the current slot. Includes the 
-    --   current slot.
+    -- ^ The current slot is not covered by the transaction's validity slot range.
     deriving (Eq, Ord, Show, Generic)
 
 instance FromJSON ValidationError
@@ -130,12 +122,9 @@ validateTransaction h t =
 -- | Check that a transaction can be validated in the given slot.
 checkSlotRange :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
 checkSlotRange sl tx = 
-    let (from, to) = (txValidFrom tx, txValidTo tx) in
-    if to < from
-    then throwError SlotRangeInvalid
-    else if from <= sl && sl <= to
-         then pure ()
-         else throwError $ CurrentSlotOutOfRange sl
+    if $$(Interval.member) sl (txValidRange tx)
+    then pure ()
+    else throwError $ CurrentSlotOutOfRange sl
 
 -- | Check if the inputs of the transaction consume outputs that
 --   (a) exist and
@@ -224,8 +213,7 @@ validationData tx = rump <$> ins where
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
         , pendingTxIn = head inputs -- this is changed accordingly in `checkMatch` during validation
-        , pendingTxValidFrom = txValidFrom tx
-        , pendingTxValidTo = txValidTo tx
+        , pendingTxValidRange = txValidRange tx
         }
 
 mkOut :: TxOut -> Validation.PendingTxOut

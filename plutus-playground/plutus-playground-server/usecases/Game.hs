@@ -64,7 +64,7 @@ lock word value =
     -- The underscore at the end of the name indicates that 'payToScript_'
     -- discards its result. If you want to hold on to the transaction you can
     -- use 'payToScript'.
-    payToScript_ gameAddress value (mkDataScript word)
+    payToScript_ defaultSlotRange gameAddress value (mkDataScript word)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
 guess :: String -> MockWallet ()
@@ -77,7 +77,7 @@ guess word =
     -- Note that before we can use 'collectFromScript', we need to tell the
     -- wallet to start watching the address for transaction outputs (because
     -- the wallet does not keep track of the UTXO set of the entire chain).
-    collectFromScript gameValidator (mkRedeemerScript word)
+    collectFromScript defaultSlotRange gameValidator (mkRedeemerScript word)
 
 -- | The "startGame" contract endpoint, telling the wallet to start watching
 --   the address of the game script. See note [Contract endpoints]

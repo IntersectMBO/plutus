@@ -106,24 +106,28 @@ gameSpec =
             [ Action
                   (Fn "payToPublicKey_")
                   (Wallet 1)
-                  [ JSON.String "{\"getValue\":9}"
+                  [ slotRange
+                  , JSON.String "{\"getValue\":9}"
                   , JSON.String "{\"getPubKey\":2}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 2)
-                  [ JSON.String "{\"getValue\":9}"
+                  [ slotRange
+                  , JSON.String "{\"getValue\":9}"
                   , JSON.String "{\"getPubKey\":3}"
                   ]
             , Action
                   (Fn "payToPublicKey_")
                   (Wallet 3)
-                  [ JSON.String "{\"getValue\":9}"
+                  [ slotRange
+                  , JSON.String "{\"getValue\":9}"
                   , JSON.String "{\"getPubKey\":1}"
                   ]
             ]
             (sourceCode game)
             []
+    slotRange = JSON.String "{\"ivTo\":null,\"ivFrom\":null}"
 
 hasFundsDistribution ::
        [(Wallet, Value)]

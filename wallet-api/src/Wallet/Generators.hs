@@ -1,4 +1,6 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE RecordWildCards  #-}
 module Wallet.Generators(
     -- * Mockchain
     Mockchain(..),
@@ -24,35 +26,35 @@ module Wallet.Generators(
     splitVal
     ) where
 
-import           Data.Bifunctor  (Bifunctor (..))
-import           Data.Map        (Map)
-import qualified Data.Map        as Map
-import           Data.Maybe      (catMaybes)
-import           Data.Monoid     (Sum (..))
-import           Data.Set        (Set)
-import qualified Data.Set        as Set
-import           GHC.Stack       (HasCallStack)
+import           Data.Bifunctor              (Bifunctor (..))
+import           Data.Map                    (Map)
+import qualified Data.Map                    as Map
+import           Data.Maybe                  (catMaybes)
+import           Data.Monoid                 (Sum (..))
+import           Data.Set                    (Set)
+import qualified Data.Set                    as Set
+import           GHC.Stack                   (HasCallStack)
 import           Hedgehog
-import qualified Hedgehog.Gen    as Gen
-import qualified Hedgehog.Range  as Range
+import qualified Hedgehog.Gen                as Gen
+import qualified Hedgehog.Range              as Range
+import qualified Ledger.Interval             as Interval
 
 import           Ledger
+import qualified Wallet.API      as W
 import           Wallet.Emulator as Emulator
 
 data GeneratorModel = GeneratorModel {
     gmInitialBalance :: Map PubKey Value,
     -- ^ Value created at the beginning of the blockchain
-    gmPubKeys        :: Set PubKey,
+    gmPubKeys        :: Set PubKey
     -- ^ Public keys that are to be used for generating transactions
-    gmTransactionValidInterval :: (Slot, Slot)
     } deriving Show
 
 -- | A generator model with some sensible defaults
 generatorModel :: GeneratorModel
 generatorModel = GeneratorModel {
     gmInitialBalance = Map.fromList $ first PubKey <$> zip [1..5] (repeat 100000),
-    gmPubKeys        = Set.fromList $ PubKey <$> [1..5],
-    gmTransactionValidInterval = (0, 1000)
+    gmPubKeys        = Set.fromList $ PubKey <$> [1..5]
     }
 
 -- | Estimate a transaction fee based on the number of its inputs and outputs.
@@ -104,14 +106,12 @@ genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
         t = getSum $ foldMap Sum gmInitialBalance
-        (from, to) = gmTransactionValidInterval
     in (Tx {
         txInputs = Set.empty,
         txOutputs = o,
         txForge = t,
         txFee = 0,
-        txValidFrom = from,
-        txValidTo = to
+        txValidRange = W.intervalFrom 0
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -160,7 +160,6 @@ genValidTransactionSpending' :: MonadGen m
 genValidTransactionSpending' g f ins totalVal = do
     let fee = estimateFee f (length ins) 3
         numOut = Set.size $ gmPubKeys g
-        (from, to) = gmTransactionValidInterval g
     if fee < totalVal
         then do
             outVals <- splitVal numOut (totalVal - fee)
@@ -169,8 +168,7 @@ genValidTransactionSpending' g f ins totalVal = do
                     txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
                     txForge = 0,
                     txFee = fee,
-                    txValidFrom = from,
-                    txValidTo = to }
+                    txValidRange = $$(Interval.always) }
         else Gen.discard
 
 genValue :: MonadGen m => m Value

@@ -4,6 +4,7 @@ module Vesting where
 import           Control.Monad                (void)
 
 import qualified Language.PlutusTx            as PlutusTx
+import qualified Ledger.Interval              as Interval
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import           Ledger.Validation
@@ -50,7 +51,7 @@ vestFunds vst value = do
     let contractAddress = Ledger.scriptAddress (validatorScript vst)
         dataScript      = DataScript (Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    payToScript_ contractAddress value dataScript
+    payToScript_ defaultSlotRange contractAddress value dataScript
 
 -- | Register this wallet as the owner of the vesting scheme. At each of the
 --   two dates (tranche 1, tranche 2) we take out the funds that have been
@@ -95,9 +96,9 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(P.and)
 
-            PendingTx _ os _ _ _ (Slot slFrom) _ = p
-            VestingTranche (Slot d1) (Value a1) = vestingTranche1
-            VestingTranche (Slot d2) (Value a2) = vestingTranche2
+            PendingTx _ os _ _ _ range = p
+            VestingTranche d1 (Value a1) = vestingTranche1
+            VestingTranche d2 (Value a2) = vestingTranche2
 
             -- We assume here that the txn outputs are always given in the same
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
@@ -109,12 +110,12 @@ validatorScript v = ValidatorScript val where
 
             -- Value that has been released so far under the scheme
             currentThreshold =
-                if slFrom >= d1
-                then if slFrom >= d2
+                if $$(Interval.contains) ($$(Interval.from) d1) range
+                then if $$(Interval.contains) ($$(Interval.from) d2) range
                     -- everything can be spent
-                     then a1 + a2
-                     -- only the first tranche can be spent (we are between d1 and d2)
-                     else a1
+                        then a1 + a2
+                        -- only the first tranche can be spent (we are between d1 and d2)
+                        else a1
                 -- Nothing has been released yet
                 else 0
 
@@ -134,7 +135,7 @@ validatorScript v = ValidatorScript val where
                 -- If there is no data script in the output list,
                 -- we only accept the transaction if we are past the
                 -- date of the final tranche.
-                _ -> slFrom >= d2
+                _ -> $$(Interval.before) d2 range
 
             isValid = amountsValid && txnOutputsValid
         in
@@ -143,7 +144,7 @@ validatorScript v = ValidatorScript val where
 tranche1Trigger :: Vesting -> EventTrigger
 tranche1Trigger v =
     let VestingTranche dt1 _ = vestingTranche1 v in
-    (slotRangeT (Interval dt1 (succ dt1)))
+    (slotRangeT (singleton dt1))
 
 -- | Collect the remaining funds at the end of tranche 2
 tranche2Handler :: Vesting -> EventHandler MockWallet
@@ -151,11 +152,13 @@ tranche2Handler vesting = EventHandler (\_ -> do
     logMsg "Collecting tranche 2"
     let vlscript = validatorScript vesting
         redeemerScript  = Ledger.unitRedeemer
-    collectFromScript vlscript redeemerScript)
+        VestingTranche dt2 _ = vestingTranche2 vesting
+        range = intervalFrom dt2
+    collectFromScript range vlscript redeemerScript)
 
 tranche2Trigger :: Vesting -> EventTrigger
 tranche2Trigger v =
     let VestingTranche dt2 _ = vestingTranche2 v in
-    (slotRangeT (Interval dt2 (succ dt2)))
+    (slotRangeT (singleton dt2))
 
 $(mkFunctions ['vestFunds, 'registerVestingOwner])

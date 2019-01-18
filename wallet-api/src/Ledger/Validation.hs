@@ -59,6 +59,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Ledger.Interval              (SlotRange)
 import           Ledger.Types                 (PubKey (..), Signature (..), Value (..), Slot(..))
 import qualified Ledger.Types                 as Ledger
 
@@ -111,9 +112,8 @@ data PendingTx = PendingTx
     , pendingTxFee         :: Value
     , pendingTxForge       :: Value
     , pendingTxIn          :: PendingTxIn
-    , pendingTxValidFrom   :: Slot
-    , pendingTxValidTo     :: Slot
     -- ^ PendingTxIn being validated
+    , pendingTxValidRange  :: SlotRange
     } deriving (Generic)
 
 {- Note [Oracles]
@@ -231,7 +231,7 @@ txSignedBy :: Q (TExp (PendingTx -> PubKey -> Bool))
 txSignedBy = [||
     \(p :: PendingTx) (PubKey k) ->
         let
-            PendingTx txins _ _ _ _ _ _ = p
+            PendingTx txins _ _ _ _ _ = p
 
             signedBy' :: Signature -> Bool
             signedBy' (Signature s) = s == k

@@ -38,7 +38,7 @@ runTrace wallets actions =
               action = notifyAll >> sequence actions'
               (initialTx, _) =
                 Gen.genInitialTransaction $
-                GeneratorModel initialBalance pubKeys (0, 100)
+                GeneratorModel initialBalance pubKeys
               (eRes, newState) = runTraceTxPool [initialTx] action
               blockchain = _chainNewestFirst newState
               emulatorLog = _emulatorLog newState

@@ -20,7 +20,7 @@ import           Language.PlutusTx.Coordination.Contracts.Vesting (Vesting (..),
                                                                    vestFunds)
 import qualified Ledger
 import qualified Ledger.Validation                                as Validation
-import           Wallet                                           (PubKey (..), withValidationInterval)
+import           Wallet                                           (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Generators                                as Gen
 
@@ -74,13 +74,11 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     updateAll'
 
     -- Advance the clock so that the first tranche (200 ada) becomes unlocked.
-    addBlocks 10
+    addBlocks' 10
     let ds = VestingData (vsScriptHash scen1) 150
 
     -- Take 150 ada out of the scheme
-    walletAction w1
-        $ withValidationInterval (pure (10, 20))
-        $ void (retrieveFunds s ds ref 150)
+    walletAction w1 $ void (retrieveFunds s ds ref 150)
     updateAll'
     traverse_ (uncurry assertOwnFundsEq) [(w2, w2Funds), (w1, startingBalance + 150)]
 
@@ -91,7 +89,7 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     updateAll'
     ref <- commit w2 s total
     updateAll'
-    addBlocks 10
+    addBlocks' 10
 
     -- at slot 11, not more than 200 may be taken out
     -- so the transaction submitted by `retrieveFunds` below
@@ -110,13 +108,11 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     updateAll'
     ref <- commit w2 s total
     updateAll'
-    addBlocks 20
+    addBlocks' 20
 
     -- everything can be taken out at h=21
     let ds = VestingData (vsScriptHash scen1) 600
-    walletAction w1
-        $ withValidationInterval (pure (20, 23))
-        $ void (retrieveFunds s ds ref 600)
+    walletAction w1 $ void (retrieveFunds s ds ref 600)
     updateAll'
 
     -- Wallet 1 now has control of all the funds that were locked in the
@@ -158,3 +154,7 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
 updateAll :: VestingScenario -> Trace MockWallet [Ledger.Tx]
 updateAll VestingScenario{vsWallets} =
     processPending >>= walletsNotifyBlock vsWallets
+
+-- | Add a number of blocks and notify the wallets
+addBlocks' :: Int -> Trace MockWallet ()
+addBlocks' i = traverse_ (const (updateAll scen1)) [1..i]
