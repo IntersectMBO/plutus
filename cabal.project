@@ -8,6 +8,7 @@ packages: language-plutus-core
           plutus-ir
           plutus-playground/plutus-playground-server
           plutus-playground/plutus-playground-lib
+          bench-primitives
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
@@ -17,6 +18,7 @@ constraints: language-plutus-core +development
            , plutus-ir +development
            , plutus-playground-server +development
            , plutus-playground-lib +development
+           , bench-primitives +development
 tests: true
 benchmarks: true
 documentation: true
