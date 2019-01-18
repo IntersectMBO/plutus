@@ -20,10 +20,10 @@ import qualified Data.Text                  as Text
 import qualified Data.Text.Internal.Search  as Text
 import qualified Data.Text.IO               as Text
 import           Ledger.Types               (Blockchain, Value)
-import           Playground.API             (Evaluation (sourceCode), Expression (Action, Wait), Fn (Fn),
-                                             FunctionSchema,
+import           Playground.API             (FunctionSchema(FunctionSchema), toSimpleArgumentSchema, CompilationResult (CompilationResult), Evaluation (sourceCode),
+                                             Expression (Action, Wait), Fn (Fn), FunctionSchema,
                                              PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
-                                             SourceCode, parseErrorsText, program, wallets)
+                                             SourceCode, Warning (Warning), parseErrorsText, program, wallets)
 import           System.Directory           (removeFile)
 import           System.Environment         (lookupEnv)
 import           System.Exit                (ExitCode (ExitSuccess))
@@ -39,9 +39,18 @@ replaceModuleName script =
         regex = Regex.mkRegex "module .* where"
      in Text.pack $ Regex.subRegex regex scriptString "module Main where"
 
+ensureMkFunctionExists :: Text -> Text
+ensureMkFunctionExists script =
+    let scriptString = Text.unpack script
+        regex = Regex.mkRegex "\\$\\(mkFunctions \\[.*])"
+        mMatches = Regex.matchRegexAll regex scriptString
+     in case mMatches of
+            Nothing -> script <> "\n$(mkFunctions [])"
+            Just _  -> script
+
 mkCompileScript :: Text -> Text
 mkCompileScript script =
-    replaceModuleName script <> "\n\nmain :: IO ()" <>
+    (ensureMkFunctionExists . replaceModuleName) script <> "\n\nmain :: IO ()" <>
     "\nmain = printSchemas schemas"
 
 avoidUnsafe :: (MonadError PlaygroundError m) => SourceCode -> m ()
@@ -64,7 +73,7 @@ runscript handle file script = do
 compile ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
     => SourceCode
-    -> m [FunctionSchema Schema]
+    -> m CompilationResult
 compile source = do
     avoidUnsafe source
     withSystemTempFile "Main.hs" $ \file handle -> do
@@ -81,7 +90,12 @@ compile source = do
             Left err ->
                 throwError . OtherError $
                 "unable to decode compilation result" <> err
-            Right schema -> pure schema
+            Right [schema] ->
+                pure . CompilationResult [toSimpleArgumentSchema <$> schema]  . Just $
+                [ Warning
+                      "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
+                ]
+            Right schemas -> pure $ CompilationResult (fmap toSimpleArgumentSchema <$> schemas) Nothing
 
 runFunction ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
@@ -149,7 +163,6 @@ lookupRunghc = do
 -- This could be done using unliftio I think however it looked to be
 -- more pain that it was worth so I simply copied and pasted the
 -- definitions and changed the types.
-
 {-# ANN ignoringIOErrors ("HLint: ignore Evaluate" :: String) #-}
 
 ignoringIOErrors :: MonadCatch m => m () -> m ()

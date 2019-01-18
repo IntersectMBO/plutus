@@ -20,7 +20,7 @@ import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
-import Playground.API (CompilationError, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
+import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
 import Prelude (class Eq, class Functor, class Ord, class Show, Unit, show, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet)
@@ -195,13 +195,10 @@ cpBalancesChart = cp3
 
 -----------------------------------------------------------
 
-type CompilationResult =
-  Either (Array CompilationError) (Array (FunctionSchema SimpleArgumentSchema))
-
 type Blockchain = Array (Array Tx)
 
 type State =
-  { compilationResult :: RemoteData AjaxError CompilationResult
+  { compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array MockWallet
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult

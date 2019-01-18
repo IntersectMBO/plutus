@@ -32,7 +32,7 @@ import           Ledger.Index                              (ValidationError)
 import           Ledger.Types                              (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
                                                             Slot, Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript, Value)
-import           Playground.API                            (CompilationError, Evaluation, EvaluationResult, Expression,
+import           Playground.API                            (Warning, CompilationResult, CompilationError, Evaluation, EvaluationResult, Expression,
                                                             Fn, FunctionSchema, SimpleArgumentSchema, SourceCode)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
@@ -139,6 +139,8 @@ myTypes :: [SumType 'Haskell]
 myTypes =
     [ mkSumType (Proxy @SimpleArgumentSchema)
     , mkSumType (Proxy @(FunctionSchema A))
+    , mkSumType (Proxy @CompilationResult)
+    , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @Wallet)

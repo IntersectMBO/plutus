@@ -37,7 +37,7 @@ import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
 import           Wallet.Graph               (FlowGraph)
 
 type API
-   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] [FunctionSchema SimpleArgumentSchema])
+   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
 
 newtype SourceCode = SourceCode Text
@@ -76,6 +76,16 @@ data EvaluationResult = EvaluationResult
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
   , fundsDistribution :: [(Wallet, Ledger.Value)]
+  }
+  deriving (Generic, ToJSON)
+
+newtype Warning = Warning Text
+  deriving stock (Eq, Show, Generic)
+  deriving newtype (ToJSON)
+
+data CompilationResult = CompilationResult
+  { functionSchema :: [FunctionSchema SimpleArgumentSchema]
+  , warnings       :: Maybe [Warning]
   }
   deriving (Generic, ToJSON)
 

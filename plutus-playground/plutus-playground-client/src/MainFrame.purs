@@ -28,6 +28,7 @@ import Data.Generic (gEq)
 import Data.Int as Int
 import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -51,7 +52,7 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema)
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
@@ -347,8 +348,8 @@ render state =
         ]
     , stripeContainer_ [
         case state.compilationResult of
-          Success (Right functionSchemas) ->
-            simulationPane functionSchemas state.wallets state.actions state.evaluationResult
+          Success (Right compilationResult) ->
+            simulationPane (view (_CompilationResult <<< _functionSchema) compilationResult) state.wallets state.actions state.evaluationResult
           Failure error -> ajaxErrorPane error
           _ -> empty
       ]

@@ -10,12 +10,11 @@ import qualified Data.Aeson.Text        as JSON
 import           Data.Aeson.Types       (object, (.=))
 import qualified Data.ByteString.Char8  as BSC
 import           Data.Either            (isRight)
-import           Data.Swagger.Internal  (Schema)
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
 import           Ledger.Types           (Blockchain, Value)
-import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
-                                         PlaygroundError, SourceCode (SourceCode))
+import           Playground.API         (SimpleArgumentSchema, Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
+                                         PlaygroundError, SourceCode (SourceCode), functionSchema)
 import qualified Playground.Interpreter as PI
 import           Playground.Usecases    (crowdfunding, game, messages, vesting)
 import           Test.Hspec             (Spec, describe, it, shouldSatisfy)
@@ -213,8 +212,8 @@ crowdfundingSpec =
 sourceCode :: BSC.ByteString -> SourceCode
 sourceCode = SourceCode . Text.pack . BSC.unpack
 
-compile :: BSC.ByteString -> IO (Either PlaygroundError [FunctionSchema Schema])
-compile = runExceptT . PI.compile . sourceCode
+compile :: BSC.ByteString -> IO (Either PlaygroundError [FunctionSchema SimpleArgumentSchema])
+compile = runExceptT . fmap functionSchema . PI.compile . sourceCode
 
 evaluate ::
        Evaluation

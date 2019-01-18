@@ -18,7 +18,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text                  as Text
 import           Network.HTTP.Types         (hContentType)
 import           Playground.API             (API, CompilationError, Evaluation, EvaluationResult (EvaluationResult),
-                                             FunctionSchema, PlaygroundError (PlaygroundTimeout), SimpleArgumentSchema,
+                                             FunctionSchema, CompilationResult, PlaygroundError (PlaygroundTimeout), SimpleArgumentSchema,
                                              SourceCode, parseErrorText, toSimpleArgumentSchema)
 import qualified Playground.API             as PA
 import qualified Playground.Interpreter     as PI
@@ -30,14 +30,14 @@ import qualified Wallet.Graph               as V
 
 acceptSourceCode ::
        SourceCode
-    -> Handler (Either [CompilationError] [FunctionSchema SimpleArgumentSchema])
+    -> Handler (Either [CompilationError] CompilationResult)
 acceptSourceCode sourceCode = do
     let maxInterpretationTime = 5000000
     r <-
         liftIO . timeoutInterpreter maxInterpretationTime $
         runExceptT $ PI.compile sourceCode
     case r of
-        Right vs -> pure . Right $ fmap toSimpleArgumentSchema <$> vs
+        Right vs -> pure . Right $ vs
         Left (PA.InterpreterError errors) ->
             pure $ Left $ map (parseErrorText . Text.pack) errors
         Left (PA.CompilationErrors errors) -> pure . Left $ errors
