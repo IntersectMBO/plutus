@@ -15,7 +15,7 @@
     -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
-{- | = Marlowe: financial contracts on Cardano Computation Layer
+{-| = Marlowe: financial contracts on Cardano Computation Layer
 
 Here we present a reference implementation of Marlowe, domain-specific language targeted at
 the execution of financial contracts in the style of Peyton Jones et al
@@ -164,8 +164,8 @@ data Contract = Null
     State of a contract validation function.
 -}
 data ValidatorState = ValidatorState {
-        ccIds  :: [IdentCC],
-        payIds :: [IdentPay]
+        maxCCId  :: Int,
+        maxPayId :: Int
     }
 
 {-|
@@ -205,7 +205,7 @@ makeLift ''InputCommand
 data Input = Input InputCommand [OracleValue Int] [Choice]
 
 {-|
-    This data type is a content of a contract /Data Script/
+    This data type is a content of a contract's /Data Script/
 -}
 data MarloweData = MarloweData {
         marloweState :: State,
@@ -327,18 +327,12 @@ equalContract = [|| \eqValue eqObservation l r -> let
     in eq l r
     ||]
 
-{-|
-    Here we check that 'IdentCC' and 'IdentPay' identifiers are unique.
+{-| Here we check that 'IdentCC' and 'IdentPay' identifiers are unique.
+    We require identifiers to appear only in ascending order,
+    i.e. @ IdentCC 1 @ followed by @ IdentCC 2 @
 -}
 validateContractQ :: Q (TExp (ValidatorState -> Contract -> (ValidatorState, Bool)))
 validateContractQ = [|| \state contract -> let
-
-    notElem :: (a -> a -> Bool) -> [a] -> a -> Bool
-    notElem eq as a = notel eq as a
-      where
-        notel eq (e : ls) a = if a `eq` e then False else notel eq ls a
-        notel _ [] _ = True
-
     checkBoth :: ValidatorState -> Contract -> Contract -> (ValidatorState, Bool)
     checkBoth state c1 c2 = let
         (us, valid) = validate state c1
@@ -346,16 +340,16 @@ validateContractQ = [|| \state contract -> let
         else (state, False)
 
     validate :: ValidatorState -> Contract -> (ValidatorState, Bool)
-    validate state@(ValidatorState ccIds payIds) contract = case contract of
+    validate state@(ValidatorState maxCCId maxPayId) contract = case contract of
         Null -> (state, True)
-        CommitCash ident _ _ _ _ c1 c2 ->
-            if notElem (\(IdentCC a) (IdentCC b) -> a == b) ccIds ident
-            then checkBoth (ValidatorState (ident : ccIds) payIds) c1 c2
+        CommitCash (IdentCC id) _ _ _ _ c1 c2 ->
+            if id > maxCCId
+            then checkBoth (ValidatorState id maxPayId) c1 c2
             else (state, False)
         RedeemCC _ c -> validate state c
-        Pay ident _ _ _ _ c ->
-            if notElem (\(IdentPay a) (IdentPay b) -> a == b) payIds ident
-            then validate (ValidatorState ccIds (ident : payIds)) c
+        Pay (IdentPay id) _ _ _ _ c ->
+            if id > maxPayId
+            then validate (ValidatorState maxCCId id) c
             else (state, False)
         Both c1 c2 -> checkBoth state c1 c2
         Choice _ c1 c2 -> checkBoth state c1 c2
@@ -417,10 +411,7 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
         in evalValue state value
     ||]
 
-{-|
-    Evaluates 'Observation'.
-
--}
+-- | Evaluates 'Observation'.
 interpretObservation :: Q (TExp (
     (State -> Value -> Int)
     -> Int -> State -> Observation -> Bool))
@@ -446,7 +437,7 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     maybe = $$(PlutusTx.maybe)
 
     find :: IdentChoice -> Person -> [Choice] -> Maybe ConcreteChoice
-    find choiceId@(IdentChoice cid) (person) choices = case choices of
+    find choiceId@(IdentChoice cid) person choices = case choices of
         (((IdentChoice id, party), choice) : _)
             | cid == id && party `eqPk` person -> Just choice
         (_ : cs) -> find choiceId person cs
@@ -493,7 +484,13 @@ insertCommitQ = [|| \ commit commits -> let
     Evaluates Marlowe Contract
     Returns contract 'State', remaining 'Contract', and validation result.
 -}
-evaluateContract :: Q (TExp (Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)))
+evaluateContract ::
+    Q (TExp (Input
+    -> Slot
+    -> Ledger.Value
+    -> Ledger.Value
+    -> State
+    -> Contract -> (State, Contract, Bool)))
 evaluateContract = [|| \
     (Input inputCommand inputOracles _)
     blockHeight
@@ -754,7 +751,7 @@ validator = [|| \
         eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract)
 
-        (_, contractIsValid) = validateContract (ValidatorState [] []) marloweContract
+        (_, contractIsValid) = validateContract (ValidatorState 0 0) marloweContract
 
         State currentCommits currentChoices = marloweState
 

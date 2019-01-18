@@ -293,7 +293,7 @@ duplicateIdentCC = property $ do
             (CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256 Null Null)
             Null
 
-        contractIsValid = validContract (ValidatorState [] []) contract
+        contractIsValid = validContract (ValidatorState 0 0) contract
     Hedgehog.assert (not contractIsValid)
 
 checkValidateContract :: Property
@@ -305,7 +305,7 @@ checkValidateContract = property $ do
 
     let contract = boundedContract (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
     a <- forAll contract
-    let r = validContract (ValidatorState [] []) a
+    let r = validContract (ValidatorState 0 0) a
     Hedgehog.assert (r || not r)
 
 checkInterpretObsTotality :: Property
