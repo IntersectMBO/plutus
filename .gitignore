@@ -32,3 +32,5 @@ result*
 
 .terraform
 *.tfvars
+
+gh-pages
