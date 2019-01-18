@@ -56,8 +56,8 @@ eqObservation = $$(equalObservation) eqValue
 eqContract :: Contract -> Contract -> Bool
 eqContract = $$(equalContract) eqValue eqObservation
 
-validContract :: ValidatorState -> Contract -> Bool
-validContract state contract = snd ($$(validateContractQ) state contract)
+validContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
+validContract = $$(validateContractQ)
 
 evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
 evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles

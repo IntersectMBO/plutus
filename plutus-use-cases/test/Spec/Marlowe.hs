@@ -34,6 +34,7 @@ import           Hedgehog.Gen                   ( element
                                                 )
 import qualified Hedgehog
 import           Test.Tasty
+import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog            ( testProperty
                                                 , HedgehogTestLimit(..)
                                                 )
@@ -78,6 +79,7 @@ validatorTests = testGroup "Marlowe Validator" [
     testProperty "validateContract is a total function" checkValidateContract,
     testProperty "interprebObs is a total function" checkInterpretObsTotality,
     testProperty "insertCommit" checkInsertCommit,
+    testCase     "invalid contract: not enought money" notEnoughMoney,
     testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC
     ]
 
@@ -206,8 +208,8 @@ eqObservation = $$(equalObservation) eqValue
 eqContract :: Contract -> Contract -> Bool
 eqContract = $$(equalContract) eqValue eqObservation
 
-validContract :: ValidatorState -> Contract -> Bool
-validContract state contract = snd ($$(validateContractQ) state contract)
+validContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
+validContract = $$(validateContractQ)
 
 evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
 evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
@@ -293,7 +295,7 @@ duplicateIdentCC = property $ do
             (CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256 Null Null)
             Null
 
-        contractIsValid = validContract (ValidatorState 0 0) contract
+        contractIsValid = validContract (State [] []) contract (Slot 1) (Ledger.Value 12)
     Hedgehog.assert (not contractIsValid)
 
 checkValidateContract :: Property
@@ -305,8 +307,23 @@ checkValidateContract = property $ do
 
     let contract = boundedContract (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
     a <- forAll contract
-    let r = validContract (ValidatorState 0 0) a
+    let r = validContract (State [] []) a (Slot 1) (Ledger.Value 12)
     Hedgehog.assert (r || not r)
+
+notEnoughMoney :: IO ()
+notEnoughMoney = do
+    let commits =   [(IdentCC 1, (PubKey 1, NotRedeemed 60 100))
+                    , (IdentCC 1, (PubKey 1, NotRedeemed 40 200))]
+    let test = validContract (State commits []) Null
+    let enoughOk = test (Slot 100) (Ledger.Value 100)
+    let enoughFail = test (Slot 1) (Ledger.Value 99)
+    let firstCommitTimedOutOk = test (Slot 101) (Ledger.Value 45)
+    let firstCommitTimedOutFail = test (Slot 101) (Ledger.Value 39)
+    enoughOk @?= True
+    enoughFail @?= False
+    firstCommitTimedOutOk @?= True
+    firstCommitTimedOutFail @?= False
+
 
 checkInterpretObsTotality :: Property
 checkInterpretObsTotality = property $ do

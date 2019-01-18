@@ -327,34 +327,49 @@ equalContract = [|| \eqValue eqObservation l r -> let
     in eq l r
     ||]
 
-{-| Here we check that 'IdentCC' and 'IdentPay' identifiers are unique.
+{-| Contract validation.
+    * Here we check that 'IdentCC' and 'IdentPay' identifiers are unique.
     We require identifiers to appear only in ascending order,
     i.e. @ IdentCC 1 @ followed by @ IdentCC 2 @
+    * Check that contract locks at least the value claimed in its State commits.
 -}
-validateContractQ :: Q (TExp (ValidatorState -> Contract -> (ValidatorState, Bool)))
-validateContractQ = [|| \state contract -> let
+validateContractQ :: Q (TExp (State -> Contract -> Slot -> Ledger.Value -> Bool))
+validateContractQ = [|| \State{stateCommitted} contract (Slot bn) (Ledger.Value actualMoney) -> let
+
+    calcCommittedMoney :: [Commit] -> Cash -> Cash
+    calcCommittedMoney [] r = r
+    calcCommittedMoney ((_, (_, NotRedeemed money timeout)) : cs) acc = if bn > timeout
+        then calcCommittedMoney cs acc
+        else calcCommittedMoney cs (acc + money)
+
     checkBoth :: ValidatorState -> Contract -> Contract -> (ValidatorState, Bool)
     checkBoth state c1 c2 = let
-        (us, valid) = validate state c1
-        in if valid then validate us c2
+        (us, valid) = validateIds state c1
+        in if valid then validateIds us c2
         else (state, False)
 
-    validate :: ValidatorState -> Contract -> (ValidatorState, Bool)
-    validate state@(ValidatorState maxCCId maxPayId) contract = case contract of
+    validateIds :: ValidatorState -> Contract -> (ValidatorState, Bool)
+    validateIds state@(ValidatorState maxCCId maxPayId) contract = case contract of
         Null -> (state, True)
         CommitCash (IdentCC id) _ _ _ _ c1 c2 ->
             if id > maxCCId
             then checkBoth (ValidatorState id maxPayId) c1 c2
             else (state, False)
-        RedeemCC _ c -> validate state c
+        RedeemCC _ c -> validateIds state c
         Pay (IdentPay id) _ _ _ _ c ->
             if id > maxPayId
-            then validate (ValidatorState maxCCId id) c
+            then validateIds (ValidatorState maxCCId id) c
             else (state, False)
         Both c1 c2 -> checkBoth state c1 c2
         Choice _ c1 c2 -> checkBoth state c1 c2
         When _ _ c1 c2 -> checkBoth state c1 c2
-    in validate state contract
+
+    enoughMoney = calcCommittedMoney stateCommitted 0 <= actualMoney
+
+    in if enoughMoney then
+            let (_, validIds) = validateIds (ValidatorState 0 0) contract
+            in validIds
+       else False
     ||]
 
 {-|
@@ -727,7 +742,7 @@ validator = [|| \
             notel eq (e : ls) a = if a `eq` e then False else notel eq ls a
             notel _ [] _ = True
 
-        validateContract :: ValidatorState -> Contract -> (ValidatorState, Bool)
+        validateContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
         validateContract = $$(validateContractQ)
 
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
@@ -751,7 +766,7 @@ validator = [|| \
         eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract)
 
-        (_, contractIsValid) = validateContract (ValidatorState 0 0) marloweContract
+        contractIsValid = validateContract marloweState marloweContract pendingTxSlot scriptInValue
 
         State currentCommits currentChoices = marloweState
 

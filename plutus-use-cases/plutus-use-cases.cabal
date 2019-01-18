@@ -69,6 +69,7 @@ test-suite plutus-use-cases-test
         containers -any,
         hedgehog -any,
         tasty -any,
+        tasty-hunit -any,
         tasty-hedgehog >=0.2.0.0,
         text -any,
         wallet-api -any,
