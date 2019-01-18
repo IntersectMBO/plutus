@@ -123,6 +123,13 @@ let
     docs = {
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
+      combined-haddock = (pkgs.callPackage ./nix/haddock-combine.nix {}) {
+        hspkgs = builtins.attrValues localPackages;
+        prologue = pkgs.writeTextFile { 
+          name = "prologue"; 
+          text = "Combined documentation for all the Plutus libraries."; 
+        };
+      };
     };
 
     plutus-playground = rec {
@@ -169,4 +176,4 @@ let
 
 in
   # The top-level package set
-  pkgs.lib.makeScope pkgs.newScope packages
+  pkgs.lib.makeScope pkgs.newScope packages 
