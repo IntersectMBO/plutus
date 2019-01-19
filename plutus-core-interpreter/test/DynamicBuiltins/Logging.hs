@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -13,10 +14,10 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Unit
 
-import           Language.PlutusCore.Interpreter.CekMachine
+import           DynamicBuiltins.Common
 
-import           Control.Monad.IO.Class
-import           Data.Functor.Identity
+import           Control.Monad.Except
+import           Data.Either                          (isRight)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -37,10 +38,11 @@ handleDynamicIntToString :: OnChainHandler "intToString" f r r
 handleDynamicIntToString = handleDynamicByMeaning dynamicIntToStringMeaning
 
 evaluateHandlersCek
-    :: (Evaluator (OnChain '[] Term) Identity -> OnChainEvaluator names Term r)
+    :: MonadError (Error ()) m
+    => (Evaluator (OnChain '[] Term) m -> OnChainEvaluator names Term r)
     -> OnChain names Term TyName Name ()
     -> r
-evaluateHandlersCek = evaluateHandlersBy (\means -> Identity . evaluateCek means)
+evaluateHandlersCek = evaluateHandlersBy typecheckEvaluateCek
 
 test_logInt :: TestTree
 test_logInt = testCase "logInt" $ do
@@ -52,8 +54,10 @@ test_logInt = testCase "logInt" $ do
 
     let eval1 = evaluateHandlersCek (handleDynamicIntToString . handleDynamicLog)
     let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntToString)
-    (logs1, _) <- eval1 $ OnChain term
-    (logs2, _) <- eval2 $ OnChain term
+    (logs1, errOrRes1) <- eval1 $ OnChain term
+    (logs2, errOrRes2) <- eval2 $ OnChain term
+    isRight errOrRes1 @?= True
+    isRight errOrRes2 @?= True
     logs1 @?= ["1"]
     logs2 @?= ["1"]
 
@@ -85,8 +89,10 @@ test_logInts = testCase "logInts" $ do
 
     let eval1 = evaluateHandlersCek (handleDynamicIntToString . handleDynamicLog)
     let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntToString)
-    (logs1, _) <- liftIO . eval1 $ OnChain term
-    (logs2, _) <- liftIO . eval2 $ OnChain term
+    (logs1, errOrRes1) <- liftIO . eval1 $ OnChain term
+    (logs2, errOrRes2) <- liftIO . eval2 $ OnChain term
+    isRight errOrRes1 @?= True
+    isRight errOrRes2 @?= True
     logs1 @?= map show [1 .. 10 :: Int]
     logs2 @?= map show [1 .. 10 :: Int]
 
