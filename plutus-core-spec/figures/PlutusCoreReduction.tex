@@ -13,7 +13,8 @@
                             &    &     & \inFunTLeft{\_}{A}                        & \textrm{left arrow}\\
                             &    &     & \inFunTRight{S}{\_}                       & \textrm{right arrow}\\
                             &    &     & \inAllT{\alpha}{K}{\_}                    & \textrm{all}\\
-                            &    &     & \inFixT{\alpha}{\_}                       & \textrm{fix}\\
+                            &	 &     & \inFixTLeft{\_}{B}                        & \textrm{left fix}\\
+                            &    &     & \inFixTRight{S}{\_}                       & \textrm{right fix}\\
                             &    &     & \inLamT{\alpha}{K}{\_}                    & \textrm{$\lambda$}\\
                             &    &     & \inAppTLeft{\_}{A}                        & \textrm{left app}\\
                             &    &     & \inAppTRight{S}{\_}                       & \textrm{right app}\\
@@ -119,12 +120,12 @@
         \textrm{Frame} &   &     & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
                        %&   &     & \inInstRightFrame{V}                    & \textrm{right instantiation}\\
                        %&   &     & \inWrapLeftFrame{\alpha}{M}             & \textrm{left wrap}\\
-                       &   &     & \inWrapRightFrame{\alpha}{A}            & \textrm{right wrap}\\
+                       &   &     & \inWrapRightFrame{A}{B}                 & \textrm{right wrap}\\
                        &   &     & \inUnwrapFrame{}                        & \textrm{unwrap}\\
                        %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
                        &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
                        &   &     & \inAppRightFrame{V}                     & \textrm{right app}\\
-                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}       & \textrm{builtin}\\
     \end{array}\]
     \caption{Grammar of Reduction Frames}
     \label{fig:Plutus_core_reduction_frames}
@@ -143,7 +144,7 @@
 
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\step{\unwrap{\wrap{\alpha}{A}{V}}}{V}\)}
+        \UnaryInfC{\(\step{\unwrap{\wrap{A}{B}{V}}}{V}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -211,7 +212,7 @@
         &\cksteps{\ckforward{s}{\con{cn}}}{\ckbackward{s}{\con{cn}}}\\
         &\cksteps{\ckforward{s}{\abs{\alpha}{K}{V}}}{\ckbackward{s}{\abs{\alpha}{K}{V}}}\\
         &\cksteps{\ckforward{s}{\inst{M}{A}}}{\ckforward{s, \inInstLeftFrame{A}}{M}}\\
-        &\cksteps{\ckforward{s}{\wrap{\alpha}{A}{M}}}{\ckforward{s, \inWrapRightFrame{\alpha}{A}}{M}}\\
+        &\cksteps{\ckforward{s}{\wrap{A}{B}{M}}}{\ckforward{s, \inWrapRightFrame{A}{B}}{M}}\\
         &\cksteps{\ckforward{s}{\unwrap{M}}}{\ckforward{s, \inUnwrapFrame{}}{M}}\\
         &\cksteps{\ckforward{s}{\lam{x}{A}{M}}}{\ckbackward{s}{\lam{x}{A}{M}}}\\
         &\cksteps{\ckforward{s}{\app{M}{N}}}{\ckforward{s, \inAppLeftFrame{N}}{M}}\\
@@ -219,8 +220,8 @@
         &\cksteps{\ckforward{s}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}}{\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
         &\cksteps{\ckforward{s}{\error{A}}}{\ckerror{}}\\
         &\cksteps{\ckbackward{s, \inInstLeftFrame{A}}{\abs{\alpha}{K}{M}}}{\ckforward{s}{M}}\\
-        &\cksteps{\ckbackward{s, \inWrapRightFrame{\alpha}{A}}{V}}{\ckbackward{s}{\wrap{\alpha}{A}{V}}}\\
-        &\cksteps{\ckbackward{s, \inUnwrapFrame{}}{\wrap{\alpha}{A}{V}}}{\ckbackward{s}{V}}\\
+        &\cksteps{\ckbackward{s, \inWrapRightFrame{A}{B}}{V}}{\ckbackward{s}{\wrap{A}{B}{V}}}\\
+        &\cksteps{\ckbackward{s, \inUnwrapFrame{}}{\wrap{A}{B}{V}}}{\ckbackward{s}{V}}\\
         &\cksteps{\ckbackward{s, \inAppLeftFrame{N}}{V}}{\ckforward{s, \inAppRightFrame{V}}{N}}\\
         &\cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}}{V}}{\ckforward{s}{\subst{V}{x}{M}}}\\
         &\cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}}{V}}{\ckbackward{s}{U}} \qquad \textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $U$ according to \ref{fig:Plutus_core_builtins}}\\
