@@ -9,15 +9,15 @@
 \begin{figure*}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} & f  & ::= & \inConT{tcn}{\_}                          & \textrm{type constant}\\
-                            &    &     & \inFunTLeft{\_}{A}                        & \textrm{left arrow}\\
-                            &    &     & \inFunTRight{S}{\_}                       & \textrm{right arrow}\\
-                            &    &     & \inAllT{\alpha}{K}{\_}                    & \textrm{all}\\
-                            &	 &     & \inFixTLeft{\_}{B}                        & \textrm{left fix}\\
-                            &    &     & \inFixTRight{S}{\_}                       & \textrm{right fix}\\
-                            &    &     & \inLamT{\alpha}{K}{\_}                    & \textrm{$\lambda$}\\
-                            &    &     & \inAppTLeft{\_}{A}                        & \textrm{left app}\\
-                            &    &     & \inAppTRight{S}{\_}                       & \textrm{right app}\\
+        \textrm{Type Frame} & f  & ::= & \inConTFrame{tcn}                          & \textrm{type constant}\\
+                            &    &     & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
+                            &    &     & \inFunTRightFrame{S}                       & \textrm{right arrow}\\
+                            &    &     & \inAllTFrame{\alpha}{K}                    & \textrm{all}\\
+                            &	 &     & \inFixTLeftFrame{B}                        & \textrm{left fix}\\
+                            &    &     & \inFixTRightFrame{S}                       & \textrm{right fix}\\
+                            &    &     & \inLamTFrame{\alpha}{K}                    & \textrm{$\lambda$}\\
+                            &    &     & \inAppTLeftFrame{A}                        & \textrm{left app}\\
+                            &    &     & \inAppTRightFrame{S}                       & \textrm{right app}\\
     \end{array}\]
 
     \caption{Grammar of Type Reduction Frames}
