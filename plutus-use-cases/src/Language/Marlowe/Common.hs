@@ -195,7 +195,7 @@ emptyState = State { stateCommitted = [], stateChoices = [] }
 data InputCommand = Commit IdentCC Signature
     | Payment IdentPay Signature
     | Redeem IdentCC Signature
-    | SpendDeposit
+    | SpendDeposit Signature
 makeLift ''InputCommand
 
 {-|
@@ -500,13 +500,15 @@ insertCommitQ = [|| \ commit commits -> let
     Returns contract 'State', remaining 'Contract', and validation result.
 -}
 evaluateContract ::
-    Q (TExp (Input
+    Q (TExp (PubKey
+    -> Input
     -> Slot
     -> Ledger.Value
     -> Ledger.Value
     -> State
     -> Contract -> (State, Contract, Bool)))
 evaluateContract = [|| \
+    contractCreatorPK
     (Input inputCommand inputOracles _)
     blockHeight
     (Ledger.Value scriptInValue)
@@ -664,7 +666,8 @@ evaluateContract = [|| \
             then (updatedState, contract, True)
             else (state, contract, False)
 
-        (Null, SpendDeposit) | null commits -> (state, Null, True)
+        (Null, SpendDeposit sig) | null commits
+            && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
         _ -> (state, Null, False)
     in eval inputCommand state contract
@@ -673,11 +676,14 @@ evaluateContract = [|| \
 {-|
     Marlowe main Validator Script
 -}
-validator :: Q (TExp ((Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
+validator :: Q (TExp (PubKey -> (Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
 validator = [|| \
+        creator
         (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (_ :: Input, MarloweData{..} :: MarloweData)
         (PendingTx{ pendingTxOutputs, pendingTxSlot, pendingTxIn } :: PendingTx) -> let
+
+        contractCreatorPK = creator
 
         eqPk :: PubKey -> PubKey -> Bool
         eqPk = $$(Validation.eqPubKey)
@@ -753,7 +759,7 @@ validator = [|| \
             _ -> Builtins.error ()
 
         scriptOutValue = case inputCommand of
-            SpendDeposit -> Ledger.Value 0
+            SpendDeposit _ -> Ledger.Value 0
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.
@@ -764,7 +770,7 @@ validator = [|| \
                     then change else Builtins.error ()
 
         eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
-        eval = $$(evaluateContract)
+        eval = $$(evaluateContract) contractCreatorPK
 
         contractIsValid = validateContract marloweState marloweContract pendingTxSlot scriptInValue
 

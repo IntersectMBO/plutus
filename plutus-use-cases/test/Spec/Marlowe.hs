@@ -365,21 +365,23 @@ performs actor action = do
 withContract
     :: [Wallet]
     -> Contract
-    -> ((TxOut', TxOutRef') -> Trace MockWallet ((TxOut', TxOutRef'), State))
+    -> ((TxOut', TxOutRef') -> ValidatorScript -> Trace MockWallet ((TxOut', TxOutRef'), State))
     -> Trace MockWallet ()
 withContract wallets contract f = do
-    [tx] <- walletAction creator (createContract contract 12)
+    let validator = marloweValidator creatorPK
+    [tx] <- walletAction creator (createContract validator contract 12)
     let txOut = getScriptOutFromTx tx
     update
     assertIsValidated tx
 
-    (tx1Out, state) <- f txOut
+    (tx1Out, state) <- f txOut validator
 
-    [tx] <- walletAction creator (endContract tx1Out state)
+    [tx] <- walletAction creator (endContract tx1Out validator state)
     update
     assertIsValidated tx
   where
     creator = head wallets
+    creatorPK = let Wallet id = creator in PubKey id
     update  = updateAll wallets
 
 oraclePayment :: Property
@@ -397,17 +399,19 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             Null
 
     let oracleValue = OracleValue oracle (Slot 2) 100
+    let validator = marloweValidator (PubKey 1)
 
     -- void $ walletAction alice $ startWatching (Ledger.pubKeyAddress $ PubKey 1)
     -- void $ walletAction alice $ startWatching (Ledger.pubKeyAddress $ PubKey 2)
     -- void $ walletAction alice $ startWatching (Ledger.scriptAddress $ marloweValidator)
     void $ walletAction bob $ startWatching (Ledger.pubKeyAddress $ PubKey 1)
     -- void $ walletAction bob $ startWatching (Ledger.pubKeyAddress $ PubKey 2)
-    void $ walletAction bob $ startWatching (Ledger.scriptAddress $ marloweValidator)
+    void $ walletAction bob $ startWatching (Ledger.scriptAddress validator)
 
-    withContract [alice, bob] contract $ \txOut -> do
+    withContract [alice, bob] contract $ \txOut validator -> do
         txOut <- bob `performs` commit
             txOut
+            validator
             [oracleValue] []
             (IdentCC 1)
             100
@@ -415,6 +419,7 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             contract
 
         txOut <- alice `performs` receivePayment txOut
+            validator
             [] []
             (IdentPay 1)
             100
@@ -437,12 +442,13 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
 
     let contract = CommitCash (IdentCC 1) (PubKey 2) (Value 100) 128 256 Null Null
 
-    withContract [alice, bob] contract $ \txOut -> do
+    withContract [alice, bob] contract $ \txOut validator -> do
 
         addBlocks 200
 
         walletAction bob $ commit'
             txOut
+            validator
             [] []
             (IdentCC 1)
             100
@@ -465,10 +471,11 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
         identCC = (IdentCC 1)
     update
     let contract = CommitCash identCC (PubKey 2) (Value 100) 128 256 Null Null
-    withContract [alice, bob] contract $ \txOut -> do
+    withContract [alice, bob] contract $ \txOut validator -> do
 
         txOut <- bob `performs` commit'
             txOut
+            validator
             [] []
             (IdentCC 1)
             100
@@ -478,7 +485,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
         addBlocks 300
 
         txOut <- bob `performs` redeem
-            txOut [] [] identCC 100 (State [] []) Null
+            txOut validator [] [] identCC 100 (State [] []) Null
         return (txOut, State [] [])
 
     assertOwnFundsEq alice 1000
@@ -500,9 +507,10 @@ escrowTest = checkMarloweTrace (MarloweScenario {
 
     let contract = Escrow.escrowContract
 
-    withContract [alice, bob, carol] contract $ \txOut -> do
+    withContract [alice, bob, carol] contract $ \txOut validator -> do
         txOut <- alice `performs` commit'
             txOut
+            validator
             [] []
             (IdentCC 1)
             450
@@ -522,6 +530,7 @@ escrowTest = checkMarloweTrace (MarloweScenario {
 
         let choices = [((IdentChoice 1, alicePk), 1), ((IdentChoice 2, bobPk), 1), ((IdentChoice 3, carolPk), 1)]
         txOut <- bob `performs` receivePayment txOut
+            validator
             []
             choices
             (IdentPay 1)
@@ -578,9 +587,10 @@ futuresTest = checkMarloweTrace (MarloweScenario {
                             (RedeemCC (IdentCC 1) Null))
                         Null
 
-    withContract [alice, bob] contract $ \txOut -> do
+    withContract [alice, bob] contract $ \txOut validator -> do
         txOut <- alice `performs` commit'
             txOut
+            validator
             [] []
             (IdentCC 1)
             initialMargin
@@ -601,6 +611,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
 
         txOut <- bob `performs` commit'
             txOut
+            validator
             [] []
             (IdentCC 2)
             initialMargin
@@ -622,6 +633,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
 
         let oracleValue = OracleValue oracle (Slot (deliveryDate + 4)) spotPrice
         txOut <- alice `performs` receivePayment txOut
+            validator
             [oracleValue] []
             (IdentPay 1)
             187
@@ -630,6 +642,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
             redeems
 
         txOut <- alice `performs` redeem txOut
+            validator
             [] []
             (IdentCC 1)
             initialMargin
@@ -637,6 +650,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
             (RedeemCC (IdentCC 2) Null)
 
         txOut <- bob `performs` redeem txOut
+            validator
             [] []
             (IdentCC 2)
             (initialMargin - 187)
