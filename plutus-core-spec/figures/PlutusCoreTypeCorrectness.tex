@@ -94,9 +94,10 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{\typeK{}}}{\istypeJ{A}{\typeK{}}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
         \RightLabel{tyfix}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{\alpha}{A}}{\typeK{}}}\)}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{A}{B}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -165,20 +166,20 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\Gamma \vdash Q :: \typeK{}\)}
-        \AxiomC{\(Q = \mathcal{E}\{\fixT{\alpha}{A}\}\)}
-		\AxiomC{\(\Gamma \vdash M : \mathcal{E}\{[\fixT{\alpha}{A}/\alpha]A\}\)}
-		\RightLabel{wrap}
-		\TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{A}{M}}{Q}}\)}
+    	\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+		\alwaysNoLine
+		\UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
+		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}}\)}
+		\alwaysSingleLine
+    	\RightLabel{wrap}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{A}{B}{M}}{\fixT{A}{B}}}\)}
     \end{prooftree}
-    
-    Where $\mathcal{E}$ is an elimination context $\mathcal{E} ::= \bullet \mid [\mathcal{E} \,\, A]$, $A$ a type, such that $\mathcal{E}\{Q\}$ denotes the type expression obtained by replacing the $\bullet$ in $\mathcal{E}$ with $Q$. That is, $[\bullet\,\, A]\{B\} = [B\,\,A]$, and so on. 
 
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
-        \AxiomC{\(\typeEquiv{C}{\fixT{\alpha}{A}}\)}
-        \RightLabel{unwrap}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\subst{\fixT{\alpha}{A}}{\alpha}{A}}}\)}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\fixT{A}{B}}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
+		\RightLabel{unwrap}
+        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -211,6 +212,13 @@
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \RightLabel{error}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
+    \end{prooftree}
+    
+    \begin{prooftree}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{conv}
+		\BinaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
     \end{prooftree}
 
     \captionof{figure}{Type Synthesis}

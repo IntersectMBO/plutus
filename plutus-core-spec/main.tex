@@ -1,0 +1,852 @@
+
+%% bare_conf.tex
+%% V1.3
+%% 2007/01/11
+%% by Michael Shell
+%% See:
+%% http://www.michaelshell.org/
+%% for current contact information.
+%%
+%% This is a skeleton file demonstrating the use of IEEEtran.cls
+%% (requires IEEEtran.cls version 1.7 or later) with an IEEE conference paper.
+%%
+%% Support sites:
+%% http://www.michaelshell.org/tex/ieeetran/
+%% http://www.ctan.org/tex-archive/macros/latex/contrib/IEEEtran/
+%% and
+%% http://www.ieee.org/
+
+%%*************************************************************************
+%% Legal Notice:
+%% This code is offered as-is without any warranty either expressed or
+%% implied; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE!
+%% User assumes all risk.
+%% In no event shall IEEE or any contributor to this code be liable for
+%% any damages or losses, including, but not limited to, incidental,
+%% consequential, or any other damages, resulting from the use or misuse
+%% of any information contained here.
+%%
+%% All comments are the opinions of their respective authors and are not
+%% necessarily endorsed by the IEEE.
+%%
+%% This work is distributed under the LaTeX Project Public License (LPPL)
+%% ( http://www.latex-project.org/ ) version 1.3, and may be freely used,
+%% distributed and modified. A copy of the LPPL, version 1.3, is included
+%% in the base LaTeX documentation of all distributions of LaTeX released
+%% 2003/12/01 or later.
+%% Retain all contribution notices and credits.
+%% ** Modified files should be clearly indicated as such, including  **
+%% ** renaming them and changing author support contact information. **
+%%
+%% File list of work: IEEEtran.cls, IEEEtran_HOWTO.pdf, bare_adv.tex,
+%%                    bare_conf.tex, bare_jrnl.tex, bare_jrnl_compsoc.tex
+%%*************************************************************************
+
+% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
+% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
+% *** with production work. IEEE's font choices can trigger bugs that do  ***
+% *** not appear when using other class files.                            ***
+% The testflow support page is at:
+% http://www.michaelshell.org/tex/testflow/
+
+
+
+% Note that the a4paper option is mainly intended so that authors in
+% countries using A4 can easily print to A4 and see how their papers will
+% look in print - the typesetting of the document will not typically be
+% affected with changes in paper size (but the bottom and side margins will).
+% Use the testflow package mentioned above to verify correct handling of
+% both paper sizes by the user's LaTeX system.
+%
+% Also note that the "draftcls" or "draftclsnofoot", not "draft", option
+% should be used if it is desired that the figures are to be displayed in
+% draft mode.
+%
+\documentclass[conference]{IEEEtran}
+\usepackage{blindtext, graphicx}
+\usepackage{url}
+% Add the compsoc option for Computer Society conferences.
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[conference]{../sty/IEEEtran}
+
+
+
+
+
+% Some very useful LaTeX packages include:
+% (uncomment the ones you want to load)
+
+
+% *** MISC UTILITY PACKAGES ***
+%
+%\usepackage{ifpdf}
+% Heiko Oberdiek's ifpdf.sty is very useful if you need conditional
+% compilation based on whether the output is pdf or dvi.
+% usage:
+% \ifpdf
+%   % pdf code
+% \else
+%   % dvi code
+% \fi
+% The latest version of ifpdf.sty can be obtained from:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/
+% Also, note that IEEEtran.cls V1.7 and later provides a builtin
+% \ifCLASSINFOpdf conditional that works the same way.
+% When switching from latex to pdflatex and vice-versa, the compiler may
+% have to be run twice to clear warning/error messages.
+
+
+
+
+
+
+% *** CITATION PACKAGES ***
+%
+%\usepackage{cite}
+% cite.sty was written by Donald Arseneau
+% V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
+% \cite{} output to follow that of IEEE. Loading the cite package will
+% result in citation numbers being automatically sorted and properly
+% "compressed/ranged". e.g., [1], [9], [2], [7], [5], [6] without using
+% cite.sty will become [1], [2], [5]--[7], [9] using cite.sty. cite.sty's
+% \cite will automatically add leading space, if needed. Use cite.sty's
+% noadjust option (cite.sty V3.8 and later) if you want to turn this off.
+% cite.sty is already installed on most LaTeX systems. Be sure and use
+% version 4.0 (2003-05-27) and later if using hyperref.sty. cite.sty does
+% not currently provide for hyperlinked citations.
+% The latest version can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/cite/
+% The documentation is contained in the cite.sty file itself.
+
+
+
+
+
+
+% *** GRAPHICS RELATED PACKAGES ***
+%
+\ifCLASSINFOpdf
+  % \usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+  % \usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.eps}
+\fi
+% graphicx was written by David Carlisle and Sebastian Rahtz. It is
+% required if you want graphics, photos, etc. graphicx.sty is already
+% installed on most LaTeX systems. The latest version and documentation can
+% be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/graphics/
+% Another good source of documentation is "Using Imported Graphics in
+% LaTeX2e" by Keith Reckdahl which can be found as epslatex.ps or
+% epslatex.pdf at: http://www.ctan.org/tex-archive/info/
+%
+% latex, and pdflatex in dvi mode, support graphics in encapsulated
+% postscript (.eps) format. pdflatex in pdf mode supports graphics
+% in .pdf, .jpeg, .png and .mps (metapost) formats. Users should ensure
+% that all non-photo figures use a vector format (.eps, .pdf, .mps) and
+% not a bitmapped formats (.jpeg, .png). IEEE frowns on bitmapped formats
+% which can result in "jaggedy"/blurry rendering of lines and letters as
+% well as large increases in file sizes.
+%
+% You can find documentation about the pdfTeX application at:
+% http://www.tug.org/applications/pdftex
+
+
+
+
+
+% *** MATH PACKAGES ***
+%
+\usepackage[cmex10]{amsmath}
+\usepackage{stmaryrd}
+% A popular package from the American Mathematical Society that provides
+% many useful and powerful commands for dealing with mathematics. If using
+% it, be sure to load this package with the cmex10 option to ensure that
+% only type 1 fonts will utilized at all point sizes. Without this option,
+% it is possible that some math symbols, particularly those within
+% footnotes, will be rendered in bitmap form which will result in a
+% document that can not be IEEE Xplore compliant!
+%
+% Also, note that the amsmath package sets \interdisplaylinepenalty to 10000
+% thus preventing page breaks from occurring within multiline equations. Use:
+%\interdisplaylinepenalty=2500
+% after loading amsmath to restore such page breaks as IEEEtran.cls normally
+% does. amsmath.sty is already installed on most LaTeX systems. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
+
+
+
+
+
+% *** SPECIALIZED LIST PACKAGES ***
+%
+%\usepackage{algorithmic}
+% algorithmic.sty was written by Peter Williams and Rogerio Brito.
+% This package provides an algorithmic environment fo describing algorithms.
+% You can use the algorithmic environment in-text or within a figure
+% environment to provide for a floating algorithm. Do NOT use the algorithm
+% floating environment provided by algorithm.sty (by the same authors) or
+% algorithm2e.sty (by Christophe Fiorio) as IEEE does not use dedicated
+% algorithm float types and packages that provide these will not provide
+% correct IEEE style captions. The latest version and documentation of
+% algorithmic.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithms/
+% There is also a support site at:
+% http://algorithms.berlios.de/index.html
+% Also of interest may be the (relatively newer and more customizable)
+% algorithmicx.sty package by Szasz Janos:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithmicx/
+
+
+
+
+% *** ALIGNMENT PACKAGES ***
+%
+\usepackage{array}
+% Frank Mittelbach's and David Carlisle's array.sty patches and improves
+% the standard LaTeX2e array and tabular environments to provide better
+% appearance and additional user controls. As the default LaTeX2e table
+% generation code is lacking to the point of almost being broken with
+% respect to the quality of the end results, all users are strongly
+% advised to use an enhanced (at the very least that provided by array.sty)
+% set of table tools. array.sty is already installed on most systems. The
+% latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/tools/
+
+
+%\usepackage{mdwmath}
+%\usepackage{mdwtab}
+% Also highly recommended is Mark Wooding's extremely powerful MDW tools,
+% especially mdwmath.sty and mdwtab.sty which are used to format equations
+% and tables, respectively. The MDWtools set is already installed on most
+% LaTeX systems. The lastest version and documentation is available at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/mdwtools/
+
+
+% IEEEtran contains the IEEEeqnarray family of commands that can be used to
+% generate multiline equations as well as matrices, tables, etc., of high
+% quality.
+
+
+%\usepackage{eqparbox}
+% Also of notable interest is Scott Pakin's eqparbox package for creating
+% (automatically sized) equal width boxes - aka "natural width parboxes".
+% Available at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/eqparbox/
+
+
+
+
+
+% *** SUBFIGURE PACKAGES ***
+%\usepackage[tight,footnotesize]{subfigure}
+% subfigure.sty was written by Steven Douglas Cochran. This package makes it
+% easy to put subfigures in your figures. e.g., "Figure 1a and 1b". For IEEE
+% work, it is a good idea to load it with the tight package option to reduce
+% the amount of white space around the subfigures. subfigure.sty is already
+% installed on most LaTeX systems. The latest version and documentation can
+% be obtained at:
+% http://www.ctan.org/tex-archive/obsolete/macros/latex/contrib/subfigure/
+% subfigure.sty has been superceeded by subfig.sty.
+
+
+
+%\usepackage[caption=false]{caption}
+%\usepackage[font=footnotesize]{subfig}
+% subfig.sty, also written by Steven Douglas Cochran, is the modern
+% replacement for subfigure.sty. However, subfig.sty requires and
+% automatically loads Axel Sommerfeldt's caption.sty which will override
+% IEEEtran.cls handling of captions and this will result in nonIEEE style
+% figure/table captions. To prevent this problem, be sure and preload
+% caption.sty with its "caption=false" package option. This is will preserve
+% IEEEtran.cls handing of captions. Version 1.3 (2005/06/28) and later
+% (recommended due to many improvements over 1.2) of subfig.sty supports
+% the caption=false option directly:
+%\usepackage[caption=false,font=footnotesize]{subfig}
+%
+% The latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/subfig/
+% The latest version and documentation of caption.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/caption/
+
+
+
+
+% *** FLOAT PACKAGES ***
+%
+%\usepackage{fixltx2e}
+% fixltx2e, the successor to the earlier fix2col.sty, was written by
+% Frank Mittelbach and David Carlisle. This package corrects a few problems
+% in the LaTeX2e kernel, the most notable of which is that in current
+% LaTeX2e releases, the ordering of single and double column floats is not
+% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
+% single column figure to be placed prior to an earlier double column
+% figure. The latest version and documentation can be found at:
+% http://www.ctan.org/tex-archive/macros/latex/base/
+
+
+
+%\usepackage{stfloats}
+% stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
+% the ability to do double column floats at the bottom of the page as well
+% as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
+% LaTeX2e). It also provides a command:
+%\fnbelowfloat
+% to enable the placement of footnotes below bottom floats (the standard
+% LaTeX2e kernel puts them above bottom floats). This is an invasive package
+% which rewrites many portions of the LaTeX2e float routines. It may not work
+% with other packages that modify the LaTeX2e float routines. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/sttools/
+% Documentation is contained in the stfloats.sty comments as well as in the
+% presfull.pdf file. Do not use the stfloats baselinefloat ability as IEEE
+% does not allow \baselineskip to stretch. Authors submitting work to the
+% IEEE should note that IEEE rarely uses double column equations and
+% that authors should try to avoid such use. Do not be tempted to use the
+% cuted.sty or midfloat.sty packages (also by Sigitas Tolusis) as IEEE does
+% not format its papers in such ways.
+
+
+
+
+
+% *** PDF, URL AND HYPERLINK PACKAGES ***
+%
+%\usepackage{url}
+% url.sty was written by Donald Arseneau. It provides better support for
+% handling and breaking URLs. url.sty is already installed on most LaTeX
+% systems. The latest version can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/misc/
+% Read the url.sty source comments for usage information. Basically,
+% \url{my_url_here}.
+
+
+
+
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+
+
+\usepackage{subfiles}
+\usepackage{geometry}
+\usepackage{pdflscape}
+
+% *** IMPORTS FOR PLUTUS LANGUAGE ***
+
+\usepackage[T1]{fontenc}
+\usepackage{bussproofs,amsmath,amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+
+
+%\subfile{PlutusDefinitions}
+
+
+
+
+
+
+% *** DEFINITIONS FOR PLUTUS LANGUAGE ***
+
+
+
+%%% General Misc. Definitions
+
+\newcommand{\diffbox}[1]{\text{\colorbox{lightgray}{\(#1\)}}}
+\newcommand{\judgmentdef}[2]{\fbox{#1}
+
+\vspace{0.5em}
+
+#2}
+\newcommand{\hyphen}{\operatorname{-}}
+\newcommand{\repetition}[1]{\overline{#1}}
+\newcommand{\Fomega}{F$^{\omega}$}
+\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
+
+
+
+%%% Term Grammar
+
+\newcommand{\sig}[3]{[#1](#2)#3}
+\newcommand{\constsig}[2]{#1,#2}
+\newcommand{\con}[1]{\construct{\keyword{con} ~ #1}}
+\newcommand{\abs}[3]{\construct{\keyword{abs} ~ #1 ~ #2 ~ #3}}
+\newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
+\newcommand{\lam}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
+\newcommand{\app}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+\newcommand{\wrap}[3]{\construct{\keyword{wrap} ~ #1 ~ #2 ~ #3}}
+\newcommand{\unwrap}[1]{\construct{\keyword{unwrap} ~ #1}}
+\newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
+\newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
+\newcommand{\sizedBuiltin}[2]{#1\keyword{!}#2}
+
+
+
+%%%  Type Grammar
+
+\newcommand{\funT}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
+\newcommand{\fixT}[2]{\construct{\keyword{fix} ~ #1 ~ #2}}
+\newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
+\newcommand{\conIntegerType}[1]{\keyword{integer}}
+\newcommand{\conBytestringType}[1]{\keyword{bytestring}}
+\newcommand{\conSizeType}[1]{\keyword{size}}
+\newcommand{\builtinT}[2]{\construct{\keyword{builtin} ~ #1 ~ #2}}
+\newcommand{\conT}[2]{\construct{\keyword{con} ~ #1 ~ #2}}
+\newcommand{\lamT}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
+\newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+
+\newcommand{\typeK}{\construct{\keyword{type}}}
+\newcommand{\funK}[2]{\construct{\keyword{fun} ~ #1 ~ #2}}
+\newcommand{\sizeK}{\construct{\keyword{size}}}
+
+
+
+%%% Program Grammar
+
+\newcommand{\version}[2]{\construct{\keyword{version} ~ #1 ~ #2}}
+
+
+
+%%% Judgments
+
+\newcommand{\hypJ}[2]{#1 \vdash #2}
+\newcommand{\ctxni}[2]{#1 \ni #2}
+\newcommand{\validJ}[1]{#1 \ \operatorname{valid}}
+\newcommand{\termJ}[2]{#1 : #2}
+\newcommand{\typeJ}[2]{#1 :: #2}
+\newcommand{\istermJ}[2]{#1 : #2}
+\newcommand{\istypeJ}[2]{#1 :: #2}
+
+
+
+%%% Contextual Normalization
+
+\newcommand{\ctxsubst}[2]{#1\{#2\}}
+\newcommand{\typeStep}[2]{#1 ~ \rightarrow_{ty} ~ #2}
+\newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
+\newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
+\newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
+\newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
+\newcommand{\normalform}[1]{\lfloor #1 \rfloor}
+\newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
+\newcommand{\typeEqual}[2]{#1 =_{\mathit{ty}} #2}
+\newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
+
+
+\newcommand{\inConTFrame}[1]{\conT{#1}{\_}}
+\newcommand{\inAppTLeftFrame}[1]{\appT{\_}{#1}}
+\newcommand{\inAppTRightFrame}[1]{\appT{#1}{\_}}
+\newcommand{\inFunTLeftFrame}[1]{\funT{\_}{#1}}
+\newcommand{\inFunTRightFrame}[1]{\funT{#1}{\_}}
+\newcommand{\inAllTFrame}[2]{\allT{#1}{#2}{\_}}
+\newcommand{\inFixTLeftFrame}[1]{\fixT{\_}{#1}}
+\newcommand{\inFixTRightFrame}[1]{\fixT{#1}{\_}}
+\newcommand{\inLamTFrame}[2]{\lamT{#1}{#2}{\_}}
+
+\newcommand{\inBuiltin}[5]{\builtin{#1}{#2}{#3 #4 #5}}
+
+
+
+%%% CK Machine Normalization
+
+\newcommand{\cksteps}[2]{#1 ~\mapsto~ #2}
+\newcommand{\ckforward}[2]{#1 \triangleright #2}
+\newcommand{\ckbackward}[2]{#1 \triangleleft #2}
+\newcommand{\ckerror}{\blacklozenge}
+
+\newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
+\newcommand{\inWrapRightFrame}[2]{\wrap{#1}{#2}{\_}}
+\newcommand{\inUnwrapFrame}{\unwrap{\_}}
+\newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
+\newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
+
+
+
+
+
+
+
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{Formal Specification of\\the Plutus Core Language v1.0 (RC5.5)}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+
+
+
+%\author{\IEEEauthorblockN{Rebecca Valentine}
+%\IEEEauthorblockA{Email: rebecca.valentine@iohk.io\\
+%Slack: @rebecca.valentine}
+
+
+
+%\and
+%\IEEEauthorblockN{Homer Simpson}
+%\IEEEauthorblockA{Twentieth Century Fox\\
+%Springfield, USA\\
+%Email: homer@thesimpsons.com}
+
+
+% conference papers do not typically use \thanks and this command
+% is locked out in conference mode. If really needed, such as for
+% the acknowledgment of grants, issue a \IEEEoverridecommandlockouts
+% after \documentclass
+
+% for over three affiliations, or if they all won't fit within the width
+% of the page, use this alternative format:
+%
+%\author{\IEEEauthorblockN{Michael Shell\IEEEauthorrefmark{1},
+%Homer Simpson\IEEEauthorrefmark{2},
+%James Kirk\IEEEauthorrefmark{3},
+%Montgomery Scott\IEEEauthorrefmark{3} and
+%Eldon Tyrell\IEEEauthorrefmark{4}}
+%\IEEEauthorblockA{\IEEEauthorrefmark{1}School of Electrical and Computer Engineering\\
+%Georgia Institute of Technology,
+%Atlanta, Georgia 30332--0250\\ Email: see http://www.michaelshell.org/contact.html}
+%\IEEEauthorblockA{\IEEEauthorrefmark{2}Twentieth Century Fox, Springfield, USA\\
+%Email: homer@thesimpsons.com}
+%\IEEEauthorblockA{\IEEEauthorrefmark{3}Starfleet Academy, San Francisco, California 96678-2391\\
+%Telephone: (800) 555--1212, Fax: (888) 555--1212}
+%\IEEEauthorblockA{\IEEEauthorrefmark{4}Tyrell Inc., 123 Replicant Street, Los Angeles, California 90210--4321}}
+
+
+
+
+% use for special paper notices
+%\IEEEspecialpapernotice{(Invited Paper)}
+
+
+
+
+% make the title area
+\maketitle
+
+\thispagestyle{plain}
+\pagestyle{plain}
+
+
+%\begin{abstract}
+%\boldmath
+%The Plutus Language is outlined, together with the major
+%design decisions for implementations. A formal specification of the
+%language is given, including an elaborator and bidirectional type
+%system.
+%\end{abstract}
+% IEEEtran.cls defaults to using nonbold math in the Abstract.
+% This preserves the distinction between vectors and scalars. However,
+% if the journal you are submitting to favors bold math in the abstract,
+% then you can use LaTeX's standard command \boldmath at the very start
+% of the abstract to achieve this. Many IEEE journals frown on math
+% in the abstract anyway.
+
+% Note that keywords are not normally used for peerreview papers.
+%\begin{IEEEkeywords}
+%IEEEtran, journal, \LaTeX, paper, template.
+%\end{IEEEkeywords}
+
+
+
+
+
+
+% For peer review papers, you can put extra information on the cover
+% page as needed:
+% \ifCLASSOPTIONpeerreview
+% \begin{center} \bfseries EDICS Category: 3-BBND \end{center}
+% \fi
+%
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+
+
+
+\section{Plutus Core}
+
+Plutus Core is the target for compilation of Plutus TX, the smart
+contract language to validate transactions on Cardano. Plutus Core is
+designed to be simple and easy to reason about using proof assistants
+and automated theorem provers.
+
+Plutus Core has a strong formal basis. For those familiar with
+programming language theory, it can be described in one line: higher
+kinded System F with isorecursive types, and suitable
+primitive types and values. There are no constructs for data types,
+which are represented using Scott encodings---we do not use Church
+encodings since they may require linear rather than constant time to
+access the components of a data structure. Primitive types, such as
+Integer and Bytestring, are indexed by their size, which allows the
+cost (in gas) of operations such as addition to be determined at
+compile time. In contrast, IELE uses unbounded integers, which never
+overflow, but require that the gas used is calculated at run time. We
+use \Fomega{} (as opposed to F) because it supports types indexed by
+size and parameterised types (such as ``List of A'').
+
+Plutus Core also notably lacks obvious built-in support for recursion,
+either general or otherwise. The reason for this is simply that in
+the presence of type-level fixed points, it's possible to give a valid
+type to recursion combinators. This is analogous to the fact that in
+Haskell, you can define the Y combinator but you need to use a newtype
+declaration to do. Precisely which combinators one defines is up to
+the user, but as Plutus itself is eagerly reduced, some of them will
+lead to looping behavior, including Y. Libraries can of course
+be defined with various combinators provided as a convenient way to
+gain access to recursion.
+
+%Plutus Core is a typed, strict, eagerly-reduced $\lambda$-calculus design to run as a transaction validation scripting language on blockchain systems. It's designed to be simple and easy to reason about using mechanized proof assistants and automated theorem provers. The grammar of the language is given in Figures \ref{fig:Plutus_core_grammar} and \ref{fig:Plutus_core_lexical_grammar}, using a modified s-expression format. The language can be described as a higher-kinded Church-style/intrinsically-typed System F variant with fixedpoint terms, equirecursive fixedpoint types, constant terms, constant types, and size-indexed types. As such, we have the following syntactic constructs at the term level: variables, type annotation, type abstraction, type instantiation, $\lambda$ abstraction, application, term-level fixed points, and term constants. At the type level, we have the following syntactic constructs: variables, polymorphic types, function types, fixedpoint types, $\lambda$ abstraction, application, and constant types. Additionally we have the following kind-level constructs: type kind, function kind, and size kind. The language also explicitly tracks versions for tracking which version of the normalizer is to be run.
+
+%By using a variant of System F, we're able to capture various desirable abstraction properties via the continuation-based encoding of existential types. The choice to use fixedpoint types is so that we can represent recursive types via Scott encodings (instead of the less efficient and harder-to-program Church encodings typical of pure System F). Higher-kindedness makes it possible to define type operators like $\textit{List}$ rather than defining the non-parametric types $\textit{ListOfA}$ for each choice of $A$. Finally, sized types make it possible to specify for certain constant types precise what kind of memory usage they'll have. In particular, we track the size of integers and bytestrings explicitly in the types for them, which makes many kinds of formal reasoning about computation time possible.
+
+\section{Syntax}
+
+The grammar of Plutus Core is given in \ref{fig:Plutus_core_grammar} and
+\ref{fig:Plutus_core_lexical_grammar}. This grammar describes the abstract
+syntax trees of Plutus Core, in a convenient notation, and also describes
+the string syntax to be used when referring to those ASTs. The string
+syntax is not fundamental to Plutus Core, and only exists because we must
+refer to programs in documents such as this. Plutus Core programs are
+intended exist only as ASTs produced by compilers from higher languages,
+and as serialized representations on blockchains, and therefore we do not
+expect anyone to write programs in Plutus Core, nor need to use a parser
+for the language.
+
+Lexemes are described in standard regular expression notation.  The only other
+lexemes are round \texttt{()}, square \texttt{[]}, and curly \texttt{\{\}}
+brackets.  Spaces and tabs are allowed anywhere, and have no effect
+save to separate lexemes.
+
+Application in both terms and types is indicated by square
+brackets, and instantiation in terms is indicated by curly brackets. We
+permit the use of multi-argument application and instantiation as
+syntactic sugar for iterated application.
+For instance,
+\[
+  [M_0 ~ M_1 ~ M_2 ~ M_3]
+\]
+is sugar for
+\[
+  [[[M_0 ~ M_1] ~ M_2] ~ M_3]
+\]
+All subsequent definitions assume iterated application and instantiation
+has been expanded out, and use only the binary form. To the extent that
+a standard utility parser for Plutus Core might be made, for debugging
+purposes and other such things, iterated application and instantiation
+ought to be included as sugar.
+
+%In this grammar, we have multi-argument application, both in types (\(\appT{A}{B^+}\)) and in terms (\(\app{M}{N^+}\)), as well as multi-argument instantiation in terms (\(\inst{M}{A^*}\)). This is to be understood as a convenient form of syntactic sugar for iterated binary application associated to the left, and the formal rules treat only the binary case.
+
+
+
+\subfile{figures/PlutusCoreLexicalGrammar}
+
+\subfile{figures/PlutusCoreGrammar}
+
+
+
+
+
+% As an example, consider the program in Figure \ref{fig:Plutus_core_example}, which defines the type of natural numbers as well as lists, and the factorial and map functions. This program is not the most readable, which is to be expected from a representation intended for machine interpretation rather than human interpretation, but it does make explicit precisely what the roles are of the various parts.
+
+
+
+
+%\subfile{figures/PlutusCoreExample}
+
+
+
+
+% !!!! Example
+
+
+
+
+\section{Type Correctness}
+
+We define for Plutus Core a number of typing judgments which explain ways that a program can be well-formed. First, in Figure \ref{fig:Plutus_core_contexts}, we define the grammar of variable contexts that these judgments hold under. Variable contexts contain information about the nature of variables --- type variables with their kind, and term variables with their type.
+
+Then, in Figure \ref{fig:Plutus_core_kind_synthesis}, we define what it means for a type synthesize a kind. Plutus Core is a higher-kinded version of System F, so we have a number of standard System F rules together with some obvious extensions. In Figure \ref{fig:Plutus_core_type_synthesis}, we define the type synthesis judgment, which explains how a term synthesizes a type.
+
+Finally, type synthesis for constants ($\con{bn}$ and $\conT{bt}$) is given in tabular form rather than in inference rule form, in Figure \ref{fig:Plutus_core_builtins}, which also gives the reduction semantics. This table also specifies what conditions trigger an error.
+
+
+
+
+
+
+\subfile{figures/PlutusCoreTypeCorrectness}
+
+
+
+
+
+
+
+
+
+\section{Reduction and Execution}
+
+In figure \ref{fig:Plutus_core_reduction}, we define a standard eager, small-step contextual semantics for Plutus Core in terms of the reduction relation for types (\(\typeStep{A}{A'}\)) and terms (\(\step{M}{M'}\)), which incorporates both $\beta$ reduction and contextual congruence. We make use of the transitive closure of these stepping relations via the usual Kleene star notation.
+
+In the context of a blockchain system, it can be useful to also have a step indexed version of stepping, indicated by a superscript count of steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent transaction validation from looping indefinitely, or from simply taking an inordinate amount of time, which would be a serious security flaw in the blockchain system, we can use step indexing to put an upper bound on the number of computational steps that a program can have. In this setting, we would pick some upper bound $\mathit{max}$ and then perform steps of terms $M$ by computing which $M'$ is such that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
+
+
+
+\subfile{figures/PlutusCoreReduction}
+
+\subfile{figures/PlutusCoreBuiltins}
+
+
+
+
+
+\section{Basic Validation Program Structure}
+
+The basic way that validation is done in Plutus Core is somewhat similar to what's in Bitcoin Script. Whereas in Bitcoin Script, a validation is successful if the validating script successfully executes and leaves $\textit{true}$ on the top of the stack, in Plutus Core, validation is successful when the script reduces to any value other than \(\error{A}\) in the allotted number of steps.
+
+
+
+
+
+
+
+%\section{Erasure}
+
+%TO WRITE
+
+%\subfile{figures/PlutusCoreErasureGrammar}
+
+%\subfile{figures/PlutusCoreErasureReduction}
+
+%\subfile{figures/PlutusCoreErasureTheorem}
+
+%\section{Example}
+
+%\subfile{figures/PlutusCoreExampleAgain}
+
+
+
+
+
+
+\section{Unrestricted Algorithmic Type System}
+
+For implementation purposes, it's useful to have a variant of the type system that is more algorithmic in its presentation. We give this here, showing the figures that have been changed (relative to the declarative version above), and highlighting the specific parts of each rule that is different, where possible.
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Unrestricted.tex}
+
+
+
+\section{Restricted Algorithmic Type System}
+
+For blockchain purposes, it is useful to not only have an algorithmic system, but to require that no un-normalized types are present in programs, so as to reduce the amount of computation necessary to typecheck a program. It's also useful to have a way of bounding the amount of computation that can be done in type checking, for security purposes. To that end, we present a restricted grammar and type reduction, and a type system that reflects these. The figures below are additions with respect to the unrestricted version, and show only the new or changed figures and their respective highlighted differences.
+
+\subfile{figures/PlutusCoreGrammar-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreReduction-Algorithmic-Restricted.tex}
+
+\subfile{figures/PlutusCoreTypeCorrectness-Algorithmic-Restricted.tex}
+
+
+
+
+
+
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+% The IEEEtran BibTeX style support page is at:
+% http://www.michaelshell.org/tex/ieeetran/bibtex/
+%\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+%\bibliography{IEEEabrv,../bib/paper}
+%
+% <OR> manually copy in the resultant .bbl file
+% set second argument of \begin to the number of references
+% (used to reserve space for the reference number labels box)
+
+%\begin{thebibliography}{1}
+
+%\bibitem{pfpl}
+%Harper, R. \emph{Practical Foundations for Programming Languages}.
+
+%\end{thebibliography}
+
+% biography section
+%
+% If you have an EPS/PDF photo (graphicx package needed) extra braces are
+% needed around the contents of the optional argument to biography to prevent
+% the LaTeX parser from getting confused when it sees the complicated
+% \includegraphics command within an optional argument. (You could create
+% your own custom macro containing the \includegraphics command to make things
+% simpler here.)
+%\begin{biography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
+% or if you just want to reserve a space for a photo:
+
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{picture}}]{John Doe}
+%\blindtext
+%\end{IEEEbiography}
+
+% You can push biographies down or up by placing
+% a \vfill before or after them. The appropriate
+% use of \vfill depends on what kind of text is
+% on the last page and whether or not the columns
+% are being equalized.
+
+%\vfill
+
+% Can be used to pull up biographies so that the bottom of the last one
+% is flush with the other column.
+%\enlargethispage{-5in}
+
+
+
+
+% that's all folks
+\end{document}

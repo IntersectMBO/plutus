@@ -288,7 +288,7 @@ ought to be included as sugar.
   Note that we require the body of the abstraction to be a
   \textit{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
-\item $\wrap{\alpha}{A}{V}$ and $\unwrap{M}$: see the note on recursive types below.
+\item $\wrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
@@ -316,7 +316,7 @@ ought to be included as sugar.
 \item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{\alpha}{A}$ represents a recursive type $\fixtype{A}$: see the note on recursive types below.
+\item $\fixT{A}{B}$ represents a recursive type $\fixtype{A}$: see the note on recursive types below.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
@@ -394,6 +394,10 @@ which will increase as the size of the integers involved increases.
 
 
 \subsubsection{Recursive types}
+\red{This section will need to be rewritten to conform to the new
+  mechanism for fixed point types.}
+
+\noindent
 The operator $\texttt{fix}$ allows one to
 define recursive types in Plutus Core: $\fixT{\alpha}{A}$ is a type
 $\fixtype{A}$ such that $\fixtype{A} \cong [\fixtype{A}/\alpha]A$; in
@@ -552,11 +556,8 @@ conjunction with \texttt{size} provides integers of specified sizes,
 and the \texttt{bytestring} type provides sequences of bytes, again of
 specified sizes.  These types are given in
 Figure~\ref{fig:Plutus_core_type_constants}:  for example 
-\texttt{(builtin integer 10)} is the type of signed 10-byte integers.
+\texttt{(con integer 10)} is the type of signed 10-byte integers.
 
-\red{Is it \texttt{con} or \texttt{builtin}?  I think there's a 
-conflict between Figure~\ref{fig:Plutus_core_type_abbreviations}
-and Figure~\ref{fig:Plutus_core_grammar}.}
 
 Terms of these types are written using the \texttt{!} character, as
 shown in Figure~\ref{fig:Plutus_core_constants}.  For example
