@@ -69,7 +69,7 @@ test-suite plutus-core-interpreter-test
         DynamicBuiltins.Common
         DynamicBuiltins.Factorial
         DynamicBuiltins.Logging
-        DynamicBuiltins.String
+        DynamicBuiltins.MakeRead
         DynamicBuiltins.Spec
         LMachine
     default-language: Haskell2010

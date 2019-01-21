@@ -4,6 +4,10 @@
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
+    , EmitHandler (..)
+    , feedEmitHandler
+    , withEmitHandler
+    , withEmitTerm
     , withEmitEvaluateBy
     ) where
 
@@ -19,10 +23,12 @@ import           Control.Exception                         (evaluate)
 import           Data.IORef
 import           System.IO.Unsafe                          (unsafePerformIO)
 
+-- This does not stream elements lazily. There is a version that allows to stream elements lazily,
+-- but we do not have it here because it's way too convoluted.
+-- See https://github.com/input-output-hk/plutus/pull/336 if you really need lazy streaming.
 withEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)
 withEmit k = do
     xsVar <- newIORef id
-    -- We may want to place 'unsafeInterleaveIO' here just to be lazy and cool.
     y <- k $ \x -> modifyIORef xsVar $ \ds -> ds . (x :)
     ds <- readIORef xsVar
     return (ds [], y)
@@ -32,7 +38,30 @@ globalUniqueVar = unsafePerformIO $ newIORef 0
 {-# NOINLINE globalUniqueVar #-}
 
 nextGlobalUnique :: IO Int
-nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (i, succ i)
+nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
+
+newtype EmitHandler r = EmitHandler
+    { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
+    }
+
+feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
+feedEmitHandler term (EmitHandler handler) = handler mempty term
+
+withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResult) -> IO r2) -> IO r2
+withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
+
+withEmitTerm
+    :: (forall size. TypedBuiltin size a)
+    -> (Term TyName Name () -> EmitHandler r1 -> IO r2)
+    -> EmitHandler r1
+    -> IO ([a], r2)
+withEmitTerm tb cont (EmitHandler handler) =
+    withEmit $ \emit -> do
+        counter <- nextGlobalUnique
+        let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
+            dynEmitTerm = dynamicCall dynEmitName
+            dynEmitDef  = dynamicCallAssign tb dynEmitName emit
+        cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
     :: Evaluator Term m
@@ -40,11 +69,4 @@ withEmitEvaluateBy
     -> (Term TyName Name () -> Term TyName Name ())
     -> IO ([a], m EvaluationResult)
 withEmitEvaluateBy eval tb toTerm =
-    withEmit $ \emit -> do
-        counter <- nextGlobalUnique
-        let dynamicEmitName       = DynamicBuiltinName $ "emit" <> prettyText counter
-            dynamicEmitTerm       = dynamicCall dynamicEmitName
-            dynamicEmitDefinition = dynamicCallAssign tb dynamicEmitName emit
-            env  = insertDynamicBuiltinNameDefinition dynamicEmitDefinition mempty
-            term = toTerm dynamicEmitTerm
-        evaluate $ eval env term
+    withEmitHandler eval . withEmitTerm tb $ feedEmitHandler . toTerm
