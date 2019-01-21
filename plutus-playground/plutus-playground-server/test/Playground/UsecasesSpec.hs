@@ -10,12 +10,11 @@ import qualified Data.Aeson.Text        as JSON
 import           Data.Aeson.Types       (object, (.=))
 import qualified Data.ByteString.Char8  as BSC
 import           Data.Either            (isRight)
-import           Data.Swagger.Internal  (Schema)
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
 import           Ledger.Types           (Blockchain, Value)
 import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
-                                         PlaygroundError, SourceCode (SourceCode))
+                                         PlaygroundError, SimpleArgumentSchema, SourceCode (SourceCode), functionSchema)
 import qualified Playground.Interpreter as PI
 import           Playground.Usecases    (crowdfunding, game, messages, vesting)
 import           Test.Hspec             (Spec, describe, it, shouldSatisfy)
@@ -150,71 +149,53 @@ crowdfundingSpec =
         it "should run failed campaign" $
             evaluate failedCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
-                [ (Wallet 1, 10)
-                , (Wallet 2, 10)
-                , (Wallet 3, 10)
-                ])
-    where
-        failedCampaign =
-            Evaluation
-                [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
-                [ Action
-                      (Fn "scheduleCollection")
-                      (Wallet 1)
-                      [ theCampaign
-                      ]
-                , Action
-                      (Fn "contribute")
-                      (Wallet 2)
-                      [ theCampaign
-                      , theContribution
-                      ]
-                , Wait 20
-                ]
-                (sourceCode crowdfunding)
-                []
-        successfulCampaign =
-            Evaluation
-                [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
-                [ Action
-                      (Fn "scheduleCollection")
-                      (Wallet 1)
-                      [ theCampaign
-                      ]
-                , Action
-                      (Fn "contribute")
-                      (Wallet 2)
-                      [ theCampaign
-                      , theContribution
-                      ]
-                , Action
-                      (Fn "contribute")
-                      (Wallet 3)
-                      [ theCampaign
-                      , theContribution
-                      ]
-                , Wait 10
-                ]
-                (sourceCode crowdfunding)
-                []
-        mkI :: Int -> JSON.Value
-        mkI = JSON.toJSON
-        theCampaign = JSON.String $ TL.toStrict $ JSON.encodeToLazyText $
-            object
-                [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
-                , "campaignTarget"   .= object ["getValue"  .= mkI 15]
-                , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
-                , "campaignOwner"    .= object ["getPubKey" .= mkI 1]
-                ]
-        theContribution = JSON.String $ TL.toStrict $ JSON.encodeToLazyText $
-            object
-                [ "getValue" .= mkI 8]
+                                 [ (Wallet 1, 10)
+                                 , (Wallet 2, 10)
+                                 , (Wallet 3, 10)
+                                 ])
+  where
+    failedCampaign =
+        Evaluation
+            [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
+            [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
+            , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
+            , Wait 20
+            ]
+            (sourceCode crowdfunding)
+            []
+    successfulCampaign =
+        Evaluation
+            [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
+            [ Action (Fn "scheduleCollection") (Wallet 1) [theCampaign]
+            , Action (Fn "contribute") (Wallet 2) [theCampaign, theContribution]
+            , Action (Fn "contribute") (Wallet 3) [theCampaign, theContribution]
+            , Wait 10
+            ]
+            (sourceCode crowdfunding)
+            []
+    mkI :: Int -> JSON.Value
+    mkI = JSON.toJSON
+    theCampaign =
+        JSON.String $
+        TL.toStrict $
+        JSON.encodeToLazyText $
+        object
+            [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
+            , "campaignTarget" .= object ["getValue" .= mkI 15]
+            , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
+            , "campaignOwner" .= object ["getPubKey" .= mkI 1]
+            ]
+    theContribution =
+        JSON.String $
+        TL.toStrict $ JSON.encodeToLazyText $ object ["getValue" .= mkI 8]
 
 sourceCode :: BSC.ByteString -> SourceCode
 sourceCode = SourceCode . Text.pack . BSC.unpack
 
-compile :: BSC.ByteString -> IO (Either PlaygroundError [FunctionSchema Schema])
-compile = runExceptT . PI.compile . sourceCode
+compile ::
+       BSC.ByteString
+    -> IO (Either PlaygroundError [FunctionSchema SimpleArgumentSchema])
+compile = runExceptT . fmap functionSchema . PI.compile . sourceCode
 
 evaluate ::
        Evaluation
