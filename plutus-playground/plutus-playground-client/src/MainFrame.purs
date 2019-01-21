@@ -55,7 +55,7 @@ import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, getGists, getOauthStatus, postContract, postEvaluate)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, ($), (+), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Affjax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
