@@ -2,10 +2,12 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Auth
@@ -19,8 +21,8 @@ module Auth
   , mkGithubEndpoints
   ) where
 
-import           Auth.Types                  (OAuthCode (OAuthCode), OAuthToken, Token (Token), TokenProvider (Github),
-                                              addUserAgent, oAuthTokenAccessToken)
+import           Auth.Types                  (OAuthClientId, OAuthClientSecret, OAuthCode, OAuthToken, Token (Token),
+                                              TokenProvider (Github), addUserAgent, oAuthTokenAccessToken)
 import           Control.Monad               (guard)
 import           Control.Monad.Except        (MonadError)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
@@ -28,10 +30,11 @@ import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN)
 import           Control.Monad.Now           (MonadNow, getCurrentTime, getPOSIXTime)
 import           Control.Monad.Trace         (attempt, runTrace, withTrace)
 import           Control.Monad.Web           (MonadWeb, doRequest, makeManager)
-import           Control.Newtype.Generics    (unpack)
+import           Control.Newtype.Generics    (Newtype, O, unpack)
 import           Data.Aeson                  (FromJSON, ToJSON, Value (String), eitherDecode, parseJSON, withObject,
                                               (.:))
 import           Data.Bifunctor              (first)
+import           Data.ByteString             (ByteString)
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.Map                    as Map
 import           Data.Text                   (Text)
@@ -108,8 +111,8 @@ mkGithubEndpoints = do
 data Config = Config
   { _configJWTSignature       :: !JWT.Signer
   , _configRedirectUrl        :: !Text
-  , _configGithubClientId     :: !Text
-  , _configGithubClientSecret :: !Text
+  , _configGithubClientId     :: !OAuthClientId
+  , _configGithubClientSecret :: !OAuthClientSecret
   }
 
 instance FromJSON Config where
@@ -138,19 +141,19 @@ githubRedirect ::
      GithubEndpoints -> Config -> Headers '[ Header "Location" Text] NoContent
 githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
   where
+    oauthScopes = "gist"
     githubRedirectUrl :: Text
     githubRedirectUrl =
       showText .
       getUri .
       setQueryString
-        [ ( "redirect_uri"
-          , Just $
-            encodeUtf8 $ _configRedirectUrl <> _githubEndpointsCallbackUri)
-        , ("scope", Just oauthScopes)
-        , ("client_id", Just $ encodeUtf8 _configGithubClientId)
+        [ param "redirect_uri" $
+          _configRedirectUrl <> _githubEndpointsCallbackUri
+        , param "scope" oauthScopes
+        , param "client_id" (unpack _configGithubClientId)
         ] $
       _githubEndpointsAuthLocation
-    oauthScopes = "gist"
+    param key value = (key, Just $ encodeUtf8 value)
 
 twoWeeks :: NominalDiffTime
 twoWeeks = 60 * 60 * 24 * 7 * 2
@@ -163,8 +166,7 @@ authStatus Config {..} cookieHeader = do
     case extractGithubToken _configJWTSignature now cookieHeader of
       Right _ -> pure GithubUser
       Left err -> do
-        logErrorN $
-          "Failed to extract github token at step: " <> showText err
+        logErrorN $ "Failed to extract github token at step: " <> showText err
         pure Anonymous
   pure AuthStatus {..}
 
@@ -232,7 +234,7 @@ with500Err action =
     Right r -> pure r
 
 makeTokenRequest :: GithubEndpoints -> Config -> OAuthCode -> Request
-makeTokenRequest GithubEndpoints {..} Config {..} (OAuthCode code) =
+makeTokenRequest GithubEndpoints {..} Config {..} code =
   setQueryString params .
   addUserAgent . addRequestHeader hAccept "application/json" $
   _githubEndpointsAccessTokenLocation
@@ -242,7 +244,11 @@ makeTokenRequest GithubEndpoints {..} Config {..} (OAuthCode code) =
       , ("client_secret", param _configGithubClientSecret)
       , ("code", param code)
       ]
-    param = Just . encodeUtf8
+    param ::
+         forall a. (Newtype a, O a ~ Text)
+      => a
+      -> Maybe ByteString
+    param = Just . encodeUtf8 . unpack
 
 createSessionCookie :: JWT.Signer -> OAuthToken 'Github -> UTCTime -> SetCookie
 createSessionCookie signer token now =
@@ -283,8 +289,7 @@ getGists GithubEndpoints {..} Config {..} cookieHeader = do
   now <- getPOSIXTime
   case extractGithubToken _configJWTSignature now cookieHeader of
     Left err -> do
-      logErrorN $
-        "Failed to extract github token at step: " <> showText err
+      logErrorN $ "Failed to extract github token at step: " <> showText err
       throwError err401
     Right token -> do
       response <- liftIO (runClientM (Gist.getGists (Just token)) clientEnv)

@@ -16,6 +16,8 @@ module Auth.Types
   , OAuthToken(..)
   , TokenProvider(..)
   , Token(..)
+  , OAuthClientId(..)
+  , OAuthClientSecret(..)
   ) where
 
 import           Control.Newtype.Generics (Newtype)
@@ -31,7 +33,8 @@ import           Servant                  (FromHttpApiData, ToHttpApiData, parse
 ------------------------------------------------------------
 newtype OAuthCode =
   OAuthCode Text
-  deriving (Show, Eq)
+  deriving stock (Show, Eq, Generic)
+  deriving anyclass (Newtype)
 
 instance FromHttpApiData OAuthCode where
   parseQueryParam = Right . OAuthCode
@@ -55,7 +58,7 @@ data TokenProvider =
 
 newtype Token (a :: TokenProvider) =
   Token Text
-  deriving stock (Show, Eq,Generic)
+  deriving stock (Show, Eq, Generic)
   deriving newtype (FromJSON,ToJSON)
   deriving anyclass (Newtype)
 
@@ -64,3 +67,13 @@ instance ToHttpApiData (Token a) where
 
 addUserAgent :: Request -> Request
 addUserAgent = addRequestHeader hUserAgent "haskell-conduit"
+
+newtype OAuthClientId = OAuthClientId Text
+  deriving stock (Show, Eq, Generic)
+  deriving newtype (FromJSON,ToJSON)
+  deriving anyclass (Newtype)
+
+newtype OAuthClientSecret = OAuthClientSecret Text
+  deriving stock (Show, Eq, Generic)
+  deriving newtype (FromJSON,ToJSON)
+  deriving anyclass (Newtype)
