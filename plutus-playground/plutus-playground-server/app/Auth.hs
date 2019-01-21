@@ -84,7 +84,7 @@ type API
 type FrontendAPI
    = ("oauth" :> (BrowserHeader "Cookie" Text :> "status" :> Get '[ JSON] AuthStatus
                   :<|> "github" :> GetRedirect (Headers '[ Header "Location" Text])))
-     :<|> ("gists" :> BrowserHeader "Cookie" Text :> Get '[ JSON] [Gist])
+     :<|> (BrowserHeader "Cookie" Text :> "gists" :> Get '[ JSON] [Gist])
 
 type CallbackAPI
    = "oauth" :> "github" :> "callback" :> QueryParam "code" OAuthCode :> GetRedirect (Headers '[ Header "Set-Cookie" SetCookie, Header "Location" Text])
