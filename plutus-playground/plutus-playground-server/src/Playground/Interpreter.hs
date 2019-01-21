@@ -20,10 +20,12 @@ import qualified Data.Text                  as Text
 import qualified Data.Text.Internal.Search  as Text
 import qualified Data.Text.IO               as Text
 import           Ledger.Types               (Blockchain, Value)
-import           Playground.API             (FunctionSchema(FunctionSchema), toSimpleArgumentSchema, CompilationResult (CompilationResult), Evaluation (sourceCode),
-                                             Expression (Action, Wait), Fn (Fn), FunctionSchema,
+import           Playground.API             (CompilationResult (CompilationResult), Evaluation (sourceCode),
+                                             Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
+                                             FunctionSchema,
                                              PlaygroundError (CompilationErrors, DecodeJsonTypeError, InterpreterError, OtherError),
-                                             SourceCode, Warning (Warning), parseErrorsText, program, wallets)
+                                             SourceCode, Warning (Warning), parseErrorsText, program,
+                                             toSimpleArgumentSchema, wallets)
 import           System.Directory           (removeFile)
 import           System.Environment         (lookupEnv)
 import           System.Exit                (ExitCode (ExitSuccess))
@@ -95,7 +97,9 @@ compile source = do
                 [ Warning
                       "It looks like you have not made any functions available, use `$(mkFunctions ['functionA, 'functionB])` to be able to use `functionA` and `functionB`"
                 ]
-            Right schemas -> pure $ CompilationResult (fmap toSimpleArgumentSchema <$> schemas) []
+            Right schemas ->
+                pure $
+                CompilationResult (fmap toSimpleArgumentSchema <$> schemas) []
 
 runFunction ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)

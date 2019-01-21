@@ -17,9 +17,10 @@ import           Data.Aeson                 (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text                  as Text
 import           Network.HTTP.Types         (hContentType)
-import           Playground.API             (API, CompilationError, Evaluation, EvaluationResult (EvaluationResult),
-                                             FunctionSchema, CompilationResult, PlaygroundError (PlaygroundTimeout), SimpleArgumentSchema,
-                                             SourceCode, parseErrorText, toSimpleArgumentSchema)
+import           Playground.API             (API, CompilationError, CompilationResult, Evaluation,
+                                             EvaluationResult (EvaluationResult), FunctionSchema,
+                                             PlaygroundError (PlaygroundTimeout), SimpleArgumentSchema, SourceCode,
+                                             parseErrorText, toSimpleArgumentSchema)
 import qualified Playground.API             as PA
 import qualified Playground.Interpreter     as PI
 import           Servant                    (ServantErr, err400, errBody, errHeaders)
@@ -29,8 +30,7 @@ import           System.Timeout             (timeout)
 import qualified Wallet.Graph               as V
 
 acceptSourceCode ::
-       SourceCode
-    -> Handler (Either [CompilationError] CompilationResult)
+       SourceCode -> Handler (Either [CompilationError] CompilationResult)
 acceptSourceCode sourceCode = do
     let maxInterpretationTime = 5000000
     r <-
