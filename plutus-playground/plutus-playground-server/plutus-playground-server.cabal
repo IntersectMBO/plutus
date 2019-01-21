@@ -125,6 +125,7 @@ executable plutus-playground-server
         mtl -any,
         network -any,
         newtype-generics -any,
+        network-uri -any,
         optparse-applicative -any,
         plutus-playground-lib -any,
         plutus-playground-server -any,

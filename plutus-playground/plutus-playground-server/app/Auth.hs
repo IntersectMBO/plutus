@@ -14,54 +14,50 @@ module Auth
   , server
   , AuthStatus
   , AuthRole
-  , Config(Config)
-  , _configSigner
-  , _configGithubAuthLocation
-  , _configGithubApiBaseUrl
-  , _configRedirectUrl
-  , _configClientId
-  , _configClientSecret
-  , tmpStateToken
+  , Config(..)
+  , GithubEndpoints
+  , mkGithubEndpoints
   ) where
 
-import           Control.Monad             (guard, unless)
-import           Control.Monad.Except      (MonadError)
-import           Control.Monad.IO.Class    (MonadIO, liftIO)
-import           Control.Monad.Logger      (MonadLogger, logDebugN, logErrorN, logInfoN)
-import           Control.Monad.Now         (MonadNow, getCurrentTime, getPOSIXTime)
-import           Control.Monad.Trace       (attempt, runTrace, withTrace)
-import           Control.Newtype.Generics  (unpack)
-import           Data.Aeson                (FromJSON, ToJSON, Value (String), eitherDecode)
-import           Data.Bifunctor            (first)
-import qualified Data.ByteString.Lazy      as LBS
-import qualified Data.Map                  as Map
-import           Data.Text                 (Text)
-import qualified Data.Text                 as Text
-import           Data.Text.Encoding        (decodeUtf8, encodeUtf8)
-import           Data.Time                 (NominalDiffTime, UTCTime, addUTCTime)
-import           Data.Time.Clock.POSIX     (POSIXTime, utcTimeToPOSIXSeconds)
-import           GHC.Generics              (Generic)
-import           Gist                      (Gist)
+import           Control.Monad               (guard, unless)
+import           Control.Monad.Except        (MonadError)
+import           Control.Monad.IO.Class      (MonadIO, liftIO)
+import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN, logInfoN)
+import           Control.Monad.Now           (MonadNow, getCurrentTime, getPOSIXTime)
+import           Control.Monad.Trace         (attempt, runTrace, withTrace)
+import           Control.Newtype.Generics    (unpack)
+import           Data.Aeson                  (FromJSON, ToJSON, Value (String), eitherDecode)
+import           Data.Bifunctor              (first)
+import qualified Data.ByteString.Lazy        as LBS
+import qualified Data.Map                    as Map
+import           Data.Text                   (Text)
+import qualified Data.Text                   as Text
+import           Data.Text.Encoding          (decodeUtf8, encodeUtf8)
+import           Data.Time                   (NominalDiffTime, UTCTime, addUTCTime)
+import           Data.Time.Clock.POSIX       (POSIXTime, utcTimeToPOSIXSeconds)
+import           GHC.Generics                (Generic)
+import           Gist                        (Gist)
 import qualified Gist
-import           Network.HTTP.Client       (managerModifyRequest)
-import           Network.HTTP.Client.TLS   (tlsManagerSettings)
-import           Network.HTTP.Conduit      (Request, newManager, parseRequest_, responseBody, responseStatus,
-                                            setQueryString)
-import           Network.HTTP.Simple       (addRequestHeader, getRequestQueryString)
-import           Network.HTTP.Types        (hAccept, statusIsSuccessful)
-import           Servant                   ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
-                                            QueryParam, ServantErr, ServerT, StdMethod (GET), ToHttpApiData, Verb,
-                                            addHeader, err401, err500, errBody, throwError)
-import           Servant.API.BrowserHeader (BrowserHeader)
-import           Servant.Client            (BaseUrl, mkClientEnv, runClientM)
-import           Servant.Extra             ()
-import           Utils                     (MonadOAuth, MonadWeb, OAuthCode (OAuthCode), OAuthToken, Token (Token),
-                                            TokenProvider (Github), addUserAgent, doRequest, makeManager,
-                                            oAuthTokenAccessToken)
-import           Web.Cookie                (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
-                                            setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
-                                            setCookieSecure, setCookieValue)
-import qualified Web.JWT                   as JWT
+import           Network.HTTP.Client         (managerModifyRequest)
+import           Network.HTTP.Client.Conduit (getUri)
+import           Network.HTTP.Client.TLS     (tlsManagerSettings)
+import           Network.HTTP.Conduit        (Request, newManager, parseRequest, responseBody, responseStatus,
+                                              setQueryString)
+import           Network.HTTP.Simple         (addRequestHeader, getRequestQueryString)
+import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
+import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
+                                              QueryParam, ServantErr, ServerT, StdMethod (GET), ToHttpApiData, Verb,
+                                              addHeader, err401, err500, errBody, throwError)
+import           Servant.API.BrowserHeader   (BrowserHeader)
+import           Servant.Client              (BaseUrl, mkClientEnv, parseBaseUrl, runClientM)
+import           Servant.Extra               ()
+import           Utils                       (MonadOAuth, MonadWeb, OAuthCode (OAuthCode), OAuthToken, Token (Token),
+                                              TokenProvider (Github), addUserAgent, doRequest, makeManager,
+                                              oAuthTokenAccessToken)
+import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
+                                              setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
+                                              setCookieSecure, setCookieValue)
+import qualified Web.JWT                     as JWT
 
 data AuthRole
   = Anonymous
@@ -89,18 +85,38 @@ type FrontendAPI
 type CallbackAPI
    = "oauth" :> "github" :> "callback" :> QueryParam "code" OAuthCode :> GetRedirect (Headers '[ Header "Set-Cookie" SetCookie, Header "Location" Text])
 
-data Config = Config
-  { _configSigner             :: JWT.Signer
-  , _configGithubAuthLocation :: Text
-  , _configGithubApiBaseUrl   :: BaseUrl
-  , _configRedirectUrl        :: Text
-  , _configClientId           :: Text
-  , _configClientSecret       :: Text
+data GithubEndpoints = GithubEndpoints
+  { _githubEndpointsAuthLocation        :: !Request
+  , _githubEndpointsAccessTokenLocation :: !Request
+  , _githubEndpointsApiBaseUrl          :: !BaseUrl
+  , _githubEndpointsCallbackUri         :: !Text
   }
+
+-- | Config determined by Github.
+mkGithubEndpoints :: IO GithubEndpoints
+mkGithubEndpoints = do
+  _githubEndpointsAuthLocation <-
+    parseRequest "GET https://github.com/login/oauth/authorize"
+  _githubEndpointsAccessTokenLocation <-
+    parseRequest "POST https://github.com/login/oauth/access_token"
+  _githubEndpointsApiBaseUrl <- parseBaseUrl "https://api.github.com"
+  let _githubEndpointsCallbackUri = "/api/oauth/github/callback"
+  pure GithubEndpoints {..}
+
+-- | Config supplied at runtime.
+data Config = Config
+  { _configSigner           :: !JWT.Signer
+  , _configRedirectUrl      :: !Text
+  , _configRedirectEndpoint :: !Text
+  , _configClientId         :: !Text
+  , _configClientSecret     :: !Text
+  }
+
 
 hSessionIdCookie :: Text
 hSessionIdCookie = "sessionId"
 
+-- | The JWT key we can lookup for the Github token's value.
 githubTokenClaim :: Text
 githubTokenClaim = "github-token"
 
@@ -111,8 +127,25 @@ redirect ::
 redirect a = pure $ addHeader a NoContent
 
 githubRedirect ::
-     Applicative m => Config -> m (Headers '[ Header "Location" Text] NoContent)
-githubRedirect Config {..} = redirect _configGithubAuthLocation
+     Applicative m
+  => GithubEndpoints
+  -> Config
+  -> m (Headers '[ Header "Location" Text] NoContent)
+githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
+  where
+    githubRedirectUrl :: Text
+    githubRedirectUrl =
+      Text.pack .
+      show .
+      getUri .
+      setQueryString
+        [ ( "redirect_uri"
+          , Just $ encodeUtf8 $ _configRedirectUrl <> _configRedirectEndpoint)
+        , ("scope", Just oauthScopes)
+        , ("client_id", Just $ encodeUtf8 _configClientId)
+        ] $
+      _githubEndpointsAuthLocation
+    oauthScopes = "gist"
 
 twoWeeks :: NominalDiffTime
 twoWeeks = 60 * 60 * 24 * 7 * 2
@@ -165,18 +198,19 @@ githubCallback ::
      , MonadError ServantErr m
      , MonadNow m
      )
-  => Config
+  => GithubEndpoints
+  -> Config
   -> Maybe OAuthCode
   -> m (Headers '[ Header "Set-Cookie" SetCookie, Header "Location" Text] NoContent)
-githubCallback _ Nothing =
+githubCallback _ _ Nothing =
   with500Err . pure . Left $
   "Expected a response from Github with an authorization code. Didn't get one!"
-githubCallback config (Just code) = do
+githubCallback githubEndpoints config@Config {..} (Just code) = do
   logInfoN $
     "OAuth Code is: " <> Text.pack (show code) <>
     ". Swapping for a long-lived token."
   manager <- makeManager
-  let tokenRequest = makeTokenRequest config code
+  let tokenRequest = makeTokenRequest githubEndpoints config code
   logInfoN $ "Request: " <> Text.pack (show tokenRequest)
   logInfoN $
     "Request: " <> Text.pack (show (getRequestQueryString tokenRequest))
@@ -188,9 +222,9 @@ githubCallback config (Just code) = do
     with500Err $ pure $ first Text.pack $ eitherDecode $ responseBody response
   logInfoN $ "Response was: " <> Text.pack (show (token :: OAuthToken 'Github))
   now <- getCurrentTime
-  let cookie = createSessionCookie (_configSigner config) token now
+  let cookie = createSessionCookie _configSigner token now
   logInfoN $ "Sending cookie: " <> Text.pack (show cookie)
-  pure . addHeader cookie . addHeader (_configRedirectUrl config) $ NoContent
+  pure . addHeader cookie . addHeader _configRedirectUrl $ NoContent
 
 with500Err ::
      (MonadLogger m, MonadError ServantErr m) => m (Either Text b) -> m b
@@ -201,17 +235,16 @@ with500Err action =
       throwError $ err500 {errBody = LBS.fromStrict . encodeUtf8 $ err}
     Right r -> pure r
 
-makeTokenRequest :: Config -> OAuthCode -> Request
-makeTokenRequest Config {..} (OAuthCode code) =
+makeTokenRequest :: GithubEndpoints -> Config -> OAuthCode -> Request
+makeTokenRequest GithubEndpoints {..} Config {..} (OAuthCode code) =
   setQueryString params .
   addUserAgent . addRequestHeader hAccept "application/json" $
-  parseRequest_ "POST https://github.com/login/oauth/access_token"
+  _githubEndpointsAccessTokenLocation
   where
     params =
       [ ("client_id", param _configClientId)
       , ("client_secret", param _configClientSecret)
       , ("code", param code)
-      , ("state", param tmpStateToken)
       ]
     param = Just . encodeUtf8
 
@@ -242,14 +275,15 @@ createSessionCookie signer token now =
 
 getGists ::
      (MonadNow m, MonadLogger m, MonadIO m, MonadError ServantErr m)
-  => Config
+  => GithubEndpoints
+  -> Config
   -> Maybe Text
   -> m [Gist]
-getGists Config {..} cookieHeader = do
+getGists GithubEndpoints {..} Config {..} cookieHeader = do
   manager <-
     liftIO $
     newManager $ tlsManagerSettings {managerModifyRequest = pure . addUserAgent}
-  let clientEnv = mkClientEnv manager _configGithubApiBaseUrl
+  let clientEnv = mkClientEnv manager _githubEndpointsApiBaseUrl
   now <- getPOSIXTime
   case extractGithubToken _configSigner now cookieHeader of
     Left err -> do
@@ -273,15 +307,10 @@ server ::
      , MonadError ServantErr m
      , MonadIO m
      )
-  => Config
+  => GithubEndpoints
+  -> Config
   -> ServerT API m
-server config =
-  ((authStatus config :<|> githubRedirect config) :<|> getGists config) :<|>
-  githubCallback config
-
-{-# DEPRECATED
-tmpStateToken "This is scaffolding."
- #-}
-
-tmpStateToken :: Text
-tmpStateToken = "asdf1234"
+server githubEndpoints config =
+  ((authStatus config :<|> githubRedirect githubEndpoints config) :<|>
+   getGists githubEndpoints config) :<|>
+  githubCallback githubEndpoints config

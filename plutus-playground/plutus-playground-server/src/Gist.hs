@@ -35,7 +35,7 @@ import           Data.Yaml              (ParseException, decodeFileEither)
 import           GHC.Generics           (Generic)
 import           Network.HTTP.Conduit   (Request, parseRequest_, responseBody, setQueryString)
 import           Network.HTTP.Simple    (addRequestHeader)
-import           Network.HTTP.Types     (hAccept, hUserAgent)
+import           Network.HTTP.Types     (hAccept)
 import           Servant.API            ((:>), Get, Header, JSON)
 import           Servant.Client         (ClientM, client)
 import           Utils                  (MonadOAuth, MonadWeb, Token, TokenProvider (Github), defaultParseJSON,addUserAgent,

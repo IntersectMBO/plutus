@@ -36,7 +36,6 @@ import qualified Playground.API                       as PA
 import qualified Playground.Server                    as PS
 import           Servant                              ((:<|>) ((:<|>)), (:>), Get, Handler (Handler), JSON, PlainText,
                                                        Raw, ServantErr, hoistServer, serve, serveDirectoryFileServer)
-import           Servant.Client                       (parseBaseUrl)
 import           Servant.Foreign                      (GenerateList, NoContent, Req, generateList)
 import           Servant.Server                       (Server)
 import qualified Web.JWT                              as JWT
@@ -50,25 +49,36 @@ type Web
                     :<|> Auth.API)
      :<|> Raw
 
-liftedAuthServer :: Auth.Config -> Server Auth.API
-liftedAuthServer config =
-  hoistServer (Proxy @Auth.API) liftAuthToHandler $ Auth.server config
+liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
+liftedAuthServer githubEndpoints config =
+  hoistServer (Proxy @Auth.API) liftAuthToHandler $
+  Auth.server githubEndpoints config
   where
     liftAuthToHandler :: LoggingT (ExceptT ServantErr IO) a -> Handler a
     liftAuthToHandler = Handler . runStderrLoggingT
 
-server :: Server PA.API -> FilePath -> Auth.Config -> Server Web
-server handlers staticDir config =
-  version :<|> (handlers :<|> liftedAuthServer config) :<|>
+server ::
+     Server PA.API
+  -> FilePath
+  -> Auth.GithubEndpoints
+  -> Auth.Config
+  -> Server Web
+server handlers staticDir githubEndpoints config =
+  version :<|> (handlers :<|> liftedAuthServer githubEndpoints config) :<|>
   serveDirectoryFileServer staticDir
 
 version :: Applicative m => m Text
 version = pure $(gitHash)
 
-app :: Server PA.API -> Auth.Config -> FilePath -> Application
-app handlers config staticDir =
+app ::
+     Server PA.API
+  -> Auth.GithubEndpoints
+  -> Auth.Config
+  -> FilePath
+  -> Application
+app handlers githubEndpoints config staticDir =
   gzip def . logStdout . cors (const $ Just policy) . serve (Proxy @Web) $
-  server handlers staticDir config
+  server handlers staticDir githubEndpoints config
   where
     policy =
       simpleCorsResourcePolicy
@@ -76,27 +86,23 @@ app handlers config staticDir =
 
 run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> m ()
 run settings staticDir = do
+  githubEndpoints <- liftIO Auth.mkGithubEndpoints
   config <- liftIO mkTempConfig
   handlers <- PS.mkHandlers
   logInfoN "Starting webserver."
-  liftIO . runSettings settings $ app handlers config staticDir
+  liftIO . runSettings settings $ app handlers githubEndpoints config staticDir
 
 {-# DEPRECATED
 mkTempConfig "This is scaffolding."
  #-}
 
 mkTempConfig :: IO Auth.Config
-mkTempConfig = do
-  let _configGithubAuthLocation =
-        "https://github.com/login/oauth/authorize?redirect_uri=" <> callbackUrl <>
-        "&scope=gist&client_id=869cbadc1d2dfc393466&state=" <>
-        Auth.tmpStateToken
-      _configSigner =
-        JWT.hmacSecret
-          "13e36bb4deea98975b7b0d5ac318db60185001c235e5cd945b5dc5adda5816642680c5f34483a4bb"
-      _configRedirectUrl = "https://localhost:8009"
-      callbackUrl = _configRedirectUrl <> "/api/oauth/github/callback"
-      _configClientId = "869cbadc1d2dfc393466"
-      _configClientSecret = "ac912971fb52a53a96cd110ca5f86878febfaf30"
-  _configGithubApiBaseUrl <- parseBaseUrl "https://api.github.com"
-  pure Auth.Config {..}
+mkTempConfig = pure Auth.Config {..}
+  where
+    _configClientId = "869cbadc1d2dfc393466"
+    _configClientSecret = "ac912971fb52a53a96cd110ca5f86878febfaf30"
+    _configSigner =
+      JWT.hmacSecret
+        "13e36bb4deea98975b7b0d5ac318db60185001c235e5cd945b5dc5adda5816642680c5f34483a4bb"
+    _configRedirectUrl = "https://localhost:8009"
+    _configRedirectEndpoint = "/api/oauth/github/callback" -- | TODO This should really come from Servant directly.
