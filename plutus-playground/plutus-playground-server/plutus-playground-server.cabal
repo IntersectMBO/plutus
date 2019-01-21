@@ -34,9 +34,10 @@ library
         Playground.Interpreter
         Playground.Usecases
         Gist
-        Utils
+        Auth.Types
         Control.Monad.Now
         Control.Monad.Trace
+        Control.Monad.Web
         Servant.Extra
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -157,7 +158,7 @@ test-suite plutus-playground-server-test
         Playground.APISpec
         Playground.UsecasesSpec
         Paths_plutus_playground_server
-        UtilsSpec
+        Auth.TypesSpec
         GistSpec
     default-language:   Haskell2010
     ghc-options:

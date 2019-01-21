@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module UtilsSpec
+module Auth.TypesSpec
   ( spec
   ) where
 
@@ -10,7 +10,7 @@ import           Data.Aeson                     (eitherDecode)
 import qualified Data.ByteString.Lazy           as LBS
 import           Paths_plutus_playground_server (getDataFileName)
 import           Test.Hspec                     (Spec, describe, it, shouldBe)
-import           Utils                          (OAuthToken (OAuthToken), Token (Token), TokenProvider (Github),
+import           Auth.Types                     (OAuthToken (OAuthToken), Token (Token), TokenProvider (Github),
                                                  oAuthTokenAccessToken, oAuthTokenScope, oAuthTokenTokenType)
 
 spec :: Spec

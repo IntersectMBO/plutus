@@ -19,12 +19,15 @@ module Auth
   , mkGithubEndpoints
   ) where
 
+import           Auth.Types                  (OAuthCode (OAuthCode), OAuthToken, Token (Token), TokenProvider (Github),
+                                              addUserAgent, oAuthTokenAccessToken)
 import           Control.Monad               (guard, unless)
 import           Control.Monad.Except        (MonadError)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
 import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN, logInfoN)
 import           Control.Monad.Now           (MonadNow, getCurrentTime, getPOSIXTime)
 import           Control.Monad.Trace         (attempt, runTrace, withTrace)
+import           Control.Monad.Web           (MonadWeb, doRequest, makeManager)
 import           Control.Newtype.Generics    (unpack)
 import           Data.Aeson                  (FromJSON, ToJSON, Value (String), eitherDecode)
 import           Data.Bifunctor              (first)
@@ -51,9 +54,6 @@ import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header
 import           Servant.API.BrowserHeader   (BrowserHeader)
 import           Servant.Client              (BaseUrl, mkClientEnv, parseBaseUrl, runClientM)
 import           Servant.Extra               ()
-import           Utils                       (MonadOAuth, MonadWeb, OAuthCode (OAuthCode), OAuthToken, Token (Token),
-                                              TokenProvider (Github), addUserAgent, doRequest, makeManager,
-                                              oAuthTokenAccessToken)
 import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
                                               setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
                                               setCookieSecure, setCookieValue)
@@ -111,7 +111,6 @@ data Config = Config
   , _configClientId         :: !Text
   , _configClientSecret     :: !Text
   }
-
 
 hSessionIdCookie :: Text
 hSessionIdCookie = "sessionId"
@@ -192,12 +191,7 @@ extractGithubToken signer now cookieHeader =
         _            -> Nothing
 
 githubCallback ::
-     ( MonadLogger m
-     , MonadWeb m
-     , MonadOAuth m
-     , MonadError ServantErr m
-     , MonadNow m
-     )
+     (MonadLogger m, MonadWeb m, MonadError ServantErr m, MonadNow m)
   => GithubEndpoints
   -> Config
   -> Maybe OAuthCode
@@ -300,13 +294,7 @@ getGists GithubEndpoints {..} Config {..} cookieHeader = do
         Right gists -> pure gists
 
 server ::
-     ( MonadNow m
-     , MonadWeb m
-     , MonadLogger m
-     , MonadOAuth m
-     , MonadError ServantErr m
-     , MonadIO m
-     )
+     (MonadNow m, MonadWeb m, MonadLogger m, MonadError ServantErr m, MonadIO m)
   => GithubEndpoints
   -> Config
   -> ServerT API m
