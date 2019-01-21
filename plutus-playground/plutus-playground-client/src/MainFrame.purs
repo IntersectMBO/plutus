@@ -54,7 +54,7 @@ import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -329,7 +329,7 @@ toAnnotation (RawError _) = Nothing
 toAnnotation (CompilationError {row, column, text}) =
   Just
     { type: "error"
-    , row
+    , row: row - 1
     , column
     , text: String.joinWith "\n" text
     }
