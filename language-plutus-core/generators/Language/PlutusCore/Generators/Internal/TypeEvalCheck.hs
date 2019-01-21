@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.Generators.Internal.TypeEvalCheck
@@ -16,6 +17,7 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     ) where
 
 import           Language.PlutusCore
+import qualified Language.PlutusCore.Check.ValueRestriction              as VR
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Evaluation.Result
@@ -36,16 +38,18 @@ the actual one. Thus "type-eval checking".
 
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError
---     = TypeEvalCheckErrorOutOfBounds
     = TypeEvalCheckErrorIllFormed (Error ())
     | TypeEvalCheckErrorIllEvaled (Value TyName Name ()) (Value TyName Name ())
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
 
-instance AsError TypeEvalCheckError () where
+instance ann ~ () => AsError TypeEvalCheckError ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
 
-instance AsTypeError TypeEvalCheckError () where
+instance (tyname ~ TyName, ann ~ ()) => AsValueRestrictionError TypeEvalCheckError tyname ann where
+    _ValueRestrictionError = _TypeEvalCheckErrorIllFormed . _ValueRestrictionError
+
+instance ann ~ () => AsTypeError TypeEvalCheckError ann where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.
@@ -75,6 +79,7 @@ typeEvalCheckBy
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     let typecheck = typecheckTerm (TypeConfig True mempty mempty mempty defaultTypecheckerGas)
+    _ <- VR.checkTerm term
     termTy <- typecheck term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $

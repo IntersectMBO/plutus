@@ -12,6 +12,7 @@ module Language.PlutusCore.View
     , termAsBuiltin
     , termAsTermIterApp
     , termAsPrimIterApp
+    , isTermValue
     ) where
 
 import           Language.PlutusCore.Lexer.Type (StagedBuiltinName (..))
@@ -63,13 +64,13 @@ termAsPrimIterApp :: Term tyname name a -> Maybe (PrimIterApp tyname name a)
 termAsPrimIterApp term = do
     let IterApp termHead spine = termAsTermIterApp term
     headName <- constantAsStagedBuiltinName <$> termAsBuiltin termHead
-    guard $ all isValue spine
+    guard $ all isTermValue spine
     Just $ IterApp headName spine
 
--- | Check whether a 'Term' is a 'Value'.
-isValue :: Term tyname name a -> Bool
-isValue (TyAbs  _ _ _ body) = isValue body
-isValue (IWrap _ _ _ term)  = isValue term
-isValue LamAbs{}            = True
-isValue Constant{}          = True
-isValue term                = isJust $ termAsPrimIterApp term
+-- | Check whether a 'Term' is a 'Value'. The term is assumed to be valid.
+isTermValue :: Term tyname name a -> Bool
+isTermValue (IWrap _ _ _ term) = isTermValue term
+isTermValue TyAbs{}            = True
+isTermValue LamAbs{}           = True
+isTermValue Constant{}         = True
+isTermValue term               = isJust $ termAsPrimIterApp term

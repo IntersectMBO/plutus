@@ -5,17 +5,18 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant            (typeOfBuiltinName)
-import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
+import qualified Language.PlutusCore.Check.ValueRestriction as VR
+import           Language.PlutusCore.Constant               (typeOfBuiltinName)
+import           Language.PlutusCore.FsTree                 (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything (examples)
-import           Language.PlutusCore.StdLib.Everything   (stdLib)
+import           Language.PlutusCore.Examples.Everything    (examples)
+import           Language.PlutusCore.StdLib.Everything      (stdLib)
 
 import           Common
 
 import           Control.Monad.Except
-import           System.FilePath                         ((</>))
+import           System.FilePath                            ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -32,6 +33,7 @@ typecheckQuoted
     => Quote (Term TyName Name ()) -> m (Term TyName Name ())
 typecheckQuoted getTerm = do
     term <- liftQuote getTerm
+    _ <- VR.checkTerm term
     _ <- typecheckTerm (TypeConfig True mempty mempty mempty Nothing) term
     return term
 

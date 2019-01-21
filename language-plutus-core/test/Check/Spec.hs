@@ -3,13 +3,15 @@
 module Check.Spec (tests) where
 
 import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Uniques as Uniques
+import qualified Language.PlutusCore.Check.Uniques          as Uniques
+import qualified Language.PlutusCore.Check.ValueRestriction as VR
 import           Language.PlutusCore.Quote
 import           PlutusPrelude
 
 import           Control.Monad.Except
+import           Data.Foldable                              (traverse_)
 import           Generators
-import           Hedgehog                          hiding (Var)
+import           Hedgehog                                   hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
@@ -20,6 +22,7 @@ tests = testGroup "checks"
     , shadowed
     , multiplyDefined
     , incoherentUse
+    , valueRestriction
     ]
 
 data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)
@@ -83,3 +86,28 @@ propRenameCheck = property $ do
             -- the renamer will fix incoherency between *bound* variables, but it ignores free variables, so
             -- we can still get incoherent usage errors, ignore them for now
             checkUniques = Uniques.checkProgram (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
+
+valueRestriction :: TestTree
+valueRestriction =
+    let terms = runQuote $ do
+            aN <- freshTyName () "a"
+            bN <- freshTyName () "b"
+            x <- freshName () "x"
+            let typeAbs v = TyAbs () v (Type ())
+                aV = TyVar () aN
+                xV = Var () x
+            pure [ ( typeAbs aN $ Error () aV
+                   , Left $ ValueRestrictionViolation () aN
+                   )
+                 , ( typeAbs aN . typeAbs bN $ Error () aV
+                   , Left $ ValueRestrictionViolation () bN
+                   )
+                 , ( typeAbs aN $ LamAbs () x aV xV
+                   , Right ()
+                   )
+                 , ( typeAbs aN . typeAbs bN $ LamAbs () x aV xV
+                   , Right ()
+                   )
+                 ]
+        assertion = traverse_ (\(term, res) -> VR.checkTerm term @?= res) terms
+    in testCase "valueRestriction" assertion

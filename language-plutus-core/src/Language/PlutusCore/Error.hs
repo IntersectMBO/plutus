@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
@@ -12,6 +13,8 @@
 module Language.PlutusCore.Error
     ( ParseError (..)
     , AsParseError (..)
+    , ValueRestrictionError (..)
+    , AsValueRestrictionError (..)
     , NormalizationError (..)
     , AsNormalizationError (..)
     , UniqueError (..)
@@ -54,6 +57,11 @@ data ParseError a
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 
+data ValueRestrictionError tyname a
+    = ValueRestrictionViolation a (tyname a)
+    deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''ValueRestrictionError
+
 data UniqueError a
     = MultiplyDefined Unique a a
     | IncoherentUsage Unique a a
@@ -95,6 +103,7 @@ makeClassyPrisms ''TypeError
 
 data Error a
     = ParseErrorE (ParseError a)
+    | ValueRestrictionErrorE (ValueRestrictionError TyName a)
     | UniqueCoherencyErrorE (UniqueError a)
     | TypeErrorE (TypeError a)
     | NormalizationErrorE (NormalizationError TyName Name a)
@@ -104,13 +113,16 @@ makeClassyPrisms ''Error
 instance AsParseError (Error a) a where
     _ParseError = _ParseErrorE
 
+instance tyname ~ TyName => AsValueRestrictionError (Error a) tyname a where
+    _ValueRestrictionError = _ValueRestrictionErrorE
+
 instance AsUniqueError (Error a) a where
     _UniqueError = _UniqueCoherencyErrorE
 
 instance AsTypeError (Error a) a where
     _TypeError = _TypeErrorE
 
-instance AsNormalizationError (Error a) TyName Name a where
+instance (tyname ~ TyName, name ~ Name) => AsNormalizationError (Error a) tyname name a where
     _NormalizationError = _NormalizationErrorE
 
 asInternalError :: Doc ann -> Doc ann
@@ -122,6 +134,11 @@ instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
     pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+
+instance (Pretty a, PrettyBy config (tyname a)) => PrettyBy config (ValueRestrictionError tyname a) where
+    prettyBy config (ValueRestrictionViolation ann name) =
+        "Value restriction violation at" <+> pretty ann <+>
+        "after the binding for this name:" <+> prettyBy config name
 
 instance Pretty a => Pretty (UniqueError a) where
     pretty (MultiplyDefined u def redef) =
@@ -181,7 +198,8 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
     prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
-    prettyBy _      (ParseErrorE e)           = pretty e
-    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
-    prettyBy config (TypeErrorE e)            = prettyBy config e
-    prettyBy config (NormalizationErrorE e)   = prettyBy config e
+    prettyBy _      (ParseErrorE e)            = pretty e
+    prettyBy config (ValueRestrictionErrorE e) = prettyBy config e
+    prettyBy _      (UniqueCoherencyErrorE e)  = pretty e
+    prettyBy config (TypeErrorE e)             = prettyBy config e
+    prettyBy config (NormalizationErrorE e)    = prettyBy config e
