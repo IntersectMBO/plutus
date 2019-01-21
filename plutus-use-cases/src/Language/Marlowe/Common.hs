@@ -495,6 +495,30 @@ insertCommitQ = [|| \ commit commits -> let
     in insert commit commits
     ||]
 
+-- | Discounts the Cash from an initial segment of the list of pairs.
+discountFromPairList :: Q (TExp (
+    PubKey
+    -> Slot
+    -> Ledger.Value
+    -> [(IdentCC, CCStatus)]
+    -> Maybe [(IdentCC, CCStatus)]))
+discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ledger.Value value) commits -> let
+    infixr 3 &&
+    (&&) = $$(PlutusTx.and)
+
+    discount acc value commits = case commits of
+        (ident, (party, NotRedeemed available expire)) : rest
+            | currentBlockNumber <= expire && $$(Validation.eqPubKey) from party ->
+            if available > value then let
+                change = available - value
+                updatedCommit = (ident, (party, NotRedeemed change expire))
+                in discount (updatedCommit : acc) 0 rest
+            else discount acc (value - available) rest
+        commit : rest -> discount (commit : acc) value rest
+        [] -> if value == 0 then Just acc else Nothing
+    in discount [] value commits
+    ||]
+
 {-|
     Evaluates Marlowe Contract
     Returns contract 'State', remaining 'Contract', and validation result.
@@ -537,9 +561,6 @@ evaluateContract = [|| \
     reverse l =  rev l [] where
             rev []     a = a
             rev (x:xs) a = rev xs (x:a)
-
-    eqPk :: PubKey -> PubKey -> Bool
-    eqPk = $$(Validation.eqPubKey)
 
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a == b
@@ -603,24 +624,7 @@ evaluateContract = [|| \
                 && scriptOutValue == scriptInValue - pv
                 && signature `signedBy` to
             in  if isValid then let
-                -- Discounts the Cash from an initial segment of the list of pairs.
-                discountFromPairList ::
-                    [(IdentCC, CCStatus)]
-                    -> Int
-                    -> [(IdentCC, CCStatus)]
-                    -> Maybe [(IdentCC, CCStatus)]
-                discountFromPairList acc value commits = case commits of
-                    (ident, (party, NotRedeemed available expire)) : rest
-                        | currentBlockNumber <= expire && from `eqPk` party ->
-                        if available > value then let
-                            change = available - value
-                            updatedCommit = (ident, (party, NotRedeemed change expire))
-                            in discountFromPairList (updatedCommit : acc) 0 rest
-                        else discountFromPairList acc (value - available) rest
-                    commit : rest -> discountFromPairList (commit : acc) value rest
-                    [] -> if value == 0 then Just acc else Nothing
-
-                in case discountFromPairList [] pv commits of
+                in case $$(discountFromPairList) from blockHeight (Ledger.Value pv) commits of
                     Just updatedCommits -> let
                         updatedState = State (reverse updatedCommits) oracles
                         in (updatedState, con, True)

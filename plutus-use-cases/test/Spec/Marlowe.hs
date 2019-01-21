@@ -12,6 +12,7 @@ module Spec.Marlowe
 where
 
 import           Data.Either                    ( isRight )
+import           Data.Maybe
 import           Control.Monad                  ( void )
 import           Data.Set                       ( Set )
 import qualified Data.List                      as List
@@ -47,7 +48,8 @@ import           Wallet                         ( PubKey(..)
                                                 )
 import           Wallet.Emulator
 import qualified Wallet.Generators              as Gen
-import           Language.Marlowe               as Marlowe
+import           Language.Marlowe        hiding (discountFromPairList)
+import qualified Language.Marlowe               as Marlowe
 import           Language.Marlowe.Client        ( commit'
                                                 , commit
                                                 , redeem
@@ -79,6 +81,7 @@ validatorTests = testGroup "Marlowe Validator" [
     testProperty "validateContract is a total function" checkValidateContract,
     testProperty "interprebObs is a total function" checkInterpretObsTotality,
     testProperty "insertCommit" checkInsertCommit,
+    testProperty "discountFromPairList is correct" checkDiscountFromPairList,
     testCase     "invalid contract: not enought money" notEnoughMoney,
     testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC
     ]
@@ -95,6 +98,12 @@ contractsTests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe C
 positiveAmount :: Gen Int
 positiveAmount = int $ Range.linear 0 100
 
+commitGen :: Gen Commit
+commitGen = do
+    person <- PubKey <$> int (Range.linear 0 10)
+    cash <- int (Range.linear 1 10000)
+    timeout <- int (Range.linear 1 50)
+    return (IdentCC 123, (person, NotRedeemed cash timeout))
 
 boundedValue :: Set Person -> Set IdentCC -> Bounds -> Gen Value
 boundedValue participants commits bounds = sized $ boundedValueAux participants commits bounds
@@ -222,26 +231,47 @@ interpretObs inputOracles blockNumber state obs = let
 insertCommit :: Commit -> [Commit] -> [Commit]
 insertCommit = $$(insertCommitQ)
 
+discountFromPairList :: PubKey
+    -> Slot
+    -> Ledger.Value
+    -> [(IdentCC, CCStatus)]
+    -> Maybe [(IdentCC, CCStatus)]
+discountFromPairList = $$(Marlowe.discountFromPairList)
+
+money :: Commit -> Int
+money (_, (_, NotRedeemed m _)) = m
+
+
 checkInsertCommit :: Property
 checkInsertCommit = property $ do
     commits <- forAll $ list (Range.linear 0 100) commitGen
-    let go [] a = a
-        go (c:cs) a = go cs (insertCommit c a)
-    let result = go commits []
+    let result = List.foldl' (flip insertCommit) [] commits
     let expectedMoney   = List.foldl' (\acc c -> acc + money c) 0 commits
     let actualMoney     = List.foldl' (\acc c -> acc + money c) 0 result
     Hedgehog.assert (length result == length commits)
     Hedgehog.assert (actualMoney == expectedMoney)
-  where
-    money :: Commit -> Int
-    money (_, (_, NotRedeemed m _)) = m
 
-    commitGen :: Gen Commit
-    commitGen = do
-        person <- PubKey <$> int (Range.linear 0 10)
-        cash <- int (Range.linear 1 10000)
-        timeout <- int (Range.linear 1 50)
-        return (IdentCC 123, (person, NotRedeemed cash timeout))
+checkDiscountFromPairList :: Property
+checkDiscountFromPairList = property $ do
+    generated <- forAll $ list (Range.linear 0 100) commitGen
+    let commits = List.foldl' (flip insertCommit) [] generated
+    let availableMoney commits  = List.foldl' (\acc c -> acc + money c) 0 commits
+    let mergeFunds acc (_, (pk, NotRedeemed m _)) = Map.alter (maybe (Just m) (\v -> Just $ v+m)) pk acc
+    let funds = List.foldl' mergeFunds Map.empty commits
+    case Map.toList funds of
+        [] -> do
+            let r = discountFromPairList (PubKey 1) (Slot 2) (Ledger.Value 10) []
+            Hedgehog.assert (isNothing r)
+        (pk, amount) : _ -> do
+            -- we are able to spend all the money for a person, when nothing is timedout yet
+            let r = discountFromPairList pk (Slot 1) (Ledger.Value amount) commits
+            Hedgehog.assert (isJust r)
+            let Just after = r
+            Hedgehog.assert (length after < length commits)
+            Hedgehog.assert (availableMoney after < availableMoney commits)
+            -- we are not able to spend anything after timeouts
+            let r = discountFromPairList pk (Slot 55) (Ledger.Value amount) commits
+            Hedgehog.assert (isNothing r)
 
 
 checkEqValue :: Property
