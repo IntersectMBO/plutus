@@ -29,7 +29,8 @@ import           Control.Monad.Now           (MonadNow, getCurrentTime, getPOSIX
 import           Control.Monad.Trace         (attempt, runTrace, withTrace)
 import           Control.Monad.Web           (MonadWeb, doRequest, makeManager)
 import           Control.Newtype.Generics    (unpack)
-import           Data.Aeson                  (FromJSON, ToJSON, Value (String), eitherDecode)
+import           Data.Aeson                  (FromJSON, ToJSON, Value (String), eitherDecode, parseJSON, withObject,
+                                              (.:))
 import           Data.Bifunctor              (first)
 import qualified Data.ByteString.Lazy        as LBS
 import qualified Data.Map                    as Map
@@ -105,12 +106,20 @@ mkGithubEndpoints = do
 
 -- | Config supplied at runtime.
 data Config = Config
-  { _configSigner           :: !JWT.Signer
-  , _configRedirectUrl      :: !Text
-  , _configRedirectEndpoint :: !Text
-  , _configClientId         :: !Text
-  , _configClientSecret     :: !Text
+  { _configJWTSignature       :: !JWT.Signer
+  , _configRedirectUrl        :: !Text
+  , _configGithubClientId     :: !Text
+  , _configGithubClientSecret :: !Text
   }
+
+instance FromJSON Config where
+  parseJSON =
+    withObject "config" $ \o -> do
+      _configGithubClientId <- o .: "github-client-id"
+      _configGithubClientSecret <- o .: "github-client-secret"
+      _configJWTSignature <- JWT.hmacSecret <$> o .: "jwt-signature"
+      _configRedirectUrl <- o .: "redirect-url"
+      pure Config {..}
 
 hSessionIdCookie :: Text
 hSessionIdCookie = "sessionId"
@@ -139,9 +148,9 @@ githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
       getUri .
       setQueryString
         [ ( "redirect_uri"
-          , Just $ encodeUtf8 $ _configRedirectUrl <> _configRedirectEndpoint)
+          , Just $ encodeUtf8 $ _configRedirectUrl <> _githubEndpointsCallbackUri)
         , ("scope", Just oauthScopes)
-        , ("client_id", Just $ encodeUtf8 _configClientId)
+        , ("client_id", Just $ encodeUtf8 _configGithubClientId)
         ] $
       _githubEndpointsAuthLocation
     oauthScopes = "gist"
@@ -154,7 +163,7 @@ authStatus ::
 authStatus Config {..} cookieHeader = do
   now <- getPOSIXTime
   _authStatusAuthRole <-
-    case extractGithubToken _configSigner now cookieHeader of
+    case extractGithubToken _configJWTSignature now cookieHeader of
       Right _ -> pure GithubUser
       Left err -> do
         logErrorN $
@@ -216,7 +225,7 @@ githubCallback githubEndpoints config@Config {..} (Just code) = do
     with500Err $ pure $ first Text.pack $ eitherDecode $ responseBody response
   logInfoN $ "Response was: " <> Text.pack (show (token :: OAuthToken 'Github))
   now <- getCurrentTime
-  let cookie = createSessionCookie _configSigner token now
+  let cookie = createSessionCookie _configJWTSignature token now
   logInfoN $ "Sending cookie: " <> Text.pack (show cookie)
   pure . addHeader cookie . addHeader _configRedirectUrl $ NoContent
 
@@ -236,8 +245,8 @@ makeTokenRequest GithubEndpoints {..} Config {..} (OAuthCode code) =
   _githubEndpointsAccessTokenLocation
   where
     params =
-      [ ("client_id", param _configClientId)
-      , ("client_secret", param _configClientSecret)
+      [ ("client_id", param _configGithubClientId)
+      , ("client_secret", param _configGithubClientSecret)
       , ("code", param code)
       ]
     param = Just . encodeUtf8
@@ -279,7 +288,7 @@ getGists GithubEndpoints {..} Config {..} cookieHeader = do
     newManager $ tlsManagerSettings {managerModifyRequest = pure . addUserAgent}
   let clientEnv = mkClientEnv manager _githubEndpointsApiBaseUrl
   now <- getPOSIXTime
-  case extractGithubToken _configSigner now cookieHeader of
+  case extractGithubToken _configJWTSignature now cookieHeader of
     Left err -> do
       logErrorN $
         "Failed to extract github token at step: " <> Text.pack (show err)

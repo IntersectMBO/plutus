@@ -6,9 +6,13 @@
 
 ```sh
 cd plutus-playground-server
+cp playground.yaml.sample playground.yaml
+
+vi playground.yaml # Fill in this file.
+
 stack build
 stack exec -- plutus-playground-server psgenerator ../plutus-playground-client/src/
-stack exec -- plutus-playground-server webserver -p 8080 ../plutus-playground-client/dist/
+stack exec -- plutus-playground-server webserver ../plutus-playground-client/dist/
 ```
 
 ### nix

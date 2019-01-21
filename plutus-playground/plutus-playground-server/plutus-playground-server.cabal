@@ -93,6 +93,7 @@ executable plutus-playground-server
     hs-source-dirs:   app
     other-modules:
         Webserver
+        Types
         PSGenerator
         Auth
     default-language: Haskell2010
@@ -147,7 +148,8 @@ executable plutus-playground-server
         wai-cors -any,
         wai-extra -any,
         wallet-api -any,
-        warp -any
+        warp -any,
+        yaml -any
 
 test-suite plutus-playground-server-test
     type:               exitcode-stdio-1.0

@@ -38,7 +38,7 @@ import           Servant                              ((:<|>) ((:<|>)), (:>), Ge
                                                        Raw, ServantErr, hoistServer, serve, serveDirectoryFileServer)
 import           Servant.Foreign                      (GenerateList, NoContent, Req, generateList)
 import           Servant.Server                       (Server)
-import qualified Web.JWT                              as JWT
+import           Types                                (Config (Config, _authConfig))
 
 instance GenerateList NoContent (Method -> Req NoContent) where
   generateList _ = []
@@ -58,51 +58,27 @@ liftedAuthServer githubEndpoints config =
     liftAuthToHandler = Handler . runStderrLoggingT
 
 server ::
-     Server PA.API
-  -> FilePath
-  -> Auth.GithubEndpoints
-  -> Auth.Config
-  -> Server Web
-server handlers staticDir githubEndpoints config =
-  version :<|> (handlers :<|> liftedAuthServer githubEndpoints config) :<|>
-  serveDirectoryFileServer staticDir
+     Server PA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Server Web
+server handlers _staticDir githubEndpoints Config {..} =
+  version :<|> (handlers :<|> liftedAuthServer githubEndpoints _authConfig) :<|>
+  serveDirectoryFileServer _staticDir
 
 version :: Applicative m => m Text
 version = pure $(gitHash)
 
 app ::
-     Server PA.API
-  -> Auth.GithubEndpoints
-  -> Auth.Config
-  -> FilePath
-  -> Application
-app handlers githubEndpoints config staticDir =
+     Server PA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Application
+app handlers _staticDir githubEndpoints config =
   gzip def . logStdout . cors (const $ Just policy) . serve (Proxy @Web) $
-  server handlers staticDir githubEndpoints config
+  server handlers _staticDir githubEndpoints config
   where
     policy =
       simpleCorsResourcePolicy
         {corsRequestHeaders = ["content-type", "set-cookie"]}
 
-run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> m ()
-run settings staticDir = do
+run :: (MonadLogger m, MonadIO m) => Settings -> FilePath -> Config -> m ()
+run settings _staticDir config = do
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
-  config <- liftIO mkTempConfig
   handlers <- PS.mkHandlers
   logInfoN "Starting webserver."
-  liftIO . runSettings settings $ app handlers githubEndpoints config staticDir
-
-{-# DEPRECATED
-mkTempConfig "This is scaffolding."
- #-}
-
-mkTempConfig :: IO Auth.Config
-mkTempConfig = pure Auth.Config {..}
-  where
-    _configClientId = "869cbadc1d2dfc393466"
-    _configClientSecret = "ac912971fb52a53a96cd110ca5f86878febfaf30"
-    _configSigner =
-      JWT.hmacSecret
-        "13e36bb4deea98975b7b0d5ac318db60185001c235e5cd945b5dc5adda5816642680c5f34483a4bb"
-    _configRedirectUrl = "https://localhost:8009"
-    _configRedirectEndpoint = "/api/oauth/github/callback" -- | TODO This should really come from Servant directly.
+  liftIO . runSettings settings $ app handlers _staticDir githubEndpoints config
