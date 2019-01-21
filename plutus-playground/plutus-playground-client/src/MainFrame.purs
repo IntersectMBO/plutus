@@ -28,7 +28,6 @@ import Data.Generic (gEq)
 import Data.Int as Int
 import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)

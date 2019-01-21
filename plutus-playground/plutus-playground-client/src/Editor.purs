@@ -14,7 +14,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (view)
+import Data.Lens (view, to)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
@@ -60,7 +60,7 @@ editorPane state =
         ]
     , br_
     , errorList
-, warningList
+    , warningList
     ]
     where
       btnClass = case state.compilationResult of
@@ -84,7 +84,7 @@ editorPane state =
                         ]
                     _ -> empty
       warningList = case state.compilationResult of
-                     (Success (Right result)) -> listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> (view (_CompilationResult <<< _warnings) result))
+                     (Success (Right result)) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result
                      _ -> empty
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
@@ -134,6 +134,9 @@ compilationErrorPane (CompilationError error) =
     , code_
         [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]
+
+compilationWarningsPane :: forall p. Array Warning -> HTML p Query
+compilationWarningsPane warnings = listGroup_ $ listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings
 
 compilationWarningPane :: forall p. Warning -> HTML p Query
 compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text (view _Warning warning) ]
