@@ -24,7 +24,7 @@ import           Auth.Types                  (OAuthCode (OAuthCode), OAuthToken,
 import           Control.Monad               (guard, unless)
 import           Control.Monad.Except        (MonadError)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
-import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN, logInfoN)
+import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN)
 import           Control.Monad.Now           (MonadNow, getCurrentTime, getPOSIXTime)
 import           Control.Monad.Trace         (attempt, runTrace, withTrace)
 import           Control.Monad.Web           (MonadWeb, doRequest, makeManager)
@@ -129,16 +129,13 @@ githubTokenClaim :: Text
 githubTokenClaim = "github-token"
 
 redirect ::
-     (Applicative m, ToHttpApiData loc)
+     ToHttpApiData loc
   => loc -- ^ what to put in the 'Location' header
-  -> m (Headers '[ Header "Location" loc] NoContent)
-redirect a = pure $ addHeader a NoContent
+  -> Headers '[ Header "Location" loc] NoContent
+redirect a = addHeader a NoContent
 
 githubRedirect ::
-     Applicative m
-  => GithubEndpoints
-  -> Config
-  -> m (Headers '[ Header "Location" Text] NoContent)
+     GithubEndpoints -> Config -> Headers '[ Header "Location" Text] NoContent
 githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
   where
     githubRedirectUrl :: Text
@@ -148,7 +145,8 @@ githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
       getUri .
       setQueryString
         [ ( "redirect_uri"
-          , Just $ encodeUtf8 $ _configRedirectUrl <> _githubEndpointsCallbackUri)
+          , Just $
+            encodeUtf8 $ _configRedirectUrl <> _githubEndpointsCallbackUri)
         , ("scope", Just oauthScopes)
         , ("client_id", Just $ encodeUtf8 _configGithubClientId)
         ] $
@@ -209,24 +207,18 @@ githubCallback _ _ Nothing =
   with500Err . pure . Left $
   "Expected a response from Github with an authorization code. Didn't get one!"
 githubCallback githubEndpoints config@Config {..} (Just code) = do
-  logInfoN $
-    "OAuth Code is: " <> Text.pack (show code) <>
-    ". Swapping for a long-lived token."
+  logDebugN "OAuth Code received. Swapping for a long-lived token."
   manager <- makeManager
   let tokenRequest = makeTokenRequest githubEndpoints config code
-  logInfoN $ "Request: " <> Text.pack (show tokenRequest)
-  logInfoN $
-    "Request: " <> Text.pack (show (getRequestQueryString tokenRequest))
   response <- with500Err $ doRequest tokenRequest manager
   unless
     (statusIsSuccessful (responseStatus response))
     (with500Err . pure . Left $ "Response: " <> Text.pack (show response))
   token <-
     with500Err $ pure $ first Text.pack $ eitherDecode $ responseBody response
-  logInfoN $ "Response was: " <> Text.pack (show (token :: OAuthToken 'Github))
   now <- getCurrentTime
   let cookie = createSessionCookie _configJWTSignature token now
-  logInfoN $ "Sending cookie: " <> Text.pack (show cookie)
+  logDebugN "Sending cookie."
   pure . addHeader cookie . addHeader _configRedirectUrl $ NoContent
 
 with500Err ::
@@ -308,6 +300,6 @@ server ::
   -> Config
   -> ServerT API m
 server githubEndpoints config =
-  ((authStatus config :<|> githubRedirect githubEndpoints config) :<|>
+  ((authStatus config :<|> pure (githubRedirect githubEndpoints config)) :<|>
    getGists githubEndpoints config) :<|>
   githubCallback githubEndpoints config
