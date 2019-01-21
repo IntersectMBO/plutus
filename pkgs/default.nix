@@ -43089,6 +43089,7 @@ license = stdenv.lib.licenses.bsd3;
 , alex
 , array
 , base
+, bimap
 , bytestring
 , cborg
 , composition-prelude
@@ -43129,6 +43130,7 @@ isExecutable = true;
 libraryHaskellDepends = [
 array
 base
+bimap
 bytestring
 cborg
 composition-prelude

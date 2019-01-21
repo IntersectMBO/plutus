@@ -48,8 +48,8 @@ tests = testNested "Plugin" [
 
 basic :: TestNested
 basic = testNested "basic" [
-    goldenPlc "monoId" monoId
-  , goldenPlc "monoK" monoK
+    goldenPir "monoId" monoId
+  , goldenPir "monoK" monoK
   ]
 
 monoId :: CompiledCode (Int -> Int)
@@ -151,7 +151,7 @@ trace = plc @"trace" (\(x :: Builtins.String) -> Builtins.trace x)
 
 structure :: TestNested
 structure = testNested "structure" [
-    goldenPlc "letFun" letFun
+    goldenPir "letFun" letFun
   ]
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let

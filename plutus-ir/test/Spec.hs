@@ -138,7 +138,7 @@ recursion :: TestNested
 recursion = testNested "recursion" [
     goldenPlc "even3" evenOdd,
     goldenEval "even3Eval" [evenOdd],
-    goldenPlcCatch "mutuallyRecursiveValues" mutuallyRecursiveValues
+    goldenPlc "mutuallyRecursiveValues" mutuallyRecursiveValues
     ]
 
 natToBool :: Quote (Type TyName ())

@@ -4,55 +4,55 @@
       [
         {
           (abs
-            Maybe_20
+            Maybe_i0
             (fun (type) (type))
             (lam
-              Nothing_21
-              (all a_22 (type) [Maybe_20 a_22])
+              Nothing_i0
+              (all a_i0 (type) [Maybe_i3 a_i1])
               (lam
-                Just_23
-                (all a_24 (type) (fun a_24 [Maybe_20 a_24]))
+                Just_i0
+                (all a_i0 (type) (fun a_i1 [Maybe_i4 a_i1]))
                 (lam
-                  match_Maybe_25
-                  (all a_26 (type) (fun [Maybe_20 a_26] (all out_Maybe_27 (type) (fun out_Maybe_27 (fun (fun a_26 out_Maybe_27) out_Maybe_27)))))
+                  match_Maybe_i0
+                  (all a_i0 (type) (fun [Maybe_i5 a_i1] (all out_Maybe_i0 (type) (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1)))))
                   [
-                    { Just_23 (all a_28 (type) (fun a_28 a_28)) }
-                    (abs a_29 (type) (lam x_30 a_29 x_30))
+                    { Just_i2 (all a_i0 (type) (fun a_i1 a_i1)) }
+                    (abs a_i0 (type) (lam x_i0 a_i2 x_i1))
                   ]
                 )
               )
             )
           )
-          (lam a_31 (type) (all out_Maybe_32 (type) (fun out_Maybe_32 (fun (fun a_31 out_Maybe_32) out_Maybe_32))))
+          (lam a_i0 (type) (all out_Maybe_i0 (type) (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1))))
         }
         (abs
-          a_33
+          a_i0
           (type)
           (abs
-            out_Maybe_34
+            out_Maybe_i0
             (type)
             (lam
-              case_Nothing_35
-              out_Maybe_34
-              (lam case_Just_36 (fun a_33 out_Maybe_34) case_Nothing_35)
+              case_Nothing_i0
+              out_Maybe_i2
+              (lam case_Just_i0 (fun a_i4 out_Maybe_i3) case_Nothing_i2)
             )
           )
         )
       ]
       (abs
-        a_37
+        a_i0
         (type)
         (lam
-          arg_0_38
-          a_37
+          arg_0_i0
+          a_i2
           (abs
-            out_Maybe_39
+            out_Maybe_i0
             (type)
             (lam
-              case_Nothing_40
-              out_Maybe_39
+              case_Nothing_i0
+              out_Maybe_i2
               (lam
-                case_Just_41 (fun a_37 out_Maybe_39) [ case_Just_41 arg_0_38 ]
+                case_Just_i0 (fun a_i5 out_Maybe_i3) [ case_Just_i1 arg_0_i4 ]
               )
             )
           )
@@ -60,12 +60,12 @@
       )
     ]
     (abs
-      a_42
+      a_i0
       (type)
       (lam
-        x_43
-        [(lam a_44 (type) (all out_Maybe_45 (type) (fun out_Maybe_45 (fun (fun a_44 out_Maybe_45) out_Maybe_45)))) a_42]
-        x_43
+        x_i0
+        [(lam a_i0 (type) (all out_Maybe_i0 (type) (fun out_Maybe_i1 (fun (fun a_i2 out_Maybe_i1) out_Maybe_i1)))) a_i2]
+        x_i1
       )
     )
   ]
