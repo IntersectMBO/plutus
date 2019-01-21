@@ -140,8 +140,7 @@ githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
   where
     githubRedirectUrl :: Text
     githubRedirectUrl =
-      Text.pack .
-      show .
+      showText .
       getUri .
       setQueryString
         [ ( "redirect_uri"
@@ -165,7 +164,7 @@ authStatus Config {..} cookieHeader = do
       Right _ -> pure GithubUser
       Left err -> do
         logErrorN $
-          "Failed to extract github token at step: " <> Text.pack (show err)
+          "Failed to extract github token at step: " <> showText err
         pure Anonymous
   pure AuthStatus {..}
 
@@ -175,7 +174,7 @@ extractGithubToken signer now cookieHeader =
   runTrace $ do
     attempt "Reading cookies."
     cookies <- parseCookies . encodeUtf8 <$> withTrace cookieHeader
-    attempt $ "Looking for Session ID cookie: " <> Text.pack (show cookies)
+    attempt $ "Looking for Session ID cookie: " <> showText cookies
     githubAuth <- withTrace $ lookup (encodeUtf8 hSessionIdCookie) cookies
     attempt $ "Reading JWT Cookie: " <> decodeUtf8 githubAuth
     unverifiedJwt <- withTrace . JWT.decode . decodeUtf8 $ githubAuth
@@ -191,11 +190,12 @@ extractGithubToken signer now cookieHeader =
       withTrace .
       Map.lookup githubTokenClaim . JWT.unClaimsMap . JWT.unregisteredClaims $
       claims
-    attempt $ "Extracting token as a string:" <> Text.pack (show json)
+    attempt $ "Extracting token as a string:" <> showText json
     withTrace $
       case json of
         String token -> pure $ Token token
         _            -> Nothing
+
 githubCallback ::
      (MonadLogger m, MonadWeb m, MonadError ServantErr m, MonadNow m)
   => GithubEndpoints
@@ -284,14 +284,14 @@ getGists GithubEndpoints {..} Config {..} cookieHeader = do
   case extractGithubToken _configJWTSignature now cookieHeader of
     Left err -> do
       logErrorN $
-        "Failed to extract github token at step: " <> Text.pack (show err)
+        "Failed to extract github token at step: " <> showText err
       throwError err401
     Right token -> do
       response <- liftIO (runClientM (Gist.getGists (Just token)) clientEnv)
-      logDebugN $ "Gist response: " <> Text.pack (show response)
+      logDebugN $ "Gist response: " <> showText response
       case response of
         Left err -> do
-          logErrorN $ "Failed to read github endpoint: " <> Text.pack (show err)
+          logErrorN $ "Failed to read github endpoint: " <> showText err
           throwError err500
         Right gists -> pure gists
 
@@ -304,3 +304,6 @@ server githubEndpoints config =
   ((authStatus config :<|> pure (githubRedirect githubEndpoints config)) :<|>
    getGists githubEndpoints config) :<|>
   githubCallback githubEndpoints config
+
+showText :: Show a => a -> Text
+showText = Text.pack . show
