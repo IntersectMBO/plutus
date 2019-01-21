@@ -21,7 +21,7 @@ module Auth
 
 import           Auth.Types                  (OAuthCode (OAuthCode), OAuthToken, Token (Token), TokenProvider (Github),
                                               addUserAgent, oAuthTokenAccessToken)
-import           Control.Monad               (guard, unless)
+import           Control.Monad               (guard)
 import           Control.Monad.Except        (MonadError)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
 import           Control.Monad.Logger        (MonadLogger, logDebugN, logErrorN)
@@ -47,7 +47,7 @@ import           Network.HTTP.Client.Conduit (getUri)
 import           Network.HTTP.Client.TLS     (tlsManagerSettings)
 import           Network.HTTP.Conduit        (Request, newManager, parseRequest, responseBody, responseStatus,
                                               setQueryString)
-import           Network.HTTP.Simple         (addRequestHeader, getRequestQueryString)
+import           Network.HTTP.Simple         (addRequestHeader)
 import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
 import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
                                               QueryParam, ServantErr, ServerT, StdMethod (GET), ToHttpApiData, Verb,
@@ -196,7 +196,6 @@ extractGithubToken signer now cookieHeader =
       case json of
         String token -> pure $ Token token
         _            -> Nothing
-
 githubCallback ::
      (MonadLogger m, MonadWeb m, MonadError ServantErr m, MonadNow m)
   => GithubEndpoints
@@ -211,11 +210,13 @@ githubCallback githubEndpoints config@Config {..} (Just code) = do
   manager <- makeManager
   let tokenRequest = makeTokenRequest githubEndpoints config code
   response <- with500Err $ doRequest tokenRequest manager
-  unless
-    (statusIsSuccessful (responseStatus response))
-    (with500Err . pure . Left $ "Response: " <> Text.pack (show response))
   token <-
-    with500Err $ pure $ first Text.pack $ eitherDecode $ responseBody response
+    with500Err $
+    pure $
+    first Text.pack $
+    if statusIsSuccessful (responseStatus response)
+      then eitherDecode $ responseBody response
+      else Left $ "Response: " <> show response
   now <- getCurrentTime
   let cookie = createSessionCookie _configJWTSignature token now
   logDebugN "Sending cookie."
