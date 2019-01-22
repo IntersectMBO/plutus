@@ -48,7 +48,7 @@ import           Wallet                         ( PubKey(..)
                                                 )
 import           Wallet.Emulator
 import qualified Wallet.Generators              as Gen
-import           Language.Marlowe        hiding (discountFromPairList)
+import           Language.Marlowe        hiding (insertCommit, discountFromPairList)
 import qualified Language.Marlowe               as Marlowe
 import           Language.Marlowe.Client        ( commit'
                                                 , commit
@@ -82,6 +82,7 @@ validatorTests = testGroup "Marlowe Validator" [
     testProperty "interprebObs is a total function" checkInterpretObsTotality,
     testProperty "insertCommit" checkInsertCommit,
     testProperty "discountFromPairList is correct" checkDiscountFromPairList,
+    testCase     "findAndRemove" checkFindAndRemove,
     testCase     "invalid contract: not enought money" notEnoughMoney,
     testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC
     ]
@@ -218,7 +219,7 @@ eqContract :: Contract -> Contract -> Bool
 eqContract = $$(equalContract) eqValue eqObservation
 
 validContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
-validContract = $$(validateContractQ)
+validContract = $$(Marlowe.validateContract)
 
 evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
 evalValue pendingTxBlockHeight inputOracles = $$(evaluateValue) pendingTxBlockHeight inputOracles
@@ -229,7 +230,7 @@ interpretObs inputOracles blockNumber state obs = let
     in $$(interpretObservation) ev blockNumber state obs
 
 insertCommit :: Commit -> [Commit] -> [Commit]
-insertCommit = $$(insertCommitQ)
+insertCommit = $$(Marlowe.insertCommit)
 
 discountFromPairList :: PubKey
     -> Slot
@@ -272,6 +273,15 @@ checkDiscountFromPairList = property $ do
             -- we are not able to spend anything after timeouts
             let r = discountFromPairList pk (Slot 55) (Ledger.Value amount) commits
             Hedgehog.assert (isNothing r)
+
+checkFindAndRemove :: IO ()
+checkFindAndRemove = do
+    let commits =   [ (IdentCC 1, (PubKey 1, NotRedeemed 12 10))
+                    , (IdentCC 2, (PubKey 1, NotRedeemed 22 10))
+                    , (IdentCC 2, (PubKey 1, NotRedeemed 33 10))]
+    let r = $$(Marlowe.findAndRemove) (\(IdentCC id, _) -> id == 2) commits
+    r @?= Just  [ (IdentCC 1, (PubKey 1, NotRedeemed 12 10))
+                , (IdentCC 2, (PubKey 1, NotRedeemed 33 10))]
 
 
 checkEqValue :: Property

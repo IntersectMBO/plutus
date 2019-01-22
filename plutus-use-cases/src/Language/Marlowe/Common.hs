@@ -22,16 +22,19 @@ the execution of financial contracts in the style of Peyton Jones et al
 on Cardano Computation Layer.
 
 The implementation is based on semantics described in paper
-'Marlowe: financial contracts on blockchain' by Simon Thompson and Pablo Lamela Seijas
+<https://iohk.io/research/papers/#2WHKDRA8 'Marlowe: financial contracts on blockchain'>
+by Simon Thompson and Pablo Lamela Seijas
 
 == Semantics
+
+Semantics is based on <https://github.com/input-output-hk/marlowe/blob/stable/src/Semantics.hs>
 
 Marlowe Contract execution is a chain of transactions,
 where remaining contract and its state is passed through /Data Script/,
 and actions (i.e. /Choices/ and /Oracle Values/) are passed as
 /Redeemer Script/
 
-Validation Script/ is always the same Marlowe interpreter implementation, available below.
+/Validation Script/ is always the same Marlowe interpreter implementation, available below.
 
 Both /Redeemer Script/ and /Data Script/ have the same structure:
 @(Input, MarloweData)@
@@ -224,15 +227,15 @@ makeLift ''MarloweData
 makeLift ''Input
 makeLift ''State
 
-
+-- | 'ValidatorHash' equality
 eqValidator :: Q (TExp (ValidatorHash -> ValidatorHash -> Bool))
 eqValidator = [|| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r ||]
 
-
+-- | 'IdentCC' equality
 eqIdentCC :: Q (TExp (IdentCC -> IdentCC -> Bool))
 eqIdentCC = [|| \(IdentCC a) (IdentCC b) -> a == b ||]
 
-
+-- | 'Value' equality
 equalValue :: Q (TExp (Value -> Value -> Bool))
 equalValue = [|| \l r -> let
 
@@ -261,6 +264,7 @@ equalValue = [|| \l r -> let
     in eq l r
     ||]
 
+-- | 'Observation' equality
 equalObservation :: Q (TExp ((Value -> Value -> Bool) -> Observation -> Observation -> Bool))
 equalObservation = [|| \eqValue l r -> let
     infixr 3 &&
@@ -287,6 +291,7 @@ equalObservation = [|| \eqValue l r -> let
     in eq l r
     ||]
 
+-- | 'Contract' equality
 equalContract :: Q (TExp ((Value -> Value -> Bool) -> (Observation -> Observation -> Bool) -> Contract -> Contract -> Bool))
 equalContract = [|| \eqValue eqObservation l r -> let
     infixr 3 &&
@@ -333,8 +338,8 @@ equalContract = [|| \eqValue eqObservation l r -> let
     i.e. @ IdentCC 1 @ followed by @ IdentCC 2 @
     * Check that contract locks at least the value claimed in its State commits.
 -}
-validateContractQ :: Q (TExp (State -> Contract -> Slot -> Ledger.Value -> Bool))
-validateContractQ = [|| \State{stateCommitted} contract (Slot bn) (Ledger.Value actualMoney) -> let
+validateContract :: Q (TExp (State -> Contract -> Slot -> Ledger.Value -> Bool))
+validateContract = [|| \State{stateCommitted} contract (Slot bn) (Ledger.Value actualMoney) -> let
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
@@ -384,7 +389,7 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
     eqPk :: PubKey -> PubKey -> Bool
     eqPk = $$(Validation.eqPubKey)
 
-    findCommit :: IdentCC -> [(IdentCC, CCStatus)] -> Maybe CCStatus
+    findCommit :: IdentCC -> [Commit] -> Maybe CCStatus
     findCommit i@(IdentCC searchId) commits = case commits of
         (IdentCC id, status) : _ | id == searchId -> Just status
         _ : xs -> findCommit i xs
@@ -474,8 +479,8 @@ interpretObservation = [|| \evalValue blockNumber state@(State _ choices) obs ->
     ||]
 
 -- | Add a 'Commit', placing it in order by endTimeout per 'Person'
-insertCommitQ :: Q (TExp (Commit -> [Commit] -> [Commit]))
-insertCommitQ = [|| \ commit commits -> let
+insertCommit :: Q (TExp (Commit -> [Commit] -> [Commit]))
+insertCommit = [|| \ commit commits -> let
 
     infixr 3 &&
     (&&) :: Bool -> Bool -> Bool
@@ -500,8 +505,8 @@ discountFromPairList :: Q (TExp (
     PubKey
     -> Slot
     -> Ledger.Value
-    -> [(IdentCC, CCStatus)]
-    -> Maybe [(IdentCC, CCStatus)]))
+    -> [Commit]
+    -> Maybe [Commit]))
 discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ledger.Value value) commits -> let
     infixr 3 &&
     (&&) = $$(PlutusTx.and)
@@ -517,6 +522,27 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ledger.Value value)
         commit : rest -> discount (commit : acc) value rest
         [] -> if value == 0 then Just acc else Nothing
     in discount [] value commits
+    ||]
+
+{-| Look for first 'Commit' satisfying @predicate@ and remove it.
+    Returns 'Nothing' if the 'Commit' wasn't found,
+    otherwise 'Just' modified @[Commit]@
+-}
+findAndRemove :: Q (TExp ((Commit -> Bool) -> [Commit] -> Maybe [Commit]))
+findAndRemove = [|| \ predicate commits -> let
+    (&&) = $$(PlutusTx.and)
+
+    reverse :: [a] -> [a]
+    reverse l =  rev l [] where
+            rev []     a = a
+            rev (x:xs) a = rev xs (x:a)
+
+    findAndRemove commit (v, acc) =
+        if $$(PlutusTx.not) v && predicate commit
+        then (True, acc)
+        else (v, commit : acc)
+    (found, updatedCommits) = $$(PlutusTx.foldr) findAndRemove (False, []) commits
+    in if found then Just (reverse updatedCommits) else Nothing
     ||]
 
 {-|
@@ -575,11 +601,8 @@ evaluateContract = [|| \
     interpretObs :: Int -> State -> Observation -> Bool
     interpretObs = $$(interpretObservation) evalValue
 
-    insertCommit :: Commit -> [Commit] -> [Commit]
-    insertCommit = $$(insertCommitQ)
-
     eval :: InputCommand -> State -> Contract -> (State, Contract, Bool)
-    eval input state@(State commits oracles) contract = case (contract, input) of
+    eval input state@(State commits choices) contract = case (contract, input) of
         (When obs timeout con con2, _)
             | currentBlockNumber > timeout -> eval input state con2
             | interpretObs currentBlockNumber state obs -> eval input state con
@@ -609,7 +632,7 @@ evaluateContract = [|| \
             in  if isValid then let
                     cns = (pubKey, NotRedeemed vv endTimeout)
                     updatedState = let State committed choices = state
-                        in State (insertCommit (id1, cns) committed) choices
+                        in State ($$(insertCommit) (id1, cns) committed) choices
                     in (updatedState, con1, True)
                 else (state, contract, False)
 
@@ -626,49 +649,33 @@ evaluateContract = [|| \
             in  if isValid then let
                 in case $$(discountFromPairList) from blockHeight (Ledger.Value pv) commits of
                     Just updatedCommits -> let
-                        updatedState = State (reverse updatedCommits) oracles
+                        updatedState = State (reverse updatedCommits) choices
                         in (updatedState, con, True)
                     Nothing -> (state, contract, False)
             else (state, contract, False)
 
         (RedeemCC id1 con, Redeem id2 signature) | id1 `eqIdentCC` id2 -> let
-            findAndRemove :: [(IdentCC, CCStatus)] -> [(IdentCC, CCStatus)] -> (Bool, State) -> (Bool, State)
-            findAndRemove ls resultCommits result = case ls of
-                (i, (pk, NotRedeemed val _)) : ls
-                    | i `eqIdentCC` id1 && scriptOutValue == scriptInValue - val && signature `signedBy` pk ->
-                        findAndRemove ls resultCommits (True, state)
-                e : ls -> findAndRemove ls (e : resultCommits) result
-                [] -> let
-                    (isValid, State _ choices) = result
-                    in (isValid, State (reverse resultCommits) choices)
-
-            (isValid, updatedState) = findAndRemove commits [] (False, state)
-            in if isValid
-            then (updatedState, con, True)
-            else (state, contract, False)
+            predicate :: Commit -> Bool
+            predicate (i, (pk, NotRedeemed val _)) =
+                i `eqIdentCC` id1
+                && scriptOutValue == scriptInValue - val
+                && signature `signedBy` pk
+            -- validate and remove a Commit
+            in case $$(findAndRemove) predicate commits of
+                Just updatedCommits -> (State updatedCommits choices, con, True)
+                Nothing -> (state, contract, False)
 
         (_, Redeem identCC signature) -> let
-            findAndRemoveExpired ::
-                [(IdentCC, CCStatus)]
-                -> [(IdentCC, CCStatus)]
-                -> (Bool, State)
-                -> (Bool, State)
-            findAndRemoveExpired ls resultCommits result = case ls of
-                (i, (pk, NotRedeemed val expire)) : ls
-                    | i `eqIdentCC` identCC
+            predicate :: Commit -> Bool
+            predicate (i, (pk, NotRedeemed val expire)) =
+                    i `eqIdentCC` identCC
                     && scriptOutValue == scriptInValue - val
                     && currentBlockNumber > expire
-                    && signature `signedBy` pk ->
-                        findAndRemoveExpired ls resultCommits (True, state)
-                e : ls -> findAndRemoveExpired ls (e : resultCommits) result
-                [] -> let
-                    (isValid, State _ choices) = result
-                    in (isValid, State (reverse resultCommits) choices)
-
-            (isValid, updatedState) = findAndRemoveExpired commits [] (False, state)
-            in if isValid
-            then (updatedState, contract, True)
-            else (state, contract, False)
+                    && signature `signedBy` pk
+            -- validate and remove a Commit
+            in case $$(findAndRemove) predicate commits of
+                Just updatedCommits -> (State updatedCommits choices, contract, True)
+                Nothing -> (state, contract, False)
 
         (Null, SpendDeposit sig) | null commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
@@ -752,9 +759,6 @@ validator = [|| \
             notel eq (e : ls) a = if a `eq` e then False else notel eq ls a
             notel _ [] _ = True
 
-        validateContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
-        validateContract = $$(validateContractQ)
-
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
         eqValidator = $$(Validation.eqValidator)
 
@@ -776,7 +780,7 @@ validator = [|| \
         eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract) contractCreatorPK
 
-        contractIsValid = validateContract marloweState marloweContract pendingTxSlot scriptInValue
+        contractIsValid = $$(validateContract) marloweState marloweContract pendingTxSlot scriptInValue
 
         State currentCommits currentChoices = marloweState
 
