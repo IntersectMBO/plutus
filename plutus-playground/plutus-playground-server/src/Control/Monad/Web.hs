@@ -17,20 +17,21 @@ class Monad m =>
       MonadWeb m
   where
   makeManager :: m Manager
-  doRequest :: Request -> Manager -> m (Either Text (Response LBS.ByteString))
+  doRequest :: Manager -> Request -> m (Either Text (Response LBS.ByteString))
 
 instance MonadWeb IO where
   makeManager = newManager defaultManagerSettings
-  doRequest request manager = Right <$> httpLbs request manager
+  doRequest manager request = Right <$> httpLbs request manager
 
 instance MonadWeb m => MonadWeb (LoggingT m) where
   makeManager = lift makeManager
-  doRequest request = lift . doRequest request
+  doRequest manager = lift . doRequest manager
+
 
 instance MonadWeb m => MonadWeb (ExceptT e m) where
   makeManager = lift makeManager
-  doRequest request = lift . doRequest request
+  doRequest manager = lift . doRequest manager
 
 instance MonadWeb m => MonadWeb (ReaderT a m) where
   makeManager = lift makeManager
-  doRequest request = lift . doRequest request
+  doRequest manager = lift . doRequest manager

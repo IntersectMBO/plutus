@@ -209,8 +209,7 @@ githubCallback _ _ Nothing =
 githubCallback githubEndpoints config@Config {..} (Just code) = do
   logDebugN "OAuth Code received. Swapping for a long-lived token."
   manager <- makeManager
-  let tokenRequest = makeTokenRequest githubEndpoints config code
-  response <- with500Err $ doRequest tokenRequest manager
+  response <- with500Err $ doRequest manager $ makeTokenRequest githubEndpoints config code
   token <-
     with500Err . pure . first Text.pack $
     if statusIsSuccessful (responseStatus response)
