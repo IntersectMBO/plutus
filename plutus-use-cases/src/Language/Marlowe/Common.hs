@@ -41,23 +41,47 @@ Both /Redeemer Script/ and /Data Script/ have the same structure:
 
 where
 
-* /Input/ contains contract actions (i.e. /Pay/, /Redeem/), /Choices/ and /Oracle Values/,
-* /MarloweData/ contains remaining /Contract/ and its /State/
-* /State/ is a set of /Commits/ plus set of made /Choices/
+* 'Input' contains contract actions (i.e. /Pay/, /Redeem/), /Choices/ and /Oracle Values/,
+* 'MarloweData' contains remaining 'Contract' and its 'State'
+* 'State' is a set of 'Commit's plus a set of made 'Choice's
 
-To spend 'TxOut' secured by Marlowe Validator Script, a user must provide /Redeemer Script/
-that is a tuple of an /Input/ and expected output of Marlowe Contract interpretation for
-the given /Input/, i.e. /Contract/ and /State/.
+To spend 'TxOut' secured by Marlowe /Validator Script/, a user must provide /Redeemer Script/
+that is a tuple of an 'Input' and expected output of Marlowe 'Contract' interpretation for
+the given 'Input', i.e. 'Contract' and 'State'.
 
-To ensure that user provides valid remainig /Contract/ and /State/
-/Marlowe Validator Script/ compares evaluated contract and state with provided by user,
+To ensure that user provides valid remainig 'Contract' and 'State'
+Marlowe /Validator Script/ compares evaluated contract and state with provided by user,
 and rejects a transaction if those don't match.
 
-To ensure that remaining contract's /Data Script/ has the same /Contract/ and /State/
+To ensure that remaining contract's /Data Script/ has the same 'Contract' and 'State'
 as was passed with /Redeemer Script/, we check that /Data Script/ hash is
 the same as /Redeemer Script/.
 That's why those are of the same structure @(Input, MarloweData)@.
 
+== Example
+
+Consider simple payment contract, where Alice commits to pay 100 Ada to Bob before timeout1.
+She can get back committed money if Bob didn't ask for payment before timeout2.
+
+> let Alice = PubKey 1
+> let Bob   = PubKey 2
+> let timeout1 = 23
+> let timeout2 = 50
+> let contract = CommitCash (IdentCC 1) Alice (Value 100) timeout1 timeout2
+>             (Pay (IdentPay 1) Alice Bob (Committed (IdentCC 1)) timeout2 Null)
+>             Null
+
+Alice commits:
+
+> let input = Input (Commit (IdentCC 1) (txHash `signedBy` Alice)) [] []
+
+Bob demands payment:
+
+> let input = Input (Payment (IdentPay 1) (txHash `signedBy` Bob)) [] []
+
+Or, in case Bob didn't demand payment before timeout2, Alice can require a redeem of her commit:
+
+> let input = Input (Redeem (IdentCC 1) (txHash `signedBy` Alice)) [] []
 -}
 
 module Language.Marlowe.Common where
@@ -128,39 +152,53 @@ type Commit = (IdentCC, CCStatus)
     of money.
 -}
 data Value  = Committed IdentCC
+            -- ^ available amount by 'IdentCC'
             | Value Int
             | AddValue Value Value
             | MulValue Value Value
-            | DivValue Value Value Value  -- divident, divisor, default value (when divisor evaluates to 0)
+            | DivValue Value Value Value
+            -- ^ divident, divisor, default value (when divisor evaluates to 0)
             | ValueFromChoice IdentChoice Person Value
-            | ValueFromOracle PubKey Value -- Oracle PubKey, default value when no Oracle Value provided
+            -- ^ interpret a choice identified by 'IdentChoice' and 'Person' as a value if it is provided,
+            --   'Value' otherwise
+            | ValueFromOracle PubKey Value
+            -- ^ Oracle PubKey, default 'Value' when no Oracle Value provided
                     deriving (Eq, Show)
 
-{-|
-    Representation of observations over observables and the state.
-    Rendered into predicates by interpretObs.
+{-| Predicate on outer world and contract 'State'.
+    'interpretObservation' evaluates 'Observation' to 'Bool'
 -}
-data Observation = BelowTimeout Int -- are we still on time for something that expires on Timeout?
+data Observation = BelowTimeout Int
+            -- ^ are we still on time for something that expires on Timeout?
             | AndObs Observation Observation
             | OrObs Observation Observation
             | NotObs Observation
             | PersonChoseThis IdentChoice Person ConcreteChoice
             | PersonChoseSomething IdentChoice Person
-            | ValueGE Value Value  -- is first amount is greater or equal than the second?
+            | ValueGE Value Value
+            -- ^ is first amount is greater or equal than the second?
             | TrueObs
             | FalseObs
             deriving (Eq, Show)
 
-{-|
-    Marlowe Contract Data Type
+{-| Marlowe Contract Data Type
 -}
 data Contract = Null
             | CommitCash IdentCC PubKey Value Timeout Timeout Contract Contract
+            -- ^ commit identifier, owner, amount,
+            --   start timeout, end timeout, OK contract, timed out contract
             | RedeemCC IdentCC Contract
+            -- ^ commit identifier to redeem, continuation contract
             | Pay IdentPay Person Person Value Timeout Contract
+            -- ^ pay identifier, from, to, amount, payment timeout,
+            --   continuation (either timeout or successful payment)
             | Both Contract Contract
+            -- ^ evaluate both contracts
             | Choice Observation Contract Contract
+            -- ^ if observation evaluates to True evaluates first contract, second otherwise
             | When Observation Timeout Contract Contract
+            -- ^ when observation evaluates to True evaluate first contract,
+            --   evaluate second contract on timeout
             deriving (Eq, Show)
 
 {-|
@@ -185,9 +223,9 @@ emptyState = State { stateCommitted = [], stateChoices = [] }
 
 {-|
     Contract input command.
-    'Commit', 'Payment', and 'Redeem' all require a proof,
-    that the transaction is issued by a particular party identified with Public Key.
-    We require 'Signature' verifiable with required public key.
+    'Commit', 'Payment', and 'Redeem' all require a proof
+    that the transaction is issued by a particular party identified with /Public Key/.
+    We require 'Signature' of TxHash signed with that /Public Key/.
 
     E.g. if we have
     @ CommitCash ident pubKey (Value 100) ... @
@@ -333,10 +371,15 @@ equalContract = [|| \eqValue eqObservation l r -> let
     ||]
 
 {-| Contract validation.
-    * Here we check that 'IdentCC' and 'IdentPay' identifiers are unique.
-    We require identifiers to appear only in ascending order,
+
+    * Check that 'IdentCC' and 'IdentPay' identifiers are unique.
+    We require identifiers to appear only in ascending order starting from 1,
     i.e. @ IdentCC 1 @ followed by @ IdentCC 2 @
-    * Check that contract locks at least the value claimed in its State commits.
+
+    * Check that a contract locks at least the value claimed in its State commits.
+
+    [Note] We do not validate 'Observation' because it can't lead to a wrong state.
+    Same for 'Value'.
 -}
 validateContract :: Q (TExp (State -> Contract -> Slot -> Ledger.Value -> Bool))
 validateContract = [|| \State{stateCommitted} contract (Slot bn) (Ledger.Value actualMoney) -> let
@@ -431,7 +474,7 @@ evaluateValue = [|| \pendingTxSlot inputOracles state value -> let
         in evalValue state value
     ||]
 
--- | Evaluates 'Observation'.
+-- | Interpret 'Observation' as 'Bool'.
 interpretObservation :: Q (TExp (
     (State -> Value -> Int)
     -> Int -> State -> Observation -> Bool))
@@ -687,8 +730,8 @@ evaluateContract = [|| \
 {-|
     Marlowe main Validator Script
 -}
-validator :: Q (TExp (PubKey -> (Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
-validator = [|| \
+validatorScript :: Q (TExp (PubKey -> (Input, MarloweData) -> (Input, MarloweData) -> PendingTx -> ()))
+validatorScript = [|| \
         creator
         (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (_ :: Input, MarloweData{..} :: MarloweData)

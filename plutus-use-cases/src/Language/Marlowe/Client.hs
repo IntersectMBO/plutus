@@ -74,7 +74,7 @@ evalContract = $$(evaluateContract)
 marloweValidator :: PubKey -> ValidatorScript
 marloweValidator creator = ValidatorScript result where
     result = Ledger.applyScript inner (Ledger.lifted creator)
-    inner  = Ledger.fromCompiledCode $$(PlutusTx.compile [|| $$(validator) ||])
+    inner  = Ledger.fromCompiledCode $$(PlutusTx.compile [|| $$(validatorScript) ||])
 
 
 createContract :: (
