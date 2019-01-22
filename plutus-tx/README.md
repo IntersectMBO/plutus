@@ -34,3 +34,9 @@ Not supported, and support not planned:
 ## Tutorial
 
 See [here](tutorial/Tutorial.md) for a tutorial.
+
+## Debugging
+
+The compiler plugin can produce somewhat intimidating errors. In particular it can be hard to work out which expression
+is responsible for an error. To improve this you can compile the file in question with the `-g` GHC option. This
+will result in additional source spans being put into the program which will appear in errors.

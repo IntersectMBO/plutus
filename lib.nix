@@ -32,7 +32,6 @@ let
     "plutus-exe"
     "plutus-ir"
     "plutus-tx"
-    "plutus-tx-plugin"
     "plutus-use-cases"
     "wallet-api"
   ];

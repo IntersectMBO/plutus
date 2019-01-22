@@ -61,7 +61,6 @@ library
         cborg -any,
         containers -any,
         plutus-tx -any,
-        plutus-tx-plugin -any,
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,
@@ -114,7 +113,6 @@ test-suite wallet-api-test
         transformers -any,
         wallet-api -any,
         plutus-tx -any,
-        plutus-tx-plugin -any,
         lens -any
 
 test-suite wallet-api-doctests
@@ -131,7 +129,6 @@ test-suite wallet-api-doctests
     build-depends:
         base >=4.9 && <5,
         plutus-tx -any,
-        plutus-tx-plugin -any,
         wallet-api -any,
         doctest -any
 

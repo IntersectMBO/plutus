@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-module TestTH where
+module TH.TestTH where
 
 import           Language.Haskell.TH
 

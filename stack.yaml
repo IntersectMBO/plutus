@@ -6,7 +6,6 @@ packages:
 - plutus-exe
 - plutus-ir
 - plutus-tx
-- plutus-tx-plugin
 - plutus-use-cases
 - wallet-api
 - plutus-playground/plutus-playground-server
@@ -39,8 +38,6 @@ flags:
   language-plutus-core:
     development: true
   wallet-api:
-    development: true
-  plutus-tx-plugin:
     development: true
   plutus-exe:
     development: true

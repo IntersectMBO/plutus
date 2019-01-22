@@ -1,7 +1,7 @@
-cabal-version: 1.18
+cabal-version: 2.2
 name: plutus-tx
 version: 0.1.0.0
-license: BSD3
+license: BSD-3-Clause
 license-file: LICENSE
 copyright: Copyright: (c) 2018 Input Output
 maintainer: michael.peyton-jones@iohk.io
@@ -17,16 +17,7 @@ source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
-library
-    exposed-modules:
-        Language.PlutusTx
-        Language.PlutusTx.TH
-        Language.PlutusTx.Prelude
-        Language.PlutusTx.Evaluation
-    other-modules:
-        Language.PlutusTx.Prelude.Stage0
-        Language.PlutusTx.Prelude.Stage1
-    hs-source-dirs: src
+common lang
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
@@ -40,45 +31,104 @@ library
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
+
+library
+    import: lang
+    hs-source-dirs: src
+    exposed-modules:
+        Language.PlutusTx
+        Language.PlutusTx.TH
+        Language.PlutusTx.Prelude
+        Language.PlutusTx.Evaluation
+    reexported-modules:
+        Language.PlutusTx.Lift,
+        Language.PlutusTx.Lift.Class,
+        Language.PlutusTx.Builtins,
+        Language.PlutusTx.Plugin
+    other-modules:
+        Language.PlutusTx.Prelude.Stage0
+        Language.PlutusTx.Prelude.Stage1
+    build-tool-depends: doctest:doctest
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         template-haskell >=2.13.0.0,
         language-plutus-core -any,
         plutus-core-interpreter -any,
-        plutus-tx-plugin -any
+        plutus-tx-compiler -any
+
+library plutus-tx-compiler
+    import: lang
+    hs-source-dirs: compiler
+    exposed-modules:
+        Language.PlutusTx.Plugin
+        Language.PlutusTx.Builtins
+        Language.PlutusTx.PLCTypes
+        Language.PlutusTx.PIRTypes
+        Language.PlutusTx.Utils
+        Language.PlutusTx.Lift
+        Language.PlutusTx.Lift.Class
+        Language.PlutusTx.Lift.THUtils
+        Language.PlutusTx.Lift.Instances
+        Language.PlutusTx.Compiler.Error
+        Language.PlutusTx.Compiler.Binders
+        Language.PlutusTx.Compiler.Builtins
+        Language.PlutusTx.Compiler.Laziness
+        Language.PlutusTx.Compiler.Expr
+        Language.PlutusTx.Compiler.Names
+        Language.PlutusTx.Compiler.Kind
+        Language.PlutusTx.Compiler.Primitives
+        Language.PlutusTx.Compiler.Type
+        Language.PlutusTx.Compiler.Types
+        Language.PlutusTx.Compiler.Utils
+        Language.PlutusTx.Compiler.ValueRestriction
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        ghc -any,
+        language-plutus-core -any,
+        lens -any,
+        mtl -any,
+        plutus-ir -any,
+        prettyprinter -any,
+        serialise -any,
+        template-haskell -any,
+        th-abstraction -any,
+        text -any,
+        transformers -any
+
+library plutus-tx-tutorial
+    import: lang
+    hs-source-dirs: tutorial
+    exposed-modules:
+        Tutorial
+    ghc-options: -pgmL markdown-unlit -Wno-unused-imports
+    build-tool-depends: markdown-unlit:markdown-unlit -any
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        template-haskell >=2.13.0.0,
+        language-plutus-core -any,
+        plutus-tx -any
 
 test-suite plutus-tx-tests
     type: exitcode-stdio-1.0
-    main-is: Spec.hs
     hs-source-dirs: test
+    main-is: Spec.hs
     other-modules:
-        TestTH
+        Lift.Spec
+        Plugin.Spec
+        TH.Spec
+        TH.TestTH
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
-        plutus-tx-plugin -any,
         plutus-tx -any,
         plutus-ir -any,
         prettyprinter -any,
         mtl -any,
+        bytestring -any,
         template-haskell -any,
         tasty -any
-
-test-suite plutus-tx-tutorial-doctests
-    type: exitcode-stdio-1.0
-    main-is: tutorial-doctests.hs
-    build-tool-depends: markdown-unlit:markdown-unlit -any
-    hs-source-dirs: tutorial
-    other-modules:
-        Tutorial
-    default-language: Haskell2010
-    ghc-options: -pgmL markdown-unlit -threaded
-    build-depends:
-        base >=4.9 && <5,
-        plutus-tx -any,
-        plutus-tx-plugin -any,
-        language-plutus-core -any,
-        prettyprinter -any,
-        doctest -any

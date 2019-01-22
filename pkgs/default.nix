@@ -55713,7 +55713,6 @@ license = stdenv.lib.licenses.bsd3;
 , network
 , newtype-generics
 , plutus-tx
-, plutus-tx-plugin
 , plutus-use-cases
 , servant
 , split
@@ -55746,7 +55745,6 @@ mtl
 network
 newtype-generics
 plutus-tx
-plutus-tx-plugin
 plutus-use-cases
 servant
 split
@@ -55953,61 +55951,14 @@ license = stdenv.lib.licenses.bsd3;
   mkDerivation
 , base
 , bytestring
-, doctest
-, language-plutus-core
-, markdown-unlit
-, mtl
-, plutus-core-interpreter
-, plutus-ir
-, plutus-tx-plugin
-, prettyprinter
-, stdenv
-, tasty
-, template-haskell
-}:
-mkDerivation {
-
-pname = "plutus-tx";
-version = "0.1.0.0";
-src = .././plutus-tx;
-libraryHaskellDepends = [
-base
-bytestring
-language-plutus-core
-plutus-core-interpreter
-plutus-tx-plugin
-template-haskell
-];
-testHaskellDepends = [
-base
-doctest
-language-plutus-core
-mtl
-plutus-ir
-plutus-tx-plugin
-prettyprinter
-tasty
-template-haskell
-];
-testToolDepends = [
-markdown-unlit
-];
-doHaddock = false;
-description = "The PlutusTx compiler frontend";
-license = stdenv.lib.licenses.bsd3;
-
-}) {};
-"plutus-tx-plugin" = callPackage
-({
-  mkDerivation
-, base
-, bytestring
-, cborg
 , containers
+, doctest
 , ghc
 , language-plutus-core
 , lens
+, markdown-unlit
 , mtl
+, plutus-core-interpreter
 , plutus-ir
 , prettyprinter
 , serialise
@@ -56020,18 +55971,18 @@ license = stdenv.lib.licenses.bsd3;
 }:
 mkDerivation {
 
-pname = "plutus-tx-plugin";
+pname = "plutus-tx";
 version = "0.1.0.0";
-src = .././plutus-tx-plugin;
+src = .././plutus-tx;
 libraryHaskellDepends = [
 base
 bytestring
-cborg
 containers
 ghc
 language-plutus-core
 lens
 mtl
+plutus-core-interpreter
 plutus-ir
 prettyprinter
 serialise
@@ -56040,16 +55991,22 @@ text
 th-abstraction
 transformers
 ];
+libraryToolDepends = [
+doctest
+markdown-unlit
+];
 testHaskellDepends = [
 base
 bytestring
 language-plutus-core
+mtl
 plutus-ir
 prettyprinter
 tasty
+template-haskell
 ];
 doHaddock = false;
-description = "PlutusTx compiler plugin";
+description = "The PlutusTx compiler frontend";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
@@ -56063,7 +56020,6 @@ license = stdenv.lib.licenses.bsd3;
 , lens
 , mtl
 , plutus-tx
-, plutus-tx-plugin
 , stdenv
 , tasty
 , tasty-hedgehog
@@ -56083,7 +56039,6 @@ containers
 lens
 mtl
 plutus-tx
-plutus-tx-plugin
 template-haskell
 wallet-api
 ];
@@ -56092,7 +56047,6 @@ base
 containers
 hedgehog
 plutus-tx
-plutus-tx-plugin
 tasty
 tasty-hedgehog
 template-haskell
@@ -78015,20 +77969,17 @@ license = stdenv.lib.licenses.mit;
 , containers
 , cryptonite
 , deriving-compat
-, doctest
 , hashable
 , hedgehog
 , http-media
 , language-plutus-core
 , lens
-, markdown-unlit
 , memory
 , mtl
 , natural-transformation
 , newtype-generics
 , operational
 , plutus-tx
-, plutus-tx-plugin
 , recursion-schemes
 , serialise
 , servant
@@ -78071,7 +78022,6 @@ natural-transformation
 newtype-generics
 operational
 plutus-tx
-plutus-tx-plugin
 recursion-schemes
 serialise
 servant
@@ -78090,17 +78040,12 @@ warp
 testHaskellDepends = [
 base
 containers
-doctest
 hedgehog
 lens
 plutus-tx
-plutus-tx-plugin
 tasty
 tasty-hedgehog
 transformers
-];
-testToolDepends = [
-markdown-unlit
 ];
 doHaddock = false;
 description = "Wallet API";
