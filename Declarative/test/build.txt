@@ -1,0 +1,3 @@
+run alex on the Lexer and happy on the parser
+
+ghci -XScopedTypeVariables -XFlexibleContexts -XDeriveGeneric -XStandaloneDeriving -XDeriveLift -XGeneralizedNewtypeDeriving -XDeriveFunctor -XDeriveFoldable -XDeriveTraversable Parser.hs
