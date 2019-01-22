@@ -16,6 +16,7 @@ module Ledger.Types(
     -- * Basic types
     Value(..),
     Slot(..),
+    SlotRange,
     lastSlot,
     TxIdOf(..),
     TxId,
@@ -93,7 +94,8 @@ module Ledger.Types(
     inRef,
     inType,
     inScripts,
-    inSignature
+    inSignature,
+    validRange
     ) where
 
 import qualified Codec.CBOR.Write                         as Write
@@ -128,6 +130,8 @@ import           Language.PlutusTx.Lift                   (makeLift, unsafeLiftP
 import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.Plugin                 (CompiledCode, getSerializedPlc)
 import           Language.PlutusTx.TH                     (compile)
+
+import           Ledger.Interval                          (Slot(..), SlotRange)
 
 {- Note [Serialisation and hashing]
 
@@ -335,15 +339,6 @@ instance BA.ByteArrayAccess RedeemerScript where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | Slot number
-newtype Slot = Slot { getSlot :: Int }
-    deriving (Eq, Ord, Show, Enum)
-    deriving stock (Generic)
-    deriving anyclass (ToSchema, FromJSON, ToJSON)
-    deriving newtype (Num, Real, Integral, Serialise)
-
-makeLift ''Slot
-
 -- | The number of the last slot of a blockchain. Assumes that empty slots are
 --   represented as empty blocks (as opposed to no blocks). This is true in the
 --   emulator but not necessarily on the real chain,
@@ -355,7 +350,9 @@ data Tx = Tx {
     txInputs     :: Set.Set TxIn,
     txOutputs    :: [TxOut],
     txForge      :: !Value,
-    txFee        :: !Value
+    txFee        :: !Value,
+    txValidRange :: !SlotRange
+    -- ^ The 'SlotRange' during which this transaction may be validated
     } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
 
 -- | The inputs of a transaction
@@ -369,7 +366,10 @@ outputs = lens g s where
     g = txOutputs
     s tx o = tx { txOutputs = o }
 
-
+validRange :: Lens' Tx SlotRange
+validRange = lens g s where
+    g = txValidRange
+    s tx o = tx { txValidRange = o }
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode

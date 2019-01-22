@@ -5,11 +5,13 @@
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 import qualified Language.PlutusTx            as PlutusTx
+import qualified Ledger.Interval              as Interval
+import           Ledger.Interval              (SlotRange)
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import           Ledger.Validation
 import           Playground.Contract
-import           Wallet
+import           Wallet                       as W
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -25,6 +27,16 @@ data Campaign = Campaign
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''Campaign
+
+-- | The 'SlotRange' during which the funds can be collected
+collectionRange :: Campaign -> SlotRange
+collectionRange cmp = 
+    W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
+
+-- | The 'SlotRange' during which a refund may be claimed
+refundRange :: Campaign -> SlotRange
+refundRange cmp =
+    W.intervalFrom (campaignCollectionDeadline cmp)
 
 -- | Action that can be taken by the participants in this contract. A value of
 --   `CampaignAction` is provided as the redeemer. The validator script then
@@ -73,19 +85,15 @@ contributionScript cmp  = ValidatorScript val where
                 -- information we need:
                 -- `ps` is the list of inputs of the transaction
                 -- `outs` is the list of outputs
-                -- `h` is the current slot number
-                PendingTx ps outs _ _ (Slot h) _ = p
+                -- `slFrom` is the beginning of the validation interval
+                -- `slTo` is the end of the validation interval
+                PendingTx ps outs _ _ _ range = p
 
-                -- `deadline` is the campaign deadline, but we need it as an
-                -- `Int` so that we can compare it with other integers.
-                deadline :: Int
-                deadline = let Slot h' = campaignDeadline in h'
-
-
-                -- `collectionDeadline` is the campaign collection deadline as
-                -- an `Int`
-                collectionDeadline :: Int
-                collectionDeadline = let Slot h' = campaignCollectionDeadline in h'
+                collRange :: SlotRange
+                collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
+    
+                refndRange :: SlotRange
+                refndRange = $$(Interval.from) campaignCollectionDeadline
 
                 -- `target` is the campaign target as
                 -- an `Int`
@@ -114,13 +122,15 @@ contributionScript cmp  = ValidatorScript val where
                             -- of the contributor (this key is provided as the data script `con`)
                             contributorOnly = $$(P.all) contributorTxOut outs
 
-                            refundable = h >= collectionDeadline && contributorOnly && con `signedBy` sig
+                            refundable = 
+                                $$(Interval.contains) refndRange range
+                                && contributorOnly && con `signedBy` sig
 
                         in refundable
                     Collect sig -> -- the "successful campaign" branch
                         let
-                            payToOwner = h >= deadline
-                                && h < collectionDeadline
+                            payToOwner = 
+                                $$(Interval.contains) collRange range
                                 && totalInputs >= target
                                 && campaignOwner `signedBy` sig
                         in payToOwner
@@ -139,7 +149,8 @@ contribute cmp value = do
     keyPair <- myKeyPair
     ownPK <- ownPubKey
     let sig = signature keyPair
-    let ds = DataScript (Ledger.lifted ownPK)
+        ds = DataScript (Ledger.lifted ownPK)
+        range = W.interval 1 (campaignDeadline cmp)
 
     -- `payToScript` is a function of the wallet API. It takes a campaign
     -- address, value, and data script, and generates a transaction that
@@ -148,7 +159,7 @@ contribute cmp value = do
     -- If we were not interested in the transaction produced by `payToScript`
     -- we could have used `payeToScript_`, which has the same effect but
     -- discards the result.
-    tx <- payToScript (campaignAddress cmp) value ds
+    tx <- payToScript range (campaignAddress cmp) value ds
 
     logMsg "Submitted contribution"
 
@@ -170,19 +181,20 @@ scheduleCollection cmp = do
     register (collectFundsTrigger cmp) (EventHandler (\_ -> do
         logMsg "Collecting funds"
         let redeemerScript = Ledger.RedeemerScript (Ledger.lifted $ Collect sig)
-        collectFromScript (contributionScript cmp) redeemerScript))
+            range = collectionRange cmp
+        collectFromScript range (contributionScript cmp) redeemerScript))
 
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (GEQ 1))
-    (slotRangeT (GEQ (succ (campaignCollectionDeadline c))))
+    (fundsAtAddressT (campaignAddress c) (W.intervalFrom 1))
+    (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (GEQ (campaignTarget c)))
-    (slotRangeT (Interval (campaignDeadline c) (campaignCollectionDeadline c)))
+    (fundsAtAddressT (campaignAddress c) (W.intervalFrom (campaignTarget c)))
+    (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution
 refundHandler :: TxId -> Signature -> Campaign -> EventHandler MockWallet
@@ -197,7 +209,7 @@ refundHandler txid signature cmp = EventHandler (\_ -> do
     -- here to ensure that we don't attempt to claim back other contributors'
     -- funds (if we did that, the validator script would fail and the entire
     -- transaction would be invalid).
-    collectFromScriptTxn validatorScript redeemerScript txid)
+    collectFromScriptTxn (refundRange cmp) validatorScript redeemerScript txid)
 
 $(mkFunctions ['scheduleCollection, 'contribute])
 

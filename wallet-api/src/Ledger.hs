@@ -5,4 +5,3 @@ module Ledger (
 
 import           Ledger.Index as Index
 import           Ledger.Types as Types
-

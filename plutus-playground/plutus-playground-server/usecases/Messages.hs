@@ -21,6 +21,7 @@ submitInvalidTxn = do
             , txOutputs = []
             , txForge = 2
             , txFee = 0
+            , txValidRange = defaultSlotRange
             }
     submitTxn tx
 

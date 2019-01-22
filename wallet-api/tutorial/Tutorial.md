@@ -30,11 +30,12 @@ We also need the `{-# OPTIONS_GHC -O0 #-}` compiler option. It disables some of 
 
 ```haskell
 import qualified Language.PlutusTx            as P
+import qualified Ledger.Interval              as P
 import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..), Value(..))
 import qualified Ledger                       as L
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
-import           Wallet                       (EventHandler(..), EventTrigger, Range(Interval, GEQ))
+import           Wallet                       (EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
 import           Wallet.Emulator              (MockWallet)
 import           Prelude                      hiding ((&&))
@@ -140,7 +141,7 @@ There is no standard library of functions that are automatically in scope for on
 Next, we pattern match on the structure of the `PendingTx` value `p` to get the Validation information we care about:
 
 ```haskell
-                  PendingTx ins outs _ _ (Slot currentSlot) _ = p -- p is bound to the pending transaction
+                  PendingTx ins outs _ _ _ txnValidRange = p -- p is bound to the pending transaction
 ```
 
 This binds `ins` to the list of all inputs of the current transaction, `outs` to the list of all its outputs, and `currentSlot` to the current slot. Each slot stands for a specific interval of time in the real world, so we can use the `Slot` type as a proxy for time in our scripts.
@@ -148,7 +149,7 @@ This binds `ins` to the list of all inputs of the current transaction, `outs` to
 We also need the parameters of the campaign, which we can get by pattern matching on `c`.
 
 ```haskell
-                  Campaign (Value target) (Slot deadline) (Slot collectionDeadline) campaignOwner = c
+                  Campaign (Value target) deadline collectionDeadline campaignOwner = c
 ```
 
 Then we compute the total value of all transaction inputs, using `P.foldr` on the list of inputs `ins`. Note that there is a limit on the number of inputs a transaction may have, and thus on the number of contributions in this crowdfunding campaign. In this tutorial we ignore that limit, because it depends on the details of the implementation of Plutus on the Cardano chain, and that implementation has not happened yet.
@@ -190,9 +191,9 @@ The predicate `contributorTxOut` is applied to all outputs of the current transa
 For the contribution to be refundable, three conditions must hold. The collection deadline must have passed, all outputs of this transaction must go to the contributor `con`, and the transaction was signed by the contributor.
 
 ```haskell
-                              refundable   = currentSlot > collectionDeadline &&
-                                      contributorOnly &&
-                                      pkCon `signedBy` sig
+                              refundable = $$(P.before) collectionDeadline txnValidRange &&
+                                           contributorOnly &&
+                                           pkCon `signedBy` sig
 ```
 
 The overall result of this branch is the `refundable` value:
@@ -210,8 +211,7 @@ The second branch represents a successful campaign.
 In the `Collect` case, the current slot must be between `deadline` and `collectionDeadline`, the target must have been met, and and transaction has to be signed by the campaign owner.
 
 ```haskell
-                          currentSlot > deadline &&
-                          currentSlot <= collectionDeadline &&
+                          $$(P.contains) ($$(P.interval) deadline collectionDeadline) txnValidRange &&
                           totalInputs >= target &&
                           campaignOwner `signedBy` sig
 
@@ -259,7 +259,7 @@ Contributing to a campaign is easy: We need to pay the value `amount` to a scrip
 ```haskell
       pk <- W.ownPubKey
       let dataScript = mkDataScript pk
-      W.payToScript_ (campaignAddress cmp) amount dataScript
+      W.payToScript_ W.defaultSlotRange (campaignAddress cmp) amount dataScript
 ```
 
 When we want to spend the contributions we need to provide a `RedeemerScript` value. In our case this is just the `CampaignAction`:
@@ -276,8 +276,9 @@ collect :: Campaign -> MockWallet ()
 collect cmp = do
       sig <- W.ownSignature
       let validator = mkValidatorScript cmp
-          redeemer = mkRedeemer (Collect sig)
-      W.collectFromScript validator redeemer
+          redeemer  = mkRedeemer (Collect sig)
+          range     = W.interval (endDate cmp) (collectionDeadline cmp)
+      W.collectFromScript range validator redeemer
 ```
 
 If we run `collect` now, nothing will happen. Why? Because in order to spend all outputs at the script address, the wallet needs to be aware of this address _before_ the outputs are produced. That way, it can scan incoming blocks from the blockchain for contributions to that address, and doesn't have to keep a record of all unspent outputs of the entire blockchain. So before the campaign starts, the campaign owner needs to run the following action:
@@ -296,8 +297,12 @@ The wallet API allows us to specify a pair of `EventTrigger` and `EventHandler` 
 ```haskell
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (GEQ (fundingTarget c)))
-    (W.slotRangeT (Interval (endDate c) (collectionDeadline c)))
+    -- We use `W.intervalFrom` to create an open-ended interval that starts at the funding target.
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (fundingTarget c)))
+
+    -- With `W.interval` we create an interval from the campaign's end date (inclusive) to 
+    -- the collection deadline (exclusive)
+    (W.slotRangeT (W.interval (endDate c) (collectionDeadline c)))
 ```
 
 The campaign owner can collect contributions when two conditions hold: The funds at the address must have reached the target, and the current slot must be greater than the campaign deadline but smaller than the collection deadline.
@@ -310,7 +315,8 @@ collectionHandler cmp = EventHandler (\_ -> do
         W.logMsg "Collecting funds"
         sig <- W.ownSignature
         let redeemerScript = L.RedeemerScript (L.lifted (Collect sig))
-        W.collectFromScript (mkValidatorScript cmp) redeemerScript)
+            range          = W.interval (endDate cmp) (collectionDeadline cmp)
+        W.collectFromScript range (mkValidatorScript cmp) redeemerScript)
 ```
 
 The handler is a function of one argument, which we ignore in this case (the argument tells us which of the conditions in the trigger are true, which can be useful if we used `orT` to build a complex condition). In our case we don't need this information because we know that both the `fundsAtAddressT` and the `slotRangeT` conditions hold when the event handler is run, so we can call `collectFromScript` immediately.
@@ -338,7 +344,8 @@ refundHandler txid cmp = EventHandler (\_ -> do
     W.logMsg "Claiming refund"
     sig <- W.ownSignature
     let redeemer  = L.RedeemerScript (L.lifted (Refund sig))
-    W.collectFromScriptTxn (mkValidatorScript cmp) redeemer txid)
+        range     = W.intervalFrom (collectionDeadline cmp)
+    W.collectFromScriptTxn range (mkValidatorScript cmp) redeemer txid)
 ```
 
 Now we can register the refund handler when we make the contribution. The condition for being able to claim a refund is
@@ -346,8 +353,8 @@ Now we can register the refund handler when we make the contribution. The condit
 ```haskell
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (GEQ 1))
-    (W.slotRangeT (GEQ (succ (collectionDeadline c))))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom 1))
+    (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 ```
 
 We will call the new endpoint `contribute2` because it replaces the `contribute` endpoint defined above.
@@ -360,7 +367,7 @@ contribute2 cmp amount = do
 
       -- payToScript returns the transaction that was submitted
       -- (unlike payToScript_ which returns unit)
-      tx <- W.payToScript (campaignAddress cmp) amount dataScript
+      tx <- W.payToScript W.defaultSlotRange (campaignAddress cmp) amount dataScript
       W.logMsg "Submitted contribution"
 
       -- L.hashTx gives the `TxId` of a transaction

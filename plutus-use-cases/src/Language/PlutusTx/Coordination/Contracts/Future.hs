@@ -31,10 +31,12 @@ import           GHC.Generics                 (Generic)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, Value (..), ValidatorScript (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
+import qualified Ledger.Interval              as Interval
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn(..), PendingTxOut (..),
                                               PendingTxOutType (..))
 import qualified Ledger.Validation            as Validation
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit)
+import qualified Wallet                       as W
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, pubKey, createTxAndSubmit, defaultSlotRange)
 
 import           Prelude                      hiding ((&&), (||))
 
@@ -86,7 +88,7 @@ initialise long short f = do
         ds = DataScript $ Ledger.lifted $ FutureData long short im im
 
     (payment, change) <- createPaymentWithChange im
-    void $ createTxAndSubmit payment (o : maybeToList change)
+    void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
 
 -- | Close the position by extracting the payment
 settle :: (
@@ -99,6 +101,7 @@ settle :: (
     -> m ()
 settle refs ft fd ov = do
     let
+        delDate = futureDeliveryDate ft
         forwardPrice = futureUnitPrice ft
         OracleValue _ _ spotPrice = ov
         delta = (Value $ futureUnits ft) * (spotPrice - forwardPrice)
@@ -110,7 +113,8 @@ settle refs ft fd ov = do
             Ledger.pubKeyTxOut shortOut (futureDataShort fd)
             ]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ createTxAndSubmit (Set.fromList inp) outs
+        range = W.intervalFrom delDate
+    void $ createTxAndSubmit range (Set.fromList inp) outs
 
 -- | Settle the position early if a margin payment has been missed.
 settleEarly :: (
@@ -126,7 +130,7 @@ settleEarly refs ft fd ov = do
         outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
         inp = (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
         red = Ledger.RedeemerScript $ Ledger.lifted $ Settle ov
-    void $ createTxAndSubmit (Set.fromList inp) outs
+    void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs
 
 adjustMargin :: (
     MonadError WalletAPIError m,
@@ -150,7 +154,7 @@ adjustMargin refs ft fd vl = do
         o = scriptTxOut outVal (validatorScript ft) ds
         outVal = vl + (futureDataMarginLong fd + futureDataMarginShort fd)
         inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red) <$> refs
-    void $ createTxAndSubmit (Set.union payment inp) (o : maybeToList change)
+    void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change)
 
 
 -- | Basic data of a futures contract. `Future` contains all values that do not
@@ -197,7 +201,7 @@ validatorScript ft = ValidatorScript val where
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
 
             let
-                PendingTx _ outs _ _ (Slot sl) (PendingTxIn _ witness _) = p
+                PendingTx _ outs _ _ (PendingTxIn _ witness _) range = p
                 ownHash = case witness of
                     Left (vhash, _) -> vhash
                     _ -> $$(PlutusTx.error) ()
@@ -224,9 +228,6 @@ validatorScript ft = ValidatorScript val where
 
                 penalty :: Int
                 penalty = let Value v = futureMarginPenalty in v
-
-                deliveryDate :: Int
-                deliveryDate = let Slot h = futureDeliveryDate in h
 
                 -- Compute the required margin from the current price of the
                 -- underlying asset.
@@ -268,7 +269,7 @@ validatorScript ft = ValidatorScript val where
                                 delta  = futureUnits *  (spotPrice - forwardPrice)
                                 expShort = marginShort - delta
                                 expLong  = marginLong + delta
-                                slotvalid = sl >= deliveryDate
+                                slotvalid = $$(Interval.member) futureDeliveryDate range
 
                                 canSettle =
                                     case outs of

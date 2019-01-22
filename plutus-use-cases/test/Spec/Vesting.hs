@@ -74,7 +74,7 @@ canRetrieveFunds = checkVestingTrace scen1 $ do
     updateAll'
 
     -- Advance the clock so that the first tranche (200 ada) becomes unlocked.
-    addBlocks 10
+    addBlocks' 10
     let ds = VestingData (vsScriptHash scen1) 150
 
     -- Take 150 ada out of the scheme
@@ -89,7 +89,7 @@ cannotRetrieveTooMuch = checkVestingTrace scen1 $ do
     updateAll'
     ref <- commit w2 s total
     updateAll'
-    addBlocks 10
+    addBlocks' 10
 
     -- at slot 11, not more than 200 may be taken out
     -- so the transaction submitted by `retrieveFunds` below
@@ -108,7 +108,7 @@ canRetrieveFundsAtEnd = checkVestingTrace scen1 $ do
     updateAll'
     ref <- commit w2 s total
     updateAll'
-    addBlocks 20
+    addBlocks' 20
 
     -- everything can be taken out at h=21
     let ds = VestingData (vsScriptHash scen1) 600
@@ -154,3 +154,7 @@ checkVestingTrace VestingScenario{vsInitialBalances} t = property $ do
 updateAll :: VestingScenario -> Trace MockWallet [Ledger.Tx]
 updateAll VestingScenario{vsWallets} =
     processPending >>= walletsNotifyBlock vsWallets
+
+-- | Add a number of blocks and notify the wallets
+addBlocks' :: Int -> Trace MockWallet ()
+addBlocks' i = traverse_ (const (updateAll scen1)) [1..i]
