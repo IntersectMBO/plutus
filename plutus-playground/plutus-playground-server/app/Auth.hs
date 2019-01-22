@@ -142,7 +142,6 @@ githubRedirect ::
 githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
   where
     oauthScopes = "gist"
-    githubRedirectUrl :: Text
     githubRedirectUrl =
       showText .
       getUri .
@@ -293,7 +292,6 @@ getGists GithubEndpoints {..} Config {..} cookieHeader = do
       throwError err401
     Right token -> do
       response <- liftIO (runClientM (Gist.getGists (Just token)) clientEnv)
-      logDebugN $ "Gist response: " <> showText response
       case response of
         Left err -> do
           logErrorN $ "Failed to read github endpoint: " <> showText err
