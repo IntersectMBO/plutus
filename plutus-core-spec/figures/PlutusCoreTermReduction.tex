@@ -12,7 +12,7 @@
         \textrm{Frame} & f  & ::=   & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
                        %&   &     & \inInstRightFrame{V}                    & \textrm{right instantiation}\\
                        %&   &     & \inWrapLeftFrame{\alpha}{M}             & \textrm{left wrap}\\
-                       &   &     & \inWrapRightFrame{\alpha}{A}            & \textrm{right wrap}\\
+                       &   &     & \inWrapRightFrame{A}{B}            & \textrm{right wrap}\\
                        &   &     & \inUnwrapFrame{}                        & \textrm{unwrap}\\
                        %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
                        &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
@@ -36,7 +36,7 @@
 
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\step{\unwrap{\wrap{\alpha}{A}{V}}}{V}\)}
+        \UnaryInfC{\(\step{\unwrap{\wrap{A}{B}{V}}}{V}\)}
     \end{prooftree}
 
     \begin{prooftree}

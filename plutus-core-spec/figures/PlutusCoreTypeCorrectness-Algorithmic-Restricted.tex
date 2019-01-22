@@ -32,20 +32,23 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\Gamma \vdash Q :: \typeK{}\)}
-        \AxiomC{\(Q = \mathcal{E}\{\fixT{\alpha}{A}\}\)}
-		\AxiomC{\(\Gamma \vdash M : \mathcal{E}\{[\fixT{\alpha}{A}/\alpha]A\}\)}
-		\RightLabel{wrap}
-		\TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{\alpha}{A}{M}}{Q}}\)}
+    	\AxiomC{\(\hypJ{\Gamma}{\istypeJ{T}{K}}\)}
+		\alwaysNoLine
+		\UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{S}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
+		\UnaryInfC{\(\diffbox{\typeBoundedMultistep{\textit{MAX}}{\appT{\appT{S}{\lamT{\beta}{K}{\fixT{S}{\beta}}}}{T}}{R}}\)}
+		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{R'}}\)}
+		\UnaryInfC{\(\typeEqual{R}{R'}\)}
+		\alwaysSingleLine
+    	\RightLabel{wrap}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{S}{T}{M}}{\fixT{S}{T}}}\)}
     \end{prooftree}
-    
-    Where $\mathcal{E}$ is an elimination context $\mathcal{E} ::= \bullet \mid [\mathcal{E} \,\, A]$, $A$ a type, such that $\mathcal{E}\{Q\}$ denotes the type expression obtained by replacing the $\bullet$ in $\mathcal{E}$ with $Q$. That is, $[\bullet\,\, A]\{B\} = [B\,\,A]$, and so on. 
 
     \begin{prooftree}
-        \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\fixT{\alpha}{S}}}\)}
-        \AxiomC{\(\diffbox{\typeBoundedMultistep{\textit{MAX}}{\subst{\fixT{\alpha}{S}}{\alpha}{S}}{R}}\)}
-        \RightLabel{unwrap}
-        \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{R}}\)}
+    	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\fixT{S}{T}}}\)}
+		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{T}{K}}\)}
+		\AxiomC{\(\diffbox{\typeBoundedMultistep{\textit{MAX}}{\appT{\appT{S}{\lamT{\beta}{K}{\fixT{S}{\beta}}}}{T}}{R}}\)}
+		\RightLabel{unwrap}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{R}}\)}
     \end{prooftree}
 
     \begin{prooftree}
