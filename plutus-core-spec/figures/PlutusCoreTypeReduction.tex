@@ -14,14 +14,15 @@
 %   \centering
 \begin{subfigure}[c]{\linewidth}
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} &\tf & ::= & \inConT{tcn}{\_}                          & \textrm{type constant}\\
-                            &    &     & \inFunTLeft{\_}{A}                        & \textrm{left arrow}\\
-                            &    &     & \inFunTRight{S}{\_}                       & \textrm{right arrow}\\
-                            &    &     & \inAllT{\alpha}{K}{\_}                    & \textrm{all}\\
-                            &    &     & \inFixT{\alpha}{\_}                       & \textrm{fix}\\
-                            &    &     & \inLamT{\alpha}{K}{\_}                    & \textrm{$\lambda$}\\
-                            &    &     & \inAppTLeft{\_}{A}                        & \textrm{left app}\\
-                            &    &     & \inAppTRight{S}{\_}                       & \textrm{right app}\\
+        \textrm{Type Frame} &\tf & ::= & \inConTFrame{tcn}                          & \textrm{type constant}\\
+                            &    &     & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
+                            &    &     & \inFunTRightFrame{S}                       & \textrm{right arrow}\\
+                            &    &     & \inAllTFrame{\alpha}{K}                    & \textrm{all}\\
+                            &	 &     & \inFixTLeftFrame{B}                        & \textrm{left fix}\\
+                            &    &     & \inFixTRightFrame{S}                       & \textrm{right fix}\\
+                            &    &     & \inLamTFrame{\alpha}{K}                    & \textrm{$\lambda$}\\
+                            &    &     & \inAppTLeftFrame{A}                        & \textrm{left app}\\
+                            &    &     & \inAppTRightFrame{S}                       & \textrm{right app}\\
     \end{array}\]
 
     \caption{Grammar of Type Reduction Frames}
@@ -49,9 +50,14 @@
     \label{fig:Plutus_core_type_reduction}
 \end{subfigure}
 
+\caption{Type Reduction for Plutus Core}
+\label{fig:type-reduction}
+\end{figure}
+
 
 %% ---------------- Equalities and Equivalences ---------------- %%
 
+\begin{figure}[H]
 \begin{subfigure}[c]{\linewidth}
 	\judgmentdef{\(\kindEqual{K}{K'}\)}{Kind $K$ is syntactically identical to kind $K'$. (Inductive definition omitted.)}
 	\vspace{2em}
@@ -62,19 +68,52 @@
 	
 	\judgmentdef{\(\typeEquiv{A}{A'}\)}{Type $A$ is equivalent to type $A'$ modulo $\beta$ reduction}
 	
+	% beta conversion
+	
 	\begin{prooftree}
-		\AxiomC{\(\typeMultistep{A}{S}\)}
-		\AxiomC{\(\typeMultistep{A'}{S'}\)}
-		\AxiomC{\(\typeEqual{S}{S'}\)}
-		\TrinaryInfC{\(\typeEquiv{A}{A'}\)}
+		\AxiomC{}
+		\UnaryInfC{\(\typeEquiv{\appT{\lamT{\alpha}{K}{B}}{A}}{\subst{A}{\alpha}{B}}\)}
+	\end{prooftree}
+	
+	% alpha
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEqual{A}{A'}\)}
+		\RightLabel{$\alpha$}
+		\UnaryInfC{\(\typeEquiv{A}{A'}\)}
+	\end{prooftree}
+	
+	% sym
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{sym}
+		\UnaryInfC{\(\typeEquiv{A'}{A}\)}
+	\end{prooftree}
+	
+	% trans
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\AxiomC{\(\typeEquiv{A'}{A''}\)}
+		\RightLabel{trans}
+		\BinaryInfC{\(\typeEquiv{A}{A''}\)}
+	\end{prooftree}
+	
+	% cong
+	
+	\begin{prooftree}
+		\AxiomC{\(\typeEquiv{A}{A'}\)}
+		\RightLabel{cong}
+		\UnaryInfC{\(\typeEquiv{\ctxsubst{f}{A}}{\ctxsubst{f}{A'}}\)}
 	\end{prooftree}
 	
 	
 	\caption{Equalities and Equivalences}
 	\label{fig:Plutus_core_equalities_and_equivalences}
 \end{subfigure}
-\caption{Type reduction for Plutus Core}
-\label{fig:type-reduction}
+\caption{Type Equivalence for Plutus Core}
+\label{fig:type-equivalence}
 \end{figure}
 
 

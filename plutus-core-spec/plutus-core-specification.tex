@@ -127,14 +127,15 @@
 \newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
 
 
-\newcommand{\inConT}[2]{\conT{#1}{#2}}
-\newcommand{\inAppTLeft}[2]{\appT{#1}{#2}}
-\newcommand{\inAppTRight}[2]{\appT{#1}{#2}}
-\newcommand{\inFunTLeft}[2]{\funT{#1}{#2}}
-\newcommand{\inFunTRight}[2]{\funT{#1}{#2}}
-\newcommand{\inAllT}[3]{\allT{#1}{#2}{#3}}
-\newcommand{\inFixT}[2]{\fixT{#1}{#2}}
-\newcommand{\inLamT}[3]{\lamT{#1}{#2}{#3}}
+\newcommand{\inConTFrame}[1]{\conT{#1}{\_}}
+\newcommand{\inAppTLeftFrame}[1]{\appT{\_}{#1}}
+\newcommand{\inAppTRightFrame}[1]{\appT{#1}{\_}}
+\newcommand{\inFunTLeftFrame}[1]{\funT{\_}{#1}}
+\newcommand{\inFunTRightFrame}[1]{\funT{#1}{\_}}
+\newcommand{\inAllTFrame}[2]{\allT{#1}{#2}{\_}}
+\newcommand{\inFixTLeftFrame}[1]{\fixT{\_}{#1}}
+\newcommand{\inFixTRightFrame}[1]{\fixT{#1}{\_}}
+\newcommand{\inLamTFrame}[2]{\lamT{#1}{#2}{\_}}
 
 \newcommand{\inBuiltin}[5]{\builtin{#1}{#2}{#3 #4 #5}}
 

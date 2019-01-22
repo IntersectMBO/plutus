@@ -9,7 +9,7 @@
                                   &        &     & \con{cn}                   & \textrm{constant}\\
                                   &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
                                   &        &     & \inst{M}{S}                & \textrm{type instantiation}\\
-                                  &        &     & \wrap{\alpha}{S}{M}        & \textrm{fix type's wrap}\\
+                                  &        &     & \wrap{S}{T}{M}             & \textrm{fix type's wrap}\\
                                   &        &     & \unwrap{M}                 & \textrm{fix type's unwrap}\\
                                   &        &     & \lam{x}{S}{M}              & \textrm{$\lambda$ abstraction}\\
                                   &        &     & \app{M}{N}                 & \textrm{function application}\\
@@ -17,13 +17,13 @@
                                   &        &     & \error{S}                  & \textrm{error}\\
         \textrm{Value}            & U, V   & ::= & \con{cn}                   & \textrm{contant}\\
                                   &        &     & \abs{\alpha}{K}{V}         & \textrm{type abstraction}\\
-                                  &        &     & \wrap{\alpha}{S}{V}        & \textrm{fix type's wrap}\\
+                                  &        &     & \wrap{S}{T}{V}             & \textrm{fix type's wrap}\\
                                   &        &     & \lam{x}{S}{M}              & \textrm{$\lambda$ abstraction}\\
         \textrm{Type}             & A,B,C  & ::= & \alpha                     & \textrm{type variable}\\
                                   &        &     & s                          & \textrm{size}\\
                                   &        &     & \funT{A}{B}                & \textrm{function type}\\
                                   &        &     & \allT{\alpha}{K}{A}        & \textrm{polymorphic type}\\
-                                  &        &     & \fixT{\alpha}{A}           & \textrm{fixed point type}\\
+                                  &        &     & \fixT{A}{B}                & \textrm{fixed point type}\\
                                   &        &     & \lamT{\alpha}{K}{A}        & \textrm{$\lambda$ abstraction}\\
                                   &        &     & \appT{A}{B}                & \textrm{function application}\\
                                   &        &     & \conT{tcn}{A}          & \textrm{type constant}\\
