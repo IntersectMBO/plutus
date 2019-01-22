@@ -45,7 +45,7 @@ import           Wallet                       (EventHandler (..), EventTrigger, 
                                                WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
                                                ownPubKeyTxOut, payToScript, pubKey, createTxAndSubmit, signature)
 
-import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, ($), (.),
+import           Prelude                    (Bool (..), Int, Ord (..), fst, snd, ($), (.),
                                              (<$>), (==))
 
 -- | A crowdfunding campaign.
@@ -143,11 +143,15 @@ contributionScript cmp  = ValidatorScript val where
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
+            
+            infixl 6 +
+            (+) :: Int -> Int -> Int
+            (+) = $$(PlutusTx.plus)
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedBy :: PubKey -> Signature -> Bool
-            signedBy (PubKey pk) (Signature s) = pk == s
+            signedBy (PubKey pk) (Signature s) = $$(PlutusTx.eq) pk s
 
             PendingTx ps outs _ _ _ range = p
 
@@ -185,7 +189,7 @@ contributionScript cmp  = ValidatorScript val where
                 Collect sig -> -- the "successful campaign" branch
                     let
                         payToOwner = $$(Interval.contains) collRange range &&
-                                    totalInputs >= target &&
+                                    $$(PlutusTx.geq) totalInputs target &&
                                     campaignOwner `signedBy` sig
                     in payToOwner
         in

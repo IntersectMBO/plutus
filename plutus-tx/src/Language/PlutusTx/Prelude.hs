@@ -11,6 +11,17 @@ module Language.PlutusTx.Prelude (
     and,
     or,
     not,
+    -- * Int operators
+    gt,
+    geq,
+    lt,
+    leq,
+    eq,
+    plus,
+    minus,
+    multiply,
+    divide,
+    remainder,
     -- * Numbers
     min,
     max,

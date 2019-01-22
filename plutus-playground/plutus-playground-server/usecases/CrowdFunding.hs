@@ -79,7 +79,7 @@ contributionScript cmp  = ValidatorScript val where
                 (&&) = $$(PlutusTx.and)
 
                 signedBy :: PubKey -> Signature -> Bool
-                signedBy (PubKey pk) (Signature s) = pk == s
+                signedBy (PubKey pk) (Signature s) = $$(PlutusTx.eq) pk s
 
                 -- We pattern match on the pending transaction `p` to get the
                 -- information we need:
@@ -107,7 +107,7 @@ contributionScript cmp  = ValidatorScript val where
                 totalInputs :: Int
                 totalInputs =
                     let v (PendingTxIn _ _ (Value vl)) = vl in
-                    $$(P.foldr) (\i total -> total + v i) 0 ps
+                    $$(P.foldr) (\i total -> $$(PlutusTx.plus) total (v i)) 0 ps
 
                 isValid = case act of
                     Refund sig -> -- the "refund" branch
@@ -131,7 +131,7 @@ contributionScript cmp  = ValidatorScript val where
                         let
                             payToOwner = 
                                 $$(Interval.contains) collRange range
-                                && totalInputs >= target
+                                && $$(PlutusTx.geq) totalInputs target
                                 && campaignOwner `signedBy` sig
                         in payToOwner
             in

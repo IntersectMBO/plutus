@@ -113,7 +113,7 @@ validatorScript v = ValidatorScript val where
                 if $$(Interval.contains) ($$(Interval.from) d1) range
                 then if $$(Interval.contains) ($$(Interval.from) d2) range
                     -- everything can be spent
-                        then a1 + a2
+                        then $$(P.plus) a1 a2
                         -- only the first tranche can be spent (we are between d1 and d2)
                         else a1
                 -- Nothing has been released yet
@@ -121,12 +121,12 @@ validatorScript v = ValidatorScript val where
 
 
             paidOut = let Value v' = vestingDataPaidOut in v'
-            newAmount = paidOut + amountSpent
+            newAmount = $$(P.plus) paidOut amountSpent
 
             -- Verify that the amount taken out, plus the amount already taken
             -- out before, does not exceed the threshold that is currently
             -- allowed
-            amountsValid = newAmount <= currentThreshold
+            amountsValid = $$(P.leq) newAmount currentThreshold
 
             -- Check that the remaining output is locked by the same validation
             -- script
