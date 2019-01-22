@@ -44,7 +44,6 @@ library
         exceptions -any,
         file-embed -any,
         gitrev -any,
-        hint >=0.9.0,
         bifunctors -any,
         http-types -any,
         insert-ordered-containers -any,

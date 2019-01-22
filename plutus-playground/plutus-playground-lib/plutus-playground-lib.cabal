@@ -41,7 +41,6 @@ library
     , containers
     , plutus-tx -any
     , plutus-tx-plugin -any
-    , hint >= 0.9.0
     , http-media
     , insert-ordered-containers
     , memory

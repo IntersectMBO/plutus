@@ -1,4 +1,4 @@
-resolver: lts-12.14
+resolver: lts-12.26
 
 packages:
 - language-plutus-core
@@ -32,7 +32,6 @@ extra-deps:
 - serialise-0.2.1.0
 - monad-stm-0.1.0.2
 - servant-options-0.1.0.0
-- hint-0.9.0
 - exceptions-0.10.0
 - purescript-bridge-0.13.0.0
 flags:

@@ -1,0 +1,3 @@
+https://github.com/input-output-hk/stylish-haskell.git ecfd3b307d8d13a6d12aff03055f25a39a17e182 . 0d6ylb07gxv050fpzc6siwxj8c7j1pkcry5zyzimv0xwn1wf6rfy stylish-haskell .stack.nix/stylish-haskell.nix
+https://github.com/shmish111/servant-purescript.git 315ccf5d720937c091c8cf3aca8adc8110766a23 . 0c4pi7rlmm3nghkp8h6p33jfvp3j75x512c68xd3ixgj0al1sw0j servant-purescript .stack.nix/servant-purescript.nix
+https://github.com/smobs/servant-subscriber.git 0354e99f5e1d244d5ec01f78e7e7439478b1d1d3 . 0gnmcvd7dcffj42cqcr9zwbvz1g5jdanxdpa76bkkgfabsbnag0s servant-subscriber .stack.nix/servant-subscriber.nix
