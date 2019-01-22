@@ -212,9 +212,7 @@ githubCallback githubEndpoints config@Config {..} (Just code) = do
   let tokenRequest = makeTokenRequest githubEndpoints config code
   response <- with500Err $ doRequest tokenRequest manager
   token <-
-    with500Err $
-    pure $
-    first Text.pack $
+    with500Err . pure . first Text.pack $
     if statusIsSuccessful (responseStatus response)
       then eitherDecode $ responseBody response
       else Left $ "Response: " <> show response
