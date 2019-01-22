@@ -37,9 +37,9 @@
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{\diffbox{\allT{\alpha}{K}{T}}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
-        \AxiomC{\(\typeMultistep{\subst{A}{\alpha}{T}}{R}\)}
+        \AxiomC{\(\diffbox{\typeMultistep{\subst{A}{\alpha}{T}}{R}}\)}
         \RightLabel{inst}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{R}}\)}
+        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\diffbox{R}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
