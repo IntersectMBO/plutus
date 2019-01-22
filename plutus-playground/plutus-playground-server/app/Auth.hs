@@ -157,6 +157,9 @@ githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
 twoWeeks :: NominalDiffTime
 twoWeeks = 60 * 60 * 24 * 7 * 2
 
+expiryDuration  :: NominalDiffTime
+expiryDuration = twoWeeks
+
 authStatus ::
      (MonadNow m, MonadLogger m) => Config -> Maybe Text -> m AuthStatus
 authStatus Config {..} cookieHeader = do
@@ -253,12 +256,12 @@ createSessionCookie signer token now =
     , setCookieValue = encodeUtf8 cookieValue
     , setCookiePath = Just "/"
     , setCookieExpires = Just expiryDate
-    , setCookieMaxAge = Just . fromRational . toRational $ twoWeeks
+    , setCookieMaxAge = Just . fromRational . toRational $ expiryDuration
     , setCookieSecure = True
     , setCookieHttpOnly = True -- Not accessible from JavaScript
     }
   where
-    expiryDate = addUTCTime twoWeeks now
+    expiryDate = addUTCTime expiryDuration now
     cookieValue = JWT.encodeSigned signer jwtClaims
     jwtClaims =
       mempty
