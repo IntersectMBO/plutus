@@ -1,4 +1,4 @@
-cabal-version: 1.18
+cabal-version: 2.0
 name: plutus-tx
 version: 0.1.0.0
 license: BSD3
@@ -23,6 +23,11 @@ library
         Language.PlutusTx.TH
         Language.PlutusTx.Prelude
         Language.PlutusTx.Evaluation
+    reexported-modules:
+        Language.PlutusTx.Lift,
+        Language.PlutusTx.Lift.Class,
+        Language.PlutusTx.Builtins,
+        Language.PlutusTx.Plugin
     other-modules:
         Language.PlutusTx.Prelude.Stage0
         Language.PlutusTx.Prelude.Stage1
@@ -58,7 +63,6 @@ test-suite plutus-tx-tests
     build-depends:
         base >=4.9 && <5,
         language-plutus-core -any,
-        plutus-tx-plugin -any,
         plutus-tx -any,
         plutus-ir -any,
         prettyprinter -any,
@@ -78,7 +82,6 @@ test-suite plutus-tx-tutorial-doctests
     build-depends:
         base >=4.9 && <5,
         plutus-tx -any,
-        plutus-tx-plugin -any,
         language-plutus-core -any,
         prettyprinter -any,
         doctest -any
