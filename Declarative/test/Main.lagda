@@ -45,11 +45,9 @@ postulate
 {-# COMPILE GHC str1 = BS.pack "Hello, " #-}
 {-# COMPILE GHC str2 = BS.pack "world"   #-}
 {-# COMPILE GHC printByteString = T.pack . BS.unpack #-}
-
 {-# FOREIGN GHC import qualified Crypto.Hash #-}
 
 
-{-# FOREIGN GHC import Language.PlutusCore.Parser #-}
 lemma1 : length str1 ≡ 7
 lemma1 = primTrustMe 
 lemma2 : length str2 ≡ 7
@@ -136,10 +134,38 @@ test t name expected = do
   putStrLn ("actual output:   " ++ s)
   putStrLn ""
 
+
+{-
 main : IO ⊤
 main = do
   test (addI · con2 · con2) "AddInteger" "4"
   test intLit "IntegerLiteral" "102341"
   test stringLit "StringLiteral" "4321758fabce1aa4780193f"
   test negate "Negation" "it worked"
+-}
+
+open import Raw
+
+postulate
+  fmap : ∀{A B : Set} → (A → B) → IO A → IO B
+  Program : Set
+  convP : Program → RawTm
+  readFile : String -> IO ByteString
+  
+  parse : ByteString → Program
+  
+{-# FOREIGN GHC import Language.PlutusCore.Parser #-}
+{-# FOREIGN GHC import Convert #-}
+{-# COMPILE GHC convP = convP #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC fmap = fmap #-}
+{-# FOREIGN GHC import Data.Either #-}
+{-# COMPILE GHC parse = fromRight undefined $ parse #-}
+{-# FOREIGN GHC import Langugae.PlutusCore.Type #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Type.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
+open import Function
+
+main : IO ⊤
+main = do
+  fmap ((λ _ → _) ∘ convP ∘ parse) (readFile "/Users/james/repos/plutus/language-plutus-core/test/data/negation.plc")
 \end{code}

@@ -27,4 +27,9 @@ data RawTm : Set where
   _·⋆_ : RawTm → RawTy → RawTm
   ƛ    : String → RawTy → RawTm → RawTm
   _·_  : RawTm → RawTm → RawTm
+
+{-# FOREIGN GHC import Convert #-}
+{-# FOREIGN GHC import qualified Data.Text as T #-}
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp) #-}
+
 \end{code}
