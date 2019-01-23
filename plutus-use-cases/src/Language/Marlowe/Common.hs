@@ -573,19 +573,17 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ledger.Value value)
 -}
 findAndRemove :: Q (TExp ((Commit -> Bool) -> [Commit] -> Maybe [Commit]))
 findAndRemove = [|| \ predicate commits -> let
-    (&&) = $$(PlutusTx.and)
+    -- performs early return when found
+    findAndRemove :: Bool -> [Commit] -> Maybe [Commit]
+    findAndRemove found [] = if found then Just [] else Nothing
+    findAndRemove _ (commit : rest) =
+        if predicate commit
+        then Just rest
+        else case findAndRemove False rest of
+                Just acc -> Just (commit : acc)
+                Nothing  -> Nothing
 
-    reverse :: [a] -> [a]
-    reverse l =  rev l [] where
-            rev []     a = a
-            rev (x:xs) a = rev xs (x:a)
-
-    findAndRemove (v, acc) commit =
-        if $$(PlutusTx.not) v && predicate commit
-        then (True, acc)
-        else (v, commit : acc)
-    (found, updatedCommits) = $$(PlutusTx.foldl) findAndRemove (False, []) commits
-    in if found then Just (reverse updatedCommits) else Nothing
+    in findAndRemove False commits
     ||]
 
 {-|
