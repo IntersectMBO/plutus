@@ -197,7 +197,7 @@ data FutureRedeemer =
 validatorScript :: Future -> ValidatorScript
 validatorScript ft = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted ft)
-    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [||
+    inner = $$(Ledger.compileScript [||
         \Future{..} (r :: FutureRedeemer) FutureData{..} (p :: PendingTx) ->
 
             let
