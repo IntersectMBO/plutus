@@ -23,13 +23,14 @@ module Wallet.Generators(
     genValue,
     Wallet.Generators.runTrace,
     runTraceOn,
-    splitVal
+    splitVal,
+    validateMockchain
     ) where
 
 import           Data.Bifunctor              (Bifunctor (..))
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
-import           Data.Maybe                  (catMaybes)
+import           Data.Maybe                  (catMaybes, isNothing)
 import           Data.Monoid                 (Sum (..))
 import           Data.Set                    (Set)
 import qualified Data.Set                    as Set
@@ -38,6 +39,7 @@ import           Hedgehog
 import qualified Hedgehog.Gen                as Gen
 import qualified Hedgehog.Range              as Range
 import qualified Ledger.Interval             as Interval
+import qualified Ledger.Index                as Index
 
 import           Ledger
 import qualified Wallet.API      as W
@@ -179,7 +181,14 @@ assertValid :: (MonadTest m, HasCallStack)
     => Tx
     -> Mockchain
     -> m ()
-assertValid tx (Mockchain ch _) = Hedgehog.assert (validTx unitValidationData tx [ch])
+assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
+
+-- | Validate a transaction in a mockchain
+validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
+validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
+    h      = lastSlot [blck]
+    idx    = Index.initialise [blck]
+    result = Index.runValidation (Index.validateTransaction h tx) idx
 
 -- | Run an emulator trace on a mockchain
 runTrace ::

@@ -37,7 +37,7 @@ mkRedeemerScript word =
 
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
+gameValidator = ValidatorScript ($$(Ledger.compileScript [||
     -- The code between the '[||' and  '||]' quotes is on-chain code.
     \(ClearString guess) (HashedString actual) (p :: PendingTx) ->
 

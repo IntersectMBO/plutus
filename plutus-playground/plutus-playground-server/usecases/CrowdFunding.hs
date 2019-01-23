@@ -53,7 +53,7 @@ PlutusTx.makeLift ''CampaignAction
 contributionScript :: Campaign -> ValidatorScript
 contributionScript cmp  = ValidatorScript val where
     val = Ledger.applyScript mkValidator (Ledger.lifted cmp)
-    mkValidator = Ledger.fromCompiledCode $$(PlutusTx.compile [||
+    mkValidator = $$(Ledger.compileScript [||
 
         -- The validator script is a function of four arguments:
         -- 1. The 'Campaign' definition. This argument is provided by the Plutus client, using 'Ledger.applyScript'.
