@@ -71,7 +71,7 @@ not = [|| \(a :: Bool) -> if a then False else True  ||]
 --   True
 --
 gt :: Q (TExp (Int -> Int -> Bool))
-gt = [|| (>) ||]
+gt = [|| Builtins.greaterThanInteger ||]
 
 -- | Greater than or equal to
 --
@@ -79,7 +79,7 @@ gt = [|| (>) ||]
 --   True
 --
 geq :: Q (TExp (Int -> Int -> Bool))
-geq = [|| (P.>=) ||]
+geq = [|| Builtins.greaterThanEqInteger ||]
 
 -- | Less than 
 --
@@ -87,7 +87,7 @@ geq = [|| (P.>=) ||]
 --   False
 --
 lt :: Q (TExp (Int -> Int -> Bool))
-lt = [|| (<) ||]
+lt = [|| Builtins.lessThanInteger ||]
 
 -- | Less than or equal to
 --
@@ -95,7 +95,7 @@ lt = [|| (<) ||]
 --   True
 --
 leq :: Q (TExp (Int -> Int -> Bool))
-leq = [|| (P.<=) ||]
+leq = [|| Builtins.lessThanEqInteger ||]
 
 -- | Eq for 'Int'
 --
@@ -103,7 +103,7 @@ leq = [|| (P.<=) ||]
 --   False
 --
 eq :: Q (TExp (Int -> Int -> Bool))
-eq = [|| (P.==) ||]
+eq = [|| Builtins.equalsInteger ||]
 
 -- | Addition
 --
@@ -111,7 +111,7 @@ eq = [|| (P.==) ||]
 --   3
 --
 plus :: Q (TExp (Int -> Int -> Int))
-plus = [|| (+) ||]
+plus = [|| Builtins.addInteger ||]
 
 -- | Subtraction
 --
@@ -119,7 +119,7 @@ plus = [|| (+) ||]
 --   1
 --
 minus :: Q (TExp (Int -> Int -> Int))
-minus = [|| (P.-) ||]
+minus = [|| Builtins.subtractInteger ||]
 
 -- | Multiplication
 --
@@ -127,7 +127,7 @@ minus = [|| (P.-) ||]
 --   2
 --
 multiply :: Q (TExp (Int -> Int -> Int))
-multiply = [|| (P.*) ||]
+multiply = [|| Builtins.multiplyInteger ||]
 
 -- | Integer division
 --
@@ -135,7 +135,7 @@ multiply = [|| (P.*) ||]
 --   1
 --
 divide :: Q (TExp (Int -> Int -> Int))
-divide = [|| (P.div) ||]
+divide = [|| Builtins.divideInteger ||]
 
 -- | Remainder (of integer division)
 --
@@ -143,7 +143,7 @@ divide = [|| (P.div) ||]
 --   1
 --
 remainder :: Q (TExp (Int -> Int -> Int))
-remainder = [|| P.rem ||]
+remainder = [|| Builtins.remainderInteger ||]
 
 -- | The smaller of two 'Int's
 --
