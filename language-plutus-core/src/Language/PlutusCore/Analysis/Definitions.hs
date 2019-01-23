@@ -13,9 +13,7 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import           Control.Monad.Writer
 
-import           Data.Coerce
 import           Data.Foldable
-import qualified Data.IntMap               as IM
 import qualified Data.Set                  as Set
 
 {- Note [Unique usage errors]
@@ -26,7 +24,7 @@ them all and allow the client to chose if they want to throw some of them.
 
 -- | Information about a unique, a pair of a definition if we have one and a set of uses.
 type UniqueInfo a = (Maybe (ScopedLoc a), Set.Set (ScopedLoc a))
-type UniqueInfos a = IM.IntMap (UniqueInfo a)
+type UniqueInfos a = UniqueMap Unique (UniqueInfo a)
 
 data ScopedLoc a = ScopedLoc ScopeType a deriving (Eq, Ord)
 
@@ -36,16 +34,17 @@ data ScopeType = TermScope | TypeScope deriving (Eq, Ord)
 
 lookupDef
     :: (Ord a,
+        HasUnique name unique,
         MonadState (UniqueInfos a) m)
-    => Unique
+    => name
     -> m (UniqueInfo a)
-lookupDef u = do
-    previousDef <- gets $ IM.lookup (unUnique u)
+lookupDef n = do
+    previousDef <- gets $ lookupNameIndex n
     case previousDef of
         Just d -> pure d
         Nothing -> do
             let empty = (Nothing, mempty)
-            modify $ IM.insert (unUnique u) empty
+            modify $ insertByNameIndex n empty
             pure empty
 
 addDef
@@ -58,23 +57,23 @@ addDef
     -> ScopeType -- ^ The scope type
     -> m ()
 addDef n newDef tpe = do
-    let u = n ^. unique . coerced
     let def = ScopedLoc tpe newDef
 
-    d@(_, uses) <- lookupDef u
-    checkUndefined u def d
-    modify $ IM.insert (unUnique u) (Just def, uses)
+    d@(_, uses) <- lookupDef n
+    checkUndefined n def d
+    modify $ insertByNameIndex n (Just def, uses)
 
 -- | Check that a variable is currently undefined.
 checkUndefined
-    :: (MonadState (UniqueInfos a) m,
+    :: (HasUnique n u,
+        MonadState (UniqueInfos a) m,
         MonadWriter [UniqueError a] m)
-    => Unique -- ^ The variable
+    => n -- ^ The variable
     -> ScopedLoc a -- ^ The new definition
     -> UniqueInfo a -- ^ The existing info
     -> m ()
-checkUndefined u (ScopedLoc _ newDef) info = case info of
-    (Just (ScopedLoc _ prevDef), _) -> tell [MultiplyDefined u prevDef newDef]
+checkUndefined n (ScopedLoc _ newDef) info = case info of
+    (Just (ScopedLoc _ prevDef), _) -> tell [MultiplyDefined (n ^. unique . coerced) prevDef newDef]
     _                               -> pure ()
 
 addUsage
@@ -87,37 +86,38 @@ addUsage
     -> ScopeType -- ^ The scope type
     -> m ()
 addUsage n newUse tpe = do
-    let u = coerce $ n ^. unique
     let use = ScopedLoc tpe newUse
 
-    d@(def, uses) <- lookupDef u
-    checkCoherency u use d
-    checkDefined u use d
-
-    modify $ IM.insert (unUnique u) (def, Set.insert use uses)
+    d@(def, uses) <- lookupDef n
+    checkCoherency n use d
+    checkDefined n use d
+    modify $ insertByNameIndex n (def, Set.insert use uses)
 
 checkDefined
-    :: (MonadWriter [UniqueError a] m)
-    => Unique -- ^ The unique
+    :: (HasUnique n u,
+        MonadWriter [UniqueError a] m)
+    => n -- ^ The variable
     -> ScopedLoc a -- ^ The new definition
     -> UniqueInfo a -- ^ The existing info
     -> m ()
-checkDefined u (ScopedLoc _ loc) (def, _) = case def of
-    Nothing -> tell [FreeVariable u loc]
+checkDefined n (ScopedLoc _ loc) (def, _) = case def of
+    Nothing -> tell [FreeVariable (n ^. unique . coerced) loc]
     Just _  -> pure ()
 
 checkCoherency
-    :: (MonadWriter [UniqueError a] m)
-    => Unique -- ^ The unique
+    :: (HasUnique n u,
+        MonadWriter [UniqueError a] m)
+    => n -- ^ The variable
     -> ScopedLoc a -- ^ The new definition
     -> UniqueInfo a -- ^ The existing info
     -> m ()
-checkCoherency u (ScopedLoc tpe loc) (def, uses) = do
+checkCoherency n (ScopedLoc tpe loc) (def, uses) = do
     for_ def checkLoc
     for_ (Set.toList uses) checkLoc
 
     where
-        checkLoc (ScopedLoc tpe' loc') = when (tpe' /= tpe) $ tell [IncoherentUsage u loc' loc]
+        checkLoc (ScopedLoc tpe' loc') = when (tpe' /= tpe) $
+            tell [IncoherentUsage (n ^. unique . coerced) loc' loc]
 
 termDefs
     :: (Ord a,

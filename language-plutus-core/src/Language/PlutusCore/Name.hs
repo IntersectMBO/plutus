@@ -8,12 +8,19 @@
 
 module Language.PlutusCore.Name ( -- * Types
                                   IdentifierState
+                                , Name (..)
+                                , TyName (..)
                                 , Unique (..)
                                 , TypeUnique (..)
                                 , TermUnique (..)
                                 , HasUnique (..)
-                                , Name (..)
-                                , TyName (..)
+                                , UniqueMap (..)
+                                , insertByUnique
+                                , insertByName
+                                , insertByNameIndex
+                                , lookupUnique
+                                , lookupName
+                                , lookupNameIndex
                                 -- * Functions
                                 , newIdentifier
                                 , emptyIdentifierState
@@ -41,7 +48,7 @@ import           Language.Haskell.TH.Syntax (Lift)
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name a = Name { nameAttribute :: a
                    , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
-                   , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name during lexing, allowing for cheap comparisons in the compiler.
+                   , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
                    }
             deriving (Show, Functor, Generic, NFData, Lift)
 
@@ -65,16 +72,6 @@ instance Eq (Name a) where
 
 instance Ord (Name a) where
     (<=) = (<=) `on` nameUnique
-
--- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
--- indexed by 'ByteString's. It is used during parsing and renaming.
-type IdentifierState = (IM.IntMap BSL.ByteString, M.Map BSL.ByteString Unique, Unique)
-
-emptyIdentifierState :: IdentifierState
-emptyIdentifierState = (mempty, mempty, Unique 0)
-
-identifierStateFrom :: Unique -> IdentifierState
-identifierStateFrom u = (mempty, mempty, u)
 
 -- N.B. the constructors for 'Unique' are exported for the sake of the test
 -- suite; I don't know if there is an easier/better way to do this
@@ -111,6 +108,53 @@ instance HasUnique (Name a) TermUnique where
 instance HasUnique (TyName a) TypeUnique where
     unique = newtypeUnique
 
+-- | A mapping from uniques to values of type @a@.
+newtype UniqueMap unique a = UniqueMap
+    { unUniqueMap :: IM.IntMap a
+    } deriving newtype (Show, Semigroup, Monoid, Functor)
+
+-- | Insert a value by a unique.
+insertByUnique :: Coercible Unique unique => unique -> a -> UniqueMap unique a -> UniqueMap unique a
+insertByUnique uniq x = UniqueMap . IM.insert (coerce uniq) x . unUniqueMap
+
+-- | Insert a value by the unique of a name.
+insertByName :: HasUnique name unique => name -> a -> UniqueMap unique a -> UniqueMap unique a
+insertByName = insertByUnique . view unique
+
+-- | Insert a value by the index of the unique of a name.
+-- Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,
+-- so you can for example insert by a type-level name in a map from term-level uniques.
+insertByNameIndex
+    :: (HasUnique name unique1, Coercible unique2 Unique)
+    => name -> a -> UniqueMap unique2 a -> UniqueMap unique2 a
+insertByNameIndex = insertByUnique . coerce . view unique
+
+-- | Look up a value by a unique.
+lookupUnique :: Coercible Unique unique => unique -> UniqueMap unique a -> Maybe a
+lookupUnique uniq = IM.lookup (coerce uniq) . unUniqueMap
+
+-- | Look up a value by the unique of a name.
+lookupName :: HasUnique name unique => name -> UniqueMap unique a -> Maybe a
+lookupName = lookupUnique . view unique
+
+-- | Look up a value by the index of the unique of a name.
+-- Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
+-- so you can for example look up a type-level name in a map from term-level uniques.
+lookupNameIndex
+    :: (HasUnique name unique1, Coercible unique2 Unique)
+    => name -> UniqueMap unique2 a -> Maybe a
+lookupNameIndex = lookupUnique . coerce . view unique
+
+-- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
+-- indexed by 'ByteString's. It is used during parsing.
+type IdentifierState = (UniqueMap Unique BSL.ByteString, M.Map BSL.ByteString Unique, Unique)
+
+emptyIdentifierState :: IdentifierState
+emptyIdentifierState = (mempty, mempty, Unique 0)
+
+identifierStateFrom :: Unique -> IdentifierState
+identifierStateFrom u = (mempty, mempty, u)
+
 -- | This is a naïve implementation of interned identifiers. In particular, it
 -- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast
 -- lookups while lexing and otherwise.
@@ -120,9 +164,8 @@ newIdentifier str = do
     case M.lookup str ss of
         Just k -> pure k
         Nothing -> do
-            let key = unUnique nextU
-            let nextU' = Unique (key+1)
-            put (IM.insert key str is, M.insert str nextU ss, nextU')
+            let nextU' = Unique $ unUnique nextU + 1
+            put (insertByUnique nextU str is, M.insert str nextU ss, nextU')
             pure nextU
 
 {- Note [PLC names pretty-printing]

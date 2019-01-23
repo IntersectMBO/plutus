@@ -28,12 +28,10 @@ import           Language.PlutusCore.Renamer    (rename)
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Lens                   (coerced)
 import           Control.Lens.TH                (makeLenses)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import qualified Data.IntMap                    as IM
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 
@@ -51,16 +49,8 @@ newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
     { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (NormalizedType TyName ())
     } deriving (Semigroup, Monoid)
 
--- TODO: define @UniqueMap@ already.
-
-newtype TyVarKinds = TyVarKinds
-    { unTyVarKinds :: IM.IntMap (Kind ())
-    } deriving (Semigroup, Monoid)
-
-newtype VarTypes = VarTypes
-    { unVarTypes :: IM.IntMap (NormalizedType TyName ())
-    } deriving (Semigroup, Monoid)  -- This is just to be able to say 'mempty'.
-                                    -- TODO: Remove this once this is not visible to the user.
+type TyVarKinds = UniqueMap TypeUnique (Kind ())
+type VarTypes   = UniqueMap TermUnique (NormalizedType TyName ())
 
 -- TODO: split 'TypeConfig' to 'TypeEnv' and 'TypeConfig'.
 
@@ -97,12 +87,10 @@ runInTypeCheckM a = do
                 Just x  -> pure x
 
 withTyVar :: TyName ann -> Kind () -> TypeCheckM ann a -> TypeCheckM ann a
-withTyVar name =
-    local . over typeConfigTyVarKinds . coerce . IM.insert (name ^. unique . coerced)
+withTyVar name = local . over typeConfigTyVarKinds . insertByName name
 
 withVar :: Name ann -> NormalizedType TyName () -> TypeCheckM ann a -> TypeCheckM ann a
-withVar name =
-    local . over typeConfigVarTypes . coerce . IM.insert (name ^. unique . coerced)
+withVar name = local . over typeConfigVarTypes . insertByName name
 
 -- | Normalize a 'Type'.
 normalizeTypeTcm :: Type TyName () -> TypeCheckM a (NormalizedType TyName ())
@@ -178,7 +166,7 @@ runTypeCheckM typeConfig tc = runReaderT tc typeConfig
 -- | Infer the kind of a type variable by looking it up in the current context.
 kindOfTyVar :: TyName a -> TypeCheckM a (Kind ())
 kindOfTyVar name = do
-    mayKind <- asks $ IM.lookup (name ^. unique . coerced) . unTyVarKinds . _typeConfigTyVarKinds
+    mayKind <- asks $ lookupName name . _typeConfigTyVarKinds
     case mayKind of
         Nothing   -> throwError $ FreeTypeVariableE name
         Just kind -> pure kind
@@ -186,7 +174,7 @@ kindOfTyVar name = do
 -- | Infer the type of a variable by looking it up in the current context.
 typeOfVar :: Name a -> TypeCheckM a (NormalizedType TyName ())
 typeOfVar name = do
-    mayTy <- asks $ IM.lookup (name ^. unique . coerced) . unVarTypes . _typeConfigVarTypes
+    mayTy <- asks $ lookupName name . _typeConfigVarTypes
     case mayTy of
         Nothing -> throwError $ FreeVariableE name
         Just ty -> rename ty
