@@ -11,6 +11,7 @@ module Language.PlutusCore.Generators.Interesting
     , genFactorial
     , genNaiveFib
     , genNatRoundtrip
+    , getBuiltinNatSum
     , genListSum
     , genIfIntegers
     , fromInterestingTermGens
@@ -26,6 +27,7 @@ import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
+import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Generators
 
@@ -187,6 +189,31 @@ genNatRoundtrip = do
         natToInteger <- getBuiltinNatToInteger
         return $ mkIterApp () (TyInst () natToInteger size) [ssize, n]
     return . TermOf term $ TypedBuiltinValue typedIntS iv
+
+-- | @sumNat@ as a PLC term.
+getBuiltinNatSum :: Size -> Quote (Term TyName Name ())
+getBuiltinNatSum s = rename =<< do
+    foldList <- getBuiltinFoldList
+    let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
+    nat1 <- _recursiveType <$> getBuiltinNat
+    let add = TyInst () (Builtin () (BuiltinName () AddInteger)) $ TyInt () s
+    nti <- getBuiltinNatToInteger
+    acc <- freshName () "acc"
+    n <- freshName () "n"
+    nat2 <- _recursiveType <$> getBuiltinNat
+    return
+        $ mkIterApp () (mkIterInst () foldList [nat1, int])
+          [   LamAbs () acc int
+            . LamAbs () n nat2
+            . mkIterApp () add
+            $ [ Var () acc
+              , mkIterApp () (TyInst () nti (TyInt () s))
+                  [ Constant () $ BuiltinSize () s
+                  , Var () n
+                  ]
+              ]
+          , Constant () $ BuiltinInt () s 0
+          ]
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
 -- sum elements of the list (see 'getBuiltinSum') and return it along with the sum of the original list.

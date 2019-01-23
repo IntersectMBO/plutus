@@ -2,8 +2,8 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module DynamicBuiltins.String
-    ( test_dynamicStrings
+module DynamicBuiltins.MakeRead
+    ( test_dynamicMakeRead
     ) where
 
 import           Language.PlutusCore
@@ -23,17 +23,37 @@ import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
+dynamicBuiltinRoundtrip :: (KnownDynamicBuiltinType a, Show a, Eq a) => Gen a -> Property
+dynamicBuiltinRoundtrip genX = property $ do
+    x <- forAll genX
+    let mayX' = runQuote (makeDynamicBuiltin x) >>= sequence . readDynamicBuiltinCek
+    mayX' === Just (Right x)
+
 test_stringRoundtrip :: TestTree
-test_stringRoundtrip = testProperty "stringRoundtrip" . property $ do
-    str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
-    let mayStr' = runQuote (makeDynamicBuiltin str) >>= sequence . readDynamicBuiltinCek
-    Just (Right str) === mayStr'
+test_stringRoundtrip =
+    testProperty "stringRoundtrip" . dynamicBuiltinRoundtrip $
+        Gen.string (Range.linear 0 20) Gen.unicode
 
 test_plcListOfStringsRoundtrip :: TestTree
-test_plcListOfStringsRoundtrip = testProperty "listOfStringsRoundtrip" . property $ do
-    strs <- forAll . fmap PlcList . Gen.list (Range.linear 0 10) $ Gen.string (Range.linear 0 10) Gen.unicode
-    let mayStrs' = runQuote (makeDynamicBuiltin strs) >>= sequence . readDynamicBuiltinCek
-    Just (Right strs) === mayStrs'
+test_plcListOfStringsRoundtrip =
+    testProperty "listOfStringsRoundtrip" . dynamicBuiltinRoundtrip $
+        fmap PlcList . Gen.list (Range.linear 0 10) $
+            Gen.string (Range.linear 0 10) Gen.unicode
+
+test_plcListOfPairsRoundtrip :: TestTree
+test_plcListOfPairsRoundtrip =
+    testProperty "listOfPairsRoundtrip" . dynamicBuiltinRoundtrip $
+        fmap PlcList . Gen.list (Range.linear 0 10) $
+            (,) . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode <*> Gen.unicode
+
+test_plcListOfSumsRoundtrip :: TestTree
+test_plcListOfSumsRoundtrip =
+    testProperty "listOfSumsRoundtrip" . dynamicBuiltinRoundtrip $
+        fmap PlcList . Gen.list (Range.linear 0 10) $
+            Gen.choice
+                [ Left . PlcList <$> Gen.list (Range.linear 0 10) Gen.unicode
+                , Right <$> Gen.unicode
+                ]
 
 -- | Generate a bunch of 'Char's, put each of them into a 'Term', apply a dynamic built-in name over
 -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
@@ -48,16 +68,9 @@ test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
     (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek TypedBuiltinDyn $ \emit ->
         runQuote $ do
-            unit        <- getBuiltinUnit
-            unitval     <- getBuiltinUnitval
-            ignore <- do
-                x <- freshName () "x"
-                y <- freshName () "y"
-                return
-                    . LamAbs () x unit
-                    . LamAbs () y unit
-                    $ Var () y
-            let step arg rest = mkIterApp () ignore [Apply () emit arg, rest]
+            unitval <- getBuiltinUnitval
+            sequ    <- getBuiltinSequ
+            let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
             chars <- traverse unsafeMakeDynamicBuiltin str
             return $ foldr step unitval chars
     case errOrRes of
@@ -66,10 +79,12 @@ test_collectChars = testProperty "collectChars" . property $ do
         Right (EvaluationSuccess _) -> return ()
     str === str'
 
-test_dynamicStrings :: TestTree
-test_dynamicStrings =
-    testGroup "dynamicStrings"
+test_dynamicMakeRead :: TestTree
+test_dynamicMakeRead =
+    testGroup "dynamicMakeRead"
         [ test_stringRoundtrip
         , test_plcListOfStringsRoundtrip
+        , test_plcListOfPairsRoundtrip
+        , test_plcListOfSumsRoundtrip
         , test_collectChars
         ]

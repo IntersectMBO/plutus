@@ -57,6 +57,7 @@ library
         Language.PlutusCore.StdLib.Data.Integer
         Language.PlutusCore.StdLib.Data.List
         Language.PlutusCore.StdLib.Data.Nat
+        Language.PlutusCore.StdLib.Data.Sum
         Language.PlutusCore.StdLib.Data.Unit
         Language.PlutusCore.StdLib.Everything
         Language.PlutusCore.StdLib.Meta
