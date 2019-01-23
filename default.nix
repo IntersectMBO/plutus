@@ -78,6 +78,10 @@ let
         filter = localLib.isPlutus;
       };
       customOverlays = optional forceError errorOverlay;
+      # Filter down to local packages, except those named in the given list
+      localButNot = nope: 
+        let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
+        in name: builtins.elem name okay;
       # We can pass an evaluated version of our packages into
       # iohk-nix, and then we can also get out the compiler
       # so we make sure it uses the same one.
@@ -91,17 +95,17 @@ let
 
       filter = localLib.isPlutus;
       filterOverrides = {
-        splitCheck = let
-          dontSplit = [
+        splitCheck = localButNot [
             # Broken for things with test tool dependencies
             "wallet-api"
             "plutus-tx"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
           ];
-          # Split only local packages not in the don't split list
-          doSplit = builtins.filter (name: !(builtins.elem name dontSplit)) localLib.plutusPkgList;
-          in name: builtins.elem name doSplit;
+        haddock = localButNot [
+            # Haddock is broken for things with internal libraries
+            "plutus-tx"
+        ];
       };
       requiredOverlay = ./nix/overlays/required.nix;
     };

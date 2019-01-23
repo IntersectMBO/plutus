@@ -1,3 +1,0 @@
-:set -XFlexibleContexts
-:m +PlutusPrelude Data.Text.Prettyprint.Doc
-:set -interactive-print printPretty
