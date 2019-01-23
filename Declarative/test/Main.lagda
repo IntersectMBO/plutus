@@ -7,7 +7,6 @@ open import Agda.Builtin.String
 postulate
   putStrLn : String → IO ⊤
 
---{-# FORIEGN GHC {-# LANGUAGE RankNTypes #-} #-}
 {-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
@@ -150,22 +149,26 @@ postulate
   fmap : ∀{A B : Set} → (A → B) → IO A → IO B
   Program : Set
   convP : Program → RawTm
-  readFile : String -> IO ByteString
-  
+  readFile : String → IO ByteString
   parse : ByteString → Program
-  
+  showTerm : RawTm → String
+{-# FOREIGN GHC import Language.PlutusCore.Name #-}
+{-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
-{-# FOREIGN GHC import Convert #-}
+{-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
-{-# COMPILE GHC fmap = fmap #-}
+{-# COMPILE GHC fmap = \_ _ -> fmap #-}
 {-# FOREIGN GHC import Data.Either #-}
-{-# COMPILE GHC parse = fromRight undefined $ parse #-}
-{-# FOREIGN GHC import Langugae.PlutusCore.Type #-}
+{-# COMPILE GHC parse = fromRight undefined . parse #-}
+{-# FOREIGN GHC import Language.PlutusCore.Type #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Type.Program TyName Name Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
+{-# COMPILE GHC showTerm = T.pack . show #-}
 open import Function
 
 main : IO ⊤
 main = do
-  fmap ((λ _ → _) ∘ convP ∘ parse) (readFile "/Users/james/repos/plutus/language-plutus-core/test/data/negation.plc")
+  t ← fmap (convP ∘ parse) (readFile "/Users/james/repos/plutus/language-plutus-core/test/data/negation.plc")
+  putStrLn (showTerm t)
 \end{code}

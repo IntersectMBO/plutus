@@ -28,8 +28,8 @@ data RawTm : Set where
   ƛ    : String → RawTy → RawTm → RawTm
   _·_  : RawTm → RawTm → RawTm
 
-{-# FOREIGN GHC import Convert #-}
-{-# FOREIGN GHC import qualified Data.Text as T #-}
+{-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp) #-}
-
+{-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp) #-}
+{-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 \end{code}
