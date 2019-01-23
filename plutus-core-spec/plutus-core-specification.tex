@@ -317,7 +317,7 @@ ought to be included as sugar.
 \item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{A}{B}$ represents a recursive type $\fixtype{A}$: see the note on recursive types below.
+\item $\fixT{A}{B}$ represents a recursive type: see the note in \S\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
@@ -395,36 +395,42 @@ which will increase as the size of the integers involved increases.
 
 
 \subsubsection{Recursive types}
-\red{This section will need to be rewritten to conform to the new
-  mechanism for fixed point types.}
-
+\label{sec:ifix-note}
 \noindent
-The operator $\texttt{fix}$ allows one to
-define recursive types in Plutus Core: $\fixT{\alpha}{A}$ is a type
-$\fixtype{A}$ such that $\fixtype{A} \cong [\fixtype{A}/\alpha]A$; in
-practice the type $A$ here will usually be a function type involving
-$\alpha$.  Note that we have an \textit{isomporhism} of types here
-rather than equality.  Fixpoint types are
+The operator \texttt{fix} allows one to define recursive types in
+Plutus Core: \texttt{fix A B} is a type such that \texttt{fix A B
+  $\cong$ A (fix A) B} where \texttt{A} is a \textit{pattern
+  functor}~\cite[2.4]{backhouseetal98} and \texttt{B} is an
+index. Pattern functors that \texttt{fix} receives bind two variables:
+one for building recursive occurrences and the other to act as an
+index. Indices can be used in order to get parameterized data types,
+but also in order to control the shape of the data type: depending on
+an index, recursive occurrences can be instantiated differently.  This
+allows us to encode a wide variety of data types, including non-regular and
+mutually recursive data types.
+
+Note that we have an \textit{isomporhism} of types here
+rather than equality: fixpoint types are
 \textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
-\texttt{wrap}: $[\fixtype{A}/\alpha]A \rightarrow \fixtype{A}$ and
-\texttt{unwrap}: $\fixtype{A} \rightarrow [\fixtype{A}/\alpha]A$.
-The use of isorecursive types makes it somewhat more difficult to
+
+$$
+\texttt{wrap} : \texttt{A (fix A) B} \rightarrow \texttt{fix A B}
+$$
+
+\noindent and
+
+$$
+\texttt{unwrap} : \texttt{fix A B} \rightarrow  \texttt{A (fix A) B}
+$$
+
+\noindent The use of isorecursive types makes it somewhat more difficult to
 write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
 
-\noindent\blue{Do we want an example here?  Also, ``isorecursive'' or ``iso-recursive''? 
+\noindent\blue{Do we want an example here, or perhaps a more detailed explanation
+  later?  Also, ``isorecursive'' or ``iso-recursive''? 
 Is it true that we have an isomporhism, and not a retraction or something?}
-
-% As an example, consider the program in Figure
-% \ref{fig:Plutus_core_example}, which defines the type of natural
-% numbers as well as lists, and the factorial and map functions. This
-% program is not the most readable, which is to be expected from a
-% representation intended for machine interpretation rather than human
-% interpretation, but it does make explicit precisely what the roles
-% are of the various parts.
-
-%\subfile{figures/PlutusCoreExample}
 
 
 \subsubsection{The value restriction}
