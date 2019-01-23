@@ -1,3 +1,5 @@
 run alex on the Lexer and happy on the parser
 
 ghci -XScopedTypeVariables -XFlexibleContexts -XDeriveGeneric -XStandaloneDeriving -XDeriveLift -XGeneralizedNewtypeDeriving -XDeriveFunctor -XDeriveFoldable -XDeriveTraversable Parser.hs
+
+agda --compile --ghc-flag=-XScopedTypeVariables --ghc-flag=-XFlexibleContexts --ghc-flag=-XDeriveGeneric --ghc-flag=-XStandaloneDeriving --ghc-flag=-XDeriveLift --ghc-flag=-XGeneralizedNewtypeDeriving --ghc-flag=-XDeriveFunctor --ghc-flag=-XDeriveFoldable --ghc-flag=-XDeriveTraversable

@@ -7,6 +7,7 @@ open import Agda.Builtin.String
 postulate
   putStrLn : String → IO ⊤
 
+--{-# FORIEGN GHC {-# LANGUAGE RankNTypes #-} #-}
 {-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
@@ -47,6 +48,8 @@ postulate
 
 {-# FOREIGN GHC import qualified Crypto.Hash #-}
 
+
+{-# FOREIGN GHC import Language.PlutusCore.Parser #-}
 lemma1 : length str1 ≡ 7
 lemma1 = primTrustMe 
 lemma2 : length str2 ≡ 7
