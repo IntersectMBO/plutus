@@ -78,11 +78,17 @@ let
         filter = localLib.isPlutus;
       };
       customOverlays = optional forceError errorOverlay;
+      # We can pass an evaluated version of our packages into
+      # iohk-nix, and then we can also get out the compiler
+      # so we make sure it uses the same one.
+      pkgsGenerated = import ./pkgs { inherit pkgs; };
     in self.callPackage localLib.iohkNix.haskellPackages {
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      enableSplitCheck customOverlays;
-      pkgsGenerated = ./pkgs;
+      enableSplitCheck customOverlays pkgsGenerated;
+
+      inherit (pkgsGenerated) ghc;
+
       filter = localLib.isPlutus;
       filterOverrides = {
         splitCheck = let
