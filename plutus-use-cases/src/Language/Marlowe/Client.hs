@@ -24,6 +24,7 @@ import qualified Data.Set                       as Set
 import qualified Language.PlutusTx              as PlutusTx
 import           Wallet                         ( WalletAPI(..)
                                                 , WalletAPIError
+                                                , intervalFrom
                                                 , throwOtherError
                                                 , createTxAndSubmit
                                                 , signature
@@ -33,10 +34,10 @@ import           Ledger                         ( DataScript(..)
                                                 , PubKey(..)
                                                 , Signature(..)
                                                 , Slot(..)
-                                                , TxOutRef'
-                                                , TxOut'
-                                                , TxIn'
-                                                , TxOut(..)
+                                                , TxOutRef
+                                                , TxIn
+                                                , TxOut
+                                                , TxOutOf(..)
                                                 , ValidatorScript(..)
                                                 , scriptTxIn
                                                 , scriptTxOut
@@ -86,6 +87,7 @@ createContract :: (
     -> m ()
 createContract validator contract value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
+    slot <- slot
     let ds = DataScript $ Ledger.lifted (Input (SpendDeposit (Signature 1)) [] [], MarloweData {
             marloweContract = contract,
             marloweState = emptyState })
@@ -93,18 +95,18 @@ createContract validator contract value = do
     (payment, change) <- createPaymentWithChange v'
     let o = scriptTxOut v' validator ds
 
-    void $ createTxAndSubmit payment (o : maybeToList change)
+    void $ createTxAndSubmit (intervalFrom slot) payment (o : maybeToList change)
 
 
 
 marloweTx ::
     (Input, MarloweData)
-    -> (TxOut', TxOutRef')
+    -> (TxOut, TxOutRef)
     -> ValidatorScript
-    -> (TxIn' -> (Int -> TxOut') -> Int -> m ())
+    -> (TxIn -> (Int -> TxOut) -> Int -> m ())
     -> m ()
 marloweTx inputState txOut validator f = do
-    let (TxOut _ (Ledger.Value contractValue) _, ref) = txOut
+    let (TxOutOf _ (Ledger.Value contractValue) _, ref) = txOut
     let lifted = Ledger.lifted inputState
     let scriptIn = scriptTxIn ref (marloweValidator (PubKey 1)) $ Ledger.RedeemerScript lifted
     let dataScript = DataScript lifted
@@ -122,7 +124,7 @@ createRedeemer inputCommand oracles choices expectedState expectedCont =
 commit' :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut', TxOutRef')
+    => (TxOut, TxOutRef)
     -> ValidatorScript
     -> [OracleValue Int]
     -> [Choice]
@@ -134,15 +136,16 @@ commit' :: (
 commit' txOut validator oracles choices identCC value expectedState expectedCont = do
     when (value <= 0) $ throwOtherError "Must commit a positive value"
     sig <- signature <$> myKeyPair
+    slot <- slot
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ i getOut v -> do
         (payment, change) <- createPaymentWithChange (Ledger.Value value)
-        void $ createTxAndSubmit (Set.insert i payment) (getOut (v + value) : maybeToList change)
+        void $ createTxAndSubmit (intervalFrom slot) (Set.insert i payment) (getOut (v + value) : maybeToList change)
 
 commit :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut', TxOutRef')
+    => (TxOut, TxOutRef)
     -> ValidatorScript
     -> [OracleValue Int]
     -> [Choice]
@@ -168,7 +171,7 @@ commit txOut validator oracles choices identCC value inputState inputContract = 
 receivePayment :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut', TxOutRef')
+    => (TxOut, TxOutRef)
     -> ValidatorScript
     -> [OracleValue Int]
     -> [Choice]
@@ -180,16 +183,17 @@ receivePayment :: (
 receivePayment txOut validator oracles choices identPay value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
     sig <- signature <$> myKeyPair
+    slot <- slot
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ i getOut v -> do
         let out = getOut (v - value)
         oo <- ownPubKeyTxOut (Ledger.Value value)
-        void $ createTxAndSubmit (Set.singleton i) [out, oo]
+        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton i) [out, oo]
 
 redeem :: (
     MonadError WalletAPIError m,
     WalletAPI m)
-    => (TxOut', TxOutRef')
+    => (TxOut, TxOutRef)
     -> ValidatorScript
     -> [OracleValue Int]
     -> [Choice]
@@ -201,16 +205,18 @@ redeem :: (
 redeem txOut validator oracles choices identCC value expectedState expectedCont = do
     _ <- if value <= 0 then throwOtherError "Must commit a positive value" else pure ()
     sig <- signature <$> myKeyPair
+    slot <- slot
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ i getOut v -> do
         let out = getOut (v - value)
         oo <- ownPubKeyTxOut (Ledger.Value value)
-        void $ createTxAndSubmit (Set.singleton i) [out, oo]
+        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton i) [out, oo]
 
-endContract :: (Monad m, WalletAPI m) => (TxOut', TxOutRef') -> ValidatorScript -> State -> m ()
+endContract :: (Monad m, WalletAPI m) => (TxOut, TxOutRef) -> ValidatorScript -> State -> m ()
 endContract txOut validator state = do
     sig <- signature <$> myKeyPair
+    slot <- slot
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null
     marloweTx redeemer txOut validator $ \ i _ v -> do
         oo <- ownPubKeyTxOut (Ledger.Value v)
-        void $ createTxAndSubmit (Set.singleton i) [oo]
+        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton i) [oo]

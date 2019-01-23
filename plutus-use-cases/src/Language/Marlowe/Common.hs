@@ -98,11 +98,11 @@ import           Prelude                        ( Show(..)
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
-import           Ledger                         ( Slot(..)
-                                                , PubKey(..)
+import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
                                                 )
 import qualified Ledger                         as Ledger
+import           Ledger.Interval                (Interval(..), Slot(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
 import qualified Language.PlutusTx.Builtins     as Builtins
@@ -580,11 +580,11 @@ findAndRemove = [|| \ predicate commits -> let
             rev []     a = a
             rev (x:xs) a = rev xs (x:a)
 
-    findAndRemove commit (v, acc) =
+    findAndRemove (v, acc) commit =
         if $$(PlutusTx.not) v && predicate commit
         then (True, acc)
         else (v, commit : acc)
-    (found, updatedCommits) = $$(PlutusTx.foldr) findAndRemove (False, []) commits
+    (found, updatedCommits) = $$(PlutusTx.foldl) findAndRemove (False, []) commits
     in if found then Just (reverse updatedCommits) else Nothing
     ||]
 
@@ -735,7 +735,7 @@ validatorScript = [|| \
         creator
         (input@(Input inputCommand _ inputChoices :: Input), MarloweData expectedState expectedContract)
         (_ :: Input, MarloweData{..} :: MarloweData)
-        (PendingTx{ pendingTxOutputs, pendingTxSlot, pendingTxIn } :: PendingTx) -> let
+        (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn } :: PendingTx) -> let
 
         contractCreatorPK = creator
 
@@ -805,6 +805,10 @@ validatorScript = [|| \
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
         eqValidator = $$(Validation.eqValidator)
 
+        minSlot = case pendingTxValidRange of
+            Interval (Just slot) _ -> slot
+            _ -> $$(PlutusTx.traceH) "Tx valid slot must have lower bound" Builtins.error ()
+
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
             PendingTxIn _ (Left (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
@@ -823,7 +827,7 @@ validatorScript = [|| \
         eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract) contractCreatorPK
 
-        contractIsValid = $$(validateContract) marloweState marloweContract pendingTxSlot scriptInValue
+        contractIsValid = $$(validateContract) marloweState marloweContract minSlot scriptInValue
 
         State currentCommits currentChoices = marloweState
 
@@ -835,7 +839,7 @@ validatorScript = [|| \
 
             (newState::State, newCont::Contract, validated) =
                 eval input
-                    pendingTxSlot
+                    minSlot
                     scriptInValue
                     scriptOutValue
                     stateWithChoices

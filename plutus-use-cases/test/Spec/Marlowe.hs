@@ -392,10 +392,10 @@ checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
 updateAll :: [Wallet] -> Trace MockWallet ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
-getScriptOutFromTx :: Tx -> (TxOut', TxOutRef')
+getScriptOutFromTx :: Tx -> (TxOut, TxOutRef)
 getScriptOutFromTx tx = head . filter (isPayToScriptOut . fst) . txOutRefs $ tx
 
-performs :: Wallet -> m () -> Trace m (TxOut', TxOutRef')
+performs :: Wallet -> m () -> Trace m (TxOut, TxOutRef)
 performs actor action = do
     [tx] <- walletAction actor action
     processPending >>= void . walletsNotifyBlock [actor]
@@ -405,7 +405,7 @@ performs actor action = do
 withContract
     :: [Wallet]
     -> Contract
-    -> ((TxOut', TxOutRef') -> ValidatorScript -> Trace MockWallet ((TxOut', TxOutRef'), State))
+    -> ((TxOut, TxOutRef) -> ValidatorScript -> Trace MockWallet ((TxOut, TxOutRef), State))
     -> Trace MockWallet ()
 withContract wallets contract f = do
     let validator = marloweValidator creatorPK
@@ -484,7 +484,7 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
 
     withContract [alice, bob] contract $ \txOut validator -> do
 
-        addBlocks 200
+        addBlocksAndNotify [alice, bob] 200
 
         walletAction bob $ commit'
             txOut
@@ -522,7 +522,7 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
             (State [(identCC, (PubKey 2, NotRedeemed 100 256))] [])
             Null
 
-        addBlocks 300
+        addBlocksAndNotify [alice, bob] 300
 
         txOut <- bob `performs` redeem
             txOut validator [] [] identCC 100 (State [] []) Null
@@ -649,6 +649,8 @@ futuresTest = checkMarloweTrace (MarloweScenario {
                                 redeems))))
                 (RedeemCC (IdentCC 1) Null))
 
+        update
+
         txOut <- bob `performs` commit'
             txOut
             validator
@@ -669,7 +671,7 @@ futuresTest = checkMarloweTrace (MarloweScenario {
                                 (delta (minus forwardPriceV spotPriceV)) endTimeout redeems)
                             redeems))))
 
-        addBlocks deliveryDate
+        addBlocksAndNotify [alice, bob] deliveryDate
 
         let oracleValue = OracleValue oracle (Slot (deliveryDate + 4)) spotPrice
         txOut <- alice `performs` receivePayment txOut
