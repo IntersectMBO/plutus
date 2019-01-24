@@ -56299,6 +56299,7 @@ license = stdenv.lib.licenses.bsd3;
 , base
 , bytestring
 , language-plutus-core
+, lens
 , optparse-applicative
 , plutus-core-interpreter
 , prettyprinter
@@ -56317,6 +56318,7 @@ executableHaskellDepends = [
 base
 bytestring
 language-plutus-core
+lens
 optparse-applicative
 plutus-core-interpreter
 prettyprinter
