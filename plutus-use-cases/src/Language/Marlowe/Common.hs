@@ -554,17 +554,20 @@ discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ledger.Value value)
     infixr 3 &&
     (&&) = $$(PlutusTx.and)
 
-    discount acc value commits = case commits of
+    discount :: Int -> [Commit] -> Maybe [Commit]
+    discount value commits = case commits of
         (ident, (party, NotRedeemed available expire)) : rest
             | currentBlockNumber <= expire && $$(Validation.eqPubKey) from party ->
             if available > value then let
                 change = available - value
                 updatedCommit = (ident, (party, NotRedeemed change expire))
-                in discount (updatedCommit : acc) 0 rest
-            else discount acc (value - available) rest
-        commit : rest -> discount (commit : acc) value rest
-        [] -> if value == 0 then Just acc else Nothing
-    in discount [] value commits
+                in Just (updatedCommit : rest)
+            else discount (value - available) rest
+        commit : rest -> case discount value rest of
+                            Just acc -> Just (commit : acc)
+                            Nothing -> Nothing
+        [] -> if value == 0 then Just [] else Nothing
+    in discount value commits
     ||]
 
 {-| Look for first 'Commit' satisfying @predicate@ and remove it.
@@ -623,11 +626,6 @@ evaluateContract = [|| \
     null :: [a] -> Bool
     null [] = True
     null _  = False
-
-    reverse :: [a] -> [a]
-    reverse l =  rev l [] where
-            rev []     a = a
-            rev (x:xs) a = rev xs (x:a)
 
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a == b
@@ -690,7 +688,7 @@ evaluateContract = [|| \
             in  if isValid then let
                 in case $$(discountFromPairList) from blockHeight (Ledger.Value pv) commits of
                     Just updatedCommits -> let
-                        updatedState = State (reverse updatedCommits) choices
+                        updatedState = State updatedCommits choices
                         in (updatedState, con, True)
                     Nothing -> (state, contract, False)
             else (state, contract, False)
