@@ -153,6 +153,8 @@ runghcOpts =
     , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
     , "-O0"
+    -- FIXME: workaround for https://ghc.haskell.org/trac/ghc/ticket/16228
+    , "-package plutus-tx"
     ]
 
 lookupRunghc :: (MonadIO m, MonadError PlaygroundError m) => m String
