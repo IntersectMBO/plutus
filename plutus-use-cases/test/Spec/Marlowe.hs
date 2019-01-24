@@ -13,7 +13,7 @@ where
 
 import           Data.Either                    ( isRight )
 import           Data.Maybe
-import           Control.Monad                  ( void )
+import           Control.Monad                  ( void, when )
 import           Data.Set                       ( Set )
 import qualified Data.List                      as List
 import qualified Data.Set                       as Set
@@ -48,7 +48,7 @@ import           Wallet                         ( PubKey(..)
                                                 )
 import           Wallet.Emulator
 import qualified Wallet.Generators              as Gen
-import           Language.Marlowe        hiding (insertCommit, discountFromPairList)
+import           Language.Marlowe        hiding (insertCommit, discountFromPairList, mergeChoices)
 import qualified Language.Marlowe               as Marlowe
 import           Language.Marlowe.Client        ( commit'
                                                 , commit
@@ -71,7 +71,7 @@ emptyBounds = Bounds Map.empty Map.empty
 
 
 tests :: TestTree
-tests = testGroup "Marlowe" [validatorTests, contractsTests]
+tests = testGroup "Marlowe" [validatorTests]
 
 validatorTests :: TestTree
 validatorTests = testGroup "Marlowe Validator" [
@@ -83,6 +83,8 @@ validatorTests = testGroup "Marlowe Validator" [
     testProperty "insertCommit" checkInsertCommit,
     testProperty "discountFromPairList is correct" checkDiscountFromPairList,
     testCase     "findAndRemove" checkFindAndRemove,
+    testCase     "mergeChoices" checkMergeChoices,
+    testProperty "mergeChoices produces ordered list of unique choices" checkMergeChoicesProperties,
     testCase     "invalid contract: not enought money" notEnoughMoney,
     testProperty "invalid contract: duplicate IdentCC" duplicateIdentCC
     ]
@@ -105,6 +107,12 @@ commitGen = do
     cash <- int (Range.linear 1 10000)
     timeout <- int (Range.linear 1 50)
     return (IdentCC 123, (person, NotRedeemed cash timeout))
+
+choiceGen :: Gen Choice
+choiceGen = do
+    ident <- int (Range.linear 1 50)
+    person <- PubKey <$> int (Range.linear 0 10)
+    return ((IdentChoice ident, person), 123)
 
 boundedValue :: Set Person -> Set IdentCC -> Bounds -> Gen Value
 boundedValue participants commits bounds = sized $ boundedValueAux participants commits bounds
@@ -239,6 +247,9 @@ discountFromPairList :: PubKey
     -> Maybe [(IdentCC, CCStatus)]
 discountFromPairList = $$(Marlowe.discountFromPairList)
 
+mergeChoices :: [Choice] -> [Choice] -> [Choice]
+mergeChoices = $$(Marlowe.mergeChoices)
+
 money :: Commit -> Int
 money (_, (_, NotRedeemed m _)) = m
 
@@ -282,6 +293,37 @@ checkFindAndRemove = do
     let r = $$(Marlowe.findAndRemove) (\(IdentCC id, _) -> id == 2) commits
     r @?= Just  [ (IdentCC 1, (PubKey 1, NotRedeemed 12 10))
                 , (IdentCC 2, (PubKey 1, NotRedeemed 33 10))]
+
+
+checkMergeChoices :: IO ()
+checkMergeChoices = do
+    let r1 = mergeChoices [((IdentChoice 2, PubKey 1), 22)] []
+    r1 @?= [((IdentChoice 2, PubKey 1), 22)]
+    let r2 = mergeChoices [((IdentChoice 2, PubKey 2), 33)] r1
+    r2 @?= [((IdentChoice 2, PubKey 1), 22), ((IdentChoice 2, PubKey 2), 33)]
+    let r3 = mergeChoices [((IdentChoice 1, PubKey 1), 10)] r2
+    r3 @?=  [ ((IdentChoice 1, PubKey 1), 10)
+            , ((IdentChoice 2, PubKey 1), 22)
+            , ((IdentChoice 2, PubKey 2), 33)]
+    let r = mergeChoices r3 r3
+    r @?= r3
+
+checkMergeChoicesProperties :: Property
+checkMergeChoicesProperties = property $ do
+    input  <- forAll $ list (Range.linear 0 20) choiceGen
+    input2 <- forAll $ list (Range.linear 0 20) choiceGen
+    let choices = mergeChoices input2 []
+    let r = mergeChoices input choices
+    let keys = map fst r
+    Hedgehog.assert (length r <= length input + length choices)
+    let slide [a, b] = [(a, b)]
+        slide (a:b:rest) = (a, b) : slide (b:rest)
+        slide _ = error "at least 2 elements"
+    when (length r >= 2) $ do
+        -- check choices are partially ordered
+        Hedgehog.assert $ all (\((lid, _), (rid, _)) -> lid <= rid) (slide keys)
+        -- check choices are unique
+        Hedgehog.assert $ List.nub keys == keys
 
 
 checkEqValue :: Property

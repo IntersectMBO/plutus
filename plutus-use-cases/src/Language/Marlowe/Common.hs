@@ -94,7 +94,6 @@ import           Prelude                        ( Show(..)
                                                 , Either(..)
                                                 , Num(..)
                                                 , div
-                                                , otherwise
                                                 )
 
 import qualified Language.PlutusTx              as PlutusTx
@@ -723,6 +722,28 @@ evaluateContract = [|| \
     in eval inputCommand state contract
     ||]
 
+{-| Merge lists of 'Choice's.
+    Return a partialy ordered list of unique choices.
+-}
+mergeChoices :: Q (TExp ([Choice] -> [Choice] -> [Choice]))
+mergeChoices = [|| \ input choices -> let
+    insert choice choices = let
+        in case choices of
+            [] -> [choice]
+            current@((IdentChoice id, pk), _) : rest -> let
+                ((IdentChoice insId, insPK), _) = choice
+                in   if insId < id then choice : choices
+                else if insId == id then
+                        if $$(Validation.eqPubKey) insPK pk
+                        then choices
+                        else current : insert choice rest
+                else {- insId > id -} current : insert choice rest
+
+    merge [] choices = choices
+    merge (i:rest) choices = merge rest (insert i choices)
+    in merge input choices
+    ||]
+
 {-|
     Marlowe main Validator Script
 -}
@@ -733,6 +754,9 @@ validatorScript = [|| \
         (_ :: Input, MarloweData{..} :: MarloweData)
         (PendingTx{ pendingTxOutputs, pendingTxValidRange, pendingTxIn } :: PendingTx) -> let
 
+        {-  Embed contract creator public key. This makes validator script unique,
+            which makes a particular contract to have a unique script address.
+            That makes it easier to watch for contrac actions inside a wallet. -}
         contractCreatorPK = creator
 
         eqPk :: PubKey -> PubKey -> Bool
@@ -748,22 +772,6 @@ validatorScript = [|| \
         null :: [a] -> Bool
         null [] = True
         null _  = False
-
-        reverse :: [a] -> [a]
-        reverse l =  rev l [] where
-                rev []     a = a
-                rev (x:xs) a = rev xs (x:a)
-
-        -- it's quadratic, I know. FIXME
-        mergeChoices :: [Choice] -> [Choice] -> [Choice]
-        mergeChoices input choices = case input of
-            choice : rest | notElem eqChoice choices choice -> mergeChoices rest (choice : choices)
-                            | otherwise -> mergeChoices rest choices
-            [] -> choices
-            where
-            eqChoice :: Choice -> Choice -> Bool
-            eqChoice ((IdentChoice id1, p1), _) ((IdentChoice id2, p2), _) = id1 == id2 && p1 `eqPk` p2
-
 
         eqValue :: Value -> Value -> Bool
         eqValue = $$(equalValue)
@@ -792,23 +800,21 @@ validatorScript = [|| \
         eqState (State commits1 choices1) (State commits2 choices2) =
             all () eqCommit commits1 commits2 && all () eqChoice choices1 choices2
 
-        notElem :: (a -> a -> Bool) -> [a] -> a -> Bool
-        notElem eq as a = notel eq as a
-            where
-            notel eq (e : ls) a = if a `eq` e then False else notel eq ls a
-            notel _ [] _ = True
-
         eqValidator :: ValidatorHash -> ValidatorHash -> Bool
         eqValidator = $$(Validation.eqValidator)
 
+        {-  We require Marlowe Tx to have a lower bound in 'SlotRange'.
+            We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
             Interval (Just slot) _ -> slot
             _ -> $$(PlutusTx.traceH) "Tx valid slot must have lower bound" Builtins.error ()
 
+        -- TxIn we're validating is obviously a Script TxIn.
         (inputValidatorHash, redeemerHash, scriptInValue) = case pendingTxIn of
             PendingTxIn _ (Left (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
+        -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
             SpendDeposit _ -> Ledger.Value 0
             _ -> let (PendingTxOut change
@@ -829,7 +835,7 @@ validatorScript = [|| \
 
         in if contractIsValid then let
             -- record Choices from Input into State
-            mergedChoices = mergeChoices (reverse inputChoices) currentChoices
+            mergedChoices = $$(mergeChoices) inputChoices currentChoices
 
             stateWithChoices = State currentCommits mergedChoices
 
@@ -846,5 +852,7 @@ validatorScript = [|| \
                 && newState `eqState` expectedState
 
             in if allowTransaction then () else Builtins.error ()
+        {-  if the contract is invalid and there are no commit,
+            allow to spend contract's money. It's likely to be created by mistake -}
         else if null currentCommits then () else Builtins.error ()
     ||]
