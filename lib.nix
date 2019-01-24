@@ -42,8 +42,7 @@ let
 
   regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-01-08T09:58:14Z"; };
 
-  withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
   comp = f: g: (v: f(g v));
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList regeneratePackages withDevTools pkgs nixpkgs comp;
+  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList regeneratePackages pkgs nixpkgs comp;
 }
