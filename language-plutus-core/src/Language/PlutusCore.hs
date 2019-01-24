@@ -22,6 +22,7 @@ module Language.PlutusCore
     , Name (..)
     , TyName (..)
     , Unique (..)
+    , UniqueMap (..)
     , Size
     , Value
     , BuiltinName (..)

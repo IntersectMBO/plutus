@@ -28,14 +28,10 @@ import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
-import           Data.IntMap                 (IntMap)
-import qualified Data.IntMap                 as IntMap
 
 -- | Mapping from variables to what they stand for (each row represents a substitution).
 -- Needed for efficiency reasons, otherwise we could just use substitutions.
-newtype TypeVarEnv tyname ann = TypeVarEnv
-    { unTypeVarEnv :: IntMap (NormalizedType tyname ann)
-    }
+type TypeVarEnv tyname ann = UniqueMap TypeUnique (NormalizedType tyname ann)
 
 -- | The environments that type normalization runs in.
 data NormalizeTypeEnv m tyname ann = NormalizeTypeEnv
@@ -97,7 +93,7 @@ newtype NormalizeTypeT m tyname ann a = NormalizeTypeT
 -- | Run a 'NormalizeTypeM' computation.
 runNormalizeTypeM :: m () -> NormalizeTypeT m tyname ann a -> m a
 runNormalizeTypeM countStep (NormalizeTypeT a) =
-    runReaderT a $ NormalizeTypeEnv (TypeVarEnv mempty) countStep
+    runReaderT a $ NormalizeTypeEnv mempty countStep
 
 -- | Run a 'NormalizeTypeM' computation without dealing with gas.
 runNormalizeTypeDownM
@@ -126,16 +122,13 @@ withExtendedTypeVarEnv
     -> NormalizedType tyname ann
     -> NormalizeTypeT m tyname ann a
     -> NormalizeTypeT m tyname ann a
-withExtendedTypeVarEnv name ty =
-    local . over (normalizeTypeEnvTypeVarEnv . coerced) $
-        IntMap.insert (name ^. unique . coerced) ty
+withExtendedTypeVarEnv name = local . over normalizeTypeEnvTypeVarEnv . insertByName name
 
 -- | Look up a @tyname@ in a 'TypeVarEnv'.
-lookupTyName
+lookupTyNameM
     :: (HasUnique (tyname ann) TypeUnique, Monad m)
     => tyname ann -> NormalizeTypeT m tyname ann (Maybe (NormalizedType tyname ann))
-lookupTyName name =
-    asks $ IntMap.lookup (name ^. unique . coerced) . unTypeVarEnv . _normalizeTypeEnvTypeVarEnv
+lookupTyNameM name = asks $ lookupName name . _normalizeTypeEnvTypeVarEnv
 
 {- Note [Normalization]
 Normalization works under the assumption that variables are globally unique.
@@ -174,7 +167,7 @@ normalizeTypeM (TyApp ann fun arg)           = do
             substituteNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
-    mayTy <- lookupTyName name
+    mayTy <- lookupTyNameM name
     case mayTy of
         Nothing -> pure $ NormalizedType var
         Just ty -> traverse rename ty

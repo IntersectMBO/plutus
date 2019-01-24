@@ -4,8 +4,9 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Renamer ( Rename (..)
-                                   ) where
+module Language.PlutusCore.Renamer
+    ( Rename (..)
+    ) where
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -14,11 +15,8 @@ import           PlutusPrelude
 
 import           Control.Lens.TH
 import           Control.Monad.Reader
-import qualified Data.IntMap               as IM
 
-newtype UniquesRenaming unique = UniquesRenaming
-    { unUniquesRenaming :: IM.IntMap unique
-    }
+type UniquesRenaming unique = UniqueMap unique unique
 
 -- | Scoping-aware mapping from locally unique indices to globally unique uniques.
 data ScopedUniquesRenaming = ScopedUniquesRenaming
@@ -73,49 +71,41 @@ type RenameM renaming = ReaderT renaming Quote
 runRenameM :: MonadQuote m => renaming -> RenameM renaming a -> m a
 runRenameM renaming a = liftQuote $ runReaderT a renaming
 
--- | Run a 'RenameM' computation with 'emptyUniquesRenaming'.
+-- | Run a 'RenameM' computation with the empty 'UniquesRenaming'.
 runDirectRenameM :: MonadQuote m => RenameM (UniquesRenaming unique) a -> m a
-runDirectRenameM = runRenameM emptyUniquesRenaming
+runDirectRenameM = runRenameM mempty
 
--- | Run a 'RenameM' computation with 'emptyScopedUniquesRenaming'.
+-- | Run a 'RenameM' computation with the empty 'ScopedUniquesRenaming'.
 runScopedRenameM :: MonadQuote m => RenameM ScopedUniquesRenaming a -> m a
-runScopedRenameM = runRenameM emptyScopedUniquesRenaming
+runScopedRenameM = runRenameM $ ScopedUniquesRenaming mempty mempty
 
--- | The empty 'UniquesRenaming'.
-emptyUniquesRenaming :: UniquesRenaming unique
-emptyUniquesRenaming = UniquesRenaming mempty
+-- | Save the mapping from the @unique@ of a name to a new @unique@.
+insertByNameM
+    :: (HasUnique name unique, HasUniquesRenaming renaming unique)
+    => name -> unique -> renaming -> renaming
+insertByNameM name = over uniquesRenaming . insertByName name
 
--- | The empty 'ScopedUniquesRenaming'.
-emptyScopedUniquesRenaming :: ScopedUniquesRenaming
-emptyScopedUniquesRenaming = ScopedUniquesRenaming emptyUniquesRenaming emptyUniquesRenaming
-
--- | Save the mapping from an old 'Unique' to a new one.
-updateScopedUniquesRenaming
-    :: HasUniquesRenaming renaming unique => unique -> unique -> renaming -> renaming
-updateScopedUniquesRenaming uniqOld uniqNew =
-    over uniquesRenaming $ UniquesRenaming . IM.insert (coerce uniqOld) uniqNew . unUniquesRenaming
-
--- | Look up a new unique an old unique got mapped to.
-lookupUnique :: HasUniquesRenaming renaming unique => unique -> RenameM renaming (Maybe unique)
-lookupUnique uniq = asks $ IM.lookup (coerce uniq) . unUniquesRenaming . view uniquesRenaming
+-- | Look up a new unique a name got mapped to.
+lookupNameM
+    :: (HasUnique name unique, HasUniquesRenaming renaming unique)
+    => name -> RenameM renaming (Maybe unique)
+lookupNameM name = asks $ lookupName name . view uniquesRenaming
 
 -- | Replace the unique in a value by a new unique, save the mapping
 -- from an old unique to the new one and supply the updated value to a continuation.
 withRefreshed
-    :: (HasUniquesRenaming renaming unique, HasUnique a unique)
-    => a -> (a -> RenameM renaming c) -> RenameM renaming c
-withRefreshed x k = do
-    let uniqOld = x ^. unique
-    uniqNew <- liftQuote $ coerce <$> freshUnique
-    local (updateScopedUniquesRenaming uniqOld uniqNew) $ k (x & unique .~ uniqNew)
+    :: (HasUniquesRenaming renaming unique, HasUnique name unique)
+    => name -> (name -> RenameM renaming c) -> RenameM renaming c
+withRefreshed name k = do
+    uniqNew <- coerce <$> freshUnique
+    local (insertByNameM name uniqNew) $ k (name & unique .~ uniqNew)
 
 -- | Rename a name that has a unique inside.
 renameNameM
     :: (HasUniquesRenaming renaming unique, HasUnique name unique)
     => name -> RenameM renaming name
 renameNameM name = do
-    let uniqOld = name ^. unique
-    mayUniqNew <- lookupUnique uniqOld
+    mayUniqNew <- lookupNameM name
     pure $ case mayUniqNew of
         Nothing      -> name
         Just uniqNew -> name & unique .~ uniqNew
