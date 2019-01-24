@@ -241,8 +241,9 @@ convertMarkedExprs opts markerName =
       e@(GHC.Type _) -> pure e
 
 -- TODO: move this somewhere common
-stringBuiltinTypes :: PLC.DynamicBuiltinNameTypes
-stringBuiltinTypes =
+getStringBuiltinTypes
+    :: (PLC.AsTypeError e ann, MonadError e m, MonadQuote m) => ann -> m PLC.DynamicBuiltinNameTypes
+getStringBuiltinTypes ann =
     -- In order to define @trace@ we have to provide a function that actually performs tracing,
     -- but this can't be done once and for all, because we do tracing via 'unsafePerformIO' and 'IORef'
     -- and thus need to either be in the 'IO' monad to create an 'IORef' or create a global 'IORef' via
@@ -250,7 +251,7 @@ stringBuiltinTypes =
     -- Anyway, here we only care about types, so we provide a fake definition of @trace@ that does
     -- nothing just to be able to extract types in a convenient way.
     let fakeTraceDefinition = PLC.dynamicCallAssign (PLC.TypedBuiltinDyn @String) PLC.dynamicTraceName mempty
-    in PLC.dynamicBuiltinNameMeaningsToTypes $
+    in PLC.dynamicBuiltinNameMeaningsToTypes ann $
        PLC.insertDynamicBuiltinNameDefinition fakeTraceDefinition $
        PLC.insertDynamicBuiltinNameDefinition PLC.dynamicCharToStringDefinition $
        PLC.insertDynamicBuiltinNameDefinition PLC.dynamicAppendDefinition mempty
@@ -264,8 +265,9 @@ convertExpr opts locStr codeTy origE = do
     let result = withContextM (sdToTxt $ "Converting expr at" GHC.<+> GHC.text locStr) $ do
               (pirP::PIRProgram) <- PIR.Program () . PIR.removeDeadBindings <$> (PIR.runDefT () $ convExprWithDefs origE)
               (plcP::PLCProgram) <- void <$> (flip runReaderT PIR.NoProvenance $ PIR.compileProgram pirP)
-              when (poDoTypecheck opts) $ void $
-                  PLC.typecheckProgram (PLC.TypeConfig True stringBuiltinTypes mempty mempty Nothing) plcP
+              when (poDoTypecheck opts) $ void $ do
+                  stringBuiltinTypes <- getStringBuiltinTypes ()
+                  PLC.inferTypeOfProgram (PLC.offChainConfig stringBuiltinTypes) plcP
               pure (pirP, plcP)
         context = ConvertingContext {
             ccOpts=ConversionOptions { coCheckValueRestriction=poDoTypecheck opts },

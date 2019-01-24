@@ -56,7 +56,7 @@ compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuo
     compiled <- compileTerm =<< liftQuote pir
     when doTypecheck $ void $
         -- need our own typechecker pipeline to allow normalized types
-        PLC.typecheckTerm (PLC.TypeConfig True mempty mempty mempty Nothing) compiled
+        PLC.inferType PLC.defOffChainConfig compiled
     pure compiled
 
 tests :: TestNested

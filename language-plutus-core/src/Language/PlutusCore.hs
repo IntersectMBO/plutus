@@ -58,11 +58,8 @@ module Language.PlutusCore
     , checkFile
     , isTypeValue
     , isTermValue
-    -- * Type synthesis
-    , typecheckProgram
-    , typecheckTerm
-    , kindCheck
-    , dynamicBuiltinNameMeaningsToTypes
+    -- * Type checking
+    , module TypeCheck
     , fileType
     , fileNormalizeType
     , fileTypeCfg
@@ -71,15 +68,9 @@ module Language.PlutusCore
     , InternalTypeError (..)
     , TypeError (..)
     , AsTypeError (..)
-    , TypeConfig (..)
-    , DynamicBuiltinNameTypes (..)
-    , TypeCheckM
     , parseTypecheck
     -- for testing
-    , runTypeCheckM
     , typecheckPipeline
-    , defaultTypecheckerGas
-    , defaultTypecheckerCfg
     -- * Errors
     , Error (..)
     , AsError (..)
@@ -129,7 +120,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.TH
 import           Language.PlutusCore.Type
-import           Language.PlutusCore.TypeSynthesis
+import           Language.PlutusCore.TypeCheck              as TypeCheck
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
@@ -179,7 +170,7 @@ printNormalizeType
     -> m T.Text
 printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
-    typecheckProgram (TypeConfig norm mempty mempty mempty defaultTypecheckerGas) scoped
+    inferTypeOfProgram (TypeCheckConfig norm mempty $ Just defTypeCheckGas) scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -207,7 +198,7 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeConfig -> BSL.ByteString -> m (NormalizedType TyName ())
+    => TypeCheckConfig -> BSL.ByteString -> m (NormalizedType TyName ())
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -216,12 +207,12 @@ typecheckPipeline
         AsTypeError e a,
         MonadError e m,
         MonadQuote m)
-    => TypeConfig
+    => TypeCheckConfig
     -> Program TyName Name a
     -> m (NormalizedType TyName ())
 typecheckPipeline cfg =
-    typecheckProgram cfg
-    <=< through (unless (_typeConfigNormalize cfg) . checkProgram)
+    inferTypeOfProgram cfg
+    <=< through (unless (_tccDoNormTypes cfg) . checkProgram)
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
 -- don't use parseScoped since we don't bother running sanity checks when we format
@@ -234,13 +225,6 @@ format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgram)
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: a -> Version a
 defaultVersion a = Version a 1 0 0
-
--- | The default amount of gas to run the typechecker with.
-defaultTypecheckerGas :: Maybe Gas
-defaultTypecheckerGas = Just $ Gas 1000
-
-defaultTypecheckerCfg :: TypeConfig
-defaultTypecheckerCfg = TypeConfig False mempty mempty mempty defaultTypecheckerGas
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
