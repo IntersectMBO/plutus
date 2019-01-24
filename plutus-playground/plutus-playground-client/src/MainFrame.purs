@@ -12,7 +12,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, runAjax, showAjaxError)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
-import Bootstrap (btn, btnGroup, btnSmall, container_, empty, nbsp, pullRight)
+import Bootstrap (btn, btnGroup, btnInfo, btnSmall, container_, empty, nbsp, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
@@ -26,7 +26,7 @@ import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Int as Int
-import Data.Lens (_2, assign, maximumOf, modifying, over, set, to, traversed, use, view)
+import Data.Lens (_2, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -39,23 +39,24 @@ import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
 import FileEvents (FILE, preventDefault, readFileFromDragEvent)
-import Gist (Gist)
+import Gist (Gist, NewGist(NewGist), NewGistFile(NewGistFile), _GistId, gistHtmlUrl, gistId)
 import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, i_, text)
-import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.HTML (ClassName(ClassName), a, button, div, div_, h1, i_, text, HTML)
+import Halogen.HTML.Events (input_, onClick)
+import Halogen.HTML.Properties (class_, classes, disabled, href, target)
 import Halogen.Query (HalogenM)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
+import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
-import Playground.Server (SPParams_, getGists, getOauthStatus, postContract, postEvaluate)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Playground.Server (SPParams_, getGists, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, not, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Affjax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
@@ -70,6 +71,7 @@ initialState =
   , evaluationResult: NotAsked
   , authStatus: NotAsked
   , gists: NotAsked
+  , createGistResult: NotAsked
   }
 
 ------------------------------------------------------------
@@ -113,6 +115,7 @@ toEvent (HandleDropEvent _ _) = Just $ defaultEvent "DropScript"
 toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
 toEvent (CheckAuthStatus _) = Nothing
+toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"}
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
@@ -175,6 +178,29 @@ eval (CheckAuthStatus next) = do
       assign _gists gistsResult
     _ -> pure unit
   pure next
+
+eval (PublishGist next) = do
+  mContents <- withEditor Editor.getValue
+  case mContents of
+    Nothing -> pure next
+    Just contents ->
+      do
+         let newGist = NewGist
+               { _newGistDescription: "Plutus Playground Smart Contract"
+               , _newGistPublic: true
+               , _newGistFiles: [ NewGistFile { _newGistFilename: "Playground.hs"
+                                              , _newGistFileContent: contents
+                                              }
+                                ]
+               }
+         mGist <- use _createGistResult
+         let apiCall = case preview (_Success <<< gistId) mGist of
+               Nothing -> postGists newGist
+               Just gistId -> patchGistsByGistId newGist gistId
+         assign _createGistResult Loading
+         result <- runAjax apiCall
+         assign _createGistResult result
+         pure next
 
 eval (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
@@ -365,7 +391,8 @@ render state =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
-        [ mainHeader (view _authStatus state) (view _gists state)
+        [ mainHeader
+        , gistControls (view _authStatus state) (view _createGistResult state)
         , editorPane state
         ]
     , stripeContainer_ [
@@ -390,28 +417,11 @@ stripeContainer_ children =
     [ class_ $ ClassName "stripe" ]
     [ container_ children ]
 
-mainHeader :: forall p i. RemoteData AjaxError AuthStatus -> RemoteData AjaxError (Array Gist) -> HTML p i
-mainHeader authStatus gists =
+mainHeader :: forall p. HTML p (Query Unit)
+mainHeader =
   div_
     [ div [ classes [ btnGroup, pullRight ] ]
         (makeLink <$> links)
-    , div_ [ i_ [
-               case view authStatusAuthRole <$> authStatus of
-                 Success GithubUser -> text "Authenticated with Github."
-                 Success Anonymous -> text "Please authenticate."
-                 Failure err -> showAjaxError err
-                 Loading -> text "Loading..."
-                 NotAsked -> text "-"
-             ]
-           , nbsp
-           , i_ [
-               case gists of
-                 Success xs -> text $ show (Array.length xs) <> " gists."
-                 Failure err -> showAjaxError err
-                 Loading -> text "Loading..."
-                 NotAsked -> empty
-             ]
-           ]
     , h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
@@ -421,10 +431,56 @@ mainHeader authStatus gists =
             , Tuple "Tutorial" "https://github.com/input-output-hk/plutus/blob/master/wallet-api/tutorial/Tutorial.md"
             , Tuple "API" "https://input-output-hk.github.io/plutus/"
             , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
-            , Tuple "Github" "/api/oauth/github"
             ]
     makeLink (Tuple name link) =
       a [ classes [ btn, btnSmall ]
         , href link
         ]
         [ text name ]
+
+gistControls ::
+  forall p.
+  RemoteData AjaxError AuthStatus
+  -> RemoteData AjaxError Gist
+  -> HTML p (Query Unit)
+gistControls authStatus createGistResult =
+  div_
+    [ div_ [ i_ [
+               case view authStatusAuthRole <$> authStatus of
+                 Success GithubUser -> text "Authenticated with Github."
+                 Success Anonymous -> authenticationLink
+                 Failure err -> showAjaxError err
+                 Loading -> text "Publishing..."
+                 NotAsked -> authenticationLink
+             ]
+           ]
+    , button
+        [ classes [ btn, btnInfo ]
+        , disabled (not (isSuccess authStatus))
+        , onClick $ input_ PublishGist
+        ]
+        [ case createGistResult of
+             Success _ -> text "Republish"
+             Failure _ -> text "Failure"
+             Loading -> text "Loading..."
+             NotAsked -> text "Publish"
+        ]
+    , div_
+        [ case createGistResult of
+             Success gist -> gistPane gist
+             Failure err -> showAjaxError err
+             Loading -> nbsp
+             NotAsked -> nbsp
+        ]
+    ]
+  where
+    authenticationLink = a [ href "/api/oauth/github" ] [ text "Please Authenticate" ]
+
+gistPane :: forall p i. Gist -> HTML p i
+gistPane gist =
+  div_
+    [ a [ href $ view gistHtmlUrl gist
+        , target "_blank"
+        ]
+      [ text $ "Published as: " <> view (gistId <<< _GistId) gist ]
+    ]

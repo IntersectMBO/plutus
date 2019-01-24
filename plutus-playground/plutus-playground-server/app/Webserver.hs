@@ -45,8 +45,7 @@ instance GenerateList NoContent (Method -> Req NoContent) where
 
 type Web
    = "version" :> Get '[ PlainText, JSON] Text
-     :<|> "api" :> (PA.API
-                    :<|> Auth.API)
+     :<|> "api" :> (PA.API :<|> Auth.API)
      :<|> Raw
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API

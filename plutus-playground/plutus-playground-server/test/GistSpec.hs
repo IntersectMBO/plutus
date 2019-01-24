@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module GistSpec
-  ( spec
-  ) where
+module GistSpec where
 
 import           Data.Aeson                     (eitherDecode)
 import qualified Data.ByteString.Lazy           as LBS
+import           Data.Text                      ()
 import           Gist                           (Gist)
 import           Paths_plutus_playground_server (getDataFileName)
 import           Test.Hspec                     (Spec, describe, it, shouldBe)

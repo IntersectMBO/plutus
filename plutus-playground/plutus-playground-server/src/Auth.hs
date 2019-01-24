@@ -5,6 +5,7 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -43,22 +44,23 @@ import           Data.Text.Encoding          (decodeUtf8, encodeUtf8)
 import           Data.Time                   (NominalDiffTime, UTCTime, addUTCTime)
 import           Data.Time.Clock.POSIX       (POSIXTime, utcTimeToPOSIXSeconds)
 import           GHC.Generics                (Generic)
-import           Gist                        (Gist)
+import           Gist                        (Gist, GistId, NewGist)
 import qualified Gist
-import           Network.HTTP.Client         (managerModifyRequest)
+import           Network.HTTP.Client         (Response, managerModifyRequest)
 import           Network.HTTP.Client.Conduit (getUri)
 import           Network.HTTP.Client.TLS     (tlsManagerSettings)
 import           Network.HTTP.Conduit        (Request, newManager, parseRequest, responseBody, responseStatus,
                                               setQueryString)
 import           Network.HTTP.Simple         (addRequestHeader)
 import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
-import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
-                                              QueryParam, ServantErr, ServerT, StdMethod (GET), ToHttpApiData, Verb,
-                                              addHeader, err401, err500, errBody, throwError)
+import           Servant                     ((:<|>) ((:<|>)), (:>), Capture, Get, Header, Headers, JSON,
+                                              NoContent (NoContent), Patch, Post, QueryParam, ReqBody, ServantErr,
+                                              ServerT, StdMethod (GET), ToHttpApiData, Verb, addHeader, err401, err500,
+                                              errBody, throwError)
 import           Servant.API.BrowserHeader   (BrowserHeader)
-import           Servant.Client              (BaseUrl, mkClientEnv, parseBaseUrl, runClientM)
+import           Servant.Client              (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
 import           Servant.Extra               ()
-import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
+import           Web.Cookie                  (Cookies, SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
                                               setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
                                               setCookieSecure, setCookieValue)
 import qualified Web.JWT                     as JWT
@@ -84,7 +86,7 @@ type API
 type FrontendAPI
    = ("oauth" :> (BrowserHeader "Cookie" Text :> "status" :> Get '[ JSON] AuthStatus
                   :<|> "github" :> GetRedirect (Headers '[ Header "Location" Text])))
-     :<|> (BrowserHeader "Cookie" Text :> "gists" :> Get '[ JSON] [Gist])
+     :<|> (BrowserHeader "Cookie" Text :> "gists" :> Gist.GistAPI)
 
 type CallbackAPI
    = "oauth" :> "github" :> "callback" :> QueryParam "code" OAuthCode :> GetRedirect (Headers '[ Header "Set-Cookie" SetCookie, Header "Location" Text])
@@ -157,15 +159,15 @@ githubRedirect GithubEndpoints {..} Config {..} = redirect githubRedirectUrl
 twoWeeks :: NominalDiffTime
 twoWeeks = 60 * 60 * 24 * 7 * 2
 
-expiryDuration  :: NominalDiffTime
+expiryDuration :: NominalDiffTime
 expiryDuration = twoWeeks
 
 authStatus ::
-     (MonadNow m, MonadLogger m) => Config -> Maybe Text -> m AuthStatus
-authStatus Config {..} cookieHeader = do
+     (MonadNow m, MonadLogger m) => JWT.Signer -> Maybe Text -> m AuthStatus
+authStatus jwtSignature cookieHeader = do
   now <- getPOSIXTime
   _authStatusAuthRole <-
-    case extractGithubToken _configJWTSignature now cookieHeader of
+    case extractGithubToken jwtSignature now cookieHeader of
       Right _ -> pure GithubUser
       Left err -> do
         logErrorN $ "Failed to extract github token at step: " <> showText err
@@ -175,8 +177,7 @@ authStatus Config {..} cookieHeader = do
 extractGithubToken ::
      JWT.Signer -> POSIXTime -> Maybe Text -> Either Text (Token 'Github)
 extractGithubToken signer now cookieHeader =
-  runTrace $ do
-    attempt "Reading cookies."
+  runTrace "Reading cookies." $ do
     cookies <- parseCookies . encodeUtf8 <$> withTrace cookieHeader
     attempt $ "Looking for Session ID cookie: " <> showText cookies
     githubAuth <- withTrace $ lookup (encodeUtf8 hSessionIdCookie) cookies
@@ -207,14 +208,16 @@ githubCallback ::
   -> Maybe OAuthCode
   -> m (Headers '[ Header "Set-Cookie" SetCookie, Header "Location" Text] NoContent)
 githubCallback _ _ Nothing =
-  with500Err . pure . Left $
+  withErr500 . pure . Left $
   "Expected a response from Github with an authorization code. Didn't get one!"
 githubCallback githubEndpoints config@Config {..} (Just code) = do
   logDebugN "OAuth Code received. Swapping for a long-lived token."
   manager <- makeManager
-  response <- with500Err $ doRequest manager $ makeTokenRequest githubEndpoints config code
+  response <-
+    withErr500 $
+    doRequest manager $ makeTokenRequest githubEndpoints config code
   token <-
-    with500Err . pure . first Text.pack $
+    withErr500 . pure . first Text.pack $
     if statusIsSuccessful (responseStatus response)
       then eitherDecode $ responseBody response
       else Left $ "Response: " <> show response
@@ -223,14 +226,21 @@ githubCallback githubEndpoints config@Config {..} (Just code) = do
   logDebugN "Sending cookie."
   pure . addHeader cookie . addHeader _configRedirectUrl $ NoContent
 
-with500Err ::
-     (MonadLogger m, MonadError ServantErr m) => m (Either Text b) -> m b
-with500Err action =
+withErr ::
+     (MonadLogger m, MonadError ServantErr m)
+  => ServantErr
+  -> m (Either Text b)
+  -> m b
+withErr servantErr action =
   action >>= \case
     Left err -> do
       logErrorN err
-      throwError $ err500 {errBody = LBS.fromStrict . encodeUtf8 $ err}
+      throwError $ servantErr {errBody = LBS.fromStrict . encodeUtf8 $ err}
     Right r -> pure r
+
+withErr500 ::
+     (MonadLogger m, MonadError ServantErr m) => m (Either Text b) -> m b
+withErr500 = withErr err500
 
 makeTokenRequest :: GithubEndpoints -> Config -> OAuthCode -> Request
 makeTokenRequest GithubEndpoints {..} Config {..} code =
@@ -274,38 +284,70 @@ createSessionCookie signer token now =
               ]
         }
 
-getGists ::
-     (MonadNow m, MonadLogger m, MonadIO m, MonadError ServantErr m)
-  => GithubEndpoints
-  -> Config
+getGists :: Token 'Github -> ClientM [Gist]
+getGists token = Gist.getGists $ Just token
+
+createNewGist :: NewGist -> Token 'Github -> ClientM Gist
+createNewGist newGist token = Gist.createNewGist (Just token) newGist
+
+getGist :: GistId -> Token 'Github -> ClientM Gist
+getGist gistId token = Gist.getGist (Just token) gistId
+
+updateGist :: GistId -> NewGist -> Token 'Github -> ClientM Gist
+updateGist gistId newGist token = Gist.updateGist (Just token) gistId newGist
+
+withGithubToken ::
+     (MonadNow m, MonadLogger m, MonadError ServantErr m, MonadIO m)
+  => BaseUrl
+  -> JWT.Signer
   -> Maybe Text
-  -> m [Gist]
-getGists GithubEndpoints {..} Config {..} cookieHeader = do
+  -> (Token 'Github -> ClientM a)
+  -> m a
+withGithubToken baseUrl jwtSignature cookieHeader action = do
   manager <-
     liftIO $
     newManager $ tlsManagerSettings {managerModifyRequest = pure . addUserAgent}
-  let clientEnv = mkClientEnv manager _githubEndpointsApiBaseUrl
+  let clientEnv = mkClientEnv manager baseUrl
   now <- getPOSIXTime
-  case extractGithubToken _configJWTSignature now cookieHeader of
+  case extractGithubToken jwtSignature now cookieHeader of
     Left err -> do
       logErrorN $ "Failed to extract github token at step: " <> showText err
       throwError err401
     Right token -> do
-      response <- liftIO (runClientM (Gist.getGists (Just token)) clientEnv)
+      response <- liftIO $ flip runClientM clientEnv $ action token
       case response of
         Left err -> do
           logErrorN $ "Failed to read github endpoint: " <> showText err
           throwError err500
-        Right gists -> pure gists
+        Right result -> pure result
+
+githubClientAdaptor ::
+     forall m. (MonadNow m, MonadLogger m, MonadIO m, MonadError ServantErr m)
+  => BaseUrl
+  -> JWT.Signer
+  -> Maybe Text
+  -> m [Gist]
+     :<|> (NewGist -> m Gist)
+     :<|> (GistId -> m Gist)
+     :<|> (GistId -> NewGist -> m Gist)
+githubClientAdaptor baseUrl signer cookieHeader =
+  withGithubClient getGists :<|>
+  (\newGist -> withGithubClient $ createNewGist newGist) :<|>
+  (\gistId -> withGithubClient $ getGist gistId) :<|>
+  (\gistId newGist -> withGithubClient $ updateGist gistId newGist)
+  where
+    withGithubClient :: forall a. (Token 'Github -> ClientM a) -> m a
+    withGithubClient = withGithubToken baseUrl signer cookieHeader
 
 server ::
      (MonadNow m, MonadWeb m, MonadLogger m, MonadError ServantErr m, MonadIO m)
   => GithubEndpoints
   -> Config
   -> ServerT API m
-server githubEndpoints config =
-  ((authStatus config :<|> pure (githubRedirect githubEndpoints config)) :<|>
-   getGists githubEndpoints config) :<|>
+server githubEndpoints@GithubEndpoints {..} config@Config {..} =
+  ((authStatus _configJWTSignature :<|>
+    pure (githubRedirect githubEndpoints config)) :<|>
+   githubClientAdaptor _githubEndpointsApiBaseUrl _configJWTSignature) :<|>
   githubCallback githubEndpoints config
 
 showText :: Show a => a -> Text

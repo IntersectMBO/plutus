@@ -17,9 +17,9 @@ withTrace = MaybeT . pure
 attempt :: a -> TraceMaybe a ()
 attempt = lift . tell . pure
 
-runTrace :: Monoid e => TraceMaybe e a -> Either e a
-runTrace trace =
+runTrace :: e -> TraceMaybe e a -> Either e a
+runTrace def trace =
   case runWriter $ runMaybeT trace of
     (Just value, _)            -> Right value
     (Nothing, Last (Just msg)) -> Left msg
-    (Nothing, Last Nothing)    -> Left mempty
+    (Nothing, Last Nothing)    -> Left def

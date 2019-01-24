@@ -26,7 +26,7 @@ import qualified Data.Set                                  as Set ()
 import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
-import           Gist                                      (Gist, GistFile, Owner)
+import           Gist                                      (NewGistFile, NewGist, Gist, GistId, GistFile, Owner)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
@@ -186,8 +186,11 @@ myTypes =
     , mkSumType (Proxy @Ada)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
+    , mkSumType (Proxy @GistId)
     , mkSumType (Proxy @Gist)
     , mkSumType (Proxy @GistFile)
+    , mkSumType (Proxy @NewGist)
+    , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
     ]
 
