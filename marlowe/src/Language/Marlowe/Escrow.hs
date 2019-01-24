@@ -1,7 +1,7 @@
 module Language.Marlowe.Escrow where
 
 import           Language.Marlowe.Common
-import           Wallet.API                     ( PubKey(..) )
+import           Wallet.API              (PubKey (..))
 
 {-
 ------------------------------------------
@@ -46,11 +46,10 @@ escrowContract = CommitCash iCC1 alice
                     Null
 
 chose :: Person -> ConcreteChoice -> Observation
-chose per@(PubKey i) c = PersonChoseThis (IdentChoice i) per c
+chose per@(PubKey i) = PersonChoseThis (IdentChoice i) per
 
 oneChose :: Person -> Person -> ConcreteChoice -> Observation
-oneChose per per' val =
-        (OrObs (chose per val) (chose per' val))
+oneChose per per' val = OrObs (chose per val) (chose per' val)
 
 twoChose :: Person -> Person -> Person -> ConcreteChoice -> Observation
 twoChose p1 p2 p3 c =

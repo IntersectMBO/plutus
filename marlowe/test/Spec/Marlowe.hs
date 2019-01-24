@@ -71,7 +71,7 @@ emptyBounds = Bounds Map.empty Map.empty
 
 
 tests :: TestTree
-tests = testGroup "Marlowe" [validatorTests]
+tests = testGroup "Marlowe" [validatorTests, contractsTests]
 
 validatorTests :: TestTree
 validatorTests = testGroup "Marlowe Validator" [
@@ -253,6 +253,14 @@ mergeChoices = $$(Marlowe.mergeChoices)
 money :: Commit -> Int
 money (_, (_, NotRedeemed m _)) = m
 
+{-| Slide across a list with 2 elements window
+    >>> slide [1,2,3]
+    [(1,2), (2,3)]
+-}
+slide :: [a] -> [(a, a)]
+slide [a, b] = [(a, b)]
+slide (a:b:rest) = (a, b) : slide (b:rest)
+slide _ = error "at least 2 elements"
 
 checkInsertCommit :: Property
 checkInsertCommit = property $ do
@@ -262,6 +270,11 @@ checkInsertCommit = property $ do
     let actualMoney     = List.foldl' (\acc c -> acc + money c) 0 result
     Hedgehog.assert (length result == length commits)
     Hedgehog.assert (actualMoney == expectedMoney)
+    when (length result >= 2) $ do
+        -- check commits are partially ordered by timeout
+        let partialyOrderedByTimeout ((_, (lpk, NotRedeemed _ ltimeout)), (_, (rpk, NotRedeemed _ rtimeout))) =
+                if lpk == rpk then ltimeout <= rtimeout else True
+        Hedgehog.assert $ all partialyOrderedByTimeout (slide result)
 
 checkDiscountFromPairList :: Property
 checkDiscountFromPairList = property $ do
@@ -316,9 +329,6 @@ checkMergeChoicesProperties = property $ do
     let r = mergeChoices input choices
     let keys = map fst r
     Hedgehog.assert (length r <= length input + length choices)
-    let slide [a, b] = [(a, b)]
-        slide (a:b:rest) = (a, b) : slide (b:rest)
-        slide _ = error "at least 2 elements"
     when (length r >= 2) $ do
         -- check choices are partially ordered
         Hedgehog.assert $ all (\((lid, _), (rid, _)) -> lid <= rid) (slide keys)
@@ -483,11 +493,7 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
     let oracleValue = OracleValue oracle (Slot 2) 100
     let validator = marloweValidator (PubKey 1)
 
-    -- void $ walletAction alice $ startWatching (Ledger.pubKeyAddress $ PubKey 1)
-    -- void $ walletAction alice $ startWatching (Ledger.pubKeyAddress $ PubKey 2)
-    -- void $ walletAction alice $ startWatching (Ledger.scriptAddress $ marloweValidator)
     void $ walletAction bob $ startWatching (Ledger.pubKeyAddress $ PubKey 1)
-    -- void $ walletAction bob $ startWatching (Ledger.pubKeyAddress $ PubKey 2)
     void $ walletAction bob $ startWatching (Ledger.scriptAddress validator)
 
     withContract [alice, bob] contract $ \txOut validator -> do

@@ -11,8 +11,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS -fplugin=Language.PlutusTx.Plugin
-    -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 
 {-| = Marlowe: financial contracts on Cardano Computation Layer
@@ -263,10 +261,6 @@ makeLift ''ValidatorState
 makeLift ''MarloweData
 makeLift ''Input
 makeLift ''State
-
--- | 'ValidatorHash' equality
-eqValidator :: Q (TExp (ValidatorHash -> ValidatorHash -> Bool))
-eqValidator = [|| \(ValidatorHash l) (ValidatorHash r) -> Builtins.equalsByteString l r ||]
 
 -- | 'IdentCC' equality
 eqIdentCC :: Q (TExp (IdentCC -> IdentCC -> Bool))
@@ -535,7 +529,7 @@ insertCommit = [|| \ commit commits -> let
     insert commit commits = let
         (_, (pubKey, NotRedeemed _ endTimeout)) = commit
         in case commits of
-            [] -> [commit]
+            [] -> commit : []
             (_, (pk, NotRedeemed _ t)) : _
                 | pk `eqPk` pubKey && endTimeout < t -> commit : commits
             c : cs -> c : insert commit cs
@@ -622,10 +616,6 @@ evaluateContract = [|| \
     signedBy :: Signature -> PubKey -> Bool
     signedBy (Signature sig) (PubKey pk) = sig == pk
 
-    null :: [a] -> Bool
-    null [] = True
-    null _  = False
-
     eqIdentCC :: IdentCC -> IdentCC -> Bool
     eqIdentCC (IdentCC a) (IdentCC b) = a == b
 
@@ -664,13 +654,16 @@ evaluateContract = [|| \
         (CommitCash id1 pubKey value _ endTimeout con1 _, Commit id2 signature) | id1 `eqIdentCC` id2 -> let
             vv = evalValue state value
 
+            insert :: Commit -> [Commit] -> [Commit]
+            insert a b = $$(insertCommit) a b
+
             isValid = vv > 0
                 && scriptOutValue == scriptInValue + vv
                 && signature `signedBy` pubKey
             in  if isValid then let
                     cns = (pubKey, NotRedeemed vv endTimeout)
                     updatedState = let State committed choices = state
-                        in State ($$(insertCommit) (id1, cns) committed) choices
+                        in State (insert (id1, cns) committed) choices
                     in (updatedState, con1, True)
                 else (state, contract, False)
 
@@ -715,7 +708,7 @@ evaluateContract = [|| \
                 Just updatedCommits -> (State updatedCommits choices, contract, True)
                 Nothing -> (state, contract, False)
 
-        (Null, SpendDeposit sig) | null commits
+        (Null, SpendDeposit sig) | $$(PlutusTx.null) commits
             && sig `signedBy` contractCreatorPK -> (state, Null, True)
 
         _ -> (state, Null, False)
@@ -727,9 +720,10 @@ evaluateContract = [|| \
 -}
 mergeChoices :: Q (TExp ([Choice] -> [Choice] -> [Choice]))
 mergeChoices = [|| \ input choices -> let
+    insert :: Choice -> [Choice] -> [Choice]
     insert choice choices = let
         in case choices of
-            [] -> [choice]
+            [] -> choice : []
             current@((IdentChoice id, pk), _) : rest -> let
                 ((IdentChoice insId, insPK), _) = choice
                 in   if insId < id then choice : choices
@@ -769,10 +763,6 @@ validatorScript = [|| \
         (&&) :: Bool -> Bool -> Bool
         (&&) = $$(PlutusTx.and)
 
-        null :: [a] -> Bool
-        null [] = True
-        null _  = False
-
         eqValue :: Value -> Value -> Bool
         eqValue = $$(equalValue)
 
@@ -800,9 +790,6 @@ validatorScript = [|| \
         eqState (State commits1 choices1) (State commits2 choices2) =
             all () eqCommit commits1 commits2 && all () eqChoice choices1 choices2
 
-        eqValidator :: ValidatorHash -> ValidatorHash -> Bool
-        eqValidator = $$(Validation.eqValidator)
-
         {-  We require Marlowe Tx to have a lower bound in 'SlotRange'.
             We use it as a current slot, basically. -}
         minSlot = case pendingTxValidRange of
@@ -823,7 +810,7 @@ validatorScript = [|| \
                     For that we need to ensure dataScriptHash == redeemerHash
                     and that TxOut has the same validator -}
                  in if Builtins.equalsByteString dataScriptHash redeemerHash
-                        && inputValidatorHash `eqValidator` outputValidatorHash
+                        && $$(Validation.eqValidator) inputValidatorHash outputValidatorHash
                     then change else Builtins.error ()
 
         eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
@@ -854,5 +841,5 @@ validatorScript = [|| \
             in if allowTransaction then () else Builtins.error ()
         {-  if the contract is invalid and there are no commit,
             allow to spend contract's money. It's likely to be created by mistake -}
-        else if null currentCommits then () else Builtins.error ()
+        else if $$(PlutusTx.null) currentCommits then () else Builtins.error ()
     ||]

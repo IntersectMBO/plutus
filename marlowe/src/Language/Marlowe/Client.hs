@@ -9,8 +9,6 @@
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# OPTIONS -fplugin=Language.PlutusTx.Plugin
-    -fplugin-opt Language.PlutusTx.Plugin:dont-typecheck #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns -Wno-name-shadowing #-}
 module Language.Marlowe.Client where
 import           Control.Applicative            ( Applicative(..) )
@@ -46,6 +44,7 @@ import qualified Ledger                         as Ledger
 import           Ledger.Validation
 import           Language.Marlowe.Common
 
+{- Mockchain instantiation of Marlowe Interpreter functions -}
 eqValue :: Value -> Value -> Bool
 eqValue = $$(equalValue)
 
@@ -72,12 +71,21 @@ evalContract :: PubKey -> Input -> Slot
     -> (State, Contract, Bool)
 evalContract = $$(evaluateContract)
 
+
+{-| Create Marlowe 'ValidatorScript' that remembers its owner.
+
+    At the end of a contract execution owner can spend an initial deposit
+    providing a 'Signature' for owner's public key.
+ -}
 marloweValidator :: PubKey -> ValidatorScript
 marloweValidator creator = ValidatorScript result where
     result = Ledger.applyScript inner (Ledger.lifted creator)
     inner  = Ledger.fromCompiledCode $$(PlutusTx.compile [|| $$(validatorScript) ||])
 
 
+{-| Create and submit a transaction that creates a Marlowe Contract @contract@
+    using @validator@ script, and put @value@ Ada as a deposit.
+-}
 createContract :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -98,7 +106,8 @@ createContract validator contract value = do
     void $ createTxAndSubmit (intervalFrom slot) payment (o : maybeToList change)
 
 
-
+{-| Prepare 'TxIn' and 'TxOut' generator for Marlowe style wallet actions
+-}
 marloweTx ::
     (Input, MarloweData)
     -> (TxOut, TxOutRef)
@@ -108,12 +117,13 @@ marloweTx ::
 marloweTx inputState txOut validator f = do
     let (TxOutOf _ (Ledger.Value contractValue) _, ref) = txOut
     let lifted = Ledger.lifted inputState
-    let scriptIn = scriptTxIn ref (marloweValidator (PubKey 1)) $ Ledger.RedeemerScript lifted
+    let scriptIn = scriptTxIn ref validator $ Ledger.RedeemerScript lifted
     let dataScript = DataScript lifted
     let scritOut v = scriptTxOut (Ledger.Value v) validator dataScript
     f scriptIn scritOut contractValue
 
 
+-- | Create Marlowe Redeemer Script as @(Input, MarloweData)@
 createRedeemer
     :: InputCommand -> [OracleValue Int] -> [Choice] -> State -> Contract -> (Input, MarloweData)
 createRedeemer inputCommand oracles choices expectedState expectedCont =
@@ -121,6 +131,9 @@ createRedeemer inputCommand oracles choices expectedState expectedCont =
         mdata = MarloweData { marloweContract = expectedCont, marloweState = expectedState }
     in  (input, mdata)
 
+
+{-| Create a Marlowe Commit input transaction given expected output 'Contract' and 'State'
+-}
 commit' :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -138,10 +151,16 @@ commit' txOut validator oracles choices identCC value expectedState expectedCont
     sig <- signature <$> myKeyPair
     slot <- slot
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
-    marloweTx redeemer txOut validator $ \ i getOut v -> do
+    marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         (payment, change) <- createPaymentWithChange (Ledger.Value value)
-        void $ createTxAndSubmit (intervalFrom slot) (Set.insert i payment) (getOut (v + value) : maybeToList change)
+        void $ createTxAndSubmit
+            (intervalFrom slot)
+            (Set.insert contractTxIn payment)
+            (getTxOut (contractValue + value) : maybeToList change)
 
+
+{-| Create a Marlowe Commit input transaction given initial 'Contract' and its 'State'
+-}
 commit :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -164,10 +183,11 @@ commit txOut validator oracles choices identCC value inputState inputContract = 
     let (expectedState, expectedCont, isValid) =
             evalContract (PubKey 1) input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"
-    -- traceM $ show expectedCont
     commit' txOut validator oracles choices identCC value expectedState expectedCont
 
 
+{-| Create a Marlowe Payment input transaction
+-}
 receivePayment :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -185,11 +205,14 @@ receivePayment txOut validator oracles choices identPay value expectedState expe
     sig <- signature <$> myKeyPair
     slot <- slot
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
-    marloweTx redeemer txOut validator $ \ i getOut v -> do
-        let out = getOut (v - value)
+    marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
+        let out = getTxOut (contractValue - value)
         oo <- ownPubKeyTxOut (Ledger.Value value)
-        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton i) [out, oo]
+        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [out, oo]
 
+
+{-| Create a Marlowe Redeem input transaction
+-}
 redeem :: (
     MonadError WalletAPIError m,
     WalletAPI m)
@@ -207,16 +230,21 @@ redeem txOut validator oracles choices identCC value expectedState expectedCont 
     sig <- signature <$> myKeyPair
     slot <- slot
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
-    marloweTx redeemer txOut validator $ \ i getOut v -> do
-        let out = getOut (v - value)
+    marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
+        let out = getTxOut (contractValue - value)
         oo <- ownPubKeyTxOut (Ledger.Value value)
-        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton i) [out, oo]
+        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [out, oo]
 
+
+{-| Create a Marlowe SpendDeposit transaction
+
+    Spend the initial contract deposit payment.
+-}
 endContract :: (Monad m, WalletAPI m) => (TxOut, TxOutRef) -> ValidatorScript -> State -> m ()
 endContract txOut validator state = do
     sig <- signature <$> myKeyPair
     slot <- slot
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null
-    marloweTx redeemer txOut validator $ \ i _ v -> do
-        oo <- ownPubKeyTxOut (Ledger.Value v)
-        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton i) [oo]
+    marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
+        oo <- ownPubKeyTxOut (Ledger.Value contractValue)
+        void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [oo]
