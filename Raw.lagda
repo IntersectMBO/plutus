@@ -6,7 +6,6 @@ module Raw where
 open import Agda.Builtin.String
 
 open import Builtin.Constant.Type
-open import Builtin.Constant.Term
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax

@@ -153,6 +153,7 @@ postulate
   readFile : String → IO ByteString
   parse : ByteString → Program
   showTerm : RawTm → String
+
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}

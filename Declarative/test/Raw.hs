@@ -38,6 +38,9 @@ data RTerm = RVar T.Text
            | RCon RConstant
   deriving Show
 
+
+-- should this happen in Agda and infer the bounds proof at this point?
+
 convP :: Program TyName Name a -> RTerm
 convP (Program _ _ t) = conv t
 

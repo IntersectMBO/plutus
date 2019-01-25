@@ -38,13 +38,29 @@ data WeirdFin : Weirdℕ → Set where
 ∥ S n ∥ = ∥ n ∥
 ∥ T n ∥ = suc ∥ n ∥
 
+open import Data.Integer
+open import Data.String
+
+-- could index by size here, is there any point?
+data SizedTermCon : Set where
+  integer    : ∀ s
+    → (i : ℤ)
+    → BoundedI s i
+    → SizedTermCon
+  bytestring : ∀ s
+    → (b : ByteString)
+    → BoundedB s b
+    → SizedTermCon
+  size       : ℕ → SizedTermCon
+  string     : String → SizedTermCon
+
 data ScopedTm : Weirdℕ → Set where
   `    : ∀{n} → WeirdFin n → ScopedTm n 
   Λ    : ∀{n} → ScopedKind → ScopedTm (T n) → ScopedTm n
   _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
   ƛ    : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
-  con  : ∀{n} → RawTermCon → ScopedTm n
+  con  : ∀{n} → SizedTermCon → ScopedTm n
 
 
 -- should just use ordinary kind for everything
@@ -65,7 +81,7 @@ velemIndex : String → ∀{n} → Vec String n → Maybe (Fin n)
 velemIndex x [] = nothing
 velemIndex x (x' ∷ xs) with x Data.String.≟ x'
 velemIndex x (x' ∷ xs) | yes p = just zero
-velemIndex x (x' ∷ xs) | no ¬p = map suc (velemIndex x xs)
+velemIndex x (x' ∷ xs) | no ¬p = map Fin.suc (velemIndex x xs)
 
 deBruijnifyTy : ∀{n} → Vec String n → RawTy → Maybe (ScopedTy n)
 deBruijnifyTy g (` α) = map ` (velemIndex α g)
@@ -99,6 +115,17 @@ velemIndexWeird x (consS x' xs) | yes p = just Z
 velemIndexWeird x (consS _  xs) | no ¬p = map S (velemIndexWeird x xs)
 velemIndexWeird x (consT _  xs) = map T (velemIndexWeird x xs)
 
+-- this could return a proof that that something is out of bounds
+checkSize : RawTermCon → Maybe (SizedTermCon)
+checkSize (integer s i) with boundedI? s i
+checkSize (integer s i) | yes p    = just (integer s i p)
+checkSize (integer s i) | no ¬p    = nothing
+checkSize (bytestring s b) with boundedB? s b
+checkSize (bytestring s b) | yes p = just (bytestring s b p)
+checkSize (bytestring s b) | no ¬p = nothing
+checkSize (size s)                 = just (size s)
+checkSize (string x)               = just (string x)
+
 deBruijnifyTm : ∀{n} → WeirdVec String n → RawTm → Maybe (ScopedTm n)
 deBruijnifyTm g (` x) = map ` (velemIndexWeird x g)
 deBruijnifyTm g (ƛ x A L) = do
@@ -115,4 +142,4 @@ deBruijnifyTm g (L ·⋆ A) = do
   L ← deBruijnifyTm g L
   A ← deBruijnifyTy ∥ g ∥Vec A
   return (L ·⋆ A)
-deBruijnifyTm g (con t) = just (con t)
+deBruijnifyTm g (con t) = map con (checkSize t)
