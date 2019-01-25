@@ -35,7 +35,7 @@ import           Ledger                       (Address, DataScript(..), PubKey(.
 import qualified Ledger                       as L
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
-import           Wallet                       (WalletAPI(..), EventHandler(..), EventTrigger)
+import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
 import qualified Wallet                       as W
 import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
@@ -252,7 +252,7 @@ Contract endpoints use the `WalletAPI` class, which means that they can create a
 Since `WalletAPI` is a sub-class of `Monad` we can use Haskell's `do` notation, allowing us to list our instructions to the wallet in a sequence (see [here](https://en.wikibooks.org/wiki/Haskell/do_notation) for more information).
 
 ```haskell
-contribute :: WalletAPI m => Campaign -> Value -> m ()
+contribute :: MonadWallet m => Campaign -> Value -> m ()
 contribute cmp amount = do
 ```
 
@@ -274,7 +274,7 @@ mkRedeemer action = RedeemerScript (L.lifted (action))
 To collect the funds we use [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript), which expects a validator script and a redeemer script.
 
 ```haskell
-collect :: WalletAPI m => Campaign -> m ()
+collect :: MonadWallet m => Campaign -> m ()
 collect cmp = do
       sig <- W.ownSignature
       let validator = mkValidatorScript cmp
@@ -286,7 +286,7 @@ collect cmp = do
 If we run `collect` now, nothing will happen. Why? Because in order to spend all outputs at the script address, the wallet needs to be aware of this address _before_ the outputs are produced. That way, it can scan incoming blocks from the blockchain for contributions to that address, and doesn't have to keep a record of all unspent outputs of the entire blockchain. So before the campaign starts, the campaign owner needs to run the following action:
 
 ```haskell
-startCampaign :: WalletAPI m => Campaign -> m ()
+startCampaign :: MonadWallet m => Campaign -> m ()
 startCampaign campaign = W.startWatching (campaignAddress campaign)
 ```
 
@@ -314,7 +314,7 @@ The campaign owner can collect contributions when two conditions hold: The funds
 Now we can define an event handler that collects the contributions:
 
 ```haskell
-collectionHandler :: WalletAPI m => Campaign -> EventHandler m
+collectionHandler :: MonadWallet m => Campaign -> EventHandler m
 collectionHandler cmp = EventHandler (\_ -> do
         W.logMsg "Collecting funds"
         sig <- W.ownSignature
@@ -330,7 +330,7 @@ Note that the trigger mechanism is a feature of the wallet, not of the blockchai
 With that, we can re-write the `startCampaign` endpoint to register a `collectFundsTrigger` and collect the funds automatically if the campaign is successful:
 
 ```haskell
-scheduleCollection :: WalletAPI m => Campaign -> m ()
+scheduleCollection :: MonadWallet m => Campaign -> m ()
 scheduleCollection cmp = W.register (collectFundsTrigger cmp) (collectionHandler cmp)
 ```
 
@@ -343,7 +343,7 @@ Let's start with the event handler. Just like the `collection` handler, our refu
 If we submitted a refund transaction for all outputs, that transaction would fail to validate because our validator script checks that refunds go to their intended recipients (see the equation for `contributorOnly` above). Instead of [`collectFromScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScript) we can use [`collectFromScriptTxn`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:collectFromScriptTxn), which takes an additional `TxId` parameter and only collects outputs produced by that transaction.
 
 ```haskell
-refundHandler :: WalletAPI m => TxId -> Campaign -> EventHandler m
+refundHandler :: MonadWallet m => TxId -> Campaign -> EventHandler m
 refundHandler txid cmp = EventHandler (\_ -> do
     W.logMsg "Claiming refund"
     sig <- W.ownSignature
@@ -364,7 +364,7 @@ refundTrigger c = W.andT
 We will call the new endpoint `contribute2` because it replaces the `contribute` endpoint defined above.
 
 ```haskell
-contribute2 :: WalletAPI m => Campaign -> Value -> m ()
+contribute2 :: MonadWallet m => Campaign -> Value -> m ()
 contribute2 cmp amount = do
       pk <- W.ownPubKey
       let dataScript = mkDataScript pk
