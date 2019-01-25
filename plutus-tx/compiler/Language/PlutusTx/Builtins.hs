@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -O0 #-}
 -- | Primitive names and functions for working with Plutus Core builtins.
 module Language.PlutusTx.Builtins (
                                 -- * Bytestring builtins
@@ -33,7 +34,8 @@ module Language.PlutusTx.Builtins (
                                 , trace
                                 ) where
 
-import           Data.ByteString.Lazy    hiding (append)
+import           Data.ByteString.Lazy    (ByteString)
+import qualified Data.ByteString.Lazy    as BSL
 import           Prelude                 hiding (String, error)
 
 import           Language.PlutusTx.Utils (mustBeReplaced)
@@ -41,13 +43,13 @@ import           Language.PlutusTx.Utils (mustBeReplaced)
 -- TODO: resizing primitives? better handling of sizes?
 
 concatenate :: ByteString -> ByteString -> ByteString
-concatenate = mustBeReplaced
+concatenate = BSL.append
 
 takeByteString :: Int -> ByteString -> ByteString
-takeByteString = mustBeReplaced
+takeByteString i = BSL.take (fromIntegral i)
 
 dropByteString :: Int -> ByteString -> ByteString
-dropByteString = mustBeReplaced
+dropByteString i = BSL.drop (fromIntegral i)
 
 sha2_256 :: ByteString -> ByteString
 sha2_256 = mustBeReplaced
@@ -59,7 +61,7 @@ verifySignature :: ByteString -> ByteString -> ByteString -> Bool
 verifySignature = mustBeReplaced
 
 equalsByteString :: ByteString -> ByteString -> Bool
-equalsByteString = mustBeReplaced
+equalsByteString = (==)
 
 txhash :: ByteString
 txhash = mustBeReplaced
@@ -68,34 +70,34 @@ blocknum :: Int
 blocknum = mustBeReplaced
 
 addInteger :: Int -> Int -> Int
-addInteger = mustBeReplaced
+addInteger = (+)
 
 subtractInteger :: Int -> Int -> Int
-subtractInteger = mustBeReplaced
+subtractInteger = (-)
 
 multiplyInteger :: Int -> Int -> Int
-multiplyInteger = mustBeReplaced
+multiplyInteger = (*)
 
 divideInteger :: Int -> Int -> Int
-divideInteger = mustBeReplaced
+divideInteger = div
 
 remainderInteger :: Int -> Int -> Int
-remainderInteger = mustBeReplaced
+remainderInteger = rem
 
 greaterThanInteger :: Int -> Int -> Bool
-greaterThanInteger = mustBeReplaced
+greaterThanInteger = (>)
 
 greaterThanEqInteger :: Int -> Int -> Bool
-greaterThanEqInteger = mustBeReplaced
+greaterThanEqInteger = (>=)
 
 lessThanInteger :: Int -> Int -> Bool
-lessThanInteger = mustBeReplaced
+lessThanInteger = (<)
 
 lessThanEqInteger :: Int -> Int -> Bool
-lessThanEqInteger = mustBeReplaced
+lessThanEqInteger = (<=)
 
 equalsInteger :: Int -> Int -> Bool
-equalsInteger = mustBeReplaced
+equalsInteger = (==)
 
 error :: () -> a
 error = mustBeReplaced

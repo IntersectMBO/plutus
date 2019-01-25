@@ -132,7 +132,7 @@ Before we check whether `act` is permitted, we define a number of intermediate v
                   (&&) = $$(P.and)
 
                   signedBy :: PubKey -> Signature -> Bool
-                  signedBy (PubKey pk) (Signature s) = pk == s
+                  signedBy (PubKey pk) (Signature s) = $$(P.eq) pk s
 ```
 
 There is no standard library of functions that are automatically in scope for on-chain code, so we need to import the ones that we want to use from the [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) module using the `$$()` splicing operator. [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html) contains a subset of the standard Haskell prelude, exported as Template Haskell quotes. Code from other libraries can only be used in validator scripts if it is available as a Template Haskell quote (so we can use `$$()` to splice it in).
@@ -158,9 +158,9 @@ Then we compute the total value of all transaction inputs, using `P.foldr` on th
                   totalInputs =
                       -- define a function "v" that extracts the ada value from a 'PendingTxIn'
                       let v (PendingTxIn _ _ (Value vl)) = vl in
-
+                      
                       -- Apply "v" to each transaction input, summing up the results
-                      $$(P.foldr) (\i total -> total + v i) 0 ins
+                      $$(P.foldr) (\i total -> $$(P.plus) total (v i)) 0 ins
 ```
 
 We now have all the information we need to check whether the action `act` is allowed. This will be computed as
@@ -214,7 +214,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
 
 ```haskell
                           $$(P.contains) ($$(P.interval) deadline collectionDeadline) txnValidRange &&
-                          totalInputs >= target &&
+                          $$(P.geq) totalInputs target &&
                           campaignOwner `signedBy` sig
 
               in

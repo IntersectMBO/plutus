@@ -8,6 +8,7 @@ module Language.PlutusTx.Prelude.Stage0 where
 
 import           Data.ByteString.Lazy       (ByteString)
 import           Prelude                    (Bool (..), Int, Maybe (..), String, (<), (>), (+))
+import qualified Prelude                    as P
 
 import qualified Language.PlutusTx.Builtins as Builtins
 
@@ -63,6 +64,86 @@ or = [|| \(l :: Bool) (r :: Bool) -> if l then True else r ||]
 --
 not :: Q (TExp (Bool -> Bool))
 not = [|| \(a :: Bool) -> if a then False else True  ||]
+
+-- | Greater than 
+--
+--   >>> $$([|| $$(gt) 2 1 ||])
+--   True
+--
+gt :: Q (TExp (Int -> Int -> Bool))
+gt = [|| Builtins.greaterThanInteger ||]
+
+-- | Greater than or equal to
+--
+--   >>> $$([|| $$(geq) 2 2 ||])
+--   True
+--
+geq :: Q (TExp (Int -> Int -> Bool))
+geq = [|| Builtins.greaterThanEqInteger ||]
+
+-- | Less than 
+--
+--   >>> $$([|| $$(lt) 2 1 ||])
+--   False
+--
+lt :: Q (TExp (Int -> Int -> Bool))
+lt = [|| Builtins.lessThanInteger ||]
+
+-- | Less than or equal to
+--
+--   >>> $$([|| $$(leq) 2 2 ||])
+--   True
+--
+leq :: Q (TExp (Int -> Int -> Bool))
+leq = [|| Builtins.lessThanEqInteger ||]
+
+-- | Eq for 'Int'
+--
+--   >>> $$([|| $$(eq) 2 1 ||])
+--   False
+--
+eq :: Q (TExp (Int -> Int -> Bool))
+eq = [|| Builtins.equalsInteger ||]
+
+-- | Addition
+--
+--   >>> $$([|| $$(plus) 2 1 ||])
+--   3
+--
+plus :: Q (TExp (Int -> Int -> Int))
+plus = [|| Builtins.addInteger ||]
+
+-- | Subtraction
+--
+--   >>> $$([|| $$(minus) 2 1 ||])
+--   1
+--
+minus :: Q (TExp (Int -> Int -> Int))
+minus = [|| Builtins.subtractInteger ||]
+
+-- | Multiplication
+--
+--   >>> $$([|| $$(multiply) 2 1 ||])
+--   2
+--
+multiply :: Q (TExp (Int -> Int -> Int))
+multiply = [|| Builtins.multiplyInteger ||]
+
+-- | Integer division
+--
+--   >>> $$([|| $$(divide) 3 2 ||])
+--   1
+--
+divide :: Q (TExp (Int -> Int -> Int))
+divide = [|| Builtins.divideInteger ||]
+
+-- | Remainder (of integer division)
+--
+--   >>> $$([|| $$(remainder) 3 2 ||])
+--   1
+--
+remainder :: Q (TExp (Int -> Int -> Int))
+remainder = [|| Builtins.remainderInteger ||]
 
 -- | The smaller of two 'Int's
 --
