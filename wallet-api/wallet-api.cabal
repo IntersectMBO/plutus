@@ -116,7 +116,6 @@ test-suite wallet-api-test
         lens -any
 
 test-suite wallet-api-doctests
-    buildable: False
     type: exitcode-stdio-1.0
     main-is: tutorial-doctests.hs
     build-tool-depends: markdown-unlit:markdown-unlit -any
