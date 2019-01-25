@@ -44,7 +44,7 @@ PlutusTx.makeLift ''VestingData
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
-vestFunds :: Vesting -> Value -> MockWallet ()
+vestFunds :: MonadWallet m => Vesting -> Value -> m ()
 vestFunds vst value = do
     _ <- if value < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
     (payment, change) <- createPaymentWithChange value
@@ -58,7 +58,7 @@ vestFunds vst value = do
 --   released so far.
 --   This function has to be called before the funds are vested, so that the
 --   wallet can start watching the contract address for changes.
-registerVestingOwner :: Vesting -> MockWallet ()
+registerVestingOwner :: MonadWallet m => Vesting -> m ()
 registerVestingOwner v = do
     ourPubKey <- ownPubKey
     let
@@ -147,7 +147,7 @@ tranche1Trigger v =
     (slotRangeT (singleton dt1))
 
 -- | Collect the remaining funds at the end of tranche 2
-tranche2Handler :: Vesting -> EventHandler MockWallet
+tranche2Handler :: MonadWallet m => Vesting -> EventHandler m
 tranche2Handler vesting = EventHandler (\_ -> do
     logMsg "Collecting tranche 2"
     let vlscript = validatorScript vesting

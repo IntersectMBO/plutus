@@ -55,7 +55,7 @@ gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: String -> Value -> MockWallet ()
+lock :: MonadWallet m => String -> Value -> m ()
 lock word value =
     -- 'payToScript_' is a function of the wallet API. It takes a script
     -- address, a value and a data script, and submits a transaction that
@@ -67,7 +67,7 @@ lock word value =
     payToScript_ defaultSlotRange gameAddress value (mkDataScript word)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: String -> MockWallet ()
+guess :: MonadWallet m => String -> m ()
 guess word =
     -- 'collectFromScript' is a function of the wallet API. It consumes the
     -- unspent transaction outputs at a script address and pays them to a
@@ -81,7 +81,7 @@ guess word =
 
 -- | The "startGame" contract endpoint, telling the wallet to start watching
 --   the address of the game script. See note [Contract endpoints]
-startGame :: MockWallet ()
+startGame :: MonadWallet m => m ()
 startGame =
     -- 'startWatching' is a function of the wallet API. It instructs the wallet
     -- to keep track of all outputs at the address. Player 2 needs to call

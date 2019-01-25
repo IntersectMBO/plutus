@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -10,6 +11,7 @@
 module Wallet.API(
     WalletAPI(..),
     WalletDiagnostics(..),
+    MonadWallet,
     EventHandler(..),
     KeyPair(..),
     PubKey(..),
@@ -221,6 +223,8 @@ newtype WalletLog = WalletLog { getWalletLog :: [Text] }
 
 instance FromJSON WalletLog
 instance ToJSON WalletLog
+
+type MonadWallet m = (WalletAPI m, WalletDiagnostics m)
 
 -- | The ability to log messages and throw errors
 class MonadError WalletAPIError m => WalletDiagnostics m where
