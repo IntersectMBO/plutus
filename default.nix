@@ -182,7 +182,15 @@ let
         };
       };
     };
+
+    devPackages = localLib.getPackages {
+      inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "ghcid" ];
+    };
+
+    withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ devPackages.cabal-install devPackages.ghcid ]; });
+    shellTemplate = name: withDevTools haskellPackages."${name}".env;
   });
+
 
 in
   # The top-level package set

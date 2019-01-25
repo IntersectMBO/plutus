@@ -9,4 +9,6 @@ main = doctest [
         "-XDeriveTraversable",
         "-XDeriveGeneric",
         "-XStandaloneDeriving",
+        -- FIXME: workaround for https://ghc.haskell.org/trac/ghc/ticket/16228
+        "-package plutus-tx",
         "tutorial/Tutorial.lhs"]
