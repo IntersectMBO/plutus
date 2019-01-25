@@ -7,6 +7,7 @@ open import Data.Nat
 open import Data.Fin
 
 open import Builtin.Constant.Type
+open import Raw
 \end{code}
 
 \begin{code}
@@ -43,9 +44,9 @@ data ScopedTm : Weirdℕ → Set where
   _·⋆_ : ∀{n} → ScopedTm n → ScopedTy ∥ n ∥ → ScopedTm n
   ƛ    : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
+  con  : ∀{n} → RawTermCon → ScopedTm n
 
 
-open import Raw
 -- should just use ordinary kind for everything
 deBruijnifyK : RawKind → ScopedKind
 deBruijnifyK * = *
@@ -114,4 +115,4 @@ deBruijnifyTm g (L ·⋆ A) = do
   L ← deBruijnifyTm g L
   A ← deBruijnifyTy ∥ g ∥Vec A
   return (L ·⋆ A)
-
+deBruijnifyTm g (con t) = just (con t)

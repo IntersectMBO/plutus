@@ -2,6 +2,8 @@
 
 module Raw where
 
+import GHC.Natural
+
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.Parser
@@ -22,11 +24,18 @@ data RType = RTyVar T.Text
            | RTyCon TypeBuiltin
            deriving Show
 
+data RConstant = RConInt Integer Integer
+               | RConBS Integer BSL.ByteString
+               | RConSize Integer
+               | RConStr T.Text
+               deriving Show
+
 data RTerm = RVar T.Text
            | RTLambda T.Text RKind RTerm
            | RTApp RTerm RType
            | RLambda T.Text RType RTerm
            | RApp RTerm RTerm
+           | RCon RConstant
   deriving Show
 
 convP :: Program TyName Name a -> RTerm
@@ -49,6 +58,12 @@ convT (TyBuiltin _ b)      = RTyCon b
 convT (TyInt _ n)          = undefined
 convT (TyIFix _ _ _)       = undefined
 
+convC :: Constant a -> RConstant
+convC (BuiltinInt _ n i) = RConInt (toInteger n) i
+convC (BuiltinBS _ n b)  = RConBS (toInteger n) b
+convC (BuiltinSize _ n)  = RConSize (toInteger n)
+convC (BuiltinStr _ s)   = RConStr (T.pack s)
+
 conv :: Term TyName Name a -> RTerm
 conv (Var _ x)        = RVar (nameString x)
 conv (TyAbs _ x _K t)  = RTLambda (nameString $ unTyName x) (convK _K) (conv t)
@@ -56,7 +71,7 @@ conv (TyInst _ t _A)   = RTApp (conv t) (convT _A)
 conv (LamAbs _ x _A t) = RLambda (nameString x) (convT _A) (conv t)
 conv (Apply _ t u)    = RApp (conv t) (conv u)
 conv (Builtin _ b)    = undefined
-conv (Constant _ c)   = undefined
+conv (Constant _ c)   = RCon (convC c)
 conv (Unwrap _ _)     = undefined
 conv (IWrap _ _ _ _)  = undefined
 conv (Error _ _)      = undefined
