@@ -175,4 +175,8 @@ data TyCon : Set where
   integer    : TyCon
   bytestring : TyCon
   size       : TyCon
+  string     : TyCon
+
+{-# FOREIGN GHC import Language.PlutusCore.Type #-}
+{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TySize | TyString) #-}
 \end{code}

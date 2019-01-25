@@ -144,6 +144,7 @@ main = do
 -}
 
 open import Raw
+open import Scoped
 
 postulate
   fmap : ∀{A B : Set} → (A → B) → IO A → IO B
@@ -169,6 +170,15 @@ open import Function
 
 main : IO ⊤
 main = do
-  t ← fmap (convP ∘ parse) (readFile "/Users/james/repos/plutus/language-plutus-core/test/data/negation.plc")
+  -- plutus/language-plutus-core/test/data
+  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/addInteger.plc")
+  putStrLn (showTerm t)
+  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerLiteral.plc")
+  putStrLn (showTerm t)
+  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/integerOverflow.plc")
+  putStrLn (showTerm t)
+  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/negation.plc")
+  putStrLn (showTerm t)
+  t ← fmap (convP ∘ parse) (readFile "../../../plutus/language-plutus-core/test/data/stringLiteral.plc")
   putStrLn (showTerm t)
 \end{code}

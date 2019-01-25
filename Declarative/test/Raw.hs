@@ -19,6 +19,7 @@ data RType = RTyVar T.Text
            | RTyPi T.Text RKind RType
            | RTyLambda T.Text RKind RType
            | RTyApp RType RType
+           | RTyCon TypeBuiltin
            deriving Show
 
 data RTerm = RVar T.Text
@@ -44,7 +45,9 @@ convT (TyForall _ x _K _A) =
 convT (TyLam _ x _K _A)    =
   RTyLambda (nameString $ unTyName x) (convK _K) (convT _A)
 convT (TyApp _ _A _B)      = RTyApp (convT _A) (convT _B)
-convT _                    = undefined
+convT (TyBuiltin _ b)      = RTyCon b
+convT (TyInt _ n)          = undefined
+convT (TyIFix _ _ _)       = undefined
 
 conv :: Term TyName Name a -> RTerm
 conv (Var _ x)        = RVar (nameString x)
@@ -52,4 +55,8 @@ conv (TyAbs _ x _K t)  = RTLambda (nameString $ unTyName x) (convK _K) (conv t)
 conv (TyInst _ t _A)   = RTApp (conv t) (convT _A)
 conv (LamAbs _ x _A t) = RLambda (nameString x) (convT _A) (conv t)
 conv (Apply _ t u)    = RApp (conv t) (conv u)
-conv _                = undefined
+conv (Builtin _ b)    = undefined
+conv (Constant _ c)   = undefined
+conv (Unwrap _ _)     = undefined
+conv (IWrap _ _ _ _)  = undefined
+conv (Error _ _)      = undefined

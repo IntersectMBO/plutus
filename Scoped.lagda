@@ -5,6 +5,8 @@ module Scoped where
 \begin{code}
 open import Data.Nat
 open import Data.Fin
+
+open import Builtin.Constant.Type
 \end{code}
 
 \begin{code}
@@ -18,6 +20,7 @@ data ScopedTy : ℕ → Set where
   Π   : ∀{n} → ScopedKind → ScopedTy (suc n) → ScopedTy n
   ƛ   : ∀{n} → ScopedKind → ScopedTy (suc n) → ScopedTy n
   _·_ : ∀{n} → ScopedTy n → ScopedTy n → ScopedTy n
+  con : ∀{n} → TyCon → ScopedTy n
 
 data Weirdℕ : Set where
   Z : Weirdℕ
@@ -77,7 +80,7 @@ deBruijnifyTy g (A · B) = do
   A ← deBruijnifyTy g A
   B ← deBruijnifyTy g B
   return (A · B)
-
+deBruijnifyTy g (con b) = just (con b)
 data WeirdVec (X : Set) : Weirdℕ → Set where
   nil : WeirdVec X Z
   consS : ∀{n} → X → WeirdVec X n → WeirdVec X (S n)
