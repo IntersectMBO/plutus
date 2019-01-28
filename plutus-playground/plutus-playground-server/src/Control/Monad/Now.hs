@@ -8,6 +8,7 @@ module Control.Monad.Now
 
 import           Control.Monad.Except      (ExceptT)
 import           Control.Monad.Logger      (LoggingT)
+import           Control.Monad.Reader      (ReaderT)
 import           Control.Monad.Trans.Class (lift)
 import           Data.Time                 (UTCTime)
 import qualified Data.Time                 as Time
@@ -29,5 +30,9 @@ instance MonadNow m => MonadNow (ExceptT e m) where
   getPOSIXTime = lift getPOSIXTime
 
 instance MonadNow m => MonadNow (LoggingT m) where
+  getCurrentTime = lift getCurrentTime
+  getPOSIXTime = lift getPOSIXTime
+
+instance MonadNow m => MonadNow (ReaderT r m) where
   getCurrentTime = lift getCurrentTime
   getPOSIXTime = lift getPOSIXTime
