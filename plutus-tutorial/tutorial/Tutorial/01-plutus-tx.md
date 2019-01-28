@@ -3,14 +3,14 @@
 This tutorial will walk you through the basics of using the Plutus Tx compiler to create
 embedded programs that can be used when generating transactions. This tutorial will
 not go into detail about how to use these programs to make transactions, for that see
-the [following tutorial](../../wallet-api/tutorial/Tutorial.md).
+the [following tutorial](./02-wallet-api.md).
 
 ```haskell
 -- Necessary language extensions
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Tutorial where
+module Tutorial.PlutusTx where
 
 -- Main Plutus Tx module
 import Language.PlutusTx
@@ -171,7 +171,7 @@ and a pattern-matching function.
 
 Unlike functions, datatypes do not need to be defined inside the
 expression, hence why we can use types like `Maybe` from the `Prelude`.
-This works for your own datatypes too! (See [Haskell language support](../README.md#haskell-language-support)
+This works for your own datatypes too! (See [Haskell language support](../../../plutus-tx/README.md#haskell-language-support)
 for some caveats.)
 
 Here's a small example with a datatype of our own representing a potentially open-ended

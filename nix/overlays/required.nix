@@ -20,6 +20,8 @@ self: super: {
     # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
     plutus-tx = doctest "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables" super.plutus-tx;
 
+    plutus-tutorial = doctest "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables" super.plutus-tutorial;
+
     ########################################################################
     # The base Haskell package builder
 

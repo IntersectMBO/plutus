@@ -32,6 +32,7 @@ let
     "plutus-exe"
     "plutus-ir"
     "plutus-tx"
+    "plutus-tutorial"
     "plutus-use-cases"
     "wallet-api"
   ];
