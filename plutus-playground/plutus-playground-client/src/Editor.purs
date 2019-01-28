@@ -20,7 +20,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
-import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h2_, h3_, pre_, slot', small, strong_, text)
+import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, pre_, slot', small, strong_, text)
 import Halogen.HTML.Events (input, input_, onClick, onDragOver, onDrop)
 import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
@@ -39,7 +39,6 @@ editorPane ::
 editorPane state =
   div_
     [ demoScriptsPane
-    , h2_ [ text "Editor" ]
     , div
         [ onDragOver $ Just <<< action <<< HandleDragEvent
         , onDrop $ Just <<< action <<< HandleDropEvent
@@ -107,7 +106,7 @@ initEditor editor = liftEff $ do
 
 demoScriptsPane :: forall p. HTML p Query
 demoScriptsPane =
-  div [ class_ pullRight ]
+  div [ class_ $ ClassName "demos" ]
    (Array.cons
       (strong_ [ text "Demos: " ])
       (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles)))

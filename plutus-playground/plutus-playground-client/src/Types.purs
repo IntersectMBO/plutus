@@ -144,6 +144,7 @@ data Query a
   | HandleBalancesChartMessage EChartsMessage a
   | CheckAuthStatus a
   | PublishGist a
+  | ChangeView View a
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
@@ -205,7 +206,8 @@ cpBalancesChart = cp3
 type Blockchain = Array (Array Tx)
 
 type State =
-  { compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
+  { view :: View
+  , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array MockWallet
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
@@ -213,6 +215,9 @@ type State =
   , gists :: RemoteData AjaxError (Array Gist)
   , createGistResult :: RemoteData AjaxError Gist
   }
+
+_view :: forall s a. Lens' {view :: a | s} a
+_view = prop (SProxy :: SProxy "view")
 
 _actions :: forall s a. Lens' {actions :: a | s} a
 _actions = prop (SProxy :: SProxy "actions")
@@ -234,6 +239,18 @@ _gists = prop (SProxy :: SProxy "gists")
 
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")
+
+
+data View
+  = Editor
+  | Simulation
+  | Transactions
+
+derive instance eqView :: Eq View
+derive instance genericView :: Generic View
+
+instance showView :: Show View where
+  show = gShow
 
 ------------------------------------------------------------
 

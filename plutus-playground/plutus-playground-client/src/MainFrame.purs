@@ -12,7 +12,7 @@ import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Auth (AuthRole(GithubUser), authStatusAuthRole)
-import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
+import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, hidden, navItem_, navLink, navTabs_, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
@@ -41,18 +41,20 @@ import Editor (editorPane)
 import FileEvents (FILE, preventDefault, readFileFromDragEvent)
 import Gist (gistId)
 import Gists (gistControls, mkNewGist)
-import Halogen (Component)
+import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, strong_, text)
+import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
+import Icons (Icon(..), icon)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(Failure, Success, NotAsked), _Success, isFailure, isSuccess)
+import Network.RemoteData (RemoteData(..), _Success, isFailure, isSuccess)
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, getGists, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
@@ -64,7 +66,8 @@ import Wallet.Emulator.Types (Wallet(..), _Wallet)
 
 initialState :: State
 initialState =
-  { compilationResult: NotAsked
+  { view: Editor
+  , compilationResult: NotAsked
   , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
   , actions: []
   , evaluationResult: NotAsked
@@ -115,6 +118,7 @@ toEvent (HandleMockchainChartMessage _ _) = Nothing
 toEvent (HandleBalancesChartMessage _ _) = Nothing
 toEvent (CheckAuthStatus _) = Nothing
 toEvent (PublishGist _) = Just $ (defaultEvent "Publish") { label = Just "Gist"}
+toEvent (ChangeView view _) = Just $ (defaultEvent "View") { label = Just $ show view}
 toEvent (LoadScript script a) = Just $ (defaultEvent "LoadScript") { label = Just script}
 toEvent (CompileProgram a) = Just $ defaultEvent "CompileProgram"
 toEvent (ScrollTo _ _) = Nothing
@@ -187,6 +191,10 @@ eval (PublishGist next) = do
 
          pure next
 
+eval (ChangeView view next) = do
+  assign _view view
+  pure next
+
 eval (LoadScript key next) = do
   case Map.lookup key StaticData.demoFiles of
     Nothing -> pure next
@@ -203,6 +211,10 @@ eval (CompileProgram next) = do
     Nothing -> pure next
     Just contents ->  do
       result <- runAjaxTo _compilationResult $ postContract $ SourceCode contents
+
+      case result of
+        Success (Left _) -> pure unit
+        _ -> replaceView result Editor Simulation
 
       void $ withEditor $ showCompilationErrorAnnotations $
         case result of
@@ -233,7 +245,9 @@ eval (EvaluateActions next) = do
     Just contents -> do
       evaluation <- currentEvaluation (SourceCode contents)
       result <- runAjaxTo  _evaluationResult $ postEvaluate evaluation
-      --
+
+      replaceView result Simulation Transactions
+
       updateChartsIfPossible
       pure next
 
@@ -292,6 +306,12 @@ evalForm (SetSubField n subEvent) old@(SimpleObject fields) =
            Nothing -> old
            Just newFields -> SimpleObject newFields
 evalForm other arg = arg
+
+replaceView :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
+replaceView result source target = do
+  currentView <- use _view
+  when ((isSuccess || isFailure) result && currentView == source)
+    (assign _view target)
 
 currentEvaluation :: forall m. MonadState State m => SourceCode -> m Evaluation
 currentEvaluation sourceCode = do
@@ -373,30 +393,51 @@ render state =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , gistControls (view _authStatus state) (view _createGistResult state)
-        , editorPane state
+        , mainTabBar state.view
         ]
-    , stripeContainer_ [
+    , viewContainer state.view Editor $
+        [ editorPane state
+        , gistControls (view _authStatus state) (view _createGistResult state)
+        ]
+    , viewContainer state.view Simulation $
         case state.compilationResult of
+          Success (Left error) ->
+            [ text "Your contract has errors. Click the "
+            , strong_ [ text "Editor" ]
+            , text " tab above to fix them and recompile."
+            ]
           Success (Right compilationResult) ->
-            simulationPane (view (_CompilationResult <<< _functionSchema) compilationResult) state.wallets state.actions state.evaluationResult
-          Failure error -> ajaxErrorPane error
-          _ -> empty
-      ]
-    , container_ [
+            [ simulationPane
+                (view (_CompilationResult <<< _functionSchema) compilationResult)
+                state.wallets
+                state.actions
+                state.evaluationResult
+            ]
+          Failure error -> [ ajaxErrorPane error ]
+          Loading -> [ icon Spinner ]
+          NotAsked ->
+            [ text "Click the "
+            , strong_ [ text "Editor" ]
+            , text " tab above and compile a contract to get started."
+            ]
+    , viewContainer state.view Transactions $
         case state.evaluationResult of
           Success evaluation ->
-            evaluationPane evaluation
-          Failure error -> ajaxErrorPane error
-          _ -> empty
-      ]
+            [ evaluationPane evaluation ]
+          Failure error -> [ ajaxErrorPane error ]
+          Loading -> [ icon Spinner ]
+          NotAsked ->
+            [ text "Click the "
+            , strong_ [ text "Simulation"  ]
+            , text " tab above and evaluate a simulation to see some results."
+            ]
     ]
 
-stripeContainer_ :: forall p i. Array (HTML p i) -> HTML p i
-stripeContainer_ children =
-  div
-    [ class_ $ ClassName "stripe" ]
-    [ container_ children ]
+viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
+viewContainer currentView targetView =
+  if currentView == targetView
+  then div [ classes [ container ] ]
+  else div [ classes [ container, hidden ] ]
 
 mainHeader :: forall p. HTML p (Query Unit)
 mainHeader =
@@ -418,3 +459,25 @@ mainHeader =
         , href link
         ]
         [ text name ]
+
+mainTabBar :: forall p. View -> HTML p (Query Unit)
+mainTabBar activeView =
+  navTabs_ (mkTab <$> tabs)
+  where
+    tabs = [ Editor /\ "Editor"
+           , Simulation /\ "Simulation"
+           , Transactions /\ "Transactions"
+           ]
+    mkTab (link /\ title ) =
+      navItem_ [
+        a
+          [ classes $ [ navLink ] <> activeClass
+          , onClick $ const $ Just $ action $ ChangeView link
+          ]
+          [ text title ]
+      ]
+      where
+        activeClass =
+          if link == activeView
+          then [ active ]
+          else []

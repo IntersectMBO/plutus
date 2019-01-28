@@ -70,11 +70,13 @@ h2 {
         padding-top: 15px;
         padding-bottom: 15px;
     }
-
-    .stripe {
-        background-color: #19192c;
-    }
 }
+
+.demos {
+    text-align: right;
+    padding: 5px 0;
+}
+
 .ace_editor, .ace_content {
     min-height: 20rem;
 }
