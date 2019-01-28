@@ -6,17 +6,18 @@ module Gists
 
 import AjaxUtils (showAjaxError)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
-import Bootstrap (btn, btnInfo, nbsp)
+import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, nbsp)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
-import Gist (Gist, NewGist(..), NewGistFile(..), _GistId, gistHtmlUrl, gistId)
-import Halogen.HTML (HTML, a, button, div_, i_, text)
+import Gist (Gist, NewGist(NewGist), NewGistFile(NewGistFile), gistHtmlUrl)
+import Halogen.HTML (ClassName(ClassName), HTML, a, br_, div, div_, text)
 import Halogen.HTML.Events (input_, onClick)
-import Halogen.HTML.Properties (classes, disabled, href, target)
-import Network.RemoteData (RemoteData(..), isSuccess)
-import Prelude (Unit, not, ($), (<$>), (<<<), (<>))
+import Halogen.HTML.Properties (class_, classes, href, target)
+import Icons (Icon(..), icon)
+import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
+import Prelude (Unit, ($), (<$>))
 import Servant.PureScript.Affjax (AjaxError)
 import Types (Query(..))
 
@@ -27,26 +28,8 @@ gistControls ::
   -> HTML p (Query Unit)
 gistControls authStatus createGistResult =
   div_
-    [ div_ [ i_ [
-               case view authStatusAuthRole <$> authStatus of
-                 Success GithubUser -> text "Authenticated with Github."
-                 Success Anonymous -> authenticationLink
-                 Failure err -> showAjaxError err
-                 Loading -> text "Publishing..."
-                 NotAsked -> authenticationLink
-             ]
-           ]
-    , button
-        [ classes [ btn, btnInfo ]
-        , disabled (not (isSuccess authStatus))
-        , onClick $ input_ PublishGist
-        ]
-        [ case createGistResult of
-             Success _ -> text "Republish"
-             Failure _ -> text "Failure"
-             Loading -> text "Loading..."
-             NotAsked -> text "Publish"
-        ]
+    [ a publishAttributes publishContent
+    , br_
     , div_
         [ case createGistResult of
              Success gist -> gistPane gist
@@ -56,15 +39,60 @@ gistControls authStatus createGistResult =
         ]
     ]
   where
-    authenticationLink = a [ href "/api/oauth/github" ] [ text "Please Authenticate" ]
+
+    publishAttributes =
+      case (view authStatusAuthRole <$> authStatus), createGistResult of
+        Failure _, _ ->
+          [ classes [ btn, btnDanger ] ]
+        _, Failure _ ->
+          [ classes [ btn, btnDanger ] ]
+        Success Anonymous, _ ->
+          [ classes [ btn, btnInfo ]
+          , href "/api/oauth/github"
+          ]
+        Success GithubUser, NotAsked ->
+          [ classes [ btn, btnPrimary ]
+          , onClick $ input_ PublishGist
+          ]
+        Success GithubUser, Success _ ->
+          [ classes [ btn, btnPrimary ]
+          , onClick $ input_ PublishGist
+          ]
+        Loading, _ ->
+          [ classes [ btn, btnInfo ] ]
+        _, Loading ->
+          [ classes [ btn, btnInfo ] ]
+        NotAsked, _ ->
+          [ classes [ btn, btnInfo ] ]
+
+    publishContent =
+      case (view authStatusAuthRole <$> authStatus), createGistResult of
+        Failure _, _ ->
+          [ text "Failure" ]
+        _, Failure _ ->
+          [ text "Failure" ]
+        Success Anonymous, _ ->
+          [ icon Github, nbsp, text "Publish" ]
+        Success GithubUser, NotAsked ->
+          [ icon Github, nbsp, text "Publish" ]
+        Success GithubUser, Success _ ->
+          [ icon Github, nbsp, text "Republish" ]
+        Loading, _ ->
+          [ icon Spinner ]
+        _, Loading ->
+          [ icon Spinner ]
+        NotAsked, _ ->
+          [ icon Github, nbsp, text "Publish" ]
 
 gistPane :: forall p i. Gist -> HTML p i
 gistPane gist =
-  div_
-    [ a [ href $ view gistHtmlUrl gist
+  div
+    [ class_ $ ClassName "gist-link" ]
+    [ a
+        [ href $ view gistHtmlUrl gist
         , target "_blank"
         ]
-      [ text $ "Published as: " <> view (gistId <<< _GistId) gist ]
+      [ text $ "View on Github" ]
     ]
 
 mkNewGist :: Maybe String -> Maybe NewGist

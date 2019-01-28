@@ -55,6 +55,12 @@ col5 = ClassName "col-5"
 col5_ :: forall p i. Array (HTML p i) -> HTML p i
 col5_ = div [ classes [ col, col5 ] ]
 
+col6 :: ClassName
+col6 = ClassName "col-6"
+
+col6_ :: forall p i. Array (HTML p i) -> HTML p i
+col6_ = div [ classes [ col, col6 ] ]
+
 col7 :: ClassName
 col7 = ClassName "col-7"
 
@@ -72,6 +78,12 @@ col9 = ClassName "col-9"
 
 col9_ :: forall p i. Array (HTML p i) -> HTML p i
 col9_ = div [ classes [ col, col9 ] ]
+
+col10 :: ClassName
+col10 = ClassName "col-10"
+
+col10_ :: forall p i. Array (HTML p i) -> HTML p i
+col10_ = div [ classes [ col, col10 ] ]
 
 card :: ClassName
 card = ClassName "card"

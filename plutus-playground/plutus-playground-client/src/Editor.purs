@@ -6,8 +6,8 @@ import Ace.EditSession as Session
 import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
-import AjaxUtils (showAjaxError)
-import Bootstrap (alertDanger_, btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
+import AjaxUtils (ajaxErrorPane)
+import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, col10_, col2_, empty, listGroupItem_, listGroup_, pullRight, row_)
 import Control.Alternative ((<|>))
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
@@ -18,6 +18,7 @@ import Data.Lens (view, to)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
+import Gists (gistControls)
 import Halogen (HTML, action)
 import Halogen.Component (ParentHTML)
 import Halogen.HTML (ClassName(ClassName), br_, button, code_, div, div_, h3_, pre_, slot', small, strong_, text)
@@ -30,7 +31,7 @@ import Network.RemoteData (RemoteData(..), isLoading)
 import Playground.API (_CompilationResult, CompilationError(CompilationError, RawError), Warning, _Warning)
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (EditorSlot(..), ChildQuery, ChildSlot, Query(..), State, cpEditor, _warnings)
+import Types (ChildQuery, ChildSlot, EditorSlot(..), Query(..), State, _authStatus, _createGistResult, _warnings, cpEditor)
 
 editorPane ::
   forall m aff.
@@ -49,13 +50,17 @@ editorPane state =
             (input HandleEditorMessage)
         ]
     , br_
-    , div_
-        [ button
-            [ classes [ btn, btnClass ]
-            , onClick $ input_ CompileProgram
-            , disabled (isLoading state.compilationResult)
+    , row_
+        [ col10_
+            [ button
+                [ classes [ btn, btnClass ]
+                , onClick $ input_ CompileProgram
+                , disabled (isLoading state.compilationResult)
+                ]
+                [ btnText ]
             ]
-            [ btnText ]
+        , col2_
+            [ gistControls (view _authStatus state) (view _createGistResult state) ]
         ]
     , br_
     , errorList
@@ -76,11 +81,7 @@ editorPane state =
                       listGroup_
                         (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
                     Failure error ->
-                      alertDanger_
-                        [ showAjaxError error
-                        , br_
-                        , text "Please try again or contact support for assistance."
-                        ]
+                      ajaxErrorPane error
                     _ -> empty
       warningList = case state.compilationResult of
                      (Success (Right result)) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result

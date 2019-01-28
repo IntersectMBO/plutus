@@ -40,7 +40,7 @@ import ECharts.Monad (interpret)
 import Editor (editorPane)
 import FileEvents (FILE, preventDefault, readFileFromDragEvent)
 import Gist (gistId)
-import Gists (gistControls, mkNewGist)
+import Gists (mkNewGist)
 import Halogen (Component, action)
 import Halogen as H
 import Halogen.Component (ParentHTML)
@@ -54,11 +54,11 @@ import Icons (Icon(..), icon)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(..), _Success, isFailure, isSuccess)
+import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, getGists, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=), (||))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -310,7 +310,7 @@ evalForm other arg = arg
 replaceView :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceView result source target = do
   currentView <- use _view
-  when ((isSuccess || isFailure) result && currentView == source)
+  when (isSuccess result && currentView == source)
     (assign _view target)
 
 currentEvaluation :: forall m. MonadState State m => SourceCode -> m Evaluation
@@ -397,7 +397,6 @@ render state =
         ]
     , viewContainer state.view Editor $
         [ editorPane state
-        , gistControls (view _authStatus state) (view _createGistResult state)
         ]
     , viewContainer state.view Simulation $
         case state.compilationResult of
