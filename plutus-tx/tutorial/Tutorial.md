@@ -3,7 +3,7 @@
 This tutorial will walk you through the basics of using the Plutus Tx compiler to create
 embedded programs that can be used when generating transactions. This tutorial will
 not go into detail about how to use these programs to make transactions, for that see
-the [following tutorial](../../wallet-api/Tutorial.md).
+the [following tutorial](../../wallet-api/tutorial/Tutorial.md).
 
 ```haskell
 -- Necessary language extensions
