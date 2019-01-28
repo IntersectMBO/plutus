@@ -66,26 +66,26 @@ editorPane state =
     , errorList
     , warningList
     ]
-    where
-      btnClass = case state.compilationResult of
-                   Success (Right _) -> btnSuccess
-                   Success (Left _) -> btnDanger
-                   Failure _ -> btnDanger
-                   Loading -> btnSecondary
-                   NotAsked -> btnPrimary
-      btnText = case state.compilationResult of
-                   Loading -> icon Spinner
-                   _ -> text "Compile"
-      errorList = case state.compilationResult of
-                    (Success (Left errors)) ->
-                      listGroup_
-                        (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
-                    Failure error ->
-                      ajaxErrorPane error
-                    _ -> empty
-      warningList = case state.compilationResult of
-                     (Success (Right result)) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result
-                     _ -> empty
+  where
+    btnClass = case state.compilationResult of
+                 Success (Right _) -> btnSuccess
+                 Success (Left _) -> btnDanger
+                 Failure _ -> btnDanger
+                 Loading -> btnSecondary
+                 NotAsked -> btnPrimary
+    btnText = case state.compilationResult of
+                 Loading -> icon Spinner
+                 _ -> text "Compile"
+    errorList = case state.compilationResult of
+                  (Success (Left errors)) ->
+                    listGroup_
+                      (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
+                  Failure error ->
+                    ajaxErrorPane error
+                  _ -> empty
+    warningList = case state.compilationResult of
+                   (Success (Right result)) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result
+                   _ -> empty
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
