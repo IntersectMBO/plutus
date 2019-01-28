@@ -22,6 +22,7 @@ import qualified Auth
 import           Control.Monad.Except                 (ExceptT)
 import           Control.Monad.IO.Class               (MonadIO, liftIO)
 import           Control.Monad.Logger                 (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
+import           Control.Monad.Reader                 (ReaderT, runReaderT)
 import           Data.Default.Class                   (def)
 import           Data.Proxy                           (Proxy (Proxy))
 import           Data.Text                            (Text)
@@ -45,16 +46,19 @@ instance GenerateList NoContent (Method -> Req NoContent) where
 
 type Web
    = "version" :> Get '[ PlainText, JSON] Text
-     :<|> "api" :> (PA.API :<|> Auth.API)
+     :<|> "api" :> (PA.API
+                    :<|> Auth.API)
      :<|> Raw
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
 liftedAuthServer githubEndpoints config =
-  hoistServer (Proxy @Auth.API) liftAuthToHandler $
-  Auth.server githubEndpoints config
+  hoistServer (Proxy @Auth.API) liftAuthToHandler Auth.server
   where
-    liftAuthToHandler :: LoggingT (ExceptT ServantErr IO) a -> Handler a
-    liftAuthToHandler = Handler . runStderrLoggingT
+    liftAuthToHandler ::
+         ReaderT (Auth.GithubEndpoints, Auth.Config) (LoggingT (ExceptT ServantErr IO)) a
+      -> Handler a
+    liftAuthToHandler =
+      Handler . runStderrLoggingT . flip runReaderT (githubEndpoints, config)
 
 server ::
      Server PA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Server Web

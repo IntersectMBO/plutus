@@ -58,6 +58,7 @@ library
         http-client -any,
         http-types -any,
         jwt -any,
+        lens -any,
         monad-logger -any,
         mtl -any,
         transformers -any,

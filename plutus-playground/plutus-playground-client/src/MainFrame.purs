@@ -9,10 +9,10 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, runAjax, showAjaxError)
+import AjaxUtils (ajaxErrorPane, runAjax)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
-import Bootstrap (btn, btnGroup, btnInfo, btnSmall, container_, empty, nbsp, pullRight)
+import Auth (AuthRole(GithubUser), authStatusAuthRole)
+import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
@@ -39,25 +39,24 @@ import Data.Tuple.Nested ((/\))
 import ECharts.Monad (interpret)
 import Editor (editorPane)
 import FileEvents (FILE, preventDefault, readFileFromDragEvent)
-import Gist (Gist, NewGist(NewGist), NewGistFile(NewGistFile), _GistId, gistHtmlUrl, gistId)
+import Gist (gistId)
+import Gists (gistControls, mkNewGist)
 import Halogen (Component)
 import Halogen as H
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects)
 import Halogen.ECharts as EC
-import Halogen.HTML (ClassName(ClassName), a, button, div, div_, h1, i_, text, HTML)
-import Halogen.HTML.Events (input_, onClick)
-import Halogen.HTML.Properties (class_, classes, disabled, href, target)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1, text)
+import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Query (HalogenM)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
+import Network.RemoteData (RemoteData(Failure, Success, Loading, NotAsked), _Success)
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, getGists, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, not, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
-import Servant.PureScript.Affjax (AjaxError)
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -181,19 +180,10 @@ eval (CheckAuthStatus next) = do
 
 eval (PublishGist next) = do
   mContents <- withEditor Editor.getValue
-  case mContents of
+  case mkNewGist mContents of
     Nothing -> pure next
-    Just contents ->
-      do
-         let newGist = NewGist
-               { _newGistDescription: "Plutus Playground Smart Contract"
-               , _newGistPublic: true
-               , _newGistFiles: [ NewGistFile { _newGistFilename: "Playground.hs"
-                                              , _newGistFileContent: contents
-                                              }
-                                ]
-               }
-         mGist <- use _createGistResult
+    Just newGist ->
+      do mGist <- use _createGistResult
          let apiCall = case preview (_Success <<< gistId) mGist of
                Nothing -> postGists newGist
                Just gistId -> patchGistsByGistId newGist gistId
@@ -437,50 +427,3 @@ mainHeader =
         , href link
         ]
         [ text name ]
-
-gistControls ::
-  forall p.
-  RemoteData AjaxError AuthStatus
-  -> RemoteData AjaxError Gist
-  -> HTML p (Query Unit)
-gistControls authStatus createGistResult =
-  div_
-    [ div_ [ i_ [
-               case view authStatusAuthRole <$> authStatus of
-                 Success GithubUser -> text "Authenticated with Github."
-                 Success Anonymous -> authenticationLink
-                 Failure err -> showAjaxError err
-                 Loading -> text "Publishing..."
-                 NotAsked -> authenticationLink
-             ]
-           ]
-    , button
-        [ classes [ btn, btnInfo ]
-        , disabled (not (isSuccess authStatus))
-        , onClick $ input_ PublishGist
-        ]
-        [ case createGistResult of
-             Success _ -> text "Republish"
-             Failure _ -> text "Failure"
-             Loading -> text "Loading..."
-             NotAsked -> text "Publish"
-        ]
-    , div_
-        [ case createGistResult of
-             Success gist -> gistPane gist
-             Failure err -> showAjaxError err
-             Loading -> nbsp
-             NotAsked -> nbsp
-        ]
-    ]
-  where
-    authenticationLink = a [ href "/api/oauth/github" ] [ text "Please Authenticate" ]
-
-gistPane :: forall p i. Gist -> HTML p i
-gistPane gist =
-  div_
-    [ a [ href $ view gistHtmlUrl gist
-        , target "_blank"
-        ]
-      [ text $ "Published as: " <> view (gistId <<< _GistId) gist ]
-    ]
