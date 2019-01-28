@@ -1,10 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Control.Monad.Now
-    ( MonadNow
-    , getCurrentTime
-    , getPOSIXTime
-    ) where
+  ( MonadNow
+  , getCurrentTime
+  , getPOSIXTime
+  ) where
 
 import           Control.Monad.Except      (ExceptT)
 import           Control.Monad.Logger      (LoggingT)
@@ -16,18 +16,18 @@ import qualified Data.Time.Clock.POSIX     as Time
 
 class Monad m =>
       MonadNow m
-    where
-    getCurrentTime :: m UTCTime
-    getPOSIXTime :: m POSIXTime
+  where
+  getCurrentTime :: m UTCTime
+  getPOSIXTime :: m POSIXTime
 
 instance MonadNow IO where
-    getCurrentTime = Time.getCurrentTime
-    getPOSIXTime = Time.getPOSIXTime
+  getCurrentTime = Time.getCurrentTime
+  getPOSIXTime = Time.getPOSIXTime
 
 instance MonadNow m => MonadNow (ExceptT e m) where
-    getCurrentTime = lift getCurrentTime
-    getPOSIXTime = lift getPOSIXTime
+  getCurrentTime = lift getCurrentTime
+  getPOSIXTime = lift getPOSIXTime
 
 instance MonadNow m => MonadNow (LoggingT m) where
-    getCurrentTime = lift getCurrentTime
-    getPOSIXTime = lift getPOSIXTime
+  getCurrentTime = lift getCurrentTime
+  getPOSIXTime = lift getPOSIXTime
