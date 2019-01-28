@@ -14,7 +14,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (view, to)
+import Data.Lens (_Right, preview, to, view)
 import Data.Map as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
@@ -27,11 +27,11 @@ import Halogen.HTML.Properties (class_, classes, disabled)
 import Icons (Icon(..), icon)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
-import Network.RemoteData (RemoteData(..), isLoading)
+import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Playground.API (_CompilationResult, CompilationError(CompilationError, RawError), Warning, _Warning)
 import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import StaticData as StaticData
-import Types (ChildQuery, ChildSlot, EditorSlot(..), Query(..), State, _authStatus, _createGistResult, _warnings, cpEditor)
+import Types (ChildQuery, ChildSlot, EditorSlot(..), Query(..), State, _authStatus, _compilationResult, _createGistResult, _warnings, cpEditor)
 
 editorPane ::
   forall m aff.
@@ -83,9 +83,16 @@ editorPane state =
                   Failure error ->
                     ajaxErrorPane error
                   _ -> empty
-    warningList = case state.compilationResult of
-                   Success (Right result) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result
-                   _ -> empty
+    warningList =
+      fromMaybe empty $
+        preview
+          (_compilationResult <<<
+             _Success <<<
+             _Right <<<
+             _CompilationResult <<<
+             _warnings <<<
+             to compilationWarningsPane)
+          state
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
 loadBuffer = LocalStorage.getItem StaticData.bufferLocalStorageKey
