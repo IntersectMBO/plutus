@@ -34,16 +34,17 @@ data RawTermCon : Set where
   string : String → RawTermCon
 
 data RawTm : Set where
-  `    : String → RawTm
-  Λ    : String → RawKind → RawTm → RawTm
-  _·⋆_ : RawTm → RawTy → RawTm
-  ƛ    : String → RawTy → RawTm → RawTm
-  _·_  : RawTm → RawTm → RawTm
-  con  : RawTermCon → RawTm
+  `     : String → RawTm
+  Λ     : String → RawKind → RawTm → RawTm
+  _·⋆_  : RawTm → RawTy → RawTm
+  ƛ     : String → RawTy → RawTm → RawTm
+  _·_   : RawTm → RawTm → RawTm
+  con   : RawTermCon → RawTm
+  error : RawTy → RawTm
 
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConSize | RConStr) #-}
-{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon) #-}
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError) #-}
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 \end{code}

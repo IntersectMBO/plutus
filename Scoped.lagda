@@ -32,7 +32,6 @@ data WeirdFin : Weirdℕ → Set where
   Z : ∀{n} → WeirdFin (S n)
   S : ∀{n} → WeirdFin n → WeirdFin (S n)
   T : ∀{n} → WeirdFin n → WeirdFin (T n)
-
 ∥_∥ : Weirdℕ → ℕ
 ∥ Z ∥   = zero
 ∥ S n ∥ = ∥ n ∥
@@ -61,7 +60,7 @@ data ScopedTm : Weirdℕ → Set where
   ƛ    : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm (S n) → ScopedTm n
   _·_  : ∀{n} → ScopedTm n → ScopedTm n → ScopedTm n
   con  : ∀{n} → SizedTermCon → ScopedTm n
-
+  error : ∀{n} → ScopedTy ∥ n ∥ → ScopedTm n
 
 -- should just use ordinary kind for everything
 deBruijnifyK : RawKind → ScopedKind
@@ -143,3 +142,4 @@ deBruijnifyTm g (L ·⋆ A) = do
   A ← deBruijnifyTy ∥ g ∥Vec A
   return (L ·⋆ A)
 deBruijnifyTm g (con t) = map con (checkSize t)
+deBruijnifyTm g (error A) = map error (deBruijnifyTy ∥ g ∥Vec A)

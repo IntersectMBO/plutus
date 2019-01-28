@@ -36,6 +36,7 @@ data RTerm = RVar T.Text
            | RLambda T.Text RType RTerm
            | RApp RTerm RTerm
            | RCon RConstant
+           | RError RType
   deriving Show
 
 
