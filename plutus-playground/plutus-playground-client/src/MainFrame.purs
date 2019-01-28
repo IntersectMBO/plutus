@@ -9,7 +9,7 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, AceMessage(TextChanged), AceQuery(GetEditor))
 import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
-import AjaxUtils (ajaxErrorPane, runAjax)
+import AjaxUtils (ajaxErrorPane, runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
 import Auth (AuthRole(GithubUser), authStatusAuthRole)
 import Bootstrap (btn, btnGroup, btnSmall, container_, empty, pullRight)
@@ -52,11 +52,11 @@ import Halogen.Query (HalogenM)
 import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
-import Network.RemoteData (RemoteData(Failure, Success, Loading, NotAsked), _Success)
+import Network.RemoteData (RemoteData(Failure, Success, NotAsked), _Success, isFailure, isSuccess)
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, getGists, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (==), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=), (||))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -167,14 +167,10 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
   pure next
 
 eval (CheckAuthStatus next) = do
-  assign _authStatus Loading
-  authResult <- runAjax getOauthStatus
-  assign _authStatus authResult
+  authResult <- runAjaxTo _authStatus getOauthStatus
+
   case view authStatusAuthRole <$> authResult of
-    Success GithubUser -> do
-      assign _gists Loading
-      gistsResult <- runAjax getGists
-      assign _gists gistsResult
+    Success GithubUser -> void $ runAjaxTo _gists getGists
     _ -> pure unit
   pure next
 
@@ -187,9 +183,8 @@ eval (PublishGist next) = do
          let apiCall = case preview (_Success <<< gistId) mGist of
                Nothing -> postGists newGist
                Just gistId -> patchGistsByGistId newGist gistId
-         assign _createGistResult Loading
-         result <- runAjax apiCall
-         assign _createGistResult result
+         void $ runAjaxTo _createGistResult  apiCall
+
          pure next
 
 eval (LoadScript key next) = do
@@ -207,9 +202,7 @@ eval (CompileProgram next) = do
   case mContents of
     Nothing -> pure next
     Just contents ->  do
-      assign _compilationResult Loading
-      result <- runAjax $ postContract $ SourceCode contents
-      assign _compilationResult result
+      result <- runAjaxTo _compilationResult $ postContract $ SourceCode contents
 
       void $ withEditor $ showCompilationErrorAnnotations $
         case result of
@@ -239,9 +232,7 @@ eval (EvaluateActions next) = do
     Nothing -> pure next
     Just contents -> do
       evaluation <- currentEvaluation (SourceCode contents)
-      assign _evaluationResult Loading
-      result <- runAjax $ postEvaluate evaluation
-      assign _evaluationResult result
+      result <- runAjaxTo  _evaluationResult $ postEvaluate evaluation
       --
       updateChartsIfPossible
       pure next

@@ -3,16 +3,18 @@ module AjaxUtils where
 import Bootstrap (alertDanger_)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, ReaderT, ask, runReaderT)
+import Control.Monad.State (class MonadState)
 import Control.MonadPlus ((=<<))
 import Data.Argonaut.Generic.Aeson (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (intercalate)
 import Data.Either (Either(..))
+import Data.Lens (Lens', assign)
 import Halogen.HTML (HTML, br_, div_, pre_, text)
 import Network.HTTP.StatusCode (StatusCode(..))
-import Network.RemoteData (RemoteData, fromEither)
+import Network.RemoteData (RemoteData(..), fromEither)
 import Playground.API (CompilationError(..))
-import Prelude (bind, pure, show, ($), (<$>), (<>), (>>>))
+import Prelude (discard, bind, pure, show, ($), (<$>), (<>), (>>>))
 import Servant.PureScript.Affjax (AjaxError, ErrorDescription(ConnectionError, DecodingError, ParsingError, UnexpectedHTTPStatus), runAjaxError)
 
 showAjaxError :: forall p i. AjaxError -> HTML p i
@@ -57,3 +59,16 @@ runAjax action = do
   settings <- ask
   result <- runExceptT $ runReaderT action settings
   pure $ fromEither result
+
+
+-- | Run an Ajax action, tracking its state and result into the target lens.
+runAjaxTo :: forall m a e env state.
+  MonadState state m
+  => MonadAsk env m
+  => Lens' state (RemoteData e a)
+  -> ReaderT env (ExceptT e m) a -> m (RemoteData e a)
+runAjaxTo lens action = do
+  assign lens Loading
+  result <- runAjax action
+  assign lens result
+  pure result
