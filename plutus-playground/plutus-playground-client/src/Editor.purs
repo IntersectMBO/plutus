@@ -77,14 +77,14 @@ editorPane state =
                  Loading -> icon Spinner
                  _ -> text "Compile"
     errorList = case state.compilationResult of
-                  (Success (Left errors)) ->
+                  Success (Left errors) ->
                     listGroup_
                       (listGroupItem_ <<< pure <<< compilationErrorPane <$> errors)
                   Failure error ->
                     ajaxErrorPane error
                   _ -> empty
     warningList = case state.compilationResult of
-                   (Success (Right result)) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result
+                   Success (Right result) -> view (_CompilationResult <<< _warnings <<< to compilationWarningsPane) result
                    _ -> empty
 
 loadBuffer :: forall eff. Eff (localStorage :: LOCALSTORAGE | eff) (Maybe String)
