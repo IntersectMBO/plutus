@@ -166,8 +166,10 @@ let
           mkdir $out
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
         '';
-        # We have to use purescript 0.11.7 (why?), but our pinned nixpkgs has 0.12, and overriding
-        # doesn't work easily because we can't built 0.11.7 with the default compiler either.
+        # We have to use purescript 0.11.7 - because purescript-bridge
+        # hasn't been updated for 0.12 yet - but our pinned nixpkgs
+        # has 0.12, and overriding doesn't work easily because we
+        # can't built 0.11.7 with the default compiler either.
         purescriptNixpkgs = import (localLib.iohkNix.fetchNixpkgs ./plutus-playground/plutus-playground-client/nixpkgs-src.json) {};
         in
         pkgs.callPackage ./plutus-playground/plutus-playground-client {
