@@ -23,11 +23,6 @@ packages:
     commit: 315ccf5d720937c091c8cf3aca8adc8110766a23
   extra-dep: true
 
-- location:
-    git: https://github.com/smobs/servant-subscriber.git
-    commit: 0354e99f5e1d244d5ec01f78e7e7439478b1d1d3
-  extra-dep: true
-
 extra-deps:
 - serialise-0.2.1.0
 - monad-stm-0.1.0.2
@@ -35,6 +30,7 @@ extra-deps:
 - hint-0.9.0
 - exceptions-0.10.0
 - purescript-bridge-0.13.0.0
+- servant-subscriber-0.6.0.2
 flags:
   language-plutus-core:
     development: true
