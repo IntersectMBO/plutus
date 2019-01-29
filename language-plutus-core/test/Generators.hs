@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Generators ( genTerm
                   , genProgram
                   ) where
@@ -8,6 +10,7 @@ import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Pretty
 
 genVersion :: MonadGen m => m (Version ())
 genVersion = Version () <$> int' <*> int' <*> int'
@@ -20,7 +23,24 @@ genTyName = TyName <$> genName
 genName :: MonadGen m => m (Name ())
 genName = Name () <$> name' <*> int'
     where int' = Unique <$> Gen.int (Range.linear 0 3000)
-          name' = Gen.text (Range.linear 1 20) Gen.lower
+          name' = Gen.filter (\n -> not (isKw n || isBuiltin n)) (Gen.text (Range.linear 1 20) Gen.lower)
+          isKw "abs"        = True
+          isKw "lam"        = True
+          isKw "ifix"       = True
+          isKw "fun"        = True
+          isKw "all"        = True
+          isKw "bytestring" = True
+          isKw "integer"    = True
+          isKw "size"       = True
+          isKw "type"       = True
+          isKw "program"    = True
+          isKw "con"        = True
+          isKw "iwrap"      = True
+          isKw "builtin"    = True
+          isKw "unwrap"     = True
+          isKw "error"      = True
+          isKw _            = False
+          isBuiltin n = n `elem` fmap prettyText allBuiltinNames
 
 simpleRecursive :: MonadGen m => [m a] -> [m a] -> m a
 simpleRecursive = Gen.recursive Gen.choice
