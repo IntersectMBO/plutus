@@ -113,6 +113,7 @@ tokens :-
 
     -- Integer/size literals
     <0> @size                    { tok (\p s -> alex $ LexNat p (readBSL s)) }
+    <0> @size bytes              { tok (\p s -> alex $ LexNat p (readBSL (trimBytes s))) }
     <0> @integer                 { tok (\p s -> alex $ LexInt p (readBSL $ stripPlus s)) }
 
     -- Identifiers
@@ -127,6 +128,9 @@ deriving instance Ord AlexPosn
 
 instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
+
+trimBytes :: BSL.ByteString -> BSL.ByteString
+trimBytes str = BSL.take (BSL.length str - 5) str
 
 handleChar :: Word8 -> Word8
 handleChar x
