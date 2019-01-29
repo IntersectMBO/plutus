@@ -6,7 +6,6 @@ module TypeSynthesis.Spec
 
 import           Language.PlutusCore
 import qualified Language.PlutusCore.Check.ValueRestriction as VR
-import           Language.PlutusCore.Constant               (typeOfBuiltinName)
 import           Language.PlutusCore.FsTree                 (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
@@ -25,7 +24,7 @@ kindcheckQuoted
     => Quote (Type TyName ()) -> m (Type TyName ())
 kindcheckQuoted getType = do
     ty <- liftQuote getType
-    _ <- kindCheck (TypeConfig True mempty mempty mempty Nothing) ty
+    _ <- inferKind defOffChainConfig ty
     return ty
 
 typecheckQuoted
@@ -34,7 +33,7 @@ typecheckQuoted
 typecheckQuoted getTerm = do
     term <- liftQuote getTerm
     _ <- VR.checkTerm term
-    _ <- typecheckTerm (TypeConfig True mempty mempty mempty Nothing) term
+    _ <- inferType defOffChainConfig term
     return term
 
 -- | Assert a 'Type' is well-kinded.

@@ -13,8 +13,9 @@ module Language.PlutusCore.Normalize
     , runNormalizeTypeGasM
     , withExtendedTypeVarEnv
     , normalizeTypeM
+    , substNormalizeTypeM
+    , normalizeType
     , normalizeTypeDown
-    , substituteNormalizeTypeM
     , normalizeTypesIn
     ) where
 
@@ -28,6 +29,14 @@ import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
+
+{- Note [Global uniqueness]
+WARNING: everything in this module works under the assumption that the global uniqueness condition
+is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
+that the global uniqueness condition is satisfied before calling ANY function from this module.
+
+The invariant is preserved. In future we will enforce the invariant.
+-}
 
 -- | Mapping from variables to what they stand for (each row represents a substitution).
 -- Needed for efficiency reasons, otherwise we could just use substitutions.
@@ -164,7 +173,7 @@ normalizeTypeM (TyApp ann fun arg)           = do
     case getNormalizedType vFun of
         TyLam _ nArg _ body -> do
             countTypeNormalizationStep
-            substituteNormalizeTypeM vArg nArg body
+            substNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyNameM name
@@ -185,13 +194,13 @@ normalized types. However we do not enforce this in the type signature, because
 
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
-substituteNormalizeTypeM
+substNormalizeTypeM
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
     => NormalizedType tyname ann                                -- ^ @ty@
     -> tyname ann                                               -- ^ @name@
     -> Type tyname ann                                          -- ^ @body@
     -> NormalizeTypeT m tyname ann (NormalizedType tyname ann)  -- ^ @NORM ([ty / name] body)@
-substituteNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
+substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.
@@ -201,7 +210,7 @@ normalizeType
 normalizeType countStep = runNormalizeTypeM countStep . normalizeTypeM
 
 -- See Note [Normalization].
---- | Normalize a 'Type' without dealing with gas.
+-- | Normalize a 'Type' without dealing with gas.
 normalizeTypeDown
     :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
     => Type tyname ann -> m (NormalizedType tyname ann)

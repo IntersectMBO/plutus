@@ -78,9 +78,8 @@ typeEvalCheckBy
     -> TermOf (TypedBuiltinValue Size a)
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
-    let typecheck = typecheckTerm (TypeConfig True mempty mempty mempty defaultTypecheckerGas)
     _ <- VR.checkTerm term
-    termTy <- typecheck term
+    termTy <- inferType defOffChainConfig term
     resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
         for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->
