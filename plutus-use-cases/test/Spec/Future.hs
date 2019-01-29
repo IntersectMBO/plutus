@@ -12,7 +12,10 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog                             (testProperty)
 
 import qualified Ledger
+import           Ledger.Ada                                      (Ada)
+import qualified Ledger.Ada                                      as Ada
 import           Ledger.Validation                               (OracleValue (..))
+import qualified Ledger.Value                                    as Value
 import           Prelude                                         hiding (init)
 import           Wallet.API                                      (PubKey (..))
 import           Wallet.Emulator
@@ -33,7 +36,7 @@ init :: Wallet -> Trace MockWallet Ledger.TxOutRef
 init w = outp <$> walletAction w (F.initialise (PubKey 1) (PubKey 2) contract) where
     outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
-adjustMargin :: Wallet -> [Ledger.TxOutRef] -> FutureData -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef
+adjustMargin :: Wallet -> [Ledger.TxOutRef] -> FutureData -> Ada -> Trace MockWallet Ledger.TxOutRef
 adjustMargin w refs fd vl =
     outp <$> walletAction w (F.adjustMargin refs contract fd vl) where
         outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
@@ -53,8 +56,8 @@ initialiseFuture :: Property
 initialiseFuture = checkTrace $ do
     void initBoth
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance - initMargin),
-        (w2, startingBalance - initMargin)]
+        (w1, Value.minus startingBalance (Ada.toValue initMargin)),
+        (w2, Value.minus startingBalance (Ada.toValue initMargin))]
 
 settle :: Property
 settle = checkTrace $ do
@@ -71,8 +74,8 @@ settle = checkTrace $ do
     void $ walletAction w2 (F.settle ins contract cur ov)
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance + delta),
-        (w2, startingBalance - delta)]
+        (w1, Value.plus  startingBalance (Ada.toValue delta)),
+        (w2, Value.minus startingBalance (Ada.toValue delta))]
 
 settleEarly :: Property
 settleEarly = checkTrace $ do
@@ -95,8 +98,8 @@ settleEarly = checkTrace $ do
     void $ walletAction w1 (F.settleEarly ins contract cur ov)
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance + initMargin),
-        (w2, startingBalance - initMargin)]
+        (w1, Value.plus  startingBalance (Ada.toValue initMargin)),
+        (w2, Value.minus startingBalance (Ada.toValue initMargin))]
 
 increaseMargin :: Property
 increaseMargin = checkTrace $ do
@@ -112,7 +115,8 @@ increaseMargin = checkTrace $ do
     -- Commit an additional `units * 5` amount of funds
     ins' <- adjustMargin w2 ins cur increase
     updateAll
-    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - (initMargin + increase))]
+    traverse_ (uncurry assertOwnFundsEq) [
+        (w2, Value.minus startingBalance (Ada.toValue (initMargin + increase)))]
     -- advance the clock to slot 10
     void $ addBlocks 2
 
@@ -139,8 +143,8 @@ increaseMargin = checkTrace $ do
     --       to see the contract through (via `settle`) than to
     --       simply ignore it and hence lose its entire margin im'.
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance + delta),
-        (w2, startingBalance - delta)]
+        (w1, Value.plus  startingBalance (Ada.toValue delta)),
+        (w2, Value.minus startingBalance (Ada.toValue delta))]
 
 -- | A futures contract over 187 units with a forward price of 1233, due at
 --   10 blocks.
@@ -153,21 +157,21 @@ contract = Future {
     futurePriceOracle   = oracle,
     futureMarginPenalty = penalty
     } where
-        im = penalty + (Ledger.Value units * forwardPrice `div` 20) -- 5%
+        im = penalty + (Ada.fromInt units * forwardPrice `div` 20) -- 5%
 
 -- | Margin penalty
-penalty :: Ledger.Value
+penalty :: Ada
 penalty = 1000
 
 -- | The forward price agreed at the beginning of the contract.
-forwardPrice :: Ledger.Value
+forwardPrice :: Ada
 forwardPrice = 1123
 
 -- | Range within which the underlying asset's price can move before the first
 --   margin payment is necessary.
 --   If the price approaches the lower range, then the buyer (long position,
 --   Wallet 1) has to increase their margin, and vice versa.
-marginRange :: (Ledger.Value, Ledger.Value)
+marginRange :: (Ada, Ada)
 marginRange = (forwardPrice - delta, forwardPrice + delta) where
     delta = forwardPrice `div` 20
 
@@ -186,12 +190,12 @@ w2 = Wallet 2
 oracle :: PubKey
 oracle = PubKey 17
 
-initMargin :: Ledger.Value
+initMargin :: Ada
 initMargin = futureInitialMargin contract
 
 -- | Funds available to wallets at the beginning.
 startingBalance :: Ledger.Value
-startingBalance = 1000000
+startingBalance = Ada.adaValueOf 1000000
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.

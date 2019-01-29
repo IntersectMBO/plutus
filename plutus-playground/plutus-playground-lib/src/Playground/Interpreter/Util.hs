@@ -7,11 +7,14 @@ import           Control.Monad.Error.Class  (MonadError, throwError)
 import           Data.Aeson                 (FromJSON)
 import qualified Data.Aeson                 as JSON
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
-import           Data.Monoid                (Sum (Sum), getSum)
 import qualified Data.Set                   as Set
 import qualified Data.Typeable              as T
-import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue), Value (Value))
+import qualified Ledger.Ada                 as Ada
+import           Ledger.Types               (Blockchain, PubKey (PubKey), Tx, TxOutOf (txOutValue))
+import           Ledger.Value               (Value)
+import qualified Ledger.Value               as Value
 import           Playground.API             (PlaygroundError (OtherError))
 import           Wallet.Emulator.Types      (EmulatorEvent, EmulatorState (_chainNewestFirst, _emulatorLog), MockWallet,
                                              Trace, Wallet (Wallet), ownFunds, processPending, runTraceTxPool,
@@ -25,7 +28,7 @@ runTrace ::
   -> [Either PlaygroundError (Trace MockWallet [Tx])]
   -> Either PlaygroundError (Blockchain, [EmulatorEvent], [(Wallet, Value)])
 runTrace wallets actions =
-  let walletToBalance (Wallet i, v) = (PubKey i, Value v)
+  let walletToBalance (Wallet i, v) = (PubKey i, Ada.adaValueOf v)
       initialBalance = Map.fromList $ fmap walletToBalance wallets
       pubKeys = Set.fromList $ fmap (\(Wallet i, _) -> PubKey i) wallets
       eActions = sequence actions
@@ -43,7 +46,7 @@ runTrace wallets actions =
               blockchain = _chainNewestFirst newState
               emulatorLog = _emulatorLog newState
               fundsDistribution =
-                Map.map (getSum . foldMap (Sum . txOutValue) . view ownFunds) .
+                Map.map (foldl' Value.plus Value.zero . fmap txOutValue . view ownFunds) .
                 view walletStates $
                 newState
            in case eRes of

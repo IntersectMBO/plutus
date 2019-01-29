@@ -25,10 +25,9 @@ module Language.PlutusTx.Coordination.Contracts.CrowdFunding (
 import           Control.Applicative          (Applicative (..))
 import           Control.Lens
 import           Control.Monad                (void)
-import           Data.Foldable                (foldMap)
+import           Data.Foldable                (foldl')
 import qualified Data.Map                     as Map
 import           Data.Maybe                   (fromMaybe)
-import           Data.Monoid                  (Sum (..))
 import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 
@@ -36,22 +35,25 @@ import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as Interval
 import           Ledger.Interval              (SlotRange)
 import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
-                                               TxId, ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
+                                               TxId, ValidatorScript (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut)
 import qualified Ledger.Validation            as Validation
+import qualified Ledger.Value.TH              as V
+import qualified Ledger.Ada.TH                as Ada
+import           Ledger.Ada                   (Ada)
 import qualified Wallet.API                   as W
 import           Wallet                       (EventHandler (..), EventTrigger, WalletAPI (..),
                                                WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
                                                ownPubKeyTxOut, payToScript, pubKey, createTxAndSubmit, signature)
 
-import           Prelude                    (Bool (..), Int, Ord (..), fst, snd, ($), (.),
+import           Prelude                    (Bool (..), fst, snd, ($), (.),
                                              (<$>), (==))
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
     { campaignDeadline           :: Slot
-    , campaignTarget             :: Value
+    , campaignTarget             :: Ada
     , campaignCollectionDeadline :: Slot
     , campaignOwner              :: CampaignActor
     } deriving Generic
@@ -77,10 +79,11 @@ PlutusTx.makeLift ''CampaignAction
 --
 contribute :: (WalletAPI m, WalletDiagnostics m)
     => Campaign
-    -> Value
+    -> Ada
     -> m ()
-contribute cmp value = do
-    _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
+contribute cmp adaAmount = do
+    let value = $$(Ada.toValue) adaAmount
+    _ <- if $$(V.leq) value $$(V.zero) then throwOtherError "Must contribute a positive value" else pure ()
     ds <- DataScript . Ledger.lifted . pubKey <$> myKeyPair
 
     let range = W.interval 1 (campaignDeadline cmp)
@@ -104,7 +107,7 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
             red        = Ledger.RedeemerScript $ Ledger.lifted $ Collect sig
             con (r, _) = scriptTxIn r scr red
             ins        = con <$> contributions
-            value = getSum $ foldMap (Sum . Ledger.txOutValue . snd) contributions
+            value = foldl' $$(V.plus) $$(V.zero) $ Ledger.txOutValue . snd <$> contributions
             range = collectionRange cmp
 
         oo <- ownPubKeyTxOut value
@@ -143,10 +146,6 @@ contributionScript cmp  = ValidatorScript val where
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
-            
-            infixl 6 +
-            (+) :: Int -> Int -> Int
-            (+) = $$(PlutusTx.plus)
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
@@ -161,14 +160,11 @@ contributionScript cmp  = ValidatorScript val where
             refndRange :: SlotRange
             refndRange = $$(Interval.from) campaignCollectionDeadline
 
-            target :: Int
-            target = let Value v = campaignTarget in v
-
-            -- | The total value of all contributions
-            totalInputs :: Int
+            -- | The total ada value of all contributions
+            totalInputs :: Ada
             totalInputs =
-                let v (PendingTxIn _ _ (Value vl)) = vl in
-                $$(PlutusTx.foldr) (\i total -> total + v i) 0 ps
+                let addToTotal (PendingTxIn _ _ vl) total = let adaVl = $$(Ada.fromValue) vl in $$(Ada.plus) total adaVl
+                in $$(PlutusTx.foldr) addToTotal $$(Ada.zero) ps
 
             isValid = case act of
                 Refund sig -> -- the "refund" branch
@@ -189,7 +185,7 @@ contributionScript cmp  = ValidatorScript val where
                 Collect sig -> -- the "successful campaign" branch
                     let
                         payToOwner = $$(Interval.contains) collRange range &&
-                                    $$(PlutusTx.geq) totalInputs target &&
+                                    $$(Ada.geq) totalInputs campaignTarget &&
                                     campaignOwner `signedBy` sig
                     in payToOwner
         in
@@ -198,13 +194,13 @@ contributionScript cmp  = ValidatorScript val where
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ W.intervalFrom 1)
+    (fundsAtAddressT (campaignAddress c) $ W.intervalFrom ($$(Ada.adaValueOf) 1))
     (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ W.intervalFrom $ campaignTarget c)
+    (fundsAtAddressT (campaignAddress c) $ W.intervalFrom $ ($$(Ada.toValue) (campaignTarget c)))
     (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution
@@ -221,7 +217,7 @@ refund txid cmp = EventHandler $ \_ -> do
         red   = Ledger.RedeemerScript $ Ledger.lifted $ Refund sig
         i ref = scriptTxIn ref scr red
         inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = getSum $ foldMap (Sum . Ledger.txOutValue . snd) ourUtxo
+        value  = foldl' $$(V.plus) $$(V.zero) $ Ledger.txOutValue . snd <$> ourUtxo
 
     out <- ownPubKeyTxOut value
     void $ createTxAndSubmit (refundRange cmp) inputs [out]

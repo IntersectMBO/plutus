@@ -98,7 +98,8 @@ import qualified Language.PlutusTx              as PlutusTx
 import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
                                                 )
-import qualified Ledger                         as Ledger
+import qualified Ledger.Ada.TH                  as Ada
+import           Ledger.Ada.TH                  (Ada(..))
 import           Ledger.Interval                (Interval(..), Slot(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
@@ -374,8 +375,8 @@ equalContract = [|| \eqValue eqObservation l r -> let
     [Note] We do not validate 'Observation' because it can't lead to a wrong state.
     Same for 'Value'.
 -}
-validateContract :: Q (TExp (State -> Contract -> Slot -> Ledger.Value -> Bool))
-validateContract = [|| \State{stateCommitted} contract (Slot bn) (Ledger.Value actualMoney) -> let
+validateContract :: Q (TExp (State -> Contract -> Slot -> Ada -> Bool))
+validateContract = [|| \State{stateCommitted} contract (Slot bn) (Ada actualMoney) -> let
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
@@ -540,10 +541,10 @@ insertCommit = [|| \ commit commits -> let
 discountFromPairList :: Q (TExp (
     PubKey
     -> Slot
-    -> Ledger.Value
+    -> Ada
     -> [Commit]
     -> Maybe [Commit]))
-discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ledger.Value value) commits -> let
+discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ada value) commits -> let
     infixr 3 &&
     (&&) = $$(PlutusTx.and)
 
@@ -590,16 +591,16 @@ evaluateContract ::
     Q (TExp (PubKey
     -> Input
     -> Slot
-    -> Ledger.Value
-    -> Ledger.Value
+    -> Ada
+    -> Ada
     -> State
     -> Contract -> (State, Contract, Bool)))
 evaluateContract = [|| \
     contractCreatorPK
     (Input inputCommand inputOracles _)
     blockHeight
-    (Ledger.Value scriptInValue)
-    (Ledger.Value scriptOutValue)
+    (Ada scriptInValue)
+    (Ada scriptOutValue)
     state
     contract -> let
 
@@ -678,7 +679,7 @@ evaluateContract = [|| \
                 && scriptOutValue == scriptInValue - pv
                 && signature `signedBy` to
             in  if isValid then let
-                in case $$(discountFromPairList) from blockHeight (Ledger.Value pv) commits of
+                in case $$(discountFromPairList) from blockHeight (Ada pv) commits of
                     Just updatedCommits -> let
                         updatedState = State updatedCommits choices
                         in (updatedState, con, True)
@@ -801,9 +802,11 @@ validatorScript = [|| \
             PendingTxIn _ (Left (vHash, RedeemerHash rHash)) value -> (vHash, rHash, value)
             _ -> Builtins.error ()
 
+        scriptInAdaValue = $$(Ada.fromValue) scriptInValue
+
         -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
-            SpendDeposit _ -> Ledger.Value 0
+            SpendDeposit _ -> Ada 0
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.
@@ -811,12 +814,12 @@ validatorScript = [|| \
                     and that TxOut has the same validator -}
                  in if Builtins.equalsByteString dataScriptHash redeemerHash
                         && $$(Validation.eqValidator) inputValidatorHash outputValidatorHash
-                    then change else Builtins.error ()
+                    then $$(Ada.fromValue) change else Builtins.error ()
 
-        eval :: Input -> Slot -> Ledger.Value -> Ledger.Value -> State -> Contract -> (State, Contract, Bool)
+        eval :: Input -> Slot -> Ada -> Ada -> State -> Contract -> (State, Contract, Bool)
         eval = $$(evaluateContract) contractCreatorPK
 
-        contractIsValid = $$(validateContract) marloweState marloweContract minSlot scriptInValue
+        contractIsValid = $$(validateContract) marloweState marloweContract minSlot scriptInAdaValue
 
         State currentCommits currentChoices = marloweState
 
@@ -829,7 +832,7 @@ validatorScript = [|| \
             (newState::State, newCont::Contract, validated) =
                 eval input
                     minSlot
-                    scriptInValue
+                    scriptInAdaValue
                     scriptOutValue
                     stateWithChoices
                     marloweContract

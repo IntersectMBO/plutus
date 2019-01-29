@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 module Wallet.Emulator.AddressMap(
     AddressMap(..),
@@ -24,7 +25,7 @@ import qualified Data.ByteString.Lazy   as BSL
 import           Data.Map               (Map)
 import qualified Data.Map               as Map
 import           Data.Maybe             (mapMaybe)
-import           Data.Monoid            (Monoid (..), Sum (..))
+import           Data.Monoid            (Monoid (..))
 import           Data.Semigroup         (Semigroup (..))
 import qualified Data.Set               as Set
 import qualified Data.Text.Encoding     as TE
@@ -32,6 +33,7 @@ import           GHC.Generics           (Generic)
 
 import           Ledger                 (Address, Tx (..), TxIn, TxInOf (..), TxOut, TxOutOf (..), TxOutRef,
                                          TxOutRefOf (..), Value, hashTx)
+import qualified Ledger.Value.TH        as V
 
 -- | A map of [[Address]]es and their unspent outputs
 newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }
@@ -88,7 +90,7 @@ addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs at an address
 values :: AddressMap -> Map Address Value
-values = Map.map (getSum . foldMap (Sum . txOutValue)) . getAddressMap
+values = Map.map (Map.foldl' $$(V.plus) $$(V.zero) . Map.map txOutValue) . getAddressMap
 
 -- | An [[AddressMap]] with the unspent outputs of a single transaction
 fromTxOutputs :: Tx -> AddressMap

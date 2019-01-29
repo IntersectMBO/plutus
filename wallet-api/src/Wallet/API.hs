@@ -77,9 +77,9 @@ import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Functor.Compose       (Compose (..))
 import           Data.Functor.Foldable      (Corecursive (..), Fix (..), Recursive (..), unfix)
+import           Data.Foldable              (foldl')
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (fromMaybe, maybeToList)
-import           Data.Monoid                (Sum (..))
 import           Data.Ord.Deriving          (deriveOrd1)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
@@ -89,6 +89,7 @@ import           Ledger                     (Address, DataScript, PubKey (..), R
                                              Value, pubKeyTxOut, scriptAddress, scriptTxIn, txOutRefId)
 import qualified Ledger.Interval            as Interval
 import           Ledger.Interval            (Interval(..))
+import qualified Ledger.Value               as Value
 import           Text.Show.Deriving         (deriveShow1)
 import           Wallet.Emulator.AddressMap (AddressMap)
 
@@ -183,7 +184,7 @@ annTruthValue h mp = cata f where
         TNever -> embedC (False, TNever)
         TSlotRange r -> embedC (h `member` r, TSlotRange r)
         TFundsAtAddress a r ->
-            let funds = Map.findWithDefault 0 a mp in
+            let funds = Map.findWithDefault Value.zero a mp in
             embedC (funds `member` r, TFundsAtAddress a r)
 
 -- | The addresses that an [[EventTrigger]] refers to
@@ -297,7 +298,7 @@ createPayment vl = fst <$> createPaymentWithChange vl
 payToScripts :: (Monad m, WalletAPI m) => SlotRange -> [(Address, Value, DataScript)] -> m Tx
 payToScripts range ins = do
     let
-        totalVal     = getSum $ foldMap (Sum . view _2) ins
+        totalVal     = foldl' Value.plus Value.zero $ fmap (view _2) ins
         otherOutputs = fmap (\(addr, vl, ds) -> TxOutOf addr vl (PayToScript ds)) ins
     (i, ownChange) <- createPaymentWithChange totalVal
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange)
@@ -324,7 +325,7 @@ collectFromScript range scr red = do
         outputs = am ^. at addr . to (Map.toList . fromMaybe Map.empty)
         con (r, _) = scriptTxIn r scr red
         ins        = con <$> outputs
-        value = getSum $ foldMap (Sum . txOutValue . snd) outputs
+        value = foldl' Value.plus Value.zero $ fmap (txOutValue . snd) outputs
 
     oo <- ownPubKeyTxOut value
     void $ createTxAndSubmit range (Set.fromList ins) [oo]
@@ -346,7 +347,7 @@ collectFromScriptTxn range vls red txid = do
         ourUtxo = Map.toList $ Map.filterWithKey (\k _ -> txid == Ledger.txOutRefId k) utxo
         i ref = scriptTxIn ref vls red
         inputs = Set.fromList $ i . fst <$> ourUtxo
-        value  = getSum $ foldMap (Sum . txOutValue . snd) ourUtxo
+        value  = foldl' Value.plus Value.zero $ fmap (txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
     void $ createTxAndSubmit range inputs [out]
@@ -383,7 +384,7 @@ createTxAndSubmit range ins outs = do
     let tx = Tx
             { txInputs = ins
             , txOutputs = outs
-            , txForge = 0
+            , txForge = Value.zero
             , txFee = 0
             , txValidRange = range
             }

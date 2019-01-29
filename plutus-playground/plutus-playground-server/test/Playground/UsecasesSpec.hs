@@ -12,6 +12,7 @@ import qualified Data.ByteString.Char8  as BSC
 import           Data.Either            (isRight)
 import qualified Data.Text              as Text
 import qualified Data.Text.Lazy         as TL
+import qualified Ledger.Ada             as Ada
 import           Ledger.Types           (Blockchain, Value)
 import           Playground.API         (Evaluation (Evaluation), Expression (Action, Wait), Fn (Fn), FunctionSchema,
                                          PlaygroundError, SimpleArgumentSchema, SourceCode (SourceCode), functionSchema)
@@ -48,8 +49,8 @@ vestingSpec =
                   (Fn "vestFunds")
                   (Wallet 1)
                   [ JSON.String
-                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getValue\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
-                  , JSON.String "{\"getValue\": 1}"
+                        "{\"vestingTranche1\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingTranche2\":{\"vestingTrancheDate\":{\"getSlot\":1},\"vestingTrancheAmount\":{\"getAda\":1}},\"vestingOwner\":{\"getPubKey\":1}}"
+                  , JSON.String "{\"getAda\": 1}"
                   ]
             ]
             (sourceCode vesting)
@@ -62,20 +63,21 @@ gameSpec =
         it "should unlock the funds" $
             evaluate gameEvalSuccess >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, 12), (Wallet 2, 8)])
+                                 [(Wallet 1, Ada.adaValueOf 12), (Wallet 2, Ada.adaValueOf 8)])
         it "should keep the funds" $
             evaluate gameEvalFailure >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, 10), (Wallet 2, 8)])
+                                 [(Wallet 1, ten), (Wallet 2, Ada.adaValueOf 8)])
         it
             "Sequential fund transfer fails - 'Game' script - 'payToPublicKey_' action" $
             evaluate payAll >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [ (Wallet 1, 10)
-                                 , (Wallet 2, 10)
-                                 , (Wallet 3, 10)
+                                 [ (Wallet 1, ten)
+                                 , (Wallet 2, ten)
+                                 , (Wallet 3, ten)
                                  ])
   where
+    ten = Ada.adaValueOf 10
     gameEvalFailure =
         Evaluation
             [(Wallet 1, 10), (Wallet 2, 10)]
@@ -83,7 +85,7 @@ gameSpec =
             , Action
                   (Fn "lock")
                   (Wallet 2)
-                  [JSON.String "\"abcde\"", JSON.String "{\"getValue\": 2}"]
+                  [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
             , Action (Fn "guess") (Wallet 1) [JSON.String "\"ade\""]
             ]
             (sourceCode game)
@@ -95,7 +97,7 @@ gameSpec =
             , Action
                   (Fn "lock")
                   (Wallet 2)
-                  [JSON.String "\"abcde\"", JSON.String "{\"getValue\": 2}"]
+                  [JSON.String "\"abcde\"", JSON.String "{\"getAda\": 2}"]
             , Action (Fn "guess") (Wallet 1) [JSON.String "\"abcde\""]
             ]
             (sourceCode game)
@@ -149,15 +151,16 @@ crowdfundingSpec =
         it "should run successful campaign" $
             evaluate successfulCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [(Wallet 1, 26), (Wallet 2, 2), (Wallet 3, 2)])
+                                 [(Wallet 1, Ada.adaValueOf 26), (Wallet 2, Ada.adaValueOf 2), (Wallet 3, Ada.adaValueOf 2)])
         it "should run failed campaign" $
             evaluate failedCampaign >>=
             (`shouldSatisfy` hasFundsDistribution
-                                 [ (Wallet 1, 10)
-                                 , (Wallet 2, 10)
-                                 , (Wallet 3, 10)
+                                 [ (Wallet 1, ten)
+                                 , (Wallet 2, ten)
+                                 , (Wallet 3, ten)
                                  ])
   where
+    ten = Ada.adaValueOf 10
     failedCampaign =
         Evaluation
             [(Wallet 1, 10), (Wallet 2, 10), (Wallet 3, 10)]
@@ -185,13 +188,13 @@ crowdfundingSpec =
         JSON.encodeToLazyText $
         object
             [ "campaignDeadline" .= object ["getSlot" .= mkI 10]
-            , "campaignTarget" .= object ["getValue" .= mkI 15]
+            , "campaignTarget" .= object ["getAda" .= mkI 15]
             , "campaignCollectionDeadline" .= object ["getSlot" .= mkI 20]
             , "campaignOwner" .= object ["getPubKey" .= mkI 1]
             ]
     theContribution =
         JSON.String $
-        TL.toStrict $ JSON.encodeToLazyText $ object ["getValue" .= mkI 8]
+        TL.toStrict $ JSON.encodeToLazyText $ object ["getAda" .= mkI 8]
 
 sourceCode :: BSC.ByteString -> SourceCode
 sourceCode = SourceCode . Text.pack . BSC.unpack

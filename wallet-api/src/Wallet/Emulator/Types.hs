@@ -71,7 +71,7 @@ import           Control.Monad.Writer
 import           Control.Newtype.Generics   (Newtype)
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor             (Bifunctor (..))
-import           Data.Foldable              (traverse_)
+import           Data.Foldable              (foldl', traverse_)
 import           Data.List                  (partition)
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
@@ -88,6 +88,7 @@ import           Ledger                     (Address, Block, Blockchain, Slot, T
                                              txOutAddress)
 import qualified Ledger.Index               as Index
 import qualified Ledger.Interval            as Interval
+import qualified Ledger.Value               as Value
 import           Wallet.API                 (EventHandler (..), EventTrigger, KeyPair (..), WalletAPI (..),
                                              WalletAPIError (..), WalletDiagnostics (..), WalletLog (..), addresses,
                                              annTruthValue, getAnnot, keyPair, pubKey, signature)
@@ -214,7 +215,7 @@ instance WalletAPI MockWallet where
             sig   = signature kp
         (spend, change) <- selectCoin (second txOutValue <$> Map.toList fnds) vl
         let
-            txOutput = if change > 0 then Just (pubKeyTxOut change (pubKey kp)) else Nothing
+            txOutput = if Value.gt change Value.zero then Just (pubKeyTxOut change (pubKey kp)) else Nothing
             ins = Set.fromList (flip pubKeyTxIn sig . fst <$> spend)
         pure (ins, txOutput)
 
@@ -236,8 +237,8 @@ selectCoin :: (MonadError WalletAPIError m)
     -> m ([(a, Value)], Value)
 selectCoin fnds vl =
         let
-            total = getSum $ foldMap (Sum . snd) fnds
-            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl (+) 0 $ fmap snd fnds)
+            total = foldl' Value.plus Value.zero $ fmap snd fnds
+            fundsWithTotal = P.zip fnds (drop 1 $ P.scanl Value.plus Value.zero $ fmap snd fnds)
             err   = throwError
                     $ InsufficientFunds
                     $ T.unwords
@@ -249,9 +250,9 @@ selectCoin fnds vl =
                 let
                     fundsToSpend   = takeUntil (\(_, runningTotal) -> vl <= runningTotal) fundsWithTotal
                     totalSpent     = case reverse fundsToSpend of
-                                        []            -> 0
+                                        []            -> Value.zero
                                         (_, total'):_ -> total'
-                    change         = totalSpent - vl
+                    change         = Value.minus totalSpent vl
                 in pure (fst <$> fundsToSpend, change)
 
 -- | Take elements from a list until the predicate is satisfied.
@@ -301,7 +302,7 @@ data EmulatorState = EmulatorState {
 makeLenses ''EmulatorState
 
 fundsDistribution :: EmulatorState -> Map Wallet Value
-fundsDistribution = Map.map (getSum . foldMap (Sum . txOutValue) . view ownFunds) . view walletStates
+fundsDistribution = Map.map (Map.foldl' Value.plus Value.zero . fmap txOutValue . view ownFunds) . view walletStates
 
 -- | The blockchain as a list of blocks, starting with the oldest (genesis)
 --   block
@@ -329,7 +330,7 @@ ownFundsEqual wallet value = do
     ws <- case Map.lookup wallet $ _walletStates es of
         Nothing -> throwError $ AssertionError "Wallet not found"
         Just ws -> pure ws
-    let total = getSum $ foldMap (Sum . txOutValue) $ ws ^. ownFunds
+    let total = foldl' Value.plus Value.zero $ fmap txOutValue $ ws ^. ownFunds
     if value == total
     then pure ()
     else throwError . AssertionError $ T.unwords ["Funds in wallet", tshow wallet, "were", tshow total, ". Expected:", tshow value]

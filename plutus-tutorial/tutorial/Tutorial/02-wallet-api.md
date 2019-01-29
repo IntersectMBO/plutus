@@ -31,8 +31,10 @@ We also need the `{-# OPTIONS_GHC -O0 #-}` compiler option. It disables some of 
 ```haskell
 import qualified Language.PlutusTx            as P
 import qualified Ledger.Interval              as P
-import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..), Value(..))
+import           Ledger                       (Address, DataScript(..), PubKey(..), RedeemerScript(..), Signature(..), Slot(..), TxId, ValidatorScript(..))
 import qualified Ledger                       as L
+import qualified Ledger.Ada.TH                as Ada
+import           Ledger.Ada.TH                (Ada)
 import           Ledger.Validation            (PendingTx(..), PendingTxIn(..), PendingTxOut)
 import qualified Ledger.Validation            as V
 import           Wallet                       (WalletAPI(..), WalletDiagnostics(..), MonadWallet, EventHandler(..), EventTrigger)
@@ -58,14 +60,14 @@ In Haskell:
 
 ```haskell
 data Campaign = Campaign {
-      fundingTarget      :: Value,
+      fundingTarget      :: Ada,
       endDate            :: Slot,
       collectionDeadline :: Slot,
       campaignOwner      :: PubKey
  }
 ```
 
-The type of monetary values is [`Value`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:Value). Dates are expressed in terms of slots, and their type is [`Slot`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:Slot). The campaign owner is identified by their public key.
+The type of Ada values is [`Ada`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Ada.html#v:Ada). Dates are expressed in terms of slots, and their type is [`Slot`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Types.html#v:Slot). The campaign owner is identified by their public key.
 
 One of the strengths of PlutusTx is the ability to use the same definitions for on-chain and off-chain code, which includes lifting values from Haskell to Plutus Core. To enable values of the `Campaign` type to be lifted, we need to call `makeLift` from the `PlutusTx` module:
 
@@ -148,19 +150,22 @@ This binds `ins` to the list of all inputs of the current transaction, `outs` to
 We also need the parameters of the campaign, which we can get by pattern matching on `c`.
 
 ```haskell
-                  Campaign (Value target) deadline collectionDeadline campaignOwner = c
+                  Campaign target deadline collectionDeadline campaignOwner = c
 ```
 
 Then we compute the total value of all transaction inputs, using `P.foldr` on the list of inputs `ins`. Note that there is a limit on the number of inputs a transaction may have, and thus on the number of contributions in this crowdfunding campaign. In this tutorial we ignore that limit, because it depends on the details of the implementation of Plutus on the Cardano chain, and that implementation has not happened yet.
 
 ```haskell
-                  totalInputs :: Int
+                  totalInputs :: Ada
                   totalInputs =
-                      -- define a function "v" that extracts the ada value from a 'PendingTxIn'
-                      let v (PendingTxIn _ _ (Value vl)) = vl in
-                      
-                      -- Apply "v" to each transaction input, summing up the results
-                      $$(P.foldr) (\i total -> $$(P.plus) total (v i)) 0 ins
+                        -- define a function "addToTotal" that adds the ada value of a 
+                        -- 'PendingTxIn' to the total
+                        let addToTotal (PendingTxIn _ _ vl) total = 
+                                let adaVl = $$(Ada.fromValue) vl 
+                                in $$(Ada.plus) total adaVl
+
+                        -- Apply "addToTotal" to each transaction input, summing up the results
+                        in $$(P.foldr) addToTotal $$(Ada.zero) ins
 ```
 
 We now have all the information we need to check whether the action `act` is allowed. This will be computed as
@@ -214,7 +219,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
 
 ```haskell
                           $$(P.contains) ($$(P.interval) deadline collectionDeadline) txnValidRange &&
-                          $$(P.geq) totalInputs target &&
+                          $$(Ada.geq) totalInputs target &&
                           campaignOwner `signedBy` sig
 
               in
@@ -252,15 +257,16 @@ Contract endpoints use the `WalletAPI` class, which means that they can create a
 Since `WalletAPI` is a sub-class of `Monad` we can use Haskell's `do` notation, allowing us to list our instructions to the wallet in a sequence (see [here](https://en.wikibooks.org/wiki/Haskell/do_notation) for more information).
 
 ```haskell
-contribute :: MonadWallet m => Campaign -> Value -> m ()
-contribute cmp amount = do
+contribute :: MonadWallet m => Campaign -> Ada -> m ()
+contribute cmp adaAmount = do
 ```
 
-Contributing to a campaign is easy: We need to pay the value `amount` to a script address, and provide our own public key as the data script. Paying to a script address is a common task at the beginning of a contract, and the wallet API implements it in [`payToScript_`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript_). The underscore is a Haskell naming convention, indicating that [`payToScript_`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript_) is a variant of [`payToScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript) which ignores its return value and produces a `()` instead. 
+Contributing to a campaign is easy: We need to pay the value `adaAmount` to a script address, and provide our own public key as the data script. Paying to a script address is a common task at the beginning of a contract, and the wallet API implements it in [`payToScript_`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript_). The underscore is a Haskell naming convention, indicating that [`payToScript_`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript_) is a variant of [`payToScript`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-API.html#v:payToScript) which ignores its return value and produces a `()` instead. 
 
 ```haskell
       pk <- W.ownPubKey
       let dataScript = mkDataScript pk
+          amount  = $$(Ada.toValue) adaAmount
       W.payToScript_ W.defaultSlotRange (campaignAddress cmp) amount dataScript
 ```
 
@@ -300,7 +306,7 @@ The wallet API allows us to specify a pair of [`EventTrigger`](https://input-out
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = W.andT
     -- We use `W.intervalFrom` to create an open-ended interval that starts at the funding target.
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom (fundingTarget c)))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) (fundingTarget c))))
 
     -- With `W.interval` we create an interval from the campaign's end date (inclusive) to 
     -- the collection deadline (exclusive)
@@ -357,17 +363,18 @@ Now we can register the refund handler when we make the contribution. The condit
 ```haskell
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = W.andT
-    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom 1))
+    (W.fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
     (W.slotRangeT (W.intervalFrom (collectionDeadline c)))
 ```
 
 We will call the new endpoint `contribute2` because it replaces the `contribute` endpoint defined above.
 
 ```haskell
-contribute2 :: MonadWallet m => Campaign -> Value -> m ()
-contribute2 cmp amount = do
+contribute2 :: MonadWallet m => Campaign -> Ada -> m ()
+contribute2 cmp adaAmount = do
       pk <- W.ownPubKey
       let dataScript = mkDataScript pk
+          amount = $$(Ada.toValue) adaAmount
 
       -- payToScript returns the transaction that was submitted
       -- (unlike payToScript_ which returns unit)
