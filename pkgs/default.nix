@@ -56628,6 +56628,41 @@ homepage = "https://github.com/iohk/plutus#readme";
 license = stdenv.lib.licenses.bsd3;
 
 }) {};
+"plutus-tutorial" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, doctest
+, language-plutus-core
+, markdown-unlit
+, plutus-tx
+, stdenv
+, template-haskell
+, wallet-api
+}:
+mkDerivation {
+
+pname = "plutus-tutorial";
+version = "0.1.0.0";
+src = .././plutus-tutorial;
+libraryHaskellDepends = [
+base
+bytestring
+language-plutus-core
+plutus-tx
+template-haskell
+wallet-api
+];
+libraryToolDepends = [
+doctest
+markdown-unlit
+];
+doHaddock = false;
+description = "PlutusTx tutorial";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "plutus-tx" = callPackage
 ({
   mkDerivation
@@ -56638,7 +56673,6 @@ license = stdenv.lib.licenses.bsd3;
 , ghc
 , language-plutus-core
 , lens
-, markdown-unlit
 , mtl
 , plutus-core-interpreter
 , plutus-ir
@@ -56675,7 +56709,6 @@ transformers
 ];
 libraryToolDepends = [
 doctest
-markdown-unlit
 ];
 testHaskellDepends = [
 base
@@ -78906,13 +78939,11 @@ license = stdenv.lib.licenses.mit;
 , containers
 , cryptonite
 , deriving-compat
-, doctest
 , hashable
 , hedgehog
 , http-media
 , language-plutus-core
 , lens
-, markdown-unlit
 , memory
 , mtl
 , natural-transformation
@@ -78979,16 +79010,12 @@ warp
 testHaskellDepends = [
 base
 containers
-doctest
 hedgehog
 lens
 plutus-tx
 tasty
 tasty-hedgehog
 transformers
-];
-testToolDepends = [
-markdown-unlit
 ];
 doHaddock = false;
 description = "Wallet API";

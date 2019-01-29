@@ -99,6 +99,7 @@ let
             # Broken for things with test tool dependencies
             "wallet-api"
             "plutus-tx"
+            "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
           ];

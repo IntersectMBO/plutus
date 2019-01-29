@@ -5,7 +5,7 @@ This tutorial shows how to implement a simple crowdfunding campaign as a Plutus 
 1. Open the [Plutus Playground](https://prod.playground.plutus.iohkdev.io/), delete all the text in the editor field, and type / copy the code bits in there. Make sure to preserve the indentation.
 2. The tutorial is written as a literate Haskell file, so it can be fed directly to the Haskell compiler. The easiest way to do that is to clone the Plutus repository at `git@github.com:input-output-hk/plutus.git` and build the `wallet-api` library using `nix-build -A localPackages.wallet-api`. This runs the `wallet-api-doctests` test suite that compiles the tutorial. Alternatively, run `cabal test wallet-api`. Note that the test suite requires Unix symlinks to be supported by the file system, which means that it will not work on Windows Subsystem for Linux (WSL), even though nix generally does work!
 
-We assume the reader is familiar with the [UTxO model with scripts](../../docs/extended-utxo/README.md) and the [PlutusTx tutorial](../../plutus-tx/tutorial/Tutorial.md). Please note that the wallet API and by extension the wallet API tutorial is a work in progress and may be changed significantly without much warning. 
+We assume the reader is familiar with the [UTxO model with scripts](../../../docs/extended-utxo/README.md) and the [PlutusTx tutorial](./01-plutus-tx.md). Please note that the wallet API and by extension the wallet API tutorial is a work in progress and may be changed significantly without much warning. 
 
 The tutorial has two parts. In part 1 we write the contract, including all the data types we need, validator scripts, and contract endpoints that handle the interactions between wallet and blockchain. In part 2 we show how to test the contract.
 
@@ -21,7 +21,7 @@ We need some language extensions and imports:
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# OPTIONS_GHC -O0 #-}
-module Tutorial where
+module Tutorial.WalletAPI where
 ```
 
 The language extensions fall into three categories. The first category is extensions required by the plugin that translates Haskell Core to Plutus IR (Intermediate Representation - a more abstract form of Plutus Core). This category includes [`DataKinds`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#datatype-promotion), [`TemplateHaskell`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#template-haskell) and [`ScopedTypeVariables`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#lexically-scoped-type-variables). The second category is extensions that contract endpoints to be automatically generated in the Plutus Playground, and it contains only the [`DeriveGeneric`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#deriving-representations) extension. The final category is extensions that make the code look nicer. These include [`RecordWildCards`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#record-wildcards), which lets us use write `Campaign{..}` in pattern matching to bring into scope all fields of a `Campaign` value, and [`OverloadedStrings`](https://downloads.haskell.org/~ghc/8.4.3/docs/html/users_guide/glasgow_exts.html#overloaded-string-literals) which allows us to write log messages as string literals without having to convert them to `Text` values first.
@@ -41,7 +41,7 @@ import           Prelude                      hiding ((&&))
 import           GHC.Generics                 (Generic)
 ```
 
-The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html), imported as `V`, contains types and functions that can be used in on-chain code. `Language.PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](../../plutus-tx/tutorial/Tutorial.md)). [`Ledger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger.html) has data types for the ledger model and [`Wallet`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet.html) is the wallet API. [`Wallet.Emulator`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-Emulator.html) covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
+The module [`Ledger.Validation`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger-Validation.html), imported as `V`, contains types and functions that can be used in on-chain code. `Language.PlutusTx` lets us translate code between Haskell and Plutus Core (see the [PlutusTx tutorial](./01.plutus-tx.md)). [`Ledger`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Ledger.html) has data types for the ledger model and [`Wallet`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet.html) is the wallet API. [`Wallet.Emulator`](https://input-output-hk.github.io/plutus/wallet-api-0.1.0.0/html/Wallet-Emulator.html) covers interactions with the wallet, for example generating the transactions that actually get the crowdfunding contract onto the blockchain.
 
 ## 1.1 Data Types
 
@@ -220,7 +220,7 @@ In the `Collect` case, the current slot must be between `deadline` and `collecti
               in
 ```
 
-**Note (Operators in On-Chain Code)** We can use the operators `>`, `<`, `>=`, `<=` and `==` to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those operators because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../../plutus-tx/tutorial/Tutorial.md).
+**Note (Operators in On-Chain Code)** We can use the operators `>`, `<`, `>=`, `<=` and `==` to compare `Int` values in PLC without having to define them in the script itself, as we did with `&&`. The compiler plugin that translates Haskell Core to Plutus Core knows about those operators because `Int` is a primitive type in Plutus Core and operations on it are built in. `Bool` on the other hand is treated like any other user-defined data type, and all functions that operate on it must be defined locally. More details can be found in the [PlutusTx tutorial](../plutus-tx/tutorial/Tutorial.md).
 
 Finally, we can return the unit value `()` if `isValid` is true, or fail with an error otherwise. We can produce an error using the `P.error` function from the Prelude, but the signature of `P.error` is `forall a. () -> a` and therefore we alway have to apply it to a unit value. `P.error` is different from Haskell's `undefined` (of type `forall a. a`) because of differences in the type systems of the two languages.
 
@@ -415,6 +415,6 @@ A click on "Evaluate" runs the simulation and returns the result. We can see in 
 
 Testing contracts with unit and property tests requires more effort than running them in the Playground, but it has several advantages. In a unit test we have much more fine-grained control over the mockchain. For example, we can simulate network outages that cause a wallet to fall behind in its notifications, and we can deploy multiple contracts on the same mockchain to see how they interact. And by writing smart contracts the same way as all other software we can use the same tools (versioning, continuous integration, release processes, etc.) without having to set up additional infrastructure.
 
-We plan to write a tutorial on this soon. Until then we would like to refer you to the test suite in [Crowdfunding.hs](../../plutus-use-cases/test/Spec/Crowdfunding.hs).
+We plan to write a tutorial on this soon. Until then we would like to refer you to the test suite in [Crowdfunding.hs](../../../plutus-use-cases/test/Spec/Crowdfunding.hs).
 
 You can run the test suite with `nix build -f default.nix localPackages.plutus-use-cases` or `cabal test plutus-use-cases`.
