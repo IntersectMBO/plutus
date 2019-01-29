@@ -72,14 +72,14 @@ let
 
     # This is the stackage LTS plus overrides, plus the plutus
     # packages.
-    haskellPackages = let 
+    haskellPackages = let
       errorOverlay = import ./nix/overlays/force-error.nix {
         inherit pkgs;
         filter = localLib.isPlutus;
       };
       customOverlays = optional forceError errorOverlay;
       # Filter down to local packages, except those named in the given list
-      localButNot = nope: 
+      localButNot = nope:
         let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
         in name: builtins.elem name okay;
       # We can pass an evaluated version of our packages into
@@ -136,15 +136,15 @@ let
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
       combined-haddock = (pkgs.callPackage ./nix/haddock-combine.nix {}) {
         hspkgs = builtins.attrValues localPackages;
-        prologue = pkgs.writeTextFile { 
-          name = "prologue"; 
-          text = "Combined documentation for all the Plutus libraries."; 
+        prologue = pkgs.writeTextFile {
+          name = "prologue";
+          text = "Combined documentation for all the Plutus libraries.";
         };
       };
     };
 
     plutus-playground = rec {
-      server-invoker = let 
+      server-invoker = let
         # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
         runtimeGhc = haskellPackages.ghcWithPackages (ps: [
           haskellPackages.plutus-playground-server
@@ -197,4 +197,4 @@ let
 
 in
   # The top-level package set
-  pkgs.lib.makeScope pkgs.newScope packages 
+  pkgs.lib.makeScope pkgs.newScope packages
