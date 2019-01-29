@@ -39,6 +39,7 @@ library
         Language.PlutusCore.Evaluation.CkMachine
         Language.PlutusCore.Evaluation.MachineException
         Language.PlutusCore.Evaluation.Result
+        Language.PlutusCore.Check.ValueRestriction
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
@@ -47,6 +48,7 @@ library
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
+        Language.PlutusCore.DeBruijn
         Language.PlutusCore.Check.Uniques
         Language.PlutusCore.FsTree
         Language.PlutusCore.StdLib.Data.Bool
@@ -55,6 +57,7 @@ library
         Language.PlutusCore.StdLib.Data.Integer
         Language.PlutusCore.StdLib.Data.List
         Language.PlutusCore.StdLib.Data.Nat
+        Language.PlutusCore.StdLib.Data.Sum
         Language.PlutusCore.StdLib.Data.Unit
         Language.PlutusCore.StdLib.Everything
         Language.PlutusCore.StdLib.Meta
@@ -92,7 +95,8 @@ library
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
-        Language.PlutusCore.TypeSynthesis
+        Language.PlutusCore.TypeCheck.Internal
+        Language.PlutusCore.TypeCheck
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Examples.Data.TreeForest
@@ -122,6 +126,7 @@ library
         bytestring -any,
         cryptonite -any,
         containers -any,
+        bimap -any,
         array -any,
         mtl -any,
         transformers -any,

@@ -3,15 +3,14 @@ packages: language-plutus-core
           plutus-exe
           wallet-api
           plutus-tx
-          plutus-tx-plugin
           plutus-use-cases
           plutus-ir
           plutus-playground/plutus-playground-server
           plutus-playground/plutus-playground-lib
+          plutus-tutorial
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
-           , plutus-tx-plugin +development
            , plutus-exe +development
            , plutus-core-interpreter +development
            , plutus-ir +development

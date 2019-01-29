@@ -20,9 +20,9 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.Map                   as Map
 import qualified Data.Set                   as Set
+import qualified Data.Text                  as T
 
 {-
 This uses the approach in https://www.well-typed.com/blog/2014/10/quasi-quoting-dsls/ to use free
@@ -41,8 +41,8 @@ explicit type annotations in the generated code, which makes the type errors if 
 things wrong much better.
 -}
 
-substs :: [BSL.ByteString] -> Q Exp
-substs fvsL = let substFun n = [| $(varE (mkName (bsToStr n)))|] in listE $ fmap substFun fvsL
+substs :: [T.Text] -> Q Exp
+substs fvsL = let substFun n = [| $(varE (mkName (T.unpack n)))|] in listE $ fmap substFun fvsL
 
 -- See note [Metavar map functions]
 -- | Get a quotation of a map between names and Haskell variable references to terms using the
@@ -53,7 +53,7 @@ metavarMapTerm ftvs = let ftvsL = nameString <$> toList ftvs in
         let
             subs :: [Term TyName Name ()]
             subs = $(substs ftvsL)
-            qm :: Map.Map BSL.ByteString (Term TyName Name ())
+            qm :: Map.Map T.Text (Term TyName Name ())
             qm = Map.fromList $ zip ftvsL subs
         in pure qm
     |]
@@ -67,14 +67,14 @@ metavarMapType ftvs = let ftvsL = nameString . unTyName <$> toList ftvs in
         let
           subs :: [Type TyName ()]
           subs = $(substs ftvsL)
-          qm :: Map.Map BSL.ByteString (Type TyName ())
+          qm :: Map.Map T.Text (Type TyName ())
           qm = Map.fromList $ zip ftvsL subs
         in pure qm
     |]
 
 metavarSubstType ::
   Type TyName () ->
-  Map.Map BSL.ByteString (Type TyName ()) ->
+  Map.Map T.Text (Type TyName ()) ->
   Type TyName ()
 metavarSubstType ty tyMetavars = substTy
                         (\n -> Map.lookup (nameString $ unTyName n) tyMetavars)
@@ -82,8 +82,8 @@ metavarSubstType ty tyMetavars = substTy
 
 metavarSubstTerm ::
   Term TyName Name () ->
-  Map.Map BSL.ByteString (Type TyName ()) ->
-  Map.Map BSL.ByteString (Term TyName Name ()) ->
+  Map.Map T.Text (Type TyName ()) ->
+  Map.Map T.Text (Term TyName Name ()) ->
   Term TyName Name ()
 metavarSubstTerm t tyMetavars termMetavars = substTerm
                         (\n -> Map.lookup (nameString $ unTyName n) tyMetavars)

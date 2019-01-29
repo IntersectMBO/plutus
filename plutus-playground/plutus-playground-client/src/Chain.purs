@@ -26,7 +26,8 @@ import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, h3_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
-import Ledger.Types (Slot(..), TxId(..), Value)
+import Ledger.Types (TxIdOf(..), Value)
+import Ledger.Interval (Slot(..))
 import Playground.API (EvaluationResult(EvaluationResult))
 import Prelude (class Monad, Unit, discard, map, show, unit, ($), (<$>), (<>), (>>>))
 import Types (BalancesChartSlot(BalancesChartSlot), ChildQuery, ChildSlot, MockchainChartSlot(MockchainChartSlot), Query(HandleBalancesChartMessage, HandleMockchainChartMessage), cpBalancesChart, cpMockchainChart)
@@ -69,15 +70,15 @@ evaluationPane (EvaluationResult {emulatorLog}) =
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (TxnSubmit (TxId txId)) =
+emulatorEventPane (TxnSubmit (TxIdOf txId)) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidate (TxId txId)) =
+emulatorEventPane (TxnValidate (TxIdOf txId)) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidationFail (TxId txId) error) =
+emulatorEventPane (TxnValidationFail (TxIdOf txId) error) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed for transaction: " <> txId.getTxId
     , br_

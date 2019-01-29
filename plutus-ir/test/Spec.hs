@@ -54,10 +54,9 @@ compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuo
     -- it is important we run the two computations in the same Quote together, otherwise we might make
     -- names during compilation that are not fresh
     compiled <- compileTerm =<< liftQuote pir
-    when doTypecheck $ void $ do
-        annotated <- PLC.annotateTerm compiled
+    when doTypecheck $ void $
         -- need our own typechecker pipeline to allow normalized types
-        PLC.typecheckTerm (PLC.TypeConfig True mempty Nothing) annotated
+        PLC.inferType PLC.defOffChainConfig compiled
     pure compiled
 
 tests :: TestNested
@@ -139,7 +138,7 @@ recursion :: TestNested
 recursion = testNested "recursion" [
     goldenPlc "even3" evenOdd,
     goldenEval "even3Eval" [evenOdd],
-    goldenPlcCatch "mutuallyRecursiveValues" mutuallyRecursiveValues
+    goldenPlc "mutuallyRecursiveValues" mutuallyRecursiveValues
     ]
 
 natToBool :: Quote (Type TyName ())

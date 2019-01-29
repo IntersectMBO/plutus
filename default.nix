@@ -78,24 +78,35 @@ let
         filter = localLib.isPlutus;
       };
       customOverlays = optional forceError errorOverlay;
+      # Filter down to local packages, except those named in the given list
+      localButNot = nope: 
+        let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
+        in name: builtins.elem name okay;
+      # We can pass an evaluated version of our packages into
+      # iohk-nix, and then we can also get out the compiler
+      # so we make sure it uses the same one.
+      pkgsGenerated = import ./pkgs { inherit pkgs; };
     in self.callPackage localLib.iohkNix.haskellPackages {
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      enableSplitCheck customOverlays;
-      pkgsGenerated = ./pkgs;
+      enableSplitCheck customOverlays pkgsGenerated;
+
+      inherit (pkgsGenerated) ghc;
+
       filter = localLib.isPlutus;
       filterOverrides = {
-        splitCheck = let
-          dontSplit = [
+        splitCheck = localButNot [
             # Broken for things with test tool dependencies
             "wallet-api"
             "plutus-tx"
+            "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
           ];
-          # Split only local packages not in the don't split list
-          doSplit = builtins.filter (name: !(builtins.elem name dontSplit)) localLib.plutusPkgList;
-          in name: builtins.elem name doSplit;
+        haddock = localButNot [
+            # Haddock is broken for things with internal libraries
+            "plutus-tx"
+        ];
       };
       requiredOverlay = ./nix/overlays/required.nix;
     };
@@ -123,6 +134,13 @@ let
     docs = {
       plutus-core-spec = pkgs.callPackage ./plutus-core-spec {};
       lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine {};
+      combined-haddock = (pkgs.callPackage ./nix/haddock-combine.nix {}) {
+        hspkgs = builtins.attrValues localPackages;
+        prologue = pkgs.writeTextFile { 
+          name = "prologue"; 
+          text = "Combined documentation for all the Plutus libraries."; 
+        };
+      };
     };
 
     plutus-playground = rec {
@@ -137,10 +155,13 @@ let
         # We need to provide the ghc interpreter (hint) with the location of the ghc lib dir and the package db
         mkdir -p $out/bin
         ln -s ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server $out/bin/plutus-playground-server
-        wrapProgram $out/bin/plutus-playground-server --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
+        wrapProgram $out/bin/plutus-playground-server \
+          --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
+          --set GHC_BIN_DIR "${runtimeGhc}/bin" \
+          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d"
       '';
 
-      client = let 
+      client = let
         generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
           mkdir $out
           ${haskellPackages.plutus-playground-server}/bin/plutus-playground-server psgenerator $out
@@ -162,8 +183,16 @@ let
         };
       };
     };
+
+    devPackages = localLib.getPackages {
+      inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "ghcid" ];
+    };
+
+    withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ devPackages.cabal-install devPackages.ghcid ]; });
+    shellTemplate = name: withDevTools haskellPackages."${name}".env;
   });
+
 
 in
   # The top-level package set
-  pkgs.lib.makeScope pkgs.newScope packages
+  pkgs.lib.makeScope pkgs.newScope packages 

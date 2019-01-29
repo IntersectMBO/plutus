@@ -582,7 +582,7 @@ getWithSpine
     -> Quote ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
 getWithSpine ann argVars = do
     spine <- getSpine ann $ map tyDeclVar argVars
-    return $ \k -> mkIterTyLam ann argVars $ k spine
+    return $ \k -> mkIterTyLam argVars $ k spine
 
 -- See Note [Spiney API].
 type FromDataPieces ann a
@@ -616,7 +616,7 @@ packPatternFunctorBodyN ann dataName argVars patBodyN = do
         spineKind = dataKindToSpineKind ann dataKind
         recKind   = spineKindToRecKind  ann spineKind
         vDat = TyVarDecl ann dataName dataKind
-        patN = mkIterTyLam ann (vDat : argVars) patBodyN
+        patN = mkIterTyLam (vDat : argVars) patBodyN
 
     withSpine <- getWithSpine ann argVars
 

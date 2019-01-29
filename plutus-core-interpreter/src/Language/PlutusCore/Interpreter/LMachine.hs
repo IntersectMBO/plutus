@@ -42,6 +42,7 @@ module Language.PlutusCore.Interpreter.LMachine
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 import           PlutusPrelude
 
@@ -88,8 +89,8 @@ data Closure = Closure
 -- | L machine environments
 -- Each entry is a mapping from the 'Unique' representing a variable to a heap location
 -- Some kind of vector might be more efficient than a map.
-newtype Environment = Environment (IntMap HeapLoc)
-    deriving (Show)
+newtype Environment = Environment (UniqueMap TermUnique HeapLoc)
+    deriving (Show, Semigroup, Monoid)
 
 -- | Heap location. Int gives us at least 2^32 = 4,294,967,296 different values
 -- (and 2^64 on a 64-bit machine) which should be big enough.
@@ -136,17 +137,14 @@ data LMachineResult
     = Success Closure Heap  -- We need both the environment and the heap to see what the value "really" is.
     | Failure
 
-emptyEnvironment :: Environment
-emptyEnvironment = Environment IntMap.empty
-
 -- | Extend an environment with a new binding
-updateEnvironment :: Int -> HeapLoc -> Environment -> Environment
-updateEnvironment index cl (Environment m) = Environment (IntMap.insert index cl m)
+updateEnvironment :: Name () -> HeapLoc -> Environment -> Environment
+updateEnvironment name cl (Environment m) = Environment (insertByName name cl m)
 
 -- | Look up a heap location in an environment.
 lookupHeapLoc :: Name () -> Environment -> HeapLoc
 lookupHeapLoc name (Environment env) =
-    case IntMap.lookup (unUnique $ nameUnique name) env of
+    case lookupName name env of
       Nothing  -> throwLMachineException (OtherMachineError VariableNotInHeap) (Var () name)
       Just loc -> loc
 
@@ -222,7 +220,7 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
     case fun of
       LamAbs _ var _ body ->
           let (l, heap') = insertInHeap argClosure heap
-              env' = updateEnvironment (unUnique $ nameUnique var) l funEnv
+              env' = updateEnvironment var l funEnv
           in  computeL ctx heap' (Closure body env')
 
       _ ->
@@ -297,7 +295,7 @@ instantiateEvaluate ctx heap ty (Closure fun env) =
 -- value to whatever has invoked the machine we may want to fully
 -- expand it, and you'd need the environment and heap to do that.
 internalEvaluateL :: Term TyName Name () -> LMachineResult
-internalEvaluateL t = computeL [] emptyHeap (Closure t emptyEnvironment)
+internalEvaluateL t = computeL [] emptyHeap (Closure t mempty)
 
 
 -- | Convert an L machine result into the standard result type for communication with the outside world.

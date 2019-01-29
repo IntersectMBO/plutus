@@ -3,30 +3,34 @@
 module Main ( main
             ) where
 
-import qualified Check.Spec                   as Check
+import qualified Check.Spec                                 as Check
 import           Codec.Serialise
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy         as BSL
-import qualified Data.Text                    as T
-import           Data.Text.Encoding           (encodeUtf8)
+import           Control.Monad.Morph
+import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.Text                                  as T
+import           Data.Text.Encoding                         (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
 import           Generators
-import           Hedgehog                     hiding (Var)
-import qualified Hedgehog.Gen                 as Gen
-import qualified Hedgehog.Range               as Range
+import           Hedgehog                                   hiding (Var)
+import qualified Hedgehog.Gen                               as Gen
+import qualified Hedgehog.Range                             as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Generators
+import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 import           Normalization.Type
-import           PlutusPrelude
+import           PlutusPrelude                              hiding (hoist)
 import           Pretty.Readable
-import qualified Quotation.Spec               as Quotation
+import qualified Quotation.Spec                             as Quotation
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
-import           TypeSynthesis.Spec           (test_typecheck)
+import           TypeSynthesis.Spec                         (test_typecheck)
 
 main :: IO ()
 main = do
@@ -95,6 +99,15 @@ propRename = property $ do
     prog <- forAll genProgram
     Hedgehog.assert $ runQuote (rename prog) == prog
 
+propDeBruijn :: GenT Quote (TermOf (TypedBuiltinValue size a)) -> Property
+propDeBruijn gen = property . hoist (return . runQuote) $ do
+    (TermOf body _) <- forAllNoShowT gen
+    let
+        forward = deBruijnTerm
+        backward :: Except FreeVariableError (Term TyDeBruijn DeBruijn a) -> Except FreeVariableError (Term TyName Name a)
+        backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
+    Hedgehog.tripping body forward backward
+
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
     [ tests
@@ -102,6 +115,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testProperty "equality survives renaming" propRename
+    , testGroup "de Bruijn transformation round-trip" (fromInterestingTermGens (\name gen -> testProperty name (propDeBruijn gen)))
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -115,6 +129,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , Quotation.tests
     , Check.tests
     ]
+
 
 type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
 

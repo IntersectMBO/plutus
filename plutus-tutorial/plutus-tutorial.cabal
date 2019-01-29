@@ -1,0 +1,50 @@
+cabal-version: 2.2
+name: plutus-tutorial
+version: 0.1.0.0
+license: BSD-3-Clause
+license-file: LICENSE
+copyright: Copyright: (c) 2018 Input Output
+maintainer: jann.mueller@iohk.io
+author: Michael Peyton Jones, Jann Mueller
+synopsis: PlutusTx tutorial
+description:
+    A tutorial for PlutusTx.
+category: Language
+build-type: Simple
+extra-doc-files: README.md
+
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+
+library
+    import: lang
+    hs-source-dirs: tutorial
+    exposed-modules:
+        Tutorial.PlutusTx
+        Tutorial.WalletAPI
+    ghc-options: -pgmL markdown-unlit -Wno-unused-imports
+    build-tool-depends: markdown-unlit:markdown-unlit -any
+    build-tool-depends: doctest:doctest -any
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        template-haskell >=2.13.0.0,
+        language-plutus-core -any,
+        plutus-tx -any,
+        wallet-api -any

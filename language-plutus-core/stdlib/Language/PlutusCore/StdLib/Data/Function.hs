@@ -8,6 +8,8 @@ module Language.PlutusCore.StdLib.Data.Function
     , getBuiltinUnroll
     , getBuiltinFix
     , getBuiltinFixN
+    , FunctionDef (..)
+    , getBuiltinMutualFixOf
     ) where
 
 import           Language.PlutusCore.MkPlc
@@ -15,9 +17,12 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
+import           PlutusPrelude
 
+import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
+import           Control.Lens.Indexed                       (ifor)
 import           Control.Monad
 
 -- | 'const' as a PLC term.
@@ -114,10 +119,10 @@ natTransId f = do
 
 -- | The 'fixBy' combinator.
 --
--- fixBy :
---     forall (F :: * -> *) .
---     ((F ~> Id) -> (F ~> Id)) ->
---     ((F ~> F) -> (F ~> Id))
+-- > fixBy :
+-- >     forall (F :: * -> *) .
+-- >     ((F ~> Id) -> (F ~> Id)) ->
+-- >     ((F ~> F) -> (F ~> Id))
 getBuiltinFixBy :: Quote (Term TyName Name ())
 getBuiltinFixBy = do
     f <- freshTyName () "F"
@@ -179,14 +184,14 @@ getBuiltinFixBy = do
 -- | Make a @n@-ary fixpoint combinator.
 --
 -- > getBuiltinFixN n :
---       forall A1 B1 ... An Bn :: * .
---       (forall Q :: * .
---           ((A1 -> B1) -> ... -> (An -> Bn) -> Q) ->
---           (A1 -> B1) ->
---           ... ->
---           (An -> Bn) ->
---           Q) ->
---       (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
+-- >     forall A1 B1 ... An Bn :: * .
+-- >     (forall Q :: * .
+-- >         ((A1 -> B1) -> ... -> (An -> Bn) -> Q) ->
+-- >         (A1 -> B1) ->
+-- >         ... ->
+-- >         (An -> Bn) ->
+-- >         Q) ->
+-- >     (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
 getBuiltinFixN :: Int -> Quote (Term TyName Name ())
 getBuiltinFixN n = do
     -- the list of pairs of A and B types
@@ -206,13 +211,19 @@ getBuiltinFixN n = do
         x <- freshTyName () "X"
         pure $ TyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))
 
-    s <- freshTyName () "S"
+    -- f : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> (A1 -> B1) -> ... -> (An -> Bn) -> Q)
+    f <- freshName () "f"
+    fTy <- do
+        q <- freshTyName () "Q"
+        pure $ TyForall () q (Type ()) $ TyFun () (funTysTo (TyVar () q)) (funTysTo (TyVar () q))
 
     -- k : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> Q)
     k <- freshName () "k"
     kTy <- do
         q <- freshTyName () "Q"
         pure $ TyForall () q (Type ()) $ TyFun () (funTysTo (TyVar () q)) (TyVar () q)
+
+    s <- freshTyName () "S"
 
     -- h : (A1 -> B1) -> ... -> (An -> Bn) -> S
     h <- freshName () "h"
@@ -221,16 +232,16 @@ getBuiltinFixN n = do
     -- branch (ai, bi) i = \x : ai -> k { bi } \(f1 : A1 -> B1) ... (fn : An -> Bn) . fi x
     let branch (a, b) i = do
             -- names and types for the f arguments
-            fs <- forM asbs $ \(a',b') -> do
-                f <- freshName () "f"
-                pure $ VarDecl () f (TyFun () (TyVar () a') (TyVar () b'))
+            fs <- ifor asbs $ \j (a',b') -> do
+                f_j <- freshName () $ "f_" <> showText j
+                pure $ VarDecl () f_j (TyFun () (TyVar () a') (TyVar () b'))
 
             x <- freshName () "x"
 
             pure $
                 LamAbs () x (TyVar () a) $
                 Apply () (TyInst () (Var () k) (TyVar () b)) $
-                mkIterLamAbs () fs $
+                mkIterLamAbs fs $
                 -- this is an ugly but straightforward way of getting the right fi
                 Apply () (mkVar () (fs !! i)) (Var () x)
 
@@ -241,9 +252,49 @@ getBuiltinFixN n = do
     let allAsBs = foldMap (\(a, b) -> [a, b]) asbs
     pure $
         -- abstract out all the As and Bs
-        mkIterTyAbs () (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
-        Apply () instantiatedFix $
-        LamAbs () k kTy $
-        TyAbs () s (Type ()) $
-        LamAbs () h hTy $
-        mkIterApp () (Var () h) branches
+        mkIterTyAbs (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
+        LamAbs () f fTy $
+        mkIterApp () instantiatedFix
+            [ LamAbs () k kTy $
+              TyAbs () s (Type ()) $
+              LamAbs () h hTy $
+              mkIterApp () (Var () h) branches
+            , Var () f
+            ]
+
+-- | Get the fixed-point of a list of mutually recursive functions.
+--
+-- > getBuiltinMutualFixOf _ [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
+-- >                         , ...
+-- >                         , FunctionDef _ fNn (FunctionType _ an bn) fn
+-- >                         ] =
+-- >     Tuple [(a1 -> b1) ... (an -> bn)] $
+-- >         fixN {a1} {b1} ... {an} {bn}
+-- >             /\(q :: *) -> \(choose : (a1 -> b1) -> ... -> (an -> bn) -> q) ->
+-- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
+getBuiltinMutualFixOf :: ann -> [FunctionDef TyName Name ann] -> Quote (Tuple ann)
+getBuiltinMutualFixOf ann funs = do
+    let funTys = map functionDefToType funs
+
+    q <- liftQuote $ freshTyName ann "Q"
+    -- TODO: It was 'safeFreshName' previously. Should we perhaps have @freshName = safeFreshName@?
+    choose <- freshName ann "choose"
+    let chooseTy = mkIterTyFun ann funTys (TyVar ann q)
+
+    -- \v1 ... vn -> choose f1 ... fn
+    let rhss    = map _functionDefTerm funs
+        chosen  = mkIterApp ann (Var ann choose) rhss
+        vsLam   = mkIterLamAbs (map functionDefVarDecl funs) chosen
+
+    -- abstract out Q and choose
+    let cLam = TyAbs ann q (Type ann) $ LamAbs ann choose chooseTy vsLam
+
+    -- fixN {A1} {B1} ... {An} {Bn}
+    instantiatedFix <- do
+        fixN <- (ann <$) <$> getBuiltinFixN (length funs)
+        let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -> [dom, cod]) funs
+        pure $ mkIterInst ann fixN domCods
+
+    let term = Apply ann instantiatedFix cLam
+
+    pure $ Tuple funTys term

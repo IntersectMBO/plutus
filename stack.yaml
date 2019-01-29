@@ -1,4 +1,4 @@
-resolver: lts-12.14
+resolver: lts-12.26
 
 packages:
 - language-plutus-core
@@ -6,11 +6,11 @@ packages:
 - plutus-exe
 - plutus-ir
 - plutus-tx
-- plutus-tx-plugin
 - plutus-use-cases
 - wallet-api
 - plutus-playground/plutus-playground-server
 - plutus-playground/plutus-playground-lib
+- plutus-tutorial
 
 # Add custom stylish-haskell while waiting for PR upstream: https://github.com/jaspervdj/stylish-haskell/pull/214
 - location:
@@ -39,8 +39,6 @@ flags:
   language-plutus-core:
     development: true
   wallet-api:
-    development: true
-  plutus-tx-plugin:
     development: true
   plutus-exe:
     development: true

@@ -57,7 +57,7 @@ type SwapOracle = OracleValue (Ratio Int)
 --       Language.Plutus.Coordination.Contracts
 swapValidator :: Swap -> ValidatorScript
 swapValidator _ = ValidatorScript result where
-    result = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx) Swap{..} ->
+    result = $$(Ledger.compileScript [|| (\(redeemer :: SwapOracle) SwapOwners{..} (p :: PendingTx) Swap{..} ->
         let
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool

@@ -21,6 +21,7 @@ import qualified Data.ByteString.Lazy.Char8 as ASCII
 import Language.PlutusCore.Error
 import Language.Haskell.TH.Syntax (Lift)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Name
@@ -189,7 +190,7 @@ handle_identifier p str = do
     s1 <- gets alex_ust
     let (u, s2) = runState (newIdentifier str) s1
     modify (\s -> s { alex_ust = s2})
-    pure $ LexName p str u
+    pure $ LexName p (T.decodeUtf8 $ BSL.toStrict str) u
 
 -- this conversion is safe because we only lex digits
 readBSL :: (Read a) => BSL.ByteString -> a

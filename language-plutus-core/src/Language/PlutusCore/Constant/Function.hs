@@ -18,7 +18,6 @@ module Language.PlutusCore.Constant.Function
     , insertDynamicBuiltinNameDefinition
     , withTypedBuiltinName
     , typeOfTypedBuiltinName
-    , typeOfBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Name
@@ -30,9 +29,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.Type
 
-import qualified Data.ByteString.Lazy.Char8           as BSL
 import qualified Data.Map                             as Map
-import qualified Data.Text.Encoding                   as Text
 
 -- | Extract the 'Size' from a 'SizeEntry'.
 flattenSizeEntry :: SizeEntry Size -> Size
@@ -97,7 +94,7 @@ typeSchemeToType = go 0 where
     go i (TypeSchemeArrow schA schB) =
         TyFun () <$> go i schA <*> go i schB
     go i (TypeSchemeAllSize schK)    = do
-        s <- mapTyNameString (<> BSL.fromStrict (Text.encodeUtf8 $ prettyText i)) <$>
+        s <- mapTyNameString (<> prettyText i) <$>
                 freshTyName () "s"
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a
@@ -145,7 +142,3 @@ withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
-
--- | Return the 'Type' of a 'BuiltinName'.
-typeOfBuiltinName :: BuiltinName -> Quote (Type TyName ())
-typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName

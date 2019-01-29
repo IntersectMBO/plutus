@@ -10,6 +10,7 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
+import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Lexer      (AlexPosn)
 import           Language.PlutusCore.Lexer.Type hiding (name)
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
@@ -116,8 +117,8 @@ instance Serialise Unique where
 
 instance Serialise a => Serialise (Name a) where
     -- TODO: should we encode the name or not?
-    encode (Name x bs u) = encode x <> encodeBytes (BSL.toStrict bs) <> encode u
-    decode = Name <$> decode <*> fmap BSL.fromStrict decodeBytes <*> decode
+    encode (Name x txt u) = encode x <> encode txt <> encode u
+    decode = Name <$> decode <*> decode <*> decode
 
 instance Serialise a => Serialise (TyName a) where
     encode (TyName n) = encode n
@@ -226,3 +227,13 @@ instance (Serialise a, Serialise (tyname a), Serialise (name a)) => Serialise (P
     decode = Program <$> decode <*> decode <*> decode
 
 instance Serialise AlexPosn
+
+deriving instance Serialise Index
+
+instance Serialise a => Serialise (DeBruijn a) where
+    encode (DeBruijn x txt i) = encode x <> encode txt <> encode i
+    decode = DeBruijn <$> decode <*> decode <*> decode
+
+instance Serialise a => Serialise (TyDeBruijn a) where
+    encode (TyDeBruijn n) = encode n
+    decode = TyDeBruijn <$> decode

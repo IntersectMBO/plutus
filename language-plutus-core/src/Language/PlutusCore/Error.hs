@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
@@ -12,12 +13,12 @@
 module Language.PlutusCore.Error
     ( ParseError (..)
     , AsParseError (..)
+    , ValueRestrictionError (..)
+    , AsValueRestrictionError (..)
     , NormalizationError (..)
     , AsNormalizationError (..)
     , UniqueError (..)
     , AsUniqueError (..)
-    , RenameError (..)
-    , AsRenameError (..)
     , UnknownDynamicBuiltinNameError (..)
     , AsUnknownDynamicBuiltinNameError (..)
     , InternalTypeError (..)
@@ -29,7 +30,7 @@ module Language.PlutusCore.Error
     , throwingEither
     ) where
 
-import           Language.PlutusCore.Lexer.Type
+import           Language.PlutusCore.Lexer.Type     hiding (name)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
@@ -56,6 +57,11 @@ data ParseError a
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 
+data ValueRestrictionError tyname a
+    = ValueRestrictionViolation a (tyname a)
+    deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''ValueRestrictionError
+
 data UniqueError a
     = MultiplyDefined Unique a a
     | IncoherentUsage Unique a a
@@ -68,14 +74,6 @@ data NormalizationError tyname name a
     | BadTerm a (Term tyname name a) T.Text
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''NormalizationError
-
--- | A 'RenameError' is thrown when a free variable is encountered during
--- rewriting.
-data RenameError a
-    = UnboundVar (Name a)
-    | UnboundTyVar (TyName a)
-    deriving (Show, Eq, Generic, NFData)
-makeClassyPrisms ''RenameError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
 newtype UnknownDynamicBuiltinNameError
@@ -91,20 +89,22 @@ data InternalTypeError a
 makeClassyPrisms ''InternalTypeError
 
 data TypeError a
-    = KindMismatch a (Type TyNameWithKind ()) (Kind ()) (Kind ())
-    | TypeMismatch a (Term TyNameWithKind NameWithType ())
-                     (Type TyNameWithKind ())
-                     (NormalizedType TyNameWithKind ())
+    = KindMismatch a (Type TyName ()) (Kind ()) (Kind ())
+    | TypeMismatch a (Term TyName Name ())
+                     (Type TyName ())
+                     (NormalizedType TyName ())
     | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
     | InternalTypeErrorE a (InternalTypeError a)
+    | FreeTypeVariableE (TyName a)
+    | FreeVariableE (Name a)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
 data Error a
     = ParseErrorE (ParseError a)
+    | ValueRestrictionErrorE (ValueRestrictionError TyName a)
     | UniqueCoherencyErrorE (UniqueError a)
-    | RenameErrorE (RenameError a)
     | TypeErrorE (TypeError a)
     | NormalizationErrorE (NormalizationError TyName Name a)
     deriving (Show, Eq, Generic, NFData)
@@ -113,16 +113,16 @@ makeClassyPrisms ''Error
 instance AsParseError (Error a) a where
     _ParseError = _ParseErrorE
 
+instance tyname ~ TyName => AsValueRestrictionError (Error a) tyname a where
+    _ValueRestrictionError = _ValueRestrictionErrorE
+
 instance AsUniqueError (Error a) a where
     _UniqueError = _UniqueCoherencyErrorE
-
-instance AsRenameError (Error a) a where
-    _RenameError = _RenameErrorE
 
 instance AsTypeError (Error a) a where
     _TypeError = _TypeErrorE
 
-instance AsNormalizationError (Error a) TyName Name a where
+instance (tyname ~ TyName, name ~ Name) => AsNormalizationError (Error a) tyname name a where
     _NormalizationError = _NormalizationErrorE
 
 asInternalError :: Doc ann -> Doc ann
@@ -134,6 +134,11 @@ instance Pretty a => Pretty (ParseError a) where
     pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
     pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (loc t)
     pretty (Overflow pos _ _) = "Integer overflow at" <+> pretty pos <> "."
+
+instance (Pretty a, PrettyBy config (tyname a)) => PrettyBy config (ValueRestrictionError tyname a) where
+    prettyBy config (ValueRestrictionViolation ann name) =
+        "Value restriction violation at" <+> pretty ann <+>
+        "after the binding for this name:" <+> prettyBy config name
 
 instance Pretty a => Pretty (UniqueError a) where
     pretty (MultiplyDefined u def redef) =
@@ -153,16 +158,6 @@ instance (Pretty a, PrettyBy config (Type tyname a), PrettyBy config (Term tynam
         "Malformed term at" <+> pretty l <>
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
-
-instance (Pretty a, HasPrettyConfigName config) => PrettyBy config (RenameError a) where
-    prettyBy config (UnboundVar n@(Name l _ _)) =
-        "Error at" <+> pretty l <>
-        ". Variable" <+> prettyBy config n <+>
-        "is not in scope."
-    prettyBy config (UnboundTyVar n@(TyName (Name l _ _))) =
-        "Error at" <+> pretty l <>
-        ". Type variable" <+> prettyBy config n <+>
-        "is not in scope."
 
 instance Pretty UnknownDynamicBuiltinNameError where
     pretty (UnknownDynamicBuiltinNameErrorE dbn) =
@@ -190,6 +185,10 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
+    prettyBy config (FreeTypeVariableE name)          =
+        "Free type variable:" <+> prettyBy config name
+    prettyBy config (FreeVariableE name)              =
+        "Free variable:" <+> prettyBy config name
     prettyBy config (InternalTypeErrorE x err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty x
@@ -199,8 +198,8 @@ instance Pretty a => PrettyBy PrettyConfigPlc (TypeError a) where
     prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance Pretty a => PrettyBy PrettyConfigPlc (Error a) where
-    prettyBy _      (ParseErrorE e)           = pretty e
-    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
-    prettyBy config (RenameErrorE e)          = prettyBy config e
-    prettyBy config (TypeErrorE e)            = prettyBy config e
-    prettyBy config (NormalizationErrorE e)   = prettyBy config e
+    prettyBy _      (ParseErrorE e)            = pretty e
+    prettyBy config (ValueRestrictionErrorE e) = prettyBy config e
+    prettyBy _      (UniqueCoherencyErrorE e)  = pretty e
+    prettyBy config (TypeErrorE e)             = prettyBy config e
+    prettyBy config (NormalizationErrorE e)    = prettyBy config e

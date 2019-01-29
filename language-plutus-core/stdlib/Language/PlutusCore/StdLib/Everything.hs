@@ -16,8 +16,9 @@ import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.Integer
-import           Language.PlutusCore.StdLib.Data.List
+import           Language.PlutusCore.StdLib.Data.List       as List
 import           Language.PlutusCore.StdLib.Data.Nat
+import           Language.PlutusCore.StdLib.Data.Sum        as Sum
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
@@ -56,8 +57,8 @@ stdLib =
                   , plcTermFile "FoldrList"  getBuiltinFoldrList
                   , plcTermFile "FoldList"   getBuiltinFoldList
                   , plcTermFile "EnumFromTo" getBuiltinEnumFromTo
-                  , plcTermFile "Sum"        getBuiltinSum
-                  , plcTermFile "Product"    getBuiltinProduct
+                  , plcTermFile "Sum"        List.getBuiltinSum
+                  , plcTermFile "Product"    List.getBuiltinProduct
                   ]
               , treeFolderContents "Nat"
                   [ plcTypeFile "Nat"          $ _recursiveType <$> getBuiltinNat
@@ -67,6 +68,11 @@ stdLib =
                   , plcTermFile "FoldNat"      getBuiltinFoldNat
                   , plcTermFile "NatToInteger" getBuiltinNatToInteger
                   ]
+              , treeFolderContents "Sum"
+                  [ plcTypeFile "Sum"   Sum.getBuiltinSum
+                  , plcTermFile "Left"  getBuiltinLeft
+                  , plcTermFile "Right" getBuiltinRight
+                  ]
               , treeFolderContents "Unit"
                   [ plcTypeFile "Unit"    getBuiltinUnit
                   , plcTermFile "Unitval" getBuiltinUnitval
@@ -75,10 +81,10 @@ stdLib =
           , treeFolderContents "Meta"
               [ treeFolderContents "Data"
                   [ treeFolderContents "Tuple"
-                      [ plcTypeFile "Tuple2"   $ getBuiltinTuple 2
-                      , plcTermFile "Tuple2_0" $ getBuiltinTupleAccessor 2 0
-                      , plcTermFile "Tuple2_1" $ getBuiltinTupleAccessor 2 1
-                      , plcTermFile "MkTuple2" $ getBuiltinTupleConstructor 2
+                      [ plcTypeFile "ProdN2"   $ getBuiltinProdN 2
+                      , plcTermFile "ProdN2_0" $ getBuiltinProdNAccessor 2 0
+                      , plcTermFile "ProdN2_1" $ getBuiltinProdNAccessor 2 1
+                      , plcTermFile "MkProdN2" $ getBuiltinProdNConstructor 2
                       ]
                   ]
               ]

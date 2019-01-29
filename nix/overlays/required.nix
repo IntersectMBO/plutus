@@ -7,15 +7,22 @@ let
   addRealTimeTestLogs = drv: overrideCabal drv (attrs: {
     testTarget = "--show-details=streaming";
   });
+  doctest = opts: drv: overrideCabal drv (attrs: {
+    postCheck = "./Setup doctest --doctest-options=\"${opts}\"";
+  });
 in
 
 self: super: {
 
     ########################################################################
     # Overides of local packages
+    language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
+    # cabal doctest doesn't seem to be clever enough to pick these up from the cabal file
+    plutus-tx = doctest "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables" super.plutus-tx;
+
+    plutus-tutorial = doctest "-pgmL markdown-unlit -XTemplateHaskell -XDeriveFunctor -XScopedTypeVariables" super.plutus-tutorial;
 
     ########################################################################
-    language-plutus-core = addRealTimeTestLogs super.language-plutus-core;
     # The base Haskell package builder
 
     mkDerivation = args: super.mkDerivation (args //

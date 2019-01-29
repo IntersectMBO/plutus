@@ -14,31 +14,30 @@
 
 module Playground.API where
 
-import           Control.Lens                 (over, _2)
-import           Control.Monad.Trans.Class    (lift)
-import           Control.Monad.Trans.State    (StateT, evalStateT, get, put)
-import           Control.Newtype.Generics     (Newtype, pack, unpack)
-import           Data.Aeson                   (FromJSON, ToJSON, Value)
-import           Data.Bifunctor               (second)
-import qualified Data.HashMap.Strict.InsOrd   as HM
-import           Data.Maybe                   (fromMaybe)
-import           Data.Swagger                 (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
-                                               SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString))
-import qualified Data.Swagger                 as Swagger
-import           Data.Text                    (Text)
-import qualified Data.Text                    as Text
-import           GHC.Generics                 (Generic)
-import qualified Language.Haskell.Interpreter as Hint
-import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger.Types                 (Blockchain, PubKey)
-import qualified Ledger.Types                 as Ledger
-import           Servant.API                  ((:<|>), (:>), JSON, Post, ReqBody)
-import           Text.Read                    (readMaybe)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet)
-import           Wallet.Graph                 (FlowGraph)
+import           Control.Lens               (over, _2)
+import           Control.Monad.Trans.Class  (lift)
+import           Control.Monad.Trans.State  (StateT, evalStateT, get, put)
+import           Control.Newtype.Generics   (Newtype, pack, unpack)
+import           Data.Aeson                 (FromJSON, ToJSON, Value)
+import           Data.Bifunctor             (second)
+import qualified Data.HashMap.Strict.InsOrd as HM
+import           Data.Maybe                 (fromMaybe)
+import           Data.Swagger               (ParamSchema (ParamSchema), Referenced (Inline, Ref), Schema (Schema),
+                                             SwaggerType (SwaggerInteger, SwaggerObject, SwaggerString))
+import qualified Data.Swagger               as Swagger
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
+import           GHC.Generics               (Generic)
+import qualified Language.Haskell.TH.Syntax as TH
+import           Ledger.Types               (Blockchain, PubKey)
+import qualified Ledger.Types               as Ledger
+import           Servant.API                ((:<|>), (:>), JSON, Post, ReqBody)
+import           Text.Read                  (readMaybe)
+import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
+import           Wallet.Graph               (FlowGraph)
 
 type API
-   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] [FunctionSchema SimpleArgumentSchema])
+   = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either [CompilationError] CompilationResult)
      :<|> "evaluate" :> ReqBody '[ JSON] Evaluation :> Post '[ JSON] EvaluationResult
 
 newtype SourceCode = SourceCode Text
@@ -80,10 +79,20 @@ data EvaluationResult = EvaluationResult
   }
   deriving (Generic, ToJSON)
 
+newtype Warning = Warning Text
+  deriving stock (Eq, Show, Generic)
+  deriving newtype (ToJSON)
+
+data CompilationResult = CompilationResult
+  { functionSchema :: [FunctionSchema SimpleArgumentSchema]
+  , warnings       :: [Warning]
+  }
+  deriving (Generic, ToJSON)
+
 data FunctionSchema a = FunctionSchema
   { functionName   :: Fn
   , argumentSchema :: [a]
-  } deriving (Eq, Show, Generic, ToJSON, Functor)
+  } deriving (Eq, Show, Generic, ToJSON, FromJSON, Functor)
 
 data SimpleArgumentSchema
   = SimpleIntArgument
@@ -120,16 +129,20 @@ data CompilationError
                      , column   :: !Int
                      , text     :: ![Text] }
   deriving stock (Show, Eq, Generic)
-  deriving anyclass (ToJSON)
+  deriving anyclass (ToJSON, FromJSON)
 
 data PlaygroundError
   = CompilationErrors [CompilationError]
-  | InterpreterError Hint.InterpreterError
+  | InterpreterError [String]
   | FunctionSchemaError
   | DecodeJsonTypeError String String
   | PlaygroundTimeout
   | OtherError String
   deriving stock (Show, Generic)
+  deriving anyclass (ToJSON, FromJSON)
+
+parseErrorsText :: Text -> [CompilationError]
+parseErrorsText input = parseErrorText <$> Text.splitOn "\n\n" input
 
 parseErrorText :: Text -> CompilationError
 parseErrorText input =

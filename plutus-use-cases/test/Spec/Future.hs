@@ -29,11 +29,11 @@ tests = testGroup "futures" [
     testProperty "increase the margin" increaseMargin
     ]
 
-init :: Wallet -> Trace MockWallet Ledger.TxOutRef'
+init :: Wallet -> Trace MockWallet Ledger.TxOutRef
 init w = outp <$> walletAction w (F.initialise (PubKey 1) (PubKey 2) contract) where
     outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
 
-adjustMargin :: Wallet -> [Ledger.TxOutRef'] -> FutureData -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef'
+adjustMargin :: Wallet -> [Ledger.TxOutRef] -> FutureData -> Ledger.Value -> Trace MockWallet Ledger.TxOutRef
 adjustMargin w refs fd vl =
     outp <$> walletAction w (F.adjustMargin refs contract fd vl) where
         outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head
@@ -41,7 +41,7 @@ adjustMargin w refs fd vl =
 -- | Initialise the futures contract with contributions from wallets 1 and 2,
 --   and update all wallets. Running `initBoth` will increase the slot number
 --   by 2.
-initBoth :: Trace MockWallet [Ledger.TxOutRef']
+initBoth :: Trace MockWallet [Ledger.TxOutRef]
 initBoth = do
     updateAll
     ins <- traverse init [w1, w2]

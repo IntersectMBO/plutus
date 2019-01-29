@@ -39,8 +39,8 @@ dynamicFactorial = dynamicBuiltinNameAsTerm dynamicFactorialName
 -- a factorial defined in PLC itself.
 test_dynamicFactorial :: TestTree
 test_dynamicFactorial = testCase "dynamicFactorial" $
-        runQuoteT (typecheckEvaluate
+        typecheckEvaluateCek
             (insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty)
-            (applyFactorial dynamicFactorial 3 10))
+            (applyFactorial dynamicFactorial 3 10)
     @?=
         Right (evaluateCek mempty $ applyFactorial (runQuote getBuiltinFactorial) 3 10)

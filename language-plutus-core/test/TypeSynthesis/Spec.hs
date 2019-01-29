@@ -5,17 +5,17 @@ module TypeSynthesis.Spec
     ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Constant            (typeOfBuiltinName)
-import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
+import qualified Language.PlutusCore.Check.ValueRestriction as VR
+import           Language.PlutusCore.FsTree                 (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything (examples)
-import           Language.PlutusCore.StdLib.Everything   (stdLib)
+import           Language.PlutusCore.Examples.Everything    (examples)
+import           Language.PlutusCore.StdLib.Everything      (stdLib)
 
 import           Common
 
 import           Control.Monad.Except
-import           System.FilePath                         ((</>))
+import           System.FilePath                            ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -24,7 +24,7 @@ kindcheckQuoted
     => Quote (Type TyName ()) -> m (Type TyName ())
 kindcheckQuoted getType = do
     ty <- liftQuote getType
-    _ <- annotateType ty >>= kindCheck (TypeConfig True mempty Nothing)
+    _ <- inferKind defOffChainConfig ty
     return ty
 
 typecheckQuoted
@@ -32,7 +32,8 @@ typecheckQuoted
     => Quote (Term TyName Name ()) -> m (Term TyName Name ())
 typecheckQuoted getTerm = do
     term <- liftQuote getTerm
-    _ <- annotateTerm term >>= typecheckTerm (TypeConfig True mempty Nothing)
+    _ <- VR.checkTerm term
+    _ <- inferType defOffChainConfig term
     return term
 
 -- | Assert a 'Type' is well-kinded.

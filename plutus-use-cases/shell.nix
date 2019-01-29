@@ -1,4 +1,1 @@
-let 
-  local = import ../. {};
-in
-local.localLib.withDevTools local.localPackages.plutus-use-cases.env
+(import ../. {}).shellTemplate "plutus-use-cases"

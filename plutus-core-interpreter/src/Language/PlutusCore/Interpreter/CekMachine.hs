@@ -26,6 +26,7 @@ module Language.PlutusCore.Interpreter.CekMachine
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.MachineException
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.View
 import           PlutusPrelude                                   hiding (hoist)
 
@@ -34,8 +35,6 @@ import           Control.Monad.Except
 import           Control.Monad.Morph                             (hoist)
 import           Control.Monad.Reader
 import           Control.Monad.Trans                             (lift)
-import           Data.IntMap                                     (IntMap)
-import qualified Data.IntMap                                     as IntMap
 import qualified Data.Map                                        as Map
 
 type Plain f = f TyName Name ()
@@ -51,7 +50,7 @@ data Closure = Closure
 
 -- | Variable environments used by the CEK machine.
 -- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
-newtype VarEnv = VarEnv (IntMap Closure)
+type VarEnv = UniqueMap TermUnique Closure
 
 -- | The environment the CEK machine runs in.
 data CekEnv = CekEnv
@@ -87,14 +86,13 @@ withVarEnv = local . set cekEnvVarEnv
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
 extendVarEnv :: Name () -> Plain Value -> VarEnv -> VarEnv -> VarEnv
-extendVarEnv argName arg argVarEnv (VarEnv oldVarEnv) =
-    VarEnv $ IntMap.insert (unUnique $ nameUnique argName) (Closure argVarEnv arg) oldVarEnv
+extendVarEnv argName arg argVarEnv = insertByName argName $ Closure argVarEnv arg
 
 -- | Look up a variable name in the environment.
 lookupVarName :: Name () -> CekM Closure
 lookupVarName varName = do
-    VarEnv varEnv <- getVarEnv
-    case IntMap.lookup (unUnique $ nameUnique varName) varEnv of
+    varEnv <- getVarEnv
+    case lookupName varName varEnv of
         Nothing   -> throwError $ MachineException OpenTermEvaluatedMachineError (Var () varName)
         Just clos -> pure clos
 
@@ -208,7 +206,7 @@ evaluateCekCatchIn cekEnv = runCekM cekEnv . computeCek []
 -- | Evaluate a term using the CEK machine.
 evaluateCekCatch
     :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResult
-evaluateCekCatch means = evaluateCekCatchIn (CekEnv means $ VarEnv IntMap.empty)
+evaluateCekCatch means = evaluateCekCatchIn $ CekEnv means mempty
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult

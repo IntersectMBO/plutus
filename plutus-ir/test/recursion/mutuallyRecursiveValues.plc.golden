@@ -1,81 +1,59 @@
 (program 1.0.0
   [
     (lam
-      tuple_152
-      [[(lam t_0_153 (type) (lam t_1_154 (type) (all r_155 (type) (fun (fun t_0_153 (fun t_1_154 r_155)) r_155)))) (fun (all a_156 (type) (fun a_156 a_156)) (all a_157 (type) (fun a_157 a_157)))] (fun (all a_158 (type) (fun a_158 a_158)) (all a_159 (type) (fun a_159 a_159)))]
+      tup_i0
+      (all r_i0 (type) (fun (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) r_i1)) r_i1))
       [
         (lam
-          x_thunked_160
-          (fun (all a_161 (type) (fun a_161 a_161)) (all a_162 (type) (fun a_162 a_162)))
+          x_thunked_i0
+          (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
           [
             (lam
-              y_thunked_163
-              (fun (all a_164 (type) (fun a_164 a_164)) (all a_165 (type) (fun a_165 a_165)))
+              y_thunked_i0
+              (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
               [
                 (lam
-                  y_166
-                  (all a_167 (type) (fun a_167 a_167))
+                  y_i0
+                  (all a_i0 (type) (fun a_i1 a_i1))
                   [
-                    (lam x_168 (all a_169 (type) (fun a_169 a_169)) x_168)
-                    [ x_thunked_160 (abs a_170 (type) (lam x_171 a_170 x_171)) ]
+                    (lam x_i0 (all a_i0 (type) (fun a_i1 a_i1)) x_i1)
+                    [ x_thunked_i3 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
                   ]
                 )
-                [ y_thunked_163 (abs a_172 (type) (lam x_173 a_172 x_173)) ]
+                [ y_thunked_i1 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
               ]
             )
             [
               {
-                {
-                  (abs
-                    t_0_174
-                    (type)
-                    (abs
-                      t_1_175
-                      (type)
-                      (lam
-                        tuple_176
-                        [[(lam t_0_177 (type) (lam t_1_178 (type) (all r_179 (type) (fun (fun t_0_177 (fun t_1_178 r_179)) r_179)))) t_0_174] t_1_175]
-                        [
-                          { tuple_176 t_1_175 }
-                          (lam
-                            arg_0_180 t_0_174 (lam arg_1_181 t_1_175 arg_1_181)
-                          )
-                        ]
-                      )
-                    )
-                  )
-                  (fun (all a_182 (type) (fun a_182 a_182)) (all a_183 (type) (fun a_183 a_183)))
-                }
-                (fun (all a_184 (type) (fun a_184 a_184)) (all a_185 (type) (fun a_185 a_185)))
+                tup_i2
+                (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
               }
-              tuple_152
+              (lam
+                arg_0_i0
+                (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                (lam
+                  arg_1_i0
+                  (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                  arg_1_i1
+                )
+              )
             ]
           ]
         )
         [
           {
-            {
-              (abs
-                t_0_186
-                (type)
-                (abs
-                  t_1_187
-                  (type)
-                  (lam
-                    tuple_188
-                    [[(lam t_0_189 (type) (lam t_1_190 (type) (all r_191 (type) (fun (fun t_0_189 (fun t_1_190 r_191)) r_191)))) t_0_186] t_1_187]
-                    [
-                      { tuple_188 t_0_186 }
-                      (lam arg_0_192 t_0_186 (lam arg_1_193 t_1_187 arg_0_192))
-                    ]
-                  )
-                )
-              )
-              (fun (all a_194 (type) (fun a_194 a_194)) (all a_195 (type) (fun a_195 a_195)))
-            }
-            (fun (all a_196 (type) (fun a_196 a_196)) (all a_197 (type) (fun a_197 a_197)))
+            tup_i1
+            (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
           }
-          tuple_152
+          (lam
+            arg_0_i0
+            (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+            (lam
+              arg_1_i0
+              (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+              arg_0_i2
+            )
+          )
         ]
       ]
     )
@@ -85,221 +63,231 @@
           {
             {
               (abs
-                a_198
+                a_i0
                 (type)
                 (abs
-                  b_199
+                  b_i0
                   (type)
                   (abs
-                    a_200
+                    a_i0
                     (type)
                     (abs
-                      b_201
+                      b_i0
                       (type)
-                      [
-                        {
-                          (abs
-                            F_202
-                            (fun (type) (type))
-                            (lam
-                              by_203
-                              (fun (all Q_204 (type) (fun [F_202 Q_204] Q_204)) (all Q_205 (type) (fun [F_202 Q_205] Q_205)))
-                              [
-                                {
-                                  {
-                                    (abs
-                                      a_206
-                                      (type)
-                                      (abs
-                                        b_207
-                                        (type)
-                                        (lam
-                                          f_208
-                                          (fun (fun a_206 b_207) (fun a_206 b_207))
-                                          [
-                                            {
-                                              (abs
-                                                a_209
-                                                (type)
-                                                (lam
-                                                  s_210
-                                                  [(lam a_211 (type) (ifix (lam rec_212 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_213 (fun (fun (type) (type)) (type)) [spine_213 [(lam self_214 (fun (type) (type)) (lam a_215 (type) (fun [self_214 a_215] a_215))) (lam a_216 (type) [rec_212 (lam dat_217 (fun (type) (type)) [dat_217 a_216])])]])) (lam dat_218 (fun (type) (type)) [dat_218 a_211]))) a_209]
-                                                  [ (unwrap s_210) s_210 ]
-                                                )
-                                              )
-                                              (fun a_206 b_207)
-                                            }
-                                            (iwrap
-                                              (lam rec_219 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_220 (fun (fun (type) (type)) (type)) [spine_220 [(lam self_221 (fun (type) (type)) (lam a_222 (type) (fun [self_221 a_222] a_222))) (lam a_223 (type) [rec_219 (lam dat_224 (fun (type) (type)) [dat_224 a_223])])]]))
-                                              (lam dat_225 (fun (type) (type)) [dat_225 (fun a_206 b_207)])
-                                              (lam
-                                                s_226
-                                                [(lam a_227 (type) (ifix (lam rec_228 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_229 (fun (fun (type) (type)) (type)) [spine_229 [(lam self_230 (fun (type) (type)) (lam a_231 (type) (fun [self_230 a_231] a_231))) (lam a_232 (type) [rec_228 (lam dat_233 (fun (type) (type)) [dat_233 a_232])])]])) (lam dat_234 (fun (type) (type)) [dat_234 a_227]))) (fun a_206 b_207)]
-                                                (lam
-                                                  x_235
-                                                  a_206
-                                                  [
-                                                    [
-                                                      f_208
-                                                      [
-                                                        {
-                                                          (abs
-                                                            a_236
-                                                            (type)
-                                                            (lam
-                                                              s_237
-                                                              [(lam a_238 (type) (ifix (lam rec_239 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_240 (fun (fun (type) (type)) (type)) [spine_240 [(lam self_241 (fun (type) (type)) (lam a_242 (type) (fun [self_241 a_242] a_242))) (lam a_243 (type) [rec_239 (lam dat_244 (fun (type) (type)) [dat_244 a_243])])]])) (lam dat_245 (fun (type) (type)) [dat_245 a_238]))) a_236]
-                                                              [
-                                                                (unwrap s_237)
-                                                                s_237
-                                                              ]
-                                                            )
-                                                          )
-                                                          (fun a_206 b_207)
-                                                        }
-                                                        s_226
-                                                      ]
-                                                    ]
-                                                    x_235
-                                                  ]
-                                                )
-                                              )
-                                            )
-                                          ]
-                                        )
-                                      )
-                                    )
-                                    (all Q_246 (type) (fun [F_202 Q_246] [F_202 Q_246]))
-                                  }
-                                  (all Q_247 (type) (fun [F_202 Q_247] Q_247))
-                                }
+                      (lam
+                        f_i0
+                        (all Q_i0 (type) (fun (fun (fun a_i6 b_i5) (fun (fun a_i4 b_i3) Q_i1)) (fun (fun a_i6 b_i5) (fun (fun a_i4 b_i3) Q_i1))))
+                        [
+                          [
+                            {
+                              (abs
+                                F_i0
+                                (fun (type) (type))
                                 (lam
-                                  rec_248
-                                  (fun (all Q_249 (type) (fun [F_202 Q_249] [F_202 Q_249])) (all Q_250 (type) (fun [F_202 Q_250] Q_250)))
-                                  (lam
-                                    h_251
-                                    (all Q_252 (type) (fun [F_202 Q_252] [F_202 Q_252]))
-                                    (abs
-                                      R_253
-                                      (type)
-                                      (lam
-                                        fr_254
-                                        [F_202 R_253]
-                                        [
-                                          {
-                                            [
-                                              by_203
-                                              (abs
-                                                Q_255
-                                                (type)
-                                                (lam
-                                                  fq_256
-                                                  [F_202 Q_255]
-                                                  [
-                                                    { [ rec_248 h_251 ] Q_255 }
-                                                    [ { h_251 Q_255 } fq_256 ]
-                                                  ]
-                                                )
-                                              )
-                                            ]
-                                            R_253
-                                          }
-                                          fr_254
-                                        ]
-                                      )
-                                    )
-                                  )
-                                )
-                              ]
-                            )
-                          )
-                          (lam X_257 (type) (fun (fun a_198 b_199) (fun (fun a_200 b_201) X_257)))
-                        }
-                        (lam
-                          k_258
-                          (all Q_259 (type) (fun (fun (fun a_198 b_199) (fun (fun a_200 b_201) Q_259)) Q_259))
-                          (abs
-                            S_260
-                            (type)
-                            (lam
-                              h_261
-                              (fun (fun a_198 b_199) (fun (fun a_200 b_201) S_260))
-                              [
-                                [
-                                  h_261
-                                  (lam
-                                    x_262
-                                    a_198
-                                    [
-                                      { k_258 b_199 }
-                                      (lam
-                                        f_263
-                                        (fun a_198 b_199)
-                                        (lam
-                                          f_264
-                                          (fun a_200 b_201)
-                                          [ f_263 x_262 ]
-                                        )
-                                      )
-                                    ]
-                                  )
-                                ]
-                                (lam
-                                  x_265
-                                  a_200
+                                  by_i0
+                                  (fun (all Q_i0 (type) (fun [F_i3 Q_i1] Q_i1)) (all Q_i0 (type) (fun [F_i3 Q_i1] Q_i1)))
                                   [
-                                    { k_258 b_201 }
+                                    {
+                                      {
+                                        (abs
+                                          a_i0
+                                          (type)
+                                          (abs
+                                            b_i0
+                                            (type)
+                                            (lam
+                                              f_i0
+                                              (fun (fun a_i3 b_i2) (fun a_i3 b_i2))
+                                              [
+                                                {
+                                                  (abs
+                                                    a_i0
+                                                    (type)
+                                                    (lam
+                                                      s_i0
+                                                      [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i2]
+                                                      [ (unwrap s_i1) s_i1 ]
+                                                    )
+                                                  )
+                                                  (fun a_i3 b_i2)
+                                                }
+                                                (iwrap
+                                                  (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]]))
+                                                  (lam dat_i0 (fun (type) (type)) [dat_i1 (fun a_i4 b_i3)])
+                                                  (lam
+                                                    s_i0
+                                                    [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) (fun a_i4 b_i3)]
+                                                    (lam
+                                                      x_i0
+                                                      a_i5
+                                                      [
+                                                        [
+                                                          f_i3
+                                                          [
+                                                            {
+                                                              (abs
+                                                                a_i0
+                                                                (type)
+                                                                (lam
+                                                                  s_i0
+                                                                  [(lam a_i0 (type) (ifix (lam rec_i0 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_i0 (fun (fun (type) (type)) (type)) [spine_i1 [(lam self_i0 (fun (type) (type)) (lam a_i0 (type) (fun [self_i2 a_i1] a_i1))) (lam a_i0 (type) [rec_i3 (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2])])]])) (lam dat_i0 (fun (type) (type)) [dat_i1 a_i2]))) a_i2]
+                                                                  [
+                                                                    (unwrap s_i1
+                                                                    )
+                                                                    s_i1
+                                                                  ]
+                                                                )
+                                                              )
+                                                              (fun a_i5 b_i4)
+                                                            }
+                                                            s_i2
+                                                          ]
+                                                        ]
+                                                        x_i1
+                                                      ]
+                                                    )
+                                                  )
+                                                )
+                                              ]
+                                            )
+                                          )
+                                        )
+                                        (all Q_i0 (type) (fun [F_i3 Q_i1] [F_i3 Q_i1]))
+                                      }
+                                      (all Q_i0 (type) (fun [F_i3 Q_i1] Q_i1))
+                                    }
                                     (lam
-                                      f_266
-                                      (fun a_198 b_199)
+                                      rec_i0
+                                      (fun (all Q_i0 (type) (fun [F_i4 Q_i1] [F_i4 Q_i1])) (all Q_i0 (type) (fun [F_i4 Q_i1] Q_i1)))
                                       (lam
-                                        f_267 (fun a_200 b_201) [ f_267 x_265 ]
+                                        h_i0
+                                        (all Q_i0 (type) (fun [F_i5 Q_i1] [F_i5 Q_i1]))
+                                        (abs
+                                          R_i0
+                                          (type)
+                                          (lam
+                                            fr_i0
+                                            [F_i6 R_i2]
+                                            [
+                                              {
+                                                [
+                                                  by_i5
+                                                  (abs
+                                                    Q_i0
+                                                    (type)
+                                                    (lam
+                                                      fq_i0
+                                                      [F_i8 Q_i2]
+                                                      [
+                                                        { [ rec_i6 h_i5 ] Q_i2 }
+                                                        [ { h_i5 Q_i2 } fq_i1 ]
+                                                      ]
+                                                    )
+                                                  )
+                                                ]
+                                                R_i2
+                                              }
+                                              fr_i1
+                                            ]
+                                          )
+                                        )
                                       )
                                     )
                                   ]
                                 )
-                              ]
+                              )
+                              (lam X_i0 (type) (fun (fun a_i6 b_i5) (fun (fun a_i4 b_i3) X_i1)))
+                            }
+                            (lam
+                              k_i0
+                              (all Q_i0 (type) (fun (fun (fun a_i7 b_i6) (fun (fun a_i5 b_i4) Q_i1)) Q_i1))
+                              (abs
+                                S_i0
+                                (type)
+                                (lam
+                                  h_i0
+                                  (fun (fun a_i8 b_i7) (fun (fun a_i6 b_i5) S_i2))
+                                  [
+                                    [
+                                      h_i1
+                                      (lam
+                                        x_i0
+                                        a_i9
+                                        [
+                                          { k_i4 b_i8 }
+                                          (lam
+                                            f_0_i0
+                                            (fun a_i10 b_i9)
+                                            (lam
+                                              f_1_i0
+                                              (fun a_i9 b_i8)
+                                              [ f_0_i2 x_i3 ]
+                                            )
+                                          )
+                                        ]
+                                      )
+                                    ]
+                                    (lam
+                                      x_i0
+                                      a_i7
+                                      [
+                                        { k_i4 b_i6 }
+                                        (lam
+                                          f_0_i0
+                                          (fun a_i10 b_i9)
+                                          (lam
+                                            f_1_i0
+                                            (fun a_i9 b_i8)
+                                            [ f_1_i1 x_i3 ]
+                                          )
+                                        )
+                                      ]
+                                    )
+                                  ]
+                                )
+                              )
                             )
-                          )
-                        )
-                      ]
+                          ]
+                          f_i1
+                        ]
+                      )
                     )
                   )
                 )
               )
-              (all a_268 (type) (fun a_268 a_268))
+              (all a_i0 (type) (fun a_i1 a_i1))
             }
-            (all a_269 (type) (fun a_269 a_269))
+            (all a_i0 (type) (fun a_i1 a_i1))
           }
-          (all a_270 (type) (fun a_270 a_270))
+          (all a_i0 (type) (fun a_i1 a_i1))
         }
-        (all a_271 (type) (fun a_271 a_271))
+        (all a_i0 (type) (fun a_i1 a_i1))
       }
       (abs
-        Q_272
+        Q_i0
         (type)
         (lam
-          choose_273
-          (fun (fun (all a_274 (type) (fun a_274 a_274)) (all a_275 (type) (fun a_275 a_275))) (fun (fun (all a_276 (type) (fun a_276 a_276)) (all a_277 (type) (fun a_277 a_277))) Q_272))
+          choose_i0
+          (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) Q_i2))
           (lam
-            x_thunked_278
-            (fun (all a_279 (type) (fun a_279 a_279)) (all a_280 (type) (fun a_280 a_280)))
+            x_thunked_i0
+            (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
             (lam
-              y_thunked_281
-              (fun (all a_282 (type) (fun a_282 a_282)) (all a_283 (type) (fun a_283 a_283)))
+              y_thunked_i0
+              (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
               [
                 [
-                  choose_273
+                  choose_i3
                   (lam
-                    arg_284
-                    (all a_285 (type) (fun a_285 a_285))
-                    [ y_thunked_281 (abs a_286 (type) (lam x_287 a_286 x_287)) ]
+                    arg_i0
+                    (all a_i0 (type) (fun a_i1 a_i1))
+                    [ y_thunked_i2 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
                   )
                 ]
                 (lam
-                  arg_288
-                  (all a_289 (type) (fun a_289 a_289))
-                  (abs a_290 (type) (lam x_291 a_290 x_291))
+                  arg_i0
+                  (all a_i0 (type) (fun a_i1 a_i1))
+                  (abs a_i0 (type) (lam x_i0 a_i2 x_i1))
                 )
               ]
             )

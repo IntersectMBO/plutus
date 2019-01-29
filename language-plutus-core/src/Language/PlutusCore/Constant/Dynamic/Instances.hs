@@ -2,6 +2,7 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Language.PlutusCore.Constant.Dynamic.Instances
     ( PlcList (..)
@@ -13,24 +14,23 @@ import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.StdLib.Data.List
+import           Language.PlutusCore.StdLib.Data.List        hiding (getBuiltinSum)
+import           Language.PlutusCore.StdLib.Data.Sum
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
+import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
 
+import           Control.Monad.Trans.Maybe
+import           Data.Bitraversable
 import           Data.Char
 import           Data.Functor.Compose                        (Compose (..))
 import           Data.Proxy
 import qualified Data.Text.Prettyprint.Doc                   as Doc
 import           System.IO.Unsafe                            (unsafePerformIO)
-
-argumentProxy :: proxy (f a) -> Proxy a
-argumentProxy _ = Proxy
-
-withResultProxyM :: (Proxy a -> m (result a)) -> m (result a)
-withResultProxyM k = k Proxy
 
 instance KnownDynamicBuiltinType [Char] where
     getTypeEncoding _ = return $ TyBuiltin () TyString
@@ -51,33 +51,113 @@ instance KnownDynamicBuiltinType Char where
 
 instance PrettyDynamic Char
 
+proxyOf :: a -> Proxy a
+proxyOf _ = Proxy
+
+makeTypeAndDynamicBuiltin
+    :: KnownDynamicBuiltinType a => a -> MaybeT Quote (Type TyName (), Term TyName Name ())
+makeTypeAndDynamicBuiltin x = do
+    da <- liftQuote $ getTypeEncoding $ proxyOf x
+    dx <- MaybeT $ makeDynamicBuiltin x
+    pure (da, dx)
+
+instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
+            KnownDynamicBuiltinType (a, b) where
+    getTypeEncoding _ =
+        mkIterTyApp () <$> getBuiltinProdN 2 <*> sequence
+            [ getTypeEncoding $ Proxy @a
+            , getTypeEncoding $ Proxy @b
+            ]
+
+    makeDynamicBuiltin (x, y) = runMaybeT $ do
+        dax <- makeTypeAndDynamicBuiltin x
+        dby <- makeTypeAndDynamicBuiltin y
+        liftQuote $ _tupleTerm <$> getSpineToTuple () [dax, dby]
+
+    readDynamicBuiltin eval dxy = do
+        let go emitX emitY = runQuote $ do
+                unit <- getBuiltinUnit
+                sequ <- getBuiltinSequ
+                da <- getTypeEncoding $ Proxy @a
+                db <- getTypeEncoding $ Proxy @b
+                dx <- freshName () "x"
+                dy <- freshName () "y"
+                return
+                    . Apply () (TyInst () dxy unit)
+                    . LamAbs () dx da
+                    . LamAbs () dy db
+                    $ mkIterApp () sequ
+                        [ Apply () emitX $ Var () dx
+                        , Apply () emitY $ Var () dy
+                        ]
+        let (xs, (ys, getRes)) =
+                unsafePerformIO . withEmitHandler eval $
+                    withEmitTerm TypedBuiltinDyn $ \emitX ->
+                    withEmitTerm TypedBuiltinDyn $ \emitY ->
+                        feedEmitHandler $ go emitX emitY
+        res <- getRes
+        case (xs, ys) of
+            ([x], [y]) -> return $ (x, y) <$ evaluationResultToMaybe res
+            _          -> return Nothing  -- TODO: use descriptive error messages?
+
+instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
+            KnownDynamicBuiltinType (Either a b) where
+    getTypeEncoding _ =
+        mkIterTyApp () <$> getBuiltinSum <*> sequence
+            [ getTypeEncoding $ Proxy @a
+            , getTypeEncoding $ Proxy @b
+            ]
+
+    makeDynamicBuiltin s = do
+        da <- getTypeEncoding $ Proxy @a
+        db <- getTypeEncoding $ Proxy @b
+        runMaybeT $ do
+            -- TODO: definitely should have 'MaybeT' by default.
+            ds <- bitraverse (MaybeT . makeDynamicBuiltin) (MaybeT . makeDynamicBuiltin) s
+            liftQuote $ getEitherToBuiltinSum da db ds
+
+    readDynamicBuiltin eval ds = do
+        let go emitX emitY = runQuote $ do
+                unit <- getBuiltinUnit
+                return $ mkIterApp () (TyInst () ds unit) [emitX, emitY]
+        let (l, (r, getRes)) =
+                unsafePerformIO . withEmitHandler eval $
+                    withEmitTerm TypedBuiltinDyn $ \emitX ->
+                    withEmitTerm TypedBuiltinDyn $ \emitY ->
+                        feedEmitHandler $ go emitX emitY
+        res <- getRes
+        case (l, r) of
+            ([x], []) -> return $ Left  x <$ evaluationResultToMaybe res
+            ([], [y]) -> return $ Right y <$ evaluationResultToMaybe res
+            _         -> return Nothing
+
 newtype PlcList a = PlcList
     { unPlcList :: [a]
     } deriving (Eq, Show)
 
-instance KnownDynamicBuiltinType dyn => KnownDynamicBuiltinType (PlcList dyn) where
-    getTypeEncoding proxyListDyn =
+instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (PlcList a) where
+    getTypeEncoding _ =
         TyApp ()
             <$> fmap _recursiveType getBuiltinList
-            <*> getTypeEncoding (argumentProxy proxyListDyn)
+            <*> getTypeEncoding (Proxy @a)
 
     makeDynamicBuiltin (PlcList xs) = do
         mayDyns <- getCompose $ traverse (Compose . makeDynamicBuiltin) xs
-        argTy <- getTypeEncoding xs  -- Here we use 'PlcList' as a @proxy@.
+        argTy <- getTypeEncoding $ Proxy @a
         traverse (getListToBuiltinList argTy) mayDyns
 
-    readDynamicBuiltin eval list = withResultProxyM $ \proxyListDyn -> do
+    readDynamicBuiltin eval list = do
         let go emit = runQuote $ do
-                -- foldList {dyn} {unit} (\(r : unit) -> emit) unitval list
-                dyn      <- getTypeEncoding $ argumentProxy proxyListDyn
+                -- foldList {a} {unit} (\(r : unit) -> emit) unitval list
+                a        <- getTypeEncoding $ Proxy @a
                 unit     <- getBuiltinUnit
                 unitval  <- getBuiltinUnitval
                 foldList <- getBuiltinFoldList
                 u <- freshName () "u"
                 return $
-                    mkIterApp () (mkIterInst () foldList [dyn, unit])
+                    mkIterApp () (mkIterInst () foldList [a, unit])
                         [LamAbs () u unit emit, unitval, list]
-        let (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
+            (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
         res <- getRes
         return $ PlcList xs <$ evaluationResultToMaybe res
 

@@ -30,11 +30,11 @@ import qualified Data.Set               as Set
 import qualified Data.Text.Encoding     as TE
 import           GHC.Generics           (Generic)
 
-import           Ledger                 (Address', Tx (..), TxIn (..), TxIn', TxOut (..), TxOut', TxOutRef (..),
-                                         TxOutRef', Value, hashTx)
+import           Ledger                 (Address, Tx (..), TxIn, TxInOf (..), TxOut, TxOutOf (..), TxOutRef,
+                                         TxOutRefOf (..), Value, hashTx)
 
--- | A map of [[Address']]es and their unspent outputs
-newtype AddressMap = AddressMap { getAddressMap :: Map Address' (Map TxOutRef' TxOut') }
+-- | A map of [[Address]]es and their unspent outputs
+newtype AddressMap = AddressMap { getAddressMap :: Map Address (Map TxOutRef TxOut) }
     deriving Show
     deriving stock (Generic)
     deriving newtype (Serialise)
@@ -42,8 +42,8 @@ newtype AddressMap = AddressMap { getAddressMap :: Map Address' (Map TxOutRef' T
 -- NB: The ToJSON and FromJSON instance for AddressMap use the `Serialise`
 -- instance with a base64 encoding, similar to the instances in Types.hs.
 -- I chose this approach over the generic deriving mechanism because that would
--- have required `ToJSONKey` and `FromJSONKey` instances for `Address'` and
--- `TxOutRef'` which ultimately would have introduced more boilerplate code
+-- have required `ToJSONKey` and `FromJSONKey` instances for `Address` and
+-- `TxOutRef` which ultimately would have introduced more boilerplate code
 -- than what we have here.
 
 instance ToJSON AddressMap where
@@ -64,8 +64,8 @@ instance Monoid AddressMap where
     mappend = (<>)
     mempty = AddressMap Map.empty
 
-type instance Index AddressMap = Address'
-type instance IxValue AddressMap = Map TxOutRef' TxOut'
+type instance Index AddressMap = Address
+type instance IxValue AddressMap = Map TxOutRef TxOut
 
 instance Ixed AddressMap where
     ix adr f (AddressMap mp) = AddressMap <$> ix adr f mp
@@ -77,31 +77,31 @@ instance At AddressMap where
 
 -- | Add an address with no unspent outputs. If the address already exists, do
 --   nothing.
-addAddress :: Address' -> AddressMap -> AddressMap
+addAddress :: Address -> AddressMap -> AddressMap
 addAddress adr (AddressMap mp) = AddressMap $ Map.alter upd adr mp where
-    upd :: Maybe (Map TxOutRef' TxOut') -> Maybe (Map TxOutRef' TxOut')
+    upd :: Maybe (Map TxOutRef TxOut) -> Maybe (Map TxOutRef TxOut)
     upd = maybe (Just Map.empty) Just
 
--- | Add a list of [[Address']]es with no unspent outputs
-addAddresses :: [Address'] -> AddressMap -> AddressMap
+-- | Add a list of [[Address]]es with no unspent outputs
+addAddresses :: [Address] -> AddressMap -> AddressMap
 addAddresses = flip (foldr addAddress)
 
 -- | The total value of unspent outputs at an address
-values :: AddressMap -> Map Address' Value
+values :: AddressMap -> Map Address Value
 values = Map.map (getSum . foldMap (Sum . txOutValue)) . getAddressMap
 
 -- | An [[AddressMap]] with the unspent outputs of a single transaction
 fromTxOutputs :: Tx -> AddressMap
 fromTxOutputs tx =
     AddressMap . Map.fromListWith Map.union . fmap mkUtxo . zip [0..] . txOutputs $ tx where
-    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRef h i) t)
+    mkUtxo (i, t) = (txOutAddress t, Map.singleton (TxOutRefOf h i) t)
     h = hashTx tx
 
 -- | A map of unspent transaction outputs to their addresses (the "inverse" of
 --   [[AddressMap]], without the values
-knownAddresses :: AddressMap -> Map TxOutRef' Address'
+knownAddresses :: AddressMap -> Map TxOutRef Address
 knownAddresses = Map.fromList . unRef . Map.toList . getAddressMap where
-    unRef :: [(Address', Map TxOutRef' TxOut')] -> [(TxOutRef', Address')]
+    unRef :: [(Address, Map TxOutRef TxOut)] -> [(TxOutRef, Address)]
     unRef lst = do
         (a, outRefs) <- lst
         (rf, _) <- Map.toList outRefs
@@ -117,11 +117,11 @@ updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) w
     upd adr mp = Map.union (producedAt adr) mp `Map.difference` consumedFrom adr
 
     -- The TxOutRefs produced by the transaction, for a given address
-    producedAt :: Address' -> Map TxOutRef' TxOut'
+    producedAt :: Address -> Map TxOutRef TxOut
     producedAt adr = Map.findWithDefault Map.empty adr outputs
 
     -- The TxOutRefs consumed by the transaction, for a given address
-    consumedFrom :: Address' -> Map TxOutRef' ()
+    consumedFrom :: Address -> Map TxOutRef ()
     consumedFrom adr = maybe Map.empty (Map.fromSet (const ())) $ Map.lookup adr consumedInputs
 
     consumedInputs = inputs (knownAddresses utxo) (Set.toList $ txInputs tx)
@@ -130,16 +130,16 @@ updateAddresses tx utxo = AddressMap $ Map.mapWithKey upd (getAddressMap utxo) w
 
 -- Inputs consumed by the transaction, index by address.
 inputs ::
-    Map TxOutRef' Address'
-    -- ^ A map of [[TxOutRef']]s to their [[Address']]es
-    -> [TxIn']
-    -> Map Address' (Set.Set TxOutRef')
+    Map TxOutRef Address
+    -- ^ A map of [[TxOutRef]]s to their [[Address]]es
+    -> [TxIn]
+    -> Map Address (Set.Set TxOutRef)
 inputs addrs = Map.fromListWith Set.union
     . fmap (fmap Set.singleton . swap)
     . mapMaybe ((\a -> sequence (a, Map.lookup a addrs)) . txInRef)
 
 -- | Restrict an [[AddressMap]] to a set of addresses.
-restrict :: AddressMap -> Set.Set Address' -> AddressMap
+restrict :: AddressMap -> Set.Set Address -> AddressMap
 restrict (AddressMap mp) = AddressMap . Map.restrictKeys mp
 
 swap :: (a, b) -> (b, a)

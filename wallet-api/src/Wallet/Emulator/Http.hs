@@ -39,7 +39,7 @@ import           Wallet.Emulator.Types      (Assertion (IsValidated, OwnFundsEqu
                                              chainNewestFirst, emptyEmulatorState, emptyWalletState, liftMockWallet,
                                              txPool, walletStates)
 
-import           Ledger                     (Address', Block, Slot, Tx, TxIn', TxOut', Value)
+import           Ledger                     (Address, Block, Slot, Tx, TxIn, TxOut, Value)
 import qualified Wallet.Emulator.Types      as Types
 
 type WalletAPI
@@ -47,14 +47,14 @@ type WalletAPI
      :<|> "wallets" :> Capture "walletid" Wallet :> Get '[ JSON] Wallet
      :<|> "wallets" :> ReqBody '[ JSON] Wallet :> Post '[ JSON] NoContent
      :<|> "wallets" :> Capture "walletid" Wallet :> "my-key-pair" :> Get '[ JSON] KeyPair
-     :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn', Maybe TxOut')
+     :<|> "wallets" :> Capture "walletid" Wallet :> "payments" :> ReqBody '[ JSON] Value :> Post '[ JSON] (Set TxIn, Maybe TxOut)
 -- This is where the line between wallet API and control API is crossed
 -- Returning the [Tx] only makes sense when running a WalletAPI m => m () inside a Trace, but not on the wallet API on its own,
 --   otherwise the signature of submitTxn would be submitTxn :: Tx -> m [Tx]
 -- Unfortunately we need to return the Tx here because we have to reference it later. So I can't see a way around this change.
      :<|> "wallets" :> Capture "walletid" Wallet :> "transactions" :> ReqBody '[ JSON] Tx :> Post '[ JSON] [Tx]
      :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> Get '[JSON] AddressMap
-     :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> ReqBody '[JSON] Address' :> Post '[JSON] NoContent
+     :<|> "wallets" :> Capture "walletid" Wallet :> "watched-addresses" :> ReqBody '[JSON] Address :> Post '[JSON] NoContent
      :<|> "wallets" :> Capture "walletid" Wallet :> "current-slot" :> Get '[JSON] Slot
      :<|> "wallets" :> "transactions" :> Get '[ JSON] [Tx]
 
@@ -115,7 +115,7 @@ createPaymentWithChange ::
      (MonadReader ServerState m, MonadIO m, MonadError ServantErr m)
   => Wallet
   -> Value
-  -> m (Set.Set TxIn', Maybe TxOut')
+  -> m (Set.Set TxIn, Maybe TxOut)
 createPaymentWithChange wallet =
   runWalletAction wallet . WAPI.createPaymentWithChange
 
@@ -142,7 +142,7 @@ getWatchedAddresses _ = throwError err501 -- not implemented
 
 startWatching :: MonadError ServantErr m
   => Wallet
-  -> Address'
+  -> Address
   -> m NoContent
 startWatching _ _ = throwError err501 -- not implemented
 
@@ -258,13 +258,12 @@ processPending = do
 processPendingSTM :: TVar EmulatorState -> STM [Tx]
 processPendingSTM var = do
   es <- readTVar var
-  let (block, _) = Types.validateBlock es (_txPool es)
-      newState = addBlock block . emptyPool $ es
+  let Types.ValidatedBlock block _ rest = Types.validateBlock es (_txPool es)
+      newState = addBlock block . set txPool rest $ es
   writeTVar var newState
   pure block
   where
     addBlock block = over chainNewestFirst ((:) block)
-    emptyPool = set txPool []
 
 api :: Proxy API
 api = Proxy

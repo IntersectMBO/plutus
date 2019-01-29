@@ -1,3 +1,0 @@
-(program 1.0.0
-  (lam ds_78 [(con integer) (con 8)] ds_78)
-)

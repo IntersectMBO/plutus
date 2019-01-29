@@ -40,7 +40,6 @@ library
     , bytestring
     , containers
     , plutus-tx -any
-    , plutus-tx-plugin -any
     , hint >= 0.9.0
     , http-media
     , insert-ordered-containers
@@ -52,6 +51,7 @@ library
     , newtype-generics
     , plutus-use-cases
     , servant
+    , split
     , swagger2
     , template-haskell
     , text
