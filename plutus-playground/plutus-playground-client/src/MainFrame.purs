@@ -89,10 +89,14 @@ evalWithAnalyticsTracking ::
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
+  liftEff $ analyticsTracking query
+  eval query
+
+analyticsTracking :: forall eff a. Query a -> Eff (analytics :: ANALYTICS | eff) Unit
+analyticsTracking query = do
   case toEvent query of
     Nothing -> pure unit
-    Just event -> liftEff $ trackEvent event
-  eval query
+    Just event -> trackEvent event
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
