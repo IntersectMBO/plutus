@@ -41,7 +41,7 @@ let
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
-  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-01-08T09:58:14Z"; };
+  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-01-29T09:58:14Z"; };
 
   comp = f: g: (v: f(g v));
 in lib // {

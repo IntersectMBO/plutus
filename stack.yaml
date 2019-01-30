@@ -12,12 +12,7 @@ packages:
 - plutus-playground/plutus-playground-lib
 - plutus-tutorial
 
-# Add custom stylish-haskell while waiting for PR upstream: https://github.com/jaspervdj/stylish-haskell/pull/214
-- location:
-    git: https://github.com/input-output-hk/stylish-haskell.git
-    commit: ecfd3b307d8d13a6d12aff03055f25a39a17e182
-  extra-dep: true
-
+# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
     git: https://github.com/shmish111/servant-purescript.git
     commit: 315ccf5d720937c091c8cf3aca8adc8110766a23
