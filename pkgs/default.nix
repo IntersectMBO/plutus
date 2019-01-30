@@ -65353,7 +65353,6 @@ license = stdenv.lib.licenses.bsd3;
 , case-insensitive
 , containers
 , directory
-, fetchgit
 , filepath
 , http-types
 , lens
@@ -65378,15 +65377,8 @@ license = stdenv.lib.licenses.bsd3;
 mkDerivation {
 
 pname = "servant-subscriber";
-version = "0.6.0.1";
-src = fetchgit {
-
-url = "https://github.com/smobs/servant-subscriber.git";
-sha256 = "0gnmcvd7dcffj42cqcr9zwbvz1g5jdanxdpa76bkkgfabsbnag0s";
-rev = "0354e99f5e1d244d5ec01f78e7e7439478b1d1d3";
-fetchSubmodules = true;
-
-};
+version = "0.6.0.2";
+sha256 = "e6df19c3e7f548faf727381fb5738e682bd62df0fa29d559e26e64b88b66263e";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
