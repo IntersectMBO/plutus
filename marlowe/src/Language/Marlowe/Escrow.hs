@@ -1,7 +1,7 @@
 module Language.Marlowe.Escrow where
 
 import           Language.Marlowe
-import           Wallet.API              (PubKey (..))
+import           Wallet.API       (PubKey (..))
 
 {-
 ------------------------------------------
