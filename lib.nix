@@ -34,6 +34,7 @@ let
     "plutus-tx"
     "plutus-tutorial"
     "plutus-use-cases"
+    "marlowe"
     "wallet-api"
   ];
 

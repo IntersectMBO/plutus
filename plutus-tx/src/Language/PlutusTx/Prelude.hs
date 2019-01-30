@@ -30,6 +30,7 @@ module Language.PlutusTx.Prelude (
     isNothing,
     maybe,
     -- * Lists
+    null,
     map,
     foldr,
     foldl,

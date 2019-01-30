@@ -194,6 +194,19 @@ maybe = [|| \b f m ->
         Nothing -> b
         Just a  -> f a ||]
 
+-- | PlutusTx version of 'Data.List.null'.
+--
+--   >>> $$([|| $$(null) [1] ||])
+--   False
+--   >>> $$([|| $$(null) [] ||])
+--   True
+--
+null :: Q (TExp ([a] -> Bool))
+null = [|| \ l -> case l of
+        [] -> True
+        _  -> False
+    ||]
+
 -- | PlutusTx version of 'Data.List.map'.
 --
 --   >>> $$([|| $$(map) (\i -> i + 1) [1, 2, 3] ||])

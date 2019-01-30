@@ -1,4 +1,5 @@
 packages: language-plutus-core
+          marlowe
           plutus-core-interpreter
           plutus-exe
           wallet-api
