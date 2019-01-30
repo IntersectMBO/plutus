@@ -2,13 +2,13 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TemplateHaskell  #-}
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the UTXO index.
 module Ledger.Index(
     --  * Types for transaction validation based on UTXO index
     ValidationMonad,
     UtxoIndex(..),
-    empty,
     insert,
     insertBlock,
     initialise,
@@ -32,6 +32,7 @@ import qualified Data.Map             as Map
 import           Data.Semigroup       (Semigroup, Sum (..))
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
+import qualified Ledger.Interval      as Interval
 import           Ledger.Types         (Blockchain, DataScript, PubKey, Signature, Slot (..), Tx (..), TxIn, TxInOf (..),
                                        TxOut, TxOutOf (..), TxOutRef, ValidationData (..), Value, lifted, updateUtxo,
                                        validValuesTx)
@@ -46,11 +47,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The transactions of a blockchain indexed by hash
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
-    deriving (Eq, Ord, Show, Semigroup)
-
--- | An empty [[UtxoIndex]]
-empty :: UtxoIndex
-empty = UtxoIndex Map.empty
+    deriving (Eq, Ord, Show, Semigroup, Monoid)
 
 -- | Create an index of all transactions on the chain
 initialise :: Blockchain -> UtxoIndex
@@ -85,6 +82,8 @@ data ValidationError =
     -- ^ The transaction produces an output with a negative value
     | ScriptFailure [String]
     -- ^ (for pay-to-script outputs) Evaluation of the validator script failed
+    | CurrentSlotOutOfRange Slot
+    -- ^ The current slot is not covered by the transaction's validity slot range.
     deriving (Eq, Ord, Show, Generic)
 
 instance FromJSON ValidationError
@@ -118,15 +117,22 @@ validateTransaction :: ValidationMonad m
     -> Tx
     -> m ()
 validateTransaction h t =
-    checkValuePreserved t >> checkPositiveValues t >> checkValidInputs h t
+    checkSlotRange h t >> checkValuePreserved t >> checkPositiveValues t >> checkValidInputs t
+
+-- | Check that a transaction can be validated in the given slot.
+checkSlotRange :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
+checkSlotRange sl tx = 
+    if $$(Interval.member) sl (txValidRange tx)
+    then pure ()
+    else throwError $ CurrentSlotOutOfRange sl
 
 -- | Check if the inputs of the transaction consume outputs that
 --   (a) exist and
 --   (b) can be unlocked by the signatures or validator scripts of the inputs
-checkValidInputs :: ValidationMonad m => Ledger.Slot -> Tx -> m ()
-checkValidInputs h tx = do
+checkValidInputs :: ValidationMonad m => Tx -> m ()
+checkValidInputs tx = do
     matches <- lkpOutputs tx >>= traverse (uncurry matchInputOutput)
-    vld     <- validationData h tx
+    vld     <- validationData tx
     traverse_ (checkMatch vld) matches
 
 -- | Match each input of the transaction with its output
@@ -197,8 +203,8 @@ checkPositiveValues t =
     else throwError $ NegativeValue t
 
 -- | Encode the current transaction and slot in PLC.
-validationData :: ValidationMonad m => Slot -> Tx -> m PendingTx
-validationData h tx = rump <$> ins where
+validationData :: ValidationMonad m => Tx -> m PendingTx
+validationData tx = rump <$> ins where
     ins = traverse mkIn $ Set.toList $ txInputs tx
 
     rump inputs = PendingTx
@@ -206,9 +212,8 @@ validationData h tx = rump <$> ins where
         , pendingTxOutputs = mkOut <$> txOutputs tx
         , pendingTxForge = txForge tx
         , pendingTxFee = txFee tx
-        , pendingTxSlot = h
-        , pendingTxIn = head inputs
-        -- this is changed accordingly in `checkMatch` during validation
+        , pendingTxIn = head inputs -- this is changed accordingly in `checkMatch` during validation
+        , pendingTxValidRange = txValidRange tx
         }
 
 mkOut :: TxOut -> Validation.PendingTxOut

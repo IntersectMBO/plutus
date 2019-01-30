@@ -258,13 +258,12 @@ processPending = do
 processPendingSTM :: TVar EmulatorState -> STM [Tx]
 processPendingSTM var = do
   es <- readTVar var
-  let (block, _) = Types.validateBlock es (_txPool es)
-      newState = addBlock block . emptyPool $ es
+  let Types.ValidatedBlock block _ rest = Types.validateBlock es (_txPool es)
+      newState = addBlock block . set txPool rest $ es
   writeTVar var newState
   pure block
   where
     addBlock block = over chainNewestFirst ((:) block)
-    emptyPool = set txPool []
 
 api :: Proxy API
 api = Proxy

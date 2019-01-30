@@ -15,6 +15,7 @@ module PlcTestUtils (
 import           Common
 
 import           Language.PlutusCore
+import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Pretty
 
@@ -52,11 +53,18 @@ runPlc values = do
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
 
+ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
+ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
+
 goldenPlc :: GetProgram a => String -> a -> TestNested
-goldenPlc name value = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ getProgram value)
+goldenPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
+    p <- getProgram value
+    withExceptT toException $ deBruijnProgram p
 
 goldenPlcCatch :: GetProgram a => String -> a -> TestNested
-goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ getProgram value
+goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
+    p <- getProgram value
+    withExceptT toException $ deBruijnProgram p
 
 goldenEval :: GetProgram a => String -> [a] -> TestNested
 goldenEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlc values)

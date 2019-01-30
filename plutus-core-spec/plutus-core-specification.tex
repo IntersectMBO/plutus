@@ -127,14 +127,15 @@
 \newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
 
 
-\newcommand{\inConT}[2]{\conT{#1}{#2}}
-\newcommand{\inAppTLeft}[2]{\appT{#1}{#2}}
-\newcommand{\inAppTRight}[2]{\appT{#1}{#2}}
-\newcommand{\inFunTLeft}[2]{\funT{#1}{#2}}
-\newcommand{\inFunTRight}[2]{\funT{#1}{#2}}
-\newcommand{\inAllT}[3]{\allT{#1}{#2}{#3}}
-\newcommand{\inFixT}[2]{\fixT{#1}{#2}}
-\newcommand{\inLamT}[3]{\lamT{#1}{#2}{#3}}
+\newcommand{\inConTFrame}[1]{\conT{#1}{\_}}
+\newcommand{\inAppTLeftFrame}[1]{\appT{\_}{#1}}
+\newcommand{\inAppTRightFrame}[1]{\appT{#1}{\_}}
+\newcommand{\inFunTLeftFrame}[1]{\funT{\_}{#1}}
+\newcommand{\inFunTRightFrame}[1]{\funT{#1}{\_}}
+\newcommand{\inAllTFrame}[2]{\allT{#1}{#2}{\_}}
+\newcommand{\inFixTLeftFrame}[1]{\fixT{\_}{#1}}
+\newcommand{\inFixTRightFrame}[1]{\fixT{#1}{\_}}
+\newcommand{\inLamTFrame}[2]{\lamT{#1}{#2}{\_}}
 
 \newcommand{\inBuiltin}[5]{\builtin{#1}{#2}{#3 #4 #5}}
 
@@ -288,7 +289,7 @@ ought to be included as sugar.
   Note that we require the body of the abstraction to be a
   \textit{value}, not a term: see the note on the value restriction below.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
-\item $\wrap{\alpha}{A}{V}$ and $\unwrap{M}$: see the note on recursive types below.
+\item $\wrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction: $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
 \item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see \S\ref{sec:builtins} for more information.
@@ -316,7 +317,7 @@ ought to be included as sugar.
 \item Sizes $s$ are natural numbers used to enforce bounds on certain types of values: see below.
 \item $\funT{A}{B}$ is the type of functions from $A$ to $B$, $A \rightarrow B$.
 \item $\allT{\alpha}{K}{A}$ represents the type of a polymorphic term (eg a type abstraction), $\forall \alpha{::}K.A$.
-\item $\fixT{\alpha}{A}$ represents a recursive type $\fixtype{A}$: see the note on recursive types below.
+\item $\fixT{A}{B}$ represents a recursive type: see the note in \S\ref{sec:ifix-note} below for more information.
 \item $\lamT{\alpha}{K}{A}$ is abstraction of types over types, $\lambda \alpha{::}K.A$.
 \item $\appT{A}{B}$ is function application at the type level.
 \item $\conT{tcn}{A}$ represents a built-in type, and $A$ will often be a size.  For example, $\conT{\textrm{integer}}{8}$
@@ -394,32 +395,42 @@ which will increase as the size of the integers involved increases.
 
 
 \subsubsection{Recursive types}
-The operator $\texttt{fix}$ allows one to
-define recursive types in Plutus Core: $\fixT{\alpha}{A}$ is a type
-$\fixtype{A}$ such that $\fixtype{A} \cong [\fixtype{A}/\alpha]A$; in
-practice the type $A$ here will usually be a function type involving
-$\alpha$.  Note that we have an \textit{isomporhism} of types here
-rather than equality.  Fixpoint types are
+\label{sec:ifix-note}
+\noindent
+The operator \texttt{fix} allows one to define recursive types in
+Plutus Core: \texttt{fix A B} is a type such that \texttt{fix A B
+  $\cong$ A (fix A) B} where \texttt{A} is a \textit{pattern
+  functor}~\cite[2.4]{backhouseetal98} and \texttt{B} is an
+index. Pattern functors that \texttt{fix} receives bind two variables:
+one for building recursive occurrences and the other to act as an
+index. Indices can be used in order to get parameterized data types,
+but also in order to control the shape of the data type: depending on
+an index, recursive occurrences can be instantiated differently.  This
+allows us to encode a wide variety of data types, including non-regular and
+mutually recursive data types.
+
+Note that we have an \textit{isomporhism} of types here
+rather than equality: fixpoint types are
 \textit{isorecursive}~\cite[20.2]{Pierce:TAPL} with explicit maps
-\texttt{wrap}: $[\fixtype{A}/\alpha]A \rightarrow \fixtype{A}$ and
-\texttt{unwrap}: $\fixtype{A} \rightarrow [\fixtype{A}/\alpha]A$.
-The use of isorecursive types makes it somewhat more difficult to
+
+$$
+\texttt{wrap} : \texttt{A (fix A) B} \rightarrow \texttt{fix A B}
+$$
+
+\noindent and
+
+$$
+\texttt{unwrap} : \texttt{fix A B} \rightarrow  \texttt{A (fix A) B}
+$$
+
+\noindent The use of isorecursive types makes it somewhat more difficult to
 write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
 
-\noindent\blue{Do we want an example here?  Also, ``isorecursive'' or ``iso-recursive''? 
+\noindent\blue{We could do with a simple example here, and perhaps a more detailed explanation
+  later?  Also, ``isorecursive'' or ``iso-recursive''? 
 Is it true that we have an isomporhism, and not a retraction or something?}
-
-% As an example, consider the program in Figure
-% \ref{fig:Plutus_core_example}, which defines the type of natural
-% numbers as well as lists, and the factorial and map functions. This
-% program is not the most readable, which is to be expected from a
-% representation intended for machine interpretation rather than human
-% interpretation, but it does make explicit precisely what the roles
-% are of the various parts.
-
-%\subfile{figures/PlutusCoreExample}
 
 
 \subsubsection{The value restriction}
@@ -552,11 +563,8 @@ conjunction with \texttt{size} provides integers of specified sizes,
 and the \texttt{bytestring} type provides sequences of bytes, again of
 specified sizes.  These types are given in
 Figure~\ref{fig:Plutus_core_type_constants}:  for example 
-\texttt{(builtin integer 10)} is the type of signed 10-byte integers.
+\texttt{(con integer 10)} is the type of signed 10-byte integers.
 
-\red{Is it \texttt{con} or \texttt{builtin}?  I think there's a 
-conflict between Figure~\ref{fig:Plutus_core_type_abbreviations}
-and Figure~\ref{fig:Plutus_core_grammar}.}
 
 Terms of these types are written using the \texttt{!} character, as
 shown in Figure~\ref{fig:Plutus_core_constants}.  For example

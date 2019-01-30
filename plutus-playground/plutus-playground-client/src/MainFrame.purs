@@ -51,10 +51,10 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(Success, Failure, Loading, NotAsked))
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema)
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
 import Playground.Server (SPParams_, postContract, postEvaluate)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (<$>), (<*>), (<<<), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, unit, void, ($), (+), (-), (<$>), (<*>), (<<<), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -89,10 +89,14 @@ evalWithAnalyticsTracking ::
   => MonadAsk (SPSettings_ SPParams_) m
   => Query ~> HalogenM State Query ChildQuery ChildSlot Void m
 evalWithAnalyticsTracking query = do
+  liftEff $ analyticsTracking query
+  eval query
+
+analyticsTracking :: forall eff a. Query a -> Eff (analytics :: ANALYTICS | eff) Unit
+analyticsTracking query = do
   case toEvent query of
     Nothing -> pure unit
-    Just event -> liftEff $ trackEvent event
-  eval query
+    Just event -> trackEvent event
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -329,7 +333,7 @@ toAnnotation (RawError _) = Nothing
 toAnnotation (CompilationError {row, column, text}) =
   Just
     { type: "error"
-    , row
+    , row: row - 1
     , column
     , text: String.joinWith "\n" text
     }
@@ -347,8 +351,8 @@ render state =
         ]
     , stripeContainer_ [
         case state.compilationResult of
-          Success (Right functionSchemas) ->
-            simulationPane functionSchemas state.wallets state.actions state.evaluationResult
+          Success (Right compilationResult) ->
+            simulationPane (view (_CompilationResult <<< _functionSchema) compilationResult) state.wallets state.actions state.evaluationResult
           Failure error -> ajaxErrorPane error
           _ -> empty
       ]

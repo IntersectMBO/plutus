@@ -36,6 +36,7 @@ executable plc
         transformers -any,
         bytestring -any,
         text -any,
+        lens -any,
         prettyprinter -any,
         optparse-applicative -any
 

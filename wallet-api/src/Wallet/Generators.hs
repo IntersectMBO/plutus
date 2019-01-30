@@ -1,4 +1,6 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE RecordWildCards  #-}
 module Wallet.Generators(
     -- * Mockchain
     Mockchain(..),
@@ -21,22 +23,26 @@ module Wallet.Generators(
     genValue,
     Wallet.Generators.runTrace,
     runTraceOn,
-    splitVal
+    splitVal,
+    validateMockchain
     ) where
 
-import           Data.Bifunctor  (Bifunctor (..))
-import           Data.Map        (Map)
-import qualified Data.Map        as Map
-import           Data.Maybe      (catMaybes)
-import           Data.Monoid     (Sum (..))
-import           Data.Set        (Set)
-import qualified Data.Set        as Set
-import           GHC.Stack       (HasCallStack)
+import           Data.Bifunctor              (Bifunctor (..))
+import           Data.Map                    (Map)
+import qualified Data.Map                    as Map
+import           Data.Maybe                  (catMaybes, isNothing)
+import           Data.Monoid                 (Sum (..))
+import           Data.Set                    (Set)
+import qualified Data.Set                    as Set
+import           GHC.Stack                   (HasCallStack)
 import           Hedgehog
-import qualified Hedgehog.Gen    as Gen
-import qualified Hedgehog.Range  as Range
+import qualified Hedgehog.Gen                as Gen
+import qualified Hedgehog.Range              as Range
+import qualified Ledger.Interval             as Interval
+import qualified Ledger.Index                as Index
 
 import           Ledger
+import qualified Wallet.API      as W
 import           Wallet.Emulator as Emulator
 
 data GeneratorModel = GeneratorModel {
@@ -106,7 +112,8 @@ genInitialTransaction GeneratorModel{..} =
         txInputs = Set.empty,
         txOutputs = o,
         txForge = t,
-        txFee = 0
+        txFee = 0,
+        txValidRange = W.intervalFrom 0
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.
@@ -162,7 +169,8 @@ genValidTransactionSpending' g f ins totalVal = do
                     txInputs = ins,
                     txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
                     txForge = 0,
-                    txFee = fee }
+                    txFee = fee,
+                    txValidRange = $$(Interval.always) }
         else Gen.discard
 
 genValue :: MonadGen m => m Value
@@ -173,7 +181,14 @@ assertValid :: (MonadTest m, HasCallStack)
     => Tx
     -> Mockchain
     -> m ()
-assertValid tx (Mockchain ch _) = Hedgehog.assert (validTx unitValidationData tx [ch])
+assertValid tx mc = Hedgehog.assert $ isNothing $ validateMockchain mc tx
+
+-- | Validate a transaction in a mockchain
+validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
+validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
+    h      = lastSlot [blck]
+    idx    = Index.initialise [blck]
+    result = Index.runValidation (Index.validateTransaction h tx) idx
 
 -- | Run an emulator trace on a mockchain
 runTrace ::

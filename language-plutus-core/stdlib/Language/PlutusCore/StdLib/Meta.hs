@@ -1,9 +1,10 @@
 -- | Functions that generate Plutus Core terms from Haskell values and vice versa.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Meta
     ( getBuiltinIntegerToNat
-    , getBuiltinNatSum
+    , getEitherToBuiltinSum
     , getListToBuiltinList
     ) where
 
@@ -11,11 +12,13 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Type
+
 import           Language.PlutusCore.StdLib.Data.List
 import           Language.PlutusCore.StdLib.Data.Nat
-import           Language.PlutusCore.StdLib.Type
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import           Language.PlutusCore.StdLib.Data.Sum
+
+import           Data.Functor                         ((<&>))
 
 -- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
 getBuiltinIntegerToNat :: Integer -> Quote (Term TyName Name ())
@@ -25,30 +28,16 @@ getBuiltinIntegerToNat n
           go 0 = getBuiltinZero
           go m = Apply () <$> getBuiltinSucc <*> go (m - 1)
 
--- | @sumNat@ as a PLC term.
-getBuiltinNatSum :: Natural -> Quote (Term TyName Name ())
-getBuiltinNatSum s = rename =<< do
-    foldList <- getBuiltinFoldList
-    let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
-    nat1 <- _recursiveType <$> getBuiltinNat
-    let add = TyInst () (Builtin () (BuiltinName () AddInteger)) $ TyInt () s
-    nti <- getBuiltinNatToInteger
-    acc <- freshName () "acc"
-    n <- freshName () "n"
-    nat2 <- _recursiveType <$> getBuiltinNat
-    return
-        $ mkIterApp () (mkIterInst () foldList [nat1, int])
-          [   LamAbs () acc int
-            . LamAbs () n nat2
-            . mkIterApp () add
-            $ [ Var () acc
-              , mkIterApp () (TyInst () nti (TyInt () s))
-                  [ Constant () $ BuiltinSize () s
-                  , Var () n
-                  ]
-              ]
-          , Constant () $ BuiltinInt () s 0
-          ]
+-- | Convert a Haskell 'Either' to a PLC @sum@.
+getEitherToBuiltinSum
+    :: Type TyName ()
+    -> Type TyName ()
+    -> Either (Term TyName Name ()) (Term TyName Name ())
+    -> Quote (Term TyName Name ())
+getEitherToBuiltinSum a b (Left  x) =
+    getBuiltinLeft  <&> \left  -> Apply () (mkIterInst () left  [a, b]) x
+getEitherToBuiltinSum a b (Right y) =
+    getBuiltinRight <&> \right -> Apply () (mkIterInst () right [a, b]) y
 
 -- | Convert a Haskell list of 'Term's to a PLC @list@.
 getListToBuiltinList :: Type TyName () -> [Term TyName Name ()] -> Quote (Term TyName Name ())
@@ -56,6 +45,6 @@ getListToBuiltinList ty ts = rename =<< do
     builtinNil  <- getBuiltinNil
     builtinCons <- getBuiltinCons
     return $ foldr
-        (\x xs -> foldl' (Apply ()) (TyInst () builtinCons ty) [x, xs])
+        (\x xs -> mkIterApp () (TyInst () builtinCons ty) [x, xs])
         (TyInst () builtinNil ty)
         ts

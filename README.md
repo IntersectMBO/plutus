@@ -30,8 +30,18 @@ https://hydra.iohk.io/job/serokell/plutus/language-plutus-core.x86_64-linux/late
 
 You can also build the docs yourself locally. For example:
 ```
+# Haddock for language-plutus-core
 nix build -f default.nix localPackages.language-plutus-core.doc
+# Combined Haddock for all our packages
+nix build -f default.nix localPackages.combined-haddock
 ```
+
+### Deploying the docs
+
+The combined Haddocks are deployed to the [Github Pages page](https://input-output-hk.github.io/plutus/).
+
+Deploying the docs means committing to the `gh-pages` branch. You can do this automatically
+by running `./deploy-docs.sh`, and pushing the result if it looks good.
 
 ## Glossary
 

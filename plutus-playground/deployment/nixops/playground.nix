@@ -71,11 +71,6 @@
     '';
 
     upstreams.playground.servers."127.0.0.1:4000" = {};
-    upstreams.playground.servers."127.0.0.1:4001" = {};
-    upstreams.playground.servers."127.0.0.1:4002" = {};
-    upstreams.playground.servers."127.0.0.1:4003" = {};
-    upstreams.playground.servers."127.0.0.1:4004" = {};
-    upstreams.playground.servers."127.0.0.1:4005" = {};
 
     virtualHosts = {
       "~." = {
@@ -98,12 +93,7 @@
     };
   };
 
-  systemd.services.plutus-playground-0 = playgroundInstance "4000";
-  systemd.services.plutus-playground-1 = playgroundInstance "4001";
-  systemd.services.plutus-playground-2 = playgroundInstance "4002";
-  systemd.services.plutus-playground-3 = playgroundInstance "4003";
-  systemd.services.plutus-playground-4 = playgroundInstance "4004";
-  systemd.services.plutus-playground-5 = playgroundInstance "4005";
+  systemd.services.plutus-playground = playgroundInstance "4000";
 
 };
 }

@@ -18,7 +18,6 @@ module Language.PlutusCore.Constant.Function
     , insertDynamicBuiltinNameDefinition
     , withTypedBuiltinName
     , typeOfTypedBuiltinName
-    , typeOfBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Name
@@ -143,7 +142,3 @@ withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
-
--- | Return the 'Type' of a 'BuiltinName'.
-typeOfBuiltinName :: BuiltinName -> Quote (Type TyName ())
-typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName

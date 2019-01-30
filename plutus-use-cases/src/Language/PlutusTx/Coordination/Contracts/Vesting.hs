@@ -25,9 +25,11 @@ import           Ledger.Validation            (PendingTx (..), PendingTxOut (..)
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       (DataScript (..), Slot(..), PubKey (..), TxOutRef, ValidatorScript (..), Value (..), scriptTxIn, scriptTxOut)
 import qualified Ledger                       as Ledger
+import qualified Ledger.Interval              as Interval
 import qualified Ledger.Validation            as Validation
 import           Prelude                      hiding ((&&))
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit)
+import qualified Wallet                       as W
+import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, ownPubKeyTxOut, createTxAndSubmit, defaultSlotRange)
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
@@ -74,7 +76,7 @@ vestFunds vst value = do
     let vs = validatorScript vst
         o = scriptTxOut value vs (DataScript $ Ledger.lifted vd)
         vd =  VestingData (validatorScriptHash vst) 0
-    _ <- createTxAndSubmit payment (o : maybeToList change)
+    _ <- createTxAndSubmit defaultSlotRange payment (o : maybeToList change)
     pure vd
 
 -- | Retrieve some of the vested funds.
@@ -88,12 +90,14 @@ retrieveFunds :: (
     -> m VestingData
 retrieveFunds vs vd r vnow = do
     oo <- ownPubKeyTxOut vnow
+    currentSlot <- slot
     let val = validatorScript vs
         o   = scriptTxOut remaining val (DataScript $ Ledger.lifted vd')
         remaining = totalAmount vs - vnow
         vd' = vd {vestingDataPaidOut = vnow + vestingDataPaidOut vd }
         inp = scriptTxIn r val Ledger.unitRedeemer
-    _ <- createTxAndSubmit (Set.singleton inp) [oo, o]
+        range = W.intervalFrom currentSlot
+    _ <- createTxAndSubmit range (Set.singleton inp) [oo, o]
     pure vd'
 
 validatorScriptHash :: Vesting -> ValidatorHash
@@ -106,7 +110,7 @@ validatorScriptHash =
 validatorScript :: Vesting -> ValidatorScript
 validatorScript v = ValidatorScript val where
     val = Ledger.applyScript inner (Ledger.lifted v)
-    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
+    inner = $$(Ledger.compileScript [|| \Vesting{..} () VestingData{..} (p :: PendingTx) ->
         let
 
             eqBs :: ValidatorHash -> ValidatorHash -> Bool
@@ -119,9 +123,9 @@ validatorScript v = ValidatorScript val where
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
 
-            PendingTx _ os _ _ (Slot h) _ = p
-            VestingTranche (Slot d1) (Value a1) = vestingTranche1
-            VestingTranche (Slot d2) (Value a2) = vestingTranche2
+            PendingTx _ os _ _ _ range = p
+            VestingTranche d1 (Value a1) = vestingTranche1
+            VestingTranche d2 (Value a2) = vestingTranche2
 
             -- We assume here that the txn outputs are always given in the same
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
@@ -133,8 +137,8 @@ validatorScript v = ValidatorScript val where
 
             -- Value that has been released so far under the scheme
             currentThreshold =
-                if h >= d1
-                then if h >= d2
+                if $$(Interval.contains) ($$(Interval.from) d1) range
+                then if $$(Interval.contains) ($$(Interval.from) d2) range
                     -- everything can be spent
                      then a1 + a2
                      -- only the first tranche can be spent (we are between d1 and d2)

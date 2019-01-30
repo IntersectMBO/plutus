@@ -13,6 +13,7 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
+import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
 import           Data.Foldable                              (traverse_)
@@ -116,7 +117,9 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-    let cfg = PLC.TypeConfig (case mode of {NotRequired -> True; Required -> False}) mempty mempty mempty PLC.defaultTypecheckerGas
+    let cfg = PLC.defOnChainConfig & PLC.tccDoNormTypes .~ case mode of
+                NotRequired -> True
+                Required    -> False
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
         Left (e :: PLC.Error PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
@@ -160,8 +163,7 @@ toTermExample :: PLC.Quote (PLC.Term PLC.TyName PLC.Name ()) -> TermExample
 toTermExample getTerm = TermExample ty term where
     term = PLC.runQuote getTerm
     program = PLC.Program () (PLC.defaultVersion ()) term
-    config = PLC.TypeConfig True mempty mempty mempty Nothing
-    ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline config program of
+    ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defOffChainConfig program of
         Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
         Right vTy                  -> PLC.getNormalizedType vTy
 

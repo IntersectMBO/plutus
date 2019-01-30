@@ -12,6 +12,7 @@ module Language.PlutusCore.StdLib.Meta.Data.Tuple
     , getBuiltinProdN
     , getBuiltinProdNConstructor
     , getBuiltinProdNAccessor
+    , getSpineToTuple
     ) where
 
 import           PlutusPrelude               (showText)
@@ -36,12 +37,23 @@ data Tuple ann = Tuple
 -- > getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -> ... -> an -> r) -> r
 getTupleType :: MonadQuote m => ann -> Tuple ann -> m (Type TyName ann)
 getTupleType ann (Tuple elTys _) = liftQuote $ do
-    resultTy <- freshTyName ann "r"
-    let caseTy = mkIterTyFun ann elTys (TyVar ann resultTy)
-    pure
-        . TyForall ann resultTy (Type ann)
-        . TyFun ann caseTy
-        $ TyVar ann resultTy
+    r <- freshTyName ann "r"
+    let caseTy = mkIterTyFun ann elTys $ TyVar ann r
+    pure . TyForall ann r (Type ann) . TyFun ann caseTy $ TyVar ann r
+
+-- | Convert a Haskell spine of 'Term's to a PLC 'Tuple'.
+--
+-- > getSpineToTuple _ [(a1, x1), ... , (an, xn)] =
+-- >     Tuple [a1, ... , an] (/\(r :: *) -> \(f :: a1 -> ... -> an -> r) -> f x1 ... xn)
+getSpineToTuple
+    :: MonadQuote m => ann -> [(Type TyName ann, Term TyName Name ann)] -> m (Tuple ann)
+getSpineToTuple ann spine = liftQuote $ do
+    r <- freshTyName ann "r"
+    f <- freshName ann "f"
+    let (as, xs) = unzip spine
+        caseTy = mkIterTyFun ann as $ TyVar ann r
+        y = mkIterApp ann (Var ann f) xs
+    pure . Tuple as . TyAbs ann r (Type ann) $ LamAbs ann f caseTy y
 
 -- | Get the type of the ith element of a 'Tuple' along with the element itself.
 --

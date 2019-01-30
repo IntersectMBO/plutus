@@ -29,11 +29,13 @@ import           Language.PureScript.Bridge                (BridgeData, BridgePa
 import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger.Index                              (ValidationError)
+import           Ledger.Interval                           (Interval, Slot)
 import           Ledger.Types                              (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
-                                                            Slot, Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
+                                                            Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript, Value)
-import           Playground.API                            (CompilationError, Evaluation, EvaluationResult, Expression,
-                                                            Fn, FunctionSchema, SimpleArgumentSchema, SourceCode)
+import           Playground.API                            (CompilationError, CompilationResult, Evaluation,
+                                                            EvaluationResult, Expression, Fn, FunctionSchema,
+                                                            SimpleArgumentSchema, SourceCode, Warning)
 import qualified Playground.API                            as API
 import           Playground.Usecases                       (crowdfunding, game, messages, vesting)
 import           Servant.PureScript                        (HasBridge, Settings, apiModuleName, defaultBridge,
@@ -139,6 +141,8 @@ myTypes :: [SumType 'Haskell]
 myTypes =
     [ mkSumType (Proxy @SimpleArgumentSchema)
     , mkSumType (Proxy @(FunctionSchema A))
+    , mkSumType (Proxy @CompilationResult)
+    , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @Fn)
     , mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @Wallet)
@@ -169,6 +173,7 @@ myTypes =
     , mkSumType (Proxy @UtxOwner)
     , mkSumType (Proxy @UtxoLocation)
     , mkSumType (Proxy @FlowGraph)
+    , mkSumType (Proxy @(Interval A))
     ]
 
 mySettings :: Settings

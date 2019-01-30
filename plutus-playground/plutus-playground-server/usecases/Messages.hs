@@ -10,10 +10,10 @@ import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
 
-logAMessage :: MockWallet ()
+logAMessage :: MonadWallet m => m ()
 logAMessage = logMsg "wallet log"
 
-submitInvalidTxn :: MockWallet ()
+submitInvalidTxn :: MonadWallet m => m ()
 submitInvalidTxn = do
     logMsg "Preparing to submit an invalid transaction"
     let tx = Tx
@@ -21,10 +21,11 @@ submitInvalidTxn = do
             , txOutputs = []
             , txForge = 2
             , txFee = 0
+            , txValidRange = defaultSlotRange
             }
     submitTxn tx
 
-throwWalletAPIError :: Text -> MockWallet ()
+throwWalletAPIError :: MonadWallet m => Text -> m ()
 throwWalletAPIError = throwOtherError
 
 $(mkFunctions ['logAMessage, 'submitInvalidTxn, 'throwWalletAPIError])

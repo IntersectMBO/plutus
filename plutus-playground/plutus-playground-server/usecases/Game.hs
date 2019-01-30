@@ -37,7 +37,7 @@ mkRedeemerScript word =
 
 -- | The validator script of the game.
 gameValidator :: ValidatorScript
-gameValidator = ValidatorScript (Ledger.fromCompiledCode $$(PlutusTx.compile [||
+gameValidator = ValidatorScript ($$(Ledger.compileScript [||
     -- The code between the '[||' and  '||]' quotes is on-chain code.
     \(ClearString guess) (HashedString actual) (p :: PendingTx) ->
 
@@ -55,7 +55,7 @@ gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
 -- | The "lock" contract endpoint. See note [Contract endpoints]
-lock :: String -> Value -> MockWallet ()
+lock :: MonadWallet m => String -> Value -> m ()
 lock word value =
     -- 'payToScript_' is a function of the wallet API. It takes a script
     -- address, a value and a data script, and submits a transaction that
@@ -64,10 +64,10 @@ lock word value =
     -- The underscore at the end of the name indicates that 'payToScript_'
     -- discards its result. If you want to hold on to the transaction you can
     -- use 'payToScript'.
-    payToScript_ gameAddress value (mkDataScript word)
+    payToScript_ defaultSlotRange gameAddress value (mkDataScript word)
 
 -- | The "guess" contract endpoint. See note [Contract endpoints]
-guess :: String -> MockWallet ()
+guess :: MonadWallet m => String -> m ()
 guess word =
     -- 'collectFromScript' is a function of the wallet API. It consumes the
     -- unspent transaction outputs at a script address and pays them to a
@@ -77,11 +77,11 @@ guess word =
     -- Note that before we can use 'collectFromScript', we need to tell the
     -- wallet to start watching the address for transaction outputs (because
     -- the wallet does not keep track of the UTXO set of the entire chain).
-    collectFromScript gameValidator (mkRedeemerScript word)
+    collectFromScript defaultSlotRange gameValidator (mkRedeemerScript word)
 
 -- | The "startGame" contract endpoint, telling the wallet to start watching
 --   the address of the game script. See note [Contract endpoints]
-startGame :: MockWallet ()
+startGame :: MonadWallet m => m ()
 startGame =
     -- 'startWatching' is a function of the wallet API. It instructs the wallet
     -- to keep track of all outputs at the address. Player 2 needs to call

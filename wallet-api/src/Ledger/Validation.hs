@@ -59,6 +59,7 @@ import           GHC.Generics                 (Generic)
 import           Language.Haskell.TH          (Q, TExp)
 import           Language.PlutusTx.Lift       (makeLift)
 import qualified Language.PlutusTx.Builtins as Builtins
+import           Ledger.Interval              (SlotRange)
 import           Ledger.Types                 (PubKey (..), Signature (..), Value (..), Slot(..))
 import qualified Ledger.Types                 as Ledger
 
@@ -110,9 +111,9 @@ data PendingTx = PendingTx
     , pendingTxOutputs     :: [PendingTxOut]
     , pendingTxFee         :: Value
     , pendingTxForge       :: Value
-    , pendingTxSlot        :: Slot
     , pendingTxIn          :: PendingTxIn
     -- ^ PendingTxIn being validated
+    , pendingTxValidRange  :: SlotRange
     } deriving (Generic)
 
 {- Note [Oracles]

@@ -32,7 +32,7 @@ let
     "plutus-exe"
     "plutus-ir"
     "plutus-tx"
-    "plutus-tx-plugin"
+    "plutus-tutorial"
     "plutus-use-cases"
     "wallet-api"
   ];
@@ -41,8 +41,9 @@ let
 
   isPlutus = name: builtins.elem name plutusPkgList;
 
-  withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.cabal-install pkgs.haskellPackages.ghcid ]; });
+  regeneratePackages = iohkNix.stack2nix.regeneratePackages { hackageSnapshot = "2019-01-29T09:58:14Z"; };
+
   comp = f: g: (v: f(g v));
 in lib // {
-  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList withDevTools pkgs nixpkgs comp;
+  inherit getPackages iohkNix isPlutus plutusHaskellPkgList plutusPkgList regeneratePackages pkgs nixpkgs comp;
 }

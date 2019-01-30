@@ -5,6 +5,7 @@
 module Language.PlutusCore.StdLib.Data.Unit
     ( getBuiltinUnit
     , getBuiltinUnitval
+    , getBuiltinSequ
     ) where
 
 import           Language.PlutusCore.Name
@@ -34,3 +35,17 @@ getBuiltinUnitval = rename =<< do
         . TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)
         $ Var () x
+
+-- | @seq @() @()@ as a PLC term.
+--
+-- > \(x y : unit) -> unitval
+getBuiltinSequ :: Quote (Value TyName Name ())
+getBuiltinSequ = rename =<< do
+    unit    <- getBuiltinUnit
+    unitval <- getBuiltinUnitval
+    x <- freshName () "x"
+    y <- freshName () "y"
+    return
+        . LamAbs () x unit
+        . LamAbs () y unit
+        $ unitval

@@ -1,0 +1,138 @@
+(iwrap
+  (lam rec_512 (fun (fun (type) (type)) (type)) (lam spine_513 (fun (type) (type)) [spine_513 [(lam EmptyRose_514 (type) (all out_EmptyRose_515 (type) (fun (fun [List_332 EmptyRose_514] out_EmptyRose_515) out_EmptyRose_515))) [rec_512 (lam dat_516 (type) dat_516)]]]))
+  (lam dat_517 (type) dat_517)
+  (abs
+    out_EmptyRose_518
+    (type)
+    (lam
+      case_EmptyRose_519
+      (fun [List_332 (ifix (lam rec_520 (fun (fun (type) (type)) (type)) (lam spine_521 (fun (type) (type)) [spine_521 [(lam EmptyRose_522 (type) (all out_EmptyRose_523 (type) (fun (fun [List_332 EmptyRose_522] out_EmptyRose_523) out_EmptyRose_523))) [rec_520 (lam dat_524 (type) dat_524)]]])) (lam dat_525 (type) dat_525))] out_EmptyRose_518)
+      [
+        case_EmptyRose_519
+        (iwrap
+          (lam rec_575 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_576 (fun (fun (type) (type)) (type)) [spine_576 [(lam List_577 (fun (type) (type)) (lam a_578 (type) (all out_List_579 (type) (fun out_List_579 (fun (fun a_578 (fun [List_577 a_578] out_List_579)) out_List_579))))) (lam a_580 (type) [rec_575 (lam dat_581 (fun (type) (type)) [dat_581 a_580])])]]))
+          (lam dat_582 (fun (type) (type)) [dat_582 a_563])
+          (abs
+            out_List_583
+            (type)
+            (lam
+              case_Nil_584
+              out_List_583
+              (lam
+                case_Cons_585
+                (fun a_563 (fun [(lam a_586 (type) (ifix (lam rec_587 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_588 (fun (fun (type) (type)) (type)) [spine_588 [(lam List_589 (fun (type) (type)) (lam a_590 (type) (all out_List_591 (type) (fun out_List_591 (fun (fun a_590 (fun [List_589 a_590] out_List_591)) out_List_591))))) (lam a_592 (type) [rec_587 (lam dat_593 (fun (type) (type)) [dat_593 a_592])])]])) (lam dat_594 (fun (type) (type)) [dat_594 a_586]))) a_563] out_List_583))
+                [
+                  [
+                    case_Cons_585
+                    (iwrap
+                      (lam rec_512 (fun (fun (type) (type)) (type)) (lam spine_513 (fun (type) (type)) [spine_513 [(lam EmptyRose_514 (type) (all out_EmptyRose_515 (type) (fun (fun [List_332 EmptyRose_514] out_EmptyRose_515) out_EmptyRose_515))) [rec_512 (lam dat_516 (type) dat_516)]]]))
+                      (lam dat_517 (type) dat_517)
+                      (abs
+                        out_EmptyRose_518
+                        (type)
+                        (lam
+                          case_EmptyRose_519
+                          (fun [List_332 (ifix (lam rec_520 (fun (fun (type) (type)) (type)) (lam spine_521 (fun (type) (type)) [spine_521 [(lam EmptyRose_522 (type) (all out_EmptyRose_523 (type) (fun (fun [List_332 EmptyRose_522] out_EmptyRose_523) out_EmptyRose_523))) [rec_520 (lam dat_524 (type) dat_524)]]])) (lam dat_525 (type) dat_525))] out_EmptyRose_518)
+                          [
+                            case_EmptyRose_519
+                            (iwrap
+                              (lam rec_543 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_544 (fun (fun (type) (type)) (type)) [spine_544 [(lam List_545 (fun (type) (type)) (lam a_546 (type) (all out_List_547 (type) (fun out_List_547 (fun (fun a_546 (fun [List_545 a_546] out_List_547)) out_List_547))))) (lam a_548 (type) [rec_543 (lam dat_549 (fun (type) (type)) [dat_549 a_548])])]]))
+                              (lam dat_550 (fun (type) (type)) [dat_550 a_542])
+                              (abs
+                                out_List_551
+                                (type)
+                                (lam
+                                  case_Nil_552
+                                  out_List_551
+                                  (lam
+                                    case_Cons_553
+                                    (fun a_542 (fun [(lam a_554 (type) (ifix (lam rec_555 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_556 (fun (fun (type) (type)) (type)) [spine_556 [(lam List_557 (fun (type) (type)) (lam a_558 (type) (all out_List_559 (type) (fun out_List_559 (fun (fun a_558 (fun [List_557 a_558] out_List_559)) out_List_559))))) (lam a_560 (type) [rec_555 (lam dat_561 (fun (type) (type)) [dat_561 a_560])])]])) (lam dat_562 (fun (type) (type)) [dat_562 a_554]))) a_542] out_List_551))
+                                    case_Nil_552
+                                  )
+                                )
+                              )
+                            )
+                          ]
+                        )
+                      )
+                    )
+                  ]
+                  (iwrap
+                    (lam rec_575 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_576 (fun (fun (type) (type)) (type)) [spine_576 [(lam List_577 (fun (type) (type)) (lam a_578 (type) (all out_List_579 (type) (fun out_List_579 (fun (fun a_578 (fun [List_577 a_578] out_List_579)) out_List_579))))) (lam a_580 (type) [rec_575 (lam dat_581 (fun (type) (type)) [dat_581 a_580])])]]))
+                    (lam dat_582 (fun (type) (type)) [dat_582 a_563])
+                    (abs
+                      out_List_583
+                      (type)
+                      (lam
+                        case_Nil_584
+                        out_List_583
+                        (lam
+                          case_Cons_585
+                          (fun a_563 (fun [(lam a_586 (type) (ifix (lam rec_587 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_588 (fun (fun (type) (type)) (type)) [spine_588 [(lam List_589 (fun (type) (type)) (lam a_590 (type) (all out_List_591 (type) (fun out_List_591 (fun (fun a_590 (fun [List_589 a_590] out_List_591)) out_List_591))))) (lam a_592 (type) [rec_587 (lam dat_593 (fun (type) (type)) [dat_593 a_592])])]])) (lam dat_594 (fun (type) (type)) [dat_594 a_586]))) a_563] out_List_583))
+                          [
+                            [
+                              case_Cons_585
+                              (iwrap
+                                (lam rec_512 (fun (fun (type) (type)) (type)) (lam spine_513 (fun (type) (type)) [spine_513 [(lam EmptyRose_514 (type) (all out_EmptyRose_515 (type) (fun (fun [List_332 EmptyRose_514] out_EmptyRose_515) out_EmptyRose_515))) [rec_512 (lam dat_516 (type) dat_516)]]]))
+                                (lam dat_517 (type) dat_517)
+                                (abs
+                                  out_EmptyRose_518
+                                  (type)
+                                  (lam
+                                    case_EmptyRose_519
+                                    (fun [List_332 (ifix (lam rec_520 (fun (fun (type) (type)) (type)) (lam spine_521 (fun (type) (type)) [spine_521 [(lam EmptyRose_522 (type) (all out_EmptyRose_523 (type) (fun (fun [List_332 EmptyRose_522] out_EmptyRose_523) out_EmptyRose_523))) [rec_520 (lam dat_524 (type) dat_524)]]])) (lam dat_525 (type) dat_525))] out_EmptyRose_518)
+                                    [
+                                      case_EmptyRose_519
+                                      (iwrap
+                                        (lam rec_543 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_544 (fun (fun (type) (type)) (type)) [spine_544 [(lam List_545 (fun (type) (type)) (lam a_546 (type) (all out_List_547 (type) (fun out_List_547 (fun (fun a_546 (fun [List_545 a_546] out_List_547)) out_List_547))))) (lam a_548 (type) [rec_543 (lam dat_549 (fun (type) (type)) [dat_549 a_548])])]]))
+                                        (lam dat_550 (fun (type) (type)) [dat_550 a_542])
+                                        (abs
+                                          out_List_551
+                                          (type)
+                                          (lam
+                                            case_Nil_552
+                                            out_List_551
+                                            (lam
+                                              case_Cons_553
+                                              (fun a_542 (fun [(lam a_554 (type) (ifix (lam rec_555 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_556 (fun (fun (type) (type)) (type)) [spine_556 [(lam List_557 (fun (type) (type)) (lam a_558 (type) (all out_List_559 (type) (fun out_List_559 (fun (fun a_558 (fun [List_557 a_558] out_List_559)) out_List_559))))) (lam a_560 (type) [rec_555 (lam dat_561 (fun (type) (type)) [dat_561 a_560])])]])) (lam dat_562 (fun (type) (type)) [dat_562 a_554]))) a_542] out_List_551))
+                                              case_Nil_552
+                                            )
+                                          )
+                                        )
+                                      )
+                                    ]
+                                  )
+                                )
+                              )
+                            ]
+                            (iwrap
+                              (lam rec_543 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_544 (fun (fun (type) (type)) (type)) [spine_544 [(lam List_545 (fun (type) (type)) (lam a_546 (type) (all out_List_547 (type) (fun out_List_547 (fun (fun a_546 (fun [List_545 a_546] out_List_547)) out_List_547))))) (lam a_548 (type) [rec_543 (lam dat_549 (fun (type) (type)) [dat_549 a_548])])]]))
+                              (lam dat_550 (fun (type) (type)) [dat_550 a_542])
+                              (abs
+                                out_List_551
+                                (type)
+                                (lam
+                                  case_Nil_552
+                                  out_List_551
+                                  (lam
+                                    case_Cons_553
+                                    (fun a_542 (fun [(lam a_554 (type) (ifix (lam rec_555 (fun (fun (fun (type) (type)) (type)) (type)) (lam spine_556 (fun (fun (type) (type)) (type)) [spine_556 [(lam List_557 (fun (type) (type)) (lam a_558 (type) (all out_List_559 (type) (fun out_List_559 (fun (fun a_558 (fun [List_557 a_558] out_List_559)) out_List_559))))) (lam a_560 (type) [rec_555 (lam dat_561 (fun (type) (type)) [dat_561 a_560])])]])) (lam dat_562 (fun (type) (type)) [dat_562 a_554]))) a_542] out_List_551))
+                                    case_Nil_552
+                                  )
+                                )
+                              )
+                            )
+                          ]
+                        )
+                      )
+                    )
+                  )
+                ]
+              )
+            )
+          )
+        )
+      ]
+    )
+  )
+)

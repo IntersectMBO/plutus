@@ -33,16 +33,19 @@ import qualified Data.Set                     as Set
 import           GHC.Generics                 (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
+import qualified Ledger.Interval              as Interval
+import           Ledger.Interval              (SlotRange)
 import           Ledger                       (DataScript (..), Signature(..), PubKey (..),
                                                TxId, ValidatorScript (..), Value (..), scriptTxIn, Slot(..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (PendingTx (..), PendingTxIn (..), PendingTxOut)
 import qualified Ledger.Validation            as Validation
-import           Wallet                       (EventHandler (..), EventTrigger, Range (..), WalletAPI (..),
+import qualified Wallet.API                   as W
+import           Wallet                       (EventHandler (..), EventTrigger, WalletAPI (..),
                                                WalletDiagnostics (..), andT, slotRangeT, fundsAtAddressT, throwOtherError,
                                                ownPubKeyTxOut, payToScript, pubKey, createTxAndSubmit, signature)
 
-import           Prelude                    (Bool (..), Int, Num (..), Ord (..), fst, snd, succ, ($), (.),
+import           Prelude                    (Bool (..), Int, Ord (..), fst, snd, ($), (.),
                                              (<$>), (==))
 
 -- | A crowdfunding campaign.
@@ -56,6 +59,14 @@ data Campaign = Campaign
 type CampaignActor = PubKey
 
 PlutusTx.makeLift ''Campaign
+
+collectionRange :: Campaign -> SlotRange
+collectionRange cmp = 
+    W.interval (campaignDeadline cmp) (campaignCollectionDeadline cmp)
+
+refundRange :: Campaign -> SlotRange
+refundRange cmp =
+    W.intervalFrom (campaignCollectionDeadline cmp)
 
 data CampaignAction = Collect Signature | Refund Signature
     deriving Generic
@@ -72,7 +83,9 @@ contribute cmp value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
     ds <- DataScript . Ledger.lifted . pubKey <$> myKeyPair
 
-    tx <- payToScript (campaignAddress cmp) value ds
+    let range = W.interval 1 (campaignDeadline cmp)
+
+    tx <- payToScript range (campaignAddress cmp) value ds
     logMsg "Submitted contribution"
 
     register (refundTrigger cmp) (refund (Ledger.hashTx tx) cmp)
@@ -92,10 +105,10 @@ collect cmp = register (collectFundsTrigger cmp) $ EventHandler $ \_ -> do
             con (r, _) = scriptTxIn r scr red
             ins        = con <$> contributions
             value = getSum $ foldMap (Sum . Ledger.txOutValue . snd) contributions
+            range = collectionRange cmp
 
         oo <- ownPubKeyTxOut value
-        void $ createTxAndSubmit (Set.fromList ins) [oo]
-
+        void $ createTxAndSubmit range (Set.fromList ins) [oo]
 
 -- | The address of a [[Campaign]]
 campaignAddress :: Campaign -> Ledger.Address
@@ -124,25 +137,29 @@ contributionScript cmp  = ValidatorScript val where
 
     --   See note [Contracts and Validator Scripts] in
     --       Language.Plutus.Coordination.Contracts
-    inner = Ledger.fromCompiledCode $$(PlutusTx.compile [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx) ->
+    inner = $$(Ledger.compileScript [|| (\Campaign{..} (act :: CampaignAction) (a :: CampaignActor) (p :: PendingTx) ->
         let
 
             infixr 3 &&
             (&&) :: Bool -> Bool -> Bool
             (&&) = $$(PlutusTx.and)
+            
+            infixl 6 +
+            (+) :: Int -> Int -> Int
+            (+) = $$(PlutusTx.plus)
 
             -- | Check that a pending transaction is signed by the private key
             --   of the given public key.
             signedBy :: PubKey -> Signature -> Bool
-            signedBy (PubKey pk) (Signature s) = pk == s
+            signedBy (PubKey pk) (Signature s) = $$(PlutusTx.eq) pk s
 
-            PendingTx ps outs _ _ (Slot h) _ = p
+            PendingTx ps outs _ _ _ range = p
 
-            deadline :: Int
-            deadline = let Slot h' = campaignDeadline in h'
+            collRange :: SlotRange
+            collRange = $$(Interval.interval) campaignDeadline campaignCollectionDeadline
 
-            collectionDeadline :: Int
-            collectionDeadline = let Slot h' = campaignCollectionDeadline in h'
+            refndRange :: SlotRange
+            refndRange = $$(Interval.from) campaignCollectionDeadline
 
             target :: Int
             target = let Value v = campaignTarget in v
@@ -164,16 +181,15 @@ contributionScript cmp  = ValidatorScript val where
 
                         contributorOnly = $$(PlutusTx.all) contributorTxOut outs
 
-                        refundable   = h > collectionDeadline &&
-                                                    contributorOnly &&
-                                                    a `signedBy` sig
+                        refundable   = $$(Interval.contains) refndRange range &&
+                                        contributorOnly &&
+                                        a `signedBy` sig
 
                     in refundable
                 Collect sig -> -- the "successful campaign" branch
                     let
-                        payToOwner = h > deadline &&
-                                    h <= collectionDeadline &&
-                                    totalInputs >= target &&
+                        payToOwner = $$(Interval.contains) collRange range &&
+                                    $$(PlutusTx.geq) totalInputs target &&
                                     campaignOwner `signedBy` sig
                     in payToOwner
         in
@@ -182,14 +198,14 @@ contributionScript cmp  = ValidatorScript val where
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ GEQ 1)
-    (slotRangeT (GEQ $ succ $ campaignCollectionDeadline c))
+    (fundsAtAddressT (campaignAddress c) $ W.intervalFrom 1)
+    (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) $ GEQ $ campaignTarget c)
-    (slotRangeT $ Interval (campaignDeadline c) (campaignCollectionDeadline c))
+    (fundsAtAddressT (campaignAddress c) $ W.intervalFrom $ campaignTarget c)
+    (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution
 refund :: (WalletAPI m, WalletDiagnostics m) => TxId -> Campaign -> EventHandler m
@@ -208,4 +224,4 @@ refund txid cmp = EventHandler $ \_ -> do
         value  = getSum $ foldMap (Sum . Ledger.txOutValue . snd) ourUtxo
 
     out <- ownPubKeyTxOut value
-    void $ createTxAndSubmit inputs [out]
+    void $ createTxAndSubmit (refundRange cmp) inputs [out]

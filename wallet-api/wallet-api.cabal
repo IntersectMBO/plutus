@@ -38,6 +38,7 @@ library
         Ledger.Types
         Ledger.Validation
         Ledger.Index
+        Ledger.Interval
     hs-source-dirs: src
     default-language: Haskell2010
     default-extensions: ExplicitForAll ScopedTypeVariables
@@ -60,7 +61,6 @@ library
         cborg -any,
         containers -any,
         plutus-tx -any,
-        plutus-tx-plugin -any,
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,
@@ -113,23 +113,5 @@ test-suite wallet-api-test
         transformers -any,
         wallet-api -any,
         plutus-tx -any,
-        plutus-tx-plugin -any,
         lens -any
-
-test-suite wallet-api-doctests
-    type: exitcode-stdio-1.0
-    main-is: tutorial-doctests.hs
-    build-tool-depends: markdown-unlit:markdown-unlit -any
-    hs-source-dirs: tutorial
-    other-modules:
-        Tutorial
-    default-language: Haskell2010
-    default-extensions: GeneralizedNewtypeDeriving StandaloneDeriving
-    ghc-options: -pgmL markdown-unlit -threaded
-    build-depends:
-        base >=4.9 && <5,
-        plutus-tx -any,
-        plutus-tx-plugin -any,
-        wallet-api -any,
-        doctest -any
 

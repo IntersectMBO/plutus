@@ -78,24 +78,35 @@ let
         filter = localLib.isPlutus;
       };
       customOverlays = optional forceError errorOverlay;
+      # Filter down to local packages, except those named in the given list
+      localButNot = nope: 
+        let okay = builtins.filter (name: !(builtins.elem name nope)) localLib.plutusPkgList;
+        in name: builtins.elem name okay;
+      # We can pass an evaluated version of our packages into
+      # iohk-nix, and then we can also get out the compiler
+      # so we make sure it uses the same one.
+      pkgsGenerated = import ./pkgs { inherit pkgs; };
     in self.callPackage localLib.iohkNix.haskellPackages {
       inherit forceDontCheck enableProfiling enablePhaseMetrics
       enableHaddockHydra enableBenchmarks fasterBuild enableDebugging
-      enableSplitCheck customOverlays;
-      pkgsGenerated = ./pkgs;
+      enableSplitCheck customOverlays pkgsGenerated;
+
+      inherit (pkgsGenerated) ghc;
+
       filter = localLib.isPlutus;
       filterOverrides = {
-        splitCheck = let
-          dontSplit = [
+        splitCheck = localButNot [
             # Broken for things with test tool dependencies
             "wallet-api"
             "plutus-tx"
+            "plutus-tutorial"
             # Broken for things which pick up other files at test runtime
             "plutus-playground-server"
           ];
-          # Split only local packages not in the don't split list
-          doSplit = builtins.filter (name: !(builtins.elem name dontSplit)) localLib.plutusPkgList;
-          in name: builtins.elem name doSplit;
+        haddock = localButNot [
+            # Haddock is broken for things with internal libraries
+            "plutus-tx"
+        ];
       };
       requiredOverlay = ./nix/overlays/required.nix;
     };
@@ -172,7 +183,15 @@ let
         };
       };
     };
+
+    devPackages = localLib.getPackages {
+      inherit (self) haskellPackages; filter = name: builtins.elem name [ "cabal-install" "ghcid" ];
+    };
+
+    withDevTools = env: env.overrideAttrs (attrs: { nativeBuildInputs = attrs.nativeBuildInputs ++ [ devPackages.cabal-install devPackages.ghcid ]; });
+    shellTemplate = name: withDevTools haskellPackages."${name}".env;
   });
+
 
 in
   # The top-level package set
