@@ -56299,6 +56299,7 @@ license = stdenv.lib.licenses.bsd3;
 , base
 , bytestring
 , language-plutus-core
+, lens
 , optparse-applicative
 , plutus-core-interpreter
 , prettyprinter
@@ -56317,6 +56318,7 @@ executableHaskellDepends = [
 base
 bytestring
 language-plutus-core
+lens
 optparse-applicative
 plutus-core-interpreter
 prettyprinter
@@ -70216,7 +70218,6 @@ license = stdenv.lib.licenses.bsd3;
 , bytestring
 , containers
 , directory
-, fetchgit
 , file-embed
 , filepath
 , haskell-src-exts
@@ -70232,14 +70233,7 @@ mkDerivation {
 
 pname = "stylish-haskell";
 version = "0.9.2.0";
-src = fetchgit {
-
-url = "https://github.com/input-output-hk/stylish-haskell.git";
-sha256 = "0d6ylb07gxv050fpzc6siwxj8c7j1pkcry5zyzimv0xwn1wf6rfy";
-rev = "ecfd3b307d8d13a6d12aff03055f25a39a17e182";
-fetchSubmodules = true;
-
-};
+sha256 = "db9f10056a949ad361b5fe3c6fc189601eec2c0058ff2b705ebe68e043b5229b";
 isLibrary = true;
 isExecutable = true;
 libraryHaskellDepends = [
