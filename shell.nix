@@ -24,7 +24,7 @@ let
       exit
     '';
   };
-  shell = localLib.withDevTools (localPackages.haskellPackages.shellFor {
+  shell = localPackages.withDevTools (localPackages.haskellPackages.shellFor {
     packages = p: (map (x: p.${x}) localLib.plutusHaskellPkgList);
   });
 
