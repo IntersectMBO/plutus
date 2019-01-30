@@ -46744,6 +46744,57 @@ description = "Markov Chains for generating random sequences with a user definab
 license = "GPL";
 
 }) {};
+"marlowe" = callPackage
+({
+  mkDerivation
+, base
+, bytestring
+, containers
+, hedgehog
+, lens
+, mtl
+, plutus-tx
+, stdenv
+, tasty
+, tasty-hedgehog
+, tasty-hunit
+, template-haskell
+, text
+, wallet-api
+}:
+mkDerivation {
+
+pname = "marlowe";
+version = "0.1.0.0";
+src = .././marlowe;
+libraryHaskellDepends = [
+base
+bytestring
+containers
+lens
+mtl
+plutus-tx
+template-haskell
+text
+wallet-api
+];
+testHaskellDepends = [
+base
+containers
+hedgehog
+plutus-tx
+tasty
+tasty-hedgehog
+tasty-hunit
+template-haskell
+text
+wallet-api
+];
+doHaddock = false;
+description = "Marlowe: financial contracts on Cardano Computation Layer";
+license = stdenv.lib.licenses.bsd3;
+
+}) {};
 "marvin-interpolate" = callPackage
 ({
   mkDerivation
@@ -56762,6 +56813,7 @@ license = stdenv.lib.licenses.bsd3;
 , stdenv
 , tasty
 , tasty-hedgehog
+, tasty-hunit
 , template-haskell
 , text
 , wallet-api
@@ -56788,6 +56840,7 @@ hedgehog
 plutus-tx
 tasty
 tasty-hedgehog
+tasty-hunit
 template-haskell
 text
 wallet-api
