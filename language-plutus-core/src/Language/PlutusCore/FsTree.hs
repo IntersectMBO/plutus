@@ -19,7 +19,6 @@ module Language.PlutusCore.FsTree
     ) where
 
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 
 -- We use 'String's for names, because 'FilePath's are 'String's.
@@ -39,8 +38,8 @@ newtype FolderContents a = FolderContents
 
 -- | A 'PlcEntity' is either a 'Type' or a 'Term'.
 data PlcEntity
-    = PlcType (Quote (Type TyName ()))
-    | PlcTerm (Quote (Term TyName Name ()))
+    = PlcType (Type TyName ())
+    | PlcTerm (Term TyName Name ())
 
 type PlcFsTree         = FsTree         PlcEntity
 type PlcFolderContents = FolderContents PlcEntity
@@ -50,11 +49,11 @@ treeFolderContents :: String -> [FsTree a] -> FsTree a
 treeFolderContents name = FsFolder name . FolderContents
 
 -- | Construct a single-file 'PlcFsTree' out of a type.
-plcTypeFile :: String -> Quote (Type TyName ()) -> PlcFsTree
+plcTypeFile :: String -> Type TyName () -> PlcFsTree
 plcTypeFile name = FsFile name . PlcType
 
 -- | Construct a single-file 'PlcFsTree' out of a term.
-plcTermFile :: String -> Quote (Term TyName Name ()) -> PlcFsTree
+plcTermFile :: String -> Term TyName Name () -> PlcFsTree
 plcTermFile name = FsFile name . PlcTerm
 
 -- | Fold a 'FsTree'.
@@ -69,9 +68,9 @@ foldFsTree onFolder onFile = go where
 
 -- | Fold a 'PlcFsTree'.
 foldPlcFsTree
-    :: (String -> [b] -> b)                          -- ^ What to do on a folder.
-    -> (String -> Quote (Type TyName ())      -> b)  -- ^ What to do on a type.
-    -> (String -> Quote (Term TyName Name ()) -> b)  -- ^ What to do on a term.
+    :: (String -> [b] -> b)                  -- ^ What to do on a folder.
+    -> (String -> Type TyName ()      -> b)  -- ^ What to do on a type.
+    -> (String -> Term TyName Name () -> b)  -- ^ What to do on a term.
     -> PlcFsTree
     -> b
 foldPlcFsTree onFolder onType onTerm = foldFsTree onFolder onFile where
@@ -80,9 +79,9 @@ foldPlcFsTree onFolder onType onTerm = foldFsTree onFolder onFile where
 
 -- | Fold the contents of a PLC folder.
 foldPlcFolderContents
-    :: (String -> [b] -> b)                          -- ^ What to do on a folder.
-    -> (String -> Quote (Type TyName ())      -> b)  -- ^ What to do on a type.
-    -> (String -> Quote (Term TyName Name ()) -> b)  -- ^ What to do on a term.
+    :: (String -> [b] -> b)                  -- ^ What to do on a folder.
+    -> (String -> Type TyName ()      -> b)  -- ^ What to do on a type.
+    -> (String -> Term TyName Name () -> b)  -- ^ What to do on a term.
     -> PlcFolderContents
     -> [b]
 foldPlcFolderContents onFolder onType onTerm (FolderContents trees) =

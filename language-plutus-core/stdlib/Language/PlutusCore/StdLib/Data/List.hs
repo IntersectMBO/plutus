@@ -3,21 +3,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Data.List
-    ( getBuiltinList
-    , getBuiltinNil
-    , getBuiltinCons
-    , getBuiltinFoldrList
-    , getBuiltinFoldList
-    , getBuiltinEnumFromTo
-    , getBuiltinSum
-    , getBuiltinProduct
+    ( listData
+    , nil
+    , cons
+    , foldrList
+    , foldList
+    , enumFromTo
+    , sum
+    , product
     ) where
+
+import           Prelude                                  hiding (enumFromTo, product, sum)
 
 import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Bool
@@ -29,8 +30,8 @@ import           Language.PlutusCore.StdLib.Type
 -- | @List@ as a PLC type.
 --
 -- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
-getBuiltinList :: Quote (RecursiveType ())
-getBuiltinList = do
+listData :: RecursiveType ()
+listData = runQuote $ do
     a    <- freshTyName () "a"
     list <- freshTyName () "list"
     r    <- freshTyName () "r"
@@ -44,9 +45,9 @@ getBuiltinList = do
 -- |  '[]' as a PLC term.
 --
 -- >  /\(a :: *) -> wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> z)
-getBuiltinNil :: Quote (Term TyName Name ())
-getBuiltinNil = rename =<< do
-    RecursiveType list wrapList <- getBuiltinList
+nil :: Term TyName Name ()
+nil = runQuote $ do
+    let RecursiveType list wrapList = listData
     a <- freshTyName () "a"
     r <- freshTyName () "r"
     z <- freshName () "z"
@@ -64,9 +65,9 @@ getBuiltinNil = rename =<< do
 --
 -- > /\(a :: *) -> \(x : a) (xs : list a) ->
 -- >     wrapList [a] /\(r :: *) -> \(z : r) (f : a -> list a -> r) -> f x xs
-getBuiltinCons :: Quote (Term TyName Name ())
-getBuiltinCons = rename =<< do
-    RecursiveType list wrapList <- getBuiltinList
+cons :: Term TyName Name ()
+cons = runQuote $ do
+    let RecursiveType list wrapList = listData
     a  <- freshTyName () "a"
     x  <- freshName () "x"
     xs <- freshName () "xs"
@@ -92,10 +93,9 @@ getBuiltinCons = rename =<< do
 -- > /\(a :: *) (r :: *) -> \(f : a -> r -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
-getBuiltinFoldrList :: Quote (Term TyName Name ())
-getBuiltinFoldrList = rename =<< do
-    list <- _recursiveType <$> getBuiltinList
-    fix  <- getBuiltinFix
+foldrList :: Term TyName Name ()
+foldrList = runQuote $ do
+    let list = _recursiveType listData
     a   <- freshTyName () "a"
     r   <- freshTyName () "r"
     f   <- freshName () "f"
@@ -126,10 +126,9 @@ getBuiltinFoldrList = rename =<< do
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
 -- >         unwrap xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
-getBuiltinFoldList :: Quote (Term TyName Name ())
-getBuiltinFoldList = rename =<< do
-    list <- _recursiveType <$> getBuiltinList
-    fix  <- getBuiltinFix
+foldList :: Term TyName Name ()
+foldList = runQuote $ do
+    let list = _recursiveType listData
     a   <- freshTyName () "a"
     r   <- freshTyName () "r"
     f   <- freshName () "f"
@@ -165,16 +164,10 @@ getBuiltinFoldList = rename =<< do
 -- >                 (nil {integer s})
 -- >                 (cons {integer s} n' (rec (succInteger {s} n'))))
 -- >         n
-getBuiltinEnumFromTo :: Quote (Term TyName Name ())
-getBuiltinEnumFromTo = rename =<< do
-    list        <- _recursiveType <$> getBuiltinList
-    fix         <- getBuiltinFix
-    succInteger <- getBuiltinSuccInteger
-    unit        <- getBuiltinUnit
-    ifThenElse  <- getBuiltinIf
-    nil         <- getBuiltinNil
-    cons        <- getBuiltinCons
-    s <- freshTyName () "s"
+enumFromTo :: Term TyName Name ()
+enumFromTo = runQuote $ do
+    let list = _recursiveType listData
+    s   <- freshTyName () "s"
     n   <- freshName () "n"
     m   <- freshName () "m"
     rec <- freshName () "rec"
@@ -210,9 +203,8 @@ getBuiltinEnumFromTo = rename =<< do
 --
 -- > /\(s :: *) -> \(ss : size s) ->
 -- >     foldList {integer s} {integer s} (addInteger {s}) (resizeInteger {1} {s} ss 1!0)
-getBuiltinSum :: Quote (Term TyName Name ())
-getBuiltinSum = rename =<< do
-    foldList <- getBuiltinFoldList
+sum :: Term TyName Name ()
+sum = runQuote $ do
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
     let sv  = TyVar () s
@@ -230,9 +222,8 @@ getBuiltinSum = rename =<< do
 --
 -- > /\(s :: *) -> \(ss : size s) ->
 -- >     foldList {integer s} {integer s} (multiplyInteger {s}) (resizeInteger {1} {s} ss 1!1)
-getBuiltinProduct :: Quote (Term TyName Name ())
-getBuiltinProduct = rename =<< do
-    foldList <- getBuiltinFoldList
+product :: Term TyName Name ()
+product = runQuote $ do
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
     let sv  = TyVar () s

@@ -16,7 +16,6 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Generators
 
-import           Control.Monad.Morph
 import           Data.Foldable
 import           Data.List
 import           Hedgehog                                 hiding (Size, Var)
@@ -35,23 +34,22 @@ import           Hedgehog                                 hiding (Size, Var)
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
     :: PrettyDynamic r
-    => (forall b. PrettyDynamic b => TypedBuiltin Size b -> b -> GenT Quote ConstAppResult)
-                               -- ^ How to get a 'ConstAppResult' having a Haskell value of
-                               -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
-    -> TypedBuiltinName a r    -- ^ A (typed) builtin name to apply.
-    -> a                       -- ^ The semantics of the builtin name. E.g. the semantics of
-                               -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> TypedBuiltinGenT Quote  -- ^ How to generate values of sized builtin types.
+    => (forall b. PrettyDynamic b => TypedBuiltin Size b -> b -> ConstAppResult)
+                             -- ^ How to get a 'ConstAppResult' having a Haskell value of
+                             -- one of the builtin types. See 'TypedBuiltin' for the list of such types.
+    -> TypedBuiltinName a r  -- ^ A (typed) builtin name to apply.
+    -> a                     -- ^ The semantics of the builtin name. E.g. the semantics of
+                             -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> TypedBuiltinGenT IO   -- ^ How to generate values of sized builtin types.
     -> Property
-prop_applyBuiltinName getFinal tbn op allTbs = property . hoist (pure . runQuote) $ do
+prop_applyBuiltinName toFinal tbn op allTbs = property $ do
     let getIterAppValue = runPlcT genSizeDef allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
     IterAppValue _ iterApp tbv <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
         TypedBuiltinValue tb y = tbv
         app = applyEvaluateCkBuiltinName name
-    final <- forAllPrettyPlcT $ getFinal tb y
     traverse_ (\prefix -> app prefix === ConstAppStuck) . init $ inits spine
-    app spine === final
+    app spine === toFinal tb y
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
 -- the Haskell side must fit into the specified (by the 'TypedBuiltinGenSized' argument) bounds
@@ -59,10 +57,10 @@ prop_applyBuiltinName getFinal tbn op allTbs = property . hoist (pure . runQuote
 -- See 'genTypedBuiltinSizedSum' for how this is achieved for 'AddInteger' and 'SubtractInteger'.
 -- See the "Success" module for tests defined in terms of this function.
 prop_applyBuiltinNameSuccess
-    :: PrettyDynamic r => TypedBuiltinName a r -> a -> TypedBuiltinGenT Quote -> Property
+    :: PrettyDynamic r => TypedBuiltinName a r -> a -> TypedBuiltinGenT IO -> Property
 prop_applyBuiltinNameSuccess =
-    prop_applyBuiltinName getFinal where
-        getFinal tb = lift . fmap ConstAppSuccess . unsafeMakeBuiltin . TypedBuiltinValue tb
+    prop_applyBuiltinName toFinal where
+        toFinal tb = ConstAppSuccess . unsafeMakeBuiltin . TypedBuiltinValue tb
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
 -- the Haskell side may or may not fit into the default bounds (as per the spec) and hence the
@@ -71,15 +69,15 @@ prop_applyBuiltinNameSuccess =
 prop_applyBuiltinNameSuccessFailure
     :: PrettyDynamic r => TypedBuiltinName a r -> a -> Property
 prop_applyBuiltinNameSuccessFailure tbn x =
-    prop_applyBuiltinName getFinal tbn x genTypedBuiltinDef where
-        getFinal tb = lift . makeConstAppResult . TypedBuiltinValue tb
+    prop_applyBuiltinName toFinal tbn x genTypedBuiltinDef where
+        toFinal tb = makeConstAppResult . TypedBuiltinValue tb
 
 -- | A specialized version of 'prop_applyBuiltinName'. A final value of the computation on
 -- the Haskell side must not fit into the default bounds (as per the spec) and hence the
 -- result of the 'applyBuiltinName' computation must  be a 'ConstAppFailure'.
 -- See the "Failure" module for tests defined in terms of this function.
 prop_applyBuiltinNameFailure
-    :: PrettyDynamic r => TypedBuiltinName a r -> a -> TypedBuiltinGenT Quote -> Property
+    :: PrettyDynamic r => TypedBuiltinName a r -> a -> TypedBuiltinGenT IO -> Property
 prop_applyBuiltinNameFailure =
-    prop_applyBuiltinName getFinal where
-        getFinal tb = lift . makeConstAppResult . TypedBuiltinValue tb
+    prop_applyBuiltinName toFinal where
+        toFinal tb = makeConstAppResult . TypedBuiltinValue tb

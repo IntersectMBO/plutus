@@ -24,17 +24,22 @@ module Language.PlutusCore.Generators.Internal.Entity
     , withAnyTermLoose
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Type
+import           Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Control.Exception                                       (evaluate)
 import           Control.Exception.Safe                                  (tryAny)
+import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader
+import           Control.Monad.Trans.Class                               (lift)
 import qualified Data.Dependent.Map                                      as DMap
 import           Data.Functor.Compose
 import           Data.Text.Prettyprint.Doc
@@ -121,16 +126,16 @@ withTypedBuiltinGen genSize k = genBuiltin genSize >>= \b -> withTypedBuiltin b 
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: TypedBuiltinGenT Quote
-    -> (forall a. TypedBuiltin Size a -> Maybe (TermOf (Value TyName Name ())) -> GenT Quote c)
-    -> GenT Quote c
+    :: Monad m
+    => TypedBuiltinGenT m
+    -> (forall a. TypedBuiltin Size a -> Maybe (TermOf (Value TyName Name ())) -> GenT m c)
+    -> GenT m c
 withCheckedTermGen genTb k =
     withTypedBuiltinGen genSizeDef $ \tb -> do
         termWithMetaValue <- genTb tb
-        termWithValue <-
-            liftQuote . unsafeTypeEvalCheck $
+        let mayTermWithValue = unsafeTypeEvalCheck $
                 TypedBuiltinValue tb <$> termWithMetaValue
-        k tb termWithValue
+        k tb mayTermWithValue
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.
 genSchemedTermOf :: Monad m => TypeScheme Size a r -> PlcGenT m (TermOf a)
@@ -171,30 +176,32 @@ genIterAppValue (Denotation object toTerm meta scheme) = result where
     go (TypeSchemeArrow schA schB) term args f = do  -- Another argument is required.
         TermOf v x <- genSchemedTermOf schA          -- Get a Haskell and the correspoding PLC values.
 
-        let term' = Apply () term v                  -- Apply the term to the PLC value.
-            args' = args . (v :)                     -- Append the PLC value to the spine.
-            y     = f x                              -- Apply the Haskell function to the generated argument.
+        let term' = Apply () term v  -- Apply the term to the PLC value.
+            args' = args . (v :)     -- Append the PLC value to the spine.
+            y     = f x              -- Apply the Haskell function to the generated argument.
         go schB term' args' y
     go (TypeSchemeAllSize schK)    term args f = do
         BuiltinGensT genSize _ <- ask
-        size <- liftT genSize                        -- Generate a size.
-        let term' = TyInst () term $ TyInt () size   -- Instantiate the term with the generated size.
-        go (schK size) term' args f                  -- Instantiate a size variable with the generated size.
+        size <- liftT genSize                       -- Generate a size.
+        let term' = TyInst () term $ TyInt () size  -- Instantiate the term with the generated size.
+        go (schK size) term' args f                 -- Instantiate a size variable with the
+                                                    -- generated size.
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.
 -- Generates first-order functions and constants including constant applications.
 -- Arguments to functions and 'BuiltinName's are generated recursively.
 genTerm
-    :: TypedBuiltinGenT Quote  -- ^ Ground generators of built-ins. The base case of the recursion.
+    :: forall m. Monad m
+    => TypedBuiltinGenT m      -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
                                -- Gets extended by a variable when an applied lambda is generated.
     -> Int                     -- ^ Depth of recursion.
-    -> TypedBuiltinGenT Quote
-genTerm genBase = go where
-    go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT Quote (TermOf r)
+    -> TypedBuiltinGenT m
+genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 where
+    go :: DenotationContext -> Int -> TypedBuiltin Size r -> GenT (QuoteT m) (TermOf r)
     go context depth tb
-        | depth == 0 = choiceDef (genBase tb) variables
-        | depth == 1 = choiceDef (genBase tb) $ variables ++ recursive
+        | depth == 0 = choiceDef (liftT $ genBase tb) variables
+        | depth == 1 = choiceDef (liftT $ genBase tb) $ variables ++ recursive
         | depth == 2 = Gen.choice $ lambdaApply : variables ++ recursive
         | depth == 3 = Gen.choice $ lambdaApply : recursive
         | otherwise  = lambdaApply
@@ -231,7 +238,7 @@ genTerm genBase = go where
                 -- Generate a name for the name representing the argument.
                 name  <- lift $ revealUnique <$> freshName () "x"
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
-                argTy <- lift $ typedBuiltinToType argTyTb
+                let argTy = typedBuiltinToType argTyTb
                 -- Generate the argument.
                 TermOf arg  x <- go context (depth - 1) argTb
                 -- Generate the body of the lambda abstraction adding the new variable to the context.
@@ -242,12 +249,12 @@ genTerm genBase = go where
 
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
-genTermLoose :: TypedBuiltinGenT Quote
+genTermLoose :: Monad m => TypedBuiltinGenT m
 genTermLoose = genTerm genTypedBuiltinSmall typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-    :: (forall a. TermOf (TypedBuiltinValue Size a) -> GenT Quote c) -> GenT Quote c
+    :: Monad m => (forall a. TermOf (TypedBuiltinValue Size a) -> GenT m c) -> GenT m c
 withAnyTermLoose k =
     withTypedBuiltinGen genSizeDef $ \tb -> genTermLoose tb >>= k . fmap (TypedBuiltinValue tb)

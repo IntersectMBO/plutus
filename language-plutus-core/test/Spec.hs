@@ -6,7 +6,6 @@ module Main ( main
 import qualified Check.Spec                                 as Check
 import           Codec.Serialise
 import           Control.Monad.Except
-import           Control.Monad.Morph
 import qualified Data.ByteString.Lazy                       as BSL
 import qualified Data.Text                                  as T
 import           Data.Text.Encoding                         (encodeUtf8)
@@ -23,7 +22,7 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 import           Normalization.Type
-import           PlutusPrelude                              hiding (hoist)
+import           PlutusPrelude
 import           Pretty.Readable
 import qualified Quotation.Spec                             as Quotation
 import           Test.Tasty
@@ -99,8 +98,8 @@ propRename = property $ do
     prog <- forAll genProgram
     Hedgehog.assert $ runQuote (rename prog) == prog
 
-propDeBruijn :: GenT Quote (TermOf (TypedBuiltinValue size a)) -> Property
-propDeBruijn gen = property . hoist (return . runQuote) $ do
+propDeBruijn :: Gen (TermOf (TypedBuiltinValue size a)) -> Property
+propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
@@ -115,7 +114,8 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
     , testProperty "equality survives renaming" propRename
-    , testGroup "de Bruijn transformation round-trip" (fromInterestingTermGens (\name gen -> testProperty name (propDeBruijn gen)))
+    , testGroup "de Bruijn transformation round-trip" $
+          fromInterestingTermGens $ \name -> testProperty name . propDeBruijn
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -129,7 +129,6 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , Quotation.tests
     , Check.tests
     ]
-
 
 type TestFunction a = BSL.ByteString -> Either (Error a) T.Text
 

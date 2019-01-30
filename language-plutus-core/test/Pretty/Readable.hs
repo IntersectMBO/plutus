@@ -2,7 +2,6 @@ module Pretty.Readable (test_Pretty) where
 
 import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
 
 import           Language.PlutusCore.Examples.Everything (examples)
 import           Language.PlutusCore.StdLib.Everything   (stdLib)
@@ -17,8 +16,8 @@ prettyConfigReadable
     . PrettyConfigPlcReadable
     $ botPrettyConfigReadable defPrettyConfigName ShowKindsYes
 
-testReadable :: PrettyPlc a => TestName -> Quote a -> TestNested
-testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable . runQuote
+testReadable :: PrettyPlc a => TestName -> a -> TestNested
+testReadable name = nestedGoldenVsDoc name . prettyBy prettyConfigReadable
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable

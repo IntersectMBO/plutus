@@ -3,6 +3,8 @@ module Evaluation.CkMachine
     ( test_evaluateCk
     ) where
 
+import           Prelude                                    hiding (even)
+
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Generators.Interesting
@@ -25,13 +27,9 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 
-getEvenAndOdd :: Quote (Tuple ())
-getEvenAndOdd = do
-    nat  <- _recursiveType <$> getBuiltinNat
-    bool <- getBuiltinBool
-
-    true  <- getBuiltinTrue
-    false <- getBuiltinFalse
+evenAndOdd :: Tuple ()
+evenAndOdd = runQuote $ do
+    let nat = _recursiveType natData
 
     evenn <- freshName () "even"
     oddd  <- freshName () "odd"
@@ -45,19 +43,16 @@ getEvenAndOdd = do
     evenF <- FunctionDef () evenn (FunctionType () nat bool) <$> eoFunc true oddd
     oddF  <- FunctionDef () oddd  (FunctionType () nat bool) <$> eoFunc false evenn
 
-    getBuiltinMutualFixOf () [evenF, oddF]
+    getMutualFixOf () [evenF, oddF]
 
-getEven :: Quote (Term TyName Name ())
-getEven = getEvenAndOdd >>= tupleTermAt () 0
+even :: Term TyName Name ()
+even = runQuote $ tupleTermAt () 0 evenAndOdd
 
-getEvenAndOddList :: Quote (Tuple ())
-getEvenAndOddList = do
-    list <- _recursiveType <$> getBuiltinList
-    nat  <- _recursiveType <$> getBuiltinNat
-    let listNat = TyApp () list nat
-
-    nil  <- getBuiltinNil
-    cons <- getBuiltinCons
+evenAndOddList :: Tuple ()
+evenAndOddList = runQuote $ do
+    let list = _recursiveType listData
+        nat  = _recursiveType natData
+        listNat = TyApp () list nat
 
     evenn <- freshName () "even"
     oddd  <- freshName () "odd"
@@ -88,16 +83,15 @@ getEvenAndOddList = do
             LamAbs () t listNat $
             Apply () (Var () evenn) (Var () t)
 
-    getBuiltinMutualFixOf () [evenF, oddF]
+    getMutualFixOf () [evenF, oddF]
 
-getEvenList :: Quote (Term TyName Name ())
-getEvenList = getEvenAndOddList >>= tupleTermAt () 0
+evenList :: Term TyName Name ()
+evenList = runQuote $ tupleTermAt () 0 evenAndOddList
 
-smallNatList :: Quote (Term TyName Name ())
-smallNatList = do
-    nats <- mapM getBuiltinIntegerToNat [1,2,3]
-    nat <- _recursiveType <$> getBuiltinNat
-    getListToBuiltinList nat nats
+smallNatList :: Term TyName Name ()
+smallNatList = metaListToList nat nats where
+    nats = map metaIntegerToNat [1,2,3]
+    nat = _recursiveType natData
 
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
 goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ ".plc.golden") $ either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
@@ -105,10 +99,8 @@ goldenVsPretty name value = goldenVsString name ("test/Evaluation/" ++ name ++ "
 test_evaluateCk :: TestTree
 test_evaluateCk = testGroup "evaluateCk"
     [ testGroup "props" $ fromInterestingTermGens (\name -> testProperty name . propEvaluate evaluateCk)
-    , goldenVsPretty "even2" (pure $ evaluateCk (runQuote $
-                                                 Apply () <$> getEven <*> getBuiltinIntegerToNat 2))
-    , goldenVsPretty "even3" (pure $ evaluateCk (runQuote $
-                                                 Apply () <$> getEven <*> getBuiltinIntegerToNat 3))
-    , goldenVsPretty "evenList" (pure $ evaluateCk (runQuote $
-                                                 Apply () <$> getBuiltinNatSum 64 <*> (Apply () <$> getEvenList <*> smallNatList)))
+    , goldenVsPretty "even2" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 2
+    , goldenVsPretty "even3" . pure . evaluateCk $ Apply () even $ metaIntegerToNat 3
+    , goldenVsPretty "evenList" . pure . evaluateCk $
+          Apply () (natSum 64) $ Apply () evenList smallNatList
     ]

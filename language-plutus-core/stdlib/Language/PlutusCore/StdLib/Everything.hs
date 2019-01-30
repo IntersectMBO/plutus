@@ -14,10 +14,10 @@ import           Language.PlutusCore.FsTree
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
-import           Language.PlutusCore.StdLib.Data.Function
+import           Language.PlutusCore.StdLib.Data.Function   as Function
 import           Language.PlutusCore.StdLib.Data.Integer
 import           Language.PlutusCore.StdLib.Data.List       as List
-import           Language.PlutusCore.StdLib.Data.Nat
+import           Language.PlutusCore.StdLib.Data.Nat        as Nat
 import           Language.PlutusCore.StdLib.Data.Sum        as Sum
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
@@ -30,61 +30,61 @@ stdLib =
       [ treeFolderContents "StdLib"
           [ treeFolderContents "Data"
               [ treeFolderContents "Bool"
-                  [ plcTypeFile "Bool"  getBuiltinBool
-                  , plcTermFile "True"  getBuiltinTrue
-                  , plcTermFile "False" getBuiltinFalse
-                  , plcTermFile "If"    getBuiltinIf
+                  [ plcTypeFile "Bool"       bool
+                  , plcTermFile "True"       true
+                  , plcTermFile "False"      false
+                  , plcTermFile "IfThenElse" ifThenElse
                   ]
               , treeFolderContents "ChurchNat"
-                  [ plcTypeFile "ChurchNat"  getBuiltinChurchNat
-                  , plcTermFile "ChurchZero" getBuiltinChurchZero
-                  , plcTermFile "ChurchSucc" getBuiltinChurchSucc
+                  [ plcTypeFile "ChurchNat"  churchNat
+                  , plcTermFile "ChurchZero" churchZero
+                  , plcTermFile "ChurchSucc" churchSucc
                   ]
               , treeFolderContents "Function"
-                  [ plcTermFile "Const"  getBuiltinConst
-                  , plcTypeFile "Self"   $ _recursiveType <$> getBuiltinSelf
-                  , plcTermFile "Unroll" getBuiltinUnroll
-                  , plcTermFile "Fix"    getBuiltinFix
-                  , plcTermFile "Fix2"   $ getBuiltinFixN 2
+                  [ plcTermFile "Const"  Function.const
+                  , plcTypeFile "Self"   $ _recursiveType selfData
+                  , plcTermFile "Unroll" unroll
+                  , plcTermFile "Fix"    fix
+                  , plcTermFile "Fix2"   $ fixN 2
                   ]
               , treeFolderContents "Integer"
-                  [ plcTermFile "SuccInteger" getBuiltinSuccInteger
+                  [ plcTermFile "SuccInteger" succInteger
                   ]
               , treeFolderContents "List"
-                  [ plcTypeFile "List"       $ _recursiveType <$> getBuiltinList
-                  , plcTermFile "Nil"        getBuiltinNil
-                  , plcTermFile "Cons"       getBuiltinCons
-                  , plcTermFile "FoldrList"  getBuiltinFoldrList
-                  , plcTermFile "FoldList"   getBuiltinFoldList
-                  , plcTermFile "EnumFromTo" getBuiltinEnumFromTo
-                  , plcTermFile "Sum"        List.getBuiltinSum
-                  , plcTermFile "Product"    List.getBuiltinProduct
+                  [ plcTypeFile "List"       $ _recursiveType listData
+                  , plcTermFile "Nil"        nil
+                  , plcTermFile "Cons"       cons
+                  , plcTermFile "FoldrList"  foldrList
+                  , plcTermFile "FoldList"   foldList
+                  , plcTermFile "EnumFromTo" List.enumFromTo
+                  , plcTermFile "Sum"        List.sum
+                  , plcTermFile "Product"    List.product
                   ]
               , treeFolderContents "Nat"
-                  [ plcTypeFile "Nat"          $ _recursiveType <$> getBuiltinNat
-                  , plcTermFile "Zero"         getBuiltinZero
-                  , plcTermFile "Succ"         getBuiltinSucc
-                  , plcTermFile "FoldrNat"     getBuiltinFoldrNat
-                  , plcTermFile "FoldNat"      getBuiltinFoldNat
-                  , plcTermFile "NatToInteger" getBuiltinNatToInteger
+                  [ plcTypeFile "Nat"          $ _recursiveType natData
+                  , plcTermFile "Zero"         zero
+                  , plcTermFile "Succ"         Nat.succ
+                  , plcTermFile "FoldrNat"     foldrNat
+                  , plcTermFile "FoldNat"      foldNat
+                  , plcTermFile "NatToInteger" natToInteger
                   ]
               , treeFolderContents "Sum"
-                  [ plcTypeFile "Sum"   Sum.getBuiltinSum
-                  , plcTermFile "Left"  getBuiltinLeft
-                  , plcTermFile "Right" getBuiltinRight
+                  [ plcTypeFile "Sum"   Sum.sum
+                  , plcTermFile "Left"  left
+                  , plcTermFile "Right" right
                   ]
               , treeFolderContents "Unit"
-                  [ plcTypeFile "Unit"    getBuiltinUnit
-                  , plcTermFile "Unitval" getBuiltinUnitval
+                  [ plcTypeFile "Unit"    unit
+                  , plcTermFile "Unitval" unitval
                   ]
               ]
           , treeFolderContents "Meta"
               [ treeFolderContents "Data"
                   [ treeFolderContents "Tuple"
-                      [ plcTypeFile "ProdN2"   $ getBuiltinProdN 2
-                      , plcTermFile "ProdN2_0" $ getBuiltinProdNAccessor 2 0
-                      , plcTermFile "ProdN2_1" $ getBuiltinProdNAccessor 2 1
-                      , plcTermFile "MkProdN2" $ getBuiltinProdNConstructor 2
+                      [ plcTypeFile "ProdN2"   $ prodN 2
+                      , plcTermFile "ProdN2_0" $ prodNAccessor 2 0
+                      , plcTermFile "ProdN2_1" $ prodNAccessor 2 1
+                      , plcTermFile "MkProdN2" $ prodNConstructor 2
                       ]
                   ]
               ]

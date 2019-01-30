@@ -76,4 +76,4 @@ mkFixpoint bs = do
             Just fun -> pure fun
             Nothing  -> throwing _Error $ CompilationError (PLC.tyLoc ty) "Recursive values must be of function type. You may need to manually add unit arguments."
 
-    liftQuote $ Function.getBuiltinMutualFixOf p0 funs
+    liftQuote $ Function.getMutualFixOf p0 funs

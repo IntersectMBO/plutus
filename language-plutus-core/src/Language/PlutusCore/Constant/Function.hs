@@ -77,31 +77,30 @@ typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllSize schK) = typeSchemeResult (schK ())
 
 -- | Convert a 'TypedBuiltin' to the corresponding 'Type'.
-typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Quote (Type TyName ())
+typedBuiltinToType :: TypedBuiltin (Type TyName ()) a -> Type TyName ()
 typedBuiltinToType (TypedBuiltinSized se tbs) =
-    return . TyApp () (typedBuiltinSizedToType tbs) $ case se of
+    TyApp () (typedBuiltinSizedToType tbs) $ case se of
         SizeValue size -> TyInt () size
         SizeBound ty   -> ty
-typedBuiltinToType TypedBuiltinBool           = getBuiltinBool
-typedBuiltinToType dyn@TypedBuiltinDyn        = getTypeEncoding dyn
+typedBuiltinToType TypedBuiltinBool           = bool
+typedBuiltinToType dyn@TypedBuiltinDyn        = toTypeEncoding dyn
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
-typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
-typeSchemeToType = go 0 where
+typeSchemeToType :: TypeScheme (Type TyName ()) a r -> Type TyName ()
+typeSchemeToType = runQuote . go 0 where
     go :: Int -> TypeScheme (Type TyName ()) a r -> Quote (Type TyName ())
-    go _ (TypeSchemeBuiltin tb)      = typedBuiltinToType tb
+    go _ (TypeSchemeBuiltin tb)      = pure $ typedBuiltinToType tb
     go i (TypeSchemeArrow schA schB) =
         TyFun () <$> go i schA <*> go i schB
     go i (TypeSchemeAllSize schK)    = do
-        s <- mapTyNameString (<> prettyText i) <$>
-                freshTyName () "s"
+        s <- freshTyName () $ "s" <> prettyText i
         a <- go (succ i) . schK $ TyVar () s
         return $ TyForall () s (Size ()) a
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.
-dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Quote (Type TyName ())
+dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning -> Type TyName ()
 dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _) = typeSchemeToType sch
 
 -- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
@@ -140,5 +139,5 @@ withTypedBuiltinName BlockNum             k = k typedBlockNum
 withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
+typeOfTypedBuiltinName :: TypedBuiltinName a r -> Type TyName ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme

@@ -39,7 +39,7 @@ import           Data.Functor.Identity
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
-instance GetProgram (Quote (Term TyName Name ())) where
+instance GetProgram (Term TyName Name ()) where
     getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
 -- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
@@ -49,14 +49,12 @@ asIfThrown
     -> ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck :: Bool -> Quote (Term TyName Name a) -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
+compileAndMaybeTypecheck :: Bool -> Term TyName Name a -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuoteT $ do
     -- it is important we run the two computations in the same Quote together, otherwise we might make
     -- names during compilation that are not fresh
-    compiled <- compileTerm =<< liftQuote pir
-    when doTypecheck $ void $
-        -- need our own typechecker pipeline to allow normalized types
-        PLC.inferType PLC.defOffChainConfig compiled
+    compiled <- compileTerm pir -- =<< PLC.rename pir
+    when doTypecheck $ void $ PLC.inferType PLC.defOffChainConfig compiled
     pure compiled
 
 tests :: TestNested
@@ -73,7 +71,7 @@ tests = testGroup "plutus-ir" <$> sequence [
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting" [
     goldenPir "basic" basic
-    , goldenPir "maybe" (runQuote maybePir)
+    , goldenPir "maybe" maybePir
     ]
 
 basic :: Term TyName Name ()
@@ -85,33 +83,29 @@ basic = runQuote $ do
         LamAbs () x (TyVar () a) $
         Var () x
 
-maybePir :: Quote (Term TyName Name ())
-maybePir = do
-    mb@(Datatype _ _ _ _ [_, just]) <- maybeDatatype
-
-    unit <- Unit.getBuiltinUnit
-    unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
-
-    pure $
+maybePir :: Term TyName Name ()
+maybePir =
+    let mb@(Datatype _ _ _ _ [_, just]) = maybeDatatype
+        unitval = embedIntoIR Unit.unitval
+    in
         Let ()
             NonRec
             [
                 DatatypeBind () mb
             ] $
-        Apply () (TyInst () (mkVar () just) unit) unitval
+        Apply () (TyInst () (mkVar () just) Unit.unit) unitval
 
-listMatch :: Quote (Term TyName Name ())
-listMatch = do
-    lb@(Datatype _ l _ match [nil, _]) <- listDatatype
+listMatch :: Term TyName Name ()
+listMatch = runQuote $ do
+    let lb@(Datatype _ l _ match [nil, _]) = listDatatype
 
-    unit <- Unit.getBuiltinUnit
-    unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitval = embedIntoIR Unit.unitval
 
     h <- freshName () "head"
     t <- freshName () "tail"
 
-    let unitMatch = TyInst () (Var () match) unit
-    let unitNil = TyInst () (mkVar () nil) unit
+    let unitMatch = TyInst () (Var () match) Unit.unit
+    let unitNil = TyInst () (mkVar () nil) Unit.unit
 
     pure $
         Let ()
@@ -119,12 +113,12 @@ listMatch = do
             [
                 DatatypeBind () lb
             ] $
-            mkIterApp () (TyInst () (Apply () unitMatch unitNil) unit)
+            mkIterApp () (TyInst () (Apply () unitMatch unitNil) Unit.unit)
                 [
                     -- nil case
                     unitval,
                     -- cons case
-                    mkIterLamAbs () [VarDecl () h unit, VarDecl () t (TyApp () (mkTyVar () l) unit)] $ Var () h
+                    mkIterLamAbs () [VarDecl () h Unit.unit, VarDecl () t (TyApp () (mkTyVar () l) Unit.unit)] $ Var () h
                 ]
 
 datatypes :: TestNested
@@ -141,35 +135,31 @@ recursion = testNested "recursion" [
     goldenPlc "mutuallyRecursiveValues" mutuallyRecursiveValues
     ]
 
-natToBool :: Quote (Type TyName ())
-natToBool = do
-    RecursiveType nat _ <- Nat.getBuiltinNat
-    TyFun () nat <$> Bool.getBuiltinBool
+natToBool :: Type TyName ()
+natToBool =
+    let nat = _recursiveType Nat.natData
+    in TyFun () nat Bool.bool
 
-evenOdd :: Quote (Term TyName Name ())
-evenOdd = do
-    true <- embedIntoIR <$> Bool.getBuiltinTrue
-    false <- embedIntoIR <$> Bool.getBuiltinFalse
+evenOdd :: Term TyName Name ()
+evenOdd = runQuote $ do
+    let true = embedIntoIR Bool.true
+        false = embedIntoIR Bool.false
+        nat = _recursiveType Nat.natData
 
     evenn <- freshName () "even"
-    evenTy <- natToBool
     oddd <- freshName () "odd"
-    oddTy <- natToBool
 
     let eoFunc b recc = do
           n <- freshName () "n"
-          RecursiveType nat _ <- Nat.getBuiltinNat
-          bool <- Bool.getBuiltinBool
           pure $
               LamAbs () n nat $
-              Apply () (Apply () (TyInst () (Unwrap () (Var () n)) bool) b) $ Var () recc
+              Apply () (Apply () (TyInst () (Unwrap () (Var () n)) Bool.bool) b) $ Var () recc
 
     evenF <- eoFunc true oddd
     oddF <- eoFunc false evenn
 
     arg <- freshName () "arg"
-    RecursiveType nat _ <- Nat.getBuiltinNat
-    three <- embedIntoIR <$> Meta.getBuiltinIntegerToNat 3
+    let three = embedIntoIR $ Meta.metaIntegerToNat 3
     pure $
         Let ()
             NonRec
@@ -179,34 +169,33 @@ evenOdd = do
         Let ()
             Rec
             [
-                TermBind () (VarDecl () evenn evenTy) evenF,
-                TermBind () (VarDecl () oddd oddTy) oddF
+                TermBind () (VarDecl () evenn natToBool) evenF,
+                TermBind () (VarDecl () oddd natToBool) oddF
             ] $
         Apply () (Var () evenn) (Var () arg)
 
-mutuallyRecursiveValues :: Quote (Term TyName Name ())
-mutuallyRecursiveValues = do
+mutuallyRecursiveValues :: Term TyName Name ()
+mutuallyRecursiveValues = runQuote $ do
     x <- freshName () "x"
     y <- freshName () "y"
 
-    unit <- Unit.getBuiltinUnit
-    unitval <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitval = embedIntoIR Unit.unitval
 
     pure $
         Let ()
             Rec
             [
-                TermBind () (VarDecl () x unit) (Var () y),
-                TermBind () (VarDecl () y unit) unitval
+                TermBind () (VarDecl () x Unit.unit) (Var () y),
+                TermBind () (VarDecl () y Unit.unit) unitval
             ] $
         Var () x
 
 serialization :: TestNested
 serialization = testNested "serialization" [
     goldenPir "serializeBasic" (roundTripPirTerm basic),
-    goldenPir "serializeMaybePirTerm" (roundTripPirTerm $ runQuote maybePir),
-    goldenPir "serializeEvenOdd" (roundTripPirTerm $ runQuote evenOdd),
-    goldenPir "serializeListMatch" (roundTripPirTerm $ runQuote listMatch)
+    goldenPir "serializeMaybePirTerm" (roundTripPirTerm maybePir),
+    goldenPir "serializeEvenOdd" (roundTripPirTerm evenOdd),
+    goldenPir "serializeListMatch" (roundTripPirTerm listMatch)
     ]
 
 roundTripPirTerm :: Term TyName Name () -> Term TyName Name ()
@@ -217,17 +206,14 @@ errors = testNested "errors" [
     goldenPlcCatch "mutuallyRecursiveTypes" mutuallyRecursiveTypes
     ]
 
-mutuallyRecursiveTypes :: Quote (Term TyName Name ())
-mutuallyRecursiveTypes = do
-    unit <- Unit.getBuiltinUnit
-
-    (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) <- treeForestDatatype
-
-    pure $
+mutuallyRecursiveTypes :: Term TyName Name ()
+mutuallyRecursiveTypes =
+    let (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) = treeForestDatatype
+    in
         Let ()
             Rec
             [
                 DatatypeBind () treeDt,
                 DatatypeBind () forestDt
             ] $
-        TyInst () (mkVar () nil) unit
+        TyInst () (mkVar () nil) Unit.unit

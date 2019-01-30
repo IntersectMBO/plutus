@@ -12,23 +12,24 @@ module Language.PlutusCore.Generators.Test
     , propEvaluate
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
+import           Language.PlutusCore.Lexer.Type                          hiding (name)
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Type
 
 import           Control.Monad.Except
-import           Control.Monad.Morph
 import qualified Data.Text.IO                                            as Text
 import           Hedgehog                                                hiding (Size, Var, eval)
 import           System.FilePath                                         ((</>))
 
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 sampleTermValue :: TermGen Size a -> IO (TermOf (Value TyName Name ()))
-sampleTermValue genTerm = runQuoteSampleSucceed $ genTerm >>= liftQuote . unsafeTypeEvalCheck
+sampleTermValue genTerm = runSampleSucceed $ unsafeTypeEvalCheck <$> genTerm
 
 -- | Generate a term using a given generator, check that it's well-typed and evaluates correctly and
 -- pretty-print it to stdout using the default pretty-printing mode.
@@ -54,12 +55,12 @@ sampleProgramValueGolden folder name genTerm = do
 -- Checks whether a term generated along with the value it's supposed to compute to
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
-    :: (Term TyName Name () -> EvaluationResult)       -- ^ An evaluator.
-    -> GenT Quote (TermOf (TypedBuiltinValue Size a))  -- ^ A term/value generator.
+    :: (Term TyName Name () -> EvaluationResult)  -- ^ An evaluator.
+    -> TermGen Size a                             -- ^ A term/value generator.
     -> Property
-propEvaluate eval genTermOfTbv = withTests 200 . property . hoist (return . runQuote) $ do
-    termOfTbv <- forAllNoShowT genTermOfTbv
-    case runQuote . runExceptT $ typeEvalCheckBy eval termOfTbv of
+propEvaluate eval genTermOfTbv = withTests 200 . property $ do
+    termOfTbv <- forAllNoShow genTermOfTbv
+    case typeEvalCheckBy eval termOfTbv of
         Left (TypeEvalCheckErrorIllFormed err)             -> errorPlc err
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
             expected === actual  -- We know that these two are distinct, but there is no nice way we

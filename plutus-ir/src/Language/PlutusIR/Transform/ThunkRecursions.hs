@@ -167,8 +167,8 @@ constructThunkedLet ann okay needThunking body = do
     -- These are all going to be used in a "closed" fashion, so it's fine to reuse them so long
     -- as we rename before typechecking.
     argName <- liftQuote $ freshName ann "arg"
-    unit <- const ann <<$>> liftQuote Unit.getBuiltinUnit
-    unitval <- const ann <<$>> embedIntoIR <$> liftQuote Unit.getBuiltinUnitval
+    let unit = ann <$ Unit.unit
+        unitval = ann <$ embedIntoIR Unit.unitval
 
     {-
     We need several pieces, and it is convenient to construct them simultaneously:

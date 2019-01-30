@@ -159,9 +159,8 @@ prettyExample (SomeTypeExample (TypeExample _ ty))   = PLC.prettyPlcDef ty
 prettyExample (SomeTermExample (TermExample _ term)) =
     PLC.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
 
-toTermExample :: PLC.Quote (PLC.Term PLC.TyName PLC.Name ()) -> TermExample
-toTermExample getTerm = TermExample ty term where
-    term = PLC.runQuote getTerm
+toTermExample :: PLC.Term PLC.TyName PLC.Name () -> TermExample
+toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defOffChainConfig program of
         Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
@@ -169,19 +168,16 @@ toTermExample getTerm = TermExample ty term where
 
 availableExamples :: [(ExampleName, SomeExample)]
 availableExamples =
-    [ ("succInteger", SomeTermExample $ toTermExample PLC.getBuiltinSuccInteger)
-    , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) unit)
-    , ("unitval"    , SomeTermExample $ toTermExample PLC.getBuiltinUnitval)
-    , ("bool"       , SomeTypeExample $ TypeExample (PLC.Type ()) bool)
-    , ("true"       , SomeTermExample $ toTermExample PLC.getBuiltinTrue)
-    , ("false"      , SomeTermExample $ toTermExample PLC.getBuiltinFalse)
-    , ("churchNat"  , SomeTypeExample $ TypeExample (PLC.Type ()) churchNat)
-    , ("churchZero" , SomeTermExample $ toTermExample PLC.getBuiltinChurchZero)
-    , ("churchSucc" , SomeTermExample $ toTermExample PLC.getBuiltinChurchSucc)
-    ] where
-        unit = PLC.runQuote PLC.getBuiltinUnit
-        bool = PLC.runQuote PLC.getBuiltinBool
-        churchNat = PLC.runQuote PLC.getBuiltinChurchNat
+    [ ("succInteger", SomeTermExample $ toTermExample PLC.succInteger)
+    , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.unit)
+    , ("unitval"    , SomeTermExample $ toTermExample PLC.unitval)
+    , ("bool"       , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.bool)
+    , ("true"       , SomeTermExample $ toTermExample PLC.true)
+    , ("false"      , SomeTermExample $ toTermExample PLC.false)
+    , ("churchNat"  , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.churchNat)
+    , ("churchZero" , SomeTermExample $ toTermExample PLC.churchZero)
+    , ("churchSucc" , SomeTermExample $ toTermExample PLC.churchSucc)
+    ]
 
 runExample :: ExampleOptions -> IO ()
 runExample (ExampleOptions ExampleAvailable)     =

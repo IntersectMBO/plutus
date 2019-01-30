@@ -3,21 +3,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Data.Unit
-    ( getBuiltinUnit
-    , getBuiltinUnitval
-    , getBuiltinSequ
+    ( unit
+    , unitval
+    , sequ
     ) where
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
 -- | '()' as a PLC type.
 --
 -- > all (A :: *). A -> A
-getBuiltinUnit :: Quote (Type TyName ())
-getBuiltinUnit = rename =<< do
+unit :: Type TyName ()
+unit = runQuote $ do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
@@ -27,8 +26,8 @@ getBuiltinUnit = rename =<< do
 -- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-getBuiltinUnitval :: Quote (Value TyName Name ())
-getBuiltinUnitval = rename =<< do
+unitval :: Value TyName Name ()
+unitval = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     return
@@ -39,10 +38,8 @@ getBuiltinUnitval = rename =<< do
 -- | @seq @() @()@ as a PLC term.
 --
 -- > \(x y : unit) -> unitval
-getBuiltinSequ :: Quote (Value TyName Name ())
-getBuiltinSequ = rename =<< do
-    unit    <- getBuiltinUnit
-    unitval <- getBuiltinUnitval
+sequ :: Value TyName Name ()
+sequ = runQuote $ do
     x <- freshName () "x"
     y <- freshName () "y"
     return

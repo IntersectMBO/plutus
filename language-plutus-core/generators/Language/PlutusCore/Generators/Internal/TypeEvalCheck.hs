@@ -16,14 +16,17 @@ module Language.PlutusCore.Generators.Internal.TypeEvalCheck
     , unsafeTypeEvalCheck
     ) where
 
-import           Language.PlutusCore
 import qualified Language.PlutusCore.Check.ValueRestriction              as VR
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.CkMachine
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Type
+import           Language.PlutusCore.TypeCheck
 import           PlutusPrelude
 
 import           Control.Lens.TH
@@ -69,7 +72,7 @@ instance (PrettyBy config (Error ()), PrettyBy config (Value TyName Name ())) =>
         "doesn't match with the actual value:" <+> prettyBy config actual
 
 -- | The monad type-eval checking runs in.
-type TypeEvalCheckM = ExceptT TypeEvalCheckError Quote
+type TypeEvalCheckM = Either TypeEvalCheckError
 
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
@@ -80,7 +83,7 @@ typeEvalCheckBy
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     _ <- VR.checkTerm term
     termTy <- inferType defOffChainConfig term
-    resExpected <- liftQuote $ maybeToEvaluationResult <$> makeBuiltin tbv
+    let resExpected = maybeToEvaluationResult $ makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
         for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->
             if valExpected == valActual
@@ -90,9 +93,9 @@ typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: forall a. TermOf (TypedBuiltinValue Size a) -> Quote (Maybe (TermOf (Value TyName Name ())))
+    :: forall a. TermOf (TypedBuiltinValue Size a) -> Maybe (TermOf (Value TyName Name ()))
 unsafeTypeEvalCheck termOfTbv = do
-    errOrRes <- runExceptT $ typeEvalCheckBy evaluateCk termOfTbv
-    pure $ case errOrRes of
+    let errOrRes = typeEvalCheckBy evaluateCk termOfTbv
+    case errOrRes of
         Left err         -> errorPlc err
         Right termOfTecr -> traverse (evaluationResultToMaybe . _termCheckResultValue) termOfTecr

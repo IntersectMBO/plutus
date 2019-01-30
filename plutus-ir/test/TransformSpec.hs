@@ -17,12 +17,12 @@ transform = testNested "transform" [
 
 thunkRecursions :: TestNested
 thunkRecursions = testNested "thunkRecursions" [
-    goldenPir "listFold" (runQuote listFold),
-    goldenPir "monoMap" (runQuote monoMap)
+    goldenPir "listFold" listFold,
+    goldenPir "monoMap" monoMap
     ]
 
-listFold :: Quote (Term TyName Name ())
-listFold = thunkRecursionsTerm =<< do
+listFold :: Term TyName Name ()
+listFold = runQuote $ thunkRecursionsTerm =<< do
     {-
     This implements foldl:
 
@@ -31,7 +31,7 @@ listFold = thunkRecursionsTerm =<< do
             [] -> acc
             x:xs -> foldl f (f acc x) xs
     -}
-    lb@(Datatype _ d _ destr _) <- listDatatype
+    let lb@(Datatype _ d _ destr _) = listDatatype
     avd <- do
         a <- freshTyName () "a"
         pure $ TyVarDecl () a (Type ())
@@ -89,8 +89,8 @@ listFold = thunkRecursionsTerm =<< do
         Let () Rec [ DatatypeBind () lb ] $
         Let () Rec [ TermBind () fvd fld ] $ mkVar () fvd
 
-monoMap :: Quote (Term TyName Name ())
-monoMap = thunkRecursionsTerm =<< do
+monoMap :: Term TyName Name ()
+monoMap = runQuote $ thunkRecursionsTerm =<< do
     {-
     This implements a monomorphic map (which does not need to be thunked):
 
@@ -99,7 +99,7 @@ monoMap = thunkRecursionsTerm =<< do
             [] -> []
             x:xs -> f x : map f xs
     -}
-    lb@(Datatype _ d _ destr [nil, cons]) <- listDatatype
+    let lb@(Datatype _ d _ destr [nil, cons]) = listDatatype
 
     let elemTy = TyInt () 1
 

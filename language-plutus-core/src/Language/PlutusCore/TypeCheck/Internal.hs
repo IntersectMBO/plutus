@@ -340,7 +340,7 @@ typeOfConstant = \case
     applySizedNormalized tb = NormalizedType . TyApp () (TyBuiltin () tb) . TyInt ()
 
 -- | Return the 'Type' of a 'BuiltinName'.
-typeOfBuiltinName :: BuiltinName -> Quote (Type TyName ())
+typeOfBuiltinName :: BuiltinName -> Type TyName ()
 typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
 
 -- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
@@ -367,7 +367,7 @@ inferTypeOfBuiltinM :: Builtin ann -> TypeCheckM ann (NormalizedType TyName ())
 -- with the normalization happening in this module, but what should we do for static built-in names?
 -- Right now we just renormalize the type of a static built-in name each time we encounter that name.
 inferTypeOfBuiltinM (BuiltinName    _   name) =
-    liftQuote (typeOfBuiltinName name) >>= rename >>= Norm.normalizeTypeDown
+    rename (typeOfBuiltinName name) >>= Norm.normalizeTypeDown
 -- TODO: inline this definition once we have only dynamic built-in names.
 inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann name >>= rename
 

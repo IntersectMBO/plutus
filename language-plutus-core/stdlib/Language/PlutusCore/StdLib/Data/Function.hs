@@ -3,21 +3,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Data.Function
-    ( getBuiltinConst
-    , getBuiltinSelf
-    , getBuiltinUnroll
-    , getBuiltinFix
-    , getBuiltinFixN
+    ( const
+    , selfData
+    , unroll
+    , fix
+    , fixN
     , FunctionDef (..)
-    , getBuiltinMutualFixOf
+    , getMutualFixOf
     ) where
+
+import           PlutusPrelude
+import           Prelude                                    hiding (const)
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
@@ -28,8 +29,8 @@ import           Control.Monad
 -- | 'const' as a PLC term.
 --
 -- > /\ (A B :: *) -> \(x : A) (y : B) -> x
-getBuiltinConst :: Quote (Term TyName Name ())
-getBuiltinConst = do
+const :: Term TyName Name ()
+const = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     x <- freshName () "x"
@@ -44,8 +45,8 @@ getBuiltinConst = do
 -- | @Self@ as a PLC type.
 --
 -- > fix \(self :: * -> *) (a :: *) -> self a -> a
-getBuiltinSelf :: Quote (RecursiveType ())
-getBuiltinSelf = do
+selfData :: RecursiveType ()
+selfData = runQuote $ do
     self <- freshTyName () "self"
     a    <- freshTyName () "a"
     makeRecursiveType () self [TyVarDecl () a $ Type ()]
@@ -55,9 +56,9 @@ getBuiltinSelf = do
 -- | @unroll@ as a PLC term.
 --
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
-getBuiltinUnroll :: Quote (Term TyName Name ())
-getBuiltinUnroll = do
-    self <- _recursiveType <$> getBuiltinSelf
+unroll :: Term TyName Name ()
+unroll = runQuote $ do
+    let self = _recursiveType selfData
     a <- freshTyName () "a"
     s <- freshName () "s"
     return
@@ -71,11 +72,10 @@ getBuiltinUnroll = do
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
 -- >    unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 --
--- See @plutus/docs/fomega/z-combinator-benchmarks@ for details.
-getBuiltinFix :: Quote (Term TyName Name ())
-getBuiltinFix = rename =<< do
-    RecursiveType self wrapSelf <- getBuiltinSelf
-    unroll <- getBuiltinUnroll
+-- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
+fix :: Term TyName Name ()
+fix = runQuote $ do
+    let RecursiveType self wrapSelf = selfData
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     f <- freshName () "f"
@@ -123,8 +123,8 @@ natTransId f = do
 -- >     forall (F :: * -> *) .
 -- >     ((F ~> Id) -> (F ~> Id)) ->
 -- >     ((F ~> F) -> (F ~> Id))
-getBuiltinFixBy :: Quote (Term TyName Name ())
-getBuiltinFixBy = do
+fixBy :: Term TyName Name ()
+fixBy = runQuote $ do
     f <- freshTyName () "F"
 
     -- by : (F ~> Id) -> (F ~> Id)
@@ -136,7 +136,6 @@ getBuiltinFixBy = do
 
     -- instantiatedFix = fix {F ~> F} {F ~> Id}
     instantiatedFix <- do
-        fix <- getBuiltinFix
         nt1 <- natTrans (TyVar () f) (TyVar () f)
         nt2 <- natTransId (TyVar () f)
         pure $ TyInst () (TyInst () fix nt1) nt2
@@ -183,7 +182,7 @@ getBuiltinFixBy = do
 
 -- | Make a @n@-ary fixpoint combinator.
 --
--- > getBuiltinFixN n :
+-- > FixN n :
 -- >     forall A1 B1 ... An Bn :: * .
 -- >     (forall Q :: * .
 -- >         ((A1 -> B1) -> ... -> (An -> Bn) -> Q) ->
@@ -192,8 +191,8 @@ getBuiltinFixBy = do
 -- >         (An -> Bn) ->
 -- >         Q) ->
 -- >     (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
-getBuiltinFixN :: Int -> Quote (Term TyName Name ())
-getBuiltinFixN n = do
+fixN :: Int -> Term TyName Name ()
+fixN n = runQuote $ do
     -- the list of pairs of A and B types
     asbs <- replicateM n $ do
         a <- freshTyName () "a"
@@ -207,7 +206,6 @@ getBuiltinFixN n = do
 
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
-        fixBy <- getBuiltinFixBy
         x <- freshTyName () "X"
         pure $ TyInst () fixBy (TyLam () x (Type ()) (funTysTo (TyVar () x)))
 
@@ -264,7 +262,7 @@ getBuiltinFixN n = do
 
 -- | Get the fixed-point of a list of mutually recursive functions.
 --
--- > getBuiltinMutualFixOf _ [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
+-- > MutualFixOf _ [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
 -- >                         , ...
 -- >                         , FunctionDef _ fNn (FunctionType _ an bn) fn
 -- >                         ] =
@@ -272,8 +270,8 @@ getBuiltinFixN n = do
 -- >         fixN {a1} {b1} ... {an} {bn}
 -- >             /\(q :: *) -> \(choose : (a1 -> b1) -> ... -> (an -> bn) -> q) ->
 -- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
-getBuiltinMutualFixOf :: ann -> [FunctionDef TyName Name ann] -> Quote (Tuple ann)
-getBuiltinMutualFixOf ann funs = do
+getMutualFixOf :: ann -> [FunctionDef TyName Name ann] -> Quote (Tuple ann)
+getMutualFixOf ann funs = do
     let funTys = map functionDefToType funs
 
     q <- liftQuote $ freshTyName ann "Q"
@@ -291,9 +289,8 @@ getBuiltinMutualFixOf ann funs = do
 
     -- fixN {A1} {B1} ... {An} {Bn}
     instantiatedFix <- do
-        fixN <- (ann <$) <$> getBuiltinFixN (length funs)
         let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -> [dom, cod]) funs
-        pure $ mkIterInst ann fixN domCods
+        pure $ mkIterInst ann (ann <$ fixN (length funs)) domCods
 
     let term = Apply ann instantiatedFix cLam
 

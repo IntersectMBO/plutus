@@ -1,16 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Examples.Data.InterList
-    ( getBuiltinInterList
-    , getBuiltinInterNil
-    , getBuiltinInterCons
-    , getBuiltinFoldrInterList
+    ( interListData
+    , interNil
+    , interCons
+    , foldrInterList
     ) where
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
 import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Function
@@ -39,8 +38,8 @@ We encode the following in this module:
 --
 -- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
 -- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
-getBuiltinInterList :: Quote (RecursiveType ())
-getBuiltinInterList = do
+interListData :: RecursiveType ()
+interListData = runQuote $ do
     a         <- freshTyName () "a"
     b         <- freshTyName () "b"
     interlist <- freshTyName () "interlist"
@@ -52,9 +51,9 @@ getBuiltinInterList = do
         . TyFun () (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ TyVar () r
 
-getBuiltinInterNil :: Quote (Term TyName Name ())
-getBuiltinInterNil = rename =<< do
-    RecursiveType interlist wrapInterList <- getBuiltinInterList
+interNil :: Term TyName Name ()
+interNil = runQuote $ do
+    let RecursiveType interlist wrapInterList = interListData
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     r <- freshTyName () "r"
@@ -70,9 +69,9 @@ getBuiltinInterNil = rename =<< do
         . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ Var () z
 
-getBuiltinInterCons :: Quote (Term TyName Name ())
-getBuiltinInterCons = rename =<< do
-    RecursiveType interlist wrapInterList <- getBuiltinInterList
+interCons :: Term TyName Name ()
+interCons = runQuote $ do
+    let RecursiveType interlist wrapInterList = interListData
     a  <- freshTyName () "a"
     b  <- freshTyName () "b"
     x  <- freshName () "x"
@@ -98,12 +97,9 @@ getBuiltinInterCons = rename =<< do
           , Var () xs
           ]
 
-getBuiltinFoldrInterList :: Quote (Term TyName Name ())
-getBuiltinFoldrInterList = rename =<< do
-    interlist <- _recursiveType <$> getBuiltinInterList
-    unit    <- getBuiltinUnit
-    unitval <- getBuiltinUnitval
-    fix     <- getBuiltinFix
+foldrInterList :: Term TyName Name ()
+foldrInterList = runQuote $ do
+    let interlist = _recursiveType interListData
     a0  <- freshTyName () "a0"
     b0  <- freshTyName () "b0"
     r   <- freshTyName () "r"
