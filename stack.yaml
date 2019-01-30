@@ -12,6 +12,7 @@ packages:
 - plutus-playground/plutus-playground-lib
 - plutus-tutorial
 
+# Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
     git: https://github.com/shmish111/servant-purescript.git
     commit: 315ccf5d720937c091c8cf3aca8adc8110766a23
