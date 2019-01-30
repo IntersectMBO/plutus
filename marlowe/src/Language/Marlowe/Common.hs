@@ -154,7 +154,7 @@ data Value  = Committed IdentCC
             | AddValue Value Value
             | MulValue Value Value
             | DivValue Value Value Value
-            -- ^ divident, divisor, default value (when divisor evaluates to 0)
+            -- ^ dividend, divisor, default value (when divisor evaluates to 0)
             | ValueFromChoice IdentChoice Person Value
             -- ^ interpret a choice identified by 'IdentChoice' and 'Person' as a value if it is provided,
             --   'Value' otherwise

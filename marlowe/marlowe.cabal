@@ -41,8 +41,9 @@ library
   exposed-modules:
     Language.Marlowe
     Language.Marlowe.Client
-    Language.Marlowe.Common
     Language.Marlowe.Escrow
+  other-modules:
+    Language.Marlowe.Common
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

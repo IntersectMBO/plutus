@@ -54,7 +54,7 @@ import           Language.Marlowe.Client        ( commit'
                                                 , commit
                                                 , redeem
                                                 , createContract
-                                                , endContract
+                                                , spendDeposit
                                                 , receivePayment
                                                 , marloweValidator
                                                 )
@@ -468,7 +468,7 @@ withContract wallets contract f = do
 
     (tx1Out, state) <- f txOut validator
 
-    [tx] <- walletAction creator (endContract tx1Out validator state)
+    [tx] <- walletAction creator (spendDeposit tx1Out validator state)
     update
     assertIsValidated tx
   where
