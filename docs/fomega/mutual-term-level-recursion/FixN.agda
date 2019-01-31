@@ -29,6 +29,29 @@ module Test (even : ℕ -> Bool) (odd : ℕ -> Bool) where
 -- Brings `Test : (ℕ -> Bool) -> (ℕ -> Bool) -> Set` in scope.
 open Test
 
+module ScottTuple where
+
+  -- Some convenience functions for deconstructing Scott-encoded 2-tuples
+  sel₁ : ∀ {A B} -> A -> B -> A
+  sel₁ = λ x y -> x
+  sel₂ : ∀ {A B} -> A -> B -> B
+  sel₂ = λ x y -> y
+
+  -- Curry and uncurry for Scott-encoded 2-tuples
+  curryScott2
+    : ∀ {A B R}
+    -> ((∀ {Q} -> (A -> B -> Q) -> Q) -> R)
+    -> (A -> B -> R)
+  curryScott2 tup a b = tup λ f -> f a b
+
+  uncurryScott2
+      : ∀ {A B R}
+      -> (A -> B -> R)
+      -> ((∀ {Q} -> (A -> B -> Q) -> Q) -> R)
+  uncurryScott2 f g = g f
+
+open ScottTuple
+
 module Classic where
   open import Data.Product
 
@@ -109,8 +132,8 @@ module PartlyUncurried2 where
   -- Ignoring the former transformation right now, but performing the latter we get the following:
 
   fix2 : ∀ {A B} -> (∀ {Q} -> (A -> B -> Q) -> A -> B -> Q) -> A × B
-  fix2 f = f (λ x y -> x) (proj₁ (fix2 f)) (proj₂ (fix2 f))
-         , f (λ x y -> y) (proj₁ (fix2 f)) (proj₂ (fix2 f))
+  fix2 f = f sel₁ (proj₁ (fix2 f)) (proj₂ (fix2 f))
+         , f sel₂ (proj₁ (fix2 f)) (proj₂ (fix2 f))
 
   -- `f` is what was of the `A × B -> A × B` type previously, but now instead of receiving a tuple
   -- and defining a tuple, `f` receives a selector and two values of types `A` and `B`. The values
@@ -156,7 +179,7 @@ module Uncurried where
   -- allows us to get rid of tuples:
 
   fix2 : {A B R : Set} -> (∀ {Q} -> (A -> B -> Q) -> A -> B -> Q) -> (A -> B -> R) -> R
-  fix2 f k = k (fix2 f (f λ x y -> x)) (fix2 f (f λ x y -> y))
+  fix2 f k = k (fix2 f (f sel₁)) (fix2 f (f sel₂))
 
   -- `k` is the continuation that represents a Church-encoded tuple returned as the result.
   -- But... if `k` is just another way to construct a tuple, how are we not keeping `f` outside of
@@ -344,6 +367,55 @@ module ComputeUncurriedGeneral where
   -- (the naming is slightly different there).
 
   -- Moreover, we can assign a type to `fixN` in pure System Fω, see [3].
+
+module AlternativeFormulation where
+  open import Data.Product
+
+  -- In `PartiallyUncurried`, we are forced into a certain amount of unpacking and repacking because
+  -- we only Scott-encode one of the tuples at that point. If we Scott-encode both, we end up with a
+  -- slightly different formulation.
+
+  -- Uncurry the argument tuple type.
+  fix-uncurry : ∀ {A B} -> (A -> B -> A × B) -> A × B
+  fix-uncurry f = (uncurry f) (fix-uncurry f)
+
+  -- Scott-encode both tuple types.
+  -- Here because the result type is the same we don't need to do anything except change to using
+  -- uncurry for Scott tuples. In the inlined version we would just switch from using the tuple projector
+  -- functions to using the Scott-tuple selector functions.
+  fix-scott : ∀ {A B} -> (A -> B -> ∀ {Q} -> (A -> B -> Q) -> Q) -> ∀ {Q} -> (A -> B -> Q) -> Q
+  fix-scott f = (uncurryScott2 f) (fix-scott f)
+
+  -- Rearrange the arguments of `f`
+  fix-rearrange : ∀ {A B} -> (∀ {Q} -> (A -> B -> Q) -> A -> B -> Q) -> ∀ {Q} -> (A -> B -> Q) -> Q
+  fix-rearrange f k = (uncurryScott2 (f k)) (fix-rearrange f)
+
+  -- Abstract the use of `uncurryScott2`, make point-free-er
+  fix-abs : ∀ {A B} -> (∀ {Q} -> (A -> B -> Q) -> A -> B -> Q) -> ∀ {Q} -> (A -> B -> Q) -> Q
+  fix-abs {A} {B} f = byish (fix-abs f) ∘ f
+    where
+      byish : (∀ {Q} -> (A -> B -> Q) -> Q) -> (∀ {R} -> (A -> B -> R) -> R)
+      byish r k = (uncurryScott2 k) r
+
+  -- We can now define another version of `fixBy`. Compare with the previous version:
+  -- fixBy by f = by (fixBy by f ∘ f)
+  -- This version looks like it should be provably equivalent via some kind of fixpoint
+  -- "rolling rule" for `fixBy`.
+  fixBy : {F : Set -> Set}
+        -> ((∀ {Q} -> F Q -> Q) -> ∀ {R} -> F R -> R)
+        -> (∀ {Q} -> F Q -> F Q) -> ∀ {R} -> F R -> R
+  fixBy by f = by (fixBy by f) ∘ f
+
+  by2 : {A B : Set} -> (∀ {Q} -> (A -> B -> Q) -> Q) -> {R : Set} -> (A -> B -> R) -> R
+  by2 r k = k (r λ x y -> x) (r λ x y -> y)
+
+  evenAndOdd : ∀ {R} -> ((ℕ -> Bool) -> (ℕ -> Bool) -> R) -> R
+  evenAndOdd = fixBy by2 $ λ select even odd -> select
+      (λ { 0 -> true  ; (suc n) -> odd  n })
+      (λ { 0 -> false ; (suc n) -> even n })
+
+  test : Test (evenAndOdd sel₁) (evenAndOdd sel₂)
+  test = refl
 
 module References where
   -- [1] "Mutual Recursion in Final Encoding", Andreas Herrmann
