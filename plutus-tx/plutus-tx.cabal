@@ -86,7 +86,7 @@ library plutus-tx-compiler
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        ghc -any,
+        ghc <8.5,
         language-plutus-core -any,
         lens -any,
         mtl -any,
