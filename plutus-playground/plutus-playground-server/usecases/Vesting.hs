@@ -7,6 +7,8 @@ import qualified Language.PlutusTx            as PlutusTx
 import qualified Ledger.Interval              as Interval
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
+import           Ledger.Ada                   (Ada)
+import qualified Ledger.Ada.TH                as Ada
 import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
@@ -14,7 +16,7 @@ import           Playground.Contract
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {
     vestingTrancheDate   :: Slot,
-    vestingTrancheAmount :: Value
+    vestingTrancheAmount :: Ada
     } deriving (Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''VestingTranche
@@ -30,23 +32,24 @@ data Vesting = Vesting {
 PlutusTx.makeLift ''Vesting
 
 -- | The total amount of money vested
-totalAmount :: Vesting -> Value
+totalAmount :: Vesting -> Ada
 totalAmount Vesting{..} =
     vestingTrancheAmount vestingTranche1 + vestingTrancheAmount vestingTranche2
 
 -- | Data script for vesting utxo
 data VestingData = VestingData {
     vestingDataHash    :: ValidatorHash, -- ^ Hash of the validator script
-    vestingDataPaidOut :: Value -- ^ How much of the vested value has already been retrieved
+    vestingDataPaidOut :: Ada -- ^ How much of the vested value has already been retrieved
     } deriving (Eq, Generic, ToJSON, FromJSON, ToSchema)
 
 PlutusTx.makeLift ''VestingData
 
 -- | Lock some funds with the vesting validator script and return a
 --   [[VestingData]] representing the current state of the process
-vestFunds :: MonadWallet m => Vesting -> Value -> m ()
-vestFunds vst value = do
-    _ <- if value < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
+vestFunds :: MonadWallet m => Vesting -> Ada -> m ()
+vestFunds vst adaAmount = do
+    _ <- if adaAmount < totalAmount vst then throwOtherError "Value must not be smaller than vested amount" else pure ()
+    let value = $$(Ada.toValue) adaAmount
     (payment, change) <- createPaymentWithChange value
     let contractAddress = Ledger.scriptAddress (validatorScript vst)
         dataScript      = DataScript (Ledger.lifted vd)
@@ -97,15 +100,15 @@ validatorScript v = ValidatorScript val where
             (&&) = $$(P.and)
 
             PendingTx _ os _ _ _ range = p
-            VestingTranche d1 (Value a1) = vestingTranche1
-            VestingTranche d2 (Value a2) = vestingTranche2
+            VestingTranche d1 a1 = vestingTranche1
+            VestingTranche d2 a2 = vestingTranche2
 
             -- We assume here that the txn outputs are always given in the same
             -- order (1 PubKey output, followed by 0 or 1 script outputs)
-            amountSpent :: Int
+            amountSpent :: Ada
             amountSpent = case os of
-                PendingTxOut (Value v') _ (PubKeyTxOut pk):_
-                    | pk `eqPk` vestingOwner -> v'
+                PendingTxOut v' _ (PubKeyTxOut pk):_
+                    | pk `eqPk` vestingOwner -> $$(Ada.fromValue) v'
                 _ -> $$(P.error) ()
 
             -- Value that has been released so far under the scheme
@@ -113,20 +116,20 @@ validatorScript v = ValidatorScript val where
                 if $$(Interval.contains) ($$(Interval.from) d1) range
                 then if $$(Interval.contains) ($$(Interval.from) d2) range
                     -- everything can be spent
-                        then $$(P.plus) a1 a2
+                        then $$(Ada.plus) a1 a2
                         -- only the first tranche can be spent (we are between d1 and d2)
                         else a1
                 -- Nothing has been released yet
-                else 0
+                else $$(Ada.zero)
 
 
-            paidOut = let Value v' = vestingDataPaidOut in v'
-            newAmount = $$(P.plus) paidOut amountSpent
+            paidOut = vestingDataPaidOut
+            newAmount = $$(Ada.plus) paidOut amountSpent
 
             -- Verify that the amount taken out, plus the amount already taken
             -- out before, does not exceed the threshold that is currently
             -- allowed
-            amountsValid = $$(P.leq) newAmount currentThreshold
+            amountsValid = $$(Ada.leq) newAmount currentThreshold
 
             -- Check that the remaining output is locked by the same validation
             -- script

@@ -28,10 +28,10 @@ module Wallet.Generators(
     ) where
 
 import           Data.Bifunctor              (Bifunctor (..))
+import           Data.Foldable               (foldl')
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
 import           Data.Maybe                  (catMaybes, isNothing)
-import           Data.Monoid                 (Sum (..))
 import           Data.Set                    (Set)
 import qualified Data.Set                    as Set
 import           GHC.Stack                   (HasCallStack)
@@ -40,6 +40,8 @@ import qualified Hedgehog.Gen                as Gen
 import qualified Hedgehog.Range              as Range
 import qualified Ledger.Interval             as Interval
 import qualified Ledger.Index                as Index
+import qualified Ledger.Value                as Value
+import qualified Ledger.Ada                  as Ada
 
 import           Ledger
 import qualified Wallet.API      as W
@@ -54,16 +56,18 @@ data GeneratorModel = GeneratorModel {
 
 -- | A generator model with some sensible defaults
 generatorModel :: GeneratorModel
-generatorModel = GeneratorModel {
-    gmInitialBalance = Map.fromList $ first PubKey <$> zip [1..5] (repeat 100000),
-    gmPubKeys        = Set.fromList $ PubKey <$> [1..5]
+generatorModel = 
+    let vl = Ada.toValue $ Ada.fromInt 100000 in
+    GeneratorModel 
+    { gmInitialBalance = Map.fromList $ first PubKey <$> zip [1..5] (repeat vl)
+    , gmPubKeys        = Set.fromList $ PubKey <$> [1..5]
     }
 
 -- | Estimate a transaction fee based on the number of its inputs and outputs.
-newtype FeeEstimator = FeeEstimator { estimateFee :: Int -> Int -> Value }
+newtype FeeEstimator = FeeEstimator { estimateFee :: Int -> Int -> Ada }
 
 -- | A constant fee for all transactions
-constantFee :: Value -> FeeEstimator
+constantFee :: Ada -> FeeEstimator
 constantFee = FeeEstimator . const . const
 
 -- | Blockchain for testing the emulator implementation and traces.
@@ -107,7 +111,7 @@ genInitialTransaction ::
 genInitialTransaction GeneratorModel{..} =
     let
         o = (uncurry $ flip pubKeyTxOut) <$> Map.toList gmInitialBalance
-        t = getSum $ foldMap Sum gmInitialBalance
+        t = Map.foldl' Value.plus Value.zero gmInitialBalance
     in (Tx {
         txInputs = Set.empty,
         txOutputs = o,
@@ -142,7 +146,7 @@ genValidTransaction' g f (Mockchain bc ops) = do
                     <$> (catMaybes
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
-        totalVal = sum (map (txOutValue . snd) inUTXO)
+        totalVal = foldl' (Value.plus) Value.zero $ (map (txOutValue . snd) inUTXO)
         di a = (a, a)
         mkSig (PubKey i) = Signature i
     genValidTransactionSpending' g f ins totalVal
@@ -162,19 +166,20 @@ genValidTransactionSpending' :: MonadGen m
 genValidTransactionSpending' g f ins totalVal = do
     let fee = estimateFee f (length ins) 3
         numOut = Set.size $ gmPubKeys g
-    if fee < totalVal
+    if fee < Ada.fromValue totalVal
         then do
-            outVals <- splitVal numOut (totalVal - fee)
+            let sz = Value.size (totalVal `Value.minus` Ada.toValue fee)
+            outVals <- fmap (Ada.toValue . Ada.fromInt) <$> splitVal numOut sz
             pure Tx {
                     txInputs = ins,
                     txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
-                    txForge = 0,
+                    txForge = Value.zero,
                     txFee = fee,
                     txValidRange = $$(Interval.always) }
         else Gen.discard
 
 genValue :: MonadGen m => m Value
-genValue = Value <$> Gen.int (Range.linear 0 (100000 :: Int))
+genValue = (Ada.toValue . Ada.fromInt) <$> Gen.int (Range.linear 0 (100000 :: Int))
 
 -- | Assert that a transaction is valid in a chain
 assertValid :: (MonadTest m, HasCallStack)

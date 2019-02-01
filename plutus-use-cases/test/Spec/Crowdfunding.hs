@@ -22,6 +22,9 @@ import qualified Wallet.Generators                                     as Gen
 import           Language.PlutusTx.Coordination.Contracts.CrowdFunding (Campaign (..), contribute)
 import qualified Language.PlutusTx.Coordination.Contracts.CrowdFunding as CF
 import qualified Ledger
+import           Ledger.Ada                                            (Ada)
+import qualified Ledger.Ada                                            as Ada
+import qualified Ledger.Value                                          as Value
 
 tests :: TestTree
 tests = testGroup "crowdfunding" [
@@ -36,16 +39,16 @@ tests = testGroup "crowdfunding" [
 -- | Make a contribution to the campaign from a wallet. Returns the reference
 --   to the transaction output that is locked by the campaign's validator
 --   script (and can be collected by the campaign owner)
-contrib :: Wallet -> Ledger.Value -> Trace MockWallet ()
+contrib :: Wallet -> Ada -> Trace MockWallet ()
 contrib w v = void $ walletAction w (contribute cmp v) where
     cmp = cfCampaign scenario1
 
 -- | Make a contribution from wallet 2
-contrib2 :: Ledger.Value -> Trace MockWallet ()
+contrib2 :: Ada -> Trace MockWallet ()
 contrib2 = contrib (Wallet 2)
 
 -- | Make a contribution from wallet 3
-contrib3 :: Ledger.Value -> Trace MockWallet ()
+contrib3 :: Ada -> Trace MockWallet ()
 contrib3 = contrib (Wallet 3)
 
 -- | Collect the contributions of a crowdfunding campaign
@@ -80,8 +83,9 @@ w3 = Wallet 3
 makeContribution :: Property
 makeContribution = checkCFTrace scenario1 $ do
     let w = Wallet 2
-        rest = startingBalance - 600
-    contrib2 600
+        contribution = Ada.fromInt 600
+        rest = Value.minus startingBalance (Ada.toValue contribution)
+    contrib2 contribution
     processPending >>= notifyBlock
     assertOwnFundsEq w rest
 
@@ -91,8 +95,11 @@ successfulCampaign :: Property
 successfulCampaign = checkCFTrace scenario1 $ do
     collect w1
 
+    let con1 = Ada.fromInt 600
+        con2 = Ada.fromInt 800
+
     -- wallets 2 and 3 each contribute some funds
-    contrib2 600 >> contrib3 800
+    contrib2 con1 >> contrib3 con2
     processPending >>= notifyBlock
 
     -- the campaign ends at slot 10 (specified in `scenario1`)
@@ -108,12 +115,17 @@ successfulCampaign = checkCFTrace scenario1 $ do
     -- At the end we verify that the funds owned by wallets 2 and 3 have
     -- decreased by the amount of their contributions. Wallet 1, which started
     -- out with 0 funds, now has the total of all contributions.
-    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, startingBalance + 600 + 800)]
+    traverse_ (uncurry assertOwnFundsEq) [
+        (w2, Value.minus startingBalance (Ada.toValue con1)),
+        (w3, Value.minus startingBalance (Ada.toValue con2)),
+        (w1, Value.plus startingBalance (Ada.toValue (Ada.plus con1 con2)))]
 
 -- | Check that the campaign owner cannot collect the monies before the campaign deadline
 cantCollectEarly :: Property
 cantCollectEarly = checkCFTrace scenario1 $ do
-    contrib2 600 >> contrib3 800
+    let con1 = Ada.fromInt 600
+        con2 = Ada.fromInt 800
+    contrib2 con1 >> contrib3 con2
     processPending >>= notifyBlock
 
     -- Unlike in the `successfulCampaign` trace we don't advance the time before
@@ -122,24 +134,29 @@ cantCollectEarly = checkCFTrace scenario1 $ do
     collect w1
     processPending >>= notifyBlock
 
-    traverse_ (uncurry assertOwnFundsEq) [(w2, startingBalance - 600), (w3, startingBalance - 800), (w1, startingBalance)]
+    traverse_ (uncurry assertOwnFundsEq) [
+        (w2, Value.minus startingBalance (Ada.toValue con1)),
+        (w3, Value.minus startingBalance (Ada.toValue con2)),
+        (w1, startingBalance)]
 
 -- | Check that a campaign results in a refund if the `collect` trigger is
 --   registered too late (that is, after the contributions have already been
 --   made)
 cantCollectUnlessNotified :: Property
 cantCollectUnlessNotified = checkCFTrace scenario1 $ do
-    contrib2 600
+    let con1 = Ada.fromInt 600
+        con2 = Ada.fromInt 800
+    contrib2 con1
     processPending >>= notifyBlock
 
-    -- By performing `collect w1` only now, after `contrib2 600` is through,
+    -- By performing `collect w1` only now, after `contrib2 con1` is through,
     -- `w1` misses the first contribution and so never knows that enough funds
     -- have been sent to the campaign address
     collect w1
     processPending >>= notifyBlock
 
-    -- `contrib3 800` is the only contribution that `w1` sees
-    contrib3 800
+    -- `contrib3 con2` is the only contribution that `w1` sees
+    contrib3 con2
     processPending >>= notifyBlock
 
     addBlocks 10 >>= notifyBlocks
@@ -151,15 +168,17 @@ cantCollectUnlessNotified = checkCFTrace scenario1 $ do
     -- as demonstrated in `canRefund`)
     traverse_ (uncurry assertOwnFundsEq) [
         (w1, startingBalance),
-        (w2, startingBalance - 600),
-        (w3, startingBalance - 800)]
+        (w2, Value.minus startingBalance (Ada.toValue 600)),
+        (w3, Value.minus startingBalance (Ada.toValue 800))]
 
 
 -- | Check that the campaign owner cannot collect the monies after the
 --   collection deadline
 cantCollectLate :: Property
 cantCollectLate = checkCFTrace scenario1 $ do
-    contrib2 600 >> contrib3 800
+    let con1 = Ada.fromInt 600
+        con2 = Ada.fromInt 800
+    contrib2 con1 >> contrib3 con2
     processPending >>= notifyBlock
     collect w1
 
@@ -177,7 +196,9 @@ cantCollectLate = checkCFTrace scenario1 $ do
 -- | Run a successful campaign that ends with a refund
 canRefund :: Property
 canRefund = checkCFTrace scenario1 $ do
-    contrib2 600 >> contrib3 800
+    let con1 = Ada.fromInt 600
+        con2 = Ada.fromInt 800
+    contrib2 con1 >> contrib3 con2
     processPending >>= notifyBlock
 
     -- If the funds contributed to the campaign haven't been collected after 15
@@ -204,7 +225,7 @@ data CFScenario = CFScenario {
 
 -- | Funds available to wallets `Wallet 2` and `Wallet 3`
 startingBalance :: Ledger.Value
-startingBalance = 1000
+startingBalance = Ada.adaValueOf 1000
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
