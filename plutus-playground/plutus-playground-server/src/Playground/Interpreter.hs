@@ -19,6 +19,7 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import qualified Data.Text.Internal.Search  as Text
 import qualified Data.Text.IO               as Text
+import           Ledger.Ada                 (Ada)
 import           Ledger.Types               (Blockchain, Value)
 import           Playground.API             (CompilationResult (CompilationResult), Evaluation (sourceCode),
                                              Expression (Action, Wait), Fn (Fn), FunctionSchema (FunctionSchema),
@@ -104,7 +105,7 @@ compile source = do
 runFunction ::
        (MonadMask m, MonadIO m, MonadError PlaygroundError m)
     => Evaluation
-    -> m (Blockchain, [EmulatorEvent], [(Wallet, Value)])
+    -> m (Blockchain, [EmulatorEvent], [(Wallet, Ada)])
 runFunction evaluation = do
     let source = sourceCode evaluation
     avoidUnsafe source
@@ -121,7 +122,7 @@ runFunction evaluation = do
                 JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError ( Blockchain
                                                                                                      , [EmulatorEvent]
                                                                                                      , [( Wallet
-                                                                                                        , Value)]))
+                                                                                                        , Ada)]))
         case decodeResult of
             Left err ->
                 throwError . OtherError $

@@ -34,3 +34,19 @@ all = [|| \pred -> $$(foldr) (\a acc -> $$(and) acc (pred a)) True ||]
 --
 any :: Q (TExp ((a -> Bool) -> [a] -> Bool))
 any = [|| \pred -> $$(foldr) (\a acc -> $$(or) acc (pred a)) False ||]
+
+-- | PlutusTx version of 'Data.List.(++)'.
+--
+--   >>> $$([|| $$(append) [0, 1, 2] [1, 2, 3, 4] ||])
+--   [0,1,2,1,2,3,4]
+--
+append :: Q (TExp ([a] -> [a] -> [a]))
+append = [|| \l r -> $$(foldr) (\x xs -> x:xs) r l ||]
+
+-- | PlutusTx version of 'Data.List.filter'.
+--
+--   >>> $$([|| $$(filter) (> 1) [1, 2, 3, 4] ||])
+--   [2,3,4]
+--
+filter :: Q (TExp ((a -> Bool) -> [a] -> [a] ))
+filter = [|| \pred -> $$(foldr) (\e xs -> if pred e then e:xs else xs) [] ||]

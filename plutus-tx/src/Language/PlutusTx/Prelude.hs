@@ -36,6 +36,9 @@ module Language.PlutusTx.Prelude (
     foldl,
     length,
     all,
+    any,
+    append,
+    filter,
     -- * Hashes
     ByteString,
     sha2_256,

@@ -38,7 +38,7 @@ import           Ledger.Interval                           (Interval, Slot)
 import           Ledger.Types                              (AddressOf, DataScript, PubKey, RedeemerScript, Signature,
                                                             Tx, TxIdOf, TxInOf, TxInType, TxOutOf, TxOutRefOf,
                                                             TxOutType, ValidatorScript)
-import           Ledger.Value.TH                           (Value)
+import           Ledger.Value.TH                           (CurrencySymbol, Value)
 import           Playground.API                            (CompilationError, CompilationResult, Evaluation,
                                                             EvaluationResult, Expression, Fn, FunctionSchema,
                                                             SimpleArgumentSchema, SourceCode, Warning)
@@ -192,6 +192,7 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
+    , mkSumType (Proxy @CurrencySymbol)
     ]
 
 mySettings :: Settings

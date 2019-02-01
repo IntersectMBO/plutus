@@ -29,8 +29,8 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import           GHC.Generics               (Generic)
 import qualified Language.Haskell.TH.Syntax as TH
+import           Ledger.Ada                 (Ada)
 import           Ledger.Types               (Blockchain, PubKey)
-import qualified Ledger.Types               as Ledger
 import           Servant.API                ((:<|>), (:>), JSON, Post, ReqBody)
 import           Text.Read                  (readMaybe)
 import           Wallet.Emulator.Types      (EmulatorEvent, Wallet)
@@ -75,7 +75,7 @@ data EvaluationResult = EvaluationResult
   { resultBlockchain  :: Blockchain
   , resultGraph       :: FlowGraph
   , emulatorLog       :: [EmulatorEvent]
-  , fundsDistribution :: [(Wallet, Ledger.Value)]
+  , fundsDistribution :: [(Wallet, Ada)]
   }
   deriving (Generic, ToJSON)
 

@@ -20,7 +20,9 @@ module Wallet.Generators(
     -- * Assertions
     assertValid,
     -- * Etc.
+    genAda,
     genValue,
+    genValueNonNegative,
     Wallet.Generators.runTrace,
     runTraceOn,
     splitVal,
@@ -146,14 +148,14 @@ genValidTransaction' g f (Mockchain bc ops) = do
                     <$> (catMaybes
                         $ traverse (pubKeyTxo [bc]) . (di . fst) <$> inUTXO)
         inUTXO = take nUtxo $ Map.toList ops
-        totalVal = foldl' (Value.plus) Value.zero $ (map (txOutValue . snd) inUTXO)
+        totalVal = foldl' (+) 0 $ (map (Ada.fromValue . txOutValue . snd) inUTXO)
         di a = (a, a)
         mkSig (PubKey i) = Signature i
     genValidTransactionSpending' g f ins totalVal
 
 genValidTransactionSpending :: MonadGen m
     => Set.Set TxIn
-    -> Value
+    -> Ada
     -> m Tx
 genValidTransactionSpending = genValidTransactionSpending' generatorModel (constantFee 1)
 
@@ -161,15 +163,15 @@ genValidTransactionSpending' :: MonadGen m
     => GeneratorModel
     -> FeeEstimator
     -> Set.Set TxIn
-    -> Value
+    -> Ada
     -> m Tx
 genValidTransactionSpending' g f ins totalVal = do
     let fee = estimateFee f (length ins) 3
         numOut = Set.size $ gmPubKeys g
-    if fee < Ada.fromValue totalVal
+    if fee < totalVal
         then do
-            let sz = Value.size (totalVal `Value.minus` Ada.toValue fee)
-            outVals <- fmap (Ada.toValue . Ada.fromInt) <$> splitVal numOut sz
+            let sz = totalVal - fee
+            outVals <- fmap (Ada.toValue) <$> splitVal numOut sz
             pure Tx {
                     txInputs = ins,
                     txOutputs = uncurry pubKeyTxOut <$> zip outVals (Set.toList $ gmPubKeys g),
@@ -178,9 +180,30 @@ genValidTransactionSpending' g f ins totalVal = do
                     txValidRange = $$(Interval.always) }
         else Gen.discard
 
-genValue :: MonadGen m => m Value
-genValue = (Ada.toValue . Ada.fromInt) <$> Gen.int (Range.linear 0 (100000 :: Int))
+genAda :: MonadGen m => m Ada
+genAda = Ada.fromInt <$> Gen.int (Range.linear 0 (100000 :: Int))
 
+genValue' :: MonadGen m => Range Int -> m Value
+genValue' valueRange = do
+    let currencyRange = Range.linearBounded @Int
+        sngl          = Value.singleton <$> (Value.currencySymbol <$> Gen.int currencyRange) <*> Gen.int valueRange
+
+        -- generate values with no more than 10 elements to avoid the tests 
+        -- taking too long (due to the map-as-list-of-kv-pairs implementation)
+        maxCurrencies = 10
+
+    numValues <- Gen.int (Range.linear 0 maxCurrencies)
+    values <- traverse (const sngl) [0 .. numValues]
+    pure $ foldr Value.plus Value.zero values
+
+-- | Generate a 'Value' with a coin value range of @minBound .. maxBound@
+genValue :: MonadGen m => m Value
+genValue = genValue' Range.linearBounded
+
+-- | Generate a 'Value' with a coin value range of @0 .. maxBound@
+genValueNonNegative :: MonadGen m => m Value
+genValueNonNegative = genValue' (Range.linear 0 maxBound)
+    
 -- | Assert that a transaction is valid in a chain
 assertValid :: (MonadTest m, HasCallStack)
     => Tx

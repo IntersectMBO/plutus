@@ -54,12 +54,12 @@
           "getAda": 0
         },
         "txForge": {
-          "getValue": 0
+          "getValue": []
         },
         "txOutputs": [
           {
             "txOutValue": {
-              "getValue": 5
+              "getValue": [[0,5]]
             },
             "txOutAddress": {
               "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
@@ -73,7 +73,7 @@
           },
           {
             "txOutValue": {
-              "getValue": 5
+              "getValue": [[0,5]]
             },
             "txOutAddress": {
               "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
@@ -104,12 +104,12 @@
           "getAda": 0
         },
         "txForge": {
-          "getValue": 20
+          "getValue": [[0,20]]
         },
         "txOutputs": [
           {
             "txOutValue": {
-              "getValue": 10
+              "getValue": [[0,10]]
             },
             "txOutAddress": {
               "getAddress": "nxicEhjPGNwEGMcYRRiEGNcYhxisGD0YIxh3GCEYMhjBGIUYJBi8GHoYshiNGOwYQhgZGLgY/BhbGEIYXxhw/w=="
@@ -123,7 +123,7 @@
           },
           {
             "txOutValue": {
-              "getValue": 10
+              "getValue": [[0,10]]
             },
             "txOutAddress": {
               "getAddress": "nxgcGMMYrRjqGEAY6xj9GJQYQxg6GMAEGHcYfRhoFQwYzhidGLQYxxhxGLwYfRjhGLIYlxinGLcYlRi7GLr/"
@@ -228,7 +228,7 @@
         "getWallet": 1
       },
       {
-        "getValue": 5
+        "getAda": 5
       }
     ],
     [
@@ -236,7 +236,7 @@
         "getWallet": 2
       },
       {
-        "getValue": 15
+        "getAda": 15
       }
     ]
   ]
