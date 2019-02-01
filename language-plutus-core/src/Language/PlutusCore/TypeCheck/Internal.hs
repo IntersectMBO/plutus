@@ -34,7 +34,7 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import qualified Language.PlutusCore.Normalize  as Norm
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer    (rename)
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 

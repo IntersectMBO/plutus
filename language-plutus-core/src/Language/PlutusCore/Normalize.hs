@@ -21,7 +21,7 @@ module Language.PlutusCore.Normalize
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
