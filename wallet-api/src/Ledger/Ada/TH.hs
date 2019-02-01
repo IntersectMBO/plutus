@@ -38,6 +38,7 @@ import           Prelude                      hiding (negate)
 import           Ledger.Value.TH              (Value(..))
 
 -- | ADA (special currency)
+--   See note [Currencies] in Ledger.Validation.Value.TH
 --
 newtype Ada = Ada { getAda :: Int }
     deriving (Eq, Ord, Show, Enum)

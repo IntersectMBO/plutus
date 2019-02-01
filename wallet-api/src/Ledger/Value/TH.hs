@@ -32,7 +32,7 @@ import           Language.Haskell.TH          (Q, TExp)
 import           Prelude                      hiding (negate)
 
 -- | Cryptocurrency value
---
+--   See note [Currencies]
 newtype Value = Value { getValue :: Int }
     deriving (Eq, Ord, Show, Enum)
     deriving stock (Generic)
@@ -40,6 +40,24 @@ newtype Value = Value { getValue :: Int }
     deriving newtype (Serialise)
 
 makeLift ''Value
+
+{- note [Currencies]
+
+The 'Value' type represents a collection of amounts of different currencies.
+
+We can think of 'Value' as a vector space whose dimensions are
+currencies. At the moment there is only a single currency (Ada), so 'Value' 
+contains one-dimensional vectors. When currency-creating transactions are 
+implemented, this will change and the definition of 'Value' will change to a 
+'Map Currency Int', effectively a vector with infinitely many dimensions whose
+non-zero values are recorded in the map.
+
+To create a value of 'Value', we need to specifiy a currency. This can be done 
+using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use 
+'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
+similar to 'Ledger.Ada' for their own currencies.
+
+-}
 
 -- Num operations
 
