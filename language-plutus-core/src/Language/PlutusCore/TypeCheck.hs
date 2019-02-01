@@ -30,7 +30,7 @@ import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer            (rename)
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck.Internal
 
@@ -59,9 +59,9 @@ defOffChainConfig = offChainConfig mempty
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.
 dynamicBuiltinNameMeaningsToTypes
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => ann -> DynamicBuiltinNameMeanings -> m DynamicBuiltinNameTypes
-dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = runQuoteT $ do
+dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
     let getType mean = do
             let ty = dynamicBuiltinNameMeaningToType mean
             _ <- inferKind (offChainConfig mempty) $ ann <$ ty
@@ -71,37 +71,37 @@ dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = runQu
 
 -- | Infer the kind of a type.
 inferKind
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> Type TyName ann -> m (Kind ())
-inferKind config = runQuoteT . runTypeCheckM config . inferKindM
+inferKind config = runTypeCheckM config . inferKindM
 
 -- | Check a type against a kind.
 -- Infers the kind of the type and checks that it's equal to the given kind
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkKind
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> ann -> Type TyName ann -> Kind () -> m ()
-checkKind config ann ty = runQuoteT . runTypeCheckM config . checkKindM ann ty
+checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 
 -- | Infer the type of a term.
 inferType
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> Term TyName Name ann -> m (NormalizedType TyName ())
-inferType config term = runQuoteT $ rename term >>= runTypeCheckM config . inferTypeM
+inferType config term = rename term >>= runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.
 -- Infers the type of the term and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkType
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> ann -> Term TyName Name ann -> NormalizedType TyName () -> m ()
-checkType config ann term ty = runQuoteT $ do
+checkType config ann term ty = do
     termRen <- rename term
     runTypeCheckM config $ checkTypeM ann termRen ty
 
 -- | Infer the type of a program.
 inferTypeOfProgram
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> Program TyName Name ann -> m (NormalizedType TyName ())
 inferTypeOfProgram config (Program _ _ term) = inferType config term
 
@@ -109,6 +109,6 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
-    :: (AsTypeError e ann, MonadError e m)
+    :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> ann -> Program TyName Name ann -> NormalizedType TyName () -> m ()
 checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term

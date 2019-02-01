@@ -6,6 +6,7 @@ module Language.PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
 import           Language.PlutusIR
 import qualified Language.PlutusIR.Analysis.Dependencies as Deps
 import           Language.PlutusIR.MkPir
+import           Language.PlutusIR.Rename                ()
 
 import qualified Language.PlutusCore                     as PLC
 import qualified Language.PlutusCore.Name                as PLC
@@ -28,11 +29,12 @@ removeDeadBindings
     -> Term tyname name a
 removeDeadBindings t =
     let
+        tRen = PLC.runQuote $ PLC.rename t
         depGraph :: G.Graph Deps.Node
-        depGraph = Deps.runTermDeps t
+        depGraph = Deps.runTermDeps tRen
         liveNodes :: Liveness
         liveNodes = Set.fromList $ AM.reachable Deps.Root (T.toAdjacencyMap depGraph)
-    in runReader (processTerm t) liveNodes
+    in runReader (processTerm tRen) liveNodes
 
 type Liveness = Set.Set Deps.Node
 

@@ -81,9 +81,8 @@ convLiteral = \case
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in convExpr listExpr
-    GHC.MachChar c     -> do
-        maybeEncoded <- PLC.liftQuote $ PLC.makeDynamicBuiltin c
-        case maybeEncoded of
+    GHC.MachChar c     ->
+        case PLC.makeDynamicBuiltin c of
             Just t  -> pure $ PIR.embedIntoIR t
             Nothing -> throwPlain $ UnsupportedError "Conversion of character failed"
     GHC.LitInteger _ _ -> throwPlain $ UnsupportedError "Literal (unbounded) integer"

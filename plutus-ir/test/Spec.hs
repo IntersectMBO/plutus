@@ -84,10 +84,10 @@ basic = runQuote $ do
         Var () x
 
 maybePir :: Term TyName Name ()
-maybePir =
-    let mb@(Datatype _ _ _ _ [_, just]) = maybeDatatype
-        unitval = embedIntoIR Unit.unitval
-    in
+maybePir = runQuote $ do
+    mb@(Datatype _ _ _ _ [_, just]) <- maybeDatatype
+    let unitval = embedIntoIR Unit.unitval
+    pure $
         Let ()
             NonRec
             [
@@ -97,7 +97,7 @@ maybePir =
 
 listMatch :: Term TyName Name ()
 listMatch = runQuote $ do
-    let lb@(Datatype _ l _ match [nil, _]) = listDatatype
+    lb@(Datatype _ l _ match [nil, _]) <- listDatatype
 
     let unitval = embedIntoIR Unit.unitval
 
@@ -207,9 +207,9 @@ errors = testNested "errors" [
     ]
 
 mutuallyRecursiveTypes :: Term TyName Name ()
-mutuallyRecursiveTypes =
-    let (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) = treeForestDatatype
-    in
+mutuallyRecursiveTypes = runQuote $ do
+    (treeDt, forestDt@(Datatype _ _ _ _ [nil, _])) <- treeForestDatatype
+    pure $
         Let ()
             Rec
             [

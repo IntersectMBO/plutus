@@ -25,6 +25,7 @@ import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck
 import           PlutusPrelude
@@ -82,7 +83,7 @@ typeEvalCheckBy
     -> TypeEvalCheckM (TermOf TypeEvalCheckResult)
 typeEvalCheckBy eval (TermOf term tbv) = TermOf term <$> do
     _ <- VR.checkTerm term
-    termTy <- inferType defOffChainConfig term
+    termTy <- runQuoteT $ inferType defOffChainConfig term
     let resExpected = maybeToEvaluationResult $ makeBuiltin tbv
     fmap (TypeEvalCheckResult termTy) $
         for ((,) <$> resExpected <*> eval term) $ \(valExpected, valActual) ->

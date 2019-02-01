@@ -133,8 +133,7 @@ withCheckedTermGen
 withCheckedTermGen genTb k =
     withTypedBuiltinGen genSizeDef $ \tb -> do
         termWithMetaValue <- genTb tb
-        let mayTermWithValue = unsafeTypeEvalCheck $
-                TypedBuiltinValue tb <$> termWithMetaValue
+        let mayTermWithValue = unsafeTypeEvalCheck $ TypedBuiltinValue tb <$> termWithMetaValue
         k tb mayTermWithValue
 
 -- | Generate a 'TermOf' out of a 'TypeScheme'.

@@ -14,55 +14,26 @@
     )
     (termbind
       (vardecl
-        foldl_thunked
-        (fun (all a (type) (fun a a)) (all a (type) (all b (type) (fun (fun a (fun b a)) (fun a (fun [List b] a))))))
+        foldl
+        (all a (type) (all b (type) (fun (fun a (fun b a)) (fun a (fun [List b] a)))))
       )
       (lam
-        arg
-        (all a (type) (fun a a))
+        f
+        (fun a (fun b a))
         (lam
-          f
-          (fun a (fun b a))
+          acc
+          a
           (lam
-            acc
-            a
-            (lam
-              lst
-              [List b]
-              [
-                [ [ { match_List a } lst ] acc ]
-                (lam
-                  x
-                  b
-                  (lam
-                    xs
-                    [List b]
-                    [
-                      [
-                        [ [ foldl_thunked (abs a (type) (lam x a x)) ] f ]
-                        [ [ f acc ] x ]
-                      ]
-                      xs
-                    ]
-                  )
-                )
-              ]
-            )
+            lst
+            [List b]
+            [
+              [ [ { match_List a } lst ] acc ]
+              (lam x b (lam xs [List b] [ [ [ foldl f ] [ [ f acc ] x ] ] xs ]))
+            ]
           )
         )
       )
     )
-    (let
-      (nonrec
-      )
-      (termbind
-        (vardecl
-          foldl
-          (all a (type) (all b (type) (fun (fun a (fun b a)) (fun a (fun [List b] a)))))
-        )
-        [ foldl_thunked (abs a (type) (lam x a x)) ]
-      )
-      foldl
-    )
+    foldl
   )
 )

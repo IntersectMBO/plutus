@@ -11,8 +11,8 @@ import           Data.Text.Prettyprint.Doc
 goldenPir :: String -> Term TyName Name a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty value
 
-maybeDatatype :: Datatype TyName Name ()
-maybeDatatype = runQuote $ do
+maybeDatatype :: Quote (Datatype TyName Name ())
+maybeDatatype = do
     m <- freshTyName () "Maybe"
     a <- freshTyName () "a"
     match <- freshName () "match_Maybe"
@@ -31,8 +31,8 @@ maybeDatatype = runQuote $ do
             VarDecl () just (TyFun () (TyVar () a) (TyApp () (TyVar () m) (TyVar () a)))
         ]
 
-listDatatype :: Datatype TyName Name ()
-listDatatype = runQuote $ do
+listDatatype :: Quote (Datatype TyName Name ())
+listDatatype = do
     m <- freshTyName () "List"
     a <- freshTyName () "a"
     let ma = TyApp () (TyVar () m) (TyVar () a)
@@ -52,8 +52,8 @@ listDatatype = runQuote $ do
             VarDecl () cons (TyFun () (TyVar () a) (TyFun () ma ma))
         ]
 
-treeForestDatatype :: (Datatype TyName Name (), Datatype TyName Name ())
-treeForestDatatype = runQuote $ do
+treeForestDatatype :: Quote (Datatype TyName Name (), Datatype TyName Name ())
+treeForestDatatype = do
     tree <- freshTyName () "Tree"
     a <- freshTyName () "a"
     let treeA arg = TyApp () (TyVar () tree) (TyVar () arg)

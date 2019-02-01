@@ -9,6 +9,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
 import           Language.PlutusIR.Optimizer.DeadCode
+import           Language.PlutusIR.Rename             ()
 
 import qualified Language.PlutusCore                  as PLC
 
@@ -51,9 +52,9 @@ termLet = runQuote $ removeDeadBindings <$> do
         ] unitVal
 
 datatypeLiveType :: Term TyName Name ()
-datatypeLiveType = removeDeadBindings $
-    let mb@(Datatype _ d _ _ _) = maybeDatatype
-    in
+datatypeLiveType = runQuote $ removeDeadBindings <$> do
+    mb@(Datatype _ d _ _ _) <- maybeDatatype
+    pure $
         Let ()
             NonRec
             [
@@ -61,9 +62,9 @@ datatypeLiveType = removeDeadBindings $
             ] (Error () (mkTyVar () d))
 
 datatypeLiveConstr :: Term TyName Name ()
-datatypeLiveConstr = removeDeadBindings $
-    let mb@(Datatype _ _ _ _ [nothing, _]) = maybeDatatype
-    in
+datatypeLiveConstr = runQuote $ removeDeadBindings <$> do
+    mb@(Datatype _ _ _ _ [nothing, _]) <- maybeDatatype
+    pure $
         Let ()
             NonRec
             [
@@ -71,9 +72,9 @@ datatypeLiveConstr = removeDeadBindings $
             ] (mkVar () nothing)
 
 datatypeLiveDestr :: Term TyName Name ()
-datatypeLiveDestr = removeDeadBindings $
-    let mb@(Datatype _ _ _ match _) = maybeDatatype
-    in
+datatypeLiveDestr = runQuote $ removeDeadBindings <$> do
+    mb@(Datatype _ _ _ match _) <- maybeDatatype
+    pure $
         Let ()
             NonRec
             [
@@ -81,13 +82,14 @@ datatypeLiveDestr = removeDeadBindings $
             ] (Var () match)
 
 datatypeDead :: Term TyName Name ()
-datatypeDead = removeDeadBindings $
+datatypeDead = runQuote $ removeDeadBindings <$> do
+    mb <- maybeDatatype
     let unitVal = embedIntoIR Unit.unitval
-    in
+    pure $
         Let ()
             NonRec
             [
-                DatatypeBind () maybeDatatype
+                DatatypeBind () mb
             ] unitVal
 
 singleBinding :: Term TyName Name ()

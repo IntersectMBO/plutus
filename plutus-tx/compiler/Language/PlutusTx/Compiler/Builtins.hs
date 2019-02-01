@@ -288,10 +288,10 @@ defineBuiltinTypes = do
 
     -- Strings and chars
     do
-        ty <- liftQuote $ PLC.getTypeEncoding (Proxy @String)
+        let ty = PLC.toTypeEncoding $ Proxy @String
         defineBuiltinType ''Builtins.String ty []
     do
-        ty <- liftQuote $ PLC.getTypeEncoding (Proxy @Char)
+        let ty = PLC.toTypeEncoding $ Proxy @Char
         defineBuiltinType ''Char ty []
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
@@ -331,7 +331,7 @@ errorTy = do
 -- | Convert a Scott-encoded Boolean into a Haskell Boolean.
 scottBoolToHaskellBool :: Converting m => m PIRTerm
 scottBoolToHaskellBool = do
-    scottBoolTy <- liftQuote Bool.getBuiltinBool
+    let scottBoolTy = Bool.bool
     haskellBoolTy <- convType GHC.boolTy
 
     arg <- liftQuote $ freshName () "b"
@@ -382,7 +382,7 @@ mkBsRel name = wrapBsRel 2 $ instSize haskellBSSize (mkBuiltin name)
 -- | Convert a Scott-encoded Unit into a Haskell Unit.
 scottUnitToHaskellUnit :: Converting m => m PIRTerm
 scottUnitToHaskellUnit = do
-    scottUnitTy <- liftQuote Unit.getBuiltinUnit
+    let scottUnitTy = Unit.unit
 
     arg <- liftQuote $ freshName () "b"
 

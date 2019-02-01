@@ -30,6 +30,7 @@ library
         Language.PlutusIR.Compiler.Names
         Language.PlutusIR.Compiler.Definitions
         Language.PlutusIR.MkPir
+        Language.PlutusIR.Rename
         Language.PlutusIR.Value
         Language.PlutusIR.Optimizer.DeadCode
         Language.PlutusIR.Transform.Substitute

@@ -22,7 +22,7 @@ thunkRecursions = testNested "thunkRecursions" [
     ]
 
 listFold :: Term TyName Name ()
-listFold = runQuote $ thunkRecursionsTerm =<< do
+listFold = runQuote $  do
     {-
     This implements foldl:
 
@@ -31,7 +31,7 @@ listFold = runQuote $ thunkRecursionsTerm =<< do
             [] -> acc
             x:xs -> foldl f (f acc x) xs
     -}
-    let lb@(Datatype _ d _ destr _) = listDatatype
+    lb@(Datatype _ d _ destr _) <- listDatatype
     avd <- do
         a <- freshTyName () "a"
         pure $ TyVarDecl () a (Type ())
@@ -99,7 +99,7 @@ monoMap = runQuote $ thunkRecursionsTerm =<< do
             [] -> []
             x:xs -> f x : map f xs
     -}
-    let lb@(Datatype _ d _ destr [nil, cons]) = listDatatype
+    lb@(Datatype _ d _ destr [nil, cons]) <- listDatatype
 
     let elemTy = TyInt () 1
 

@@ -21,7 +21,7 @@ module Language.PlutusCore.Pretty.Readable
     ) where
 
 import           Language.PlutusCore.Lexer.Type     hiding (name)
-import           Language.PlutusCore.Name           (HasPrettyConfigName (..), PrettyConfigName)
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
