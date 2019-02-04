@@ -1,4 +1,4 @@
-{ mkInstance = { playground, defaultMachine, machines, ... }: node: { config, pkgs, lib, ... }:
+{ mkInstance = { playground, defaultMachine, machines, playgroundConfig, ... }: node: { config, pkgs, lib, ... }:
   let playgroundInstance = port: {
       wantedBy = [ "nginx.service" ];
       before = [ "nginx.service" ];
@@ -14,7 +14,7 @@
         PrivateTmp = true;
       };
 
-      script = "plutus-playground-server webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground.client}";
+      script = "plutus-playground-server --config ${playgroundConfig} webserver -b 127.0.0.1 -p ${port} ${playground.plutus-playground.client}";
   };
   plutus_systemctl = pkgs.writeScriptBin "plutus-systemctl" ''
     INSTANCE="$2"
