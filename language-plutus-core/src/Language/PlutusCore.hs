@@ -100,7 +100,7 @@ module Language.PlutusCore
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
-    , sizeTerm
+    , termSize
     ) where
 
 import           Control.Monad.Except
