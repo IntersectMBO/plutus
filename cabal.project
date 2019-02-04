@@ -18,6 +18,9 @@ constraints: language-plutus-core +development
            , plutus-ir +development
            , plutus-playground-server +development
            , plutus-playground-lib +development
+           -- this is necessary for plutus-playgrounds-server, but plutus-playgrounds-server does not depend on http-api-data directly
+           , http-api-data < 0.3.10
+max-backjumps: 40000
 tests: true
 benchmarks: true
 documentation: true
