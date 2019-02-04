@@ -1,8 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Generators ( genTerm
-                  , genProgram
-                  ) where
+module Language.PlutusCore.Generators.AST
+    ( genTerm
+    , genProgram
+    , genVersion
+    , genTyName
+    , genName
+    , genKind
+    , genBuiltinName
+    , genBuiltin
+    , genConstant
+    , genType
+    , simpleRecursive
+    ) where
 
 import qualified Data.ByteString.Lazy         as BSL
 import           Hedgehog                     hiding (Size, Var)
