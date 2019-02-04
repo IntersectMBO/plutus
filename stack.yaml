@@ -16,7 +16,7 @@ packages:
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - location:
     git: https://github.com/shmish111/servant-purescript.git
-    commit: 315ccf5d720937c091c8cf3aca8adc8110766a23
+    commit: 18e1b61bf0aa3792285c6d8ecd0e4a72d76e34f5
   extra-dep: true
 
 extra-deps:
@@ -27,6 +27,7 @@ extra-deps:
 - exceptions-0.10.0
 - purescript-bridge-0.13.0.0
 - servant-subscriber-0.6.0.2
+- jwt-0.9.0
 flags:
   language-plutus-core:
     development: true

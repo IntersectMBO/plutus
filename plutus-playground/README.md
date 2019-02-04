@@ -6,9 +6,13 @@
 
 ```sh
 cd plutus-playground-server
+cp playground.yaml.sample playground.yaml
+
+vi playground.yaml # Fill in this file.
+
 stack build
 stack exec -- plutus-playground-server psgenerator ../plutus-playground-client/src/
-stack exec -- plutus-playground-server webserver -p 8080 ../plutus-playground-client/dist/
+stack exec -- plutus-playground-server webserver ../plutus-playground-client/dist/
 ```
 
 ### nix
@@ -26,8 +30,7 @@ yarn
 yarn run bower install
 ```
 
-Then run: `yarn run webpack` for a production build on http://localhost:8080
-...or `yarn run webpack:server` for an auto-reloading dev build on http://localhost:8009
+Then run `yarn run webpack:server` for an auto-reloading dev build on https://localhost:8009
 
 You may also want to run `yarn run purs:ide` to start `psc-ide`
 support running with the correct paths.

@@ -23,7 +23,7 @@ import ECharts.Types.Phantom (I)
 import Halogen (HTML)
 import Halogen.Component (ParentHTML)
 import Halogen.ECharts (EChartsEffects, echarts)
-import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, h3_, slot', text)
+import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
 import Ledger.Value.TH (Value)
@@ -42,9 +42,8 @@ evaluationPane::
   -> ParentHTML Query ChildQuery ChildSlot m
 evaluationPane (EvaluationResult {emulatorLog}) =
   div_
-    [ h2_ [ text "Transactions" ]
-    , div_
-        [ h3_ [ text "Chain" ]
+    [ div_
+        [ h2_ [ text "Chain" ]
         , slot' cpMockchainChart MockchainChartSlot
             (echarts Nothing)
             ({width: 930, height: 600} /\ unit)
@@ -52,7 +51,7 @@ evaluationPane (EvaluationResult {emulatorLog}) =
         ]
     , br_
     , div_
-        [ h3_ [ text "Logs" ]
+        [ h2_ [ text "Logs" ]
         , case emulatorLog of
             [] -> empty
             logs ->
@@ -62,7 +61,7 @@ evaluationPane (EvaluationResult {emulatorLog}) =
         ]
     , br_
     , div_
-        [ h3_ [ text "Final Balances" ]
+        [ h2_ [ text "Final Balances" ]
         , slot' cpBalancesChart BalancesChartSlot
             (echarts Nothing)
             ({width: 930, height: 300} /\ unit)
