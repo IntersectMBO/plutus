@@ -9,6 +9,8 @@ import qualified Ledger.Interval              as Interval
 import           Ledger.Interval              (SlotRange)
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
+import qualified Ledger.Ada.TH                as Ada
+import           Ledger.Ada                   (Ada)
 import           Ledger.Validation
 import           Playground.Contract
 import           Wallet                       as W
@@ -17,7 +19,7 @@ import           Wallet                       as W
 data Campaign = Campaign
     { campaignDeadline           :: Slot
     -- ^ The date by which the campaign target has to be met
-    , campaignTarget             :: Value
+    , campaignTarget             :: Ada
     -- ^ Target amount of funds
     , campaignCollectionDeadline :: Slot
     -- ^ The date by which the campaign owner has to collect the funds
@@ -95,19 +97,13 @@ contributionScript cmp  = ValidatorScript val where
                 refndRange :: SlotRange
                 refndRange = $$(Interval.from) campaignCollectionDeadline
 
-                -- `target` is the campaign target as
-                -- an `Int`
-                target :: Int
-                target = let Value v = campaignTarget in v
-
-
-                -- `totalInputs` is the sum of the values of all transation
+                -- `totalInputs` is the sum of the ada values of all transaction
                 -- inputs. We ise `foldr` from the Prelude to go through the
                 -- list and sum up the values.
-                totalInputs :: Int
+                totalInputs :: Ada
                 totalInputs =
-                    let v (PendingTxIn _ _ (Value vl)) = vl in
-                    $$(P.foldr) (\i total -> $$(PlutusTx.plus) total (v i)) 0 ps
+                    let v (PendingTxIn _ _ vl) = $$(Ada.fromValue) vl in
+                    $$(P.foldr) (\i total -> $$(Ada.plus) total (v i)) $$(Ada.zero) ps
 
                 isValid = case act of
                     Refund sig -> -- the "refund" branch
@@ -131,7 +127,7 @@ contributionScript cmp  = ValidatorScript val where
                         let
                             payToOwner = 
                                 $$(Interval.contains) collRange range
-                                && $$(PlutusTx.geq) totalInputs target
+                                && $$(Ada.geq) totalInputs campaignTarget
                                 && campaignOwner `signedBy` sig
                         in payToOwner
             in
@@ -143,7 +139,7 @@ campaignAddress = Ledger.scriptAddress . contributionScript
 
 -- | Contribute funds to the campaign (contributor)
 --
-contribute :: MonadWallet m => Campaign -> Value -> m ()
+contribute :: MonadWallet m => Campaign -> Ada -> m ()
 contribute cmp value = do
     _ <- if value <= 0 then throwOtherError "Must contribute a positive value" else pure ()
     keyPair <- myKeyPair
@@ -159,7 +155,7 @@ contribute cmp value = do
     -- If we were not interested in the transaction produced by `payToScript`
     -- we could have used `payeToScript_`, which has the same effect but
     -- discards the result.
-    tx <- payToScript range (campaignAddress cmp) value ds
+    tx <- payToScript range (campaignAddress cmp) ($$(Ada.toValue) value) ds
 
     logMsg "Submitted contribution"
 
@@ -187,13 +183,13 @@ scheduleCollection cmp = do
 -- | An event trigger that fires when a refund of campaign contributions can be claimed
 refundTrigger :: Campaign -> EventTrigger
 refundTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom 1))
+    (fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) 1)))
     (slotRangeT (refundRange c))
 
 -- | An event trigger that fires when the funds for a campaign can be collected
 collectFundsTrigger :: Campaign -> EventTrigger
 collectFundsTrigger c = andT
-    (fundsAtAddressT (campaignAddress c) (W.intervalFrom (campaignTarget c)))
+    (fundsAtAddressT (campaignAddress c) (W.intervalFrom ($$(Ada.toValue) (campaignTarget c))))
     (slotRangeT (collectionRange c))
 
 -- | Claim a refund of our campaign contribution

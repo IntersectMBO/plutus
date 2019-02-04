@@ -11,6 +11,8 @@ import qualified Language.PlutusTx            as PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
 import           Ledger
 import           Ledger.Validation
+import qualified Ledger.Ada                   as Ada
+import           Ledger.Ada                   (Ada)
 import           Wallet
 
 import           Data.ByteString.Lazy (ByteString)
@@ -37,9 +39,10 @@ gameValidator = ValidatorScript ($$(Ledger.compileScript [||
 gameAddress :: Address
 gameAddress = Ledger.scriptAddress gameValidator
 
-lock :: (WalletAPI m, WalletDiagnostics m) => String -> Value -> m ()
-lock word vl = do
+lock :: (WalletAPI m, WalletDiagnostics m) => String -> Ada -> m ()
+lock word adaVl = do
     let hashedWord = plcSHA2_256 (C.pack word)
+        vl = Ada.toValue adaVl
         ds = DataScript (Ledger.lifted (HashedString hashedWord))
     payToScript_ defaultSlotRange gameAddress vl ds
 

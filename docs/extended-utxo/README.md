@@ -11,6 +11,9 @@ In the classic UTxO model (Cardano SL in Byron and Shelley), a transaction outpu
 
 We extend this to include a second script, which we call the *data script*. This second script is a Plutus Core expression, just like the validator script. However, the requirements on its type are different. The type of the data script can be any monomorphic type.
 
+## Extension to transactions (deterministic scripts)
+All transactions carry a validity interval (an interval of slots) as additional data. Core nodes do not attempt to validate transactions if the current slot is outside of this interval. When a scripted transaction input is validated, the validity interval is passed to the validator script, as a way of providing information about the current time. This makes script validation completely deterministic in the sense that all arguments to the validator script are known before the transaction is submitted to the chain. As a result, the exact amount of gas that is required to run the script can be calculated in advance (by running it), and users do not risk being surprised by failed validations that still incur fees.
+
 ## Extension to validator scripts
 An extended validator script expects four arguments:
 
@@ -24,7 +27,7 @@ We consider a validator script to have executed successful if it does not termin
 ## Blockchain state available to validator scripts
 Validator scripts receive, at a minimum, the following information from the validated transaction and the rest of the blockchain:
 
-1. the current slot number
+1. the validity interval of the currently validated transaction
 2. the hash of the currently validated transaction,
 3. for every input of the validated transaction, its value and the hashes of its validator, data, and redeemer scripts,
 4. for every output of the validated transaction, its value and the hash of its validator and data script, and
@@ -46,7 +49,6 @@ The validator script must be submitted as part of the consuming transaction's in
 When a transaction is validated, the validator script receives data and redeemer scripts and either terminates successfully or in the Plutus `error` state. This means that the producing transaction effectively determines the type of the redeemer script, even though the script itself (ie. a value of that type) is not known at that time. (One has to be careful not to lock a transaction output permanently by specifying a type that has no values other than `error`)
 
 **(*)** It is possible that the top right quadrant (provided by producer, signed by consumer) can be filled with a meaningful fourth type of script, perhaps to enable interactions with third parties. 
-
 
 ## Script support for UTxO wallets
 Off-chain script coordination code necessarily needs to execute in the context of a wallet. At a minimum, off-chain code needs to be able to submit transactions, which need to include transaction fees, which in turn need to be covered from the funds of a wallet. Moreover, transaction submission is dependent on wallet functionality like coin selection.

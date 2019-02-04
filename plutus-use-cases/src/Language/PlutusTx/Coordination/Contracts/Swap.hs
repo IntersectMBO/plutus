@@ -10,12 +10,15 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
     ) where
 
 import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (Slot, PubKey, ValidatorScript (..), Value (..))
+import           Ledger                       (Slot, PubKey, ValidatorScript (..))
 import qualified Ledger                       as Ledger
 import           Ledger.Validation            (OracleValue (..), PendingTx (..), PendingTxIn (..), PendingTxOut (..))
 import qualified Ledger.Validation            as Validation
+import qualified Ledger.Ada.TH                as Ada
+import           Ledger.Ada.TH                (Ada)
+import           Ledger.Value                 (Value)
 
-import           Prelude                    (Bool (..), Eq (..), Int, Num (..), Ord (..))
+import           Prelude                      (Bool (..), Eq (..), Int, Num (..))
 
 data Ratio a = a :% a  deriving Eq
 
@@ -30,11 +33,11 @@ data Ratio a = a :% a  deriving Eq
 --  expected, the two payments will be exactly equal).
 --
 data Swap = Swap
-    { swapNotionalAmt     :: !Value
+    { swapNotionalAmt     :: !Ada
     , swapObservationTime :: !Slot
     , swapFixedRate       :: !(Ratio Int) -- ^ Interest rate fixed at the beginning of the contract
     , swapFloatingRate    :: !(Ratio Int) -- ^ Interest rate whose value will be observed (by an oracle) on the day of the payment
-    , swapMargin          :: !Value -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
+    , swapMargin          :: !Ada -- ^ Margin deposited at the beginning of the contract to protect against default (one party failing to pay)
     , swapOracle          :: !PubKey -- ^ Public key of the oracle (see note [Oracles] in [[Language.PlutusTx.Coordination.Contracts]])
     }
 
@@ -91,6 +94,9 @@ swapValidator _ = ValidatorScript result where
             signedBy :: PendingTxIn -> PubKey -> Bool
             signedBy = $$(Validation.txInSignedBy)
 
+            adaValueIn :: Value -> Int
+            adaValueIn v = $$(Ada.toInt) ($$(Ada.fromValue) v)
+
             infixr 3 ||
             (||) :: Bool -> Bool -> Bool
             (||) = $$(PlutusTx.or)
@@ -105,8 +111,8 @@ swapValidator _ = ValidatorScript result where
             rtDiff :: Ratio Int
             rtDiff = rt `minusR` swapFixedRate
 
-            amt = let Value v = swapNotionalAmt in v
-            margin = let Value v = swapMargin in v
+            amt    = $$(Ada.toInt) swapNotionalAmt
+            margin = $$(Ada.toInt) swapMargin
 
             amt' :: Ratio Int
             amt' = fromInt amt
@@ -143,12 +149,12 @@ swapValidator _ = ValidatorScript result where
             -- True if the transaction input is the margin payment of the
             -- fixed leg
             iP1 :: PendingTxIn -> Bool
-            iP1 t@(PendingTxIn _ _ (Value v)) = signedBy t swapOwnersFixedLeg && v == margin
+            iP1 t@(PendingTxIn _ _ v) = signedBy t swapOwnersFixedLeg && $$(PlutusTx.eq) (adaValueIn v) margin
 
             -- True if the transaction input is the margin payment of the
             -- floating leg
             iP2 :: PendingTxIn -> Bool
-            iP2 t@(PendingTxIn _ _ (Value v)) = signedBy t swapOwnersFloating && v == margin
+            iP2 t@(PendingTxIn _ _ v) = signedBy t swapOwnersFloating && $$(PlutusTx.eq) (adaValueIn v) margin
 
             inConditions = (iP1 t1  && iP2 t2) || (iP1 t2 && iP2 t1)
 
@@ -158,11 +164,11 @@ swapValidator _ = ValidatorScript result where
 
             -- True if the output is the payment of the fixed leg.
             ol1 :: PendingTxOut -> Bool
-            ol1 o@(PendingTxOut (Value v) _ _) = isPubKeyOutput o swapOwnersFixedLeg && v <= fixedRemainder
+            ol1 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFixedLeg && $$(PlutusTx.leq) (adaValueIn v) fixedRemainder
 
             -- True if the output is the payment of the floating leg.
             ol2 :: PendingTxOut -> Bool
-            ol2 o@(PendingTxOut (Value v) _ _) = isPubKeyOutput o swapOwnersFloating && v <= floatRemainder
+            ol2 o@(PendingTxOut v _ _) = isPubKeyOutput o swapOwnersFloating && $$(PlutusTx.leq) (adaValueIn v) floatRemainder
 
             -- NOTE: I didn't include a check that the slot is greater
             -- than the observation time. This is because the slot is

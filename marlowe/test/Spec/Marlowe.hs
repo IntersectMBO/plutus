@@ -41,6 +41,7 @@ import           Test.Tasty.Hedgehog            ( testProperty
                                                 )
 
 import           Ledger                  hiding ( Value )
+import qualified Ledger.Ada                     as Ada
 import qualified Ledger
 import           Ledger.Validation              ( OracleValue(..) )
 import           Wallet                         ( PubKey(..)
@@ -226,7 +227,7 @@ eqObservation = $$(equalObservation) eqValue
 eqContract :: Contract -> Contract -> Bool
 eqContract = $$(equalContract) eqValue eqObservation
 
-validContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
+validContract :: State -> Contract -> Slot -> Ada -> Bool
 validContract = $$(Marlowe.validateContract)
 
 evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
@@ -242,7 +243,7 @@ insertCommit = $$(Marlowe.insertCommit)
 
 discountFromPairList :: PubKey
     -> Slot
-    -> Ledger.Value
+    -> Ada
     -> [(IdentCC, CCStatus)]
     -> Maybe [(IdentCC, CCStatus)]
 discountFromPairList = $$(Marlowe.discountFromPairList)
@@ -285,17 +286,17 @@ checkDiscountFromPairList = property $ do
     let funds = List.foldl' mergeFunds Map.empty commits
     case Map.toList funds of
         [] -> do
-            let r = discountFromPairList (PubKey 1) (Slot 2) (Ledger.Value 10) []
+            let r = discountFromPairList (PubKey 1) (Slot 2) (Ada.fromInt 10) []
             Hedgehog.assert (isNothing r)
         (pk, amount) : _ -> do
             -- we are able to spend all the money for a person, when nothing is timedout yet
-            let r = discountFromPairList pk (Slot 1) (Ledger.Value amount) commits
+            let r = discountFromPairList pk (Slot 1) (Ada.fromInt amount) commits
             Hedgehog.assert (isJust r)
             let Just after = r
             Hedgehog.assert (length after < length commits)
             Hedgehog.assert (availableMoney after < availableMoney commits)
             -- we are not able to spend anything after timeouts
-            let r = discountFromPairList pk (Slot 55) (Ledger.Value amount) commits
+            let r = discountFromPairList pk (Slot 55) (Ada.fromInt amount) commits
             Hedgehog.assert (isNothing r)
 
 checkFindAndRemove :: IO ()
@@ -387,7 +388,7 @@ duplicateIdentCC = property $ do
             (CommitCash (IdentCC 1) (PubKey 1) (Value 100) 128 256 Null Null)
             Null
 
-        contractIsValid = validContract (State [] []) contract (Slot 1) (Ledger.Value 12)
+        contractIsValid = validContract (State [] []) contract (Slot 1) (Ada.fromInt 12)
     Hedgehog.assert (not contractIsValid)
 
 checkValidateContract :: Property
@@ -399,7 +400,7 @@ checkValidateContract = property $ do
 
     let contract = boundedContract (Set.fromList [PubKey 1, PubKey 2]) (Set.fromList [IdentCC 1]) bounds
     a <- forAll contract
-    let r = validContract (State [] []) a (Slot 1) (Ledger.Value 12)
+    let r = validContract (State [] []) a (Slot 1) (Ada.fromInt 12)
     Hedgehog.assert (r || not r)
 
 notEnoughMoney :: IO ()
@@ -407,10 +408,10 @@ notEnoughMoney = do
     let commits =   [(IdentCC 1, (PubKey 1, NotRedeemed 60 100))
                     , (IdentCC 1, (PubKey 1, NotRedeemed 40 200))]
     let test = validContract (State commits []) Null
-    let enoughOk = test (Slot 100) (Ledger.Value 100)
-    let enoughFail = test (Slot 1) (Ledger.Value 99)
-    let firstCommitTimedOutOk = test (Slot 101) (Ledger.Value 45)
-    let firstCommitTimedOutFail = test (Slot 101) (Ledger.Value 39)
+    let enoughOk = test (Slot 100) (Ada.fromInt 100)
+    let enoughFail = test (Slot 1) (Ada.fromInt 99)
+    let firstCommitTimedOutOk = test (Slot 101) (Ada.fromInt 45)
+    let firstCommitTimedOutFail = test (Slot 101) (Ada.fromInt 39)
     enoughOk @?= True
     enoughFail @?= False
     firstCommitTimedOutOk @?= True
@@ -478,7 +479,7 @@ withContract wallets contract f = do
 
 oraclePayment :: Property
 oraclePayment = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
+    mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000), (PubKey 2, Ada.adaValueOf 777) ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
@@ -515,13 +516,13 @@ oraclePayment = checkMarloweTrace (MarloweScenario {
             Null
         return (txOut, State [] [])
 
-    assertOwnFundsEq alice 1100
-    assertOwnFundsEq bob 677
+    assertOwnFundsEq alice (Ada.adaValueOf 1100)
+    assertOwnFundsEq bob (Ada.adaValueOf 677)
     return ()
 
 cantCommitAfterStartTimeout :: Property
 cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
+    mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000), (PubKey 2, Ada.adaValueOf 777) ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
@@ -545,13 +546,13 @@ cantCommitAfterStartTimeout = checkMarloweTrace (MarloweScenario {
         update
         return (txOut, State [] [])
 
-    assertOwnFundsEq alice 1000
-    assertOwnFundsEq bob 777
+    assertOwnFundsEq alice (Ada.adaValueOf 1000)
+    assertOwnFundsEq bob (Ada.adaValueOf 777)
     return ()
 
 redeemAfterCommitExpired :: Property
 redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777) ] }) $ do
+    mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000), (PubKey 2, Ada.adaValueOf 777) ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         bob = Wallet 2
@@ -576,13 +577,13 @@ redeemAfterCommitExpired = checkMarloweTrace (MarloweScenario {
             txOut validator [] [] identCC 100 (State [] []) Null
         return (txOut, State [] [])
 
-    assertOwnFundsEq alice 1000
-    assertOwnFundsEq bob 777
+    assertOwnFundsEq alice (Ada.adaValueOf 1000)
+    assertOwnFundsEq bob (Ada.adaValueOf 777)
     return ()
 
 escrowTest :: Property
 escrowTest = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList [ (PubKey 1, 1000), (PubKey 2, 777), (PubKey 3, 555)  ] }) $ do
+    mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000), (PubKey 2, Ada.adaValueOf 777), (PubKey 3, Ada.adaValueOf 555)  ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         alicePk = PubKey 1
@@ -627,16 +628,16 @@ escrowTest = checkMarloweTrace (MarloweScenario {
             Null
         return (txOut, (State [] choices))
 
-    assertOwnFundsEq alice 550
-    assertOwnFundsEq bob 1227
-    assertOwnFundsEq carol 555
+    assertOwnFundsEq alice (Ada.adaValueOf 550)
+    assertOwnFundsEq bob (Ada.adaValueOf 1227)
+    assertOwnFundsEq carol (Ada.adaValueOf 555)
 
 
 -- | A futures contract in Marlowe.
 
 futuresTest :: Property
 futuresTest = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList [ (PubKey 1, 1000000), (PubKey 2, 1000000) ] }) $ do
+    mlInitialBalances = Map.fromList [ (PubKey 1, Ada.adaValueOf 1000000), (PubKey 2, Ada.adaValueOf 1000000) ] }) $ do
     -- Init a contract
     let alice = Wallet 1
         alicePk = PubKey 1
@@ -749,6 +750,6 @@ futuresTest = checkMarloweTrace (MarloweScenario {
         return (txOut, State [] [])
 
 
-    assertOwnFundsEq alice 1000187
-    assertOwnFundsEq bob    999813
+    assertOwnFundsEq alice (Ada.adaValueOf 1000187)
+    assertOwnFundsEq bob   (Ada.adaValueOf  999813)
     return ()

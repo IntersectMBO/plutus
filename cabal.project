@@ -10,6 +10,7 @@ packages: language-plutus-core
           plutus-playground/plutus-playground-lib
           bench-primitives
           plutus-tutorial
+with-compiler: ghc-8.4.4
 optimization: 2
 constraints: language-plutus-core +development
            , wallet-api +development
@@ -32,11 +33,6 @@ allow-newer:
 program-options
   alex-options: -g
   happy-options: -gcsa
-
-source-repository-package
-  type: git
-  location: https://github.com/smobs/servant-subscriber.git
-  tag: 0354e99f5e1d244d5ec01f78e7e7439478b1d1d3
 
 source-repository-package
   type: git

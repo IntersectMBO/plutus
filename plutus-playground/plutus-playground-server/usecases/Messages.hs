@@ -6,6 +6,7 @@ import qualified Data.Set                     as Set
 import           Data.Text                    (Text)
 
 import           Ledger
+import qualified Ledger.Ada                   as Ada
 import           Ledger.Validation
 import           Wallet
 import           Playground.Contract
@@ -19,7 +20,7 @@ submitInvalidTxn = do
     let tx = Tx
             { txInputs = Set.empty
             , txOutputs = []
-            , txForge = 2
+            , txForge = Ada.adaValueOf 2
             , txFee = 0
             , txValidRange = defaultSlotRange
             }
