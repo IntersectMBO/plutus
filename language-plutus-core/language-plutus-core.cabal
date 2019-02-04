@@ -95,6 +95,7 @@ library
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Renamer
         Language.PlutusCore.Error
+        Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
         Language.PlutusCore.TypeCheck
         Language.PlutusCore.Analysis.Definitions
