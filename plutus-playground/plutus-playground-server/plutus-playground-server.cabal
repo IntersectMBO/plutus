@@ -1,16 +1,16 @@
 cabal-version: >=1.10
-name:          plutus-playground-server
-version:       0.1.0.0
-license:       BSD3
-license-file:  LICENSE
-copyright:     Copyright: (c) 2018 Input Output
-maintainer:    kris.jenkins@tweag.io
-author:        Kris Jenkins
-homepage:      https://github.com/iohk/plutus#readme
-bug-reports:   https://github.com/iohk/plutus/issues
+name: plutus-playground-server
+version: 0.1.0.0
+license: BSD3
+license-file: LICENSE
+copyright: Copyright: (c) 2018 Input Output
+maintainer: kris.jenkins@tweag.io
+author: Kris Jenkins
+homepage: https://github.com/iohk/plutus#readme
+bug-reports: https://github.com/iohk/plutus/issues
 description:
     Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
-build-type:    Simple
+build-type: Simple
 data-files:
     usecases/CrowdFunding.hs
     usecases/Game.hs
@@ -20,13 +20,14 @@ data-files:
     test/oAuthToken1.json
 
 source-repository head
-    type:     git
+    type: git
     location: https://github.com/iohk/plutus
 
 flag development
-    description: Enable `-Werror`
-    default:     False
-    manual:      True
+    description:
+        Enable `-Werror`
+    default: False
+    manual: True
 
 library
     exposed-modules:
@@ -40,7 +41,7 @@ library
         Control.Monad.Trace
         Control.Monad.Web
         Servant.Extra
-    hs-source-dirs:   src
+    hs-source-dirs: src
     default-language: Haskell2010
     build-depends:
         aeson -any,
@@ -66,7 +67,7 @@ library
         plutus-playground-lib -any,
         process -any,
         regex-compat -any,
-        servant -any,
+        servant <0.15,
         servant-purescript -any,
         servant-client -any,
         servant-client-core -any,
@@ -78,16 +79,16 @@ library
         wallet-api -any
 
 executable plutus-playground-server
-    main-is:          Main.hs
-    hs-source-dirs:   app
+    main-is: Main.hs
+    hs-source-dirs: app
     other-modules:
         Webserver
         Types
         PSGenerator
     default-language: Haskell2010
-    ghc-options:
-        -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wmissing-import-lists
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -118,20 +119,20 @@ executable plutus-playground-server
         yaml -any
 
 test-suite plutus-playground-server-test
-    type:               exitcode-stdio-1.0
-    main-is:            Spec.hs
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
     build-tool-depends: hspec-discover:hspec-discover -any
-    hs-source-dirs:     test
+    hs-source-dirs: test
     other-modules:
         Playground.APISpec
         Playground.UsecasesSpec
         Paths_plutus_playground_server
         Auth.TypesSpec
         GistSpec
-    default-language:   Haskell2010
-    ghc-options:
-        -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wmissing-import-lists
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wmissing-import-lists
     build-depends:
         QuickCheck -any,
         aeson -any,
