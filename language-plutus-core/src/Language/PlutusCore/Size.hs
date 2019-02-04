@@ -21,7 +21,8 @@ typeSize = cata a where
     a (TyLamF _ _ k ty)    = 1 + kindSize k + ty
     a (TyAppF _ ty ty')    = 1 + ty + ty'
 
--- | This exists so that we can measure term size
+-- | This exists so that we can measure term size. It counts the number of AST
+-- nodes.
 termSize :: Term tyname name a -> Int
 termSize = cata a where
     a VarF{}              = 1
