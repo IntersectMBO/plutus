@@ -26,7 +26,7 @@ import qualified Data.Set                                  as Set ()
 import qualified Data.Text                                 as T ()
 import qualified Data.Text.Encoding                        as T ()
 import qualified Data.Text.IO                              as T ()
-import           Gist                                      (NewGistFile, NewGist, Gist, GistId, GistFile, Owner)
+import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), buildBridge, equal, mkSumType,
                                                             psTypeParameters, typeModule, typeName, writePSTypes, (^==))
