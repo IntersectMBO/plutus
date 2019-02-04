@@ -19,7 +19,6 @@ import           Options.Applicative      (CommandFields, Mod, Parser, argument,
                                            disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
                                            option, prefs, short, showDefault, str, strOption, subparser, value)
 import qualified PSGenerator
-import           Types                    (Config)
 import qualified Webserver
 
 -- | You might wonder why we don't stick everything in `Config`. The
@@ -82,19 +81,20 @@ webserverCommandParser =
       argument str (metavar "STATIC_DIR" <> help "Static directory to serve up")
     pure Webserver {..}
 
-runCommand :: (MonadIO m, MonadLogger m) => Command -> Config -> m ()
-runCommand Webserver {..} config = Webserver.run settings _staticDir config
+runCommand :: (MonadIO m, MonadLogger m) => FilePath -> Command -> m ()
+runCommand configPath Webserver {..} = do
+  config <- liftIO $ decodeFileThrow configPath
+  Webserver.run settings _staticDir config
   where
     settings = setHost _host . setPort _port $ defaultSettings
-runCommand PSGenerator {..} _ = liftIO $ PSGenerator.generate _outputDir
+runCommand _ PSGenerator {..} = liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
 main = do
-  (configPath, cmd) <-
+  options <-
     customExecParser
       (prefs disambiguate)
       (info (helper <*> versionOption <*> commandLineParser) idm)
-  config <- decodeFileThrow configPath
   runStderrLoggingT $ do
-    logInfoN $ "Running: " <> Text.pack (show cmd)
-    runCommand cmd config
+    logInfoN $ "Running: " <> Text.pack (show options)
+    uncurry runCommand options
