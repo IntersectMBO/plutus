@@ -10,7 +10,7 @@
 -- | try it and see how it works out!)
 module Bootstrap where
 
-import Halogen.HTML (ClassName(ClassName), HTML, div, text)
+import Halogen.HTML (ClassName(ClassName), HTML, div, li, text, ul)
 import Halogen.HTML.Properties (class_, classes)
 
 container :: ClassName
@@ -55,6 +55,12 @@ col5 = ClassName "col-5"
 col5_ :: forall p i. Array (HTML p i) -> HTML p i
 col5_ = div [ classes [ col, col5 ] ]
 
+col6 :: ClassName
+col6 = ClassName "col-6"
+
+col6_ :: forall p i. Array (HTML p i) -> HTML p i
+col6_ = div [ classes [ col, col6 ] ]
+
 col7 :: ClassName
 col7 = ClassName "col-7"
 
@@ -72,6 +78,12 @@ col9 = ClassName "col-9"
 
 col9_ :: forall p i. Array (HTML p i) -> HTML p i
 col9_ = div [ classes [ col, col9 ] ]
+
+col10 :: ClassName
+col10 = ClassName "col-10"
+
+col10_ :: forall p i. Array (HTML p i) -> HTML p i
+col10_ = div [ classes [ col, col10 ] ]
 
 card :: ClassName
 card = ClassName "card"
@@ -249,3 +261,27 @@ invalidFeedback = ClassName "invalid-feedback"
 
 invalidFeedback_ :: forall p i. Array (HTML p i) -> HTML p i
 invalidFeedback_ = div [ class_ invalidFeedback ]
+
+active :: ClassName
+active = ClassName "active"
+
+disabled :: ClassName
+disabled = ClassName "disabled"
+
+nav :: ClassName
+nav = ClassName "nav"
+
+navTabs_ :: forall p i. Array (HTML p i) -> HTML p i
+navTabs_ = ul [ classes [ nav, ClassName "nav-tabs" ] ]
+
+navItem :: ClassName
+navItem = ClassName "nav-item"
+
+navItem_ :: forall p i. Array (HTML p i) -> HTML p i
+navItem_ = li [ class_ navItem ]
+
+navLink :: ClassName
+navLink = ClassName "nav-link"
+
+hidden :: ClassName
+hidden = ClassName "d-none"

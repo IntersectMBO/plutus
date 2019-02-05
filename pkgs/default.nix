@@ -42702,7 +42702,6 @@ license = stdenv.lib.licenses.bsd3;
 , bytestring
 , containers
 , cryptonite
-, data-default
 , http-types
 , memory
 , network-uri
@@ -42713,21 +42712,22 @@ license = stdenv.lib.licenses.bsd3;
 , time
 , unordered-containers
 , vector
+, x509
+, x509-store
 }:
 mkDerivation {
 
 pname = "jwt";
-version = "0.7.2";
-sha256 = "17967413d21399596a236bc8169d9e030bb85e2b1c349c6e470543767cc20a31";
+version = "0.9.0";
+sha256 = "258dd220368d869902232af2166e628abfd75c5112f860342107cb71a15293be";
 revision = "1";
-editedCabalFile = "1q8h94yslw6k6zcjbwx94pnji8dcr2w5n1wzgzfb8hb78w2qr1dm";
+editedCabalFile = "1vpd4pq8mh4dha7i2pfv4iqpw411yachzkf7p9rnfyicipj53pw2";
 libraryHaskellDepends = [
 aeson
 base
 bytestring
 containers
 cryptonite
-data-default
 http-types
 memory
 network-uri
@@ -42737,6 +42737,8 @@ text
 time
 unordered-containers
 vector
+x509
+x509-store
 ];
 doHaddock = false;
 doCheck = false;
@@ -56532,27 +56534,29 @@ license = stdenv.lib.licenses.bsd3;
 ({
   mkDerivation
 , aeson
+, aeson-casing
 , base
-, bifunctors
 , bytestring
 , containers
-, cryptonite
+, cookie
 , data-default-class
 , directory
 , exceptions
 , file-embed
 , filepath
+, generics-sop
 , gitrev
-, hint
 , hspec
 , hspec-discover
-, http-media
+, http-client
+, http-client-tls
+, http-conduit
 , http-types
 , insert-ordered-containers
+, jwt
 , lens
 , monad-logger
 , mtl
-, network
 , newtype-generics
 , optparse-applicative
 , plutus-playground-lib
@@ -56560,24 +56564,24 @@ license = stdenv.lib.licenses.bsd3;
 , purescript-bridge
 , QuickCheck
 , regex-compat
-, scientific
 , servant
+, servant-client
+, servant-client-core
 , servant-foreign
-, servant-options
 , servant-purescript
 , servant-server
 , stdenv
 , swagger2
-, template-haskell
 , temporary
 , text
+, time
 , transformers
-, unordered-containers
 , wai
 , wai-cors
 , wai-extra
 , wallet-api
 , warp
+, yaml
 }:
 mkDerivation {
 
@@ -56589,72 +56593,58 @@ isExecutable = true;
 enableSeparateDataOutput = true;
 libraryHaskellDepends = [
 aeson
+aeson-casing
 base
-bifunctors
 bytestring
 containers
-cryptonite
-data-default-class
+cookie
 directory
 exceptions
 file-embed
-gitrev
-hint
+generics-sop
+http-client
+http-client-tls
+http-conduit
 http-types
-insert-ordered-containers
+jwt
 lens
 monad-logger
 mtl
 newtype-generics
 plutus-playground-lib
 process
-purescript-bridge
 regex-compat
-scientific
 servant
-servant-foreign
-servant-options
+servant-client
+servant-client-core
+servant-purescript
 servant-server
 swagger2
-template-haskell
 temporary
 text
+time
 transformers
-wai
-wai-cors
-wai-extra
 wallet-api
-warp
 ];
 executableHaskellDepends = [
 aeson
 base
 bytestring
 containers
-cryptonite
 data-default-class
-file-embed
 filepath
 gitrev
-hspec
-http-media
 http-types
-insert-ordered-containers
 lens
 monad-logger
 mtl
-network
 optparse-applicative
 plutus-playground-lib
-process
 purescript-bridge
-scientific
 servant
 servant-foreign
-servant-options
 servant-purescript
 servant-server
-swagger2
 text
 transformers
 wai
@@ -56662,38 +56652,21 @@ wai-cors
 wai-extra
 wallet-api
 warp
+yaml
 ];
 testHaskellDepends = [
 aeson
 base
 bytestring
-containers
-data-default-class
-file-embed
-gitrev
 hspec
-http-media
-http-types
 insert-ordered-containers
-monad-logger
 mtl
-network
 plutus-playground-lib
-purescript-bridge
 QuickCheck
-servant
-servant-foreign
-servant-options
-servant-server
 swagger2
 text
 transformers
-unordered-containers
-wai
-wai-cors
-wai-extra
 wallet-api
-warp
 ];
 testToolDepends = [
 hspec-discover
@@ -65092,8 +65065,8 @@ version = "0.9.0.2";
 src = fetchgit {
 
 url = "https://github.com/shmish111/servant-purescript.git";
-sha256 = "0c4pi7rlmm3nghkp8h6p33jfvp3j75x512c68xd3ixgj0al1sw0j";
-rev = "315ccf5d720937c091c8cf3aca8adc8110766a23";
+sha256 = "1c35c49f12mw6f0h6njsk42nbgmggb0kbr05iyz8gcy407y4jw9r";
+rev = "18e1b61bf0aa3792285c6d8ecd0e4a72d76e34f5";
 fetchSubmodules = true;
 
 };
