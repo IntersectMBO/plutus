@@ -53,8 +53,6 @@ data BuiltinName = AddInteger
                  | SHA3
                  | VerifySignature
                  | EqByteString
-                 | TxHash
-                 | BlockNum
                  -- See Note [sizeOfInteger].
                  | SizeOfInteger
                  deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift)
@@ -215,8 +213,6 @@ instance Pretty BuiltinName where
     pretty SHA2                 = "sha2_256"
     pretty SHA3                 = "sha3_256"
     pretty VerifySignature      = "verifySignature"
-    pretty TxHash               = "txhash"
-    pretty BlockNum             = "blocknum"
     pretty SizeOfInteger        = "sizeOfInteger"
 
 instance Pretty DynamicBuiltinName where
