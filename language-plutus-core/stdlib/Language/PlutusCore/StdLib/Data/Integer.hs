@@ -10,7 +10,7 @@ import           Language.PlutusCore.Constant.Make (makeDynBuiltinIntSizedAs)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
