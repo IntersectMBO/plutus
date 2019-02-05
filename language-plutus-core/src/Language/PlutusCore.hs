@@ -99,6 +99,8 @@ module Language.PlutusCore
     , EvaluationResult
     -- * Combining programs
     , applyProgram
+    -- * Benchmarking
+    , termSize
     ) where
 
 import           Control.Monad.Except
@@ -117,7 +119,8 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Rename
+import           Language.PlutusCore.Size
 import           Language.PlutusCore.TH
 import           Language.PlutusCore.Type
 import           Language.PlutusCore.TypeCheck              as TypeCheck

@@ -10,7 +10,7 @@ module Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Function

@@ -15,15 +15,15 @@ module Language.PlutusCore.StdLib.Meta.Data.Tuple
     , getSpineToTuple
     ) where
 
-import           PlutusPrelude               (showText)
+import           PlutusPrelude              (showText)
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
-import           Control.Lens.Indexed        (ifor, itraverse)
+import           Control.Lens.Indexed       (ifor, itraverse)
 import           Data.Traversable
 
 -- | A Plutus Core tuple.

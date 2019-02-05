@@ -43,6 +43,8 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Rename.Internal
+        Language.PlutusCore.Rename
         Language.PlutusCore.Normalize
         Language.PlutusCore.Pretty
         Language.PlutusCore.View
@@ -93,8 +95,8 @@ library
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable
-        Language.PlutusCore.Renamer
         Language.PlutusCore.Error
+        Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
         Language.PlutusCore.TypeCheck
         Language.PlutusCore.Analysis.Definitions

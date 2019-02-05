@@ -10,7 +10,7 @@ module Language.PlutusCore.StdLib.Data.Unit
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Renamer
+import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 -- | '()' as a PLC type.
