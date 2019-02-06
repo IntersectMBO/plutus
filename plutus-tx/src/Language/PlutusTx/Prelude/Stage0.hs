@@ -65,7 +65,7 @@ or = [|| \(l :: Bool) (r :: Bool) -> if l then True else r ||]
 not :: Q (TExp (Bool -> Bool))
 not = [|| \(a :: Bool) -> if a then False else True  ||]
 
--- | Greater than 
+-- | Greater than
 --
 --   >>> $$([|| $$(gt) 2 1 ||])
 --   True
@@ -81,7 +81,7 @@ gt = [|| Builtins.greaterThanInteger ||]
 geq :: Q (TExp (Int -> Int -> Bool))
 geq = [|| Builtins.greaterThanEqInteger ||]
 
--- | Less than 
+-- | Less than
 --
 --   >>> $$([|| $$(lt) 2 1 ||])
 --   False
@@ -251,9 +251,6 @@ foldl = [||
                 x:xs -> foldl f (f acc x) xs
         in foldl
     ||]
-
-txhash :: Q (TExp ByteString)
-txhash = [|| Builtins.txhash ||]
 
 -- | The double SHA256 hash of a 'ByteString'
 sha2_256 :: Q (TExp (ByteString -> ByteString))

@@ -38,7 +38,6 @@ module Language.PlutusTx.Prelude (
     all,
     -- * Hashes
     ByteString,
-    txhash,
     sha2_256,
     sha3_256,
     equalsByteString,

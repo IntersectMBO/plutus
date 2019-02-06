@@ -136,8 +136,6 @@ builtinNames = [
     , 'Builtins.equalsByteString
 
     , 'Builtins.verifySignature
-    , 'Builtins.txhash
-    , 'Builtins.blocknum
 
     , 'Builtins.addInteger
     , 'Builtins.subtractInteger
@@ -248,9 +246,6 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.equalsInteger term [int, bool]
 
     -- Blockchain builtins
-    do
-        let term = mkBuiltin PLC.TxHash
-        defineBuiltinTerm 'Builtins.txhash term [bs]
     do
         term <- wrapBsRel 3 $ instSize haskellBSSize $ instSize haskellBSSize $ instSize haskellBSSize $ mkBuiltin PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
