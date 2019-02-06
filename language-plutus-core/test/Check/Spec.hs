@@ -5,12 +5,12 @@ module Check.Spec (tests) where
 import           Language.PlutusCore
 import qualified Language.PlutusCore.Check.Uniques          as Uniques
 import qualified Language.PlutusCore.Check.ValueRestriction as VR
+import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Quote
 import           PlutusPrelude
 
 import           Control.Monad.Except
 import           Data.Foldable                              (traverse_)
-import           Generators
 import           Hedgehog                                   hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog

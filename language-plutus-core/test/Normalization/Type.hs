@@ -5,12 +5,11 @@ module Normalization.Type
     ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Normalize
 
-import           Generators
-
-import           Control.Monad.Morph           (hoist)
+import           Control.Monad.Morph                (hoist)
 
 import           Hedgehog
 import           Test.Tasty

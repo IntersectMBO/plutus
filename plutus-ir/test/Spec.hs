@@ -9,6 +9,7 @@ import           PlcTestUtils
 import           TestLib
 
 import           OptimizerSpec
+import           ParserSpec
 import           TransformSpec
 
 import           Language.PlutusCore.Quote
@@ -62,6 +63,7 @@ compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuo
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence [
     prettyprinting,
+    parsing,
     datatypes,
     recursion,
     serialization,

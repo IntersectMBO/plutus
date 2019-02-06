@@ -67,6 +67,7 @@ library
         Language.PlutusCore.StdLib.Type
         Language.PlutusCore.Examples.Everything
         Language.PlutusCore.Generators
+        Language.PlutusCore.Generators.AST
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         PlutusPrelude
@@ -188,7 +189,6 @@ test-suite language-plutus-core-test
         Evaluation.Constant.SuccessFailure
         Evaluation.Constant.Failure
         Evaluation.Constant.Resize
-        Generators
         Normalization.Type
         Pretty.Readable
         Check.Spec
