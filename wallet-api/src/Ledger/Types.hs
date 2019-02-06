@@ -223,23 +223,44 @@ deriving anyclass instance ToJSON Address
 deriving anyclass instance FromJSON Address
 
 -- | Script
-newtype Script = Script { getSerialized :: BSL.ByteString }
-  deriving newtype (Serialise, Eq, Ord)
+newtype Script = Script { getPlc :: PLC.Program PLC.TyName PLC.Name () }
+  deriving newtype (Serialise)
 
-  -- TODO: possibly this belongs with CompiledCode
+{- Note [Eq and Ord for Scripts]
+We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
+However, the `Eq` instance for `Program`s is *alpha-equivalence*, and we don't
+have a compatible `Ord` instance, nor is it easy to derive one.
+
+So we piggyback off a different representation. In this instance we have two
+options:
+- Use the serialized form
+- Use a hash
+The problem with the latter is that we don't want to add a derived `Hashable` instance
+for `Program`s that's not compatible with the `Eq` instance. We *could* add a derived
+instance for `Program`s with de Bruijn indices, since in that case the derived `Eq`
+coincides with alpha-equivalence. However, this might be faster.
+
+For the moment we use the serialized form. We used to store the serialized form directly
+in `Script`, but that led to a lot of deserializing and reserializing in `applyProgram`.
+Here we have to serialize when we do `Eq` or `Ord` operations, but this happens comparatively
+infrequently (I believe).
+-}
+instance Eq Script where
+    a == b = serialise a == serialise b
+
+instance Ord Script where
+    a `compare` b = serialise a `compare` serialise b
+
+-- TODO: possibly this belongs with CompiledCode
 fromCompiledCode :: CompiledCode a -> Script
-fromCompiledCode = Script . getSerializedPlc
+fromCompiledCode = Script . deserialise . getSerializedPlc
 
 -- | Compile a quoted Haskell expression to a 'Script'
 compileScript :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp Script)
-compileScript a = [|| Script $ getSerializedPlc $ $$(compile a) ||]
-
-getPlc :: Script -> PLC.Program PLC.TyName PLC.Name ()
-getPlc = deserialise . getSerialized
+compileScript a = [|| fromCompiledCode $$(compile a) ||]
 
 applyScript :: Script -> Script -> Script
--- TODO: this is a bit inefficient
-applyScript (getPlc -> s1) (getPlc -> s2) = Script $ serialise $ s1 `PLC.applyProgram` s2
+applyScript (getPlc -> s1) (getPlc -> s2) = Script $ s1 `PLC.applyProgram` s2
 
 evaluateScript :: Script -> ([String], Bool)
 evaluateScript (getPlc -> s) = (isJust . evaluationResultToMaybe) <$> evaluateCekTrace s
@@ -257,7 +278,7 @@ instance FromJSON Script where
       Right v -> pure v
 
 lifted :: Lift a => a -> Script
-lifted = Script . serialise . unsafeLiftProgram
+lifted = Script . unsafeLiftProgram
 
 -- | A validator is a PLC script.
 newtype ValidatorScript = ValidatorScript { getValidator :: Script }
