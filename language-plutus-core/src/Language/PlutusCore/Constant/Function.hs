@@ -134,8 +134,6 @@ withTypedBuiltinName SHA3                 k = k typedSHA3
 withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName ResizeByteString     k = k typedResizeByteString
 withTypedBuiltinName EqByteString         k = k typedEqByteString
-withTypedBuiltinName TxHash               k = k typedTxHash
-withTypedBuiltinName BlockNum             k = k typedBlockNum
 withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.

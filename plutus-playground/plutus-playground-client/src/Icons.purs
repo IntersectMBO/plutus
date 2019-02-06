@@ -9,6 +9,7 @@ data Icon
   | Close
   | Check
   | Bitcoin
+  | Github
   | Plus
   | Spinner
 
@@ -23,5 +24,6 @@ iconClass LongArrowDown = ClassName "fa-long-arrow-down"
 iconClass Close = ClassName "fa-close"
 iconClass Check = ClassName "fa-check"
 iconClass Bitcoin = ClassName "fa-bitcoin"
+iconClass Github = ClassName "fa-github"
 iconClass Plus = ClassName "fa-plus"
 iconClass Spinner = ClassName "fa-spinner fa-pulse"

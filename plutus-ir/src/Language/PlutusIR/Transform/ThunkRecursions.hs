@@ -9,7 +9,7 @@ import           PlutusPrelude
 
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
-import           Language.PlutusIR.Rename               ()
+import           Language.PlutusIR.Transform.Rename     ()
 import           Language.PlutusIR.Transform.Substitute
 
 import qualified Language.PlutusCore                    as PLC

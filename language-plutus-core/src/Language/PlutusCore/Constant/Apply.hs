@@ -243,6 +243,4 @@ applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2         
 applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 Hash.sha3
 applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
-applyBuiltinName TxHash               = applyTypedBuiltinName typedTxHash               undefined
-applyBuiltinName BlockNum             = applyTypedBuiltinName typedBlockNum             undefined
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())

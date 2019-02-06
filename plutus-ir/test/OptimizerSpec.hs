@@ -9,7 +9,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
 import           Language.PlutusIR.Optimizer.DeadCode
-import           Language.PlutusIR.Rename             ()
+import           Language.PlutusIR.Transform.Rename   ()
 
 import qualified Language.PlutusCore                  as PLC
 

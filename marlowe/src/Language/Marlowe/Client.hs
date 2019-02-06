@@ -48,6 +48,8 @@ import           Ledger                         ( DataScript(..)
                                                 , scriptTxOut
                                                 )
 import qualified Ledger                         as Ledger
+import           Ledger.Ada.TH                  (Ada(..))
+import qualified Ledger.Ada                     as Ada
 import           Ledger.Validation
 import           Language.Marlowe
 
@@ -61,7 +63,7 @@ eqObservation = $$(equalObservation) eqValue
 eqContract :: Contract -> Contract -> Bool
 eqContract = $$(equalContract) eqValue eqObservation
 
-validContract :: State -> Contract -> Slot -> Ledger.Value -> Bool
+validContract :: State -> Contract -> Slot -> Ada -> Bool
 validContract = $$(validateContract)
 
 evalValue :: Slot -> [OracleValue Int] -> State -> Value -> Int
@@ -73,7 +75,7 @@ interpretObs inputOracles blockNumber state obs = let
     in $$(interpretObservation) ev blockNumber state obs
 
 evalContract :: PubKey -> Input -> Slot
-    -> Ledger.Value -> Ledger.Value
+    -> Ada -> Ada
     -> State -> Contract
     -> (State, Contract, Bool)
 evalContract = $$(evaluateContract)
@@ -106,7 +108,7 @@ createContract validator contract value = do
     let ds = DataScript $ Ledger.lifted (Input (SpendDeposit (Signature 1)) [] [], MarloweData {
             marloweContract = contract,
             marloweState = emptyState })
-    let v' = Ledger.Value value
+    let v' = Ada.adaValueOf value
     (payment, change) <- createPaymentWithChange v'
     let o = scriptTxOut v' validator ds
 
@@ -126,11 +128,12 @@ marloweTx ::
     --   and current contract money
     -> m ()
 marloweTx inputState txOut validator f = let
-    (TxOutOf _ (Ledger.Value contractValue) _, ref) = txOut
+    (TxOutOf _ vl _, ref) = txOut
+    Ada contractValue = Ada.fromValue vl
     lifted = Ledger.lifted inputState
     scriptIn = scriptTxIn ref validator $ Ledger.RedeemerScript lifted
     dataScript = DataScript lifted
-    scritOut v = scriptTxOut (Ledger.Value v) validator dataScript
+    scritOut v = scriptTxOut (Ada.adaValueOf v) validator dataScript
     in f scriptIn scritOut contractValue
 
 
@@ -171,7 +174,7 @@ commit' txOut validator oracles choices identCC value expectedState expectedCont
     slot <- slot
     let redeemer = createRedeemer (Commit identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
-        (payment, change) <- createPaymentWithChange (Ledger.Value value)
+        (payment, change) <- createPaymentWithChange (Ada.adaValueOf value)
         void $ createTxAndSubmit
             (intervalFrom slot)
             (Set.insert contractTxIn payment)
@@ -208,8 +211,8 @@ commit txOut validator oracles choices identCC value inputState inputContract = 
     sig <- signature <$> myKeyPair
     let inputCommand = Commit identCC sig
     let input = Input inputCommand oracles choices
-    let scriptInValue@(Ledger.Value contractValue) = txOutValue . fst $ txOut
-    let scriptOutValue = Ledger.Value $ contractValue + value
+    let scriptInValue@(Ada contractValue) = Ada.fromValue . txOutValue . fst $ txOut
+    let scriptOutValue = Ada $ contractValue + value
     let (expectedState, expectedCont, isValid) =
             evalContract (PubKey 1) input bh scriptInValue scriptOutValue inputState inputContract
     when (not isValid) $ throwOtherError "Invalid commit"
@@ -245,7 +248,7 @@ receivePayment txOut validator oracles choices identPay value expectedState expe
     let redeemer = createRedeemer (Payment identPay sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         let out = getTxOut (contractValue - value)
-        oo <- ownPubKeyTxOut (Ledger.Value value)
+        oo <- ownPubKeyTxOut (Ada.adaValueOf value)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [out, oo]
 
 
@@ -278,7 +281,7 @@ redeem txOut validator oracles choices identCC value expectedState expectedCont 
     let redeemer = createRedeemer (Redeem identCC sig) oracles choices expectedState expectedCont
     marloweTx redeemer txOut validator $ \ contractTxIn getTxOut contractValue -> do
         let out = getTxOut (contractValue - value)
-        oo <- ownPubKeyTxOut (Ledger.Value value)
+        oo <- ownPubKeyTxOut (Ada.adaValueOf value)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [out, oo]
 
 
@@ -299,5 +302,5 @@ spendDeposit txOut validator state = do
     slot <- slot
     let redeemer = createRedeemer (SpendDeposit sig) [] [] state Null
     marloweTx redeemer txOut validator $ \ contractTxIn _ contractValue -> do
-        oo <- ownPubKeyTxOut (Ledger.Value contractValue)
+        oo <- ownPubKeyTxOut (Ada.adaValueOf contractValue)
         void $ createTxAndSubmit (intervalFrom slot) (Set.singleton contractTxIn) [oo]

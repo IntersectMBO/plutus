@@ -29,12 +29,14 @@ library
         Language.PlutusIR.Compiler
         Language.PlutusIR.Compiler.Names
         Language.PlutusIR.Compiler.Definitions
+        Language.PlutusIR.Generators.AST
+        Language.PlutusIR.Parser
         Language.PlutusIR.MkPir
-        Language.PlutusIR.Rename
         Language.PlutusIR.Value
         Language.PlutusIR.Optimizer.DeadCode
         Language.PlutusIR.Transform.Substitute
         Language.PlutusIR.Transform.ThunkRecursions
+        Language.PlutusIR.Transform.Rename
     hs-source-dirs: src
     other-modules:
         Language.PlutusIR.Analysis.Dependencies
@@ -60,6 +62,8 @@ library
                  -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
+        bytestring -any,
+        hedgehog -any,
         containers -any,
         language-plutus-core -any,
         lens -any,
@@ -69,7 +73,8 @@ library
         serialise -any,
         text -any,
         transformers -any,
-        algebraic-graphs <0.3
+        algebraic-graphs <0.3,
+        megaparsec <7.0
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror
@@ -81,14 +86,19 @@ test-suite plutus-ir-test
     other-modules:
         OptimizerSpec
         TransformSpec
+        ParserSpec
         TestLib
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        bytestring -any,
+        hedgehog -any,
         plutus-ir -any,
         language-plutus-core -any,
+        megaparsec -any,
         mtl -any,
         mmorph -any,
         prettyprinter -any,
         serialise -any,
-        tasty -any
+        tasty -any,
+        tasty-hedgehog -any

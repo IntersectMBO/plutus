@@ -9,9 +9,6 @@ module Language.PlutusTx.Builtins (
                                 , sha3_256
                                 , verifySignature
                                 , equalsByteString
-                                -- * Blockchain builtins
-                                , txhash
-                                , blocknum
                                 -- * Integer builtins
                                 , addInteger
                                 , subtractInteger
@@ -62,12 +59,6 @@ verifySignature = mustBeReplaced
 
 equalsByteString :: ByteString -> ByteString -> Bool
 equalsByteString = (==)
-
-txhash :: ByteString
-txhash = mustBeReplaced
-
-blocknum :: Int
-blocknum = mustBeReplaced
 
 addInteger :: Int -> Int -> Int
 addInteger = (+)

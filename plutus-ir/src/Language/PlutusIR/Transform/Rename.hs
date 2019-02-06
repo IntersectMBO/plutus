@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name ann)@
 -- instance in scope.
-module Language.PlutusIR.Rename () where
+module Language.PlutusIR.Transform.Rename () where
 
 import           Language.PlutusIR
 
@@ -37,34 +37,39 @@ then the mappings from the uniques of 'x' to the uniques of 'xFr' do not exist i
 Two problems arise:
 
 1. If you have a list of @X@s and then an @Y@ and then another list of @Z@s and you need to freshen
-   all of those, it's not nice to compose @withFreshened*@ functions at all. In order to make their
+   all of those, it's not nice to compose @withFreshened*@ functions at all. In order to make these
    functions composable, we can wrap them in the 'ContT' monad. See e.g. 'renameDatatypeCM' below.
 2. Handling of mutually recursive bindings requires to bring a bunch of bindings in scope first and
-   only then to rename their RHSs. I.e. one part of a 'ScopedRenameM' must be performed immediately
-   (brinding names in scope) and the other part must be postponed until all bindings are in scope
-   (renaming of RHSs). Hence we have the following pattern:
+   only then to rename their RHSs. I.e. one part of a 'ScopedRenameM' computation must be performed
+   immediately (brinding names in scope) and the other part must be postponed until all bindings
+   are in scope (renaming of RHSs). We will refer to this scheme as "two-stage renaming".
+
+   Hence we have the following pattern:
 
        renameXCM :: X -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM X)
 
    where an 'X' is some value that defines some names and has types/terms that need to be renamed.
-   The first 'PLC.ScopedRenameM' is for bringing names in scope and the second 'PLC.ScopedRenameM'
-   is for performing the renaming.
+   The first 'PLC.ScopedRenameM' is for bringing names (the first stage) in scope and the second
+   'PLC.ScopedRenameM' is for performing the renaming (the second stage).
 -}
 
 instance (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique) =>
         PLC.Rename (Term tyname name ann) where
     rename = PLC.runScopedRenameM . renameTermM
 
+-- See Note [Renaming of mutually recursive bindings].
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.
 renameDatatypeCM
     :: (PLC.HasUnique (tyname ann) PLC.TypeUnique, PLC.HasUnique (name ann) PLC.TermUnique)
     => Datatype tyname name ann
     -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Datatype tyname name ann))
 renameDatatypeCM (Datatype x dataDecl params matchName constrs) = do
-    dataDeclFr <- ContT $ PLC.withFreshenedTyVarDecl dataDecl
-    paramsFr <- traverse (ContT . PLC.withFreshenedTyVarDecl) params
+    -- The first stage.
+    dataDeclFr  <- ContT $ PLC.withFreshenedTyVarDecl dataDecl
+    paramsFr    <- traverse (ContT . PLC.withFreshenedTyVarDecl) params
     matchNameFr <- ContT $ PLC.withFreshenedName matchName
-    constrsRen <- traverse (ContT . PLC.withFreshenedVarDecl) constrs
+    constrsRen  <- traverse (ContT . PLC.withFreshenedVarDecl) constrs
+    -- The second stage (the types of constructors get renamed).
     pure $ Datatype x dataDeclFr paramsFr matchNameFr <$> sequence constrsRen
 
 -- | Rename a 'Binding' in the CPS-transformed 'ScopedRenameM' monad.
@@ -74,12 +79,17 @@ renameBindingCM
     -> ContT c PLC.ScopedRenameM (PLC.ScopedRenameM (Binding tyname name ann))
 renameBindingCM = \case
     TermBind x var term -> do
+        -- The first stage.
         varRen <- ContT $ PLC.withFreshenedVarDecl var
+        -- The second stage (the type of the variable and the RHS get renamed).
         pure $ TermBind x <$> varRen <*> renameTermM term
     TypeBind x var ty -> do
+        -- The First stage.
         varFr <- ContT $ PLC.withFreshenedTyVarDecl var
+        -- The second stage (the RHS get renamed).
         pure $ TypeBind x varFr <$> PLC.renameTypeM ty
     DatatypeBind x datatype ->
+        -- Both the stages of 'renameDatatypeCM'.
         fmap (DatatypeBind x) <$> renameDatatypeCM datatype
 
 -- | Replace the uniques in the names stored in a bunch of bindings by new uniques,

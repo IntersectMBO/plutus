@@ -18,8 +18,8 @@ module Language.PlutusCore.Rename.Internal
     , runDirectRenameM
     , runScopedRenameM
     , withFreshenedName
-    , withFreshenedVarDecl
     , withFreshenedTyVarDecl
+    , withFreshenedVarDecl
     , renameNameM
     , renameTypeM
     , renameTermM
@@ -73,7 +73,7 @@ instance HasUniquesRenaming ScopedUniquesRenaming TermUnique where
 
 -- | Run a 'RenameM' computation with a supplied @renaming@.
 runRenameM :: MonadQuote m => renaming -> RenameM renaming a -> m a
-runRenameM renaming a = liftQuote $ runReaderT (unRenameM a) renaming
+runRenameM renaming (RenameM a) = liftQuote $ runReaderT a renaming
 
 -- | Run a 'RenameM' computation with the empty 'UniquesRenaming'.
 runDirectRenameM :: MonadQuote m => RenameM (UniquesRenaming unique) a -> m a
@@ -104,6 +104,16 @@ withFreshenedName name k = do
     uniqNew <- coerce <$> freshUnique
     local (insertByNameM name uniqNew) $ k (name & unique .~ uniqNew)
 
+-- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
+-- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.
+withFreshenedTyVarDecl
+    :: (HasUniquesRenaming renaming TypeUnique, HasUnique (tyname ann) TypeUnique)
+    => TyVarDecl tyname ann
+    -> (TyVarDecl tyname ann -> RenameM renaming c)
+    -> RenameM renaming c
+withFreshenedTyVarDecl (TyVarDecl ann name kind) cont =
+    withFreshenedName name $ \nameFr -> cont $ TyVarDecl ann nameFr kind
+
 -- | Replace the unique in the name stored in a 'VarDecl' by a new unique, save the mapping
 -- from the old unique to the new one and supply to a continuation the computation that
 -- renames the type stored in the updated 'VarDecl'.
@@ -117,16 +127,6 @@ withFreshenedVarDecl
     -> ScopedRenameM c
 withFreshenedVarDecl (VarDecl ann name ty) cont =
     withFreshenedName name $ \nameFr -> cont $ VarDecl ann nameFr <$> renameTypeM ty
-
--- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
--- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.
-withFreshenedTyVarDecl
-    :: (HasUniquesRenaming renaming TypeUnique, HasUnique (tyname ann) TypeUnique)
-    => TyVarDecl tyname ann
-    -> (TyVarDecl tyname ann -> RenameM renaming c)
-    -> RenameM renaming c
-withFreshenedTyVarDecl (TyVarDecl ann name kind) cont =
-    withFreshenedName name $ \nameFr -> cont $ TyVarDecl ann nameFr kind
 
 -- | Rename a name that has a unique inside.
 renameNameM

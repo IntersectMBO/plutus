@@ -29,7 +29,7 @@ import           Crypto.Hash          (Digest, SHA256)
 import           Data.Aeson           (FromJSON, ToJSON)
 import           Data.Foldable        (foldl', traverse_)
 import qualified Data.Map             as Map
-import           Data.Semigroup       (Semigroup, Sum (..))
+import           Data.Semigroup       (Semigroup)
 import qualified Data.Set             as Set
 import           GHC.Generics         (Generic)
 import qualified Ledger.Interval      as Interval
@@ -40,6 +40,8 @@ import qualified Ledger.Types         as Ledger
 import           Ledger.Validation    (PendingTx (..))
 import qualified Ledger.Validation    as Validation
 import           Prelude              hiding (lookup)
+import qualified Ledger.Value         as V
+import qualified Ledger.Ada           as Ada
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw `ValidationError`s
@@ -188,8 +190,9 @@ checkMatch v = \case
 --   it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- (txForge t +) <$> fmap (getSum . foldMap Sum) (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
-    let outVal = txFee t + sum (map txOutValue (txOutputs t))
+    let sumVal = foldl' V.plus V.zero
+    inVal <- V.plus (txForge t) <$> fmap sumVal (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
+    let outVal = V.plus (Ada.toValue $ txFee t) (sumVal (map txOutValue (txOutputs t)))
     if outVal == inVal
     then pure ()
     else throwError $ ValueNotPreserved inVal outVal

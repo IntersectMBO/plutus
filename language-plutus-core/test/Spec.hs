@@ -11,7 +11,6 @@ import qualified Data.Text                                  as T
 import           Data.Text.Encoding                         (encodeUtf8)
 import           Evaluation.CkMachine
 import           Evaluation.Constant.All
-import           Generators
 import           Hedgehog                                   hiding (Var)
 import qualified Hedgehog.Gen                               as Gen
 import qualified Hedgehog.Range                             as Range
@@ -19,6 +18,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Generators
+import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 import           Normalization.Type

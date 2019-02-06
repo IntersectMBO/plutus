@@ -21,8 +21,6 @@ module Language.PlutusCore.Constant.Name
     , typedVerifySignature
     , typedResizeByteString
     , typedEqByteString
-    , typedTxHash
-    , typedBlockNum
     , typedSizeOfInteger
     ) where
 
@@ -180,20 +178,6 @@ typedEqByteString =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedBS) `TypeSchemeArrow`
             TypeSchemeBuiltin TypedBuiltinBool
-
--- | Typed 'TxHash'.
-typedTxHash :: TypedBuiltinName BSL.ByteString BSL.ByteString
-typedTxHash =
-    TypedBuiltinName TxHash $
-        TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 32) TypedBuiltinSizedBS)
-
--- | Typed 'BlockNum'.
-typedBlockNum :: TypedBuiltinName (() -> Integer) Integer
-typedBlockNum =
-    TypedBuiltinName BlockNum $
-        TypeSchemeAllSize $ \s ->
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedSize) `TypeSchemeArrow`
-            TypeSchemeBuiltin (TypedBuiltinSized (SizeBound s) TypedBuiltinSizedInt)
 
 -- | Typed 'SizeOfInteger'.
 typedSizeOfInteger :: TypedBuiltinName (Integer -> ()) ()

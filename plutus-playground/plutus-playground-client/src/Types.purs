@@ -1,6 +1,7 @@
 module Types where
 
 import Ace.Halogen.Component (AceMessage, AceQuery)
+import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
 import Control.Extend (class Extend, extend)
 import DOM.HTML.Event.Types (DragEvent)
@@ -16,6 +17,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Ledger.Types (Tx)
@@ -140,6 +142,9 @@ data Query a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
+  | CheckAuthStatus a
+  | PublishGist a
+  | ChangeView View a
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
@@ -201,11 +206,18 @@ cpBalancesChart = cp3
 type Blockchain = Array (Array Tx)
 
 type State =
-  { compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
+  { view :: View
+  , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array MockWallet
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
+  , authStatus :: RemoteData AjaxError AuthStatus
+  , gists :: RemoteData AjaxError (Array Gist)
+  , createGistResult :: RemoteData AjaxError Gist
   }
+
+_view :: forall s a. Lens' {view :: a | s} a
+_view = prop (SProxy :: SProxy "view")
 
 _actions :: forall s a. Lens' {actions :: a | s} a
 _actions = prop (SProxy :: SProxy "actions")
@@ -218,6 +230,27 @@ _evaluationResult = prop (SProxy :: SProxy "evaluationResult")
 
 _compilationResult :: forall s a. Lens' {compilationResult :: a | s} a
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
+
+_authStatus :: forall s a. Lens' {authStatus :: a | s} a
+_authStatus = prop (SProxy :: SProxy "authStatus")
+
+_gists :: forall s a. Lens' {gists :: a | s} a
+_gists = prop (SProxy :: SProxy "gists")
+
+_createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
+_createGistResult = prop (SProxy :: SProxy "createGistResult")
+
+
+data View
+  = Editor
+  | Simulation
+  | Transactions
+
+derive instance eqView :: Eq View
+derive instance genericView :: Generic View
+
+instance showView :: Show View where
+  show = gShow
 
 ------------------------------------------------------------
 

@@ -14,7 +14,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ledger.Types(
     -- * Basic types
-    Value(..),
+    Value,
+    Ada,
     Slot(..),
     SlotRange,
     lastSlot,
@@ -123,6 +124,9 @@ import           Language.PlutusTx.Lift.Class             (Lift)
 import           Language.PlutusTx.TH                     (CompiledCode, compile, getSerializedPlc)
 
 import           Ledger.Interval                          (Slot(..), SlotRange)
+import           Ledger.Ada                               (Ada)
+import           Ledger.Value                             (Value)
+import qualified Ledger.Value.TH                          as V
 
 {- Note [Serialisation and hashing]
 
@@ -167,16 +171,6 @@ makeLift ''Signature
 -- | True if the signature matches the public key
 signedBy :: Signature -> PubKey -> Bool
 signedBy (Signature k) (PubKey s) = k == s
-
--- | Cryptocurrency value
---
-newtype Value = Value { getValue :: Int }
-    deriving (Eq, Ord, Show, Enum)
-    deriving stock (Generic)
-    deriving anyclass (ToSchema, ToJSON, FromJSON)
-    deriving newtype (Num, Integral, Real, Serialise)
-
-makeLift ''Value
 
 -- | Transaction ID (double SHA256 hash of the transaction)
 newtype TxIdOf h = TxIdOf { getTxId :: h }
@@ -345,7 +339,7 @@ data Tx = Tx {
     txInputs     :: Set.Set TxIn,
     txOutputs    :: [TxOut],
     txForge      :: !Value,
-    txFee        :: !Value,
+    txFee        :: !Ada,
     txValidRange :: !SlotRange
     -- ^ The 'SlotRange' during which this transaction may be validated
     } deriving (Show, Eq, Ord, Generic, Serialise, ToJSON, FromJSON)
@@ -370,18 +364,19 @@ instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
     withByteArray = BA.withByteArray . Write.toStrictByteString . encode
 
--- | Check that all values in a transaction are no.
+-- | Check that all values in a transaction are non-negative
 --
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
-  = all ((>= 0) . txOutValue) txOutputs && txForge >= 0 && txFee >= 0
+  = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && txFee >= 0 where
+    nonNegative i = $$(V.geq) i $$(V.zero)
 
 -- | Transaction without witnesses for its inputs
 data TxStripped = TxStripped {
     txStrippedInputs  :: Set.Set TxOutRef,
     txStrippedOutputs :: [TxOut],
     txStrippedForge   :: !Value,
-    txStrippedFee     :: !Value
+    txStrippedFee     :: !Ada
     } deriving (Show, Eq, Ord)
 
 instance BA.ByteArrayAccess TxStripped where

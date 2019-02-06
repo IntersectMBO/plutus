@@ -51,7 +51,7 @@
           }
         ],
         "txFee": {
-          "getValue": 0
+          "getAda": 0
         },
         "txForge": {
           "getValue": 0
@@ -101,7 +101,7 @@
       {
         "txInputs": [],
         "txFee": {
-          "getValue": 0
+          "getAda": 0
         },
         "txForge": {
           "getValue": 20

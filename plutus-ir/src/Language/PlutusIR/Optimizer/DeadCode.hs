@@ -6,7 +6,7 @@ module Language.PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
 import           Language.PlutusIR
 import qualified Language.PlutusIR.Analysis.Dependencies as Deps
 import           Language.PlutusIR.MkPir
-import           Language.PlutusIR.Rename                ()
+import           Language.PlutusIR.Transform.Rename      ()
 
 import qualified Language.PlutusCore                     as PLC
 import qualified Language.PlutusCore.Name                as PLC

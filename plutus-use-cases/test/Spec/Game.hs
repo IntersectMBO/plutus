@@ -11,6 +11,8 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog                           (testProperty)
 
 import qualified Ledger
+import qualified Ledger.Ada                                    as Ada
+import qualified Ledger.Value                                  as Value
 import           Wallet.API                                    (PubKey (..))
 import           Wallet.Emulator
 import qualified Wallet.Generators                             as Gen
@@ -28,7 +30,7 @@ lockProp :: Property
 lockProp = checkTrace $ do
     lockFunds
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance - 10),
+        (w1, Value.minus startingBalance (Ada.adaValueOf 10)),
         (w2, startingBalance)]
 
 guessRightProp :: Property
@@ -38,8 +40,8 @@ guessRightProp = checkTrace $ do
     void $ walletAction w2 (guess "abcde")
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance - 10),
-        (w2, startingBalance + 10)]
+        (w1, Value.minus startingBalance (Ada.adaValueOf 10)),
+        (w2, Value.plus  startingBalance (Ada.adaValueOf 10))]
 
 guessWrongProp :: Property
 guessWrongProp = checkTrace $ do
@@ -48,12 +50,12 @@ guessWrongProp = checkTrace $ do
     void $ walletAction w2 (guess "a")
     updateAll
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, startingBalance - 10),
+        (w1, Value.minus startingBalance (Ada.adaValueOf 10)),
         (w2, startingBalance)]
 
 -- | Funds available to wallets at the beginning.
 startingBalance :: Ledger.Value
-startingBalance = 1000000
+startingBalance = Ada.adaValueOf 1000000
 
 -- | Wallet 1
 w1 :: Wallet
