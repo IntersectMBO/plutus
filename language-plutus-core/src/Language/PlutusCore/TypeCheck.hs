@@ -87,7 +87,7 @@ checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 inferType
     :: (AsTypeError e ann, MonadError e m, MonadQuote m)
     => TypeCheckConfig -> Term TyName Name ann -> m (NormalizedType TyName ())
-inferType config term = rename term >>= runTypeCheckM config . inferTypeM
+inferType config = rename >=> runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.
 -- Infers the type of the term and checks that it's equal to the given type

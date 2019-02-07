@@ -22,7 +22,7 @@ thunkRecursions = testNested "thunkRecursions" [
     ]
 
 listFold :: Term TyName Name ()
-listFold = runQuote $  do
+listFold = runQuote $ thunkRecursionsTerm =<< do
     {-
     This implements foldl:
 

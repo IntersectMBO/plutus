@@ -52,9 +52,7 @@ asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
 compileAndMaybeTypecheck :: Bool -> Term TyName Name a -> Except (Error (Provenance a)) (PLC.Term TyName Name (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT NoProvenance $ runQuoteT $ do
-    -- it is important we run the two computations in the same Quote together, otherwise we might make
-    -- names during compilation that are not fresh
-    compiled <- compileTerm pir -- =<< PLC.rename pir
+    compiled <- compileTerm pir
     when doTypecheck $ void $ PLC.inferType PLC.defOffChainConfig compiled
     pure compiled
 
