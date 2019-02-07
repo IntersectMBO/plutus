@@ -165,7 +165,7 @@ mapParseRun :: (AsParseError e a, MonadError e m, MonadQuote m) => StateT Identi
 -- parser state and get back the new next unique
 mapParseRun run = do
     nextU <- liftQuote get
-    (p, (_, _, u)) <- throwingEither _ParseError $ runExcept $ runStateT run (identifierStateFrom nextU)
+    (p, (_, u)) <- throwingEither _ParseError $ runExcept $ runStateT run (identifierStateFrom nextU)
     liftQuote $ put u
     pure p
 
