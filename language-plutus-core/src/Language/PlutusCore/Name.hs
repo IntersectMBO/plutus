@@ -146,7 +146,7 @@ lookupNameIndex = lookupUnique . coerce . view unique
 
 -- | An 'IdentifierState' includes a map indexed by 'Int's as well as a map
 -- indexed by 'ByteString's. It is used during parsing.
-type IdentifierState = (M.Map BSL.ByteString Unique, Unique)
+type IdentifierState = (M.Map T.Text Unique, Unique)
 
 emptyIdentifierState :: IdentifierState
 emptyIdentifierState = (mempty, Unique 0)
@@ -154,10 +154,7 @@ emptyIdentifierState = (mempty, Unique 0)
 identifierStateFrom :: Unique -> IdentifierState
 identifierStateFrom u = (mempty, u)
 
--- | This is a naïve implementation of interned identifiers. In particular, it
--- indexes things twice (once by 'Int', once by 'ByteString') to ensure fast
--- lookups while lexing and otherwise.
-newIdentifier :: (MonadState IdentifierState m) => BSL.ByteString -> m Unique
+newIdentifier :: (MonadState IdentifierState m) => T.Text -> m Unique
 newIdentifier str = do
     (ss, nextU) <- get
     case M.lookup str ss of
