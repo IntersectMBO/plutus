@@ -1,7 +1,17 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Language.PlutusIR.Parser where
+
+module Language.PlutusIR.Parser
+    ( parse
+    , parseQuoted
+    , term
+    , typ
+    , program
+    , Parser
+    , ParseError (..)
+    , SourcePos
+    ) where
 
 import           Prelude                      hiding (fail)
 
@@ -11,12 +21,12 @@ import           Control.Monad.State          hiding (fail)
 import qualified Language.PlutusCore          as PLC
 import qualified Language.PlutusCore.Constant as PLC
 import           Language.PlutusIR            as PIR
-import           PlutusPrelude                (prettyString)
+import           PlutusPrelude                (prettyText)
 import           Text.Megaparsec              hiding (ParseError, State, parse)
 import qualified Text.Megaparsec              as Parsec
 
 import           Data.ByteString.Internal     (c2w)
-import qualified Data.ByteString.Lazy         as BS
+import qualified Data.ByteString.Lazy         as BSL
 import           Data.Char
 import           Data.Foldable
 import qualified Data.Map                     as M
@@ -54,11 +64,14 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-type Parser = ParsecT ParseError String (StateT ParserState PLC.Quote)
+type Parser = ParsecT ParseError T.Text (StateT ParserState PLC.Quote)
 instance (Stream s, PLC.MonadQuote m) => PLC.MonadQuote (ParsecT e s m)
 
-parse :: Parser a -> String -> String -> Either (Parsec.ParseError Char ParseError) a
-parse p file str = PLC.runQuote $ flip evalStateT initial $ runParserT p file str
+parse :: Parser a -> String -> T.Text -> Either (Parsec.ParseError Char ParseError) a
+parse p file str = PLC.runQuote $ parseQuoted p file str
+
+parseQuoted :: Parser a -> String -> T.Text -> PLC.Quote (Either (Parsec.ParseError Char ParseError) a)
+parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
@@ -69,22 +82,22 @@ whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNe
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
 
-symbol :: String -> Parser (Tokens String)
+symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
 
-lparen :: Parser String
+lparen :: Parser T.Text
 lparen = symbol "("
-rparen :: Parser String
+rparen :: Parser T.Text
 rparen = symbol ")"
 
-lbracket :: Parser String
+lbracket :: Parser T.Text
 lbracket = symbol "["
-rbracket :: Parser String
+rbracket :: Parser T.Text
 rbracket = symbol "]"
 
-lbrace :: Parser String
+lbrace :: Parser T.Text
 lbrace = symbol "{"
-rbrace :: Parser String
+rbrace :: Parser T.Text
 rbrace = symbol "}"
 
 inParens :: Parser a -> Parser a
@@ -96,9 +109,9 @@ inBrackets = between lbracket rbracket
 inBraces :: Parser a -> Parser a
 inBraces = between lbrace rbrace
 
-reservedWords :: [String]
+reservedWords :: [T.Text]
 reservedWords =
-    map prettyString PLC.allBuiltinNames ++
+    map prettyText PLC.allBuiltinNames ++
     [ "abs"
     , "lam"
     , "ifix"
@@ -129,7 +142,7 @@ reservedWords =
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
 
-reservedWord :: String -> Parser SourcePos
+reservedWord :: T.Text -> Parser SourcePos
 reservedWord w = lexeme $ try $ do
     p <- getPosition
     void $ string w
@@ -139,17 +152,16 @@ reservedWord w = lexeme $ try $ do
 builtinName :: Parser PLC.BuiltinName
 builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
     where parseBuiltinName :: PLC.BuiltinName -> Parser PLC.BuiltinName
-          parseBuiltinName builtin = try $ string (prettyString builtin) >> pure builtin
+          parseBuiltinName builtin = try $ string (prettyText builtin) >> pure builtin
 
 name :: Parser (Name SourcePos)
 name = lexeme $ try $ do
     pos <- getPosition
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
-    let word = T.pack str
     if str `elem` reservedWords
-        then customFailure $ UnexpectedKeyword $ show word
-        else Name pos word <$> intern word
+        then customFailure $ UnexpectedKeyword $ show str
+        else Name pos str <$> intern str
 
 var :: Parser (Name SourcePos)
 var = name
@@ -178,8 +190,8 @@ hexPair = do
               | c >= 'a' && c <= 'f' = pure $ 10 + (c2w c - c2w 'a')
               | otherwise = customFailure $ InternalError "non-hexadecimal character in bytestring literal"
 
-bytestring :: Parser BS.ByteString
-bytestring = lexeme $ BS.pack <$> (char '#' >> many hexPair)
+bytestring :: Parser BSL.ByteString
+bytestring = lexeme $ BSL.pack <$> (char '#' >> many hexPair)
 
 size :: Parser Natural
 size = lexeme $ do
