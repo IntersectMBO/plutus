@@ -10,6 +10,7 @@ module Language.PlutusIR.Parser
     , program
     , Parser
     , ParseError (..)
+    , Error
     , SourcePos
     ) where
 
@@ -44,6 +45,8 @@ data ParseError = Overflow Natural Integer
                 | UnexpectedKeyword String
                 | InternalError String
                 deriving (Eq, Ord, Show)
+
+type Error = Parsec.ParseError Char ParseError
 
 instance ShowErrorComponent ParseError where
     showErrorComponent (Overflow sz i) = "Integer overflow: " ++ show i ++ " does not fit in " ++ show sz ++ " bytes"
@@ -272,9 +275,9 @@ tyVarDecl = inParens $ TyVarDecl <$> reservedWord "tyvardecl" <*> tyVar <*> kind
 datatype :: Parser (Datatype TyName Name SourcePos)
 datatype = inParens $ Datatype <$> reservedWord "datatype"
     <*> tyVarDecl
-    <*> some tyVarDecl
+    <*> many tyVarDecl
     <*> var
-    <*> some varDecl
+    <*> many varDecl
 
 binding :: Parser (Binding TyName Name SourcePos)
 binding =  inParens $

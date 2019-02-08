@@ -93,12 +93,14 @@ test-suite plutus-ir-test
         base >=4.9 && <5,
         hedgehog -any,
         plutus-ir -any,
+        filepath -any,
+        text -any,
         language-plutus-core -any,
-        megaparsec -any,
         mtl -any,
         mmorph -any,
         prettyprinter -any,
         serialise -any,
         tasty -any,
         tasty-hedgehog -any,
-        text -any
+        text -any,
+        megaparsec <7.0

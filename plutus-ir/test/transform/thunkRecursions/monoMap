@@ -1,0 +1,37 @@
+(let
+  (rec)
+  (datatypebind
+    (datatype
+      (tyvardecl List (fun (type) (type)))
+      (tyvardecl a (type))
+      match_List
+      (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+    )
+  )
+  (let
+    (rec)
+    (termbind
+      (vardecl
+        map (fun (fun (con 1) (con 1)) (fun [List (con 1)] [List (con 1)]))
+      )
+      (lam
+        f
+        (fun (con 1) (con 1))
+        (lam
+          lst
+          [List (con 1)]
+          [
+            [ [ { match_List (con 1) } lst ] Nil ]
+            (lam
+              x
+              (con 1)
+              (lam xs [List (con 1)] [ [ Cons [ f x ] ] [ [ map f ] xs ] ])
+            )
+          ]
+        )
+      )
+    )
+    map
+  )
+)
+
