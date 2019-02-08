@@ -37,7 +37,6 @@ import           PlutusPrelude
 
 import           Control.Lens
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.IntMap                as IM
 import qualified Data.Map                   as M
 import qualified Data.Text                  as T
