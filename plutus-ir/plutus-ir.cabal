@@ -101,4 +101,5 @@ test-suite plutus-ir-test
         prettyprinter -any,
         serialise -any,
         tasty -any,
-        tasty-hedgehog -any
+        tasty-hedgehog -any,
+        text -any
