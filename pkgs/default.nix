@@ -12972,6 +12972,55 @@ description = "OTP-like supervision trees in Haskell";
 license = stdenv.lib.licenses.mit;
 
 }) {};
+"cardano-crypto" = callPackage
+({
+  mkDerivation
+, base
+, basement
+, bytestring
+, cryptonite
+, cryptonite-openssl
+, deepseq
+, fetchgit
+, foundation
+, hashable
+, integer-gmp
+, memory
+, stdenv
+}:
+mkDerivation {
+
+pname = "cardano-crypto";
+version = "1.1.0";
+src = fetchgit {
+
+url = "https://github.com/input-output-hk/cardano-crypto.git";
+sha256 = "1jyzai4sn9hi3p6r97h54f9a7an7vk38lwrbl4mds9zmdsw5f5ad";
+rev = "f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1";
+fetchSubmodules = true;
+
+};
+isLibrary = true;
+isExecutable = true;
+libraryHaskellDepends = [
+base
+basement
+bytestring
+cryptonite
+cryptonite-openssl
+deepseq
+foundation
+hashable
+integer-gmp
+memory
+];
+doHaddock = false;
+doCheck = false;
+homepage = "https://github.com/input-output-hk/cardano-crypto#readme";
+description = "Cryptography primitives for cardano";
+license = stdenv.lib.licenses.mit;
+
+}) {};
 "carray" = callPackage
 ({
   mkDerivation
@@ -43738,6 +43787,7 @@ license = stdenv.lib.licenses.bsd3;
 , base
 , bimap
 , bytestring
+, cardano-crypto
 , cborg
 , composition-prelude
 , containers
@@ -43779,6 +43829,7 @@ array
 base
 bimap
 bytestring
+cardano-crypto
 cborg
 composition-prelude
 containers
@@ -56459,6 +56510,7 @@ prettyprinter
 serialise
 tasty
 tasty-hedgehog
+text
 ];
 doHaddock = false;
 description = "Plutus IR language";
