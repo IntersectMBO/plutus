@@ -151,7 +151,9 @@ library
         hedgehog -any,
         filepath -any,
         tasty -any,
-        tasty-golden -any
+        tasty-golden -any,
+        cryptonite,
+        cardano-crypto
 
     if (flag(development) && impl(ghc <8.4))
         ghc-options: -Werror

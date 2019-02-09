@@ -13,6 +13,7 @@ module PlutusPrelude ( -- * Reëxports from base
                      , second
                      , on
                      , isJust
+                     , fromMaybe
                      , guard
                      , foldl'
                      , fold
@@ -110,7 +111,7 @@ import           Data.Functor                            (void, ($>))
 import           Data.Functor.Foldable                   (Base, Corecursive, Recursive, embed, project)
 import           Data.List                               (foldl')
 import           Data.List.NonEmpty                      (NonEmpty (..))
-import           Data.Maybe                              (isJust)
+import           Data.Maybe                              (fromMaybe, isJust)
 import qualified Data.Text                               as T
 import qualified Data.Text.Encoding                      as TE
 import           Data.Text.Prettyprint.Doc

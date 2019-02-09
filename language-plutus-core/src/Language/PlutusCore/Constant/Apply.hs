@@ -27,6 +27,8 @@ import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import           Control.Monad.Trans.Class                      (lift)
+import           Crypto.ECC.Ed25519Donna
+import           Crypto.Error                                   (maybeCryptoError)
 import qualified Data.ByteString.Lazy                           as BSL
 import qualified Data.ByteString.Lazy.Hash                      as Hash
 import           Data.IntMap.Strict                             (IntMap)
@@ -218,6 +220,13 @@ applyTypedBuiltinName
     => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
+-- we default to 'False' in accordance with the spec
+verifySignature :: BSL.ByteString -- ^ Public Key
+                -> BSL.ByteString -- ^ Message
+                -> BSL.ByteString -- ^ Signature
+                -> Bool
+verifySignature pubKey msg sig = fromMaybe False $ maybeCryptoError (verify <$> publicKey (BSL.toStrict pubKey) <*> pure (BSL.toStrict msg) <*> signature (BSL.toStrict sig))
+
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyBuiltinName
@@ -243,6 +252,6 @@ applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteStrin
 applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
 applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 Hash.sha2
 applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
+applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      verifySignature
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())
