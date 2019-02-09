@@ -43,7 +43,6 @@ library
     build-tool-depends: doctest:doctest -any
     build-depends:
         base >=4.9 && <5,
-        bytestring -any,
         template-haskell >=2.13.0.0,
         language-plutus-core -any,
         plutus-tx -any,
