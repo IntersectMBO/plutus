@@ -30,8 +30,6 @@ module Language.PlutusCore
     , StagedBuiltinName (..)
     , TypeBuiltin (..)
     , Normalized (..)
-    , NormalizedType
-    , getNormalizedType
     , defaultVersion
     , allBuiltinNames
     , termLoc
@@ -201,7 +199,7 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig -> BSL.ByteString -> m (NormalizedType TyName ())
+    => TypeCheckConfig -> BSL.ByteString -> m (Normalized (Type TyName ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -212,7 +210,7 @@ typecheckPipeline
         MonadQuote m)
     => TypeCheckConfig
     -> Program TyName Name a
-    -> m (NormalizedType TyName ())
+    -> m (Normalized (Type TyName ()))
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
     <=< through (unless (_tccDoNormTypes cfg) . checkProgram)

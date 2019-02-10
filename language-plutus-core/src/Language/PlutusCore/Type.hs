@@ -28,10 +28,6 @@ module Language.PlutusCore.Type ( Term (..)
                                 , termLoc
                                 -- * Normalized
                                 , Normalized (..)
-                                -- * Backwards compatibility
-                                , NormalizedType
-                                , pattern NormalizedType
-                                , getNormalizedType
                                 ) where
 
 import           Control.Lens
@@ -320,21 +316,13 @@ instance Recursive (Kind a) where
 data Program tyname name a = Program a (Version a) (Term tyname name a)
                  deriving (Show, Eq, Functor, Generic, NFData, Lift)
 
-newtype Normalized a = Normalized { getNormalized :: a }
+newtype Normalized a = Normalized { unNormalized :: a }
     deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
     deriving newtype NFData
 
 instance Applicative Normalized where
     pure = Normalized
     Normalized f <*> Normalized x = Normalized $ f x
-
-type NormalizedType tyname a = Normalized (Type tyname a)
-
-pattern NormalizedType :: Type tyname a -> NormalizedType tyname a
-pattern NormalizedType ty = Normalized ty
-
-getNormalizedType :: NormalizedType tyname a -> Type tyname a
-getNormalizedType (Normalized ty) = ty
 
 instance PrettyBy config a => PrettyBy config (Normalized a) where
     prettyBy config (Normalized x) = prettyBy config x

@@ -22,7 +22,7 @@ test_appAppLamLam = do
         Normalized integer2' = runQuote $ do
             x <- freshTyName () "x"
             y <- freshTyName () "y"
-            normalizeTypeDown $ mkIterTyApp ()
+            normalizeTypeFull $ mkIterTyApp ()
                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
                 [integer2, integer2]
     integer2 @?= integer2'
@@ -30,11 +30,11 @@ test_appAppLamLam = do
 test_normalizeTypesInIdempotent :: Property
 test_normalizeTypesInIdempotent = property . hoist (pure . runQuote) $ do
     term <- forAll genTerm
-    mayTermNormTypes <- liftQuote . runNormalizeTypeGasM (Gas 100) $ normalizeTypesIn term
+    mayTermNormTypes <- normalizeTypesGasIn (Gas 100) term
     case mayTermNormTypes of
         Nothing            -> return ()
         Just termNormTypes -> do
-            termNormTypes' <- liftQuote . runNormalizeTypeDownM $ normalizeTypesIn termNormTypes
+            termNormTypes' <- normalizeTypesFullIn termNormTypes
             termNormTypes === termNormTypes'
 
 test_typeNormalization :: TestTree
