@@ -149,7 +149,10 @@ data Token a = LexName { loc        :: a
              deriving (Show, Eq, Generic, NFData)
 
 asBytes :: Word8 -> Doc a
-asBytes = Text 2 . T.pack . ($ mempty) . showHex
+asBytes x = Text 2 $ T.pack $ addLeadingZero $ ($ mempty) $ showHex x
+    where addLeadingZero
+              | x < 16    = ("0" ++)
+              | otherwise = id
 
 prettyBytes :: BSL.ByteString -> Doc a
 prettyBytes b = "#" <> fold (asBytes <$> BSL.unpack b)
