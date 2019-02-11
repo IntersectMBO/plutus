@@ -92,7 +92,7 @@ data TypeError a
     = KindMismatch a (Type TyName ()) (Kind ()) (Kind ())
     | TypeMismatch a (Term TyName Name ())
                      (Type TyName ())
-                     (NormalizedType TyName ())
+                     (Normalized (Type TyName ()))
     | UnknownDynamicBuiltinName a UnknownDynamicBuiltinNameError
     | InternalTypeErrorE a (InternalTypeError a)
     | FreeTypeVariableE (TyName a)

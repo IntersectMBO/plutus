@@ -54,7 +54,7 @@ instance ann ~ () => AsTypeError TypeEvalCheckError ann where
 
 -- | Type-eval checking of a term results in a value of this type.
 data TypeEvalCheckResult = TypeEvalCheckResult
-    { _termCheckResultType  :: NormalizedType TyName ()
+    { _termCheckResultType  :: Normalized (Type TyName ())
       -- ^ The type of the term.
     , _termCheckResultValue :: EvaluationResult
       -- ^ The result of evaluation of the term.

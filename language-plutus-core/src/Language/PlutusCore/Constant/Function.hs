@@ -138,5 +138,5 @@ withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName SizeOfInteger        k = k typedSizeOfInteger
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName :: TypedBuiltinName a r -> Quote (Type TyName ())
-typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
+typeOfTypedBuiltinName :: MonadQuote m => TypedBuiltinName a r -> m (Type TyName ())
+typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = liftQuote $ typeSchemeToType scheme

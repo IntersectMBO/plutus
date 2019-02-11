@@ -33,6 +33,7 @@ import           Control.Monad.Trans.Maybe
 
 import           Data.Functor.Foldable
 import           Data.Functor.Identity
+import           Data.Maybe                (fromMaybe)
 import qualified Data.Set                  as Set
 import qualified Data.Text                 as Text
 import           Hedgehog                  (GenT, PropertyT)
@@ -88,7 +89,7 @@ markNonFreshType
     :: (HasUnique (tyname a) TypeUnique, MonadQuote m)
     => Type tyname a
     -> m ()
-markNonFreshType = markNonFresh . maximum . collectTypeUniques
+markNonFreshType = markNonFreshMax . collectTypeUniques
 
 -- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you
 -- have a term which was not generated in 'Quote'.
@@ -96,7 +97,7 @@ markNonFreshTerm
     :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique, MonadQuote m)
     => Term tyname name a
     -> m ()
-markNonFreshTerm = markNonFresh . maximum . collectTermUniques
+markNonFreshTerm = markNonFreshMax . collectTermUniques
 
 -- | Marks all the 'Unique's in a program as used, so they will not be generated in future. Useful if you
 -- have a program which was not generated in 'Quote'.
@@ -104,7 +105,12 @@ markNonFreshProgram
     :: (HasUnique (tyname a) TypeUnique, HasUnique (name a) TermUnique, MonadQuote m)
     => Program tyname name a
     -> m ()
-markNonFreshProgram (Program _ _ body)= markNonFreshTerm body
+markNonFreshProgram (Program _ _ body) = markNonFreshTerm body
+
+-- | Mark the maximal 'Unique' from a set of 'Unique's (and implicitly all 'Unique's less than it)
+-- as used, so they will not be generated in future.
+markNonFreshMax :: MonadQuote m => Set.Set Unique -> m ()
+markNonFreshMax = markNonFresh . fromMaybe (Unique 0) . Set.lookupMax
 
 -- | Mark a given 'Unique' (and implicitly all 'Unique's less than it) as used, so they will not be generated in future.
 markNonFresh :: MonadQuote m => Unique -> m ()

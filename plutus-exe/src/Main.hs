@@ -165,7 +165,7 @@ toTermExample getTerm = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defOffChainConfig program of
         Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
-        Right vTy                  -> PLC.getNormalizedType vTy
+        Right vTy                  -> PLC.unNormalized vTy
 
 availableExamples :: [(ExampleName, SomeExample)]
 availableExamples =
