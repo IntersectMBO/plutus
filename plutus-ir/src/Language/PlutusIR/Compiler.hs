@@ -22,7 +22,7 @@ import           Control.Monad
 
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
-compileTerm = (PLC.rename <=< Term.compileTerm <=< thunkRecursionsTerm) . original <=< PLC.rename
+compileTerm = Term.compileTerm <=< thunkRecursionsTerm . original <=< PLC.rename
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
 compileProgram :: Compiling m e a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))
