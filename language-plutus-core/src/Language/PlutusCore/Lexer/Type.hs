@@ -152,7 +152,7 @@ asBytes :: Word8 -> Doc a
 asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
     where addLeadingZero :: String -> String
           addLeadingZero
-              | x < 16    = ("0" ++)
+              | x < 16    = ('0' :)
               | otherwise = id
 
 prettyBytes :: BSL.ByteString -> Doc a
