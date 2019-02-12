@@ -15,7 +15,6 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Type

@@ -15,6 +15,8 @@ import           Language.PlutusCore.Rename.Internal
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Data.Functor.Identity
+
 {- Note [Marking]
 We use functions from the @markNonFresh*@ family in order to ensure that bound variables never get
 renamed to free ones. This means types/terms/etc are processed twice: once by a @markNonFresh*@
@@ -49,16 +51,18 @@ instance (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique) =>
 instance Rename a => Rename (Normalized a) where
     rename = traverse rename
 
+-- | @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
+-- which renames the stored value along the way. This type is used whenever
+--
+-- 1. preserving global uniqueness is required
+-- 2. some value may be used multiple times
+--
+-- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
+-- global conditions is preserved.
 newtype Dupable a = Dupable
-    { unDupable :: a
-    } deriving (Show, Eq, Functor, Foldable, Traversable)
+    { unDupable :: Identity a  -- 'Identity' is for deriving 'Applicative' and 'Monad'.
+    } deriving (Show, Eq, Functor, Foldable, Traversable, Applicative, Monad)
 
-instance Applicative Dupable where
-    pure = Dupable
-    Dupable f <*> Dupable x = Dupable $ f x
-
-instance Monad Dupable where
-    Dupable x >>= f = f x
-
+-- | Extract the value stored in a @Dupable a@ and rename it.
 liftDupable :: (MonadQuote m, Rename a) => Dupable a -> m a
-liftDupable = liftQuote . rename . unDupable
+liftDupable = liftQuote . rename . runIdentity . unDupable
