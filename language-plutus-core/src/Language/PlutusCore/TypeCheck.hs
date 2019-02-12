@@ -66,7 +66,7 @@ dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
             let ty = dynamicBuiltinNameMeaningToType mean
             _ <- inferKind (offChainConfig mempty) $ ann <$ ty
             tyRen <- rename ty
-            normalizeTypeDown tyRen
+            normalizeTypeFull tyRen
     DynamicBuiltinNameTypes <$> traverse getType means
 
 -- | Infer the kind of a type.
@@ -86,7 +86,7 @@ checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 -- | Infer the type of a term.
 inferType
     :: (AsTypeError e ann, MonadError e m, MonadQuote m)
-    => TypeCheckConfig -> Term TyName Name ann -> m (NormalizedType TyName ())
+    => TypeCheckConfig -> Term TyName Name ann -> m (Normalized (Type TyName ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.
@@ -94,7 +94,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkType
     :: (AsTypeError e ann, MonadError e m, MonadQuote m)
-    => TypeCheckConfig -> ann -> Term TyName Name ann -> NormalizedType TyName () -> m ()
+    => TypeCheckConfig -> ann -> Term TyName Name ann -> Normalized (Type TyName ()) -> m ()
 checkType config ann term ty = do
     termRen <- rename term
     runTypeCheckM config $ checkTypeM ann termRen ty
@@ -102,7 +102,7 @@ checkType config ann term ty = do
 -- | Infer the type of a program.
 inferTypeOfProgram
     :: (AsTypeError e ann, MonadError e m, MonadQuote m)
-    => TypeCheckConfig -> Program TyName Name ann -> m (NormalizedType TyName ())
+    => TypeCheckConfig -> Program TyName Name ann -> m (Normalized (Type TyName ()))
 inferTypeOfProgram config (Program _ _ term) = inferType config term
 
 -- | Check a program against a type.
@@ -110,5 +110,5 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
     :: (AsTypeError e ann, MonadError e m, MonadQuote m)
-    => TypeCheckConfig -> ann -> Program TyName Name ann -> NormalizedType TyName () -> m ()
+    => TypeCheckConfig -> ann -> Program TyName Name ann -> Normalized (Type TyName ()) -> m ()
 checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term
