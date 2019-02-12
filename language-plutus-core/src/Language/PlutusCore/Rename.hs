@@ -5,6 +5,8 @@
 
 module Language.PlutusCore.Rename
     ( Rename (..)
+    , Dupable
+    , liftDupable
     ) where
 
 import           Language.PlutusCore.Name
@@ -46,3 +48,17 @@ instance (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique) =>
 
 instance Rename a => Rename (Normalized a) where
     rename = traverse rename
+
+newtype Dupable a = Dupable
+    { unDupable :: a
+    } deriving (Show, Eq, Functor, Foldable, Traversable)
+
+instance Applicative Dupable where
+    pure = Dupable
+    Dupable f <*> Dupable x = Dupable $ f x
+
+instance Monad Dupable where
+    Dupable x >>= f = f x
+
+liftDupable :: (MonadQuote m, Rename a) => Dupable a -> m a
+liftDupable = liftQuote . rename . unDupable
