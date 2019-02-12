@@ -10,4 +10,5 @@ verifySignature :: BSL.ByteString -- ^ Public Key
                 -> BSL.ByteString -- ^ Message
                 -> BSL.ByteString -- ^ Signature
                 -> Bool
-verifySignature pubKey msg sig = fromMaybe False $ maybeCryptoError (verify <$> publicKey (BSL.toStrict pubKey) <*> pure (BSL.toStrict msg) <*> signature (BSL.toStrict sig))
+verifySignature pubKey msg sig = fromMaybe False $
+    maybeCryptoError (verify <$> publicKey (BSL.toStrict pubKey) <*> pure (BSL.toStrict msg) <*> signature (BSL.toStrict sig))
