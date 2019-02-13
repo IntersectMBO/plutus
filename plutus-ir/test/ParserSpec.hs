@@ -27,17 +27,14 @@ whitespace :: MonadGen m => m String
 whitespace = flip replicate ' ' <$> Gen.integral (Range.linear 1 4)
 
 lineComment :: MonadGen m => m String
-lineComment = Gen.filter (not . ('\n' `elem`)) (Gen.string (Range.linear 0 100) Gen.latin1)
+lineComment = (Gen.string (Range.linear 0 20) $ Gen.filter (/= '\n') Gen.latin1)
               >>= (\s -> return $ " --" ++ s ++ "\n")
 
 blockComment :: MonadGen m => m String
-blockComment = Gen.filter (not . hasBlockComments) (Gen.string (Range.linear 0 100) Gen.latin1)
+blockComment = (Gen.string (Range.linear 0 20) $ Gen.element notBraces)
                >>= (\s -> return $ "{- " ++ s ++ " -}")
-    where hasBlockComments []          = False
-          hasBlockComments [_]         = False
-          hasBlockComments ('{':'-':_) = True
-          hasBlockComments ('-':'}':_) = True
-          hasBlockComments (_:c:r)     = hasBlockComments (c:r)
+    where notBraces :: String
+          notBraces = filter (\c -> c /= '{' && c /= '}') ['\0' .. '\255']
 
 comment :: MonadGen m => m String
 comment = Gen.choice [Gen.constant "", lineComment, blockComment]
