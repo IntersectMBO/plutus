@@ -50,7 +50,6 @@ library
         base >=4.9 && <5,
         containers -any,
         mtl -any,
-        mmorph -any,
         lens -any,
         language-plutus-core -any
 
