@@ -26,7 +26,7 @@ import           Test.Tasty.Hedgehog
 dynamicBuiltinRoundtrip :: (KnownDynamicBuiltinType a, Show a, Eq a) => Gen a -> Property
 dynamicBuiltinRoundtrip genX = property $ do
     x <- forAll genX
-    let mayX' = runQuote (makeDynamicBuiltin x) >>= sequence . readDynamicBuiltinCek
+    let mayX' = makeDynamicBuiltin x >>= sequence . readDynamicBuiltinCek
     mayX' === Just (Right x)
 
 test_stringRoundtrip :: TestTree
@@ -67,12 +67,9 @@ test_collectChars :: TestTree
 test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
     (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek TypedBuiltinDyn $ \emit ->
-        runQuote $ do
-            unitval <- getBuiltinUnitval
-            sequ    <- getBuiltinSequ
-            let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
-            chars <- traverse unsafeMakeDynamicBuiltin str
-            return $ foldr step unitval chars
+        let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
+            chars = map unsafeMakeDynamicBuiltin str
+            in foldr step unitval chars
     case errOrRes of
         Left _                      -> failure
         Right EvaluationFailure     -> failure

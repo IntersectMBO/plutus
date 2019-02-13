@@ -19,40 +19,34 @@ import           System.FilePath                            ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-kindcheckQuoted
-    :: (MonadError (Error ()) m, MonadQuote m)
-    => Quote (Type TyName ()) -> m (Type TyName ())
-kindcheckQuoted getType = do
-    ty <- liftQuote getType
-    _ <- inferKind defOffChainConfig ty
+kindcheck :: MonadError (Error ()) m => Type TyName () -> m (Type TyName ())
+kindcheck ty = do
+    _ <- runQuoteT $ inferKind defOffChainConfig ty
     return ty
 
-typecheckQuoted
-    :: (MonadError (Error ()) m, MonadQuote m)
-    => Quote (Term TyName Name ()) -> m (Term TyName Name ())
-typecheckQuoted getTerm = do
-    term <- liftQuote getTerm
+typecheck :: MonadError (Error ()) m => Term TyName Name () -> m ()
+typecheck term = do
     _ <- VR.checkTerm term
-    _ <- inferType defOffChainConfig term
-    return term
+    _ <- runQuoteT $ inferType defOffChainConfig term
+    return ()
 
 -- | Assert a 'Type' is well-kinded.
-assertWellKinded :: HasCallStack => Quote (Type TyName ()) -> Assertion
-assertWellKinded getTy = case runExcept . runQuoteT $ kindcheckQuoted getTy of
+assertWellKinded :: HasCallStack => Type TyName () -> Assertion
+assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
     Left  err -> assertFailure $ "Kind error: " ++ prettyPlcCondensedErrorClassicString err
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
-assertWellTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
-assertWellTyped getTerm = case runExcept . runQuoteT $ typecheckQuoted getTerm of
+assertWellTyped :: HasCallStack => Term TyName Name () -> Assertion
+assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Left  err -> assertFailure $ "Type error: " ++ prettyPlcCondensedErrorClassicString err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
-assertIllTyped :: HasCallStack => Quote (Term TyName Name ()) -> Assertion
-assertIllTyped getTerm = case runExcept . runQuoteT $ typecheckQuoted getTerm of
-    Right term -> assertFailure $ "Well-typed: " ++ prettyPlcCondensedErrorClassicString term
-    Left  _    -> return ()
+assertIllTyped :: HasCallStack => Term TyName Name () -> Assertion
+assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
+    Right () -> assertFailure $ "Well-typed: " ++ prettyPlcCondensedErrorClassicString term
+    Left  _  -> return ()
 
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
@@ -66,8 +60,8 @@ test_typecheckAvailable =
 -- | Self-application. An example of ill-typed term.
 --
 -- > /\ (A :: *) -> \(x : A) -> x x
-getBuiltinSelfApply :: Quote (Term TyName Name ())
-getBuiltinSelfApply = do
+selfApply :: Term TyName Name ()
+selfApply = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     return
@@ -80,14 +74,14 @@ test_typecheckIllTyped :: TestTree
 test_typecheckIllTyped =
     testCase "ill-typed" $
         foldMap assertIllTyped
-            [ getBuiltinSelfApply
+            [ selfApply
             ]
 
 test_typecheckBuiltinName :: BuiltinName -> TestTree
 test_typecheckBuiltinName name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef . runQuote $ typeOfBuiltinName name
+    doc      = prettyPlcDef $ typeOfBuiltinName name
 
 test_typecheckBuiltinNames :: TestTree
 test_typecheckBuiltinNames =

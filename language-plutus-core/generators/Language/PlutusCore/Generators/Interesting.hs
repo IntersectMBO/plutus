@@ -6,24 +6,26 @@
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , genOverapplication
-    , getBuiltinFactorial
+    , factorial
     , applyFactorial
     , genFactorial
     , genNaiveFib
     , genNatRoundtrip
-    , getBuiltinNatSum
+    , natSum
     , genListSum
     , genIfIntegers
     , fromInterestingTermGens
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Bool
-import           Language.PlutusCore.StdLib.Data.Function
-import           Language.PlutusCore.StdLib.Data.List
+import           Language.PlutusCore.StdLib.Data.Function as Function
+import           Language.PlutusCore.StdLib.Data.List     as List
 import           Language.PlutusCore.StdLib.Data.Nat
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Meta
@@ -31,14 +33,13 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Generators
 
-import           Control.Monad.Morph
 import           Data.List                                (genericIndex)
 import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
 -- | The type of terms-and-their-values generators.
-type TermGen size a = GenT Quote (TermOf (TypedBuiltinValue size a))
+type TermGen size a = Gen (TermOf (TypedBuiltinValue size a))
 
 -- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
 --
@@ -49,22 +50,22 @@ genOverapplication = do
     s2 <- genSizeIn 1 8
     let typedInt1 = TypedBuiltinSized (SizeValue s1) TypedBuiltinSizedInt
         typedInt2 = TypedBuiltinSized (SizeValue s2) TypedBuiltinSizedInt
-    int2 <- lift $ typedBuiltinToType typedInt2
+        int2 = typedBuiltinToType typedInt2
     TermOf ti1 i1 <- genTypedBuiltinSmall typedInt1
     TermOf ti2 i2 <- genTypedBuiltinSmall typedInt1
     TermOf tj1 j1 <- genTypedBuiltinSmall typedInt2
     TermOf tj2 j2 <- genTypedBuiltinSmall typedInt2
-    term <- rename $
-        mkIterApp ()
-            (TyInst ()
-                (mkIterApp ()
-                    (TyInst ()
-                        (builtinNameAsTerm LessThanInteger)
-                        (TyInt () s1))
-                    [ti1, ti2])
-                int2)
-            [tj1, tj2]
-    let value = TypedBuiltinValue typedInt2 $ if i1 < i2 then j1 else j2
+    let term =
+            mkIterApp ()
+                (TyInst ()
+                    (mkIterApp ()
+                        (TyInst ()
+                            (builtinNameAsTerm LessThanInteger)
+                            (TyInt () s1))
+                        [ti1, ti2])
+                    int2)
+                [tj1, tj2]
+        value = TypedBuiltinValue typedInt2 $ if i1 < i2 then j1 else j2
     return $ TermOf term value
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
@@ -72,10 +73,8 @@ genOverapplication = do
 -- > /\(s :: size) -> \(i : integer s) ->
 --     let ss = sizeOfInteger {s} i in
 --         product {s} ss (enumFromTo {s} (resizeInteger {1} {s} ss 1!1) i)
-getBuiltinFactorial :: Quote (Term TyName Name ())
-getBuiltinFactorial = rename =<< do
-    product'    <- getBuiltinProduct
-    enumFromTo' <- getBuiltinEnumFromTo
+factorial :: Term TyName Name ()
+factorial = runQuote $ do
     s <- freshTyName () "s"
     i <- freshName () "i"
     let int = TyApp () (TyBuiltin () TyInteger) $ TyVar () s
@@ -83,9 +82,9 @@ getBuiltinFactorial = rename =<< do
     return
         . TyAbs () s (Size ())
         . LamAbs () i int
-        . mkIterApp () (TyInst () product' $ TyVar () s)
+        . mkIterApp () (TyInst () List.product $ TyVar () s)
         $ [ ss
-          , mkIterApp () (TyInst () enumFromTo' $ TyVar () s)
+          , mkIterApp () (TyInst () List.enumFromTo $ TyVar () s)
                 [ makeDynBuiltinInt (TyVar () s) ss 1
                 , Var () i
                 ]
@@ -104,11 +103,8 @@ getBuiltinFactorial = rename =<< do
 -- >                         (rec (subtractInteger {s} i (resizeInteger {1} {s} ss 1!1)))
 -- >                         (rec (subtractInteger {s} i (resizeInteger {1} {s} ss 1!2)))))
 -- >         i0
-getBuiltinNaiveFib :: Quote (Term TyName Name ())
-getBuiltinNaiveFib = rename =<< do
-    unit       <- getBuiltinUnit
-    ifThenElse <- getBuiltinIf
-    fix        <- getBuiltinFix
+naiveFib :: Term TyName Name ()
+naiveFib = runQuote $ do
     s   <- freshTyName () "s"
     i0  <- freshName () "i0"
     rec <- freshName () "rec"
@@ -141,7 +137,7 @@ getBuiltinNaiveFib = rename =<< do
 -- This function exist, because we have another implementation via dynamic built-ins
 -- and want to compare it to the direct implementation from the above.
 applyFactorial :: Term TyName Name () -> Size -> Integer -> Term TyName Name ()
-applyFactorial factorial sizev iv = Apply () (TyInst () factorial size) i where
+applyFactorial fact sizev iv = Apply () (TyInst () fact size) i where
     i    = Constant () $ BuiltinInt () sizev iv
     size = TyInt () sizev
 
@@ -150,13 +146,11 @@ applyFactorial factorial sizev iv = Apply () (TyInst () factorial size) i where
 genFactorial :: TermGen size Integer
 genFactorial = do
     let m = 10
-        sizev = sizeOfInteger $ product [1..m]
+        sizev = sizeOfInteger $ Prelude.product [1..m]
         typedIntS = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     iv <- Gen.integral $ Range.linear 1 m
-    term <- lift $ rename =<< do
-        factorial <- getBuiltinFactorial
-        return $ applyFactorial factorial sizev iv
-    return . TermOf term . TypedBuiltinValue typedIntS $ product [1..iv]
+    let term = applyFactorial factorial sizev iv
+    return . TermOf term . TypedBuiltinValue typedIntS $ Prelude.product [1..iv]
 
 -- | Generate a term that computes the ith Fibonacci number and return it
 -- along with the corresponding 'Integer' computed on the Haskell side.
@@ -168,46 +162,38 @@ genNaiveFib = do
         size  = TyInt () sizev
         typedIntS = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     iv <- Gen.integral $ Range.linear 0 m
-    term <- lift $ rename =<< do
-        fib <- getBuiltinNaiveFib
-        return $ Apply () (TyInst () fib size) . Constant () $ BuiltinInt () sizev iv
+    let term = Apply () (TyInst () naiveFib size) . Constant () $ BuiltinInt () sizev iv
     return . TermOf term . TypedBuiltinValue typedIntS $ fibs `genericIndex` iv
 
--- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'getBuiltinNat'),
--- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'getBuiltinFoldNat')
--- defined in terms of generic fix (see 'getBuiltinFix') and return the result
+-- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'Nat'),
+-- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'FoldNat')
+-- defined in terms of generic fix (see 'Fix') and return the result
 -- along with the original 'Integer'
-genNatRoundtrip :: GenT Quote (TermOf (TypedBuiltinValue size Integer))
+genNatRoundtrip :: TermGen size Integer
 genNatRoundtrip = do
     let sizev = 1
         size  = TyInt () sizev
         ssize = Constant () $ BuiltinSize () sizev
         typedIntS = TypedBuiltinSized (SizeValue sizev) TypedBuiltinSizedInt
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedIntS
-    term <- lift $ rename =<< do
-        n <- getBuiltinIntegerToNat iv
-        natToInteger <- getBuiltinNatToInteger
-        return $ mkIterApp () (TyInst () natToInteger size) [ssize, n]
+    let term = mkIterApp () (TyInst () natToInteger size) [ssize, metaIntegerToNat iv]
     return . TermOf term $ TypedBuiltinValue typedIntS iv
 
 -- | @sumNat@ as a PLC term.
-getBuiltinNatSum :: Size -> Quote (Term TyName Name ())
-getBuiltinNatSum s = rename =<< do
-    foldList <- getBuiltinFoldList
+natSum :: Size -> Term TyName Name ()
+natSum s = runQuote $ do
     let int = TyApp () (TyBuiltin () TyInteger) $ TyInt () s
-    nat1 <- _recursiveType <$> getBuiltinNat
-    let add = TyInst () (Builtin () (BuiltinName () AddInteger)) $ TyInt () s
-    nti <- getBuiltinNatToInteger
+        nat = _recursiveType natData
+        add = TyInst () (Builtin () (BuiltinName () AddInteger)) $ TyInt () s
     acc <- freshName () "acc"
     n <- freshName () "n"
-    nat2 <- _recursiveType <$> getBuiltinNat
     return
-        $ mkIterApp () (mkIterInst () foldList [nat1, int])
+        $ mkIterApp () (mkIterInst () foldList [nat, int])
           [   LamAbs () acc int
-            . LamAbs () n nat2
+            . LamAbs () n nat
             . mkIterApp () add
             $ [ Var () acc
-              , mkIterApp () (TyInst () nti (TyInt () s))
+              , mkIterApp () (TyInst () natToInteger (TyInt () s))
                   [ Constant () $ BuiltinSize () s
                   , Var () n
                   ]
@@ -215,23 +201,20 @@ getBuiltinNatSum s = rename =<< do
           , Constant () $ BuiltinInt () s 0
           ]
 
--- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'getBuiltinList'),
--- sum elements of the list (see 'getBuiltinSum') and return it along with the sum of the original list.
+-- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
+-- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genListSum :: TermGen size Integer
 genListSum = do
     size <- genSizeIn 1 8
     let typedIntS = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    intS <- lift $ typedBuiltinToType typedIntS
+        intS = typedBuiltinToType typedIntS
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinSmall typedIntS
-    term <- lift $ rename =<< do
-        builtinSum <- getBuiltinSum
-        list <- getListToBuiltinList intS $ map _termOfTerm ps
-        return
-            $ mkIterApp () (TyInst () builtinSum $ TyInt () size)
+    let list = metaListToList intS $ map _termOfTerm ps
+        term = mkIterApp () (TyInst () List.sum $ TyInt () size)
             [ Constant () $ BuiltinSize () size
             , list
             ]
-    let haskSum = sum $ map _termOfValue ps
+    let haskSum = Prelude.sum $ map _termOfValue ps
     return . TermOf term $ TypedBuiltinValue typedIntS haskSum
 
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
@@ -240,19 +223,16 @@ genIfIntegers :: TermGen size Integer
 genIfIntegers = do
     size <- genSizeDef
     let typedIntS = TypedBuiltinSized (SizeValue size) TypedBuiltinSizedInt
-    intS <- lift $ typedBuiltinToType typedIntS
+        intS = typedBuiltinToType typedIntS
     TermOf b bv <- genTermLoose TypedBuiltinBool
     TermOf i iv <- genTermLoose typedIntS
     TermOf j jv <- genTermLoose typedIntS
-    builtinConst <- lift getBuiltinConst
-    builtinUnit  <- lift getBuiltinUnit
-    builtinIf    <- lift getBuiltinIf
-    let builtinConstSpec =
-            Apply () $ mkIterInst () builtinConst [intS, builtinUnit]
+    let instConst = Apply () $ mkIterInst () Function.const [intS, unit]
         value = if bv then iv else jv
-    term <- rename $ mkIterApp ()
-                (TyInst () builtinIf intS)
-                [b, builtinConstSpec i, builtinConstSpec j]
+        term =
+            mkIterApp ()
+                (TyInst () ifThenElse intS)
+                [b, instConst i, instConst j]
     return . TermOf term $ TypedBuiltinValue typedIntS value
 
 -- | Apply a function to all interesting generators and collect the results.

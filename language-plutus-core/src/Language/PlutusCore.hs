@@ -223,10 +223,6 @@ format :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.By
 -- don't use parseScoped since we don't bother running sanity checks when we format
 format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgram)
 
--- | The default version of Plutus Core supported by this library.
-defaultVersion :: a -> Version a
-defaultVersion a = Version a 1 0 0
-
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()
 -- TODO: some kind of version checking
