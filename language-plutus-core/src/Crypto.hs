@@ -5,7 +5,8 @@ import           Crypto.Error            (maybeCryptoError)
 import qualified Data.ByteString.Lazy    as BSL
 import           PlutusPrelude
 
--- we default to 'False' in accordance with the spec
+-- This should return (error bool) when it fails (and the spec should be updated
+-- to reflect this); this code will be changed
 verifySignature :: BSL.ByteString -- ^ Public Key
                 -> BSL.ByteString -- ^ Message
                 -> BSL.ByteString -- ^ Signature
