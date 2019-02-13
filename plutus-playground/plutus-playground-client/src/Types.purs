@@ -212,7 +212,6 @@ type State =
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus
-  , gists :: RemoteData AjaxError (Array Gist)
   , createGistResult :: RemoteData AjaxError Gist
   }
 
@@ -233,9 +232,6 @@ _compilationResult = prop (SProxy :: SProxy "compilationResult")
 
 _authStatus :: forall s a. Lens' {authStatus :: a | s} a
 _authStatus = prop (SProxy :: SProxy "authStatus")
-
-_gists :: forall s a. Lens' {gists :: a | s} a
-_gists = prop (SProxy :: SProxy "gists")
 
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")

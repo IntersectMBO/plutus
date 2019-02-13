@@ -11,7 +11,6 @@ import Ace.Types (ACE, Editor, Annotation)
 import Action (simulationPane)
 import AjaxUtils (ajaxErrorPane, runAjaxTo)
 import Analytics (Event, defaultEvent, trackEvent, ANALYTICS)
-import Auth (AuthRole(GithubUser), authStatusAuthRole)
 import Bootstrap (active, btn, btnGroup, btnSmall, container, container_, hidden, navItem_, navLink, navTabs_, pullRight)
 import Chain (mockchainChartOptions, balancesChartOptions, evaluationPane)
 import Control.Comonad (extract)
@@ -57,7 +56,7 @@ import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
 import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
 import Playground.API as API
-import Playground.Server (SPParams_, getGists, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
+import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
 import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
@@ -72,7 +71,6 @@ initialState =
   , actions: []
   , evaluationResult: NotAsked
   , authStatus: NotAsked
-  , gists: NotAsked
   , createGistResult: NotAsked
   }
 
@@ -172,10 +170,6 @@ eval (HandleBalancesChartMessage (EC.EventRaised event) next) =
 
 eval (CheckAuthStatus next) = do
   authResult <- runAjaxTo _authStatus getOauthStatus
-
-  case view authStatusAuthRole <$> authResult of
-    Success GithubUser -> void $ runAjaxTo _gists getGists
-    _ -> pure unit
   pure next
 
 eval (PublishGist next) = do
