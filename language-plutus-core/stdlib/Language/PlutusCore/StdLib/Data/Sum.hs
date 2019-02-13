@@ -3,21 +3,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Data.Sum
-    ( getBuiltinSum
-    , getBuiltinLeft
-    , getBuiltinRight
+    ( sum
+    , left
+    , right
     ) where
+
+import           Prelude                   hiding (sum)
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 -- | 'Either' as a PLC type.
 --
 -- > \(a b :: *) -> all (r :: *). (a -> r) -> (b -> r) -> r
-getBuiltinSum :: Quote (Type TyName ())
-getBuiltinSum = rename =<< do
+sum :: Type TyName ()
+sum = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     r <- freshTyName () "r"
@@ -31,8 +32,8 @@ getBuiltinSum = rename =<< do
 -- | 'Left' as a PLC term.
 --
 -- > /\(a b :: *) -> \(x : a) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> f x
-getBuiltinLeft :: Quote (Term TyName Name ())
-getBuiltinLeft = rename =<< do
+left :: Term TyName Name ()
+left = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     x <- freshName () "x"
@@ -52,8 +53,8 @@ getBuiltinLeft = rename =<< do
 -- | 'Right' as a PLC term.
 --
 -- > /\(a b :: *) -> \(y : b) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> g y
-getBuiltinRight :: Quote (Term TyName Name ())
-getBuiltinRight = rename =<< do
+right :: Term TyName Name ()
+right = runQuote $ do
     a <- freshTyName () "a"
     b <- freshTyName () "b"
     y <- freshName () "y"

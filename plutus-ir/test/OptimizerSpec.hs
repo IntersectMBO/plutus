@@ -9,6 +9,7 @@ import           Language.PlutusCore.Quote
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
 import           Language.PlutusIR.Optimizer.DeadCode
+import           Language.PlutusIR.Transform.Rename   ()
 
 import qualified Language.PlutusCore                  as PLC
 
@@ -21,41 +22,38 @@ optimizer = testNested "optimizer" [
 
 deadCode :: TestNested
 deadCode = testNested "deadCode" [
-    goldenPir "typeLet" (runQuote typeLet)
-    , goldenPir "termLet" (runQuote termLet)
-    , goldenPir "datatypeLiveType" (runQuote datatypeLiveType)
-    , goldenPir "datatypeLiveConstr" (runQuote datatypeLiveConstr)
-    , goldenPir "datatypeLiveDestr" (runQuote datatypeLiveDestr)
-    , goldenPir "datatypeDead" (runQuote datatypeDead)
-    , goldenPir "singleBinding" (runQuote singleBinding)
-    , goldenPir "nestedBindings" (runQuote nestedBindings)
-    , goldenPir "nestedBindingsIndirect" (runQuote nestedBindingsIndirect)
-    , goldenPir "recBindingSimple" (runQuote recBindingSimple)
-    , goldenPir "recBindingComplex" (runQuote recBindingComplex)
+    goldenPir "typeLet" typeLet
+    , goldenPir "termLet" termLet
+    , goldenPir "datatypeLiveType" datatypeLiveType
+    , goldenPir "datatypeLiveConstr" datatypeLiveConstr
+    , goldenPir "datatypeLiveDestr" datatypeLiveDestr
+    , goldenPir "datatypeDead" datatypeDead
+    , goldenPir "singleBinding" singleBinding
+    , goldenPir "nestedBindings" nestedBindings
+    , goldenPir "nestedBindingsIndirect" nestedBindingsIndirect
+    , goldenPir "recBindingSimple" recBindingSimple
+    , goldenPir "recBindingComplex" recBindingComplex
     ]
 
-typeLet :: Quote (Term TyName Name ())
-typeLet = removeDeadBindings <$> do
+typeLet :: Term TyName Name ()
+typeLet = runQuote $ removeDeadBindings <$> do
     u <- freshTyName () "unit"
-    unit <- Unit.getBuiltinUnit
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitVal = embedIntoIR Unit.unitval
     pure $ Let () NonRec [
-        TypeBind () (TyVarDecl () u (PLC.Type ())) unit
+        TypeBind () (TyVarDecl () u (PLC.Type ())) Unit.unit
         ] unitVal
 
-termLet :: Quote (Term TyName Name ())
-termLet = removeDeadBindings <$> do
+termLet :: Term TyName Name ()
+termLet = runQuote $ removeDeadBindings <$> do
     uv <- freshName () "unitval"
-    unit <- Unit.getBuiltinUnit
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitVal = embedIntoIR Unit.unitval
     pure $ Let () NonRec [
-        TermBind () (VarDecl () uv unit) unitVal
+        TermBind () (VarDecl () uv Unit.unit) unitVal
         ] unitVal
 
-datatypeLiveType :: Quote (Term TyName Name ())
-datatypeLiveType = removeDeadBindings <$> do
+datatypeLiveType :: Term TyName Name ()
+datatypeLiveType = runQuote $ removeDeadBindings <$> do
     mb@(Datatype _ d _ _ _) <- maybeDatatype
-
     pure $
         Let ()
             NonRec
@@ -63,10 +61,9 @@ datatypeLiveType = removeDeadBindings <$> do
                 DatatypeBind () mb
             ] (Error () (mkTyVar () d))
 
-datatypeLiveConstr :: Quote (Term TyName Name ())
-datatypeLiveConstr = removeDeadBindings <$> do
+datatypeLiveConstr :: Term TyName Name ()
+datatypeLiveConstr = runQuote $ removeDeadBindings <$> do
     mb@(Datatype _ _ _ _ [nothing, _]) <- maybeDatatype
-
     pure $
         Let ()
             NonRec
@@ -74,10 +71,9 @@ datatypeLiveConstr = removeDeadBindings <$> do
                 DatatypeBind () mb
             ] (mkVar () nothing)
 
-datatypeLiveDestr :: Quote (Term TyName Name ())
-datatypeLiveDestr = removeDeadBindings <$> do
+datatypeLiveDestr :: Term TyName Name ()
+datatypeLiveDestr = runQuote $ removeDeadBindings <$> do
     mb@(Datatype _ _ _ match _) <- maybeDatatype
-
     pure $
         Let ()
             NonRec
@@ -85,11 +81,10 @@ datatypeLiveDestr = removeDeadBindings <$> do
                 DatatypeBind () mb
             ] (Var () match)
 
-datatypeDead :: Quote (Term TyName Name ())
-datatypeDead = removeDeadBindings <$> do
+datatypeDead :: Term TyName Name ()
+datatypeDead = runQuote $ removeDeadBindings <$> do
     mb <- maybeDatatype
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
-
+    let unitVal = embedIntoIR Unit.unitval
     pure $
         Let ()
             NonRec
@@ -97,35 +92,32 @@ datatypeDead = removeDeadBindings <$> do
                 DatatypeBind () mb
             ] unitVal
 
-singleBinding :: Quote (Term TyName Name ())
-singleBinding = removeDeadBindings <$> do
+singleBinding :: Term TyName Name ()
+singleBinding = runQuote $ removeDeadBindings <$> do
     u <- freshTyName () "unit"
     uv <- freshName () "unitval"
-    unit <- Unit.getBuiltinUnit
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitVal = embedIntoIR Unit.unitval
     pure $ Let () NonRec [
-        TypeBind () (TyVarDecl () u (PLC.Type ())) unit,
-        TermBind () (VarDecl () uv unit) unitVal
+        TypeBind () (TyVarDecl () u (PLC.Type ())) Unit.unit,
+        TermBind () (VarDecl () uv Unit.unit) unitVal
         ] (Var () uv)
 
-nestedBindings :: Quote (Term TyName Name ())
-nestedBindings = removeDeadBindings <$> do
+nestedBindings :: Term TyName Name ()
+nestedBindings = runQuote $ removeDeadBindings <$> do
     u <- freshTyName () "unit"
     uv <- freshName () "unitval"
-    unit <- Unit.getBuiltinUnit
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitVal = embedIntoIR Unit.unitval
     pure $
         Let () NonRec [
-        TypeBind () (TyVarDecl () u (PLC.Type ())) unit
+        TypeBind () (TyVarDecl () u (PLC.Type ())) Unit.unit
         ] $
         Let () NonRec [
-        TermBind () (VarDecl () uv unit) unitVal
+        TermBind () (VarDecl () uv Unit.unit) unitVal
         ] (Var () uv)
 
-nestedBindingsIndirect :: Quote (Term TyName Name ())
-nestedBindingsIndirect = removeDeadBindings <$> do
+nestedBindingsIndirect :: Term TyName Name ()
+nestedBindingsIndirect = runQuote $ removeDeadBindings <$> do
     u <- freshTyName () "unit"
-    unit <- Unit.getBuiltinUnit
 
     dt <- freshTyName () "SomeType"
     match <- freshName () "match_SomeType"
@@ -135,7 +127,7 @@ nestedBindingsIndirect = removeDeadBindings <$> do
     pure $
         Let () NonRec [
         -- only used by the constructor of dt, needs to not be removed
-        TypeBind () (TyVarDecl () u (PLC.Type ())) unit
+        TypeBind () (TyVarDecl () u (PLC.Type ())) Unit.unit
         ] $
         Let () NonRec [
         DatatypeBind () (Datatype ()
@@ -147,22 +139,20 @@ nestedBindingsIndirect = removeDeadBindings <$> do
         -- uses dt
         ] (LamAbs () arg (TyVar () dt) (Var () arg))
 
-recBindingSimple :: Quote (Term TyName Name ())
-recBindingSimple = removeDeadBindings <$> do
+recBindingSimple :: Term TyName Name ()
+recBindingSimple = runQuote $ removeDeadBindings <$> do
     uv <- freshName () "unitval"
-    unit <- Unit.getBuiltinUnit
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitVal = embedIntoIR Unit.unitval
     pure $ Let () Rec [
-        TermBind () (VarDecl () uv unit) unitVal
+        TermBind () (VarDecl () uv Unit.unit) unitVal
         ] unitVal
 
-recBindingComplex :: Quote (Term TyName Name ())
-recBindingComplex = removeDeadBindings <$> do
+recBindingComplex :: Term TyName Name ()
+recBindingComplex = runQuote $ removeDeadBindings <$> do
     u <- freshTyName () "unit"
     uv <- freshName () "unitval"
-    unit <- Unit.getBuiltinUnit
-    unitVal <- embedIntoIR <$> Unit.getBuiltinUnitval
+    let unitVal = embedIntoIR Unit.unitval
     pure $ Let () Rec [
-        TypeBind () (TyVarDecl () u (PLC.Type ())) unit,
-        TermBind () (VarDecl () uv unit) unitVal
+        TypeBind () (TyVarDecl () u (PLC.Type ())) Unit.unit,
+        TermBind () (VarDecl () uv Unit.unit) unitVal
         ] (Var () uv)

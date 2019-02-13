@@ -3,16 +3,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.StdLib.Data.Bool
-    ( getBuiltinBool
-    , getBuiltinTrue
-    , getBuiltinFalse
-    , getBuiltinIf
+    ( bool
+    , true
+    , false
+    , ifThenElse
     ) where
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -20,8 +19,8 @@ import           Language.PlutusCore.StdLib.Data.Unit
 -- | 'Bool' as a PLC type.
 --
 -- > all (A :: *). A -> A -> A
-getBuiltinBool :: Quote (Type TyName ())
-getBuiltinBool = rename =<< do
+bool :: Type TyName ()
+bool = runQuote $ do
     a <- freshTyName () "a"
     return
         . TyForall () a (Type ())
@@ -31,8 +30,8 @@ getBuiltinBool = rename =<< do
 -- | 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : A) -> x
-getBuiltinTrue :: Quote (Value TyName Name ())
-getBuiltinTrue = rename =<< do
+true :: Value TyName Name ()
+true = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
@@ -47,8 +46,8 @@ getBuiltinTrue = rename =<< do
 -- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : A) -> y
-getBuiltinFalse :: Quote (Value TyName Name ())
-getBuiltinFalse = rename =<< do
+false :: Value TyName Name ()
+false = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
     y <- freshName () "y"
@@ -63,11 +62,8 @@ getBuiltinFalse = rename =<< do
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b {() -> A} x y ()
-getBuiltinIf :: Quote (Value TyName Name ())
-getBuiltinIf = rename =<< do
-    unit <- getBuiltinUnit
-    unitval <- getBuiltinUnitval
-    builtinBool <- getBuiltinBool
+ifThenElse :: Value TyName Name ()
+ifThenElse = runQuote $ do
     a <- freshTyName () "a"
     b <- freshName () "b"
     x <- freshName () "x"
@@ -76,7 +72,7 @@ getBuiltinIf = rename =<< do
     return
        . TyAbs () a (Type ())
       $ mkIterLamAbs [
-          VarDecl () b builtinBool,
+          VarDecl () b bool,
           VarDecl () x unitFunA,
           VarDecl () y unitFunA
           ]

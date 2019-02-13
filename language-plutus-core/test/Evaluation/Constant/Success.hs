@@ -2,13 +2,11 @@ module Evaluation.Constant.Success
     ( test_constantSuccess
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators
 
 import           Evaluation.Constant.Apply
 
-import           Control.Monad.Morph
 import qualified Data.ByteString.Lazy           as BSL
 import qualified Data.ByteString.Lazy.Hash      as Hash
 import           Data.Maybe
@@ -150,7 +148,7 @@ test_applyBuiltinNameSuccess =
 -- | Generates in-bounds constants and checks that their evaluation results in an 'EvaluationSuccess'.
 test_evalInBounds :: TestTree
 test_evalInBounds =
-    testProperty "evalInBounds" . property . hoist (pure . runQuote) $ do
+    testProperty "evalInBounds" . property $ do
         mayTermWithValue <-
             forAllPrettyPlcMaybeT $ withCheckedTermGen genTypedBuiltinDef $ const return
         assert $ isJust mayTermWithValue

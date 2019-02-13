@@ -11,10 +11,11 @@ module Language.PlutusCore.Pretty.Classic
     , PrettyClassicBy
     , PrettyClassic
     , prettyClassicDef
+    , prettyClassicDebug
     ) where
 
 import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name       (HasPrettyConfigName (..), PrettyConfigName, defPrettyConfigName)
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
@@ -89,3 +90,7 @@ instance PrettyClassicBy configName (Term tyname name a) =>
 -- | Pretty-print a value in the default mode using the classic view.
 prettyClassicDef :: PrettyClassic a => a -> Doc ann
 prettyClassicDef = prettyBy $ PrettyConfigClassic defPrettyConfigName
+
+-- | Pretty-print a value in the debug mode using the classic view.
+prettyClassicDebug :: PrettyClassic a => a -> Doc ann
+prettyClassicDebug = prettyBy $ PrettyConfigClassic debugPrettyConfigName

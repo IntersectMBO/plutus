@@ -30,8 +30,9 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     , genTypedBuiltinConcatenateFailure
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
 import           PlutusPrelude
 
 import qualified Data.ByteString.Lazy         as BSL
@@ -66,7 +67,7 @@ instance (PrettyBy config a, PrettyBy config (Term TyName Name ())) =>
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
 attachCoercedTerm
-    :: (MonadQuote m, PrettyDynamic a) => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
+    :: Monad m => PrettyDynamic a => TypedBuiltin Size a -> GenT m a -> GenT m (TermOf a)
 attachCoercedTerm tb genX = do
     x <- genX
     -- Previously we used 'unsafeMakeBuiltin' here, however it didn't allow to generate
@@ -76,12 +77,12 @@ attachCoercedTerm tb genX = do
     -- But this function is used rather deeply in the pipeline, so we need to
     -- attach a 'ReaderT' to 'm' instead of parameterizing the function and
     -- this just makes everything convoluted. We anyway check bounds down the pipeline.
-    term <- liftQuote . makeBuiltinNOCHECK $ TypedBuiltinValue tb x
+    let term = makeBuiltinNOCHECK $ TypedBuiltinValue tb x
     return $ TermOf term x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
-    :: (MonadQuote m, PrettyDynamic a)
+    :: (Monad m, PrettyDynamic a)
     => TypedBuiltin Size a  -- ^ A generator of which built-in to overwrite.
     -> GenT m a             -- ^ A new generator.
     -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.
@@ -92,7 +93,7 @@ updateTypedBuiltinGen tbNew genX genTb tbOld
 
 -- | Update a sized typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGenSized
-    :: (MonadQuote m, PrettyDynamic a)
+    :: (Monad m, PrettyDynamic a)
     => TypedBuiltinSized a  -- ^ A generator of which sized built-in to overwrite.
     -> (Size -> GenT m a)   -- ^ A function that computes new generator from a 'Size'.
     -> TypedBuiltinGenT m   -- ^ An old typed built-ins generator.
@@ -104,7 +105,7 @@ updateTypedBuiltinGenSized tbsNew genX genTb tbOld = case tbOld of
 
 -- | Update a typed built-ins generator by overwriting the @integer@s generator.
 updateTypedBuiltinGenInt
-    :: MonadQuote m
+    :: Monad m
     => (Integer -> Integer -> GenT m Integer) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenInt genInteger =
     updateTypedBuiltinGenSized TypedBuiltinSizedInt $
@@ -112,20 +113,20 @@ updateTypedBuiltinGenInt genInteger =
 
 -- | Update a typed built-ins generator by overwriting the @bytestring@s generator.
 updateTypedBuiltinGenBS
-    :: MonadQuote m
+    :: Monad m
     => (Int -> GenT m BSL.ByteString) -> TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenBS genBytes =
     updateTypedBuiltinGenSized TypedBuiltinSizedBS $ genBytes . fromIntegral
 
 -- | Update a typed built-ins generator by overwriting the @size@s generator.
 updateTypedBuiltinGenSize
-    :: MonadQuote m
+    :: Monad m
     => TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenSize = updateTypedBuiltinGenSized TypedBuiltinSizedSize (\_ -> return ())
 
 -- | Update a typed built-ins generator by overwriting the @boolean@s generator.
 updateTypedBuiltinGenBool
-    :: MonadQuote m
+    :: Monad m
     => GenT m Bool -> TypedBuiltinGenT m -> TypedBuiltinGenT m
 updateTypedBuiltinGenBool = updateTypedBuiltinGen TypedBuiltinBool
 
@@ -137,7 +138,7 @@ genTypedBuiltinFail tb = fail $ fold
     ]
 
 -- | A default sized built-ins generator that produces values in bounds seen in the spec.
-genTypedBuiltinDef :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinDef :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinDef
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linearFrom 0 low high)
@@ -148,7 +149,7 @@ genTypedBuiltinDef
     $ genTypedBuiltinFail
 
 -- | A sized built-ins generator that produces small values in bounds seen in the spec.
-genTypedBuiltinSmall :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinSmall :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinSmall
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.constantFrom 0 (iasqrt low `div` 2) (isqrt high `div` 2))
@@ -158,7 +159,7 @@ genTypedBuiltinSmall
 
 -- | A sized built-ins generator that produces values outside of bounds seen in the spec
 -- for @integer@s and @bytestring@s.
-genTypedBuiltinOutOfBounds :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinOutOfBounds :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinOutOfBounds
     = updateTypedBuiltinGenInt
           (\low high -> Gen.choice
@@ -171,7 +172,7 @@ genTypedBuiltinOutOfBounds
 
 -- | A sized built-ins generator that produces 'Integer's in bounds narrowed by a factor of 2,
 -- so that one can use '(+)' or '(-)' over such integers without the risk of getting an overflow.
-genTypedBuiltinSum :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinSum :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinSum
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linear (low `div` 2) (high `div` 2))
@@ -179,7 +180,7 @@ genTypedBuiltinSum
 
 -- | A sized built-ins generator that produces 'Integer's in bounds narrowed by 'isqrtt',
 -- so that one can use '(*)' over such integers without the risk of getting an overflow.
-genTypedBuiltinMultiply :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinMultiply :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinMultiply
     = updateTypedBuiltinGenInt
           (\low high -> Gen.integral $ Range.linear (negate . isqrt . abs $ low) (isqrt high))
@@ -187,7 +188,7 @@ genTypedBuiltinMultiply
 
 -- | A sized built-ins generator that doesn't produce @0 :: Integer@,
 -- so that one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-genTypedBuiltinDivide :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinDivide :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinDivide
     = updateTypedBuiltinGenInt
           (\low high -> Gen.filter (/= 0) . Gen.integral $ Range.linear low high)
@@ -195,7 +196,7 @@ genTypedBuiltinDivide
 
 -- | A sized built-ins generator that produces 'Integer's in the @(high `div` 2, high]@ interval,
 -- so that one can use '(+)' over such integers and reliably get an overflow.
-genTypedBuiltinAddFailure :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinAddFailure :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinAddFailure
     = updateTypedBuiltinGenInt
           (\_ high -> Gen.integral $ Range.linear (high `div` 2 + 1) high)
@@ -203,7 +204,7 @@ genTypedBuiltinAddFailure
 
 -- | A sized built-ins generator that produces 'Integer's in the @(isqrt high, high]@ interval,
 -- so that one can use '(*)' over such integers and reliably get an overflow.
-genTypedBuiltinMultiplyFailure :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinMultiplyFailure :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinMultiplyFailure
     = updateTypedBuiltinGenInt
           (\_ high -> Gen.integral $ Range.linear (isqrt high + 1) (isqrt high))
@@ -211,7 +212,7 @@ genTypedBuiltinMultiplyFailure
 
 -- | A sized built-ins generator that produces 'ByteString's of such lengths that
 -- one can use '<>' over them without the risk of getting an overflow.
-genTypedBuiltinConcatenate :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinConcatenate :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinConcatenate
     = updateTypedBuiltinGenBS
           (\high -> genLowerBytes $ Range.linear 0 (high `div` 2))
@@ -219,7 +220,7 @@ genTypedBuiltinConcatenate
 
 -- | A sized built-ins generator that produces 'ByteString's of such lengths that
 -- one can use '<>' over them and reliably gen an overflow.
-genTypedBuiltinConcatenateFailure :: MonadQuote m => TypedBuiltinGenT m
+genTypedBuiltinConcatenateFailure :: Monad m => TypedBuiltinGenT m
 genTypedBuiltinConcatenateFailure
     = updateTypedBuiltinGenBS
           (\high -> genLowerBytes $ Range.linear (high `div` 2 + 1) high)

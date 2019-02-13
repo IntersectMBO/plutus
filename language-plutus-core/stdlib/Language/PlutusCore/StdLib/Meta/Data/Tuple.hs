@@ -9,21 +9,20 @@ module Language.PlutusCore.StdLib.Meta.Data.Tuple
     , tupleTermAt
     , tupleDefAt
     , bindTuple
-    , getBuiltinProdN
-    , getBuiltinProdNConstructor
-    , getBuiltinProdNAccessor
+    , prodN
+    , prodNConstructor
+    , prodNAccessor
     , getSpineToTuple
     ) where
 
-import           PlutusPrelude              (showText)
+import           PlutusPrelude             (showText)
 
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
-import           Control.Lens.Indexed       (ifor, itraverse)
+import           Control.Lens.Indexed      (ifor, itraverse)
 import           Data.Traversable
 
 -- | A Plutus Core tuple.
@@ -104,8 +103,8 @@ bindTuple ann names (Tuple elTys term) body = liftQuote $ do
 -- | Given an arity @n@, create the n-ary product type.
 --
 -- @\(T_1 :: *) .. (T_n :: *) . all (R :: *) . (T_1 -> .. -> T_n -> R) -> R@
-getBuiltinProdN :: MonadQuote m => Int -> m (Type TyName ())
-getBuiltinProdN arity = do
+prodN :: Int -> Type TyName ()
+prodN arity = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
@@ -128,8 +127,8 @@ getBuiltinProdN arity = do
 --             /\(R :: *).
 --                 \(case : T_1 -> .. -> T_n -> R) -> case arg_1 .. arg_n
 -- @
-getBuiltinProdNConstructor :: MonadQuote m => Int -> m (Term TyName Name ())
-getBuiltinProdNConstructor arity = do
+prodNConstructor :: Int -> Term TyName Name ()
+prodNConstructor arity = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
@@ -161,16 +160,14 @@ getBuiltinProdNConstructor arity = do
 --         \(tuple : all (R :: *) . (T_1 -> .. -> T_n -> R) -> R)) .
 --             tuple {T_i} (\(arg_1 : T_1) .. (arg_n : T_n) . arg_i)
 -- @
-getBuiltinProdNAccessor :: MonadQuote m => Int -> Int -> m (Term TyName Name ())
-getBuiltinProdNAccessor arity index = rename =<< do
+prodNAccessor :: Int -> Int -> Term TyName Name ()
+prodNAccessor arity index = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
         tn <- liftQuote $ freshTyName () $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
 
-    tupleTy <- do
-        genericTuple <- getBuiltinProdN arity
-        pure $ mkIterTyApp () genericTuple (fmap (mkTyVar ()) tyVars)
-    let selectedTy = mkTyVar () $ tyVars !! index
+    let tupleTy = mkIterTyApp () (prodN arity) (fmap (mkTyVar ()) tyVars)
+        selectedTy = mkTyVar () $ tyVars !! index
 
     args <- for [0..(arity -1)] $ \i -> do
         n <- liftQuote $ freshName () $ "arg_" <> showText i

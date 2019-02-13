@@ -5,13 +5,11 @@ module Evaluation.Constant.Failure
     ( test_constantFailure
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Generators
 
 import           Evaluation.Constant.Apply
 
-import           Control.Monad.Morph
 import           Data.Maybe
 import           Hedgehog
 import           Test.Tasty
@@ -43,7 +41,7 @@ test_applyBuiltinNameFailure =
 -- | Generates out-of-bounds constants and checks that their evaluation results in 'EvaluationFailure'.
 test_evalOutOfBounds :: TestTree
 test_evalOutOfBounds =
-    testProperty "evalOutOfBounds" . property . hoist (pure . runQuote) $ do
+    testProperty "evalOutOfBounds" . property $ do
         mayTermWithValue <- forAllPrettyPlcMaybeT $
             withCheckedTermGen genTypedBuiltinOutOfBounds $ \tb mayTermWithValue ->
                 -- 'genTypedBuiltinOutOfBounds' only generates out-of-bounds constants for

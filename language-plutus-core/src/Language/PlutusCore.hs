@@ -30,8 +30,6 @@ module Language.PlutusCore
     , StagedBuiltinName (..)
     , TypeBuiltin (..)
     , Normalized (..)
-    , NormalizedType
-    , getNormalizedType
     , defaultVersion
     , allBuiltinNames
     , termLoc
@@ -201,7 +199,7 @@ parseTypecheck
         AsTypeError e AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig -> BSL.ByteString -> m (NormalizedType TyName ())
+    => TypeCheckConfig -> BSL.ByteString -> m (Normalized (Type TyName ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
@@ -212,7 +210,7 @@ typecheckPipeline
         MonadQuote m)
     => TypeCheckConfig
     -> Program TyName Name a
-    -> m (NormalizedType TyName ())
+    -> m (Normalized (Type TyName ()))
 typecheckPipeline cfg =
     inferTypeOfProgram cfg
     <=< through (unless (_tccDoNormTypes cfg) . checkProgram)
@@ -224,10 +222,6 @@ formatDoc cfg = runQuoteT . fmap (prettyBy cfg) . (rename <=< parseProgram)
 format :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m T.Text
 -- don't use parseScoped since we don't bother running sanity checks when we format
 format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgram)
-
--- | The default version of Plutus Core supported by this library.
-defaultVersion :: a -> Version a
-defaultVersion a = Version a 1 0 0
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name () -> Program tyname name () -> Program tyname name ()

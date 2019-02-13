@@ -33,7 +33,6 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
@@ -222,7 +221,7 @@ An @KnownDynamicBuiltinType dyn@ instance provides
 2. a function that encodes values of type @dyn@ as PLC terms ('makeDynamicBuiltin')
 3. a function that decodes PLC terms back to Haskell values ('readDynamicBuiltin')
 
-The last two are ought to constitute an isomorphism (modulo 'Quote' and 'Maybe').
+The last two are ought to constitute an isomorphism (modulo 'Maybe').
 -}
 
 {- Note [Converting PLC values to Haskell values]
@@ -288,14 +287,15 @@ received evaluator
 
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
+-- Types and terms are supposed to be closed, hence no 'Quote'.
 -- | Haskell types known to exist on the PLC side.
 class KnownDynamicBuiltinType dyn where
     -- | The type representing @dyn@ used on the PLC side.
-    getTypeEncoding :: proxy dyn -> Quote (Type TyName ())
+    toTypeEncoding :: proxy dyn -> Type TyName ()
 
     -- | Convert a Haskell value to the corresponding PLC value.
     -- 'Nothing' represents a conversion failure.
-    makeDynamicBuiltin :: dyn -> Quote (Maybe (Term TyName Name ()))
+    makeDynamicBuiltin :: dyn -> Maybe (Term TyName Name ())
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
@@ -322,9 +322,9 @@ instance Pretty size => Pretty (SizeEntry size) where
 instance Pretty size => Pretty (TypedBuiltin size a) where
     pretty (TypedBuiltinSized se tbs) = parens $ pretty tbs <+> pretty se
     pretty TypedBuiltinBool           = "bool"
-    -- Do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
+    -- TODO: do we want this entire thing to be 'PrettyBy' rather than 'Pretty'?
     -- This is just used in errors, so we probably do not care much.
-    pretty dyn@TypedBuiltinDyn        = prettyPlcDef . runQuote $ getTypeEncoding dyn
+    pretty dyn@TypedBuiltinDyn        = prettyPlcDef $ toTypeEncoding dyn
 
 instance (size ~ Size, PrettyDynamic a) => Pretty (TypedBuiltinValue size a) where
     pretty (TypedBuiltinValue (TypedBuiltinSized se _) x) = pretty se <+> "!" <+> prettyDynamic x
@@ -374,12 +374,12 @@ instance Ord size => GCompare (TypedBuiltin size) where
 -- This is a very special instance, because it's used to define functions that are needed for
 -- other instances, so we keep it here.
 instance KnownDynamicBuiltinType () where
-    getTypeEncoding _ = getBuiltinUnit
+    toTypeEncoding _ = unit
 
     -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
     -- for side effects the evaluation may cause.
-    makeDynamicBuiltin () = Just <$> getBuiltinUnitval
+    makeDynamicBuiltin () = Just unitval
 
     -- We do not check here that the term is indeed @unitval@. TODO: check.
     readDynamicBuiltin _ _ = return $ Just ()

@@ -15,8 +15,9 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , typedBuiltinNames
     ) where
 
-import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Type
 
 import qualified Data.ByteString.Lazy         as BSL
 import           Data.Dependent.Map           (DMap)
