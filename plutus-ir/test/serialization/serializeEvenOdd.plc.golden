@@ -4,14 +4,14 @@
   (termbind
     (vardecl
       arg
-      (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat))
+      (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat))
     )
     [
       (lam
         n
-        (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat))
+        (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat))
         (iwrap
-          (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]]))
+          (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]]))
           (lam dat (type) dat)
           (abs
             r
@@ -21,7 +21,7 @@
               r
               (lam
                 f
-                (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
+                (fun (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
                 [ f n ]
               )
             )
@@ -31,9 +31,9 @@
       [
         (lam
           n
-          (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat))
+          (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat))
           (iwrap
-            (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]]))
+            (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]]))
             (lam dat (type) dat)
             (abs
               r
@@ -43,7 +43,7 @@
                 r
                 (lam
                   f
-                  (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
+                  (fun (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
                   [ f n ]
                 )
               )
@@ -53,9 +53,9 @@
         [
           (lam
             n
-            (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat))
+            (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat))
             (iwrap
-              (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]]))
+              (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]]))
               (lam dat (type) dat)
               (abs
                 r
@@ -65,7 +65,7 @@
                   r
                   (lam
                     f
-                    (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
+                    (fun (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
                     [ f n ]
                   )
                 )
@@ -73,7 +73,7 @@
             )
           )
           (iwrap
-            (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]]))
+            (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]]))
             (lam dat (type) dat)
             (abs
               r
@@ -83,7 +83,7 @@
                 r
                 (lam
                   f
-                  (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
+                  (fun (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat)) r)
                   z
                 )
               )
@@ -99,11 +99,11 @@
     (termbind
       (vardecl
         even
-        (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat)) (all a (type) (fun a (fun a a))))
+        (fun (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat)) (all a (type) (fun a (fun a a))))
       )
       (lam
         n
-        (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat))
+        (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat))
         [
           [
             { (unwrap n) (all a (type) (fun a (fun a a))) }
@@ -116,11 +116,11 @@
     (termbind
       (vardecl
         odd
-        (fun (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat)) (all a (type) (fun a (fun a a))))
+        (fun (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat)) (all a (type) (fun a (fun a a))))
       )
       (lam
         n
-        (ifix (lam rec (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [rec (lam dat (type) dat)]]])) (lam dat (type) dat))
+        (ifix (lam recur (fun (fun (type) (type)) (type)) (lam spine (fun (type) (type)) [spine [(lam nat (type) (all r (type) (fun r (fun (fun nat r) r)))) [recur (lam dat (type) dat)]]])) (lam dat (type) dat))
         [
           [
             { (unwrap n) (all a (type) (fun a (fun a a))) }

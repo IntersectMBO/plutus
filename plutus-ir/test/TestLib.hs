@@ -1,89 +1,55 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 module TestLib where
 
 import           Common
+import           PlcTestUtils
+import           PlutusPrelude                hiding ((</>))
 
-import           Language.PlutusCore.Quote
-import           Language.PlutusIR
+import           Control.Exception
+import           Control.Monad.Except
+import           Control.Monad.Reader         as Reader
 
-import           Data.Text.Prettyprint.Doc
+import qualified Language.PlutusCore.DeBruijn as PLC
+import           Language.PlutusCore.Pretty
+import           Language.PlutusIR.Parser     as Parser
 
-goldenPir :: String -> Term TyName Name a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ pretty value
+import           System.FilePath              (joinPath, (</>))
 
-maybeDatatype :: Quote (Datatype TyName Name ())
-maybeDatatype = do
-    m <- freshTyName () "Maybe"
-    a <- freshTyName () "a"
-    match <- freshName () "match_Maybe"
-    nothing <- freshName () "Nothing"
-    just <- freshName () "Just"
+import           Text.Megaparsec.Error        as Megaparsec
 
-    pure $
-        Datatype ()
-            (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
-            [
-                TyVarDecl () a (Type ())
-            ]
-        match
-        [
-            VarDecl () nothing (TyApp () (TyVar () m) (TyVar () a)),
-            VarDecl () just (TyFun () (TyVar () a) (TyApp () (TyVar () m) (TyVar () a)))
-        ]
+import qualified Data.Text                    as T
+import qualified Data.Text.IO                 as T
 
-listDatatype :: Quote (Datatype TyName Name ())
-listDatatype = do
-    m <- freshTyName () "List"
-    a <- freshTyName () "a"
-    let ma = TyApp () (TyVar () m) (TyVar () a)
-    match <- freshName () "match_List"
-    nil <- freshName () "Nil"
-    cons <- freshName () "Cons"
+withGoldenFileM :: String -> (T.Text -> IO T.Text) -> TestNested
+withGoldenFileM name op = do
+    filename <- (</> (name ++ ".plc")) <$> currentDir
+    nestedGoldenVsTextM name (op =<< T.readFile filename)
+    where currentDir = joinPath <$> ask
 
-    pure $
-        Datatype ()
-            (TyVarDecl () m (KindArrow () (Type ()) (Type ())))
-            [
-                TyVarDecl () a (Type ())
-            ]
-        match
-        [
-            VarDecl () nil ma,
-            VarDecl () cons (TyFun () (TyVar () a) (TyFun () ma ma))
-        ]
+goldenPir :: Pretty b => (a -> b) -> Parser a -> String -> TestNested
+goldenPir op = goldenPirM (return . op)
 
-treeForestDatatype :: Quote (Datatype TyName Name (), Datatype TyName Name ())
-treeForestDatatype = do
-    tree <- freshTyName () "Tree"
-    a <- freshTyName () "a"
-    let treeA arg = TyApp () (TyVar () tree) (TyVar () arg)
-    node <- freshName () "Node"
-    matchTree <- freshName () "match_Tree"
+goldenPirM :: Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
+goldenPirM op parser name = withGoldenFileM name parseOrError
+    where parseOrError = either (return . T.pack . parseErrorPretty) (fmap prettyText . op)
+                         . parse parser name
 
-    forest <- freshTyName () "Forest"
-    a2 <- freshTyName () "a"
-    let forestA arg = TyApp () (TyVar () forest) (TyVar () arg)
-    nil <- freshName () "Nil"
-    cons <- freshName () "Cons"
-    matchForest <- freshName () "match_Forest"
+ppThrow :: PrettyBy PrettyConfigPlc a => ExceptT SomeException IO a -> IO T.Text
+ppThrow = fmap docText . rethrow . fmap prettyPlcClassicDebug
 
-    let treeDt = Datatype ()
-          (TyVarDecl () tree (KindArrow () (Type ()) (Type ())))
-          [
-              TyVarDecl () a (Type ())
-          ]
-          matchTree
-          [
-              VarDecl () node (TyFun () (TyVar () a) (TyFun () (forestA a) (treeA a)))
-          ]
-    let forestDt = Datatype ()
-          (TyVarDecl () forest (KindArrow () (Type ()) (Type ())))
-          [
-              TyVarDecl () a2 (Type ())
-          ]
-          matchForest
-          [
-              VarDecl () nil (forestA a2),
-              VarDecl () cons (TyFun () (treeA a2) (TyFun () (forestA a2) (forestA a2)))
-          ]
-    pure (treeDt, forestDt)
+ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
+ppCatch value = docText <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
+
+goldenPlcFromPir :: GetProgram a => Parser a -> String -> TestNested
+goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
+                                p <- getProgram ast
+                                withExceptT toException $ PLC.deBruijnProgram p)
+
+goldenPlcFromPirCatch :: GetProgram a => Parser a -> String -> TestNested
+goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
+                                           p <- getProgram ast
+                                           withExceptT toException $ PLC.deBruijnProgram p)
+
+goldenEvalPir :: (GetProgram a) => Parser a -> String -> TestNested
+goldenEvalPir = goldenPirM (\ast -> ppThrow $ runPlc [ast])

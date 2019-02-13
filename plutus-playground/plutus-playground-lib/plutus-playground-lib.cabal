@@ -36,22 +36,15 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
-    , base64-bytestring
     , bytestring
     , containers
-    , plutus-tx -any
-    , hint >= 0.9.0
-    , http-media
     , insert-ordered-containers
     , memory
     , mtl
     , transformers
     , lens
-    , network
     , newtype-generics
-    , plutus-use-cases
     , servant
-    , split
     , swagger2
     , template-haskell
     , text

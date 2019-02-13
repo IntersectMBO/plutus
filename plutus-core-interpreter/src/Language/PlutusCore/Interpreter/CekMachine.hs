@@ -32,9 +32,7 @@ import           PlutusPrelude                                   hiding (hoist)
 
 import           Control.Lens.TH                                 (makeLenses)
 import           Control.Monad.Except
-import           Control.Monad.Morph                             (hoist)
 import           Control.Monad.Reader
-import           Control.Monad.Trans                             (lift)
 import qualified Data.Map                                        as Map
 
 type Plain f = f TyName Name ()
@@ -176,7 +174,7 @@ applyEvaluate funVarEnv _         con fun                    arg =
             Nothing                       ->
                 throwError $ MachineException NonPrimitiveApplicationMachineError term
             Just (IterApp headName spine) -> do
-                constAppResult <- runQuoteT $ applyStagedBuiltinName headName spine
+                constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
                     ConstAppSuccess res -> computeCek con res
                     ConstAppFailure     -> pure EvaluationFailure
@@ -191,12 +189,12 @@ evaluateInCekM a =
             in runEvaluate eval a
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> QuoteT CekM ConstAppResult
+applyStagedBuiltinName :: StagedBuiltinName -> [Plain Value] -> CekM ConstAppResult
 applyStagedBuiltinName (DynamicStagedBuiltinName name) args = do
-    DynamicBuiltinNameMeaning sch x <- lift $ lookupDynamicBuiltinName name
-    hoist evaluateInCekM $ applyTypeSchemed sch x args
+    DynamicBuiltinNameMeaning sch x <- lookupDynamicBuiltinName name
+    evaluateInCekM $ applyTypeSchemed sch x args
 applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
-    hoist evaluateInCekM $ applyBuiltinName name args
+    evaluateInCekM $ applyBuiltinName name args
 
 -- | Evaluate a term in an environment using the CEK machine.
 evaluateCekCatchIn

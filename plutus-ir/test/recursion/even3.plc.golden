@@ -2,32 +2,32 @@
   [
     (lam
       arg_i0
-      (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+      (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
       [
         (lam
           tup_i0
-          (all r_i0 (type) (fun (fun (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) (fun (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) r_i1)) r_i1))
+          (all r_i0 (type) (fun (fun (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) (fun (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) r_i1)) r_i1))
           [
             (lam
               even_i0
-              (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+              (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
               [
                 (lam
                   odd_i0
-                  (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                  (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                   [ even_i2 arg_i4 ]
                 )
                 [
                   {
                     tup_i2
-                    (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                    (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                   }
                   (lam
                     arg_0_i0
-                    (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                    (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                     (lam
                       arg_1_i0
-                      (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                      (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                       arg_1_i1
                     )
                   )
@@ -37,14 +37,14 @@
             [
               {
                 tup_i1
-                (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
               }
               (lam
                 arg_0_i0
-                (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                 (lam
                   arg_1_i0
-                  (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                  (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                   arg_0_i2
                 )
               )
@@ -256,11 +256,11 @@
                       )
                     )
                   )
-                  (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                  (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
                 }
                 (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))
               }
-              (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+              (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
             }
             (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))
           }
@@ -269,19 +269,19 @@
             (type)
             (lam
               choose_i0
-              (fun (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) (fun (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) Q_i2))
+              (fun (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) (fun (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1)))) Q_i2))
               (lam
                 even_i0
-                (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                 (lam
                   odd_i0
-                  (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
+                  (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) (all a_i0 (type) (fun a_i1 (fun a_i1 a_i1))))
                   [
                     [
                       choose_i3
                       (lam
                         n_i0
-                        (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                        (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
                         [
                           [
                             {
@@ -298,7 +298,7 @@
                     ]
                     (lam
                       n_i0
-                      (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+                      (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
                       [
                         [
                           {
@@ -321,9 +321,9 @@
     [
       (lam
         n_i0
-        (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+        (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
         (iwrap
-          (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
+          (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]]))
           (lam dat_i0 (type) dat_i1)
           (abs
             r_i0
@@ -333,7 +333,7 @@
               r_i2
               (lam
                 f_i0
-                (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
+                (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
                 [ f_i1 n_i4 ]
               )
             )
@@ -343,9 +343,9 @@
       [
         (lam
           n_i0
-          (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+          (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
           (iwrap
-            (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
+            (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]]))
             (lam dat_i0 (type) dat_i1)
             (abs
               r_i0
@@ -355,7 +355,7 @@
                 r_i2
                 (lam
                   f_i0
-                  (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
+                  (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
                   [ f_i1 n_i4 ]
                 )
               )
@@ -365,9 +365,9 @@
         [
           (lam
             n_i0
-            (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
+            (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1))
             (iwrap
-              (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
+              (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]]))
               (lam dat_i0 (type) dat_i1)
               (abs
                 r_i0
@@ -377,7 +377,7 @@
                   r_i2
                   (lam
                     f_i0
-                    (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
+                    (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
                     [ f_i1 n_i4 ]
                   )
                 )
@@ -385,7 +385,7 @@
             )
           )
           (iwrap
-            (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]]))
+            (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]]))
             (lam dat_i0 (type) dat_i1)
             (abs
               r_i0
@@ -395,7 +395,7 @@
                 r_i2
                 (lam
                   f_i0
-                  (fun (ifix (lam rec_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [rec_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
+                  (fun (ifix (lam recur_i0 (fun (fun (type) (type)) (type)) (lam spine_i0 (fun (type) (type)) [spine_i1 [(lam nat_i0 (type) (all r_i0 (type) (fun r_i1 (fun (fun nat_i2 r_i1) r_i1)))) [recur_i2 (lam dat_i0 (type) dat_i1)]]])) (lam dat_i0 (type) dat_i1)) r_i3)
                   z_i2
                 )
               )

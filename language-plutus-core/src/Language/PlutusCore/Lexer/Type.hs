@@ -12,6 +12,7 @@ module Language.PlutusCore.Lexer.Type ( BuiltinName (..)
                                       , TypeBuiltin (..)
                                       , prettyBytes
                                       , allBuiltinNames
+                                      , defaultVersion
                                       ) where
 
 import           Language.PlutusCore.Name
@@ -149,7 +150,11 @@ data Token a = LexName { loc        :: a
              deriving (Show, Eq, Generic, NFData)
 
 asBytes :: Word8 -> Doc a
-asBytes = Text 2 . T.pack . ($ mempty) . showHex
+asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
+    where addLeadingZero :: String -> String
+          addLeadingZero
+              | x < 16    = ('0' :)
+              | otherwise = id
 
 prettyBytes :: BSL.ByteString -> Doc a
 prettyBytes b = "#" <> fold (asBytes <$> BSL.unpack b)
@@ -236,3 +241,7 @@ allBuiltinNames :: [BuiltinName]
 allBuiltinNames = [minBound .. maxBound]
 -- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
+
+-- | The default version of Plutus Core supported by this library.
+defaultVersion :: a -> Version a
+defaultVersion a = Version a 1 0 0

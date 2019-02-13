@@ -22,11 +22,9 @@ import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
-import           Control.Monad.Trans.Class                      (lift)
 import qualified Data.ByteString.Lazy                           as BSL
 import qualified Data.ByteString.Lazy.Hash                      as Hash
 import           Data.IntMap.Strict                             (IntMap)
@@ -104,8 +102,8 @@ instance Enum SizeVar where
     fromEnum (SizeVar sizeIndex) = sizeIndex
 
 -- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
-makeConstAppResult :: TypedBuiltinValue Size a -> Quote ConstAppResult
-makeConstAppResult = fmap (maybe ConstAppFailure ConstAppSuccess) . makeBuiltin
+makeConstAppResult :: TypedBuiltinValue Size a -> ConstAppResult
+makeConstAppResult = maybe ConstAppFailure ConstAppSuccess . makeBuiltin
 
 -- | Look up a size variable in an environment.
 sizeAt :: SizeVar -> SizeValues -> Size
@@ -178,7 +176,7 @@ extractSchemed (TypeSchemeAllSize _) _          _     = error "Not implemented."
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyTypeSchemed
     :: Monad m
-    => TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
+    => TypeScheme SizeVar a r -> a -> [Value TyName Name ()] -> Evaluate m ConstAppResult
 applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
     go
         :: Monad m
@@ -187,19 +185,19 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
         -> SizeValues
         -> a
         -> [Value TyName Name ()]
-        -> QuoteT (Evaluate m) ConstAppResult
+        -> Evaluate m ConstAppResult
     go (TypeSchemeBuiltin tb)      _       sizeValues y args = case args of  -- Computed the result.
         -- This is where all the size checks prescribed by the specification happen.
         -- We instantiate the size variable of a final 'TypedBuiltin' to its value and call
         -- 'makeConstAppResult' which performs the final size check before converting
         -- a Haskell value to the corresponding PLC one.
-        [] -> liftQuote . makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
+        [] -> return . makeConstAppResult $ TypedBuiltinValue (substSizeVar sizeValues tb) y
         _  -> return . ConstAppError $ ExcessArgumentsConstAppError args     -- Too many arguments.
     go (TypeSchemeArrow schA schB) sizeVar sizeValues f args = case args of
         []          -> return ConstAppStuck             -- Not enough arguments to compute.
         arg : args' -> do                               -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            errOrRes <- lift $ extractSchemed schA sizeValues arg
+            errOrRes <- extractSchemed schA sizeValues arg
             case errOrRes of
                 Left err               ->
                     -- The coercion resulted in an error.
@@ -215,14 +213,14 @@ applyTypeSchemed schema = go schema (SizeVar 0) (SizeValues mempty) where
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyTypedBuiltinName
     :: Monad m
-    => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
+    => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> Evaluate m ConstAppResult
 applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types and there are no size mismatches.
 applyBuiltinName
     :: Monad m
-    => BuiltinName -> [Value TyName Name ()] -> QuoteT (Evaluate m) ConstAppResult
+    => BuiltinName -> [Value TyName Name ()] -> Evaluate m ConstAppResult
 applyBuiltinName AddInteger           = applyTypedBuiltinName typedAddInteger           (+)
 applyBuiltinName SubtractInteger      = applyTypedBuiltinName typedSubtractInteger      (-)
 applyBuiltinName MultiplyInteger      = applyTypedBuiltinName typedMultiplyInteger      (*)

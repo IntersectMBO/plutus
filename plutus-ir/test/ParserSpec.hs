@@ -6,16 +6,15 @@ import           PlutusPrelude
 import           Common
 
 import           Data.Char
+import qualified Data.Text                        as T
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Generators.AST
-import           Language.PlutusIR.Parser         hiding (whitespace)
+import           Language.PlutusIR.Parser
 
 import           Hedgehog                         hiding (Var)
 import qualified Hedgehog.Gen                     as Gen
 import qualified Hedgehog.Range                   as Range
-
-import           Text.Megaparsec                  hiding (failure, parse)
 
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -28,17 +27,14 @@ whitespace :: MonadGen m => m String
 whitespace = flip replicate ' ' <$> Gen.integral (Range.linear 1 4)
 
 lineComment :: MonadGen m => m String
-lineComment = Gen.filter (not . ('\n' `elem`)) (Gen.string (Range.linear 0 100) Gen.latin1)
+lineComment = (Gen.string (Range.linear 0 20) $ Gen.filter (/= '\n') Gen.latin1)
               >>= (\s -> return $ " --" ++ s ++ "\n")
 
 blockComment :: MonadGen m => m String
-blockComment = Gen.filter (not . hasBlockComments) (Gen.string (Range.linear 0 100) Gen.latin1)
+blockComment = (Gen.string (Range.linear 0 20) $ Gen.element notBraces)
                >>= (\s -> return $ "{- " ++ s ++ " -}")
-    where hasBlockComments []          = False
-          hasBlockComments [_]         = False
-          hasBlockComments ('{':'-':_) = True
-          hasBlockComments ('-':'}':_) = True
-          hasBlockComments (_:c:r)     = hasBlockComments (c:r)
+    where notBraces :: String
+          notBraces = filter (\c -> c /= '{' && c /= '}') ['\0' .. '\255']
 
 comment :: MonadGen m => m String
 comment = Gen.choice [Gen.constant "", lineComment, blockComment]
@@ -68,15 +64,17 @@ genScrambledWith splice = do
 
 propRoundTrip :: Property
 propRoundTrip = property $ do
-    code <- prettyString <$> forAllWith prettyString genProgram
-    let backward = fmap show
+    code <- prettyText <$> forAllWith prettyString genProgram
+    let backward = fmap (prettyText . prog)
         forward = fmap PrettyProg . parse program "test"
     tripping code forward backward
 
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
-    (prettyString <$> parse program "test" original) === (prettyString <$> parse program "test" scrambled)
+    let parse1 = prettyString <$> (parse program "test" $ T.pack original)
+        parse2 = prettyString <$> (parse program "test" $ T.pack scrambled)
+    parse1 === parse2
 
 parsing :: TestNested
 parsing = return $ testGroup "parsing"

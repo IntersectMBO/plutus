@@ -50,6 +50,7 @@ module Language.PlutusCore.Pretty
     , PrettyClassicBy
     , PrettyClassic
     , prettyClassicDef
+    , prettyClassicDebug
     -- * Readable view
     , RenderContext (..)
     , ShowKinds (..)

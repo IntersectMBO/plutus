@@ -13,7 +13,7 @@ import qualified Data.Text.IO                   as Text
 -- | Generate a test sample: a term of arbitrary type and what it computes to.
 -- Uses 'genTermLoose' under the hood.
 generateTerm :: IO (TermOf (Value TyName Name ()))
-generateTerm = runQuoteSampleSucceed $ withAnyTermLoose $ liftQuote . unsafeTypeEvalCheck
+generateTerm = runSampleSucceed $ withAnyTermLoose $ pure . unsafeTypeEvalCheck
 
 oneline :: Text -> Text
 oneline = Text.unwords . Text.words
