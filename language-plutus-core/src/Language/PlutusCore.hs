@@ -95,6 +95,7 @@ module Language.PlutusCore
     -- * Evaluation
     , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
     , EvaluationResult
+    , runCk
     -- * Combining programs
     , applyProgram
     -- * Benchmarking

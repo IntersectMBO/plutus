@@ -38,7 +38,8 @@ main = do
     typeFiles <- findByExtension [".plc"] "test/types"
     typeNormalizeFiles <- findByExtension [".plc"] "test/normalize-types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles)
+    evalFiles <- findByExtension [".plc"] "test/evaluation"
+    defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -107,8 +108,8 @@ propDeBruijn gen = property . generalizeT $ do
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles = testGroup "all tests"
     [ tests
     , testsSizeOfInteger
     , testProperty "parser round-trip" propParser
@@ -121,6 +122,7 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles = testGrou
     , testsType typeFiles
     , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
+    , testsEval evalFiles
     , test_Pretty
     , test_typeNormalization
     , test_typecheck
@@ -140,6 +142,12 @@ errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
+
+evalFile :: BSL.ByteString -> Either (Error AlexPosn) T.Text
+evalFile contents = second prettyPlcDefText (runCk . void <$> (runQuoteT $ parseScoped contents))
+
+testsEval :: [FilePath] -> TestTree
+testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
