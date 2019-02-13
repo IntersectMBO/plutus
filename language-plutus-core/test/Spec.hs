@@ -17,6 +17,7 @@ import qualified Hedgehog.Range                             as Range
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Evaluation.CkMachine   (runCk)
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.Generators.Interesting
