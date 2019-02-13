@@ -63,10 +63,9 @@ dynamicBuiltinNameMeaningsToTypes
     => ann -> DynamicBuiltinNameMeanings -> m DynamicBuiltinNameTypes
 dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
     let getType mean = do
-            ty <- liftQuote $ dynamicBuiltinNameMeaningToType mean
+            let ty = dynamicBuiltinNameMeaningToType mean
             _ <- inferKind (offChainConfig mempty) $ ann <$ ty
-            tyRen <- rename ty
-            normalizeTypeFull tyRen
+            pure <$> normalizeTypeFull ty
     DynamicBuiltinNameTypes <$> traverse getType means
 
 -- | Infer the kind of a type.

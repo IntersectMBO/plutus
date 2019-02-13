@@ -23,17 +23,17 @@ examples =
     FolderContents
       [ treeFolderContents "Examples"
           [ treeFolderContents "InterList"
-              [ plcTypeFile "InterList"      $ _recursiveType <$> getBuiltinInterList
-              , plcTermFile "InterNil"       getBuiltinInterNil
-              , plcTermFile "InterCons"      getBuiltinInterCons
-              , plcTermFile "FoldrInterList" getBuiltinFoldrInterList
+              [ plcTypeFile "InterList"      $ _recursiveType interListData
+              , plcTermFile "InterNil"       interNil
+              , plcTermFile "InterCons"      interCons
+              , plcTermFile "FoldrInterList" foldrInterList
               ]
           , treeFolderContents "TreeForest"
-              [ plcTypeFile "Tree"       $ _recursiveType <$> getBuiltinTree
-              , plcTypeFile "Forest"     $ _recursiveType <$> getBuiltinForest
-              , plcTermFile "TreeNode"   getBuiltinTreeNode
-              , plcTermFile "ForestNil"  getBuiltinForestNil
-              , plcTermFile "ForestCons" getBuiltinForestCons
+              [ plcTypeFile "Tree"       $ _recursiveType treeData
+              , plcTypeFile "Forest"     $ _recursiveType forestData
+              , plcTermFile "TreeNode"   treeNode
+              , plcTermFile "ForestNil"  forestNil
+              , plcTermFile "ForestCons" forestCons
               ]
           ]
       ]

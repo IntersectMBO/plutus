@@ -38,7 +38,7 @@ The invariant is preserved. In future we will enforce the invariant.
 
 -- | Mapping from variables to what they stand for (each row represents a substitution).
 -- Needed for efficiency reasons, otherwise we could just use substitutions.
-type TypeVarEnv tyname ann = UniqueMap TypeUnique (Normalized (Type tyname ann))
+type TypeVarEnv tyname ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname ann)))
 
 -- | The environments that type normalization runs in.
 data NormalizeTypeEnv m tyname ann = NormalizeTypeEnv
@@ -129,12 +129,13 @@ withExtendedTypeVarEnv
     -> Normalized (Type tyname ann)
     -> NormalizeTypeT m tyname ann a
     -> NormalizeTypeT m tyname ann a
-withExtendedTypeVarEnv name = local . over normalizeTypeEnvTypeVarEnv . insertByName name
+withExtendedTypeVarEnv name =
+    local . over normalizeTypeEnvTypeVarEnv . insertByName name . pure
 
 -- | Look up a @tyname@ in a 'TypeVarEnv'.
 lookupTyNameM
     :: (HasUnique (tyname ann) TypeUnique, Monad m)
-    => tyname ann -> NormalizeTypeT m tyname ann (Maybe (Normalized (Type tyname ann)))
+    => tyname ann -> NormalizeTypeT m tyname ann (Maybe (Dupable (Normalized (Type tyname ann))))
 lookupTyNameM name = asks $ lookupName name . _normalizeTypeEnvTypeVarEnv
 
 {- Note [Normalization]
@@ -177,7 +178,7 @@ normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyNameM name
     case mayTy of
         Nothing -> pure $ Normalized var
-        Just ty -> traverse rename ty
+        Just ty -> liftDupable ty
 normalizeTypeM size@TyInt{}                  =
     pure $ Normalized size
 normalizeTypeM builtin@TyBuiltin{}           =

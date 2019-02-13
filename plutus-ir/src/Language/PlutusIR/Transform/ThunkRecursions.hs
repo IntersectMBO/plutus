@@ -9,12 +9,15 @@ import           PlutusPrelude
 
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
+import           Language.PlutusIR.Transform.Rename     ()
 import           Language.PlutusIR.Transform.Substitute
 
+import qualified Language.PlutusCore                    as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Unit   as Unit
 
 import           Control.Lens
+import           Control.Monad                          ((>=>))
 
 import           Data.List
 import qualified Data.Map                               as Map
@@ -108,6 +111,9 @@ left with the PLC subset. This would be quite elegant - except that the final "l
 would be quite ugly as it would just have to fail if it saw any PIR features.
 -}
 
+thunkRecursionsTerm :: MonadQuote m => Term TyName Name a -> m (Term TyName Name a)
+thunkRecursionsTerm = PLC.rename >=> thunkRecursionsTermGo
+
 isFunctionType :: Type tyname a -> Bool
 isFunctionType = \case
     TyFun {} -> True
@@ -120,19 +126,20 @@ needsThunking = \case
 
 thunkRecursionsBinding :: MonadQuote m => Binding TyName Name a -> m (Binding TyName Name a)
 thunkRecursionsBinding = \case
-    TermBind x d rhs -> TermBind x d <$> thunkRecursionsTerm rhs
+    TermBind x d rhs -> TermBind x d <$> thunkRecursionsTermGo rhs
     -- nothing to do for type bindings or datatype bindings
     x -> pure x
 
-thunkRecursionsTerm :: MonadQuote m => Term TyName Name a -> m (Term TyName Name a)
-thunkRecursionsTerm = \case
+
+thunkRecursionsTermGo :: MonadQuote m => Term TyName Name a -> m (Term TyName Name a)
+thunkRecursionsTermGo = \case
     Let x Rec bs t -> do
         -- See Note [Thunking recursions]
 
         -- TODO: possibly this should use provenances?
         let generated = x
 
-        t' <- thunkRecursionsTerm t
+        t' <- thunkRecursionsTermGo t
         bs' <- traverse thunkRecursionsBinding bs
 
         let (needThunking, okay) = partition needsThunking bs'
@@ -141,13 +148,13 @@ thunkRecursionsTerm = \case
         then pure $ mkLet x Rec okay t'
         else constructThunkedLet generated okay needThunking t'
     -- boring cases
-    Let x NonRec bs t -> Let x NonRec <$> traverse thunkRecursionsBinding bs <*> thunkRecursionsTerm t
-    TyAbs x tn k t -> TyAbs x tn k <$> thunkRecursionsTerm t
-    LamAbs x n ty t -> LamAbs x n ty <$> thunkRecursionsTerm t
-    Apply x t1 t2 -> Apply x <$> thunkRecursionsTerm t1 <*> thunkRecursionsTerm t2
-    TyInst x t ty -> TyInst x <$> thunkRecursionsTerm t <*> pure ty
-    IWrap x pat arg t -> IWrap x pat arg <$> thunkRecursionsTerm t
-    Unwrap x t -> Unwrap x <$> thunkRecursionsTerm t
+    Let x NonRec bs t -> Let x NonRec <$> traverse thunkRecursionsBinding bs <*> thunkRecursionsTermGo t
+    TyAbs x tn k t -> TyAbs x tn k <$> thunkRecursionsTermGo t
+    LamAbs x n ty t -> LamAbs x n ty <$> thunkRecursionsTermGo t
+    Apply x t1 t2 -> Apply x <$> thunkRecursionsTermGo t1 <*> thunkRecursionsTermGo t2
+    TyInst x t ty -> TyInst x <$> thunkRecursionsTermGo t <*> pure ty
+    IWrap x pat arg t -> IWrap x pat arg <$> thunkRecursionsTermGo t
+    Unwrap x t -> Unwrap x <$> thunkRecursionsTermGo t
     t -> pure t
 
 data ThunkedNonTermBinding = ThunkedNonTermBinding
@@ -167,8 +174,8 @@ constructThunkedLet ann okay needThunking body = do
     -- These are all going to be used in a "closed" fashion, so it's fine to reuse them so long
     -- as we rename before typechecking.
     argName <- liftQuote $ freshName ann "arg"
-    unit <- const ann <<$>> liftQuote Unit.getBuiltinUnit
-    unitval <- const ann <<$>> embedIntoIR <$> liftQuote Unit.getBuiltinUnitval
+    let unit = ann <$ Unit.unit
+        unitval = ann <$ embedIntoIR Unit.unitval
 
     {-
     We need several pieces, and it is convenient to construct them simultaneously:

@@ -98,11 +98,11 @@ functions that cannot fail looks like this:
 
 -- | Mapping from 'DynamicBuiltinName's to their 'Type's.
 newtype DynamicBuiltinNameTypes = DynamicBuiltinNameTypes
-    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Normalized (Type TyName ()))
+    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Dupable (Normalized (Type TyName ())))
     } deriving (Semigroup, Monoid)
 
 type TyVarKinds = UniqueMap TypeUnique (Kind ())
-type VarTypes   = UniqueMap TermUnique (Normalized (Type TyName ()))
+type VarTypes   = UniqueMap TermUnique (Dupable (Normalized (Type TyName ())))
 
 -- | Configuration of the type checker.
 data TypeCheckConfig = TypeCheckConfig
@@ -146,16 +146,17 @@ withTyVar name = local . over tceTyVarKinds . insertByName name
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
 withVar :: Name ann -> Normalized (Type TyName ()) -> TypeCheckM ann a -> TypeCheckM ann a
-withVar name = local . over tceVarTypes . insertByName name
+withVar name = local . over tceVarTypes . insertByName name . pure
 
 -- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
-lookupDynamicBuiltinNameM :: ann -> DynamicBuiltinName -> TypeCheckM ann (Normalized (Type TyName ()))
+lookupDynamicBuiltinNameM
+    :: ann -> DynamicBuiltinName -> TypeCheckM ann (Normalized (Type TyName ()))
 lookupDynamicBuiltinNameM ann name = do
     DynamicBuiltinNameTypes dbnts <- asks $ _tccDynamicBuiltinNameTypes . _tceTypeCheckConfig
     case Map.lookup name dbnts of
         Nothing ->
             throwError $ UnknownDynamicBuiltinName ann (UnknownDynamicBuiltinNameErrorE name)
-        Just ty -> pure ty
+        Just ty -> liftDupable ty
 
 -- | Look up a type variable in the current context.
 lookupTyVarM :: TyName ann -> TypeCheckM ann (Kind ())
@@ -171,7 +172,7 @@ lookupVarM name = do
     mayTy <- asks $ lookupName name . _tceVarTypes
     case mayTy of
         Nothing -> throwError $ FreeVariableE name
-        Just ty -> pure ty
+        Just ty -> liftDupable ty
 
 -- #############
 -- ## Dummies ##
@@ -341,7 +342,7 @@ typeOfConstant = \case
     applySizedNormalized tb = Normalized . TyApp () (TyBuiltin () tb) . TyInt ()
 
 -- | Return the 'Type' of a 'BuiltinName'.
-typeOfBuiltinName :: MonadQuote m => BuiltinName -> m (Type TyName ())
+typeOfBuiltinName :: BuiltinName -> Type TyName ()
 typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
 
 -- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
@@ -367,9 +368,9 @@ inferTypeOfBuiltinM :: Builtin ann -> TypeCheckM ann (Normalized (Type TyName ()
 -- to be normalized. For dynamic built-in names we store a map from them to their *normalized types*,
 -- with the normalization happening in this module, but what should we do for static built-in names?
 -- Right now we just renormalize the type of a static built-in name each time we encounter that name.
-inferTypeOfBuiltinM (BuiltinName    _   name) = typeOfBuiltinName name >>= normalizeTypeFull
+inferTypeOfBuiltinM (BuiltinName    _   name) = normalizeTypeFull $ typeOfBuiltinName name
 -- TODO: inline this definition once we have only dynamic built-in names.
-inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann name >>= rename
+inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann name
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
@@ -391,7 +392,7 @@ inferTypeM (Builtin _ bi)           =
 -- ----------------------------------
 -- [infer| G !- var v : vTy]
 inferTypeM (Var _ name)             =
-    lookupVarM name >>= rename
+    lookupVarM name
 
 -- [check| G !- dom :: *]    dom ~>? vDom    [infer| G , n : dom !- body : vCod]
 -- -----------------------------------------------------------------------------

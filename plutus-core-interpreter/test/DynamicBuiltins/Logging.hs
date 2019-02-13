@@ -11,7 +11,8 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.StdLib.Data.List
+
+import           Language.PlutusCore.StdLib.Data.List as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
 
 import           DynamicBuiltins.Common
@@ -66,10 +67,6 @@ test_logInts = testCase "logInts" $ do
     let term = runQuote $ do
             let size = 4
                 int4 = TyApp () (TyBuiltin () TyInteger) (TyInt () size)
-            unit         <- getBuiltinUnit
-            unitval      <- getBuiltinUnitval
-            foldList     <- getBuiltinFoldList
-            biEnumFromTo <- getBuiltinEnumFromTo
             u <- freshName () "u"
             x <- freshName () "x"
 
@@ -81,7 +78,7 @@ test_logInts = testCase "logInts" $ do
                       . Apply () (TyInst () dynamicIntToString (TyInt () size))
                       $ Var () x
                     , unitval
-                    , mkIterApp () (TyInst () biEnumFromTo (TyInt () size))
+                    , mkIterApp () (TyInst () Plc.enumFromTo (TyInt () size))
                         [ Constant () $ BuiltinInt () size 1
                         , Constant () $ BuiltinInt () size 10
                         ]

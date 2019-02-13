@@ -5,6 +5,7 @@
 
 module Language.PlutusCore.Generators.Internal.Utils
     ( liftT
+    , generalizeT
     , hoistSupply
     , choiceDef
     , forAllNoShow
@@ -15,15 +16,15 @@ module Language.PlutusCore.Generators.Internal.Utils
     , forAllPrettyPlcT
     , forAllPrettyPlcMaybe
     , forAllPrettyPlcMaybeT
-    , runQuoteSampleSucceed
+    , runSampleSucceed
     , errorPlc
     ) where
 
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote  (Quote, runQuote)
 
 import           Control.Monad.Morph
 import           Control.Monad.Reader
+import           Data.Functor.Identity
 import           Hedgehog                   hiding (Size, Var)
 import qualified Hedgehog.Gen               as Gen
 import           Hedgehog.Internal.Property (forAllWithT)
@@ -31,6 +32,10 @@ import           Hedgehog.Internal.Property (forAllWithT)
 -- | @hoist lift@
 liftT :: (MFunctor t, MonadTrans s, Monad m) => t m a -> t (s m) a
 liftT = hoist lift
+
+-- | @hoist generalize@
+generalizeT :: (MFunctor t, Monad m) => t Identity a -> t m a
+generalizeT = hoist generalize
 
 -- | Supply an environment to an inner 'ReaderT'.
 hoistSupply :: (MFunctor t, Monad m) => r -> t (ReaderT r m) a -> t m a
@@ -81,8 +86,8 @@ forAllPrettyPlcMaybeT :: (Monad m, PrettyPlc a) => GenT m (Maybe a) -> PropertyT
 forAllPrettyPlcMaybeT = forAllWithT $ maybe "Nothing" prettyPlcDefString
 
 -- | Run a generator until it succeeds with a 'Just'.
-runQuoteSampleSucceed :: GenT Quote (Maybe a) -> IO a
-runQuoteSampleSucceed = Gen.sample . Gen.just . hoist (pure . runQuote)
+runSampleSucceed :: Gen (Maybe a) -> IO a
+runSampleSucceed = Gen.sample . Gen.just
 
 -- | Throw a PLC error.
 errorPlc :: PrettyPlc err => err -> b

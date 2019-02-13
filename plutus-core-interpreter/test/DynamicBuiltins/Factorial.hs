@@ -43,4 +43,4 @@ test_dynamicFactorial = testCase "dynamicFactorial" $
             (insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty)
             (applyFactorial dynamicFactorial 3 10)
     @?=
-        Right (evaluateCek mempty $ applyFactorial (runQuote getBuiltinFactorial) 3 10)
+        Right (evaluateCek mempty $ applyFactorial factorial 3 10)

@@ -1,20 +1,22 @@
 -- | @nat@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.StdLib.Data.Nat
-    ( getBuiltinNat
-    , getBuiltinZero
-    , getBuiltinSucc
-    , getBuiltinFoldrNat
-    , getBuiltinFoldNat
-    , getBuiltinNatToInteger
+    ( natData
+    , zero
+    , succ
+    , foldrNat
+    , foldNat
+    , natToInteger
     ) where
+
+import           Prelude                                  hiding (succ)
 
 import           Language.PlutusCore.Constant.Make        (makeDynBuiltinInt)
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Function
@@ -23,8 +25,8 @@ import           Language.PlutusCore.StdLib.Type
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
-getBuiltinNat :: Quote (RecursiveType ())
-getBuiltinNat = do
+natData :: RecursiveType ()
+natData = runQuote $ do
     nat <- freshTyName () "nat"
     r   <- freshTyName () "r"
     makeRecursiveType () nat []
@@ -36,9 +38,9 @@ getBuiltinNat = do
 -- |  '0' as a PLC term.
 --
 -- > wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
-getBuiltinZero :: Quote (Term TyName Name ())
-getBuiltinZero = rename =<< do
-    RecursiveType nat wrapNat <- getBuiltinNat
+zero :: Term TyName Name ()
+zero = runQuote $ do
+    let RecursiveType nat wrapNat = natData
     r <- freshTyName () "r"
     z <- freshName () "z"
     f <- freshName () "f"
@@ -52,9 +54,9 @@ getBuiltinZero = rename =<< do
 -- |  'succ' as a PLC term.
 --
 -- > \(n : nat) -> wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
-getBuiltinSucc :: Quote (Term TyName Name ())
-getBuiltinSucc = rename =<< do
-    RecursiveType nat wrapNat <- getBuiltinNat
+succ :: Term TyName Name ()
+succ = runQuote $ do
+    let RecursiveType nat wrapNat = natData
     n <- freshName () "n"
     r <- freshTyName () "r"
     z <- freshName () "z"
@@ -73,10 +75,9 @@ getBuiltinSucc = rename =<< do
 -- > /\(r :: *) -> \(f : r -> r) (z : r) ->
 -- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
-getBuiltinFoldrNat :: Quote (Term TyName Name ())
-getBuiltinFoldrNat = rename =<< do
-    nat <- _recursiveType <$> getBuiltinNat
-    fix <- getBuiltinFix
+foldrNat :: Term TyName Name ()
+foldrNat = runQuote $ do
+    let nat = _recursiveType natData
     r   <- freshTyName () "r"
     f   <- freshName () "f"
     z   <- freshName () "z"
@@ -101,10 +102,9 @@ getBuiltinFoldrNat = rename =<< do
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
 -- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
-getBuiltinFoldNat :: Quote (Term TyName Name ())
-getBuiltinFoldNat = rename =<< do
-    nat <- _recursiveType <$> getBuiltinNat
-    fix <- getBuiltinFix
+foldNat :: Term TyName Name ()
+foldNat = runQuote $ do
+    let nat = _recursiveType natData
     r   <- freshTyName () "r"
     f   <- freshName () "f"
     rec <- freshName () "rec"
@@ -131,9 +131,8 @@ getBuiltinFoldNat = rename =<< do
 -- >     foldNat {integer s}
 -- >         (addInteger {s} (resizeInteger {1} {s} ss 1!1))
 -- >         (resizeInteger {1} {s} ss 1!0)
-getBuiltinNatToInteger :: Quote (Term TyName Name ())
-getBuiltinNatToInteger = rename =<< do
-    foldNat <- getBuiltinFoldNat
+natToInteger :: Term TyName Name ()
+natToInteger = runQuote $ do
     s  <- freshTyName () "s"
     ss <- freshName () "ss"
     let addInteger = Builtin () $ BuiltinName () AddInteger
