@@ -22,23 +22,23 @@ import Halogen.HTML.Properties (InputType(InputText, InputNumber), class_, class
 import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.API (EvaluationResult, FunctionSchema, SimpleArgumentSchema, _EvaluationResult, _Fn, _FunctionSchema)
+import Playground.API (EvaluationResult, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
+import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, Signatures, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
   forall m aff.
   MonadAff (EChartsEffects aff) m
-  => Array (FunctionSchema SimpleArgumentSchema)
-  -> Array MockWallet
+  => Array MockWallet
+  -> Signatures
   -> Array Action
   -> RemoteData AjaxError EvaluationResult
   -> ParentHTML Query ChildQuery ChildSlot m
-simulationPane schemas wallets actions evaluationResult =
+simulationPane wallets signature actions evaluationResult =
   div_
-    [ walletsPane schemas wallets
+    [ walletsPane signature wallets
     , br_
     , actionsPane actions (view (_EvaluationResult <<< to _.resultBlockchain) <$> evaluationResult)
     ]

@@ -1,5 +1,7 @@
 module Types where
 
+import Prelude
+
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Control.Comonad (class Comonad, extract)
@@ -17,13 +19,13 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested (type (/\))
 import Gist (Gist)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.ECharts (EChartsMessage, EChartsQuery)
 import Ledger.Types (Tx)
 import Network.RemoteData (RemoteData)
 import Playground.API (CompilationError, CompilationResult, EvaluationResult, FunctionSchema, SimpleArgumentSchema(SimpleObjectArgument, UnknownArgument, SimpleStringArgument, SimpleIntArgument), _FunctionSchema)
-import Prelude (class Eq, class Functor, class Ord, class Show, Unit, show, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
 import Wallet.Emulator.Types (Wallet)
 
@@ -210,12 +212,13 @@ cpBalancesChart = cp3
 -----------------------------------------------------------
 
 type Blockchain = Array (Array Tx)
+type Signatures = Array (FunctionSchema SimpleArgumentSchema)
 
 type State =
   { view :: View
   , compilationResult :: RemoteData AjaxError (Either (Array CompilationError) CompilationResult)
   , wallets :: Array MockWallet
-  , actions :: Array Action
+  , simulation :: Maybe (Signatures /\ Array Action)
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
@@ -224,8 +227,8 @@ type State =
 _view :: forall s a. Lens' {view :: a | s} a
 _view = prop (SProxy :: SProxy "view")
 
-_actions :: forall s a. Lens' {actions :: a | s} a
-_actions = prop (SProxy :: SProxy "actions")
+_simulation :: forall s a. Lens' {simulation :: a | s} a
+_simulation = prop (SProxy :: SProxy "simulation")
 
 _wallets :: forall s a. Lens' {wallets :: a | s} a
 _wallets = prop (SProxy :: SProxy "wallets")

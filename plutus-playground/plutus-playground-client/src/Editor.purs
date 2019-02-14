@@ -7,7 +7,7 @@ import Ace.Editor as Editor
 import Ace.Halogen.Component (AceEffects, Autocomplete(Live), aceComponent)
 import Ace.Types (ACE, Editor)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight, row_)
+import Bootstrap (btn, btnDanger, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, empty, listGroupItem_, listGroup_, pullRight)
 import Control.Alternative ((<|>))
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
