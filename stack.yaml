@@ -18,6 +18,10 @@ packages:
     git: https://github.com/shmish111/servant-purescript.git
     commit: 18e1b61bf0aa3792285c6d8ecd0e4a72d76e34f5
   extra-dep: true
+- location:
+    git: https://github.com/input-output-hk/cardano-crypto.git
+    commit: f5cecb6e424cc84f85b6a3e1f803517bb7b4cfb1
+  extra-dep: true
 
 extra-deps:
 - serialise-0.2.1.0

@@ -38,7 +38,6 @@ import           PlutusPrelude
 
 import           Data.Bits                                   (bit)
 import qualified Data.ByteString.Lazy                        as BSL
-import           Data.Maybe
 
 -- | Lift a 'BuiltinName' to 'Term'.
 builtinNameAsTerm :: BuiltinName -> Term tyname name ()

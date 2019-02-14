@@ -25,6 +25,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Crypto
 import qualified Data.ByteString.Lazy                           as BSL
 import qualified Data.ByteString.Lazy.Hash                      as Hash
 import           Data.IntMap.Strict                             (IntMap)
@@ -241,6 +242,6 @@ applyBuiltinName DropByteString       = applyTypedBuiltinName typedDropByteStrin
 applyBuiltinName ResizeByteString     = applyTypedBuiltinName typedResizeByteString     (const id)
 applyBuiltinName SHA2                 = applyTypedBuiltinName typedSHA2                 Hash.sha2
 applyBuiltinName SHA3                 = applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      undefined
+applyBuiltinName VerifySignature      = applyTypedBuiltinName typedVerifySignature      verifySignature
 applyBuiltinName EqByteString         = applyTypedBuiltinName typedEqByteString         (==)
 applyBuiltinName SizeOfInteger        = applyTypedBuiltinName typedSizeOfInteger        (const ())

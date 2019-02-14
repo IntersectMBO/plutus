@@ -39,3 +39,8 @@ source-repository-package
   type: git
   location: https://github.com/shmish111/servant-purescript.git
   tag: 315ccf5d720937c091c8cf3aca8adc8110766a23
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/cardano-crypto.git
+  tag: 3c5db489c71a4d70ee43f5f9b979fcde3c797f2a
