@@ -50,7 +50,7 @@ genTyVarDecl = TyVarDecl () <$> genTyName <*> genKind
 
 genDatatype :: MonadGen m => m (Datatype TyName Name ())
 genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <*> listOf genVarDecl
-    where listOf = Gen.list (Range.linear 1 10)
+    where listOf = Gen.list (Range.linear 0 10)
 
 genBinding :: MonadGen m => m (Binding TyName Name ())
 genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind]
