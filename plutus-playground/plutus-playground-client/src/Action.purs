@@ -25,7 +25,7 @@ import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
 import Playground.API (EvaluationResult, _EvaluationResult, _Fn, _FunctionSchema)
 import Prelude (map, show, unit, ($), (+), (/=), (<$>), (<<<), (<>))
 import Servant.PureScript.Affjax (AjaxError)
-import Types (Action(Wait, Action), Blockchain, ChildQuery, ChildSlot, FormEvent(SetSubField, SetStringField, SetIntField), MockWallet, Query(EvaluateActions, AddWaitAction, PopulateAction, SetWaitTime, RemoveAction), SimpleArgument(Unknowable, SimpleObject, SimpleString, SimpleInt), ValidationError, Signatures, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
+import Types (Action(..), ActionEvent(..), Blockchain, ChildQuery, ChildSlot, FormEvent(..), MockWallet, Query(..), Signatures, SimpleArgument(..), ValidationError, _MockWallet, _argumentSchema, _functionName, _wallet, validate)
 import Wallet (walletIdPane, walletsPane)
 
 simulationPane ::
@@ -69,7 +69,7 @@ actionPane index action =
                 [ text $ show (index + 1) ]
             , button
                 [ classes [ btn, btnInfo, pullRight ]
-                , onClick $ input_ $ RemoveAction index
+                , onClick $ input_ $ ModifyActions $ RemoveAction index
                 ]
                 [ icon Close ]
             , case action of
@@ -92,7 +92,7 @@ actionPane index action =
                               [ type_ InputNumber
                               , value $ show blocks
                               , placeholder "Int"
-                              , onValueChange $ map (HQ.action <<< SetWaitTime index) <<< Int.fromString
+                              , onValueChange $ map (\time -> HQ.action $ ModifyActions $ SetWaitTime index time) <<< Int.fromString
                               ]
                           ]
                         ]
@@ -176,7 +176,7 @@ addWaitActionPane =
       [ div
           [ class_ $ ClassName "add-wait-action" ]
           [ div [ class_ card
-                , onClick $ input_ $ AddWaitAction 10
+                , onClick $ input_ $ ModifyActions $ AddWaitAction 10
                 ]
               [ cardBody_
                   [ icon Plus

@@ -16,7 +16,7 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Playground.API (FunctionSchema, SimpleArgumentSchema, _Fn, _FunctionSchema)
 import Prelude (map, show, ($), (<$>), (<<<))
-import Types (Action(..), MockWallet, Query(..), Signatures, _MockWallet, _balance, _functionName, _wallet, toValueLevel)
+import Types (Action(..), ActionEvent(..), MockWallet, Query(..), Signatures, _MockWallet, _balance, _functionName, _wallet, toValueLevel)
 import Wallet.Emulator.Types (Wallet)
 
 walletsPane ::
@@ -96,10 +96,11 @@ actionButton ::
 actionButton mockWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, ClassName "action-button" ]
-    , onClick $ input_ $ AddAction $ Action
-                                       { functionSchema: toValueLevel functionSchema
-                                       , mockWallet
-                                       }
+    , onClick $ input_ $ ModifyActions $ AddAction $
+        Action
+          { functionSchema: toValueLevel functionSchema
+          , mockWallet
+          }
     ]
     [ text $ view (_FunctionSchema <<< _functionName <<< _Fn) functionSchema
     , span

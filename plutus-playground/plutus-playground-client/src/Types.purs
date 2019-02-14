@@ -159,12 +159,15 @@ data Query a
   | RemoveWallet Int a
   | SetBalance Wallet Int a
   -- Actions.
-  | AddAction Action a
-  | AddWaitAction Int a
-  | RemoveAction Int a
+  | ModifyActions ActionEvent a
   | EvaluateActions a
   | PopulateAction Int Int (FormEvent a)
-  | SetWaitTime Int Int a
+
+data ActionEvent
+  = AddAction Action
+  | AddWaitAction Int
+  | RemoveAction Int
+  | SetWaitTime Int Int
 
 data FormEvent a
   = SetIntField (Maybe Int) a

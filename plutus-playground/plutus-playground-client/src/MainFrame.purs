@@ -126,12 +126,12 @@ toEvent (ScrollTo _ _) = Nothing
 toEvent (AddWallet _) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
 toEvent (RemoveWallet _ _) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
 toEvent (SetBalance _ _ _) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
-toEvent (AddAction _ _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
-toEvent (AddWaitAction _ _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
-toEvent (RemoveAction _ _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+toEvent (ModifyActions (AddAction _) _) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+toEvent (ModifyActions (AddWaitAction _) _) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
+toEvent (ModifyActions (RemoveAction _) _) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+toEvent (ModifyActions (SetWaitTime _ _) _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 toEvent (EvaluateActions _) = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
-toEvent (SetWaitTime _ _ _) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
 
 saveBuffer :: forall eff. String -> Eff (localStorage :: LOCALSTORAGE | eff) Unit
 saveBuffer text = LocalStorage.setItem bufferLocalStorageKey text
@@ -236,16 +236,8 @@ eval (ScrollTo {row, column} next) = do
   void $ withEditor $ Editor.gotoLine row (Just column) (Just true)
   pure next
 
-eval (AddAction action next) = do
-  modifying (_simulation <<< _Just <<< _2) $ flip Array.snoc action
-  pure next
-
-eval (AddWaitAction blocks next) = do
-  modifying (_simulation <<< _Just <<< _2) $ flip Array.snoc (Wait { blocks })
-  pure next
-
-eval (RemoveAction index next) = do
-  modifying (_simulation <<< _Just <<< _2) $ fromMaybe <*> Array.deleteAt index
+eval (ModifyActions actionEvent next) = do
+  modifying (_simulation <<< _Just <<< _2) (evalActionEvent actionEvent)
   pure next
 
 eval (EvaluateActions next) = do
@@ -298,16 +290,11 @@ eval (PopulateAction n l event) = do
     (evalForm event)
   pure $ extract event
 
-eval (SetWaitTime index time next) = do
-  assign
-    (_simulation
-       <<< _Just
-       <<< _2
-       <<< ix index
-       <<< _Wait
-       <<< _blocks)
-    time
-  pure next
+evalActionEvent :: ActionEvent -> Array Action -> Array Action
+evalActionEvent (AddAction action) = flip Array.snoc action
+evalActionEvent (AddWaitAction blocks) = flip Array.snoc (Wait { blocks })
+evalActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
+evalActionEvent (SetWaitTime index time) = set (ix index <<< _Wait <<< _blocks) time
 
 evalForm :: forall a. FormEvent a -> SimpleArgument -> SimpleArgument
 evalForm (SetIntField n next) (SimpleInt _) = SimpleInt n
