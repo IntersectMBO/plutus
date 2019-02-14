@@ -16,30 +16,30 @@ import Halogen.Query as HQ
 import Icons (Icon(..), icon)
 import Playground.API (FunctionSchema, SimpleArgumentSchema, _Fn, _FunctionSchema)
 import Prelude (map, show, ($), (<$>), (<<<))
-import Types (Action(..), MockWallet, Query(..), _MockWallet, _balance, _functionName, _wallet, toValueLevel)
+import Types (Action(..), MockWallet, Query(..), Signatures, _MockWallet, _balance, _functionName, _wallet, toValueLevel)
 import Wallet.Emulator.Types (Wallet)
 
 walletsPane ::
   forall p.
-  Array (FunctionSchema SimpleArgumentSchema)
+  Signatures
   -> Array MockWallet
   -> HTML p Query
-walletsPane schemas mockWallets =
+walletsPane signatures mockWallets =
   div_
     [ h2_ [ text "Wallets" ]
     , p_ [ text "Add some initial wallets, then click one of your function calls inside the wallet to begin a chain of actions." ]
     , Keyed.div
         [ class_ row ]
-        (Array.snoc (mapWithIndex (walletPane schemas) mockWallets) addWalletPane)
+        (Array.snoc (mapWithIndex (walletPane signatures) mockWallets) addWalletPane)
     ]
 
 walletPane ::
   forall p.
-  Array (FunctionSchema SimpleArgumentSchema)
+  Signatures
   -> Int
   -> MockWallet
   -> Tuple String (HTML p Query)
-walletPane schemas index mockWallet =
+walletPane signatures index mockWallet =
   Tuple (show index) $
     col4_
       [ div
@@ -65,7 +65,7 @@ walletPane schemas index mockWallet =
                       ]
                   , h4_ [ text "Available functions" ]
                   , div_
-                      (actionButton mockWallet <$> schemas)
+                      (actionButton mockWallet <$> signatures)
                   ]
               ]
           ]

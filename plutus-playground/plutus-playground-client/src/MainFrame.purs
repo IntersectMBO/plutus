@@ -17,15 +17,18 @@ import Control.Comonad (extract)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State (class MonadState)
+import Control.Monad.Trans.Class (lift)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Core as Json
 import Data.Array (catMaybes, (..))
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Generic (gEq)
 import Data.Int as Int
-import Data.Lens (_2, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
+import Data.Lens (_1, _2, _Just, _Right, assign, maximumOf, modifying, over, preview, set, to, traversed, use, view)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -54,10 +57,10 @@ import LocalStorage (LOCALSTORAGE)
 import LocalStorage as LocalStorage
 import Network.HTTP.Affjax (AJAX)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success), _Success, isSuccess)
-import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _FunctionSchema, _CompilationResult)
+import Playground.API (CompilationError(CompilationError, RawError), Evaluation(Evaluation), EvaluationResult(EvaluationResult), SourceCode(SourceCode), _CompilationResult, _FunctionSchema)
 import Playground.API as API
 import Playground.Server (SPParams_, getOauthStatus, patchGistsByGistId, postContract, postEvaluate, postGists)
-import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
+import Prelude (type (~>), Unit, Void, bind, const, discard, flip, map, pure, show, unit, unless, void, when, ($), (&&), (+), (-), (<$>), (<*>), (<<<), (<>), (==), (>>=))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -68,7 +71,7 @@ initialState =
   { view: Editor
   , compilationResult: NotAsked
   , wallets: (\n -> MockWallet { wallet: Wallet { getWallet: n }, balance: 10 }) <$> 1..2
-  , actions: []
+  , simulation: Nothing
   , evaluationResult: NotAsked
   , authStatus: NotAsked
   , createGistResult: NotAsked
@@ -196,24 +199,37 @@ eval (LoadScript key next) = do
       void $ withEditor $ Editor.setValue contents (Just 1)
       assign _evaluationResult NotAsked
       assign _compilationResult NotAsked
-      assign _actions []
       pure next
 
 eval (CompileProgram next) = do
   mContents <- withEditor Editor.getValue
+
   case mContents of
     Nothing -> pure next
-    Just contents ->  do
+    Just contents -> do
       result <- runAjaxTo _compilationResult $ postContract $ SourceCode contents
 
+      -- If we got a successful result, switch tab.
       case result of
         Success (Left _) -> pure unit
         _ -> replaceViewOnSuccess result Editor Simulation
 
+      -- Update the error display.
       void $ withEditor $ showCompilationErrorAnnotations $
         case result of
           Success (Left errors) -> errors
           _ -> []
+
+      -- If we have a result with new signatures, we can only hold
+      -- onto the old actions if the signatures still match. Any
+      -- change means we'll have to clear out the existing simulation.
+      case preview (_Success <<< _Right <<< _CompilationResult <<< _functionSchema) result of
+        Just newSignatures -> do
+          oldSignatures <- use (_simulation <<< _Just <<< _1)
+          unless (oldSignatures `gEq` newSignatures)
+            (assign _simulation (Just (newSignatures /\ [])))
+        _ -> pure unit
+
       pure next
 
 eval (ScrollTo {row, column} next) = do
@@ -221,29 +237,30 @@ eval (ScrollTo {row, column} next) = do
   pure next
 
 eval (AddAction action next) = do
-  modifying _actions $ flip Array.snoc action
+  modifying (_simulation <<< _Just <<< _2) $ flip Array.snoc action
   pure next
 
 eval (AddWaitAction blocks next) = do
-  modifying _actions $ flip Array.snoc (Wait { blocks })
+  modifying (_simulation <<< _Just <<< _2) $ flip Array.snoc (Wait { blocks })
   pure next
 
 eval (RemoveAction index next) = do
-  modifying _actions (fromMaybe <*> Array.deleteAt index)
+  modifying (_simulation <<< _Just <<< _2) $ fromMaybe <*> Array.deleteAt index
   pure next
 
 eval (EvaluateActions next) = do
   mContents <- withEditor $ Editor.getValue
-  case mContents of
-    Nothing -> pure next
-    Just contents -> do
-      evaluation <- currentEvaluation (SourceCode contents)
-      result <- runAjaxTo  _evaluationResult $ postEvaluate evaluation
+  _ <- runMaybeT $
+       do contents <- MaybeT $ withEditor $ Editor.getValue
+          evaluation <- MaybeT $ currentEvaluation (SourceCode contents)
+          result <- lift $ runAjaxTo  _evaluationResult $ postEvaluate evaluation
 
-      replaceViewOnSuccess result Simulation Transactions
+          replaceViewOnSuccess result Simulation Transactions
 
-      updateChartsIfPossible
-      pure next
+          lift updateChartsIfPossible
+
+          pure unit
+  pure next
 
 eval (AddWallet next) = do
   wallets <- use _wallets
@@ -257,7 +274,7 @@ eval (AddWallet next) = do
 
 eval (RemoveWallet index next) = do
   modifying _wallets (fromMaybe <*> Array.deleteAt index)
-  assign _actions []
+  assign (_simulation <<< _Just <<< _2) []
   pure next
 
 eval (SetBalance wallet newBalance next) = do
@@ -269,7 +286,9 @@ eval (SetBalance wallet newBalance next) = do
 
 eval (PopulateAction n l event) = do
   modifying
-    (_actions
+    (_simulation
+       <<< _Just
+       <<< _2
        <<< ix n
        <<< _Action
        <<< _functionSchema
@@ -281,7 +300,9 @@ eval (PopulateAction n l event) = do
 
 eval (SetWaitTime index time next) = do
   assign
-    (_actions
+    (_simulation
+       <<< _Just
+       <<< _2
        <<< ix index
        <<< _Wait
        <<< _blocks)
@@ -307,18 +328,24 @@ replaceViewOnSuccess result source target = do
   when (isSuccess result && currentView == source)
     (assign _view target)
 
-currentEvaluation :: forall m. MonadState State m => SourceCode -> m Evaluation
+currentEvaluation :: forall m. MonadState State m => SourceCode -> m (Maybe Evaluation)
 currentEvaluation sourceCode = do
-  actions <- use _actions
-  let toPair :: MockWallet -> Tuple Wallet Int
-      toPair mockWallet =
-        view (_MockWallet <<< _wallet) mockWallet
-        /\
-        view (_MockWallet <<< _balance) mockWallet
   wallets <- map toPair <$> use _wallets
-  let program = toExpression <$> actions
-  let blockchain = []
-  pure $ Evaluation { wallets, program, sourceCode, blockchain }
+  simulation <- use _simulation
+  pure $ case simulation of
+    Nothing -> Nothing
+    Just (signature /\ actions) -> do
+      Just $ Evaluation { wallets
+                        , program: toExpression <$> actions
+                        , sourceCode
+                        , blockchain: []
+                        }
+  where
+    toPair :: MockWallet -> Tuple Wallet Int
+    toPair mockWallet =
+      view (_MockWallet <<< _wallet) mockWallet
+      /\
+      view (_MockWallet <<< _balance) mockWallet
 
 toExpression :: Action -> API.Expression
 toExpression (Wait wait) = API.Wait wait
@@ -393,22 +420,22 @@ render state =
         [ editorPane state
         ]
     , viewContainer state.view Simulation $
-        case state.compilationResult of
-          Success (Left error) ->
+        case state.compilationResult, state.simulation of
+          Success (Left error), _ ->
             [ text "Your contract has errors. Click the "
             , strong_ [ text "Editor" ]
             , text " tab above to fix them and recompile."
             ]
-          Success (Right compilationResult) ->
+          Success (Right _), Just (signature /\ actions) ->
             [ simulationPane
-                (view (_CompilationResult <<< _functionSchema) compilationResult)
                 state.wallets
-                state.actions
+                signature
+                actions
                 state.evaluationResult
             ]
-          Failure error -> [ ajaxErrorPane error ]
-          Loading -> [ icon Spinner ]
-          NotAsked ->
+          Failure error, _ -> [ ajaxErrorPane error ]
+          Loading, _ -> [ icon Spinner ]
+          _, _ ->
             [ text "Click the "
             , strong_ [ text "Editor" ]
             , text " tab above and compile a contract to get started."
