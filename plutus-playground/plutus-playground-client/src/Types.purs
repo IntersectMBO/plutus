@@ -137,21 +137,27 @@ addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 ------------------------------------------------------------
 
 data Query a
+  -- SubEvents.
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
+  -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
+  -- Tabs.
   | ChangeView View a
+  -- Editor.
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
+  -- Wallets.
   | AddWallet a
   | RemoveWallet Int a
-  | AddAction Action a
   | SetBalance Wallet Int a
+  -- Actions.
+  | AddAction Action a
   | AddWaitAction Int a
   | RemoveAction Int a
   | EvaluateActions a
