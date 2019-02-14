@@ -208,7 +208,7 @@ eval (CompileProgram next) = do
 
       case result of
         Success (Left _) -> pure unit
-        _ -> replaceView result Editor Simulation
+        _ -> replaceViewOnSuccess result Editor Simulation
 
       void $ withEditor $ showCompilationErrorAnnotations $
         case result of
@@ -240,7 +240,7 @@ eval (EvaluateActions next) = do
       evaluation <- currentEvaluation (SourceCode contents)
       result <- runAjaxTo  _evaluationResult $ postEvaluate evaluation
 
-      replaceView result Simulation Transactions
+      replaceViewOnSuccess result Simulation Transactions
 
       updateChartsIfPossible
       pure next
@@ -301,8 +301,8 @@ evalForm (SetSubField n subEvent) old@(SimpleObject fields) =
            Just newFields -> SimpleObject newFields
 evalForm other arg = arg
 
-replaceView :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
-replaceView result source target = do
+replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
+replaceViewOnSuccess result source target = do
   currentView <- use _view
   when (isSuccess result && currentView == source)
     (assign _view target)
