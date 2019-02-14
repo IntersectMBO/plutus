@@ -73,7 +73,7 @@ actionPane index action =
                 ]
                 [ icon Close ]
             , case action of
-                (Action {mockWallet, functionSchema}) ->
+                Action {mockWallet, functionSchema} ->
                   div_
                     [ h3_
                         [ walletIdPane (view (_MockWallet <<< _wallet) mockWallet)
@@ -82,7 +82,7 @@ actionPane index action =
                         ]
                     , actionArgumentForm index $ view (_FunctionSchema <<< _argumentSchema) functionSchema
                     ]
-                (Wait {blocks}) ->
+                Wait {blocks} ->
                   div_
                     [ h3_ [ text "Wait" ]
                     , row_
