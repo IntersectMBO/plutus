@@ -137,21 +137,27 @@ addPath path (Unsupported subpath) = Unsupported $ path <> "." <> subpath
 ------------------------------------------------------------
 
 data Query a
+  -- SubEvents.
   = HandleEditorMessage AceMessage a
   | HandleDragEvent DragEvent a
   | HandleDropEvent DragEvent a
   | HandleMockchainChartMessage EChartsMessage a
   | HandleBalancesChartMessage EChartsMessage a
+  -- Gist support.
   | CheckAuthStatus a
   | PublishGist a
+  -- Tabs.
   | ChangeView View a
+  -- Editor.
   | LoadScript String a
   | CompileProgram a
   | ScrollTo { row :: Int, column :: Int } a
+  -- Wallets.
   | AddWallet a
   | RemoveWallet Int a
-  | AddAction Action a
   | SetBalance Wallet Int a
+  -- Actions.
+  | AddAction Action a
   | AddWaitAction Int a
   | RemoveAction Int a
   | EvaluateActions a
@@ -212,7 +218,6 @@ type State =
   , actions :: Array Action
   , evaluationResult :: RemoteData AjaxError EvaluationResult
   , authStatus :: RemoteData AjaxError AuthStatus
-  , gists :: RemoteData AjaxError (Array Gist)
   , createGistResult :: RemoteData AjaxError Gist
   }
 
@@ -233,9 +238,6 @@ _compilationResult = prop (SProxy :: SProxy "compilationResult")
 
 _authStatus :: forall s a. Lens' {authStatus :: a | s} a
 _authStatus = prop (SProxy :: SProxy "authStatus")
-
-_gists :: forall s a. Lens' {gists :: a | s} a
-_gists = prop (SProxy :: SProxy "gists")
 
 _createGistResult :: forall s a. Lens' {createGistResult :: a | s} a
 _createGistResult = prop (SProxy :: SProxy "createGistResult")
