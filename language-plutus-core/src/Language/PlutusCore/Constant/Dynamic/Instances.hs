@@ -26,48 +26,48 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 import           Language.PlutusCore.Type
 
-import           Control.Monad
+import           Control.Monad.Except
 import           Data.Bitraversable
 import           Data.Char
 import           Data.Proxy
 import qualified Data.Text.Prettyprint.Doc                   as Doc
 import           System.IO.Unsafe                            (unsafePerformIO)
 
-instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EitherError a) where
+instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (EvaluationResult a) where
     toTypeEncoding _ = toTypeEncoding $ Proxy @a
 
-    makeDynamicBuiltin (EitherError mayX) = case mayX of
-        Nothing -> Just . Error () . toTypeEncoding $ Proxy @a
-        Just x  -> makeDynamicBuiltin x
+    makeDynamicBuiltin EvaluationFailure     = pure . Error () . toTypeEncoding $ Proxy @a
+    makeDynamicBuiltin (EvaluationSuccess x) = makeDynamicBuiltin x
 
-    readDynamicBuiltin eval term = do
-        evalRes <- eval mempty term
-        let mayRes = evaluationResultToMaybe evalRes
-        mayX <- join <$> traverse (readDynamicBuiltin eval) mayRes
-        pure . Just $ EitherError mayX
+    readDynamicBuiltin eval term = ExceptT . EvaluationSuccess <$> do
+        res <- eval mempty term
+        sequence . (>>= runExceptT) <$> traverse (readDynamicBuiltin eval) res
 
 instance KnownDynamicBuiltinType [Char] where
     toTypeEncoding _ = TyBuiltin () TyString
 
-    makeDynamicBuiltin = Just . Constant () . makeBuiltinStr
+    makeDynamicBuiltin = pure . Constant () . makeBuiltinStr
 
-    readDynamicBuiltin _ (Constant () (BuiltinStr () s)) = pure $ Just s
-    readDynamicBuiltin _ _                               = pure Nothing
+    readDynamicBuiltin eval term = do
+        res <- eval mempty term
+        pure $ lift res >>= \case
+            Constant () (BuiltinStr () s) -> pure s
+            _                             -> throwError "Not a builtin String"
 
 -- Encode 'Bool' from Haskell as @integer 1@ from PLC.
 instance KnownDynamicBuiltinType Bool where
     toTypeEncoding _ = bool
 
-    makeDynamicBuiltin b = Just $ if b then true else false
+    makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 1 . fromIntegral . fromEnum
 
     readDynamicBuiltin eval b = do
         let int1 = TyApp () (TyBuiltin () TyInteger) (TyInt () 4)
             asInt1 = Constant () . BuiltinInt () 1
-        evalRes <- eval mempty $ mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0]
-        pure $ evaluationResultToMaybe evalRes >>= \case
-            Constant () (BuiltinInt () 1 1) -> Just True
-            Constant () (BuiltinInt () 1 0) -> Just False
-            _                               -> Nothing
+        res <- eval mempty (mkIterApp () (TyInst () b int1) [asInt1 1, asInt1 0])
+        pure $ lift res >>= \case
+            Constant () (BuiltinInt () 1 1) -> pure True
+            Constant () (BuiltinInt () 1 0) -> pure False
+            _                               -> throwError "Not an integer-encoded Bool"
 
 -- Encode 'Char' from Haskell as @integer 4@ from PLC.
 instance KnownDynamicBuiltinType Char where
@@ -75,14 +75,17 @@ instance KnownDynamicBuiltinType Char where
 
     makeDynamicBuiltin = fmap (Constant ()) . makeBuiltinInt 4 . fromIntegral . ord
 
-    readDynamicBuiltin _ (Constant () (BuiltinInt () 4 int)) = pure . Just . chr $ fromIntegral int
-    readDynamicBuiltin _ _                                   = pure Nothing
+    readDynamicBuiltin eval term = do
+        res <- eval mempty term
+        pure $ lift res >>= \case
+            Constant () (BuiltinInt () 4 int) -> pure . chr $ fromIntegral int
+            _                                 -> throwError "Not an integer-encoded Char"
 
 proxyOf :: a -> Proxy a
 proxyOf _ = Proxy
 
 makeTypeAndDynamicBuiltin
-    :: KnownDynamicBuiltinType a => a -> Maybe (Type TyName (), Term TyName Name ())
+    :: KnownDynamicBuiltinType a => a -> Convert (Type TyName (), Term TyName Name ())
 makeTypeAndDynamicBuiltin x = do
     let da = toTypeEncoding $ proxyOf x
     dx <- makeDynamicBuiltin x
@@ -122,8 +125,8 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
                         feedEmitHandler $ go emitX emitY
         res <- getRes
         pure $ case (xs, ys) of
-            ([x], [y]) -> (x, y) <$ evaluationResultToMaybe res
-            _          -> Nothing  -- TODO: use descriptive error messages?
+            ([x], [y]) -> (x, y) <$ lift res
+            _          -> throwError "Not a (,)"
 
 instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
             KnownDynamicBuiltinType (Either a b) where
@@ -148,9 +151,9 @@ instance (KnownDynamicBuiltinType a, KnownDynamicBuiltinType b) =>
                         feedEmitHandler $ go emitX emitY
         res <- getRes
         pure $ case (l, r) of
-            ([x], []) -> Left  x <$ evaluationResultToMaybe res
-            ([], [y]) -> Right y <$ evaluationResultToMaybe res
-            _         -> Nothing
+            ([x], []) -> Left  x <$ lift res
+            ([], [y]) -> Right y <$ lift res
+            _         -> throwError "Not an Either"
 
 newtype PlcList a = PlcList
     { unPlcList :: [a]
@@ -174,7 +177,7 @@ instance KnownDynamicBuiltinType a => KnownDynamicBuiltinType (PlcList a) where
                         [LamAbs () u unit emit, unitval, list]
             (xs, getRes) = unsafePerformIO $ withEmitEvaluateBy eval TypedBuiltinDyn go
         res <- getRes
-        pure $ PlcList xs <$ evaluationResultToMaybe res
+        pure $ PlcList xs <$ lift res
 
 instance PrettyDynamic a => PrettyDynamic (PlcList a) where
     prettyDynamic = Doc.list . map prettyDynamic . unPlcList

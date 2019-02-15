@@ -33,8 +33,8 @@
 
 
 module Language.PlutusCore.Interpreter.LMachine
-    ( EvaluationResultF (EvaluationSuccess, EvaluationFailure)
-    , EvaluationResult
+    ( EvaluationResult (..)
+    , EvaluationResultDef
     , evaluateL
     , runL
     ) where
@@ -132,10 +132,9 @@ data Frame
 -- | A context is a stack of frames.
 type EvaluationContext = [Frame]
 
--- | A local version of the EvaluationResult type using closures instead of values
-data LMachineResult
-    = Success Closure Heap  -- We need both the environment and the heap to see what the value "really" is.
-    | Failure
+-- | A local version of the EvaluationResult type using closures instead of values.
+-- We need both the environment and the heap to see what the value "really" is.
+type LMachineResult = EvaluationResult (Closure, Heap)
 
 -- | Extend an environment with a new binding
 updateEnvironment :: Name () -> HeapLoc -> Environment -> Environment
@@ -183,7 +182,7 @@ computeL ctx heap cl@(Closure term env) =
       LamAbs{}                -> returnL  ctx heap cl
       Builtin{}               -> returnL  ctx heap cl
       Constant{}              -> returnL  ctx heap cl
-      Error{}                 -> Failure
+      Error{}                 -> EvaluationFailure
       Var _ name              -> let l = lookupHeapLoc name env
                                  in case lookupHeap l heap of
                                       Evaluated cl'   -> returnL ctx heap cl'
@@ -196,7 +195,7 @@ computeL ctx heap cl@(Closure term env) =
 -- @v= \x.y@, where @y@ is bound in an environment.  If we ever go on
 -- to apply @v@, we'll need the value of @y@.
 returnL :: EvaluationContext -> Heap -> Closure -> LMachineResult
-returnL [] heap res = Success res heap
+returnL [] heap res = EvaluationSuccess (res, heap)
 returnL (frame : ctx) heap result@(Closure v env) =
     case frame of
       FrameHeapUpdate l      -> returnL ctx heap' result where heap' = updateHeap l (Evaluated result) heap
@@ -227,31 +226,29 @@ evaluateFun ctx heap (Closure fun funEnv) argClosure =
           -- Not a lambda: look for evaluation of a built-in function, possibly with some args already supplied.
           -- We have to force the arguments, which means that we need to get the new heap back as well.
           -- This bit is messy but should be much easier when we have n-ary application for builtins.
-          case computeL [] heap argClosure of
-            -- Force the argument, but only at the top level.
-            -- This is a bit of a hack.  We're not in the main compute/return process here.
-            -- We're preserving ctx, the context at entry, and we'll use that when we return.
-            -- We could also add a new type of stack frame for this.  Exactly what we do will
-            -- depend on the final interface to builtins.
-            Failure -> Failure
-            Success (Closure arg' env') heap' ->
-                let term = Apply () fun arg'
-                in case termAsPrimIterApp term of
-                     Nothing ->
-                         throwLMachineException NonPrimitiveInstantiationMachineError term
-                         -- Was "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
-                     Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                         case applyEvaluateBuiltinName heap' env' name spine of
-                           ConstAppSuccess term' -> computeL ctx heap' (Closure term' funEnv)
-                           -- The spec has return above, but compute seems more sensible.
-                           ConstAppStuck         -> returnL ctx heap' (Closure term  funEnv)
-                           -- It's arguable what the env should be here. That depends on what the built-in can return.
-                           -- Ideally it'd always return a closed term, so the environment should be irrelevant.
-                           ConstAppFailure       -> Failure
-                           ConstAppError err     -> throwLMachineException (ConstAppMachineError err) fun
+          computeL [] heap argClosure >>= \(Closure arg' env', heap') ->
+              -- Force the argument, but only at the top level.
+              -- This is a bit of a hack.  We're not in the main compute/return process here.
+              -- We're preserving ctx, the context at entry, and we'll use that when we return.
+              -- We could also add a new type of stack frame for this.  Exactly what we do will
+              -- depend on the final interface to builtins.
+              let term = Apply () fun arg'
+              in case termAsPrimIterApp term of
+                   Nothing ->
+                       throwLMachineException NonPrimitiveInstantiationMachineError term
+                       -- Was "Cannot reduce a not immediately reducible application."  This message isn't very helpful.
+                   Just (IterApp (StaticStagedBuiltinName name) spine) ->
+                       case applyEvaluateBuiltinName heap' env' name spine of
+                         ConstAppSuccess term' -> computeL ctx heap' (Closure term' funEnv)
+                         -- The spec has return above, but compute seems more sensible.
+                         ConstAppStuck         -> returnL ctx heap' (Closure term  funEnv)
+                         -- It's arguable what the env should be here. That depends on what the built-in can return.
+                         -- Ideally it'd always return a closed term, so the environment should be irrelevant.
+                         ConstAppFailure       -> EvaluationFailure
+                         ConstAppError err     -> throwLMachineException (ConstAppMachineError err) fun
 
-                     Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
-                         throwLMachineException (OtherMachineError NoDynamicBuiltinsYet) term
+                   Just (IterApp DynamicStagedBuiltinName{}     _    ) ->
+                       throwLMachineException (OtherMachineError NoDynamicBuiltinsYet) term
 
 
 -- | This is a workaround (thanks to Roman) to get things working while the dynamic builtins interface is under development.
@@ -259,7 +256,7 @@ applyEvaluateBuiltinName :: Heap -> Environment -> BuiltinName -> [Value TyName 
 applyEvaluateBuiltinName heap env name =
     runIdentity . runEvaluate (const $ Identity . evalL heap env) . applyBuiltinName name
 
-evalL :: Heap -> Environment -> Plain Term -> EvaluationResult
+evalL :: Heap -> Environment -> Plain Term -> EvaluationResultDef
 evalL heap env term = translateResult $ computeL [] heap (Closure term env)
 -- I'm not sure if this is doing quite the right thing.  The current
 -- strategy of the dynamic interface is that it when you're evaluating
@@ -299,16 +296,14 @@ internalEvaluateL t = computeL [] emptyHeap (Closure t mempty)
 
 
 -- | Convert an L machine result into the standard result type for communication with the outside world.
-translateResult :: LMachineResult -> EvaluationResult
-translateResult r = case r of
-      Success (Closure t _) (Heap _ _) -> EvaluationSuccess t
-      Failure                          -> EvaluationFailure
+translateResult :: LMachineResult -> EvaluationResultDef
+translateResult = fmap $ \(Closure t _, _) -> t
 
 -- | Evaluate a term using the L machine. May throw an 'MachineException'.
-evaluateL :: Term TyName Name () -> EvaluationResult
+evaluateL :: Term TyName Name () -> EvaluationResultDef
 evaluateL term = translateResult $  internalEvaluateL term
 
 -- | Run a program using the L machine. May throw a 'MachineException'.
 -- We're not using the dynamic names at the moment, but we'll require them eventually.
-runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
+runL :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResultDef
 runL _ (Program _ _ term) = evaluateL term

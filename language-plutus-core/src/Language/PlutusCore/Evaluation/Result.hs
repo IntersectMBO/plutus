@@ -6,8 +6,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Result
-    ( EvaluationResultF (EvaluationSuccess, EvaluationFailure)
-    , EvaluationResult
+    ( EvaluationResult (..)
+    , EvaluationResultDef
     , evaluationResultToMaybe
     , maybeToEvaluationResult
     ) where
@@ -17,37 +17,39 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Type
 
 -- | The parameterized type of results various evaluation engines return.
-data EvaluationResultF a
+-- On the PLC side this becomes (via @makeDynamicBuiltin@) either a call to 'error' or
+-- a value of the PLC counterpart of type @a@.
+data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
     deriving (Show, Eq, Functor, Foldable, Traversable)
 
-instance Applicative EvaluationResultF where
+-- | The default type of results various evaluation engines return.
+type EvaluationResultDef = EvaluationResult (Value TyName Name ())
+
+instance Applicative EvaluationResult where
     pure = EvaluationSuccess
 
     EvaluationSuccess f <*> a = fmap f a
     EvaluationFailure   <*> _ = EvaluationFailure
 
-instance Monad EvaluationResultF where
+instance Monad EvaluationResult where
     EvaluationSuccess x >>= f = f x
     EvaluationFailure   >>= _ = EvaluationFailure
 
--- | The type of results various evaluation engines return.
-type EvaluationResult = EvaluationResultF (Value TyName Name ())
-
-instance PrettyBy config (Value TyName Name ()) => PrettyBy config EvaluationResult where
+instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess value) = prettyBy config value
     prettyBy _      EvaluationFailure         = "Failure"
 
-instance Pretty EvaluationResult where
-    pretty = prettyPlcDef
+instance PrettyClassic a => Pretty (EvaluationResult a) where
+    pretty = prettyClassicDef
 
 -- | Map 'EvaluationSuccess' to 'Just' and 'EvaluationFailure' to 'Nothing'.
-evaluationResultToMaybe :: EvaluationResult -> Maybe (Value TyName Name ())
+evaluationResultToMaybe :: EvaluationResult a -> Maybe a
 evaluationResultToMaybe (EvaluationSuccess res) = Just res
 evaluationResultToMaybe EvaluationFailure       = Nothing
 
 -- | Map 'Just' to 'EvaluationSuccess' and 'Nothing' to 'EvaluationFailure'.
-maybeToEvaluationResult :: Maybe (Value TyName Name ()) -> EvaluationResult
+maybeToEvaluationResult :: Maybe a -> EvaluationResult a
 maybeToEvaluationResult (Just res) = EvaluationSuccess res
 maybeToEvaluationResult Nothing    = EvaluationFailure

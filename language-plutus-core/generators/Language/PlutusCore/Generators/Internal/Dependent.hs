@@ -1,3 +1,7 @@
+-- | Orphan 'GEq' and 'GCompare' instances of data types from "Language.PlutusCore.Constant.Typed".
+-- The reason we keep the instances separate is that they are highly unsafe ('unsafeCoerce' is used)
+-- and needed only for tests.
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE GADTs #-}

@@ -67,8 +67,8 @@ sampleProgramValueGolden folder name genTerm = do
 -- Checks whether a term generated along with the value it's supposed to compute to
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
-    :: (Term TyName Name () -> EvaluationResult)  -- ^ An evaluator.
-    -> TermGen Size a                             -- ^ A term/value generator.
+    :: (Term TyName Name () -> EvaluationResultDef)  -- ^ An evaluator.
+    -> TermGen Size a                                -- ^ A term/value generator.
     -> Property
 propEvaluate eval genTermOfTbv = withTests 200 . property $ do
     termOfTbv <- forAllNoShow genTermOfTbv

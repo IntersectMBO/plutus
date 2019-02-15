@@ -15,8 +15,8 @@
 
 module Language.PlutusCore.Interpreter.CekMachine
     ( CekMachineException
-    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
-    , EvaluationResult
+    , EvaluationResult (..)
+    , EvaluationResultDef
     , evaluateCekCatch
     , evaluateCek
     , readDynamicBuiltinCek
@@ -110,7 +110,7 @@ lookupDynamicBuiltinName dynName = do
 -- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
-computeCek :: Context -> Plain Term -> CekM EvaluationResult
+computeCek :: Context -> Plain Term -> CekM EvaluationResultDef
 computeCek con (TyInst _ body ty)       = computeCek (FrameTyInstArg ty : con) body
 computeCek con (Apply _ fun arg)        = do
     varEnv <- getVarEnv
@@ -133,7 +133,7 @@ computeCek con (Var _ varName)          = do
 -- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
-returnCek :: Context -> Plain Value -> CekM EvaluationResult
+returnCek :: Context -> Plain Value -> CekM EvaluationResultDef
 returnCek []                                  res = pure $ EvaluationSuccess res
 returnCek (FrameTyInstArg ty           : con) fun = instantiateEvaluate con ty fun
 returnCek (FrameApplyArg argVarEnv arg : con) fun = do
@@ -151,7 +151,7 @@ returnCek (FrameUnwrap                 : con) dat = case dat of
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: Context -> Type TyName () -> Plain Term -> CekM EvaluationResult
+instantiateEvaluate :: Context -> Type TyName () -> Plain Term -> CekM EvaluationResultDef
 instantiateEvaluate con _  (TyAbs _ _ _ body) = computeCek con body
 instantiateEvaluate con ty fun
     | isJust $ termAsPrimIterApp fun = returnCek con $ TyInst () fun ty
@@ -165,7 +165,7 @@ instantiateEvaluate con ty fun
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate
-    :: VarEnv -> VarEnv -> Context -> Plain Value -> Plain Value -> CekM EvaluationResult
+    :: VarEnv -> VarEnv -> Context -> Plain Value -> Plain Value -> CekM EvaluationResultDef
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
 applyEvaluate funVarEnv _         con fun                    arg =
@@ -198,16 +198,16 @@ applyStagedBuiltinName (StaticStagedBuiltinName  name) args =
 
 -- | Evaluate a term in an environment using the CEK machine.
 evaluateCekCatchIn
-    :: CekEnv -> Plain Term -> Either CekMachineException EvaluationResult
+    :: CekEnv -> Plain Term -> Either CekMachineException EvaluationResultDef
 evaluateCekCatchIn cekEnv = runCekM cekEnv . computeCek []
 
 -- | Evaluate a term using the CEK machine.
 evaluateCekCatch
-    :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResult
+    :: DynamicBuiltinNameMeanings -> Plain Term -> Either CekMachineException EvaluationResultDef
 evaluateCekCatch means = evaluateCekCatchIn $ CekEnv means mempty
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
-evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResult
+evaluateCek :: DynamicBuiltinNameMeanings -> Term TyName Name () -> EvaluationResultDef
 evaluateCek = either throw id .* evaluateCekCatch
 
 readDynamicBuiltinCek
@@ -216,5 +216,5 @@ readDynamicBuiltinCek = readDynamicBuiltin evaluateCekCatch
 
 -- | Run a program using the CEK machine. May throw a 'CekMachineException'.
 -- Calls 'evaluateCek' under the hood.
-runCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResult
+runCek :: DynamicBuiltinNameMeanings -> Program TyName Name () -> EvaluationResultDef
 runCek means (Program _ _ term) = evaluateCek means term

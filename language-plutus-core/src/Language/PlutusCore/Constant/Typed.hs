@@ -8,20 +8,20 @@
 {-# LANGUAGE RankNTypes                #-}
 
 module Language.PlutusCore.Constant.Typed
-    ( BuiltinSized(..)
-    , TypedBuiltinSized(..)
-    , SizeEntry(..)
-    , BuiltinType(..)
-    , TypedBuiltin(..)
-    , TypedBuiltinValue(..)
-    , TypeScheme(..)
-    , TypedBuiltinName(..)
-    , DynamicBuiltinNameMeaning(..)
-    , DynamicBuiltinNameDefinition(..)
-    , DynamicBuiltinNameMeanings(..)
-    , EitherError (..)
+    ( BuiltinSized (..)
+    , TypedBuiltinSized (..)
+    , SizeEntry (..)
+    , BuiltinType (..)
+    , TypedBuiltin (..)
+    , TypedBuiltinValue (..)
+    , TypeScheme (..)
+    , TypedBuiltinName (..)
+    , DynamicBuiltinNameMeaning (..)
+    , DynamicBuiltinNameDefinition (..)
+    , DynamicBuiltinNameMeanings (..)
     , Evaluator
     , Evaluate
+    , Convert
     , KnownDynamicBuiltinType (..)
     , eraseTypedBuiltinSized
     , runEvaluate
@@ -38,9 +38,11 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Data.ByteString.Lazy.Char8                  as BSL
 import           Data.Map                                    (Map)
+import           Data.Text                                   (Text)
 
 infixr 9 `TypeSchemeArrow`
 
@@ -176,18 +178,7 @@ newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
     } deriving (Semigroup, Monoid)
 
--- | On the PLC side this becomes either a call to 'error' or
--- a value of the PLC equivalent of type @a@.
-newtype EitherError a = EitherError
-    { unEitherError :: Maybe a
-    } deriving
-        ( Semigroup, Monoid
-        , Functor, Foldable, Traversable
-        , Applicative, Alternative
-        , Monad, MonadPlus
-        )
-
-type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
+type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
 
 type Evaluate m = ReaderT (Evaluator Term m) m
 
@@ -292,6 +283,8 @@ received evaluator
 (3) seems best, so it's what is implemented.
 -}
 
+type Convert a = ExceptT Text EvaluationResult a
+
 -- See Note [Semantics of dynamic built-in types].
 -- See Note [Converting PLC values to Haskell values].
 -- Types and terms are supposed to be closed, hence no 'Quote'.
@@ -302,16 +295,16 @@ class KnownDynamicBuiltinType dyn where
 
     -- | Convert a Haskell value to the corresponding PLC value.
     -- 'Nothing' represents a conversion failure.
-    makeDynamicBuiltin :: dyn -> Maybe (Term TyName Name ())
+    makeDynamicBuiltin :: dyn -> Convert (Term TyName Name ())
 
     -- See Note [Evaluators].
     -- | Convert a PLC value to the corresponding Haskell value.
     -- 'Nothing' represents a conversion failure.
-    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Maybe dyn)
+    readDynamicBuiltin :: Monad m => Evaluator Term m -> Term TyName Name () -> m (Convert dyn)
 
 readDynamicBuiltinM
     :: (Monad m, KnownDynamicBuiltinType dyn)
-    => Term TyName Name () -> Evaluate m (Maybe dyn)
+    => Term TyName Name () -> Evaluate m (Convert dyn)
 readDynamicBuiltinM term = withEvaluator $ \eval -> readDynamicBuiltin eval term
 
 instance Pretty BuiltinSized where
@@ -345,7 +338,7 @@ instance KnownDynamicBuiltinType () where
     -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' in multiple places, so we want to compute the '()' just
     -- for side effects the evaluation may cause.
-    makeDynamicBuiltin () = Just unitval
+    makeDynamicBuiltin () = pure unitval
 
     -- We do not check here that the term is indeed @unitval@. TODO: check.
-    readDynamicBuiltin _ _ = return $ Just ()
+    readDynamicBuiltin _ _ = pure $ pure ()

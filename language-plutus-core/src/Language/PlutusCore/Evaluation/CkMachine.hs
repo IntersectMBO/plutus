@@ -4,8 +4,8 @@
 
 module Language.PlutusCore.Evaluation.CkMachine
     ( CkMachineException
-    , EvaluationResultF (EvaluationSuccess, EvaluationFailure)
-    , EvaluationResult
+    , EvaluationResult (..)
+    , EvaluationResultDef
     , applyEvaluateCkBuiltinName
     , evaluateCk
     , runCk
@@ -78,7 +78,7 @@ substituteDb varFor new = go where
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
-(|>) :: Context -> Term TyName Name () -> EvaluationResult
+(|>) :: Context -> Term TyName Name () -> EvaluationResultDef
 stack |> TyInst _ fun ty        = FrameTyInstArg ty : stack |> fun
 stack |> Apply _ fun arg        = FrameApplyArg arg : stack |> fun
 stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
@@ -100,7 +100,7 @@ _     |> var@Var{}              = throwCkMachineException OpenTermEvaluatedMachi
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
-(<|) :: Context -> Value TyName Name () -> EvaluationResult
+(<|) :: Context -> Value TyName Name () -> EvaluationResultDef
 []                             <| term    = EvaluationSuccess term
 FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
@@ -114,7 +114,7 @@ FrameUnwrap            : stack <| wrapped = case wrapped of
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
-instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> EvaluationResult
+instantiateEvaluate :: Context -> Type TyName () -> Term TyName Name () -> EvaluationResultDef
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
 instantiateEvaluate stack ty fun
     | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
@@ -126,7 +126,7 @@ instantiateEvaluate stack ty fun
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> EvaluationResult
+applyEvaluate :: Context -> Value TyName Name () -> Value TyName Name () -> EvaluationResultDef
 applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
 applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
@@ -155,10 +155,10 @@ applyEvaluateCkBuiltinName name =
 -- The reason for that is that the operational semantics of constant applications is
 -- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
 -- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
-evaluateCk :: Term TyName Name () -> EvaluationResult
+evaluateCk :: Term TyName Name () -> EvaluationResultDef
 evaluateCk = ([] |>)
 
 -- | Run a program using the CK machine. May throw a 'CkMachineException'.
 -- Calls 'evaluateCk' under the hood, so the same caveats apply.
-runCk :: Program TyName Name () -> EvaluationResult
+runCk :: Program TyName Name () -> EvaluationResultDef
 runCk (Program _ _ term) = evaluateCk term

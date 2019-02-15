@@ -29,6 +29,7 @@ module Language.PlutusCore.Constant.Name
 
 import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Lexer.Type
 
 import qualified Data.ByteString.Lazy.Char8                     as BSL
@@ -182,7 +183,7 @@ typedSHA3 =
             TypeSchemeBuiltin (TypedBuiltinSized (SizeValue 32) TypedBuiltinSizedBS)
 
 -- | Typed 'VerifySignature'.
-typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> EitherError Bool) (EitherError Bool)
+typedVerifySignature :: TypedBuiltinName (BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> EvaluationResult Bool) (EvaluationResult Bool)
 typedVerifySignature =
     TypedBuiltinName VerifySignature $
         TypeSchemeAllSize $ \s0 -> TypeSchemeAllSize $ \s1 -> TypeSchemeAllSize $ \s2 ->
