@@ -99,7 +99,7 @@ import           Ledger                         ( PubKey(..)
                                                 , Signature(..)
                                                 )
 import qualified Ledger.Ada.TH                  as Ada
-import           Ledger.Ada.TH                  (Ada(..))
+import           Ledger.Ada.TH                  (Ada)
 import           Ledger.Interval                (Interval(..), Slot(..))
 import           Ledger.Validation
 import qualified Ledger.Validation              as Validation
@@ -376,7 +376,9 @@ equalContract = [|| \eqValue eqObservation l r -> let
     Same for 'Value'.
 -}
 validateContract :: Q (TExp (State -> Contract -> Slot -> Ada -> Bool))
-validateContract = [|| \State{stateCommitted} contract (Slot bn) (Ada actualMoney) -> let
+validateContract = [|| \State{stateCommitted} contract (Slot bn) actualMoney' -> let
+
+    actualMoney = $$(Ada.toInt) actualMoney'
 
     calcCommittedMoney :: [Commit] -> Cash -> Cash
     calcCommittedMoney [] r = r
@@ -544,7 +546,9 @@ discountFromPairList :: Q (TExp (
     -> Ada
     -> [Commit]
     -> Maybe [Commit]))
-discountFromPairList = [|| \ from (Slot currentBlockNumber) (Ada value) commits -> let
+discountFromPairList = [|| \ from (Slot currentBlockNumber) value' commits -> let
+    value = $$(Ada.toInt) value'
+
     infixr 3 &&
     (&&) = $$(PlutusTx.and)
 
@@ -599,10 +603,13 @@ evaluateContract = [|| \
     contractCreatorPK
     (Input inputCommand inputOracles _)
     blockHeight
-    (Ada scriptInValue)
-    (Ada scriptOutValue)
+    scriptInValue'
+    scriptOutValue'
     state
     contract -> let
+
+    scriptInValue  = $$(Ada.toInt) scriptInValue'
+    scriptOutValue = $$(Ada.toInt) scriptOutValue'
 
     Slot currentBlockNumber = blockHeight
 
@@ -679,7 +686,7 @@ evaluateContract = [|| \
                 && scriptOutValue == scriptInValue - pv
                 && signature `signedBy` to
             in  if isValid then let
-                in case $$(discountFromPairList) from blockHeight (Ada pv) commits of
+                in case $$(discountFromPairList) from blockHeight ($$(Ada.fromInt) pv) commits of
                     Just updatedCommits -> let
                         updatedState = State updatedCommits choices
                         in (updatedState, con, True)
@@ -806,7 +813,7 @@ validatorScript = [|| \
 
         -- Expected amount of money in TxOut Marlowe Contract
         scriptOutValue = case inputCommand of
-            SpendDeposit _ -> Ada 0
+            SpendDeposit _ -> $$(Ada.fromInt) 0
             _ -> let (PendingTxOut change
                         (Just (outputValidatorHash, DataScriptHash dataScriptHash)) DataTxOut : _) = pendingTxOutputs
                 {-  Check that TxOut is a valid continuation.

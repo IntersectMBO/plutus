@@ -22,10 +22,10 @@ import           Data.Maybe       (catMaybes)
 import qualified Data.Set         as Set
 import qualified Data.Text        as Text
 import           GHC.Generics     (Generic)
+import qualified Ledger.Ada       as Ada
 import           Ledger.Types     (Blockchain, PubKey, Tx, TxId, TxOutOf (TxOutOf), TxOutRef, TxOutRefOf (TxOutRefOf),
                                    TxOutType (PayToPubKey, PayToScript), getTxId, hashTx, out, txInRef, txInputs,
                                    txOutRefId, txOutRefs, txOutType, txOutValue, unspentOutputs)
-import qualified Ledger.Value     as Value
 
 -- | Owner of unspent funds
 data UtxOwner
@@ -111,7 +111,7 @@ txnFlows keys bc = catMaybes (utxoLinks ++ foldMap extract bc')
       pure FlowLink
             { flowLinkSource = sourceRef
             , flowLinkTarget = tgtRef
-            , flowLinkValue = fromIntegral $ Value.size $ txOutValue src
+            , flowLinkValue = fromIntegral $ Ada.fromValue $ txOutValue src
             , flowLinkOwner = owner knownKeys src
             , flowLinkSourceLoc = sourceLoc
             , flowLinkTargetLoc = tgtLoc

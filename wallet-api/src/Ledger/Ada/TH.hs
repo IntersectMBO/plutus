@@ -3,8 +3,8 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 module Ledger.Ada.TH(
-      Ada(..)
-    -- * Constructor
+      Ada
+    -- * Constructors
     , fromValue
     , fromInt
     , toValue
@@ -35,7 +35,12 @@ import qualified Language.PlutusTx.Prelude    as P
 import           Language.Haskell.TH          (Q, TExp)
 import           Prelude                      hiding (negate)
 
-import           Ledger.Value.TH              (Value(..))
+import           Ledger.Value.TH              (CurrencySymbol, Value)
+import qualified Ledger.Value.TH              as TH
+
+-- | The symbol of the Ada currency
+adaSymbol :: Q (TExp CurrencySymbol)
+adaSymbol = [|| $$(TH.currencySymbol) 0 ||]
 
 -- | ADA (special currency)
 --   See note [Currencies] in Ledger.Validation.Value.TH
@@ -49,10 +54,10 @@ newtype Ada = Ada { getAda :: Int }
 makeLift ''Ada
 
 toValue :: Q (TExp (Ada -> Value))
-toValue = [||  \(Ada i) -> Value i ||]
+toValue = [|| \(Ada i) -> $$(TH.singleton) $$(adaSymbol) i ||]
 
 fromValue :: Q (TExp (Value -> Ada))
-fromValue = [||  \(Value i) -> Ada i ||]
+fromValue = [||  \v -> Ada ($$(TH.valueOf) v $$(adaSymbol)) ||]
 
 toInt :: Q (TExp (Ada -> Int))
 toInt = [|| \(Ada i) -> i ||]
@@ -65,7 +70,7 @@ fromInt = [|| Ada ||]
 --   @adaValueOf == toValue . fromInt@
 --
 adaValueOf :: Q (TExp (Int -> Value))
-adaValueOf = [|| \i -> Value i ||]
+adaValueOf = [|| $$(TH.singleton) $$(adaSymbol) ||]
 
 plus :: Q (TExp (Ada -> Ada -> Ada))
 plus = [|| \(Ada a) (Ada b) -> Ada ($$(P.plus) a b)||]

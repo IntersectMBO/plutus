@@ -22,7 +22,7 @@ import           Test.Tasty.Hedgehog        (testProperty)
 import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 
-import qualified Ledger.Value               as V
+import qualified Ledger.Value               as Value
 import qualified Ledger.Ada                 as Ada
 import           Ledger
 import qualified Ledger.Index               as Index
@@ -61,6 +61,12 @@ tests = testGroup "all tests" [
     testGroup "intervals" [
         testProperty "member" intvlMember,
         testProperty "contains" intvlContains
+        ],
+    testGroup "values" [
+        testProperty "additive identity" valueAddIdentity,
+        testProperty "additive inverse" valueAddInverse,
+        testProperty "scalar identity" valueScalarIdentity,
+        testProperty "scalar distributivity" valueScalarDistrib
         ],
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
@@ -108,8 +114,8 @@ validFromTransaction = do
     -- Add some blocks so that the transaction is validated
     addBlocks 50 >>= traverse_ (walletsNotifyBlock [w1, w2])
     traverse_ (uncurry assertOwnFundsEq) [
-        (w1, initialBalance `V.minus` five),
-        (w2, initialBalance `V.plus` five)]
+        (w1, initialBalance `Value.minus` five),
+        (w2, initialBalance `Value.plus` five)]
 
 txnIndex :: Property
 txnIndex = property $ do
@@ -160,7 +166,7 @@ invalidScript = property $ do
     let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitData
     Hedgehog.annotateShow (scriptTxn)
     let outToSpend = (txOutRefs scriptTxn) !! index
-    let totalVal = txOutValue (fst outToSpend)
+    let totalVal = Ada.fromValue $ txOutValue (fst outToSpend)
 
     -- try and spend the script output
     invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer]) totalVal
@@ -195,17 +201,43 @@ splitVal = property $ do
     Hedgehog.assert $ sum vs == i
     Hedgehog.assert $ length vs <= n
 
+valueAddIdentity :: Property
+valueAddIdentity = property $ do
+    vl1 <- forAll Gen.genValue
+    Hedgehog.assert $ Value.eq vl1 (vl1 `Value.plus` Value.zero)
+    Hedgehog.assert $ Value.eq vl1 (Value.zero `Value.plus` vl1)
+
+valueAddInverse :: Property
+valueAddInverse = property $ do
+    vl1 <- forAll Gen.genValue
+    let vl1' = Value.negate vl1
+    Hedgehog.assert $ Value.eq Value.zero (vl1 `Value.plus` vl1')
+
+valueScalarIdentity :: Property
+valueScalarIdentity = property $ do
+    vl1 <- forAll Gen.genValue
+    Hedgehog.assert $ Value.eq vl1 (Value.scale 1 vl1)
+
+valueScalarDistrib :: Property
+valueScalarDistrib = property $ do
+    vl1 <- forAll Gen.genValue
+    vl2 <- forAll Gen.genValue
+    scalar <- forAll (Gen.int Range.linearBounded)
+    let r1 = Value.scale scalar (Value.plus vl1 vl2)
+        r2 = Value.plus (Value.scale scalar vl1) (Value.scale scalar vl2)
+    Hedgehog.assert $ Value.eq r1 r2
+
 selectCoinProp :: Property
 selectCoinProp = property $ do
-    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValue
-    target <- forAll Gen.genValue
+    inputs <- forAll $ zip [1..] <$> Gen.list (Range.linear 1 1000) Gen.genValueNonNegative
+    target <- forAll Gen.genValueNonNegative
     let result = runExcept (selectCoin inputs target)
-        sumValue = foldl' V.plus V.zero
+        sumValue = foldl' Value.plus Value.zero
     case result of
         Left _ ->
-            Hedgehog.assert $ (sumValue $ snd <$> inputs) `V.lt` target
+            Hedgehog.assert $ (sumValue $ snd <$> inputs) `Value.lt` target
         Right (ins, change) ->
-            Hedgehog.assert $ (sumValue $ snd <$> ins) `V.eq` (target `V.plus` change)
+            Hedgehog.assert $ (sumValue $ snd <$> ins) `Value.eq` (target `Value.plus` change)
 
 txnFlowsTest :: Property
 txnFlowsTest = property $ do
@@ -247,7 +279,7 @@ eventTrace = property $ do
             -- advance the clock to trigger `mkPayment`
             addBlocks 2 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
-            assertOwnFundsEq w (initialBalance `V.minus` Ada.adaValueOf 100)
+            assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 100)
 
     Hedgehog.assert $ isRight e
 
@@ -255,8 +287,8 @@ payToPubKeyScript2 :: Property
 payToPubKeyScript2 = property $ do
     let [w1, w2, w3] = Wallet <$> [1, 2, 3]
         updateAll = processPending >>= walletsNotifyBlock [w1, w2, w3]
-        payment1 = initialBalance `V.minus` Ada.adaValueOf 1
-        payment2 = initialBalance `V.plus` Ada.adaValueOf 1
+        payment1 = initialBalance `Value.minus` Ada.adaValueOf 1
+        payment2 = initialBalance `Value.plus` Ada.adaValueOf 1
     (e, _) <- forAll
         $ Gen.runTraceOn Gen.generatorModel
         $ do
@@ -318,7 +350,7 @@ watchFundsAtAddress = property $ do
             -- after 4 blocks, t2 should fire, triggering the second payment of 100
             addBlocks 3 >>= traverse_ (walletNotifyBlock w)
             void (processPending >>= walletNotifyBlock w)
-            assertOwnFundsEq w (initialBalance `V.minus` Ada.adaValueOf 200)
+            assertOwnFundsEq w (initialBalance `Value.minus` Ada.adaValueOf 200)
     
     Hedgehog.assert $ isRight e
 

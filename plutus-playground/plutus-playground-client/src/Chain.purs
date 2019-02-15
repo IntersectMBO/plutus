@@ -26,7 +26,7 @@ import Halogen.ECharts (EChartsEffects, echarts)
 import Halogen.HTML (ClassName(ClassName), br_, div, div_, h2_, slot', text)
 import Halogen.HTML.Events (input)
 import Halogen.HTML.Properties (class_)
-import Ledger.Value.TH (Value)
+import Ledger.Ada.TH (Ada)
 import Ledger.Types (TxIdOf(..))
 import Ledger.Interval (Slot(..))
 import Playground.API (EvaluationResult(EvaluationResult))
@@ -171,7 +171,7 @@ toEchartLink (FlowLink link) =
 balancesChartOptions ::
   forall m.
   Monad m
-  => Array (Tuple Wallet Value)
+  => Array (Tuple Wallet Ada)
   -> E.CommandsT ( series :: I
                  , grid :: I
                  , xAxis :: I
@@ -199,7 +199,7 @@ balancesChartOptions wallets = do
     axisLineStyle
   E.series do
     E.bar do
-      E.items $ map (snd >>> unwrap >>> _.getValue >>> Int.toNumber >>> E.numItem) wallets
+      E.items $ map (snd >>> unwrap >>> _.getAda >>> Int.toNumber >>> E.numItem) wallets
       E.itemStyle $ E.normal $ E.color lightPurple
   where
     axisLineStyle :: forall i. E.DSL (axisLine :: I, splitLine :: I | i) m
